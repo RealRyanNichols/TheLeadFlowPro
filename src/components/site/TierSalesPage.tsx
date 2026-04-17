@@ -33,7 +33,7 @@ export function TierSalesPage({ tier }: { tier: Tier }) {
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           <CheckoutButton
-            priceKey={tier.stripePriceEnv}
+            priceKey={tier.slug}
             variant="accent"
             className="text-base py-3 px-6"
           >
@@ -134,22 +134,24 @@ export function TierSalesPage({ tier }: { tier: Tier }) {
         </div>
       </section>
 
-      {/* TESTIMONIAL */}
-      <section className="container py-8 md:py-12 max-w-3xl mx-auto animate-fade-up">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 md:p-8">
-          <Quote className="h-8 w-8 text-cyan-300 mb-3" />
-          <blockquote className="text-lg md:text-xl text-white italic leading-relaxed">
-            “{tier.testimonial.quote}”
-          </blockquote>
-          <p className="mt-4 text-ink-300">
-            <span className="text-white font-semibold">{tier.testimonial.name}</span> ·{" "}
-            {tier.testimonial.business}
-          </p>
-          <p className="mt-1 text-xs text-ink-300">
-            Early-user feedback, shared with permission. Results not guaranteed.
-          </p>
-        </div>
-      </section>
+      {/* TESTIMONIAL — only render if a real one has been provided. No invented quotes. */}
+      {tier.testimonial && (
+        <section className="container py-8 md:py-12 max-w-3xl mx-auto animate-fade-up">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 md:p-8">
+            <Quote className="h-8 w-8 text-cyan-300 mb-3" />
+            <blockquote className="text-lg md:text-xl text-white italic leading-relaxed">
+              “{tier.testimonial.quote}”
+            </blockquote>
+            <p className="mt-4 text-ink-300">
+              <span className="text-white font-semibold">{tier.testimonial.name}</span> ·{" "}
+              {tier.testimonial.business}
+            </p>
+            <p className="mt-1 text-xs text-ink-300">
+              Shared with permission. Results not guaranteed.
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* FAQ */}
       <section className="container py-8 md:py-12 max-w-3xl mx-auto animate-fade-up">
@@ -183,7 +185,7 @@ export function TierSalesPage({ tier }: { tier: Tier }) {
         </p>
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
           <CheckoutButton
-            priceKey={tier.stripePriceEnv}
+            priceKey={tier.slug}
             variant="accent"
             className="text-base py-3 px-6"
           >
