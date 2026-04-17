@@ -205,14 +205,19 @@ function OnboardingFlow() {
       if (stepIdx < STEPS.length - 1) {
         setStepIdx(stepIdx + 1);
       } else {
-        // Last step. Even if we didn't hit the unlock threshold, force a session
-        // refresh so the JWT's brainCompleteness claim is current, then navigate.
-        // Without this, middleware reads the stale JWT (still 0) and bounces the
-        // user right back to /onboarding — making it look like nothing happened.
-        try {
-          await updateSession();
-        } catch { /* noop — navigation still proceeds */ }
-        router.push("/dashboard");
+        // Last step. Triple-belt-and-suspenders: the JWT cookie has to
+        // reflect the new brainCompleteness BEFORE middleware sees the
+        // /dashboard request, otherwise it bounces right back here.
+        //
+        // 1) useSession().update() asks next-auth to mint a fresh token
+        // 2) explicit /api/auth/session fetch forces the Set-Cookie to
+        //    land in the browser even if (1) only updated client cache
+        // 3) window.location.href does a HARD navigation — router.push()
+        //    has raced the cookie rotation in production and left users
+        //    stuck on question 9. Full reload removes the race entirely.
+        try { await updateSession(); } catch { /* noop */ }
+        try { await fetch("/api/auth/session", { credentials: "include", cache: "no-store" }); } catch { /* noop */ }
+        window.location.href = "/dashboard";
       }
     } catch (e: any) {
       setError(e.message || "Something went sideways. Try that again.");
