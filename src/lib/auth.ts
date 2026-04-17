@@ -75,13 +75,33 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // Fresh sign-in — capture the DB id on the token.
       if (user) token.id = (user as { id: string }).id;
+
+      // Keep a cached `hasProfile` flag on the token so middleware can gate
+      // the dashboard without a DB hit on every request. We refresh it on
+      // first issue and whenever the client calls session.update() (which
+      // ProfileCapture does right after the user saves their basics).
+      const needsProfileLookup =
+        token.id && (token.hasProfile === undefined || trigger === "update");
+      if (needsProfileLookup) {
+        const u = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { businessName: true }
+        });
+        token.hasProfile = !!u?.businessName?.trim();
+      }
       return token;
     },
     async session({ session, token }) {
-      if (session.user && token.id) {
-        (session.user as typeof session.user & { id: string }).id = token.id as string;
+      if (session.user) {
+        const su = session.user as typeof session.user & {
+          id?: string;
+          hasProfile?: boolean;
+        };
+        if (token.id) su.id = token.id as string;
+        su.hasProfile = !!token.hasProfile;
       }
       return session;
     }

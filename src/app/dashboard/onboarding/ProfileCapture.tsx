@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   User, Building2, Phone, Briefcase, Globe, ArrowRight, AlertCircle, Sparkles
 } from "lucide-react";
@@ -21,6 +22,7 @@ const INDUSTRY_SUGGESTIONS = [
 
 export function ProfileCapture({ initial }: { initial: InitialProfile }) {
   const router = useRouter();
+  const { update } = useSession();
   const [name, setName] = useState(initial.name || "");
   const [businessName, setBusinessName] = useState(initial.businessName || "");
   const [industry, setIndustry] = useState(initial.industry || "");
@@ -45,6 +47,9 @@ export function ProfileCapture({ initial }: { initial: InitialProfile }) {
         setSaving(false);
         return;
       }
+      // Force the JWT to re-read user.businessName so middleware stops
+      // redirecting this user back to onboarding on the next navigation.
+      await update();
       router.refresh();
     } catch {
       setError("Network hiccup. Try again in a sec.");

@@ -4,12 +4,12 @@ import { FunnelMark } from "./Logo";
 import { HeroTicker } from "./HeroTicker";
 
 const QUICK_TOOLS = [
-  { icon: BookOpen,  label: "Playbooks",  href: "/dashboard/playbooks" },
-  { icon: Inbox,     label: "Leads",      href: "/dashboard/leads" },
-  { icon: Bot,       label: "Chatbot",    href: "/dashboard/chatbot" },
-  { icon: Workflow,  label: "Automations",href: "/dashboard/automations" },
-  { icon: Sparkles,  label: "Insights",   href: "/dashboard/insights" },
-  { icon: QrCode,    label: "FlowCard",   href: "/dashboard/card" }
+  { icon: BookOpen,  label: "Playbooks",  href: "/preview/playbooks" },
+  { icon: Inbox,     label: "Leads",      href: "/preview/leads" },
+  { icon: Bot,       label: "Chatbot",    href: "/preview/chatbot" },
+  { icon: Workflow,  label: "Automations",href: "/preview/automations" },
+  { icon: Sparkles,  label: "Insights",   href: "/preview/insights" },
+  { icon: QrCode,    label: "FlowCard",   href: "/preview/card" }
 ];
 
 export function Hero() {
