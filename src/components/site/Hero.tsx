@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { PhoneCall, MessageSquare, Wallet, Inbox, Bot, Workflow, Sparkles, QrCode, Megaphone } from "lucide-react";
+import { PhoneCall, MessageSquare, Wallet, Inbox, Bot, Workflow, Sparkles, QrCode, BookOpen } from "lucide-react";
 import { FunnelMark } from "./Logo";
 
 const QUICK_TOOLS = [
+  { icon: BookOpen,  label: "Playbooks",  href: "/dashboard/playbooks" },
   { icon: Inbox,     label: "Leads",      href: "/dashboard/leads" },
   { icon: Bot,       label: "Chatbot",    href: "/dashboard/chatbot" },
   { icon: Workflow,  label: "Automations",href: "/dashboard/automations" },
   { icon: Sparkles,  label: "Insights",   href: "/dashboard/insights" },
-  { icon: Megaphone, label: "Ad copy",    href: "/dashboard/ad-copy" },
   { icon: QrCode,    label: "FlowCard",   href: "/dashboard/card" }
 ];
 

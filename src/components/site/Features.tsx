@@ -8,8 +8,8 @@ const FEATURES = [
   {
     icon: BookOpen,
     title: "Lead-Getting Playbooks",
-    body: "Step-by-step plays for getting new leads in your industry. We don't promise leads — we hand you the exact map to go find them.",
-    href: "/dashboard/insights"
+    body: "Step-by-step plays that branch based on what you actually do. Pick a move, confirm it, watch the next options rewrite themselves around your new reality.",
+    href: "/dashboard/playbooks"
   },
   {
     icon: Heart,

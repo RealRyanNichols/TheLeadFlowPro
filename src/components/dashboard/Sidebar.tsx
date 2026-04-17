@@ -4,13 +4,14 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard, Inbox, Bot, Megaphone, Target, Users,
-  Sparkles, FilmIcon, Settings, Lightbulb, Workflow, IdCard, Menu, X
+  Sparkles, FilmIcon, Settings, Lightbulb, Workflow, IdCard, Menu, X, BookOpen
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/dashboard",            label: "Overview",        icon: LayoutDashboard },
+  { href: "/dashboard/playbooks",  label: "Playbooks",       icon: BookOpen },
   { href: "/dashboard/leads",      label: "Lead Inbox",      icon: Inbox },
   { href: "/dashboard/chatbot",    label: "AI Chatbot",      icon: Bot },
   { href: "/dashboard/automations",label: "Automations",     icon: Workflow },

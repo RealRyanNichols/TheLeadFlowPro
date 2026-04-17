@@ -6,6 +6,7 @@ import { Logo } from "./Logo";
 
 const NAV = [
   { href: "/dashboard",            label: "Dashboard" },
+  { href: "/dashboard/playbooks",  label: "Playbooks" },
   { href: "/dashboard/leads",      label: "Lead inbox" },
   { href: "/dashboard/chatbot",    label: "AI chatbot" },
   { href: "/dashboard/automations",label: "Automations" },
