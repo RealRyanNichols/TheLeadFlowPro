@@ -8,9 +8,19 @@
 
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, ArrowLeft, Check, Sparkles, Lock } from "lucide-react";
+
+// Top-level export wraps the flow in Suspense because useSearchParams() bails
+// out of prerender without it under Next 14.
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <OnboardingFlow />
+    </Suspense>
+  );
+}
 
 type StepKind = "mcq" | "mcq-grid" | "text-short" | "text-long" | "state-picker";
 
@@ -132,7 +142,7 @@ const STEPS: Step[] = [
   },
 ];
 
-export default function OnboardingPage() {
+function OnboardingFlow() {
   const router = useRouter();
   const params = useSearchParams();
   const cameFromGate = params.get("why") === "profile_required";
