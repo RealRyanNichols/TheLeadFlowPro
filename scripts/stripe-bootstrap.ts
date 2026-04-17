@@ -17,7 +17,7 @@ if (!key) {
   process.exit(1);
 }
 
-const stripe = new Stripe(key, { apiVersion: "2024-12-18.acacia" });
+const stripe = new Stripe(key);
 
 const MODE = key.startsWith("sk_live_") ? "LIVE" : "TEST";
 
