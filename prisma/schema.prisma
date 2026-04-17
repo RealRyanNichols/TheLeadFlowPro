@@ -1,0 +1,510 @@
+// LeadFlow Pro — database schema
+// Postgres via Prisma. Free-tier friendly (Neon, Supabase, Railway).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth (NextAuth) ─────────────────────────────────────────────
+
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Core ───────────────────────────────────────────────────────
+
+enum PlanTier {
+  free
+  starter
+  growth
+  pro
+  agency
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  emailVerified DateTime?
+
+  plan          PlanTier  @default(free)
+  businessName  String?
+  industry      String?
+  phone         String?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts          Account[]
+  sessions          Session[]
+  socialAccounts    SocialAccount[]
+  leads             Lead[]
+  insights          Insight[]
+  nextMoves         NextMove[]
+  automations       Automation[]
+  chatbotThreads    ChatbotThread[]
+  adCopies          AdCopy[]
+  audienceReports   AudienceReport[]
+  mediaAssets       MediaAsset[]
+  toolRequests      ToolRequest[]
+  toolVotes         ToolRequestVote[]
+  flowCard          FlowCard?
+}
+
+// ─── Social platforms ───────────────────────────────────────────
+
+enum Platform {
+  instagram
+  tiktok
+  x
+  facebook
+  youtube
+  linkedin
+}
+
+model SocialAccount {
+  id          String   @id @default(cuid())
+  userId      String
+  platform    Platform
+  handle      String
+  displayName String?
+  followers   Int       @default(0)
+  following   Int       @default(0)
+  posts       Int       @default(0)
+  engagement  Float     @default(0)
+  // OAuth tokens (encrypted at rest in production)
+  accessToken  String?  @db.Text
+  refreshToken String?  @db.Text
+  expiresAt    DateTime?
+  connectedAt  DateTime @default(now())
+  lastSyncedAt DateTime?
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metricsDaily SocialMetricDaily[]
+
+  @@unique([userId, platform, handle])
+  @@index([userId])
+}
+
+model SocialMetricDaily {
+  id              String   @id @default(cuid())
+  socialAccountId String
+  date            DateTime @db.Date
+  followers       Int
+  engagement      Float
+  reach           Int       @default(0)
+  impressions     Int       @default(0)
+  topPostId       String?
+
+  socialAccount   SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([socialAccountId, date])
+}
+
+// ─── Leads (the core of the app) ────────────────────────────────
+
+enum LeadSource {
+  call
+  text
+  form
+  dm_instagram
+  dm_facebook
+  dm_tiktok
+  dm_x
+  email
+  ad_meta
+  ad_google
+  ad_tiktok
+  walk_in
+  referral
+  other
+}
+
+enum LeadStatus {
+  new
+  contacted
+  nurturing
+  qualified
+  booked
+  won
+  lost
+  unresponsive
+}
+
+model Lead {
+  id          String     @id @default(cuid())
+  userId      String
+  name        String?
+  email       String?
+  phone       String?
+  source      LeadSource
+  status      LeadStatus @default(new)
+  notes       String?    @db.Text
+  // free-form metadata: ad campaign id, form name, etc
+  meta        Json?
+  estValue    Float?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  lastContact DateTime?
+
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages    Message[]
+  threads     ChatbotThread[]
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+enum MessageDirection {
+  inbound
+  outbound
+}
+
+enum MessageChannel {
+  sms
+  email
+  call_log
+  chatbot
+  dm
+  note
+}
+
+model Message {
+  id        String           @id @default(cuid())
+  leadId    String
+  direction MessageDirection
+  channel   MessageChannel
+  body      String           @db.Text
+  mediaUrl  String?
+  // who sent it: human user, automation, chatbot
+  sentBy    String?
+  createdAt DateTime         @default(now())
+
+  lead      Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt])
+}
+
+// ─── AI Insights & Next Moves ───────────────────────────────────
+
+enum InsightKind {
+  strength
+  weakness
+  opportunity
+  risk
+  audience
+  ad_performance
+  weekly_summary
+}
+
+model Insight {
+  id          String      @id @default(cuid())
+  userId      String
+  kind        InsightKind
+  title       String
+  body        String      @db.Text
+  // 0–100 confidence
+  confidence  Int          @default(70)
+  // links the insight to a platform / source
+  source      String?
+  createdAt   DateTime    @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nextMoves   NextMove[]
+
+  @@index([userId, createdAt])
+}
+
+enum NextMoveKind {
+  send_message
+  post_content
+  run_ad
+  follow_up
+  call_back
+  configure_automation
+  upload_media
+  review_metric
+}
+
+enum NextMoveStatus {
+  suggested
+  in_progress
+  done
+  dismissed
+}
+
+/// The "Next Move" is the heart of LeadFlow Pro:
+/// AI surfaces actions, the USER decides + executes.
+/// Nothing fires automatically without the user's go.
+model NextMove {
+  id          String         @id @default(cuid())
+  userId      String
+  insightId   String?
+  kind        NextMoveKind
+  title       String
+  body        String         @db.Text
+  // 1 = highest priority, 5 = nice-to-have
+  priority    Int            @default(3)
+  status      NextMoveStatus @default(suggested)
+  dueAt       DateTime?
+  completedAt DateTime?
+  createdAt   DateTime       @default(now())
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  insight     Insight?       @relation(fields: [insightId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status, priority])
+}
+
+// ─── Automations & Chatbot ──────────────────────────────────────
+
+enum AutomationTrigger {
+  new_lead
+  missed_call
+  form_submit
+  dm_received
+  inactive_lead
+  appointment_booked
+  manual
+}
+
+enum AutomationStatus {
+  draft
+  active
+  paused
+}
+
+model Automation {
+  id          String            @id @default(cuid())
+  userId      String
+  name        String
+  trigger     AutomationTrigger
+  status      AutomationStatus  @default(draft)
+  // sequence of steps, each a JSON object: { delayMinutes, channel, template, mediaId? }
+  steps       Json
+  description String?           @db.Text
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+model ChatbotThread {
+  id          String    @id @default(cuid())
+  userId      String
+  leadId      String?
+  // where the chat is happening (website, instagram_dm, etc)
+  channel     String
+  // chatbot persona / script id
+  personaId   String?
+  // conversation as JSON array of {role, content, ts}
+  transcript  Json
+  closed      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lead        Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([userId, updatedAt])
+}
+
+// ─── Content tools ──────────────────────────────────────────────
+
+model AdCopy {
+  id          String   @id @default(cuid())
+  userId      String
+  platform    Platform
+  goal        String
+  audience    String?
+  hook        String   @db.Text
+  body        String   @db.Text
+  cta         String
+  variations  Json?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model AudienceReport {
+  id            String   @id @default(cuid())
+  userId        String
+  title         String
+  // structured findings: personas, channels, messaging
+  findings      Json
+  // human-readable summary
+  summary       String   @db.Text
+  generatedAt   DateTime @default(now())
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, generatedAt])
+}
+
+enum MediaKind {
+  video
+  gif
+  image
+  doc
+}
+
+/// Video + GIF library — the "send the right video at the right moment" tool.
+/// Users upload assets and tag them so they can drop them into nurture sequences,
+/// chatbot replies, or 1:1 messages.
+model MediaAsset {
+  id          String    @id @default(cuid())
+  userId      String
+  kind        MediaKind
+  title       String
+  url         String
+  thumbnail   String?
+  // tags like ["objection-handling", "intro", "thanks", "humor"]
+  tags        String[]
+  // suggested moments: "after first reply", "if no answer in 24h"
+  bestFor     String?
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, kind])
+}
+
+// ─── Tool Requests (community-driven feature pipeline + custom builds) ──
+
+enum ToolRequestStatus {
+  proposed       // user submitted, not yet reviewed
+  reviewing      // we are scoping
+  scoped         // we have a quote / plan
+  building       // currently being built
+  shipped_one    // built for the requester
+  shipped_all    // built and shipped to everyone
+  gifted         // built free for the requester
+  declined       // not feasible / out of scope
+}
+
+enum ToolRequestScope {
+  just_me        // build for this user only, custom price
+  all_users      // build into the platform for everyone
+  unsure         // we'll decide based on demand + cost
+}
+
+/// Users can request tools they wish existed. We respond with:
+///  - "yes, free for you"
+///  - "yes, $X one-time"
+///  - "yes, we'll add it for everyone (free or as part of plan)"
+///  - "no, here's why"
+///
+/// Other users can vote on requests so we know which ones to ship for everyone.
+/// We track our estimated platform cost (e.g. API calls, hosting) vs the
+/// potential revenue so the unit economics stay healthy.
+model ToolRequest {
+  id                String            @id @default(cuid())
+  userId            String
+  title             String
+  description       String            @db.Text
+  scope             ToolRequestScope  @default(unsure)
+  status            ToolRequestStatus @default(proposed)
+  // our team's response
+  reply             String?           @db.Text
+  // pricing & unit economics
+  quotedPriceUsd    Float?
+  estPlatformCostUsd Float?
+  // upvotes from other users
+  upvotes           Int               @default(0)
+  // when shipped, link to the feature/page
+  shippedUrl        String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  votes             ToolRequestVote[]
+
+  @@index([status, upvotes])
+  @@index([userId])
+}
+
+// ─── FlowCard (smart digital business card) ────────────────────
+
+/// Public-facing profile at /c/{slug}.
+/// Includes all socials, website, contact, QR code, and a "Follow All"
+/// button that opens every linked profile in a new tab so a viewer can
+/// follow them in seconds — no business card needed.
+model FlowCard {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  slug          String   @unique
+  displayName   String
+  tagline       String?
+  bio           String?  @db.Text
+  avatarUrl     String?
+  coverUrl      String?
+  // primary contact
+  phone         String?
+  email         String?
+  websiteUrl    String?
+  // theme accent — reuse our brand palette by default
+  themeAccent   String   @default("#23b8ff")
+  // visit + scan analytics
+  views         Int      @default(0)
+  qrScans       Int      @default(0)
+  followAllClicks Int    @default(0)
+  // ordered list of social links: [{ platform, url, label, order }]
+  links         Json
+  isPublished   Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ToolRequestVote {
+  id            String      @id @default(cuid())
+  toolRequestId String
+  userId        String
+  createdAt     DateTime    @default(now())
+
+  toolRequest   ToolRequest @relation(fields: [toolRequestId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([toolRequestId, userId])
+}
