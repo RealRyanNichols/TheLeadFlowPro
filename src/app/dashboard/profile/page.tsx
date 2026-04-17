@@ -5,7 +5,7 @@ import {
   CheckCircle2, Zap, Trophy, ArrowRight, Pencil
 } from "lucide-react";
 import { currentUser } from "@/lib/auth";
-import { MOCK_KPIS } from "@/lib/mock-data";
+import { prisma } from "@/lib/prisma";
 
 export const metadata = { title: "Profile — The LeadFlow Pro" };
 
@@ -38,6 +38,25 @@ export default async function ProfilePage() {
   const displayName = user.name?.trim() || user.email.split("@")[0];
   const initial = displayName.charAt(0).toUpperCase();
   const loc = locationLine(user.addressCity, user.addressState, user.addressZip);
+
+  // Real counts — start of month to now. Zero until the user runs leads.
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+  const [leadsThisMonth, wonLeads, allLeadsThisMonth] = await Promise.all([
+    prisma.lead.count({
+      where: { userId: user.id, createdAt: { gte: startOfMonth } }
+    }),
+    prisma.lead.count({
+      where: { userId: user.id, status: "won", createdAt: { gte: startOfMonth } }
+    }),
+    prisma.lead.count({
+      where: { userId: user.id, createdAt: { gte: startOfMonth } }
+    })
+  ]);
+  const conversionRate = allLeadsThisMonth > 0
+    ? Math.round((wonLeads / allLeadsThisMonth) * 100)
+    : 0;
 
   return (
     <div className="max-w-5xl space-y-6">
@@ -80,12 +99,12 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      {/* Stats row */}
+      {/* Stats row — real numbers, zero until the user does work. */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Stat label="Leads this month"    value={String(MOCK_KPIS.newLeadsThisMonth)} accent="cyan" />
-        <Stat label="Missed-call saves"   value={String(MOCK_KPIS.missedCallsRecovered)} accent="lead" />
-        <Stat label="Avg response (min)"  value={MOCK_KPIS.responseRateMinutes.toFixed(1)} accent="accent" />
-        <Stat label="Conversion rate"     value={`${(MOCK_KPIS.conversionRate * 100).toFixed(0)}%`} accent="cyan" />
+        <Stat label="Leads this month"  value={String(leadsThisMonth)}   accent="cyan" />
+        <Stat label="Won this month"    value={String(wonLeads)}         accent="lead" />
+        <Stat label="Avg response (min)" value="—"                       accent="accent" />
+        <Stat label="Conversion rate"   value={`${conversionRate}%`}     accent="cyan" />
       </div>
 
       <div className="grid gap-6 md:grid-cols-[1fr_18rem]">

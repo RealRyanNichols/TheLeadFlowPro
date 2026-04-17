@@ -10,9 +10,10 @@ export default async function OnboardingPage() {
   const user = await currentUser();
   if (!user) redirect("/login?callbackUrl=/dashboard/onboarding");
 
-  // Missing the basics → capture them first. Once they're in, the page
-  // server-renders again and falls through to the goal picker.
-  if (!user.businessName || !user.name) {
+  // Hasn't finished the questionnaire yet → show it. Signup pre-fills
+  // name + businessName, but industry/phone/website and the explicit
+  // "I agree this is my business" save are what flip onboardedAt.
+  if (!user.onboardedAt) {
     return (
       <ProfileCapture
         initial={{

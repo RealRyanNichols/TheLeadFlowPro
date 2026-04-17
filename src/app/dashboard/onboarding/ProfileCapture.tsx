@@ -39,7 +39,12 @@ export function ProfileCapture({ initial }: { initial: InitialProfile }) {
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, businessName, industry, phone, website })
+        body: JSON.stringify({
+          name, businessName, industry, phone, website,
+          // Flip the onboarded-at latch so middleware stops bouncing them
+          // back to the questionnaire on the next navigation.
+          onboardingComplete: true
+        })
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

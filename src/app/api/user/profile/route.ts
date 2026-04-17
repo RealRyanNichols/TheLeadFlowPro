@@ -21,7 +21,11 @@ const UpdateSchema = z.object({
   addressCity:   z.preprocess(emptyToNull, z.string().trim().max(80).nullable().optional()),
   addressState:  z.preprocess(emptyToNull, z.string().trim().max(40).nullable().optional()),
   addressZip:    z.preprocess(emptyToNull, z.string().trim().max(20).nullable().optional()),
-  notifPrefs:    z.record(z.boolean()).optional()
+  notifPrefs:    z.record(z.boolean()).optional(),
+  // ProfileCapture sends `onboardingComplete: true` after a successful save
+  // so the server can stamp `onboardedAt` and flip the dashboard gate.
+  // Settings saves don't send it, so this is a one-time latch.
+  onboardingComplete: z.boolean().optional()
 });
 
 export async function PATCH(req: NextRequest) {
@@ -40,14 +44,19 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
+  const { onboardingComplete, ...profileData } = parsed.data;
   const updated = await prisma.user.update({
     where: { id: userId },
-    data: parsed.data,
+    data: {
+      ...profileData,
+      // Latch onboardedAt once. Never reset it if the user edits later.
+      ...(onboardingComplete ? { onboardedAt: new Date() } : {})
+    },
     select: {
       id: true, name: true, businessName: true, industry: true, phone: true,
       website: true, replyToEmail: true, timezone: true, businessHours: true,
       addressStreet: true, addressCity: true, addressState: true, addressZip: true,
-      notifPrefs: true
+      notifPrefs: true, onboardedAt: true
     }
   });
 

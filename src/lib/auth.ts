@@ -88,9 +88,11 @@ export const authOptions: NextAuthOptions = {
       if (needsProfileLookup) {
         const u = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { businessName: true }
+          select: { onboardedAt: true }
         });
-        token.hasProfile = !!u?.businessName?.trim();
+        // Only "onboarded" once they've finished the questionnaire.
+        // Signup populates name + businessName, so those aren't enough.
+        token.hasProfile = !!u?.onboardedAt;
       }
       return token;
     },

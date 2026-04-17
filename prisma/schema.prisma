@@ -97,6 +97,12 @@ model User {
   aiActionsBonus Int      @default(0)
   smsBonus       Int      @default(0)
 
+  // Set the first time the user finishes the onboarding questionnaire
+  // (ProfileCapture → GoalPicker). Signup only collects name + business
+  // name, so this stays null until the user has actually answered the
+  // profile questions. Middleware gates /dashboard on this being set.
+  onboardedAt   DateTime?
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
