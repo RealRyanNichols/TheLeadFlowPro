@@ -75,7 +75,12 @@ export default function AdCopyPage() {
       </div>
 
       <div>
-        <h2 className="text-lg font-bold text-white mb-3">Recent generations</h2>
+        <h2 className="text-lg font-bold text-white mb-1">Example generations</h2>
+        <p className="text-xs text-ink-400 mb-3">
+          Three samples showing the hook / body / CTA structure. Hit
+          <span className="text-white"> Generate </span>
+          above to make your own — your history will replace these.
+        </p>
         <div className="grid gap-4 lg:grid-cols-3">
           {SAMPLE_ADS.map((a, i) => (
             <div key={i} className="glass rounded-2xl p-5 hover:border-cyan-500/30 transition flex flex-col">
