@@ -114,6 +114,43 @@ model User {
   toolRequests      ToolRequest[]
   toolVotes         ToolRequestVote[]
   flowCard          FlowCard?
+  brainProfile      BrainProfile?
+}
+
+// ─── Flo / Brain Profile ────────────────────────────────────────
+// The conversational onboarding gate. Every user must complete this
+// before ANY dashboard route unlocks. Middleware reads completeness
+// from the JWT and bounces sub-80 users back to /onboarding.
+
+model BrainProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Core slots filled by /onboarding (coach-voice conversational flow)
+  industry        String?
+  subIndustry     String?
+  city            String?
+  state           String?
+  teamSize        String?
+  avgCustomerValue String?
+  idealCustomer   String?  @db.Text
+  topFrustration  String?
+  topGoal90d      String?
+
+  // Progressive slots (filled over time, not required for launch)
+  voiceSample     String?  @db.Text
+  primaryChannels String[]
+  currentTools    String[]
+  weeklyHoursAvail Int?
+
+  // Meta
+  completeness    Int      @default(0)
+  questionsSeen   Int      @default(0)
+  lastPromptAt    DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 // ─── Social platforms ───────────────────────────────────────────
