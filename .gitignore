@@ -9,6 +9,7 @@ dist
 *.log
 .vercel
 .turbo
+tsconfig.tsbuildinfo
 prisma/dev.db
 prisma/dev.db-journal
 coverage
