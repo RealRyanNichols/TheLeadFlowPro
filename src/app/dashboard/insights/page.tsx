@@ -1,50 +1,53 @@
 import { Sparkles, TrendingUp, AlertTriangle, Lightbulb, ShieldAlert, Wand2 } from "lucide-react";
+import Link from "next/link";
 import { NextMoveCard } from "@/components/dashboard/NextMoveCard";
 import { MOCK_NEXT_MOVES } from "@/lib/mock-data";
 
-const INSIGHTS = [
+// Real insights derive from a user's real data. Until Flo has something
+// worth saying, we show the four kinds of insight she'll produce — labelled
+// as previews, not claims. No fabricated TikTok engagement numbers, no made-
+// up CPL drift, no invented confidence percentages.
+
+type InsightKind = "strength" | "weakness" | "opportunity" | "risk";
+
+const PREVIEWS: { kind: InsightKind; icon: any; title: string; body: string }[] = [
   {
     kind: "strength",
     icon: TrendingUp,
-    title: "TikTok cosmetic content is your secret weapon",
-    body: "Engagement on cosmetic-procedure posts is 8.7% (vs your 5.2% IG average). Your 3 highest-performing posts ever are all TikToks under 30 seconds.",
-    confidence: 92,
-    source: "TikTok analytics, last 30 days"
+    title: "What's working — Flo doubles down",
+    body: "Channels, posts, offers, or scripts outperforming your own average. Flo shows exactly why and how to pour more gas on it.",
   },
   {
     kind: "weakness",
     icon: AlertTriangle,
-    title: "You're slow on Instagram DMs",
-    body: "Average DM response time is 4h 12m. 38% of leads who DM you don't get a reply within 1 hour, and they're 2.4× more likely to never book.",
-    confidence: 88,
-    source: "Instagram DM data"
+    title: "What's leaking money — Flo flags early",
+    body: "Slow replies, dead funnels, quiet channels, ignored messages. Caught before they turn into lost leads.",
   },
   {
     kind: "opportunity",
     icon: Lightbulb,
-    title: "Saturday 6–8pm is your golden window",
-    body: "Your audience is online + idle on phones. You've never posted in this window — competitors that do are getting 3× the local saves.",
-    confidence: 81,
-    source: "Cross-platform engagement times"
+    title: "What you're missing — Flo finds quietly",
+    body: "Windows your audience is online that you're not posting in, lookalike customers you haven't targeted, offers you haven't tested.",
   },
   {
     kind: "risk",
     icon: ShieldAlert,
-    title: "Cost per lead drifting up on Meta",
-    body: "Last 14 days: $9.20 CPL vs $7.66 30-day avg. Likely creative fatigue — your top ad has been running 41 days.",
-    confidence: 85,
-    source: "Meta Ads Manager"
-  }
+    title: "What's drifting — Flo catches before it breaks",
+    body: "Rising cost per lead, creative fatigue, delivery issues, renewal dates. Named with the specific thing to do about it.",
+  },
 ];
 
-const KIND_STYLES: Record<string, string> = {
+const KIND_STYLES: Record<InsightKind, string> = {
   strength:    "from-lead-500 to-cyan-500",
   weakness:    "from-red-500 to-accent-500",
   opportunity: "from-cyan-500 to-brand-600",
-  risk:        "from-accent-500 to-red-500"
+  risk:        "from-accent-500 to-red-500",
 };
 
 export default function InsightsPage() {
+  const hasInsights = false; // wired to real insight engine in a later pass
+  const hasMoves = MOCK_NEXT_MOVES.length > 0;
+
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -54,45 +57,80 @@ export default function InsightsPage() {
             What's working. <span className="funnel-text">What's not.</span>
           </h1>
           <p className="mt-2 text-ink-300">
-            Claude reads your data daily and surfaces what changed, what to double down
+            Flo reads your data daily and surfaces what changed, what to double down
             on, and what to fix. You decide what to act on.
           </p>
         </div>
-        <button className="btn-primary text-sm py-2 px-3">
+        <button className="btn-primary text-sm py-2 px-3" disabled={!hasInsights}>
           <Wand2 className="h-4 w-4" /> Re-analyze now
         </button>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {INSIGHTS.map((i) => (
-          <div key={i.title} className="glass rounded-2xl p-5">
-            <div className="flex items-start gap-3">
-              <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${KIND_STYLES[i.kind]} flex items-center justify-center text-white shrink-0`}>
-                <i.icon className="h-5 w-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] uppercase tracking-wider text-ink-400 font-semibold">{i.kind}</span>
-                  <span className="text-[10px] text-ink-500">· {i.confidence}% confidence</span>
-                </div>
-                <h3 className="text-base font-bold text-white mt-1">{i.title}</h3>
-                <p className="text-sm text-ink-200 mt-2 leading-relaxed">{i.body}</p>
-                <p className="text-[11px] text-ink-500 mt-2">Source: {i.source}</p>
+      {!hasInsights && (
+        <div className="glass rounded-2xl p-6 border border-cyan-400/20">
+          <div className="flex items-start gap-4">
+            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-cyan-500 to-accent-500 flex items-center justify-center text-white shrink-0">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg font-bold text-white">
+                Flo is ready — she just needs your data
+              </h2>
+              <p className="mt-1 text-sm text-ink-200">
+                Connect one or more sources (ads, social, calls, leads) and Flo will
+                start surfacing insights the moment there's a pattern worth showing.
+                Real numbers only — no invented stats.
+              </p>
+              <div className="mt-4 flex gap-2 flex-wrap">
+                <Link href="/dashboard/settings" className="btn-primary text-xs py-2 px-3">
+                  Connect integrations
+                </Link>
+                <Link href="/dashboard/leads" className="btn-ghost text-xs py-2 px-3">
+                  Import existing leads
+                </Link>
               </div>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
+      {/* Preview of what insights look like */}
       <div>
-        <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-cyan-400" />
-          Next moves Claude recommends
+        <h2 className="text-lg font-bold text-white mb-3">
+          The four kinds of insight Flo produces
         </h2>
         <div className="grid gap-4 lg:grid-cols-2">
-          {MOCK_NEXT_MOVES.map((m) => <NextMoveCard key={m.id} move={m} />)}
+          {PREVIEWS.map((i) => (
+            <div key={i.title} className="rounded-2xl border border-dashed border-white/10 p-5">
+              <div className="flex items-start gap-3">
+                <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${KIND_STYLES[i.kind]} flex items-center justify-center text-white shrink-0 opacity-80`}>
+                  <i.icon className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] uppercase tracking-wider text-ink-400 font-semibold">{i.kind}</span>
+                    <span className="text-[10px] text-ink-500">· preview</span>
+                  </div>
+                  <h3 className="text-base font-bold text-white mt-1">{i.title}</h3>
+                  <p className="text-sm text-ink-300 mt-2 leading-relaxed">{i.body}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
+
+      {hasMoves && (
+        <div>
+          <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-cyan-400" />
+            Next moves Flo recommends
+          </h2>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {MOCK_NEXT_MOVES.map((m) => <NextMoveCard key={m.id} move={m} />)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
