@@ -22,9 +22,9 @@ export default function MediaPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Assets in library" value={MOCK_MEDIA.length.toString()} />
-        <StatCard label="Sends this month"  value="186" delta={42} highlight />
-        <StatCard label="Reply rate (with media)" value="64%" sub="vs 22% text-only" delta={42} />
+        <StatCard label="Assets in library" value={MOCK_MEDIA.length.toString()} sub="Videos, GIFs, and images you upload" />
+        <StatCard label="Sends this month"  value="0" sub="Counts each time you send one to a lead" highlight />
+        <StatCard label="Reply rate (with media)" value="—" sub="Measured once you send 10+ media replies" />
       </div>
 
       <div>
@@ -40,47 +40,58 @@ export default function MediaPage() {
             ))}
           </div>
         </div>
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {MOCK_MEDIA.map((m) => (
-            <div key={m.id} className="glass rounded-2xl overflow-hidden hover:border-cyan-500/30 transition group">
-              <div className="aspect-video bg-gradient-to-br from-brand-700 to-ink-900 flex items-center justify-center relative">
-                {m.kind === "video" ? (
-                  <Play className="h-10 w-10 text-white/80 group-hover:scale-110 transition" />
-                ) : (
-                  <ImageIcon className="h-10 w-10 text-white/80" />
-                )}
-                <span className="absolute top-2 left-2 stat-pill bg-ink-950/80 text-cyan-300 border border-white/10 text-[10px] uppercase">
-                  {m.kind}
-                </span>
-              </div>
-              <div className="p-3">
-                <p className="text-sm font-semibold text-white truncate">{m.title}</p>
-                <p className="text-[11px] text-ink-300 mt-1 line-clamp-2">{m.bestFor}</p>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {m.tags.slice(0, 2).map((t) => (
-                    <span key={t} className="stat-pill bg-white/5 border border-white/10 text-[10px]">
-                      <Tag className="h-2.5 w-2.5" /> {t}
-                    </span>
-                  ))}
+        {MOCK_MEDIA.length > 0 ? (
+          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {MOCK_MEDIA.map((m) => (
+              <div key={m.id} className="glass rounded-2xl overflow-hidden hover:border-cyan-500/30 transition group">
+                <div className="aspect-video bg-gradient-to-br from-brand-700 to-ink-900 flex items-center justify-center relative">
+                  {m.kind === "video" ? (
+                    <Play className="h-10 w-10 text-white/80 group-hover:scale-110 transition" />
+                  ) : (
+                    <ImageIcon className="h-10 w-10 text-white/80" />
+                  )}
+                  <span className="absolute top-2 left-2 stat-pill bg-ink-950/80 text-cyan-300 border border-white/10 text-[10px] uppercase">
+                    {m.kind}
+                  </span>
+                </div>
+                <div className="p-3">
+                  <p className="text-sm font-semibold text-white truncate">{m.title}</p>
+                  <p className="text-[11px] text-ink-300 mt-1 line-clamp-2">{m.bestFor}</p>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {m.tags.slice(0, 2).map((t) => (
+                      <span key={t} className="stat-pill bg-white/5 border border-white/10 text-[10px]">
+                        <Tag className="h-2.5 w-2.5" /> {t}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center">
+            <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto">
+              <ImageIcon className="h-5 w-5 text-ink-400" />
             </div>
-          ))}
-        </div>
+            <p className="mt-3 text-sm text-white font-semibold">Your library is empty</p>
+            <p className="mt-1 text-xs text-ink-300 max-w-md mx-auto">
+              Upload your first video or GIF to start building the library. Flo will tag
+              it by purpose and suggest when to send it — so leads get the right message
+              at the right moment.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="glass rounded-2xl p-5 sm:p-6 flex items-start gap-4">
         <Sparkles className="h-5 w-5 text-accent-400 shrink-0 mt-1" />
         <div>
-          <h3 className="text-base font-bold text-white">AI suggestion</h3>
+          <h3 className="text-base font-bold text-white">Flo's suggestion</h3>
           <p className="text-sm text-ink-200 mt-1">
-            You don't have a "Why I started this practice" video yet. Leads who get this
-            one in the first 48 hours are 3.2× more likely to book. Record one in 60s and
-            we'll tag and slot it into your nurture sequence.
+            Once you've uploaded a few assets, Flo will point out which clip each lead
+            should get next — a first-48-hour intro video, a "why I do this" story, a
+            pricing walkthrough, a "we want you here" GIF for stalled nurtures.
           </p>
-          <button className="btn-accent text-xs py-2 px-3 mt-3">
-            Show me the script
-          </button>
         </div>
       </div>
     </div>
