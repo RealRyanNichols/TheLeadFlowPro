@@ -4,9 +4,10 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import {
-  ArrowRight, Mail, Lock, User, Building2, Chrome, AlertCircle, CheckCircle2
+  ArrowRight, Mail, Lock, User, Building2, AlertCircle, CheckCircle2
 } from "lucide-react";
 import { Logo, FunnelMark } from "@/components/site/Logo";
+import { SocialButtons } from "@/components/auth/SocialButtons";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -160,12 +161,7 @@ export default function SignupPage() {
               <div className="flex-1 h-px bg-white/10" />
             </div>
 
-            <button
-              onClick={() => signIn("google", { callbackUrl: "/dashboard/onboarding" })}
-              className="btn-ghost w-full text-sm py-2.5 justify-center"
-            >
-              <Chrome className="h-4 w-4" /> Sign up with Google
-            </button>
+            <SocialButtons callbackUrl="/dashboard/onboarding" />
 
             <p className="mt-6 text-sm text-ink-300 text-center">
               Already have an account?{" "}

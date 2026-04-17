@@ -2,12 +2,18 @@ import type { NextAuthOptions } from "next-auth";
 import { getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import FacebookProvider from "next-auth/providers/facebook";
+import TwitterProvider from "next-auth/providers/twitter";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
 
-const googleId = process.env.GOOGLE_CLIENT_ID;
-const googleSecret = process.env.GOOGLE_CLIENT_SECRET;
+const googleId   = process.env.GOOGLE_CLIENT_ID;
+const googleKey  = process.env.GOOGLE_CLIENT_SECRET;
+const fbId       = process.env.FACEBOOK_CLIENT_ID;
+const fbKey      = process.env.FACEBOOK_CLIENT_SECRET;
+const twitterId  = process.env.TWITTER_CLIENT_ID;
+const twitterKey = process.env.TWITTER_CLIENT_SECRET;
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -18,8 +24,29 @@ export const authOptions: NextAuthOptions = {
     newUser: "/dashboard/onboarding"
   },
   providers: [
-    ...(googleId && googleSecret
-      ? [GoogleProvider({ clientId: googleId, clientSecret: googleSecret })]
+    // OAuth providers are registered only when credentials are present, so
+    // local/preview builds work without every secret being set.
+    ...(googleId && googleKey
+      ? [GoogleProvider({
+          clientId: googleId,
+          clientSecret: googleKey,
+          allowDangerousEmailAccountLinking: true
+        })]
+      : []),
+    ...(fbId && fbKey
+      ? [FacebookProvider({
+          clientId: fbId,
+          clientSecret: fbKey,
+          allowDangerousEmailAccountLinking: true
+        })]
+      : []),
+    ...(twitterId && twitterKey
+      ? [TwitterProvider({
+          clientId: twitterId,
+          clientSecret: twitterKey,
+          version: "2.0",
+          allowDangerousEmailAccountLinking: true
+        })]
       : []),
     CredentialsProvider({
       name: "Email + password",

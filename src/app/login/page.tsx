@@ -3,8 +3,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Suspense, useState } from "react";
-import { ArrowRight, Mail, Lock, Chrome, AlertCircle } from "lucide-react";
+import { ArrowRight, Mail, Lock, AlertCircle } from "lucide-react";
 import { Logo, FunnelMark } from "@/components/site/Logo";
+import { SocialButtons } from "@/components/auth/SocialButtons";
 
 export default function LoginPage() {
   return (
@@ -115,12 +116,7 @@ function LoginInner() {
               <div className="flex-1 h-px bg-white/10" />
             </div>
 
-            <button
-              onClick={() => signIn("google", { callbackUrl: next })}
-              className="btn-ghost w-full text-sm py-2.5 justify-center"
-            >
-              <Chrome className="h-4 w-4" /> Continue with Google
-            </button>
+            <SocialButtons callbackUrl={next} />
 
             <p className="mt-6 text-sm text-ink-300 text-center">
               New here?{" "}
