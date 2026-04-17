@@ -35,12 +35,13 @@ export default function SignupPage() {
       return;
     }
 
-    // Sign them in right away so they land in the dashboard.
+    // Sign them in, then drop them at Flo's conversational profile builder.
+    // No tool unlocks until the BrainProfile hits 80% completeness.
     const signInRes = await signIn("credentials", {
       email,
       password,
       redirect: false,
-      callbackUrl: "/dashboard/onboarding"
+      callbackUrl: "/onboarding"
     });
     if (!signInRes || signInRes.error) {
       setError("Account created, but auto-login failed. Try logging in manually.");
@@ -48,7 +49,7 @@ export default function SignupPage() {
       router.push("/login");
       return;
     }
-    router.push(signInRes.url || "/dashboard/onboarding");
+    router.push(signInRes.url || "/onboarding");
   }
 
   return (
@@ -161,7 +162,7 @@ export default function SignupPage() {
               <div className="flex-1 h-px bg-white/10" />
             </div>
 
-            <SocialButtons callbackUrl="/dashboard/onboarding" />
+            <SocialButtons callbackUrl="/onboarding" />
 
             <p className="mt-6 text-sm text-ink-300 text-center">
               Already have an account?{" "}
@@ -184,7 +185,7 @@ export default function SignupPage() {
               Stop missing leads. <span className="funnel-text">Start closing them.</span>
             </h2>
             <p className="mt-4 text-sm text-ink-200 max-w-sm">
-              Every call, text, form, and DM in one place. AI tells you what to do next. You decide. You close.
+              Every call, text, form, and DM in one place. Flo tells you what to do next. You decide. You close.
             </p>
           </div>
         </aside>
