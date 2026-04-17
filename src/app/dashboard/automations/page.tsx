@@ -29,41 +29,53 @@ export default function AutomationsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Active automations" value="2" />
-        <StatCard label="Runs this month"    value="74" delta={18.6} />
-        <StatCard label="Leads recovered"    value="21" delta={42.0} highlight />
+        <StatCard label="Active automations" value={MOCK_AUTOMATIONS.filter(a => a.status === "active").length.toString()} sub="Grows with each one you turn on" />
+        <StatCard label="Runs this month"    value={MOCK_AUTOMATIONS.reduce((s,a) => s+a.runsThisMonth,0).toString()} sub="Counts each time an automation fires" />
+        <StatCard label="Leads recovered"    value={MOCK_AUTOMATIONS.reduce((s,a) => s+a.leadsRecovered,0).toString()} sub="Saved by auto follow-up" highlight />
       </div>
 
       {/* user's automations */}
       <div>
         <h2 className="text-lg font-bold text-white mb-3">Your automations</h2>
-        <div className="space-y-3">
-          {MOCK_AUTOMATIONS.map((a) => (
-            <div key={a.id} className="glass rounded-2xl p-4 sm:p-5 flex items-start gap-4 flex-wrap sm:flex-nowrap">
-              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-cyan-500 to-brand-600 flex items-center justify-center text-white shrink-0">
-                <Workflow className="h-5 w-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-base font-bold text-white">{a.name}</h3>
-                  <StatusBadge status={a.status} />
+        {MOCK_AUTOMATIONS.length > 0 ? (
+          <div className="space-y-3">
+            {MOCK_AUTOMATIONS.map((a) => (
+              <div key={a.id} className="glass rounded-2xl p-4 sm:p-5 flex items-start gap-4 flex-wrap sm:flex-nowrap">
+                <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-cyan-500 to-brand-600 flex items-center justify-center text-white shrink-0">
+                  <Workflow className="h-5 w-5" />
                 </div>
-                <p className="text-xs text-ink-400 mt-1">Trigger: {a.trigger.replace(/_/g, " ")}</p>
-                <p className="text-xs text-ink-300 mt-2">
-                  {a.runsThisMonth} runs this month · {a.leadsRecovered} leads recovered
-                </p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base font-bold text-white">{a.name}</h3>
+                    <StatusBadge status={a.status} />
+                  </div>
+                  <p className="text-xs text-ink-400 mt-1">Trigger: {a.trigger.replace(/_/g, " ")}</p>
+                  <p className="text-xs text-ink-300 mt-2">
+                    {a.runsThisMonth} runs this month · {a.leadsRecovered} leads recovered
+                  </p>
+                </div>
+                <div className="flex gap-2 shrink-0 w-full sm:w-auto">
+                  <button className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial">Edit</button>
+                  <button className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial">
+                    {a.status === "active" ? <><PauseCircle className="h-3.5 w-3.5" /> Pause</> :
+                     a.status === "draft"  ? <><PlayCircle  className="h-3.5 w-3.5" /> Activate</> :
+                                              <><PlayCircle  className="h-3.5 w-3.5" /> Resume</>}
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-2 shrink-0 w-full sm:w-auto">
-                <button className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial">Edit</button>
-                <button className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial">
-                  {a.status === "active" ? <><PauseCircle className="h-3.5 w-3.5" /> Pause</> :
-                   a.status === "draft"  ? <><PlayCircle  className="h-3.5 w-3.5" /> Activate</> :
-                                            <><PlayCircle  className="h-3.5 w-3.5" /> Resume</>}
-                </button>
-              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-white/10 p-6 text-center">
+            <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto">
+              <Workflow className="h-5 w-5 text-ink-400" />
             </div>
-          ))}
-        </div>
+            <p className="mt-3 text-sm text-white font-semibold">No automations yet</p>
+            <p className="mt-1 text-xs text-ink-300 max-w-sm mx-auto">
+              Start from a template below or hit <span className="text-white">New automation</span> to build one from scratch.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* templates */}
