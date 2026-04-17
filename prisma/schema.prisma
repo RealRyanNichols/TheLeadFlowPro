@@ -63,10 +63,39 @@ model User {
   image         String?
   emailVerified DateTime?
 
+  // Credentials provider (email + password) — hashed with scrypt.
+  // Null for users who only sign in via OAuth (Google, etc).
+  passwordHash  String?
+
   plan          PlanTier  @default(free)
   businessName  String?
   industry      String?
   phone         String?
+  website       String?
+  replyToEmail  String?
+  timezone      String?   @default("America/Chicago")
+  businessHours String?
+  addressStreet String?
+  addressCity   String?
+  addressState  String?
+  addressZip    String?
+  // Notification preferences — a single JSON object keyed by event name.
+  // See src/lib/notif-prefs.ts for the shape.
+  notifPrefs    Json?
+
+  // Stripe linkage — set on signup (customer) and updated by webhook
+  // whenever a subscription or one-time booster is purchased.
+  stripeCustomerId        String?  @unique
+  stripeSubscriptionId    String?  @unique
+  stripePriceId           String?
+  stripeCurrentPeriodEnd  DateTime?
+
+  // Usage counters — reset by the monthly renewal webhook.
+  aiActionsUsed Int       @default(0)
+  smsUsed       Int       @default(0)
+  // Booster credits that stack on top of the plan's monthly allotment.
+  aiActionsBonus Int      @default(0)
+  smsBonus       Int      @default(0)
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

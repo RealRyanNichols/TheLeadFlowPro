@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import {
   CheckCircle2, Zap, CreditCard, Receipt, Gauge, ArrowRight, Sparkles
 } from "lucide-react";
@@ -24,6 +25,14 @@ const INVOICES = [
 ];
 
 export default function BillingPage() {
+  return (
+    <Suspense fallback={null}>
+      <BillingInner />
+    </Suspense>
+  );
+}
+
+function BillingInner() {
   const search = useSearchParams();
   const checkout = search.get("checkout");
   const item = search.get("item");

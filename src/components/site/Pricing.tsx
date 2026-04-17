@@ -60,7 +60,7 @@ export function Pricing() {
 
               <div className="mt-6">
                 {plan.priceMonthly === 0 ? (
-                  <Link href="/dashboard" className="btn-ghost text-sm py-2.5 w-full">
+                  <Link href="/signup" className="btn-ghost text-sm py-2.5 w-full">
                     Start free
                   </Link>
                 ) : (

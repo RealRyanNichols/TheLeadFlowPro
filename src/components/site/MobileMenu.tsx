@@ -71,11 +71,18 @@ export function MobileMenu() {
             </nav>
             <div className="mt-auto pt-4 space-y-2">
               <Link
-                href="/dashboard"
+                href="/signup"
                 onClick={() => setOpen(false)}
-                className="btn-accent w-full text-sm py-2.5"
+                className="btn-accent w-full text-sm py-2.5 justify-center"
               >
-                Open the app
+                Start free
+              </Link>
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="btn-ghost w-full text-sm py-2.5 justify-center"
+              >
+                Log in
               </Link>
             </div>
           </div>

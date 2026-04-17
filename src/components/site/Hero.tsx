@@ -34,8 +34,8 @@ export function Hero() {
 
         {/* Top-of-page CTAs — interact immediately, no scroll required */}
         <div className="mt-4 md:mt-5 flex flex-wrap justify-center gap-2 md:gap-3 animate-fade-up">
-          <Link href="/dashboard" className="btn-accent text-sm py-2.5 px-4">
-            Start free — explore the dashboard
+          <Link href="/signup" className="btn-accent text-sm py-2.5 px-4">
+            Start free — no card needed
           </Link>
           <Link href="#features" className="btn-ghost text-sm py-2.5 px-4">
             See every tool
@@ -83,7 +83,7 @@ export function Hero() {
         </p>
 
         <div className="mt-5 md:mt-8 flex flex-wrap justify-center gap-3 animate-fade-up">
-          <Link href="/dashboard" className="btn-accent text-base">
+          <Link href="/signup" className="btn-accent text-base">
             Start free — no card needed
           </Link>
           <Link href="#how" className="btn-ghost text-base">

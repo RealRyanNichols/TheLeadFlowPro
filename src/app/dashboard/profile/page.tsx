@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   User, Mail, Phone, MapPin, Building2, Globe, Calendar,
-  CheckCircle2, Zap, Trophy, ArrowRight, Camera, Pencil
+  CheckCircle2, Zap, Trophy, ArrowRight, Pencil
 } from "lucide-react";
-import { MOCK_USER, MOCK_KPIS } from "@/lib/mock-data";
+import { currentUser } from "@/lib/auth";
+import { MOCK_KPIS } from "@/lib/mock-data";
 
 export const metadata = { title: "Profile — The LeadFlow Pro" };
 
@@ -16,12 +18,30 @@ const ACTIVITY = [
 ];
 
 const BADGES = [
-  { icon: Trophy, label: "First close",    hint: "You closed Anthony Diaz" },
-  { icon: Zap,    label: "Fast responder", hint: "Avg reply under 2 min this week" },
-  { icon: CheckCircle2, label: "5 playbooks run", hint: "Keep picking next moves" }
+  { icon: Trophy, label: "First close",    hint: "Close your first lead to unlock" },
+  { icon: Zap,    label: "Fast responder", hint: "Reply under 2 min to unlock" },
+  { icon: CheckCircle2, label: "5 playbooks run", hint: "Run 5 playbooks to unlock" }
 ];
 
-export default function ProfilePage() {
+function memberSince(date?: Date | null): string {
+  if (!date) return "New member";
+  return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(date);
+}
+
+function locationLine(city?: string | null, state?: string | null, zip?: string | null): string {
+  const parts = [city, state].filter(Boolean).join(", ");
+  if (parts && zip) return `${parts} ${zip}`;
+  return parts || zip || "";
+}
+
+export default async function ProfilePage() {
+  const user = await currentUser();
+  if (!user) redirect("/login?callbackUrl=/dashboard/profile");
+
+  const displayName = user.name?.trim() || user.email.split("@")[0];
+  const initial = displayName.charAt(0).toUpperCase();
+  const loc = locationLine(user.addressCity, user.addressState, user.addressZip);
+
   return (
     <div className="max-w-5xl space-y-6">
       {/* Header card */}
@@ -30,28 +50,26 @@ export default function ProfilePage() {
         <div className="flex items-start gap-4 flex-wrap">
           <div className="relative shrink-0">
             <span className="h-16 w-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-accent-500 flex items-center justify-center text-2xl font-extrabold text-ink-950">
-              {MOCK_USER.name.charAt(0)}
+              {initial}
             </span>
-            <button
-              aria-label="Change photo"
-              className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-ink-950 border border-white/20 flex items-center justify-center text-ink-200 hover:text-white"
-            >
-              <Camera className="h-3.5 w-3.5" />
-            </button>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl sm:text-3xl font-bold text-white">{MOCK_USER.name}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">{displayName}</h1>
               <span className="stat-pill bg-lead-500/15 text-lead-400 border border-lead-500/30 text-[11px]">
                 <CheckCircle2 className="h-3 w-3" /> Active
               </span>
               <span className="stat-pill bg-accent-500/15 text-accent-400 border border-accent-500/30 text-[11px] capitalize">
-                {MOCK_USER.plan} plan
+                {user.plan} plan
               </span>
             </div>
-            <p className="text-sm text-ink-300 mt-1">{MOCK_USER.businessName} · {MOCK_USER.industry}</p>
+            <p className="text-sm text-ink-300 mt-1">
+              {user.businessName || "Your business"}
+              {user.industry ? ` · ${user.industry}` : ""}
+            </p>
             <p className="text-xs text-ink-400 mt-0.5">
-              Member since April 2026 · Longview, TX
+              Member since {memberSince(user.createdAt)}
+              {loc ? ` · ${loc}` : ""}
             </p>
           </div>
           <div className="flex gap-2">
@@ -77,16 +95,16 @@ export default function ProfilePage() {
         {/* LEFT — details */}
         <div className="space-y-6 min-w-0">
           <Section title="Contact">
-            <Row icon={Mail}     label="Email" value="ryan@theleadflowpro.com" />
-            <Row icon={Phone}    label="Phone" value="+1 (903) 555-0100" />
-            <Row icon={MapPin}   label="Location" value="Longview, TX 75601" />
-            <Row icon={Globe}    label="Website" value="www.theleadflowpro.com" />
+            <Row icon={Mail}     label="Email" value={user.replyToEmail || user.email} />
+            <Row icon={Phone}    label="Phone" value={user.phone || "—"} />
+            <Row icon={MapPin}   label="Location" value={loc || "—"} />
+            <Row icon={Globe}    label="Website" value={user.website || "—"} />
           </Section>
 
           <Section title="Business">
-            <Row icon={Building2} label="Business name" value={MOCK_USER.businessName} />
-            <Row icon={User}      label="Industry"      value={MOCK_USER.industry} />
-            <Row icon={Calendar}  label="Timezone"      value="America/Chicago" />
+            <Row icon={Building2} label="Business name" value={user.businessName || "—"} />
+            <Row icon={User}      label="Industry"      value={user.industry || "—"} />
+            <Row icon={Calendar}  label="Timezone"      value={user.timezone || "America/Chicago"} />
           </Section>
 
           <Section title="Recent activity">
