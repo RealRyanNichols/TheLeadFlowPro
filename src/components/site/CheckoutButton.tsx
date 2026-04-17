@@ -26,11 +26,17 @@ export function CheckoutButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key: priceKey })
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      // Not signed in? Send them to signup, then come back to billing.
+      if (res.status === 401) {
+        const next = data.redirect || `/signup?callbackUrl=${encodeURIComponent("/dashboard/billing")}`;
+        window.location.href = next;
+        return;
+      }
       if (!res.ok || !data.url) throw new Error(data.error || "Checkout failed");
       window.location.href = data.url;
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Checkout failed");
       setLoading(false);
     }
   }

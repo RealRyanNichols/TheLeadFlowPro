@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe, priceIdFor, type StripePriceKey } from "@/lib/stripe";
 import { PLANS, BOOSTERS } from "@/lib/pricing";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
@@ -19,18 +21,62 @@ export async function POST(req: NextRequest) {
 
     const origin = req.headers.get("origin") || process.env.NEXTAUTH_URL || "https://www.theleadflowpro.com";
 
-    const session = await stripe().checkout.sessions.create({
+    // Look up the signed-in user so every checkout is tied to their account.
+    // Unauth visitors get bounced to signup — we never want an orphan payment.
+    const session = await auth();
+    const userId = (session?.user as { id?: string } | undefined)?.id;
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Please sign in before upgrading.", redirect: `/signup?next=/dashboard/billing` },
+        { status: 401 }
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, stripeCustomerId: true }
+    });
+    if (!user) {
+      return NextResponse.json({ error: "Account not found" }, { status: 404 });
+    }
+
+    // Make sure every user has a Stripe customer attached. Normally signup
+    // creates one, but older rows or OAuth-first signups may not.
+    let customerId = user.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe().customers.create({
+        email: user.email,
+        metadata: { app: "leadflowpro", userId: user.id }
+      });
+      customerId = customer.id;
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { stripeCustomerId: customerId }
+      });
+    }
+
+    const checkout = await stripe().checkout.sessions.create({
       mode: isSubscription ? "subscription" : "payment",
+      customer: customerId,
       line_items: [{ price: priceIdFor(key), quantity: 1 }],
       success_url: `${origin}/dashboard/billing?checkout=success&item=${key}`,
       cancel_url:  `${origin}/dashboard/billing?checkout=cancel`,
       allow_promotion_codes: true,
       billing_address_collection: "auto",
-      metadata: { key, kind: isSubscription ? "plan" : "booster" }
+      client_reference_id: user.id,
+      metadata: {
+        userId: user.id,
+        key,
+        kind: isSubscription ? "plan" : "booster"
+      },
+      ...(isSubscription
+        ? { subscription_data: { metadata: { userId: user.id, key } } }
+        : { payment_intent_data: { metadata: { userId: user.id, key, kind: "booster" } } })
     });
 
-    return NextResponse.json({ url: session.url });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Stripe error" }, { status: 500 });
+    return NextResponse.json({ url: checkout.url });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Stripe error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
