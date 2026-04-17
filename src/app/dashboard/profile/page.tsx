@@ -9,13 +9,10 @@ import { MOCK_KPIS } from "@/lib/mock-data";
 
 export const metadata = { title: "Profile — The LeadFlow Pro" };
 
-const ACTIVITY = [
-  { when: "2h ago",  label: "Ran Playbook: Fill a slow week",       kind: "play" as const },
-  { when: "Today",   label: "Booked Bethany Lloyd for Thursday 10AM", kind: "win"  as const },
-  { when: "Yday",    label: "Closed Anthony Diaz ($2,800)",          kind: "win"  as const },
-  { when: "2d ago",  label: "Connected TikTok account",              kind: "setup" as const },
-  { when: "3d ago",  label: "Updated missed-call text-back script",  kind: "setup" as const }
-];
+// Real activity ships once we're logging events per user. Until then we show
+// an empty state so we never invent leads, closings, or social connections
+// the user doesn't actually have.
+const ACTIVITY: { when: string; label: string; kind: "play" | "win" | "setup" }[] = [];
 
 const BADGES = [
   { icon: Trophy, label: "First close",    hint: "Close your first lead to unlock" },
@@ -108,28 +105,34 @@ export default async function ProfilePage() {
           </Section>
 
           <Section title="Recent activity">
-            <ul className="space-y-3">
-              {ACTIVITY.map((a, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className={
-                    "h-7 w-7 rounded-lg flex items-center justify-center shrink-0 " +
-                    (a.kind === "win"
-                      ? "bg-lead-500/15 text-lead-400"
-                      : a.kind === "play"
-                      ? "bg-cyan-500/15 text-cyan-400"
-                      : "bg-white/5 text-ink-200")
-                  }>
-                    {a.kind === "win"  ? <Trophy className="h-4 w-4" /> :
-                     a.kind === "play" ? <Zap className="h-4 w-4" /> :
-                                         <CheckCircle2 className="h-4 w-4" />}
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-sm text-white">{a.label}</p>
-                    <p className="text-xs text-ink-400">{a.when}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {ACTIVITY.length === 0 ? (
+              <p className="text-sm text-ink-400">
+                Nothing yet. Run your first playbook or book a lead and it'll show up here.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {ACTIVITY.map((a, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className={
+                      "h-7 w-7 rounded-lg flex items-center justify-center shrink-0 " +
+                      (a.kind === "win"
+                        ? "bg-lead-500/15 text-lead-400"
+                        : a.kind === "play"
+                        ? "bg-cyan-500/15 text-cyan-400"
+                        : "bg-white/5 text-ink-200")
+                    }>
+                      {a.kind === "win"  ? <Trophy className="h-4 w-4" /> :
+                       a.kind === "play" ? <Zap className="h-4 w-4" /> :
+                                           <CheckCircle2 className="h-4 w-4" />}
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-sm text-white">{a.label}</p>
+                      <p className="text-xs text-ink-400">{a.when}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Section>
         </div>
 

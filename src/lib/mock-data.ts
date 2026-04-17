@@ -144,12 +144,15 @@ export const MOCK_AUTOMATIONS = [
   }
 ];
 
+// No OAuth yet — every platform starts as "not connected" so we never claim
+// a user is linked to an account they aren't. When the real connect flow
+// ships, populate `handle`, `followers`, etc. from the provider response.
 export const MOCK_SOCIAL = [
-  { platform: "instagram", handle: "@yourbusiness",  followers: 4280, engagement: 5.2, growth7d: 1.8, connected: true },
-  { platform: "tiktok",    handle: "@yourbusiness",  followers: 11200, engagement: 8.7, growth7d: 4.4, connected: true },
-  { platform: "facebook",  handle: "Your Business",  followers: 2870, engagement: 2.1, growth7d: 0.4, connected: true },
-  { platform: "x",         handle: "@yourbusiness",  followers: 612,  engagement: 0.8, growth7d: -0.2, connected: false },
-  { platform: "youtube",   handle: "@yourbusiness",  followers: 1840, engagement: 3.4, growth7d: 1.1, connected: false }
+  { platform: "instagram", handle: "",  followers: 0, engagement: 0, growth7d: 0, connected: false },
+  { platform: "tiktok",    handle: "",  followers: 0, engagement: 0, growth7d: 0, connected: false },
+  { platform: "facebook",  handle: "",  followers: 0, engagement: 0, growth7d: 0, connected: false },
+  { platform: "x",         handle: "",  followers: 0, engagement: 0, growth7d: 0, connected: false },
+  { platform: "youtube",   handle: "",  followers: 0, engagement: 0, growth7d: 0, connected: false }
 ];
 
 export const MOCK_CHART = [

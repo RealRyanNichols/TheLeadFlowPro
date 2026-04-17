@@ -5,8 +5,11 @@ import { MOCK_SOCIAL } from "@/lib/mock-data";
 import { formatNumber, cn } from "@/lib/utils";
 
 export default function SocialPage() {
-  const totalFollowers = MOCK_SOCIAL.reduce((s, p) => s + p.followers, 0);
-  const avgEngagement = MOCK_SOCIAL.reduce((s, p) => s + p.engagement, 0) / MOCK_SOCIAL.length;
+  const connected = MOCK_SOCIAL.filter((s) => s.connected);
+  const totalFollowers = connected.reduce((s, p) => s + p.followers, 0);
+  const avgEngagement = connected.length
+    ? connected.reduce((s, p) => s + p.engagement, 0) / connected.length
+    : 0;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -22,10 +25,20 @@ export default function SocialPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total followers" value={formatNumber(totalFollowers)} delta={2.3} highlight />
-        <StatCard label="Avg engagement"  value={`${avgEngagement.toFixed(1)}%`} delta={0.4} />
-        <StatCard label="Connected"       value={`${MOCK_SOCIAL.filter(s => s.connected).length} of ${MOCK_SOCIAL.length}`} />
+        <StatCard label="Total followers" value={connected.length ? formatNumber(totalFollowers) : "—"} highlight={connected.length > 0} />
+        <StatCard label="Avg engagement"  value={connected.length ? `${avgEngagement.toFixed(1)}%` : "—"} />
+        <StatCard label="Connected"       value={`${connected.length} of ${MOCK_SOCIAL.length}`} />
       </div>
+
+      {connected.length === 0 && (
+        <div className="glass rounded-2xl p-5 border border-cyan-500/20">
+          <p className="text-sm text-white font-semibold">No accounts connected yet.</p>
+          <p className="text-xs text-ink-300 mt-1">
+            Hook up your platforms below and we'll start pulling real followers,
+            engagement, and top-post data — nothing here is pre-populated.
+          </p>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {MOCK_SOCIAL.map((s) => (
@@ -45,7 +58,7 @@ export default function SocialPage() {
               )}
             </div>
             <h3 className="mt-3 text-base font-bold text-white capitalize">{s.platform}</h3>
-            <p className="text-xs text-ink-400">{s.handle}</p>
+            <p className="text-xs text-ink-400">{s.handle || "Not connected"}</p>
 
             {s.connected && (
               <div className="mt-4 grid grid-cols-3 gap-2 text-center">
