@@ -75,7 +75,7 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-white/5 bg-ink-950/80 backdrop-blur-xl">
       <div className="p-5 border-b border-white/5">
-        <Logo />
+        <Logo href="/dashboard" />
       </div>
       <NavList pathname={pathname} />
       <PlanFooter />
@@ -112,7 +112,7 @@ export function MobileSidebar() {
           />
           <aside className="absolute left-0 top-0 bottom-0 w-72 max-w-[85vw] bg-ink-950 border-r border-white/10 flex flex-col animate-fade-up">
             <div className="p-5 border-b border-white/5 flex items-center justify-between">
-              <Logo />
+              <Logo href="/dashboard" />
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"
