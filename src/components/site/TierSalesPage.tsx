@@ -33,10 +33,12 @@ export function TierSalesPage({ tier }: { tier: Tier }) {
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           <CheckoutButton
-            priceEnvKey={tier.stripePriceEnv}
-            label={`Start ${tier.name} — ${tier.priceMonthly === 0 ? "free" : `$${tier.priceMonthly}/mo`}`}
-            className="btn-accent text-base py-3 px-6"
-          />
+            priceKey={tier.stripePriceEnv}
+            variant="accent"
+            className="text-base py-3 px-6"
+          >
+            Start {tier.name} — ${tier.priceMonthly}/mo
+          </CheckoutButton>
           <Link href="/signup" className="btn-ghost text-base py-3 px-6">
             Try the free tier first
           </Link>
@@ -181,10 +183,12 @@ export function TierSalesPage({ tier }: { tier: Tier }) {
         </p>
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
           <CheckoutButton
-            priceEnvKey={tier.stripePriceEnv}
-            label={`Start ${tier.name} — $${tier.priceMonthly}/mo`}
-            className="btn-accent text-base py-3 px-6"
-          />
+            priceKey={tier.stripePriceEnv}
+            variant="accent"
+            className="text-base py-3 px-6"
+          >
+            Start {tier.name} — ${tier.priceMonthly}/mo
+          </CheckoutButton>
           <Link
             href="/pricing"
             className="inline-flex items-center gap-2 text-ink-100 hover:text-white"
