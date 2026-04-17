@@ -1,6 +1,15 @@
 import Link from "next/link";
-import { PhoneCall, MessageSquare, Wallet } from "lucide-react";
+import { PhoneCall, MessageSquare, Wallet, Inbox, Bot, Workflow, Sparkles, QrCode, Megaphone } from "lucide-react";
 import { FunnelMark } from "./Logo";
+
+const QUICK_TOOLS = [
+  { icon: Inbox,     label: "Leads",      href: "/dashboard/leads" },
+  { icon: Bot,       label: "Chatbot",    href: "/dashboard/chatbot" },
+  { icon: Workflow,  label: "Automations",href: "/dashboard/automations" },
+  { icon: Sparkles,  label: "Insights",   href: "/dashboard/insights" },
+  { icon: Megaphone, label: "Ad copy",    href: "/dashboard/ad-copy" },
+  { icon: QrCode,    label: "FlowCard",   href: "/dashboard/card" }
+];
 
 export function Hero() {
   return (
@@ -9,48 +18,72 @@ export function Hero() {
       <div className="absolute inset-0 -z-10 bg-promo-glow" />
       <div className="absolute inset-0 -z-10 bg-grid-fade" />
 
-      <div className="container pt-20 pb-24 md:pt-28 md:pb-32 text-center">
-        <div className="flex justify-center mb-6 animate-fade-up">
+      <div className="container pt-10 pb-14 md:pt-28 md:pb-32 text-center">
+        <div className="flex justify-center mb-4 md:mb-6 animate-fade-up">
           <span className="stat-pill bg-white/5 border border-white/10 text-ink-100">
             <span className="h-2 w-2 rounded-full bg-lead-500" />
             Welcome to
           </span>
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight animate-fade-up">
+        <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight animate-fade-up">
           THE <span className="funnel-text">LEADFLOW</span> PRO
         </h1>
 
-        <div className="mt-6 spectrum-line animate-fade-up" />
+        <div className="mt-4 md:mt-6 spectrum-line animate-fade-up" />
 
-        <p className="mt-8 text-xl md:text-2xl text-ink-100 max-w-2xl mx-auto animate-fade-up">
+        {/* Top-of-page CTAs — interact immediately, no scroll required */}
+        <div className="mt-5 md:mt-7 flex flex-wrap justify-center gap-2 md:gap-3 animate-fade-up">
+          <Link href="/dashboard" className="btn-accent text-sm py-2.5 px-4">
+            Start free — explore the dashboard
+          </Link>
+          <Link href="#features" className="btn-ghost text-sm py-2.5 px-4">
+            See every tool
+          </Link>
+        </div>
+
+        {/* Tap straight into a tool */}
+        <div className="mt-4 md:mt-6 grid grid-cols-3 sm:grid-cols-6 gap-2 max-w-2xl mx-auto animate-fade-up">
+          {QUICK_TOOLS.map((t) => (
+            <Link
+              key={t.label}
+              href={t.href}
+              className="glass rounded-xl p-2.5 flex flex-col items-center gap-1 hover:border-cyan-500/40 active:scale-95 transition"
+            >
+              <t.icon className="h-4 w-4 text-cyan-400" />
+              <span className="text-[11px] font-semibold text-ink-100">{t.label}</span>
+            </Link>
+          ))}
+        </div>
+
+        <p className="mt-5 md:mt-8 text-lg md:text-2xl text-ink-100 max-w-2xl mx-auto animate-fade-up">
           If your business gets calls, texts, or online leads,{" "}
           <span className="text-white font-semibold">this is for you.</span>
         </p>
-        <p className="mt-3 text-base md:text-lg text-ink-300 max-w-2xl mx-auto animate-fade-up">
+        <p className="mt-2 md:mt-3 text-sm md:text-lg text-ink-300 max-w-2xl mx-auto animate-fade-up">
           Most businesses are losing money without realizing it.
         </p>
 
         {/* three pillars: matches promo card icon row */}
-        <div className="mt-12 grid grid-cols-3 gap-4 md:gap-12 max-w-2xl mx-auto animate-fade-up">
-          <Pillar icon={<PhoneCall className="h-8 w-8 md:h-10 md:w-10" />} label="No Missed Calls" />
-          <Pillar icon={<MessageSquare className="h-8 w-8 md:h-10 md:w-10" />} label="No Missed Texts" />
-          <Pillar icon={<Wallet className="h-8 w-8 md:h-10 md:w-10" />} label="No Missed Revenue" />
+        <div className="mt-6 md:mt-12 grid grid-cols-3 gap-3 md:gap-12 max-w-2xl mx-auto animate-fade-up">
+          <Pillar icon={<PhoneCall className="h-6 w-6 md:h-10 md:w-10" />} label="No Missed Calls" />
+          <Pillar icon={<MessageSquare className="h-6 w-6 md:h-10 md:w-10" />} label="No Missed Texts" />
+          <Pillar icon={<Wallet className="h-6 w-6 md:h-10 md:w-10" />} label="No Missed Revenue" />
         </div>
 
-        <p className="mt-12 text-base md:text-lg text-white font-semibold tracking-wide animate-fade-up">
+        <p className="mt-7 md:mt-12 text-sm md:text-lg text-white font-semibold tracking-wide animate-fade-up">
           TURN ATTENTION INTO CONVERSATIONS, AUTOMATE FOLLOW-UP, CLOSE MORE SALES
         </p>
-        <p className="mt-4 text-base md:text-lg text-cyan-300 font-semibold animate-fade-up">
+        <p className="mt-3 md:mt-4 text-sm md:text-lg text-cyan-300 font-semibold animate-fade-up">
           We show you the data and the next moves to make.
         </p>
-        <p className="mt-3 text-sm md:text-base text-ink-300 max-w-2xl mx-auto animate-fade-up">
+        <p className="mt-2 md:mt-3 text-sm md:text-base text-ink-300 max-w-2xl mx-auto animate-fade-up">
           We don't promise you leads. We don't make the calls for you. We hand you the
           tools, the data, and the play — you go run it.
         </p>
 
-        <div className="mt-10 flex flex-wrap justify-center gap-3 animate-fade-up">
-          <Link href="/signup" className="btn-accent text-base">
+        <div className="mt-6 md:mt-10 flex flex-wrap justify-center gap-3 animate-fade-up">
+          <Link href="/dashboard" className="btn-accent text-base">
             Start free — no card needed
           </Link>
           <Link href="#how" className="btn-ghost text-base">
@@ -59,8 +92,8 @@ export function Hero() {
         </div>
 
         {/* floating funnel mark */}
-        <div className="mt-16 flex justify-center opacity-90 animate-fade-up">
-          <FunnelMark className="h-24 w-24 drop-shadow-[0_0_30px_rgba(35,184,255,0.45)]" />
+        <div className="mt-8 md:mt-16 flex justify-center opacity-90 animate-fade-up">
+          <FunnelMark className="h-14 w-14 md:h-24 md:w-24 drop-shadow-[0_0_30px_rgba(35,184,255,0.45)]" />
         </div>
       </div>
     </section>

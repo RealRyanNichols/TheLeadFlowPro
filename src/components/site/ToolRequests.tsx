@@ -45,8 +45,8 @@ export function ToolRequests() {
                 </span>
               </li>
             </ul>
-            <Link href="/signup" className="btn-primary text-base mt-8 inline-flex">
-              Start free & request your first tool
+            <Link href="/dashboard/requests" className="btn-primary text-base mt-8 inline-flex">
+              Open the request board
             </Link>
           </div>
 

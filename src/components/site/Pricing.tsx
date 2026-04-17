@@ -58,7 +58,7 @@ export function Pricing() {
               </ul>
 
               <Link
-                href={plan.priceMonthly === 0 ? "/signup" : `/signup?plan=${plan.id}`}
+                href="/dashboard"
                 className={cn(
                   "mt-6 text-sm py-2.5",
                   plan.highlight ? "btn-accent" : "btn-ghost"

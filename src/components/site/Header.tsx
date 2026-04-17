@@ -15,10 +15,10 @@ export function Header() {
           <Link href="/dashboard" className="hover:text-white">Dashboard</Link>
         </nav>
         <div className="flex items-center gap-2">
-          <Link href="/login" className="hidden sm:inline-flex btn-ghost text-sm py-2 px-4">
-            Log in
+          <Link href="/dashboard" className="hidden sm:inline-flex btn-ghost text-sm py-2 px-4">
+            Open app
           </Link>
-          <Link href="/signup" className="hidden sm:inline-flex btn-accent text-sm py-2 px-4">
+          <Link href="/dashboard" className="inline-flex btn-accent text-sm py-2 px-4">
             Start free
           </Link>
           <MobileMenu />

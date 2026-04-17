@@ -5,11 +5,19 @@ import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 
 const NAV = [
-  { href: "#features",    label: "Features" },
-  { href: "#automations", label: "Automations" },
-  { href: "#requests",    label: "Request a tool" },
-  { href: "#pricing",     label: "Pricing" },
-  { href: "/dashboard",   label: "Dashboard" }
+  { href: "/dashboard",            label: "Dashboard" },
+  { href: "/dashboard/leads",      label: "Lead inbox" },
+  { href: "/dashboard/chatbot",    label: "AI chatbot" },
+  { href: "/dashboard/automations",label: "Automations" },
+  { href: "/dashboard/insights",   label: "AI insights" },
+  { href: "/dashboard/audience",   label: "Target audience" },
+  { href: "/dashboard/ad-copy",    label: "Ad copy" },
+  { href: "/dashboard/social",     label: "Social accounts" },
+  { href: "/dashboard/media",      label: "Video + GIFs" },
+  { href: "/dashboard/card",       label: "FlowCard" },
+  { href: "/dashboard/requests",   label: "Request a tool" },
+  { href: "#features",             label: "Features overview" },
+  { href: "#pricing",              label: "Pricing" }
 ];
 
 export function MobileMenu() {
@@ -60,20 +68,13 @@ export function MobileMenu() {
                 </Link>
               ))}
             </nav>
-            <div className="mt-auto space-y-2">
+            <div className="mt-auto pt-4 space-y-2">
               <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="btn-ghost w-full text-sm py-2.5"
-              >
-                Log in
-              </Link>
-              <Link
-                href="/signup"
+                href="/dashboard"
                 onClick={() => setOpen(false)}
                 className="btn-accent w-full text-sm py-2.5"
               >
-                Start free
+                Open the app
               </Link>
             </div>
           </div>
