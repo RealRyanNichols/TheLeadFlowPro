@@ -1,44 +1,11 @@
-import { Target, Users, MapPin, Clock, Wand2 } from "lucide-react";
+import { Target, Users, Sparkles, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { StatCard } from "@/components/dashboard/StatCard";
 
-const PERSONAS = [
-  {
-    name: "The 'Been Meaning To' Neighbor",
-    pct: 38,
-    age: "32–50",
-    geo: "Within 20mi",
-    motive: "Has put off the job for months or years. A recent event (season change, trip, milestone) is finally pushing them to book.",
-    where: "Instagram (Reels), Facebook local groups",
-    msg: "Real before/afters from neighbors their age. Financing or straight pricing. Friendly, no pressure."
-  },
-  {
-    name: "The 'Need It Today' Local",
-    pct: 27,
-    age: "25–60",
-    geo: "Within 10mi",
-    motive: "Something broke or stopped working. Will book whoever answers the phone fastest.",
-    where: "Google Search, Google & Apple Maps",
-    msg: "'Same-day service.' Phone number front and center. Speed beats polish."
-  },
-  {
-    name: "The 'Doing My Research' Buyer",
-    pct: 21,
-    age: "28–55",
-    geo: "Within 30mi",
-    motive: "Bigger job. Reads reviews, watches YouTube, comparison-shops 2–4 local options before calling.",
-    where: "Google reviews, YouTube, TikTok how-to content",
-    msg: "Long-form video. Walk through the process and the price. Show your face, build trust."
-  },
-  {
-    name: "Other / unclear",
-    pct: 14,
-    age: "Mixed",
-    geo: "Mixed",
-    motive: "—",
-    where: "—",
-    msg: "Not enough data yet."
-  }
-];
+// Audience analysis is a derived product: Flo needs real leads + real
+// ad/social engagement before she can say anything meaningful about the
+// personas buying from you. Until that data exists, this page is honest
+// zeros and a single clear next step: connect the sources.
 
 export default function AudiencePage() {
   return (
@@ -50,73 +17,89 @@ export default function AudiencePage() {
             Who actually buys from you — <span className="funnel-text">not who you think</span>
           </h1>
           <p className="mt-2 text-ink-300">
-            Claude analyzes your leads, ad data, and social engagement to find the real
+            Flo analyzes your leads, ad data, and social engagement to find the real
             patterns. Then tells you exactly where to find more of them.
           </p>
         </div>
-        <button className="btn-primary text-sm py-2 px-3">
-          <Wand2 className="h-4 w-4" /> Re-run analysis
-        </button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Personas detected" value="3" />
-        <StatCard label="Highest-value persona" value="38%" sub="The 'Finally Fixing It' Mom" highlight />
-        <StatCard label="Underserved persona"   value="The Pro" sub="You spend 8% of ads on her" />
+        <StatCard label="Personas detected" value="0" sub="Unlocks after ~20 real leads" />
+        <StatCard label="Highest-value persona" value="—" sub="Revealed once data flows in" />
+        <StatCard label="Underserved persona"   value="—" sub="Where you're under-spending vs. demand" />
       </div>
 
-      <div className="space-y-4">
-        {PERSONAS.map((p) => (
-          <div key={p.name} className="glass rounded-2xl p-5 sm:p-6">
-            <div className="flex items-start justify-between gap-3 flex-wrap">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-cyan-500 to-accent-500 flex items-center justify-center text-white shrink-0">
-                  <Target className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-lg font-bold text-white truncate">{p.name}</h3>
-                  <p className="text-xs text-ink-400">{p.pct}% of your leads</p>
-                </div>
-              </div>
-              <span className="stat-pill bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 text-xs">
-                {p.pct}%
-              </span>
-            </div>
-
-            <div className="mt-4 grid sm:grid-cols-3 gap-4 text-sm">
-              <Stat icon={Users} label="Age" value={p.age} />
-              <Stat icon={MapPin} label="Geography" value={p.geo} />
-              <Stat icon={Clock} label="Where they hang out" value={p.where} />
-            </div>
-
-            <div className="mt-4 grid sm:grid-cols-2 gap-4">
-              <Block label="Why they buy" body={p.motive} />
-              <Block label="Message that hits" body={p.msg} accent />
+      {/* Primary CTA — connect lead sources */}
+      <div className="glass rounded-2xl p-6 sm:p-8">
+        <div className="flex items-start gap-4">
+          <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-cyan-500 to-accent-500 flex items-center justify-center text-white shrink-0">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-bold text-white">
+              Flo needs real leads before she can find your audience
+            </h2>
+            <p className="mt-1 text-sm text-ink-200">
+              Personas come from patterns in the people who actually contact you.
+              Connect any of the sources below and Flo will start clustering them
+              the minute data arrives — usually after around twenty leads.
+            </p>
+            <div className="mt-4 grid sm:grid-cols-2 gap-2">
+              <Link href="/dashboard/settings" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
+                <span className="text-sm text-white">Connect your phone number <span className="text-ink-400">· SMS + calls</span></span>
+                <ArrowRight className="h-4 w-4 text-cyan-400" />
+              </Link>
+              <Link href="/dashboard/settings" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
+                <span className="text-sm text-white">Connect Meta Business <span className="text-ink-400">· Facebook + IG ads/DMs</span></span>
+                <ArrowRight className="h-4 w-4 text-cyan-400" />
+              </Link>
+              <Link href="/dashboard/settings" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
+                <span className="text-sm text-white">Connect Google Ads <span className="text-ink-400">· Search + Maps leads</span></span>
+                <ArrowRight className="h-4 w-4 text-cyan-400" />
+              </Link>
+              <Link href="/dashboard/settings" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
+                <span className="text-sm text-white">Add a lead form <span className="text-ink-400">· Website or landing page</span></span>
+                <ArrowRight className="h-4 w-4 text-cyan-400" />
+              </Link>
             </div>
           </div>
-        ))}
+        </div>
+      </div>
+
+      {/* What you'll see here once data is flowing */}
+      <div className="rounded-2xl border border-dashed border-white/10 p-6 sm:p-8">
+        <div className="flex items-center gap-2 text-cyan-300">
+          <Target className="h-4 w-4" />
+          <p className="text-[10px] uppercase tracking-widest font-semibold">What this page will look like</p>
+        </div>
+        <p className="mt-2 text-sm text-ink-200">
+          Once leads start flowing, Flo will show up to four distinct personas,
+          each with age range, geography, where they spend time online, why they
+          buy, and the message that tends to land — so you know exactly who to
+          target next and how to talk to them.
+        </p>
+        <div className="mt-4 grid sm:grid-cols-4 gap-2">
+          <Placeholder label="Persona 1" />
+          <Placeholder label="Persona 2" />
+          <Placeholder label="Persona 3" />
+          <Placeholder label="Other" />
+        </div>
       </div>
     </div>
   );
 }
 
-function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+function Placeholder({ label }: { label: string }) {
   return (
-    <div className="flex items-start gap-2">
-      <Icon className="h-4 w-4 text-cyan-400 mt-0.5 shrink-0" />
-      <div className="min-w-0">
-        <p className="text-[10px] uppercase tracking-wider text-ink-400 font-semibold">{label}</p>
-        <p className="text-sm text-white">{value}</p>
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+      <div className="flex items-center gap-2">
+        <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center">
+          <Users className="h-4 w-4 text-ink-400" />
+        </div>
+        <p className="text-xs text-ink-400 font-semibold">{label}</p>
       </div>
-    </div>
-  );
-}
-
-function Block({ label, body, accent }: { label: string; body: string; accent?: boolean }) {
-  return (
-    <div className={"rounded-xl p-3 border " + (accent ? "bg-accent-500/5 border-accent-500/20" : "bg-white/5 border-white/10")}>
-      <p className={"text-[10px] uppercase tracking-wider font-semibold " + (accent ? "text-accent-400" : "text-ink-400")}>{label}</p>
-      <p className="text-sm text-ink-100 mt-1">{body}</p>
+      <div className="mt-3 h-2 w-2/3 bg-white/5 rounded" />
+      <div className="mt-2 h-2 w-1/2 bg-white/5 rounded" />
     </div>
   );
 }
