@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
+import { MobileMenu } from "./MobileMenu";
 
 export function Header() {
   return (
@@ -17,9 +18,10 @@ export function Header() {
           <Link href="/login" className="hidden sm:inline-flex btn-ghost text-sm py-2 px-4">
             Log in
           </Link>
-          <Link href="/signup" className="btn-accent text-sm py-2 px-4">
+          <Link href="/signup" className="hidden sm:inline-flex btn-accent text-sm py-2 px-4">
             Start free
           </Link>
+          <MobileMenu />
         </div>
       </div>
     </header>
