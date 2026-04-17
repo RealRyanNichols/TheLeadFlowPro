@@ -10,6 +10,7 @@
 
 import { useEffect, useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { ArrowRight, ArrowLeft, Check, Sparkles, Lock } from "lucide-react";
 
 // Top-level export wraps the flow in Suspense because useSearchParams() bails
@@ -145,6 +146,7 @@ const STEPS: Step[] = [
 function OnboardingFlow() {
   const router = useRouter();
   const params = useSearchParams();
+  const { update: updateSession } = useSession();
   const cameFromGate = params.get("why") === "profile_required";
 
   const [stepIdx, setStepIdx] = useState(0);
@@ -203,8 +205,14 @@ function OnboardingFlow() {
       if (stepIdx < STEPS.length - 1) {
         setStepIdx(stepIdx + 1);
       } else {
-        // last step done — if unlocked, send them in
-        if (data.unlocked) router.push("/dashboard");
+        // Last step. Even if we didn't hit the unlock threshold, force a session
+        // refresh so the JWT's brainCompleteness claim is current, then navigate.
+        // Without this, middleware reads the stale JWT (still 0) and bounces the
+        // user right back to /onboarding — making it look like nothing happened.
+        try {
+          await updateSession();
+        } catch { /* noop — navigation still proceeds */ }
+        router.push("/dashboard");
       }
     } catch (e: any) {
       setError(e.message || "Something went sideways. Try that again.");
