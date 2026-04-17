@@ -17,6 +17,7 @@ const NAV = [
   { href: "/dashboard/media",      label: "Video + GIFs" },
   { href: "/dashboard/card",       label: "FlowCard" },
   { href: "/dashboard/requests",   label: "Request a tool" },
+  { href: "/tools/seo-grader",     label: "Free SEO Grader" },
   { href: "#features",             label: "Features overview" },
   { href: "#pricing",              label: "Pricing" }
 ];

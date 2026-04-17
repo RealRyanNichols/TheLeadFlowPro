@@ -10,7 +10,7 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-7 text-sm text-ink-200">
           <Link href="#features" className="hover:text-white">Features</Link>
           <Link href="#automations" className="hover:text-white">Automations</Link>
-          <Link href="#requests" className="hover:text-white">Request a tool</Link>
+          <Link href="/tools/seo-grader" className="hover:text-white">Free SEO Grader</Link>
           <Link href="#pricing" className="hover:text-white">Pricing</Link>
           <Link href="/dashboard" className="hover:text-white">Dashboard</Link>
         </nav>
