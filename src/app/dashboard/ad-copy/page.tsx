@@ -4,24 +4,24 @@ import { SocialIcon } from "@/components/flowcard/SocialIcon";
 const SAMPLE_ADS = [
   {
     platform: "facebook",
-    audience: "Moms 32–44 in Longview area",
-    hook: "Been putting off your smile? You're not alone — and it's easier than you think.",
-    body: "We helped 50 women like you start Invisalign last month at Premier Dental of Longview. 0% financing. Same-day exam. No judgment, ever.",
-    cta: "Book your free 15-min consult →"
+    audience: "Local homeowners 32–55, ~20mi radius",
+    hook: "The 20-minute fix most local pros won't tell you about.",
+    body: "We've helped dozens of neighbors this month with same-day service, straight pricing, and zero upsell games. Book now and we'll lock in this week's rate.",
+    cta: "Get a free quote →"
   },
   {
     platform: "tiktok",
-    audience: "Cosmetic-curious 25–40 across East Texas",
-    hook: "POV: you finally booked the dentist after 7 years.",
-    body: "Hi, I'm Dr. Smith. We do cosmetic dentistry without the snobby, scary vibes. Watch what a first visit actually looks like ↓",
-    cta: "DM 'CONSULT' for a free quote"
+    audience: "25–40, interested in local services",
+    hook: "POV: you finally called the right local pro.",
+    body: "Hey, I'm [your name]. This is what a real first visit looks like — no jargon, no pressure, just honest work. Watch ↓",
+    cta: "DM 'QUOTE' for pricing"
   },
   {
     platform: "instagram",
-    audience: "Local women, recent engagement on cosmetic content",
-    hook: "Nobody told me Invisalign would change my whole face.",
-    body: "Real patient story from Premier Dental of Longview. Before, during, and after — plus what it actually cost. (Less than you think.)",
-    cta: "Tap to see her full transformation"
+    audience: "Local followers, recent service-related engagement",
+    hook: "I almost waited another year. Glad I didn't.",
+    body: "Real before + after from a neighbor in your area. What the job actually looked like — and what it actually cost. (Less than you think.)",
+    cta: "Tap to see the full story"
   }
 ];
 
@@ -58,13 +58,13 @@ export default function AdCopyPage() {
           </Field>
           <Field label="Target audience" className="sm:col-span-2">
             <input
-              defaultValue="Moms 32–44 in 30 miles of Longview, TX. Interested in Invisalign or whitening."
+              defaultValue="Homeowners 30–55 within 20 miles. Looking for a reliable local pro."
               className="mt-1 w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 focus:outline-none"
             />
           </Field>
           <Field label="Offer / hook angle" className="sm:col-span-2">
             <input
-              defaultValue="0% financing on Invisalign + free consult"
+              defaultValue="Free estimate + same-week service"
               className="mt-1 w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 focus:outline-none"
             />
           </Field>

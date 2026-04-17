@@ -4,9 +4,9 @@
  */
 
 export const MOCK_USER = {
-  name: "Ryan",
-  businessName: "Premier Dental of Longview",
-  industry: "Dental Practice",
+  name: "You",
+  businessName: "Your Business",
+  industry: "Local Service",
   plan: "growth" as const
 };
 
@@ -28,7 +28,7 @@ export const MOCK_LEADS = [
     status: "new" as const,
     createdAt: new Date(Date.now() - 1000 * 60 * 8),
     estValue: 2400,
-    notes: "Asked about Invisalign pricing"
+    notes: "Asked about pricing — hot lead"
   },
   {
     id: "2",
@@ -86,16 +86,16 @@ export const MOCK_NEXT_MOVES = [
   {
     id: "nm1",
     priority: 1,
-    title: "Reply to Maria Gonzalez (Invisalign inquiry)",
-    body: "She asked about pricing 8 minutes ago via Meta ad. The hot-lead window is closing — send the Invisalign price video now.",
+    title: "Reply to Maria Gonzalez (pricing inquiry)",
+    body: "She asked about pricing 8 minutes ago via Meta ad. The hot-lead window is closing — send the pricing walkthrough video now.",
     kind: "send_message" as const,
     suggestedAction: "Send 'invisalign-pricing.mp4' from your library"
   },
   {
     id: "nm2",
     priority: 1,
-    title: "Run a TikTok cosmetic-dentistry ad this week",
-    body: "Your TikTok engagement is up 41% on cosmetic-procedure posts but you're not running ads there. Cost per lead would likely be ~$4 (vs $7.66 on Meta).",
+    title: "Run a TikTok ad for your top service this week",
+    body: "Your TikTok engagement is up 41% on service walkthrough posts but you're not running ads there. Cost per lead would likely be ~$4 (vs $7.66 on Meta).",
     kind: "run_ad" as const,
     suggestedAction: "Generate ad copy → review → launch"
   },
@@ -110,7 +110,7 @@ export const MOCK_NEXT_MOVES = [
   {
     id: "nm4",
     priority: 3,
-    title: "Post a patient-testimonial reel on Instagram",
+    title: "Post a customer-testimonial reel on Instagram",
     body: "Saturday 6–8pm is your highest-engagement window. You haven't posted a testimonial in 12 days — those drove your top 3 lead-generating posts last month.",
     kind: "post_content" as const,
     suggestedAction: "Pick from 4 unused testimonial clips in your library"
@@ -145,11 +145,11 @@ export const MOCK_AUTOMATIONS = [
 ];
 
 export const MOCK_SOCIAL = [
-  { platform: "instagram", handle: "@premierdentallongview", followers: 4280, engagement: 5.2, growth7d: 1.8, connected: true },
-  { platform: "tiktok",    handle: "@drsmiles_tx",          followers: 11200, engagement: 8.7, growth7d: 4.4, connected: true },
-  { platform: "facebook",  handle: "Premier Dental",         followers: 2870, engagement: 2.1, growth7d: 0.4, connected: true },
-  { platform: "x",         handle: "@premierdental",         followers: 612,  engagement: 0.8, growth7d: -0.2, connected: false },
-  { platform: "youtube",   handle: "@premierdentaltx",       followers: 1840, engagement: 3.4, growth7d: 1.1, connected: false }
+  { platform: "instagram", handle: "@yourbusiness",  followers: 4280, engagement: 5.2, growth7d: 1.8, connected: true },
+  { platform: "tiktok",    handle: "@yourbusiness",  followers: 11200, engagement: 8.7, growth7d: 4.4, connected: true },
+  { platform: "facebook",  handle: "Your Business",  followers: 2870, engagement: 2.1, growth7d: 0.4, connected: true },
+  { platform: "x",         handle: "@yourbusiness",  followers: 612,  engagement: 0.8, growth7d: -0.2, connected: false },
+  { platform: "youtube",   handle: "@yourbusiness",  followers: 1840, engagement: 3.4, growth7d: 1.1, connected: false }
 ];
 
 export const MOCK_CHART = [
@@ -186,9 +186,9 @@ export const MOCK_FLOWCARD = {
 };
 
 export const MOCK_MEDIA = [
-  { id: "m1", kind: "video" as const, title: "Invisalign pricing explainer", tags: ["pricing", "invisalign"], bestFor: "When lead asks about Invisalign cost" },
+  { id: "m1", kind: "video" as const, title: "Pricing explainer (60s)", tags: ["pricing", "explainer"], bestFor: "When a lead asks 'how much does it cost?'" },
   { id: "m2", kind: "gif"   as const, title: "We want you here!", tags: ["nurture", "humor"], bestFor: "After 24h of no reply" },
-  { id: "m3", kind: "video" as const, title: "Patient testimonial — Bethany", tags: ["social-proof", "cosmetic"], bestFor: "Cosmetic-curious leads" },
+  { id: "m3", kind: "video" as const, title: "Customer testimonial — Bethany", tags: ["social-proof", "testimonial"], bestFor: "Leads still shopping around" },
   { id: "m4", kind: "gif"   as const, title: "Thanks for booking!", tags: ["thank-you", "post-booking"], bestFor: "Right after appointment booked" },
   { id: "m5", kind: "video" as const, title: "Meet the team (60s)", tags: ["intro", "trust"], bestFor: "First reply to brand-new lead" }
 ];

@@ -2,18 +2,18 @@ import { Plus, ThumbsUp, Lightbulb, Wrench, CheckCircle2 } from "lucide-react";
 
 const REQUESTS = [
   {
-    title: "Auto-send a thank-you GIF when a new patient books",
+    title: "Auto-send a thank-you GIF when a new customer books",
     desc: "Personalized GIF with their first name fires the second the form gets a booking confirmation.",
     status: "shipped_all", upvotes: 14, reply: "Built into the platform — live for everyone."
   },
   {
-    title: "Pull no-show stats from my dental software (Dentrix)",
+    title: "Pull no-show stats from my scheduling tool",
     desc: "Want a daily 'who didn't show' list with one-tap text-back to rebook.",
     status: "scoped", upvotes: 9, reply: "Yes — $25 one-time custom integration. Estimated 4 days."
   },
   {
-    title: "Birthday SMS with a $25 cleaning credit",
-    desc: "Auto-send on the patient's birthday with their unique code.",
+    title: "Birthday SMS with a $25 loyalty credit",
+    desc: "Auto-send on the customer's birthday with their unique code.",
     status: "building", upvotes: 22, reply: "Building for everyone — ships next week. Free."
   },
   {

@@ -3,31 +3,31 @@ import { StatCard } from "@/components/dashboard/StatCard";
 
 const PERSONAS = [
   {
-    name: "The 'Finally Fixing It' Mom",
+    name: "The 'Been Meaning To' Neighbor",
     pct: 38,
-    age: "32–44",
-    geo: "Longview + 30mi",
-    motive: "Has put off cosmetic work for years. Wants Invisalign or whitening before a milestone (wedding, reunion).",
-    where: "Instagram (Reels), Facebook groups (local moms)",
-    msg: "Real before/afters of women her age. Financing reassurance. Friendly, no pressure."
+    age: "32–50",
+    geo: "Within 20mi",
+    motive: "Has put off the job for months or years. A recent event (season change, trip, milestone) is finally pushing them to book.",
+    where: "Instagram (Reels), Facebook local groups",
+    msg: "Real before/afters from neighbors their age. Financing or straight pricing. Friendly, no pressure."
   },
   {
-    name: "The 'Emergency Now' Local",
+    name: "The 'Need It Today' Local",
     pct: 27,
-    age: "25–55",
+    age: "25–60",
     geo: "Within 10mi",
-    motive: "Tooth pain, broken filling, lost crown. Will book whoever answers fastest.",
-    where: "Google Search, Apple/Google Maps",
-    msg: "'Same-day appointments.' Phone number front and center. Speed beats polish."
+    motive: "Something broke or stopped working. Will book whoever answers the phone fastest.",
+    where: "Google Search, Google & Apple Maps",
+    msg: "'Same-day service.' Phone number front and center. Speed beats polish."
   },
   {
-    name: "The 'Doing My Research' Professional",
+    name: "The 'Doing My Research' Buyer",
     pct: 21,
-    age: "28–50",
-    geo: "Longview + Tyler",
-    motive: "Wants Invisalign or veneers. Reads reviews, watches YouTube, comparison-shops.",
-    where: "Google reviews, YouTube, TikTok dental content",
-    msg: "Long-form video. Walk through process + price. Show your face, build trust."
+    age: "28–55",
+    geo: "Within 30mi",
+    motive: "Bigger job. Reads reviews, watches YouTube, comparison-shops 2–4 local options before calling.",
+    where: "Google reviews, YouTube, TikTok how-to content",
+    msg: "Long-form video. Walk through the process and the price. Show your face, build trust."
   },
   {
     name: "Other / unclear",

@@ -2,12 +2,12 @@ import { Bot, MessageSquare, Wand2, Globe, Smartphone, Instagram } from "lucide-
 import { StatCard } from "@/components/dashboard/StatCard";
 
 const SAMPLE_TRANSCRIPT = [
-  { role: "lead",  text: "Hey, do y'all do Invisalign?" },
-  { role: "bot",   text: "Hi! Yes — we offer Invisalign at Premier Dental of Longview. Were you wanting an estimate, or to book a consult?" },
+  { role: "lead",  text: "Hey, do y'all handle same-week jobs?" },
+  { role: "bot",   text: "Hi! Yes — we can usually get someone out within the week. Were you wanting a free estimate, or to book a visit?" },
   { role: "lead",  text: "Estimate first I think" },
-  { role: "bot",   text: "No problem. Most full Invisalign treatments at our office run $3,200–$4,800 depending on complexity, and we offer 0% financing. Want me to send you a 60-second video Dr. Smith made about how it works?" },
+  { role: "bot",   text: "No problem. Most jobs like yours run $300–$900 depending on scope, and we offer simple financing. Want me to send a 60-second walkthrough of how pricing works?" },
   { role: "lead",  text: "yeah that'd be great" },
-  { role: "bot",   text: "Sent! 🎥 If you decide you want to come in, I can grab a couple openings for you — what days/times usually work?" }
+  { role: "bot",   text: "Sent! 🎥 If you'd like to get on the calendar, I can hold a couple openings for you — what days/times usually work?" }
 ];
 
 export default function ChatbotPage() {
@@ -39,7 +39,7 @@ export default function ChatbotPage() {
             </h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field label="Bot name" defaultValue="Avery" />
-              <Field label="Business name" defaultValue="Premier Dental of Longview" />
+              <Field label="Business name" defaultValue="Your Business" />
               <Field
                 label="Tone"
                 defaultValue="Friendly, casual, never pushy. Texts like a real person."
@@ -48,13 +48,13 @@ export default function ChatbotPage() {
               />
               <Field
                 label="What you DO offer"
-                defaultValue="Cleanings, fillings, crowns, Invisalign, cosmetic work, emergency same-day"
+                defaultValue="List your core services here — the things you want leads to ask about."
                 textarea
                 className="sm:col-span-2"
               />
               <Field
                 label="What you DON'T offer"
-                defaultValue="Implants (we refer out), pediatric"
+                defaultValue="List anything you want the bot to politely decline or refer out."
                 textarea
                 className="sm:col-span-2"
               />
@@ -98,7 +98,7 @@ export default function ChatbotPage() {
               <Wand2 className="h-4 w-4 text-accent-400" /> AI suggestion
             </h3>
             <p className="mt-3 text-sm text-ink-200">
-              Your bot has answered "do you take Aetna?" 14 times this week. Want to add it
+              Your bot has answered "what's your service area?" 14 times this week. Want to add it
               to the standard FAQ so it answers faster (and you don't pay for the AI call)?
             </p>
             <button className="btn-primary text-sm py-2 px-3 mt-4 w-full">

@@ -35,15 +35,15 @@ function conversationFor(leadId: string): ConvMsg[] {
   const byLead: Record<string, ConvMsg[]> = {
     "1": [
       { id: "m1", dir: "in",  channel: "system", body: "Missed call from Maria Gonzalez", when: at(0) },
-      { id: "m2", dir: "out", channel: "sms", body: "Hi Maria! This is Premier Dental — sorry we missed you! Can I grab your first name and what you're curious about? Invisalign consult?", when: at(1) },
-      { id: "m3", dir: "in",  channel: "sms", body: "Yes! Wondering about pricing for adult Invisalign", when: at(7) },
-      { id: "m4", dir: "out", channel: "sms", kind: "video", body: "Here's our 2-min breakdown on Invisalign pricing — covers payment plans too.", when: at(8) },
-      { id: "m5", dir: "out", channel: "sms", body: "Want me to hold a consult time for you this week?", when: at(9) }
+      { id: "m2", dir: "out", channel: "sms", body: "Hi Maria! Sorry we missed your call — can I grab what you were curious about? Happy to send over a quick estimate.", when: at(1) },
+      { id: "m3", dir: "in",  channel: "sms", body: "Yes! Wondering about pricing for the service you posted about", when: at(7) },
+      { id: "m4", dir: "out", channel: "sms", kind: "video", body: "Here's our 2-min breakdown on pricing — covers payment options too.", when: at(8) },
+      { id: "m5", dir: "out", channel: "sms", body: "Want me to hold a time for you this week?", when: at(9) }
     ],
     "2": [
       { id: "m1", dir: "in",  channel: "system", body: "Inbound call — missed", when: at(0) },
-      { id: "m2", dir: "out", channel: "sms", body: "Hey James! Sorry we missed you at Premier Dental. What can we help with? 👋", when: at(1) },
-      { id: "m3", dir: "in",  channel: "sms", body: "Chipped a tooth this weekend, need it looked at", when: at(30) },
+      { id: "m2", dir: "out", channel: "sms", body: "Hey James! Sorry we missed you — what can we help with? 👋", when: at(1) },
+      { id: "m3", dir: "in",  channel: "sms", body: "Something stopped working this weekend, need someone out", when: at(30) },
       { id: "m4", dir: "out", channel: "sms", kind: "booking", body: "Absolutely. We have Thursday 10am or Friday 2pm — which works?", when: at(32) }
     ],
     "3": [
@@ -52,9 +52,9 @@ function conversationFor(leadId: string): ConvMsg[] {
       { id: "m3", dir: "out", channel: "sms", body: "Quick text — we have Saturday 9am, 10:30am, or 1pm open this weekend. Any of those work?", when: at(15) }
     ],
     "4": [
-      { id: "m1", dir: "in",  channel: "dm", body: "Saw your cosmetic reel — how much for the smile makeover package?", when: at(0) },
-      { id: "m2", dir: "out", channel: "dm", kind: "gif", body: "Thanks for the DM! Here's a quick 30-sec walkthrough of what's in the package + pricing.", when: at(2) },
-      { id: "m3", dir: "in",  channel: "dm", body: "Perfect — can I book a consult?", when: at(240) }
+      { id: "m1", dir: "in",  channel: "dm", body: "Saw your reel — how much for the full package?", when: at(0) },
+      { id: "m2", dir: "out", channel: "dm", kind: "gif", body: "Thanks for the DM! Here's a quick 30-sec walkthrough of what's included + pricing.", when: at(2) },
+      { id: "m3", dir: "in",  channel: "dm", body: "Perfect — can I book a visit?", when: at(240) }
     ],
     "5": [
       { id: "m1", dir: "in",  channel: "system", body: "Referral from Anthony D.", when: at(0) },
@@ -65,8 +65,8 @@ function conversationFor(leadId: string): ConvMsg[] {
     "6": [
       { id: "m1", dir: "in",  channel: "system", body: "Google ad click → form fill", when: at(0) },
       { id: "m2", dir: "out", channel: "sms", body: "Hey Anthony! Saw you came in through our ad — what brings you in?", when: at(3) },
-      { id: "m3", dir: "in",  channel: "sms", body: "Need a cleaning + consult on night guards", when: at(20) },
-      { id: "m4", dir: "out", channel: "sms", kind: "video", body: "Great — here's a quick video on our guard options. Also, any Friday next week works for a cleaning.", when: at(22) },
+      { id: "m3", dir: "in",  channel: "sms", body: "Need a quote + a service visit scheduled", when: at(20) },
+      { id: "m4", dir: "out", channel: "sms", kind: "video", body: "Great — here's a quick video on our service options. Any Friday next week works for a visit.", when: at(22) },
       { id: "m5", dir: "in",  channel: "sms", body: "Friday 3pm works", when: at(120) },
       { id: "m6", dir: "out", channel: "sms", body: "✅ Booked.", when: at(122) }
     ]

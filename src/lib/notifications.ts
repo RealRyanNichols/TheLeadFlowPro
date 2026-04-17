@@ -36,7 +36,7 @@ export const MOCK_NOTIFS: Notif[] = [
     kind: "missed_call",
     severity: "urgent",
     title: "Missed call — Maria G.",
-    body: "Called 2 minutes ago about Invisalign. Auto-text went out. Call her back to lock the lead.",
+    body: "Called 2 minutes ago about pricing. Auto-text went out. Call her back to lock the lead.",
     when: m(2),
     href: "/dashboard/leads/1"
   },

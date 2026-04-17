@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PhoneCall, MessageSquare, Wallet, Inbox, Bot, Workflow, Sparkles, QrCode, BookOpen } from "lucide-react";
 import { FunnelMark } from "./Logo";
+import { HeroTicker } from "./HeroTicker";
 
 const QUICK_TOOLS = [
   { icon: BookOpen,  label: "Playbooks",  href: "/dashboard/playbooks" },
@@ -20,10 +21,7 @@ export function Hero() {
 
       <div className="container pt-6 pb-10 md:pt-10 md:pb-20 text-center">
         <div className="flex justify-center mb-3 md:mb-4 animate-fade-up">
-          <span className="stat-pill bg-white/5 border border-white/10 text-ink-100">
-            <span className="h-2 w-2 rounded-full bg-lead-500" />
-            Welcome to
-          </span>
+          <HeroTicker />
         </div>
 
         <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight animate-fade-up">

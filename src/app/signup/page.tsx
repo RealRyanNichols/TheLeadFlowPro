@@ -111,7 +111,7 @@ export default function SignupPage() {
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
                     autoComplete="organization"
-                    placeholder="Premier Dental of Longview"
+                    placeholder="Your business name"
                     className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2.5 text-sm placeholder:text-ink-400 focus:outline-none focus:border-cyan-500/50"
                   />
                 </div>
