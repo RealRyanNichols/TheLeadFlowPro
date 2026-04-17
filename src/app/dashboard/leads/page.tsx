@@ -58,7 +58,11 @@ export default function LeadsPage() {
 
         <div className="divide-y divide-white/5">
           {MOCK_LEADS.map((l) => (
-            <div key={l.id} className="px-5 py-4 hover:bg-white/[0.02] transition flex items-center gap-4">
+            <Link
+              key={l.id}
+              href={`/dashboard/leads/${l.id}`}
+              className="px-5 py-4 hover:bg-white/[0.02] transition flex items-center gap-4"
+            >
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-500 to-brand-600 flex items-center justify-center text-sm font-bold text-white shrink-0">
                 {l.name?.split(" ").map((p) => p[0]).slice(0, 2).join("")}
               </div>
@@ -80,14 +84,14 @@ export default function LeadsPage() {
                 <p className="text-[11px] text-ink-400 mt-0.5">{relativeTime(l.createdAt)}</p>
               </div>
               <div className="flex gap-1 shrink-0">
-                <button className="h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-300 hover:text-cyan-400" title="Call">
+                <span className="h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-300 hover:text-cyan-400" title="Call">
                   <PhoneCall className="h-4 w-4" />
-                </button>
-                <button className="h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-300 hover:text-cyan-400" title="Text">
+                </span>
+                <span className="h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-300 hover:text-cyan-400" title="Text">
                   <MessageSquare className="h-4 w-4" />
-                </button>
+                </span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

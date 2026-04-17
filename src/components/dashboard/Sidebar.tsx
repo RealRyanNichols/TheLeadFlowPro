@@ -4,14 +4,18 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard, Inbox, Bot, Megaphone, Target, Users,
-  Sparkles, FilmIcon, Settings, Lightbulb, Workflow, IdCard, Menu, X, BookOpen
+  Sparkles, FilmIcon, Settings, Lightbulb, Workflow, IdCard, Menu, X,
+  BookOpen, Mail, Compass, MessageSquareQuote
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/dashboard",            label: "Overview",        icon: LayoutDashboard },
+  { href: "/dashboard/onboarding", label: "Get started",     icon: Compass },
   { href: "/dashboard/playbooks",  label: "Playbooks",       icon: BookOpen },
+  { href: "/dashboard/scripts",    label: "Scripts library", icon: MessageSquareQuote },
+  { href: "/dashboard/recap",      label: "Weekly recap",    icon: Mail },
   { href: "/dashboard/leads",      label: "Lead Inbox",      icon: Inbox },
   { href: "/dashboard/chatbot",    label: "AI Chatbot",      icon: Bot },
   { href: "/dashboard/automations",label: "Automations",     icon: Workflow },
@@ -58,7 +62,7 @@ function PlanFooter() {
       <div className="glass rounded-xl p-3 text-xs text-ink-300">
         <p className="font-semibold text-white mb-1">Growth plan</p>
         <p>Unlimited AI insights · 5,000 leads/mo</p>
-        <Link href="/dashboard/settings" className="text-cyan-400 hover:underline mt-2 inline-block">
+        <Link href="/dashboard/billing" className="text-cyan-400 hover:underline mt-2 inline-block">
           Manage plan →
         </Link>
       </div>
