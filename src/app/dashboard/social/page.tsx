@@ -22,9 +22,9 @@ export default function SocialPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total followers" value={formatNumber(totalFollowers)} delta={2.3} highlight />
-        <StatCard label="Avg engagement"  value={`${avgEngagement.toFixed(1)}%`} delta={0.4} />
-        <StatCard label="Connected"       value={`${MOCK_SOCIAL.filter(s => s.connected).length} of ${MOCK_SOCIAL.length}`} />
+        <StatCard label="Total followers" value={formatNumber(totalFollowers)} sub="Fills in as you connect accounts" highlight />
+        <StatCard label="Avg engagement"  value={`${avgEngagement.toFixed(1)}%`} sub="Weighted across platforms" />
+        <StatCard label="Connected"       value={`${MOCK_SOCIAL.filter(s => s.connected).length} of ${MOCK_SOCIAL.length}`} sub="Tap Connect on any card below" />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
