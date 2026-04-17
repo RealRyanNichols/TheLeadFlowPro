@@ -1,30 +1,22 @@
-// src/lib/auth.ts
-// UPDATED for Flo profile-gate (Ryan 2026-04-17):
-//  - newUser page is now /onboarding (not /dashboard/onboarding which was the old goal-picker)
-//  - JWT + session now carry brainCompleteness so middleware can gate without a DB roundtrip
-//  - JWT is re-hydrated with fresh completeness on initial sign-in AND whenever the
-//    client calls `update()` from useSession — which the onboarding page does on unlock.
-
 import type { NextAuthOptions } from "next-auth";
+import { getServerSession } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
 import TwitterProvider from "next-auth/providers/twitter";
-import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
-import { scryptSync, timingSafeEqual } from "crypto";
+import { verifyPassword } from "@/lib/password";
 
-function verifyPassword(password: string, hashed: string | null | undefined): boolean {
-  if (!hashed) return false;
-  const [salt, key] = hashed.split(":");
-  if (!salt || !key) return false;
-  const keyBuf = Buffer.from(key, "hex");
-  const testBuf = scryptSync(password, salt, keyBuf.length);
-  if (keyBuf.length !== testBuf.length) return false;
-  return timingSafeEqual(keyBuf, testBuf);
-}
+const googleId   = process.env.GOOGLE_CLIENT_ID;
+const googleKey  = process.env.GOOGLE_CLIENT_SECRET;
+const fbId       = process.env.FACEBOOK_CLIENT_ID;
+const fbKey      = process.env.FACEBOOK_CLIENT_SECRET;
+const twitterId  = process.env.TWITTER_CLIENT_ID;
+const twitterKey = process.env.TWITTER_CLIENT_SECRET;
 
-async function currentCompleteness(userId: string): Promise<number> {
+// Fetches the current Flo profile completeness for the JWT token refresh path.
+async function currentBrainCompleteness(userId: string): Promise<number> {
   try {
     const row = await prisma.brainProfile.findUnique({
       where: { userId },
@@ -37,84 +29,110 @@ async function currentCompleteness(userId: string): Promise<number> {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as any,
+  adapter: PrismaAdapter(prisma),
+  // JWT sessions let credential logins work alongside the Prisma adapter.
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
-    newUser: "/onboarding", // Flo's conversational profile builder
+    // Flo's conversational profile builder. Nothing unlocks until she has
+    // enough context (BrainProfile.completeness >= 80).
+    newUser: "/onboarding"
   },
   providers: [
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ? [
-          GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            allowDangerousEmailAccountLinking: true,
-          }),
-        ]
+    // OAuth providers are registered only when credentials are present, so
+    // local/preview builds work without every secret being set.
+    ...(googleId && googleKey
+      ? [GoogleProvider({
+          clientId: googleId,
+          clientSecret: googleKey,
+          allowDangerousEmailAccountLinking: true
+        })]
       : []),
-    ...(process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET
-      ? [
-          FacebookProvider({
-            clientId: process.env.FACEBOOK_CLIENT_ID,
-            clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-            allowDangerousEmailAccountLinking: true,
-          }),
-        ]
+    ...(fbId && fbKey
+      ? [FacebookProvider({
+          clientId: fbId,
+          clientSecret: fbKey,
+          allowDangerousEmailAccountLinking: true
+        })]
       : []),
-    ...(process.env.TWITTER_CLIENT_ID && process.env.TWITTER_CLIENT_SECRET
-      ? [
-          TwitterProvider({
-            clientId: process.env.TWITTER_CLIENT_ID,
-            clientSecret: process.env.TWITTER_CLIENT_SECRET,
-            version: "2.0",
-            allowDangerousEmailAccountLinking: true,
-          }),
-        ]
+    ...(twitterId && twitterKey
+      ? [TwitterProvider({
+          clientId: twitterId,
+          clientSecret: twitterKey,
+          version: "2.0",
+          allowDangerousEmailAccountLinking: true
+        })]
       : []),
     CredentialsProvider({
-      name: "Credentials",
+      name: "Email + password",
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email:    { label: "Email",    type: "email" },
+        password: { label: "Password", type: "password" }
       },
-      async authorize(creds) {
-        if (!creds?.email || !creds?.password) return null;
-        const user = await prisma.user.findUnique({ where: { email: creds.email } });
-        if (!user) return null;
-        if (!verifyPassword(creds.password, user.passwordHash)) return null;
-        return { id: user.id, email: user.email, name: user.name ?? null };
-      },
-    }),
+      async authorize(credentials) {
+        const email = credentials?.email?.toLowerCase().trim();
+        const password = credentials?.password;
+        if (!email || !password) return null;
+
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user || !user.passwordHash) return null;
+
+        const ok = await verifyPassword(password, user.passwordHash);
+        if (!ok) return null;
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name ?? undefined,
+          image: user.image ?? undefined
+        };
+      }
+    })
   ],
   callbacks: {
     async jwt({ token, user, trigger }) {
-      // First sign-in: seed the token with the user id.
-      if (user) {
-        (token as any).id = (user as any).id;
-      }
+      if (user) token.id = (user as { id: string }).id;
+
       // Refresh brainCompleteness:
       //  - on initial sign-in (user is truthy)
-      //  - when the client explicitly calls update() (trigger === "update")
-      const id = (token as any).id as string | undefined;
+      //  - when the client explicitly calls session.update() after finishing onboarding
+      const id = (token as { id?: string }).id;
       if (id && (user || trigger === "update")) {
-        (token as any).brainCompleteness = await currentCompleteness(id);
+        (token as { brainCompleteness?: number }).brainCompleteness =
+          await currentBrainCompleteness(id);
       }
-      // If somehow the claim is missing from an existing session, seed it once.
-      if (id && typeof (token as any).brainCompleteness !== "number") {
-        (token as any).brainCompleteness = await currentCompleteness(id);
+      // If the claim is missing on an existing session (upgrade path), seed it once.
+      if (id && typeof (token as { brainCompleteness?: number }).brainCompleteness !== "number") {
+        (token as { brainCompleteness?: number }).brainCompleteness =
+          await currentBrainCompleteness(id);
       }
       return token;
     },
     async session({ session, token }) {
+      if (session.user && token.id) {
+        (session.user as typeof session.user & { id: string }).id = token.id as string;
+      }
       if (session.user) {
-        (session.user as any).id = (token as any).id;
-        (session.user as any).brainCompleteness =
-          typeof (token as any).brainCompleteness === "number"
-            ? (token as any).brainCompleteness
-            : 0;
+        const bc = (token as { brainCompleteness?: number }).brainCompleteness;
+        (session.user as typeof session.user & { brainCompleteness?: number }).brainCompleteness =
+          typeof bc === "number" ? bc : 0;
       }
       return session;
-    },
-  },
+    }
+  }
 };
+
+export function auth() {
+  return getServerSession(authOptions);
+}
+
+/**
+ * Server-side helper — returns the full User row for the signed-in request,
+ * or null if no session. Throws if the DB is unreachable.
+ */
+export async function currentUser() {
+  const session = await auth();
+  const id = (session?.user as { id?: string } | undefined)?.id;
+  if (!id) return null;
+  return prisma.user.findUnique({ where: { id } });
+}
