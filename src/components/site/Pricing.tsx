@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Check, Zap, Sparkles } from "lucide-react";
 import { PLANS, BOOSTERS } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
+import { CheckoutButton } from "./CheckoutButton";
 
 export function Pricing() {
   return (
@@ -57,15 +58,20 @@ export function Pricing() {
                 ))}
               </ul>
 
-              <Link
-                href="/dashboard"
-                className={cn(
-                  "mt-6 text-sm py-2.5",
-                  plan.highlight ? "btn-accent" : "btn-ghost"
+              <div className="mt-6">
+                {plan.priceMonthly === 0 ? (
+                  <Link href="/dashboard" className="btn-ghost text-sm py-2.5 w-full">
+                    Start free
+                  </Link>
+                ) : (
+                  <CheckoutButton
+                    priceKey={plan.id}
+                    variant={plan.highlight ? "accent" : "ghost"}
+                  >
+                    Get {plan.name}
+                  </CheckoutButton>
                 )}
-              >
-                {plan.priceMonthly === 0 ? "Start free" : `Get ${plan.name}`}
-              </Link>
+              </div>
             </div>
           ))}
         </div>
@@ -101,6 +107,11 @@ export function Pricing() {
                 <div className="mt-3 text-xs text-ink-400 space-y-1">
                   <p><span className="text-cyan-400 font-semibold">Get:</span> {b.give}</p>
                   <p><span className="text-accent-400 font-semibold">Nice for:</span> {b.niceFor}</p>
+                </div>
+                <div className="mt-4">
+                  <CheckoutButton priceKey={b.id} variant="ghost">
+                    Buy — ${b.priceUsd}
+                  </CheckoutButton>
                 </div>
               </div>
             ))}
