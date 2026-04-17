@@ -1,14 +1,9 @@
-import { Bot, MessageSquare, Wand2, Globe, Smartphone, Instagram } from "lucide-react";
+import { Bot, Wand2, Globe, Smartphone, Instagram, MessageSquare } from "lucide-react";
+import Link from "next/link";
 import { StatCard } from "@/components/dashboard/StatCard";
 
-const SAMPLE_TRANSCRIPT = [
-  { role: "lead",  text: "Hey, do y'all handle same-week jobs?" },
-  { role: "bot",   text: "Hi! Yes — we can usually get someone out within the week. Were you wanting a free estimate, or to book a visit?" },
-  { role: "lead",  text: "Estimate first I think" },
-  { role: "bot",   text: "No problem. Most jobs like yours run $300–$900 depending on scope, and we offer simple financing. Want me to send a 60-second walkthrough of how pricing works?" },
-  { role: "lead",  text: "yeah that'd be great" },
-  { role: "bot",   text: "Sent! 🎥 If you'd like to get on the calendar, I can hold a couple openings for you — what days/times usually work?" }
-];
+// No fake transcripts, no invented conversation counts. Flo's chatbot page
+// shows honest zeros until it is actually deployed and answering leads.
 
 export default function ChatbotPage() {
   return (
@@ -25,9 +20,9 @@ export default function ChatbotPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Conversations (30d)" value="142" delta={28.4} highlight />
-        <StatCard label="Leads qualified"      value="38" delta={11.2} />
-        <StatCard label="Handoffs to you"      value="24" sub="When the lead asked for a human" />
+        <StatCard label="Conversations (30d)" value="0" sub="Starts counting once you deploy the bot" />
+        <StatCard label="Leads qualified"      value="0" sub="Filled in as real conversations finish" />
+        <StatCard label="Handoffs to you"      value="0" sub="When the lead asks for a human" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -37,24 +32,27 @@ export default function ChatbotPage() {
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <Bot className="h-5 w-5 text-cyan-400" /> Bot persona
             </h2>
+            <p className="mt-1 text-xs text-ink-400">
+              The more specific you get here, the less pushy the bot will sound.
+            </p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Field label="Bot name" defaultValue="Avery" />
-              <Field label="Business name" defaultValue="Your Business" />
+              <Field label="Bot name" placeholder="e.g. Avery" />
+              <Field label="Business name" placeholder="Your business name" />
               <Field
                 label="Tone"
-                defaultValue="Friendly, casual, never pushy. Texts like a real person."
+                placeholder="Friendly, casual, never pushy. Texts like a real person."
                 textarea
                 className="sm:col-span-2"
               />
               <Field
                 label="What you DO offer"
-                defaultValue="List your core services here — the things you want leads to ask about."
+                placeholder="List your core services — the things you want leads to ask about."
                 textarea
                 className="sm:col-span-2"
               />
               <Field
                 label="What you DON'T offer"
-                defaultValue="List anything you want the bot to politely decline or refer out."
+                placeholder="List anything you want the bot to politely decline or refer out."
                 textarea
                 className="sm:col-span-2"
               />
@@ -63,30 +61,26 @@ export default function ChatbotPage() {
 
           <div className="glass rounded-2xl p-5 sm:p-6">
             <h2 className="text-lg font-bold text-white">Where the bot answers</h2>
+            <p className="mt-1 text-xs text-ink-400">
+              Flip these on in Settings → Integrations once the channel is connected.
+            </p>
             <div className="mt-4 grid sm:grid-cols-3 gap-3">
-              <Channel icon={Globe}      label="Website widget" enabled />
-              <Channel icon={Smartphone} label="SMS replies"    enabled />
-              <Channel icon={Instagram}  label="Instagram DMs"  />
+              <Channel icon={Globe}      label="Website widget" />
+              <Channel icon={Smartphone} label="SMS replies" />
+              <Channel icon={Instagram}  label="Instagram DMs" />
             </div>
           </div>
 
           <div className="glass rounded-2xl p-5 sm:p-6">
             <h2 className="text-lg font-bold text-white">Recent conversation</h2>
-            <p className="text-xs text-ink-400 mt-1">Maria G · via Meta ad · 12 min ago</p>
-            <div className="mt-4 space-y-2">
-              {SAMPLE_TRANSCRIPT.map((m, i) => (
-                <div key={i} className={m.role === "bot" ? "flex justify-start" : "flex justify-end"}>
-                  <div
-                    className={
-                      m.role === "bot"
-                        ? "max-w-[85%] glass rounded-2xl rounded-tl-md px-4 py-2 text-sm text-ink-100"
-                        : "max-w-[85%] bg-gradient-to-br from-brand-600 to-cyan-500 rounded-2xl rounded-tr-md px-4 py-2 text-sm text-white"
-                    }
-                  >
-                    {m.text}
-                  </div>
-                </div>
-              ))}
+            <div className="mt-6 rounded-xl border border-dashed border-white/10 p-6 text-center">
+              <MessageSquare className="h-6 w-6 text-ink-400 mx-auto" />
+              <p className="mt-3 text-sm text-ink-200">
+                No conversations yet.
+              </p>
+              <p className="mt-1 text-xs text-ink-400">
+                Your bot will show its most recent chat here once it's live.
+              </p>
             </div>
           </div>
         </div>
@@ -95,15 +89,13 @@ export default function ChatbotPage() {
         <div className="space-y-6">
           <div className="glass rounded-2xl p-5">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Wand2 className="h-4 w-4 text-accent-400" /> AI suggestion
+              <Wand2 className="h-4 w-4 text-accent-400" /> Flo's suggestion
             </h3>
             <p className="mt-3 text-sm text-ink-200">
-              Your bot has answered "what's your service area?" 14 times this week. Want to add it
-              to the standard FAQ so it answers faster (and you don't pay for the AI call)?
+              Flo watches what your bot gets asked most and drafts FAQ answers so
+              the bot answers faster and you pay less per call. This panel fills in
+              after ~25 real conversations.
             </p>
-            <button className="btn-primary text-sm py-2 px-3 mt-4 w-full">
-              Add to FAQ
-            </button>
           </div>
           <div className="glass rounded-2xl p-5">
             <h3 className="text-sm font-bold text-white">Plug-in points</h3>
@@ -113,9 +105,12 @@ export default function ChatbotPage() {
               <li>📷 Meta Business Suite (IG/FB DMs)</li>
               <li>📊 GoHighLevel webhook</li>
             </ul>
-            <button className="btn-ghost text-xs py-2 px-3 mt-4 w-full">
-              Get install snippets
-            </button>
+            <Link
+              href="/dashboard/settings"
+              className="btn-ghost text-xs py-2 px-3 mt-4 w-full inline-flex justify-center"
+            >
+              Open integrations
+            </Link>
           </div>
         </div>
       </div>
@@ -124,16 +119,16 @@ export default function ChatbotPage() {
 }
 
 function Field({
-  label, defaultValue, textarea, className
-}: { label: string; defaultValue?: string; textarea?: boolean; className?: string }) {
+  label, placeholder, defaultValue, textarea, className,
+}: { label: string; placeholder?: string; defaultValue?: string; textarea?: boolean; className?: string }) {
   return (
     <label className={className}>
       <span className="text-xs uppercase tracking-wider text-ink-400 font-semibold">{label}</span>
       {textarea ? (
-        <textarea defaultValue={defaultValue} rows={2}
+        <textarea defaultValue={defaultValue} placeholder={placeholder} rows={2}
           className="mt-1 w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 focus:outline-none resize-none" />
       ) : (
-        <input defaultValue={defaultValue}
+        <input defaultValue={defaultValue} placeholder={placeholder}
           className="mt-1 w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 focus:outline-none" />
       )}
     </label>
