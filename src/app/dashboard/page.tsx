@@ -1,18 +1,32 @@
+import { redirect } from "next/navigation";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { NextMoveCard } from "@/components/dashboard/NextMoveCard";
 import { LeadsChart } from "@/components/dashboard/LeadsChart";
-import { MOCK_KPIS, MOCK_NEXT_MOVES, MOCK_USER, MOCK_LEADS } from "@/lib/mock-data";
+import { MOCK_KPIS, MOCK_NEXT_MOVES, MOCK_LEADS } from "@/lib/mock-data";
 import { formatCurrency, formatPercent, relativeTime } from "@/lib/utils";
+import { currentUser } from "@/lib/auth";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-export default function DashboardOverview() {
+export const dynamic = "force-dynamic";
+
+export default async function DashboardOverview() {
+  const user = await currentUser();
+  if (!user) redirect("/login?callbackUrl=/dashboard");
+
+  // Brand-new accounts land in onboarding until they've at least filled in
+  // their business name. Otherwise the dashboard is just mock data in a
+  // vacuum — no context, no personalization, nothing actionable.
+  if (!user.businessName) redirect("/dashboard/onboarding");
+
+  const greetingName = user.name?.split(" ")[0] || "there";
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* greeting */}
       <div>
         <p className="text-cyan-400 text-sm font-semibold">
-          Welcome back, {MOCK_USER.name}
+          Welcome back, {greetingName}
         </p>
         <h1 className="mt-1 text-3xl font-extrabold text-white">
           Here's the data —{" "}
