@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { MOCK_LEADS, MOCK_USER } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { DemoBanner } from "@/components/dashboard/DemoBanner";
 
 type LeadStatus = typeof MOCK_LEADS[number]["status"];
 
@@ -50,6 +51,12 @@ const stalledLeads = weekLeads.filter((l) => l.status === "nurturing" || l.statu
 export default function RecapPage() {
   return (
     <div className="max-w-4xl space-y-5">
+      <DemoBanner setupHref="/dashboard/leads" setupLabel="Open lead inbox">
+        This is a sample of the Monday recap email. The leads, dollar amounts,
+        and moves are placeholders — your real recap assembles once you have
+        actual leads flowing through the inbox.
+      </DemoBanner>
+
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">

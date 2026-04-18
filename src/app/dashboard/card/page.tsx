@@ -6,12 +6,19 @@ import { MOCK_FLOWCARD } from "@/lib/mock-data";
 import { qrSvgUrl } from "@/lib/qr";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { SoonButton } from "@/components/ui/SoonButton";
+import { DemoBanner } from "@/components/dashboard/DemoBanner";
 
 export default function FlowCardSettings() {
   const publicUrl = `https://www.theleadflowpro.com/c/${MOCK_FLOWCARD.slug}`;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
+      <DemoBanner setupHref="/dashboard/settings#business" setupLabel="Set business info">
+        The view counts, social links, and bio below are a sample. Your real
+        FlowCard fills in once you set your business info and connect your
+        socials.
+      </DemoBanner>
+
       <div>
         <p className="text-cyan-400 text-sm font-semibold">Your FlowCard</p>
         <h1 className="mt-1 text-3xl font-extrabold text-white">

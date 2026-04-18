@@ -2,6 +2,7 @@ import { Sparkles, TrendingUp, AlertTriangle, Lightbulb, ShieldAlert, Wand2 } fr
 import { NextMoveCard } from "@/components/dashboard/NextMoveCard";
 import { MOCK_NEXT_MOVES } from "@/lib/mock-data";
 import { SoonButton } from "@/components/ui/SoonButton";
+import { DemoBanner } from "@/components/dashboard/DemoBanner";
 
 const INSIGHTS = [
   {
@@ -48,6 +49,12 @@ const KIND_STYLES: Record<string, string> = {
 export default function InsightsPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
+      <DemoBanner setupHref="/dashboard/social" setupLabel="Connect socials">
+        Claude needs your social data and a week of lead activity before it can
+        surface real insights. The cards below are a preview — they'll be
+        rewritten in your own numbers once data starts flowing.
+      </DemoBanner>
+
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <p className="text-cyan-400 text-sm font-semibold">AI Insights</p>

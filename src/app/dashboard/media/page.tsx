@@ -4,6 +4,7 @@ import { Upload, Play, Image as ImageIcon, Tag, Sparkles } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { MOCK_MEDIA } from "@/lib/mock-data";
 import { SoonButton } from "@/components/ui/SoonButton";
+import { DemoBanner } from "@/components/dashboard/DemoBanner";
 
 const FILTERS = ["All", "Videos", "GIFs", "Images"] as const;
 type Filter = typeof FILTERS[number];
@@ -18,6 +19,12 @@ export default function MediaPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
+      <DemoBanner>
+        The clips below are example placeholders to show how tagging and
+        reply-rate stats will look. Upload your own media and these get
+        replaced with your real library.
+      </DemoBanner>
+
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <p className="text-cyan-400 text-sm font-semibold">Video & GIF Library</p>

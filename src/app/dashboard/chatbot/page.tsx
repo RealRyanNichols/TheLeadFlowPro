@@ -1,6 +1,7 @@
 import { Bot, MessageSquare, Wand2, Globe, Smartphone, Instagram } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { SoonButton } from "@/components/ui/SoonButton";
+import { DemoBanner } from "@/components/dashboard/DemoBanner";
 
 const SAMPLE_TRANSCRIPT = [
   { role: "lead",  text: "Hey, do y'all handle same-week jobs?" },
@@ -14,6 +15,12 @@ const SAMPLE_TRANSCRIPT = [
 export default function ChatbotPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
+      <DemoBanner setupHref="/dashboard/settings#business" setupLabel="Set business info">
+        The transcript, stat counts, and persona below are a sample. Your
+        chatbot starts answering real conversations once your business info
+        and FAQs are saved.
+      </DemoBanner>
+
       <div>
         <p className="text-cyan-400 text-sm font-semibold">AI Chatbot</p>
         <h1 className="mt-1 text-3xl font-extrabold text-white">

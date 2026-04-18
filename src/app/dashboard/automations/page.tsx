@@ -3,6 +3,7 @@ import { Plus, PlayCircle, PauseCircle, CircleDashed, Workflow } from "lucide-re
 import { StatCard } from "@/components/dashboard/StatCard";
 import { MOCK_AUTOMATIONS } from "@/lib/mock-data";
 import { SoonButton } from "@/components/ui/SoonButton";
+import { DemoBanner } from "@/components/dashboard/DemoBanner";
 
 const TEMPLATES = [
   { name: "5-day lead nurture",    desc: "SMS day 0, 1, 3, 5 + a video on day 2", icon: "🔥" },
@@ -14,6 +15,12 @@ const TEMPLATES = [
 export default function AutomationsPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
+      <DemoBanner>
+        The automations and run counts below are samples. Your account starts
+        with zero automations — pick a template and wire it up to see your
+        own numbers.
+      </DemoBanner>
+
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <p className="text-cyan-400 text-sm font-semibold">Automations</p>
@@ -72,11 +79,11 @@ export default function AutomationsPage() {
         <h2 className="text-lg font-bold text-white mb-3">Start from a template</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {TEMPLATES.map((t) => (
-            <div key={t.name} className="glass rounded-2xl p-5 hover:border-cyan-500/30 transition group cursor-pointer">
+            <div key={t.name} className="glass rounded-2xl p-5 transition flex flex-col">
               <div className="text-3xl">{t.icon}</div>
               <h3 className="mt-3 text-base font-bold text-white">{t.name}</h3>
-              <p className="mt-1 text-xs text-ink-200">{t.desc}</p>
-              <div className="mt-3 text-xs text-cyan-400 group-hover:underline">Use template →</div>
+              <p className="mt-1 text-xs text-ink-200 flex-1">{t.desc}</p>
+              <SoonButton size="xs" className="mt-3 w-full">Use template</SoonButton>
             </div>
           ))}
         </div>

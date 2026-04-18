@@ -2,6 +2,7 @@ import { Wand2, RefreshCw } from "lucide-react";
 import { SocialIcon } from "@/components/flowcard/SocialIcon";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { SoonButton } from "@/components/ui/SoonButton";
+import { DemoBanner } from "@/components/dashboard/DemoBanner";
 
 const SAMPLE_ADS = [
   {
@@ -30,6 +31,12 @@ const SAMPLE_ADS = [
 export default function AdCopyPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
+      <DemoBanner setupHref="/dashboard/settings#business" setupLabel="Set business info">
+        The three ad variants below are samples — local-service placeholders,
+        not generated from your account. Fill in your business info and click
+        Generate to get ads in your voice.
+      </DemoBanner>
+
       <div>
         <p className="text-cyan-400 text-sm font-semibold">Ad Copy Generator</p>
         <h1 className="mt-1 text-3xl font-extrabold text-white">

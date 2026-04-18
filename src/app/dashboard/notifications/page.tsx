@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { MOCK_NOTIFS, sortNotifs, timeAgo, type Notif, type NotifKind } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
+import { DemoBanner } from "@/components/dashboard/DemoBanner";
 
 const ICON: Record<NotifKind, any> = {
   missed_call:        PhoneMissed,
@@ -59,6 +60,12 @@ export default function NotificationsPage() {
 
   return (
     <div className="max-w-4xl space-y-5">
+      <DemoBanner>
+        These are sample notifications so you can see the sorting and filters.
+        Real ones land here once your phone number, chatbot, or inbox fires
+        an event.
+      </DemoBanner>
+
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
