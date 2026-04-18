@@ -86,13 +86,23 @@ export const authOptions: NextAuthOptions = {
       const needsProfileLookup =
         token.id && (token.hasProfile === undefined || trigger === "update");
       if (needsProfileLookup) {
-        const u = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { onboardedAt: true }
-        });
-        // Only "onboarded" once they've finished the questionnaire.
-        // Signup populates name + businessName, so those aren't enough.
-        token.hasProfile = !!u?.onboardedAt;
+        try {
+          const u = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { onboardedAt: true }
+          });
+          // Only "onboarded" once they've finished the questionnaire.
+          // Signup populates name + businessName, so those aren't enough.
+          token.hasProfile = !!u?.onboardedAt;
+        } catch (err) {
+          // Never block login because the profile lookup hiccupped — e.g.
+          // the `onboardedAt` column hasn't been migrated yet, or the DB
+          // is briefly unavailable. Default to letting the user in; the
+          // `/dashboard` server component re-checks with a full user load
+          // and will redirect to onboarding if they still need it.
+          console.warn("[auth] profile lookup failed, allowing login:", err);
+          token.hasProfile = true;
+        }
       }
       return token;
     },
