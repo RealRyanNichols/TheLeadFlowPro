@@ -1,11 +1,47 @@
 import Link from "next/link";
-import { Copy, ExternalLink, Eye, MousePointerClick, QrCode, Sparkles } from "lucide-react";
+import { Copy, ExternalLink, Eye, QrCode, Sparkles } from "lucide-react";
+import { redirect } from "next/navigation";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { FlowCardView } from "@/components/flowcard/FlowCardView";
 import { MOCK_FLOWCARD } from "@/lib/mock-data";
 import { qrSvgUrl } from "@/lib/qr";
+import { auth } from "@/lib/auth";
+import { getBrainContext } from "@/lib/brain";
 
-export default function FlowCardSettings() {
+// Server Component — pre-fills display name, tagline, bio, and slug
+// suggestion from BrainProfile/User. Once the user saves a real slug,
+// the public FlowCard URL + QR render.
+
+export default async function FlowCardSettings() {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/card");
+
+  const { derived, extras } = await getBrainContext(session.user.id);
+
+  // Slug defaults to the user's first name (lowercase, hyphenated) if
+  // they haven't picked one yet. Safe against special chars.
+  const slugDefault = slugify(
+    (extras.flowCardHandle as string) ||
+    MOCK_FLOWCARD.slug ||
+    derived.displayName,
+  );
+  const displayNameDefault =
+    (extras.flowCardDisplayName as string) || derived.displayName;
+  const taglineDefault =
+    (extras.flowCardTagline as string) ||
+    (derived.subIndustry
+      ? `${capitalize(derived.subIndustry)}${derived.locationLine ? " · " + derived.locationLine : ""}`
+      : derived.industryLabel);
+  const bioDefault =
+    (extras.flowCardBio as string) ||
+    derived.valueProp;
+  const phoneDefault =
+    (extras.publicPhone as string) || MOCK_FLOWCARD.phone;
+  const emailDefault =
+    (extras.publicEmail as string) || session.user.email || MOCK_FLOWCARD.email;
+  const websiteDefault =
+    (extras.website as string) || MOCK_FLOWCARD.websiteUrl;
+
   const hasSlug = !!MOCK_FLOWCARD.slug;
   const publicUrl = hasSlug
     ? `https://www.theleadflowpro.com/c/${MOCK_FLOWCARD.slug}`
@@ -24,7 +60,6 @@ export default function FlowCardSettings() {
         </p>
       </div>
 
-      {/* stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Views"             value={MOCK_FLOWCARD.views.toLocaleString()}             sub={hasSlug ? "Past 30 days" : "Counts once your card goes live"} highlight />
         <StatCard label="QR scans"          value={MOCK_FLOWCARD.qrScans.toLocaleString()}           sub={hasSlug ? "Past 30 days" : "Counts once someone scans"} />
@@ -41,11 +76,8 @@ export default function FlowCardSettings() {
             <div className="flex-1 min-w-0">
               <h2 className="text-lg font-bold text-white">Activate your FlowCard</h2>
               <p className="mt-1 text-sm text-ink-200">
-                Pick a handle, drop in your socials and contact info, and you'll
-                have a shareable link + QR code in about a minute.
-              </p>
-              <p className="mt-3 text-xs text-ink-400">
-                Fill the form below, then hit <span className="text-white font-semibold">Save changes</span>.
+                Flo has pre-filled everything she could from your onboarding —
+                tweak anything that looks off, then save to go live.
               </p>
             </div>
           </div>
@@ -91,13 +123,13 @@ export default function FlowCardSettings() {
           <div className="glass rounded-2xl p-6">
             <h2 className="text-lg font-bold text-white">Edit your card</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Field label="Handle" placeholder="yourname — used in your public URL" defaultValue={MOCK_FLOWCARD.slug} />
-              <Field label="Display name" placeholder="Your name" defaultValue={MOCK_FLOWCARD.displayName} />
-              <Field label="Tagline" placeholder="What you do, in one line" defaultValue={MOCK_FLOWCARD.tagline} />
-              <Field label="Phone"   placeholder="Optional" defaultValue={MOCK_FLOWCARD.phone} />
-              <Field label="Email"   placeholder="Optional" defaultValue={MOCK_FLOWCARD.email} />
-              <Field label="Website" placeholder="https://..." defaultValue={MOCK_FLOWCARD.websiteUrl} className="sm:col-span-2" />
-              <Field label="Bio" placeholder="A sentence or two — what you help people with" defaultValue={MOCK_FLOWCARD.bio} textarea className="sm:col-span-2" />
+              <Field label="Handle" placeholder="yourname — used in your public URL" defaultValue={slugDefault} />
+              <Field label="Display name" placeholder="Your name" defaultValue={displayNameDefault} />
+              <Field label="Tagline" placeholder="What you do, in one line" defaultValue={taglineDefault} />
+              <Field label="Phone"   placeholder="Optional" defaultValue={phoneDefault} />
+              <Field label="Email"   placeholder="Optional" defaultValue={emailDefault} />
+              <Field label="Website" placeholder="https://..." defaultValue={websiteDefault} className="sm:col-span-2" />
+              <Field label="Bio" placeholder="A sentence or two — what you help people with" defaultValue={bioDefault} textarea className="sm:col-span-2" />
             </div>
 
             <div className="mt-6">
@@ -151,6 +183,20 @@ export default function FlowCardSettings() {
       </div>
     </div>
   );
+}
+
+function slugify(s: string): string {
+  return (s || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 32);
+}
+
+function capitalize(s: string): string {
+  if (!s) return "";
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 function Field({
