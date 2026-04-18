@@ -2,16 +2,30 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import {
   LayoutDashboard, Inbox, Bot, Megaphone, Target, Users,
-  Sparkles, FilmIcon, Settings, Lightbulb, Workflow, IdCard, Menu, X, BookOpen
+  Sparkles, FilmIcon, Settings, Lightbulb, Workflow, IdCard, Menu, X,
+  BookOpen, Mail, Compass, MessageSquareQuote
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { cn } from "@/lib/utils";
 
+// Plan labels mirror /lib/tiers.ts; change there if pricing copy changes.
+const PLAN_LABELS: Record<string, { name: string; tagline: string }> = {
+  free:    { name: "Free plan",    tagline: "50 leads/mo · upgrade for more" },
+  starter: { name: "Starter plan", tagline: "Core tools for solo operators" },
+  growth:  { name: "Growth plan",  tagline: "Unlimited AI insights · 5,000 leads/mo" },
+  pro:     { name: "Pro plan",     tagline: "Multi-location, priority support" },
+  agency:  { name: "Agency plan",  tagline: "Unlimited seats, white-label, priority" },
+};
+
 const NAV = [
   { href: "/dashboard",            label: "Overview",        icon: LayoutDashboard },
+  { href: "/dashboard/onboarding", label: "Get started",     icon: Compass },
   { href: "/dashboard/playbooks",  label: "Playbooks",       icon: BookOpen },
+  { href: "/dashboard/scripts",    label: "Scripts library", icon: MessageSquareQuote },
+  { href: "/dashboard/recap",      label: "Weekly recap",    icon: Mail },
   { href: "/dashboard/leads",      label: "Lead Inbox",      icon: Inbox },
   { href: "/dashboard/chatbot",    label: "AI Chatbot",      icon: Bot },
   { href: "/dashboard/automations",label: "Automations",     icon: Workflow },
@@ -53,13 +67,19 @@ function NavList({ pathname, onItemClick }: { pathname: string; onItemClick?: ()
 }
 
 function PlanFooter() {
+  const { data: session } = useSession();
+  // Plan source of truth eventually moves to a billing query; until then we
+  // read off the session user object if present, falling back to "free".
+  const planRaw = ((session?.user as { plan?: string } | undefined)?.plan || "free").toLowerCase();
+  const plan = PLAN_LABELS[planRaw] || PLAN_LABELS.free;
+  const cta = planRaw === "free" ? "Upgrade →" : "Manage plan →";
   return (
     <div className="p-4 border-t border-white/5">
       <div className="glass rounded-xl p-3 text-xs text-ink-300">
-        <p className="font-semibold text-white mb-1">Growth plan</p>
-        <p>Unlimited AI insights · 5,000 leads/mo</p>
-        <Link href="/dashboard/settings" className="text-cyan-400 hover:underline mt-2 inline-block">
-          Manage plan →
+        <p className="font-semibold text-white mb-1">{plan.name}</p>
+        <p>{plan.tagline}</p>
+        <Link href="/dashboard/billing" className="text-cyan-400 hover:underline mt-2 inline-block">
+          {cta}
         </Link>
       </div>
     </div>
@@ -71,7 +91,7 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-white/5 bg-ink-950/80 backdrop-blur-xl">
       <div className="p-5 border-b border-white/5">
-        <Logo />
+        <Logo href="/dashboard" />
       </div>
       <NavList pathname={pathname} />
       <PlanFooter />
@@ -108,7 +128,7 @@ export function MobileSidebar() {
           />
           <aside className="absolute left-0 top-0 bottom-0 w-72 max-w-[85vw] bg-ink-950 border-r border-white/10 flex flex-col animate-fade-up">
             <div className="p-5 border-b border-white/5 flex items-center justify-between">
-              <Logo />
+              <Logo href="/dashboard" />
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"

@@ -63,10 +63,39 @@ model User {
   image         String?
   emailVerified DateTime?
 
+  // Credentials provider (email + password) — hashed with scrypt.
+  // Null for users who only sign in via OAuth (Google, etc).
+  passwordHash  String?
+
   plan          PlanTier  @default(free)
   businessName  String?
   industry      String?
   phone         String?
+  website       String?
+  replyToEmail  String?
+  timezone      String?   @default("America/Chicago")
+  businessHours String?
+  addressStreet String?
+  addressCity   String?
+  addressState  String?
+  addressZip    String?
+  // Notification preferences — a single JSON object keyed by event name.
+  // See src/lib/notif-prefs.ts for the shape.
+  notifPrefs    Json?
+
+  // Stripe linkage — set on signup (customer) and updated by webhook
+  // whenever a subscription or one-time booster is purchased.
+  stripeCustomerId        String?  @unique
+  stripeSubscriptionId    String?  @unique
+  stripePriceId           String?
+  stripeCurrentPeriodEnd  DateTime?
+
+  // Usage counters — reset by the monthly renewal webhook.
+  aiActionsUsed Int       @default(0)
+  smsUsed       Int       @default(0)
+  // Booster credits that stack on top of the plan's monthly allotment.
+  aiActionsBonus Int      @default(0)
+  smsBonus       Int      @default(0)
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -85,6 +114,49 @@ model User {
   toolRequests      ToolRequest[]
   toolVotes         ToolRequestVote[]
   flowCard          FlowCard?
+  brainProfile      BrainProfile?
+}
+
+// ─── Flo / Brain Profile ────────────────────────────────────────
+// The conversational onboarding gate. Every user must complete this
+// before ANY dashboard route unlocks. Middleware reads completeness
+// from the JWT and bounces sub-80 users back to /onboarding.
+
+model BrainProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Core slots filled by /onboarding (coach-voice conversational flow)
+  industry        String?
+  subIndustry     String?
+  city            String?
+  state           String?
+  teamSize        String?
+  avgCustomerValue String?
+  idealCustomer   String?  @db.Text
+  topFrustration  String?
+  topGoal90d      String?
+
+  // Progressive slots (filled over time, not required for launch)
+  voiceSample     String?  @db.Text
+  primaryChannels String[]
+  currentTools    String[]
+  weeklyHoursAvail Int?
+
+  // Open-ended bonus answers from the "endless" onboarding flow. Any slot
+  // the user answers beyond the columns above is merged into this JSON blob
+  // by /api/onboarding — lets us add new questions without a per-slot
+  // migration. Read via getBrainContext(userId).extras.
+  extras          Json     @default("{}")
+
+  // Meta
+  completeness    Int      @default(0)
+  questionsSeen   Int      @default(0)
+  lastPromptAt    DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 // ─── Social platforms ───────────────────────────────────────────

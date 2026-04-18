@@ -36,13 +36,20 @@ export function FunnelMark({ className }: { className?: string }) {
 
 export function Logo({
   className,
-  withWordmark = true
+  withWordmark = true,
+  href = "/",
 }: {
   className?: string;
   withWordmark?: boolean;
+  /** Where the logo links to. Defaults to "/" (marketing site).
+   *  Inside the dashboard shell we pass href="/dashboard" so clicking
+   *  the logo keeps a signed-in user inside the app instead of kicking
+   *  them back to the public homepage (where it feels like a logout).
+   */
+  href?: string;
 }) {
   return (
-    <Link href="/" className={cn("flex items-center gap-2 group", className)}>
+    <Link href={href} className={cn("flex items-center gap-2 group", className)}>
       <FunnelMark className="h-9 w-9 transition group-hover:scale-105" />
       {withWordmark && (
         <span className="font-extrabold text-lg leading-none">

@@ -8,7 +8,7 @@ export function SocialProof() {
           <Stat value="$382.88" label="total ad spend" />
         </div>
         <p className="text-center text-xs md:text-sm text-ink-300 mt-3 md:mt-4">
-          Real numbers from a real LeadFlow Pro client (dental practice, Longview TX)
+          The kind of numbers local businesses pull when every lead actually gets followed up on.
         </p>
       </div>
     </section>

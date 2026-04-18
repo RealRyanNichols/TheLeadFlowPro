@@ -14,7 +14,7 @@ export function CTA() {
             we just make sure you can see the road.
           </p>
           <div className="mt-6 md:mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/dashboard" className="btn-accent text-base">
+            <Link href="/signup" className="btn-accent text-base">
               Start free
             </Link>
             <Link href="#pricing" className="btn-ghost text-base">

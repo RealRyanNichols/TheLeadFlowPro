@@ -10,15 +10,15 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-7 text-sm text-ink-200">
           <Link href="#features" className="hover:text-white">Features</Link>
           <Link href="#automations" className="hover:text-white">Automations</Link>
-          <Link href="#requests" className="hover:text-white">Request a tool</Link>
+          <Link href="/tools/seo-grader" className="hover:text-white">Free SEO Grader</Link>
           <Link href="#pricing" className="hover:text-white">Pricing</Link>
           <Link href="/dashboard" className="hover:text-white">Dashboard</Link>
         </nav>
         <div className="flex items-center gap-2">
-          <Link href="/dashboard" className="hidden sm:inline-flex btn-ghost text-sm py-2 px-4">
-            Open app
+          <Link href="/login" className="hidden sm:inline-flex btn-ghost text-sm py-2 px-4">
+            Log in
           </Link>
-          <Link href="/dashboard" className="inline-flex btn-accent text-sm py-2 px-4">
+          <Link href="/signup" className="inline-flex btn-accent text-sm py-2 px-4">
             Start free
           </Link>
           <MobileMenu />

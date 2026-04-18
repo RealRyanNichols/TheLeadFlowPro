@@ -82,7 +82,7 @@ const fillSlowWeek: Playbook = {
       situation: "Send this to 20 patients who haven't been in for 7+ months.",
       why: "Warm list. They already trust you — they just forgot to rebook.",
       action: "Copy the script below, send from your SMS tool (or Lead Inbox).",
-      script: "Hey {first_name} — it's been a bit! We have two openings this Thursday + Friday and I saved one for you. Reply YES and I'll lock it in. — Dr. Smith",
+      script: "Hey {first_name} — it's been a bit! We have two openings this Thursday + Friday and I saved one for you. Reply YES and I'll lock it in. — {your_name}",
       verify: "auto",
       verifyHint: "We'll verify by counting outbound messages in your Lead Inbox in the last 2h.",
       moves: [

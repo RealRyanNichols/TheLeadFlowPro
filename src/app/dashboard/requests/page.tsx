@@ -1,27 +1,14 @@
 import { Plus, ThumbsUp, Lightbulb, Wrench, CheckCircle2 } from "lucide-react";
 
-const REQUESTS = [
-  {
-    title: "Auto-send a thank-you GIF when a new patient books",
-    desc: "Personalized GIF with their first name fires the second the form gets a booking confirmation.",
-    status: "shipped_all", upvotes: 14, reply: "Built into the platform — live for everyone."
-  },
-  {
-    title: "Pull no-show stats from my dental software (Dentrix)",
-    desc: "Want a daily 'who didn't show' list with one-tap text-back to rebook.",
-    status: "scoped", upvotes: 9, reply: "Yes — $25 one-time custom integration. Estimated 4 days."
-  },
-  {
-    title: "Birthday SMS with a $25 cleaning credit",
-    desc: "Auto-send on the patient's birthday with their unique code.",
-    status: "building", upvotes: 22, reply: "Building for everyone — ships next week. Free."
-  },
-  {
-    title: "Voice-clone for the chatbot in my own voice",
-    desc: "When the bot replies, it sounds like me on voicemail.",
-    status: "reviewing", upvotes: 6, reply: ""
-  }
-];
+// Real community requests populate here once users submit them. No seeded
+// "14 upvotes, ships next week" promises that haven't been made.
+const REQUESTS: {
+  title: string;
+  desc: string;
+  status: "proposed" | "reviewing" | "scoped" | "building" | "shipped_all" | "shipped_one" | "gifted" | "declined";
+  upvotes: number;
+  reply: string;
+}[] = [];
 
 const STATUS_STYLES: Record<string, { label: string; cls: string; icon: any }> = {
   proposed:    { label: "Proposed",        cls: "bg-white/5 text-ink-300 border-white/10",                  icon: Lightbulb },
@@ -75,35 +62,45 @@ export default function RequestsPage() {
 
       <div>
         <h2 className="text-lg font-bold text-white mb-3">Community requests</h2>
-        <div className="space-y-3">
-          {REQUESTS.map((r) => {
-            const s = STATUS_STYLES[r.status];
-            return (
-              <div key={r.title} className="glass rounded-2xl p-5">
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-base font-bold text-white">{r.title}</h3>
-                      <span className={"stat-pill border text-[11px] " + s.cls}>
-                        <s.icon className="h-3 w-3" /> {s.label}
-                      </span>
-                    </div>
-                    <p className="text-sm text-ink-200 mt-2">{r.desc}</p>
-                    {r.reply && (
-                      <div className="mt-3 glass rounded-xl p-3 border-l-2 border-accent-500">
-                        <p className="text-[10px] uppercase tracking-wider text-accent-400 font-semibold">Our reply</p>
-                        <p className="text-sm text-ink-100 mt-1">{r.reply}</p>
+        {REQUESTS.length > 0 ? (
+          <div className="space-y-3">
+            {REQUESTS.map((r) => {
+              const s = STATUS_STYLES[r.status];
+              return (
+                <div key={r.title} className="glass rounded-2xl p-5">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-base font-bold text-white">{r.title}</h3>
+                        <span className={"stat-pill border text-[11px] " + s.cls}>
+                          <s.icon className="h-3 w-3" /> {s.label}
+                        </span>
                       </div>
-                    )}
+                      <p className="text-sm text-ink-200 mt-2">{r.desc}</p>
+                      {r.reply && (
+                        <div className="mt-3 glass rounded-xl p-3 border-l-2 border-accent-500">
+                          <p className="text-[10px] uppercase tracking-wider text-accent-400 font-semibold">Our reply</p>
+                          <p className="text-sm text-ink-100 mt-1">{r.reply}</p>
+                        </div>
+                      )}
+                    </div>
+                    <button className="btn-ghost text-xs py-2 px-3 shrink-0">
+                      <ThumbsUp className="h-3.5 w-3.5" /> {r.upvotes}
+                    </button>
                   </div>
-                  <button className="btn-ghost text-xs py-2 px-3 shrink-0">
-                    <ThumbsUp className="h-3.5 w-3.5" /> {r.upvotes}
-                  </button>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-white/10 p-6 text-center">
+            <p className="text-sm text-white font-semibold">No community requests yet</p>
+            <p className="mt-1 text-xs text-ink-300 max-w-md mx-auto">
+              Be the first to ask for something. Every reply and build status
+              you see in this section later will be real — no vaporware.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

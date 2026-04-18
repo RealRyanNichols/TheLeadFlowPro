@@ -17,6 +17,7 @@ const NAV = [
   { href: "/dashboard/media",      label: "Video + GIFs" },
   { href: "/dashboard/card",       label: "FlowCard" },
   { href: "/dashboard/requests",   label: "Request a tool" },
+  { href: "/tools/seo-grader",     label: "Free SEO Grader" },
   { href: "#features",             label: "Features overview" },
   { href: "#pricing",              label: "Pricing" }
 ];
@@ -71,11 +72,18 @@ export function MobileMenu() {
             </nav>
             <div className="mt-auto pt-4 space-y-2">
               <Link
-                href="/dashboard"
+                href="/signup"
                 onClick={() => setOpen(false)}
-                className="btn-accent w-full text-sm py-2.5"
+                className="btn-accent w-full text-sm py-2.5 justify-center"
               >
-                Open the app
+                Start free
+              </Link>
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="btn-ghost w-full text-sm py-2.5 justify-center"
+              >
+                Log in
               </Link>
             </div>
           </div>
