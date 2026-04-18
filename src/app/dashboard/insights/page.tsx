@@ -82,8 +82,8 @@ export default function InsightsPage() {
                 Real numbers only — no invented stats.
               </p>
               <div className="mt-4 flex gap-2 flex-wrap">
-                <Link href="/dashboard/settings" className="btn-primary text-xs py-2 px-3">
-                  Connect integrations
+                <Link href="/dashboard/social" className="btn-primary text-xs py-2 px-3">
+                  Connect social accounts
                 </Link>
                 <Link href="/dashboard/leads" className="btn-ghost text-xs py-2 px-3">
                   Import existing leads

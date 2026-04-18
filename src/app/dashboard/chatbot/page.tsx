@@ -130,7 +130,7 @@ export default async function ChatbotPage() {
               <li>📊 GoHighLevel webhook</li>
             </ul>
             <Link
-              href="/dashboard/settings"
+              href="/dashboard/social"
               className="btn-ghost text-xs py-2 px-3 mt-4 w-full inline-flex justify-center"
             >
               Open integrations

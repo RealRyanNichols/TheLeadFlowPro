@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  Zap, Receipt, Gauge, ArrowRight, Sparkles
+  Zap, Receipt, Gauge, ArrowRight, Sparkles, CheckCircle2, AlertTriangle, Clock
 } from "lucide-react";
 import { PLANS, BOOSTERS, planById, type PlanId } from "@/lib/pricing";
 import { CheckoutButton } from "@/components/site/CheckoutButton";
 import { currentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { currency } from "@/lib/utils-money";
 import { CheckoutBanner, ManagePaymentButton } from "./BillingClient";
+import { AutoApproveCard } from "./AutoApproveCard";
+import { TopUpButton } from "./TopUpButton";
 
 export const metadata = { title: "Billing — The LeadFlow Pro" };
 export const dynamic = "force-dynamic";
@@ -63,6 +67,13 @@ export default async function BillingPage() {
     : 0;
 
   const invoices = await loadInvoices(user.stripeCustomerId);
+  const recentTaskCharges = await prisma.taskCharge.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  }).catch(() => [] as any[]);
+
+  const microDollars = (user.microPurchaseCents ?? 500) / 100;
 
   return (
     <div className="max-w-5xl space-y-6">
@@ -71,8 +82,76 @@ export default async function BillingPage() {
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-white">Billing & plan</h1>
         <p className="text-sm text-ink-300 mt-1">
-          Everything you're paying for and everything you've got left this month.
+          Everything you&apos;re paying for, everything you&apos;ve got left this month, and how your pay-as-you-grow task credits are flowing.
         </p>
+      </div>
+
+      {/* Task credits --------------------------------------------------- */}
+      <div className="glass rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row gap-6 justify-between">
+        <div className="flex items-start gap-4">
+          <div className="h-12 w-12 rounded-xl bg-cyan-500/15 text-cyan-300 flex items-center justify-center">
+            <Zap className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-wider text-ink-400">Task credit balance</p>
+            <p className="text-3xl font-extrabold text-white">
+              ${currency(user.taskCreditsCents ?? 0)}
+            </p>
+            <p className="text-xs text-ink-400 max-w-md">
+              {(user.autoApproveMonthlyCapCents ?? 0) > 0
+                ? `Auto-approve is on — up to $${((user.autoApproveMonthlyCapCents ?? 0) / 100).toFixed(0)}/mo in $${microDollars.toFixed(0)} top-ups. ${`$${currency(user.autoApproveSpentThisMonth ?? 0)}`} used so far this month.`
+                : "Auto-approve is off. You'll be asked before every top-up."}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <TopUpButton hasPaymentMethod={!!user.stripeCustomerId} defaultCents={user.microPurchaseCents ?? 500} />
+        </div>
+      </div>
+
+      <AutoApproveCard
+        currentCapCents={user.autoApproveMonthlyCapCents ?? 0}
+        currentMicroCents={user.microPurchaseCents ?? 500}
+        spentThisMonthCents={user.autoApproveSpentThisMonth ?? 0}
+      />
+
+      {/* Task-charge ledger --------------------------------------------- */}
+      <div className="glass rounded-2xl p-5 sm:p-6">
+        <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
+          <Sparkles className="h-4 w-4 text-cyan-400" /> Recent task charges
+        </h2>
+        {recentTaskCharges.length === 0 ? (
+          <p className="text-sm text-ink-400">No charges yet. Task credits get debited when you run big AI work — auto top-ups show up here the moment they happen.</p>
+        ) : (
+          <div className="divide-y divide-white/5">
+            {recentTaskCharges.map((c: any) => {
+              const badge = badgeFor(c.status);
+              return (
+                <div key={c.id} className="flex items-start justify-between gap-4 py-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${badge.bg}`}>
+                      <badge.Icon className={`h-4 w-4 ${badge.fg}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white truncate">{c.description}</p>
+                      <p className="text-[11px] text-ink-400">
+                        {new Date(c.createdAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                        {" · "}
+                        {c.kind === "auto_approved" ? "Auto-approved" : c.kind === "user_approved" ? "You approved" : "Refund"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-sm font-bold text-white">
+                      {c.kind === "refund" ? "+" : "−"}${currency(c.amountCents)}
+                    </p>
+                    <p className={`text-[10px] uppercase tracking-wider ${badge.fg}`}>{c.status}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Current plan */}
@@ -234,6 +313,16 @@ export default async function BillingPage() {
       </p>
     </div>
   );
+}
+
+function badgeFor(status: string) {
+  switch (status) {
+    case "succeeded": return { Icon: CheckCircle2,   bg: "bg-lead-500/15",  fg: "text-lead-400" };
+    case "failed":    return { Icon: AlertTriangle,  bg: "bg-red-500/15",   fg: "text-red-400"  };
+    case "refunded":  return { Icon: Sparkles,       bg: "bg-cyan-500/15",  fg: "text-cyan-300" };
+    case "pending":
+    default:          return { Icon: Clock,          bg: "bg-amber-500/15", fg: "text-amber-300" };
+  }
 }
 
 function UsageBar({ label, used, cap, pct, bonus, boosterKey, boosterLabel }: {

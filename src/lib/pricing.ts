@@ -27,13 +27,13 @@ export const PLANS: Plan[] = [
     features: [
       "Lead Inbox (50 leads / month)",
       "Missed-Call Auto Text-Back (1 number)",
-      "1 social connection",
+      "2 social connections (Facebook capped at 1 personal + 1 page)",
       "50 AI actions / month (chatbot + insights)",
       "Weekly AI snapshot"
     ],
     limits: {
       leadsPerMonth: 50,
-      socialConnections: 1,
+      socialConnections: 2,
       aiActionsPerMonth: 50,
       seats: 1,
       smsIncluded: 0

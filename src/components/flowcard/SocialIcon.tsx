@@ -1,13 +1,21 @@
-import { Instagram, Music2, Facebook, Youtube, Twitter, Linkedin, Globe } from "lucide-react";
+import {
+  Instagram, Music2, Facebook, Youtube, Twitter, Linkedin, Globe,
+  AtSign, Ghost, MapPin, MessageCircle
+} from "lucide-react";
 
 const MAP: Record<string, { Icon: any; bg: string }> = {
-  instagram: { Icon: Instagram, bg: "from-pink-500 to-orange-500" },
-  tiktok:    { Icon: Music2,    bg: "from-black to-cyan-400"   },
-  facebook:  { Icon: Facebook,  bg: "from-blue-600 to-blue-800" },
-  youtube:   { Icon: Youtube,   bg: "from-red-500 to-red-700"   },
-  x:         { Icon: Twitter,   bg: "from-ink-700 to-black"     },
-  linkedin:  { Icon: Linkedin,  bg: "from-blue-500 to-blue-800" },
-  website:   { Icon: Globe,     bg: "from-cyan-500 to-brand-600"}
+  instagram:      { Icon: Instagram,     bg: "from-pink-500 to-orange-500"  },
+  tiktok:         { Icon: Music2,        bg: "from-black to-cyan-400"       },
+  facebook:       { Icon: Facebook,      bg: "from-blue-600 to-blue-800"    },
+  youtube:        { Icon: Youtube,       bg: "from-red-500 to-red-700"      },
+  x:              { Icon: Twitter,       bg: "from-ink-700 to-black"        },
+  linkedin:       { Icon: Linkedin,      bg: "from-blue-500 to-blue-800"    },
+  pinterest:      { Icon: MapPin,        bg: "from-red-500 to-red-700"      },
+  snapchat:       { Icon: Ghost,         bg: "from-yellow-300 to-yellow-500"},
+  threads:        { Icon: AtSign,        bg: "from-ink-700 to-black"        },
+  reddit:         { Icon: MessageCircle, bg: "from-orange-500 to-red-600"   },
+  googlebusiness: { Icon: MapPin,        bg: "from-blue-500 to-green-500"   },
+  website:        { Icon: Globe,         bg: "from-cyan-500 to-brand-600"   }
 };
 
 export function SocialIcon({ platform, className = "h-5 w-5" }: { platform: string; className?: string }) {

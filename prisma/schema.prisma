@@ -97,6 +97,19 @@ model User {
   aiActionsBonus Int      @default(0)
   smsBonus       Int      @default(0)
 
+  // ── Task-based micro-billing ───────────────────────────────────
+  // The plan price covers connected accounts / leads / seats. On top,
+  // every "billable task" (AI action, audience scan, deep pull, ad gen)
+  // draws from taskCreditsCents. When the balance runs low and the user
+  // has pre-authorized auto-approve, we auto-charge microPurchaseCents
+  // (default $5) up to autoApproveMonthlyCapCents / month — silently.
+  // Past that cap, we ask in the UI before charging again.
+  taskCreditsCents             Int      @default(0)
+  microPurchaseCents           Int      @default(500)  // $5 default increment
+  autoApproveMonthlyCapCents   Int      @default(0)    // 0 = ask every time
+  autoApproveSpentThisMonth    Int      @default(0)
+  autoApproveMonthAnchor       DateTime?               // first day of the spend window
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -115,6 +128,8 @@ model User {
   toolVotes         ToolRequestVote[]
   flowCard          FlowCard?
   brainProfile      BrainProfile?
+  taskCharges       TaskCharge[]
+  billableTasks     BillableTask[]
 }
 
 // ─── Flo / Brain Profile ────────────────────────────────────────
@@ -168,26 +183,41 @@ enum Platform {
   facebook
   youtube
   linkedin
+  pinterest
+  snapchat
+  threads
+  reddit
+  googlebusiness
+}
+
+/// Distinguishes a personal profile from a business page/channel on
+/// platforms that have both (Facebook especially — Free tier allows
+/// exactly 1 personal + 1 business page).
+enum SocialAccountKind {
+  personal
+  business_page
+  channel
 }
 
 model SocialAccount {
-  id          String   @id @default(cuid())
+  id          String              @id @default(cuid())
   userId      String
   platform    Platform
+  kind        SocialAccountKind   @default(personal)
   handle      String
   displayName String?
-  followers   Int       @default(0)
-  following   Int       @default(0)
-  posts       Int       @default(0)
-  engagement  Float     @default(0)
+  followers   Int                 @default(0)
+  following   Int                 @default(0)
+  posts       Int                 @default(0)
+  engagement  Float               @default(0)
   // OAuth tokens (encrypted at rest in production)
-  accessToken  String?  @db.Text
-  refreshToken String?  @db.Text
+  accessToken  String?            @db.Text
+  refreshToken String?            @db.Text
   expiresAt    DateTime?
-  connectedAt  DateTime @default(now())
+  connectedAt  DateTime           @default(now())
   lastSyncedAt DateTime?
 
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   metricsDaily SocialMetricDaily[]
 
   @@unique([userId, platform, handle])
@@ -579,4 +609,68 @@ model ToolRequestVote {
   user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([toolRequestId, userId])
+}
+
+// ─── Task-based micro-billing ──────────────────────────────────
+
+enum TaskChargeStatus {
+  pending
+  succeeded
+  failed
+  refunded
+}
+
+enum TaskChargeKind {
+  auto_approved  // fired silently — user pre-authorized up to the monthly cap
+  user_approved  // user clicked "Approve $5" in the UI
+  refund         // we voluntarily reversed a charge
+}
+
+/// One row per micro-purchase (typically $5). Audit trail so the user
+/// sees exactly when and why their card was charged.
+model TaskCharge {
+  id                     String           @id @default(cuid())
+  userId                 String
+  kind                   TaskChargeKind
+  status                 TaskChargeStatus @default(pending)
+  amountCents            Int
+  description            String
+  stripePaymentIntentId  String?          @unique
+  // Snapshot of billable tasks this charge funded (for transparency)
+  fundedTaskIds          String[]
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  user                   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+enum BillableTaskKind {
+  ai_action
+  social_sync
+  audience_scan
+  ad_generation
+  media_render
+  outreach_sms
+  custom
+}
+
+/// Every billable task we run for the user. Lets us:
+///  - charge correctly when more connected accounts = more sync tasks
+///  - show a transparent ledger of what the user's paying for
+///  - trigger a TaskCharge when plan-included credit runs out
+model BillableTask {
+  id           String            @id @default(cuid())
+  userId       String
+  kind         BillableTaskKind
+  context      Json?
+  costCents    Int
+  taskChargeId String?
+  createdAt    DateTime          @default(now())
+
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, kind])
 }

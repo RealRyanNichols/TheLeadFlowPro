@@ -104,12 +104,12 @@ export default function LeadsPage() {
             <p className="mt-4 text-sm text-white font-semibold">No leads yet</p>
             <p className="mt-1 text-xs text-ink-300 max-w-sm mx-auto">
               The second a call, text, DM, or form comes in, it lands here with a
-              Next Move from Flo. Connect a source in Settings to get going — or
-              add a lead manually with the button above.
+              Next Move from Flo. Connect your socials to get going — or add a
+              lead manually with the button above.
             </p>
             <div className="mt-4 flex justify-center gap-2">
-              <Link href="/dashboard/settings" className="btn-ghost text-xs py-2 px-3">
-                Connect integrations
+              <Link href="/dashboard/social" className="btn-ghost text-xs py-2 px-3">
+                Connect social accounts
               </Link>
               <Link href="/dashboard/leads/missed-call" className="btn-primary text-xs py-2 px-3">
                 Set up missed-call text-back
