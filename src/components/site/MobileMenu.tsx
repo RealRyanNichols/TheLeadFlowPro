@@ -33,32 +33,36 @@ export function MobileMenu() {
 
   return (
     <>
+      {/* Visible-by-default hamburger: explicit border + background so it
+          reads as a tappable target even when backdrop-blur fails. */}
       <button
+        type="button"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
-        className="md:hidden h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-100"
+        className="md:hidden h-10 w-10 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 active:bg-white/15 flex items-center justify-center text-white shrink-0"
       >
-        <Menu className="h-5 w-5" />
+        <Menu className="h-5 w-5" strokeWidth={2.25} />
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-[60] md:hidden">
           <div
-            className="absolute inset-0 bg-ink-950/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 top-0 bottom-0 w-72 max-w-[85vw] bg-ink-950 border-l border-white/10 p-5 flex flex-col animate-fade-up">
+          <div className="absolute right-0 top-0 bottom-0 w-72 max-w-[85vw] bg-ink-950 border-l border-white/10 p-5 flex flex-col animate-fade-up shadow-2xl shadow-black/50">
             <div className="flex items-center justify-between mb-6">
               <Logo />
               <button
+                type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"
-                className="h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-100"
+                className="h-10 w-10 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 flex items-center justify-center text-white shrink-0"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" strokeWidth={2.25} />
               </button>
             </div>
-            <nav className="flex flex-col gap-1">
+            <nav className="flex flex-col gap-1 overflow-y-auto -mx-1 px-1">
               {NAV.map((n) => (
                 <Link
                   key={n.href}

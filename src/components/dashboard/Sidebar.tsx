@@ -113,28 +113,30 @@ export function MobileSidebar() {
   return (
     <>
       <button
+        type="button"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
-        className="lg:hidden h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-100"
+        className="lg:hidden h-10 w-10 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 active:bg-white/15 flex items-center justify-center text-white shrink-0"
       >
-        <Menu className="h-5 w-5" />
+        <Menu className="h-5 w-5" strokeWidth={2.25} />
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-[60] lg:hidden">
           <div
-            className="absolute inset-0 bg-ink-950/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
-          <aside className="absolute left-0 top-0 bottom-0 w-72 max-w-[85vw] bg-ink-950 border-r border-white/10 flex flex-col animate-fade-up">
+          <aside className="absolute left-0 top-0 bottom-0 w-72 max-w-[85vw] bg-ink-950 border-r border-white/10 flex flex-col animate-fade-up shadow-2xl shadow-black/50">
             <div className="p-5 border-b border-white/5 flex items-center justify-between">
               <Logo href="/dashboard" />
               <button
+                type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"
-                className="h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-100"
+                className="h-10 w-10 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 flex items-center justify-center text-white shrink-0"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" strokeWidth={2.25} />
               </button>
             </div>
             <NavList pathname={pathname} onItemClick={() => setOpen(false)} />

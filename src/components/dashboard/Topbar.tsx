@@ -14,7 +14,7 @@ export async function Topbar() {
   const initial = displayName.charAt(0).toUpperCase();
 
   return (
-    <header className="h-16 border-b border-white/5 bg-ink-950/70 backdrop-blur-xl flex items-center justify-between px-3 sm:px-6 gap-2 sm:gap-3">
+    <header className="h-16 border-b border-white/10 bg-ink-950 lg:bg-ink-950/70 lg:backdrop-blur-xl flex items-center justify-between px-3 sm:px-6 gap-2 sm:gap-3">
       <div className="flex items-center gap-2 flex-1 min-w-0">
         <MobileSidebar />
         {/* search — full on sm+, icon-only on mobile */}
