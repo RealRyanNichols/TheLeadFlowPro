@@ -9,7 +9,7 @@
 //      during onboarding.
 
 import { prisma } from "@/lib/prisma";
-import type { BrainProfile, User } from "@prisma/client";
+import { Prisma, type BrainProfile } from "@prisma/client";
 
 /** Minimum completeness to unlock dashboard. Below this, middleware redirects to /onboarding. */
 export const PROFILE_UNLOCK_THRESHOLD = 80;
@@ -116,17 +116,17 @@ export async function updateBrainProfile(
     }
   }
 
-  const currentExtras =
+  const currentExtras: Record<string, unknown> =
     (existing.extras && typeof existing.extras === "object" && !Array.isArray(existing.extras))
       ? (existing.extras as Record<string, unknown>)
       : {};
-  const mergedExtras = { ...currentExtras, ...extrasPatch };
+  const mergedExtras: Record<string, unknown> = { ...currentExtras, ...extrasPatch };
 
   const merged = await prisma.brainProfile.update({
     where: { userId },
     data: {
       ...typed,
-      extras: mergedExtras,
+      extras: mergedExtras as Prisma.InputJsonValue,
       questionsSeen: { increment: 1 },
     },
   });
