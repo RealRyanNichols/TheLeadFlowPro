@@ -1,14 +1,16 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   ArrowLeft, PhoneCall, MessageSquare, Calendar, Sparkles, Mail,
   DollarSign, Clock, Send, Video, Paperclip, CheckCircle2, ExternalLink
 } from "lucide-react";
 import { LeadStatusBadge, LeadSourceLabel } from "@/components/dashboard/LeadStatusBadge";
-import { MOCK_LEADS } from "@/lib/mock-data";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { formatCurrency, relativeTime, cn } from "@/lib/utils";
+import type { LeadStatus, Message } from "@prisma/client";
 
-type LeadStatus = typeof MOCK_LEADS[number]["status"];
+export const dynamic = "force-dynamic";
 
 const PIPELINE: { id: LeadStatus; label: string }[] = [
   { id: "new",       label: "New" },
@@ -18,64 +20,6 @@ const PIPELINE: { id: LeadStatus; label: string }[] = [
   { id: "booked",    label: "Booked" },
   { id: "won",       label: "Won" }
 ];
-
-interface ConvMsg {
-  id: string;
-  dir: "in" | "out";
-  channel: "sms" | "dm" | "email" | "voicemail" | "system";
-  body: string;
-  when: Date;
-  kind?: "text" | "video" | "gif" | "booking";
-}
-
-function conversationFor(leadId: string): ConvMsg[] {
-  const base = new Date(Date.now() - 1000 * 60 * 60 * 3);
-  const at = (mins: number) => new Date(base.getTime() + mins * 60 * 1000);
-  // Mock conversations keyed by lead id — good enough until real data is wired.
-  const byLead: Record<string, ConvMsg[]> = {
-    "1": [
-      { id: "m1", dir: "in",  channel: "system", body: "Missed call from Maria Gonzalez", when: at(0) },
-      { id: "m2", dir: "out", channel: "sms", body: "Hi Maria! Sorry we missed your call — can I grab what you were curious about? Happy to send over a quick estimate.", when: at(1) },
-      { id: "m3", dir: "in",  channel: "sms", body: "Yes! Wondering about pricing for the service you posted about", when: at(7) },
-      { id: "m4", dir: "out", channel: "sms", kind: "video", body: "Here's our 2-min breakdown on pricing — covers payment options too.", when: at(8) },
-      { id: "m5", dir: "out", channel: "sms", body: "Want me to hold a time for you this week?", when: at(9) }
-    ],
-    "2": [
-      { id: "m1", dir: "in",  channel: "system", body: "Inbound call — missed", when: at(0) },
-      { id: "m2", dir: "out", channel: "sms", body: "Hey James! Sorry we missed you — what can we help with? 👋", when: at(1) },
-      { id: "m3", dir: "in",  channel: "sms", body: "Something stopped working this weekend, need someone out", when: at(30) },
-      { id: "m4", dir: "out", channel: "sms", kind: "booking", body: "Absolutely. We have Thursday 10am or Friday 2pm — which works?", when: at(32) }
-    ],
-    "3": [
-      { id: "m1", dir: "in",  channel: "system", body: "Form fill: 'Wants weekend appointment'", when: at(0) },
-      { id: "m2", dir: "out", channel: "email", body: "Hi Sara — thanks for reaching out! We do have Saturday spots on alternating weekends. I'll send the options shortly.", when: at(2) },
-      { id: "m3", dir: "out", channel: "sms", body: "Quick text — we have Saturday 9am, 10:30am, or 1pm open this weekend. Any of those work?", when: at(15) }
-    ],
-    "4": [
-      { id: "m1", dir: "in",  channel: "dm", body: "Saw your reel — how much for the full package?", when: at(0) },
-      { id: "m2", dir: "out", channel: "dm", kind: "gif", body: "Thanks for the DM! Here's a quick 30-sec walkthrough of what's included + pricing.", when: at(2) },
-      { id: "m3", dir: "in",  channel: "dm", body: "Perfect — can I book a visit?", when: at(240) }
-    ],
-    "5": [
-      { id: "m1", dir: "in",  channel: "system", body: "Referral from Anthony D.", when: at(0) },
-      { id: "m2", dir: "out", channel: "sms", body: "Hi Bethany! Anthony sent you our way — we'd love to help. Want to grab Thursday 10am?", when: at(60) },
-      { id: "m3", dir: "in",  channel: "sms", body: "Yes please!", when: at(75) },
-      { id: "m4", dir: "out", channel: "sms", kind: "booking", body: "Booked — Thursday 10am. I'll send a reminder morning-of.", when: at(77) }
-    ],
-    "6": [
-      { id: "m1", dir: "in",  channel: "system", body: "Google ad click → form fill", when: at(0) },
-      { id: "m2", dir: "out", channel: "sms", body: "Hey Anthony! Saw you came in through our ad — what brings you in?", when: at(3) },
-      { id: "m3", dir: "in",  channel: "sms", body: "Need a quote + a service visit scheduled", when: at(20) },
-      { id: "m4", dir: "out", channel: "sms", kind: "video", body: "Great — here's a quick video on our service options. Any Friday next week works for a visit.", when: at(22) },
-      { id: "m5", dir: "in",  channel: "sms", body: "Friday 3pm works", when: at(120) },
-      { id: "m6", dir: "out", channel: "sms", body: "✅ Booked.", when: at(122) }
-    ]
-  };
-  return byLead[leadId] ?? [
-    { id: "m1", dir: "in",  channel: "system", body: "Lead captured", when: at(0) },
-    { id: "m2", dir: "out", channel: "sms", body: "Auto-text-back sent.", when: at(1) }
-  ];
-}
 
 function nextMoveFor(status: LeadStatus): { headline: string; body: string; cta: string; href: string } {
   switch (status) {
@@ -89,23 +33,39 @@ function nextMoveFor(status: LeadStatus): { headline: string; body: string; cta:
   }
 }
 
-function channelIcon(channel: ConvMsg["channel"]) {
+function channelIcon(channel: Message["channel"]) {
   switch (channel) {
-    case "sms":       return MessageSquare;
-    case "dm":        return MessageSquare;
-    case "email":     return Mail;
-    case "voicemail": return PhoneCall;
-    case "system":    return Sparkles;
+    case "sms":      return MessageSquare;
+    case "dm":       return MessageSquare;
+    case "email":    return Mail;
+    case "call_log": return PhoneCall;
+    case "chatbot":  return Sparkles;
+    case "note":     return Sparkles;
+    default:         return MessageSquare;
   }
 }
 
-export default function LeadDetailPage({ params }: { params: { id: string } }) {
-  const lead = MOCK_LEADS.find((l) => l.id === params.id);
+export default async function LeadDetailPage({ params }: { params: { id: string } }) {
+  const session = await auth();
+  const userId = (session?.user as { id?: string } | undefined)?.id;
+  if (!userId) redirect(`/login?next=/dashboard/leads/${params.id}`);
+
+  const lead = await prisma.lead.findFirst({
+    where: { id: params.id, userId },
+    include: {
+      messages: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
   if (!lead) notFound();
 
-  const convo = conversationFor(lead.id);
+  const convo = lead.messages;
   const currentIdx = PIPELINE.findIndex((p) => p.id === lead.status);
   const move = nextMoveFor(lead.status);
+  const displayName =
+    lead.name || lead.phone || lead.email || "New lead";
+  const firstName = (lead.name ?? "").split(/\s+/)[0] || displayName;
 
   return (
     <div className="max-w-6xl space-y-5">
@@ -117,19 +77,20 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
       {/* Header */}
       <div className="glass-strong rounded-2xl p-5 sm:p-6 flex items-start gap-4 flex-wrap">
         <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-brand-600 flex items-center justify-center text-lg font-bold text-white shrink-0">
-          {lead.name?.split(" ").map((p) => p[0]).slice(0, 2).join("")}
+          {displayName.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?"}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-bold text-white">{lead.name}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">{displayName}</h1>
             <LeadStatusBadge status={lead.status} />
             <LeadSourceLabel source={lead.source} />
           </div>
-          <p className="text-sm text-ink-300 mt-1">{lead.notes}</p>
+          {lead.notes && <p className="text-sm text-ink-300 mt-1">{lead.notes}</p>}
           <div className="flex flex-wrap gap-3 mt-2 text-xs text-ink-400">
-            <span className="flex items-center gap-1"><PhoneCall className="h-3 w-3" /> {lead.phone}</span>
+            {lead.phone && <span className="flex items-center gap-1"><PhoneCall className="h-3 w-3" /> {lead.phone}</span>}
+            {lead.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> {lead.email}</span>}
             <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Captured {relativeTime(lead.createdAt)}</span>
-            {lead.estValue && <span className="flex items-center gap-1 text-lead-400"><DollarSign className="h-3 w-3" /> {formatCurrency(lead.estValue)} potential</span>}
+            {lead.estValue ? <span className="flex items-center gap-1 text-lead-400"><DollarSign className="h-3 w-3" /> {formatCurrency(lead.estValue)} potential</span> : null}
           </div>
         </div>
         <div className="flex gap-2 shrink-0">
@@ -140,7 +101,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
 
       {/* Pipeline tracker */}
       <div className="glass rounded-2xl p-4 sm:p-5">
-        <p className="text-xs text-ink-300 font-semibold mb-3">Pipeline · where {lead.name?.split(" ")[0]} is right now</p>
+        <p className="text-xs text-ink-300 font-semibold mb-3">Pipeline · where {firstName} is right now</p>
         <div className="flex items-center gap-1 overflow-x-auto">
           {PIPELINE.map((stage, i) => {
             const complete = i <= currentIdx;
@@ -176,54 +137,53 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
             <span className="text-[11px] text-ink-400">{convo.length} messages</span>
           </div>
           <div className="flex-1 p-5 space-y-3 overflow-y-auto">
-            {convo.map((m) => {
-              const Icon = channelIcon(m.channel);
-              if (m.channel === "system") {
+            {convo.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-sm text-ink-300">No messages yet.</p>
+                <p className="text-xs text-ink-500 mt-1">
+                  Replies, auto-texts, and call logs will show up here.
+                </p>
+              </div>
+            ) : (
+              convo.map((m) => {
+                const Icon = channelIcon(m.channel);
+                if (m.channel === "call_log" || m.channel === "note") {
+                  return (
+                    <div key={m.id} className="flex items-center justify-center">
+                      <span className="text-[11px] text-ink-400 flex items-center gap-1.5 py-1 px-3 rounded-full bg-white/5 border border-white/5">
+                        <Icon className="h-3 w-3" /> {m.body} · {relativeTime(m.createdAt)}
+                      </span>
+                    </div>
+                  );
+                }
+                const mine = m.direction === "outbound";
                 return (
-                  <div key={m.id} className="flex items-center justify-center">
-                    <span className="text-[11px] text-ink-400 flex items-center gap-1.5 py-1 px-3 rounded-full bg-white/5 border border-white/5">
-                      <Icon className="h-3 w-3" /> {m.body} · {relativeTime(m.when)}
-                    </span>
+                  <div key={m.id} className={cn("flex items-end gap-2", mine ? "justify-end" : "justify-start")}>
+                    {!mine && (
+                      <span className="h-6 w-6 rounded-full bg-white/10 text-ink-400 flex items-center justify-center shrink-0">
+                        <Icon className="h-3 w-3" />
+                      </span>
+                    )}
+                    <div className={cn(
+                      "max-w-[75%] rounded-2xl px-4 py-2 text-sm",
+                      mine
+                        ? "bg-cyan-500/15 text-white border border-cyan-500/30 rounded-br-md"
+                        : "bg-white/5 text-ink-100 border border-white/10 rounded-bl-md"
+                    )}>
+                      {m.mediaUrl && (
+                        <div className="flex items-center gap-1.5 text-[10px] text-cyan-400 mb-1">
+                          <Paperclip className="h-3 w-3" /> MEDIA ATTACHED
+                        </div>
+                      )}
+                      <p className="whitespace-pre-wrap leading-relaxed">{m.body}</p>
+                      <p className={cn("text-[10px] mt-1", mine ? "text-cyan-300/60" : "text-ink-400")}>
+                        {relativeTime(m.createdAt)}
+                      </p>
+                    </div>
                   </div>
                 );
-              }
-              const mine = m.dir === "out";
-              return (
-                <div key={m.id} className={cn("flex items-end gap-2", mine ? "justify-end" : "justify-start")}>
-                  {!mine && (
-                    <span className="h-6 w-6 rounded-full bg-white/10 text-ink-400 flex items-center justify-center shrink-0">
-                      <Icon className="h-3 w-3" />
-                    </span>
-                  )}
-                  <div className={cn(
-                    "max-w-[75%] rounded-2xl px-4 py-2 text-sm",
-                    mine
-                      ? "bg-cyan-500/15 text-white border border-cyan-500/30 rounded-br-md"
-                      : "bg-white/5 text-ink-100 border border-white/10 rounded-bl-md"
-                  )}>
-                    {m.kind === "video" && (
-                      <div className="flex items-center gap-1.5 text-[10px] text-cyan-400 mb-1">
-                        <Video className="h-3 w-3" /> VIDEO SENT
-                      </div>
-                    )}
-                    {m.kind === "gif" && (
-                      <div className="flex items-center gap-1.5 text-[10px] text-accent-400 mb-1">
-                        <Paperclip className="h-3 w-3" /> GIF SENT
-                      </div>
-                    )}
-                    {m.kind === "booking" && (
-                      <div className="flex items-center gap-1.5 text-[10px] text-lead-400 mb-1">
-                        <Calendar className="h-3 w-3" /> BOOKING
-                      </div>
-                    )}
-                    <p className="whitespace-pre-wrap leading-relaxed">{m.body}</p>
-                    <p className={cn("text-[10px] mt-1", mine ? "text-cyan-300/60" : "text-ink-400")}>
-                      {relativeTime(m.when)}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+              })
+            )}
           </div>
           {/* Composer */}
           <div className="border-t border-white/5 p-3 flex items-center gap-2">
@@ -278,8 +238,9 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
               <Detail label="Source"    value={lead.source} />
               <Detail label="Status"    value={lead.status} />
               <Detail label="Captured"  value={relativeTime(lead.createdAt)} />
-              {lead.estValue && <Detail label="Potential"  value={formatCurrency(lead.estValue)} />}
-              <Detail label="Phone"     value={lead.phone} />
+              {lead.estValue ? <Detail label="Potential"  value={formatCurrency(lead.estValue)} /> : null}
+              {lead.phone && <Detail label="Phone"     value={lead.phone} />}
+              {lead.email && <Detail label="Email"     value={lead.email} />}
             </dl>
           </div>
         </div>

@@ -1,14 +1,15 @@
-"use client";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   Mail, TrendingUp, DollarSign, Flame, Target, ArrowRight,
   CheckCircle2, Clock, Sparkles, Send, Calendar, Inbox,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { MOCK_LEADS } from "@/lib/mock-data";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
+import type { LeadStatus } from "@prisma/client";
 
-type LeadStatus = typeof MOCK_LEADS[number]["status"];
+export const dynamic = "force-dynamic";
 
 const STATUS_STEPS: { id: LeadStatus; label: string }[] = [
   { id: "new",        label: "New" },
@@ -37,21 +38,29 @@ function nextMove(status: LeadStatus): string {
   }
 }
 
-export default function RecapPage() {
-  const { data: session } = useSession();
+export default async function RecapPage() {
+  const session = await auth();
+  const userId = (session?.user as { id?: string } | undefined)?.id;
+  if (!userId) redirect("/login?next=/dashboard/recap");
+
   const firstName =
     (session?.user?.name || session?.user?.email || "")
       .split(" ")[0]?.split("@")[0] || "there";
 
-  const weekLeads = MOCK_LEADS;
-  const hasLeads = weekLeads.length > 0;
+  // Rolling 7-day window — matches the "weekly" promise.
+  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const weekLeads = await prisma.lead.findMany({
+    where: { userId, createdAt: { gte: since } },
+    orderBy: { createdAt: "desc" },
+  });
 
+  const hasLeads = weekLeads.length > 0;
   const potentialRevenue = weekLeads
     .filter((l) => l.status !== "won")
-    .reduce((sum, l) => sum + l.estValue, 0);
+    .reduce((sum, l) => sum + (l.estValue ?? 0), 0);
   const wonRevenue = weekLeads
     .filter((l) => l.status === "won")
-    .reduce((sum, l) => sum + l.estValue, 0);
+    .reduce((sum, l) => sum + (l.estValue ?? 0), 0);
   const hotLeads = weekLeads.filter((l) => l.status === "new" || l.status === "qualified");
   const stalledLeads = weekLeads.filter((l) => l.status === "nurturing" || l.status === "contacted");
 
@@ -91,15 +100,14 @@ export default function RecapPage() {
                 <Link href="/dashboard/leads" className="btn-primary text-xs py-2 px-3">
                   Open lead inbox <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
-                <Link href="/dashboard/settings" className="btn-ghost text-xs py-2 px-3">
-                  Connect a lead source
+                <Link href="/dashboard/leads/missed-call" className="btn-ghost text-xs py-2 px-3">
+                  Set up missed-call text-back
                 </Link>
               </div>
             </div>
           </div>
         </div>
       ) : (
-        // Email preview frame — only rendered when there's real data to preview.
         <div className="glass-strong rounded-2xl overflow-hidden border border-cyan-500/20">
           <div className="bg-ink-950/80 border-b border-white/5 px-5 py-3 flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2 text-xs text-ink-400">
@@ -159,20 +167,21 @@ export default function RecapPage() {
               <div className="space-y-2">
                 {weekLeads
                   .filter((l) => l.status !== "won")
-                  .sort((a, b) => b.estValue - a.estValue)
+                  .sort((a, b) => (b.estValue ?? 0) - (a.estValue ?? 0))
                   .map((l) => {
                     const left = stepsLeft(l.status);
                     const idx = STATUS_STEPS.findIndex((s) => s.id === l.status);
                     const progress = ((idx + 1) / STATUS_STEPS.length) * 100;
+                    const display = l.name || l.phone || l.email || "New lead";
                     return (
                       <div key={l.id} className="glass rounded-xl p-3 border border-white/5">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-white truncate">{l.name}</p>
-                            <p className="text-[11px] text-ink-400">{l.notes}</p>
+                            <p className="text-sm font-semibold text-white truncate">{display}</p>
+                            {l.notes && <p className="text-[11px] text-ink-400">{l.notes}</p>}
                           </div>
                           <div className="text-right shrink-0">
-                            <p className="text-sm font-extrabold text-accent-400">${l.estValue.toLocaleString()}</p>
+                            <p className="text-sm font-extrabold text-accent-400">${(l.estValue ?? 0).toLocaleString()}</p>
                             <p className="text-[10px] text-ink-400">{left} step{left === 1 ? "" : "s"} to go</p>
                           </div>
                         </div>
@@ -195,22 +204,25 @@ export default function RecapPage() {
                   <Flame className="h-4 w-4 text-red-400" /> Do these first — hot leads
                 </h3>
                 <div className="space-y-2">
-                  {hotLeads.map((l) => (
-                    <Link
-                      key={l.id}
-                      href={`/dashboard/leads/${l.id}`}
-                      className="glass rounded-xl p-3 border border-red-500/20 flex items-start gap-3 hover:border-red-500/40 transition"
-                    >
-                      <span className="h-9 w-9 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center shrink-0">
-                        <Flame className="h-4 w-4" />
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white">{l.name} — ${l.estValue.toLocaleString()} potential</p>
-                        <p className="text-xs text-ink-300 mt-0.5">{nextMove(l.status)}</p>
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-ink-400 shrink-0 mt-1" />
-                    </Link>
-                  ))}
+                  {hotLeads.map((l) => {
+                    const display = l.name || l.phone || l.email || "New lead";
+                    return (
+                      <Link
+                        key={l.id}
+                        href={`/dashboard/leads/${l.id}`}
+                        className="glass rounded-xl p-3 border border-red-500/20 flex items-start gap-3 hover:border-red-500/40 transition"
+                      >
+                        <span className="h-9 w-9 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center shrink-0">
+                          <Flame className="h-4 w-4" />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-white">{display} — ${(l.estValue ?? 0).toLocaleString()} potential</p>
+                          <p className="text-xs text-ink-300 mt-0.5">{nextMove(l.status)}</p>
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-ink-400 shrink-0 mt-1" />
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -221,22 +233,25 @@ export default function RecapPage() {
                   <Clock className="h-4 w-4 text-accent-400" /> Rekindle these — stalled mid-pipeline
                 </h3>
                 <div className="space-y-2">
-                  {stalledLeads.map((l) => (
-                    <Link
-                      key={l.id}
-                      href={`/dashboard/leads/${l.id}`}
-                      className="glass rounded-xl p-3 border border-accent-500/20 flex items-center gap-3 hover:border-accent-500/40 transition"
-                    >
-                      <span className="h-9 w-9 rounded-lg bg-accent-500/10 text-accent-400 flex items-center justify-center shrink-0">
-                        <Clock className="h-4 w-4" />
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">{l.name}</p>
-                        <p className="text-[11px] text-ink-400 truncate">{l.notes}</p>
-                      </div>
-                      <span className="text-xs font-semibold text-accent-400 shrink-0">${l.estValue.toLocaleString()}</span>
-                    </Link>
-                  ))}
+                  {stalledLeads.map((l) => {
+                    const display = l.name || l.phone || l.email || "New lead";
+                    return (
+                      <Link
+                        key={l.id}
+                        href={`/dashboard/leads/${l.id}`}
+                        className="glass rounded-xl p-3 border border-accent-500/20 flex items-center gap-3 hover:border-accent-500/40 transition"
+                      >
+                        <span className="h-9 w-9 rounded-lg bg-accent-500/10 text-accent-400 flex items-center justify-center shrink-0">
+                          <Clock className="h-4 w-4" />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-white truncate">{display}</p>
+                          {l.notes && <p className="text-[11px] text-ink-400 truncate">{l.notes}</p>}
+                        </div>
+                        <span className="text-xs font-semibold text-accent-400 shrink-0">${(l.estValue ?? 0).toLocaleString()}</span>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}

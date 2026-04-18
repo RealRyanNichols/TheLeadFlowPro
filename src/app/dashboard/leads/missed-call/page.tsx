@@ -1,10 +1,79 @@
 import Link from "next/link";
-import { ArrowLeft, PhoneOff, MessageSquare, Wand2 } from "lucide-react";
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { ArrowLeft } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { MissedCallForm } from "@/components/dashboard/MissedCallForm";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { DEFAULT_MISSED_CALL_REPLY } from "@/lib/sms";
 
-const DEFAULT_MESSAGE = `Hey {{first_name}}, sorry we missed your call! This is {{business}}. We saw you reached out — what can we help with? (Quickest answers via text right here 👋)`;
+export const dynamic = "force-dynamic";
 
-export default function MissedCallSettings() {
+export default async function MissedCallSettings() {
+  const session = await auth();
+  const userId = (session?.user as { id?: string } | undefined)?.id;
+  if (!userId) redirect("/login?next=/dashboard/leads/missed-call");
+
+  const u = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      inboundPhone: true,
+      forwardToPhone: true,
+      missedCallReply: true,
+      missedCallEnabled: true,
+      missedCallFollowup: true,
+      formKey: true,
+    },
+  });
+
+  // Real stats — count call_log messages and auto-reply sms messages within
+  // the user's leads over the last 30 days. Zero until real calls flow.
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const [missedCalls, autoReplies] = await Promise.all([
+    prisma.message.count({
+      where: {
+        channel: "call_log",
+        createdAt: { gte: since },
+        lead: { userId },
+      },
+    }),
+    prisma.message.count({
+      where: {
+        channel: "sms",
+        direction: "outbound",
+        sentBy: { in: ["auto-text-back", "pending-twilio-config"] },
+        createdAt: { gte: since },
+        lead: { userId },
+      },
+    }),
+  ]);
+
+  // A "recovered" lead = one whose first event was a missed call and they
+  // later replied (i.e. has any inbound sms after the call_log event).
+  const recoveredRows = await prisma.lead.findMany({
+    where: {
+      userId,
+      source: "call",
+      createdAt: { gte: since },
+      messages: { some: { direction: "inbound", channel: "sms" } },
+    },
+    select: { id: true },
+  });
+
+  const h = headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "theleadflowpro.com";
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  const origin = `${proto}://${host}`;
+
+  const initial = {
+    inboundPhone: u?.inboundPhone ?? "",
+    forwardToPhone: u?.forwardToPhone ?? "",
+    missedCallReply: u?.missedCallReply ?? DEFAULT_MISSED_CALL_REPLY,
+    missedCallEnabled: u?.missedCallEnabled ?? true,
+    missedCallFollowup: u?.missedCallFollowup ?? false,
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
@@ -22,69 +91,17 @@ export default function MissedCallSettings() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Missed calls (30d)" value="24" />
-        <StatCard label="Auto-replies sent"   value="24" highlight />
-        <StatCard label="Leads recovered"     value="12" delta={48.0} />
+        <StatCard label="Missed calls (30d)" value={missedCalls.toString()} />
+        <StatCard label="Auto-replies sent" value={autoReplies.toString()} highlight />
+        <StatCard label="Leads recovered" value={recoveredRows.length.toString()} />
       </div>
 
-      <div className="glass rounded-2xl p-6 space-y-6">
-        <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <PhoneOff className="h-5 w-5 text-cyan-400" />
-            Connected number
-          </h2>
-          <div className="mt-3 flex items-center gap-3 flex-wrap">
-            <input
-              defaultValue="+1 (903) 230-6440"
-              className="bg-ink-950 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 focus:outline-none"
-            />
-            <span className="stat-pill bg-lead-500/15 text-lead-400 border border-lead-500/30 text-xs">
-              Verified
-            </span>
-            <button className="btn-ghost text-xs py-2 px-3">Change number</button>
-          </div>
-        </div>
-
-        <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-cyan-400" />
-            Auto-reply message
-          </h2>
-          <p className="text-sm text-ink-300 mt-1">
-            Use <code className="text-cyan-300">{`{{first_name}}`}</code> and{" "}
-            <code className="text-cyan-300">{`{{business}}`}</code> to personalize.
-          </p>
-          <textarea
-            defaultValue={DEFAULT_MESSAGE}
-            rows={4}
-            className="mt-3 w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 focus:outline-none resize-none"
-          />
-          <button className="mt-2 btn-ghost text-xs py-2 px-3 inline-flex">
-            <Wand2 className="h-3.5 w-3.5" /> Rewrite with AI
-          </button>
-        </div>
-
-        <div>
-          <h2 className="text-lg font-bold text-white">Send a follow-up GIF or video?</h2>
-          <p className="text-sm text-ink-300 mt-1">
-            If they don't reply within 4 hours, send something from your library to nudge
-            the conversation back open.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm cursor-pointer">
-              <input type="checkbox" defaultChecked /> Send "We want you here!" GIF after 4h
-            </label>
-            <Link href="/dashboard/media" className="text-xs text-cyan-400 hover:underline self-center">
-              Browse library →
-            </Link>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2 pt-4 border-t border-white/5">
-          <button className="btn-ghost text-sm py-2 px-4">Cancel</button>
-          <button className="btn-primary text-sm py-2 px-4">Save settings</button>
-        </div>
-      </div>
+      <MissedCallForm
+        initial={initial}
+        origin={origin}
+        userId={userId}
+        formKey={u?.formKey ?? null}
+      />
     </div>
   );
 }

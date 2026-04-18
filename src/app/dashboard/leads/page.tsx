@@ -1,13 +1,30 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { PhoneCall, MessageSquare, Settings2, Plus, Inbox } from "lucide-react";
 import { LeadStatusBadge, LeadSourceLabel } from "@/components/dashboard/LeadStatusBadge";
 import { StatCard } from "@/components/dashboard/StatCard";
-import { MOCK_LEADS, MOCK_KPIS } from "@/lib/mock-data";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { formatCurrency, relativeTime } from "@/lib/utils";
 
-export default function LeadsPage() {
-  const totalEstValue = MOCK_LEADS.reduce((s, l) => s + (l.estValue ?? 0), 0);
-  const hasLeads = MOCK_LEADS.length > 0;
+export const dynamic = "force-dynamic";
+
+export default async function LeadsPage() {
+  const session = await auth();
+  const userId = (session?.user as { id?: string } | undefined)?.id;
+  if (!userId) redirect("/login?next=/dashboard/leads");
+
+  const leads = await prisma.lead.findMany({
+    where: { userId },
+    orderBy: [{ lastContact: "desc" }, { createdAt: "desc" }],
+    take: 200,
+  });
+
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const newToday = leads.filter((l) => l.createdAt >= startOfToday).length;
+  const totalEstValue = leads.reduce((s, l) => s + (l.estValue ?? 0), 0);
+  const hasLeads = leads.length > 0;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -32,10 +49,15 @@ export default function LeadsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-4">
-        <StatCard label="Total leads"    value={MOCK_LEADS.length.toString()} sub="Grows as leads arrive" />
-        <StatCard label="New today"      value="0" sub="Resets each morning" />
-        <StatCard label="Pipeline value" value={formatCurrency(totalEstValue)} sub="Sum of estimated values" highlight />
-        <StatCard label="Avg response"   value="—" sub="Tracked from first reply" />
+        <StatCard label="Total leads" value={leads.length.toString()} sub="Grows as leads arrive" />
+        <StatCard label="New today" value={newToday.toString()} sub="Resets each morning" />
+        <StatCard
+          label="Pipeline value"
+          value={formatCurrency(totalEstValue)}
+          sub="Sum of estimated values"
+          highlight
+        />
+        <StatCard label="Avg response" value="—" sub="Tracked from first reply" />
       </div>
 
       <div className="glass rounded-2xl overflow-hidden">
@@ -59,37 +81,56 @@ export default function LeadsPage() {
 
         {hasLeads ? (
           <div className="divide-y divide-white/5">
-            {MOCK_LEADS.map((l) => (
+            {leads.map((l) => (
               <Link
                 key={l.id}
                 href={`/dashboard/leads/${l.id}`}
                 className="px-5 py-4 hover:bg-white/[0.02] transition flex items-center gap-4"
               >
                 <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-500 to-brand-600 flex items-center justify-center text-sm font-bold text-white shrink-0">
-                  {l.name?.split(" ").map((p) => p[0]).slice(0, 2).join("")}
+                  {(l.name ?? "?")
+                    .split(" ")
+                    .map((p) => p[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase() || "?"}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-white font-semibold">{l.name}</span>
+                    <span className="text-white font-semibold">
+                      {l.name || l.phone || l.email || "New lead"}
+                    </span>
                     <LeadStatusBadge status={l.status} />
                     <LeadSourceLabel source={l.source} />
                   </div>
-                  <p className="text-xs text-ink-300 mt-0.5 truncate">{l.notes}</p>
-                  <p className="text-[11px] text-ink-500 mt-0.5">{l.phone}</p>
+                  {l.notes && (
+                    <p className="text-xs text-ink-300 mt-0.5 truncate">{l.notes}</p>
+                  )}
+                  <p className="text-[11px] text-ink-500 mt-0.5">
+                    {l.phone || l.email || "—"}
+                  </p>
                 </div>
                 <div className="text-right shrink-0 hidden sm:block">
-                  {l.estValue && (
+                  {l.estValue ? (
                     <p className="text-sm text-lead-400 font-semibold">
                       {formatCurrency(l.estValue)}
                     </p>
-                  )}
-                  <p className="text-[11px] text-ink-400 mt-0.5">{relativeTime(l.createdAt)}</p>
+                  ) : null}
+                  <p className="text-[11px] text-ink-400 mt-0.5">
+                    {relativeTime(l.lastContact ?? l.createdAt)}
+                  </p>
                 </div>
                 <div className="flex gap-1 shrink-0">
-                  <span className="h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-300 hover:text-cyan-400" title="Call">
+                  <span
+                    className="h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-300 hover:text-cyan-400"
+                    title="Call"
+                  >
                     <PhoneCall className="h-4 w-4" />
                   </span>
-                  <span className="h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-300 hover:text-cyan-400" title="Text">
+                  <span
+                    className="h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-300 hover:text-cyan-400"
+                    title="Text"
+                  >
                     <MessageSquare className="h-4 w-4" />
                   </span>
                 </div>
@@ -104,8 +145,8 @@ export default function LeadsPage() {
             <p className="mt-4 text-sm text-white font-semibold">No leads yet</p>
             <p className="mt-1 text-xs text-ink-300 max-w-sm mx-auto">
               The second a call, text, DM, or form comes in, it lands here with a
-              Next Move from Flo. Connect your socials to get going — or add a
-              lead manually with the button above.
+              Next Move from Flo. Connect your socials to get going — or set up
+              missed-call text-back so no call goes unanswered.
             </p>
             <div className="mt-4 flex justify-center gap-2">
               <Link href="/dashboard/social" className="btn-ghost text-xs py-2 px-3">

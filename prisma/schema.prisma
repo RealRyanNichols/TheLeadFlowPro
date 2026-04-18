@@ -110,6 +110,24 @@ model User {
   autoApproveSpentThisMonth    Int      @default(0)
   autoApproveMonthAnchor       DateTime?               // first day of the spend window
 
+  // ── Lead ingestion config ──────────────────────────────────────
+  // inboundPhone: the Twilio/Bandwidth-provisioned number the user
+  // publishes (or forwards their business line to). Twilio POSTs voice
+  // + SMS webhooks to /api/inbound/twilio/[userId]/*.
+  // forwardToPhone: the user's actual cell — where we ring after the
+  // auto-text fires. missedCallReply is the SMS template; {{first_name}}
+  // and {{business}} are substituted at send time.
+  inboundPhone        String?
+  forwardToPhone      String?
+  missedCallReply     String?  @db.Text
+  missedCallEnabled   Boolean  @default(true)
+  missedCallFollowup  Boolean  @default(false)
+
+  // Per-user form key — embedded in /api/inbound/form/[formKey]. This
+  // lets a user publish a public lead form without exposing userId.
+  // Rotate by regenerating; old forms stop writing.
+  formKey             String?  @unique
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

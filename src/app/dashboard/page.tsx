@@ -3,17 +3,39 @@ import { ArrowRight, Sparkles, ShieldCheck, Phone, MessageSquare, Megaphone, Zap
 import { StatCard } from "@/components/dashboard/StatCard";
 import { NextMoveCard } from "@/components/dashboard/NextMoveCard";
 import { LeadsChart } from "@/components/dashboard/LeadsChart";
-import { MOCK_KPIS, MOCK_NEXT_MOVES, MOCK_LEADS } from "@/lib/mock-data";
+import { MOCK_NEXT_MOVES } from "@/lib/mock-data";
 import { formatCurrency, formatPercent, relativeTime } from "@/lib/utils";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 
 export default async function DashboardOverview() {
   const session = await auth();
+  const userId = (session?.user as { id?: string } | undefined)?.id;
   const firstName =
     (session?.user?.name || session?.user?.email || "").split(" ")[0]?.split("@")[0] || "there";
 
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const [newLeadsThisMonth, totalLeads, wonLeads, recentLeads] = userId
+    ? await Promise.all([
+        prisma.lead.count({ where: { userId, createdAt: { gte: monthStart } } }),
+        prisma.lead.count({ where: { userId } }),
+        prisma.lead.count({ where: { userId, status: "won" } }),
+        prisma.lead.findMany({
+          where: { userId },
+          orderBy: [{ lastContact: "desc" }, { createdAt: "desc" }],
+          take: 5,
+        }),
+      ])
+    : [0, 0, 0, [] as Awaited<ReturnType<typeof prisma.lead.findMany>>];
+
+  const conversionRate = totalLeads > 0 ? wonLeads / totalLeads : 0;
+
   const hasNextMoves = MOCK_NEXT_MOVES.length > 0;
-  const hasLeads = MOCK_LEADS.length > 0;
+  const hasLeads = recentLeads.length > 0;
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
@@ -34,10 +56,10 @@ export default async function DashboardOverview() {
 
       {/* KPIs — real zeros, no fake deltas */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Leads this month" value={MOCK_KPIS.newLeadsThisMonth.toString()} sub="Connect a lead source to start counting" highlight />
-        <StatCard label="Cost per lead"    value={formatCurrency(MOCK_KPIS.costPerLead)} sub="Needs ad-spend data" />
-        <StatCard label="Ad spend (MTD)"   value={formatCurrency(MOCK_KPIS.adSpend)} sub="Connect Meta / Google Ads" />
-        <StatCard label="Conversion rate"  value={formatPercent(MOCK_KPIS.conversionRate * 100)} sub="Appears once leads convert" />
+        <StatCard label="Leads this month" value={newLeadsThisMonth.toString()} sub="Counts real leads only" highlight />
+        <StatCard label="Cost per lead"    value={formatCurrency(0)} sub="Needs ad-spend data" />
+        <StatCard label="Ad spend (MTD)"   value={formatCurrency(0)} sub="Connect Meta / Google Ads" />
+        <StatCard label="Conversion rate"  value={formatPercent(conversionRate * 100)} sub={totalLeads > 0 ? `${wonLeads} of ${totalLeads} won` : "Appears once leads convert"} />
       </div>
 
       {/* Connect-to-unlock block — only shown while there is nothing to do */}
@@ -60,11 +82,13 @@ export default async function DashboardOverview() {
                   icon={Phone}
                   title="Connect your phone number"
                   sub="Missed-call text-back starts working immediately"
+                  href="/dashboard/leads/missed-call"
                 />
                 <ConnectRow
                   icon={MessageSquare}
                   title="Connect Instagram / Facebook"
                   sub="Catch DMs and ad leads in one inbox"
+                  href="/dashboard/social"
                 />
                 <ConnectRow
                   icon={Megaphone}
@@ -130,17 +154,23 @@ export default async function DashboardOverview() {
             </div>
             {hasLeads ? (
               <ul className="space-y-3">
-                {MOCK_LEADS.slice(0, 5).map((l) => (
-                  <li key={l.id} className="flex items-center justify-between text-sm">
-                    <div className="min-w-0">
-                      <p className="text-white font-medium truncate">{l.name}</p>
-                      <p className="text-xs text-ink-400 truncate">{l.notes}</p>
-                    </div>
-                    <span className="text-[10px] text-ink-400 shrink-0 ml-2">
-                      {relativeTime(l.createdAt)}
-                    </span>
-                  </li>
-                ))}
+                {recentLeads.map((l) => {
+                  const display = l.name || l.phone || l.email || "New lead";
+                  return (
+                    <li key={l.id} className="flex items-center justify-between text-sm">
+                      <Link
+                        href={`/dashboard/leads/${l.id}`}
+                        className="min-w-0 flex-1 hover:text-cyan-400 transition"
+                      >
+                        <p className="text-white font-medium truncate">{display}</p>
+                        {l.notes && <p className="text-xs text-ink-400 truncate">{l.notes}</p>}
+                      </Link>
+                      <span className="text-[10px] text-ink-400 shrink-0 ml-2">
+                        {relativeTime(l.lastContact ?? l.createdAt)}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <div className="rounded-xl border border-dashed border-white/10 p-4 text-center">
@@ -157,11 +187,11 @@ export default async function DashboardOverview() {
 }
 
 function ConnectRow({
-  icon: Icon, title, sub,
-}: { icon: any; title: string; sub: string }) {
+  icon: Icon, title, sub, href = "/dashboard/settings",
+}: { icon: any; title: string; sub: string; href?: string }) {
   return (
     <Link
-      href="/dashboard/settings"
+      href={href}
       className="glass rounded-xl p-3 flex items-center gap-3 hover:bg-white/5 transition border border-white/5"
     >
       <div className="h-9 w-9 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
