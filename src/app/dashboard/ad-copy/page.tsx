@@ -1,5 +1,8 @@
-import { Megaphone, Wand2, Copy, RefreshCw } from "lucide-react";
+import { Megaphone, Wand2, Copy, RefreshCw, Sparkles } from "lucide-react";
+import { redirect } from "next/navigation";
 import { SocialIcon } from "@/components/flowcard/SocialIcon";
+import { auth } from "@/lib/auth";
+import { getBrainContext } from "@/lib/brain";
 
 const SAMPLE_ADS = [
   {
@@ -25,7 +28,21 @@ const SAMPLE_ADS = [
   }
 ];
 
-export default function AdCopyPage() {
+export default async function AdCopyPage() {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/ad-copy");
+
+  const { derived, extras } = await getBrainContext(session.user.id);
+
+  // Pre-fill target-audience from idealCustomer (user's own words), with a
+  // fallback to a generic industry + radius phrase if the user skipped it.
+  const audienceDefault =
+    derived.idealCustomer ||
+    `${derived.industryLabel} customers${derived.locationLine ? " near " + derived.locationLine : ""}.`;
+  const offerDefault =
+    (extras.signatureOffer as string) ||
+    (derived.subIndustry ? `What makes your ${derived.subIndustry.toLowerCase()} different — your one-liner.` : "Your signature offer in one line.");
+
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       <div>
@@ -34,8 +51,16 @@ export default function AdCopyPage() {
           Hooks, headlines, and full ads — <span className="funnel-text">in your voice</span>
         </h1>
         <p className="mt-2 text-ink-300">
-          Generated from your audience analysis and your top-performing posts. Copy what
-          works, edit what doesn't, paste straight into Meta or TikTok Ads Manager.
+          Flo pre-fills target audience and offer from your onboarding answers.
+          Tweak, generate, paste into Meta / TikTok / Google Ads Manager.
+        </p>
+      </div>
+
+      <div className="glass rounded-2xl p-5 sm:p-6 border border-cyan-400/20 flex items-start gap-3">
+        <Sparkles className="h-5 w-5 text-cyan-300 shrink-0 mt-0.5" />
+        <p className="text-sm text-ink-100">
+          <span className="text-white font-semibold">Pre-filled from your onboarding.</span>{" "}
+          Edits you save here deepen Flo's picture for the other tools too.
         </p>
       </div>
 
@@ -58,13 +83,13 @@ export default function AdCopyPage() {
           </Field>
           <Field label="Target audience" className="sm:col-span-2">
             <input
-              defaultValue="Homeowners 30–55 within 20 miles. Looking for a reliable local pro."
+              defaultValue={audienceDefault}
               className="mt-1 w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 focus:outline-none"
             />
           </Field>
           <Field label="Offer / hook angle" className="sm:col-span-2">
             <input
-              defaultValue="Free estimate + same-week service"
+              defaultValue={offerDefault}
               className="mt-1 w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 focus:outline-none"
             />
           </Field>
