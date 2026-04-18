@@ -1,17 +1,21 @@
 // src/app/onboarding/page.tsx
-// The Profile-Gate. Conversational coach-voice flow. NO skip button.
-// No tool, no dashboard, no industry content unlocks until this hits 80%.
+// The Profile-Gate. Conversational coach-voice flow, now endless:
+//   - Core 9 questions unlock the dashboard at completeness ≥ 80
+//   - Bonus questions (optional) keep sharpening Flo's picture of you
+//   - User can hit "I'm ready — take me in" at any step after unlock
 //
-// Ryan rule (2026-04-17): "They can't see the rest of the tools until they build
-// their personal profile. They WILL get overwhelmed if they see anything without
-// their information inputed."
+// Ryan rule (2026-04-17): "They can't see the rest of the tools until they
+// build their personal profile. Then keep asking as many as they want until
+// they tell you to stop."
 
 "use client";
 
-import { useEffect, useState, useRef, Suspense } from "react";
+import { useEffect, useState, useRef, Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ArrowRight, ArrowLeft, Check, Sparkles, Lock } from "lucide-react";
+import {
+  ArrowRight, ArrowLeft, Check, Sparkles, Lock, DoorOpen, Infinity as InfinityIcon,
+} from "lucide-react";
 
 // Top-level export wraps the flow in Suspense because useSearchParams() bails
 // out of prerender without it under Next 14.
@@ -26,16 +30,18 @@ export default function OnboardingPage() {
 type StepKind = "mcq" | "mcq-grid" | "text-short" | "text-long" | "state-picker";
 
 type Step = {
-  slot: string;           // maps to BrainProfile column
+  slot: string;           // maps to BrainProfile column OR extras.<slot>
   kind: StepKind;
   title: string;          // the question
   hint?: string;          // coach-voice context
   placeholder?: string;
   options?: { value: string; label: string; sub?: string; emoji?: string }[];
   maxLength?: number;
+  bonus?: boolean;        // true for questions after the core 9
 };
 
-const STEPS: Step[] = [
+/* ---------------- CORE 9 ---------------- */
+const CORE_STEPS: Step[] = [
   {
     slot: "industry",
     kind: "mcq-grid",
@@ -58,31 +64,18 @@ const STEPS: Step[] = [
       { value: "other",              label: "Something else",        sub: "We'll ask you in a sec",                              emoji: "✨" },
     ],
   },
-  {
-    slot: "subIndustry",
-    kind: "text-short",
+  { slot: "subIndustry", kind: "text-short",
     title: "Got it. What specifically?",
     hint: "Two or three words is enough. Example: \"HVAC\" or \"hair salon\" or \"tax prep\".",
-    placeholder: "e.g. hair salon, HVAC, tutoring",
-    maxLength: 80,
-  },
-  {
-    slot: "city",
-    kind: "text-short",
+    placeholder: "e.g. hair salon, HVAC, tutoring", maxLength: 80 },
+  { slot: "city", kind: "text-short",
     title: "Where do you work from?",
     hint: "Your main city. If you serve a whole region, pick the city you're based in.",
-    placeholder: "e.g. Longview",
-    maxLength: 60,
-  },
-  {
-    slot: "state",
-    kind: "state-picker",
+    placeholder: "e.g. Longview", maxLength: 60 },
+  { slot: "state", kind: "state-picker",
     title: "What state?",
-    hint: "We use this to match you with patterns from businesses near you.",
-  },
-  {
-    slot: "teamSize",
-    kind: "mcq",
+    hint: "We use this to match you with patterns from businesses near you." },
+  { slot: "teamSize", kind: "mcq",
     title: "How big is your team right now?",
     hint: "Including you. No judgement either way — solo is 100% legit.",
     options: [
@@ -90,11 +83,8 @@ const STEPS: Step[] = [
       { value: "small",       label: "2–5 people",             sub: "Small crew" },
       { value: "growing",     label: "6–20 people",            sub: "Growing shop" },
       { value: "established", label: "21+",                    sub: "Established team" },
-    ],
-  },
-  {
-    slot: "avgCustomerValue",
-    kind: "mcq",
+    ] },
+  { slot: "avgCustomerValue", kind: "mcq",
     title: "What's the average value of one customer transaction?",
     hint: "First job, not lifetime. Ballpark is fine.",
     options: [
@@ -103,19 +93,13 @@ const STEPS: Step[] = [
       { value: "200_500",    label: "$200 – $500",      sub: "Premium services" },
       { value: "500_2000",   label: "$500 – $2,000",    sub: "High-ticket" },
       { value: "over_2000",  label: "Over $2,000",      sub: "Enterprise / luxury" },
-    ],
-  },
-  {
-    slot: "idealCustomer",
-    kind: "text-long",
+    ] },
+  { slot: "idealCustomer", kind: "text-long",
     title: "Describe your ideal customer in one or two sentences.",
     hint: "Who do you serve best? Age range, life stage, pain point — whatever's honest. This shapes every recommendation.",
     placeholder: "e.g. Women 35–55 in a 5-mile radius, busy professionals who want convenience, responds to 'save time' more than 'save money.'",
-    maxLength: 400,
-  },
-  {
-    slot: "topFrustration",
-    kind: "mcq",
+    maxLength: 400 },
+  { slot: "topFrustration", kind: "mcq",
     title: "What's getting in your way the most right now?",
     hint: "One answer. The thing that bugs you every week.",
     options: [
@@ -125,11 +109,8 @@ const STEPS: Step[] = [
       { value: "missing_calls",      label: "Missing calls, texts, DMs",   emoji: "📵" },
       { value: "too_many_tools",     label: "Too many tools, not enough time", emoji: "🧰" },
       { value: "burnout",            label: "Just burned out, honestly",   emoji: "😮‍💨" },
-    ],
-  },
-  {
-    slot: "topGoal90d",
-    kind: "mcq",
+    ] },
+  { slot: "topGoal90d", kind: "mcq",
     title: "If the next 90 days went great, what would be true?",
     hint: "Pick the one you'd notice most.",
     options: [
@@ -139,9 +120,208 @@ const STEPS: Step[] = [
       { value: "add_team",         label: "Add a team member",       emoji: "👥" },
       { value: "automate_follow",  label: "Automate follow-up",      emoji: "🤖" },
       { value: "launch_new",       label: "Launch a new service",    emoji: "✨" },
-    ],
-  },
+    ] },
 ];
+
+/* ---------------- BONUS STEPS (optional, endless) ---------------- */
+// Each answered extra bumps completeness (+2 up to +20) and pushes into
+// BrainProfile.extras. Tools pre-fill from these alongside the core slots.
+const BONUS_STEPS: Step[] = [
+  { slot: "voiceSample", kind: "text-long", bonus: true,
+    title: "Write a text to a lead the way you'd actually send it.",
+    hint: "Flo matches your voice in every message she drafts. Be specific, be you.",
+    placeholder: "e.g. Hey — saw your message. I can definitely help with that. Want me to swing by Thursday at 10 or Friday at 2?",
+    maxLength: 600 },
+  { slot: "signatureOffer", kind: "text-short", bonus: true,
+    title: "What's the one thing you're known for?",
+    hint: "The offer, service, or outcome that makes you you.",
+    placeholder: "e.g. Same-day service. Or: The honest estimate.", maxLength: 120 },
+  { slot: "whyChooseYou", kind: "text-long", bonus: true,
+    title: "Why do customers pick you over a competitor?",
+    hint: "The real answer, not the brochure one. Flo uses this everywhere.",
+    placeholder: "e.g. I actually call them back. Or: I don't upsell. Or: My crew is clean, quiet, and on time.",
+    maxLength: 400 },
+  { slot: "topCompetitor", kind: "text-short", bonus: true,
+    title: "Who's the competitor you see most often?",
+    hint: "Name one. Helps Flo spot what they're doing you can do better.",
+    placeholder: "e.g. Big local franchise, specific competitor's name", maxLength: 120 },
+  { slot: "objectionTop", kind: "text-short", bonus: true,
+    title: "What's the #1 reason a lead says no?",
+    hint: "Price? Timing? Trust? Write the exact objection you hear most.",
+    placeholder: "e.g. 'Too expensive' / 'I'll think about it' / 'Got a quote from someone cheaper'",
+    maxLength: 200 },
+  { slot: "pricingModel", kind: "mcq", bonus: true,
+    title: "How do you price your work?",
+    options: [
+      { value: "hourly",        label: "Hourly / by the visit" },
+      { value: "per_project",   label: "Per project (flat rate)" },
+      { value: "subscription",  label: "Subscription or recurring" },
+      { value: "mixed",         label: "Mix of all of the above" },
+    ] },
+  { slot: "firstResponseSLA", kind: "mcq", bonus: true,
+    title: "When a new lead comes in, how fast do you usually reply?",
+    hint: "Be honest — this is one of the biggest levers on close rate.",
+    options: [
+      { value: "under_5m",   label: "Under 5 minutes",         emoji: "⚡" },
+      { value: "under_1h",   label: "Within the hour",         emoji: "🏃" },
+      { value: "same_day",   label: "Later that day",          emoji: "📅" },
+      { value: "next_day",   label: "Next day-ish",            emoji: "🌒" },
+      { value: "sporadic",   label: "Honestly, hit or miss",   emoji: "🎲" },
+    ] },
+  { slot: "phoneAnswerSpeed", kind: "mcq", bonus: true,
+    title: "When someone calls your business line, what happens?",
+    options: [
+      { value: "always_live", label: "Always answered live" },
+      { value: "usually_live", label: "Usually live, sometimes voicemail" },
+      { value: "often_vm",    label: "Often voicemail" },
+      { value: "rarely_answer", label: "Rarely answered — we're busy" },
+      { value: "no_phone",    label: "We don't really use the phone" },
+    ] },
+  { slot: "preferredChannel", kind: "mcq", bonus: true,
+    title: "When leads reach out, which channel closes best for you?",
+    options: [
+      { value: "sms",     label: "Text/SMS",        emoji: "💬" },
+      { value: "call",    label: "Phone call",      emoji: "📞" },
+      { value: "dm",      label: "Social DMs",      emoji: "📸" },
+      { value: "email",   label: "Email",           emoji: "✉️" },
+      { value: "in_person", label: "In person",     emoji: "🤝" },
+      { value: "mixed",   label: "About even",      emoji: "🔀" },
+    ] },
+  { slot: "leadSourceToday", kind: "text-long", bonus: true,
+    title: "Where do your leads come from TODAY?",
+    hint: "Google, referrals, Instagram, door-hangers, word of mouth — whatever it is, just list them honestly.",
+    placeholder: "e.g. Mostly referrals + Google. Some Instagram. A tiny bit of Facebook ads.",
+    maxLength: 400 },
+  { slot: "pastMarketingSpend", kind: "mcq", bonus: true,
+    title: "About how much do you spend on marketing per month right now?",
+    options: [
+      { value: "zero",      label: "$0 — all organic / referrals",    emoji: "🌱" },
+      { value: "under_500", label: "Under $500",                      emoji: "💵" },
+      { value: "500_2k",    label: "$500 – $2,000",                   emoji: "💰" },
+      { value: "2k_10k",    label: "$2,000 – $10,000",                emoji: "💎" },
+      { value: "over_10k",  label: "More than $10,000",               emoji: "🔥" },
+    ] },
+  { slot: "currentTools", kind: "text-long", bonus: true,
+    title: "What tools are you already using? (Even just paper.)",
+    hint: "CRM, scheduling, text-back, email, DocuSign, QuickBooks, whiteboard — all of it. Flo won't rip anything out, just helps it work together.",
+    placeholder: "e.g. Google Calendar + Stripe + a group text. Nothing fancy.",
+    maxLength: 500 },
+  { slot: "referralPercent", kind: "mcq", bonus: true,
+    title: "Roughly what % of your business comes from referrals?",
+    options: [
+      { value: "lt_20", label: "Under 20%" },
+      { value: "20_40", label: "20 – 40%" },
+      { value: "40_60", label: "40 – 60%" },
+      { value: "gt_60", label: "More than 60%" },
+      { value: "unsure", label: "Not sure" },
+    ] },
+  { slot: "avgLifetimeValue", kind: "mcq", bonus: true,
+    title: "Do your customers come back?",
+    hint: "Lifetime value vs. first-job value.",
+    options: [
+      { value: "one_and_done", label: "Mostly one-and-done" },
+      { value: "occasional",   label: "They come back occasionally" },
+      { value: "recurring",    label: "Recurring / long-term" },
+      { value: "membership",   label: "Membership-style" },
+    ] },
+  { slot: "travelRadius", kind: "mcq", bonus: true,
+    title: "How far do you serve?",
+    options: [
+      { value: "5mi",       label: "Around 5 miles" },
+      { value: "15mi",      label: "Around 15 miles" },
+      { value: "30mi",      label: "Around 30 miles" },
+      { value: "statewide", label: "Statewide" },
+      { value: "national",  label: "Nationwide / remote" },
+    ] },
+  { slot: "seasonality", kind: "mcq", bonus: true,
+    title: "Is your business seasonal?",
+    options: [
+      { value: "steady",     label: "Pretty steady year-round" },
+      { value: "summer",     label: "Summer-heavy" },
+      { value: "fall_winter", label: "Fall & winter heavy" },
+      { value: "tax_season", label: "Tax season spike" },
+      { value: "holiday",    label: "Holiday spike" },
+      { value: "other",      label: "Other — describe in a second" },
+    ] },
+  { slot: "customerAgeRange", kind: "mcq", bonus: true,
+    title: "What's the age range of your average customer?",
+    options: [
+      { value: "18_24", label: "18 – 24" },
+      { value: "25_34", label: "25 – 34" },
+      { value: "35_44", label: "35 – 44" },
+      { value: "45_54", label: "45 – 54" },
+      { value: "55_64", label: "55 – 64" },
+      { value: "65_plus", label: "65+" },
+      { value: "mixed",   label: "Pretty mixed" },
+    ] },
+  { slot: "bestDayOfWeek", kind: "mcq", bonus: true,
+    title: "What day tends to be your busiest for new leads?",
+    options: [
+      { value: "mon", label: "Monday" },
+      { value: "tue", label: "Tuesday" },
+      { value: "wed", label: "Wednesday" },
+      { value: "thu", label: "Thursday" },
+      { value: "fri", label: "Friday" },
+      { value: "sat", label: "Saturday" },
+      { value: "sun", label: "Sunday" },
+      { value: "steady", label: "Pretty even all week" },
+    ] },
+  { slot: "bestTimeOfDay", kind: "mcq", bonus: true,
+    title: "When during the day do leads typically reach out?",
+    options: [
+      { value: "early_am", label: "Early morning (before 9)" },
+      { value: "morning",  label: "Mornings (9 – 12)" },
+      { value: "afternoon", label: "Afternoons (12 – 5)" },
+      { value: "evening",  label: "Evenings (5 – 9)" },
+      { value: "late",     label: "Late night (after 9)" },
+      { value: "mixed",    label: "All over the place" },
+    ] },
+  { slot: "techComfort", kind: "mcq", bonus: true,
+    title: "Be honest — how tech-comfortable are you?",
+    hint: "Helps Flo know how much she should just do vs. show you how.",
+    options: [
+      { value: "new",        label: "Brand new — teach me" },
+      { value: "basic",      label: "I handle email + SMS fine" },
+      { value: "comfortable", label: "Comfortable with most apps" },
+      { value: "advanced",   label: "Advanced — I actually like this stuff" },
+    ] },
+  { slot: "reviewGoal", kind: "mcq", bonus: true,
+    title: "What's your top review goal?",
+    options: [
+      { value: "more_volume",  label: "More reviews overall" },
+      { value: "higher_star",  label: "Push the average up" },
+      { value: "respond_fast", label: "Respond to reviews faster" },
+      { value: "fix_negatives", label: "Knock down a specific negative one" },
+      { value: "none",         label: "Not a priority right now" },
+    ] },
+  { slot: "languagesSpoken", kind: "text-short", bonus: true,
+    title: "Languages you (or your team) can work in?",
+    hint: "Comma-separated. English-only is a perfectly normal answer.",
+    placeholder: "e.g. English, Spanish", maxLength: 120 },
+  { slot: "biggestWin", kind: "text-long", bonus: true,
+    title: "Tell Flo about a win you're proud of.",
+    hint: "A great customer, a big job, a referral chain — a specific story works.",
+    placeholder: "e.g. Turned a one-time detail into a fleet contract after six months of showing up.",
+    maxLength: 600 },
+  { slot: "biggestMiss", kind: "text-long", bonus: true,
+    title: "A lead or deal you wish you'd handled differently?",
+    hint: "No judgment. Flo will use this to watch for the same trap.",
+    placeholder: "e.g. Waited two days to reply. They'd already booked someone else.",
+    maxLength: 600 },
+  { slot: "doOffer", kind: "text-long", bonus: true,
+    title: "What DO you offer? (In your own words.)",
+    hint: "Flo's chatbot will answer questions in your voice. Paste your services list here.",
+    placeholder: "e.g. HVAC repair, install, maintenance contracts, duct cleaning.",
+    maxLength: 800 },
+  { slot: "dontOffer", kind: "text-long", bonus: true,
+    title: "What DON'T you offer?",
+    hint: "Anything Flo's chatbot should politely decline or refer out.",
+    placeholder: "e.g. We don't do roofing. We don't work on commercial fridges.",
+    maxLength: 500 },
+];
+
+const ALL_STEPS: Step[] = [...CORE_STEPS, ...BONUS_STEPS];
+const FIRST_BONUS_INDEX = CORE_STEPS.length;
 
 function OnboardingFlow() {
   const router = useRouter();
@@ -153,6 +333,7 @@ function OnboardingFlow() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [completeness, setCompleteness] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [exiting, setExiting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unlocked, setUnlocked] = useState(false);
   const hydrated = useRef(false);
@@ -163,27 +344,52 @@ function OnboardingFlow() {
     hydrated.current = true;
     (async () => {
       try {
-        const res = await fetch("/api/onboarding", { credentials: "include" });
+        const res = await fetch("/api/onboarding", { credentials: "include", cache: "no-store" });
         if (!res.ok) return;
         const data = await res.json();
         const prof = data.profile || {};
+        const extras = (prof.extras && typeof prof.extras === "object" && !Array.isArray(prof.extras))
+          ? prof.extras as Record<string, string>
+          : {};
         const seeded: Record<string, string> = {};
-        for (const s of STEPS) {
-          if (prof[s.slot]) seeded[s.slot] = prof[s.slot];
+        for (const s of ALL_STEPS) {
+          const v = prof[s.slot] ?? extras[s.slot];
+          if (typeof v === "string" && v) seeded[s.slot] = v;
         }
         setAnswers(seeded);
         setCompleteness(data.completeness ?? 0);
-        setUnlocked(data.unlocked ?? false);
+        setUnlocked(data.unlocked ?? (data.completeness ?? 0) >= 80);
         // Jump to first unanswered step
-        const firstMissing = STEPS.findIndex((s) => !seeded[s.slot]);
-        setStepIdx(firstMissing === -1 ? STEPS.length - 1 : firstMissing);
+        const firstMissing = ALL_STEPS.findIndex((s) => !seeded[s.slot]);
+        setStepIdx(firstMissing === -1 ? ALL_STEPS.length - 1 : firstMissing);
       } catch { /* ignore */ }
     })();
   }, []);
 
-  const step = STEPS[stepIdx];
-  const totalSteps = STEPS.length;
-  const progressPct = Math.round(((stepIdx + 1) / totalSteps) * 100);
+  const step = ALL_STEPS[stepIdx];
+  const inBonus = stepIdx >= FIRST_BONUS_INDEX;
+
+  // Progress bar logic: during core, it tracks question number; once in
+  // bonus mode it reflects completeness (0..100).
+  const progressPct = useMemo(() => {
+    if (!inBonus) return Math.round(((stepIdx + 1) / FIRST_BONUS_INDEX) * 100);
+    return completeness;
+  }, [inBonus, stepIdx, completeness]);
+
+  const bonusAnsweredCount = useMemo(
+    () => BONUS_STEPS.filter((b) => !!answers[b.slot]).length,
+    [answers],
+  );
+
+  async function exitToDashboard() {
+    if (exiting) return;
+    setExiting(true);
+    // Triple-belt-and-suspenders from before: session update, explicit session
+    // fetch, then hard navigation. No cookie race.
+    try { await updateSession(); } catch { /* noop */ }
+    try { await fetch("/api/auth/session", { credentials: "include", cache: "no-store" }); } catch { /* noop */ }
+    window.location.href = "/dashboard";
+  }
 
   async function saveAnswer(value: string) {
     if (!value || !step) return;
@@ -200,24 +406,15 @@ function OnboardingFlow() {
       if (!res.ok) throw new Error(data.error || "save_failed");
       setAnswers((a) => ({ ...a, [step.slot]: value }));
       setCompleteness(data.completeness ?? 0);
-      setUnlocked(data.unlocked ?? false);
-      // advance
-      if (stepIdx < STEPS.length - 1) {
+      setUnlocked(data.unlocked ?? (data.completeness ?? 0) >= 80);
+
+      // Advance to the next question automatically.
+      if (stepIdx < ALL_STEPS.length - 1) {
         setStepIdx(stepIdx + 1);
       } else {
-        // Last step. Triple-belt-and-suspenders: the JWT cookie has to
-        // reflect the new brainCompleteness BEFORE middleware sees the
-        // /dashboard request, otherwise it bounces right back here.
-        //
-        // 1) useSession().update() asks next-auth to mint a fresh token
-        // 2) explicit /api/auth/session fetch forces the Set-Cookie to
-        //    land in the browser even if (1) only updated client cache
-        // 3) window.location.href does a HARD navigation — router.push()
-        //    has raced the cookie rotation in production and left users
-        //    stuck on question 9. Full reload removes the race entirely.
-        try { await updateSession(); } catch { /* noop */ }
-        try { await fetch("/api/auth/session", { credentials: "include", cache: "no-store" }); } catch { /* noop */ }
-        window.location.href = "/dashboard";
+        // Final bonus answered. Silently stay on the last step and surface
+        // the "Take me in" CTA — don't auto-navigate the user out.
+        setStepIdx(ALL_STEPS.length - 1);
       }
     } catch (e: any) {
       setError(e.message || "Something went sideways. Try that again.");
@@ -229,6 +426,8 @@ function OnboardingFlow() {
   function goBack() {
     if (stepIdx > 0) setStepIdx(stepIdx - 1);
   }
+
+  if (!step) return null;
 
   return (
     <main className="relative min-h-screen">
@@ -246,13 +445,15 @@ function OnboardingFlow() {
               Meet Flo — your LeadFlow Pro copilot
             </div>
             <div className="text-sm text-ink-200">
-              "Alright, let's figure out what you actually need."
+              {inBonus
+                ? "\"Keep going — every answer makes me sharper. Or tap in whenever you're ready.\""
+                : "\"Alright, let's figure out what you actually need.\""}
             </div>
           </div>
         </div>
 
         {/* GATE EXPLAINER BANNER */}
-        {cameFromGate && (
+        {cameFromGate && !unlocked && (
           <div className="mb-6 rounded-xl border border-amber-400/30 bg-amber-500/10 p-4 flex items-start gap-3 animate-fade-up">
             <Lock className="h-5 w-5 text-amber-300 shrink-0 mt-0.5" />
             <div className="text-sm text-amber-100">
@@ -263,15 +464,36 @@ function OnboardingFlow() {
           </div>
         )}
 
+        {/* UNLOCK BANNER — shows the moment completeness passes 80 */}
+        {unlocked && (
+          <div className="mb-6 rounded-xl border border-lead-400/30 bg-lead-500/10 p-4 flex items-start gap-3 animate-fade-up">
+            <DoorOpen className="h-5 w-5 text-lead-300 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0 text-sm text-lead-50">
+              <strong className="text-white">The dashboard is unlocked.</strong> You can keep
+              answering as long as you like — every answer pushes straight into your tools — or hop
+              in anytime.
+            </div>
+            <button
+              onClick={exitToDashboard}
+              disabled={exiting}
+              className="btn-accent text-xs py-2 px-3 shrink-0 disabled:opacity-60"
+            >
+              {exiting ? "Taking you in…" : (<>Take me in <ArrowRight className="h-3.5 w-3.5" /></>)}
+            </button>
+          </div>
+        )}
+
         {/* HEADER + PROGRESS */}
         <header className="mb-6 md:mb-8 animate-fade-up">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-300">
-            <Sparkles className="h-4 w-4" />
-            Flo is learning you
+            {inBonus ? <InfinityIcon className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+            {inBonus ? "Deepen Flo's picture of you" : "Flo is learning you"}
           </div>
           <div className="mt-2 flex items-baseline justify-between">
             <div className="text-sm text-ink-300">
-              Question {stepIdx + 1} of {totalSteps}
+              {inBonus
+                ? <>Bonus question {stepIdx - FIRST_BONUS_INDEX + 1} of {BONUS_STEPS.length} <span className="text-ink-400">· optional</span></>
+                : <>Question {stepIdx + 1} of {FIRST_BONUS_INDEX}</>}
             </div>
             <div className="text-sm text-ink-300">
               {progressPct}% · saved
@@ -302,46 +524,50 @@ function OnboardingFlow() {
               <McqList step={step} current={answers[step.slot]} onPick={saveAnswer} disabled={saving} />
             )}
             {step.kind === "text-short" && (
-              <TextInput
-                step={step}
-                current={answers[step.slot] || ""}
-                onSubmit={saveAnswer}
-                disabled={saving}
-              />
+              <TextInput step={step} current={answers[step.slot] || ""} onSubmit={saveAnswer} disabled={saving} />
             )}
             {step.kind === "text-long" && (
-              <TextArea
-                step={step}
-                current={answers[step.slot] || ""}
-                onSubmit={saveAnswer}
-                disabled={saving}
-              />
+              <TextArea step={step} current={answers[step.slot] || ""} onSubmit={saveAnswer} disabled={saving} />
             )}
             {step.kind === "state-picker" && (
               <StatePicker step={step} current={answers[step.slot] || ""} onPick={saveAnswer} disabled={saving} />
             )}
           </div>
 
-          {error && (
-            <p className="mt-4 text-sm text-rose-300">{error}</p>
-          )}
+          {error && <p className="mt-4 text-sm text-rose-300">{error}</p>}
         </section>
 
         {/* FOOTER NAV */}
-        <footer className="mt-10 flex items-center justify-between text-sm">
+        <footer className="mt-10 flex items-center justify-between gap-3 flex-wrap text-sm">
           <button
             onClick={goBack}
-            disabled={stepIdx === 0}
+            disabled={stepIdx === 0 || saving}
             className="inline-flex items-center gap-2 text-ink-300 hover:text-white disabled:opacity-30"
           >
             <ArrowLeft className="h-4 w-4" />
             Previous
           </button>
-          <span className="text-ink-300">
-            {unlocked
-              ? "✓ Flo's got enough. Finish up and she'll send you in."
-              : `Flo needs ${Math.max(0, 80 - completeness)}% more before the dashboard unlocks`}
-          </span>
+
+          <div className="flex items-center gap-3 flex-wrap justify-end">
+            {inBonus && (
+              <span className="text-xs text-ink-400">
+                {bonusAnsweredCount} of {BONUS_STEPS.length} bonus answered
+              </span>
+            )}
+            {unlocked ? (
+              <button
+                onClick={exitToDashboard}
+                disabled={exiting}
+                className="btn-accent text-xs py-2 px-3 inline-flex items-center gap-1 disabled:opacity-60"
+              >
+                {exiting ? "Taking you in…" : (<>I'm ready — take me in <ArrowRight className="h-3.5 w-3.5" /></>)}
+              </button>
+            ) : (
+              <span className="text-ink-300">
+                Flo needs {Math.max(0, 80 - completeness)}% more before the dashboard unlocks
+              </span>
+            )}
+          </div>
         </footer>
       </div>
     </main>
@@ -407,10 +633,7 @@ function TextInput({ step, current, onSubmit, disabled }: any) {
   useEffect(() => setV(current), [current]);
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (v.trim()) onSubmit(v.trim());
-      }}
+      onSubmit={(e) => { e.preventDefault(); if (v.trim()) onSubmit(v.trim()); }}
       className="flex flex-col gap-3"
     >
       <input
@@ -439,10 +662,7 @@ function TextArea({ step, current, onSubmit, disabled }: any) {
   useEffect(() => setV(current), [current]);
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (v.trim()) onSubmit(v.trim());
-      }}
+      onSubmit={(e) => { e.preventDefault(); if (v.trim()) onSubmit(v.trim()); }}
       className="flex flex-col gap-3"
     >
       <textarea
