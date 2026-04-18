@@ -144,6 +144,12 @@ model BrainProfile {
   currentTools    String[]
   weeklyHoursAvail Int?
 
+  // Open-ended bonus answers from the "endless" onboarding flow. Any slot
+  // the user answers beyond the columns above is merged into this JSON blob
+  // by /api/onboarding — lets us add new questions without a per-slot
+  // migration. Read via getBrainContext(userId).extras.
+  extras          Json     @default("{}")
+
   // Meta
   completeness    Int      @default(0)
   questionsSeen   Int      @default(0)
