@@ -1,11 +1,27 @@
-import { Bot, Wand2, Globe, Smartphone, Instagram, MessageSquare } from "lucide-react";
+import { Bot, Wand2, Globe, Smartphone, Instagram, MessageSquare, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { auth } from "@/lib/auth";
+import { getBrainContext } from "@/lib/brain";
 
-// No fake transcripts, no invented conversation counts. Flo's chatbot page
-// shows honest zeros until it is actually deployed and answering leads.
+// Server Component — reads the user's BrainProfile and pre-fills every
+// creative field the chatbot needs. Numbers stay at honest zeros; the
+// user can overwrite any pre-filled text. Nothing is ever fabricated.
 
-export default function ChatbotPage() {
+export default async function ChatbotPage() {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard/chatbot");
+
+  const { derived, extras } = await getBrainContext(session.user.id);
+
+  // Extras answers override the derived defaults where present.
+  const botName        = (extras.botName as string) || firstName(derived.displayName) || "Your assistant";
+  const businessName   = derived.businessName;
+  const toneDefault    = (extras.toneOverride as string) || derived.toneHint;
+  const doOfferDefault = (extras.doOffer as string) || derived.doOffer;
+  const dontOfferDef   = (extras.dontOffer as string) || derived.dontOffer;
+
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       <div>
@@ -25,6 +41,16 @@ export default function ChatbotPage() {
         <StatCard label="Handoffs to you"      value="0" sub="When the lead asks for a human" />
       </div>
 
+      <div className="glass rounded-2xl p-5 sm:p-6 border border-cyan-400/20 flex items-start gap-3">
+        <Sparkles className="h-5 w-5 text-cyan-300 shrink-0 mt-0.5" />
+        <div className="flex-1 text-sm text-ink-100">
+          <p>
+            <span className="text-white font-semibold">Pre-filled from your onboarding.</span>{" "}
+            Tweak anything Flo got slightly off — every edit here also teaches her for other tools.
+          </p>
+        </div>
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-3">
         {/* settings */}
         <div className="lg:col-span-2 space-y-6">
@@ -36,23 +62,23 @@ export default function ChatbotPage() {
               The more specific you get here, the less pushy the bot will sound.
             </p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Field label="Bot name" placeholder="e.g. Avery" />
-              <Field label="Business name" placeholder="Your business name" />
+              <Field label="Bot name" defaultValue={botName} />
+              <Field label="Business name" defaultValue={businessName} />
               <Field
                 label="Tone"
-                placeholder="Friendly, casual, never pushy. Texts like a real person."
+                defaultValue={toneDefault}
                 textarea
                 className="sm:col-span-2"
               />
               <Field
                 label="What you DO offer"
-                placeholder="List your core services — the things you want leads to ask about."
+                defaultValue={doOfferDefault}
                 textarea
                 className="sm:col-span-2"
               />
               <Field
                 label="What you DON'T offer"
-                placeholder="List anything you want the bot to politely decline or refer out."
+                defaultValue={dontOfferDef}
                 textarea
                 className="sm:col-span-2"
               />
@@ -75,9 +101,7 @@ export default function ChatbotPage() {
             <h2 className="text-lg font-bold text-white">Recent conversation</h2>
             <div className="mt-6 rounded-xl border border-dashed border-white/10 p-6 text-center">
               <MessageSquare className="h-6 w-6 text-ink-400 mx-auto" />
-              <p className="mt-3 text-sm text-ink-200">
-                No conversations yet.
-              </p>
+              <p className="mt-3 text-sm text-ink-200">No conversations yet.</p>
               <p className="mt-1 text-xs text-ink-400">
                 Your bot will show its most recent chat here once it's live.
               </p>
@@ -93,8 +117,8 @@ export default function ChatbotPage() {
             </h3>
             <p className="mt-3 text-sm text-ink-200">
               Flo watches what your bot gets asked most and drafts FAQ answers so
-              the bot answers faster and you pay less per call. This panel fills in
-              after ~25 real conversations.
+              the bot answers faster and you pay less per call. This panel fills
+              in after ~25 real conversations.
             </p>
           </div>
           <div className="glass rounded-2xl p-5">
@@ -118,14 +142,19 @@ export default function ChatbotPage() {
   );
 }
 
+function firstName(full: string): string {
+  if (!full) return "";
+  return full.split(" ")[0] || "";
+}
+
 function Field({
-  label, placeholder, defaultValue, textarea, className,
+  label, defaultValue, placeholder, textarea, className,
 }: { label: string; placeholder?: string; defaultValue?: string; textarea?: boolean; className?: string }) {
   return (
     <label className={className}>
       <span className="text-xs uppercase tracking-wider text-ink-400 font-semibold">{label}</span>
       {textarea ? (
-        <textarea defaultValue={defaultValue} placeholder={placeholder} rows={2}
+        <textarea defaultValue={defaultValue} placeholder={placeholder} rows={3}
           className="mt-1 w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 focus:outline-none resize-none" />
       ) : (
         <input defaultValue={defaultValue} placeholder={placeholder}
