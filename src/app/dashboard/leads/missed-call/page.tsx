@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, PhoneOff, MessageSquare, Wand2 } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { SoonButton } from "@/components/ui/SoonButton";
 
 const DEFAULT_MESSAGE = `Hey {{first_name}}, sorry we missed your call! This is {{business}}. We saw you reached out — what can we help with? (Quickest answers via text right here 👋)`;
 
@@ -41,7 +42,7 @@ export default function MissedCallSettings() {
             <span className="stat-pill bg-lead-500/15 text-lead-400 border border-lead-500/30 text-xs">
               Verified
             </span>
-            <button className="btn-ghost text-xs py-2 px-3">Change number</button>
+            <SoonButton size="xs">Change number</SoonButton>
           </div>
         </div>
 
@@ -59,9 +60,9 @@ export default function MissedCallSettings() {
             rows={4}
             className="mt-3 w-full bg-ink-950 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 focus:outline-none resize-none"
           />
-          <button className="mt-2 btn-ghost text-xs py-2 px-3 inline-flex">
+          <SoonButton size="xs" className="mt-2 inline-flex">
             <Wand2 className="h-3.5 w-3.5" /> Rewrite with AI
-          </button>
+          </SoonButton>
         </div>
 
         <div>
@@ -81,8 +82,8 @@ export default function MissedCallSettings() {
         </div>
 
         <div className="flex justify-end gap-2 pt-4 border-t border-white/5">
-          <button className="btn-ghost text-sm py-2 px-4">Cancel</button>
-          <button className="btn-primary text-sm py-2 px-4">Save settings</button>
+          <SoonButton variant="ghost">Cancel</SoonButton>
+          <SoonButton variant="primary">Save settings</SoonButton>
         </div>
       </div>
     </div>

@@ -1,8 +1,21 @@
+"use client";
+import { useMemo, useState } from "react";
 import { Upload, Play, Image as ImageIcon, Tag, Sparkles } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { MOCK_MEDIA } from "@/lib/mock-data";
+import { SoonButton } from "@/components/ui/SoonButton";
+
+const FILTERS = ["All", "Videos", "GIFs", "Images"] as const;
+type Filter = typeof FILTERS[number];
 
 export default function MediaPage() {
+  const [filter, setFilter] = useState<Filter>("All");
+  const visible = useMemo(() => {
+    if (filter === "All") return MOCK_MEDIA;
+    const want = filter === "Videos" ? "video" : filter === "GIFs" ? "gif" : "image";
+    return MOCK_MEDIA.filter((m) => m.kind === want);
+  }, [filter]);
+
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -16,9 +29,9 @@ export default function MediaPage() {
             you tap to send. Builds know-like-trust faster than text alone.
           </p>
         </div>
-        <button className="btn-primary text-sm py-2 px-3">
+        <SoonButton variant="primary">
           <Upload className="h-4 w-4" /> Upload media
-        </button>
+        </SoonButton>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -31,17 +44,27 @@ export default function MediaPage() {
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h2 className="text-lg font-bold text-white">Your media</h2>
           <div className="flex gap-1.5">
-            {["All", "Videos", "GIFs", "Images"].map((f, i) => (
-              <button key={f} className={
-                i === 0
-                  ? "stat-pill bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 text-xs"
-                  : "stat-pill bg-white/5 text-ink-300 border border-white/10 text-xs hover:text-white"
-              }>{f}</button>
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFilter(f)}
+                className={
+                  f === filter
+                    ? "stat-pill bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 text-xs"
+                    : "stat-pill bg-white/5 text-ink-300 border border-white/10 text-xs hover:text-white"
+                }
+              >
+                {f}
+              </button>
             ))}
           </div>
         </div>
+        {visible.length === 0 ? (
+          <p className="text-sm text-ink-400">No {filter.toLowerCase()} yet.</p>
+        ) : (
         <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {MOCK_MEDIA.map((m) => (
+          {visible.map((m) => (
             <div key={m.id} className="glass rounded-2xl overflow-hidden hover:border-cyan-500/30 transition group">
               <div className="aspect-video bg-gradient-to-br from-brand-700 to-ink-900 flex items-center justify-center relative">
                 {m.kind === "video" ? (
@@ -67,6 +90,7 @@ export default function MediaPage() {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       <div className="glass rounded-2xl p-5 sm:p-6 flex items-start gap-4">
@@ -74,13 +98,13 @@ export default function MediaPage() {
         <div>
           <h3 className="text-base font-bold text-white">AI suggestion</h3>
           <p className="text-sm text-ink-200 mt-1">
-            You don't have a "Why I started this practice" video yet. Leads who get this
-            one in the first 48 hours are 3.2× more likely to book. Record one in 60s and
+            You don't have a "Why I started" video yet. Leads who get one in the
+            first 48 hours are more likely to book. Record a 60-second clip and
             we'll tag and slot it into your nurture sequence.
           </p>
-          <button className="btn-accent text-xs py-2 px-3 mt-3">
+          <SoonButton variant="accent" size="xs" className="mt-3">
             Show me the script
-          </button>
+          </SoonButton>
         </div>
       </div>
     </div>

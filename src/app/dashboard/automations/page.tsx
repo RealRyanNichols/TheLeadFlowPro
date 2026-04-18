@@ -2,12 +2,13 @@ import Link from "next/link";
 import { Plus, PlayCircle, PauseCircle, CircleDashed, Workflow } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { MOCK_AUTOMATIONS } from "@/lib/mock-data";
+import { SoonButton } from "@/components/ui/SoonButton";
 
 const TEMPLATES = [
-  { name: "5-day patient nurture", desc: "SMS day 0, 1, 3, 5 + a video on day 2", icon: "🦷" },
-  { name: "Cold lead re-engage",   desc: "GIF + text after 14 days of silence", icon: "❄️" },
+  { name: "5-day lead nurture",    desc: "SMS day 0, 1, 3, 5 + a video on day 2", icon: "🔥" },
+  { name: "Cold lead re-engage",   desc: "GIF + text after 14 days of silence",   icon: "❄️" },
   { name: "Post-appointment ask",  desc: "Thank-you GIF + Google review request", icon: "⭐" },
-  { name: "Birthday + anniversary", desc: "Auto SMS + offer on the day",        icon: "🎂" }
+  { name: "Birthday + anniversary", desc: "Auto SMS + offer on the day",          icon: "🎂" }
 ];
 
 export default function AutomationsPage() {
@@ -23,9 +24,9 @@ export default function AutomationsPage() {
             You design the sequence. We fire it on schedule. You stay in control.
           </p>
         </div>
-        <button className="btn-primary text-sm py-2 px-3">
+        <SoonButton variant="primary">
           <Plus className="h-4 w-4" /> New automation
-        </button>
+        </SoonButton>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -54,12 +55,12 @@ export default function AutomationsPage() {
                 </p>
               </div>
               <div className="flex gap-2 shrink-0 w-full sm:w-auto">
-                <button className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial">Edit</button>
-                <button className="btn-ghost text-xs py-2 px-3 flex-1 sm:flex-initial">
+                <SoonButton size="xs" className="flex-1 sm:flex-initial">Edit</SoonButton>
+                <SoonButton size="xs" className="flex-1 sm:flex-initial">
                   {a.status === "active" ? <><PauseCircle className="h-3.5 w-3.5" /> Pause</> :
                    a.status === "draft"  ? <><PlayCircle  className="h-3.5 w-3.5" /> Activate</> :
                                             <><PlayCircle  className="h-3.5 w-3.5" /> Resume</>}
-                </button>
+                </SoonButton>
               </div>
             </div>
           ))}

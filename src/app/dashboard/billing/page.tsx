@@ -33,8 +33,9 @@ async function loadInvoices(customerId: string | null): Promise<Invoice[]> {
       status: inv.status ? inv.status[0].toUpperCase() + inv.status.slice(1) : "—",
       hostedUrl: inv.hosted_invoice_url
     }));
-  } catch (e) {
-    console.error("Failed to load invoices:", e);
+  } catch {
+    // Stripe may be unreachable or the customer may have no invoices yet;
+    // either way we just render an empty table instead of failing the page.
     return [];
   }
 }

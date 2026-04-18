@@ -3,6 +3,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { SocialIcon, socialBg } from "@/components/flowcard/SocialIcon";
 import { MOCK_SOCIAL } from "@/lib/mock-data";
 import { formatNumber, cn } from "@/lib/utils";
+import { SoonButton } from "@/components/ui/SoonButton";
 
 export default function SocialPage() {
   const connected = MOCK_SOCIAL.filter((s) => s.connected);
@@ -52,9 +53,9 @@ export default function SocialPage() {
                   <CheckCircle2 className="h-3 w-3" /> Connected
                 </span>
               ) : (
-                <button className="btn-ghost text-xs py-1.5 px-3">
+                <SoonButton size="xs">
                   <Plus className="h-3.5 w-3.5" /> Connect
-                </button>
+                </SoonButton>
               )}
             </div>
             <h3 className="mt-3 text-base font-bold text-white capitalize">{s.platform}</h3>

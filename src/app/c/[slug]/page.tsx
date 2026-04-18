@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { FlowCardView } from "@/components/flowcard/FlowCardView";
 import { MOCK_FLOWCARD } from "@/lib/mock-data";
-// import { prisma } from "@/lib/db";
 
 interface Props {
   params: { slug: string };

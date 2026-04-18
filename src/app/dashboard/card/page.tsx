@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { Copy, ExternalLink, Eye, MousePointerClick, QrCode } from "lucide-react";
+import { ExternalLink, Eye, QrCode } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { FlowCardView } from "@/components/flowcard/FlowCardView";
 import { MOCK_FLOWCARD } from "@/lib/mock-data";
 import { qrSvgUrl } from "@/lib/qr";
+import { CopyButton } from "@/components/ui/CopyButton";
+import { SoonButton } from "@/components/ui/SoonButton";
 
 export default function FlowCardSettings() {
   const publicUrl = `https://www.theleadflowpro.com/c/${MOCK_FLOWCARD.slug}`;
@@ -37,9 +39,7 @@ export default function FlowCardSettings() {
               <code className="flex-1 px-3 py-2 rounded-lg bg-ink-950 border border-white/10 text-sm text-cyan-300 break-all">
                 {publicUrl}
               </code>
-              <button className="btn-ghost text-sm py-2 px-3">
-                <Copy className="h-4 w-4" /> Copy
-              </button>
+              <CopyButton value={publicUrl} />
               <Link href={`/c/${MOCK_FLOWCARD.slug}`} target="_blank" className="btn-primary text-sm py-2 px-3">
                 <ExternalLink className="h-4 w-4" /> Open
               </Link>
@@ -55,9 +55,13 @@ export default function FlowCardSettings() {
                   phone case. Anyone with a camera can scan and land on your FlowCard
                   in two seconds — then follow you everywhere in one tap.
                 </p>
-                <button className="btn-ghost text-xs py-2 px-3 mt-3">
-                  Download PNG
-                </button>
+                <a
+                  href={qrSvgUrl(publicUrl, 512)}
+                  download={`flowcard-qr-${MOCK_FLOWCARD.slug}.svg`}
+                  className="btn-ghost text-xs py-2 px-3 mt-3 inline-flex"
+                >
+                  Download QR
+                </a>
               </div>
             </div>
           </div>
@@ -86,14 +90,14 @@ export default function FlowCardSettings() {
                   </li>
                 ))}
               </ul>
-              <button className="text-cyan-400 text-sm mt-3 hover:underline">
-                + Add another link
-              </button>
+              <p className="text-xs text-ink-400 mt-3">
+                Editing FlowCard links is coming soon. Update them in Settings for now.
+              </p>
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
-              <button className="btn-ghost text-sm py-2 px-4">Discard</button>
-              <button className="btn-primary text-sm py-2 px-4">Save changes</button>
+              <SoonButton variant="ghost">Discard</SoonButton>
+              <SoonButton variant="primary">Save changes</SoonButton>
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { Target, Users, MapPin, Clock, Wand2 } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { SoonButton } from "@/components/ui/SoonButton";
 
 const PERSONAS = [
   {
@@ -54,9 +55,9 @@ export default function AudiencePage() {
             patterns. Then tells you exactly where to find more of them.
           </p>
         </div>
-        <button className="btn-primary text-sm py-2 px-3">
+        <SoonButton variant="primary">
           <Wand2 className="h-4 w-4" /> Re-run analysis
-        </button>
+        </SoonButton>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

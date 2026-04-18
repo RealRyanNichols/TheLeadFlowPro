@@ -1,5 +1,7 @@
-import { Megaphone, Wand2, Copy, RefreshCw } from "lucide-react";
+import { Wand2, RefreshCw } from "lucide-react";
 import { SocialIcon } from "@/components/flowcard/SocialIcon";
+import { CopyButton } from "@/components/ui/CopyButton";
+import { SoonButton } from "@/components/ui/SoonButton";
 
 const SAMPLE_ADS = [
   {
@@ -69,9 +71,9 @@ export default function AdCopyPage() {
             />
           </Field>
         </div>
-        <button className="btn-primary text-sm py-2 px-4 mt-5">
+        <SoonButton variant="primary" className="mt-5">
           <Wand2 className="h-4 w-4" /> Generate 5 variations
-        </button>
+        </SoonButton>
       </div>
 
       <div>
@@ -92,12 +94,13 @@ export default function AdCopyPage() {
               </div>
 
               <div className="mt-4 flex gap-2">
-                <button className="btn-ghost text-xs py-1.5 px-3 flex-1">
-                  <Copy className="h-3.5 w-3.5" /> Copy
-                </button>
-                <button className="btn-ghost text-xs py-1.5 px-3 flex-1">
+                <CopyButton
+                  value={`${a.hook}\n\n${a.body}\n\n${a.cta}`}
+                  className="flex-1 text-xs py-1.5 px-3"
+                />
+                <SoonButton size="xs" className="flex-1">
                   <RefreshCw className="h-3.5 w-3.5" /> Regenerate
-                </button>
+                </SoonButton>
               </div>
             </div>
           ))}

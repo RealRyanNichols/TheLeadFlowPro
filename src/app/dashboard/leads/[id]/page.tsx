@@ -7,6 +7,7 @@ import {
 import { LeadStatusBadge, LeadSourceLabel } from "@/components/dashboard/LeadStatusBadge";
 import { MOCK_LEADS } from "@/lib/mock-data";
 import { formatCurrency, relativeTime, cn } from "@/lib/utils";
+import { SoonButton } from "@/components/ui/SoonButton";
 
 type LeadStatus = typeof MOCK_LEADS[number]["status"];
 
@@ -133,8 +134,18 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
           </div>
         </div>
         <div className="flex gap-2 shrink-0">
-          <button className="btn-ghost text-xs py-2 px-3"><PhoneCall className="h-3.5 w-3.5" /> Call</button>
-          <button className="btn-accent text-xs py-2 px-3"><MessageSquare className="h-3.5 w-3.5" /> Text</button>
+          {lead.phone ? (
+            <>
+              <a href={`tel:${lead.phone}`} className="btn-ghost text-xs py-2 px-3">
+                <PhoneCall className="h-3.5 w-3.5" /> Call
+              </a>
+              <a href={`sms:${lead.phone}`} className="btn-accent text-xs py-2 px-3">
+                <MessageSquare className="h-3.5 w-3.5" /> Text
+              </a>
+            </>
+          ) : (
+            <span className="text-xs text-ink-400">No phone on file</span>
+          )}
         </div>
       </div>
 
@@ -225,22 +236,21 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
               );
             })}
           </div>
-          {/* Composer */}
+          {/* Composer — in-app send lands in a later release; use the Call/Text
+              buttons above (real tel:/sms: links) to reply in the meantime. */}
           <div className="border-t border-white/5 p-3 flex items-center gap-2">
-            <button className="h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-300" title="Attach">
-              <Paperclip className="h-4 w-4" />
-            </button>
             <Link href="/dashboard/scripts" className="h-9 px-3 rounded-lg hover:bg-white/5 flex items-center gap-1.5 text-xs text-ink-200" title="Scripts">
               <Sparkles className="h-3.5 w-3.5 text-cyan-400" /> Scripts
             </Link>
             <input
               type="text"
-              placeholder="Type a reply…"
-              className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm placeholder:text-ink-400 focus:outline-none focus:border-cyan-500/50"
+              disabled
+              placeholder="In-app messaging coming soon — tap Text above to reply."
+              className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm placeholder:text-ink-400 focus:outline-none focus:border-cyan-500/50 cursor-not-allowed"
             />
-            <button className="btn-accent text-xs py-2 px-3">
+            <SoonButton size="xs" variant="accent">
               <Send className="h-3.5 w-3.5" /> Send
-            </button>
+            </SoonButton>
           </div>
         </div>
 

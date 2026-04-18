@@ -1,5 +1,6 @@
 import { Bot, MessageSquare, Wand2, Globe, Smartphone, Instagram } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { SoonButton } from "@/components/ui/SoonButton";
 
 const SAMPLE_TRANSCRIPT = [
   { role: "lead",  text: "Hey, do y'all handle same-week jobs?" },
@@ -101,9 +102,9 @@ export default function ChatbotPage() {
               Your bot has answered "what's your service area?" 14 times this week. Want to add it
               to the standard FAQ so it answers faster (and you don't pay for the AI call)?
             </p>
-            <button className="btn-primary text-sm py-2 px-3 mt-4 w-full">
+            <SoonButton variant="primary" className="mt-4 w-full">
               Add to FAQ
-            </button>
+            </SoonButton>
           </div>
           <div className="glass rounded-2xl p-5">
             <h3 className="text-sm font-bold text-white">Plug-in points</h3>
@@ -113,9 +114,9 @@ export default function ChatbotPage() {
               <li>📷 Meta Business Suite (IG/FB DMs)</li>
               <li>📊 GoHighLevel webhook</li>
             </ul>
-            <button className="btn-ghost text-xs py-2 px-3 mt-4 w-full">
+            <SoonButton size="xs" className="mt-4 w-full">
               Get install snippets
-            </button>
+            </SoonButton>
           </div>
         </div>
       </div>

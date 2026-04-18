@@ -25,7 +25,6 @@ export function FollowAllButton({
       setTimeout(() => window.open(link.url, "_blank", "noopener,noreferrer"), i * 120);
     });
     setTimeout(() => setState("done"), links.length * 120 + 400);
-    // Track follow-all click here (POST to /api/flowcard/track)
   }
 
   return (

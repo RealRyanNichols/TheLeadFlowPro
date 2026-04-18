@@ -1,6 +1,7 @@
 import { Sparkles, TrendingUp, AlertTriangle, Lightbulb, ShieldAlert, Wand2 } from "lucide-react";
 import { NextMoveCard } from "@/components/dashboard/NextMoveCard";
 import { MOCK_NEXT_MOVES } from "@/lib/mock-data";
+import { SoonButton } from "@/components/ui/SoonButton";
 
 const INSIGHTS = [
   {
@@ -58,9 +59,9 @@ export default function InsightsPage() {
             on, and what to fix. You decide what to act on.
           </p>
         </div>
-        <button className="btn-primary text-sm py-2 px-3">
+        <SoonButton variant="primary">
           <Wand2 className="h-4 w-4" /> Re-analyze now
-        </button>
+        </SoonButton>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

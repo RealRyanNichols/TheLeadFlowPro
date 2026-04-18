@@ -1,4 +1,5 @@
 import { Plus, ThumbsUp, Lightbulb, Wrench, CheckCircle2 } from "lucide-react";
+import { SoonButton } from "@/components/ui/SoonButton";
 
 const REQUESTS = [
   {
@@ -66,9 +67,9 @@ export default function RequestsPage() {
               <option>Just for me (custom)</option>
               <option>Not sure — you decide</option>
             </select>
-            <button className="btn-primary text-sm py-2 px-4">
+            <SoonButton variant="primary">
               <Plus className="h-4 w-4" /> Submit request
-            </button>
+            </SoonButton>
           </div>
         </div>
       </div>
@@ -96,9 +97,9 @@ export default function RequestsPage() {
                       </div>
                     )}
                   </div>
-                  <button className="btn-ghost text-xs py-2 px-3 shrink-0">
+                  <span className="btn-ghost text-xs py-2 px-3 shrink-0 opacity-70 cursor-default" title="Upvotes">
                     <ThumbsUp className="h-3.5 w-3.5" /> {r.upvotes}
-                  </button>
+                  </span>
                 </div>
               </div>
             );

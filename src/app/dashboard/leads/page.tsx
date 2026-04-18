@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PhoneCall, MessageSquare, Settings2, Plus } from "lucide-react";
 import { LeadStatusBadge, LeadSourceLabel } from "@/components/dashboard/LeadStatusBadge";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { SoonButton } from "@/components/ui/SoonButton";
 import { MOCK_LEADS, MOCK_KPIS } from "@/lib/mock-data";
 import { formatCurrency, relativeTime } from "@/lib/utils";
 
@@ -24,9 +25,9 @@ export default function LeadsPage() {
           <Link href="/dashboard/leads/missed-call" className="btn-ghost text-sm py-2 px-3">
             <Settings2 className="h-4 w-4" /> Missed-call settings
           </Link>
-          <button className="btn-primary text-sm py-2 px-3">
+          <SoonButton variant="primary">
             <Plus className="h-4 w-4" /> Add lead
-          </button>
+          </SoonButton>
         </div>
       </div>
 
