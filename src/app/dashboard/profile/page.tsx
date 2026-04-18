@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   User, Mail, Phone, MapPin, Building2, Globe, Calendar,
-  CheckCircle2, Zap, Trophy, ArrowRight, Pencil
+  CheckCircle2, Zap, Trophy, ArrowRight, Pencil, AlertCircle
 } from "lucide-react";
 import { currentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -39,6 +39,16 @@ export default async function ProfilePage() {
   const initial = displayName.charAt(0).toUpperCase();
   const loc = locationLine(user.addressCity, user.addressState, user.addressZip);
 
+  // Which fields still need to be filled in? We surface a big CTA so a fresh
+  // user isn't staring at a read-only page wondering how to add their info.
+  const missingFields: string[] = [];
+  if (!user.name?.trim())         missingFields.push("your name");
+  if (!user.businessName?.trim()) missingFields.push("business name");
+  if (!user.industry?.trim())     missingFields.push("industry");
+  if (!user.phone?.trim())        missingFields.push("phone");
+  if (!user.addressCity?.trim() && !user.addressState?.trim()) missingFields.push("location");
+  const profileIncomplete = missingFields.length > 0;
+
   // Real counts — start of month to now. Zero until the user runs leads.
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
@@ -60,6 +70,24 @@ export default async function ProfilePage() {
 
   return (
     <div className="max-w-5xl space-y-6">
+      {profileIncomplete && (
+        <div className="glass rounded-2xl p-5 sm:p-6 border border-accent-500/30 bg-accent-500/[0.04] flex items-start gap-4 flex-wrap">
+          <span className="h-10 w-10 rounded-xl bg-accent-500/15 text-accent-400 flex items-center justify-center shrink-0">
+            <AlertCircle className="h-5 w-5" />
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-base font-bold text-white">Finish setting up your profile</p>
+            <p className="text-sm text-ink-300 mt-1">
+              We still need {missingFields.join(", ")}. This is what personalizes
+              your chatbot, ad copy, and FlowCard — takes under a minute.
+            </p>
+          </div>
+          <Link href="/dashboard/settings#business" className="btn-accent text-sm py-2 px-4 shrink-0">
+            Complete profile <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      )}
+
       {/* Header card */}
       <div className="glass rounded-2xl p-5 sm:p-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-promo-glow opacity-40 -z-10" />
@@ -175,10 +203,10 @@ export default async function ProfilePage() {
 
           <Section title="Quick jump">
             <div className="space-y-2">
-              <QuickLink href="/dashboard/settings" label="Account settings" />
+              <QuickLink href="/dashboard/settings" label="Edit profile" />
               <QuickLink href="/dashboard/billing"  label="Billing & plan" />
               <QuickLink href="/dashboard/card"     label="My FlowCard" />
-              <QuickLink href="/dashboard/onboarding" label="Onboarding" />
+              <QuickLink href="/dashboard/onboarding" label="Get-started checklist" />
             </div>
           </Section>
         </aside>
