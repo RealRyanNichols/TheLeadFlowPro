@@ -109,7 +109,9 @@ export default async function MortgageDashboardPage() {
   ]);
 
   const countsByStage = Object.fromEntries(pipelineCounts.map((c) => [c.stage, c._count._all]));
-  const totalActive = STAGES.filter((s) => s.key !== "closed" && s.key !== "dead")
+  // "dead" never appears in STAGES (the dashboard only models the live funnel),
+  // so the only stage to exclude here is "closed".
+  const totalActive = STAGES.filter((s) => s.key !== "closed")
     .reduce((t, s) => t + (countsByStage[s.key] ?? 0), 0);
 
   // Setup warnings
