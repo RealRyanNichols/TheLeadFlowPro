@@ -40,9 +40,10 @@ export async function GET() {
       brainProfile: {
         select: {
           completeness: true,
-          niche: true,
-          offer: true,
-          audience: true,
+          industry: true,
+          subIndustry: true,
+          idealCustomer: true,
+          extras: true,
           updatedAt: true,
         },
       },
