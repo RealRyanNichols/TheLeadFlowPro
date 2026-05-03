@@ -46,9 +46,10 @@ export default async function ProfilePage() {
       brainProfile: {
         select: {
           completeness: true,
-          niche: true,
-          offer: true,
-          audience: true,
+          industry: true,
+          subIndustry: true,
+          idealCustomer: true,
+          extras: true,
           updatedAt: true,
         },
       },
@@ -61,6 +62,23 @@ export default async function ProfilePage() {
   }
 
   const brainCompleteness = user.brainProfile?.completeness ?? 0;
+  const bp = user.brainProfile;
+  // Niche = industry (with optional subIndustry refinement). Audience = ideal-customer
+  // free-text the user typed during onboarding. Offer is not a first-class column —
+  // we surface it from the BrainProfile.extras jsonb (set by /api/onboarding when
+  // the user describes their signature offer in the open-ended flow).
+  const extras = (bp?.extras ?? {}) as Record<string, unknown>;
+  const nicheLabel =
+    bp?.subIndustry && bp?.industry
+      ? `${bp.subIndustry} · ${bp.industry}`
+      : bp?.subIndustry || bp?.industry || null;
+  const offerLabel =
+    typeof extras.signatureOffer === "string" && extras.signatureOffer.trim().length > 0
+      ? (extras.signatureOffer as string)
+      : typeof extras.offer === "string" && (extras.offer as string).trim().length > 0
+      ? (extras.offer as string)
+      : null;
+  const audienceLabel = bp?.idealCustomer || null;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -122,19 +140,19 @@ export default async function ProfilePage() {
             <div>
               <dt className="text-xs uppercase tracking-wider text-slate-500">Niche</dt>
               <dd className="mt-0.5 text-slate-900">
-                {user.brainProfile?.niche || <span className="text-slate-400 italic">— not set</span>}
+                {nicheLabel || <span className="text-slate-400 italic">— not set</span>}
               </dd>
             </div>
             <div>
               <dt className="text-xs uppercase tracking-wider text-slate-500">Offer</dt>
               <dd className="mt-0.5 text-slate-900">
-                {user.brainProfile?.offer || <span className="text-slate-400 italic">— not set</span>}
+                {offerLabel || <span className="text-slate-400 italic">— not set</span>}
               </dd>
             </div>
             <div>
               <dt className="text-xs uppercase tracking-wider text-slate-500">Audience</dt>
               <dd className="mt-0.5 text-slate-900">
-                {user.brainProfile?.audience || <span className="text-slate-400 italic">— not set</span>}
+                {audienceLabel || <span className="text-slate-400 italic">— not set</span>}
               </dd>
             </div>
           </dl>
