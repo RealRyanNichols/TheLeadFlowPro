@@ -128,6 +128,17 @@ model User {
   // Rotate by regenerating; old forms stop writing.
   formKey             String?  @unique
 
+  // ── Mortgage OS (vertical) ─────────────────────────────────────
+  // Set when a user opts in to act as a Mortgage Loan Originator.
+  // mortgageOriginator gates Mortgage OS dashboards; loNmlsId is required
+  // (3-10 digits, validated server-side); loStateLicenses is the set of
+  // US state codes the LO is licensed in; lastMortgageRouteAt powers the
+  // round-robin assignment in /api/mortgage/prequal.
+  mortgageOriginator   Boolean   @default(false)
+  loNmlsId             String?
+  loStateLicenses      String[]  @default([])
+  lastMortgageRouteAt  DateTime?
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
