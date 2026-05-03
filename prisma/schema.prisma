@@ -159,6 +159,11 @@ model User {
   brainProfile      BrainProfile?
   taskCharges       TaskCharge[]
   billableTasks     BillableTask[]
+
+  // Mortgage OS
+  ownedMortgageLeads MortgageLead[]   @relation("OwnedMortgageLeads")
+  realtorPartners    RealtorPartner[] @relation("LoRealtorPartners")
+  notifications      Notification[]   @relation("UserNotifications")
 }
 
 // ─── Flo / Brain Profile ────────────────────────────────────────
@@ -702,4 +707,234 @@ model BillableTask {
 
   @@index([userId, createdAt])
   @@index([userId, kind])
+}
+
+// ─── Mortgage OS ───────────────────────────────────────────────
+// Vertical product for independent Mortgage Loan Originators (LOs).
+// Tables created via the mortgage_os_v1 Supabase migration (2026-04-17).
+// Schema mirrors the live DB exactly — confirmed against information_schema.
+
+enum MortgageLoanType {
+  purchase_preapproved
+  purchase_fthb
+  refi_rate_term
+  refi_cashout
+  va
+  fha
+  usda
+  jumbo
+  non_qm
+  reverse
+}
+
+enum MortgageLeadStage {
+  new
+  contacted
+  qualified
+  application
+  processing
+  underwriting
+  approved
+  clear_to_close
+  closed
+  dead
+}
+
+enum MortgageLeadGrade {
+  A
+  B
+  C
+  D
+}
+
+enum MortgageVerdict {
+  green
+  yellow
+  red
+}
+
+enum OutboundChannel {
+  sms
+  email
+  voice_script
+  social
+  letter
+  in_app
+}
+
+enum OutboundStatus {
+  queued
+  pending_review
+  sent
+  failed
+  cancelled
+}
+
+model MortgageLead {
+  id                  String              @id @default(cuid())
+  ownerId             String?
+  owner               User?               @relation("OwnedMortgageLeads", fields: [ownerId], references: [id])
+
+  loanType            MortgageLoanType
+  stage               MortgageLeadStage   @default(new)
+  grade               MortgageLeadGrade?
+  gradeReasons        String[]            @default([])
+
+  fullName            String
+  email               String
+  phone               String
+  state               String
+  ficoBand            String
+  timeline            String
+
+  estIncomeUsd        Int?
+  estDtiPct           Int?
+  estLoanAmountUsd    Int?
+  estPropertyValueUsd Int?
+  hasRealtor          Boolean             @default(false)
+  hasContract         Boolean             @default(false)
+  ownerOccupied       Boolean             @default(true)
+
+  loanFile            LoanFile?
+  docItems            DocItem[]
+  scans               ComplianceScan[]
+  outboundJobs        OutboundJob[]
+  consentLogs         ConsentLog[]
+  rateWatchTargets    RateWatchTarget[]
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@index([ownerId, createdAt])
+  @@index([state])
+}
+
+model LoanFile {
+  id                        String        @id @default(cuid())
+  leadId                    String        @unique
+  lead                      MortgageLead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  applicationDate           DateTime?
+  loanEstimateIssuedAt      DateTime?
+  intentToProceedAt         DateTime?
+  closingDisclosureIssuedAt DateTime?
+  closingScheduledAt        DateTime?
+  closedAt                  DateTime?
+  decisionType              String?
+  decisionAt                DateTime?
+  losExternalId             String?
+  losSystem                 String?
+  createdAt                 DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
+}
+
+model DocItem {
+  id          String       @id @default(cuid())
+  leadId      String
+  lead        MortgageLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  docKey      String
+  label       String
+  status      String       @default("pending")
+  autoSource  String?
+  uploadedAt  DateTime?
+  verifiedAt  DateTime?
+  nudgesSent  Int          @default(0)
+  lastNudgeAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([leadId, status])
+}
+
+model ComplianceScan {
+  id          String           @id @default(cuid())
+  leadId      String?
+  lead        MortgageLead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  channel     OutboundChannel
+  verdict     MortgageVerdict
+  flags       Json
+  summary     String           @db.Text
+  bodyPreview String           @db.Text
+  createdAt   DateTime         @default(now())
+
+  @@index([leadId, createdAt])
+}
+
+model OutboundJob {
+  id            String           @id @default(cuid())
+  leadId        String
+  lead          MortgageLead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  channel       OutboundChannel
+  toPhone       String?
+  toEmail       String?
+  subject       String?
+  body          String           @db.Text
+  status        OutboundStatus   @default(queued)
+  scheduledFor  DateTime
+  sentAt        DateTime?
+  failureReason String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([status, scheduledFor])
+}
+
+model ConsentLog {
+  id           String        @id @default(cuid())
+  leadId       String?
+  lead         MortgageLead? @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  subjectEmail String
+  subjectPhone String?
+  consentType  String
+  capturedAt   DateTime
+  ip           String?
+  userAgent    String?
+  source       String
+  createdAt    DateTime      @default(now())
+
+  @@index([subjectEmail])
+}
+
+model RateWatchTarget {
+  id              String       @id @default(cuid())
+  leadId          String
+  lead            MortgageLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  lastQuotedRate  Float
+  lastQuotedAt    DateTime
+  program         String
+  triggerBps      Int          @default(25)
+  lastFiredAt     DateTime?
+  active          Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model RealtorPartner {
+  id             String     @id @default(cuid())
+  loId           String
+  lo             User       @relation("LoRealtorPartners", fields: [loId], references: [id], onDelete: Cascade)
+  agentName      String
+  agentEmail     String
+  agentPhone     String?
+  brokerage      String?
+  markets        String[]   @default([])
+  dealsSent      Int        @default(0)
+  lastDealAt     DateTime?
+  coBrandLanding String?
+  vip            Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([loId])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  kind      String
+  payload   Json
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
 }
