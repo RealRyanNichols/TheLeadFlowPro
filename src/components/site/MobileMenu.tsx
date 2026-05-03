@@ -5,6 +5,8 @@ import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 
 const NAV = [
+  { href: "/services",             label: "Social Growth Services" },
+  { href: "/services/consulting",  label: "Business Consulting" },
   { href: "/dashboard",            label: "Dashboard" },
   { href: "/dashboard/playbooks",  label: "Playbooks" },
   { href: "/dashboard/leads",      label: "Lead inbox" },
