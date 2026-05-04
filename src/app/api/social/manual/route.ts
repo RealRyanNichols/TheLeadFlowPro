@@ -100,7 +100,8 @@ export async function POST(req: Request) {
         platform: platform as any,
         kind: parsed.kind as any,
         handle: normalizedHandle,
-        // No-fake-stats: start everything at zero; a sync job backfills later.
+        // No-fake-stats: start everything at zero; sync attempt below
+        // backfills with real numbers if the platform's API key is wired.
         followers: 0,
         following: 0,
         posts: 0,
@@ -108,6 +109,28 @@ export async function POST(req: Request) {
       },
       select: { id: true },
     });
+
+    // Best-effort first sync — non-blocking on failure. If the API key for
+    // this platform isn't set in env, the row stays at zero and the user
+    // sees "0 followers · sync pending" until the key lands.
+    try {
+      const { syncSocialAccount } = await import("@/lib/social-sync");
+      const result = await syncSocialAccount(platform, normalizedHandle);
+      if (result.ok) {
+        await prisma.socialAccount.update({
+          where: { id: row.id },
+          data: {
+            followers: result.followers,
+            following: result.following ?? 0,
+            posts: result.posts ?? 0,
+            engagement: result.engagement ?? 0,
+            lastSyncedAt: new Date(),
+          },
+        });
+      }
+    } catch {
+      // Swallow sync errors — connection succeeds either way.
+    }
 
     return NextResponse.json({ ok: true, id: row.id });
   } catch (err) {
