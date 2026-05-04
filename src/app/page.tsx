@@ -117,18 +117,50 @@ const FOUNDER_BRANDS = [
 export default function GrowV2Page() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="font-semibold hover:text-brand-700">
+      {/* Header — light theme, full nav */}
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3">
+          <Link href="/" className="font-bold text-slate-950 hover:text-brand-700 whitespace-nowrap">
             The LeadFlow Pro
           </Link>
-          <Link
-            href="/book"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-600"
-          >
-            Book the 10-min call <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          <nav className="hidden lg:flex items-center gap-5 text-sm text-slate-700">
+            <Link href="/" className="font-semibold text-cyan-700 hover:text-cyan-800">Home</Link>
+            <Link href="/services" className="hover:text-slate-950">Social Services</Link>
+            <Link href="/services/consulting" className="hover:text-slate-950">Consulting</Link>
+            <Link href="/tiers" className="hover:text-slate-950">Pricing</Link>
+            <Link href="/contact" className="hover:text-slate-950">Contact</Link>
+            <Link href="/dashboard" className="hover:text-slate-950">Dashboard</Link>
+          </nav>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/login"
+              className="hidden sm:inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-brand-500 hover:text-brand-700"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/book"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-semibold text-white hover:bg-accent-600 whitespace-nowrap"
+            >
+              Book the 10-min call <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+        {/* Mobile sub-nav */}
+        <div className="lg:hidden border-t border-slate-200 bg-slate-50">
+          <div className="mx-auto max-w-7xl px-4 py-2 flex items-center gap-4 overflow-x-auto text-xs text-slate-600 whitespace-nowrap">
+            <Link href="/services" className="hover:text-slate-950">Social Services</Link>
+            <span className="text-slate-300">·</span>
+            <Link href="/services/consulting" className="hover:text-slate-950">Consulting</Link>
+            <span className="text-slate-300">·</span>
+            <Link href="/tiers" className="hover:text-slate-950">Pricing</Link>
+            <span className="text-slate-300">·</span>
+            <Link href="/contact" className="hover:text-slate-950">Contact</Link>
+            <span className="text-slate-300">·</span>
+            <Link href="/dashboard" className="hover:text-slate-950">Dashboard</Link>
+            <span className="text-slate-300">·</span>
+            <Link href="/login" className="hover:text-slate-950 font-semibold">Log in</Link>
+          </div>
         </div>
       </header>
 
@@ -159,18 +191,22 @@ export default function GrowV2Page() {
               </p>
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <Link
+                  href="/tiers"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-sm hover:bg-slate-800"
+                >
+                  Hire Ryan now <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
                   href="/book"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-sm hover:bg-accent-600"
                 >
-                  Book the 10-minute call <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
-                  href="/tiers"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-800 hover:border-brand-500 hover:text-brand-700"
-                >
-                  See the price ladder
+                  Book the 10-min call first
                 </Link>
               </div>
+              <p className="mt-3 text-xs text-slate-500">
+                Two paths. Serious buyers skip the line and hire direct. Everyone else books the
+                10-minute call. Either way — no pitch decks, no 60-min discovery tours.
+              </p>
               <p className="mt-3 text-xs text-slate-500">
                 Free, 10 minutes, video. No pitch decks. No 60-minute "discovery" tours.
               </p>
@@ -183,6 +219,46 @@ export default function GrowV2Page() {
                 Signals we collect and translate into next actions
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WHY BELIEVE ME — proof block for the serious-buyer tier */}
+      <section className="border-b border-slate-200 bg-slate-50">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:py-16">
+          <div className="text-xs uppercase tracking-widest text-cyan-700 mb-2">Why believe me</div>
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 max-w-3xl">
+            I take businesses from <em>not being seen</em> to <em>being seen</em> — and I have the receipts.
+          </h2>
+          <p className="mt-4 text-slate-700 max-w-3xl">
+            Multi-million-dollar companies don't hire based on promises. They hire based on track
+            record. Here's what I've actually built — for myself, for clients, and for the five
+            companies I've founded or co-founded.
+          </p>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <ProofTile big="75,000+" label="Followers built from zero across X, Facebook, YouTube, Instagram, TikTok" />
+            <ProofTile big="5" label="Companies founded — LeadFlow Pro, RepWatchr, Faretta.Legal, Faretta.AI, Wholesale Universe" />
+            <ProofTile big="10+ yr" label="Operating in social, ads, sales, and lead generation through every algorithm shift" />
+            <ProofTile big="0 → ∞" label="The transformation we deliver: from invisible to in-front-of-the-right-buyers" />
+          </div>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            <BeliefBlock
+              n="1"
+              title="I've actually done it."
+              body="Every method I'll teach you, I've used to grow my own audience and my clients'. No theory. No frameworks I haven't tested with real money."
+            />
+            <BeliefBlock
+              n="2"
+              title="I run the platform you're hiring."
+              body="The LeadFlow Pro is my own product — same dashboard, same automations, same chatbot, same FlowCard. If it doesn't work, I'm the first person it doesn't work for."
+            />
+            <BeliefBlock
+              n="3"
+              title="I won't take you on if it won't work."
+              body="The 10-min call exists so I can tell you 'no' fast if we're not a fit. I'd rather lose the deal than burn the relationship."
+            />
           </div>
         </div>
       </section>
@@ -522,6 +598,29 @@ function TeachBlock({
         <Icon className="h-5 w-5" />
       </div>
       <h3 className="mt-4 text-xl font-semibold text-slate-950">{title}</h3>
+      <p className="mt-2 text-sm text-slate-700 leading-relaxed">{body}</p>
+    </div>
+  );
+}
+
+function ProofTile({ big, label }: { big: string; label: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="text-3xl sm:text-4xl font-bold text-slate-950 tabular-nums">{big}</div>
+      <div className="mt-2 text-sm text-slate-600 leading-snug">{label}</div>
+    </div>
+  );
+}
+
+function BeliefBlock({
+  n, title, body,
+}: { n: string; title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-brand-600 text-white text-sm font-bold">
+        {n}
+      </div>
+      <h3 className="mt-3 font-semibold text-slate-950 text-lg">{title}</h3>
       <p className="mt-2 text-sm text-slate-700 leading-relaxed">{body}</p>
     </div>
   );
