@@ -117,10 +117,10 @@ const FOUNDER_BRANDS = [
 export default function GrowV2Page() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      {/* Header — light theme, full nav */}
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3">
-          <Link href="/" className="font-bold text-slate-950 hover:text-brand-700 whitespace-nowrap">
+      {/* Header — light theme, full nav. Static (not sticky). No horizontal scroll. */}
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+          <Link href="/" className="font-bold text-slate-950 hover:text-brand-700">
             The LeadFlow Pro
           </Link>
           <nav className="hidden lg:flex items-center gap-5 text-sm text-slate-700">
@@ -140,26 +140,21 @@ export default function GrowV2Page() {
             </Link>
             <Link
               href="/book"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-semibold text-white hover:bg-accent-600 whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-semibold text-white hover:bg-accent-600"
             >
               Book the 10-min call <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         </div>
-        {/* Mobile sub-nav */}
+        {/* Mobile sub-nav — wraps to multiple lines, never scrolls */}
         <div className="lg:hidden border-t border-slate-200 bg-slate-50">
-          <div className="mx-auto max-w-7xl px-4 py-2 flex items-center gap-4 overflow-x-auto text-xs text-slate-600 whitespace-nowrap">
-            <Link href="/services" className="hover:text-slate-950">Social Services</Link>
-            <span className="text-slate-300">·</span>
-            <Link href="/services/consulting" className="hover:text-slate-950">Consulting</Link>
-            <span className="text-slate-300">·</span>
-            <Link href="/tiers" className="hover:text-slate-950">Pricing</Link>
-            <span className="text-slate-300">·</span>
-            <Link href="/contact" className="hover:text-slate-950">Contact</Link>
-            <span className="text-slate-300">·</span>
-            <Link href="/dashboard" className="hover:text-slate-950">Dashboard</Link>
-            <span className="text-slate-300">·</span>
-            <Link href="/login" className="hover:text-slate-950 font-semibold">Log in</Link>
+          <div className="mx-auto max-w-7xl px-4 py-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
+            <Link href="/services" className="hover:text-slate-950 py-1">Social Services</Link>
+            <Link href="/services/consulting" className="hover:text-slate-950 py-1">Consulting</Link>
+            <Link href="/tiers" className="hover:text-slate-950 py-1">Pricing</Link>
+            <Link href="/contact" className="hover:text-slate-950 py-1">Contact</Link>
+            <Link href="/dashboard" className="hover:text-slate-950 py-1">Dashboard</Link>
+            <Link href="/login" className="hover:text-slate-950 font-semibold py-1">Log in</Link>
           </div>
         </div>
       </header>

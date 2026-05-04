@@ -19,7 +19,7 @@ const RYAN_EMAIL = "theflashflash24@gmail.com";
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
+      <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
           <Link href="/" className="font-bold text-slate-950 hover:text-brand-700">
             The LeadFlow Pro
