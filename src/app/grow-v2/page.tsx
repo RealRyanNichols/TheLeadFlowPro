@@ -133,46 +133,57 @@ export default function GrowV2Page() {
         </div>
       </div>
 
-      {/* HERO — hard filter */}
+      {/* HERO — hard filter + algorithm radar visual */}
       <section className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:py-20">
-          <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1 text-xs uppercase tracking-widest text-cyan-700">
-              <BadgeCheck className="h-3.5 w-3.5" /> Built by Ryan Nichols · 75K+ across 5 platforms
+          <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1 text-xs uppercase tracking-widest text-cyan-700">
+                <BadgeCheck className="h-3.5 w-3.5" /> Built by Ryan Nichols · 75K+ across 5 platforms
+              </div>
+              <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-slate-950 leading-tight">
+                Read this first.{" "}
+                <span className="bg-gradient-to-r from-brand-700 to-cyan-500 bg-clip-text text-transparent">
+                  If you're here for free tips, click away.
+                </span>
+              </h1>
+              <p className="mt-5 text-lg text-slate-700 leading-relaxed">
+                The algorithm is in <strong className="text-slate-950">everything we do</strong> — your
+                phone, your watch, your car, every app. The operator who pulls the right signals
+                first <em>wins</em>.
+              </p>
+              <p className="mt-4 text-lg text-slate-700 leading-relaxed">
+                This page is for <strong className="text-slate-950">serious buyers only</strong> —
+                owners, creators, operators ready to invest. I'm not a guru. I won't pitch you. I
+                won't slide-deck you. <strong className="text-slate-950">We'll know in 10 minutes</strong>{" "}
+                whether we should work together.
+              </p>
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/book"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-sm hover:bg-accent-600"
+                >
+                  Book the 10-minute call <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/tiers"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-800 hover:border-brand-500 hover:text-brand-700"
+                >
+                  See the price ladder
+                </Link>
+              </div>
+              <p className="mt-3 text-xs text-slate-500">
+                Free, 10 minutes, video. No pitch decks. No 60-minute "discovery" tours.
+              </p>
             </div>
-            <h1 className="mt-5 text-4xl sm:text-6xl font-semibold tracking-tight text-slate-950 leading-tight">
-              Read this first.{" "}
-              <span className="bg-gradient-to-r from-brand-700 to-cyan-500 bg-clip-text text-transparent">
-                If you're here for free tips, click away.
-              </span>
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg text-slate-700 leading-relaxed">
-              This page is for <strong className="text-slate-950">serious buyers only</strong> — owners,
-              creators, and operators ready to invest in tools, services, or both. I'm not a guru.
-              I'm an operator who shows up when you're serious. I won't pitch you. I won't slide-deck
-              you.
-            </p>
-            <p className="mt-4 max-w-2xl text-lg text-slate-700 leading-relaxed">
-              <strong className="text-slate-950">We'll know in 10 minutes</strong> whether we should
-              work together.
-            </p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/book"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-sm hover:bg-accent-600"
-              >
-                Book the 10-minute call <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/tiers"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-800 hover:border-brand-500 hover:text-brand-700"
-              >
-                See the price ladder
-              </Link>
+
+            {/* Algorithm signal radar */}
+            <div>
+              <RadarMock />
+              <p className="mt-3 text-xs text-slate-500 text-center">
+                Signals we collect and translate into next actions
+              </p>
             </div>
-            <p className="mt-3 text-xs text-slate-500">
-              Free, 10 minutes, video. No pitch decks. No 60-minute "discovery" tours.
-            </p>
           </div>
         </div>
       </section>
@@ -461,6 +472,51 @@ function StatBlock({ label, value, sub }: { label: string; value: string; sub: s
       <div className="text-2xl font-bold text-slate-950 tabular-nums">{value}</div>
       <div className="text-xs font-semibold text-slate-700 mt-1">{label}</div>
       <div className="text-[10px] text-slate-500 mt-0.5">{sub}</div>
+    </div>
+  );
+}
+
+function RadarMock() {
+  // Stylized "real-time signal radar" — concentric arcs + dots representing
+  // signals (location, app, search, video, social, ad) circulating.
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-cyan-50 p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-xs uppercase tracking-widest text-slate-500">Live signal radar</div>
+        <div className="inline-flex items-center gap-1.5 text-xs text-cyan-700">
+          <span className="h-2 w-2 rounded-full bg-cyan-500" /> active
+        </div>
+      </div>
+      <svg viewBox="0 0 320 280" className="block w-full">
+        {[40, 80, 120].map((r) => (
+          <circle key={r} cx="160" cy="140" r={r} fill="none" stroke="#CBD5E1" strokeWidth="1" strokeDasharray="3 3" />
+        ))}
+        <line x1="40" y1="140" x2="280" y2="140" stroke="#E2E8F0" strokeWidth="1" />
+        <line x1="160" y1="20" x2="160" y2="260" stroke="#E2E8F0" strokeWidth="1" />
+        <path d="M 160 140 L 230 86 A 90 90 0 0 0 250 140 Z" fill="#22b8ff22" />
+        <line x1="160" y1="140" x2="250" y2="140" stroke="#22b8ff" strokeWidth="2" />
+        {[
+          { x: 220, y: 90,  label: "TikTok",   color: "#000000" },
+          { x: 100, y: 70,  label: "X",        color: "#0F1419" },
+          { x: 80,  y: 200, label: "YouTube",  color: "#FF0000" },
+          { x: 240, y: 200, label: "Facebook", color: "#1877F2" },
+          { x: 200, y: 145, label: "Geo ping", color: "#7fc93f" },
+          { x: 130, y: 155, label: "Search",   color: "#ff9a1f" },
+        ].map((s, i) => (
+          <g key={i}>
+            <circle cx={s.x} cy={s.y} r="6" fill={s.color} />
+            <circle cx={s.x} cy={s.y} r="11" fill="none" stroke={s.color} strokeOpacity="0.3" strokeWidth="1.5" />
+            <text x={s.x + 12} y={s.y + 4} fontSize="11" fill="#334155" fontWeight="600">{s.label}</text>
+          </g>
+        ))}
+        <circle cx="160" cy="140" r="5" fill="#0d4a9d" />
+        <circle cx="160" cy="140" r="9" fill="none" stroke="#0d4a9d" strokeOpacity="0.4" strokeWidth="2" />
+      </svg>
+      <div className="mt-2 grid grid-cols-3 gap-2 text-[10px] text-slate-500 text-center">
+        <div className="rounded-md bg-slate-50 py-1">Last pull · 12s ago</div>
+        <div className="rounded-md bg-slate-50 py-1">42 signals / min</div>
+        <div className="rounded-md bg-cyan-50 py-1 text-cyan-700 font-semibold">3 actions queued</div>
+      </div>
     </div>
   );
 }
