@@ -29,16 +29,21 @@ export const metadata = {
 
 const RIGHT_FIT = [
   "You have a real business, or you're building one with intent",
-  "You're committed to growth and willing to do the actual work",
+  "You want to build your social media following the right way",
+  "You have a story to tell and want it heard",
+  "You want a website, a funnel, or both — done right",
+  "You want more leads, more often, from the right people",
+  "You're a sales manager who wants a real process built for your team",
+  "You want your tech stack dragged into the 21st century",
+  "You want to go from no sales process to a full one — fast",
   "You're ready to invest in tools, services, or both",
-  "You want a long-term operator in your corner — not a quick fix",
 ];
 
 const WRONG_FIT = [
-  "You want guaranteed follower or revenue numbers",
   "You want everything for free",
   "You're \"just curious\" — no real plans",
-  "You want results in two weeks with no work on your end",
+  "You want a guaranteed outcome before you commit",
+  "You're shopping consultants for the lowest price",
 ];
 
 const STATS = [
@@ -129,11 +134,11 @@ export default function GrowV2Page() {
 
 {/* HERO — hard filter + algorithm radar visual */}
       <section className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:py-20">
-          <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:py-10">
+          <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1 text-xs uppercase tracking-widest text-cyan-700">
-                <BadgeCheck className="h-3.5 w-3.5" /> Built by Ryan Nichols · 75K+ across 5 platforms
+                <BadgeCheck className="h-3.5 w-3.5" /> Ryan Nichols built 75,000+ followers from zero across X, Facebook, YouTube, Instagram &amp; TikTok
               </div>
               <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-slate-950 leading-tight">
                 Read this first.{" "}

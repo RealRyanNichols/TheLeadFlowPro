@@ -127,6 +127,33 @@ export default function BookPage() {
         </div>
       </section>
 
+      {/* What to expect — moved up so it's the FIRST thing after right-fit/wrong-fit */}
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-10">
+        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 sm:p-8">
+          <div className="text-xs uppercase tracking-widest text-cyan-700">What the call is about</div>
+          <h2 className="mt-1 text-2xl font-bold text-slate-950">
+            10 minutes. We figure out if we should work together.
+          </h2>
+          <div className="mt-5 grid md:grid-cols-3 gap-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-white text-xs font-bold">1</div>
+              <div className="mt-2 font-semibold text-slate-950 text-sm">First 3 minutes</div>
+              <p className="mt-1 text-sm text-slate-600">You tell me what you do, what's working, what isn't.</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-white text-xs font-bold">2</div>
+              <div className="mt-2 font-semibold text-slate-950 text-sm">Middle 5 minutes</div>
+              <p className="mt-1 text-sm text-slate-600">I tell you the single highest-leverage move I see + which package maps to it.</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-white text-xs font-bold">3</div>
+              <div className="mt-2 font-semibold text-slate-950 text-sm">Last 2 minutes</div>
+              <p className="mt-1 text-sm text-slate-600">We decide. Yes — we set up next step. No — you walk with the recommendation, no obligation.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* The booking widget */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-16">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
@@ -136,20 +163,25 @@ export default function BookPage() {
               <div className="mt-0.5 text-xl font-bold text-slate-950">
                 Free 10-Minute Strategy Call
               </div>
+              <p className="mt-1 text-sm text-slate-600 max-w-xl">
+                Pick the date and time below. Cal.com will ask you a few intake questions so I have
+                context before we hop on. No doom scroll.
+              </p>
             </div>
             <div className="flex items-center gap-2 text-sm text-slate-600">
-              <Clock className="h-4 w-4 text-cyan-600" /> All times shown in your local timezone
+              <Clock className="h-4 w-4 text-cyan-600" /> Times shown in your local timezone
             </div>
           </div>
 
           {BOOKING_URL ? (
-            // Live calendar embed (Cal.com, TidyCal, SavvyCal, Calendly all support this)
+            // Live calendar embed — height capped so the page doesn't doom-scroll.
+            // ?layout=mobile gives a more compact column view than the default monthly grid.
             <div className="overflow-hidden rounded-2xl border border-slate-200">
               <iframe
-                src={BOOKING_URL}
+                src={BOOKING_URL.includes("?") ? `${BOOKING_URL}&layout=mobile` : `${BOOKING_URL}?layout=mobile`}
                 title="Book a 10-minute strategy call with Ryan Nichols"
                 className="block w-full"
-                style={{ height: "720px", border: 0 }}
+                style={{ height: "560px", border: 0 }}
                 loading="lazy"
               />
             </div>
@@ -181,24 +213,6 @@ export default function BookPage() {
         </div>
       </section>
 
-      {/* What happens on the call */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-16">
-        <div className="grid md:grid-cols-3 gap-5">
-          <CallStep n={1} title="The first 3 minutes">
-            You tell me what you do, what's working, and what isn't. No script — just the
-            real picture.
-          </CallStep>
-          <CallStep n={2} title="The middle 5 minutes">
-            I tell you the single highest-leverage move I see, and which of our packages or
-            tools maps to it.
-          </CallStep>
-          <CallStep n={3} title="The last 2 minutes">
-            We decide. Yes — we set up the next step (kickoff, payment, intake). No — that's
-            fine, you walk with the recommendation.
-          </CallStep>
-        </div>
-      </section>
-
       {/* Disclosure */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-20">
         <p className="text-xs text-slate-500 text-center max-w-3xl mx-auto leading-relaxed">
@@ -211,16 +225,4 @@ export default function BookPage() {
   );
 }
 
-function CallStep({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white text-sm font-bold">
-          {n}
-        </div>
-        <div className="text-sm font-bold text-slate-950">{title}</div>
-      </div>
-      <p className="mt-3 text-sm text-slate-700">{children}</p>
-    </div>
-  );
-}
+// CallStep removed — its content was moved up into the "What the call is about" section.
