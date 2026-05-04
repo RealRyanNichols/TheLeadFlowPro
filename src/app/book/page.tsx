@@ -25,7 +25,14 @@ const RYAN_EMAIL = "theflashflash24@gmail.com";
 // Pull booking URL from env so we can swap in Cal.com / TidyCal / SavvyCal /
 // Calendly without redeploying code. NEXT_PUBLIC_BOOKING_URL stays public on
 // purpose — it's just the public scheduling link.
-const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL || "";
+//
+// Default fallback = Ryan's Cal.com page (cal.com/ryan-nichols-sl2yzx). Once
+// the LeadFlow-Pro-specific event type is created in Cal.com, the env var can
+// be set in Vercel to point at the specific event slug (e.g.
+// https://cal.com/ryan-nichols-sl2yzx/leadflow-pro-10min) without touching code.
+const BOOKING_URL =
+  process.env.NEXT_PUBLIC_BOOKING_URL ||
+  "https://cal.com/ryan-nichols-sl2yzx";
 
 const RIGHT_FIT = [
   "You have a real business — or are seriously building one",
