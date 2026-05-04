@@ -163,6 +163,97 @@ export async function syncTikTok(_handle: string): Promise<SyncResult> {
   return { ok: false, reason: "TikTok sync not yet implemented" };
 }
 
+/* ─── Cached homepage helper ───────────────────────────────────── */
+
+// Server-side cached fetch for the homepage's "live" YouTube stat.
+// Uses Next.js ISR (revalidate every 1 hour) so we don't burn quota.
+// Falls back to null if the API key isn't set or the channel isn't found.
+
+export async function getYouTubeStatsCached(
+  handle: string,
+): Promise<{ subscribers: number; videos: number; views: number } | null> {
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey) return null;
+
+  const cleaned = handle.replace(/^@/, "").trim();
+  const url = new URL("https://www.googleapis.com/youtube/v3/channels");
+  url.searchParams.set("part", "statistics");
+  url.searchParams.set("forHandle", "@" + cleaned);
+  url.searchParams.set("key", apiKey);
+
+  try {
+    const res = await fetch(url, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      items?: Array<{ statistics?: { subscriberCount?: string; viewCount?: string; videoCount?: string } }>;
+    };
+    const s = data.items?.[0]?.statistics;
+    if (!s) return null;
+    return {
+      subscribers: parseInt(s.subscriberCount ?? "0", 10) || 0,
+      videos: parseInt(s.videoCount ?? "0", 10) || 0,
+      views: parseInt(s.viewCount ?? "0", 10) || 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// Same pattern for X / Twitter — gated on X_BEARER_TOKEN env var.
+export async function getXStatsCached(
+  handle: string,
+): Promise<{ followers: number; following: number; posts: number } | null> {
+  const bearer = process.env.X_BEARER_TOKEN;
+  if (!bearer) return null;
+
+  const username = handle.replace(/^@/, "").trim();
+  const url = `https://api.x.com/2/users/by/username/${encodeURIComponent(username)}?user.fields=public_metrics`;
+
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${bearer}` },
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      data?: { public_metrics?: { followers_count?: number; following_count?: number; tweet_count?: number } };
+    };
+    const m = data.data?.public_metrics;
+    if (!m) return null;
+    return {
+      followers: m.followers_count ?? 0,
+      following: m.following_count ?? 0,
+      posts: m.tweet_count ?? 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// Facebook — gated on FB_PAGE_ACCESS_TOKEN env var.
+// Pass either the numeric Page ID or the vanity username (e.g. "RealRyanNichols").
+export async function getFacebookStatsCached(
+  pageIdOrUsername: string,
+): Promise<{ fanCount: number; followerCount: number } | null> {
+  const token = process.env.FB_PAGE_ACCESS_TOKEN;
+  if (!token) return null;
+
+  const id = pageIdOrUsername.replace(/^https?:\/\/.*?facebook\.com\//i, "").replace(/\/.*$/, "").trim();
+  const url = `https://graph.facebook.com/v18.0/${encodeURIComponent(id)}?fields=fan_count,followers_count&access_token=${encodeURIComponent(token)}`;
+
+  try {
+    const res = await fetch(url, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { fan_count?: number; followers_count?: number };
+    return {
+      fanCount: data.fan_count ?? 0,
+      followerCount: data.followers_count ?? 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /* ─── Dispatcher ───────────────────────────────────────────────── */
 
 export async function syncSocialAccount(

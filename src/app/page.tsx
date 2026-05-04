@@ -19,6 +19,24 @@ import {
   Trophy, Twitter, X as XIcon, Youtube,
 } from "lucide-react";
 import { TrackedLink } from "@/components/TrackedLink";
+import { getYouTubeStatsCached, getXStatsCached, getFacebookStatsCached } from "@/lib/social-sync";
+
+// Re-validate the homepage every hour so live stats refresh.
+export const revalidate = 3600;
+
+// Static fallbacks if any platform's API key isn't set yet.
+const STATIC_FALLBACK = {
+  youtube: 12000,
+  x: 43800,
+  facebook: 18900,
+  tiktok: 2400,
+  instagram: 3200,
+};
+
+function fmt(n: number): string {
+  if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1) + "K";
+  return String(n);
+}
 
 export const metadata = {
   title: "The LeadFlow Pro — for serious buyers only",
@@ -115,7 +133,20 @@ const FOUNDER_BRANDS = [
 
 /* ─── Page ────────────────────────────────────────────────────── */
 
-export default function GrowV2Page() {
+export default async function GrowV2Page() {
+  // Pull live stats server-side, hourly cache. Falls back to static numbers
+  // when an API key isn't set or the API errors.
+  const [yt, x, fb] = await Promise.all([
+    getYouTubeStatsCached("@RealRyanNicholsSr").catch(() => null),
+    getXStatsCached("RealRyanNichols").catch(() => null),
+    getFacebookStatsCached("RealRyanNichols").catch(() => null),
+  ]);
+  const ytSubs = yt?.subscribers ?? STATIC_FALLBACK.youtube;
+  const xFollowers = x?.followers ?? STATIC_FALLBACK.x;
+  const fbFollowers = fb?.followerCount ?? STATIC_FALLBACK.facebook;
+  const totalReach = ytSubs + xFollowers + fbFollowers + STATIC_FALLBACK.tiktok + STATIC_FALLBACK.instagram;
+  const liveCount = (yt ? 1 : 0) + (x ? 1 : 0) + (fb ? 1 : 0);
+
   return (
     <div className="min-h-screen bg-white text-slate-900">
       {/* Header — light theme, full nav. Static (not sticky). No horizontal scroll. */}
@@ -237,11 +268,25 @@ export default function GrowV2Page() {
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <ProofTile big="75,000+" label="Followers built from zero across X, Facebook, YouTube, Instagram, TikTok" />
+            <ProofTile
+              big={fmt(totalReach)}
+              label={`Followers across X, Facebook, YouTube, Instagram, TikTok${liveCount > 0 ? ` · ${liveCount} live API` + (liveCount > 1 ? "s" : "") : ""}`}
+            />
             <ProofTile big="5" label="Companies founded — LeadFlow Pro, RepWatchr, Faretta.Legal, Faretta.AI, Wholesale Universe" />
             <ProofTile big="10+ yr" label="Operating in social, ads, sales, and lead generation through every algorithm shift" />
             <ProofTile big="0 → ∞" label="The transformation we deliver: from invisible to in-front-of-the-right-buyers" />
           </div>
+          {liveCount > 0 && (
+            <p className="mt-4 text-xs text-slate-500 flex items-center gap-2">
+              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-lead-500 animate-pulse" />
+              Live: {yt ? `YouTube ${ytSubs.toLocaleString()}` : null}
+              {yt && x ? " · " : null}
+              {x ? `X ${xFollowers.toLocaleString()}` : null}
+              {(yt || x) && fb ? " · " : null}
+              {fb ? `Facebook ${fbFollowers.toLocaleString()}` : null}
+              {" · refreshes hourly"}
+            </p>
+          )}
 
           <div className="mt-10 grid gap-5 md:grid-cols-3">
             <BeliefBlock
