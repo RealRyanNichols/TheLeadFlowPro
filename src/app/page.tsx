@@ -18,6 +18,7 @@ import {
   Megaphone, MessageSquare, Music2, Quote, ShieldCheck, Star, TrendingUp,
   Trophy, Twitter, X as XIcon, Youtube,
 } from "lucide-react";
+import { TrackedLink } from "@/components/TrackedLink";
 
 export const metadata = {
   title: "The LeadFlow Pro — for serious buyers only",
@@ -185,18 +186,22 @@ export default function GrowV2Page() {
                 whether we should work together.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <Link
+                <TrackedLink
                   href="/tiers"
+                  event="cta_hire_ryan"
+                  location="homepage_hero"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-sm hover:bg-slate-800"
                 >
                   Hire Ryan now <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
+                </TrackedLink>
+                <TrackedLink
                   href="/book"
+                  event="cta_book_call"
+                  location="homepage_hero"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-sm hover:bg-accent-600"
                 >
                   Book the 10-min call first
-                </Link>
+                </TrackedLink>
               </div>
               <p className="mt-3 text-xs text-slate-500">
                 Two paths. Serious buyers skip the line and hire direct. Everyone else books the
