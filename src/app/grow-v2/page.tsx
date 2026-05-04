@@ -383,6 +383,54 @@ export default function GrowV2Page() {
         </div>
       </section>
 
+      {/* WHAT YOU ACTUALLY GET — teach blocks for the dashboard tools */}
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:py-20">
+          <div className="text-xs uppercase tracking-widest text-cyan-700 mb-2">What you actually get</div>
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
+            Inside The LeadFlow Pro dashboard.
+          </h2>
+          <p className="mt-3 text-slate-600 max-w-3xl">
+            Six tools that work together to turn attention into leads, leads into conversations,
+            and conversations into closed business. No fluff — here's what each one does and why it
+            matters.
+          </p>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <TeachBlock
+              icon={Megaphone}
+              title="What's a Lead?"
+              body="A lead is someone who showed interest in your business — a DM, a comment, a form fill, a missed call. Most paid leads cost \$50–\$200. We capture them from your social, your phone, your website — score them A/B/C/D — and never let one slip."
+            />
+            <TeachBlock
+              icon={MessageSquare}
+              title="What's an Automation?"
+              body="A trigger plus an action. 'DM hits Instagram → auto-reply in 30 seconds → tagged → moved to inbox → you call when ready.' One automation per channel keeps you from ever losing a lead after-hours."
+            />
+            <TeachBlock
+              icon={Trophy}
+              title="What's a FlowCard?"
+              body="One link with all your contact methods, offers, and socials. Replaces business cards. Add a QR code to your truck, your invoice, your bio — they scan, they land, they reach you."
+            />
+            <TeachBlock
+              icon={Star}
+              title="What's a Chatbot?"
+              body="An AI that answers your customers' questions 24/7 — in your voice. Qualifies them, books their call, or routes them to you only when they're ready to buy. Recovers the leads you'd lose after-hours."
+            />
+            <TeachBlock
+              icon={TrendingUp}
+              title="What's an Insight?"
+              body="AI looks at your numbers and tells you the ONE next move that will move the needle this week. Not a 30-page report — one move. Do it. Repeat next week."
+            />
+            <TeachBlock
+              icon={Crown}
+              title="What's a Playbook?"
+              body="A step-by-step proven sequence. 'Hire your first VA,' 'Run your first Facebook ad,' 'Build a lead magnet in 2 days.' You follow it, you ship the thing. No guessing."
+            />
+          </div>
+        </div>
+      </section>
+
       {/* THE 10-MINUTE CALL */}
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-4 py-14 sm:py-20 text-center">
@@ -462,6 +510,20 @@ function Step({ n, title, body }: { n: string; title: string; body: string }) {
       </div>
       <div className="mt-3 font-semibold text-slate-950">{title}</div>
       <div className="mt-1 text-sm text-slate-600">{body}</div>
+    </div>
+  );
+}
+
+function TeachBlock({
+  icon: Icon, title, body,
+}: { icon: any; title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+      <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-brand-600 text-white shadow-sm">
+        <Icon className="h-5 w-5" />
+      </div>
+      <h3 className="mt-4 text-xl font-semibold text-slate-950">{title}</h3>
+      <p className="mt-2 text-sm text-slate-700 leading-relaxed">{body}</p>
     </div>
   );
 }

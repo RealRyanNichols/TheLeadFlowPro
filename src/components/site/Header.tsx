@@ -13,11 +13,11 @@ export function Header() {
           <Logo />
         </div>
         <nav className="hidden md:flex items-center gap-5 text-sm text-ink-200">
-          <Link href="/grow" className="hover:text-white font-semibold text-cyan-300">Grow</Link>
+          <Link href="/" className="hover:text-white font-semibold text-cyan-300">Home</Link>
+          <Link href="/tiers" className="hover:text-white">Pricing</Link>
           <Link href="/services" className="hover:text-white">Social Services</Link>
           <Link href="/services/consulting" className="hover:text-white">Consulting</Link>
           <Link href="/book" className="hover:text-white">Book a call</Link>
-          <Link href="/tools/seo-grader" className="hover:text-white">Free SEO Grader</Link>
           <Link href="/dashboard" className="hover:text-white">Dashboard</Link>
         </nav>
         <div className="flex items-center gap-2 flex-shrink-0">
