@@ -14,6 +14,7 @@
 // - Ryan's social proof (70K+ across 5 platforms) is the credibility wedge.
 
 import Link from "next/link";
+import { LightHeader, LightFooter } from "@/components/site/LightHeader";
 import {
   ArrowRight, Check, Mail, Megaphone, Sparkles, Users, Briefcase,
   Workflow, BarChart3, GraduationCap, Quote, ShieldCheck,
@@ -168,12 +169,12 @@ const PACKAGES: Package[] = [
 
 function toneClasses(t: Package["tone"]) {
   return {
-    cyan:    "border-cyan-400/30 bg-cyan-500/[0.06] text-cyan-200",
-    violet:  "border-violet-400/30 bg-violet-500/[0.06] text-violet-200",
-    emerald: "border-emerald-400/30 bg-emerald-500/[0.06] text-emerald-200",
-    indigo:  "border-indigo-400/30 bg-indigo-500/[0.06] text-indigo-200",
-    amber:   "border-amber-400/30 bg-amber-500/[0.06] text-amber-200",
-    rose:    "border-rose-400/30 bg-rose-500/[0.06] text-rose-200",
+    cyan:    "border-cyan-300 bg-cyan-50 text-cyan-700",
+    violet:  "border-violet-300 bg-violet-50 text-violet-700",
+    emerald: "border-emerald-300 bg-emerald-50 text-emerald-700",
+    indigo:  "border-indigo-300 bg-indigo-50 text-indigo-700",
+    amber:   "border-amber-300 bg-amber-50 text-amber-700",
+    rose:    "border-rose-300 bg-rose-50 text-rose-700",
     slate:   "border-slate-400/30 bg-slate-500/[0.06] text-slate-200",
   }[t];
 }
@@ -219,16 +220,16 @@ const FAQS = [
 
 export default function ServicesPage() {
   return (
-    <div className="min-h-screen bg-ink-950 text-ink-100">
+    <div className="min-h-screen bg-white text-slate-900">
       {/* Header strip */}
-      <div className="border-b border-white/10 bg-ink-950/70 backdrop-blur">
+      <div className="border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between text-sm">
-          <Link href="/" className="font-semibold text-ink-100 hover:text-white">
+          <Link href="/" className="font-semibold text-slate-900 hover:text-white">
             The LeadFlow Pro
           </Link>
           <Link
             href="#discovery"
-            className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-emerald-200 hover:bg-emerald-500/20"
+            className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1.5 text-emerald-700 hover:bg-emerald-500/20"
           >
             Free Discovery Call <ArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -237,14 +238,14 @@ export default function ServicesPage() {
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 pt-12 pb-10 sm:pt-20 sm:pb-14">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs uppercase tracking-widest text-ink-400">
+        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white shadow-sm px-3 py-1 text-xs uppercase tracking-widest text-slate-500">
           Built by Ryan Nichols · 70K+ across 5 platforms
         </div>
         <h1 className="mt-4 text-3xl sm:text-5xl font-semibold tracking-tight text-white">
           Grow your audience, your leads, and your revenue —{" "}
           <span className="text-emerald-300">without becoming a full-time content machine.</span>
         </h1>
-        <p className="mt-5 max-w-2xl text-base sm:text-lg text-ink-300">
+        <p className="mt-5 max-w-2xl text-base sm:text-lg text-slate-700">
           Whether you need a clear plan, a 30-day content build, a complete lead-generation funnel,
           or a team that runs your social and ads every day — pick the level that fits where you
           are right now. Every engagement starts with a free 20-minute Discovery Call.
@@ -252,27 +253,27 @@ export default function ServicesPage() {
 
         {/* Three-pillar selector */}
         <div className="mt-8 grid gap-3 sm:grid-cols-3">
-          <a href="#tier-plan" className="group rounded-2xl border border-white/10 bg-white/[0.02] p-4 hover:border-cyan-400/30 hover:bg-cyan-500/[0.04]">
-            <div className="text-xs uppercase tracking-widest text-ink-400">Tier 1</div>
+          <a href="#tier-plan" className="group rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:border-cyan-300 hover:bg-cyan-50">
+            <div className="text-xs uppercase tracking-widest text-slate-500">Tier 1</div>
             <div className="mt-1 font-semibold text-white">A plan I run myself</div>
-            <div className="mt-1 text-sm text-ink-300">Audit + 90-day playbook · $297</div>
-            <div className="mt-3 inline-flex items-center text-cyan-300 text-sm group-hover:text-cyan-200">
+            <div className="mt-1 text-sm text-slate-700">Audit + 90-day playbook · $297</div>
+            <div className="mt-3 inline-flex items-center text-cyan-700 text-sm group-hover:text-cyan-700">
               See it <ArrowRight className="ml-1 h-4 w-4" />
             </div>
           </a>
-          <a href="#tier-build" className="group rounded-2xl border border-white/10 bg-white/[0.02] p-4 hover:border-emerald-400/30 hover:bg-emerald-500/[0.04]">
-            <div className="text-xs uppercase tracking-widest text-ink-400">Tier 2</div>
+          <a href="#tier-build" className="group rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:border-emerald-300 hover:bg-emerald-50">
+            <div className="text-xs uppercase tracking-widest text-slate-500">Tier 2</div>
             <div className="mt-1 font-semibold text-white">Built for me once</div>
-            <div className="mt-1 text-sm text-ink-300">Sprint · $1,497 &nbsp;·&nbsp; Funnel · $2,997</div>
-            <div className="mt-3 inline-flex items-center text-emerald-300 text-sm group-hover:text-emerald-200">
+            <div className="mt-1 text-sm text-slate-700">Sprint · $1,497 &nbsp;·&nbsp; Funnel · $2,997</div>
+            <div className="mt-3 inline-flex items-center text-emerald-300 text-sm group-hover:text-emerald-700">
               See it <ArrowRight className="ml-1 h-4 w-4" />
             </div>
           </a>
-          <a href="#tier-recurring" className="group rounded-2xl border border-white/10 bg-white/[0.02] p-4 hover:border-violet-400/30 hover:bg-violet-500/[0.04]">
-            <div className="text-xs uppercase tracking-widest text-ink-400">Tier 3</div>
+          <a href="#tier-recurring" className="group rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:border-violet-300 hover:bg-violet-50">
+            <div className="text-xs uppercase tracking-widest text-slate-500">Tier 3</div>
             <div className="mt-1 font-semibold text-white">Run for me every month</div>
-            <div className="mt-1 text-sm text-ink-300">DFY · Ads · VIP · from $497/mo</div>
-            <div className="mt-3 inline-flex items-center text-violet-300 text-sm group-hover:text-violet-200">
+            <div className="mt-1 text-sm text-slate-700">DFY · Ads · VIP · from $497/mo</div>
+            <div className="mt-3 inline-flex items-center text-violet-700 text-sm group-hover:text-violet-700">
               See it <ArrowRight className="ml-1 h-4 w-4" />
             </div>
           </a>
@@ -281,16 +282,16 @@ export default function ServicesPage() {
 
       {/* Discovery Call (top of funnel) */}
       <section id="discovery" className="mx-auto max-w-6xl px-4 pb-12">
-        <div className="rounded-3xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/[0.08] to-emerald-500/[0.02] p-6 sm:p-8">
+        <div className="rounded-3xl border border-emerald-300 bg-gradient-to-br from-emerald-500/[0.08] to-emerald-500/[0.02] p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs text-emerald-700">
                 Free · 20 minutes · No pitch
               </div>
               <h2 className="mt-3 text-xl sm:text-2xl font-semibold text-white">
                 Social Growth Discovery Call
               </h2>
-              <p className="mt-2 max-w-2xl text-ink-300">
+              <p className="mt-2 max-w-2xl text-slate-700">
                 A focused 20-minute call with Ryan. You walk away with a one-page write-up
                 identifying the single highest-leverage move you can make in the next 30 days —
                 whether or not you hire us is up to you. Calendar slots are intentionally limited.
@@ -335,14 +336,14 @@ export default function ServicesPage() {
 
       {/* Why Ryan */}
       <section className="mx-auto max-w-6xl px-4 pb-12">
-        <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 sm:p-10">
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6 sm:p-10">
           <SectionHeader eyebrow="Why Ryan" title="Built mine. Now I'll show you how to build yours." />
           <div className="grid gap-6 md:grid-cols-3 mt-2">
             <Stat label="X / Twitter" value="44K" />
             <Stat label="Facebook" value="19K" />
             <Stat label="YouTube" value="12K" />
           </div>
-          <p className="mt-6 text-ink-300 max-w-3xl">
+          <p className="mt-6 text-slate-700 max-w-3xl">
             What you're hiring is the playbook that built this — applied to your business, your
             offers, and your audience. Not a generic agency template. Every package is something
             I either still run myself or have run for paying clients.
@@ -355,12 +356,12 @@ export default function ServicesPage() {
         <SectionHeader eyebrow="Common questions" title="Before you book" />
         <div className="grid gap-4 md:grid-cols-2">
           {FAQS.map((f) => (
-            <div key={f.q} className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+            <div key={f.q} className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
               <div className="flex items-start gap-3">
-                <Quote className="mt-0.5 h-4 w-4 shrink-0 text-ink-500" />
+                <Quote className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                 <h3 className="font-semibold text-white">{f.q}</h3>
               </div>
-              <p className="mt-2 text-sm text-ink-300">{f.a}</p>
+              <p className="mt-2 text-sm text-slate-700">{f.a}</p>
             </div>
           ))}
         </div>
@@ -368,11 +369,11 @@ export default function ServicesPage() {
 
       {/* Final CTA */}
       <section className="mx-auto max-w-6xl px-4 pb-20">
-        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-500/[0.08] via-cyan-500/[0.04] to-violet-500/[0.06] p-6 sm:p-10 text-center">
+        <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-emerald-500/[0.08] via-cyan-500/[0.04] to-violet-500/[0.06] p-6 sm:p-10 text-center">
           <h2 className="text-2xl sm:text-3xl font-semibold text-white">
             Pick a tier or just start with the call.
           </h2>
-          <p className="mt-3 text-ink-300 max-w-2xl mx-auto">
+          <p className="mt-3 text-slate-700 max-w-2xl mx-auto">
             Either way, we'll know in 20 minutes whether we're a fit and what the right next
             move is for you.
           </p>
@@ -385,7 +386,7 @@ export default function ServicesPage() {
             </a>
             <a
               href={mailto("Question about LeadFlow services")}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.03] px-5 py-3 font-semibold text-ink-100 hover:bg-white/[0.06]"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white shadow-sm px-5 py-3 font-semibold text-slate-900 hover:bg-white shadow-sm"
             >
               <Mail className="h-4 w-4" /> Email me a question
             </a>
@@ -393,7 +394,7 @@ export default function ServicesPage() {
         </div>
 
         {/* Disclosure */}
-        <p className="mt-8 text-xs text-ink-400 max-w-3xl mx-auto text-center leading-relaxed">
+        <p className="mt-8 text-xs text-slate-500 max-w-3xl mx-auto text-center leading-relaxed">
           All packages are sold by Real Ryan Nichols LLC, a Texas limited liability company,
           and are governed by Texas law. We do not guarantee specific follower-count, lead-volume,
           conversion-rate, or revenue outcomes — what we deliver is the work product, strategic
@@ -410,7 +411,7 @@ export default function ServicesPage() {
 function SectionHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div className="mb-5 sm:mb-7">
-      <div className="text-xs uppercase tracking-widest text-ink-400">{eyebrow}</div>
+      <div className="text-xs uppercase tracking-widest text-slate-500">{eyebrow}</div>
       <h2 className="mt-1 text-2xl sm:text-3xl font-semibold text-white">{title}</h2>
     </div>
   );
@@ -418,9 +419,9 @@ function SectionHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-center">
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 text-center">
       <div className="text-3xl sm:text-4xl font-bold text-white tabular-nums">{value}</div>
-      <div className="mt-1 text-xs uppercase tracking-widest text-ink-400">{label}</div>
+      <div className="mt-1 text-xs uppercase tracking-widest text-slate-500">{label}</div>
     </div>
   );
 }
@@ -431,8 +432,8 @@ function PackageCard({ pkg }: { pkg: Package }) {
   const ring = ringTone(pkg.tone);
   return (
     <div
-      className={`rounded-2xl border bg-white/[0.02] p-6 ring-1 ${ring} ${
-        pkg.highlight ? "border-emerald-400/40" : "border-white/10"
+      className={`rounded-2xl border bg-white shadow-sm p-6 ring-1 ${ring} ${
+        pkg.highlight ? "border-emerald-400" : "border-slate-200"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -440,7 +441,7 @@ function PackageCard({ pkg }: { pkg: Package }) {
           <Icon className="h-5 w-5" />
         </div>
         {pkg.highlight && (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-200">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400 bg-emerald-100 px-2.5 py-1 text-xs text-emerald-700">
             <ShieldCheck className="h-3 w-3" /> Most popular
           </span>
         )}
@@ -448,16 +449,16 @@ function PackageCard({ pkg }: { pkg: Package }) {
       <h3 className="mt-4 text-lg font-semibold text-white">{pkg.name}</h3>
       <div className="mt-1 flex items-baseline gap-1">
         <span className="text-2xl font-bold text-white">{pkg.price}</span>
-        {pkg.cadence && <span className="text-sm text-ink-400">{pkg.cadence}</span>}
+        {pkg.cadence && <span className="text-sm text-slate-500">{pkg.cadence}</span>}
       </div>
-      <p className="mt-3 text-sm text-ink-300">{pkg.one_liner}</p>
-      <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.02] p-3">
-        <div className="text-[11px] uppercase tracking-widest text-ink-400">Best fit</div>
-        <div className="mt-0.5 text-sm text-ink-200">{pkg.who}</div>
+      <p className="mt-3 text-sm text-slate-700">{pkg.one_liner}</p>
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white shadow-sm p-3">
+        <div className="text-[11px] uppercase tracking-widest text-slate-500">Best fit</div>
+        <div className="mt-0.5 text-sm text-slate-800">{pkg.who}</div>
       </div>
       <ul className="mt-4 space-y-2">
         {pkg.deliverables.map((d) => (
-          <li key={d} className="flex items-start gap-2 text-sm text-ink-200">
+          <li key={d} className="flex items-start gap-2 text-sm text-slate-800">
             <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
             <span>{d}</span>
           </li>

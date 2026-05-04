@@ -15,6 +15,7 @@
 // no guaranteed outcomes. CTAs are mailto: until Stripe Payment Links land.
 
 import Link from "next/link";
+import { LightHeader, LightFooter } from "@/components/site/LightHeader";
 import {
   ArrowRight, Bot, Calendar, Check, Compass, GraduationCap, Mail,
   Quote, Rocket, ShieldCheck, Sparkles, TrendingUp, Users,
@@ -194,12 +195,12 @@ const PACKAGES: Pkg[] = [
 ];
 
 const CADENCE_TONE = {
-  cyan:    "border-cyan-400/30 bg-cyan-500/[0.06] text-cyan-200",
-  violet:  "border-violet-400/30 bg-violet-500/[0.06] text-violet-200",
-  emerald: "border-emerald-400/30 bg-emerald-500/[0.06] text-emerald-200",
-  indigo:  "border-indigo-400/30 bg-indigo-500/[0.06] text-indigo-200",
-  amber:   "border-amber-400/30 bg-amber-500/[0.06] text-amber-200",
-  rose:    "border-rose-400/30 bg-rose-500/[0.06] text-rose-200",
+  cyan:    "border-cyan-300 bg-cyan-50 text-cyan-700",
+  violet:  "border-violet-300 bg-violet-50 text-violet-700",
+  emerald: "border-emerald-300 bg-emerald-50 text-emerald-700",
+  indigo:  "border-indigo-300 bg-indigo-50 text-indigo-700",
+  amber:   "border-amber-300 bg-amber-50 text-amber-700",
+  rose:    "border-rose-300 bg-rose-50 text-rose-700",
 };
 
 const FAQS = [
@@ -231,20 +232,20 @@ const FAQS = [
 
 export default function ConsultingPage() {
   return (
-    <div className="min-h-screen bg-ink-950 text-ink-100">
+    <div className="min-h-screen bg-white text-slate-900">
       {/* Header strip */}
-      <div className="border-b border-white/10 bg-ink-950/70 backdrop-blur">
+      <div className="border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between text-sm">
-          <Link href="/" className="font-semibold text-ink-100 hover:text-white">
+          <Link href="/" className="font-semibold text-slate-900 hover:text-white">
             The LeadFlow Pro
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/services" className="text-ink-300 hover:text-white">
+            <Link href="/services" className="text-slate-700 hover:text-white">
               Social Growth →
             </Link>
             <Link
               href="#discovery"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-emerald-200 hover:bg-emerald-500/20"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1.5 text-emerald-700 hover:bg-emerald-500/20"
             >
               Free Discovery Call <ArrowRight className="h-3.5 w-3.5" />
             </Link>
@@ -254,15 +255,15 @@ export default function ConsultingPage() {
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 pt-12 pb-10 sm:pt-20 sm:pb-14">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs uppercase tracking-widest text-ink-400">
+        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white shadow-sm px-3 py-1 text-xs uppercase tracking-widest text-slate-500">
           Built by Ryan Nichols · 75K+ across 5 platforms
         </div>
         <h1 className="mt-4 text-3xl sm:text-5xl font-semibold tracking-tight text-white">
           Strategic consulting on{" "}
-          <span className="text-violet-300">your business, your offers, your team —</span>{" "}
+          <span className="text-violet-700">your business, your offers, your team —</span>{" "}
           weekly, monthly, quarterly, or one-time.
         </h1>
-        <p className="mt-5 max-w-2xl text-base sm:text-lg text-ink-300">
+        <p className="mt-5 max-w-2xl text-base sm:text-lg text-slate-700">
           Pick the cadence that fits your stage. A $97 sprint to unstick a single decision, a
           $297 audit if you want clarity in writing, a weekly group room, a monthly fractional
           operator, a quarterly business review — or an annual advisor relationship for owners
@@ -280,16 +281,16 @@ export default function ConsultingPage() {
 
       {/* Discovery Call */}
       <section id="discovery" className="mx-auto max-w-6xl px-4 pb-12">
-        <div className="rounded-3xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/[0.08] to-emerald-500/[0.02] p-6 sm:p-8">
+        <div className="rounded-3xl border border-emerald-300 bg-gradient-to-br from-emerald-500/[0.08] to-emerald-500/[0.02] p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs text-emerald-700">
                 Free · 20 minutes · No pitch
               </div>
               <h2 className="mt-3 text-xl sm:text-2xl font-semibold text-white">
                 Strategic Discovery Call
               </h2>
-              <p className="mt-2 max-w-2xl text-ink-300">
+              <p className="mt-2 max-w-2xl text-slate-700">
                 One call, one-page write-up of the highest-leverage move you can make in the next
                 30 days, and a clear read on which cadence (one-time, weekly, monthly, quarterly,
                 annual) actually fits your stage.
@@ -342,14 +343,14 @@ export default function ConsultingPage() {
 
       {/* Why Ryan */}
       <section className="mx-auto max-w-6xl px-4 pb-12">
-        <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 sm:p-10">
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6 sm:p-10">
           <SectionHeader eyebrow="Why Ryan" title="Operator first, advisor second." />
           <div className="grid gap-6 md:grid-cols-3 mt-2">
             <Stat label="X / Twitter" value="43.8K" />
             <Stat label="Facebook"    value="18.9K" />
             <Stat label="YouTube"     value="12K+" />
           </div>
-          <p className="mt-6 text-ink-300 max-w-3xl">
+          <p className="mt-6 text-slate-700 max-w-3xl">
             What you're hiring is the operator who built and runs The LeadFlow Pro and a 75K+
             personal audience across five platforms — applied to your business, your numbers,
             and your decisions. No frameworks I haven't used in real money.
@@ -362,12 +363,12 @@ export default function ConsultingPage() {
         <SectionHeader eyebrow="Common questions" title="Before you book" />
         <div className="grid gap-4 md:grid-cols-2">
           {FAQS.map((f) => (
-            <div key={f.q} className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+            <div key={f.q} className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
               <div className="flex items-start gap-3">
-                <Quote className="mt-0.5 h-4 w-4 shrink-0 text-ink-500" />
+                <Quote className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                 <h3 className="font-semibold text-white">{f.q}</h3>
               </div>
-              <p className="mt-2 text-sm text-ink-300">{f.a}</p>
+              <p className="mt-2 text-sm text-slate-700">{f.a}</p>
             </div>
           ))}
         </div>
@@ -375,11 +376,11 @@ export default function ConsultingPage() {
 
       {/* Final CTA */}
       <section className="mx-auto max-w-6xl px-4 pb-20">
-        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-violet-500/[0.08] via-cyan-500/[0.04] to-emerald-500/[0.06] p-6 sm:p-10 text-center">
+        <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-violet-500/[0.08] via-cyan-500/[0.04] to-emerald-500/[0.06] p-6 sm:p-10 text-center">
           <h2 className="text-2xl sm:text-3xl font-semibold text-white">
             Pick a cadence, or just book the call.
           </h2>
-          <p className="mt-3 text-ink-300 max-w-2xl mx-auto">
+          <p className="mt-3 text-slate-700 max-w-2xl mx-auto">
             20 minutes is all it takes to know whether we're a fit and which package
             actually moves your business forward.
           </p>
@@ -392,13 +393,13 @@ export default function ConsultingPage() {
             </a>
             <Link
               href="/services"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.03] px-5 py-3 font-semibold text-ink-100 hover:bg-white/[0.06]"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white shadow-sm px-5 py-3 font-semibold text-slate-900 hover:bg-white shadow-sm"
             >
               <Sparkles className="h-4 w-4" /> See Social Growth services
             </Link>
             <a
               href={mailto("Question about LeadFlow consulting")}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.03] px-5 py-3 font-semibold text-ink-100 hover:bg-white/[0.06]"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white shadow-sm px-5 py-3 font-semibold text-slate-900 hover:bg-white shadow-sm"
             >
               <Mail className="h-4 w-4" /> Email a question
             </a>
@@ -406,7 +407,7 @@ export default function ConsultingPage() {
         </div>
 
         {/* Disclosure */}
-        <p className="mt-8 text-xs text-ink-400 max-w-3xl mx-auto text-center leading-relaxed">
+        <p className="mt-8 text-xs text-slate-500 max-w-3xl mx-auto text-center leading-relaxed">
           All consulting engagements are sold by Real Ryan Nichols LLC, a Texas limited liability
           company, and are governed by Texas law under a mutual NDA. We do not guarantee specific
           revenue, growth, or business outcomes — what we deliver is the work product, strategic
@@ -427,11 +428,11 @@ function CadencePill({
   return (
     <a
       href={href}
-      className={`group rounded-2xl border bg-white/[0.02] p-4 hover:bg-white/[0.04] ${t}`}
+      className={`group rounded-2xl border bg-white shadow-sm p-4 hover:bg-white shadow-sm ${t}`}
     >
       <div className="text-xs uppercase tracking-widest opacity-90">Cadence</div>
       <div className="mt-1 font-semibold text-white">{label}</div>
-      <div className="mt-1 text-sm text-ink-300">{sub}</div>
+      <div className="mt-1 text-sm text-slate-700">{sub}</div>
     </a>
   );
 }
@@ -439,7 +440,7 @@ function CadencePill({
 function SectionHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div className="mb-5 sm:mb-7">
-      <div className="text-xs uppercase tracking-widest text-ink-400">{eyebrow}</div>
+      <div className="text-xs uppercase tracking-widest text-slate-500">{eyebrow}</div>
       <h2 className="mt-1 text-2xl sm:text-3xl font-semibold text-white">{title}</h2>
     </div>
   );
@@ -447,9 +448,9 @@ function SectionHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-center">
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 text-center">
       <div className="text-3xl sm:text-4xl font-bold text-white tabular-nums">{value}</div>
-      <div className="mt-1 text-xs uppercase tracking-widest text-ink-400">{label}</div>
+      <div className="mt-1 text-xs uppercase tracking-widest text-slate-500">{label}</div>
     </div>
   );
 }
@@ -459,10 +460,10 @@ function PackageCard({ pkg }: { pkg: Pkg }) {
   const tone = CADENCE_TONE[pkg.cadenceTone];
   return (
     <div
-      className={`rounded-2xl border bg-white/[0.02] p-6 ${
+      className={`rounded-2xl border bg-white shadow-sm p-6 ${
         pkg.highlight
-          ? "border-emerald-400/40 ring-1 ring-emerald-400/20"
-          : "border-white/10"
+          ? "border-emerald-400 ring-1 ring-emerald-400/20"
+          : "border-slate-200"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -477,17 +478,17 @@ function PackageCard({ pkg }: { pkg: Pkg }) {
       <div className="mt-1 flex items-baseline gap-1">
         <span className="text-2xl font-bold text-white">{pkg.price}</span>
         {pkg.cadence !== "one-time" && (
-          <span className="text-sm text-ink-400">{pkg.cadence}</span>
+          <span className="text-sm text-slate-500">{pkg.cadence}</span>
         )}
       </div>
-      <p className="mt-3 text-sm text-ink-300">{pkg.one_liner}</p>
-      <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.02] p-3">
-        <div className="text-[11px] uppercase tracking-widest text-ink-400">Best fit</div>
-        <div className="mt-0.5 text-sm text-ink-200">{pkg.who}</div>
+      <p className="mt-3 text-sm text-slate-700">{pkg.one_liner}</p>
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white shadow-sm p-3">
+        <div className="text-[11px] uppercase tracking-widest text-slate-500">Best fit</div>
+        <div className="mt-0.5 text-sm text-slate-800">{pkg.who}</div>
       </div>
       <ul className="mt-4 space-y-2">
         {pkg.deliverables.map((d) => (
-          <li key={d} className="flex items-start gap-2 text-sm text-ink-200">
+          <li key={d} className="flex items-start gap-2 text-sm text-slate-800">
             <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
             <span>{d}</span>
           </li>
