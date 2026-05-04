@@ -938,3 +938,37 @@ model Notification {
 
   @@index([userId, readAt])
 }
+
+// ─── Public Intake ─────────────────────────────────────────────
+// Captures /start form submissions BEFORE the visitor has a User row.
+// Reviewed in the admin office and converted into Lead → User as the
+// relationship matures. budgetTier drives post-submission routing
+// (free / starter / pro / power / vip).
+
+model PublicIntake {
+  id                   String   @id @default(cuid())
+  fullName             String
+  email                String
+  phone                String?
+  businessName         String?
+  businessUrl          String?
+  industry             String?
+  // jsonb { tiktok?: handle, facebook?: handle, x?: handle, youtube?: handle,
+  //         instagram?: handle, linkedin?: handle }
+  platforms            Json     @default("{}")
+  monthlyRevenueRange  String?
+  biggestGoal          String?
+  biggestBlocker       String?  @db.Text
+  budgetTier           String
+  bestContactMethod    String?
+  notes                String?  @db.Text
+  routedTo             String?
+  handled              Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([createdAt(sort: Desc)])
+  @@index([budgetTier])
+  @@index([handled])
+  @@index([email])
+}
