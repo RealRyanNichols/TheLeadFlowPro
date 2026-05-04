@@ -32,7 +32,7 @@ const RYAN_EMAIL = "theflashflash24@gmail.com";
 // https://cal.com/ryan-nichols-sl2yzx/leadflow-pro-10min) without touching code.
 const BOOKING_URL =
   process.env.NEXT_PUBLIC_BOOKING_URL ||
-  "https://cal.com/ryan-nichols-sl2yzx";
+  "https://cal.com/ryan-nichols-sl2yzx/leadflow-pro-strategy-call";
 
 const RIGHT_FIT = [
   "You have a real business — or are seriously building one",
