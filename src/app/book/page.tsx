@@ -35,17 +35,19 @@ const BOOKING_URL =
   "https://cal.com/ryan-nichols-sl2yzx/leadflow-pro-strategy-call";
 
 const RIGHT_FIT = [
-  "You have a real business — or are seriously building one",
-  "You're committed to growth and willing to invest the work",
-  "You want a partner / advisor, not a quick fix",
-  "You're ready to spend on tools, services, or both",
+  "Business owner trying to get the business off the ground (or scale it)",
+  "Creator / influencer trying to actually move the needle on your following",
+  "You make money — or you're 1–2 decisions away from making money",
+  "You don't mind trading dollars for time when it gets you the answer",
+  "You'll show up on time and tell me the real numbers, not the polished ones",
 ];
 
 const WRONG_FIT = [
   "You want everything for free",
-  "You're \"just curious\" with no plan to buy",
-  "You want a guaranteed outcome before you commit",
+  "You're \"just curious\" — no real plans to buy anything, ever",
+  "You want a guaranteed outcome before you commit a single dollar",
   "You're shopping consultants for the lowest price",
+  "You want to chat. This is a business call, not a coffee chat — go elsewhere.",
 ];
 
 export default function BookPage() {
@@ -58,9 +60,11 @@ export default function BookPage() {
             The LeadFlow Pro
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-            <Link href="/grow" className="hover:text-slate-900">Grow</Link>
-            <Link href="/services" className="hover:text-slate-900">Social Growth</Link>
+            <Link href="/" className="hover:text-slate-900">Home</Link>
+            <Link href="/services" className="hover:text-slate-900">Social Media</Link>
             <Link href="/services/consulting" className="hover:text-slate-900">Consulting</Link>
+            <Link href="/tiers" className="hover:text-slate-900">Pricing</Link>
+            <Link href="/contact" className="hover:text-slate-900">Contact</Link>
           </nav>
         </div>
       </header>
@@ -72,12 +76,17 @@ export default function BookPage() {
         </div>
         <h1 className="mt-4 text-3xl sm:text-5xl font-bold tracking-tight text-slate-950">
           A free 10-minute call with Ryan.{" "}
-          <span className="text-slate-500 font-semibold">Reserved for serious buyers.</span>
+          <span className="text-slate-500 font-semibold">Not a coffee chat. Not a courtesy call.</span>
         </h1>
         <p className="mt-4 max-w-3xl text-lg text-slate-700">
-          10 minutes is enough. We'll know if we're a fit, and you'll walk away with a clear
-          recommendation — package, tool, or both. No pitch decks, no 60-minute "discovery" tour,
-          no agenda padding. Just the call.
+          This is a <strong className="text-slate-950">business page</strong> — not legal, not dental,
+          not a non-profit. If you're a business owner or a creator trying to take it off the ground,
+          we'll know in 10 minutes whether we should work together.
+        </p>
+        <p className="mt-3 max-w-3xl text-base text-slate-700">
+          If you're a tire-kicker, "just curious," or here to say <em>"hi Ryan, nice to meet you"</em>{" "}
+          — please don't book. I'll hang up. I'm trying to make money with people who are making money
+          (or about to), and I respect your time enough not to waste either of ours.
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-2 text-sm text-slate-600">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1">

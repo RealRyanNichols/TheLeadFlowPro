@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 export const metadata = {
-  title: "Services — Social Growth · The LeadFlow Pro",
+  title: "Services — Social Media · The LeadFlow Pro",
   description:
     "Grow your audience, your leads, and your revenue — without becoming a full-time content machine. 7 packages from a $297 audit to full done-for-you management. Built by Ryan Nichols, 70K+ across 5 platforms.",
 };
@@ -289,7 +289,7 @@ export default function ServicesPage() {
                 Free · 20 minutes · No pitch
               </div>
               <h2 className="mt-3 text-xl sm:text-2xl font-semibold text-white">
-                Social Growth Discovery Call
+                Social Media Discovery Call
               </h2>
               <p className="mt-2 max-w-2xl text-slate-700">
                 A focused 20-minute call with Ryan. You walk away with a one-page write-up
@@ -298,7 +298,7 @@ export default function ServicesPage() {
               </p>
             </div>
             <a
-              href={mailto("Free Discovery Call — Social Growth")}
+              href={mailto("Free Discovery Call — Social Media")}
               className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-emerald-950 hover:bg-emerald-400"
             >
               Book your call <ArrowRight className="h-4 w-4" />
@@ -379,7 +379,7 @@ export default function ServicesPage() {
           </p>
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
-              href={mailto("Free Discovery Call — Social Growth")}
+              href={mailto("Free Discovery Call — Social Media")}
               className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-emerald-950 hover:bg-emerald-400"
             >
               Book the free call <ArrowRight className="h-4 w-4" />

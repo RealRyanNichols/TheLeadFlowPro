@@ -241,7 +241,7 @@ export default function ConsultingPage() {
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/services" className="text-slate-700 hover:text-white">
-              Social Growth →
+              Social Media →
             </Link>
             <Link
               href="#discovery"
@@ -395,7 +395,7 @@ export default function ConsultingPage() {
               href="/services"
               className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white shadow-sm px-5 py-3 font-semibold text-slate-900 hover:bg-white shadow-sm"
             >
-              <Sparkles className="h-4 w-4" /> See Social Growth services
+              <Sparkles className="h-4 w-4" /> See Social Media services
             </Link>
             <a
               href={mailto("Question about LeadFlow consulting")}

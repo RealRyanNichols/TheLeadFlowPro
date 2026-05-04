@@ -157,11 +157,10 @@ export default async function GrowV2Page() {
           </Link>
           <nav className="hidden lg:flex items-center gap-5 text-sm text-slate-700">
             <Link href="/" className="font-semibold text-cyan-700 hover:text-cyan-800">Home</Link>
-            <Link href="/services" className="hover:text-slate-950">Social Services</Link>
+            <Link href="/services" className="hover:text-slate-950">Social Media</Link>
             <Link href="/services/consulting" className="hover:text-slate-950">Consulting</Link>
             <Link href="/tiers" className="hover:text-slate-950">Pricing</Link>
             <Link href="/contact" className="hover:text-slate-950">Contact</Link>
-            <Link href="/dashboard" className="hover:text-slate-950">Dashboard</Link>
           </nav>
           <div className="flex items-center gap-2">
             <Link
@@ -181,11 +180,10 @@ export default async function GrowV2Page() {
         {/* Mobile sub-nav — wraps to multiple lines, never scrolls */}
         <div className="lg:hidden border-t border-slate-200 bg-slate-50">
           <div className="mx-auto max-w-7xl px-4 py-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
-            <Link href="/services" className="hover:text-slate-950 py-1">Social Services</Link>
+            <Link href="/services" className="hover:text-slate-950 py-1">Social Media</Link>
             <Link href="/services/consulting" className="hover:text-slate-950 py-1">Consulting</Link>
             <Link href="/tiers" className="hover:text-slate-950 py-1">Pricing</Link>
             <Link href="/contact" className="hover:text-slate-950 py-1">Contact</Link>
-            <Link href="/dashboard" className="hover:text-slate-950 py-1">Dashboard</Link>
             <Link href="/login" className="hover:text-slate-950 font-semibold py-1">Log in</Link>
           </div>
         </div>
@@ -304,6 +302,89 @@ export default async function GrowV2Page() {
               title="I won't take you on if it won't work."
               body="The 10-min call exists so I can tell you 'no' fast if we're not a fit. I'd rather lose the deal than burn the relationship."
             />
+          </div>
+        </div>
+      </section>
+
+      {/* THE JOURNEY — dark contrast section, 0 → 75K visual story */}
+      <section className="border-b border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-brand-950 text-white relative overflow-hidden">
+        {/* Soft grid backdrop */}
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
+          <div className="grid gap-10 lg:grid-cols-5 lg:items-center">
+            <div className="lg:col-span-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs uppercase tracking-widest text-cyan-300">
+                <TrendingUp className="h-3.5 w-3.5" /> The journey · Zero to 75,000+
+              </div>
+              <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight leading-tight">
+                300 followers to 75,000+.{" "}
+                <span className="bg-gradient-to-r from-cyan-300 to-accent-400 bg-clip-text text-transparent">
+                  I've done it. We can do it for you.
+                </span>
+              </h2>
+              <p className="mt-5 text-slate-300 leading-relaxed">
+                Most owners stall at 300, 1,500, or 5,000 followers and stop. They post randomly, chase
+                trends, and quit when the numbers don't move. I've taken five brands across the same
+                hill — and I know exactly where the hard climbs are.
+              </p>
+              <p className="mt-3 text-slate-300 leading-relaxed">
+                Whether you're at <strong className="text-white">300 friends</strong> or{" "}
+                <strong className="text-white">15,000 followers wondering why nothing's clicking</strong>,
+                the next milestone isn't luck — it's a pattern.
+              </p>
+              <div className="mt-7 flex flex-col sm:flex-row gap-3">
+                <TrackedLink
+                  href="/services"
+                  event="cta_journey_services"
+                  location="homepage_journey"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white hover:bg-accent-600"
+                >
+                  See the social media packages <ArrowRight className="h-4 w-4" />
+                </TrackedLink>
+                <TrackedLink
+                  href="/book"
+                  event="cta_journey_book"
+                  location="homepage_journey"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-3 font-semibold text-white hover:bg-white/10"
+                >
+                  Talk to me first
+                </TrackedLink>
+              </div>
+            </div>
+
+            {/* Animated growth curve */}
+            <div className="lg:col-span-3">
+              <FollowerJourneyChart total={totalReach} />
+            </div>
+          </div>
+
+          {/* Milestone strip */}
+          <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { stage: "Start", count: "300", note: "Friends + family" },
+              { stage: "Climb", count: "1.5K", note: "First true followers" },
+              { stage: "Break", count: "10K", note: "Algorithm starts working FOR you" },
+              { stage: "Compound", count: "75K+", note: "Where I'm at — and where you're going" },
+            ].map((m, i) => (
+              <div
+                key={m.stage}
+                className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur p-4"
+              >
+                <div className="text-[10px] uppercase tracking-widest text-cyan-300">
+                  Stage {i + 1} · {m.stage}
+                </div>
+                <div className="mt-1 text-3xl font-bold tabular-nums">{m.count}</div>
+                <div className="mt-1 text-xs text-slate-400">{m.note}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -721,6 +802,108 @@ function RadarMock() {
         <div className="rounded-md bg-slate-50 py-1">Last pull · 12s ago</div>
         <div className="rounded-md bg-slate-50 py-1">42 signals / min</div>
         <div className="rounded-md bg-cyan-50 py-1 text-cyan-700 font-semibold">3 actions queued</div>
+      </div>
+    </div>
+  );
+}
+
+function FollowerJourneyChart({ total }: { total: number }) {
+  // Animated 0 → 75K growth curve. Pure SVG with <animate> — no JS deps.
+  // The line draws itself in over 2.4s, milestone points pulse, and a
+  // ghost area beneath the curve fades up. Designed for the dark hero
+  // section so it pops against the navy background.
+  //
+  // X axis is "time" (years 1 → 5+ in conceptual terms, not literal).
+  // Y axis is followers, log-ish so the early-stage detail is visible.
+  const W = 640;
+  const H = 320;
+  const points = [
+    { x: 40,  y: 280, label: "300",   sub: "Start" },
+    { x: 160, y: 250, label: "1.5K",  sub: "Year 1" },
+    { x: 270, y: 200, label: "10K",   sub: "Year 2" },
+    { x: 380, y: 130, label: "25K",   sub: "Year 3" },
+    { x: 490, y: 80,  label: "50K",   sub: "Year 4" },
+    { x: 600, y: 40,  label: "75K+",  sub: "Now" },
+  ];
+  const path = `M ${points[0].x} ${points[0].y} ` +
+    points.slice(1).map((p, i) => {
+      const prev = points[i];
+      const cx1 = prev.x + (p.x - prev.x) / 2;
+      const cy1 = prev.y;
+      const cx2 = prev.x + (p.x - prev.x) / 2;
+      const cy2 = p.y;
+      return `C ${cx1} ${cy1}, ${cx2} ${cy2}, ${p.x} ${p.y}`;
+    }).join(" ");
+  const areaPath = path + ` L ${points[points.length - 1].x} ${H - 10} L ${points[0].x} ${H - 10} Z`;
+
+  return (
+    <div className="rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur p-5 sm:p-6 shadow-2xl shadow-black/40">
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-[11px] uppercase tracking-widest text-cyan-300 font-semibold">
+          The growth pattern
+        </div>
+        <div className="inline-flex items-center gap-1.5 text-[11px] text-slate-300">
+          <span className="h-1.5 w-1.5 rounded-full bg-lead-400 animate-pulse" />
+          Live · {total.toLocaleString()} total
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="block w-full">
+        <defs>
+          <linearGradient id="journey-line" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stopColor="#22b8ff" />
+            <stop offset="100%" stopColor="#fb923c" />
+          </linearGradient>
+          <linearGradient id="journey-area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="#22b8ff" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#22b8ff" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {/* Y grid lines */}
+        {[60, 120, 180, 240, 300].map((y) => (
+          <line key={y} x1="20" y1={y} x2={W - 10} y2={y} stroke="#ffffff14" strokeDasharray="2 4" />
+        ))}
+
+        {/* Filled area beneath the curve */}
+        <path d={areaPath} fill="url(#journey-area)">
+          <animate attributeName="opacity" from="0" to="1" dur="2.6s" fill="freeze" />
+        </path>
+
+        {/* The growth curve itself — draws in over 2.4s */}
+        <path
+          d={path}
+          fill="none"
+          stroke="url(#journey-line)"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          pathLength="1"
+          strokeDasharray="1"
+          strokeDashoffset="1"
+        >
+          <animate attributeName="stroke-dashoffset" from="1" to="0" dur="2.4s" fill="freeze" />
+        </path>
+
+        {/* Milestone points */}
+        {points.map((p, i) => (
+          <g key={p.label}>
+            <circle cx={p.x} cy={p.y} r="14" fill="#22b8ff" opacity="0.18">
+              <animate attributeName="r" values="10;18;10" dur="2.4s" repeatCount="indefinite" begin={`${i * 0.4}s`} />
+              <animate attributeName="opacity" values="0.25;0.08;0.25" dur="2.4s" repeatCount="indefinite" begin={`${i * 0.4}s`} />
+            </circle>
+            <circle cx={p.x} cy={p.y} r="5" fill="#ffffff" stroke="#22b8ff" strokeWidth="2.5" />
+            <text x={p.x} y={p.y - 22} fontSize="13" fontWeight="700" fill="#ffffff" textAnchor="middle">
+              {p.label}
+            </text>
+            <text x={p.x} y={H - 16} fontSize="10" fontWeight="600" fill="#94a3b8" textAnchor="middle" letterSpacing="1">
+              {p.sub.toUpperCase()}
+            </text>
+          </g>
+        ))}
+      </svg>
+      <div className="mt-3 text-[11px] text-slate-400 leading-relaxed">
+        The shape of the curve never changes. Every operator I've helped follows the same arc — slow
+        early, sharp at the bend, compounding once the algorithm starts trusting you. Where are you on it?
       </div>
     </div>
   );

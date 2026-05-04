@@ -157,11 +157,10 @@ export default async function GrowV2Page() {
           </Link>
           <nav className="hidden lg:flex items-center gap-5 text-sm text-slate-700">
             <Link href="/" className="font-semibold text-cyan-700 hover:text-cyan-800">Home</Link>
-            <Link href="/services" className="hover:text-slate-950">Social Services</Link>
+            <Link href="/services" className="hover:text-slate-950">Social Media</Link>
             <Link href="/services/consulting" className="hover:text-slate-950">Consulting</Link>
             <Link href="/tiers" className="hover:text-slate-950">Pricing</Link>
             <Link href="/contact" className="hover:text-slate-950">Contact</Link>
-            <Link href="/dashboard" className="hover:text-slate-950">Dashboard</Link>
           </nav>
           <div className="flex items-center gap-2">
             <Link
@@ -181,11 +180,10 @@ export default async function GrowV2Page() {
         {/* Mobile sub-nav — wraps to multiple lines, never scrolls */}
         <div className="lg:hidden border-t border-slate-200 bg-slate-50">
           <div className="mx-auto max-w-7xl px-4 py-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
-            <Link href="/services" className="hover:text-slate-950 py-1">Social Services</Link>
+            <Link href="/services" className="hover:text-slate-950 py-1">Social Media</Link>
             <Link href="/services/consulting" className="hover:text-slate-950 py-1">Consulting</Link>
             <Link href="/tiers" className="hover:text-slate-950 py-1">Pricing</Link>
             <Link href="/contact" className="hover:text-slate-950 py-1">Contact</Link>
-            <Link href="/dashboard" className="hover:text-slate-950 py-1">Dashboard</Link>
             <Link href="/login" className="hover:text-slate-950 font-semibold py-1">Log in</Link>
           </div>
         </div>

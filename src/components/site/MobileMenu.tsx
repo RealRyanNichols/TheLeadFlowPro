@@ -4,27 +4,16 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 
+// Public marketing nav only. Members-area links live behind /login.
+// Dashboard pages still work for anyone who's logged in; we just don't
+// advertise the back-end surface to anonymous visitors.
 const NAV = [
   { href: "/",                     label: "Home" },
+  { href: "/services",             label: "Social Media" },
+  { href: "/services/consulting",  label: "Business Consulting" },
   { href: "/tiers",                label: "Pricing & Tiers" },
   { href: "/book",                 label: "Book a 10-min call" },
-  { href: "/services",             label: "Social Growth Services" },
-  { href: "/services/consulting",  label: "Business Consulting" },
-  { href: "/dashboard",            label: "Dashboard" },
-  { href: "/dashboard/playbooks",  label: "Playbooks" },
-  { href: "/dashboard/leads",      label: "Lead inbox" },
-  { href: "/dashboard/chatbot",    label: "AI chatbot" },
-  { href: "/dashboard/automations",label: "Automations" },
-  { href: "/dashboard/insights",   label: "AI insights" },
-  { href: "/dashboard/audience",   label: "Target audience" },
-  { href: "/dashboard/ad-copy",    label: "Ad copy" },
-  { href: "/dashboard/social",     label: "Social accounts" },
-  { href: "/dashboard/media",      label: "Video + GIFs" },
-  { href: "/dashboard/card",       label: "FlowCard" },
-  { href: "/dashboard/requests",   label: "Request a tool" },
-  { href: "/tools/seo-grader",     label: "Free SEO Grader" },
-  { href: "#features",             label: "Features overview" },
-  { href: "#pricing",              label: "Pricing" }
+  { href: "/contact",              label: "Contact" },
 ];
 
 export function MobileMenu() {

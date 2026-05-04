@@ -80,12 +80,24 @@ export default function DecisionSprintPage() {
                   <span className="text-sm text-slate-500">for 90 minutes</span>
                 </div>
                 <ul className="mt-5 space-y-2.5 text-sm text-slate-700">
-                  <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-600" />90-min private video call</li>
-                  <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-600" />Live shared working doc</li>
-                  <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-600" />Written one-pager within 24 hours</li>
-                  <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-600" />Recording delivered same day</li>
+                  <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-600" />90 minutes, just you and me — FaceTime, Zoom, or phone</li>
+                  <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-600" /><span><strong>Recorded call</strong> — yours forever, delivered same day</span></li>
+                  <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-600" /><span><strong>Full transcript</strong> — searchable copy of everything we said</span></li>
+                  <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-600" /><span><strong>Action worksheet</strong> — what we covered + exactly what you do next, in your inbox by tomorrow</span></li>
                 </ul>
-                <div className="mt-5 rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-600">
+
+                {/* Travel add-on */}
+                <div className="mt-5 rounded-xl border border-cyan-300 bg-cyan-50 p-3 text-xs text-cyan-900">
+                  <div className="flex items-center gap-1.5 font-semibold">
+                    <Sparkles className="h-3.5 w-3.5" /> Local in-person add-on · +$100
+                  </div>
+                  <p className="mt-1 leading-relaxed">
+                    East Texas only. $50 there + $50 back. I drive to you, we sit down, same 90 minutes,
+                    same deliverables. Anywhere outside East Texas → FaceTime/Zoom/phone (no travel cost).
+                  </p>
+                </div>
+
+                <div className="mt-3 rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-600">
                   <ShieldCheck className="inline h-3.5 w-3.5 mr-1 text-lead-600" />
                   Texas-law engagement letter + mutual NDA. Cancel/reschedule with 24hr notice.
                 </div>
@@ -133,7 +145,7 @@ export default function DecisionSprintPage() {
             <Step n="1" minutes="0 min" title="Pay & schedule" body="Stripe checkout. You pick a slot from Ryan's calendar within the next 5 business days." />
             <Step n="2" minutes="24 hrs before" title="Pre-call note" body="You email Ryan a 1-paragraph note on what the decision is, the options on the table, and what you've already tried." />
             <Step n="3" minutes="90 min" title="The call" body="Live video. Shared doc open. Ryan asks the questions, you bring the context, we land on the call together." />
-            <Step n="4" minutes="24 hrs after" title="Written one-pager" body="The recommendation + 3 reasons + next 3 actions. PDF + editable Notion / Google Doc. Recording attached." />
+            <Step n="4" minutes="24 hrs after" title="Three deliverables" body="Recorded call (yours forever) + full transcript + action worksheet (the call written up + your next 3 moves)." />
           </div>
         </div>
       </section>
@@ -222,7 +234,8 @@ export default function DecisionSprintPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <FAQ q="What if my decision isn't really 'one' decision?" a="Then you book the $497 Business Audit instead. The Decision Sprint is for one stuck thing. The Audit is for the whole business." />
             <FAQ q="Can I get a refund if I disagree with the recommendation?" a="No. You're paying for the working session and the written recommendation, not for the recommendation matching what you wanted to hear. Refunds available within 24 hours of paying if scheduling falls through." />
-            <FAQ q="Will Ryan record the call?" a="Yes. Recording delivered same day. You own it forever." />
+            <FAQ q="Will Ryan record the call?" a="Yes. Recording delivered same day. You own it forever. You also get a full transcript." />
+            <FAQ q="Can we meet in person?" a="If you're in East Texas — yes. Local in-person add-on is +$100 ($50 there, $50 back). Anywhere else in the U.S. is FaceTime, Zoom, or phone. Same 90 minutes, same deliverables." />
             <FAQ q="What if I need a follow-up?" a="Book another sprint, or apply the $90 toward a $497 Audit if you do that within 30 days." />
             <FAQ q="What does the pre-call note look like?" a="A paragraph: what's the decision, what are the options, what have you tried, what's pulling you toward each option. ~5 min of writing." />
             <FAQ q="Texas-law NDA?" a="Yes. Mutual. Sample available before payment if you ask." />

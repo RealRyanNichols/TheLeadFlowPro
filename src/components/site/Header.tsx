@@ -15,10 +15,10 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-5 text-sm text-ink-200">
           <Link href="/" className="hover:text-white font-semibold text-cyan-300">Home</Link>
           <Link href="/tiers" className="hover:text-white">Pricing</Link>
-          <Link href="/services" className="hover:text-white">Social Services</Link>
+          <Link href="/services" className="hover:text-white">Social Media</Link>
           <Link href="/services/consulting" className="hover:text-white">Consulting</Link>
           <Link href="/book" className="hover:text-white">Book a call</Link>
-          <Link href="/dashboard" className="hover:text-white">Dashboard</Link>
+          <Link href="/contact" className="hover:text-white">Contact</Link>
         </nav>
         <div className="flex items-center gap-2 flex-shrink-0">
           <Link href="/login" className="hidden sm:inline-flex btn-ghost text-sm py-2 px-4">
