@@ -11,7 +11,7 @@ import {
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
 
 export const metadata = {
-  title: "90-Minute Decision Sprint — $97 · The LeadFlow Pro",
+  title: "$90 for 90 Minutes — A Dollar Per Minute With Ryan · The LeadFlow Pro",
   description:
     "One stuck business decision unpacked in 90 minutes with Ryan Nichols. Written one-pager delivered within 24 hours. Pricing, hires, offers, market moves — get the call made by tomorrow morning.",
 };
@@ -32,22 +32,26 @@ export default function DecisionSprintPage() {
                 <Compass className="h-3.5 w-3.5" /> Tier 1 · One-time · Lowest-friction 1:1 with Ryan
               </div>
               <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-slate-950 leading-tight">
-                One stuck decision.{" "}
+                $90 for 90 minutes.{" "}
                 <span className="bg-gradient-to-r from-brand-700 to-cyan-500 bg-clip-text text-transparent">
-                  90 minutes. Done by tomorrow.
+                  A dollar a minute with Ryan.
                 </span>
               </h1>
               <p className="mt-5 text-lg text-slate-700 leading-relaxed">
-                A focused 90-minute working session with Ryan on <strong>one specific decision</strong> that's
-                been stuck for weeks. Not a discovery call. Not a coaching session. A working session
-                with a written one-pager in your inbox by tomorrow morning.
+                One stuck decision. 90 focused minutes. A written one-pager in your inbox by tomorrow.
+                Not a discovery call. Not a coaching session. A working session priced so a serious
+                business owner says <em>yes</em> on the spot — but cheap-shoppers click away.
+              </p>
+              <p className="mt-3 text-base text-slate-700 leading-relaxed">
+                I've changed the trajectory of businesses in 20-minute conversations. Imagine what we
+                can do with 90.
               </p>
               <div className="mt-7 flex flex-col sm:flex-row gap-3">
                 <Link
-                  href={`mailto:${RYAN_EMAIL}?subject=${encodeURIComponent("Buy: 90-Minute Decision Sprint $97")}`}
+                  href={`mailto:${RYAN_EMAIL}?subject=${encodeURIComponent("Buy: 90-Minute Decision Sprint $90")}`}
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-sm hover:bg-slate-800"
                 >
-                  Buy now — $97 <ArrowRight className="h-4 w-4" />
+                  Buy now — $90 <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/book"
@@ -65,10 +69,15 @@ export default function DecisionSprintPage() {
             {/* Price card */}
             <div className="lg:col-span-2">
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-md">
-                <div className="text-xs uppercase tracking-widest text-slate-500">Price</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-xs uppercase tracking-widest text-slate-500">Price</div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-lead-100 border border-lead-300 px-2.5 py-0.5 text-xs font-semibold text-lead-800">
+                    $1 / minute
+                  </span>
+                </div>
                 <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-slate-950 tabular-nums">$97</span>
-                  <span className="text-sm text-slate-500">one-time</span>
+                  <span className="text-5xl font-bold text-slate-950 tabular-nums">$90</span>
+                  <span className="text-sm text-slate-500">for 90 minutes</span>
                 </div>
                 <ul className="mt-5 space-y-2.5 text-sm text-slate-700">
                   <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-600" />90-min private video call</li>
@@ -101,7 +110,7 @@ export default function DecisionSprintPage() {
             />
             <Reason
               icon={Target}
-              title="Why $97 not $497"
+              title="Why $90 not $497"
               body="This isn't a strategic engagement. It's one decision, fully unpacked, with a written recommendation. Priced to be a no-brainer for owners who just need a sharp second brain on a single call."
             />
             <Reason
@@ -156,7 +165,7 @@ export default function DecisionSprintPage() {
                 "You want a 90-minute coaching session on ten different topics",
                 "You want guarantees about which option will work best",
                 "You're shopping consultants for the lowest price",
-                "You're hoping a $97 call will replace a real strategic engagement",
+                "You're hoping a $90 call will replace a real strategic engagement",
               ]}
             />
           </div>
@@ -180,7 +189,7 @@ export default function DecisionSprintPage() {
             <CostBlock
               tone="lead"
               title="If you buy this"
-              big="$97"
+              big="$90"
               sub="One time. 90 minutes. A written recommendation in your inbox. Even if you disagree with the call, you've eliminated the option you didn't pick — and that alone is worth the price."
             />
           </div>
@@ -214,7 +223,7 @@ export default function DecisionSprintPage() {
             <FAQ q="What if my decision isn't really 'one' decision?" a="Then you book the $497 Business Audit instead. The Decision Sprint is for one stuck thing. The Audit is for the whole business." />
             <FAQ q="Can I get a refund if I disagree with the recommendation?" a="No. You're paying for the working session and the written recommendation, not for the recommendation matching what you wanted to hear. Refunds available within 24 hours of paying if scheduling falls through." />
             <FAQ q="Will Ryan record the call?" a="Yes. Recording delivered same day. You own it forever." />
-            <FAQ q="What if I need a follow-up?" a="Book another sprint, or apply the $97 toward a $497 Audit if you do that within 30 days." />
+            <FAQ q="What if I need a follow-up?" a="Book another sprint, or apply the $90 toward a $497 Audit if you do that within 30 days." />
             <FAQ q="What does the pre-call note look like?" a="A paragraph: what's the decision, what are the options, what have you tried, what's pulling you toward each option. ~5 min of writing." />
             <FAQ q="Texas-law NDA?" a="Yes. Mutual. Sample available before payment if you ask." />
           </div>
@@ -229,10 +238,10 @@ export default function DecisionSprintPage() {
           </h2>
           <div className="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
-              href={`mailto:${RYAN_EMAIL}?subject=${encodeURIComponent("Buy: 90-Minute Decision Sprint $97")}`}
+              href={`mailto:${RYAN_EMAIL}?subject=${encodeURIComponent("Buy: 90-Minute Decision Sprint $90")}`}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-sm hover:bg-slate-800"
             >
-              Buy now — $97 <ArrowRight className="h-4 w-4" />
+              Buy now — $90 <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/book"

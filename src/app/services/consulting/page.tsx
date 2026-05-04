@@ -3,7 +3,7 @@
 // Sister page to /services (social-growth). Same dark, mobile-first aesthetic.
 // Ladder, top to bottom:
 //   Free Discovery Call (top of every funnel)
-//   MICRO   $97   90-Minute Decision Sprint        (one-time)
+//   MICRO   $90   90-Minute Decision Sprint        (one-time)
 //   MICRO   $297  Business Audit                    (one-time, written deliverable)
 //   ONE-OFF $1,997 AI / Automation Build Sprint    (10-day implementation)
 //   WEEKLY  $297/mo Office Hours (group)            (recurring, scalable)
@@ -50,8 +50,8 @@ const PACKAGES: Pkg[] = [
   {
     slug: "decision-sprint",
     name: "90-Minute Decision Sprint",
-    price: "$97",
-    cadence: "one-time",
+    price: "$90",
+    cadence: "for 90 min",
     cadenceTone: "cyan",
     one_liner:
       "One specific decision, fully unpacked in 90 minutes — pricing, hire, offer, market move, tech stack call, anything that's been stuck for weeks.",
@@ -63,7 +63,7 @@ const PACKAGES: Pkg[] = [
       "Recording delivered same day",
     ],
     cta: "Book the sprint",
-    cta_href: mailto("90-Minute Decision Sprint — $97"),
+    cta_href: mailto("90-Minute Decision Sprint — $90"),
     icon: Compass,
   },
   {
@@ -264,7 +264,7 @@ export default function ConsultingPage() {
           weekly, monthly, quarterly, or one-time.
         </h1>
         <p className="mt-5 max-w-2xl text-base sm:text-lg text-slate-700">
-          Pick the cadence that fits your stage. A $97 sprint to unstick a single decision, a
+          Pick the cadence that fits your stage. A $90/90-min sprint to unstick a single decision, a
           $297 audit if you want clarity in writing, a weekly group room, a monthly fractional
           operator, a quarterly business review — or an annual advisor relationship for owners
           $1M+. Every engagement starts with a free 20-minute Discovery Call.
@@ -272,7 +272,7 @@ export default function ConsultingPage() {
 
         {/* Cadence selector */}
         <div className="mt-8 grid gap-3 sm:grid-cols-4">
-          <CadencePill href="#cadence-onetime" label="One-time" sub="$97 · $297 · $1,997" tone="cyan" />
+          <CadencePill href="#cadence-onetime" label="One-time" sub="$90 · $297 · $1,997" tone="cyan" />
           <CadencePill href="#cadence-weekly"  label="Weekly"   sub="$297/mo group room"   tone="emerald" />
           <CadencePill href="#cadence-monthly" label="Monthly"  sub="$1,997/mo fractional" tone="indigo" />
           <CadencePill href="#cadence-long"    label="Qtr / Annual" sub="$1,497/qtr · $24K/yr" tone="rose" />
