@@ -114,7 +114,7 @@ const PACKAGES: Pkg[] = [
     name: "Weekly Office Hours (Group)",
     price: "$297",
     cadence: "/mo",
-    cadenceTone: "emerald",
+    cadenceTone: "cyan",
     one_liner:
       "One 75-minute Zoom every week with Ryan and a small cohort of operators. Bring one question, get group feedback, hear five other owners' problems for free.",
     who: "Solo operators and small-team owners who want strategic firepower without a private retainer's price tag.",
@@ -197,7 +197,7 @@ const PACKAGES: Pkg[] = [
 const CADENCE_TONE = {
   cyan:    "border-cyan-300 bg-cyan-50 text-cyan-700",
   violet:  "border-violet-300 bg-violet-50 text-violet-700",
-  emerald: "border-emerald-300 bg-emerald-50 text-emerald-700",
+  emerald: "border-cyan-300 bg-cyan-50 text-cyan-700",
   indigo:  "border-indigo-300 bg-indigo-50 text-indigo-700",
   amber:   "border-amber-300 bg-amber-50 text-amber-700",
   rose:    "border-rose-300 bg-rose-50 text-rose-700",
@@ -245,7 +245,7 @@ export default function ConsultingPage() {
             </Link>
             <Link
               href="#discovery"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1.5 text-emerald-700 hover:bg-emerald-500/20"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-cyan-300 bg-cyan-100 px-3 py-1.5 text-cyan-700 hover:bg-cyan-500/20"
             >
               Free Discovery Call <ArrowRight className="h-3.5 w-3.5" />
             </Link>
@@ -273,7 +273,7 @@ export default function ConsultingPage() {
         {/* Cadence selector */}
         <div className="mt-8 grid gap-3 sm:grid-cols-4">
           <CadencePill href="#cadence-onetime" label="One-time" sub="$90 · $297 · $1,997" tone="cyan" />
-          <CadencePill href="#cadence-weekly"  label="Weekly"   sub="$297/mo group room"   tone="emerald" />
+          <CadencePill href="#cadence-weekly"  label="Weekly"   sub="$297/mo group room"   tone="cyan" />
           <CadencePill href="#cadence-monthly" label="Monthly"  sub="$1,997/mo fractional" tone="indigo" />
           <CadencePill href="#cadence-long"    label="Qtr / Annual" sub="$1,497/qtr · $24K/yr" tone="rose" />
         </div>
@@ -281,10 +281,10 @@ export default function ConsultingPage() {
 
       {/* Discovery Call */}
       <section id="discovery" className="mx-auto max-w-6xl px-4 pb-12">
-        <div className="rounded-3xl border border-emerald-300 bg-gradient-to-br from-emerald-500/[0.08] to-emerald-500/[0.02] p-6 sm:p-8">
+        <div className="rounded-3xl border border-cyan-300 bg-gradient-to-br from-cyan-500/[0.08] to-cyan-500/[0.02] p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs text-emerald-700">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-cyan-100 px-3 py-1 text-xs text-cyan-700">
                 Free · 20 minutes · No pitch
               </div>
               <h2 className="mt-3 text-xl sm:text-2xl font-semibold text-white">
@@ -298,7 +298,7 @@ export default function ConsultingPage() {
             </div>
             <a
               href={mailto("Free Discovery Call — Strategic Consulting")}
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-emerald-950 hover:bg-emerald-400"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-cyan-950 hover:bg-cyan-400"
             >
               Book your call <ArrowRight className="h-4 w-4" />
             </a>
@@ -376,7 +376,7 @@ export default function ConsultingPage() {
 
       {/* Final CTA */}
       <section className="mx-auto max-w-6xl px-4 pb-20">
-        <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-violet-500/[0.08] via-cyan-500/[0.04] to-emerald-500/[0.06] p-6 sm:p-10 text-center">
+        <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-violet-500/[0.08] via-cyan-500/[0.04] to-cyan-500/[0.06] p-6 sm:p-10 text-center">
           <h2 className="text-2xl sm:text-3xl font-semibold text-white">
             Pick a cadence, or just book the call.
           </h2>
@@ -387,7 +387,7 @@ export default function ConsultingPage() {
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
               href={mailto("Free Discovery Call — Strategic Consulting")}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-emerald-950 hover:bg-emerald-400"
+              className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-cyan-950 hover:bg-cyan-400"
             >
               Book the free call <ArrowRight className="h-4 w-4" />
             </a>
@@ -462,7 +462,7 @@ function PackageCard({ pkg }: { pkg: Pkg }) {
     <div
       className={`rounded-2xl border bg-white shadow-sm p-6 ${
         pkg.highlight
-          ? "border-emerald-400 ring-1 ring-emerald-400/20"
+          ? "border-cyan-400 ring-1 ring-cyan-400/20"
           : "border-slate-200"
       }`}
     >
@@ -489,7 +489,7 @@ function PackageCard({ pkg }: { pkg: Pkg }) {
       <ul className="mt-4 space-y-2">
         {pkg.deliverables.map((d) => (
           <li key={d} className="flex items-start gap-2 text-sm text-slate-800">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" />
             <span>{d}</span>
           </li>
         ))}

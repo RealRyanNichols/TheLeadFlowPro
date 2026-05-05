@@ -397,7 +397,7 @@ export default function TiersPage() {
         title="Small business"
         subtitle="$50K–$500K. Light 1:1 access. ~4 hrs of strategic time per month at the retainer level."
         cards={TIER_2}
-        accent="emerald"
+        accent="cyan"
       />
 
       {/* TIER 3 */}
@@ -493,7 +493,7 @@ function TierSection({
 }) {
   const accentColors = {
     cyan:    { eyebrow: "text-cyan-700",    border: "border-cyan-200",    bg: "bg-cyan-50" },
-    emerald: { eyebrow: "text-emerald-700", border: "border-emerald-200", bg: "bg-emerald-50" },
+    emerald: { eyebrow: "text-cyan-700", border: "border-cyan-200", bg: "bg-cyan-50" },
     indigo:  { eyebrow: "text-indigo-700",  border: "border-indigo-200",  bg: "bg-indigo-50" },
     amber:   { eyebrow: "text-amber-700",   border: "border-amber-200",   bg: "bg-amber-50" },
   }[accent];
@@ -549,7 +549,7 @@ function ProductCard({ card }: { card: Card }) {
       <ul className="mt-4 space-y-2">
         {card.inclusions.map((d) => (
           <li key={d} className="flex items-start gap-2 text-sm text-slate-700">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-600" />
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" />
             <span>{d}</span>
           </li>
         ))}
