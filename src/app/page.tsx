@@ -235,7 +235,6 @@ export default async function GrowV2Page() {
                 <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/70 backdrop-blur px-3 py-1 text-xs uppercase tracking-widest text-cyan-700 font-semibold shadow-sm">
                   <BadgeCheck className="h-3.5 w-3.5" /> 75K+ followers · 6 companies · 10+ years
                 </div>
-                {/* @ts-expect-error Async Server Component */}
                 <BandwidthMeter variant="compact" />
               </div>
               <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-slate-950 leading-tight">
