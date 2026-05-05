@@ -17,6 +17,7 @@ import {
   LineChart, Megaphone, Rocket, ShieldCheck, Sparkles, Target, TrendingUp,
   Trophy, Users, Wrench, Zap,
 } from "lucide-react";
+import { STRIPE_PAYMENT_LINKS } from "./stripe-links";
 
 export type OfferSlug =
   | "quick-look"
@@ -80,10 +81,12 @@ function mailto(subject: string): string {
 }
 
 /**
- * Prefers a Vercel env var STRIPE_LINK_<SLUG> if set, otherwise falls back to a
- * mailto: lock-in. This lets Ryan paste 10 Payment Link URLs into Vercel env
- * vars after running /api/admin/stripe-offers-init and the site auto-switches
- * from email-lock-in to real Stripe checkout — no code edit required.
+ * Resolution order for the buy button URL:
+ *   1. STRIPE_LINK_<SLUG> env var if set (override path — useful for one-off
+ *      promo links without a code change)
+ *   2. STRIPE_PAYMENT_LINKS[slug] from /lib/stripe-links.ts (the canonical
+ *      live URLs created in Stripe on 2026-05-05)
+ *   3. mailto: lock-in (last-resort fallback)
  *
  * Env var naming: lowercase slug uppercased + dashes → underscores.
  *   decision-sprint   → STRIPE_LINK_DECISION_SPRINT
@@ -96,6 +99,8 @@ function buyHref(slug: string, fallbackSubject: string): string {
     const url = process.env[envKey];
     if (url && /^https?:\/\//.test(url)) return url;
   }
+  const hardcoded = STRIPE_PAYMENT_LINKS[slug as keyof typeof STRIPE_PAYMENT_LINKS];
+  if (hardcoded) return hardcoded;
   return mailto(fallbackSubject);
 }
 
