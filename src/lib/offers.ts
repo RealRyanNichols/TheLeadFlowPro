@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 export type OfferSlug =
+  | "quick-look"
   | "decision-sprint"
   | "business-audit"
   | "light-retainer"
@@ -95,6 +96,79 @@ const TEXAS_NDA_FAQ = {
 /* ─── offer catalog ───────────────────────────────────────────── */
 
 export const OFFERS: Record<OfferSlug, Offer> = {
+  /* ──────────── 0. QUICK-LOOK VIDEO — Tier 1 micro — $47 ──────────── */
+  "quick-look": {
+    slug: "quick-look",
+    tier: 1,
+    category: "consulting",
+    cadence: "one-time",
+    badge: "Tier 1 micro · One-time · 5-min personalized video",
+    Icon: Sparkles,
+    metaTitle: "Quick-Look Video — $47 · The LeadFlow Pro",
+    metaDescription:
+      "I look at your social and tell you the next post to make. 5-minute personalized video reviewing your accounts, your offer, and the single highest-leverage post you should ship this week.",
+
+    hero: {
+      h1Lead: "$47. I look at your socials.",
+      h1Highlight: "I tell you the next post to make.",
+      paragraph:
+        "You give me your handles. I spend 30 minutes reviewing them. I record a 5-minute personalized video walking through what's working, what's leaking, and the single highest-leverage post you should ship this week — written out for you in the same email.",
+    },
+    price: {
+      big: "$47",
+      sub: "one-time · 24-hour delivery",
+      badge: "Cheapest path to Ryan's eyes",
+      deliverables: [
+        "5-minute personalized video reviewing YOUR socials",
+        "The exact next post to make this week (script + hook + caption)",
+        "Top-3 quick fixes I'd make to your bio / banner / pinned content",
+        "Delivered within 24 hours of payment + intake form",
+      ],
+    },
+    primaryCta: { label: "Reserve Quick-Look — $47", href: mailto("Buy: Quick-Look Video $47") },
+    secondaryCta: { label: "See the $90 Sprint instead", href: "/offers/decision-sprint" },
+
+    whyBuy: [
+      { Icon: Sparkles, title: "Cheapest path to my eyes", body: "Most consultants don't look at your stuff until you've paid 4 figures. This is $47 for 30 minutes of my actual attention on your actual accounts." },
+      { Icon: Clock,    title: "24-hour turnaround",       body: "Pay before noon Mon–Thu, get it back by EOD next day. Friday orders ship Monday." },
+      { Icon: TrendingUp, title: "Pays for itself in one post", body: "If the next post I write for you gets 1 lead worth $200, the video paid for itself 4× over. Most do." },
+    ],
+    timeline: [
+      { n: "1", minutes: "Day 0",    title: "Pay & intake",   body: "$47 via Stripe (mailto for now). 5-question intake form: handles, offer, target customer, biggest current frustration, where you'd love to be in 90 days." },
+      { n: "2", minutes: "Day 0–1",  title: "I look",         body: "I spend 30 minutes inside your accounts. Pull up your last 30 posts. Read your bio. Click your link-in-bio. Make notes." },
+      { n: "3", minutes: "Day 1",    title: "I record",       body: "5-minute screen-shared video walking through everything. Loom or Vimeo link emailed to you." },
+      { n: "4", minutes: "Day 1",    title: "Written follow-up", body: "Same email contains: the post script, the bio rewrite, the top-3 quick fixes. Ready to ship." },
+    ],
+    rightFit: [
+      "You're posting but not gaining traction",
+      "You can name your offer in one sentence",
+      "You'll fill out a 5-question intake (~5 minutes)",
+      "You'll actually ship the post I write for you",
+      "You're cool with a 5-min video, not a 60-min audit",
+    ],
+    wrongFit: [
+      "You haven't posted anywhere yet (start posting, then come back)",
+      "You want a deep audit (book the $497 instead)",
+      "You want me to also write the next 30 posts (that's the $497/mo Power Bundle)",
+      "You expect a whole strategy review (this is one post + quick wins)",
+      "You're hoping $47 replaces a real engagement (it's the entry point)",
+    ],
+    costMath: {
+      stuck: { big: "$0", sub: "Cost of doing nothing this week. The post you don't ship is the lead you don't get is the dollar that doesn't come in." },
+      buy:   { big: "$47",  sub: "30 minutes of my eyes on your accounts + a written next move + a 5-min video. Pays for itself the first time the post lands a real lead." },
+    },
+    proof: RYAN_PROOF,
+    faqs: [
+      { q: "Is this a recurring thing?", a: "No — one-time. If you want regular eyes, that's the $1,997/mo Light Retainer or the Power Bundle." },
+      { q: "What platforms do you cover?", a: "Up to 3 of: TikTok, FB, X, YouTube, Instagram, LinkedIn. Pick the most important to you on intake." },
+      { q: "What if I want a follow-up?", a: "Apply the $47 toward a $90 Decision Sprint or a $497 Audit within 30 days." },
+      { q: "Refunds?", a: "If I can't deliver in 48 hours, full refund. Otherwise, you got the work — no refund." },
+      { q: "Can you do this for a friend / partner?", a: "Yes — name on intake. Buy gift-style — they'll get the email." },
+      TEXAS_NDA_FAQ,
+    ],
+    upgradeCredit: "Apply $47 toward a $90 Decision Sprint or $497 Audit within 30 days.",
+  },
+
   /* ──────────── 1. DECISION SPRINT — Tier 1 — $90/90 ──────────── */
   "decision-sprint": {
     slug: "decision-sprint",
@@ -805,6 +879,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
 };
 
 export const OFFER_LIST: Offer[] = [
+  OFFERS["quick-look"],
   OFFERS["decision-sprint"],
   OFFERS["business-audit"],
   OFFERS["working-session"],

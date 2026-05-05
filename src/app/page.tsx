@@ -74,6 +74,7 @@ const STATS = [
 
 const PLATFORMS = [
   {
+    handle: "tiktok",
     name: "TikTok Growth",
     icon: Music2,
     price: "$497",
@@ -86,6 +87,7 @@ const PLATFORMS = [
     ],
   },
   {
+    handle: "facebook",
     name: "Facebook Growth",
     icon: Facebook,
     price: "$497",
@@ -98,11 +100,12 @@ const PLATFORMS = [
     ],
   },
   {
+    handle: "x",
     name: "X / Twitter Growth",
     icon: Twitter,
     price: "$497",
     cadence: "/mo per channel",
-    line: "Daily posting + reply game. The platform Ryan grew to 43,800+ on. Built for personal brands, founders, and operators.",
+    line: "Daily posting + reply game. The platform I grew to 43,800+ on. Built for personal brands, founders, and operators.",
     bullets: [
       "Daily Mon–Fri posts in your voice",
       "Reply targeting that drives audience",
@@ -110,6 +113,7 @@ const PLATFORMS = [
     ],
   },
   {
+    handle: "youtube",
     name: "YouTube Growth",
     icon: Youtube,
     price: "$497",
@@ -566,10 +570,10 @@ export default async function GrowV2Page() {
                     ))}
                   </ul>
                   <Link
-                    href="/book"
+                    href={`/platforms/${p.handle}`}
                     className="mt-auto pt-6 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:text-brand-800"
                   >
-                    Book the 10-min call <ArrowRight className="h-3.5 w-3.5" />
+                    See the {p.name.replace(" Growth", "")} comparison <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
               );
