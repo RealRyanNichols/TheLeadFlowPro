@@ -79,6 +79,26 @@ function mailto(subject: string): string {
   return `mailto:${RYAN_EMAIL}?subject=${encodeURIComponent(subject)}`;
 }
 
+/**
+ * Prefers a Vercel env var STRIPE_LINK_<SLUG> if set, otherwise falls back to a
+ * mailto: lock-in. This lets Ryan paste 10 Payment Link URLs into Vercel env
+ * vars after running /api/admin/stripe-offers-init and the site auto-switches
+ * from email-lock-in to real Stripe checkout — no code edit required.
+ *
+ * Env var naming: lowercase slug uppercased + dashes → underscores.
+ *   decision-sprint   → STRIPE_LINK_DECISION_SPRINT
+ *   light-retainer    → STRIPE_LINK_LIGHT_RETAINER
+ *   sprint-4-week     → STRIPE_LINK_SPRINT_4_WEEK
+ */
+function buyHref(slug: string, fallbackSubject: string): string {
+  if (typeof process !== "undefined" && process.env) {
+    const envKey = `STRIPE_LINK_${slug.toUpperCase().replace(/-/g, "_")}`;
+    const url = process.env[envKey];
+    if (url && /^https?:\/\//.test(url)) return url;
+  }
+  return mailto(fallbackSubject);
+}
+
 /* ─── shared scaffolding ──────────────────────────────────────── */
 
 const RYAN_PROOF = [
@@ -125,7 +145,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "Delivered within 24 hours of payment + intake form",
       ],
     },
-    primaryCta: { label: "Reserve Quick-Look — $47", href: mailto("Buy: Quick-Look Video $47") },
+    primaryCta: { label: "Reserve Quick-Look — $47", href: buyHref("quick-look", "Buy: Quick-Look Video $47") },
     secondaryCta: { label: "See the $90 Sprint instead", href: "/offers/decision-sprint" },
 
     whyBuy: [
@@ -205,7 +225,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
           "East Texas only. $50 there + $50 back. Same 90 minutes, same deliverables. Anywhere outside East Texas → FaceTime / Zoom / phone (no travel cost).",
       },
     },
-    primaryCta: { label: "Reserve the Sprint — $90", href: mailto("Buy: 90-Minute Decision Sprint $90") },
+    primaryCta: { label: "Reserve the Sprint — $90", href: buyHref("decision-sprint", "Buy: 90-Minute Decision Sprint $90") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
@@ -293,7 +313,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "Audit recording you keep forever",
       ],
     },
-    primaryCta: { label: "Begin the Audit — $497", href: mailto("Buy: Business Audit $497") },
+    primaryCta: { label: "Begin the Audit — $497", href: buyHref("business-audit", "Buy: Business Audit $497") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
@@ -369,7 +389,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "First-look at every new playbook & framework",
       ],
     },
-    primaryCta: { label: "Start retainer — $1,997/mo", href: mailto("Buy: Light Retainer $1,997/mo") },
+    primaryCta: { label: "Start retainer — $1,997/mo", href: buyHref("light-retainer", "Buy: Light Retainer $1,997/mo") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
@@ -446,7 +466,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "Monthly performance report tied to leads + revenue",
       ],
     },
-    primaryCta: { label: "Start Power Bundle — $1,497/mo", href: mailto("Buy: Power Bundle $1,497/mo") },
+    primaryCta: { label: "Start Power Bundle — $1,497/mo", href: buyHref("power-bundle", "Buy: Power Bundle $1,497/mo") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
@@ -523,7 +543,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "Landing page review + recommendations (build is separate)",
       ],
     },
-    primaryCta: { label: "Start FB Ads — $1,497/mo", href: mailto("Buy: Facebook Ads $1,497/mo") },
+    primaryCta: { label: "Start FB Ads — $1,497/mo", href: buyHref("fb-ads", "Buy: Facebook Ads $1,497/mo") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
@@ -604,7 +624,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
           "Anywhere in Texas: I drive to you, we do 8 hours instead of 4, lunch on me. Bigger deliverable scope (e.g., full sales OS, not one process). Travel beyond TX is custom-quoted.",
       },
     },
-    primaryCta: { label: "Reserve the Working Session — $2,997", href: mailto("Buy: Working Session $2,997") },
+    primaryCta: { label: "Reserve the Working Session — $2,997", href: buyHref("working-session", "Buy: Working Session $2,997") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
@@ -681,7 +701,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "First-look access to every new playbook + template",
       ],
     },
-    primaryCta: { label: "Start Operator — $4,997/mo", href: mailto("Buy: Monthly Operator $4,997/mo") },
+    primaryCta: { label: "Start Operator — $4,997/mo", href: buyHref("monthly-operator", "Buy: Monthly Operator $4,997/mo") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
@@ -757,7 +777,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "30-day post-sprint Slack support (same-day Mon–Fri)",
       ],
     },
-    primaryCta: { label: "Start the Sprint — $9,997", href: mailto("Buy: 4-Week Build Sprint $9,997") },
+    primaryCta: { label: "Start the Sprint — $9,997", href: buyHref("sprint-4-week", "Buy: 4-Week Build Sprint $9,997") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
@@ -834,7 +854,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "Monthly 60-min recorded strategy call",
       ],
     },
-    primaryCta: { label: "Apply — Annual Advisor", href: mailto("Apply: Annual Advisor $75K/yr") },
+    primaryCta: { label: "Apply — Annual Advisor", href: buyHref("annual-advisor", "Apply: Annual Advisor $75K/yr") },
     secondaryCta: { label: "Free 30-min call first", href: "/book" },
 
     whyBuy: [
