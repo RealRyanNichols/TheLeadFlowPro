@@ -63,8 +63,59 @@ export const authOptions: NextAuthOptions = {
           allowDangerousEmailAccountLinking: true
         })]
       : []),
+    // Email-only OTP — passwordless login. Two steps:
+    //   1) POST /api/auth/email-otp/start — generates a 6-digit code, stores
+    //      it in VerificationToken, emails it to the user.
+    //   2) signIn("email-otp", { email, otp }) — verifies the code, creates
+    //      the User row if missing, returns the session user.
     CredentialsProvider({
-      name: "Email + password",
+      id: "email-otp",
+      name: "Email code",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        otp:   { label: "Code",  type: "text"  },
+      },
+      async authorize(credentials) {
+        const email = credentials?.email?.toLowerCase().trim();
+        const otp = (credentials?.otp || "").trim();
+        if (!email || !otp || !/^\d{6}$/.test(otp)) return null;
+
+        const token = await prisma.verificationToken.findFirst({
+          where: { identifier: email, token: otp, expires: { gt: new Date() } },
+        });
+        if (!token) return null;
+
+        // Single-use — delete the token immediately so it can't be reused.
+        await prisma.verificationToken.deleteMany({
+          where: { identifier: email, token: otp },
+        });
+
+        // Find or create the user.
+        let user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+          user = await prisma.user.create({
+            data: { email, emailVerified: new Date() },
+          });
+        } else if (!user.emailVerified) {
+          user = await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerified: new Date() },
+          });
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name ?? undefined,
+          image: user.image ?? undefined,
+        };
+      },
+    }),
+    // Legacy email+password — kept for backward compatibility and admin use.
+    // Not surfaced in the new /login UI. To use, hit /login?legacy=1.
+    CredentialsProvider({
+      id: "credentials",
+      name: "Email + password (legacy)",
       credentials: {
         email:    { label: "Email",    type: "email" },
         password: { label: "Password", type: "password" }

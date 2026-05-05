@@ -183,14 +183,24 @@ export default function BookPage() {
           </div>
 
           {BOOKING_URL ? (
-            // Live calendar embed — height capped so the page doesn't doom-scroll.
-            // ?layout=mobile gives a more compact column view than the default monthly grid.
+            // Live calendar embed — sized so the booking flow fits within the
+            // viewport without doom-scrolling. Uses Cal.com's column_view layout
+            // (cleaner than mobile when the iframe has room to breathe) and a
+            // viewport-relative height capped between 560 and 820px.
             <div className="overflow-hidden rounded-2xl border border-slate-200">
               <iframe
-                src={BOOKING_URL.includes("?") ? `${BOOKING_URL}&layout=mobile` : `${BOOKING_URL}?layout=mobile`}
+                src={
+                  BOOKING_URL.includes("?")
+                    ? `${BOOKING_URL}&layout=column_view&hideEventTypeDetails=false`
+                    : `${BOOKING_URL}?layout=column_view&hideEventTypeDetails=false`
+                }
                 title="Book a 10-minute strategy call with Ryan Nichols"
                 className="block w-full"
-                style={{ height: "560px", border: 0 }}
+                style={{
+                  height: "min(82vh, 820px)",
+                  minHeight: "560px",
+                  border: 0,
+                }}
                 loading="lazy"
               />
             </div>
