@@ -124,11 +124,19 @@ const PLATFORMS = [
 ];
 
 const FOUNDER_BRANDS = [
-  { name: "The LeadFlow Pro",  note: "Founder · this site" },
-  { name: "RepWatchr.com",     note: "Founder" },
-  { name: "Faretta.Legal",     note: "Founder" },
-  { name: "Faretta.AI",        note: "Founder" },
+  { name: "The LeadFlow Pro",   note: "Founder · this site" },
+  { name: "RepWatchr.com",      note: "Founder" },
+  { name: "Faretta.Legal",      note: "Founder" },
+  { name: "Faretta.AI",         note: "Founder" },
   { name: "Wholesale Universe", note: "Founder" },
+  { name: "Rescue The Universe", note: "Founder" },
+];
+
+const NAMED_CLIENTS = [
+  {
+    name: "Premier Dental Academy of Longview",
+    note: "Built website + student/admin tools + ran their ads (active client).",
+  },
 ];
 
 /* ─── Page ────────────────────────────────────────────────────── */
@@ -217,50 +225,55 @@ export default async function GrowV2Page() {
         <div className="relative mx-auto max-w-7xl px-4 py-6 sm:py-10">
           <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1 text-xs uppercase tracking-widest text-cyan-700">
-                <BadgeCheck className="h-3.5 w-3.5" /> Ryan Nichols built 75,000+ followers from zero across X, Facebook, YouTube, Instagram &amp; TikTok
+              {/* Proof-forward eyebrow: "he's already done what I want to do" */}
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/70 backdrop-blur px-3 py-1 text-xs uppercase tracking-widest text-cyan-700 font-semibold shadow-sm">
+                <BadgeCheck className="h-3.5 w-3.5" /> 75K+ followers · 6 companies founded · 10+ years
               </div>
               <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-slate-950 leading-tight">
-                Read this first.{" "}
-                <span className="bg-gradient-to-r from-brand-700 to-cyan-500 bg-clip-text text-transparent">
-                  If you're here for free tips, click away.
+                I've already built what you're trying to build.{" "}
+                <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
+                  Now let's build yours.
                 </span>
               </h1>
               <p className="mt-5 text-lg text-slate-700 leading-relaxed">
-                The algorithm is in <strong className="text-slate-950">everything we do</strong> — your
-                phone, your watch, your car, every app. The operator who pulls the right signals
-                first <em>wins</em>.
+                Six companies founded. 75,000+ followers built from zero across X, Facebook, YouTube,
+                Instagram, and TikTok. A decade running social, ads, sales, and lead gen through every
+                algorithm shift the platforms threw at me — and a written record of how I did it.
               </p>
               <p className="mt-4 text-lg text-slate-700 leading-relaxed">
-                This page is for <strong className="text-slate-950">serious buyers only</strong> —
-                owners, creators, operators ready to invest. I'm not a guru. I won't pitch you. I
-                won't slide-deck you. <strong className="text-slate-950">We'll know in 10 minutes</strong>{" "}
-                whether we should work together.
+                Spending money on me <strong className="text-slate-950">is</strong> spending money on
+                yourself. I take what you pay me and turn it into followers, leads, sales process, and
+                systems your business runs on after I'm gone. That's the deal.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <TrackedLink
-                  href="/tiers"
-                  event="cta_hire_ryan"
+                  href="/offers/decision-sprint"
+                  event="cta_buy_sprint"
                   location="homepage_hero"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-sm hover:bg-slate-800"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
                 >
-                  Hire Ryan now <ArrowRight className="h-4 w-4" />
+                  Buy 90 minutes — $90 <ArrowRight className="h-4 w-4" />
+                </TrackedLink>
+                <TrackedLink
+                  href="/tiers"
+                  event="cta_see_tiers"
+                  location="homepage_hero"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
+                >
+                  See all packages
                 </TrackedLink>
                 <TrackedLink
                   href="/book"
                   event="cta_book_call"
                   location="homepage_hero"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-sm hover:bg-accent-600"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white/80 backdrop-blur px-6 py-3 font-semibold text-slate-800 hover:border-brand-500 hover:text-brand-700"
                 >
-                  Book the 10-min call first
+                  Free 10-min call
                 </TrackedLink>
               </div>
               <p className="mt-3 text-xs text-slate-500">
-                Two paths. Serious buyers skip the line and hire direct. Everyone else books the
-                10-minute call. Either way — no pitch decks, no 60-min discovery tours.
-              </p>
-              <p className="mt-3 text-xs text-slate-500">
-                Free, 10 minutes, video. No pitch decks. No 60-minute "discovery" tours.
+                Three doors, one operator. The $90 sprint is the fastest. The full package list is the
+                widest. The free 10-min call is for serious buyers who want to talk first.
               </p>
             </div>
 
@@ -306,7 +319,7 @@ export default async function GrowV2Page() {
               big={fmt(totalReach)}
               label={`Followers across X, Facebook, YouTube, Instagram, TikTok${liveCount > 0 ? ` · ${liveCount} live API` + (liveCount > 1 ? "s" : "") : ""}`}
             />
-            <ProofTile big="5" label="Companies founded — LeadFlow Pro, RepWatchr, Faretta.Legal, Faretta.AI, Wholesale Universe" />
+            <ProofTile big="6" label="Companies founded — LeadFlow Pro, RepWatchr, Faretta.Legal, Faretta.AI, Wholesale Universe, Rescue The Universe" />
             <ProofTile big="10+ yr" label="Operating in social, ads, sales, and lead generation through every algorithm shift" />
             <ProofTile big="0 → ∞" label="The transformation we deliver: from invisible to in-front-of-the-right-buyers" />
           </div>
@@ -368,7 +381,7 @@ export default async function GrowV2Page() {
               </h2>
               <p className="mt-5 text-slate-300 leading-relaxed">
                 Most owners stall at 300, 1,500, or 5,000 followers and stop. They post randomly, chase
-                trends, and quit when the numbers don't move. I've taken five brands across the same
+                trends, and quit when the numbers don't move. I've taken six brands across the same
                 hill — and I know exactly where the hard climbs are.
               </p>
               <p className="mt-3 text-slate-300 leading-relaxed">
@@ -712,7 +725,7 @@ export default async function GrowV2Page() {
               Same operator. Different problems. Same playbook.
             </h2>
           </div>
-          <div className="mt-8 grid gap-4 md:grid-cols-5 text-center">
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 text-center">
             {FOUNDER_BRANDS.map((b) => (
               <div key={b.name} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
                 <div className="text-sm font-semibold text-slate-900">{b.name}</div>
@@ -720,6 +733,26 @@ export default async function GrowV2Page() {
               </div>
             ))}
           </div>
+
+          {/* Named clients (separate row so we don't conflate them with Ryan's own brands) */}
+          {NAMED_CLIENTS.length > 0 && (
+            <div className="mt-10">
+              <div className="text-center">
+                <div className="text-xs uppercase tracking-widest text-slate-500">Named clients</div>
+                <p className="mt-1 text-sm text-slate-700">
+                  Public client work. Same operator, same playbook, different last name.
+                </p>
+              </div>
+              <div className="mt-5 grid gap-4 md:grid-cols-2 max-w-3xl mx-auto">
+                {NAMED_CLIENTS.map((c) => (
+                  <div key={c.name} className="rounded-2xl border border-cyan-200 bg-cyan-50/60 backdrop-blur p-5">
+                    <div className="text-sm font-bold text-slate-950">{c.name}</div>
+                    <div className="mt-1 text-xs text-slate-700">{c.note}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

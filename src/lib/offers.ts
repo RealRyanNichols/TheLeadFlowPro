@@ -82,9 +82,9 @@ function mailto(subject: string): string {
 
 const RYAN_PROOF = [
   { big: "75K+",  label: "Followers built from zero across 5 platforms" },
-  { big: "5",     label: "Companies founded — LeadFlow Pro, RepWatchr, Faretta.Legal, Faretta.AI, Wholesale Universe" },
+  { big: "6",     label: "Companies founded — LeadFlow Pro, RepWatchr, Faretta.Legal, Faretta.AI, Wholesale Universe, Rescue The Universe" },
   { big: "10+ yr", label: "Years operating in social, ads, sales, lead gen" },
-  { big: "1",     label: "Premier Dental Academy of Longview — built site, student/admin tools, ran ads" },
+  { big: "Premier Dental Academy", label: "Of Longview — client work: built website + student/admin tools + ran their ads" },
 ];
 
 const TEXAS_NDA_FAQ = {
