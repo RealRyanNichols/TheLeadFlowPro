@@ -189,9 +189,32 @@ export default async function GrowV2Page() {
         </div>
       </header>
 
-{/* HERO — hard filter + algorithm radar visual */}
-      <section className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:py-10">
+{/* HERO — warm-glass blend (cyan + accent + soft purple blooms over a warm base) */}
+      <section className="relative overflow-hidden border-b border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(135deg, #fff8f1 0%, #f6f9ff 38%, #eef9ff 70%, #f3eaff 100%)",
+          }}
+        />
+        <div
+          aria-hidden
+          className="absolute -top-32 -right-24 h-[520px] w-[520px] rounded-full opacity-55 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(35,184,255,0.55) 0%, transparent 65%)" }}
+        />
+        <div
+          aria-hidden
+          className="absolute -bottom-40 -left-24 h-[560px] w-[560px] rounded-full opacity-55 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(255,154,31,0.45) 0%, transparent 65%)" }}
+        />
+        <div
+          aria-hidden
+          className="absolute top-1/2 right-1/3 h-[320px] w-[320px] rounded-full opacity-30 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(176,107,255,0.35) 0%, transparent 60%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-6 sm:py-10">
           <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1 text-xs uppercase tracking-widest text-cyan-700">
@@ -252,9 +275,22 @@ export default async function GrowV2Page() {
         </div>
       </section>
 
-      {/* WHY BELIEVE ME — proof block for the serious-buyer tier */}
-      <section className="border-b border-slate-200 bg-slate-50">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:py-16">
+      {/* WHY BELIEVE ME — warm-glass extension of the hero base */}
+      <section className="relative overflow-hidden border-b border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, #f6f9ff 0%, #fff8f1 50%, #f3eaff 100%)",
+          }}
+        />
+        <div
+          aria-hidden
+          className="absolute top-1/3 -right-32 h-[420px] w-[420px] rounded-full opacity-30 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(35,184,255,0.4) 0%, transparent 60%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:py-16">
           <div className="text-xs uppercase tracking-widest text-cyan-700 mb-2">Why believe me</div>
           <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 max-w-3xl">
             I take businesses from <em>not being seen</em> to <em>being seen</em> — and I have the receipts.
@@ -390,8 +426,16 @@ export default async function GrowV2Page() {
       </section>
 
       {/* RIGHT FIT / WRONG FIT */}
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:py-16">
+      <section className="relative overflow-hidden border-b border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, #fff8f1 0%, #f6f9ff 100%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-16">
           <div className="text-xs uppercase tracking-widest text-slate-500 mb-2">Save us both time</div>
           <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 mb-8">
             Are you a fit?
