@@ -1,475 +1,674 @@
-// src/app/services/page.tsx — Public sales page for Ryan's social-growth services.
+// src/app/services/page.tsx — Social Media services hub.
 //
-// Built around the 7-package ladder in SOCIAL_GROWTH_PACKAGES.md (workspace doc):
-// Discovery Call (free) → Audit $297 → Sprint $1,497 → Funnel $2,997 →
-// DFY Social $2,497/mo → Ads $1,997/mo+ → VIP Coaching $497/mo.
-//
-// Mobile-first by design: single-column on phones, two-column from md:, three
-// from lg:. No JS required; pure Server Component. Every CTA is a mailto link
-// today — swap to Stripe Payment Link URLs once the products are created.
-//
-// Notes:
-// - We don't promise specific outcomes anywhere on this page (legal / good
-//   business). All copy stays "what we deliver" not "what you'll achieve".
-// - Ryan's social proof (70K+ across 5 platforms) is the credibility wedge.
+// Full rewrite. Warm-glass hero + dark navy accent sections matching the
+// homepage Journey aesthetic. NO emerald/green palette anywhere. Platform
+// cards route to dedicated /platforms/[handle] pages. Stripe links wire in
+// automatically via offers.ts buyHref().
 
 import Link from "next/link";
-import { LightHeader, LightFooter } from "@/components/site/LightHeader";
 import {
-  ArrowRight, Check, Mail, Megaphone, Sparkles, Users, Briefcase,
-  Workflow, BarChart3, GraduationCap, Quote, ShieldCheck,
+  ArrowRight, BadgeCheck, Calendar, Check, Facebook, Layers, LineChart,
+  Megaphone, Music2, ShieldCheck, Sparkles, Star, TrendingUp, Trophy,
+  Twitter, Users, X as XIcon, Youtube, Zap,
 } from "lucide-react";
+import { LightHeader, LightFooter } from "@/components/site/LightHeader";
 
 export const metadata = {
-  title: "Services — Social Media · The LeadFlow Pro",
+  title: "Social Media Services — Done For You · The LeadFlow Pro",
   description:
-    "Grow your audience, your leads, and your revenue — without becoming a full-time content machine. 7 packages from a $297 audit to full done-for-you management. Built by Ryan Nichols, 70K+ across 5 platforms.",
+    "TikTok, Facebook, X, and YouTube — managed end-to-end by Ryan Nichols. 75K+ followers built across 5 platforms. Same playbook, your voice. Plus dedicated Facebook Ads management for owners ready to scale lead volume.",
 };
 
-const RYAN_EMAIL = "theflashflash24@gmail.com";
-
-function mailto(subject: string) {
-  return `mailto:${RYAN_EMAIL}?subject=${encodeURIComponent(subject)}`;
-}
-
-type Package = {
-  slug: string;
-  name: string;
-  price: string;
-  cadence?: string;
-  one_liner: string;
-  who: string;
-  deliverables: string[];
-  cta: string;
-  cta_href: string;
-  icon: any;
-  tone: "indigo" | "emerald" | "amber" | "violet" | "rose" | "cyan" | "slate";
-  highlight?: boolean;
-};
-
-const PACKAGES: Package[] = [
+const PLATFORMS = [
   {
-    slug: "audit",
-    name: "Social Audit & 90-Day Playbook",
-    price: "$297",
-    one_liner: "A complete teardown of your social presence and a written 90-day plan you can run yourself or hand to your team.",
-    who: "Owners and creators who already post but don't know what's actually working.",
-    deliverables: [
-      "Audit of up to 5 active profiles (IG, TikTok, YouTube, LinkedIn, FB, X)",
-      "60 days of performance data + 3 competitor benchmarks",
-      "Written 12–18 page playbook (PDF + editable Notion / Google Doc)",
-      "30-min walkthrough call",
-      "Delivered in 7 business days",
+    handle: "tiktok",
+    name: "TikTok",
+    Icon: Music2,
+    blurb: "Daily short-form built around the hook patterns the algorithm is rewarding this week. Repurposed across IG Reels and YT Shorts.",
+    bullets: [
+      "20 short-form posts / month",
+      "Hook + caption iteration weekly",
+      "Cross-post to Reels & Shorts (free)",
     ],
-    cta: "Get my audit",
-    cta_href: mailto("Social Audit & 90-Day Playbook — $297"),
-    icon: BarChart3,
-    tone: "cyan",
+    metric: "FYP-first",
   },
   {
-    slug: "sprint",
-    name: "30-Day Content Engine Sprint",
-    price: "$1,497",
-    one_liner: "A full month of done-for-you content — 30 posts, 4 video scripts, 12 long-form captions, voice guide, calendar.",
-    who: "Owners who know they need to post consistently but can't manufacture a month from scratch.",
-    deliverables: [
-      "30 short-form posts (mix of reels, carousels, stills)",
-      "4 short-form video scripts (shoot-ready)",
-      "12 long-form captions",
-      "Content calendar mapped to your real selling events",
-      "Voice & style guide (your team uses going forward)",
-      "2 strategy calls (kickoff + week-2 review)",
-      "You own everything — editable hand-off",
+    handle: "facebook",
+    name: "Facebook",
+    Icon: Facebook,
+    blurb: "Page + groups strategy for businesses where buyers actually live (local services, mortgage, real estate, B2B).",
+    bullets: [
+      "12 long-form + 8 short videos / mo",
+      "Group seeding + engagement",
+      "Messenger funnel + auto-reply",
     ],
-    cta: "Start my sprint",
-    cta_href: mailto("Content Engine Sprint — $1,497"),
-    icon: Sparkles,
-    tone: "violet",
+    metric: "18,900+",
   },
   {
-    slug: "funnel",
-    name: "Lead Flow Funnel Build",
-    price: "$2,997",
-    one_liner: "A complete lead-generation funnel built on LeadFlow Pro — landing page, lead magnet, 7-email nurture, ad creatives. Live in 14 days.",
-    who: "Owners with a proven offer who want a real lead-generation system, not another website.",
-    deliverables: [
-      "1 landing page (LeadFlow Pro subdomain or your domain)",
-      "1 lead magnet (PDF guide, checklist, or short video)",
-      "7-email nurture sequence (written + scheduled)",
-      "6 paid-ad creatives (3 image + 3 short-form video)",
-      "Tracking, lead grading, and CRM routing on LeadFlow Pro",
-      "Kickoff + mid-build review + launch handoff calls",
+    handle: "x",
+    name: "X / Twitter",
+    Icon: Twitter,
+    blurb: "Daily posting + reply game. The platform I grew to 43,800+ on. Built for personal brands, founders, and operators.",
+    bullets: [
+      "Daily Mon–Fri posts in your voice",
+      "Reply targeting that drives audience",
+      "Weekly thread + monthly long-form",
     ],
-    cta: "Build my funnel",
-    cta_href: mailto("Lead Flow Funnel Build — $2,997"),
-    icon: Workflow,
-    tone: "emerald",
-    highlight: true,
+    metric: "43,800+",
   },
   {
-    slug: "dfy-social",
-    name: "Done-For-You Social Management",
-    price: "$2,497",
-    cadence: "/mo",
-    one_liner: "We run two of your highest-leverage social channels every business day — content, posting, daily community management, monthly reporting.",
-    who: "Established owners losing real revenue to inconsistent posting.",
-    deliverables: [
-      "20 short-form posts + 4 long-form posts per month, 2 channels (48 assets/mo)",
-      "Daily community management (replies, DMs, buying-signal flags) Mon–Fri",
-      "Monthly content calendar approval",
-      "Monthly performance report tied to leads + revenue",
-      "Monthly 30-min strategy call",
-      "30-day cancellation, no contract. Add $497/mo per extra channel.",
+    handle: "youtube",
+    name: "YouTube",
+    Icon: Youtube,
+    blurb: "Long-form content engine. Title + thumbnail + retention loops engineered for the home feed and search.",
+    bullets: [
+      "1 long-form video / week",
+      "Title + thumbnail iteration",
+      "Retention + CTR analysis monthly",
     ],
-    cta: "Hand it off",
-    cta_href: mailto("Done-For-You Social Management — $2,497/mo"),
-    icon: Briefcase,
-    tone: "indigo",
-  },
-  {
-    slug: "ads",
-    name: "Paid Ads Management — Meta + Google",
-    price: "$1,997",
-    cadence: "/mo + 10% spend",
-    one_liner: "Lead-driving paid campaigns built on Meta and Google, optimized weekly, transparent reporting tied to real lead volume and cost.",
-    who: "Owners with a proven offer and at least $2,000/month in ad budget.",
-    deliverables: [
-      "Strategy + creative production (8 new creatives/mo: 4 Meta + 4 Google)",
-      "Daily spend monitoring + weekly optimization passes",
-      "Monthly performance report (spend, leads, CPL, ROAS)",
-      "Monthly 30-min review call",
-      "Initial pixel/tag/conversion-tracking setup ($997 one-time, waived on annual prepay)",
-      "Ad spend paid by you directly to Meta + Google — never invoiced through us",
-    ],
-    cta: "Run my ads",
-    cta_href: mailto("Paid Ads Management — Meta + Google"),
-    icon: Megaphone,
-    tone: "amber",
-  },
-  {
-    slug: "vip",
-    name: "VIP Coaching with Ryan",
-    price: "$497",
-    cadence: "/mo",
-    one_liner: "Four 30-minute calls a month with Ryan, plus direct text access Mon–Fri. Built for owners who do their own work but want a sharp second brain on the strategy.",
-    who: "Owners doing $100K–$1M who want strategic firepower without hiring a full agency.",
-    deliverables: [
-      "4 × 30-min private video calls per month",
-      "Direct text access via Voxer or Slack, Mon–Fri (1 business-day response)",
-      "Private template library (refreshed monthly)",
-      "Recordings of every call within 24 hours",
-      "30-day cancellation, no contract. 6-month prepay $2,485 (saves a month).",
-    ],
-    cta: "Join the VIP room",
-    cta_href: mailto("VIP Coaching with Ryan — $497/mo"),
-    icon: GraduationCap,
-    tone: "rose",
+    metric: "12,000+",
   },
 ];
 
-function toneClasses(t: Package["tone"]) {
-  return {
-    cyan:    "border-cyan-300 bg-cyan-50 text-cyan-700",
-    violet:  "border-violet-300 bg-violet-50 text-violet-700",
-    emerald: "border-emerald-300 bg-emerald-50 text-emerald-700",
-    indigo:  "border-indigo-300 bg-indigo-50 text-indigo-700",
-    amber:   "border-amber-300 bg-amber-50 text-amber-700",
-    rose:    "border-rose-300 bg-rose-50 text-rose-700",
-    slate:   "border-slate-400/30 bg-slate-500/[0.06] text-slate-200",
-  }[t];
-}
-
-function ringTone(t: Package["tone"]) {
-  return {
-    cyan: "ring-cyan-400/20",
-    violet: "ring-violet-400/20",
-    emerald: "ring-emerald-400/30",
-    indigo: "ring-indigo-400/20",
-    amber: "ring-amber-400/20",
-    rose: "ring-rose-400/20",
-    slate: "ring-slate-400/20",
-  }[t];
-}
-
-const FAQS = [
+const TIERS = [
   {
-    q: "Do you guarantee a specific number of followers, leads, or revenue?",
-    a: "No, and we won't. What we guarantee is the work product, the strategic direction, and complete reporting transparency. Anyone selling guaranteed results in social or paid is overselling — performance depends on offer, market, creative, and platform behavior outside any agency's control.",
+    label: "$47",
+    sub: "Quick-Look Video",
+    line: "I look at your socials, record a 5-min video, write your next post.",
+    href: "/offers/quick-look",
+    style: "border-cyan-300 bg-white",
   },
   {
-    q: "Why does ad spend get paid directly to Meta and Google instead of through you?",
-    a: "Two reasons: it's cleaner for your books, and it removes any agency-side liability for unspent budget. You keep ownership of the ad accounts, the historical data, and the funds. We never touch ad-spend money.",
+    label: "$497/mo",
+    sub: "Single platform",
+    line: "TikTok, FB, X, or YouTube — managed end-to-end on one channel.",
+    href: "/services#single-platforms",
+    style: "border-brand-300 bg-white",
   },
   {
-    q: "What's the fastest way to see whether we're a fit?",
-    a: "Book the free 20-minute Discovery Call. You'll walk away with a one-page write-up of the single highest-leverage move you can make in the next 30 days — even if you decide not to hire us.",
+    label: "$1,497/mo",
+    sub: "Power Bundle",
+    line: "All 4 platforms managed. Saves $491/mo vs. single-channel pricing.",
+    href: "/offers/power-bundle",
+    style: "border-accent-300 bg-white",
+    highlight: true,
   },
   {
-    q: "Can you work with my existing team / scheduler / CRM?",
-    a: "Yes. We work in Buffer, Later, your existing CRM, your existing analytics. Done-For-You and VIP clients onboard inside whatever stack you're already using.",
-  },
-  {
-    q: "How does this connect to LeadFlow Pro?",
-    a: "The Funnel Build runs on LeadFlow Pro by design — that's where lead capture, grading, and CRM routing happen. DFY Social and Ads management can run independently of LeadFlow Pro, but every engagement gives you the option to consolidate inside the platform.",
-  },
-  {
-    q: "Where are you based, and what governs the engagement?",
-    a: "Real Ryan Nichols LLC is based in Texas. All engagements are governed by Texas law. Standard month-to-month terms with 30-day cancellation on recurring services; one-time builds are scoped at the kickoff call and refundable up to 24 hours after delivery on the audit.",
+    label: "$1,497/mo + 10%",
+    sub: "Facebook Ads",
+    line: "Done-for-you Meta ad management. You pay Meta directly. $2K min.",
+    href: "/offers/fb-ads",
+    style: "border-cyan-300 bg-white",
   },
 ];
 
 export default function ServicesPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      {/* Header strip */}
-      <div className="border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between text-sm">
-          <Link href="/" className="font-semibold text-slate-900 hover:text-white">
-            The LeadFlow Pro
-          </Link>
-          <Link
-            href="#discovery"
-            className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1.5 text-emerald-700 hover:bg-emerald-500/20"
-          >
-            Free Discovery Call <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-      </div>
+      <LightHeader activePath="/services" />
 
-      {/* Hero */}
-      <section className="mx-auto max-w-6xl px-4 pt-12 pb-10 sm:pt-20 sm:pb-14">
-        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white shadow-sm px-3 py-1 text-xs uppercase tracking-widest text-slate-500">
-          Built by Ryan Nichols · 70K+ across 5 platforms
-        </div>
-        <h1 className="mt-4 text-3xl sm:text-5xl font-semibold tracking-tight text-white">
-          Grow your audience, your leads, and your revenue —{" "}
-          <span className="text-emerald-300">without becoming a full-time content machine.</span>
-        </h1>
-        <p className="mt-5 max-w-2xl text-base sm:text-lg text-slate-700">
-          Whether you need a clear plan, a 30-day content build, a complete lead-generation funnel,
-          or a team that runs your social and ads every day — pick the level that fits where you
-          are right now. Every engagement starts with a free 20-minute Discovery Call.
-        </p>
+      {/* HERO — warm-glass blend */}
+      <section className="relative overflow-hidden">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(135deg, #fff8f1 0%, #f6f9ff 38%, #eef9ff 70%, #f3eaff 100%)",
+          }}
+        />
+        <div
+          aria-hidden
+          className="absolute -top-32 -right-32 h-[520px] w-[520px] rounded-full opacity-50 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(35,184,255,0.55) 0%, transparent 65%)" }}
+        />
+        <div
+          aria-hidden
+          className="absolute -bottom-40 -left-32 h-[560px] w-[560px] rounded-full opacity-50 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(255,154,31,0.45) 0%, transparent 65%)" }}
+        />
+        <div
+          aria-hidden
+          className="absolute top-1/2 right-1/3 h-[320px] w-[320px] rounded-full opacity-30 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(176,107,255,0.35) 0%, transparent 60%)" }}
+        />
 
-        {/* Three-pillar selector */}
-        <div className="mt-8 grid gap-3 sm:grid-cols-3">
-          <a href="#tier-plan" className="group rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:border-cyan-300 hover:bg-cyan-50">
-            <div className="text-xs uppercase tracking-widest text-slate-500">Tier 1</div>
-            <div className="mt-1 font-semibold text-white">A plan I run myself</div>
-            <div className="mt-1 text-sm text-slate-700">Audit + 90-day playbook · $297</div>
-            <div className="mt-3 inline-flex items-center text-cyan-700 text-sm group-hover:text-cyan-700">
-              See it <ArrowRight className="ml-1 h-4 w-4" />
-            </div>
-          </a>
-          <a href="#tier-build" className="group rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:border-emerald-300 hover:bg-emerald-50">
-            <div className="text-xs uppercase tracking-widest text-slate-500">Tier 2</div>
-            <div className="mt-1 font-semibold text-white">Built for me once</div>
-            <div className="mt-1 text-sm text-slate-700">Sprint · $1,497 &nbsp;·&nbsp; Funnel · $2,997</div>
-            <div className="mt-3 inline-flex items-center text-emerald-300 text-sm group-hover:text-emerald-700">
-              See it <ArrowRight className="ml-1 h-4 w-4" />
-            </div>
-          </a>
-          <a href="#tier-recurring" className="group rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:border-violet-300 hover:bg-violet-50">
-            <div className="text-xs uppercase tracking-widest text-slate-500">Tier 3</div>
-            <div className="mt-1 font-semibold text-white">Run for me every month</div>
-            <div className="mt-1 text-sm text-slate-700">DFY · Ads · VIP · from $497/mo</div>
-            <div className="mt-3 inline-flex items-center text-violet-700 text-sm group-hover:text-violet-700">
-              See it <ArrowRight className="ml-1 h-4 w-4" />
-            </div>
-          </a>
-        </div>
-      </section>
-
-      {/* Discovery Call (top of funnel) */}
-      <section id="discovery" className="mx-auto max-w-6xl px-4 pb-12">
-        <div className="rounded-3xl border border-emerald-300 bg-gradient-to-br from-emerald-500/[0.08] to-emerald-500/[0.02] p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs text-emerald-700">
-                Free · 20 minutes · No pitch
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
+          <div className="grid gap-10 lg:grid-cols-5 lg:items-center">
+            <div className="lg:col-span-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/70 backdrop-blur px-3 py-1 text-xs uppercase tracking-widest text-cyan-700 font-semibold shadow-sm">
+                <BadgeCheck className="h-3.5 w-3.5" /> 75K+ followers across 5 platforms · I run them all
               </div>
-              <h2 className="mt-3 text-xl sm:text-2xl font-semibold text-white">
-                Social Media Discovery Call
-              </h2>
-              <p className="mt-2 max-w-2xl text-slate-700">
-                A focused 20-minute call with Ryan. You walk away with a one-page write-up
-                identifying the single highest-leverage move you can make in the next 30 days —
-                whether or not you hire us is up to you. Calendar slots are intentionally limited.
+              <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight text-slate-950">
+                Social media,{" "}
+                <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
+                  run by the operator who already crossed the reef.
+                </span>
+              </h1>
+              <p className="mt-5 text-lg text-slate-700 leading-relaxed">
+                Pick a platform. Pick the bundle. Or hand me all four. I write the hooks, edit the
+                cuts, schedule the posts, and run the reply game in your voice — while you keep
+                doing the work that actually brought you here.
               </p>
-            </div>
-            <a
-              href={mailto("Free Discovery Call — Social Media")}
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-emerald-950 hover:bg-emerald-400"
-            >
-              Book your call <ArrowRight className="h-4 w-4" />
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* Tier 1 — A plan I run myself */}
-      <section id="tier-plan" className="mx-auto max-w-6xl px-4 pb-12">
-        <SectionHeader eyebrow="Tier 1" title="A plan I run myself" />
-        <div className="grid gap-5">
-          <PackageCard pkg={PACKAGES[0]} />
-        </div>
-      </section>
-
-      {/* Tier 2 — Built for me once */}
-      <section id="tier-build" className="mx-auto max-w-6xl px-4 pb-12">
-        <SectionHeader eyebrow="Tier 2" title="Built for me once" />
-        <div className="grid gap-5 md:grid-cols-2">
-          <PackageCard pkg={PACKAGES[1]} />
-          <PackageCard pkg={PACKAGES[2]} />
-        </div>
-      </section>
-
-      {/* Tier 3 — Run for me monthly */}
-      <section id="tier-recurring" className="mx-auto max-w-6xl px-4 pb-12">
-        <SectionHeader eyebrow="Tier 3" title="Run for me every month" />
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          <PackageCard pkg={PACKAGES[3]} />
-          <PackageCard pkg={PACKAGES[4]} />
-          <PackageCard pkg={PACKAGES[5]} />
-        </div>
-      </section>
-
-      {/* Why Ryan */}
-      <section className="mx-auto max-w-6xl px-4 pb-12">
-        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-6 sm:p-10">
-          <SectionHeader eyebrow="Why Ryan" title="Built mine. Now I'll show you how to build yours." />
-          <div className="grid gap-6 md:grid-cols-3 mt-2">
-            <Stat label="X / Twitter" value="44K" />
-            <Stat label="Facebook" value="19K" />
-            <Stat label="YouTube" value="12K" />
-          </div>
-          <p className="mt-6 text-slate-700 max-w-3xl">
-            What you're hiring is the playbook that built this — applied to your business, your
-            offers, and your audience. Not a generic agency template. Every package is something
-            I either still run myself or have run for paying clients.
-          </p>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section id="faq" className="mx-auto max-w-6xl px-4 pb-16">
-        <SectionHeader eyebrow="Common questions" title="Before you book" />
-        <div className="grid gap-4 md:grid-cols-2">
-          {FAQS.map((f) => (
-            <div key={f.q} className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
-              <div className="flex items-start gap-3">
-                <Quote className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                <h3 className="font-semibold text-white">{f.q}</h3>
+              <p className="mt-3 text-base text-slate-700 leading-relaxed">
+                Spending money on me <strong>is</strong> spending money on you. I take what you pay
+                me and turn it into followers, leads, and a system your business runs on.
+              </p>
+              <div className="mt-7 flex flex-col sm:flex-row gap-3 flex-wrap">
+                <Link
+                  href="/offers/power-bundle"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/30 hover:bg-slate-800"
+                >
+                  Get the Power Bundle — $1,497/mo <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/offers/quick-look"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/30 hover:bg-accent-600"
+                >
+                  Try the $47 Quick-Look first
+                </Link>
+                <Link
+                  href="/book"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white/80 backdrop-blur px-6 py-3 font-semibold text-slate-800 hover:border-brand-500 hover:text-brand-700"
+                >
+                  Free 10-min call
+                </Link>
               </div>
-              <p className="mt-2 text-sm text-slate-700">{f.a}</p>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Final CTA */}
-      <section className="mx-auto max-w-6xl px-4 pb-20">
-        <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-emerald-500/[0.08] via-cyan-500/[0.04] to-violet-500/[0.06] p-6 sm:p-10 text-center">
-          <h2 className="text-2xl sm:text-3xl font-semibold text-white">
-            Pick a tier or just start with the call.
-          </h2>
-          <p className="mt-3 text-slate-700 max-w-2xl mx-auto">
-            Either way, we'll know in 20 minutes whether we're a fit and what the right next
-            move is for you.
-          </p>
-          <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <a
-              href={mailto("Free Discovery Call — Social Media")}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-emerald-950 hover:bg-emerald-400"
-            >
-              Book the free call <ArrowRight className="h-4 w-4" />
-            </a>
-            <a
-              href={mailto("Question about LeadFlow services")}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white shadow-sm px-5 py-3 font-semibold text-slate-900 hover:bg-white shadow-sm"
-            >
-              <Mail className="h-4 w-4" /> Email me a question
-            </a>
+            {/* Glass stats card */}
+            <div className="lg:col-span-2">
+              <div className="relative rounded-3xl border border-white/60 bg-white/70 backdrop-blur-xl p-6 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.20)] ring-1 ring-slate-900/5">
+                <div className="flex items-center justify-between">
+                  <div className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">My socials</div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-100 border border-cyan-300 px-2.5 py-0.5 text-xs font-semibold text-cyan-800">
+                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                    Live
+                  </span>
+                </div>
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="text-5xl font-bold text-slate-950 tabular-nums">75K+</span>
+                  <span className="text-sm text-slate-500">total reach</span>
+                </div>
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <Stat label="X / Twitter" value="43.8K" />
+                  <Stat label="Facebook"    value="18.9K" />
+                  <Stat label="YouTube"     value="12K" />
+                  <Stat label="TikTok + IG" value="rebuilding" />
+                </div>
+                <div className="mt-4 rounded-xl bg-cyan-50/70 border border-cyan-200 p-3 text-xs text-cyan-900 leading-relaxed">
+                  <strong>Real numbers.</strong> Not "100K students" or "millions reached." The
+                  followers I built on my own accounts, with the playbook I'll run for you.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Disclosure */}
-        <p className="mt-8 text-xs text-slate-500 max-w-3xl mx-auto text-center leading-relaxed">
-          All packages are sold by Real Ryan Nichols LLC, a Texas limited liability company,
-          and are governed by Texas law. We do not guarantee specific follower-count, lead-volume,
-          conversion-rate, or revenue outcomes — what we deliver is the work product, strategic
-          direction, and reporting described in each package. Paid-ad budgets are paid by clients
-          directly to Meta, Google, or other ad platforms and are never invoiced through us.
-        </p>
       </section>
+
+      {/* PRICE LADDER */}
+      <section className="relative overflow-hidden border-b border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg, #f3eaff 0%, #fff8f1 100%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-16">
+          <div className="text-xs uppercase tracking-widest text-cyan-700 font-semibold mb-2">
+            Pick your tier
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
+            Four entry points. Same operator running them.
+          </h2>
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {TIERS.map((t) => (
+              <Link
+                key={t.label}
+                href={t.href}
+                className={`group relative rounded-2xl border ${t.style} p-5 backdrop-blur shadow-[0_20px_50px_-15px_rgba(15,23,42,0.10)] hover:shadow-[0_30px_70px_-15px_rgba(15,23,42,0.20)] transition-shadow`}
+              >
+                {t.highlight && (
+                  <span className="absolute -top-3 left-4 inline-flex items-center gap-1 rounded-full bg-accent-500 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-widest">
+                    <Star className="h-3 w-3" /> Most popular
+                  </span>
+                )}
+                <div className="text-3xl font-bold text-slate-950 tabular-nums">{t.label}</div>
+                <div className="mt-1 text-sm font-semibold text-cyan-700">{t.sub}</div>
+                <p className="mt-2 text-sm text-slate-600 leading-relaxed">{t.line}</p>
+                <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 group-hover:text-brand-800">
+                  Read more <ArrowRight className="h-3.5 w-3.5" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PER-PLATFORM CARDS */}
+      <section id="single-platforms" className="relative overflow-hidden border-b border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg, #fff8f1 0%, #f6f9ff 100%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:py-20">
+          <div className="text-xs uppercase tracking-widest text-cyan-700 font-semibold mb-2">
+            Single-channel · $497/mo each
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 max-w-3xl">
+            Done-for-you on the platform that fits your audience.
+          </h2>
+          <p className="mt-3 text-slate-700 max-w-2xl">
+            Each channel runs end-to-end: voice intake, content production, posting, community
+            management, monthly performance report tied to leads and revenue. Bundle all four for
+            $1,497/mo and save $491/mo.
+          </p>
+
+          <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {PLATFORMS.map((p) => {
+              const Icon = p.Icon;
+              return (
+                <Link
+                  key={p.handle}
+                  href={`/platforms/${p.handle}`}
+                  className="group flex flex-col rounded-2xl border border-slate-200 bg-white/80 backdrop-blur p-6 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.10)] hover:shadow-[0_30px_70px_-15px_rgba(15,23,42,0.20)] transition-shadow"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <span className="text-[10px] uppercase tracking-widest text-cyan-700 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded-full font-semibold">
+                      {p.metric}
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold text-slate-950">{p.name}</h3>
+                  <div className="mt-1 flex items-baseline gap-1">
+                    <span className="text-2xl font-bold text-slate-950 tabular-nums">$497</span>
+                    <span className="text-sm text-slate-500">/mo</span>
+                  </div>
+                  <p className="mt-3 text-sm text-slate-700 leading-relaxed">{p.blurb}</p>
+                  <ul className="mt-4 space-y-2">
+                    {p.bullets.map((b) => (
+                      <li key={b} className="flex items-start gap-2 text-sm text-slate-700">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" />
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-auto pt-6 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 group-hover:text-brand-800">
+                    See the {p.name} comparison <ArrowRight className="h-3.5 w-3.5" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* POWER BUNDLE — dark accent */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-brand-950 text-white">
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+        <div
+          aria-hidden
+          className="absolute -top-24 -right-24 h-[400px] w-[400px] rounded-full opacity-30 blur-3xl"
+          style={{ background: "radial-gradient(circle, #22b8ff 0%, transparent 60%)" }}
+        />
+        <div
+          aria-hidden
+          className="absolute -bottom-32 -left-32 h-[480px] w-[480px] rounded-full opacity-25 blur-3xl"
+          style={{ background: "radial-gradient(circle, #ff9a1f 0%, transparent 60%)" }}
+        />
+
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
+          <div className="grid gap-10 lg:grid-cols-5 lg:items-center">
+            <div className="lg:col-span-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-accent-400/40 bg-accent-400/10 px-3 py-1 text-xs uppercase tracking-widest text-accent-300 font-semibold">
+                <Star className="h-3.5 w-3.5" /> Power Bundle · Saves $491/mo
+              </div>
+              <h2 className="mt-5 text-3xl sm:text-5xl font-semibold tracking-tight leading-tight">
+                All four platforms.{" "}
+                <span className="bg-gradient-to-r from-cyan-300 to-accent-400 bg-clip-text text-transparent">
+                  $1,497 a month. One operator.
+                </span>
+              </h2>
+              <p className="mt-5 text-slate-300 leading-relaxed">
+                The algorithm rewards consistency <em>across</em> platforms — not just one. The
+                Power Bundle runs TikTok, Facebook, X, and YouTube simultaneously so the signals
+                compound. Same operator, same voice, same deliverables — one monthly invoice
+                instead of four.
+              </p>
+              <p className="mt-3 text-slate-300 leading-relaxed">
+                One long YouTube video → 4 TikToks → 4 Reels → 6 X threads → 2 FB posts. The
+                bundle math works because the source content is shared.
+              </p>
+              <div className="mt-7 flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/offers/power-bundle"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/30 hover:bg-accent-600"
+                >
+                  Reserve the Power Bundle — $1,497/mo <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/book"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 backdrop-blur px-6 py-3 font-semibold text-white hover:bg-white/10"
+                >
+                  Free 10-min call
+                </Link>
+              </div>
+            </div>
+
+            <div className="lg:col-span-2">
+              <div className="rounded-3xl border border-white/15 bg-white/[0.06] backdrop-blur-xl p-6 shadow-2xl shadow-black/40">
+                <div className="text-[10px] uppercase tracking-widest text-cyan-300 font-bold">
+                  The reef-barrier rule
+                </div>
+                <p className="mt-3 text-base leading-relaxed">
+                  Most owners quit between zero and the first 1,000 followers. Past that, the
+                  algorithm starts trusting you and the curve flips.{" "}
+                  <strong className="text-white">I've crossed the reef on every platform.</strong>{" "}
+                  I know exactly where it is on yours.
+                </p>
+                <div className="mt-5 grid grid-cols-2 gap-3 text-xs">
+                  <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                    <div className="text-cyan-300 font-bold">DIY median</div>
+                    <div className="mt-1 text-slate-300">12–18 months to cross</div>
+                  </div>
+                  <div className="rounded-xl border border-accent-400/30 bg-accent-400/10 p-3">
+                    <div className="text-accent-300 font-bold">With me</div>
+                    <div className="mt-1 text-white">3–6 months typical</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FACEBOOK ADS SPOTLIGHT */}
+      <section className="relative overflow-hidden border-b border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg, #f6f9ff 0%, #fff8f1 100%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:py-20">
+          <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-accent-300 bg-white/70 backdrop-blur px-3 py-1 text-xs uppercase tracking-widest text-accent-700 font-semibold shadow-sm">
+                <Megaphone className="h-3.5 w-3.5" /> Performance ads · $1,497/mo + 10% spend
+              </div>
+              <h2 className="mt-5 text-3xl sm:text-4xl font-semibold tracking-tight leading-tight text-slate-950">
+                Done-for-you Facebook Ads.{" "}
+                <span className="bg-gradient-to-r from-brand-700 to-accent-500 bg-clip-text text-transparent">
+                  Your budget pays Meta — never me.
+                </span>
+              </h2>
+              <p className="mt-5 text-slate-700 leading-relaxed">
+                I run your campaigns end-to-end — audience research, creative iteration, daily
+                optimization, weekly reports tied to leads and revenue. You pay Meta directly.
+                $2K/mo minimum spend. Built for businesses doing $20K+/mo who want CPL down and
+                lead volume up.
+              </p>
+              <div className="mt-7 flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/offers/fb-ads"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/30 hover:bg-slate-800"
+                >
+                  Reserve FB Ads — $1,497/mo + 10% <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/book"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white/80 backdrop-blur px-6 py-3 font-semibold text-slate-800 hover:border-brand-500 hover:text-brand-700"
+                >
+                  Talk first
+                </Link>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-white/60 bg-white/70 backdrop-blur-xl p-6 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.20)] ring-1 ring-slate-900/5">
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">
+                  Cost-per-lead trend
+                </div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-100 border border-accent-300 px-2.5 py-0.5 text-xs font-semibold text-accent-700">
+                  <TrendingUp className="h-3 w-3" /> Down 42%
+                </span>
+              </div>
+              <CPLChart />
+              <div className="mt-3 grid grid-cols-3 gap-2 text-[11px] text-center">
+                <div className="rounded-md bg-slate-50 py-1.5 text-slate-700">Week 1<br /><strong>$84</strong></div>
+                <div className="rounded-md bg-cyan-50 py-1.5 text-cyan-800">Week 4<br /><strong>$58</strong></div>
+                <div className="rounded-md bg-accent-100 py-1.5 text-accent-800">Week 8<br /><strong>$49</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WHO IT'S FOR */}
+      <section className="relative overflow-hidden border-b border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg, #fff8f1 0%, #eef9ff 100%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:py-16">
+          <div className="text-xs uppercase tracking-widest text-cyan-700 font-semibold mb-2">
+            Who this is for
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 max-w-3xl">
+            Three audiences. Same algorithm. Same playbook in your voice.
+          </h2>
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            <Bucket
+              Icon={Users}
+              title="Business owners"
+              body="Local services, mortgage, real estate, contractors, dental, fitness — your buyers are scrolling right now. We turn the platforms into a lead engine."
+            />
+            <Bucket
+              Icon={Sparkles}
+              title="Creators"
+              body="You make the content; I run the engine that gets it seen. Daily output + hook iteration + cross-platform posting = compounding audience growth."
+            />
+            <Bucket
+              Icon={Trophy}
+              title="People with a message"
+              body="Faith, recovery, redemption, niche advocacy — the algorithm doesn't care what you stand for, only how well you hook. Get heard."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* RIGHT FIT / WRONG FIT */}
+      <section className="relative overflow-hidden border-b border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg, #eef9ff 0%, #f6f9ff 100%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:py-16">
+          <div className="text-xs uppercase tracking-widest text-cyan-700 font-semibold mb-2">
+            Save us both time
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 mb-8">
+            Are you a fit for done-for-you social?
+          </h2>
+          <div className="grid gap-5 md:grid-cols-2">
+            <FitBlock
+              tone="cyan"
+              title="Hire me if"
+              items={[
+                "You can record 5–10 min of phone footage / week",
+                "You'll do a 30-min content sync once a week",
+                "You're committed to 90 days minimum (algorithm runway)",
+                "Your offer is real and your sales process can handle leads",
+                "You want lead flow — not vanity follower count",
+              ]}
+            />
+            <FitBlock
+              tone="rose"
+              title="Don't hire me if"
+              items={[
+                "You won't show up for 1 weekly sync",
+                "You expect to go viral by next Tuesday",
+                "You want to approve every single post before it ships",
+                "Your sales process drops 50% of leads (fix that first)",
+                "You want me to do this for $200/mo",
+              ]}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CTA — dark glass */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-brand-900 to-cyan-900 text-white">
+        <div
+          aria-hidden
+          className="absolute -top-24 left-1/2 -translate-x-1/2 h-[400px] w-[600px] rounded-full opacity-25 blur-3xl"
+          style={{ background: "radial-gradient(circle, #ff9a1f 0%, transparent 60%)" }}
+        />
+        <div className="relative mx-auto max-w-4xl px-4 py-16 sm:py-20 text-center">
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+            Get past the reef on every platform that matters.
+          </h2>
+          <p className="mt-3 text-slate-300 max-w-2xl mx-auto">
+            Pick a tier, a platform, or all four. Either way the algorithm starts working with you,
+            not against you, in 90 days.
+          </p>
+          <div className="mt-7 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/offers/power-bundle"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/30 hover:bg-accent-600"
+            >
+              Power Bundle — $1,497/mo <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/offers/quick-look"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-600"
+            >
+              Quick-Look — $47
+            </Link>
+            <Link
+              href="/book"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 backdrop-blur px-6 py-3 font-semibold text-white hover:bg-white/10"
+            >
+              Free 10-min call
+            </Link>
+          </div>
+          <p className="mt-6 text-xs text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            Real Ryan Nichols LLC · Texas-governed under mutual NDA on every paid engagement. Paid
+            ad budgets are paid by clients directly to Meta — never invoiced through us.
+          </p>
+        </div>
+      </section>
+
+      <LightFooter />
     </div>
   );
 }
 
-/* ────────────────────────────────────────────────────────────── */
-
-function SectionHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
-  return (
-    <div className="mb-5 sm:mb-7">
-      <div className="text-xs uppercase tracking-widest text-slate-500">{eyebrow}</div>
-      <h2 className="mt-1 text-2xl sm:text-3xl font-semibold text-white">{title}</h2>
-    </div>
-  );
-}
+/* ─── components ──────────────────────────────────────────────── */
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-5 text-center">
-      <div className="text-3xl sm:text-4xl font-bold text-white tabular-nums">{value}</div>
-      <div className="mt-1 text-xs uppercase tracking-widest text-slate-500">{label}</div>
+    <div className="rounded-xl border border-slate-200 bg-white/80 p-3 text-center">
+      <div className="text-lg font-bold text-slate-950 tabular-nums">{value}</div>
+      <div className="text-[10px] uppercase tracking-widest text-slate-500 mt-0.5">{label}</div>
     </div>
   );
 }
 
-function PackageCard({ pkg }: { pkg: Package }) {
-  const Icon = pkg.icon;
-  const tone = toneClasses(pkg.tone);
-  const ring = ringTone(pkg.tone);
+function Bucket({ Icon, title, body }: { Icon: any; title: string; body: string }) {
   return (
-    <div
-      className={`rounded-2xl border bg-white shadow-sm p-6 ring-1 ${ring} ${
-        pkg.highlight ? "border-emerald-400" : "border-slate-200"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border ${tone}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-        {pkg.highlight && (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400 bg-emerald-100 px-2.5 py-1 text-xs text-emerald-700">
-            <ShieldCheck className="h-3 w-3" /> Most popular
-          </span>
-        )}
+    <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur p-6 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.10)]">
+      <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-brand-600 text-white">
+        <Icon className="h-5 w-5" />
       </div>
-      <h3 className="mt-4 text-lg font-semibold text-white">{pkg.name}</h3>
-      <div className="mt-1 flex items-baseline gap-1">
-        <span className="text-2xl font-bold text-white">{pkg.price}</span>
-        {pkg.cadence && <span className="text-sm text-slate-500">{pkg.cadence}</span>}
+      <h3 className="mt-4 font-semibold text-slate-950 text-lg">{title}</h3>
+      <p className="mt-2 text-sm text-slate-700 leading-relaxed">{body}</p>
+    </div>
+  );
+}
+
+function FitBlock({ tone, title, items }: { tone: "cyan" | "rose"; title: string; items: string[] }) {
+  const styles =
+    tone === "cyan"
+      ? "border-cyan-200 bg-cyan-50/70"
+      : "border-rose-200 bg-rose-50/70";
+  const chip =
+    tone === "cyan"
+      ? "border-cyan-300 bg-cyan-100 text-cyan-800"
+      : "border-rose-300 bg-rose-100 text-rose-800";
+  const iconColor = tone === "cyan" ? "text-cyan-700" : "text-rose-600";
+  const Pill = tone === "cyan" ? Check : XIcon;
+  return (
+    <div className={`rounded-2xl border ${styles} backdrop-blur p-6`}>
+      <div className={`inline-flex items-center gap-2 rounded-full border ${chip} px-3 py-1 text-xs font-semibold uppercase tracking-widest`}>
+        <Pill className="h-3.5 w-3.5" /> {title}
       </div>
-      <p className="mt-3 text-sm text-slate-700">{pkg.one_liner}</p>
-      <div className="mt-4 rounded-xl border border-slate-200 bg-white shadow-sm p-3">
-        <div className="text-[11px] uppercase tracking-widest text-slate-500">Best fit</div>
-        <div className="mt-0.5 text-sm text-slate-800">{pkg.who}</div>
-      </div>
-      <ul className="mt-4 space-y-2">
-        {pkg.deliverables.map((d) => (
-          <li key={d} className="flex items-start gap-2 text-sm text-slate-800">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
-            <span>{d}</span>
+      <ul className="mt-4 space-y-2.5">
+        {items.map((line) => (
+          <li key={line} className="flex items-start gap-2 text-slate-800 text-sm">
+            <Pill className={`mt-0.5 h-5 w-5 shrink-0 ${iconColor}`} />
+            <span>{line}</span>
           </li>
         ))}
       </ul>
-      <a
-        href={pkg.cta_href}
-        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white text-ink-950 px-4 py-2.5 text-sm font-semibold hover:bg-ink-100"
-      >
-        {pkg.cta} <ArrowRight className="h-4 w-4" />
-      </a>
     </div>
+  );
+}
+
+function CPLChart() {
+  const W = 360;
+  const H = 160;
+  const data = [84, 78, 71, 64, 58, 54, 51, 49];
+  const max = 90;
+  const min = 40;
+  const points = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * (W - 30) + 15;
+    const y = H - ((v - min) / (max - min)) * (H - 30) - 15;
+    return { x, y, v };
+  });
+  const path = `M ${points[0].x} ${points[0].y} ` +
+    points.slice(1).map((p, i) => {
+      const prev = points[i];
+      const cx1 = prev.x + (p.x - prev.x) / 2;
+      return `Q ${cx1} ${prev.y}, ${p.x} ${p.y}`;
+    }).join(" ");
+  const areaPath = path + ` L ${points[points.length - 1].x} ${H - 15} L ${points[0].x} ${H - 15} Z`;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full mt-3">
+      <defs>
+        <linearGradient id="cpl-line" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#23b8ff" />
+          <stop offset="100%" stopColor="#ff9a1f" />
+        </linearGradient>
+        <linearGradient id="cpl-area" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#23b8ff" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#23b8ff" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {[40, 60, 80, 100, 120].map((y) => (
+        <line key={y} x1="15" y1={y} x2={W - 15} y2={y} stroke="#e2e8f0" strokeDasharray="2 4" />
+      ))}
+      <path d={areaPath} fill="url(#cpl-area)" />
+      <path d={path} fill="none" stroke="url(#cpl-line)" strokeWidth="3" strokeLinecap="round">
+        <animate attributeName="stroke-dasharray" from="0 1000" to="1000 0" dur="1.6s" fill="freeze" />
+      </path>
+      {points.map((p, i) => (
+        <g key={i}>
+          <circle cx={p.x} cy={p.y} r="4" fill="#ffffff" stroke="#23b8ff" strokeWidth="2" />
+        </g>
+      ))}
+    </svg>
   );
 }
