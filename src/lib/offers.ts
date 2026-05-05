@@ -131,7 +131,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
           "East Texas only. $50 there + $50 back. Same 90 minutes, same deliverables. Anywhere outside East Texas → FaceTime / Zoom / phone (no travel cost).",
       },
     },
-    primaryCta: { label: "Buy now — $90", href: mailto("Buy: 90-Minute Decision Sprint $90") },
+    primaryCta: { label: "Reserve the Sprint — $90", href: mailto("Buy: 90-Minute Decision Sprint $90") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
@@ -219,7 +219,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "Audit recording you keep forever",
       ],
     },
-    primaryCta: { label: "Buy now — $497", href: mailto("Buy: Business Audit $497") },
+    primaryCta: { label: "Begin the Audit — $497", href: mailto("Buy: Business Audit $497") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
@@ -530,7 +530,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
           "Anywhere in Texas: I drive to you, we do 8 hours instead of 4, lunch on me. Bigger deliverable scope (e.g., full sales OS, not one process). Travel beyond TX is custom-quoted.",
       },
     },
-    primaryCta: { label: "Buy now — $2,997", href: mailto("Buy: Working Session $2,997") },
+    primaryCta: { label: "Reserve the Working Session — $2,997", href: mailto("Buy: Working Session $2,997") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [

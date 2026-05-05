@@ -221,7 +221,7 @@ export default async function GrowV2Page() {
                   location="homepage_hero"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-sm hover:bg-slate-800"
                 >
-                  Hire Ryan now <ArrowRight className="h-4 w-4" />
+                  Bring me in <ArrowRight className="h-4 w-4" />
                 </TrackedLink>
                 <TrackedLink
                   href="/book"

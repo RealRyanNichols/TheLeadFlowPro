@@ -97,7 +97,7 @@ export default function ContactPage() {
               href="/tiers"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-sm hover:bg-slate-800"
             >
-              Hire Ryan now <ArrowRight className="h-4 w-4" />
+              Start the engagement <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/book"

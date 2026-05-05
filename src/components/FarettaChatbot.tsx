@@ -176,7 +176,7 @@ export function FarettaChatbot() {
               href="/tiers"
               className="flex-1 text-center text-xs rounded-lg bg-slate-900 px-2 py-1.5 font-semibold text-white hover:bg-slate-800"
             >
-              Hire Ryan now
+              Bring me in
             </Link>
           </div>
 

@@ -252,7 +252,7 @@ export default async function GrowV2Page() {
                   location="homepage_hero"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
                 >
-                  Buy 90 minutes — $90 <ArrowRight className="h-4 w-4" />
+                  $90 for 90 minutes <ArrowRight className="h-4 w-4" />
                 </TrackedLink>
                 <TrackedLink
                   href="/tiers"
@@ -370,41 +370,64 @@ export default async function GrowV2Page() {
         <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
           <div className="grid gap-10 lg:grid-cols-5 lg:items-center">
             <div className="lg:col-span-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs uppercase tracking-widest text-cyan-300">
-                <TrendingUp className="h-3.5 w-3.5" /> The journey · Zero to 75,000+
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs uppercase tracking-widest text-cyan-300 font-semibold">
+                <TrendingUp className="h-3.5 w-3.5" /> The Journey · Past the Reef
               </div>
               <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight leading-tight">
-                300 followers to 75,000+.{" "}
+                A phone in a third-story apartment.{" "}
                 <span className="bg-gradient-to-r from-cyan-300 to-accent-400 bg-clip-text text-transparent">
-                  I've done it. We can do it for you.
+                  Then a multi-million-dollar business. Then prison. Then this.
                 </span>
               </h2>
               <p className="mt-5 text-slate-300 leading-relaxed">
-                Most owners stall at 300, 1,500, or 5,000 followers and stop. They post randomly, chase
-                trends, and quit when the numbers don't move. I've taken six brands across the same
-                hill — and I know exactly where the hard climbs are.
+                I started with <strong className="text-white">zero followers and a phone</strong>, posting from
+                a third-story two-bedroom apartment. I built it into a multi-million-dollar business.
               </p>
               <p className="mt-3 text-slate-300 leading-relaxed">
-                Whether you're at <strong className="text-white">300 friends</strong> or{" "}
-                <strong className="text-white">15,000 followers wondering why nothing's clicking</strong>,
-                the next milestone isn't luck — it's a pattern.
+                Then I lost it. <strong className="text-white">4 years in federal prison for January 6.
+                Pardoned.</strong> I came home with my phone and the followers I had left.
               </p>
-              <div className="mt-7 flex flex-col sm:flex-row gap-3">
+              <p className="mt-3 text-slate-300 leading-relaxed">
+                I picked up the same playbook I used the first time. I'm rebuilding right now —{" "}
+                <strong className="text-white">75,000+ followers</strong>, six companies founded, one client
+                I'm publicly proud of, and counting.
+              </p>
+              <div className="mt-5 rounded-2xl border border-accent-400/40 bg-gradient-to-br from-accent-400/10 to-cyan-400/10 backdrop-blur p-4">
+                <div className="text-[10px] uppercase tracking-widest text-accent-300 font-bold">
+                  My operating belief
+                </div>
+                <p className="mt-1 text-base text-white leading-relaxed">
+                  Any product, backed with consistency and a website that takes payments,{" "}
+                  <strong>will</strong> take off — if you don't quit before you get past{" "}
+                  <span className="bg-gradient-to-r from-accent-300 to-cyan-300 bg-clip-text text-transparent font-bold">
+                    the reef barrier.
+                  </span>
+                </p>
+              </div>
+              <div className="mt-7 flex flex-col sm:flex-row flex-wrap gap-3">
                 <TrackedLink
-                  href="/services"
-                  event="cta_journey_services"
+                  href="/tiers"
+                  event="cta_journey_tiers"
                   location="homepage_journey"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white hover:bg-accent-600"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white shadow-lg shadow-accent-500/30 hover:bg-accent-600"
                 >
-                  See the social media packages <ArrowRight className="h-4 w-4" />
+                  I have to work with you. Show me how. <ArrowRight className="h-4 w-4" />
                 </TrackedLink>
                 <TrackedLink
                   href="/book"
-                  event="cta_journey_book"
+                  event="cta_journey_reef"
                   location="homepage_journey"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-3 font-semibold text-white hover:bg-white/10"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-600"
                 >
-                  Talk to me first
+                  Get me past my reef
+                </TrackedLink>
+                <TrackedLink
+                  href="/offers/decision-sprint"
+                  event="cta_journey_sprint"
+                  location="homepage_journey"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 backdrop-blur px-5 py-3 font-semibold text-white hover:bg-white/10"
+                >
+                  $90 for 90 minutes
                 </TrackedLink>
               </div>
             </div>

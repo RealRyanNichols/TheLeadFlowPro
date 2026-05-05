@@ -49,7 +49,7 @@ const TIER_1: Card[] = [
       "Instant PDF download",
       "Lifetime access",
     ],
-    cta: "Buy now",
+    cta: "Reserve",
     ctaHref: "#",
     icon: Sparkles,
   },
@@ -64,7 +64,7 @@ const TIER_1: Card[] = [
       "Editable Notion + PDF",
       "Lifetime access",
     ],
-    cta: "Buy now",
+    cta: "Reserve",
     ctaHref: "#",
     icon: MessageSquare,
   },
@@ -242,7 +242,7 @@ const TIER_4: Card[] = [
     bestFor: "Defined-scope: turnaround, launch, M&A advisory",
     inclusions: [
       "Kickoff scoping call: success criteria locked",
-      "~30 hrs of Ryan over 3 months",
+      "~30 hrs of strategic time over 3 months",
       "Weekly 1:1 + async access",
       "Written milestone deliverable each month",
       "Travel-to-client billed separately",
@@ -258,7 +258,7 @@ const TIER_4: Card[] = [
     bestFor: "Owners $1M+ who want Ryan in every consequential call",
     inclusions: [
       "12-month engagement",
-      "5 hrs of Ryan per month (60 hrs/year)",
+      "5 hrs of fractional operator time per month (60 hrs/year)",
       "Direct phone access for true emergencies",
       "First look at every new LeadFlow Pro tool",
       "Cap: 2 active VIPs ever",
@@ -276,7 +276,7 @@ const TIER_4: Card[] = [
     bestFor: "Long-arc partnership for a single defining year",
     inclusions: [
       "Everything in Annual Advisor",
-      "10 hrs of Ryan per month (120 hrs/year)",
+      "10 hrs of fractional operator time per month (120 hrs/year)",
       "2 in-person working days (client covers travel)",
       "Front-of-line on all new LeadFlow Pro builds",
       "Cap: 1 active Premier ever",
@@ -395,7 +395,7 @@ export default function TiersPage() {
         id="tier-2"
         eyebrow="TIER 2"
         title="Small business"
-        subtitle="$50K–$500K. Light 1:1 access. ~4 hours of Ryan per month at the retainer level."
+        subtitle="$50K–$500K. Light 1:1 access. ~4 hrs of strategic time per month at the retainer level."
         cards={TIER_2}
         accent="emerald"
       />
@@ -405,7 +405,7 @@ export default function TiersPage() {
         id="tier-3"
         eyebrow="TIER 3"
         title="Mid-market"
-        subtitle="$500K–$5M. Real strategic partnership. ~8 hours of Ryan per month at retainer."
+        subtitle="$500K–$5M. Real strategic partnership. ~8 hrs of strategic time per month at retainer."
         cards={TIER_3}
         accent="indigo"
       />
