@@ -972,3 +972,25 @@ model PublicIntake {
   @@index([handled])
   @@index([email])
 }
+
+// ─── Ryan's bandwidth tracker ────────────────────────────────────
+// Backs the public capacity meter. SUM(hoursPerWeek WHERE status='active')
+// is what's "booked" against the 60-hr/week cap. Ryan adds engagements via
+// /admin/capacity and marks them complete/paused as work finishes.
+
+model ClientEngagement {
+  id            String    @id @default(cuid())
+  clientName    String    // public-safe name to display, e.g. "Smith Roofing" or "Anonymous A"
+  publicLabel   String?   // override: what to show publicly (e.g. "Mortgage client") if clientName is sensitive
+  offerSlug     String?   // optional link to /lib/offers.ts slug
+  hoursPerWeek  Int       @default(5)
+  status        String    @default("active") // active | paused | completed
+  startedAt     DateTime  @default(now())
+  completedAt   DateTime?
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status])
+  @@index([startedAt(sort: Desc)])
+}

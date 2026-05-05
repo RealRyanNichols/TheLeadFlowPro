@@ -23,7 +23,7 @@ export function LightHeader({ activePath }: { activePath?: string }) {
           <Link href="/services/consulting" className={cls("/services/consulting", "")}>Consulting</Link>
           <Link href="/tiers" className={cls("/tiers", "")}>Pricing</Link>
           <Link href="/story" className={cls("/story", "")}>Story</Link>
-          <Link href="/demo" className={cls("/demo", "")}>Demo</Link>
+          <Link href="/availability" className={cls("/availability", "")}>Availability</Link>
           <Link href="/contact" className={cls("/contact", "")}>Contact</Link>
         </nav>
         <div className="flex items-center gap-2">
@@ -47,7 +47,7 @@ export function LightHeader({ activePath }: { activePath?: string }) {
           <Link href="/services/consulting" className="hover:text-slate-950 py-1">Consulting</Link>
           <Link href="/tiers" className="hover:text-slate-950 py-1">Pricing</Link>
           <Link href="/story" className="hover:text-slate-950 py-1">Story</Link>
-          <Link href="/demo" className="hover:text-slate-950 py-1">Demo</Link>
+          <Link href="/availability" className="hover:text-slate-950 py-1">Availability</Link>
           <Link href="/contact" className="hover:text-slate-950 py-1">Contact</Link>
           <Link href="/login" className="hover:text-slate-950 font-semibold py-1">Log in</Link>
         </div>
