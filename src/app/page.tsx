@@ -149,6 +149,41 @@ const FACEBOOK_AUDIENCE_SIGNALS = [
   "Audience is heavily U.S. and East Texas: Longview, Marshall, Harleton, Jefferson, Hallsville, Gilmer.",
 ];
 
+const HERO_QUICK_ACTIONS = [
+  {
+    href: "/start",
+    event: "mobile_hero_start_router",
+    label: "Tell me what to pick",
+    detail: "60-second offer router",
+    Icon: MessageSquare,
+    tone: "dark",
+  },
+  {
+    href: "/book",
+    event: "mobile_hero_book_call",
+    label: "Book 10-min call",
+    detail: "Serious buyers only",
+    Icon: Clock,
+    tone: "accent",
+  },
+  {
+    href: "/offers/decision-sprint",
+    event: "mobile_hero_decision_sprint",
+    label: "$90 Sprint",
+    detail: "90 minutes, clear next move",
+    Icon: Trophy,
+    tone: "light",
+  },
+  {
+    href: "/availability",
+    event: "mobile_hero_capacity",
+    label: "Check Ryan's time",
+    detail: "Live workload meter",
+    Icon: TrendingUp,
+    tone: "light",
+  },
+];
+
 const PLATFORMS = [
   {
     handle: "tiktok",
@@ -365,17 +400,24 @@ export default async function GrowV2Page() {
                   Now let's build yours.
                 </span>
               </h1>
-              <p className="mt-5 text-lg text-slate-700 leading-relaxed">
+
+              <div className="mt-5 grid grid-cols-2 gap-2 lg:hidden">
+                {HERO_QUICK_ACTIONS.map((action) => (
+                  <HeroQuickAction key={action.href} {...action} />
+                ))}
+              </div>
+
+              <p className="mt-5 text-base leading-relaxed text-slate-700 sm:text-lg">
                 Six companies founded. 75,000+ followers built from zero across X, Facebook, YouTube,
                 Instagram, and TikTok. A decade running social, ads, sales, and lead gen through every
                 algorithm shift the platforms threw at me — and a written record of how I did it.
               </p>
-              <p className="mt-4 text-lg text-slate-700 leading-relaxed">
+              <p className="mt-4 hidden text-lg text-slate-700 leading-relaxed sm:block">
                 Spending money on me <strong className="text-slate-950">is</strong> spending money on
                 yourself. I take what you pay me and turn it into followers, leads, sales process, and
                 systems your business runs on after I'm gone. That's the deal.
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <div className="mt-8 hidden flex-col gap-3 lg:flex lg:flex-row">
                 <TrackedLink
                   href="/start"
                   event="cta_start_router"
@@ -1153,6 +1195,45 @@ function TeachBlock({
       <h3 className="mt-4 text-xl font-semibold text-slate-950">{title}</h3>
       <p className="mt-2 text-sm text-slate-700 leading-relaxed">{body}</p>
     </div>
+  );
+}
+
+function HeroQuickAction({
+  href,
+  event,
+  label,
+  detail,
+  Icon,
+  tone,
+}: {
+  href: string;
+  event: string;
+  label: string;
+  detail: string;
+  Icon: any;
+  tone: string;
+}) {
+  const cls =
+    tone === "dark"
+      ? "border-slate-900 bg-slate-950 text-white shadow-slate-950/20"
+      : tone === "accent"
+        ? "border-accent-500 bg-accent-500 text-white shadow-accent-500/20"
+        : "border-white/70 bg-white/85 text-slate-950 shadow-slate-900/10";
+  const iconCls = tone === "light" ? "text-cyan-700" : "text-white";
+
+  return (
+    <TrackedLink
+      href={href}
+      event={event}
+      location="homepage_mobile_hero"
+      className={`min-h-[104px] rounded-2xl border p-3 shadow-lg active:scale-[0.98] ${cls}`}
+    >
+      <Icon className={`h-5 w-5 ${iconCls}`} />
+      <div className="mt-3 text-sm font-semibold leading-tight">{label}</div>
+      <div className={`mt-1 text-xs leading-snug ${tone === "light" ? "text-slate-600" : "text-white/80"}`}>
+        {detail}
+      </div>
+    </TrackedLink>
   );
 }
 

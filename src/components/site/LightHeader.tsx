@@ -4,7 +4,8 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, Calendar, Gauge, Route } from "lucide-react";
+import { ArrowRight, Gauge, Route } from "lucide-react";
+import { LightMobileMenu } from "./LightMobileMenu";
 
 export function LightHeader({ activePath }: { activePath?: string }) {
   function cls(path: string, base: string) {
@@ -25,8 +26,8 @@ export function LightHeader({ activePath }: { activePath?: string }) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-        <Link href="/" className="font-bold text-slate-950 hover:text-brand-700">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-2.5 lg:py-3">
+        <Link href="/" className="min-w-0 truncate font-bold text-slate-950 hover:text-brand-700">
           The LeadFlow Pro
         </Link>
         <nav className="hidden lg:flex items-center gap-5 text-sm text-slate-700">
@@ -55,25 +56,13 @@ export function LightHeader({ activePath }: { activePath?: string }) {
           >
             Book call <ArrowRight className="h-3.5 w-3.5" />
           </Link>
+          <LightMobileMenu nav={nav} activePath={activePath} />
         </div>
       </div>
       <div className="lg:hidden border-t border-slate-200 bg-slate-50">
-        <div className="mx-auto grid max-w-7xl grid-cols-3 gap-2 px-4 py-2">
-          <MobileAction href="/start" label="Start" Icon={Route} />
-          <MobileAction href="/book" label="Book" Icon={Calendar} />
-          <MobileAction href="/availability" label="Capacity" Icon={Gauge} />
-        </div>
-        <div className="mx-auto max-w-7xl px-4 pb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cls(item.href, "py-1")}
-            >
-              {item.label}
-            </Link>
-          ))}
-          <Link href="/login" className="hover:text-slate-950 font-semibold py-1">Log in</Link>
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 px-4 py-2">
+          <MobileAction href="/start" label="Find my next move" Icon={Route} primary />
+          <MobileAction href="/availability" label="Check capacity" Icon={Gauge} />
         </div>
       </div>
     </header>
@@ -84,17 +73,23 @@ function MobileAction({
   href,
   label,
   Icon,
+  primary,
 }: {
   href: string;
   label: string;
   Icon: LucideIcon;
+  primary?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 text-sm font-semibold text-slate-900 shadow-sm active:scale-[0.98]"
+      className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border px-2 text-sm font-semibold shadow-sm active:scale-[0.98] ${
+        primary
+          ? "border-slate-900 bg-slate-950 text-white"
+          : "border-slate-200 bg-white text-slate-900"
+      }`}
     >
-      <Icon className="h-4 w-4 text-cyan-700" />
+      <Icon className={`h-4 w-4 ${primary ? "text-cyan-300" : "text-cyan-700"}`} />
       {label}
     </Link>
   );
