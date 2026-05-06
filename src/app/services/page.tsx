@@ -204,6 +204,27 @@ export default function ServicesPage() {
                   <strong>Real numbers.</strong> Not "100K students" or "millions reached." The
                   followers I built on my own accounts, with the playbook I'll run for you.
                 </div>
+                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-950 p-4 text-white">
+                  <div className="text-[10px] font-semibold uppercase tracking-widest text-cyan-300">
+                    Meta comeback receipt
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-2xl font-bold tabular-nums">24M+</div>
+                      <div className="text-xs text-slate-300">views since Jan 21, 2025</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold tabular-nums">401K</div>
+                      <div className="text-xs text-slate-300">interactions in Meta Insights</div>
+                    </div>
+                  </div>
+                  <Link
+                    href="/start"
+                    className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-accent-300 hover:text-accent-200"
+                  >
+                    Start with the offer router <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

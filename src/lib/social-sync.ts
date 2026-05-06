@@ -15,7 +15,7 @@
 // preserves the no-fake-stats guarantee — we never invent numbers.
 
 export type SyncResult =
-  | { ok: true; followers: number; following?: number; posts?: number; engagement?: number }
+  | { ok: true; followers: number; following?: number; posts?: number; engagement?: number; views?: number; reach?: number }
   | { ok: false; reason: string; needsConfig?: boolean };
 
 /* ─── YouTube ──────────────────────────────────────────────────── */
@@ -139,14 +139,31 @@ export async function syncX(handle: string): Promise<SyncResult> {
   };
 }
 
-/* ─── Facebook + Instagram + TikTok stubs ─────────────────────── */
+/* ─── Facebook + Instagram + TikTok ───────────────────────────── */
 
-export async function syncFacebook(_handle: string): Promise<SyncResult> {
-  if (!process.env.FB_PAGE_ACCESS_TOKEN) {
-    return { ok: false, reason: "FB_PAGE_ACCESS_TOKEN not set (requires Meta App Review)", needsConfig: true };
+export async function syncFacebook(handle: string): Promise<SyncResult> {
+  if (!process.env.FB_PAGE_ACCESS_TOKEN && !process.env.META_ACCESS_TOKEN) {
+    return {
+      ok: false,
+      reason: "FB_PAGE_ACCESS_TOKEN not set (requires a Meta Page/professional asset token)",
+      needsConfig: true,
+    };
   }
-  // TODO: Graph API: GET /{page-id}?fields=fan_count,followers_count
-  return { ok: false, reason: "Facebook sync not yet implemented" };
+  const { getMetaPageInsightSnapshot } = await import("./meta-insights");
+  const snapshot = await getMetaPageInsightSnapshot({ pageId: handle });
+  if (!snapshot.ok) {
+    return { ok: false, reason: snapshot.notes.join(" ") || "Meta API sync failed" };
+  }
+
+  return {
+    ok: true,
+    followers: snapshot.followerCount ?? snapshot.fanCount ?? 0,
+    following: 0,
+    posts: 0,
+    engagement: snapshot.totals.interactions ?? 0,
+    views: snapshot.totals.views ?? snapshot.totals.impressions ?? 0,
+    reach: snapshot.totals.reach ?? 0,
+  };
 }
 
 export async function syncInstagram(_handle: string): Promise<SyncResult> {
@@ -234,20 +251,20 @@ export async function getXStatsCached(
 // Pass either the numeric Page ID or the vanity username (e.g. "RealRyanNichols").
 export async function getFacebookStatsCached(
   pageIdOrUsername: string,
-): Promise<{ fanCount: number; followerCount: number } | null> {
-  const token = process.env.FB_PAGE_ACCESS_TOKEN;
-  if (!token) return null;
-
-  const id = pageIdOrUsername.replace(/^https?:\/\/.*?facebook\.com\//i, "").replace(/\/.*$/, "").trim();
-  const url = `https://graph.facebook.com/v18.0/${encodeURIComponent(id)}?fields=fan_count,followers_count&access_token=${encodeURIComponent(token)}`;
+): Promise<{ fanCount: number; followerCount: number; views?: number; interactions?: number; netFollows?: number } | null> {
+  const token = process.env.FB_PAGE_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
+  if (!token && !process.env.FB_PAGE_ID) return null;
 
   try {
-    const res = await fetch(url, { next: { revalidate: 3600 } });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { fan_count?: number; followers_count?: number };
+    const { getMetaPageInsightSnapshot } = await import("./meta-insights");
+    const data = await getMetaPageInsightSnapshot({ pageId: pageIdOrUsername });
+    if (!data.ok) return null;
     return {
-      fanCount: data.fan_count ?? 0,
-      followerCount: data.followers_count ?? 0,
+      fanCount: data.fanCount ?? 0,
+      followerCount: data.followerCount ?? 0,
+      views: data.totals.views ?? undefined,
+      interactions: data.totals.interactions ?? undefined,
+      netFollows: data.totals.follows ?? undefined,
     };
   } catch {
     return null;

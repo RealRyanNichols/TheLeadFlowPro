@@ -119,6 +119,36 @@ const SOCIAL_PROOF = [
   },
 ];
 
+const FACEBOOK_COMEBACK_STATS = [
+  {
+    value: "24,032,630",
+    label: "views",
+    note: "Meta Insights custom range",
+  },
+  {
+    value: "401,068",
+    label: "interactions",
+    note: "reactions, comments, shares",
+  },
+  {
+    value: "14,827",
+    label: "net follows",
+    note: "after the comeback started",
+  },
+  {
+    value: "$2,913.63",
+    label: "approx. Meta earnings",
+    note: "platform-reported, not projected",
+  },
+];
+
+const FACEBOOK_AUDIENCE_SIGNALS = [
+  "Active comeback posting starts Jan 21, 2025 — after the Jan 20 pardon.",
+  "87% of views came from non-followers in the screenshot range.",
+  "Reels carried the channel: 13,989,130 reel views and 3,766 days of watch time.",
+  "Audience is heavily U.S. and East Texas: Longview, Marshall, Harleton, Jefferson, Hallsville, Gilmer.",
+];
+
 const PLATFORMS = [
   {
     handle: "tiktok",
@@ -512,6 +542,74 @@ export default async function GrowV2Page() {
               {SOCIAL_PROOF.map((item) => (
                 <SocialProofCard key={item.platform} {...item} />
               ))}
+            </div>
+          </div>
+
+          <div className="mt-10 overflow-hidden rounded-3xl border border-slate-800 bg-slate-950 text-white shadow-[0_35px_90px_-35px_rgba(15,23,42,0.55)]">
+            <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
+              <div className="p-6 sm:p-8">
+                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-300">
+                  Meta receipt · Jan 21, 2025 to May 5, 2026
+                </div>
+                <h3 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+                  I came back online and turned attention into measurable proof.
+                </h3>
+                <p className="mt-4 leading-relaxed text-slate-300">
+                  The Meta dashboard range starts Jan 1, but the real posting window starts Jan 21
+                  after I got home late on Jan 20. This is not a forecast, a case study with a fake
+                  client name, or a vanity promise. It is the account receipt.
+                </p>
+                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  {FACEBOOK_COMEBACK_STATS.map((stat) => (
+                    <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div className="text-2xl font-bold tabular-nums text-white sm:text-3xl">
+                        {stat.value}
+                      </div>
+                      <div className="mt-1 text-sm font-semibold text-cyan-200">{stat.label}</div>
+                      <div className="mt-1 text-xs text-slate-400">{stat.note}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 grid gap-2">
+                  {FACEBOOK_AUDIENCE_SIGNALS.map((signal) => (
+                    <div key={signal} className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm leading-relaxed text-slate-300">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent-300" />
+                      <span>{signal}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <TrackedLink
+                    href="/start"
+                    event="cta_meta_receipt_router"
+                    location="homepage_meta_receipt"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white hover:bg-accent-600"
+                  >
+                    Put this engine on my business <ArrowRight className="h-4 w-4" />
+                  </TrackedLink>
+                  <TrackedLink
+                    href="/offers/power-bundle"
+                    event="cta_meta_receipt_power_bundle"
+                    location="homepage_meta_receipt"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-semibold text-white hover:bg-white/10"
+                  >
+                    See the Power Bundle
+                  </TrackedLink>
+                </div>
+              </div>
+              <div className="border-t border-white/10 bg-black/20 p-4 lg:border-l lg:border-t-0">
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-2xl">
+                  <img
+                    src="/images/facebook-insights-content-split-jan2025-may2026.png"
+                    alt="Meta Insights screenshot showing 24,032,630 views and audience split"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <p className="mt-3 text-xs leading-relaxed text-slate-400">
+                  Screenshot-backed proof today. When the Meta token is connected, the backend pulls
+                  supported Graph API metrics live and marks unsupported metrics instead of guessing.
+                </p>
+              </div>
             </div>
           </div>
 
