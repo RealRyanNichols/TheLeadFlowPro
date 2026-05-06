@@ -19,7 +19,7 @@ export const metadata = {
 export default function StoryPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <LightHeader />
+      <LightHeader activePath="/story" />
 
       {/* HERO */}
       <section className="relative overflow-hidden">

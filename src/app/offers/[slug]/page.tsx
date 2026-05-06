@@ -13,12 +13,20 @@ import {
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
 import { BandwidthMeter } from "@/components/BandwidthMeter";
 import { OFFERS, type OfferSlug } from "@/lib/offers";
+import { formatHours, getOfferWorkload } from "@/lib/workload";
 
 export function generateStaticParams() {
   return Object.keys(OFFERS).map((slug) => ({ slug }));
 }
 
 type Props = { params: { slug: string } };
+type PageProps = Props & {
+  searchParams?: {
+    source?: string;
+    fit?: string;
+    budget?: string;
+  };
+};
 
 export function generateMetadata({ params }: Props) {
   const offer = OFFERS[params.slug as OfferSlug];
@@ -26,16 +34,35 @@ export function generateMetadata({ params }: Props) {
   return { title: offer.metaTitle, description: offer.metaDescription };
 }
 
-export default async function OfferPage({ params }: Props) {
+export default async function OfferPage({ params, searchParams }: PageProps) {
   const offer = OFFERS[params.slug as OfferSlug];
   if (!offer) notFound();
 
   const O = offer;
   const Icon = O.Icon;
+  const recommendedFromStart = searchParams?.source === "start";
+  const workload = getOfferWorkload(O.slug);
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
       <LightHeader />
+
+      {recommendedFromStart && (
+        <div className="border-b border-cyan-200 bg-gradient-to-r from-cyan-50 via-white to-accent-300/20">
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-2">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-cyan-700" />
+              <span>
+                Recommended from your intake. This is the cleanest next click based on the problem,
+                budget, and urgency you picked.
+              </span>
+            </div>
+            <Link href="/start" className="font-semibold text-cyan-700 hover:text-cyan-800">
+              Reroute me
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* HERO — warm-glass blend (NOT plain white, NOT all-dark) */}
       <section className="relative overflow-hidden">
@@ -101,8 +128,8 @@ export default async function OfferPage({ params }: Props) {
                 </Link>
               </div>
               <p className="mt-3 text-xs text-slate-500">
-                Texas-law engagement letter + mutual NDA. Stripe Payment Link drops in here once products
-                are live; for now, email lock-in with same-day reply.
+                Secure Stripe checkout. Texas-law engagement letter + mutual NDA. No specific-outcome
+                guarantees.
               </p>
             </div>
 
@@ -112,7 +139,7 @@ export default async function OfferPage({ params }: Props) {
                 <div className="flex items-center justify-between">
                   <div className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Price</div>
                   {O.price.badge && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-lead-100 border border-lead-300 px-2.5 py-0.5 text-xs font-semibold text-lead-800">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-50 border border-cyan-200 px-2.5 py-0.5 text-xs font-semibold text-cyan-800">
                       {O.price.badge}
                     </span>
                   )}
@@ -124,7 +151,7 @@ export default async function OfferPage({ params }: Props) {
                 <ul className="mt-5 space-y-2.5 text-sm text-slate-700">
                   {O.price.deliverables.map((d) => (
                     <li key={d} className="flex items-start gap-2">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-600" />
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" />
                       <span>{d}</span>
                     </li>
                   ))}
@@ -136,6 +163,29 @@ export default async function OfferPage({ params }: Props) {
                       <Sparkles className="h-3.5 w-3.5" /> {O.price.addOn.title}
                     </div>
                     <p className="mt-1 leading-relaxed">{O.price.addOn.body}</p>
+                  </div>
+                )}
+
+                {workload && (
+                  <div className="mt-5 rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-700">
+                    <div className="flex items-start gap-2">
+                      <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-600" />
+                      <div>
+                        <div className="font-semibold text-slate-950">Capacity math</div>
+                        <p className="mt-1 leading-relaxed">
+                          {workload.visibleTime} reserves {formatHours(workload.reserveHours)} of
+                          Ryan's 60-hour week. Planning estimate:{" "}
+                          {formatHours(workload.planningHours)}.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-start gap-2">
+                      <Calendar className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-600" />
+                      <div>
+                        <div className="font-semibold text-slate-950">Delivery promise</div>
+                        <p className="mt-1 leading-relaxed">{workload.deliveryPromise}</p>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -341,13 +391,13 @@ function Step({ n, minutes, title, body }: { n: string; minutes: string; title: 
 function FitBlock({ tone, title, items }: { tone: "lead" | "rose"; title: string; items: string[] }) {
   const styles =
     tone === "lead"
-      ? "border-lead-200 bg-lead-50"
+      ? "border-cyan-200 bg-cyan-50"
       : "border-rose-200 bg-rose-50";
   const chip =
     tone === "lead"
-      ? "border-lead-300 bg-lead-100 text-lead-800"
+      ? "border-cyan-300 bg-cyan-100 text-cyan-800"
       : "border-rose-300 bg-rose-100 text-rose-800";
-  const iconColor = tone === "lead" ? "text-lead-600" : "text-rose-600";
+  const iconColor = tone === "lead" ? "text-cyan-600" : "text-rose-600";
   const Pill = tone === "lead" ? Check : XIcon;
   return (
     <div className={`rounded-2xl border ${styles} p-6`}>
@@ -368,8 +418,8 @@ function FitBlock({ tone, title, items }: { tone: "lead" | "rose"; title: string
 }
 
 function CostBlock({ tone, title, big, sub }: { tone: "lead" | "amber"; title: string; big: string; sub: string }) {
-  const ring = tone === "lead" ? "border-lead-400/30 bg-lead-400/10" : "border-amber-400/30 bg-amber-400/10";
-  const chip = tone === "lead" ? "text-lead-300" : "text-amber-300";
+  const ring = tone === "lead" ? "border-cyan-400/30 bg-cyan-400/10" : "border-amber-400/30 bg-amber-400/10";
+  const chip = tone === "lead" ? "text-cyan-300" : "text-amber-300";
   return (
     <div className={`rounded-2xl border ${ring} backdrop-blur p-6`}>
       <div className={`text-xs uppercase tracking-widest ${chip} font-semibold`}>{title}</div>

@@ -324,7 +324,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     whyBuy: [
       { Icon: LineChart, title: "You can't fix what you can't see", body: "Most owners can name 1–2 problems. The audit names 8–14 — and ranks them so you fix the leak that's bleeding the most first." },
       { Icon: Wrench,    title: "Written, not 'we discussed'",       body: "A call is forgotten in a week. A 12–18 page document on your desktop is referenced for years." },
-      { Icon: Trophy,    title: "Worth the money on one fix",        body: "The median client identifies at least one $5K-per-month leak in the audit. That's a 10× return in the first month if you fix it." },
+      { Icon: Trophy,    title: "Worth the money if one leak is real", body: "If the audit finds one broken offer, ad leak, dead follow-up path, or wasted workflow you actually fix, the written plan can pay for itself." },
     ],
     timeline: [
       { n: "1", minutes: "Day 0",  title: "Intake & access",  body: "60-min recorded intake call. You grant read-only access to your ad accounts, CRM, and analytics. Pre-work form: ~20 minutes." },

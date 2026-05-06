@@ -1,170 +1,340 @@
-// src/app/contact/page.tsx — Contact page. Light theme matching the new homepage.
-//
-// Three paths to reach Ryan:
-//   1. Book a 10-min call (Cal.com)
-//   2. Hire direct (go to /tiers)
-//   3. Email Ryan with context
+// src/app/contact/page.tsx — mobile-first contact command center.
 
 import Link from "next/link";
-import { ArrowRight, Mail, Phone, MapPin, Clock, Calendar } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  ArrowRight,
+  Bot,
+  Calendar,
+  CheckCircle2,
+  Mail,
+  MapPin,
+  MessageSquareText,
+  Phone,
+  Route,
+  ShieldCheck,
+} from "lucide-react";
+import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { OpenChatButton } from "@/components/site/OpenChatButton";
 
 export const metadata = {
   title: "Contact Ryan Nichols — The LeadFlow Pro",
   description:
-    "Three ways to reach Ryan: book a 10-minute call, hire direct, or email. Reserved for serious buyers.",
+    "Choose the fastest way to move forward with The LeadFlow Pro: start the router, book the 10-minute call, ask Faretta AI, text, or email Ryan.",
 };
 
 const RYAN_EMAIL = "theflashflash24@gmail.com";
+const PHONE_DISPLAY = "(903) 345-8990";
+const PHONE_HREF = "+19033458990";
+
+function mailto(subject: string, body = "") {
+  const params = new URLSearchParams({ subject });
+  if (body) params.set("body", body);
+  return `mailto:${RYAN_EMAIL}?${params.toString()}`;
+}
+
+const CONTEXT_BODY =
+  "Hi Ryan,\n\nBusiness/account:\n\nWhat I need built or fixed:\n\nBudget range I am considering:\n\nTimeline:\n\nBest next step:\n\n";
+
+const SHOULD_USE = [
+  {
+    Icon: Route,
+    title: "Start with the router",
+    body: "Best first move if you are not sure which paid offer fits. It routes you by problem, budget, and urgency.",
+    href: "/start",
+    cta: "Find my next move",
+  },
+  {
+    Icon: Calendar,
+    title: "Book the 10-minute call",
+    body: "Best if you are a serious buyer and can explain the business, the account, and the stuck decision fast.",
+    href: "/book",
+    cta: "Pick a call window",
+  },
+  {
+    Icon: Mail,
+    title: "Email context",
+    body: "Best if you need to send links, screenshots, a longer explanation, or a team member into the thread.",
+    href: mailto("LeadFlow Pro — serious inquiry", CONTEXT_BODY),
+    cta: "Email Ryan",
+  },
+];
 
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="font-bold text-slate-950 hover:text-brand-700">
-            The LeadFlow Pro
-          </Link>
-          <Link
-            href="/book"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-600"
-          >
-            Book the 10-min call <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-      </header>
+      <LightHeader activePath="/contact" />
 
-      <section className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:py-16">
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1 text-xs uppercase tracking-widest text-cyan-700">
-            Contact
+      <main>
+        <section className="relative overflow-hidden border-b border-slate-200">
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(135deg, #fff8f1 0%, #f6f9ff 38%, #eef9ff 70%, #f3eaff 100%)",
+            }}
+          />
+          <div
+            aria-hidden
+            className="absolute -right-24 -top-28 h-[420px] w-[420px] rounded-full opacity-45 blur-3xl"
+            style={{ background: "radial-gradient(circle, rgba(35,184,255,0.55) 0%, transparent 65%)" }}
+          />
+          <div
+            aria-hidden
+            className="absolute -bottom-36 -left-24 h-[480px] w-[480px] rounded-full opacity-40 blur-3xl"
+            style={{ background: "radial-gradient(circle, rgba(255,154,31,0.45) 0%, transparent 65%)" }}
+          />
+
+          <div className="relative mx-auto grid max-w-7xl gap-7 px-4 py-8 sm:py-12 lg:grid-cols-5 lg:items-center">
+            <div className="lg:col-span-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm backdrop-blur">
+                Contact Ryan
+              </div>
+              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+                Do not wander.{" "}
+                <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
+                  Pick the next move.
+                </span>
+              </h1>
+              <p className="mt-4 text-base leading-relaxed text-slate-700 sm:text-lg">
+                If you are ready to move, use the router or book the call. If you need an answer
+                before you choose, ask Faretta AI. If there is context I need to see, text or email
+                it cleanly.
+              </p>
+              <div className="mt-5 rounded-2xl border border-cyan-200 bg-white/75 p-4 text-sm leading-relaxed text-slate-700 shadow-sm backdrop-blur">
+                The first goal is simple: figure out whether this is a 10-minute fit check, a lower
+                paid entry, or a bigger 30/60/90-day buildout.
+              </div>
+            </div>
+
+            <div id="contact-options" className="lg:col-span-3">
+              <div className="rounded-3xl border border-white/70 bg-white/80 p-4 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.25)] ring-1 ring-slate-900/5 backdrop-blur-xl sm:p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                      Contact command panel
+                    </div>
+                    <div className="mt-1 text-lg font-bold text-slate-950">
+                      Choose one. I will route from there.
+                    </div>
+                  </div>
+                  <span className="hidden rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800 sm:inline-flex">
+                    Mobile first
+                  </span>
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <QuickLink
+                    href="/start"
+                    Icon={Route}
+                    label="Start the router"
+                    body="Best path if you want the site to tell you what to do next."
+                    primary
+                  />
+                  <QuickLink
+                    href="/book"
+                    Icon={Calendar}
+                    label="Book the 10-min call"
+                    body="A fit check for serious buyers. No long free coaching."
+                    accent
+                  />
+                  <OpenChatButton className="group flex min-h-[112px] flex-col rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-50">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-600 text-white">
+                      <Bot className="h-5 w-5" />
+                    </span>
+                    <span className="mt-3 text-sm font-bold text-slate-950">Ask Faretta AI</span>
+                    <span className="mt-1 text-xs leading-relaxed text-slate-600">
+                      Opens the site assistant for package fit, pricing, and next-step questions.
+                    </span>
+                  </OpenChatButton>
+                  <QuickLink
+                    href={`sms:${PHONE_HREF}`}
+                    Icon={MessageSquareText}
+                    label="Text Ryan"
+                    body={`${PHONE_DISPLAY}. Use this when the context is short.`}
+                  />
+                  <QuickLink
+                    href={mailto("LeadFlow Pro — serious inquiry", CONTEXT_BODY)}
+                    Icon={Mail}
+                    label="Email Ryan"
+                    body={RYAN_EMAIL}
+                  />
+                  <QuickLink
+                    href={`tel:${PHONE_HREF}`}
+                    Icon={Phone}
+                    label="Call Ryan"
+                    body="Use sparingly. The 10-minute call is the cleaner lane."
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 className="mt-4 text-4xl sm:text-5xl font-semibold tracking-tight text-slate-950">
-            Three ways to reach me. Pick the one that fits where you are.
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-slate-700">
-            All three go to me directly — Ryan Nichols. Reserved for serious buyers.
-          </p>
-        </div>
-      </section>
+        </section>
 
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-14 grid gap-6 lg:grid-cols-3">
-          <ContactCard
-            icon={Calendar}
-            heading="Book the 10-min call"
-            line="Free. 10 minutes. No pitch decks. We figure out fast whether we should work together."
-            cta="Pick a time"
-            href="/book"
-            recommended
+        <section className="relative overflow-hidden border-b border-slate-200">
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(180deg, #f6f9ff 0%, #fff8f1 100%)" }}
           />
-          <ContactCard
-            icon={ArrowRight}
-            heading="Hire me directly"
-            line="Skip the call. Pick the package that fits. Pay. We start. For owners who already know what they need."
-            cta="See packages & buy"
-            href="/tiers"
-          />
-          <ContactCard
-            icon={Mail}
-            heading="Email me"
-            line="Drop me a note with context — what you're doing, what's stuck, what you're willing to invest. I read every one."
-            cta="Email Ryan"
-            href={`mailto:${RYAN_EMAIL}?subject=${encodeURIComponent("LeadFlow Pro — serious inquiry")}`}
-          />
-        </div>
-      </section>
-
-      <section className="border-b border-slate-200 bg-slate-50">
-        <div className="mx-auto max-w-5xl px-4 py-12 grid gap-6 sm:grid-cols-3">
-          <Detail icon={MapPin}  label="Based"        value="East Texas — virtual everywhere; in-person locally; client pays travel for everywhere else." />
-          <Detail icon={Clock}   label="Response"     value="1 business day on email. Same-day on direct hires." />
-          <Detail icon={Phone}   label="Phone"        value="Phone calls only after a paid engagement. The 10-min Discovery Call comes first." />
-        </div>
-      </section>
-
-      <section className="bg-white">
-        <div className="mx-auto max-w-3xl px-4 py-14 text-center">
-          <h2 className="text-2xl sm:text-3xl font-semibold text-slate-950">
-            Don't waste either of our time.
-          </h2>
-          <p className="mt-3 text-slate-700">
-            If you're "just looking," shopping for the lowest price, or want guarantees before you
-            commit — this isn't the place. If you're ready to invest in growth and you want an
-            operator in your corner — book the call or hire direct.
-          </p>
-          <div className="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/tiers"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-sm hover:bg-slate-800"
-            >
-              Start the engagement <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/book"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-sm hover:bg-accent-600"
-            >
-              Book the 10-min call
-            </Link>
+          <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-14">
+            <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+              Fastest path
+            </div>
+            <h2 className="mt-2 max-w-3xl text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+              Use the lane that matches where you are right now.
+            </h2>
+            <div className="mt-7 grid gap-4 lg:grid-cols-3">
+              {SHOULD_USE.map((item) => (
+                <PathCard key={item.title} {...item} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-8 text-xs text-slate-500 text-center">
-          The LeadFlow Pro · A Real Ryan Nichols LLC company · Texas-governed under mutual NDA on
-          every paid engagement.
-        </div>
-      </footer>
+        <section className="mx-auto grid max-w-7xl gap-5 px-4 py-12 sm:py-14 lg:grid-cols-3">
+          <InfoCard
+            Icon={CheckCircle2}
+            title="Send the useful context"
+            body="Business name, account links, current offer, budget range, timeline, and the one decision you need made. That beats a long vague message."
+          />
+          <InfoCard
+            Icon={ShieldCheck}
+            title="No fake promises"
+            body="I will tell you what I think the next move is. I do not guarantee specific followers, leads, sales, or revenue."
+          />
+          <InfoCard
+            Icon={MapPin}
+            title="East Texas, remote everywhere"
+            body="Virtual work is normal. Local travel can be discussed when it makes sense and the client covers travel."
+          />
+        </section>
+
+        <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-brand-900 to-cyan-900 text-white">
+          <div
+            aria-hidden
+            className="absolute -top-28 left-1/2 h-[420px] w-[620px] -translate-x-1/2 rounded-full opacity-25 blur-3xl"
+            style={{ background: "radial-gradient(circle, #ff9a1f 0%, transparent 60%)" }}
+          />
+          <div className="relative mx-auto max-w-3xl px-4 py-14 text-center sm:py-16">
+            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+              Ready means ready to choose.
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-slate-300">
+              Start with the router if you want the cleanest path. Book the call if you already know
+              this deserves Ryan's time.
+            </p>
+            <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link
+                href="/start"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/25 hover:bg-accent-600"
+              >
+                Find my next move <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/book"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur hover:bg-white/15"
+              >
+                Book the 10-min call
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <LightFooter />
     </div>
   );
 }
 
-function ContactCard({
-  icon: Icon, heading, line, cta, href, recommended,
+function QuickLink({
+  href,
+  Icon,
+  label,
+  body,
+  primary,
+  accent,
 }: {
-  icon: any;
-  heading: string;
-  line: string;
-  cta: string;
   href: string;
-  recommended?: boolean;
+  Icon: LucideIcon;
+  label: string;
+  body: string;
+  primary?: boolean;
+  accent?: boolean;
+}) {
+  const classes = primary
+    ? "border-slate-950 bg-slate-950 text-white hover:bg-slate-800"
+    : accent
+      ? "border-accent-400 bg-accent-500 text-white hover:bg-accent-600"
+      : "border-slate-200 bg-white text-slate-950 hover:border-cyan-300 hover:bg-cyan-50/50";
+
+  return (
+    <Link
+      href={href}
+      className={`group flex min-h-[112px] flex-col rounded-2xl border p-4 shadow-sm transition hover:-translate-y-0.5 ${classes}`}
+    >
+      <span
+        className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${
+          primary || accent ? "bg-white/15 text-white" : "bg-slate-950 text-white"
+        }`}
+      >
+        <Icon className="h-5 w-5" />
+      </span>
+      <span className="mt-3 text-sm font-bold">{label}</span>
+      <span className={`mt-1 text-xs leading-relaxed ${primary || accent ? "text-white/80" : "text-slate-600"}`}>
+        {body}
+      </span>
+    </Link>
+  );
+}
+
+function PathCard({
+  Icon,
+  title,
+  body,
+  href,
+  cta,
+}: {
+  Icon: LucideIcon;
+  title: string;
+  body: string;
+  href: string;
+  cta: string;
 }) {
   return (
-    <div
-      className={`relative flex flex-col rounded-2xl border bg-white p-6 shadow-sm hover:shadow-md transition-shadow ${
-        recommended ? "border-brand-500 ring-1 ring-brand-200" : "border-slate-200"
-      }`}
+    <Link
+      href={href}
+      className="group rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-lg"
     >
-      {recommended && (
-        <span className="absolute -top-3 left-6 inline-flex items-center gap-1.5 rounded-full bg-brand-600 px-3 py-1 text-xs font-semibold text-white shadow">
-          Most pick this
-        </span>
-      )}
-      <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-brand-600 text-white shadow-sm">
+      <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-brand-700 text-white">
         <Icon className="h-5 w-5" />
       </div>
-      <h3 className="mt-4 text-xl font-semibold text-slate-950">{heading}</h3>
-      <p className="mt-2 text-sm text-slate-700 leading-relaxed">{line}</p>
-      <Link
-        href={href}
-        className="mt-auto pt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
-      >
+      <h3 className="mt-4 text-lg font-semibold text-slate-950">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-slate-600">{body}</p>
+      <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-cyan-700 group-hover:text-cyan-800">
         {cta} <ArrowRight className="h-4 w-4" />
-      </Link>
-    </div>
+      </div>
+    </Link>
   );
 }
 
-function Detail({
-  icon: Icon, label, value,
-}: { icon: any; label: string; value: string }) {
+function InfoCard({
+  Icon,
+  title,
+  body,
+}: {
+  Icon: LucideIcon;
+  title: string;
+  body: string;
+}) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
-      <div className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white">
-        <Icon className="h-4 w-4" />
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white">
+        <Icon className="h-5 w-5" />
       </div>
-      <div className="mt-3 text-xs uppercase tracking-widest text-slate-500">{label}</div>
-      <div className="mt-1 text-sm text-slate-700">{value}</div>
+      <h3 className="mt-4 font-semibold text-slate-950">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-slate-600">{body}</p>
     </div>
   );
 }

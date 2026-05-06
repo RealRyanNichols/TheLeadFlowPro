@@ -11,6 +11,7 @@ import Link from "next/link";
 import {
   ArrowRight, Check, Clock, Pause, Play, Plus, Trash2, X as XIcon,
 } from "lucide-react";
+import { OFFER_WORKLOADS, formatHours } from "@/lib/workload";
 
 type Engagement = {
   id: string;
@@ -161,7 +162,7 @@ export default function AdminCapacityPage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="grid gap-4 sm:grid-cols-3">
             <Stat label="Active hours / week" value={`${totalActiveHours} / 60`} accent="cyan" />
-            <Stat label="Remaining capacity" value={`${remaining} hrs`} accent="lead" />
+            <Stat label="Remaining capacity" value={`${remaining} hrs`} accent="accent" />
             <Stat
               label="Active engagements"
               value={String(engagements.filter((e) => e.status === "active").length)}
@@ -218,10 +219,10 @@ export default function AdminCapacityPage() {
 
 /* ──────────── components ──────────── */
 
-function Stat({ label, value, accent }: { label: string; value: string; accent: "cyan" | "lead" | "brand" }) {
+function Stat({ label, value, accent }: { label: string; value: string; accent: "cyan" | "accent" | "brand" }) {
   const tone = {
     cyan:  "border-cyan-200 bg-cyan-50",
-    lead:  "border-lead-200 bg-lead-50",
+    accent:  "border-accent-300 bg-accent-300/20",
     brand: "border-brand-200 bg-brand-50",
   }[accent];
   return (
@@ -240,6 +241,13 @@ function NewEngagementForm({ secret, onCreated }: { secret: string; onCreated: (
   const [hoursPerWeek, setHoursPerWeek] = useState(5);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const selectedWorkload = offerSlug ? OFFER_WORKLOADS[offerSlug as keyof typeof OFFER_WORKLOADS] : null;
+
+  function updateOfferSlug(next: string) {
+    setOfferSlug(next);
+    const workload = OFFER_WORKLOADS[next as keyof typeof OFFER_WORKLOADS];
+    if (workload) setHoursPerWeek(Math.ceil(workload.reserveHours));
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -330,15 +338,27 @@ function NewEngagementForm({ secret, onCreated }: { secret: string; onCreated: (
           />
         </Field>
         <Field label="Offer slug (optional)">
-          <input
-            type="text"
+          <select
             value={offerSlug}
-            onChange={(e) => setOfferSlug(e.target.value)}
-            placeholder="monthly-operator"
+            onChange={(e) => updateOfferSlug(e.target.value)}
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none"
-          />
+          >
+            <option value="">Custom / not tied to an offer</option>
+            {Object.values(OFFER_WORKLOADS).map((workload) => (
+              <option key={workload.slug} value={workload.slug}>
+                {workload.label} · reserves {formatHours(workload.reserveHours)}
+              </option>
+            ))}
+          </select>
         </Field>
       </div>
+      {selectedWorkload && (
+        <div className="rounded-xl border border-cyan-200 bg-cyan-50/70 p-3 text-xs leading-relaxed text-cyan-950">
+          <strong>{selectedWorkload.label}</strong> default: visible time is{" "}
+          {selectedWorkload.visibleTime}; reserves {formatHours(selectedWorkload.reserveHours)} in
+          the public meter. {selectedWorkload.deliveryPromise}
+        </div>
+      )}
       {err && (
         <div className="rounded-lg border border-rose-200 bg-rose-50 p-2 text-xs text-rose-900">
           {err}

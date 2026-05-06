@@ -20,7 +20,10 @@ import {
 } from "lucide-react";
 import { TrackedLink } from "@/components/TrackedLink";
 import { BandwidthMeter } from "@/components/BandwidthMeter";
+import { LiveSignalAnalyzer, type SignalPlatform } from "@/components/site/LiveSignalAnalyzer";
+import { LightHeader } from "@/components/site/LightHeader";
 import { getYouTubeStatsCached, getXStatsCached, getFacebookStatsCached } from "@/lib/social-sync";
+import { getCapacitySnapshot } from "@/lib/capacity";
 
 // Re-validate the homepage every hour so live stats refresh.
 export const revalidate = 3600;
@@ -159,48 +162,56 @@ export default async function GrowV2Page() {
   const fbFollowers = fb?.followerCount ?? STATIC_FALLBACK.facebook;
   const totalReach = ytSubs + xFollowers + fbFollowers + STATIC_FALLBACK.tiktok + STATIC_FALLBACK.instagram;
   const liveCount = (yt ? 1 : 0) + (x ? 1 : 0) + (fb ? 1 : 0);
+  const capacitySnapshot = await getCapacitySnapshot().catch(() => null);
+  const signalPlatforms: SignalPlatform[] = [
+    {
+      key: "x",
+      label: "X / Twitter",
+      value: xFollowers,
+      source: x ? "live" : "baseline",
+      detail: x ? `${x.posts.toLocaleString()} posts tracked from X API` : "Manual public baseline until X API token is connected",
+      color: "#0a1d3f",
+      posts: x?.posts,
+    },
+    {
+      key: "facebook",
+      label: "Facebook",
+      value: fbFollowers,
+      source: fb ? "live" : "baseline",
+      detail: fb ? "Facebook Graph API pull" : "Manual public baseline until Page token is connected",
+      color: "#1273e8",
+    },
+    {
+      key: "youtube",
+      label: "YouTube",
+      value: ytSubs,
+      source: yt ? "live" : "baseline",
+      detail: yt ? `${yt.videos.toLocaleString()} videos and ${yt.views.toLocaleString()} views from YouTube API` : "Manual public baseline until YouTube API is connected",
+      color: "#f07a10",
+      posts: yt?.videos,
+      views: yt?.views,
+    },
+    {
+      key: "instagram",
+      label: "Instagram",
+      value: STATIC_FALLBACK.instagram,
+      source: "baseline",
+      detail: "Manual public baseline until Meta IG access is connected",
+      color: "#ff9a1f",
+    },
+    {
+      key: "tiktok",
+      label: "TikTok",
+      value: STATIC_FALLBACK.tiktok,
+      source: "baseline",
+      detail: "Manual public baseline until TikTok API approval is connected",
+      color: "#5cd0ff",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      {/* Header — light theme, full nav. Static (not sticky). No horizontal scroll. */}
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-          <Link href="/" className="font-bold text-slate-950 hover:text-brand-700">
-            The LeadFlow Pro
-          </Link>
-          <nav className="hidden lg:flex items-center gap-5 text-sm text-slate-700">
-            <Link href="/" className="font-semibold text-cyan-700 hover:text-cyan-800">Home</Link>
-            <Link href="/services" className="hover:text-slate-950">Social Media</Link>
-            <Link href="/services/consulting" className="hover:text-slate-950">Consulting</Link>
-            <Link href="/tiers" className="hover:text-slate-950">Pricing</Link>
-            <Link href="/contact" className="hover:text-slate-950">Contact</Link>
-          </nav>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/login"
-              className="hidden sm:inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-brand-500 hover:text-brand-700"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/book"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-semibold text-white hover:bg-accent-600"
-            >
-              Book the 10-min call <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </div>
-        {/* Mobile sub-nav — wraps to multiple lines, never scrolls */}
-        <div className="lg:hidden border-t border-slate-200 bg-slate-50">
-          <div className="mx-auto max-w-7xl px-4 py-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
-            <Link href="/services" className="hover:text-slate-950 py-1">Social Media</Link>
-            <Link href="/services/consulting" className="hover:text-slate-950 py-1">Consulting</Link>
-            <Link href="/tiers" className="hover:text-slate-950 py-1">Pricing</Link>
-            <Link href="/contact" className="hover:text-slate-950 py-1">Contact</Link>
-            <Link href="/login" className="hover:text-slate-950 font-semibold py-1">Log in</Link>
-          </div>
-        </div>
-      </header>
+      <LightHeader activePath="/" />
 
 {/* HERO — warm-glass blend (cyan + accent + soft purple blooms over a warm base) */}
       <section className="relative overflow-hidden border-b border-slate-200">
@@ -255,12 +266,12 @@ export default async function GrowV2Page() {
               </p>
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <TrackedLink
-                  href="/offers/decision-sprint"
-                  event="cta_buy_sprint"
+                  href="/start"
+                  event="cta_start_router"
                   location="homepage_hero"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
                 >
-                  $90 for 90 minutes <ArrowRight className="h-4 w-4" />
+                  Find my next move <ArrowRight className="h-4 w-4" />
                 </TrackedLink>
                 <TrackedLink
                   href="/tiers"
@@ -280,16 +291,21 @@ export default async function GrowV2Page() {
                 </TrackedLink>
               </div>
               <p className="mt-3 text-xs text-slate-500">
-                Three doors, one operator. The $90 sprint is the fastest. The full package list is the
-                widest. The free 10-min call is for serious buyers who want to talk first.
+                Not sure where to start? The router asks the practical questions, saves Ryan the
+                context, and sends you to the cleanest offer page.
               </p>
             </div>
 
-            {/* Algorithm signal radar */}
+            {/* Live signal analyzer */}
             <div>
-              <RadarMock />
+              <LiveSignalAnalyzer
+                platforms={signalPlatforms}
+                capacity={capacitySnapshot}
+                lastChecked={new Date().toISOString()}
+                liveSourceCount={liveCount}
+              />
               <p className="mt-3 text-xs text-slate-500 text-center">
-                Signals we collect and translate into next actions
+                Live API data where connected. Manual baselines are labeled until each source is wired.
               </p>
             </div>
           </div>
@@ -333,7 +349,7 @@ export default async function GrowV2Page() {
           </div>
           {liveCount > 0 && (
             <p className="mt-4 text-xs text-slate-500 flex items-center gap-2">
-              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-lead-500 animate-pulse" />
+              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
               Live: {yt ? `YouTube ${ytSubs.toLocaleString()}` : null}
               {yt && x ? " · " : null}
               {x ? `X ${xFollowers.toLocaleString()}` : null}
@@ -485,15 +501,15 @@ export default async function GrowV2Page() {
             Are you a fit?
           </h2>
           <div className="grid gap-5 md:grid-cols-2">
-            <div className="rounded-2xl border border-lead-200 bg-lead-50 p-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-lead-100 px-3 py-1 text-xs uppercase tracking-widest text-lead-800 font-semibold">
+            <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-6">
+              <div className="inline-flex items-center gap-2 rounded-full bg-cyan-100 px-3 py-1 text-xs uppercase tracking-widest text-cyan-800 font-semibold">
                 <Check className="h-3.5 w-3.5" /> Right fit
               </div>
               <h3 className="mt-3 text-xl font-semibold text-slate-950">Book the call</h3>
               <ul className="mt-4 space-y-3">
                 {RIGHT_FIT.map((line) => (
                   <li key={line} className="flex items-start gap-2 text-slate-700">
-                    <Check className="mt-0.5 h-5 w-5 shrink-0 text-lead-600" />
+                    <Check className="mt-0.5 h-5 w-5 shrink-0 text-cyan-600" />
                     <span>{line}</span>
                   </li>
                 ))}
@@ -568,7 +584,7 @@ export default async function GrowV2Page() {
                   <ul className="mt-4 space-y-2">
                     {p.bullets.map((b) => (
                       <li key={b} className="flex items-start gap-2 text-sm text-slate-700">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-600" />
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" />
                         <span>{b}</span>
                       </li>
                     ))}
@@ -640,7 +656,7 @@ export default async function GrowV2Page() {
                   "Minimum recommended monthly ad budget: $1,500",
                 ].map((b) => (
                   <li key={b} className="flex items-start gap-2 text-sm">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-600" />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" />
                     <span>{b}</span>
                   </li>
                 ))}
@@ -723,7 +739,7 @@ export default async function GrowV2Page() {
       {/* THE 10-MINUTE CALL */}
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-4 py-14 sm:py-20 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-lead-100 px-3 py-1 text-xs uppercase tracking-widest text-lead-800 font-semibold">
+          <div className="inline-flex items-center gap-2 rounded-full bg-cyan-100 px-3 py-1 text-xs uppercase tracking-widest text-cyan-800 font-semibold">
             <Clock className="h-3.5 w-3.5" /> The first step
           </div>
           <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
@@ -870,51 +886,6 @@ function StatBlock({ label, value, sub }: { label: string; value: string; sub: s
   );
 }
 
-function RadarMock() {
-  // Stylized "real-time signal radar" — concentric arcs + dots representing
-  // signals (location, app, search, video, social, ad) circulating.
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-cyan-50 p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-xs uppercase tracking-widest text-slate-500">Live signal radar</div>
-        <div className="inline-flex items-center gap-1.5 text-xs text-cyan-700">
-          <span className="h-2 w-2 rounded-full bg-cyan-500" /> active
-        </div>
-      </div>
-      <svg viewBox="0 0 320 280" className="block w-full">
-        {[40, 80, 120].map((r) => (
-          <circle key={r} cx="160" cy="140" r={r} fill="none" stroke="#CBD5E1" strokeWidth="1" strokeDasharray="3 3" />
-        ))}
-        <line x1="40" y1="140" x2="280" y2="140" stroke="#E2E8F0" strokeWidth="1" />
-        <line x1="160" y1="20" x2="160" y2="260" stroke="#E2E8F0" strokeWidth="1" />
-        <path d="M 160 140 L 230 86 A 90 90 0 0 0 250 140 Z" fill="#22b8ff22" />
-        <line x1="160" y1="140" x2="250" y2="140" stroke="#22b8ff" strokeWidth="2" />
-        {[
-          { x: 220, y: 90,  label: "TikTok",   color: "#000000" },
-          { x: 100, y: 70,  label: "X",        color: "#0F1419" },
-          { x: 80,  y: 200, label: "YouTube",  color: "#FF0000" },
-          { x: 240, y: 200, label: "Facebook", color: "#1877F2" },
-          { x: 200, y: 145, label: "Geo ping", color: "#7fc93f" },
-          { x: 130, y: 155, label: "Search",   color: "#ff9a1f" },
-        ].map((s, i) => (
-          <g key={i}>
-            <circle cx={s.x} cy={s.y} r="6" fill={s.color} />
-            <circle cx={s.x} cy={s.y} r="11" fill="none" stroke={s.color} strokeOpacity="0.3" strokeWidth="1.5" />
-            <text x={s.x + 12} y={s.y + 4} fontSize="11" fill="#334155" fontWeight="600">{s.label}</text>
-          </g>
-        ))}
-        <circle cx="160" cy="140" r="5" fill="#0d4a9d" />
-        <circle cx="160" cy="140" r="9" fill="none" stroke="#0d4a9d" strokeOpacity="0.4" strokeWidth="2" />
-      </svg>
-      <div className="mt-2 grid grid-cols-3 gap-2 text-[10px] text-slate-500 text-center">
-        <div className="rounded-md bg-slate-50 py-1">Last pull · 12s ago</div>
-        <div className="rounded-md bg-slate-50 py-1">42 signals / min</div>
-        <div className="rounded-md bg-cyan-50 py-1 text-cyan-700 font-semibold">3 actions queued</div>
-      </div>
-    </div>
-  );
-}
-
 function FollowerJourneyChart({ total }: { total: number }) {
   // Animated 0 → 75K growth curve. Pure SVG with <animate> — no JS deps.
   // The line draws itself in over 2.4s, milestone points pulse, and a
@@ -951,7 +922,7 @@ function FollowerJourneyChart({ total }: { total: number }) {
           The growth pattern
         </div>
         <div className="inline-flex items-center gap-1.5 text-[11px] text-slate-300">
-          <span className="h-1.5 w-1.5 rounded-full bg-lead-400 animate-pulse" />
+          <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
           Live · {total.toLocaleString()} total
         </div>
       </div>

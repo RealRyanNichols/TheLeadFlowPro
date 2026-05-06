@@ -14,6 +14,7 @@ import {
   HeartHandshake, Mail, Megaphone, MessageSquare, Rocket, ShieldCheck,
   Sparkles, Star, Target, Trophy, Users, Wrench,
 } from "lucide-react";
+import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 
 export const metadata = {
   title: "Pricing & Tiers — The LeadFlow Pro",
@@ -294,27 +295,7 @@ const TIER_4: Card[] = [
 export default function TiersPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/85 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="font-semibold hover:text-brand-700">
-            The LeadFlow Pro
-          </Link>
-          <Link
-            href="/book"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-600"
-          >
-            Book the 10-min call <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-      </header>
-
-      {/* Preview banner — only shows because /tiers is a draft, not linked from nav */}
-      <div className="border-b border-amber-200 bg-amber-50">
-        <div className="mx-auto max-w-7xl px-4 py-2 text-xs text-amber-800 text-center">
-          <strong>Preview draft</strong> — full price ladder for Ryan's review. Mark up what you like / hate, then we promote this to /pricing.
-        </div>
-      </div>
+      <LightHeader activePath="/tiers" />
 
       {/* Hero */}
       <section className="bg-gradient-to-b from-white to-slate-50 border-b border-slate-200">
@@ -457,22 +438,7 @@ export default function TiersPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 bg-slate-50">
-        <div className="mx-auto max-w-7xl px-4 py-8 text-xs text-slate-500 grid gap-4 md:grid-cols-2">
-          <div>
-            The LeadFlow Pro · A Real Ryan Nichols LLC company · Texas-governed under
-            mutual NDA on every paid engagement. We do not guarantee specific revenue,
-            growth, or business outcomes.
-          </div>
-          <div className="md:text-right space-x-4">
-            <Link href="/grow" className="hover:text-slate-900">Grow</Link>
-            <Link href="/services" className="hover:text-slate-900">Services</Link>
-            <Link href="/services/consulting" className="hover:text-slate-900">Consulting</Link>
-            <Link href="/book" className="hover:text-slate-900">Book a call</Link>
-          </div>
-        </div>
-      </footer>
+      <LightFooter />
     </div>
   );
 }

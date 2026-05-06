@@ -2,7 +2,7 @@
 
 // src/components/FarettaChatbot.tsx
 // Faretta AI — site-wide floating chat widget powered by Claude.
-// Qualifies visitors, answers questions, converts to /book or /tiers.
+// Qualifies visitors, answers questions, converts to /start, /book, or /tiers.
 // Falls back to a graceful "we'll email you" form when ANTHROPIC_API_KEY isn't set.
 
 import { useEffect, useRef, useState } from "react";
@@ -19,7 +19,7 @@ const GREETING: Msg = {
 const QUICK_PROMPTS = [
   "I want help growing my social",
   "I need a sales process built",
-  "What's it cost to hire Ryan?",
+  "What package fits me?",
   "I'm not sure if I'm a fit",
 ];
 
@@ -35,6 +35,15 @@ export function FarettaChatbot() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, open]);
+
+  useEffect(() => {
+    function openChat() {
+      setOpen(true);
+    }
+
+    window.addEventListener("leadflow:open-chat", openChat);
+    return () => window.removeEventListener("leadflow:open-chat", openChat);
+  }, []);
 
   async function send(text: string) {
     const trimmed = text.trim();
@@ -90,7 +99,7 @@ export function FarettaChatbot() {
           <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor">
             <path d="M2 4a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H8l-4 4V4z" />
           </svg>
-          <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-lead-500 ring-2 ring-white" />
+          <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-cyan-300 ring-2 ring-white" />
         </button>
       )}
 
@@ -104,7 +113,7 @@ export function FarettaChatbot() {
               <div>
                 <div className="font-semibold">Faretta AI</div>
                 <div className="text-[11px] opacity-90 flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-lead-300 animate-pulse" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 animate-pulse" />
                   online · Ryan's assistant
                 </div>
               </div>

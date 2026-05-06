@@ -30,7 +30,7 @@ export async function BandwidthMeter({ variant = "full" }: { variant?: Variant }
         className={`inline-flex items-center gap-2 rounded-full border ${tone.border} ${tone.bg} backdrop-blur px-3 py-1 text-xs font-semibold ${tone.text} shadow-sm hover:shadow-md transition-shadow`}
       >
         <span className={`inline-flex h-1.5 w-1.5 rounded-full ${tone.dot} animate-pulse`} />
-        {snap.remaining} of {snap.capacity} hrs / week available
+        {snap.remaining} hrs left · ~{snap.decisionSprintsRemaining} sprint blocks
       </Link>
     );
   }
@@ -76,6 +76,11 @@ export async function BandwidthMeter({ variant = "full" }: { variant?: Variant }
           <span>0 hrs</span>
           <span>{snap.capacity} hrs cap</span>
         </div>
+        <div className="mt-3 rounded-xl border border-cyan-200 bg-cyan-50/70 p-3 text-xs leading-relaxed text-cyan-950">
+          A 90-minute Decision Sprint reserves{" "}
+          <strong>{snap.decisionSprintReserveHours} hours</strong> of the week after prep,
+          transcript, machine research, worksheet finalization, foldering, and follow-up.
+        </div>
       </div>
 
       {/* Active engagements (anonymized labels only) */}
@@ -120,11 +125,11 @@ export async function BandwidthMeter({ variant = "full" }: { variant?: Variant }
 
 const TONE = {
   open: {
-    border: "border-lead-300",
-    bg:     "bg-lead-50/80",
-    text:   "text-lead-800",
-    dot:    "bg-lead-500",
-    barGradient: "bg-gradient-to-r from-lead-400 to-cyan-500",
+    border: "border-cyan-300",
+    bg:     "bg-cyan-50/80",
+    text:   "text-cyan-800",
+    dot:    "bg-cyan-500",
+    barGradient: "bg-gradient-to-r from-cyan-400 to-brand-500",
   },
   limited: {
     border: "border-accent-300",

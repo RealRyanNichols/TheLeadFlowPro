@@ -378,12 +378,12 @@ export default function ServicesPage() {
                 </p>
                 <div className="mt-5 grid grid-cols-2 gap-3 text-xs">
                   <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                    <div className="text-cyan-300 font-bold">DIY median</div>
-                    <div className="mt-1 text-slate-300">12–18 months to cross</div>
+                    <div className="text-cyan-300 font-bold">DIY path</div>
+                    <div className="mt-1 text-slate-300">Usually slow because the rhythm breaks</div>
                   </div>
                   <div className="rounded-xl border border-accent-400/30 bg-accent-400/10 p-3">
                     <div className="text-accent-300 font-bold">With me</div>
-                    <div className="mt-1 text-white">3–6 months typical</div>
+                    <div className="mt-1 text-white">Cadence, hooks, and follow-up get installed</div>
                   </div>
                 </div>
               </div>
@@ -504,7 +504,7 @@ export default function ServicesPage() {
           <div className="grid gap-5 md:grid-cols-2">
             <FitBlock
               tone="cyan"
-              title="Hire me if"
+              title="Bring me in if"
               items={[
                 "You can record 5–10 min of phone footage / week",
                 "You'll do a 30-min content sync once a week",
@@ -515,7 +515,7 @@ export default function ServicesPage() {
             />
             <FitBlock
               tone="rose"
-              title="Don't hire me if"
+              title="Do not bring me in if"
               items={[
                 "You won't show up for 1 weekly sync",
                 "You expect to go viral by next Tuesday",

@@ -88,14 +88,14 @@ export const PLATFORMS: Record<PlatformHandle, Platform> = {
       },
       {
         who: "People with a message",
-        why: "Faith, recovery, redemption, opinion, niche advocacy — the algorithm doesn't care what you stand for, only how well you hook. Get the message in front of millions.",
+        why: "Faith, recovery, redemption, opinion, niche advocacy — the algorithm does not care what you stand for, only how clearly you hook and how consistently you show up.",
       },
     ],
 
     diyVsYou: [
-      { metric: "Followers in 90 days",         diy: "+200 to +800 (if consistent)", you: "+2,000 to +8,000 (median)" },
+      { metric: "Followers in 90 days",         diy: "Guessing, posting, stopping", you: "Baseline set after intake; weekly hook tests and a real posting rhythm" },
       { metric: "Time spent / week",            diy: "8–12 hrs (planning, filming, editing, posting)", you: "30 min content sync + we run the rest" },
-      { metric: "Lead / inbound conversations", diy: "1–3 per month",                you: "10–40 per month tied to a real funnel" },
+      { metric: "Lead / inbound conversations", diy: "Random DMs, no tracking",      you: "Tracked conversations routed into an offer and follow-up system" },
     ],
 
     ryanGrowth: {
@@ -106,7 +106,7 @@ export const PLATFORMS: Record<PlatformHandle, Platform> = {
     },
 
     samplePosts: [
-      { type: "Hook test", note: "First-3-second hook patterns that beat my baseline by 4×" },
+      { type: "Hook test", note: "First-3-second hook patterns measured against your baseline" },
       { type: "Native short", note: "30-45s native short shot on phone, edited in CapCut, captioned" },
       { type: "Reply trend", note: "Stitched / replied to a trending creator's video to ride the topic wave" },
     ],
@@ -136,7 +136,7 @@ export const PLATFORMS: Record<PlatformHandle, Platform> = {
       h1Lead: "Facebook is where",
       h1Highlight: "your buyers actually live.",
       paragraph:
-        "Everyone says Facebook is dead. Everyone is wrong. Local service businesses, mortgage originators, contractors, real estate, dental — your buyers are spending 60+ minutes a day on FB. The page-and-groups game still works. I've run it for years and grown my own to 18,900+.",
+        "Everyone says Facebook is dead. Everyone is wrong. Local service businesses, mortgage originators, contractors, real estate, dental — your buyers still live in the Facebook feed, groups, and Messenger. The page-and-groups game still works. I've run it for years and grown my own to 18,900+.",
     },
 
     audiences: [
@@ -155,9 +155,9 @@ export const PLATFORMS: Record<PlatformHandle, Platform> = {
     ],
 
     diyVsYou: [
-      { metric: "Page followers in 90 days",   diy: "Stagnant or +50",        you: "+1,500 to +5,000 (median)" },
+      { metric: "Page followers in 90 days",   diy: "Stagnant, inconsistent", you: "Baseline set after intake; page, group, and Messenger rhythm installed" },
       { metric: "Time spent / week",            diy: "5–8 hrs",                you: "20 min content sync" },
-      { metric: "Inbound DMs / leads",          diy: "0–2 per month",          you: "15–60 per month tied to funnel" },
+      { metric: "Inbound DMs / leads",          diy: "Untracked conversations", you: "Messenger and site follow-up tied to a real offer" },
     ],
 
     ryanGrowth: {
@@ -168,9 +168,9 @@ export const PLATFORMS: Record<PlatformHandle, Platform> = {
     },
 
     samplePosts: [
-      { type: "Long-form story", note: "1,500-word story post that triggered 40+ DMs in 24 hours" },
-      { type: "Group seed", note: "Helpful comment in a niche group that drove 12 page follows" },
-      { type: "Native video", note: "60s native upload outperforming the same video as a YouTube link by 8×" },
+      { type: "Long-form story", note: "Owner story post with a direct offer and reply path" },
+      { type: "Group seed", note: "Helpful comment in a niche group that earns attention without spamming" },
+      { type: "Native video", note: "Native upload tested against link posts and static posts" },
     ],
 
     primaryOfferSlug: "power-bundle",
@@ -216,7 +216,7 @@ export const PLATFORMS: Record<PlatformHandle, Platform> = {
     ],
 
     diyVsYou: [
-      { metric: "Followers in 90 days",         diy: "+50 to +300",            you: "+1,200 to +5,000 (median)" },
+      { metric: "Followers in 90 days",         diy: "Sporadic posts and replies", you: "Baseline set after intake; daily post and reply rhythm installed" },
       { metric: "Time spent / day",             diy: "1–2 hrs scrolling/replying", you: "10 min content sync" },
       { metric: "DMs from real prospects",      diy: "Crickets",                you: "5–20 / week, qualified" },
     ],
@@ -277,7 +277,7 @@ export const PLATFORMS: Record<PlatformHandle, Platform> = {
     ],
 
     diyVsYou: [
-      { metric: "Subscribers in 90 days",       diy: "+30 to +200",            you: "+800 to +3,000 (median)" },
+      { metric: "Subscribers in 90 days",       diy: "Irregular uploads",      you: "Baseline set after intake; repeatable long-form and Shorts cadence" },
       { metric: "Time spent / video",           diy: "10–15 hrs (filming + edit + upload)", you: "1 hr filming, we run the rest" },
       { metric: "Compound views (12-mo)",       diy: "Each video dies in a week", you: "Top videos still earning views year 1" },
     ],

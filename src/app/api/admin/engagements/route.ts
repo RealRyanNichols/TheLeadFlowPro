@@ -6,6 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getOfferWorkload } from "@/lib/workload";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -56,13 +57,18 @@ export async function POST(req: Request) {
   if (!clientName) {
     return NextResponse.json({ error: "clientName required" }, { status: 400 });
   }
-  const hoursPerWeek = Number.isFinite(+body.hoursPerWeek) ? Math.max(1, Math.round(+body.hoursPerWeek)) : 5;
+  const offerSlug = body.offerSlug?.toString() || null;
+  const workload = getOfferWorkload(offerSlug);
+  const defaultHours = workload ? Math.ceil(workload.reserveHours) : 5;
+  const hoursPerWeek = Number.isFinite(+body.hoursPerWeek)
+    ? Math.max(1, Math.round(+body.hoursPerWeek))
+    : defaultHours;
 
   const created = await prisma.clientEngagement.create({
     data: {
       clientName,
       publicLabel: body.publicLabel?.toString() || null,
-      offerSlug:   body.offerSlug?.toString()   || null,
+      offerSlug,
       hoursPerWeek,
       status:      body.status?.toString() || "active",
       notes:       body.notes?.toString() || null,

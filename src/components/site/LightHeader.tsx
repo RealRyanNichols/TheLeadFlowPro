@@ -1,9 +1,10 @@
 // src/components/site/LightHeader.tsx
 // Shared light-theme header used on every public marketing page.
-// Static (not sticky), wraps on mobile (no horizontal scroll).
+// Sticky, shared public header. Mobile gets real touch targets above the fold.
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { ArrowRight, Calendar, Gauge, Route } from "lucide-react";
 
 export function LightHeader({ activePath }: { activePath?: string }) {
   function cls(path: string, base: string) {
@@ -11,20 +12,29 @@ export function LightHeader({ activePath }: { activePath?: string }) {
       ? `font-semibold text-cyan-700 hover:text-cyan-800 ${base}`
       : `hover:text-slate-950 ${base}`;
   }
+
+  const nav = [
+    { href: "/", label: "Home" },
+    { href: "/services", label: "Social Media" },
+    { href: "/services/consulting", label: "Consulting" },
+    { href: "/tiers", label: "Pricing" },
+    { href: "/story", label: "Story" },
+    { href: "/availability", label: "Availability" },
+    { href: "/contact", label: "Contact" },
+  ];
+
   return (
-    <header className="border-b border-slate-200 bg-white">
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
         <Link href="/" className="font-bold text-slate-950 hover:text-brand-700">
           The LeadFlow Pro
         </Link>
         <nav className="hidden lg:flex items-center gap-5 text-sm text-slate-700">
-          <Link href="/" className={cls("/", "")}>Home</Link>
-          <Link href="/services" className={cls("/services", "")}>Social Media</Link>
-          <Link href="/services/consulting" className={cls("/services/consulting", "")}>Consulting</Link>
-          <Link href="/tiers" className={cls("/tiers", "")}>Pricing</Link>
-          <Link href="/story" className={cls("/story", "")}>Story</Link>
-          <Link href="/availability" className={cls("/availability", "")}>Availability</Link>
-          <Link href="/contact" className={cls("/contact", "")}>Contact</Link>
+          {nav.map((item) => (
+            <Link key={item.href} href={item.href} className={cls(item.href, "")}>
+              {item.label}
+            </Link>
+          ))}
         </nav>
         <div className="flex items-center gap-2">
           <Link
@@ -34,25 +44,59 @@ export function LightHeader({ activePath }: { activePath?: string }) {
             Log in
           </Link>
           <Link
-            href="/book"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-semibold text-white hover:bg-accent-600"
+            href="/start"
+            className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-slate-950 px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
           >
-            Book the 10-min call <ArrowRight className="h-3.5 w-3.5" />
+            Find my next move <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+          <Link
+            href="/book"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-600"
+          >
+            Book call <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
       </div>
       <div className="lg:hidden border-t border-slate-200 bg-slate-50">
-        <div className="mx-auto max-w-7xl px-4 py-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
-          <Link href="/services" className="hover:text-slate-950 py-1">Social Media</Link>
-          <Link href="/services/consulting" className="hover:text-slate-950 py-1">Consulting</Link>
-          <Link href="/tiers" className="hover:text-slate-950 py-1">Pricing</Link>
-          <Link href="/story" className="hover:text-slate-950 py-1">Story</Link>
-          <Link href="/availability" className="hover:text-slate-950 py-1">Availability</Link>
-          <Link href="/contact" className="hover:text-slate-950 py-1">Contact</Link>
+        <div className="mx-auto grid max-w-7xl grid-cols-3 gap-2 px-4 py-2">
+          <MobileAction href="/start" label="Start" Icon={Route} />
+          <MobileAction href="/book" label="Book" Icon={Calendar} />
+          <MobileAction href="/availability" label="Capacity" Icon={Gauge} />
+        </div>
+        <div className="mx-auto max-w-7xl px-4 pb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
+          {nav.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cls(item.href, "py-1")}
+            >
+              {item.label}
+            </Link>
+          ))}
           <Link href="/login" className="hover:text-slate-950 font-semibold py-1">Log in</Link>
         </div>
       </div>
     </header>
+  );
+}
+
+function MobileAction({
+  href,
+  label,
+  Icon,
+}: {
+  href: string;
+  label: string;
+  Icon: LucideIcon;
+}) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 text-sm font-semibold text-slate-900 shadow-sm active:scale-[0.98]"
+    >
+      <Icon className="h-4 w-4 text-cyan-700" />
+      {label}
+    </Link>
   );
 }
 
@@ -74,6 +118,7 @@ export function LightFooter() {
           <Link href="/services" className="hover:text-slate-900">Social Media</Link>
           <Link href="/services/consulting" className="hover:text-slate-900">Consulting</Link>
           <Link href="/tiers" className="hover:text-slate-900">Pricing</Link>
+          <Link href="/start" className="hover:text-slate-900">Start here</Link>
           <Link href="/book" className="hover:text-slate-900">Book a call</Link>
           <Link href="/contact" className="hover:text-slate-900">Contact</Link>
         </div>

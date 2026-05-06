@@ -8,6 +8,7 @@ import Link from "next/link";
 import { ArrowRight, Calendar, Check, Clock, ShieldCheck, Users } from "lucide-react";
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
 import { getCapacitySnapshot, WEEKLY_CAPACITY_HOURS } from "@/lib/capacity";
+import { DECISION_SPRINT_BREAKDOWN, OFFER_WORKLOADS, formatHours } from "@/lib/workload";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
@@ -28,7 +29,7 @@ export default async function AvailabilityPage() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <LightHeader />
+      <LightHeader activePath="/availability" />
 
       {/* HERO */}
       <section className="relative overflow-hidden">
@@ -115,7 +116,7 @@ export default async function AvailabilityPage() {
                   </div>
                   <div className="h-5 w-full rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-lead-400 via-cyan-500 to-accent-500 transition-all duration-700 ease-out"
+                      className="h-full bg-gradient-to-r from-cyan-400 via-brand-500 to-accent-500 transition-all duration-700 ease-out"
                       style={{ width: `${snap.utilizationPct}%` }}
                     />
                   </div>
@@ -173,6 +174,168 @@ export default async function AvailabilityPage() {
               Live data · refreshes ~every minute · last updated{" "}
               {new Date(snap.lastUpdated).toLocaleString()}
             </p>
+
+            <div className="mt-10">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <div className="text-xs uppercase tracking-widest text-cyan-700 font-semibold">
+                    Rolling forecast
+                  </div>
+                  <h2 className="mt-1 text-2xl sm:text-3xl font-semibold tracking-tight text-slate-950">
+                    Forward-looking capacity, not just this week.
+                  </h2>
+                </div>
+                <div className="max-w-xl text-sm leading-relaxed text-slate-600">
+                  This version projects active weekly commitments forward. A later work-order ledger
+                  will clear partial order progress as Ryan marks hours complete.
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {snap.forecastWindows.map((forecast) => (
+                  <div
+                    key={forecast.key}
+                    className="rounded-2xl border border-slate-200 bg-white/85 p-4 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-slate-950">{forecast.label}</div>
+                        <div className="mt-1 text-xs text-slate-500">
+                          {forecast.weeks.toLocaleString(undefined, { maximumFractionDigits: 1 })} weeks
+                        </div>
+                      </div>
+                      <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-xs font-bold text-cyan-800">
+                        {forecast.utilizationPct}%
+                      </span>
+                    </div>
+                    <div className="mt-4 space-y-1 text-sm">
+                      <div className="flex justify-between gap-3">
+                        <span className="text-slate-500">Booked</span>
+                        <span className="font-semibold tabular-nums text-slate-950">
+                          {forecast.bookedHours.toLocaleString(undefined, { maximumFractionDigits: 1 })}h
+                        </span>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <span className="text-slate-500">Remaining</span>
+                        <span className="font-semibold tabular-nums text-cyan-700">
+                          {forecast.remainingHours.toLocaleString(undefined, { maximumFractionDigits: 1 })}h
+                        </span>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <span className="text-slate-500">Sprint blocks</span>
+                        <span className="font-semibold tabular-nums text-slate-950">
+                          {forecast.decisionSprintBlocks}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-brand-500 to-accent-500"
+                        style={{ width: `${forecast.utilizationPct}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {snap && (
+        <section className="relative overflow-hidden border-b border-slate-200">
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(180deg, #fff8f1 0%, #eef9ff 100%)" }}
+          />
+          <div className="relative mx-auto max-w-6xl px-4 py-14 sm:py-16">
+            <div className="grid gap-8 lg:grid-cols-5 lg:items-start">
+              <div className="lg:col-span-2">
+                <div className="text-xs uppercase tracking-widest text-cyan-700 font-semibold mb-2">
+                  What counts as work
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
+                  A 90-minute call is not 90 minutes of capacity.
+                </h2>
+                <p className="mt-4 text-slate-700 leading-relaxed">
+                  The public meter uses fulfillment blocks, not just calendar time. A Decision Sprint
+                  reserves {formatHours(OFFER_WORKLOADS["decision-sprint"].reserveHours)} because
+                  the real work includes prep, transcript handling, machine research, worksheet
+                  finalization, foldering, delivery, and small follow-up.
+                </p>
+                <div className="mt-5 rounded-2xl border border-cyan-200 bg-white/80 p-4 text-sm text-slate-700">
+                  With {snap.remaining} hours left this week, that is about{" "}
+                  <strong className="text-slate-950">{snap.decisionSprintsRemaining}</strong>{" "}
+                  Decision Sprint {snap.decisionSprintsRemaining === 1 ? "block" : "blocks"} before
+                  the week is full.
+                </div>
+              </div>
+
+              <div className="lg:col-span-3">
+                <div className="rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_24px_60px_-24px_rgba(15,23,42,0.25)] ring-1 ring-slate-900/5 sm:p-6">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {DECISION_SPRINT_BREAKDOWN.map((item) => (
+                      <div key={item.label} className="rounded-2xl border border-slate-200 bg-white p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-semibold text-slate-950">{item.label}</span>
+                          <span className="text-sm font-bold tabular-nums text-cyan-700">
+                            {item.minutes}m
+                          </span>
+                        </div>
+                        {item.note && <p className="mt-1 text-xs text-slate-500">{item.note}</p>}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 rounded-2xl border border-accent-300 bg-accent-300/15 p-4 text-sm leading-relaxed text-slate-800">
+                    The planning total is {formatHours(OFFER_WORKLOADS["decision-sprint"].planningHours)}.
+                    The meter rounds it to {formatHours(OFFER_WORKLOADS["decision-sprint"].reserveHours)}
+                    so delivery promises survive normal client follow-up and context switching.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-10">
+              <div className="text-xs uppercase tracking-widest text-cyan-700 font-semibold mb-3">
+                Offer load and delivery promise
+              </div>
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                {snap.offerCapacity.map((offer) => (
+                  <div key={offer.slug} className="rounded-2xl border border-slate-200 bg-white/85 p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="font-semibold text-slate-950">{offer.label}</h3>
+                        <p className="mt-1 text-xs text-slate-500">{offer.visibleTime}</p>
+                      </div>
+                      <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-0.5 text-xs font-bold text-cyan-800">
+                        {offer.reserveLabel}
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm leading-relaxed text-slate-700">{offer.deliveryPromise}</p>
+                    {offer.dueDate && (
+                      <p className="mt-2 text-xs text-slate-500">
+                        If started today: due by{" "}
+                        <span className="font-semibold text-slate-700">
+                          {new Date(offer.dueDate).toLocaleDateString(undefined, {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </p>
+                    )}
+                    <div className="mt-3 rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
+                      Fits this week:{" "}
+                      <strong className={offer.fitsThisWeek ? "text-cyan-700" : "text-rose-700"}>
+                        {offer.blocksRemaining}
+                      </strong>{" "}
+                      {offer.blocksRemaining === 1 ? "block" : "blocks"} at current capacity.
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
       )}

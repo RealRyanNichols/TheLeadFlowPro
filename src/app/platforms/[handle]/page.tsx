@@ -90,8 +90,8 @@ export default function PlatformPage({ params }: Props) {
             <div className="relative rounded-3xl border border-white/60 bg-white/70 backdrop-blur-xl p-6 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.20)] ring-1 ring-slate-900/5">
               <div className="flex items-center justify-between">
                 <div className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">My {p.displayName}</div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-lead-100 border border-lead-300 px-2.5 py-0.5 text-xs font-semibold text-lead-800">
-                  <span className="h-1.5 w-1.5 rounded-full bg-lead-500 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-50 border border-cyan-200 px-2.5 py-0.5 text-xs font-semibold text-cyan-800">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
                   Real numbers
                 </span>
               </div>
@@ -154,9 +154,8 @@ export default function PlatformPage({ params }: Props) {
             What changes the moment I'm running {p.displayName} for you.
           </h2>
           <p className="mt-3 text-slate-300 max-w-2xl">
-            Ranges below are medians from operators in Ryan's network — not guarantees. Faster
-            results possible with daily content access; slower if your niche is restricted or
-            bandwidth-limited.
+            This is a planning comparison, not a promise. The actual 30/60/90 projection gets set
+            after intake from your current baseline, your offer, your access, and your budget.
           </p>
 
           <div className="mt-10 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-xl shadow-2xl shadow-black/40">
@@ -165,7 +164,7 @@ export default function PlatformPage({ params }: Props) {
               <div className="p-4 text-[11px] uppercase tracking-widest text-rose-300 font-semibold border-l border-white/10">
                 You alone (DIY)
               </div>
-              <div className="p-4 text-[11px] uppercase tracking-widest text-lead-300 font-semibold border-l border-white/10">
+              <div className="p-4 text-[11px] uppercase tracking-widest text-cyan-300 font-semibold border-l border-white/10">
                 With me running it
               </div>
             </div>
@@ -176,8 +175,8 @@ export default function PlatformPage({ params }: Props) {
                   <XIcon className="inline h-3.5 w-3.5 mr-1 text-rose-400" />
                   {row.diy}
                 </div>
-                <div className="p-4 text-sm text-lead-200 border-l border-white/10">
-                  <Check className="inline h-3.5 w-3.5 mr-1 text-lead-400" />
+                <div className="p-4 text-sm text-cyan-100 border-l border-white/10">
+                  <Check className="inline h-3.5 w-3.5 mr-1 text-cyan-300" />
                   {row.you}
                 </div>
               </div>

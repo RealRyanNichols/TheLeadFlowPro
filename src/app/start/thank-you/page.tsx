@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Check, Sparkles, Users, Zap } from "lucide-react";
+import { LightHeader } from "@/components/site/LightHeader";
 
 export const metadata = {
   title: "You're In — The LeadFlow Pro",
@@ -12,18 +13,11 @@ export const metadata = {
 export default function ThankYouPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3 flex items-center justify-between">
-          <Link href="/" className="font-semibold text-slate-900 hover:text-slate-700">
-            The LeadFlow Pro
-          </Link>
-          <Link href="/grow" className="text-sm text-slate-600 hover:text-slate-900">Back to Grow</Link>
-        </div>
-      </header>
+      <LightHeader />
 
       {/* Hero */}
       <section className="mx-auto max-w-3xl px-4 sm:px-6 pt-16 pb-10 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 uppercase tracking-widest">
+        <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800 uppercase tracking-widest">
           <Check className="h-3.5 w-3.5" /> You're in
         </div>
         <h1 className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight text-slate-950">
