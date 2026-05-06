@@ -34,13 +34,18 @@ export async function middleware(req: NextRequest) {
 
   // Only gate routes under /dashboard/* and user-scoped APIs.
   // The /onboarding page + /api/onboarding endpoint are explicitly allowed through.
+  // Client Office stays reachable for paid buyers even before the full Flo
+  // profile is complete; order detail APIs still do their own auth checks.
   const path = req.nextUrl.pathname;
   const onboardingAllowed =
     path === "/onboarding" ||
     path.startsWith("/onboarding/") ||
     path.startsWith("/api/onboarding");
+  const clientOfficeAllowed =
+    path === "/dashboard/work" ||
+    path.startsWith("/dashboard/work/");
 
-  if (!onboardingAllowed && completeness < UNLOCK_THRESHOLD) {
+  if (!onboardingAllowed && !clientOfficeAllowed && completeness < UNLOCK_THRESHOLD) {
     const url = new URL("/onboarding", req.url);
     url.searchParams.set("why", "profile_required");
     return NextResponse.redirect(url);

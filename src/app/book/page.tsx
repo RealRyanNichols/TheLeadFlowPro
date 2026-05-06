@@ -4,6 +4,7 @@
 // Cal.com event type still needs to enforce the real calendar rules:
 // duration=10, afterEventBuffer=10, slotInterval=20, limited booking window.
 
+import type { Metadata } from "next";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -22,21 +23,43 @@ import {
 import { BandwidthMeter } from "@/components/BandwidthMeter";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Book a 10-Minute Call with Ryan — The LeadFlow Pro",
   description:
     "Free 10-minute fit call with Ryan Nichols for serious buyers considering done-for-you social media, AI agents, automation, and business systems.",
+  openGraph: {
+    title: "Book a 10-Minute Call — The LeadFlow Pro",
+    description:
+      "Ten minutes with Ryan Nichols. We decide the next move for your social media, lead flow, automation, or business systems.",
+    url: "/book",
+    siteName: "The LeadFlow Pro",
+    images: [
+      {
+        url: "/book/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Book a 10-Minute Call — The LeadFlow Pro",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Book a 10-Minute Call — The LeadFlow Pro",
+    description:
+      "Ten minutes with Ryan Nichols. We decide the next move.",
+    images: ["/book/twitter-image"],
+  },
 };
 
 const RYAN_EMAIL = "theflashflash24@gmail.com";
 
 const BOOKING_URL =
   process.env.NEXT_PUBLIC_BOOKING_URL ||
-  "https://cal.com/ryan-nichols-sl2yzx/leadflow-pro-strategy-call";
+  "https://cal.com/realryannichols/leadflow-pro-strategy-call";
 
 function withCalParams(url: string): string {
   const joiner = url.includes("?") ? "&" : "?";
-  return `${url}${joiner}layout=week_view&hideEventTypeDetails=true`;
+  return `${url}${joiner}layout=month_view&hideEventTypeDetails=true&hideLandingPageDetails=true`;
 }
 
 function mailto(subject: string, body: string): string {
@@ -109,8 +132,8 @@ export default function BookPage() {
           style={{ background: "radial-gradient(circle, rgba(255,154,31,0.45) 0%, transparent 65%)" }}
         />
 
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:py-18 lg:grid-cols-5 lg:items-center">
-          <div className="lg:col-span-3">
+        <div className="relative mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:py-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(520px,1.08fr)] lg:items-start lg:py-10">
+          <div className="pt-1 lg:pt-3">
             <div className="flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm backdrop-blur">
                 <Calendar className="h-3.5 w-3.5" /> Free fit call
@@ -118,51 +141,59 @@ export default function BookPage() {
               <BandwidthMeter variant="compact" />
             </div>
 
-            <h1 className="mt-5 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-              Ten minutes.{" "}
+            <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+              Book the 10-minute fit call.{" "}
               <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
-                We decide the next move.
+                No doom scroll.
               </span>
             </h1>
-            <p className="mt-5 max-w-3xl text-lg leading-relaxed text-slate-700">
+            <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
               This is for serious buyers considering done-for-you social media, AI agents,
-              automation, lead follow-up, or a bigger 30/60/90-day buildout. I am not opening a
-              calendar full of choices so you can wander around. Pick the path that fits.
-            </p>
-            <p className="mt-4 max-w-3xl text-base leading-relaxed text-slate-700">
-              The work starts by taking back control of your account, offer, content, follow-up, and
-              business systems. The agents and automations can do a lot, but only after the operating
-              plan is clear.
+              automation, lead follow-up, or a bigger 30/60/90-day buildout. Pick a window, or use
+              the router if you are not sure what to buy yet.
             </p>
 
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/start"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
-              >
-                Start with the router <ArrowRight className="h-4 w-4" />
-              </Link>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
               <Link
                 href="#calendar"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
+              >
+                Pick a window <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/start"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
               >
-                Show me the call windows
+                Use the router
               </Link>
+              <Link
+                href="/tiers"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white/80 px-6 py-3 font-semibold text-slate-900 shadow-sm hover:bg-white"
+              >
+                See packages
+              </Link>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+              <CallRule
+                icon={Clock}
+                title="20 min held"
+                body="10-minute call plus a 10-minute buffer."
+              />
+              <CallRule
+                icon={BadgeCheck}
+                title="Serious buyers"
+                body="Fit check for paid work, not free coaching."
+              />
+              <CallRule
+                icon={ShieldCheck}
+                title="No promises"
+                body="Clear next move, no fake guarantees."
+              />
             </div>
           </div>
 
-          <div className="lg:col-span-2">
-            <div className="rounded-3xl border border-white/70 bg-white/75 p-5 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.25)] ring-1 ring-slate-900/5 backdrop-blur-xl">
-              <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-                How the call works
-              </div>
-              <div className="mt-4 space-y-3">
-                <CallRule icon={Clock} title="20 minutes reserved" body="10 minutes on the call, then 10 minutes blocked so calls do not stack back-to-back." />
-                <CallRule icon={BadgeCheck} title="Serious buyers only" body="This is not a free coaching session. It is a fit check for paid work." />
-                <CallRule icon={ShieldCheck} title="No outcome promises" body="We decide whether there is a real next step. No follower, lead, or revenue guarantees." />
-              </div>
-            </div>
-          </div>
+          <BookingPanel />
         </div>
       </section>
 
@@ -239,63 +270,6 @@ export default function BookPage() {
         </div>
       </section>
 
-      {/* CALENDAR */}
-      <section id="calendar" className="mx-auto max-w-6xl px-4 py-12 sm:py-14">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_24px_60px_-24px_rgba(15,23,42,0.25)] sm:p-7">
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-                Pick one window
-              </div>
-              <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
-                Free 10-minute fit call
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-                The event should be configured as a 10-minute call with a 10-minute buffer after it.
-                That means a booked 9:30 call blocks the 9:20 slot, but a 9:10 call can still work.
-              </p>
-            </div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800">
-              <Clock className="h-3.5 w-3.5" /> Times shown in your timezone
-            </div>
-          </div>
-
-          {BOOKING_URL ? (
-            <div className="overflow-hidden rounded-2xl border border-slate-200">
-              <iframe
-                src={withCalParams(BOOKING_URL)}
-                title="Book a 10-minute fit call with Ryan Nichols"
-                className="block w-full"
-                style={{
-                  height: "min(74vh, 680px)",
-                  minHeight: "520px",
-                  border: 0,
-                }}
-                loading="lazy"
-              />
-            </div>
-          ) : (
-            <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-              <Calendar className="mx-auto h-10 w-10 text-slate-400" />
-              <h3 className="mt-3 text-lg font-bold text-slate-950">Calendar coming online shortly</h3>
-              <p className="mx-auto mt-2 max-w-xl text-slate-600">
-                Email Ryan with three windows that work. Keep it short and include the business,
-                budget range, and what you are trying to fix.
-              </p>
-              <a
-                href={mailto(
-                  "Book the 10-min call — serious buyer",
-                  "Hi Ryan,\n\nI want to book the free 10-minute fit call.\n\nMy business/account:\n\nWhat I want built or fixed:\n\nBudget range I am considering:\n\nThree time windows:\n1.\n2.\n3.\n\nThanks,"
-                )}
-                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white hover:bg-accent-600"
-              >
-                <Mail className="h-4 w-4" /> Email Ryan to book
-              </a>
-            </div>
-          )}
-        </div>
-      </section>
-
       <section className="mx-auto max-w-6xl px-4 pb-14">
         <p className="mx-auto max-w-3xl text-center text-xs leading-relaxed text-slate-500">
           The LeadFlow Pro is operated by Real Ryan Nichols LLC, a Texas limited liability company.
@@ -305,6 +279,72 @@ export default function BookPage() {
       </section>
 
       <LightFooter />
+    </div>
+  );
+}
+
+function BookingPanel() {
+  return (
+    <div
+      id="calendar"
+      className="rounded-3xl border border-white/70 bg-white/80 p-3 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.28)] ring-1 ring-slate-900/5 backdrop-blur-xl sm:p-4 lg:sticky lg:top-20"
+    >
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-cyan-700">
+            Pick one window
+          </div>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+            Free 10-minute fit call
+          </h2>
+          <p className="mt-1 max-w-xl text-xs leading-relaxed text-slate-600 sm:text-sm">
+            The calendar is the action. Slots should run with a 10-minute call and a protected
+            10-minute buffer so calls do not stack back-to-back.
+          </p>
+        </div>
+        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800">
+          <Clock className="h-3.5 w-3.5" /> Your timezone
+        </div>
+      </div>
+
+      {BOOKING_URL ? (
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <iframe
+            src={withCalParams(BOOKING_URL)}
+            title="Book a 10-minute fit call with Ryan Nichols"
+            className="block w-full"
+            style={{
+              height: "min(67vh, 610px)",
+              minHeight: "465px",
+              border: 0,
+            }}
+            loading="eager"
+          />
+        </div>
+      ) : (
+        <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+          <Calendar className="mx-auto h-10 w-10 text-slate-400" />
+          <h3 className="mt-3 text-lg font-bold text-slate-950">Calendar coming online shortly</h3>
+          <p className="mx-auto mt-2 max-w-xl text-slate-600">
+            Email Ryan with three windows that work. Keep it short and include the business,
+            budget range, and what you are trying to fix.
+          </p>
+          <a
+            href={mailto(
+              "Book the 10-min call — serious buyer",
+              "Hi Ryan,\n\nI want to book the free 10-minute fit call.\n\nMy business/account:\n\nWhat I want built or fixed:\n\nBudget range I am considering:\n\nThree time windows:\n1.\n2.\n3.\n\nThanks,"
+            )}
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white hover:bg-accent-600"
+          >
+            <Mail className="h-4 w-4" /> Email Ryan to book
+          </a>
+        </div>
+      )}
+
+      <div className="mt-3 grid gap-2 text-[11px] leading-relaxed text-slate-500 sm:grid-cols-2">
+        <p>Fewer choices. Pick a real window and move forward.</p>
+        <p>Ryan decides the next paid path only if the fit is clear.</p>
+      </div>
     </div>
   );
 }
@@ -319,12 +359,12 @@ function CallRule({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <div className="flex items-start gap-3">
-        <Icon className="mt-0.5 h-5 w-5 shrink-0 text-cyan-700" />
+    <div className="rounded-2xl border border-slate-200 bg-white/85 p-3 shadow-sm">
+      <div className="flex items-start gap-2.5">
+        <Icon className="mt-0.5 h-4 w-4 shrink-0 text-cyan-700" />
         <div>
-          <div className="font-semibold text-slate-950">{title}</div>
-          <p className="mt-1 text-sm leading-relaxed text-slate-600">{body}</p>
+          <div className="text-sm font-semibold text-slate-950">{title}</div>
+          <p className="mt-0.5 text-xs leading-relaxed text-slate-600">{body}</p>
         </div>
       </div>
     </div>

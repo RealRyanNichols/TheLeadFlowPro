@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import {
   LayoutDashboard, Inbox, Bot, Megaphone, Target, Users,
   Sparkles, FilmIcon, Settings, Lightbulb, Workflow, IdCard, Menu, X,
-  BookOpen, Mail, Compass, MessageSquareQuote
+  BookOpen, Mail, Compass, MessageSquareQuote, BriefcaseBusiness
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,7 @@ const PLAN_LABELS: Record<string, { name: string; tagline: string }> = {
 
 const NAV = [
   { href: "/dashboard",            label: "Overview",        icon: LayoutDashboard },
+  { href: "/dashboard/work",       label: "Client Office",   icon: BriefcaseBusiness },
   { href: "/dashboard/onboarding", label: "Get started",     icon: Compass },
   { href: "/dashboard/playbooks",  label: "Playbooks",       icon: BookOpen },
   { href: "/dashboard/scripts",    label: "Scripts library", icon: MessageSquareQuote },

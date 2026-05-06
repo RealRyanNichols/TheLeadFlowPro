@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, ShieldCheck, Phone, MessageSquare, Megaphone, Zap } from "lucide-react";
+import { ArrowRight, Sparkles, ShieldCheck, Phone, MessageSquare, Megaphone, Zap, BriefcaseBusiness } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { NextMoveCard } from "@/components/dashboard/NextMoveCard";
 import { LeadsChart } from "@/components/dashboard/LeadsChart";
@@ -7,12 +7,15 @@ import { MOCK_NEXT_MOVES } from "@/lib/mock-data";
 import { formatCurrency, formatPercent, relativeTime } from "@/lib/utils";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getClientWorkOrders, remainingHours } from "@/lib/client-office";
+import { formatHours } from "@/lib/workload";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardOverview() {
   const session = await auth();
   const userId = (session?.user as { id?: string } | undefined)?.id;
+  const userEmail = session?.user?.email || "";
   const firstName =
     (session?.user?.name || session?.user?.email || "").split(" ")[0]?.split("@")[0] || "there";
 
@@ -33,6 +36,13 @@ export default async function DashboardOverview() {
     : [0, 0, 0, [] as Awaited<ReturnType<typeof prisma.lead.findMany>>];
 
   const conversionRate = totalLeads > 0 ? wonLeads / totalLeads : 0;
+  const workOrders = userId && userEmail
+    ? await getClientWorkOrders({ id: userId, email: userEmail, name: session?.user?.name })
+    : [];
+  const openWorkOrders = workOrders.filter((order) =>
+    ["intake_needed", "pending_review", "in_progress", "waiting_on_client"].includes(order.status)
+  );
+  const openOrderHours = openWorkOrders.reduce((sum, order) => sum + remainingHours(order), 0);
 
   const hasNextMoves = MOCK_NEXT_MOVES.length > 0;
   const hasLeads = recentLeads.length > 0;
@@ -61,6 +71,28 @@ export default async function DashboardOverview() {
         <StatCard label="Ad spend (MTD)"   value={formatCurrency(0)} sub="Connect Meta / Google Ads" />
         <StatCard label="Conversion rate"  value={formatPercent(conversionRate * 100)} sub={totalLeads > 0 ? `${wonLeads} of ${totalLeads} won` : "Appears once leads convert"} />
       </div>
+
+      <Link
+        href="/dashboard/work"
+        className="glass flex flex-col gap-4 rounded-2xl border border-cyan-400/20 p-5 transition hover:border-cyan-300/50 hover:bg-white/[0.04] sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-accent-500 text-white">
+            <BriefcaseBusiness className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-base font-bold text-white">Open your Client Office</p>
+            <p className="mt-1 text-sm text-ink-300">
+              {openWorkOrders.length > 0
+                ? `${openWorkOrders.length} open order${openWorkOrders.length === 1 ? "" : "s"} with ${formatHours(openOrderHours)} of active work still reserved.`
+                : "Paid work orders, deadlines, files, and Ryan review notes will live here."}
+            </p>
+          </div>
+        </div>
+        <span className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-300">
+          Go to office <ArrowRight className="h-4 w-4" />
+        </span>
+      </Link>
 
       {/* Connect-to-unlock block — only shown while there is nothing to do */}
       {!hasNextMoves && (
