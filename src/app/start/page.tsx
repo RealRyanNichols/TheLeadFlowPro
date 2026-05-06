@@ -241,43 +241,34 @@ export default function StartPage() {
           className="absolute -bottom-40 -left-24 h-[560px] w-[560px] rounded-full opacity-55 blur-3xl"
           style={{ background: "radial-gradient(circle, rgba(255,154,31,0.42) 0%, transparent 65%)" }}
         />
-        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-16">
-          <div className="grid gap-8 lg:grid-cols-[1fr_380px] lg:items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/75 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm backdrop-blur">
-                <Sparkles className="h-3.5 w-3.5" /> Offer router
-              </div>
-              <h1 className="mt-5 max-w-4xl text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-                Stop guessing which package fits.{" "}
-                <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
-                  Get routed to the next move.
-                </span>
-              </h1>
-              <p className="mt-5 max-w-3xl text-lg leading-relaxed text-slate-700">
-                Ten offers are live. This page turns the choice into a short intake:
-                what is stuck, how much help you want, what you can invest, and how fast
-                you need to move. Then it sends you to the offer that fits.
-              </p>
-              <div className="mt-7 grid gap-3 sm:grid-cols-3">
-                <MiniProof icon={Target} title="One clear recommendation" body="No cold price maze." />
-                <MiniProof icon={ShieldCheck} title="No fake numbers" body="Real context goes to Ryan." />
-                <MiniProof icon={ArrowRight} title="Real next click" body="Stripe, booking, or sales page." />
-              </div>
+        <div className="relative mx-auto max-w-7xl px-4 py-7 sm:py-10">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/75 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm backdrop-blur">
+              <Sparkles className="h-3.5 w-3.5" /> Pick your service
+            </div>
+            <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+              Pick the service.{" "}
+              <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
+                Route only if unsure.
+              </span>
+            </h1>
+            <p className="mt-4 max-w-3xl text-base leading-relaxed text-slate-700 sm:text-lg">
+              These are the live offers. Click the service that matches the problem, or answer the
+              router below if the choice is not obvious.
+            </p>
+
+            <div id="service-options" className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+              {SERVICE_PICKER.map((item) => (
+                <QuickServiceCard key={item.slug} {...item} />
+              ))}
             </div>
 
-            <div className="rounded-3xl border border-white/60 bg-white/75 p-6 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/5 backdrop-blur-xl">
-              <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-                What happens after this
-              </div>
-              <ol className="mt-4 space-y-4">
-                <SideStep n="1" title="Your context is saved" body="Ryan sees the problem, budget, urgency, and contact details in the intake queue." />
-                <SideStep n="2" title="You get routed instantly" body="The router picks the best-fit offer from the live catalog. No waiting for a callback." />
-                <SideStep n="3" title="You choose the next step" body="Reserve the offer, book a call, or go back and reroute if it does not feel right." />
-              </ol>
-              <div className="mt-5 rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4 text-sm leading-relaxed text-cyan-950">
-                If you are serious but unsure, this is the right first click.
-              </div>
-            </div>
+            <Link
+              href="#router"
+              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-700 hover:text-brand-900"
+            >
+              Not sure yet? Answer the router <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
         </div>
       </section>
@@ -297,14 +288,14 @@ export default function StartPage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <div className="text-xs font-semibold uppercase tracking-widest text-cyan-300">
-                Pick fast, or let the router decide
+                Router fallback
               </div>
               <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-                Services with the workload math exposed.
+                Still not sure? Answer the short intake.
               </h2>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
-                A 90-minute call is not a 90-minute job. Every offer below shows the time Ryan
-                protects on the capacity meter, so buyers can see why delivery promises are real.
+                Use this only when the service cards do not make the decision obvious. It saves
+                your business context and routes you to the next move.
               </p>
             </div>
             <Link
@@ -331,10 +322,10 @@ export default function StartPage() {
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {SERVICE_PICKER.map((item) => (
-              <ServicePickerCard key={item.slug} {...item} />
-            ))}
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <MiniProof icon={Target} title="No cold price maze" body="Pick the offer, or route only if unsure." />
+            <MiniProof icon={ShieldCheck} title="No fake numbers" body="Real context goes to Ryan." />
+            <MiniProof icon={ArrowRight} title="Real next click" body="Stripe, booking, or sales page." />
           </div>
         </div>
       </section>
@@ -627,7 +618,7 @@ function MiniProof({
   );
 }
 
-function ServicePickerCard({
+function QuickServiceCard({
   slug,
   nickname,
   angle,
@@ -641,61 +632,46 @@ function ServicePickerCard({
   const offer = OFFERS[slug];
   const workload = getOfferWorkload(slug);
   const Icon = offer.Icon;
-  const topDeliverables = offer.price.deliverables.slice(0, 2);
 
   return (
-    <article className="group overflow-hidden rounded-3xl border border-white/10 bg-white text-slate-950 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.75)]">
-      <div className={`flex items-center justify-between border-b px-5 py-4 ${tone}`}>
-        <div>
-          <div className="text-[11px] font-semibold uppercase tracking-widest opacity-75">
-            {nickname}
+    <Link
+      href={`/offers/${slug}`}
+      className={`group flex min-h-[150px] flex-col justify-between rounded-2xl border p-3 text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg sm:p-4 ${tone}`}
+    >
+      <div>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-widest opacity-75">
+              {nickname}
+            </div>
+            <div className="mt-1 text-lg font-bold leading-tight tracking-tight">
+              {offer.price.big}
+            </div>
           </div>
-          <div className="mt-1 text-lg font-semibold tracking-tight">{offer.price.big}</div>
+          <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg shadow-slate-950/20">
+            <Icon className="h-4 w-4" />
+          </div>
         </div>
-        <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-950/20">
-          <Icon className="h-5 w-5" />
+        <p className="mt-2 hidden text-xs leading-relaxed text-slate-700 sm:block">{angle}</p>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] font-semibold uppercase tracking-wider">
+        <div className="rounded-xl border border-slate-200 bg-white/65 p-2">
+          <div className="text-slate-500">Work</div>
+          <div className="mt-0.5 text-sm font-bold normal-case tracking-normal text-slate-950">
+            {workload ? formatHours(workload.reserveHours) : "custom"}
+          </div>
+        </div>
+        <div className="rounded-xl border border-cyan-200 bg-white/65 p-2">
+          <div className="text-cyan-700">Due</div>
+          <div className="mt-0.5 text-sm font-bold normal-case tracking-normal text-cyan-950">
+            {shortDelivery(workload)}
+          </div>
         </div>
       </div>
-      <div className="p-5">
-        <h3 className="text-xl font-semibold tracking-tight text-slate-950">{offer.price.sub}</h3>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">{angle}</p>
-
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-            <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-              Ryan reserves
-            </div>
-            <div className="mt-1 text-lg font-bold tabular-nums text-slate-950">
-              {workload ? formatHours(workload.reserveHours) : "custom"}
-            </div>
-          </div>
-          <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-3">
-            <div className="text-[10px] font-semibold uppercase tracking-widest text-cyan-700">
-              Delivery
-            </div>
-            <div className="mt-1 text-lg font-bold leading-tight text-cyan-950">
-              {shortDelivery(workload)}
-            </div>
-          </div>
-        </div>
-
-        <ul className="mt-4 space-y-2">
-          {topDeliverables.map((deliverable) => (
-            <li key={deliverable} className="flex gap-2 text-sm leading-relaxed text-slate-700">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" />
-              <span>{deliverable}</span>
-            </li>
-          ))}
-        </ul>
-
-        <Link
-          href={`/offers/${slug}`}
-          className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/20 transition hover:bg-slate-800"
-        >
-          Open this offer <ArrowRight className="h-4 w-4" />
-        </Link>
+      <div className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 group-hover:text-brand-900">
+        Open <ArrowRight className="h-3.5 w-3.5" />
       </div>
-    </article>
+    </Link>
   );
 }
 
@@ -705,20 +681,6 @@ function shortDelivery(workload: ReturnType<typeof getOfferWorkload>) {
   if (workload.deliveryKind === "same-day") return "same day";
   const days = workload.deliveryMaxDays;
   return days === 1 ? "1 biz day" : `${days} biz days`;
-}
-
-function SideStep({ n, title, body }: { n: string; title: string; body: string }) {
-  return (
-    <li className="flex gap-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-sm font-bold text-white">
-        {n}
-      </div>
-      <div>
-        <div className="font-semibold text-slate-950">{title}</div>
-        <p className="mt-1 text-sm leading-relaxed text-slate-600">{body}</p>
-      </div>
-    </li>
-  );
 }
 
 function FormSection({

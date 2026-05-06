@@ -7,9 +7,8 @@
 
 import Link from "next/link";
 import {
-  ArrowRight, BadgeCheck, Calendar, Check, Facebook, Layers, LineChart,
-  Megaphone, Music2, ShieldCheck, Sparkles, Star, TrendingUp, Trophy,
-  Twitter, Users, X as XIcon, Youtube, Zap,
+  ArrowRight, BadgeCheck, Check, Facebook, Megaphone, Music2, Sparkles, Star,
+  TrendingUp, Trophy, Twitter, Users, X as XIcon, Youtube,
 } from "lucide-react";
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
 
@@ -70,35 +69,61 @@ const PLATFORMS = [
   },
 ];
 
-const TIERS = [
+const SERVICE_OPTIONS = [
   {
-    label: "$47",
-    sub: "Quick-Look Video",
-    line: "I review your socials and send 5-15 min of direct video notes plus a proposal.",
+    title: "Quick-Look Video",
+    price: "$47",
+    cadence: "one-time",
+    body: "Ryan reviews your socials and sends direct video notes plus the next proposal.",
     href: "/offers/quick-look",
-    style: "border-cyan-300 bg-white",
+    cta: "Start here",
+    tone: "border-cyan-300 bg-cyan-50/80",
   },
   {
-    label: "$497/mo",
-    sub: "Single platform",
-    line: "TikTok, FB, X, or YouTube — managed end-to-end on one channel.",
-    href: "/services#single-platforms",
-    style: "border-brand-300 bg-white",
+    title: "Single Platform",
+    price: "$497/mo",
+    cadence: "one channel",
+    body: "TikTok, Facebook, X, or YouTube managed end-to-end.",
+    href: "#single-platforms",
+    cta: "Pick platform",
+    tone: "border-brand-300 bg-white",
   },
   {
-    label: "$1,497/mo",
-    sub: "Power Bundle",
-    line: "All 4 platforms managed. Saves $491/mo vs. single-channel pricing.",
+    title: "Power Bundle",
+    price: "$1,497/mo",
+    cadence: "most popular",
+    body: "All four social platforms run in one content rhythm.",
     href: "/offers/power-bundle",
-    style: "border-accent-300 bg-white",
+    cta: "Reserve bundle",
+    tone: "border-accent-300 bg-accent-100/70",
     highlight: true,
   },
   {
-    label: "$1,497/mo flat",
-    sub: "Facebook Ads",
-    line: "Meta ads built inside your accounts. No cut of ad spend. $2K min.",
+    title: "Facebook Ads",
+    price: "$1,497/mo flat",
+    cadence: "$2K min Meta spend",
+    body: "Ads built inside your accounts. Your leads, your pixel, your system.",
     href: "/offers/fb-ads",
-    style: "border-cyan-300 bg-white",
+    cta: "Start ads",
+    tone: "border-cyan-300 bg-white",
+  },
+  {
+    title: "Field Content Day",
+    price: "Custom",
+    cadence: "travel quoted",
+    body: "Ryan comes to the work, gets the angles, and turns a day into short-form clips.",
+    href: "/book",
+    cta: "Scope the day",
+    tone: "border-slate-300 bg-white",
+  },
+  {
+    title: "Not Sure Yet",
+    price: "Router",
+    cadence: "fast intake",
+    body: "Answer the questions only if you do not already know which service fits.",
+    href: "/start#router",
+    cta: "Use router",
+    tone: "border-slate-300 bg-slate-50",
   },
 ];
 
@@ -133,103 +158,54 @@ export default function ServicesPage() {
           style={{ background: "radial-gradient(circle, rgba(176,107,255,0.35) 0%, transparent 60%)" }}
         />
 
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
-          <div className="grid gap-10 lg:grid-cols-5 lg:items-center">
-            <div className="lg:col-span-3">
+        <div className="relative mx-auto max-w-7xl px-4 py-7 sm:py-10">
+          <div className="grid gap-6 lg:grid-cols-[0.76fr_1.24fr] lg:items-start">
+            <div className="pt-1 lg:pt-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/70 backdrop-blur px-3 py-1 text-xs uppercase tracking-widest text-cyan-700 font-semibold shadow-sm">
                 <BadgeCheck className="h-3.5 w-3.5" /> 75K+ followers across 5 platforms · I run them all
               </div>
-              <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight text-slate-950">
-                Social media,{" "}
+              <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight text-slate-950">
+                Pick your service first.{" "}
                 <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
-                  run by the operator who already crossed the reef.
+                  Proof below.
                 </span>
               </h1>
-              <p className="mt-5 text-lg text-slate-700 leading-relaxed">
-                Pick a platform. Pick the bundle. Or hand me all four. I write the hooks, edit the
-                cuts, schedule the posts, and run the reply game in your voice — while you keep
-                doing the work that actually brought you here.
+              <p className="mt-4 text-lg text-slate-700 leading-relaxed">
+                No price maze. Pick the quick review, one platform, all-platform bundle, ads
+                system, field content day, or the router if you are not sure.
               </p>
-              <p className="mt-3 text-base text-slate-700 leading-relaxed">
-                Spending money on me <strong>is</strong> spending money on you. I take what you pay
-                me and turn it into followers, leads, and a system your business runs on.
-              </p>
-              <div className="mt-7 flex flex-col sm:flex-row gap-3 flex-wrap">
-                <Link
-                  href="/offers/power-bundle"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/30 hover:bg-slate-800"
-                >
-                  Get the Power Bundle — $1,497/mo <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
-                  href="/offers/quick-look"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/30 hover:bg-accent-600"
-                >
-                  Try the $47 Quick-Look first
-                </Link>
-                <Link
-                  href="/book"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white/80 backdrop-blur px-6 py-3 font-semibold text-slate-800 hover:border-brand-500 hover:text-brand-700"
-                >
-                  Free 10-min call
-                </Link>
-              </div>
             </div>
 
-            {/* Glass stats card */}
-            <div className="lg:col-span-2">
-              <div className="relative rounded-3xl border border-white/60 bg-white/70 backdrop-blur-xl p-6 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.20)] ring-1 ring-slate-900/5">
-                <div className="flex items-center justify-between">
-                  <div className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">My socials</div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-100 border border-cyan-300 px-2.5 py-0.5 text-xs font-semibold text-cyan-800">
-                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
-                    Live
-                  </span>
-                </div>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-slate-950 tabular-nums">75K+</span>
-                  <span className="text-sm text-slate-500">total reach</span>
-                </div>
-                <div className="mt-5 grid grid-cols-2 gap-3">
-                  <Stat label="X / Twitter" value="43.8K" />
-                  <Stat label="Facebook"    value="18K+" />
-                  <Stat label="YouTube"     value="12K" />
-                  <Stat label="Instagram"   value="4.8K" />
-                </div>
-                <div className="mt-3 rounded-xl border border-slate-200 bg-white/80 p-3 text-xs text-slate-700">
-                  TikTok: <strong className="text-slate-950">3,178 followers</strong> and{" "}
-                  <strong className="text-slate-950">24.5K likes</strong> on the current account.
-                </div>
-                <div className="mt-4 rounded-xl bg-cyan-50/70 border border-cyan-200 p-3 text-xs text-cyan-900 leading-relaxed">
-                  <strong>Real numbers.</strong> Not "100K students" or "millions reached." The
-                  followers I built on my own accounts, with the playbook I'll run for you.
-                </div>
-                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-950 p-4 text-white">
-                  <div className="text-[10px] font-semibold uppercase tracking-widest text-cyan-300">
-                    Meta comeback receipt
+            <div id="service-options" className="rounded-3xl border border-white/70 bg-white/80 p-3 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.24)] ring-1 ring-slate-900/5 backdrop-blur-xl sm:p-4">
+              <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                    Services you can click now
                   </div>
-                  <div className="mt-2 grid grid-cols-2 gap-3">
-                    <div>
-                      <div className="text-2xl font-bold tabular-nums">24M+</div>
-                      <div className="text-xs text-slate-300">views since Jan 21, 2025</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold tabular-nums">401K</div>
-                      <div className="text-xs text-slate-300">interactions in Meta Insights</div>
-                    </div>
-                  </div>
-                  <Link
-                    href="/start"
-                    className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-accent-300 hover:text-accent-200"
-                  >
-                    Start with the offer router <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
+                  <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
+                    Choose the lane that fits.
+                  </h2>
                 </div>
+                <Link href="/tiers" className="text-sm font-semibold text-brand-700 hover:text-brand-800">
+                  Full ladder <ArrowRight className="inline h-3.5 w-3.5" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-3">
+                {SERVICE_OPTIONS.map((service) => (
+                  <ServiceOptionCard key={service.title} {...service} />
+                ))}
               </div>
             </div>
           </div>
 
-          <div className="mt-10 overflow-hidden rounded-3xl border border-white/70 bg-white/85 shadow-[0_30px_70px_-28px_rgba(15,23,42,0.28)] ring-1 ring-slate-900/5">
+          <div className="mt-6 grid gap-3 rounded-3xl border border-white/70 bg-white/80 p-4 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.28)] ring-1 ring-slate-900/5 sm:grid-cols-4">
+            <ProofStat label="X / Twitter" value="43.8K" />
+            <ProofStat label="Facebook" value="18K+" />
+            <ProofStat label="YouTube" value="12K" />
+            <ProofStat label="Meta views since Jan 21, 2025" value="24M+" />
+          </div>
+
+          <div className="mt-6 overflow-hidden rounded-3xl border border-white/70 bg-white/85 shadow-[0_30px_70px_-28px_rgba(15,23,42,0.28)] ring-1 ring-slate-900/5">
             <div className="grid gap-0 lg:grid-cols-[0.85fr_1.15fr]">
               <div className="relative min-h-[320px] bg-slate-100">
                 <img
@@ -388,44 +364,6 @@ export default function ServicesPage() {
                 ))}
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* PRICE LADDER */}
-      <section className="relative overflow-hidden border-b border-slate-200">
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(180deg, #f3eaff 0%, #fff8f1 100%)" }}
-        />
-        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-16">
-          <div className="text-xs uppercase tracking-widest text-cyan-700 font-semibold mb-2">
-            Pick your tier
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
-            Four entry points. Same operator running them.
-          </h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {TIERS.map((t) => (
-              <Link
-                key={t.label}
-                href={t.href}
-                className={`group relative rounded-2xl border ${t.style} p-5 backdrop-blur shadow-[0_20px_50px_-15px_rgba(15,23,42,0.10)] hover:shadow-[0_30px_70px_-15px_rgba(15,23,42,0.20)] transition-shadow`}
-              >
-                {t.highlight && (
-                  <span className="absolute -top-3 left-4 inline-flex items-center gap-1 rounded-full bg-accent-500 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-widest">
-                    <Star className="h-3 w-3" /> Most popular
-                  </span>
-                )}
-                <div className="text-3xl font-bold text-slate-950 tabular-nums">{t.label}</div>
-                <div className="mt-1 text-sm font-semibold text-cyan-700">{t.sub}</div>
-                <p className="mt-2 text-sm text-slate-600 leading-relaxed">{t.line}</p>
-                <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 group-hover:text-brand-800">
-                  Read more <ArrowRight className="h-3.5 w-3.5" />
-                </div>
-              </Link>
-            ))}
           </div>
         </div>
       </section>
@@ -791,11 +729,57 @@ export default function ServicesPage() {
 
 /* ─── components ──────────────────────────────────────────────── */
 
-function Stat({ label, value }: { label: string; value: string }) {
+function ServiceOptionCard({
+  title,
+  price,
+  cadence,
+  body,
+  href,
+  cta,
+  tone,
+  highlight = false,
+}: {
+  title: string;
+  price: string;
+  cadence: string;
+  body: string;
+  href: string;
+  cta: string;
+  tone: string;
+  highlight?: boolean;
+}) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white/80 p-3 text-center">
-      <div className="text-lg font-bold text-slate-950 tabular-nums">{value}</div>
-      <div className="text-[10px] uppercase tracking-widest text-slate-500 mt-0.5">{label}</div>
+    <Link
+      href={href}
+      className={`group relative rounded-2xl border p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg sm:p-4 ${tone}`}
+    >
+      {highlight && (
+        <span className="absolute -top-2.5 left-4 inline-flex items-center gap-1 rounded-full bg-accent-500 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white">
+          <Star className="h-3 w-3" /> Most picked
+        </span>
+      )}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-xl font-bold tabular-nums text-slate-950 sm:text-2xl">{price}</div>
+          <h3 className="mt-1 text-sm font-bold text-slate-950">{title}</h3>
+        </div>
+        <span className="hidden rounded-full border border-slate-200 bg-white/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-600 sm:inline-flex">
+          {cadence}
+        </span>
+      </div>
+      <p className="mt-2 hidden min-h-[3.4rem] text-sm leading-relaxed text-slate-700 sm:block">{body}</p>
+      <div className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 group-hover:text-brand-900">
+        {cta} <ArrowRight className="h-3.5 w-3.5" />
+      </div>
+    </Link>
+  );
+}
+
+function ProofStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white/80 p-3 text-center shadow-sm">
+      <div className="text-2xl font-bold text-slate-950 tabular-nums">{value}</div>
+      <div className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500">{label}</div>
     </div>
   );
 }
