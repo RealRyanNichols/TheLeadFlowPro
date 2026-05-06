@@ -444,8 +444,8 @@ export default async function GrowV2Page() {
             <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-[0_30px_70px_-25px_rgba(15,23,42,0.30)] ring-1 ring-slate-900/5 backdrop-blur">
               <div className="relative aspect-[16/10] bg-slate-100">
                 <img
-                  src="/images/ryan-wholesale-universe-owner.jpg"
-                  alt="Ryan Nichols standing inside the Wholesale Universe warehouse"
+                  src="/images/ryan-wholesale-universe-warehouse-pallets-flag.jpg"
+                  alt="Ryan Nichols standing on pallets inside the Wholesale Universe warehouse"
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -454,17 +454,30 @@ export default async function GrowV2Page() {
                   Built inside a real business
                 </div>
                 <h3 className="mt-2 text-xl font-semibold text-slate-950">
-                  I have stood inside the warehouse, sold the product, made the content, and carried
-                  the pressure of making payroll.
+                  I brought in pallet loads of designer goods, got attention online, sold the
+                  product, and carried the pressure of making payroll.
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                  That matters. Social media is not just posting. It is offer, attention, trust,
-                  follow-up, sales, and the system that catches demand when the video works.
+                  That matters. Social media is not just posting. It is sourcing, offer, attention,
+                  trust, follow-up, sales, fulfillment, and the system that catches demand when the
+                  video works.
                 </p>
               </div>
             </div>
 
             <div className="grid gap-4">
+              <ProofPhoto
+                src="/images/ryan-wholesale-universe-2015-pallets.jpg"
+                alt="Ryan Nichols in 2015 with boxes from the early Wholesale Universe operation"
+                label="2015 apartment-to-UPS grind"
+                body="Before the warehouse, it was pallets, stairs, Amazon uploads, and daily UPS pickups. That is where the operator part started."
+              />
+              <ProofPhoto
+                src="/images/ryan-wholesale-universe-designer-rack-sale.jpg"
+                alt="Ryan Nichols at a Wholesale Universe designer goods sale"
+                label="Attention into sales"
+                body="The play was simple and hard: bring in the product, make people pay attention online, then move the inventory."
+              />
               <ProofPhoto
                 src="/images/ryan-live-content-work-1.jpg"
                 alt="Ryan Nichols preparing live sales content for Wholesale Universe"
@@ -472,16 +485,10 @@ export default async function GrowV2Page() {
                 body="Going live, editing the angle, reading the comments, and turning attention back into the business."
               />
               <ProofPhoto
-                src="/images/ryan-live-content-work-2.jpg"
-                alt="Ryan Nichols showing product during a live content session"
-                label="Creative direction"
-                body="What to say, what to show, how to frame the shot, and when to turn a post into a sales conversation."
-              />
-              <ProofPhoto
-                src="/images/ryan-cmon-man-marketing.jpg"
-                alt="Ryan Nichols holding a C'mon Man sign used as a marketing ice breaker"
-                label="Direct, but human"
-                body="The work is serious. The delivery can still have personality. People click on people, not sterile agencies."
+                src="/images/wholesale-universe-michael-kors-load-1.jpg"
+                alt="Designer shoe boxes from a Wholesale Universe inventory load"
+                label="Inventory people wanted"
+                body="Real product, real demand, real fulfillment. The content had to create enough trust for buyers to act."
               />
             </div>
           </div>

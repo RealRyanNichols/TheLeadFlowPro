@@ -75,10 +75,10 @@ export default function StoryPage() {
                 This was not built from a content calendar template.
               </h2>
               <p className="mt-4 leading-relaxed text-slate-700">
-                Wholesale Universe, live selling, campaign work, employees, videos, scripts,
-                direct-response signs, and the unglamorous back office. The playbook comes from
-                operating in public, selling in real time, and learning what makes people stop,
-                click, ask, and buy.
+                Wholesale Universe, pallet loads of designer goods, live selling, campaign work,
+                employees, videos, scripts, direct-response signs, and the unglamorous back office.
+                The playbook comes from operating in public, selling in real time, and learning what
+                makes people stop, click, ask, and buy.
               </p>
               <p className="mt-3 text-sm leading-relaxed text-slate-600">
                 No employee names are published here. These are used as proof of operator history,
@@ -87,9 +87,24 @@ export default function StoryPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <StoryPhoto
+                src="/images/ryan-wholesale-universe-2015-pallets.jpg"
+                alt="Ryan Nichols in 2015 with boxes from the early Wholesale Universe operation"
+                label="2015 Wholesale Universe start"
+              />
+              <StoryPhoto
+                src="/images/ryan-wholesale-universe-designer-rack-sale.jpg"
+                alt="Ryan Nichols at a Wholesale Universe designer goods sale"
+                label="Designer goods into attention"
+              />
+              <StoryPhoto
                 src="/images/ryan-wholesale-universe-owner.jpg"
                 alt="Ryan Nichols standing inside the Wholesale Universe warehouse"
                 label="Wholesale Universe owner"
+              />
+              <StoryPhoto
+                src="/images/wholesale-universe-michael-kors-load-2.jpg"
+                alt="Designer shoe boxes from a Wholesale Universe inventory load"
+                label="Pallet loads sold online"
               />
               <StoryPhoto
                 src="/images/ryan-live-content-work-1.jpg"
@@ -126,8 +141,9 @@ export default function StoryPage() {
           <>
             <p>
               I started with what most people start with — <strong className="text-slate-950">a phone and an idea</strong>.
-              Third-story two-bedroom apartment. No team, no funding, no audience. The whole operation
-              fit on a kitchen table.
+              Third-story two-bedroom apartment. Pallets of shoes and clothes. My old business
+              partner uploaded inventory into Amazon for clients; I hauled boxes up, then hauled
+              them back down every day so UPS could pick them up and scan them in.
             </p>
             <p className="mt-3">
               I posted. Nothing happened. I posted again. Still nothing. The first 90 days felt like
