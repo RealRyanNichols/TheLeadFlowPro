@@ -29,6 +29,7 @@ import {
   Zap,
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { OFFERS, type OfferSlug } from "@/lib/offers";
 import {
   BUDGET_OPTIONS,
   PRIMARY_NEED_OPTIONS,
@@ -39,9 +40,10 @@ import {
   type Urgency,
   type WorkStyle,
 } from "@/lib/offer-recommendation";
+import { formatHours, getOfferWorkload } from "@/lib/workload";
 
 export const metadata = {
-  title: "Start Here - Find Your Next Move · The LeadFlow Pro",
+  title: "Start Here - Pick Your Service · The LeadFlow Pro",
   description:
     "Answer a few practical questions and get routed to the LeadFlow Pro offer that fits your problem, budget, and urgency.",
 };
@@ -156,6 +158,65 @@ const PLATFORMS = [
   { name: "platforms.linkedin", label: "LinkedIn", placeholder: "Profile or company URL", tone: "#0099e0" },
 ];
 
+const SERVICE_PICKER: Array<{
+  slug: OfferSlug;
+  nickname: string;
+  angle: string;
+  tone: string;
+}> = [
+  {
+    slug: "quick-look",
+    nickname: "Quick hit",
+    angle: "15-20 minutes of review, then 5-15 minutes of direct videos.",
+    tone: "border-cyan-300 bg-cyan-50/70 text-cyan-900",
+  },
+  {
+    slug: "decision-sprint",
+    nickname: "90-minute sprint",
+    angle: "The call plus prep, research, worksheet, and handoff.",
+    tone: "border-accent-300 bg-accent-100/70 text-slate-950",
+  },
+  {
+    slug: "business-audit",
+    nickname: "C'mon Man Audit",
+    angle: "Find the leaks before they keep costing you money.",
+    tone: "border-brand-300 bg-brand-50/80 text-brand-950",
+  },
+  {
+    slug: "working-session",
+    nickname: "Build with me",
+    angle: "Four focused hours to ship one real asset.",
+    tone: "border-slate-300 bg-white text-slate-950",
+  },
+  {
+    slug: "power-bundle",
+    nickname: "Social engine",
+    angle: "Four platforms managed in one content rhythm.",
+    tone: "border-cyan-300 bg-white text-slate-950",
+  },
+  {
+    slug: "fb-ads",
+    nickname: "Ads system",
+    angle: "Flat-fee Meta ads built inside your own accounts.",
+    tone: "border-accent-300 bg-white text-slate-950",
+  },
+];
+
+const BUYER_LANES = [
+  "Car dealerships",
+  "Attorneys",
+  "Doctors",
+  "Insurance agencies",
+  "Real estate agents",
+  "Brokers",
+  "Artists",
+  "Rappers",
+  "Music artists",
+  "Civil-rights stories",
+  "Public stories",
+  "Owner-led businesses",
+];
+
 export default function StartPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
@@ -221,7 +282,64 @@ export default function StartPage() {
         </div>
       </section>
 
-      <main className="mx-auto grid max-w-7xl gap-8 px-4 py-12 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <section className="relative overflow-hidden border-b border-slate-200 bg-slate-950 text-white">
+        <div
+          aria-hidden
+          className="absolute -left-32 top-0 h-[420px] w-[420px] rounded-full opacity-30 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(35,184,255,0.62) 0%, transparent 65%)" }}
+        />
+        <div
+          aria-hidden
+          className="absolute -right-24 bottom-0 h-[420px] w-[420px] rounded-full opacity-30 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(255,154,31,0.60) 0%, transparent 65%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-14">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="text-xs font-semibold uppercase tracking-widest text-cyan-300">
+                Pick fast, or let the router decide
+              </div>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+                Services with the workload math exposed.
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
+                A 90-minute call is not a 90-minute job. Every offer below shows the time Ryan
+                protects on the capacity meter, so buyers can see why delivery promises are real.
+              </p>
+            </div>
+            <Link
+              href="#router"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur hover:bg-white/15"
+            >
+              Answer the router instead <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.06] p-4 backdrop-blur sm:p-5">
+            <div className="text-xs font-semibold uppercase tracking-widest text-accent-300">
+              Built for the people who need attention to turn into action
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {BUYER_LANES.map((lane) => (
+                <span
+                  key={lane}
+                  className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-white"
+                >
+                  {lane}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {SERVICE_PICKER.map((item) => (
+              <ServicePickerCard key={item.slug} {...item} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <main id="router" className="mx-auto grid max-w-7xl gap-8 px-4 py-12 lg:grid-cols-[minmax(0,1fr)_340px]">
         <form action="/api/intake" method="POST" className="space-y-8">
           <FormSection
             n={1}
@@ -415,7 +533,7 @@ export default function StartPage() {
                 type="submit"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/30 hover:bg-accent-600"
               >
-                Find my next move <ArrowRight className="h-4 w-4" />
+                Pick my service <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -507,6 +625,86 @@ function MiniProof({
       <div className="mt-1 text-sm text-slate-600">{body}</div>
     </div>
   );
+}
+
+function ServicePickerCard({
+  slug,
+  nickname,
+  angle,
+  tone,
+}: {
+  slug: OfferSlug;
+  nickname: string;
+  angle: string;
+  tone: string;
+}) {
+  const offer = OFFERS[slug];
+  const workload = getOfferWorkload(slug);
+  const Icon = offer.Icon;
+  const topDeliverables = offer.price.deliverables.slice(0, 2);
+
+  return (
+    <article className="group overflow-hidden rounded-3xl border border-white/10 bg-white text-slate-950 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.75)]">
+      <div className={`flex items-center justify-between border-b px-5 py-4 ${tone}`}>
+        <div>
+          <div className="text-[11px] font-semibold uppercase tracking-widest opacity-75">
+            {nickname}
+          </div>
+          <div className="mt-1 text-lg font-semibold tracking-tight">{offer.price.big}</div>
+        </div>
+        <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg shadow-slate-950/20">
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+      <div className="p-5">
+        <h3 className="text-xl font-semibold tracking-tight text-slate-950">{offer.price.sub}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-slate-600">{angle}</p>
+
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+              Ryan reserves
+            </div>
+            <div className="mt-1 text-lg font-bold tabular-nums text-slate-950">
+              {workload ? formatHours(workload.reserveHours) : "custom"}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-3">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-cyan-700">
+              Delivery
+            </div>
+            <div className="mt-1 text-lg font-bold leading-tight text-cyan-950">
+              {shortDelivery(workload)}
+            </div>
+          </div>
+        </div>
+
+        <ul className="mt-4 space-y-2">
+          {topDeliverables.map((deliverable) => (
+            <li key={deliverable} className="flex gap-2 text-sm leading-relaxed text-slate-700">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" />
+              <span>{deliverable}</span>
+            </li>
+          ))}
+        </ul>
+
+        <Link
+          href={`/offers/${slug}`}
+          className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/20 transition hover:bg-slate-800"
+        >
+          Open this offer <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+    </article>
+  );
+}
+
+function shortDelivery(workload: ReturnType<typeof getOfferWorkload>) {
+  if (!workload) return "custom";
+  if (workload.deliveryKind === "ongoing") return "weekly";
+  if (workload.deliveryKind === "same-day") return "same day";
+  const days = workload.deliveryMaxDays;
+  return days === 1 ? "1 biz day" : `${days} biz days`;
 }
 
 function SideStep({ n, title, body }: { n: string; title: string; body: string }) {

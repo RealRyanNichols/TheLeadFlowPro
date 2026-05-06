@@ -468,12 +468,13 @@ export default async function GrowV2Page() {
               </h2>
               <div className="mt-3 flex items-baseline gap-2">
                 <span className="text-4xl font-bold text-slate-950 tabular-nums">$1,497</span>
-                <span className="text-slate-500">/mo + 10% of ad spend</span>
+                <span className="text-slate-500">/mo flat management</span>
               </div>
               <p className="mt-4 text-slate-700">
                 Built for business owners with a real offer who want professional-grade Facebook +
-                Instagram ads without paying agency fees. Full-service: strategy, creative, daily
-                monitoring, weekly optimization, transparent reporting.
+                Instagram ads built inside their own accounts. No percentage of ad spend. Full-service:
+                strategy, creative, daily monitoring, weekly optimization, transparent reporting,
+                and a follow-up process your business keeps.
               </p>
               <ul className="mt-5 space-y-2 text-slate-700">
                 {[
@@ -481,7 +482,8 @@ export default async function GrowV2Page() {
                   "8 new ad creatives / month (4 image + 4 short video)",
                   "Daily spend monitoring + weekly optimization",
                   "Monthly report: spend, leads, CPL, ROAS",
-                  "You pay Meta directly. We never touch ad-spend funds.",
+                  "You pay Meta directly. I never touch ad-spend funds or take a cut.",
+                  "Your leads, ads, tracking, and follow-up system stay in your business.",
                   "Minimum recommended monthly ad budget: $1,500",
                 ].map((b) => (
                   <li key={b} className="flex items-start gap-2 text-sm">

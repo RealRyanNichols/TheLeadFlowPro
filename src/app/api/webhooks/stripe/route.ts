@@ -4,6 +4,7 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { BOOSTERS } from "@/lib/pricing";
 import type { PlanId } from "@/lib/pricing";
+import { deliveryDueDate, getOfferWorkload } from "@/lib/workload";
 
 export const runtime = "nodejs";
 
@@ -48,6 +49,133 @@ async function findUserForEvent(
   return null;
 }
 
+async function findOrCreateUserForCheckout(
+  userId: string | null | undefined,
+  customerId: string | null | undefined,
+  email: string | null | undefined,
+  name: string | null | undefined,
+) {
+  const existing = await findUserForEvent(userId, customerId);
+  if (existing) return existing;
+
+  const normalizedEmail = email?.trim().toLowerCase();
+  if (!normalizedEmail || !/.+@.+\..+/.test(normalizedEmail)) return null;
+
+  const byEmail = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+  if (byEmail) {
+    if (customerId && byEmail.stripeCustomerId !== customerId) {
+      try {
+        return await prisma.user.update({
+          where: { id: byEmail.id },
+          data: {
+            stripeCustomerId: customerId,
+            ...(name && !byEmail.name ? { name } : {}),
+          },
+        });
+      } catch {
+        return byEmail;
+      }
+    }
+    if (name && !byEmail.name) {
+      return prisma.user.update({ where: { id: byEmail.id }, data: { name } });
+    }
+    return byEmail;
+  }
+
+  try {
+    return await prisma.user.create({
+      data: {
+        email: normalizedEmail,
+        name: name || null,
+        stripeCustomerId: customerId || null,
+      },
+    });
+  } catch {
+    return prisma.user.create({
+      data: {
+        email: normalizedEmail,
+        name: name || null,
+      },
+    });
+  }
+}
+
+function checkoutOfferSlug(session: Stripe.Checkout.Session): string | null {
+  return (
+    (session.metadata?.slug as string | undefined) ||
+    (session.metadata?.offerSlug as string | undefined) ||
+    (session.metadata?.offer as string | undefined) ||
+    null
+  );
+}
+
+async function createOfferWorkOrderFromCheckout(
+  session: Stripe.Checkout.Session,
+  user: Awaited<ReturnType<typeof findUserForEvent>> | null,
+  customerId: string | null,
+) {
+  const offerSlug = checkoutOfferSlug(session);
+  const workload = getOfferWorkload(offerSlug);
+  if (!offerSlug || !workload) return false;
+
+  const marker = `stripe_session:${session.id}`;
+  try {
+    const existing = await (prisma as any).workOrder.findFirst({
+      where: { notes: { contains: marker } },
+      select: { id: true },
+    });
+    if (existing) return true;
+
+    const buyerEmail =
+      session.customer_details?.email ||
+      session.customer_email ||
+      user?.email ||
+      null;
+    const buyerName =
+      session.customer_details?.name ||
+      user?.name ||
+      null;
+    const createdAt = new Date((session.created || Math.floor(Date.now() / 1000)) * 1000);
+    const dueAt = deliveryDueDate(createdAt, workload);
+    const clientName =
+      buyerName ||
+      buyerEmail ||
+      `Stripe buyer ${session.id.slice(-6)}`;
+
+    await (prisma as any).workOrder.create({
+      data: {
+        clientName,
+        publicLabel: `${workload.label} client`,
+        offerSlug,
+        title: workload.label,
+        status: "intake_needed",
+        estimatedHours: workload.reserveHours,
+        completedHours: 0,
+        deliveryGuaranteeDays: workload.deliveryMaxDays,
+        dueAt,
+        notes: [
+          marker,
+          customerId ? `stripe_customer:${customerId}` : null,
+          buyerEmail ? `buyer_email:${buyerEmail}` : null,
+          user?.id ? `user_id:${user.id}` : null,
+          `payment_status:${session.payment_status || "unknown"}`,
+          "Auto-created from Stripe checkout so Ryan's capacity meter reflects paid work.",
+        ].filter(Boolean).join("\n"),
+      },
+    });
+    return true;
+  } catch (err) {
+    // Do not fail the Stripe webhook because the optional operations table has
+    // not been pushed yet. Stripe retries should be reserved for payment sync.
+    console.warn("Stripe webhook: offer work order not created", {
+      session: session.id,
+      offerSlug,
+      error: err instanceof Error ? err.message : "unknown",
+    });
+    return false;
+  }
+}
+
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const userId =
     session.client_reference_id ||
@@ -57,14 +185,18 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     ? session.customer
     : session.customer?.id ?? null;
 
-  const user = await findUserForEvent(userId, customerId);
-  if (!user) {
+  const checkoutEmail = session.customer_details?.email || session.customer_email || null;
+  const checkoutName = session.customer_details?.name || null;
+  const user = await findOrCreateUserForCheckout(userId, customerId, checkoutEmail, checkoutName);
+  const workOrderCreated = await createOfferWorkOrderFromCheckout(session, user, customerId);
+
+  if (!user && !workOrderCreated) {
     console.warn("Stripe webhook: no user found for session", session.id);
     return;
   }
 
   // Always make sure the customer id is pinned to the user.
-  if (customerId && user.stripeCustomerId !== customerId) {
+  if (user && customerId && user.stripeCustomerId !== customerId) {
     await prisma.user.update({
       where: { id: user.id },
       data: { stripeCustomerId: customerId }
@@ -76,6 +208,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // Booster (one-time purchase) — grant credits.
   if (kind === "booster" && key) {
+    if (!user) return;
     const booster = BOOSTERS.find((b) => b.id === key);
     const credits = BOOSTER_CREDITS[key] ?? {};
     if (booster && (credits.aiActionsBonus || credits.smsBonus)) {
@@ -97,6 +230,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // Subscription plan — the subscription.updated event will populate the
   // full plan details, but set the plan immediately so the UI reflects it.
   if (kind === "plan" && key) {
+    if (!user) return;
     await prisma.user.update({
       where: { id: user.id },
       data: { plan: key as PlanId }

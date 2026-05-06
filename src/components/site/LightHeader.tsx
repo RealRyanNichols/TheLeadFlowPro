@@ -48,7 +48,7 @@ export function LightHeader({ activePath }: { activePath?: string }) {
             href="/start"
             className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-slate-950 px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
           >
-            Find my next move <ArrowRight className="h-3.5 w-3.5" />
+            Pick my service <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <Link
             href="/book"
@@ -61,7 +61,7 @@ export function LightHeader({ activePath }: { activePath?: string }) {
       </div>
       <div className="lg:hidden border-t border-slate-200 bg-slate-50">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 px-4 py-2">
-          <MobileAction href="/start" label="Find my next move" Icon={Route} primary />
+          <MobileAction href="/start" label="Pick my service" Icon={Route} primary />
           <MobileAction href="/availability" label="Check capacity" Icon={Gauge} />
         </div>
       </div>

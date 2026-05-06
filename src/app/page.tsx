@@ -153,8 +153,8 @@ const HERO_QUICK_ACTIONS = [
   {
     href: "/start",
     event: "mobile_hero_start_router",
-    label: "Tell me what to pick",
-    detail: "60-second offer router",
+    label: "Pick my service",
+    detail: "Offers + workload",
     Icon: MessageSquare,
     tone: "dark",
   },
@@ -384,8 +384,8 @@ export default async function GrowV2Page() {
           className="absolute top-1/2 right-1/3 h-[320px] w-[320px] rounded-full opacity-30 blur-3xl"
           style={{ background: "radial-gradient(circle, rgba(176,107,255,0.35) 0%, transparent 60%)" }}
         />
-        <div className="relative mx-auto max-w-7xl px-4 py-6 sm:py-10">
-          <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
+        <div className="relative mx-auto max-w-7xl px-4 py-5 sm:py-8 lg:py-10">
+          <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
             <div>
               {/* Proof-forward eyebrow + live capacity pill */}
               <div className="flex flex-wrap items-center gap-2">
@@ -424,7 +424,7 @@ export default async function GrowV2Page() {
                   location="homepage_hero"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
                 >
-                  Find my next move <ArrowRight className="h-4 w-4" />
+                  Pick my service <ArrowRight className="h-4 w-4" />
                 </TrackedLink>
                 <TrackedLink
                   href="/tiers"
@@ -971,6 +971,82 @@ export default async function GrowV2Page() {
         </div>
       </section>
 
+      <section className="relative overflow-hidden border-b border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(135deg, #eef9ff 0%, #fff8f1 48%, #f3eaff 100%)" }}
+        />
+        <div
+          aria-hidden
+          className="absolute -right-28 top-0 h-[420px] w-[420px] rounded-full opacity-35 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(35,184,255,0.45) 0%, transparent 63%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-16">
+          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <div className="overflow-hidden rounded-3xl border border-white/70 bg-slate-950 shadow-[0_30px_80px_-35px_rgba(15,23,42,0.65)] ring-1 ring-slate-900/10">
+              <video
+                controls
+                playsInline
+                preload="metadata"
+                poster="/images/premier-dental-academy-makeover-poster.jpg"
+                className="aspect-[2/1] w-full bg-slate-950 object-cover"
+              >
+                <source src="/videos/premier-dental-academy-makeover-teaser.mp4" type="video/mp4" />
+              </video>
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/75 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm">
+                <Star className="h-3.5 w-3.5" /> Active client build
+              </div>
+              <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                Premier Dental Academy shows the actual work: page, offer, payment path, and tools.
+              </h2>
+              <p className="mt-4 leading-relaxed text-slate-700">
+                This is not a mockup. It is an active client build for Premier Dental Academy of
+                Longview: clearer positioning, a stronger site, student-facing paths, admin/tooling
+                direction, and the kind of sales flow that tells a visitor what to do next.
+              </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {[
+                  "Website makeover and enrollment path",
+                  "DentaOps-style student/admin tool direction",
+                  "Clearer payment and intake flow",
+                  "Marketing proof packaged into a short walkthrough",
+                ].map((item) => (
+                  <div key={item} className="rounded-2xl border border-white/70 bg-white/80 p-4 text-sm font-semibold text-slate-800 shadow-sm">
+                    <Check className="mb-2 h-4 w-4 text-cyan-700" />
+                    {item}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <a
+                  href="https://premierdentalacademyoflongview.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
+                >
+                  View the PDA build <ArrowRight className="h-4 w-4" />
+                </a>
+                <TrackedLink
+                  href="/start"
+                  event="cta_pda_proof_start"
+                  location="homepage_pda_proof"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
+                >
+                  Pick my service <ArrowRight className="h-4 w-4" />
+                </TrackedLink>
+              </div>
+              <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                Teaser clip from Ryan's 12-minute PDA walkthrough. Full walkthrough can be hosted
+                separately when Ryan wants the complete breakdown public.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FACEBOOK ADS — for biz owners */}
       <section id="fb-ads" className="border-b border-slate-200 bg-gradient-to-br from-slate-50 to-white">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:py-20">
@@ -984,12 +1060,13 @@ export default async function GrowV2Page() {
               </h2>
               <div className="mt-3 flex items-baseline gap-2">
                 <span className="text-4xl font-bold text-slate-950 tabular-nums">$1,497</span>
-                <span className="text-slate-500">/mo + 10% of ad spend</span>
+                <span className="text-slate-500">/mo flat management</span>
               </div>
               <p className="mt-4 text-slate-700">
                 Built for business owners with a real offer who want professional-grade Facebook +
-                Instagram ads without paying agency fees. Full-service: strategy, creative, daily
-                monitoring, weekly optimization, transparent reporting.
+                Instagram ads built inside their own accounts. No percentage of ad spend. Full-service:
+                strategy, creative, daily monitoring, weekly optimization, transparent reporting,
+                and a follow-up process your business keeps.
               </p>
               <ul className="mt-5 space-y-2 text-slate-700">
                 {[
@@ -997,7 +1074,8 @@ export default async function GrowV2Page() {
                   "8 new ad creatives / month (4 image + 4 short video)",
                   "Daily spend monitoring + weekly optimization",
                   "Monthly report: spend, leads, CPL, ROAS",
-                  "You pay Meta directly. We never touch ad-spend funds.",
+                  "You pay Meta directly. I never touch ad-spend funds or take a cut.",
+                  "Your leads, ads, tracking, and follow-up system stay in your business.",
                   "Minimum recommended monthly ad budget: $1,500",
                 ].map((b) => (
                   <li key={b} className="flex items-start gap-2 text-sm">

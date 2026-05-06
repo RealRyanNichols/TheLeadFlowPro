@@ -197,7 +197,7 @@ export function recommendOffer(input: RecommendationInput): OfferRecommendation 
     return {
       slug: "quick-look",
       title: "Quick-Look Video",
-      reason: "You asked for one sharp next move. The Quick-Look keeps the spend low and gets you a post, bio fixes, and a video review fast.",
+      reason: "You asked for one sharp next move. The Quick-Look keeps the spend low and gets you direct video notes, obvious account fixes, and a follow-on proposal fast.",
       confidence: "direct",
     };
   }
@@ -330,7 +330,7 @@ export function recommendOffer(input: RecommendationInput): OfferRecommendation 
       title: budgetRank === 0 ? "Quick-Look Video" : "Decision Sprint",
       reason:
         budgetRank === 0
-          ? "You need fast direction with a low spend. The Quick-Look is the cleanest start."
+          ? "You need fast direction with a low spend. The Quick-Look is the cleanest start: Ryan reviews the account, sends direct video notes, and gives you the next paid path if you want help."
           : "You need fast direction and can support a focused call. The Decision Sprint is the cleanest start.",
       confidence: "starter",
     };

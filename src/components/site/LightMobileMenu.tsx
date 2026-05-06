@@ -96,9 +96,9 @@ export function LightMobileMenu({
                   className="rounded-2xl bg-slate-950 p-4 text-white shadow-lg shadow-slate-950/20 active:scale-[0.98]"
                 >
                   <Route className="h-5 w-5 text-cyan-300" />
-                  <div className="mt-3 text-sm font-semibold">Find my next move</div>
+                  <div className="mt-3 text-sm font-semibold">Pick my service</div>
                   <div className="mt-1 text-xs leading-relaxed text-slate-300">
-                    Get routed to the right offer.
+                    See the right offer and workload.
                   </div>
                 </Link>
                 <Link

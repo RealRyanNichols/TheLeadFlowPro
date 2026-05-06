@@ -46,7 +46,7 @@ type Tab = "audience" | "capacity" | "actions";
 const TAB_META: Record<Tab, { label: string; icon: LucideIcon }> = {
   audience: { label: "Audience", icon: BarChart3 },
   capacity: { label: "Capacity", icon: Gauge },
-  actions: { label: "Actions", icon: Activity },
+  actions: { label: "Next move", icon: Activity },
 };
 
 function fmt(n: number): string {
@@ -81,27 +81,27 @@ export function LiveSignalAnalyzer({
     if (capacity) {
       if (capacity.status === "full") {
         nextActions.push({
-          title: "Move new buyers to the waitlist",
-          body: "Capacity is full. Keep the router active, but set expectations before checkout.",
+          title: "Ryan is full right now",
+          body: "Start with the router anyway. It captures your context, shows the right package, and puts you in the cleanest next slot.",
           tone: "rose",
         });
       } else if (capacity.status === "limited") {
         nextActions.push({
-          title: "Push serious buyers to the router",
-          body: `${capacity.remaining} hours remain this week. Qualify the next buyer before the calendar fills.`,
+          title: "Move before the week fills",
+          body: `${capacity.remaining} hours remain this week. If you already know you need help, start with the router and get the right offer in front of you.`,
           tone: "accent",
         });
       } else {
         nextActions.push({
-          title: "Keep the main CTA pointed at /start",
-          body: `${capacity.remaining} hours remain this week. The best move is routing serious buyers into the right package.`,
+          title: "Find the cleanest offer first",
+          body: `${capacity.remaining} hours remain this week. Answer a few practical questions and the site will point you to the package that fits.`,
           tone: "cyan",
         });
       }
     } else {
       nextActions.push({
-        title: "Connect capacity data in production",
-        body: "The analyzer will show real available hours once Supabase is reachable.",
+        title: "Check the live availability page",
+        body: "When the workload feed is reachable, the site shows how much room is left before Ryan's 60-hour cap is full.",
         tone: "slate",
       });
     }
@@ -109,22 +109,22 @@ export function LiveSignalAnalyzer({
     if (youtube?.source === "live" && youtube.posts && youtube.views) {
       const avgViews = Math.round(youtube.views / Math.max(youtube.posts, 1));
       nextActions.push({
-        title: "Use YouTube as proof data",
-        body: `${fmt(avgViews)} average views per published video. Pull that into sales-page proof where it fits.`,
+        title: "This is proof, not decoration",
+        body: `${fmt(avgViews)} average views per published YouTube video from the connected API. The same proof-first thinking is what Ryan applies to your offer.`,
         tone: "cyan",
       });
     } else {
       nextActions.push({
-        title: "Use connected social APIs as the proof layer",
-        body: "YouTube is ready when the API key is set. X and Facebook unlock when their tokens are connected.",
+        title: "More live proof gets wired in over time",
+        body: "Every connected platform makes this analyzer more useful. Until then, manual baselines stay labeled so the numbers are not pretending.",
         tone: "slate",
       });
     }
 
     if (pendingCount > 0) {
       nextActions.push({
-        title: "Connect the remaining signal sources",
-        body: `${pendingCount} platform sources are still pending. Once connected, this chart becomes more useful without changing the UI.`,
+        title: "Do not wait on perfect data",
+        body: `${pendingCount} source${pendingCount === 1 ? "" : "s"} still need live API access. The right first step is still the same: pick the offer and start getting your system organized.`,
         tone: "accent",
       });
     }
@@ -283,7 +283,7 @@ export function LiveSignalAnalyzer({
         </div>
         <div className="flex items-center gap-1.5">
           <RadioTower className="h-3.5 w-3.5" />
-          Live APIs refresh on the homepage cache. Baselines are labeled.
+          Live sources refresh automatically. Baselines stay labeled.
         </div>
       </div>
     </div>

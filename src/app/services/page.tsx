@@ -74,7 +74,7 @@ const TIERS = [
   {
     label: "$47",
     sub: "Quick-Look Video",
-    line: "I look at your socials, record a 5-min video, write your next post.",
+    line: "I review your socials and send 5-15 min of direct video notes plus a proposal.",
     href: "/offers/quick-look",
     style: "border-cyan-300 bg-white",
   },
@@ -94,9 +94,9 @@ const TIERS = [
     highlight: true,
   },
   {
-    label: "$1,497/mo + 10%",
+    label: "$1,497/mo flat",
     sub: "Facebook Ads",
-    line: "Done-for-you Meta ad management. You pay Meta directly. $2K min.",
+    line: "Meta ads built inside your accounts. No cut of ad spend. $2K min.",
     href: "/offers/fb-ads",
     style: "border-cyan-300 bg-white",
   },
@@ -233,8 +233,8 @@ export default function ServicesPage() {
             <div className="grid gap-0 lg:grid-cols-[0.85fr_1.15fr]">
               <div className="relative min-h-[320px] bg-slate-100">
                 <img
-                  src="/images/ryan-meta-raybans-toolkit.jpg"
-                  alt="Ryan Nichols wearing Meta Ray-Ban glasses used for POV content capture"
+                  src="/images/ryan-meta-raybans-production-clean.jpg"
+                  alt="Ryan Nichols wearing Meta Ray-Bans used for POV content capture"
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -589,26 +589,31 @@ export default function ServicesPage() {
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-accent-300 bg-white/70 backdrop-blur px-3 py-1 text-xs uppercase tracking-widest text-accent-700 font-semibold shadow-sm">
-                <Megaphone className="h-3.5 w-3.5" /> Performance ads · $1,497/mo + 10% spend
+                <Megaphone className="h-3.5 w-3.5" /> Performance ads · $1,497/mo flat
               </div>
               <h2 className="mt-5 text-3xl sm:text-4xl font-semibold tracking-tight leading-tight text-slate-950">
-                Done-for-you Facebook Ads.{" "}
+                Facebook Ads inside your business.{" "}
                 <span className="bg-gradient-to-r from-brand-700 to-accent-500 bg-clip-text text-transparent">
-                  Your budget pays Meta — never me.
+                  Your accounts. Your leads. Your system.
                 </span>
               </h2>
               <p className="mt-5 text-slate-700 leading-relaxed">
                 I run your campaigns end-to-end — audience research, creative iteration, daily
-                optimization, weekly reports tied to leads and revenue. You pay Meta directly.
-                $2K/mo minimum spend. Built for businesses doing $20K+/mo who want CPL down and
-                lead volume up.
+                optimization, weekly reports tied to leads and revenue. You pay Meta directly, and
+                I do not take a percentage of your ad spend. The account, pixel, campaigns,
+                follow-up, and lead flow stay inside your business.
+              </p>
+              <p className="mt-3 text-slate-700 leading-relaxed">
+                The point is to put the power in your hands and out of an agency. $2K/mo minimum
+                recommended Meta spend. Built for businesses doing $20K+/mo with a sales process
+                ready to handle more serious conversations.
               </p>
               <div className="mt-7 flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/offers/fb-ads"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/30 hover:bg-slate-800"
                 >
-                  Reserve FB Ads — $1,497/mo + 10% <ArrowRight className="h-4 w-4" />
+                  Start the Ads System — $1,497/mo <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/book"
@@ -622,18 +627,22 @@ export default function ServicesPage() {
             <div className="rounded-3xl border border-white/60 bg-white/70 backdrop-blur-xl p-6 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.20)] ring-1 ring-slate-900/5">
               <div className="flex items-center justify-between">
                 <div className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">
-                  Cost-per-lead trend
+                  Example reporting card
                 </div>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-100 border border-accent-300 px-2.5 py-0.5 text-xs font-semibold text-accent-700">
-                  <TrendingUp className="h-3 w-3" /> Down 42%
+                  <TrendingUp className="h-3 w-3" /> No guarantee
                 </span>
               </div>
               <CPLChart />
               <div className="mt-3 grid grid-cols-3 gap-2 text-[11px] text-center">
-                <div className="rounded-md bg-slate-50 py-1.5 text-slate-700">Week 1<br /><strong>$84</strong></div>
-                <div className="rounded-md bg-cyan-50 py-1.5 text-cyan-800">Week 4<br /><strong>$58</strong></div>
-                <div className="rounded-md bg-accent-100 py-1.5 text-accent-800">Week 8<br /><strong>$49</strong></div>
+                <div className="rounded-md bg-slate-50 py-1.5 text-slate-700">Week 1<br /><strong>Baseline</strong></div>
+                <div className="rounded-md bg-cyan-50 py-1.5 text-cyan-800">Week 4<br /><strong>Test</strong></div>
+                <div className="rounded-md bg-accent-100 py-1.5 text-accent-800">Week 8<br /><strong>Winner</strong></div>
               </div>
+              <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                Sample report shape only. Your real dashboard uses your spend, leads, CPL, and
+                booked conversations after the campaigns are live.
+              </p>
             </div>
           </div>
         </div>
@@ -651,24 +660,43 @@ export default function ServicesPage() {
             Who this is for
           </div>
           <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 max-w-3xl">
-            Three audiences. Same algorithm. Same playbook in your voice.
+            Businesses, professionals, creators, and people with a story that needs to move.
           </h2>
           <div className="mt-8 grid gap-5 md:grid-cols-3">
             <Bucket
               Icon={Users}
-              title="Business owners"
-              body="Local services, mortgage, real estate, contractors, dental, fitness — your buyers are scrolling right now. We turn the platforms into a lead engine."
+              title="Revenue businesses"
+              body="Car dealerships, insurance agencies, real estate agents and brokers, local services, contractors, dental, medical, and owner-led companies that need attention to become leads."
             />
             <Bucket
               Icon={Sparkles}
-              title="Creators"
-              body="You make the content; I run the engine that gets it seen. Daily output + hook iteration + cross-platform posting = compounding audience growth."
+              title="Professionals and creators"
+              body="Attorneys, doctors, experts, artists, rappers, and music artists who need sharper angles, better clips, clearer hooks, and a content rhythm they can actually keep running."
             />
             <Bucket
               Icon={Trophy}
-              title="People with a message"
-              body="Faith, recovery, redemption, niche advocacy — the algorithm doesn't care what you stand for, only how well you hook. Get heard."
+              title="People with a story"
+              body="Civil-rights victims, advocates, whistleblowers, public-records people, founders, and anyone who needs the facts organized and the story carried without losing control of the message."
             />
+          </div>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {[
+              "Dealerships",
+              "Attorneys",
+              "Doctors",
+              "Insurance agencies",
+              "Real estate",
+              "Artists",
+              "Music artists",
+              "Civil-rights stories",
+            ].map((lane) => (
+              <span
+                key={lane}
+                className="rounded-full border border-cyan-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-800 shadow-sm"
+              >
+                {lane}
+              </span>
+            ))}
           </div>
         </div>
       </section>

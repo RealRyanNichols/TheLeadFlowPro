@@ -290,7 +290,7 @@ export default function ConsultingPage() {
                 href="/start"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/25 hover:bg-accent-600"
               >
-                Find my next move <ArrowRight className="h-4 w-4" />
+                Pick my service <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/book"

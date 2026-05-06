@@ -127,60 +127,63 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     tier: 1,
     category: "consulting",
     cadence: "one-time",
-    badge: "Tier 1 micro · One-time · 5-min personalized video",
+    badge: "Tier 1 micro · One-time · 5-15 min video notes",
     Icon: Sparkles,
     metaTitle: "Quick-Look Video — $47 · The LeadFlow Pro",
     metaDescription:
-      "I look at your social and tell you the next post to make. 5-minute personalized video reviewing your accounts, your offer, and the single highest-leverage post you should ship this week.",
+      "I look at your socials and tell you what to fix next. 15-20 minutes of review, 5-15 minutes of direct video notes, and a proposal for how I can help if you want me involved.",
 
     hero: {
       h1Lead: "$47. I look at your socials.",
-      h1Highlight: "I tell you the next post to make.",
+      h1Highlight: "I tell you what to do next.",
       paragraph:
-        "You give me your handles. I spend 30 minutes reviewing them. I record a 5-minute personalized video walking through what's working, what's leaking, and the single highest-leverage post you should ship this week — written out for you in the same email.",
+        "You give me your business handles, personal handles, or both. I spend 15-20 minutes reviewing them, then send a set of direct video notes totaling about 5-15 minutes. I will tell you what is working, what is leaking, what to do next, and how I can help if you want to move forward.",
+      paragraph2:
+        "This is not a deep audit or step-by-step implementation walkthrough. It is the low-cost way to get my eyes on the account, get clear direction, and see the follow-on proposal.",
     },
     price: {
       big: "$47",
       sub: "one-time · 24-hour delivery",
       badge: "Cheapest path to Ryan's eyes",
       deliverables: [
-        "5-minute personalized video reviewing YOUR socials",
-        "The exact next post to make this week (script + hook + caption)",
-        "Top-3 quick fixes I'd make to your bio / banner / pinned content",
-        "Delivered within 24 hours of payment + intake form",
+        "15-20 minutes of Ryan reviewing your business or personal socials",
+        "A set of direct video notes, usually 5-15 minutes total",
+        "What to fix next: content, bio, offer, angles, or follow-up leaks",
+        "Delivery by email, Google Drive, archive link, or text when appropriate",
+        "A follow-on proposal for how I can help next if you want results",
       ],
     },
     primaryCta: { label: "Reserve Quick-Look — $47", href: buyHref("quick-look", "Buy: Quick-Look Video $47") },
     secondaryCta: { label: "See the $90 Sprint instead", href: "/offers/decision-sprint" },
 
     whyBuy: [
-      { Icon: Sparkles, title: "Cheapest path to my eyes", body: "Most consultants don't look at your stuff until you've paid 4 figures. This is $47 for 30 minutes of my actual attention on your actual accounts." },
+      { Icon: Sparkles, title: "Cheapest path to my eyes", body: "Most consultants don't look at your stuff until you've paid 4 figures. This is $47 for real attention on your actual accounts and a direct read on what I would change first." },
       { Icon: Clock,    title: "24-hour turnaround",       body: "Pay before noon Mon–Thu, get it back by EOD next day. Friday orders ship Monday." },
-      { Icon: TrendingUp, title: "One post can pay for the review", body: "If the next post I write for you creates one serious lead, the video can pay for itself. No guarantee — just practical math." },
+      { Icon: TrendingUp, title: "Direction before depth", body: "I am not rebuilding your whole strategy for $47. I am telling you where the obvious leverage is so you can act or bring me in for the heavier work." },
     ],
     timeline: [
-      { n: "1", minutes: "Day 0",    title: "Pay & intake",   body: "$47 via Stripe (mailto for now). 5-question intake form: handles, offer, target customer, biggest current frustration, where you'd love to be in 90 days." },
-      { n: "2", minutes: "Day 0–1",  title: "I look",         body: "I spend 30 minutes inside your accounts. Pull up your last 30 posts. Read your bio. Click your link-in-bio. Make notes." },
-      { n: "3", minutes: "Day 1",    title: "I record",       body: "5-minute screen-shared video walking through everything. Loom or Vimeo link emailed to you." },
-      { n: "4", minutes: "Day 1",    title: "Written follow-up", body: "Same email contains: the post script, the bio rewrite, the top-3 quick fixes. Ready to ship." },
+      { n: "1", minutes: "Day 0",    title: "Pay & intake",   body: "$47 via Stripe. Send the handles, the business, what you sell, and what feels stuck right now." },
+      { n: "2", minutes: "Day 0-1",  title: "I look",         body: "I spend 15-20 minutes going through your business socials, personal socials, or both. I look for the leaks that are obvious to an operator." },
+      { n: "3", minutes: "Day 1",    title: "I record",       body: "You get a set of direct videos, usually 5-15 minutes total, telling you what to do, what to stop doing, and what to post or fix next." },
+      { n: "4", minutes: "Day 1",    title: "I send the path", body: "I deliver the videos by email, Drive/archive link, or text when appropriate, plus a proposal for how I can help you follow through." },
     ],
     rightFit: [
       "You're posting but not gaining traction",
       "You can name your offer in one sentence",
       "You'll fill out a 5-question intake (~5 minutes)",
-      "You'll actually ship the post I write for you",
-      "You're cool with a 5-min video, not a 60-min audit",
+      "You'll actually act on direct instructions",
+      "You're cool with sharp direction, not a full implementation walkthrough",
     ],
     wrongFit: [
       "You haven't posted anywhere yet (start posting, then come back)",
       "You want a deep audit (book the $497 instead)",
       "You want me to also write the next 30 posts (that's the $497/mo Power Bundle)",
-      "You expect a whole strategy review (this is one post + quick wins)",
+      "You expect a whole strategy review (this is direction + quick wins)",
       "You're hoping $47 replaces a real engagement (it's the entry point)",
     ],
     costMath: {
       stuck: { big: "$0", sub: "Cost of doing nothing this week. The post you don't ship is the lead you don't get is the dollar that doesn't come in." },
-      buy:   { big: "$47",  sub: "30 minutes of my eyes on your accounts + a written next move + a 5-min video. Pays for itself the first time the post lands a real lead." },
+      buy:   { big: "$47",  sub: "15-20 minutes of my eyes on your accounts + direct video notes + a clear follow-on proposal. Pays for itself the first time the advice creates a real lead." },
     },
     proof: RYAN_PROOF,
     faqs: [
@@ -509,15 +512,15 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     faqs: [
       { q: "Do I get to approve content before it posts?", a: "Each month, we send a content calendar. You approve the first month. After that, it's our show — but you can flag anything anytime via Slack/voice memo and we'll pull it." },
       { q: "Can I add Instagram or Threads?", a: "IG Reels are included via cross-posting from TikTok. Threads is included via X cross-post. Native IG feed posts are a +$297/mo add-on if you want curated grid + Stories." },
-      { q: "What about TikTok or FB Ads?", a: "Organic only on this bundle. Add Facebook Ads for +$1,497/mo + 10% spend (with $2K minimum spend). See the dedicated FB Ads offer." },
+      { q: "What about TikTok or FB Ads?", a: "Organic only on this bundle. Add Facebook Ads for a flat $1,497/mo management fee with $2K minimum Meta spend paid directly by you. See the dedicated FB Ads offer." },
       { q: "Can I cancel mid-month?", a: "30-day notice. Last month is the wind-down month. Algorithms hate sudden silence — we ramp down properly." },
       { q: "What's the lock-in?", a: "First-month commitment only. Month 2 onward is month-to-month with 30-day notice." },
       TEXAS_NDA_FAQ,
     ],
-    upgradeCredit: "Stack with Facebook Ads ($1,497/mo + 10% spend) for full attention-and-conversion coverage.",
+    upgradeCredit: "Stack with Facebook Ads ($1,497/mo flat, no ad-spend percentage) for full attention-and-conversion coverage.",
   },
 
-  /* ──────────── 5. FACEBOOK ADS — Tier 2 — $1,497/mo + 10% ──────────── */
+  /* ──────────── 5. FACEBOOK ADS — Tier 2 — $1,497/mo flat ──────────── */
   "fb-ads": {
     slug: "fb-ads",
     tier: 2,
@@ -525,22 +528,22 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     cadence: "monthly",
     badge: "Tier 2 · Monthly · Performance ad management",
     Icon: Megaphone,
-    metaTitle: "Facebook Ads Management — $1,497/mo + 10% spend · The LeadFlow Pro",
+    metaTitle: "Facebook Ads Management — $1,497/mo Flat · The LeadFlow Pro",
     metaDescription:
-      "Done-for-you Meta ad management. We run the campaigns, you pay Meta directly. Targeting, creative iteration, weekly reporting. Built for businesses doing $20K+/mo with $2K+/mo ad budget.",
+      "Done-for-you Meta ad management inside your own accounts. Flat management fee, no percentage of spend. Targeting, creative iteration, weekly reporting, and systems you keep.",
 
     hero: {
-      h1Lead: "Your ads. My execution.",
-      h1Highlight: "$1,497/mo + 10% of spend. $2K min budget.",
+      h1Lead: "Your ads. Your accounts.",
+      h1Highlight: "My execution. $1,497/mo flat.",
       paragraph:
-        "I run your Meta campaigns end-to-end — audience, creative, copy, optimization. You pay Meta directly (we never touch your ad budget). Weekly performance reports tied to leads and revenue, not vanity clicks.",
+        "I come into your business and build the Meta ads system inside your own assets — business manager, page, pixel, campaigns, follow-up, and reporting. You pay Meta directly. I do not take a percentage of your ad spend.",
       paragraph2:
-        "This is for businesses already doing $20K+/mo who want lead volume up and cost-per-lead down. Not for first-time advertisers — start with the $497 Audit if that's you.",
+        "The goal is ownership. The leads are yours. The ads are yours. The process is yours. This is for businesses already doing $20K+/mo with enough budget and sales process to handle more lead volume.",
     },
     price: {
       big: "$1,497",
-      sub: "/mo + 10% of ad spend",
-      badge: "Min $2K/mo to Meta · paid by you",
+      sub: "/mo flat management",
+      badge: "No ad-spend percentage · min $2K/mo to Meta",
       deliverables: [
         "Audience research + targeting (custom + lookalike + interest)",
         "Creative iteration weekly (3 hooks × 3 variants minimum)",
@@ -549,16 +552,17 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "Daily campaign optimization (M–F)",
         "Weekly performance report tied to leads + revenue",
         "Pixel + conversion API setup if missing",
+        "Follow-up and automation map so lead handling stays in your control",
         "Landing page review + recommendations (build is separate)",
       ],
     },
-    primaryCta: { label: "Start FB Ads — $1,497/mo", href: buyHref("fb-ads", "Buy: Facebook Ads $1,497/mo") },
+    primaryCta: { label: "Start the Ads System — $1,497/mo", href: buyHref("fb-ads", "Buy: Facebook Ads $1,497/mo") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
       { Icon: Target,     title: "Lead volume + cost-per-lead",  body: "Two metrics matter: how many leads, what each one costs. Everything we do drives one of those. No vanity metrics on the report." },
       { Icon: TrendingUp, title: "Creative is the lever",         body: "Targeting matters less than ever; creative matters more than ever. We iterate hooks weekly so the winners compound." },
-      { Icon: ShieldCheck, title: "You pay Meta directly",        body: "Your ad budget never touches our account. You see every dollar Meta charges you, and you can pause anytime — no AP-from-us drama." },
+      { Icon: ShieldCheck, title: "You own the machinery",        body: "Your ad budget never touches my account. Your business manager, pixel, campaigns, leads, follow-up, and reporting stay under your control." },
     ],
     timeline: [
       { n: "1", minutes: "Week 1",   title: "Audit + access",        body: "We review existing pixel, ad accounts, past campaigns. Get admin access. If pixel/CAPI broken, we fix it." },
@@ -575,18 +579,19 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     ],
     wrongFit: [
       "You haven't run an ad before (start with $497 Audit)",
-      "You can't spend $2K/mo to Meta on top of management",
+      "You can't spend $2K/mo to Meta on top of the flat management fee",
       "Your sales process drops 50% of leads (fix that first)",
       "You expect 5× ROAS in week 1",
       "You want me to also build the funnel/landing page (separate quote)",
     ],
     costMath: {
       stuck: { big: "$3K+/mo", sub: "Wasted on poorly targeted ads / broken pixels / no creative iteration. The most common pattern is paying for clicks that go to a leaky funnel." },
-      buy:   { big: "$1,497 + 10%", sub: "Min $2K to Meta. So $3,697/mo all-in if you spend the minimum. The work is weekly creative testing, tracking, and optimization — not a promised CPL drop." },
+      buy:   { big: "$1,497/mo", sub: "Flat management fee. No percentage of your ad spend. You pay Meta directly, and the account, tracking, creative tests, and follow-up process stay yours." },
     },
     proof: RYAN_PROOF,
     faqs: [
-      { q: "Why 10% of spend on top of the retainer?", a: "Because at $20K/mo spend, you need different attention than at $2K/mo spend. The variable fee aligns my incentives with your scale — not your pain." },
+      { q: "Do you take a percentage of ad spend?", a: "No. I do not want the agency model where the operator gets a bigger cut just because you spend more. You pay a flat management fee. Meta bills your card directly." },
+      { q: "What do I actually own when this is built?", a: "Your business owns the ad account, audiences, pixel, campaigns, creative library, lead flow, follow-up process, and reporting trail. If you ever stop working with me, the system stays with you." },
       { q: "Do you guarantee a CPL or ROAS?", a: "No. Anyone who guarantees Meta ad performance is lying or about to be sued. I commit to the work, the iteration, and the reporting." },
       { q: "Can you also run TikTok / Google ads?", a: "TikTok ads — yes, +$997/mo on top. Google ads — not currently. I'd refer you out before doing it badly." },
       { q: "Do I need to build a landing page first?", a: "Not necessarily — many accounts run on existing pages. If your page is the bottleneck, we'll flag it in week 1 and quote the build separately." },

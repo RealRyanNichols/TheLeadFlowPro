@@ -56,7 +56,7 @@ function priceShape(offer: Offer): {
     case "sprint-4-week":      return { amountCents:  999700, recurring: null };
     case "light-retainer":     return { amountCents:  199700, recurring: "month" };
     case "power-bundle":       return { amountCents:  149700, recurring: "month" };
-    case "fb-ads":             return { amountCents:  149700, recurring: "month" }; // +10% spend invoiced separately
+    case "fb-ads":             return { amountCents:  149700, recurring: "month" }; // Flat management fee. Meta spend is paid directly by client.
     case "monthly-operator":   return { amountCents:  499700, recurring: "month" };
     case "annual-advisor":     return { amountCents: 1875000, recurring: "month", intervalCount: 3 }; // quarterly = every 3 months
     default:                   return { amountCents:    9000, recurring: null };
