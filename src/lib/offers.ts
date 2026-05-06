@@ -156,7 +156,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     whyBuy: [
       { Icon: Sparkles, title: "Cheapest path to my eyes", body: "Most consultants don't look at your stuff until you've paid 4 figures. This is $47 for 30 minutes of my actual attention on your actual accounts." },
       { Icon: Clock,    title: "24-hour turnaround",       body: "Pay before noon Mon–Thu, get it back by EOD next day. Friday orders ship Monday." },
-      { Icon: TrendingUp, title: "Pays for itself in one post", body: "If the next post I write for you gets 1 lead worth $200, the video paid for itself 4× over. Most do." },
+      { Icon: TrendingUp, title: "One post can pay for the review", body: "If the next post I write for you creates one serious lead, the video can pay for itself. No guarantee — just practical math." },
     ],
     timeline: [
       { n: "1", minutes: "Day 0",    title: "Pay & intake",   body: "$47 via Stripe (mailto for now). 5-question intake form: handles, offer, target customer, biggest current frustration, where you'd love to be in 90 days." },
@@ -467,6 +467,8 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "Facebook: 12 long + 8 short videos/mo + group seeding",
         "X / Twitter: daily Mon–Fri posts in your voice + reply targeting",
         "YouTube: 1 long-form/week + thumbnail + retention iteration",
+        "Creative direction: what to film, what to say, what to show, and where the lead goes next",
+        "Field kit available when scoped: Meta Ray-Bans, GoPros, Rode mics, iPhone, and stands",
         "Cross-posting to IG Reels & YT Shorts (free)",
         "Monthly performance report tied to leads + revenue",
       ],
@@ -542,6 +544,8 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       deliverables: [
         "Audience research + targeting (custom + lookalike + interest)",
         "Creative iteration weekly (3 hooks × 3 variants minimum)",
+        "Photo/video direction so the ads have real angles to test",
+        "Field capture options for POV, product, owner, and job-site creative",
         "Daily campaign optimization (M–F)",
         "Weekly performance report tied to leads + revenue",
         "Pixel + conversion API setup if missing",
@@ -578,7 +582,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     ],
     costMath: {
       stuck: { big: "$3K+/mo", sub: "Wasted on poorly targeted ads / broken pixels / no creative iteration. The most common pattern is paying for clicks that go to a leaky funnel." },
-      buy:   { big: "$1,497 + 10%", sub: "Min $2K to Meta. So $3,697/mo all-in if you spend the minimum. Cost-per-lead drops 30–60% in the first 60 days for most accounts." },
+      buy:   { big: "$1,497 + 10%", sub: "Min $2K to Meta. So $3,697/mo all-in if you spend the minimum. The work is weekly creative testing, tracking, and optimization — not a promised CPL drop." },
     },
     proof: RYAN_PROOF,
     faqs: [
@@ -620,6 +624,8 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "4 hours, 1:1, screen-shared video call",
         "Recorded session + full transcript",
         "The actual deliverable (ready to use, not a draft)",
+        "Script, creative, lead-flow, or sales-process buildout if that is the highest-leverage asset",
+        "Content capture or field-production scope if the asset needs real footage",
         "30-day text-back support to ask follow-up questions",
         "60-min review call within 14 days to refine",
       ],
@@ -700,6 +706,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       deliverables: [
         "1 hour/week working session (recorded + transcribed)",
         "Hands-on inside your tools (Slack, Notion, HubSpot, Stripe, ad accounts)",
+        "Marketing, lead generation, creative, and sales follow-up work handled inside the operating rhythm",
         "Weekly written ops scoreboard (revenue, CAC, leads, drop-offs)",
         "Async Slack channel — same-day response Mon–Fri",
         "Quarterly off-site planning day (in-person if Texas, remote elsewhere)",
@@ -777,6 +784,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       deliverables: [
         "Kickoff call + 30-min daily standups Mon–Fri (recorded)",
         "Hands-on inside your tools the entire 4 weeks",
+        "Creative/content engine, sales OS, funnel, or automation build depending on the agreed outcome",
         "Weekly Friday milestone review + written progress doc",
         "Final delivery: built artifact + SOP + recording library",
         "30-day post-sprint Slack support (same-day Mon–Fri)",

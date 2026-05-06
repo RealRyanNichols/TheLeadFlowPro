@@ -991,6 +991,32 @@ model ClientEngagement {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  workOrders    WorkOrder[]
+
   @@index([status])
   @@index([startedAt(sort: Desc)])
+}
+
+model WorkOrder {
+  id                    String   @id @default(cuid())
+  engagementId          String?
+  clientName            String
+  publicLabel           String?
+  offerSlug             String?
+  title                 String
+  status                String   @default("intake_needed") // intake_needed | in_progress | waiting_on_client | pending_review | delivered | completed | canceled
+  estimatedHours        Float
+  completedHours        Float    @default(0)
+  deliveryGuaranteeDays Int?
+  dueAt                 DateTime?
+  notes                 String?  @db.Text
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  engagement            ClientEngagement? @relation(fields: [engagementId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([dueAt])
+  @@index([engagementId])
+  @@index([createdAt(sort: Desc)])
 }

@@ -32,9 +32,9 @@ export const revalidate = 3600;
 const STATIC_FALLBACK = {
   youtube: 12000,
   x: 43800,
-  facebook: 18900,
-  tiktok: 2400,
-  instagram: 3200,
+  facebook: 18000,
+  tiktok: 3178,
+  instagram: 4862,
 };
 
 function fmt(n: number): string {
@@ -71,9 +71,52 @@ const WRONG_FIT = [
 
 const STATS = [
   { label: "X / Twitter",     value: "43,800+" },
-  { label: "Facebook",        value: "18,900+" },
+  { label: "Facebook",        value: "18K+" },
   { label: "YouTube",         value: "12,000+" },
   { label: "Total reach",     value: "75K+" },
+];
+
+const SOCIAL_PROOF = [
+  {
+    src: "/images/social-proof-x-43800.jpg",
+    alt: "X profile screenshot showing 43.8K followers",
+    platform: "X",
+    stat: "43.8K",
+    label: "followers",
+    crop: "object-top",
+  },
+  {
+    src: "/images/social-proof-facebook-18k.jpg",
+    alt: "Facebook profile screenshot showing 18K followers",
+    platform: "Facebook",
+    stat: "18K",
+    label: "followers",
+    crop: "object-top",
+  },
+  {
+    src: "/images/social-proof-youtube-12k.jpg",
+    alt: "YouTube channel screenshot showing 12K subscribers",
+    platform: "YouTube",
+    stat: "12K",
+    label: "subscribers",
+    crop: "object-top",
+  },
+  {
+    src: "/images/social-proof-instagram-4862.jpg",
+    alt: "Instagram profile screenshot showing 4,862 followers",
+    platform: "Instagram",
+    stat: "4,862",
+    label: "followers",
+    crop: "object-top",
+  },
+  {
+    src: "/images/social-proof-tiktok-3178-24500.jpg",
+    alt: "TikTok profile screenshot showing 3,178 followers and 24.5K likes",
+    platform: "TikTok",
+    stat: "24.5K",
+    label: "likes",
+    crop: "object-top",
+  },
 ];
 
 const PLATFORMS = [
@@ -144,6 +187,44 @@ const NAMED_CLIENTS = [
   {
     name: "Premier Dental Academy of Longview",
     note: "Built website + student/admin tools + ran their ads (active client).",
+  },
+];
+
+const PORTFOLIO_SITES = [
+  {
+    name: "The LeadFlow Pro",
+    href: "https://theleadflowpro.com",
+    note: "Offer router, capacity meter, buyer flow, client dashboard surface.",
+  },
+  {
+    name: "Faretta.Legal",
+    href: "https://faretta.legal",
+    note: "Investigative journalism and case-organizing brand with video-driven promotion.",
+  },
+  {
+    name: "Faretta.AI",
+    href: "https://faretta.ai",
+    note: "AI/tooling product line for evidence, case files, and structured review.",
+  },
+  {
+    name: "RepWatchr.com",
+    href: "https://repwatchr.com",
+    note: "Public-records and profile product build.",
+  },
+  {
+    name: "Wholesale Universe",
+    href: "https://wholesaleuniverse.com",
+    note: "E-commerce/wholesale brand built and operated by Ryan.",
+  },
+  {
+    name: "Premier Dental Academy",
+    href: "https://premierdentalacademyoflongview.com",
+    note: "Client website plus DentaOps student/admin tool buildout.",
+  },
+  {
+    name: "Missouri Dent Bully",
+    href: "https://dentbullyusa.com",
+    note: "On-site promotional video and short-form field-content support.",
   },
 ];
 
@@ -358,6 +439,74 @@ export default async function GrowV2Page() {
               {" · refreshes hourly"}
             </p>
           )}
+
+          <div className="mt-10 grid gap-5 lg:grid-cols-[1.25fr_0.95fr] lg:items-stretch">
+            <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-[0_30px_70px_-25px_rgba(15,23,42,0.30)] ring-1 ring-slate-900/5 backdrop-blur">
+              <div className="relative aspect-[16/10] bg-slate-100">
+                <img
+                  src="/images/ryan-wholesale-universe-owner.jpg"
+                  alt="Ryan Nichols standing inside the Wholesale Universe warehouse"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="p-5">
+                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                  Built inside a real business
+                </div>
+                <h3 className="mt-2 text-xl font-semibold text-slate-950">
+                  I have stood inside the warehouse, sold the product, made the content, and carried
+                  the pressure of making payroll.
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                  That matters. Social media is not just posting. It is offer, attention, trust,
+                  follow-up, sales, and the system that catches demand when the video works.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <ProofPhoto
+                src="/images/ryan-live-content-work-1.jpg"
+                alt="Ryan Nichols preparing live sales content for Wholesale Universe"
+                label="Live selling and content packaging"
+                body="Going live, editing the angle, reading the comments, and turning attention back into the business."
+              />
+              <ProofPhoto
+                src="/images/ryan-live-content-work-2.jpg"
+                alt="Ryan Nichols showing product during a live content session"
+                label="Creative direction"
+                body="What to say, what to show, how to frame the shot, and when to turn a post into a sales conversation."
+              />
+              <ProofPhoto
+                src="/images/ryan-cmon-man-marketing.jpg"
+                alt="Ryan Nichols holding a C'mon Man sign used as a marketing ice breaker"
+                label="Direct, but human"
+                body="The work is serious. The delivery can still have personality. People click on people, not sterile agencies."
+              />
+            </div>
+          </div>
+
+          <div className="mt-10">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                  Platform-native proof
+                </div>
+                <h3 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+                  The numbers are in the account screenshots.
+                </h3>
+              </div>
+              <p className="max-w-lg text-sm leading-relaxed text-slate-600">
+                Screenshots are cropped for the useful angle: followers, subscribers, likes, and the
+                platform context behind the claim.
+              </p>
+            </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {SOCIAL_PROOF.map((item) => (
+                <SocialProofCard key={item.platform} {...item} />
+              ))}
+            </div>
+          </div>
 
           <div className="mt-10 grid gap-5 md:grid-cols-3">
             <BeliefBlock
@@ -626,6 +775,55 @@ export default async function GrowV2Page() {
         </div>
       </section>
 
+      <section className="relative overflow-hidden border-b border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg, #fff8f1 0%, #eef9ff 100%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:py-20">
+          <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                Portfolio of sites and tools
+              </div>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                I do not just talk about funnels. I build the pages, tools, promos, and back office.
+              </h2>
+              <p className="mt-4 leading-relaxed text-slate-700">
+                The portfolio matters because it proves range: public brands, AI tools, investigative
+                content, e-commerce, client dashboards, DentaOps-style internal tools, and sales
+                pages that can take payment.
+              </p>
+              <div className="mt-6 overflow-hidden rounded-3xl border border-white/70 bg-white shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] ring-1 ring-slate-900/5">
+                <img
+                  src="/images/faretta-legal-promo-frame.jpg"
+                  alt="Faretta Legal promotional video frame created by Ryan Nichols"
+                  className="h-auto w-full"
+                />
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {PORTFOLIO_SITES.map((site) => (
+                <a
+                  key={site.name}
+                  href={site.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm transition hover:border-cyan-300 hover:shadow-md"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="font-semibold text-slate-950">{site.name}</h3>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-cyan-700 transition group-hover:translate-x-0.5" />
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{site.note}</p>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FACEBOOK ADS — for biz owners */}
       <section id="fb-ads" className="border-b border-slate-200 bg-gradient-to-br from-slate-50 to-white">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:py-20">
@@ -858,6 +1056,61 @@ function ProofTile({ big, label }: { big: string; label: string }) {
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="text-3xl sm:text-4xl font-bold text-slate-950 tabular-nums">{big}</div>
       <div className="mt-2 text-sm text-slate-600 leading-snug">{label}</div>
+    </div>
+  );
+}
+
+function ProofPhoto({
+  src,
+  alt,
+  label,
+  body,
+}: {
+  src: string;
+  alt: string;
+  label: string;
+  body: string;
+}) {
+  return (
+    <div className="grid grid-cols-[112px_1fr] overflow-hidden rounded-2xl border border-white/70 bg-white/80 shadow-sm ring-1 ring-slate-900/5 backdrop-blur">
+      <img src={src} alt={alt} className="h-full min-h-[126px] w-full object-cover" />
+      <div className="p-4">
+        <div className="text-[10px] font-semibold uppercase tracking-widest text-accent-700">
+          {label}
+        </div>
+        <p className="mt-1 text-sm leading-relaxed text-slate-700">{body}</p>
+      </div>
+    </div>
+  );
+}
+
+function SocialProofCard({
+  src,
+  alt,
+  platform,
+  stat,
+  label,
+  crop,
+}: {
+  src: string;
+  alt: string;
+  platform: string;
+  stat: string;
+  label: string;
+  crop: string;
+}) {
+  return (
+    <div className="overflow-hidden rounded-3xl border border-white/70 bg-white shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] ring-1 ring-slate-900/5">
+      <div className="relative h-52 bg-slate-950 sm:h-60">
+        <img src={src} alt={alt} className={`h-full w-full object-cover ${crop}`} />
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent p-4 text-white">
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-cyan-200">
+            {platform}
+          </div>
+          <div className="mt-1 text-2xl font-bold tabular-nums">{stat}</div>
+          <div className="text-xs text-slate-300">{label}</div>
+        </div>
+      </div>
     </div>
   );
 }

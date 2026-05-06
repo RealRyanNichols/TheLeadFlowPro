@@ -27,6 +27,15 @@ export type OfferWorkload = {
   breakdown?: WorkloadLine[];
 };
 
+export type WorkOrderPreset = {
+  slug: string;
+  label: string;
+  reserveHours: number;
+  deliveryPromise: string;
+  workloadNote: string;
+  breakdown: WorkloadLine[];
+};
+
 export const DECISION_SPRINT_BREAKDOWN: WorkloadLine[] = [
   { label: "Live call", minutes: 90 },
   { label: "Pre-call prep", minutes: 10 },
@@ -36,6 +45,48 @@ export const DECISION_SPRINT_BREAKDOWN: WorkloadLine[] = [
   { label: "Text follow-up and extra small requests", minutes: 15, note: "Only when needed" },
   { label: "Final folder organization, type-up, and send", minutes: 10 },
 ];
+
+export const LOCAL_FIELD_SESSION_BREAKDOWN: WorkloadLine[] = [
+  { label: "First trip travel out", minutes: 75, note: "Local client travel can run 70-75 minutes each way." },
+  { label: "First trip travel back", minutes: 75 },
+  { label: "On-site working session", minutes: 180 },
+  { label: "Document upload, scanning, and file intake", minutes: 120, note: "Usually 1.5-2 hours." },
+  { label: "Review, research, and proposal buildout", minutes: 180, note: "Usually 2-3 hours." },
+  { label: "Second trip travel out", minutes: 75 },
+  { label: "Return presentation, handoff, collection, and next proposal", minutes: 120, note: "Usually 1-2 hours." },
+  { label: "Second trip travel back", minutes: 75 },
+];
+
+export const FIELD_CONTENT_DAY_BREAKDOWN: WorkloadLine[] = [
+  { label: "Pre-production plan and shot list", minutes: 60 },
+  { label: "Gear prep: Meta Ray-Bans, GoPros, Rode mics, iPhone, stands", minutes: 45 },
+  { label: "On-site capture block", minutes: 360, note: "Half-day baseline; full day custom quoted." },
+  { label: "Clip dump, backup, and rough sorting", minutes: 90 },
+  { label: "Short-form angle map and first cuts", minutes: 180 },
+  { label: "Upload package, captions, and handoff", minutes: 90 },
+];
+
+export const WORK_ORDER_PRESETS: Record<string, WorkOrderPreset> = {
+  "local-field-proposal": {
+    slug: "local-field-proposal",
+    label: "Local field/proposal session",
+    reserveHours: 15,
+    deliveryPromise: "On-site session plus document intake, review, return presentation, and follow-up proposal.",
+    workloadNote:
+      "Built for local jobs where Ryan travels, works in person, scans/uploads documents, builds a proposal, returns to present it, and drives back.",
+    breakdown: LOCAL_FIELD_SESSION_BREAKDOWN,
+  },
+  "field-content-day": {
+    slug: "field-content-day",
+    label: "Field content capture day",
+    reserveHours: 14,
+    deliveryPromise:
+      "On-site capture, gear-led POV footage, clip dump, short-form angle map, first cuts, captions, and handoff. Travel and lodging are custom.",
+    workloadNote:
+      "Built for jobs where Ryan follows the operator, gets angles, captures short after short, and packages content for social distribution.",
+    breakdown: FIELD_CONTENT_DAY_BREAKDOWN,
+  },
+};
 
 export const OFFER_WORKLOADS: Record<OfferSlug, OfferWorkload> = {
   "quick-look": {

@@ -8,7 +8,13 @@ import Link from "next/link";
 import { ArrowRight, Calendar, Check, Clock, ShieldCheck, Users } from "lucide-react";
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
 import { getCapacitySnapshot, WEEKLY_CAPACITY_HOURS } from "@/lib/capacity";
-import { DECISION_SPRINT_BREAKDOWN, OFFER_WORKLOADS, formatHours } from "@/lib/workload";
+import {
+  DECISION_SPRINT_BREAKDOWN,
+  LOCAL_FIELD_SESSION_BREAKDOWN,
+  OFFER_WORKLOADS,
+  WORK_ORDER_PRESETS,
+  formatHours,
+} from "@/lib/workload";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
@@ -161,6 +167,70 @@ export default async function AvailabilityPage() {
                 </div>
               )}
 
+              {snap.activeWorkOrders.length > 0 && (
+                <div className="mt-8">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <div className="text-xs uppercase tracking-widest text-cyan-700 font-semibold">
+                        Open work orders
+                      </div>
+                      <p className="mt-1 text-sm text-slate-600">
+                        Specific deliverables clear capacity as Ryan marks the work done.
+                      </p>
+                    </div>
+                    <div className="rounded-full border border-accent-300 bg-accent-300/15 px-3 py-1 text-xs font-bold text-slate-800">
+                      {snap.workOrderSummary.remainingHours}h open
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    {snap.activeWorkOrders.slice(0, 6).map((order) => (
+                      <div
+                        key={order.id}
+                        className="rounded-2xl border border-slate-200 bg-white p-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-semibold text-slate-950">{order.title}</div>
+                            <div className="mt-1 text-xs text-slate-500">
+                              {order.label}
+                              {order.dueAt && (
+                                <>
+                                  {" "}· due{" "}
+                                  {new Date(order.dueAt).toLocaleDateString(undefined, {
+                                    month: "short",
+                                    day: "numeric",
+                                  })}
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-0.5 text-xs font-bold text-cyan-800">
+                            {order.remainingHours}h left
+                          </span>
+                        </div>
+                        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-brand-500 to-accent-500"
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                Math.round((order.completedHours / Math.max(0.1, order.estimatedHours)) * 100),
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                        <div className="mt-2 flex justify-between text-[11px] text-slate-500">
+                          <span>{order.status.replaceAll("_", " ")}</span>
+                          <span>
+                            {order.completedHours}h / {order.estimatedHours}h done
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {snap.activeEngagements.length === 0 && (
                 <div className="mt-8 rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-600">
                   No active engagements yet. The first {WEEKLY_CAPACITY_HOURS} hours / week are
@@ -186,8 +256,9 @@ export default async function AvailabilityPage() {
                   </h2>
                 </div>
                 <div className="max-w-xl text-sm leading-relaxed text-slate-600">
-                  This version projects active weekly commitments forward. A later work-order ledger
-                  will clear partial order progress as Ryan marks hours complete.
+                  This projects recurring commitments plus open work orders. When Ryan marks half of
+                  a deliverable complete, only the remaining half stays booked against the forward
+                  windows.
                 </div>
               </div>
 
@@ -291,6 +362,39 @@ export default async function AvailabilityPage() {
                     The planning total is {formatHours(OFFER_WORKLOADS["decision-sprint"].planningHours)}.
                     The meter rounds it to {formatHours(OFFER_WORKLOADS["decision-sprint"].reserveHours)}
                     so delivery promises survive normal client follow-up and context switching.
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_24px_60px_-24px_rgba(15,23,42,0.18)] ring-1 ring-slate-900/5 sm:p-6">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="text-xs uppercase tracking-widest text-accent-700 font-semibold">
+                        Local field work
+                      </div>
+                      <h3 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
+                        {WORK_ORDER_PRESETS["local-field-proposal"].label}
+                      </h3>
+                      <p className="mt-2 text-sm leading-relaxed text-slate-700">
+                        Some jobs look like a simple local proposal until travel, scanning, review,
+                        presentation, collection, and the next offer are counted.
+                      </p>
+                    </div>
+                    <span className="w-fit rounded-full border border-accent-300 bg-accent-300/20 px-3 py-1 text-sm font-bold text-slate-950">
+                      {formatHours(WORK_ORDER_PRESETS["local-field-proposal"].reserveHours)}
+                    </span>
+                  </div>
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    {LOCAL_FIELD_SESSION_BREAKDOWN.map((item) => (
+                      <div key={item.label} className="rounded-2xl border border-slate-200 bg-white p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-semibold text-slate-950">{item.label}</span>
+                          <span className="text-sm font-bold tabular-nums text-accent-700">
+                            {item.minutes}m
+                          </span>
+                        </div>
+                        {item.note && <p className="mt-1 text-xs text-slate-500">{item.note}</p>}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

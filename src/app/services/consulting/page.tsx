@@ -122,6 +122,12 @@ export default function ConsultingPage() {
                 there yet, start with the lower paid tiers. Spending money on me is spending money
                 on your business, not on a motivational conversation.
               </p>
+              <p className="mt-4 max-w-3xl text-base leading-relaxed text-slate-700">
+                I can work across the whole motion: marketing, lead generation, creative direction,
+                video scripts, organic or AI-assisted content, Meta Ray-Ban POV capture, GoPro
+                angles, Rode-mic audio, account control, sales follow-up, and the operating system
+                behind it.
+              </p>
 
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <Link
@@ -147,6 +153,7 @@ export default function ConsultingPage() {
                 <div className="mt-4 space-y-3">
                   <Signal Icon={Compass} label="One decision" body="Pricing, offer, account control, lead flow, hiring, tool stack, or next move." />
                   <Signal Icon={FileText} label="One written plan" body="A clear audit or worksheet you can hand to a team and execute." />
+                  <Signal Icon={Wrench} label="One content engine" body="Photos, videos, AI images, Meta Ray-Ban POV shots, GoPro angles, hooks, scripts, and how to move the lead after the post works." />
                   <Signal Icon={Layers} label="One operating system" body="The recurring rhythm that keeps content, leads, follow-up, and decisions moving." />
                 </div>
               </div>

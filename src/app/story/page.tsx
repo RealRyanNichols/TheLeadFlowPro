@@ -59,6 +59,63 @@ export default function StoryPage() {
         </div>
       </section>
 
+      <section className="relative overflow-hidden border-b border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg, #f6f9ff 0%, #fff8f1 100%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-16">
+          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.25fr] lg:items-center">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                Receipts from the work
+              </div>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                This was not built from a content calendar template.
+              </h2>
+              <p className="mt-4 leading-relaxed text-slate-700">
+                Wholesale Universe, live selling, campaign work, employees, videos, scripts,
+                direct-response signs, and the unglamorous back office. The playbook comes from
+                operating in public, selling in real time, and learning what makes people stop,
+                click, ask, and buy.
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                No employee names are published here. These are used as proof of operator history,
+                not as customer testimonials.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <StoryPhoto
+                src="/images/ryan-wholesale-universe-owner.jpg"
+                alt="Ryan Nichols standing inside the Wholesale Universe warehouse"
+                label="Wholesale Universe owner"
+              />
+              <StoryPhoto
+                src="/images/ryan-live-content-work-1.jpg"
+                alt="Ryan Nichols working on live sales content"
+                label="Live content work"
+              />
+              <StoryPhoto
+                src="/images/ryan-cmon-man-marketing.jpg"
+                alt="Ryan Nichols holding a C'mon Man marketing ice breaker sign"
+                label="Direct, human marketing"
+              />
+              <StoryPhoto
+                src="/images/ryan-campaign-team-cinco-2025.jpg"
+                alt="Ryan Nichols with a campaign team photo from Cinco de Mayo 2025"
+                label="2025 campaign trail"
+              />
+              <StoryPhoto
+                src="/images/ryan-presidential-pardon.jpg"
+                alt="Certificate of Pardon for Ryan Taylor Nichols"
+                label="Presidential pardon"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CHAPTER 1 — APARTMENT */}
       <Chapter
         n="01"
@@ -250,6 +307,17 @@ export default function StoryPage() {
 }
 
 /* ─── Chapter component ──────────────────────────────────────── */
+
+function StoryPhoto({ src, alt, label }: { src: string; alt: string; label: string }) {
+  return (
+    <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] ring-1 ring-slate-900/5">
+      <div className="aspect-[4/3] bg-slate-100">
+        <img src={src} alt={alt} className="h-full w-full object-cover" />
+      </div>
+      <div className="p-4 text-sm font-semibold text-slate-950">{label}</div>
+    </div>
+  );
+}
 
 function Chapter({
   n, Icon, eyebrow, title, body, tone,

@@ -81,6 +81,57 @@ const URGENCY_ICONS: Record<Urgency, LucideIcon> = {
   planning: BarChart3,
 };
 
+const OPTION_TONES: Record<string, { card: string; icon: string; badge: string }> = {
+  "next-post": {
+    card: "hover:border-accent-400 hover:bg-accent-300/10 peer-checked:border-accent-500 peer-checked:bg-accent-300/15 peer-checked:ring-accent-500/25",
+    icon: "bg-accent-500 text-white group-hover:bg-accent-600",
+    badge: "bg-accent-300/25 text-slate-900",
+  },
+  "one-decision": {
+    card: "hover:border-cyan-400 hover:bg-cyan-50/60 peer-checked:border-cyan-600 peer-checked:bg-cyan-50 peer-checked:ring-cyan-500/25",
+    icon: "bg-cyan-600 text-white group-hover:bg-cyan-700",
+    badge: "bg-cyan-100 text-cyan-900",
+  },
+  audit: {
+    card: "hover:border-brand-400 hover:bg-brand-50/70 peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:ring-brand-500/25",
+    icon: "bg-brand-700 text-white group-hover:bg-brand-800",
+    badge: "bg-brand-100 text-brand-900",
+  },
+  "working-session": {
+    card: "hover:border-slate-500 hover:bg-slate-50 peer-checked:border-slate-800 peer-checked:bg-slate-100 peer-checked:ring-slate-700/20",
+    icon: "bg-slate-950 text-white group-hover:bg-slate-800",
+    badge: "bg-slate-200 text-slate-900",
+  },
+  "managed-social": {
+    card: "hover:border-cyan-400 hover:bg-cyan-50/60 peer-checked:border-cyan-600 peer-checked:bg-cyan-50 peer-checked:ring-cyan-500/25",
+    icon: "bg-gradient-to-br from-brand-700 to-cyan-500 text-white",
+    badge: "bg-cyan-100 text-cyan-900",
+  },
+  ads: {
+    card: "hover:border-accent-400 hover:bg-accent-300/10 peer-checked:border-accent-500 peer-checked:bg-accent-300/15 peer-checked:ring-accent-500/25",
+    icon: "bg-gradient-to-br from-accent-600 to-accent-400 text-white",
+    badge: "bg-accent-300/25 text-slate-900",
+  },
+  operator: {
+    card: "hover:border-brand-400 hover:bg-brand-50/70 peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:ring-brand-500/25",
+    icon: "bg-brand-800 text-white group-hover:bg-brand-900",
+    badge: "bg-brand-100 text-brand-900",
+  },
+  advisor: {
+    card: "hover:border-slate-500 hover:bg-slate-50 peer-checked:border-slate-800 peer-checked:bg-slate-100 peer-checked:ring-slate-700/20",
+    icon: "bg-slate-950 text-white group-hover:bg-slate-800",
+    badge: "bg-slate-200 text-slate-900",
+  },
+};
+
+function optionTone(value: string) {
+  return OPTION_TONES[value] ?? {
+    card: "hover:border-cyan-400 hover:bg-cyan-50/40 peer-checked:border-cyan-600 peer-checked:bg-cyan-50 peer-checked:ring-cyan-500/25",
+    icon: "bg-slate-950 text-white group-hover:bg-brand-700",
+    badge: "bg-slate-100 text-slate-700",
+  };
+}
+
 const REVENUE_OPTIONS = [
   { value: "pre-revenue", title: "Pre-revenue", body: "Offer is still being shaped." },
   { value: "under-10k", title: "Under $10K/mo", body: "Early traction." },
@@ -404,6 +455,23 @@ export default function StartPage() {
             </ul>
           </div>
 
+          <div className="overflow-hidden rounded-3xl border border-white/70 bg-white p-0 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.30)] ring-1 ring-slate-900/5">
+            <div className="grid grid-cols-3">
+              <div className="h-2 bg-cyan-500" />
+              <div className="h-2 bg-brand-700" />
+              <div className="h-2 bg-accent-500" />
+            </div>
+            <div className="p-5">
+              <div className="text-xs font-semibold uppercase tracking-widest text-accent-700">
+                What Ryan needs
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Give enough context to pick the next move: the stuck point, budget, urgency, current
+                platforms, and whether you want direction, buildout, or done-for-you execution.
+              </p>
+            </div>
+          </div>
+
           <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm leading-relaxed text-slate-600">
             Prefer to look around first?{" "}
             <Link href="/tiers" className="font-semibold text-cyan-700 hover:text-cyan-800">
@@ -499,12 +567,13 @@ function OptionRadio({
   Icon: LucideIcon;
   required?: boolean;
 }) {
+  const tone = optionTone(value);
   return (
     <label className="group block cursor-pointer">
       <input type="radio" name={name} value={value} required={required} className="peer sr-only" />
-      <span className="block h-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-cyan-400 hover:bg-cyan-50/40 peer-checked:border-cyan-600 peer-checked:bg-cyan-50 peer-checked:ring-2 peer-checked:ring-cyan-500/25">
+      <span className={`block h-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition peer-checked:ring-2 ${tone.card}`}>
         <span className="flex items-start gap-3">
-          <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white transition group-hover:bg-brand-700 peer-checked:bg-brand-700">
+          <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${tone.icon}`}>
             <Icon className="h-5 w-5" />
           </span>
           <span>

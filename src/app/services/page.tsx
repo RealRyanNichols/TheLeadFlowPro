@@ -192,14 +192,179 @@ export default function ServicesPage() {
                 </div>
                 <div className="mt-5 grid grid-cols-2 gap-3">
                   <Stat label="X / Twitter" value="43.8K" />
-                  <Stat label="Facebook"    value="18.9K" />
+                  <Stat label="Facebook"    value="18K+" />
                   <Stat label="YouTube"     value="12K" />
-                  <Stat label="TikTok + IG" value="rebuilding" />
+                  <Stat label="Instagram"   value="4.8K" />
+                </div>
+                <div className="mt-3 rounded-xl border border-slate-200 bg-white/80 p-3 text-xs text-slate-700">
+                  TikTok: <strong className="text-slate-950">3,178 followers</strong> and{" "}
+                  <strong className="text-slate-950">24.5K likes</strong> on the current account.
                 </div>
                 <div className="mt-4 rounded-xl bg-cyan-50/70 border border-cyan-200 p-3 text-xs text-cyan-900 leading-relaxed">
                   <strong>Real numbers.</strong> Not "100K students" or "millions reached." The
                   followers I built on my own accounts, with the playbook I'll run for you.
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-10 overflow-hidden rounded-3xl border border-white/70 bg-white/85 shadow-[0_30px_70px_-28px_rgba(15,23,42,0.28)] ring-1 ring-slate-900/5">
+            <div className="grid gap-0 lg:grid-cols-[0.85fr_1.15fr]">
+              <div className="relative min-h-[320px] bg-slate-100">
+                <img
+                  src="/images/ryan-meta-raybans-toolkit.jpg"
+                  alt="Ryan Nichols wearing Meta Ray-Ban glasses used for POV content capture"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="p-6 sm:p-8">
+                <div className="text-xs font-semibold uppercase tracking-widest text-accent-700">
+                  Field production kit
+                </div>
+                <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+                  If you need someone following the work and catching the angles, that is a real
+                  service.
+                </h3>
+                <p className="mt-4 leading-relaxed text-slate-700">
+                  Meta Ray-Bans for POV clips and photos, two GoPros, Rode mics, a strong iPhone,
+                  stands, live-direction, shot lists, hooks, captions, and the ability to turn one
+                  field day into short after short after short.
+                </p>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {[
+                    "POV shots with Meta Ray-Bans",
+                    "GoPro angles and movement shots",
+                    "Clean audio with Rode mics",
+                    "Travel production days, lodging billed separately",
+                  ].map((item) => (
+                    <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-800">
+                      <Check className="mr-2 inline h-4 w-4 text-cyan-600" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-5 grid gap-4 sm:grid-cols-[0.85fr_1.15fr] sm:items-center">
+                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                    <img
+                      src="/images/ryan-jefferson-city-council-meta-raybans.jpg"
+                      alt="Ryan Nichols addressing Jefferson City Council using Meta Ray-Bans POV footage"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
+                    Example: public-meeting footage captured in the room, edited into a clear short,
+                    and published as evidence-first transparency content. Clients can use the same
+                    pattern for jobs, inspections, field work, leadership, training, and public
+                    accountability.
+                  </div>
+                </div>
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                    <img
+                      src="/images/dent-bully-field-content-1.jpg"
+                      alt="Missouri Dent Bully short-form field content frame"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                    <img
+                      src="/images/dent-bully-field-content-2.jpg"
+                      alt="Missouri Dent Bully promotional video frame with contact number"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm leading-relaxed text-slate-700 sm:col-span-2">
+                    Field example: on-site promotional shorts for Missouri Dent Bully /
+                    DentBullyUSA.com. Same pattern: get the angle, show the work, put the phone
+                    number or next step on screen, then keep cutting until the owner has usable clips.
+                  </div>
+                </div>
+                <div className="mt-5 rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4 text-sm leading-relaxed text-cyan-950">
+                  Honest claim: I am not promising a hidden Meta algorithm cheat code. The advantage
+                  is native-feeling footage, speed, first-person angles, and direct Instagram/Facebook
+                  capture workflows.
+                </div>
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <Link
+                    href="/book"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 font-semibold text-white hover:bg-slate-800"
+                  >
+                    Scope a content day <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href="/start"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-800 hover:border-cyan-400"
+                  >
+                    Route the project
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden border-y border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg, #fff8f1 0%, #eef9ff 100%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-16">
+          <div className="grid gap-8 lg:grid-cols-5 lg:items-center">
+            <div className="lg:col-span-2">
+              <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                Creative direction
+              </div>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                I help you make the thing people will actually stop and watch.
+              </h2>
+              <p className="mt-4 leading-relaxed text-slate-700">
+                Photos, AI images, organic video, live selling, hooks, scripts, what to say, what to
+                cut, what to post, and how the lead turns into a sales conversation. This is done
+                for you as much as possible without pretending the owner can disappear from the
+                account.
+              </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {[
+                  "Video direction and shot list",
+                  "Hooks, captions, and sales angles",
+                  "Organic or AI-assisted creative",
+                  "Lead generation and sales follow-up",
+                ].map((item) => (
+                  <div key={item} className="rounded-2xl border border-slate-200 bg-white/85 p-3 text-sm font-semibold text-slate-800 shadow-sm">
+                    <Check className="mr-2 inline h-4 w-4 text-cyan-600" />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="lg:col-span-3">
+              <div className="grid gap-4 sm:grid-cols-3">
+                {[
+                  {
+                    src: "/images/ryan-live-content-work-1.jpg",
+                    alt: "Ryan Nichols reviewing live sales content",
+                    label: "Live commerce",
+                  },
+                  {
+                    src: "/images/ryan-live-content-work-2.jpg",
+                    alt: "Ryan Nichols presenting product during a live content session",
+                    label: "Product angle",
+                  },
+                  {
+                    src: "/images/ryan-cmon-man-marketing.jpg",
+                    alt: "Ryan Nichols with a C'mon Man marketing ice breaker sign",
+                    label: "Personality",
+                  },
+                ].map((photo) => (
+                  <div key={photo.src} className="overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] ring-1 ring-slate-900/5">
+                    <div className="aspect-[4/5] bg-slate-100">
+                      <img src={photo.src} alt={photo.alt} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="p-4 text-sm font-semibold text-slate-950">{photo.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
