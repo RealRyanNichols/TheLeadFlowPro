@@ -1,19 +1,25 @@
-// src/app/login/page.tsx — Email-only passwordless login.
-//
-// Step 1: User enters email → POST /api/auth/email-otp → we email them a
-//         6-digit code.
-// Step 2: User enters the code → signIn("email-otp", { email, otp }) →
-//         NextAuth verifies and creates the session.
-//
-// Legacy email+password login is still supported — visit /login?legacy=1
-// to use it. Useful for admin until Resend is configured in Vercel.
-
 "use client";
+
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { Suspense, useState } from "react";
-import { ArrowRight, Mail, KeyRound, AlertCircle, Lock, Check } from "lucide-react";
+import { Suspense, useMemo, useState } from "react";
+import {
+  AlertCircle,
+  ArrowRight,
+  BadgeDollarSign,
+  BriefcaseBusiness,
+  CheckCircle2,
+  KeyRound,
+  Lock,
+  Mail,
+  MessageSquareText,
+  ShieldCheck,
+  User,
+  Building2,
+} from "lucide-react";
+
+type AuthMode = "signin" | "signup" | "code";
 
 export default function LoginPage() {
   return (
@@ -23,84 +29,144 @@ export default function LoginPage() {
   );
 }
 
+function safeNext(raw: string | null) {
+  if (!raw) return "/dashboard/work";
+  try {
+    const decoded = decodeURIComponent(raw);
+    if (decoded.startsWith("/") && !decoded.startsWith("//")) return decoded;
+  } catch {
+    if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
+  }
+  return "/dashboard/work";
+}
+
 function LoginInner() {
-  const router = useRouter();
   const params = useSearchParams();
-  const next = params.get("callbackUrl") || "/dashboard";
-  const legacy = params.get("legacy") === "1";
+  const requested = params.get("mode");
+  const initialMode: AuthMode = requested === "signup" || requested === "code" ? requested : "signin";
+  const next = useMemo(
+    () => safeNext(params.get("callbackUrl") || params.get("next")),
+    [params],
+  );
+  const [mode, setMode] = useState<AuthMode>(initialMode);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      {/* Light header — no dashboard advertised here */}
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="font-bold text-slate-950 hover:text-brand-700">
+    <div className="min-h-screen overflow-hidden bg-ink-950 text-white">
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 12% 12%, rgba(92,208,255,0.22), transparent 32%), radial-gradient(circle at 88% 8%, rgba(255,154,31,0.16), transparent 30%), linear-gradient(135deg, #050918 0%, #0a1124 44%, #0a1d3f 100%)",
+        }}
+      />
+
+      <header className="relative border-b border-white/10 bg-ink-950/75 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
+          <Link href="/" className="font-bold tracking-tight text-white hover:text-cyan-300">
             The LeadFlow Pro
           </Link>
-          <Link href="/" className="text-sm text-slate-600 hover:text-slate-900">
-            Back to site
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/book" className="hidden rounded-xl border border-cyan-400/30 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-cyan-400/10 sm:inline-flex">
+              Book call
+            </Link>
+            <Link href="/" className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-ink-200 hover:bg-white/5 hover:text-white">
+              Back to site
+            </Link>
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 grid lg:grid-cols-2">
-        <section className="flex items-center justify-center p-6 lg:p-12">
-          <div className="w-full max-w-sm">
-            {legacy ? (
-              <LegacyPasswordForm next={next} />
-            ) : (
-              <EmailOtpForm next={next} />
-            )}
+      <main className="relative mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl gap-8 px-4 py-6 lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)] lg:items-center lg:py-10">
+        <section className="glass-strong rounded-3xl border border-cyan-400/20 p-5 shadow-2xl shadow-cyan-950/30 sm:p-7">
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent-400/30 bg-accent-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent-300">
+            <ShieldCheck className="h-3.5 w-3.5" /> Member access
+          </div>
+          <h1 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+            Get into the back office.
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-ink-200">
+            Sign in, create your account, or use an email code. Paid work, messages,
+            intake, workload, payments, and Ryan review all connect here.
+          </p>
 
-            <p className="mt-8 text-xs text-slate-500 text-center">
-              {legacy ? (
-                <Link href="/login" className="hover:underline">← Back to email-only sign-in</Link>
-              ) : (
-                <Link href="/login?legacy=1" className="hover:underline">Need legacy password sign-in?</Link>
-              )}
-            </p>
+          <div className="mt-6 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-white/5 p-1">
+            <ModeButton active={mode === "signin"} onClick={() => setMode("signin")}>
+              Log in
+            </ModeButton>
+            <ModeButton active={mode === "signup"} onClick={() => setMode("signup")}>
+              Create
+            </ModeButton>
+            <ModeButton active={mode === "code"} onClick={() => setMode("code")}>
+              Code
+            </ModeButton>
+          </div>
+
+          <div className="mt-6">
+            {mode === "signin" && <PasswordSignInForm next={next} onCode={() => setMode("code")} />}
+            {mode === "signup" && <CreateAccountForm next={next} />}
+            {mode === "code" && <EmailOtpForm next={next} />}
           </div>
         </section>
 
-        <aside className="hidden lg:flex relative overflow-hidden items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-brand-950 text-white border-l border-slate-200">
+        <aside className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/30 lg:p-8">
           <div
             aria-hidden
-            className="absolute inset-0 opacity-[0.07]"
+            className="absolute inset-0 opacity-[0.09]"
             style={{
               backgroundImage:
                 "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
-              backgroundSize: "48px 48px",
+              backgroundSize: "46px 46px",
             }}
           />
-          <div className="relative max-w-md px-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs uppercase tracking-widest text-cyan-300 font-semibold">
-              The Operator's office
-            </div>
-            <h2 className="mt-5 text-3xl font-bold leading-tight">
-              Every lead, every move, every algorithm signal —{" "}
-              <span className="bg-gradient-to-r from-cyan-300 to-accent-400 bg-clip-text text-transparent">
-                one screen.
-              </span>
-            </h2>
-            <ul className="mt-6 space-y-3 text-sm text-slate-200">
-              {[
-                "Lead inbox that never loses a call",
-                "Playbooks for ads, content, and follow-up",
-                "AI chatbot that answers at 2 a.m.",
-                "Honest dashboard — no inflated numbers",
-              ].map((line) => (
-                <li key={line} className="flex items-start gap-2">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-lead-400" />
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-8 text-xs text-slate-400">
-              Want to see what it looks like before signing in?{" "}
-              <Link href="/demo" className="text-cyan-300 hover:underline font-semibold">
-                Take the demo tour →
-              </Link>
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-widest text-cyan-300">
+              What unlocks after login
             </p>
+            <h2 className="mt-3 max-w-2xl text-3xl font-extrabold leading-tight sm:text-5xl">
+              A client office that proves the work is moving.
+            </h2>
+            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ink-200 sm:text-base">
+              This is not a dead account page. It is the place where sales, workload,
+              messages, files, data, payment status, and next actions stay tied together.
+            </p>
+
+            <div className="mt-7 grid gap-3 sm:grid-cols-2">
+              <AccessCard
+                icon={BriefcaseBusiness}
+                title="Work orders"
+                body="Stripe and manual orders show status, due date, hours used, and what Ryan needs next."
+              />
+              <AccessCard
+                icon={MessageSquareText}
+                title="Direct updates"
+                body="Send links, files, screenshots, decisions, and context back into the order."
+              />
+              <AccessCard
+                icon={BadgeDollarSign}
+                title="Purchases"
+                body="Add work blocks, open billing, or reserve a build slot without losing the thread."
+              />
+              <AccessCard
+                icon={KeyRound}
+                title="Data tools"
+                body="Decision tools help the owner see leaks, follow-up gaps, and the next move."
+              />
+            </div>
+
+            <div className="mt-7 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
+              <div className="flex gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-cyan-300" />
+                <div>
+                  <p className="font-semibold text-white">Paid buyer path</p>
+                  <p className="mt-1 text-sm leading-relaxed text-ink-200">
+                    Use the same email you used at checkout. If email-code delivery is not
+                    configured yet, create a password account before buying or message Ryan so
+                    the order can be manually linked to your login.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </aside>
       </main>
@@ -108,7 +174,198 @@ function LoginInner() {
   );
 }
 
-/* ──────────────── Email-only OTP form (default) ──────────────── */
+function ModeButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        active
+          ? "rounded-xl bg-white px-3 py-2 text-sm font-bold text-ink-950 shadow"
+          : "rounded-xl px-3 py-2 text-sm font-semibold text-ink-300 hover:bg-white/5 hover:text-white"
+      }
+    >
+      {children}
+    </button>
+  );
+}
+
+function PasswordSignInForm({ next, onCode }: { next: string; onCode: () => void }) {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+      callbackUrl: next,
+    });
+    if (!res || res.error) {
+      setError("That email and password did not match. Try the email-code tab if Stripe created the account first.");
+      setLoading(false);
+      return;
+    }
+    router.push(res.url || next);
+    router.refresh();
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <FormNotice>
+        Best path for clients and admins: email + password. Email codes stay available as the fallback.
+      </FormNotice>
+      {error && <ErrorBox>{error}</ErrorBox>}
+      <TextField
+        label="Email"
+        type="email"
+        value={email}
+        onChange={setEmail}
+        autoComplete="email"
+        icon={Mail}
+        placeholder="you@business.com"
+      />
+      <TextField
+        label="Password"
+        type="password"
+        value={password}
+        onChange={setPassword}
+        autoComplete="current-password"
+        icon={Lock}
+        placeholder="At least 8 characters"
+      />
+      <button type="submit" disabled={loading} className="btn-accent w-full disabled:opacity-60">
+        {loading ? "Opening office..." : <>Open my office <ArrowRight className="h-4 w-4" /></>}
+      </button>
+      <button
+        type="button"
+        onClick={onCode}
+        className="w-full rounded-xl border border-white/10 px-4 py-3 text-sm font-semibold text-ink-200 hover:bg-white/5 hover:text-white"
+      >
+        Email me a one-time code instead
+      </button>
+    </form>
+  );
+}
+
+function CreateAccountForm({ next }: { next: string }) {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const signupRes = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, name, businessName }),
+      });
+      const data = await signupRes.json().catch(() => ({}));
+      if (!signupRes.ok) {
+        setError(data?.error || "Account could not be created. Try signing in.");
+        setLoading(false);
+        return;
+      }
+
+      const signInRes = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: next,
+      });
+      if (!signInRes || signInRes.error) {
+        setError("Account created, but auto-login failed. Try logging in with the password you just set.");
+        setLoading(false);
+        return;
+      }
+      router.push(signInRes.url || next);
+      router.refresh();
+    } catch {
+      setError("Network issue. Try again.");
+      setLoading(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <FormNotice>
+        Create access before or after purchase. Stripe can attach later; login should not wait on payment wiring.
+      </FormNotice>
+      {error && <ErrorBox>{error}</ErrorBox>}
+      <TextField
+        label="Your name"
+        type="text"
+        value={name}
+        onChange={setName}
+        autoComplete="name"
+        icon={User}
+        placeholder="Ryan Nichols"
+      />
+      <TextField
+        label="Business name"
+        type="text"
+        value={businessName}
+        onChange={setBusinessName}
+        autoComplete="organization"
+        icon={Building2}
+        placeholder="Your business name"
+        required={false}
+      />
+      <TextField
+        label="Email"
+        type="email"
+        value={email}
+        onChange={setEmail}
+        autoComplete="email"
+        icon={Mail}
+        placeholder="you@business.com"
+      />
+      <TextField
+        label="Password"
+        type="password"
+        value={password}
+        onChange={setPassword}
+        autoComplete="new-password"
+        icon={Lock}
+        placeholder="At least 8 characters"
+        minLength={8}
+      />
+      <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
+        {loading ? "Creating office..." : <>Create account <ArrowRight className="h-4 w-4" /></>}
+      </button>
+      <p className="text-center text-xs leading-relaxed text-ink-400">
+        By creating access, you agree to the{" "}
+        <Link href="/legal" className="font-semibold text-cyan-300 hover:underline">
+          engagement terms
+        </Link>
+        .
+      </p>
+    </form>
+  );
+}
 
 function EmailOtpForm({ next }: { next: string }) {
   const router = useRouter();
@@ -119,8 +376,8 @@ function EmailOtpForm({ next }: { next: string }) {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
-  async function startOtp(e: React.FormEvent) {
-    e.preventDefault();
+  async function startOtp(event?: React.FormEvent) {
+    event?.preventDefault();
     setLoading(true);
     setError(null);
     setInfo(null);
@@ -132,21 +389,21 @@ function EmailOtpForm({ next }: { next: string }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data?.error || "Couldn't send the code. Try again.");
+        setError(data?.error || "The code could not be sent. Use password login or message Ryan.");
         setLoading(false);
         return;
       }
       setStep("code");
-      setInfo(`We just emailed a 6-digit code to ${email}. It expires in 10 minutes.`);
+      setInfo(`Code sent to ${email}. It expires in 10 minutes.`);
     } catch {
-      setError("Network hiccup. Try again.");
+      setError("Network issue. Try again.");
     } finally {
       setLoading(false);
     }
   }
 
-  async function verifyOtp(e: React.FormEvent) {
-    e.preventDefault();
+  async function verifyOtp(event: React.FormEvent) {
+    event.preventDefault();
     setLoading(true);
     setError(null);
     const res = await signIn("email-otp", {
@@ -156,202 +413,154 @@ function EmailOtpForm({ next }: { next: string }) {
       callbackUrl: next,
     });
     if (!res || res.error) {
+      setError("That code did not match or expired.");
       setLoading(false);
-      setError("That code didn't match (or expired). Try again, or send a new code.");
       return;
     }
     router.push(res.url || next);
+    router.refresh();
   }
 
-  return (
-    <div>
-      <h1 className="text-3xl font-bold text-slate-950">
-        {step === "email" ? "Sign in." : "Enter your code."}
-      </h1>
-      <p className="mt-2 text-sm text-slate-600">
-        {step === "email"
-          ? "No password. We email you a one-time code. Same email creates your account if you don't have one yet."
-          : "Check your inbox. Code's good for 10 minutes."}
-      </p>
-
-      {error && (
-        <div className="mt-5 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
-          <p>{error}</p>
-        </div>
-      )}
+  return step === "email" ? (
+    <form onSubmit={startOtp} className="space-y-4">
+      <FormNotice>
+        Use this if Stripe created your account from checkout before you set a password.
+      </FormNotice>
+      {error && <ErrorBox>{error}</ErrorBox>}
+      <TextField
+        label="Email"
+        type="email"
+        value={email}
+        onChange={setEmail}
+        autoComplete="email"
+        icon={Mail}
+        placeholder="same email used at checkout"
+      />
+      <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
+        {loading ? "Sending code..." : <>Email me a code <ArrowRight className="h-4 w-4" /></>}
+      </button>
+    </form>
+  ) : (
+    <form onSubmit={verifyOtp} className="space-y-4">
+      {error && <ErrorBox>{error}</ErrorBox>}
       {info && (
-        <div className="mt-5 flex items-start gap-2 rounded-xl border border-cyan-200 bg-cyan-50 p-3 text-sm text-cyan-900">
-          <Mail className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" />
-          <p>{info}</p>
+        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-sm text-cyan-100">
+          {info}
         </div>
       )}
+      <label className="block">
+        <span className="text-xs font-semibold uppercase tracking-wider text-ink-300">6-digit code</span>
+        <div className="relative mt-2">
+          <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="\d{6}"
+            maxLength={6}
+            value={otp}
+            onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+            required
+            autoComplete="one-time-code"
+            placeholder="123456"
+            className="w-full rounded-xl border border-white/10 bg-ink-950/70 py-3 pl-9 pr-4 font-mono text-lg tracking-[0.4em] text-white outline-none placeholder:text-ink-600 focus:border-cyan-400"
+          />
+        </div>
+      </label>
+      <button type="submit" disabled={loading || otp.length !== 6} className="btn-accent w-full disabled:opacity-60">
+        {loading ? "Opening office..." : <>Verify and enter <ArrowRight className="h-4 w-4" /></>}
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setStep("email");
+          setOtp("");
+          setError(null);
+          setInfo(null);
+        }}
+        className="w-full rounded-xl border border-white/10 px-4 py-3 text-sm font-semibold text-ink-200 hover:bg-white/5 hover:text-white"
+      >
+        Use a different email
+      </button>
+    </form>
+  );
+}
 
-      {step === "email" ? (
-        <form onSubmit={startOtp} className="mt-6 space-y-4">
-          <label className="block">
-            <span className="text-xs font-semibold text-slate-700">Email</span>
-            <div className="mt-1 relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                placeholder="you@business.com"
-                className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
-              />
-            </div>
-          </label>
+function TextField({
+  label,
+  type,
+  value,
+  onChange,
+  icon: Icon,
+  placeholder,
+  autoComplete,
+  required = true,
+  minLength,
+}: {
+  label: string;
+  type: string;
+  value: string;
+  onChange: (value: string) => void;
+  icon: typeof Mail;
+  placeholder: string;
+  autoComplete?: string;
+  required?: boolean;
+  minLength?: number;
+}) {
+  return (
+    <label className="block">
+      <span className="text-xs font-semibold uppercase tracking-wider text-ink-300">{label}</span>
+      <div className="relative mt-2">
+        <Icon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+        <input
+          type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          required={required}
+          minLength={minLength}
+          autoComplete={autoComplete}
+          placeholder={placeholder}
+          className="w-full rounded-xl border border-white/10 bg-ink-950/70 py-3 pl-9 pr-4 text-sm text-white outline-none placeholder:text-ink-500 focus:border-cyan-400"
+        />
+      </div>
+    </label>
+  );
+}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-60"
-          >
-            {loading ? "Sending the code…" : (<>Email me a code <ArrowRight className="h-4 w-4" /></>)}
-          </button>
-
-          <p className="text-xs text-slate-500 text-center leading-relaxed">
-            By signing in, you agree to The LeadFlow Pro's{" "}
-            <Link href="/legal" className="hover:underline">terms</Link>.
-            Already paying? Same email gets you in.
-          </p>
-        </form>
-      ) : (
-        <form onSubmit={verifyOtp} className="mt-6 space-y-4">
-          <label className="block">
-            <span className="text-xs font-semibold text-slate-700">6-digit code</span>
-            <div className="mt-1 relative">
-              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="\d{6}"
-                maxLength={6}
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                required
-                autoComplete="one-time-code"
-                placeholder="123456"
-                className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-4 py-3 text-lg font-mono tracking-[0.5em] text-slate-900 placeholder:text-slate-300 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
-              />
-            </div>
-          </label>
-
-          <button
-            type="submit"
-            disabled={loading || otp.length !== 6}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accent-600 disabled:opacity-60"
-          >
-            {loading ? "Signing in…" : (<>Sign in <ArrowRight className="h-4 w-4" /></>)}
-          </button>
-
-          <div className="flex items-center justify-between text-xs text-slate-500">
-            <button
-              type="button"
-              onClick={() => { setStep("email"); setOtp(""); setError(null); setInfo(null); }}
-              className="hover:underline"
-            >
-              ← Use a different email
-            </button>
-            <button
-              type="button"
-              onClick={(e) => startOtp(e as unknown as React.FormEvent)}
-              className="hover:underline"
-            >
-              Resend code
-            </button>
-          </div>
-        </form>
-      )}
+function FormNotice({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm leading-relaxed text-ink-200">
+      {children}
     </div>
   );
 }
 
-/* ──────────────── Legacy email+password (admin/escape hatch) ──────────────── */
-
-function LegacyPasswordForm({ next }: { next: string }) {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-      callbackUrl: next,
-    });
-    if (!res || res.error) {
-      setLoading(false);
-      setError("That email and password didn't match. Try again.");
-      return;
-    }
-    router.push(res.url || next);
-  }
-
+function ErrorBox({ children }: { children: React.ReactNode }) {
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-slate-950">Legacy sign-in.</h1>
-      <p className="mt-2 text-sm text-slate-600">
-        Email + password. For admin / accounts created before email-only was wired.
-      </p>
+    <div className="flex items-start gap-2 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-3 text-sm text-rose-100">
+      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-300" />
+      <p>{children}</p>
+    </div>
+  );
+}
 
-      {error && (
-        <div className="mt-5 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
-          <p>{error}</p>
+function AccessCard({
+  icon: Icon,
+  title,
+  body,
+}: {
+  icon: typeof BriefcaseBusiness;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-ink-950/45 p-4">
+      <div className="flex items-center gap-2">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-accent-500 text-white">
+          <Icon className="h-4 w-4" />
         </div>
-      )}
-
-      <form onSubmit={submit} className="mt-6 space-y-4">
-        <label className="block">
-          <span className="text-xs font-semibold text-slate-700">Email</span>
-          <div className="mt-1 relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              placeholder="you@business.com"
-              className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
-            />
-          </div>
-        </label>
-        <label className="block">
-          <span className="text-xs font-semibold text-slate-700">Password</span>
-          <div className="mt-1 relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              minLength={8}
-              placeholder="••••••••"
-              className="w-full rounded-lg border border-slate-300 bg-white pl-9 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
-            />
-          </div>
-        </label>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-60"
-        >
-          {loading ? "Signing in…" : (<>Log in <ArrowRight className="h-4 w-4" /></>)}
-        </button>
-      </form>
+        <p className="font-bold text-white">{title}</p>
+      </div>
+      <p className="mt-3 text-sm leading-relaxed text-ink-300">{body}</p>
     </div>
   );
 }

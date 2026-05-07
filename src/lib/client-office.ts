@@ -203,6 +203,72 @@ export function extractClientUpdates(notes: string | null | undefined) {
     .reverse();
 }
 
+export function clientActionForOrder(order: ClientWorkOrder | null) {
+  if (!order) {
+    return {
+      label: "Pick a paid entry point",
+      body: "No active work order is linked yet. Start the router, reserve a build slot, or book the fit call.",
+      href: "/start",
+      cta: "Start router",
+    };
+  }
+
+  if (order.status === "intake_needed" || order.status === "waiting_on_client") {
+    return {
+      label: "Send Ryan the missing context",
+      body: "This order cannot move cleanly until account links, files, decisions, screenshots, or notes are attached.",
+      href: `/dashboard/work/${order.id}`,
+      cta: "Send update",
+    };
+  }
+
+  if (order.status === "pending_review") {
+    return {
+      label: "Ryan review is next",
+      body: "Your update is in the review queue. Ryan has to approve customer-facing work before it is delivered.",
+      href: `/dashboard/work/${order.id}`,
+      cta: "View order",
+    };
+  }
+
+  if (order.status === "in_progress") {
+    return {
+      label: "Work block is active",
+      body: "Ryan is in the work or the machines are running through research, parsing, build, edits, or worksheet assembly.",
+      href: `/dashboard/work/${order.id}`,
+      cta: "Check progress",
+    };
+  }
+
+  if (order.status === "delivered") {
+    return {
+      label: "Review the delivery",
+      body: "Open the order, check the files or notes, and send tight follow-up questions if something needs one more pass.",
+      href: `/dashboard/work/${order.id}`,
+      cta: "Open delivery",
+    };
+  }
+
+  return {
+    label: "Open the work order",
+    body: "Review the latest status, hours, due date, and next action.",
+    href: `/dashboard/work/${order.id}`,
+    cta: "Open order",
+  };
+}
+
+export function extractLatestClientUpdates(orders: ClientWorkOrder[], limit = 6) {
+  return orders
+    .flatMap((order) =>
+      extractClientUpdates(order.notes).map((update) => ({
+        ...update,
+        orderId: order.id,
+        orderTitle: order.title,
+      })),
+    )
+    .slice(0, limit);
+}
+
 export async function getClientWorkOrders(user: ClientOfficeUser): Promise<ClientWorkOrder[]> {
   const email = user.email.toLowerCase();
   try {

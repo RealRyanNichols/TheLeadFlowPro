@@ -20,6 +20,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const body = await req.json().catch(() => null);
   const message = cleanText(body?.message, 3000);
   const links = cleanText(body?.links, 2000);
+  const category = cleanText(body?.category, 80) || "intake";
+  const urgency = cleanText(body?.urgency, 80) || "normal";
+  const contactPreference = cleanText(body?.contactPreference, 80) || "office";
 
   if (message.length < 10) {
     return NextResponse.json({ error: "Send at least 10 characters so Ryan has context." }, { status: 400 });
@@ -33,6 +36,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const stamp = new Date().toISOString();
   const update = [
     `--- Client update ${stamp} ---`,
+    `Type: ${category}`,
+    `Urgency: ${urgency}`,
+    `Best response: ${contactPreference}`,
     "Message:",
     message,
     links ? "\nLinks/files:" : null,

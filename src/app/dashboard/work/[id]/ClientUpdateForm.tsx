@@ -7,6 +7,9 @@ import { Send } from "lucide-react";
 export function ClientUpdateForm({ orderId }: { orderId: string }) {
   const [message, setMessage] = useState("");
   const [links, setLinks] = useState("");
+  const [category, setCategory] = useState("intake");
+  const [urgency, setUrgency] = useState("normal");
+  const [contactPreference, setContactPreference] = useState("office");
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [error, setError] = useState("");
 
@@ -19,7 +22,7 @@ export function ClientUpdateForm({ orderId }: { orderId: string }) {
       const res = await fetch(`/api/dashboard/work-orders/${orderId}/client-update`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, links }),
+        body: JSON.stringify({ message, links, category, urgency, contactPreference }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -27,6 +30,9 @@ export function ClientUpdateForm({ orderId }: { orderId: string }) {
       }
       setMessage("");
       setLinks("");
+      setCategory("intake");
+      setUrgency("normal");
+      setContactPreference("office");
       setStatus("saved");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ryan did not receive that update. Try again.");
@@ -44,6 +50,42 @@ export function ClientUpdateForm({ orderId }: { orderId: string }) {
         Use this for account links, files, Drive folders, screenshots, call notes, or decisions.
         It goes into the work order and moves intake/waiting items back to Ryan review.
       </p>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <SelectField
+          label="Update type"
+          value={category}
+          onChange={setCategory}
+          options={[
+            ["intake", "Intake / context"],
+            ["files", "Files / links"],
+            ["decision", "Decision needed"],
+            ["approval", "Approval / feedback"],
+            ["proof", "Proof / analytics"],
+          ]}
+        />
+        <SelectField
+          label="Urgency"
+          value={urgency}
+          onChange={setUrgency}
+          options={[
+            ["normal", "Normal"],
+            ["today", "Needs eyes today"],
+            ["blocked", "Blocking the work"],
+          ]}
+        />
+        <SelectField
+          label="Best response"
+          value={contactPreference}
+          onChange={setContactPreference}
+          options={[
+            ["office", "Reply here"],
+            ["email", "Email me"],
+            ["text", "Text me"],
+            ["call", "Call me"],
+          ]}
+        />
+      </div>
 
       <label className="mt-5 block">
         <span className="text-xs font-semibold uppercase tracking-wider text-ink-400">
@@ -92,5 +134,36 @@ export function ClientUpdateForm({ orderId }: { orderId: string }) {
         )}
       </div>
     </form>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<[string, string]>;
+}) {
+  return (
+    <label className="block">
+      <span className="text-xs font-semibold uppercase tracking-wider text-ink-400">
+        {label}
+      </span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 w-full rounded-xl border border-white/10 bg-ink-950/70 px-3 py-3 text-sm text-white outline-none focus:border-cyan-400"
+      >
+        {options.map(([optionValue, optionLabel]) => (
+          <option key={optionValue} value={optionValue}>
+            {optionLabel}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
