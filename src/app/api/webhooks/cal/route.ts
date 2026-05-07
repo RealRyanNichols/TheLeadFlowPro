@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { rememberPublicVisitor } from "@/lib/lead-memory";
+import { prisma } from "@/lib/prisma";
 import { recordSitePulseEvent } from "@/lib/site-pulse";
 
 export const dynamic = "force-dynamic";
@@ -41,8 +42,43 @@ function firstString(...values: unknown[]) {
   return null;
 }
 
+function firstNumber(...values: unknown[]) {
+  for (const value of values) {
+    const n = Number(value);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+  return null;
+}
+
 function visitorIdFromEmail(input: string) {
   return `cal_${createHash("sha256").update(input).digest("hex").slice(0, 32)}`;
+}
+
+function bookingMarker(input: {
+  contactEmail: string | null;
+  fullName: string | null;
+  eventTitle: string | null;
+  startTime: string | null;
+  bookingId: string | null;
+}) {
+  if (input.bookingId) return `cal_booking:${input.bookingId}`;
+  const raw = [
+    input.contactEmail,
+    input.fullName,
+    input.eventTitle,
+    input.startTime,
+  ].filter(Boolean).join("|");
+  return `cal_booking:${createHash("sha256").update(raw || randomUUID()).digest("hex").slice(0, 32)}`;
+}
+
+function estimatedCallHours(durationMinutes: number | null, eventTitle: string | null) {
+  const title = eventTitle?.toLowerCase() ?? "";
+  if (title.includes("decision sprint") || title.includes("90")) return 5;
+
+  // Free fit calls still consume Ryan's calendar: 10 minutes before, the call,
+  // and 10 minutes after for notes/routing. Round up to a practical block.
+  const minutes = (durationMinutes ?? 10) + 20;
+  return Math.max(0.5, Math.ceil((minutes / 60) * 4) / 4);
 }
 
 function extractCalContact(body: Record<string, unknown>) {
@@ -75,6 +111,16 @@ function extractCalContact(body: Record<string, unknown>) {
   );
   const eventTitle = firstString(payload.title, payload.eventTitle, payload.eventTypeSlug, body.triggerEvent);
   const startTime = firstString(payload.startTime, payload.start, payload.startTimeUtc);
+  const durationMinutes = firstNumber(
+    payload.duration,
+    payload.length,
+    payload.eventLength,
+    payload.eventTypeLength,
+    payload.eventType && typeof payload.eventType === "object"
+      ? (payload.eventType as Record<string, unknown>).length
+      : null,
+  );
+  const bookingId = firstString(payload.uid, payload.id, payload.bookingId, payload.bookingUid, body.id);
 
   return {
     payload,
@@ -82,7 +128,69 @@ function extractCalContact(body: Record<string, unknown>) {
     fullName,
     eventTitle,
     startTime,
+    durationMinutes,
+    bookingId,
   };
+}
+
+async function createCalWorkOrder(input: {
+  visitorId: string;
+  contactEmail: string | null;
+  fullName: string | null;
+  eventTitle: string | null;
+  startTime: string | null;
+  durationMinutes: number | null;
+  bookingId: string | null;
+}) {
+  const marker = bookingMarker(input);
+
+  try {
+    const existing = await (prisma as any).workOrder.findFirst({
+      where: { notes: { contains: marker } },
+      select: { id: true },
+    });
+    if (existing) return { created: false, id: existing.id, marker };
+
+    const dueAt = input.startTime ? new Date(input.startTime) : null;
+    const safeDueAt = dueAt && !Number.isNaN(dueAt.getTime()) ? dueAt : null;
+    const title = input.eventTitle || "Booked 10-minute fit call";
+    const estimatedHours = estimatedCallHours(input.durationMinutes, input.eventTitle);
+    const clientName =
+      input.fullName ||
+      input.contactEmail ||
+      `Cal booking ${marker.slice(-6)}`;
+
+    const created = await (prisma as any).workOrder.create({
+      data: {
+        clientName,
+        publicLabel: "Booked fit call",
+        offerSlug: null,
+        title,
+        status: "scheduled",
+        estimatedHours,
+        completedHours: 0,
+        deliveryGuaranteeDays: null,
+        dueAt: safeDueAt,
+        notes: [
+          marker,
+          input.contactEmail ? `attendee_email:${input.contactEmail}` : null,
+          input.fullName ? `attendee_name:${input.fullName}` : null,
+          input.startTime ? `start_time:${input.startTime}` : null,
+          input.durationMinutes ? `duration_minutes:${input.durationMinutes}` : null,
+          `visitor_id:${input.visitorId}`,
+          "Auto-created from Cal.com so Ryan's capacity meter reflects booked calls.",
+        ].filter(Boolean).join("\n"),
+      },
+    });
+
+    return { created: true, id: created.id as string, marker };
+  } catch (error) {
+    console.warn("Cal webhook: work order not created", {
+      marker,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    return { created: false, id: null, marker };
+  }
 }
 
 export async function POST(req: Request) {
@@ -100,8 +208,17 @@ export async function POST(req: Request) {
   }
 
   const eventType = firstString(body.triggerEvent, body.eventType, body.type) ?? "cal-webhook";
-  const { payload, contactEmail, fullName, eventTitle, startTime } = extractCalContact(body);
+  const { payload, contactEmail, fullName, eventTitle, startTime, durationMinutes, bookingId } = extractCalContact(body);
   const visitorId = contactEmail ? visitorIdFromEmail(contactEmail) : `cal_${randomUUID()}`;
+  const workOrder = await createCalWorkOrder({
+    visitorId,
+    contactEmail,
+    fullName,
+    eventTitle,
+    startTime,
+    durationMinutes,
+    bookingId,
+  });
 
   try {
     await rememberPublicVisitor({
@@ -116,6 +233,8 @@ export async function POST(req: Request) {
         calEventType: eventType,
         calEventTitle: eventTitle,
         calStartTime: startTime,
+        calDurationMinutes: durationMinutes,
+        workOrderId: workOrder.id,
       },
     });
 
@@ -140,6 +259,9 @@ export async function POST(req: Request) {
     remembered: Boolean(contactEmail || fullName),
     eventTitle,
     startTime,
+    durationMinutes,
+    workOrderCreated: workOrder.created,
+    workOrderId: workOrder.id,
     // Do not echo the full Cal payload back.
     receivedKeys: Object.keys(payload).slice(0, 20),
   });
