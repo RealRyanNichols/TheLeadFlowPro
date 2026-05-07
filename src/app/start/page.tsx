@@ -29,6 +29,7 @@ import {
   Zap,
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { VisitorIdField } from "@/components/site/VisitorIdField";
 import { OFFERS, type OfferSlug } from "@/lib/offers";
 import {
   BUDGET_OPTIONS,
@@ -332,6 +333,7 @@ export default function StartPage() {
 
       <main id="router" className="mx-auto grid max-w-7xl gap-8 px-4 py-12 lg:grid-cols-[minmax(0,1fr)_340px]">
         <form action="/api/intake" method="POST" className="space-y-8">
+          <VisitorIdField />
           <FormSection
             n={1}
             title="What are you trying to fix first?"

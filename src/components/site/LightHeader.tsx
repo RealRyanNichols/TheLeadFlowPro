@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, Gauge, Route } from "lucide-react";
+import { ArrowRight, Gauge, Wrench } from "lucide-react";
 import { LightMobileMenu } from "./LightMobileMenu";
 
 export function LightHeader({ activePath }: { activePath?: string }) {
@@ -45,10 +45,10 @@ export function LightHeader({ activePath }: { activePath?: string }) {
             Log in
           </Link>
           <Link
-            href="/start"
+            href="/challenge"
             className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-slate-950 px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
           >
-            Pick my service <ArrowRight className="h-3.5 w-3.5" />
+            Stump me <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <Link
             href="/book"
@@ -61,7 +61,7 @@ export function LightHeader({ activePath }: { activePath?: string }) {
       </div>
       <div className="lg:hidden border-t border-slate-200 bg-slate-50">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 px-4 py-2">
-          <MobileAction href="/start" label="Pick my service" Icon={Route} primary />
+          <MobileAction href="/challenge" label="Stump me" Icon={Wrench} primary />
           <MobileAction href="/availability" label="Check capacity" Icon={Gauge} />
         </div>
       </div>
@@ -114,6 +114,7 @@ export function LightFooter() {
           <Link href="/services/consulting" className="hover:text-slate-900">Consulting</Link>
           <Link href="/tiers" className="hover:text-slate-900">Pricing</Link>
           <Link href="/start" className="hover:text-slate-900">Start here</Link>
+          <Link href="/challenge" className="hover:text-slate-900">Tool challenge</Link>
           <Link href="/pulse" className="hover:text-slate-900">Live pulse</Link>
           <Link href="/book" className="hover:text-slate-900">Book a call</Link>
           <Link href="/contact" className="hover:text-slate-900">Contact</Link>

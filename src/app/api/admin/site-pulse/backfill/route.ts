@@ -48,6 +48,26 @@ function extractDays(body: unknown): SitePulseBackfillDay[] {
   return [];
 }
 
+function generateZeroCatchupDays(startDate: string) {
+  const start = new Date(`${startDate}T00:00:00.000Z`);
+  const today = new Date(new Date().toISOString().slice(0, 10));
+  if (Number.isNaN(start.getTime()) || start > today) return [];
+
+  const days: SitePulseBackfillDay[] = [];
+  for (const cursor = new Date(start); cursor <= today; cursor.setUTCDate(cursor.getUTCDate() + 1)) {
+    days.push({
+      date: cursor.toISOString().slice(0, 10),
+      views: 0,
+      visitors: 0,
+      serviceClicks: 0,
+      bookClicks: 0,
+      capacityClicks: 0,
+      source: "catchup-placeholder",
+    });
+  }
+  return days;
+}
+
 export async function GET(req: Request) {
   const auth = checkAuth(req);
   if (!auth.ok) return auth.res;
@@ -56,7 +76,7 @@ export async function GET(req: Request) {
     return json({
       ok: true,
       instructions:
-        "POST { days: [{ date: '2026-05-05', views, visitors, serviceClicks, bookClicks, capacityClicks, source: 'vercel-analytics' }] }",
+        "POST { days: [{ date: '2026-05-05', views, visitors, serviceClicks, bookClicks, capacityClicks, source: 'vercel-analytics' }] } or { catchupFrom: '2026-05-05' } to create zero-filled placeholders until real analytics are imported.",
       snapshot: await getSitePulseSnapshot(),
     });
   } catch (error) {
@@ -79,12 +99,19 @@ export async function POST(req: Request) {
   }
 
   const days = extractDays(body);
-  if (!days.length) {
+  const startDate =
+    body && typeof body === "object" && typeof (body as { catchupFrom?: unknown }).catchupFrom === "string"
+      ? (body as { catchupFrom: string }).catchupFrom
+      : null;
+  const catchupDays = startDate ? generateZeroCatchupDays(startDate) : [];
+  const importDays = days.length ? days : catchupDays;
+
+  if (!importDays.length) {
     return json({ ok: false, error: "days array required" }, 400);
   }
 
   try {
-    const imported = await upsertSitePulseBackfillDays(days);
+    const imported = await upsertSitePulseBackfillDays(importDays);
     return json({
       ok: true,
       imported,

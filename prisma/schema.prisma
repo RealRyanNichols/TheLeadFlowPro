@@ -973,6 +973,45 @@ model PublicIntake {
   @@index([email])
 }
 
+// ─── Public visitor memory ─────────────────────────────────────
+// Durable, private memory for the public chatbot and intake router.
+// Browser storage only keeps an anonymous visitorId; names, emails, business
+// details, and chat history live in the database so returning buyers can be
+// remembered later without exposing private data on public pages.
+
+model PublicVisitorProfile {
+  id           String   @id @default(cuid())
+  visitorId    String   @unique
+  email        String?  @unique
+  fullName     String?
+  businessName String?
+  businessUrl  String?
+  phone        String?
+  industry     String?
+  lastTopic    String?
+  stage        String   @default("anonymous")
+  profile      Json     @default("{}")
+  firstSeenAt  DateTime @default(now())
+  lastSeenAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([lastSeenAt(sort: Desc)])
+  @@index([email])
+}
+
+model PublicChatMessage {
+  id        String   @id @default(cuid())
+  visitorId String
+  role      String
+  content   String   @db.Text
+  topic     String?
+  path      String?
+  createdAt DateTime @default(now())
+
+  @@index([visitorId, createdAt(sort: Desc)])
+}
+
 // ─── Ryan's bandwidth tracker ────────────────────────────────────
 // Backs the public capacity meter. SUM(hoursPerWeek WHERE status='active')
 // is what's "booked" against the 60-hr/week cap. Ryan adds engagements via
@@ -1033,11 +1072,29 @@ model SitePulseEvent {
   path      String   @default("/")
   eventType String
   source    String?
+  target    String?
+  value     Int      @default(0)
   createdAt DateTime @default(now())
 
   @@index([createdAt(sort: Desc)])
   @@index([visitorId, createdAt])
   @@index([eventType, createdAt])
+  @@index([path, createdAt])
+  @@index([target, createdAt])
+}
+
+model SiteShareLink {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  visitorId String
+  platform  String
+  path      String   @default("/pulse")
+  title     String?
+  source    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([platform, createdAt])
   @@index([path, createdAt])
 }
 

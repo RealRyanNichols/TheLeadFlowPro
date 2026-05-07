@@ -13,15 +13,73 @@ type Msg = { role: "user" | "assistant"; content: string };
 const GREETING: Msg = {
   role: "assistant",
   content:
-    "I'm Faretta AI — Ryan's assistant. I help serious buyers find the right tier in about 30 seconds. What are you trying to figure out?",
+    "I'm Ryan's routing assistant. I help serious buyers find the right service, tool challenge, or call in about 30 seconds. What are you trying to figure out?",
 };
 
 const QUICK_PROMPTS = [
+  "Challenge Ryan with a tool",
   "I want help growing my social",
   "I need a sales process built",
   "What package fits me?",
-  "I'm not sure if I'm a fit",
 ];
+
+function getVisitorId() {
+  const key = "leadflow_public_visitor_id";
+  const existing = window.localStorage.getItem(key);
+  if (existing) return existing;
+
+  const next =
+    typeof window.crypto?.randomUUID === "function"
+      ? window.crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  window.localStorage.setItem(key, next);
+  return next;
+}
+
+function questionTopic(text: string) {
+  const normalized = text.toLowerCase();
+  if (/(social|facebook|tiktok|youtube|instagram|x |twitter|post|reel|short)/.test(normalized)) {
+    return "social growth";
+  }
+  if (/(ad|ads|meta|lead|funnel|crm|follow up|sales)/.test(normalized)) {
+    return "lead generation";
+  }
+  if (/(price|cost|package|tier|fit|budget|afford)/.test(normalized)) {
+    return "pricing and fit";
+  }
+  if (/(travel|come out|onsite|on-site|film|video|shoot|camera|content day)/.test(normalized)) {
+    return "onsite content";
+  }
+  if (/(website|landing page|dashboard|automation|system|process)/.test(normalized)) {
+    return "systems and websites";
+  }
+  return "general question";
+}
+
+function beaconPulse(eventType: string, target: string, value = 1) {
+  const payload = JSON.stringify({
+    visitorId: getVisitorId(),
+    eventType,
+    path: window.location.pathname,
+    source: "faretta-chatbot",
+    target,
+    value,
+  });
+  const body = new Blob([payload], { type: "application/json" });
+
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon("/api/site-pulse", body);
+    return;
+  }
+
+  fetch("/api/site-pulse", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: payload,
+    keepalive: true,
+  }).catch(() => undefined);
+}
 
 export function FarettaChatbot() {
   const [open, setOpen] = useState(false);
@@ -48,6 +106,7 @@ export function FarettaChatbot() {
   async function send(text: string) {
     const trimmed = text.trim();
     if (!trimmed || busy) return;
+    beaconPulse("chat_question", questionTopic(trimmed), trimmed.length);
     setInput("");
     const next: Msg[] = [...messages, { role: "user", content: trimmed }];
     setMessages(next);
@@ -57,9 +116,16 @@ export function FarettaChatbot() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({
+          messages: next,
+          visitorId: getVisitorId(),
+          path: window.location.pathname,
+        }),
       });
       const data = await res.json();
+      if (data.remembered?.visitorId) {
+        window.localStorage.setItem("leadflow_public_visitor_id", data.remembered.visitorId);
+      }
       if (data.ok && data.reply) {
         setMessages((m) => [...m, { role: "assistant", content: data.reply }]);
       } else {
@@ -92,7 +158,10 @@ export function FarettaChatbot() {
       {/* Floating bubble */}
       {!open && (
         <button
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            setOpen(true);
+            beaconPulse("chat_open", "floating-bubble");
+          }}
           aria-label="Chat with Faretta AI"
           className="fixed bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-brand-700 text-white shadow-2xl shadow-cyan-500/30 hover:scale-105 transition-transform"
         >
@@ -111,10 +180,10 @@ export function FarettaChatbot() {
             <div className="flex items-center gap-2">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/20 font-bold">F</span>
               <div>
-                <div className="font-semibold">Faretta AI</div>
+                <div className="font-semibold">LeadFlow Assistant</div>
                 <div className="text-[11px] opacity-90 flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 animate-pulse" />
-                  online · Ryan's assistant
+                  online · remembers context
                 </div>
               </div>
             </div>
@@ -176,13 +245,22 @@ export function FarettaChatbot() {
           {/* Quick CTAs always visible */}
           <div className="px-3 py-2 border-t border-slate-200 bg-white flex gap-2">
             <Link
+              href="/challenge"
+              onClick={() => beaconPulse("chat_cta", "challenge")}
+              className="flex-1 text-center text-xs rounded-lg bg-cyan-600 px-2 py-1.5 font-semibold text-white hover:bg-cyan-700"
+            >
+              Tool challenge
+            </Link>
+            <Link
               href="/book"
+              onClick={() => beaconPulse("chat_cta", "book")}
               className="flex-1 text-center text-xs rounded-lg bg-accent-500 px-2 py-1.5 font-semibold text-white hover:bg-accent-600"
             >
-              Book the 10-min call
+              Book call
             </Link>
             <Link
               href="/tiers"
+              onClick={() => beaconPulse("chat_cta", "tiers")}
               className="flex-1 text-center text-xs rounded-lg bg-slate-900 px-2 py-1.5 font-semibold text-white hover:bg-slate-800"
             >
               Bring me in
@@ -212,6 +290,10 @@ export function FarettaChatbot() {
               Send
             </button>
           </form>
+          <div className="rounded-b-2xl border-t border-slate-100 bg-white px-3 pb-2 text-[10px] leading-relaxed text-slate-500">
+            Private memory: this assistant remembers returning buyers when you share your name,
+            business, or email. It does not publish that context.
+          </div>
         </div>
       )}
     </>

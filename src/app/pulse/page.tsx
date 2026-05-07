@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Live Website Pulse — The LeadFlow Pro",
   description:
-    "Watch The LeadFlow Pro's live website effectiveness board: visitors, views, top pages, CTA clicks, and Ryan's available capacity.",
+    "Watch The LeadFlow Pro's live website effectiveness board: visitors, share links, click-backs, top pages, CTA clicks, and Ryan's available capacity.",
 };
 
 const SCORECARDS = [
@@ -32,10 +32,11 @@ const SCORECARDS = [
 ];
 
 const NEXT_LEVEL = [
-  "Per-offer scoreboards: views, service clicks, calendar clicks, Stripe starts, and paid conversions.",
-  "A public conversion ladder: Attention -> Click -> Calendar -> Payment -> Client office.",
-  "A weekly leaderboard that shows which page, offer, hook, or proof block is winning.",
-  "A private Ryan-only control room with referrers, campaign tags, device type, and drop-off points.",
+  "Per-offer scoreboards: views, engaged time, service clicks, calendar clicks, Stripe starts, and paid conversions.",
+  "Tracked share links: every social share gets its own URL, click-backs are counted, and platform-reported views can be imported.",
+  "A public conversion ladder: Attention -> Time on page -> Click -> Calendar -> Payment -> Client office.",
+  "A learning loop that classifies chat topics without publishing raw private questions.",
+  "A Ryan-only control room that turns winning hooks into the next page, offer, short, email, or tool.",
 ];
 
 export default async function PulsePage() {
@@ -77,8 +78,9 @@ export default async function PulsePage() {
               </span>
             </h1>
             <p className="mt-4 text-lg leading-relaxed text-slate-700">
-              The LeadFlow Pro should prove its own pitch. If attention, clicks, booking intent,
-              and capacity are real, the site should show that movement in public.
+              The LeadFlow Pro should prove its own pitch. One site, one page, one post, one ad,
+              one share link. If attention turns into clicks, bookings, and buyers, the site should
+              show that movement in public.
             </p>
             <div className="mt-6 grid grid-cols-2 gap-3 sm:flex">
               <Link
@@ -137,12 +139,12 @@ export default async function PulsePage() {
               The next version
             </div>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-              It can get more gamey, more data-driven, and more useful.
+              It now studies what people do, then tells us what to build next.
             </h2>
             <p className="mt-4 text-slate-300">
-              This first version proves the loop. The next version turns the whole site into a
-              live conversion game board, with every offer competing to prove which one gets
-              attention, trust, and paid action.
+              The board is becoming the business brain: what people view, where they stay, what
+              they ask, what they share, what gets clicked back, and what makes it to checkout.
+              That is how the site stops guessing and starts creating better offers from real behavior.
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">

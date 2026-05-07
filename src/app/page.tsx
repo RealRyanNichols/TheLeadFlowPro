@@ -151,20 +151,20 @@ const FACEBOOK_AUDIENCE_SIGNALS = [
 
 const HERO_QUICK_ACTIONS = [
   {
+    href: "/challenge",
+    event: "mobile_hero_tool_challenge",
+    label: "Stump me",
+    detail: "Challenge Ryan to build your tool",
+    Icon: Trophy,
+    tone: "accent",
+  },
+  {
     href: "/start",
     event: "mobile_hero_start_router",
     label: "Pick my service",
     detail: "Offers + workload",
     Icon: MessageSquare,
     tone: "dark",
-  },
-  {
-    href: "/book",
-    event: "mobile_hero_book_call",
-    label: "Book 10-min call",
-    detail: "Serious buyers only",
-    Icon: Clock,
-    tone: "accent",
   },
   {
     href: "/offers/decision-sprint",
@@ -374,12 +374,20 @@ export default async function GrowV2Page() {
               </p>
               <div className="mt-8 hidden flex-col gap-3 lg:flex lg:flex-row">
                 <TrackedLink
-                  href="/start"
-                  event="cta_start_router"
+                  href="/challenge"
+                  event="cta_tool_challenge"
                   location="homepage_hero"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
                 >
-                  Pick my service <ArrowRight className="h-4 w-4" />
+                  Stump me with a tool <ArrowRight className="h-4 w-4" />
+                </TrackedLink>
+                <TrackedLink
+                  href="/start"
+                  event="cta_start_router"
+                  location="homepage_hero"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-6 py-3 font-semibold text-white shadow-lg shadow-cyan-500/20 hover:bg-cyan-700"
+                >
+                  Pick my service
                 </TrackedLink>
                 <TrackedLink
                   href="/tiers"
@@ -466,7 +474,7 @@ export default async function GrowV2Page() {
             <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-[0_30px_70px_-25px_rgba(15,23,42,0.30)] ring-1 ring-slate-900/5 backdrop-blur">
               <div className="relative aspect-[16/10] bg-slate-100">
                 <img
-                  src="/images/ryan-wholesale-universe-warehouse-pallets-flag.jpg"
+                  src="/images/ryan-wholesale-universe-owner.jpg"
                   alt="Ryan Nichols standing on pallets inside the Wholesale Universe warehouse"
                   className="h-full w-full object-cover"
                 />

@@ -7,6 +7,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { recordSitePulseEvent } from "@/lib/site-pulse";
 import { syncSocialAccount } from "@/lib/social-sync";
 
 export const runtime = "nodejs";
@@ -47,6 +48,7 @@ export async function POST(
   }
 
   // Persist the new numbers
+  const today = new Date(new Date().toISOString().slice(0, 10));
   const updated = await prisma.socialAccount.update({
     where: { id: account.id },
     data: {
@@ -65,6 +67,42 @@ export async function POST(
       lastSyncedAt: true,
     },
   });
+
+  await prisma.socialMetricDaily.upsert({
+    where: {
+      socialAccountId_date: {
+        socialAccountId: account.id,
+        date: today,
+      },
+    },
+    create: {
+      socialAccountId: account.id,
+      date: today,
+      followers: result.followers,
+      engagement: result.engagement ?? 0,
+      reach: result.reach ?? 0,
+      impressions: result.views ?? 0,
+    },
+    update: {
+      followers: result.followers,
+      engagement: result.engagement ?? 0,
+      reach: result.reach ?? 0,
+      impressions: result.views ?? 0,
+    },
+  });
+
+  try {
+    await recordSitePulseEvent({
+      visitorId: userId,
+      path: "/dashboard/social",
+      eventType: "api_sync",
+      source: "manual-social-sync",
+      target: account.platform.toString(),
+      value: 1,
+    });
+  } catch {
+    // Do not block manual sync because pulse logging failed.
+  }
 
   return NextResponse.json({ ok: true, account: updated });
 }

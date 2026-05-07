@@ -4,10 +4,22 @@
 // Falls back gracefully when ANTHROPIC_API_KEY isn't set in Vercel.
 
 import { NextResponse } from "next/server";
+import {
+  buildLeadMemoryContext,
+  cleanLeadVisitorId,
+  getPublicChatMemory,
+  rememberPublicChatMessage,
+  type PublicChatMemory,
+} from "@/lib/lead-memory";
 
 export const runtime = "nodejs";
 
 type Msg = { role: "user" | "assistant"; content: string };
+
+type RouteReply = {
+  reply: string;
+  mode: "anthropic" | "router";
+};
 
 const SYSTEM_PROMPT = `You are Faretta AI — the live assistant for The LeadFlow Pro, Ryan Nichols's platform.
 
@@ -45,8 +57,79 @@ If they want to email Ryan: theflashflash24@gmail.com.
 
 Keep replies tight. Don't over-explain.`;
 
+function latestUserMessage(messages: Msg[]) {
+  return [...messages].reverse().find((message) => message.role === "user")?.content ?? "";
+}
+
+function memoryLeadIn(memory: PublicChatMemory | null) {
+  const profile = memory?.profile;
+  if (profile?.fullName && profile?.businessName) {
+    return `I remember you: ${profile.fullName} with ${profile.businessName}. `;
+  }
+  if (profile?.fullName) return `I remember you, ${profile.fullName}. `;
+  if (profile?.businessName) return `I remember ${profile.businessName}. `;
+  return "";
+}
+
+function memoryAsk(memory: PublicChatMemory | null) {
+  if (memory?.profile?.email) return "";
+  return " Give me your name, business, and email when you want Ryan to connect the dots next time you come back.";
+}
+
+function routeWithoutAnthropic(messages: Msg[], memory: PublicChatMemory | null): RouteReply {
+  const latest = latestUserMessage(messages).toLowerCase();
+  const remembered = memoryLeadIn(memory);
+  const ask = memoryAsk(memory);
+
+  if (/(tool|software|app|dashboard|portal|calculator|automation|crm|system|build)/.test(latest)) {
+    return {
+      mode: "router",
+      reply:
+        `${remembered}If the thing you need is a business tool, go straight to the Tool Challenge. Tell Ryan what would change how your business runs. If he can build it and you like it, you buy it and own it. Start here -> /challenge${ask}`,
+    };
+  }
+
+  if (/(price|cost|package|tier|budget|afford|how much)/.test(latest)) {
+    return {
+      mode: "router",
+      reply:
+        `${remembered}If you already know the problem, compare packages here -> /tiers. If you want the site to route you, answer the buyer form -> /start. Serious owners with a specific question can book the 10-minute call -> /book${ask}`,
+    };
+  }
+
+  if (/(social|facebook|tiktok|youtube|instagram|\bx\b|twitter|post|reel|short|content)/.test(latest)) {
+    return {
+      mode: "router",
+      reply:
+        `${remembered}For social, the next click depends on whether you need direction, a review, or done-for-you work. Use the service picker -> /start. If you want Ryan to run the content engine, look at the Power Bundle -> /offers/power-bundle${ask}`,
+    };
+  }
+
+  if (/(ad|ads|meta|lead|leads|funnel|sales|follow up|follow-up)/.test(latest)) {
+    return {
+      mode: "router",
+      reply:
+        `${remembered}If the issue is leads, follow-up, ads, or sales process, Ryan needs the business context first. Start with the router -> /start. If you already know you need Meta ads handled, go here -> /offers/fb-ads${ask}`,
+    };
+  }
+
+  if (/(book|call|talk|calendar|meeting|consult)/.test(latest)) {
+    return {
+      mode: "router",
+      reply:
+        `${remembered}Book the 10-minute fit call here -> /book. Keep it specific: what you sell, what is stuck, and what needs to move next.${ask}`,
+    };
+  }
+
+  return {
+    mode: "router",
+    reply:
+      `${remembered}I can route you without wasting time. If you need a tool built, use /challenge. If you need a service picked, use /start. If you are ready to talk to Ryan, use /book.${ask}`,
+  };
+}
+
 export async function POST(req: Request) {
-  let body: { messages?: Msg[] };
+  let body: { messages?: Msg[]; visitorId?: unknown; path?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -60,13 +143,41 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, fallback: "Tell me what you're looking for." });
   }
 
+  let visitorId = cleanLeadVisitorId(body.visitorId);
+  const path = typeof body.path === "string" ? body.path : "/";
+  let memory: PublicChatMemory | null = null;
+  try {
+    memory = await getPublicChatMemory(visitorId);
+    const latest = latestUserMessage(messages);
+    if (latest) {
+      visitorId = await rememberPublicChatMessage({
+        visitorId,
+        role: "user",
+        content: latest,
+        path,
+      });
+      memory = await getPublicChatMemory(visitorId);
+    }
+  } catch {
+    memory = null;
+  }
+
+  const remembered = {
+    visitorId,
+    known: Boolean(memory?.profile?.email || memory?.profile?.fullName || memory?.profile?.businessName),
+    name: memory?.profile?.fullName ?? undefined,
+    businessName: memory?.profile?.businessName ?? undefined,
+  };
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({
-      ok: false,
-      fallback:
-        "I'm a real human-built assistant but my brain (Anthropic API) isn't wired up yet. Email Ryan directly at theflashflash24@gmail.com or book the 10-min call at /book.",
-    });
+    const routed = routeWithoutAnthropic(messages, memory);
+    try {
+      await rememberPublicChatMessage({ visitorId, role: "assistant", content: routed.reply, path });
+    } catch {
+      // Do not block the public chatbot if memory write fails.
+    }
+    return NextResponse.json({ ok: true, reply: routed.reply, mode: routed.mode, remembered });
   }
 
   // Build the Anthropic messages array (system goes separately).
@@ -95,7 +206,12 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 400,
-        system: SYSTEM_PROMPT,
+        system: `${SYSTEM_PROMPT}
+
+Saved visitor memory:
+${buildLeadMemoryContext(memory ?? { profile: null, messages: [] })}
+
+Use the saved memory naturally. Do not act creepy. If name/business/email are unknown, ask for them only when it helps Ryan remember and route them later. Never claim a purchase, result, or private fact unless it appears in this memory.`,
         messages: anthropicMessages,
       }),
     });
@@ -126,5 +242,11 @@ export async function POST(req: Request) {
     });
   }
 
-  return NextResponse.json({ ok: true, reply });
+  try {
+    await rememberPublicChatMessage({ visitorId, role: "assistant", content: reply, path });
+  } catch {
+    // Do not block a valid AI reply because memory write failed.
+  }
+
+  return NextResponse.json({ ok: true, reply, mode: "anthropic", remembered });
 }

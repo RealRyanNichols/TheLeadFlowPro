@@ -23,6 +23,8 @@ import {
   VALID_URGENCIES,
   VALID_WORK_STYLES,
 } from "@/lib/offer-recommendation";
+import { rememberPublicVisitor } from "@/lib/lead-memory";
+import { recordSitePulseEvent } from "@/lib/site-pulse";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,6 +45,7 @@ export async function POST(req: NextRequest) {
 
   const fullName = pickStr(form.get("fullName"), 120);
   const email    = pickStr(form.get("email"), 200);
+  const visitorId = pickStr(form.get("visitorId"), 80) ?? crypto.randomUUID();
   const primaryNeed = (pickStr(form.get("primaryNeed"), 40) || "").toLowerCase();
   const workStyle   = (pickStr(form.get("workStyle"), 40) || "").toLowerCase();
   const budgetTier  = (pickStr(form.get("budgetTier"), 40) || "").toLowerCase();
@@ -109,6 +112,41 @@ export async function POST(req: NextRequest) {
       recommendation: recommendation.slug,
       error: error instanceof Error ? error.message : "unknown",
     });
+  }
+
+  try {
+    await rememberPublicVisitor({
+      visitorId,
+      email,
+      fullName,
+      phone: pickStr(form.get("phone"), 32),
+      businessName: pickStr(form.get("businessName"), 200),
+      businessUrl: pickStr(form.get("businessUrl"), 300),
+      industry: pickStr(form.get("industry"), 80),
+      topic: primaryNeed,
+      stage: "intake",
+      path: "/start",
+      source: "offer-router",
+      profile: {
+        primaryNeed,
+        workStyle,
+        budgetTier,
+        urgency,
+        monthlyRevenueRange: pickStr(form.get("monthlyRevenueRange"), 40),
+        platforms,
+        routedTo,
+      },
+    });
+    await recordSitePulseEvent({
+      visitorId,
+      path: "/start",
+      eventType: "cta_service",
+      source: "offer-router-form",
+      target: recommendation.slug,
+      value: 1,
+    });
+  } catch {
+    // Never strand a buyer because memory or analytics failed.
   }
 
   // 303 keeps the browser GETting the next URL after the POST,

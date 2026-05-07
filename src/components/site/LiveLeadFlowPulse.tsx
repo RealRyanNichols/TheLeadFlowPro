@@ -6,20 +6,31 @@ import {
   Activity,
   ArrowRight,
   BarChart3,
+  Brain,
   CalendarCheck,
+  Clock3,
+  Copy,
+  ExternalLink,
   Gauge,
+  Link2,
+  Lightbulb,
+  MessageSquareText,
   MousePointerClick,
   RadioTower,
   RotateCw,
+  Share2,
+  ShoppingCart,
   Users,
 } from "lucide-react";
 
-type PulseTab = "live" | "views" | "clicks";
+type PulseTab = "live" | "views" | "clicks" | "share" | "learn";
 
 type PulseSnapshot = {
   source: "live" | "offline";
   offlineReason?: string;
   offlineDetail?: string;
+  trackingStartedAt: string | null;
+  historyDays: number;
   activeNow: number;
   viewsToday: number;
   visitorsToday: number;
@@ -29,6 +40,15 @@ type PulseSnapshot = {
   serviceClicksToday: number;
   bookClicksToday: number;
   capacityClicksToday: number;
+  checkoutClicksToday: number;
+  purchaseSignalsToday: number;
+  chatQuestionsToday: number;
+  shareCreatesToday: number;
+  shareClicksToday: number;
+  socialShareViewsToday: number;
+  totalShareClicks: number;
+  engagementSecondsToday: number;
+  totalEngagementSeconds: number;
   updatedAt: string;
   hourly: Array<{ label: string; views: number; visitors: number }>;
   daily: Array<{
@@ -39,10 +59,47 @@ type PulseSnapshot = {
     serviceClicks: number;
     bookClicks: number;
     capacityClicks: number;
+    checkoutClicks: number;
+    purchaseSignals: number;
+    chatQuestions: number;
+    engagementSeconds: number;
     liveViews: number;
     importedViews: number;
   }>;
   topPaths: Array<{ path: string; views: number }>;
+  topIntentPaths: Array<{
+    path: string;
+    views: number;
+    clicks: number;
+    engagementSeconds: number;
+  }>;
+  topQuestionTopics: Array<{ topic: string; count: number }>;
+  topShares: Array<{
+    token: string;
+    platform: string;
+    path: string;
+    shares: number;
+    clicks: number;
+    reportedViews: number;
+  }>;
+  learning: {
+    trackingStartedAt: string | null;
+    historyDays: number;
+    strongestPath: {
+      path: string;
+      views: number;
+      clicks: number;
+      engagementSeconds: number;
+    } | null;
+    longestWatchedPath: { path: string; engagementSeconds: number } | null;
+    topQuestionTopic: { topic: string; count: number } | null;
+    recommendedActions: Array<{
+      priority: "high" | "medium" | "watch";
+      title: string;
+      body: string;
+      evidence: string;
+    }>;
+  };
   recent: Array<{ eventType: string; path: string; createdAt: string }>;
 };
 
@@ -58,6 +115,8 @@ type SignalCapacity = {
 
 const EMPTY_SNAPSHOT: PulseSnapshot = {
   source: "offline",
+  trackingStartedAt: null,
+  historyDays: 0,
   activeNow: 0,
   viewsToday: 0,
   visitorsToday: 0,
@@ -67,6 +126,15 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
   serviceClicksToday: 0,
   bookClicksToday: 0,
   capacityClicksToday: 0,
+  checkoutClicksToday: 0,
+  purchaseSignalsToday: 0,
+  chatQuestionsToday: 0,
+  shareCreatesToday: 0,
+  shareClicksToday: 0,
+  socialShareViewsToday: 0,
+  totalShareClicks: 0,
+  engagementSecondsToday: 0,
+  totalEngagementSeconds: 0,
   updatedAt: "1970-01-01T00:00:00.000Z",
   hourly: Array.from({ length: 12 }, (_, index) => ({
     label: `${index + 1}`,
@@ -81,10 +149,25 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
     serviceClicks: 0,
     bookClicks: 0,
     capacityClicks: 0,
+    checkoutClicks: 0,
+    purchaseSignals: 0,
+    chatQuestions: 0,
+    engagementSeconds: 0,
     liveViews: 0,
     importedViews: 0,
   })),
   topPaths: [],
+  topIntentPaths: [],
+  topQuestionTopics: [],
+  topShares: [],
+  learning: {
+    trackingStartedAt: null,
+    historyDays: 0,
+    strongestPath: null,
+    longestWatchedPath: null,
+    topQuestionTopic: null,
+    recommendedActions: [],
+  },
   recent: [],
 };
 
@@ -93,6 +176,12 @@ function fmt(value: number) {
   if (value >= 10_000) return `${Math.round(value / 1000)}K`;
   if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
   return value.toLocaleString();
+}
+
+function fmtDuration(seconds: number) {
+  if (seconds >= 3600) return `${(seconds / 3600).toFixed(seconds >= 36_000 ? 0 : 1)}h`;
+  if (seconds >= 60) return `${Math.round(seconds / 60)}m`;
+  return `${seconds}s`;
 }
 
 function getVisitorId() {
@@ -113,13 +202,27 @@ function eventLabel(eventType: string) {
   const labels: Record<string, string> = {
     view: "New view",
     heartbeat: "Still watching",
+    engagement: "Engaged time",
     cta_start: "Picked service",
     cta_book: "Opened calendar",
     cta_capacity: "Checked capacity",
     cta_pulse: "Opened pulse board",
+    cta_service: "Opened service page",
+    cta_contact: "Opened contact",
+    cta_checkout: "Started checkout",
+    purchase_complete: "Purchase returned",
+    chat_open: "Opened chat",
+    chat_question: "Asked a question",
+    chat_cta: "Chat CTA click",
+    share_create: "Shared pulse",
+    share_click: "Clicked shared pulse",
+    share_view_import: "Imported social views",
+    api_sync: "API sync",
     tab_live: "Checked live",
     tab_views: "Checked views",
     tab_clicks: "Checked clicks",
+    tab_share: "Checked shares",
+    tab_learn: "Checked learning",
   };
   return labels[eventType] ?? "Site action";
 }
@@ -160,6 +263,8 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
   const [snapshot, setSnapshot] = useState<PulseSnapshot>(EMPTY_SNAPSHOT);
   const [tab, setTab] = useState<PulseTab>("live");
   const [loading, setLoading] = useState(true);
+  const [shareStatus, setShareStatus] = useState<string | null>(null);
+  const [sharingPlatform, setSharingPlatform] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -193,17 +298,73 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
     () => Math.max(...snapshot.hourly.map((hour) => hour.views), 1),
     [snapshot.hourly],
   );
+  const recentDaily = useMemo(() => snapshot.daily.slice(-14), [snapshot.daily]);
   const maxDay = useMemo(
-    () => Math.max(...snapshot.daily.map((day) => day.views), 1),
-    [snapshot.daily],
+    () => Math.max(...recentDaily.map((day) => day.views), 1),
+    [recentDaily],
   );
 
   const totalClicks =
-    snapshot.serviceClicksToday + snapshot.bookClicksToday + snapshot.capacityClicksToday;
+    snapshot.serviceClicksToday +
+    snapshot.bookClicksToday +
+    snapshot.capacityClicksToday +
+    snapshot.checkoutClicksToday +
+    snapshot.chatQuestionsToday +
+    snapshot.shareClicksToday;
 
   function changeTab(next: PulseTab) {
     setTab(next);
     beaconPulse(`tab_${next}`, window.location.pathname);
+  }
+
+  async function createShare(platform: string) {
+    setSharingPlatform(platform);
+    setShareStatus(null);
+
+    try {
+      const response = await fetch("/api/pulse-share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          visitorId: getVisitorId(),
+          platform,
+          path: "/pulse",
+          title: "The LeadFlow Pro Live Counter",
+        }),
+      });
+      const data = (await response.json()) as {
+        ok?: boolean;
+        shareUrl?: string;
+        intentUrl?: string;
+        text?: string;
+      };
+
+      if (!response.ok || !data.ok || !data.shareUrl) throw new Error("Share link failed");
+
+      const shareText = data.text ? `${data.text} ${data.shareUrl}` : data.shareUrl;
+      if (platform === "copy") {
+        await navigator.clipboard?.writeText(shareText);
+        setShareStatus("Share link copied. Click-backs will show on this board.");
+      } else if (platform === "native" && navigator.share) {
+        await navigator.share({
+          title: "The LeadFlow Pro Live Counter",
+          text: data.text,
+          url: data.shareUrl,
+        });
+        setShareStatus("Native share opened. Click-backs will show on this board.");
+      } else if (data.intentUrl) {
+        window.open(data.intentUrl, "_blank", "noopener,noreferrer");
+        setShareStatus("Share window opened. Click-backs will show on this board.");
+      }
+
+      fetchPulse()
+        .then((next) => setSnapshot(next))
+        .catch(() => undefined);
+    } catch {
+      setShareStatus("Share link could not be created. Try again in a minute.");
+    } finally {
+      setSharingPlatform(null);
+    }
   }
 
   return (
@@ -247,10 +408,12 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-white/[0.05] p-1">
+      <div className="mt-4 grid grid-cols-5 gap-2 rounded-2xl border border-white/10 bg-white/[0.05] p-1">
         <PulseTabButton active={tab === "live"} label="Live" onClick={() => changeTab("live")} />
         <PulseTabButton active={tab === "views"} label="Views" onClick={() => changeTab("views")} />
         <PulseTabButton active={tab === "clicks"} label="Clicks" onClick={() => changeTab("clicks")} />
+        <PulseTabButton active={tab === "share"} label="Share" onClick={() => changeTab("share")} />
+        <PulseTabButton active={tab === "learn"} label="Learn" onClick={() => changeTab("learn")} />
       </div>
 
       <div className="mt-5 min-h-[250px]">
@@ -286,13 +449,15 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
 
             <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
-                <div className="text-sm font-semibold text-white">Last 7 days</div>
+                <div className="text-sm font-semibold text-white">Recent daily history</div>
                 <div className="text-xs text-slate-300">
-                  {snapshot.importedViews ? `${fmt(snapshot.importedViews)} imported` : "Live + imported"}
+                  {snapshot.historyDays
+                    ? `${snapshot.historyDays.toLocaleString()} days tracked`
+                    : "Live + imported"}
                 </div>
               </div>
               <div className="flex h-24 items-end gap-2">
-                {snapshot.daily.map((day, index) => (
+                {recentDaily.map((day, index) => (
                   <div key={`${day.date || day.label}-${index}`} className="flex flex-1 flex-col items-center gap-2">
                     <div className="flex h-16 w-full items-end overflow-hidden rounded-full bg-white/[0.06]">
                       <div
@@ -321,11 +486,13 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div className="text-sm font-semibold">Backdated daily stats</div>
                 <div className="text-xs text-slate-300">
-                  {snapshot.importedViews ? "Imported from real analytics" : "Ready for real imports"}
+                  {snapshot.importedViews
+                    ? `${fmt(snapshot.importedViews)} imported views`
+                    : `Showing latest ${recentDaily.length || 0}`}
                 </div>
               </div>
               <div className="space-y-2">
-                {snapshot.daily.map((day) => (
+                {recentDaily.map((day) => (
                   <div key={day.date || day.label}>
                     <div className="mb-1 flex items-center justify-between gap-3 text-xs">
                       <span className="text-slate-200">{day.label}</span>
@@ -388,6 +555,11 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
               <PulseMetric label="Calendar" value={fmt(snapshot.bookClicksToday)} />
               <PulseMetric label="Capacity" value={fmt(snapshot.capacityClicksToday)} />
             </div>
+            <div className="grid grid-cols-3 gap-2">
+              <PulseMetric label="Checkout" value={fmt(snapshot.checkoutClicksToday)} />
+              <PulseMetric label="Purchases" value={fmt(snapshot.purchaseSignalsToday)} />
+              <PulseMetric label="Questions" value={fmt(snapshot.chatQuestionsToday)} />
+            </div>
             <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
               <div className="mb-3 text-sm font-semibold">Recent public activity</div>
               <div className="space-y-2">
@@ -404,6 +576,223 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
                 ) : (
                   <p className="text-sm text-slate-300">
                     CTA clicks will show here as people interact with the top screen.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab === "learn" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-2">
+              <PulseDetail
+                Icon={Clock3}
+                label="Engaged time"
+                value={fmtDuration(snapshot.totalEngagementSeconds)}
+              />
+              <PulseDetail Icon={ShoppingCart} label="Checkout starts" value={fmt(snapshot.checkoutClicksToday)} />
+              <PulseDetail Icon={MessageSquareText} label="Questions today" value={fmt(snapshot.chatQuestionsToday)} />
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="inline-flex items-center gap-2 text-sm font-semibold text-white">
+                  <Brain className="h-4 w-4 text-cyan-200" />
+                  What the site is learning
+                </div>
+                <div className="text-xs text-slate-300">
+                  {snapshot.trackingStartedAt
+                    ? `Since ${snapshot.trackingStartedAt}`
+                    : "Waiting on first signal"}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {snapshot.learning.recommendedActions.length ? (
+                  snapshot.learning.recommendedActions.map((action) => (
+                    <div
+                      key={`${action.title}-${action.evidence}`}
+                      className="rounded-2xl border border-white/10 bg-white/[0.06] p-3"
+                    >
+                      <div className="flex items-start gap-2">
+                        <span
+                          className={
+                            action.priority === "high"
+                              ? "mt-1 h-2 w-2 rounded-full bg-accent-300 shadow-[0_0_18px_rgba(255,214,107,0.85)]"
+                              : action.priority === "medium"
+                                ? "mt-1 h-2 w-2 rounded-full bg-cyan-300"
+                                : "mt-1 h-2 w-2 rounded-full bg-slate-400"
+                          }
+                        />
+                        <div>
+                          <div className="text-sm font-semibold text-white">{action.title}</div>
+                          <p className="mt-1 text-xs leading-relaxed text-slate-300">{action.body}</p>
+                          <div className="mt-2 text-[11px] font-semibold uppercase tracking-widest text-cyan-200">
+                            {action.evidence}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-300">
+                    The learning loop starts recommending moves after it sees real views, clicks,
+                    watch time, chat topics, and checkout starts.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+                <div className="mb-3 text-sm font-semibold">Highest-intent paths</div>
+                <div className="space-y-2">
+                  {snapshot.topIntentPaths.length ? (
+                    snapshot.topIntentPaths.slice(0, 4).map((row) => (
+                      <div key={row.path} className="rounded-2xl bg-white/[0.06] px-3 py-2 text-xs">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="truncate font-semibold text-white">{row.path}</span>
+                          <span className="tabular-nums text-cyan-200">{fmt(row.clicks)} clicks</span>
+                        </div>
+                        <div className="mt-1 text-slate-400">
+                          {fmt(row.views)} views · {fmtDuration(row.engagementSeconds)} engaged
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-300">No intent paths ranked yet.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+                <div className="mb-3 inline-flex items-center gap-2 text-sm font-semibold">
+                  <Lightbulb className="h-4 w-4 text-accent-200" />
+                  Question topics
+                </div>
+                <div className="space-y-2">
+                  {snapshot.topQuestionTopics.length ? (
+                    snapshot.topQuestionTopics.map((row) => (
+                      <div key={row.topic}>
+                        <div className="mb-1 flex items-center justify-between gap-3 text-xs">
+                          <span className="text-slate-200">{row.topic}</span>
+                          <span className="font-semibold tabular-nums text-white">{fmt(row.count)}</span>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                          <div
+                            className="h-full rounded-full bg-accent-300"
+                            style={{
+                              width: `${Math.max(
+                                8,
+                                Math.round(
+                                  (row.count / Math.max(snapshot.topQuestionTopics[0]?.count ?? 1, 1)) * 100,
+                                ),
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-300">
+                      Chat questions are classified by topic, not stored here as raw private messages.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab === "share" && (
+          <div className="space-y-3">
+            <div className="rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4">
+              <div className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-100">
+                <Share2 className="h-4 w-4" />
+                Make the proof object travel
+              </div>
+              <h3 className="mt-2 text-xl font-semibold tracking-tight text-white">
+                One site. One page. One post. Track the attention back here.
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                These buttons create tracked links for the live counter. We can measure every
+                click-back. Platform views are imported only when the social platform gives us an
+                API number or you import the post stats.
+              </p>
+
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <ShareButton
+                  label="Share to X"
+                  platform="x"
+                  active={sharingPlatform === "x"}
+                  onClick={createShare}
+                  Icon={ExternalLink}
+                />
+                <ShareButton
+                  label="Facebook"
+                  platform="facebook"
+                  active={sharingPlatform === "facebook"}
+                  onClick={createShare}
+                  Icon={ExternalLink}
+                />
+                <ShareButton
+                  label="LinkedIn"
+                  platform="linkedin"
+                  active={sharingPlatform === "linkedin"}
+                  onClick={createShare}
+                  Icon={ExternalLink}
+                />
+                <ShareButton
+                  label="Copy link"
+                  platform="copy"
+                  active={sharingPlatform === "copy"}
+                  onClick={createShare}
+                  Icon={Copy}
+                />
+              </div>
+
+              {shareStatus ? (
+                <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.08] px-3 py-2 text-xs text-cyan-100">
+                  {shareStatus}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <PulseMetric label="Shares today" value={fmt(snapshot.shareCreatesToday)} />
+              <PulseMetric label="Click-backs" value={fmt(snapshot.shareClicksToday)} />
+              <PulseMetric label="Social views" value={fmt(snapshot.socialShareViewsToday)} />
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="inline-flex items-center gap-2 text-sm font-semibold text-white">
+                  <Link2 className="h-4 w-4 text-cyan-200" />
+                  Tracked shared links
+                </div>
+                <div className="text-xs text-slate-300">{fmt(snapshot.totalShareClicks)} total click-backs</div>
+              </div>
+              <div className="space-y-2">
+                {snapshot.topShares.length ? (
+                  snapshot.topShares.map((share) => (
+                    <div key={share.token} className="rounded-2xl bg-white/[0.06] px-3 py-2 text-xs">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="truncate font-semibold text-white">
+                          {share.platform} · {share.path}
+                        </span>
+                        <span className="tabular-nums text-cyan-200">{fmt(share.clicks)} clicks</span>
+                      </div>
+                      <div className="mt-1 text-slate-400">
+                        {fmt(share.shares)} share action{share.shares === 1 ? "" : "s"} ·{" "}
+                        {fmt(share.reportedViews)} imported social views
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-300">
+                    Create a share link above. When someone comes back through it, this board
+                    records the click-back.
                   </p>
                 )}
               </div>
@@ -478,6 +867,32 @@ function PulseMetric({ label, value }: { label: string; value: string }) {
         {label}
       </div>
     </div>
+  );
+}
+
+function ShareButton({
+  label,
+  platform,
+  active,
+  onClick,
+  Icon,
+}: {
+  label: string;
+  platform: string;
+  active: boolean;
+  onClick: (platform: string) => void;
+  Icon: typeof Activity;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(platform)}
+      disabled={active}
+      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white px-3 py-2 text-xs font-bold text-slate-950 shadow-lg shadow-black/20 hover:bg-cyan-50 disabled:cursor-wait disabled:opacity-70"
+    >
+      <Icon className="h-4 w-4 text-cyan-700" />
+      {active ? "Creating..." : label}
+    </button>
   );
 }
 

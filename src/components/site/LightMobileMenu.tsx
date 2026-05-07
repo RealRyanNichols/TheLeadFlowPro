@@ -14,7 +14,7 @@ import {
   Mail,
   Menu,
   Package,
-  Route,
+  Wrench,
   X,
 } from "lucide-react";
 
@@ -91,14 +91,14 @@ export function LightMobileMenu({
             <div className="p-4">
               <div className="grid grid-cols-2 gap-2">
                 <Link
-                  href="/start"
+                  href="/challenge"
                   onClick={() => setOpen(false)}
                   className="rounded-2xl bg-slate-950 p-4 text-white shadow-lg shadow-slate-950/20 active:scale-[0.98]"
                 >
-                  <Route className="h-5 w-5 text-cyan-300" />
-                  <div className="mt-3 text-sm font-semibold">Pick my service</div>
+                  <Wrench className="h-5 w-5 text-cyan-300" />
+                  <div className="mt-3 text-sm font-semibold">Stump Ryan</div>
                   <div className="mt-1 text-xs leading-relaxed text-slate-300">
-                    See the right offer and workload.
+                    Challenge him with the tool you need.
                   </div>
                 </Link>
                 <Link

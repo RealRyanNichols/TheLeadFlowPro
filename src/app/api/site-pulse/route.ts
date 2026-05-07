@@ -54,6 +54,8 @@ export async function POST(request: NextRequest) {
       path: body.path,
       eventType: body.eventType,
       source: body.source,
+      target: body.target,
+      value: body.value,
     });
 
     const snapshot = await getSitePulseSnapshot();

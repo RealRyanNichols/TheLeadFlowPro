@@ -1,15 +1,30 @@
+import { touchPublicVisitorProfile } from "@/lib/lead-memory";
 import { prisma } from "@/lib/prisma";
 
 export type SitePulseEventType =
   | "view"
   | "heartbeat"
+  | "engagement"
   | "cta_start"
   | "cta_book"
   | "cta_capacity"
   | "cta_pulse"
+  | "cta_service"
+  | "cta_contact"
+  | "cta_checkout"
+  | "purchase_complete"
+  | "chat_open"
+  | "chat_question"
+  | "chat_cta"
+  | "share_create"
+  | "share_click"
+  | "share_view_import"
+  | "api_sync"
   | "tab_live"
   | "tab_views"
-  | "tab_clicks";
+  | "tab_clicks"
+  | "tab_share"
+  | "tab_learn";
 
 export type SitePulseOfflineReason =
   | "missing_database_url"
@@ -23,6 +38,8 @@ export type SitePulseSnapshot = {
   source: "live" | "offline";
   offlineReason?: SitePulseOfflineReason;
   offlineDetail?: string;
+  trackingStartedAt: string | null;
+  historyDays: number;
   activeNow: number;
   viewsToday: number;
   visitorsToday: number;
@@ -32,6 +49,15 @@ export type SitePulseSnapshot = {
   serviceClicksToday: number;
   bookClicksToday: number;
   capacityClicksToday: number;
+  checkoutClicksToday: number;
+  purchaseSignalsToday: number;
+  chatQuestionsToday: number;
+  shareCreatesToday: number;
+  shareClicksToday: number;
+  socialShareViewsToday: number;
+  totalShareClicks: number;
+  engagementSecondsToday: number;
+  totalEngagementSeconds: number;
   updatedAt: string;
   hourly: Array<{ label: string; views: number; visitors: number }>;
   daily: Array<{
@@ -42,11 +68,50 @@ export type SitePulseSnapshot = {
     serviceClicks: number;
     bookClicks: number;
     capacityClicks: number;
+    checkoutClicks: number;
+    purchaseSignals: number;
+    chatQuestions: number;
+    engagementSeconds: number;
     liveViews: number;
     importedViews: number;
   }>;
   topPaths: Array<{ path: string; views: number }>;
+  topIntentPaths: Array<{
+    path: string;
+    views: number;
+    clicks: number;
+    engagementSeconds: number;
+  }>;
+  topQuestionTopics: Array<{ topic: string; count: number }>;
+  topShares: Array<{
+    token: string;
+    platform: string;
+    path: string;
+    shares: number;
+    clicks: number;
+    reportedViews: number;
+  }>;
+  learning: SitePulseLearning;
   recent: Array<{ eventType: string; path: string; createdAt: string }>;
+};
+
+export type SitePulseLearning = {
+  trackingStartedAt: string | null;
+  historyDays: number;
+  strongestPath: {
+    path: string;
+    views: number;
+    clicks: number;
+    engagementSeconds: number;
+  } | null;
+  longestWatchedPath: { path: string; engagementSeconds: number } | null;
+  topQuestionTopic: { topic: string; count: number } | null;
+  recommendedActions: Array<{
+    priority: "high" | "medium" | "watch";
+    title: string;
+    body: string;
+    evidence: string;
+  }>;
 };
 
 export type SitePulseBackfillDay = {
@@ -67,6 +132,15 @@ type PulseSummaryRow = {
   serviceClicksToday: number | bigint | null;
   bookClicksToday: number | bigint | null;
   capacityClicksToday: number | bigint | null;
+  checkoutClicksToday: number | bigint | null;
+  purchaseSignalsToday: number | bigint | null;
+  chatQuestionsToday: number | bigint | null;
+  shareCreatesToday: number | bigint | null;
+  shareClicksToday: number | bigint | null;
+  socialShareViewsToday: number | bigint | null;
+  totalShareClicks: number | bigint | null;
+  engagementSecondsToday: number | bigint | null;
+  totalEngagementSeconds: number | bigint | null;
 };
 
 type ReturningRow = {
@@ -86,6 +160,10 @@ type DailyRow = {
   serviceClicks: number | bigint | null;
   bookClicks: number | bigint | null;
   capacityClicks: number | bigint | null;
+  checkoutClicks: number | bigint | null;
+  purchaseSignals: number | bigint | null;
+  chatQuestions: number | bigint | null;
+  engagementSeconds: number | bigint | null;
 };
 
 type BackfillRow = {
@@ -97,9 +175,34 @@ type BackfillRow = {
   capacityClicks: number | bigint | null;
 };
 
+type FirstDateRow = {
+  firstDate: Date | null;
+};
+
 type PathRow = {
   path: string;
   views: number | bigint | null;
+};
+
+type IntentPathRow = {
+  path: string;
+  views: number | bigint | null;
+  clicks: number | bigint | null;
+  engagementSeconds: number | bigint | null;
+};
+
+type QuestionTopicRow = {
+  topic: string;
+  count: number | bigint | null;
+};
+
+type ShareRow = {
+  token: string;
+  platform: string;
+  path: string;
+  shares: number | bigint | null;
+  clicks: number | bigint | null;
+  reportedViews: number | bigint | null;
 };
 
 type RecentRow = {
@@ -111,15 +214,31 @@ type RecentRow = {
 const ALLOWED_EVENTS: SitePulseEventType[] = [
   "view",
   "heartbeat",
+  "engagement",
   "cta_start",
   "cta_book",
   "cta_capacity",
   "cta_pulse",
+  "cta_service",
+  "cta_contact",
+  "cta_checkout",
+  "purchase_complete",
+  "chat_open",
+  "chat_question",
+  "chat_cta",
+  "share_create",
+  "share_click",
+  "share_view_import",
+  "api_sync",
   "tab_live",
   "tab_views",
   "tab_clicks",
+  "tab_share",
+  "tab_learn",
 ];
 
+const MAX_HISTORY_DAYS = 730;
+const SITE_TIME_ZONE = "America/Chicago";
 let tablesReady = false;
 
 export class SitePulseUnavailableError extends Error {
@@ -204,14 +323,68 @@ function cleanSource(value: unknown, fallback = "homepage") {
   return cleanText(value, fallback, 48).replace(/[^a-zA-Z0-9 _.-]/g, "").slice(0, 48);
 }
 
+function cleanPulseTarget(value: unknown) {
+  return cleanText(value, "", 160)
+    .replace(/[^\w\s:/.@#-]/g, "")
+    .slice(0, 160);
+}
+
+function cleanSharePlatform(value: unknown) {
+  return cleanText(value, "copy", 32)
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, "")
+    .slice(0, 32) || "copy";
+}
+
+function safeSignalValue(value: unknown) {
+  const number = Number(value ?? 0);
+  if (!Number.isFinite(number)) return 0;
+  return Math.min(86_400, Math.max(0, Math.round(number)));
+}
+
 function dateKey(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
+function dateFromKey(key: string) {
+  return new Date(`${key}T00:00:00.000Z`);
+}
+
+function centralDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: SITE_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value ?? "1970";
+  const month = parts.find((part) => part.type === "month")?.value ?? "01";
+  const day = parts.find((part) => part.type === "day")?.value ?? "01";
+  return `${year}-${month}-${day}`;
+}
+
 function startOfToday() {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  return date;
+  return dateFromKey(centralDateKey());
+}
+
+function diffDays(start: Date, end: Date) {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  return Math.max(0, Math.round((end.getTime() - start.getTime()) / msPerDay));
+}
+
+function historyStartFrom(firstDate: Date | null | undefined) {
+  const today = startOfToday();
+  const maxStart = new Date(today);
+  maxStart.setDate(today.getDate() - (MAX_HISTORY_DAYS - 1));
+
+  if (!firstDate || Number.isNaN(firstDate.getTime())) {
+    const fallback = new Date(today);
+    fallback.setDate(today.getDate() - 6);
+    return fallback;
+  }
+
+  const first = dateFromKey(dateKey(new Date(firstDate)));
+  return first < maxStart ? maxStart : first;
 }
 
 function validDay(value: unknown) {
@@ -237,8 +410,18 @@ export async function ensureSitePulseTables() {
       "path" TEXT NOT NULL DEFAULT '/',
       "eventType" TEXT NOT NULL,
       "source" TEXT,
+      "target" TEXT,
+      "value" INTEGER NOT NULL DEFAULT 0,
       "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
+  `);
+  await prisma.$executeRawUnsafe(`
+    ALTER TABLE "SitePulseEvent"
+      ADD COLUMN IF NOT EXISTS "target" TEXT
+  `);
+  await prisma.$executeRawUnsafe(`
+    ALTER TABLE "SitePulseEvent"
+      ADD COLUMN IF NOT EXISTS "value" INTEGER NOT NULL DEFAULT 0
   `);
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "SitePulseDailyBackfill" (
@@ -252,6 +435,18 @@ export async function ensureSitePulseTables() {
       "source" TEXT NOT NULL DEFAULT 'manual-import',
       "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
       "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "SiteShareLink" (
+      "id" TEXT PRIMARY KEY,
+      "token" TEXT NOT NULL UNIQUE,
+      "visitorId" TEXT NOT NULL,
+      "platform" TEXT NOT NULL,
+      "path" TEXT NOT NULL DEFAULT '/pulse',
+      "title" TEXT,
+      "source" TEXT,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `);
   await prisma.$executeRawUnsafe(`
@@ -271,8 +466,24 @@ export async function ensureSitePulseTables() {
       ON "SitePulseEvent" ("path", "createdAt")
   `);
   await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "SitePulseEvent_target_createdAt_idx"
+      ON "SitePulseEvent" ("target", "createdAt")
+  `);
+  await prisma.$executeRawUnsafe(`
     CREATE INDEX IF NOT EXISTS "SitePulseDailyBackfill_date_idx"
       ON "SitePulseDailyBackfill" ("date" DESC)
+  `);
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "SiteShareLink_createdAt_idx"
+      ON "SiteShareLink" ("createdAt" DESC)
+  `);
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "SiteShareLink_platform_createdAt_idx"
+      ON "SiteShareLink" ("platform", "createdAt" DESC)
+  `);
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "SiteShareLink_path_createdAt_idx"
+      ON "SiteShareLink" ("path", "createdAt" DESC)
   `);
 
   tablesReady = true;
@@ -287,6 +498,8 @@ export function emptySitePulseSnapshot(
     source,
     offlineReason,
     offlineDetail,
+    trackingStartedAt: null,
+    historyDays: 0,
     activeNow: 0,
     viewsToday: 0,
     visitorsToday: 0,
@@ -296,10 +509,37 @@ export function emptySitePulseSnapshot(
     serviceClicksToday: 0,
     bookClicksToday: 0,
     capacityClicksToday: 0,
+    checkoutClicksToday: 0,
+    purchaseSignalsToday: 0,
+    chatQuestionsToday: 0,
+    shareCreatesToday: 0,
+    shareClicksToday: 0,
+    socialShareViewsToday: 0,
+    totalShareClicks: 0,
+    engagementSecondsToday: 0,
+    totalEngagementSeconds: 0,
     updatedAt: new Date().toISOString(),
     hourly: buildEmptyHours(),
     daily: buildEmptyDays(),
     topPaths: [],
+    topIntentPaths: [],
+    topQuestionTopics: [],
+    topShares: [],
+    learning: {
+      trackingStartedAt: null,
+      historyDays: 0,
+      strongestPath: null,
+      longestWatchedPath: null,
+      topQuestionTopic: null,
+      recommendedActions: [
+        {
+          priority: "watch",
+          title: "Start collecting real behavior",
+          body: "The board needs live views, clicks, engagement time, questions, and purchase signals before it can recommend the next build.",
+          evidence: "No live pulse rows are available yet.",
+        },
+      ],
+    },
     recent: [],
   };
 }
@@ -313,7 +553,7 @@ function buildEmptyHours() {
     const bucket = new Date(start);
     bucket.setHours(start.getHours() + index);
     return {
-      label: bucket.toLocaleTimeString("en-US", { hour: "numeric" }),
+      label: bucket.toLocaleTimeString("en-US", { hour: "numeric", timeZone: SITE_TIME_ZONE }),
       views: 0,
       visitors: 0,
     };
@@ -348,28 +588,34 @@ function fillHours(rows: HourlyRow[]) {
   });
 }
 
-function buildEmptyDays() {
-  const start = startOfToday();
-  start.setDate(start.getDate() - 6);
+function buildEmptyDays(startDate?: Date) {
+  const today = startOfToday();
+  const start = startDate ? dateFromKey(dateKey(startDate)) : new Date(today);
+  if (!startDate) start.setDate(today.getDate() - 6);
+  const count = Math.min(MAX_HISTORY_DAYS, diffDays(start, today) + 1);
 
-  return Array.from({ length: 7 }, (_, index) => {
+  return Array.from({ length: count }, (_, index) => {
     const bucket = new Date(start);
     bucket.setDate(start.getDate() + index);
     return {
       date: dateKey(bucket),
-      label: bucket.toLocaleDateString("en-US", { weekday: "short" }),
+      label: bucket.toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short" }),
       views: 0,
       visitors: 0,
       serviceClicks: 0,
       bookClicks: 0,
       capacityClicks: 0,
+      checkoutClicks: 0,
+      purchaseSignals: 0,
+      chatQuestions: 0,
+      engagementSeconds: 0,
       liveViews: 0,
       importedViews: 0,
     };
   });
 }
 
-function fillDays(liveRows: DailyRow[], backfillRows: BackfillRow[]) {
+function fillDays(liveRows: DailyRow[], backfillRows: BackfillRow[], startDate: Date) {
   const liveByDate = new Map(
     liveRows.map((row) => [
       dateKey(new Date(row.date)),
@@ -379,6 +625,10 @@ function fillDays(liveRows: DailyRow[], backfillRows: BackfillRow[]) {
         serviceClicks: toInt(row.serviceClicks),
         bookClicks: toInt(row.bookClicks),
         capacityClicks: toInt(row.capacityClicks),
+        checkoutClicks: toInt(row.checkoutClicks),
+        purchaseSignals: toInt(row.purchaseSignals),
+        chatQuestions: toInt(row.chatQuestions),
+        engagementSeconds: toInt(row.engagementSeconds),
       },
     ]),
   );
@@ -395,7 +645,7 @@ function fillDays(liveRows: DailyRow[], backfillRows: BackfillRow[]) {
     ]),
   );
 
-  return buildEmptyDays().map((day) => {
+  return buildEmptyDays(startDate).map((day) => {
     const live = liveByDate.get(day.date);
     const imported = importedByDate.get(day.date);
     const liveViews = live?.views ?? 0;
@@ -408,14 +658,129 @@ function fillDays(liveRows: DailyRow[], backfillRows: BackfillRow[]) {
       serviceClicks: (live?.serviceClicks ?? 0) + (imported?.serviceClicks ?? 0),
       bookClicks: (live?.bookClicks ?? 0) + (imported?.bookClicks ?? 0),
       capacityClicks: (live?.capacityClicks ?? 0) + (imported?.capacityClicks ?? 0),
+      checkoutClicks: live?.checkoutClicks ?? 0,
+      purchaseSignals: live?.purchaseSignals ?? 0,
+      chatQuestions: live?.chatQuestions ?? 0,
+      engagementSeconds: live?.engagementSeconds ?? 0,
       liveViews,
       importedViews,
     };
   });
 }
 
+function buildLearningSignal(input: {
+  trackingStartedAt: string | null;
+  historyDays: number;
+  topIntentPaths: SitePulseSnapshot["topIntentPaths"];
+  topQuestionTopics: SitePulseSnapshot["topQuestionTopics"];
+  totalViews: number;
+  serviceClicksToday: number;
+  bookClicksToday: number;
+  checkoutClicksToday: number;
+  purchaseSignalsToday: number;
+  chatQuestionsToday: number;
+  totalEngagementSeconds: number;
+}): SitePulseLearning {
+  const strongestPath = input.topIntentPaths[0] ?? null;
+  const longestWatchedPath =
+    input.topIntentPaths
+      .filter((path) => path.engagementSeconds > 0)
+      .sort((a, b) => b.engagementSeconds - a.engagementSeconds)[0] ?? null;
+  const topQuestionTopic = input.topQuestionTopics[0] ?? null;
+  const actions: SitePulseLearning["recommendedActions"] = [];
+
+  if (topQuestionTopic && topQuestionTopic.count >= 2) {
+    actions.push({
+      priority: "high",
+      title: `Build around "${topQuestionTopic.topic}"`,
+      body: "Visitors are asking about the same thing. That topic should become a clearer button, answer block, offer angle, or short-form post.",
+      evidence: `${topQuestionTopic.count.toLocaleString()} chat question signals in the tracked window.`,
+    });
+  }
+
+  if (strongestPath && strongestPath.views >= 8 && strongestPath.clicks === 0) {
+    actions.push({
+      priority: "high",
+      title: `Add a stronger top-screen CTA on ${strongestPath.path}`,
+      body: "The page is getting attention but not enough intent. Move the next step higher and make the button more specific.",
+      evidence: `${strongestPath.views.toLocaleString()} views, 0 tracked CTA clicks.`,
+    });
+  }
+
+  if (strongestPath && strongestPath.clicks >= 3) {
+    actions.push({
+      priority: "medium",
+      title: `Double down on ${strongestPath.path}`,
+      body: "This path is already producing intent. Clone the winning hook into ads, emails, shorts, and the homepage.",
+      evidence: `${strongestPath.clicks.toLocaleString()} tracked intent clicks in the current history window.`,
+    });
+  }
+
+  if (longestWatchedPath && longestWatchedPath.engagementSeconds >= 120) {
+    actions.push({
+      priority: "medium",
+      title: "Turn watch time into the next offer angle",
+      body: "People are staying on one page long enough to study it. Pull that proof, pain point, or tool into the first screen.",
+      evidence: `${Math.round(longestWatchedPath.engagementSeconds / 60).toLocaleString()} engaged minutes on ${longestWatchedPath.path}.`,
+    });
+  }
+
+  if (input.checkoutClicksToday > 0 && input.purchaseSignalsToday === 0) {
+    actions.push({
+      priority: "medium",
+      title: "Inspect the checkout handoff",
+      body: "People are leaving for payment. If purchases are not coming back, the Stripe return path, offer promise, or checkout trust needs review.",
+      evidence: `${input.checkoutClicksToday.toLocaleString()} checkout starts today, ${input.purchaseSignalsToday.toLocaleString()} purchase thank-you signals.`,
+    });
+  }
+
+  if (input.serviceClicksToday + input.bookClicksToday >= 4) {
+    actions.push({
+      priority: "watch",
+      title: "Traffic is showing buying intent today",
+      body: "Watch the next few sessions. If the same path keeps winning, make it the primary homepage route.",
+      evidence: `${(input.serviceClicksToday + input.bookClicksToday).toLocaleString()} service or calendar clicks today.`,
+    });
+  }
+
+  if (!actions.length) {
+    actions.push({
+      priority: "watch",
+      title: "Keep feeding the machine",
+      body: "The system is collecting views, engaged time, questions, clicks, and purchase signals. Push traffic to the site and let the board identify the next winner.",
+      evidence: `${input.totalViews.toLocaleString()} tracked views across ${input.historyDays.toLocaleString()} day${input.historyDays === 1 ? "" : "s"}.`,
+    });
+  }
+
+  return {
+    trackingStartedAt: input.trackingStartedAt,
+    historyDays: input.historyDays,
+    strongestPath,
+    longestWatchedPath: longestWatchedPath
+      ? {
+          path: longestWatchedPath.path,
+          engagementSeconds: longestWatchedPath.engagementSeconds,
+        }
+      : null,
+    topQuestionTopic,
+    recommendedActions: actions.slice(0, 4),
+  };
+}
+
 export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
   await ensureSitePulseTables();
+
+  const firstDateRows = await prisma.$queryRaw<FirstDateRow[]>`
+    SELECT MIN(day) AS "firstDate"
+    FROM (
+      SELECT (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date AS day
+      FROM "SitePulseEvent"
+      UNION ALL
+      SELECT "date" AS day
+      FROM "SitePulseDailyBackfill"
+    ) all_pulse_days
+  `;
+  const historyStart = historyStartFrom(firstDateRows[0]?.firstDate);
 
   const [
     summaryRows,
@@ -424,6 +789,9 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
     dailyRows,
     backfillRows,
     pathRows,
+    intentPathRows,
+    questionTopicRows,
+    shareRows,
     recentRows,
   ] = await Promise.all([
     prisma.$queryRaw<PulseSummaryRow[]>`
@@ -433,24 +801,68 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
         ) AS "activeNow",
         COUNT(*) FILTER (
           WHERE "eventType" = 'view'
-          AND "createdAt" >= date_trunc('day', NOW())
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
         ) AS "viewsToday",
         COUNT(DISTINCT "visitorId") FILTER (
-          WHERE "createdAt" >= date_trunc('day', NOW())
+          WHERE (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
         ) AS "visitorsToday",
         COUNT(*) FILTER (WHERE "eventType" = 'view') AS "totalViews",
         COUNT(*) FILTER (
           WHERE "eventType" = 'cta_start'
-          AND "createdAt" >= date_trunc('day', NOW())
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
         ) AS "serviceClicksToday",
         COUNT(*) FILTER (
           WHERE "eventType" = 'cta_book'
-          AND "createdAt" >= date_trunc('day', NOW())
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
         ) AS "bookClicksToday",
         COUNT(*) FILTER (
           WHERE "eventType" = 'cta_capacity'
-          AND "createdAt" >= date_trunc('day', NOW())
-        ) AS "capacityClicksToday"
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "capacityClicksToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'cta_checkout'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "checkoutClicksToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'purchase_complete'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "purchaseSignalsToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'chat_question'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "chatQuestionsToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'share_create'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "shareCreatesToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'share_click'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "shareClicksToday",
+        COALESCE(SUM("value") FILTER (
+          WHERE "eventType" = 'share_view_import'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ), 0) AS "socialShareViewsToday",
+        COUNT(*) FILTER (WHERE "eventType" = 'share_click') AS "totalShareClicks",
+        COALESCE(SUM("value") FILTER (
+          WHERE "eventType" = 'engagement'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ), 0) AS "engagementSecondsToday",
+        COALESCE(SUM("value") FILTER (
+          WHERE "eventType" = 'engagement'
+        ), 0) AS "totalEngagementSeconds"
       FROM "SitePulseEvent"
     `,
     prisma.$queryRaw<ReturningRow[]>`
@@ -475,31 +887,112 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
     `,
     prisma.$queryRaw<DailyRow[]>`
       SELECT
-        date_trunc('day', "createdAt") AS date,
+        (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date AS date,
         COUNT(*) FILTER (WHERE "eventType" = 'view') AS views,
         COUNT(DISTINCT "visitorId") AS visitors,
         COUNT(*) FILTER (WHERE "eventType" = 'cta_start') AS "serviceClicks",
         COUNT(*) FILTER (WHERE "eventType" = 'cta_book') AS "bookClicks",
-        COUNT(*) FILTER (WHERE "eventType" = 'cta_capacity') AS "capacityClicks"
+        COUNT(*) FILTER (WHERE "eventType" = 'cta_capacity') AS "capacityClicks",
+        COUNT(*) FILTER (WHERE "eventType" = 'cta_checkout') AS "checkoutClicks",
+        COUNT(*) FILTER (WHERE "eventType" = 'purchase_complete') AS "purchaseSignals",
+        COUNT(*) FILTER (WHERE "eventType" = 'chat_question') AS "chatQuestions",
+        COALESCE(SUM("value") FILTER (WHERE "eventType" = 'engagement'), 0) AS "engagementSeconds"
       FROM "SitePulseEvent"
-      WHERE "createdAt" >= date_trunc('day', NOW()) - INTERVAL '6 days'
+      WHERE (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date >= ${dateKey(historyStart)}::date
       GROUP BY date
       ORDER BY date ASC
     `,
     prisma.$queryRaw<BackfillRow[]>`
       SELECT "date", "views", "visitors", "serviceClicks", "bookClicks", "capacityClicks"
       FROM "SitePulseDailyBackfill"
-      WHERE "date" >= CURRENT_DATE - INTERVAL '6 days'
+      WHERE "date" >= ${dateKey(historyStart)}::date
       ORDER BY "date" ASC
     `,
     prisma.$queryRaw<PathRow[]>`
       SELECT "path", COUNT(*) AS views
       FROM "SitePulseEvent"
       WHERE "eventType" = 'view'
-      AND "createdAt" >= date_trunc('day', NOW())
+      AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+        (NOW() AT TIME ZONE 'America/Chicago')::date
       GROUP BY "path"
       ORDER BY views DESC
       LIMIT 4
+    `,
+    prisma.$queryRaw<IntentPathRow[]>`
+      SELECT
+        "path",
+        COUNT(*) FILTER (WHERE "eventType" = 'view') AS views,
+        COUNT(*) FILTER (
+          WHERE "eventType" IN (
+            'cta_start',
+            'cta_book',
+            'cta_capacity',
+            'cta_pulse',
+            'cta_service',
+            'cta_contact',
+            'cta_checkout',
+            'purchase_complete',
+            'chat_open',
+            'chat_question',
+            'chat_cta',
+            'share_create',
+            'share_click'
+          )
+        ) AS clicks,
+        COALESCE(SUM("value") FILTER (WHERE "eventType" = 'engagement'), 0) AS "engagementSeconds"
+      FROM "SitePulseEvent"
+      WHERE (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date >= ${dateKey(historyStart)}::date
+      GROUP BY "path"
+      ORDER BY
+        (
+          COUNT(*) FILTER (WHERE "eventType" = 'view')
+          + (COUNT(*) FILTER (
+              WHERE "eventType" IN (
+                'cta_start',
+                'cta_book',
+                'cta_capacity',
+                'cta_pulse',
+                'cta_service',
+                'cta_contact',
+                'cta_checkout',
+                'purchase_complete',
+                'chat_open',
+                'chat_question',
+                'chat_cta',
+                'share_create',
+                'share_click'
+              )
+            ) * 8)
+          + (COALESCE(SUM("value") FILTER (WHERE "eventType" = 'engagement'), 0) / 20)
+        ) DESC
+      LIMIT 6
+    `,
+    prisma.$queryRaw<QuestionTopicRow[]>`
+      SELECT COALESCE(NULLIF("target", ''), 'unclassified') AS topic, COUNT(*) AS "count"
+      FROM "SitePulseEvent"
+      WHERE "eventType" = 'chat_question'
+      AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date >= ${dateKey(historyStart)}::date
+      GROUP BY topic
+      ORDER BY "count" DESC
+      LIMIT 6
+    `,
+    prisma.$queryRaw<ShareRow[]>`
+      SELECT
+        s."token",
+        s."platform",
+        s."path",
+        COUNT(e."id") FILTER (WHERE e."eventType" = 'share_create') AS shares,
+        COUNT(e."id") FILTER (WHERE e."eventType" = 'share_click') AS clicks,
+        COALESCE(SUM(e."value") FILTER (WHERE e."eventType" = 'share_view_import'), 0) AS "reportedViews"
+      FROM "SiteShareLink" s
+      LEFT JOIN "SitePulseEvent" e ON e."target" = s."token"
+      WHERE s."createdAt" >= NOW() - INTERVAL '30 days'
+      GROUP BY s."token", s."platform", s."path", s."createdAt"
+      ORDER BY
+        COUNT(e."id") FILTER (WHERE e."eventType" = 'share_click') DESC,
+        COUNT(e."id") FILTER (WHERE e."eventType" = 'share_create') DESC,
+        s."createdAt" DESC
+      LIMIT 6
     `,
     prisma.$queryRaw<RecentRow[]>`
       SELECT "eventType", "path", "createdAt"
@@ -511,22 +1004,65 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
 
   const summary = summaryRows[0] ?? emptySitePulseSnapshot("live");
   const returning = returningRows[0];
-  const daily = fillDays(dailyRows, backfillRows);
+  const daily = fillDays(dailyRows, backfillRows, historyStart);
   const today = daily[daily.length - 1];
   const todayBackfill = backfillRows.find((row) => dateKey(new Date(row.date)) === today?.date);
   const importedViews = daily.reduce((sum, day) => sum + day.importedViews, 0);
+  const trackingStartedAt = daily[0]?.date ?? null;
+  const historyDays = daily.length;
+  const totalViews = toInt(summary.totalViews) + importedViews;
+  const serviceClicksToday = toInt(summary.serviceClicksToday) + toInt(todayBackfill?.serviceClicks);
+  const bookClicksToday = toInt(summary.bookClicksToday) + toInt(todayBackfill?.bookClicks);
+  const capacityClicksToday = toInt(summary.capacityClicksToday) + toInt(todayBackfill?.capacityClicks);
+  const checkoutClicksToday = toInt(summary.checkoutClicksToday);
+  const purchaseSignalsToday = toInt(summary.purchaseSignalsToday);
+  const chatQuestionsToday = toInt(summary.chatQuestionsToday);
+  const shareCreatesToday = toInt(summary.shareCreatesToday);
+  const shareClicksToday = toInt(summary.shareClicksToday);
+  const socialShareViewsToday = toInt(summary.socialShareViewsToday);
+  const totalShareClicks = toInt(summary.totalShareClicks);
+  const totalEngagementSeconds = toInt(summary.totalEngagementSeconds);
+  const topIntentPaths = intentPathRows.map((row) => ({
+    path: row.path,
+    views: toInt(row.views),
+    clicks: toInt(row.clicks),
+    engagementSeconds: toInt(row.engagementSeconds),
+  }));
+  const topQuestionTopics = questionTopicRows.map((row) => ({
+    topic: row.topic,
+    count: toInt(row.count),
+  }));
+  const topShares = shareRows.map((row) => ({
+    token: row.token,
+    platform: row.platform,
+    path: row.path,
+    shares: toInt(row.shares),
+    clicks: toInt(row.clicks),
+    reportedViews: toInt(row.reportedViews),
+  }));
 
   return {
     source: "live",
+    trackingStartedAt,
+    historyDays,
     activeNow: toInt(summary.activeNow),
     viewsToday: toInt(summary.viewsToday) + (today?.importedViews ?? 0),
     visitorsToday: toInt(summary.visitorsToday) + toInt(todayBackfill?.visitors),
-    totalViews: toInt(summary.totalViews) + importedViews,
+    totalViews,
     importedViews,
     returningVisitors: toInt(returning?.returningVisitors),
-    serviceClicksToday: toInt(summary.serviceClicksToday) + toInt(todayBackfill?.serviceClicks),
-    bookClicksToday: toInt(summary.bookClicksToday) + toInt(todayBackfill?.bookClicks),
-    capacityClicksToday: toInt(summary.capacityClicksToday) + toInt(todayBackfill?.capacityClicks),
+    serviceClicksToday,
+    bookClicksToday,
+    capacityClicksToday,
+    checkoutClicksToday,
+    purchaseSignalsToday,
+    chatQuestionsToday,
+    shareCreatesToday,
+    shareClicksToday,
+    socialShareViewsToday,
+    totalShareClicks,
+    engagementSecondsToday: toInt(summary.engagementSecondsToday),
+    totalEngagementSeconds,
     updatedAt: new Date().toISOString(),
     hourly: fillHours(hourlyRows),
     daily,
@@ -534,6 +1070,22 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
       path: row.path,
       views: toInt(row.views),
     })),
+    topIntentPaths,
+    topQuestionTopics,
+    topShares,
+    learning: buildLearningSignal({
+      trackingStartedAt,
+      historyDays,
+      topIntentPaths,
+      topQuestionTopics,
+      totalViews,
+      serviceClicksToday,
+      bookClicksToday,
+      checkoutClicksToday,
+      purchaseSignalsToday,
+      chatQuestionsToday,
+      totalEngagementSeconds,
+    }),
     recent: recentRows.map((row) => ({
       eventType: row.eventType,
       path: row.path,
@@ -547,6 +1099,8 @@ export async function recordSitePulseEvent(input: {
   path: unknown;
   eventType: unknown;
   source?: unknown;
+  target?: unknown;
+  value?: unknown;
 }) {
   await ensureSitePulseTables();
 
@@ -554,11 +1108,77 @@ export async function recordSitePulseEvent(input: {
   const path = cleanPulsePath(input.path);
   const eventType = cleanPulseEventType(input.eventType);
   const source = cleanSource(input.source, "homepage");
+  const target = cleanPulseTarget(input.target);
+  const value = safeSignalValue(input.value);
 
   await prisma.$executeRaw`
-    INSERT INTO "SitePulseEvent" ("id", "visitorId", "path", "eventType", "source", "createdAt")
-    VALUES (${crypto.randomUUID()}, ${visitorId}, ${path}, ${eventType}, ${source}, NOW())
+    INSERT INTO "SitePulseEvent" (
+      "id",
+      "visitorId",
+      "path",
+      "eventType",
+      "source",
+      "target",
+      "value",
+      "createdAt"
+    )
+    VALUES (${crypto.randomUUID()}, ${visitorId}, ${path}, ${eventType}, ${source}, ${target}, ${value}, NOW())
   `;
+
+  if (eventType === "view" || eventType === "chat_open" || eventType === "chat_question") {
+    try {
+      await touchPublicVisitorProfile({
+        visitorId,
+        path,
+        source,
+        topic: eventType === "chat_question" ? target : undefined,
+      });
+    } catch {
+      // Buyer memory is valuable, but analytics should never break the page.
+    }
+  }
+}
+
+export async function createSiteShareLink(input: {
+  visitorId: unknown;
+  platform: unknown;
+  path?: unknown;
+  title?: unknown;
+  source?: unknown;
+}) {
+  await ensureSitePulseTables();
+
+  const visitorId = cleanPulseVisitorId(input.visitorId);
+  const platform = cleanSharePlatform(input.platform);
+  const path = cleanPulsePath(input.path ?? "/pulse");
+  const title = cleanText(input.title, "The LeadFlow Pro live counter", 140);
+  const source = cleanSource(input.source, "pulse-share");
+  const token = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+
+  await prisma.$executeRaw`
+    INSERT INTO "SiteShareLink" (
+      "id",
+      "token",
+      "visitorId",
+      "platform",
+      "path",
+      "title",
+      "source",
+      "createdAt"
+    )
+    VALUES (${crypto.randomUUID()}, ${token}, ${visitorId}, ${platform}, ${path}, ${title}, ${source}, NOW())
+  `;
+
+  await recordSitePulseEvent({
+    visitorId,
+    path,
+    eventType: "share_create",
+    source,
+    target: token,
+    value: 1,
+  });
+
+  return { token, visitorId, platform, path, title };
 }
 
 export async function upsertSitePulseBackfillDays(days: SitePulseBackfillDay[]) {
