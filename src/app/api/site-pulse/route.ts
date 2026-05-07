@@ -10,6 +10,7 @@ type SitePulseEventType =
   | "cta_start"
   | "cta_book"
   | "cta_capacity"
+  | "cta_pulse"
   | "tab_live"
   | "tab_views"
   | "tab_clicks";
@@ -51,6 +52,7 @@ const ALLOWED_EVENTS: SitePulseEventType[] = [
   "cta_start",
   "cta_book",
   "cta_capacity",
+  "cta_pulse",
   "tab_live",
   "tab_views",
   "tab_clicks",
@@ -201,31 +203,31 @@ async function snapshot() {
         SELECT
           COUNT(DISTINCT "visitorId") FILTER (
             WHERE "createdAt" >= NOW() - INTERVAL '2 minutes'
-          )::int AS "activeNow",
+          ) AS "activeNow",
           COUNT(*) FILTER (
             WHERE "eventType" = 'view'
             AND "createdAt" >= date_trunc('day', NOW())
-          )::int AS "viewsToday",
+          ) AS "viewsToday",
           COUNT(DISTINCT "visitorId") FILTER (
             WHERE "createdAt" >= date_trunc('day', NOW())
-          )::int AS "visitorsToday",
-          COUNT(*) FILTER (WHERE "eventType" = 'view')::int AS "totalViews",
+          ) AS "visitorsToday",
+          COUNT(*) FILTER (WHERE "eventType" = 'view') AS "totalViews",
           COUNT(*) FILTER (
             WHERE "eventType" = 'cta_start'
             AND "createdAt" >= date_trunc('day', NOW())
-          )::int AS "serviceClicksToday",
+          ) AS "serviceClicksToday",
           COUNT(*) FILTER (
             WHERE "eventType" = 'cta_book'
             AND "createdAt" >= date_trunc('day', NOW())
-          )::int AS "bookClicksToday",
+          ) AS "bookClicksToday",
           COUNT(*) FILTER (
             WHERE "eventType" = 'cta_capacity'
             AND "createdAt" >= date_trunc('day', NOW())
-          )::int AS "capacityClicksToday"
+          ) AS "capacityClicksToday"
         FROM "SitePulseEvent"
       `,
       prisma.$queryRaw<ReturningRow[]>`
-        SELECT COUNT(*)::int AS "returningVisitors"
+        SELECT COUNT(*) AS "returningVisitors"
         FROM (
           SELECT "visitorId"
           FROM "SitePulseEvent"
@@ -237,15 +239,15 @@ async function snapshot() {
       prisma.$queryRaw<HourlyRow[]>`
         SELECT
           date_trunc('hour', "createdAt") AS bucket,
-          COUNT(*) FILTER (WHERE "eventType" = 'view')::int AS views,
-          COUNT(DISTINCT "visitorId")::int AS visitors
+          COUNT(*) FILTER (WHERE "eventType" = 'view') AS views,
+          COUNT(DISTINCT "visitorId") AS visitors
         FROM "SitePulseEvent"
         WHERE "createdAt" >= NOW() - INTERVAL '11 hours'
         GROUP BY bucket
         ORDER BY bucket ASC
       `,
       prisma.$queryRaw<PathRow[]>`
-        SELECT "path", COUNT(*)::int AS views
+        SELECT "path", COUNT(*) AS views
         FROM "SitePulseEvent"
         WHERE "eventType" = 'view'
         AND "createdAt" >= date_trunc('day', NOW())

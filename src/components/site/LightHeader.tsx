@@ -114,6 +114,7 @@ export function LightFooter() {
           <Link href="/services/consulting" className="hover:text-slate-900">Consulting</Link>
           <Link href="/tiers" className="hover:text-slate-900">Pricing</Link>
           <Link href="/start" className="hover:text-slate-900">Start here</Link>
+          <Link href="/pulse" className="hover:text-slate-900">Live pulse</Link>
           <Link href="/book" className="hover:text-slate-900">Book a call</Link>
           <Link href="/contact" className="hover:text-slate-900">Contact</Link>
         </div>

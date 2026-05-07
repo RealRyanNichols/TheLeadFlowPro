@@ -90,6 +90,7 @@ function eventLabel(eventType: string) {
     cta_start: "Picked service",
     cta_book: "Opened calendar",
     cta_capacity: "Checked capacity",
+    cta_pulse: "Opened pulse board",
     tab_live: "Checked live",
     tab_views: "Checked views",
     tab_clicks: "Checked clicks",
@@ -97,19 +98,8 @@ function eventLabel(eventType: string) {
   return labels[eventType] ?? "Site action";
 }
 
-async function sendPulse(eventType: string, path?: string) {
-  const visitorId = getVisitorId();
-  const payload = {
-    visitorId,
-    eventType,
-    path: path ?? window.location.pathname,
-    source: "homepage-counter",
-  };
-
+async function fetchPulse() {
   const response = await fetch("/api/site-pulse", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
     cache: "no-store",
   });
 
@@ -148,7 +138,7 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
   useEffect(() => {
     let mounted = true;
 
-    sendPulse("view")
+    fetchPulse()
       .then((next) => {
         if (mounted) setSnapshot(next);
       })
@@ -160,12 +150,12 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
       });
 
     const interval = window.setInterval(() => {
-      sendPulse("heartbeat")
+      fetchPulse()
         .then((next) => {
           if (mounted) setSnapshot(next);
         })
         .catch(() => undefined);
-    }, 25_000);
+    }, 15_000);
 
     return () => {
       mounted = false;

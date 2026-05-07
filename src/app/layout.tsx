@@ -4,6 +4,7 @@ import { SessionProvider } from "@/components/auth/SessionProvider";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { FarettaChatbot } from "@/components/FarettaChatbot";
+import { SitePulseTracker } from "@/components/site/SitePulseTracker";
 
 export const metadata: Metadata = {
   title: "The LeadFlow Pro — No missed calls. No missed texts. No missed revenue.",
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="dark">
       <body>
         <SessionProvider>{children}</SessionProvider>
+        <SitePulseTracker />
         <FarettaChatbot />
         <Analytics />
         <SpeedInsights />
