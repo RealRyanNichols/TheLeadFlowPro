@@ -81,6 +81,10 @@ function estimatedCallHours(durationMinutes: number | null, eventTitle: string |
   return Math.max(0.5, Math.ceil((minutes / 60) * 4) / 4);
 }
 
+function isCancellationEvent(eventType: string) {
+  return /cancel/i.test(eventType);
+}
+
 function extractCalContact(body: Record<string, unknown>) {
   const payload = (body.payload && typeof body.payload === "object"
     ? body.payload
@@ -134,6 +138,7 @@ function extractCalContact(body: Record<string, unknown>) {
 }
 
 async function createCalWorkOrder(input: {
+  eventType: string;
   visitorId: string;
   contactEmail: string | null;
   fullName: string | null;
@@ -143,13 +148,28 @@ async function createCalWorkOrder(input: {
   bookingId: string | null;
 }) {
   const marker = bookingMarker(input);
+  const canceled = isCancellationEvent(input.eventType);
 
   try {
     const existing = await (prisma as any).workOrder.findFirst({
       where: { notes: { contains: marker } },
-      select: { id: true },
+      select: { id: true, status: true },
     });
-    if (existing) return { created: false, id: existing.id, marker };
+
+    if (canceled) {
+      if (existing) {
+        await (prisma as any).workOrder.update({
+          where: { id: existing.id },
+          data: {
+            status: "canceled",
+            notes: {
+              set: `${marker}\nCal.com cancellation received. Capacity released.`,
+            },
+          },
+        });
+      }
+      return { action: existing ? "canceled" : "ignored-cancel", created: false, id: existing?.id ?? null, marker };
+    }
 
     const dueAt = input.startTime ? new Date(input.startTime) : null;
     const safeDueAt = dueAt && !Number.isNaN(dueAt.getTime()) ? dueAt : null;
@@ -159,6 +179,30 @@ async function createCalWorkOrder(input: {
       input.fullName ||
       input.contactEmail ||
       `Cal booking ${marker.slice(-6)}`;
+
+    if (existing) {
+      const updated = await (prisma as any).workOrder.update({
+        where: { id: existing.id },
+        data: {
+          clientName,
+          publicLabel: "Booked fit call",
+          title,
+          status: "scheduled",
+          estimatedHours,
+          dueAt: safeDueAt,
+          notes: [
+            marker,
+            input.contactEmail ? `attendee_email:${input.contactEmail}` : null,
+            input.fullName ? `attendee_name:${input.fullName}` : null,
+            input.startTime ? `start_time:${input.startTime}` : null,
+            input.durationMinutes ? `duration_minutes:${input.durationMinutes}` : null,
+            `visitor_id:${input.visitorId}`,
+            "Updated from Cal.com so Ryan's capacity meter reflects the current booked call time.",
+          ].filter(Boolean).join("\n"),
+        },
+      });
+      return { action: "updated", created: false, id: updated.id as string, marker };
+    }
 
     const created = await (prisma as any).workOrder.create({
       data: {
@@ -183,13 +227,13 @@ async function createCalWorkOrder(input: {
       },
     });
 
-    return { created: true, id: created.id as string, marker };
+    return { action: "created", created: true, id: created.id as string, marker };
   } catch (error) {
     console.warn("Cal webhook: work order not created", {
       marker,
       error: error instanceof Error ? error.message : "unknown",
     });
-    return { created: false, id: null, marker };
+    return { action: "failed", created: false, id: null, marker };
   }
 }
 
@@ -211,6 +255,7 @@ export async function POST(req: Request) {
   const { payload, contactEmail, fullName, eventTitle, startTime, durationMinutes, bookingId } = extractCalContact(body);
   const visitorId = contactEmail ? visitorIdFromEmail(contactEmail) : `cal_${randomUUID()}`;
   const workOrder = await createCalWorkOrder({
+    eventType,
     visitorId,
     contactEmail,
     fullName,
@@ -261,6 +306,7 @@ export async function POST(req: Request) {
     startTime,
     durationMinutes,
     workOrderCreated: workOrder.created,
+    workOrderAction: workOrder.action,
     workOrderId: workOrder.id,
     // Do not echo the full Cal payload back.
     receivedKeys: Object.keys(payload).slice(0, 20),
