@@ -1112,3 +1112,112 @@ model SitePulseDailyBackfill {
 
   @@index([date(sort: Desc)])
 }
+
+// ─── East TX Top 10 Leaderboard ──────────────────────────────────
+// Public pay-to-rank weekly leaderboard. Pay $1 = 1 point. Bigger
+// chart bar = more visibility on the homepage + AI feeds.
+
+model LeaderboardEntry {
+  id           String   @id @default(cuid())
+  publicName   String
+  city         String?  // East TX city
+  category     String?  // Roofing, Restaurant, Retail, etc.
+  email        String?  // contact, hidden
+  websiteUrl   String?
+  socialUrl    String?
+  points       Int      @default(0)
+  weekStart    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([publicName, weekStart])
+  @@index([weekStart, points(sort: Desc)])
+}
+
+model LeaderboardPurchase {
+  id              String   @id @default(cuid())
+  entryId         String?
+  publicName      String
+  city            String?
+  category        String?
+  amountDollars   Int
+  buyerEmail      String?
+  stripeSessionId String   @unique
+  weekStart       DateTime
+  createdAt       DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+}
+
+model LeaderboardSnapshot {
+  id           String   @id @default(cuid())
+  weekStart    DateTime
+  weekEnd      DateTime
+  topEntries   Json
+  totalDollars Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([weekStart(sort: Desc)])
+}
+
+// ─── East TX Prediction Markets (free-to-play) ───────────────────
+// Daily/weekly questions about East TX events. FREE entry, leaderboard
+// of accuracy. Sponsored by paid Top 10 leaderboard businesses.
+// NO money wagered = not gambling.
+
+model PredictionMarket {
+  id             String   @id @default(cuid())
+  question       String
+  description    String?  @db.Text
+  category       String?
+  city           String?
+  status         String   @default("open") // open | closed | resolved
+  options        Json     @default("[\"YES\",\"NO\"]")
+  closesAt       DateTime
+  resolvedAt     DateTime?
+  winningOption  String?
+  sponsorName    String?
+  sponsorUrl     String?
+  sponsorEntryId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status, closesAt(sort: Desc)])
+}
+
+model Prediction {
+  id          String   @id @default(cuid())
+  marketId    String
+  visitorId   String
+  displayName String?
+  city        String?
+  selection   String
+  createdAt   DateTime @default(now())
+
+  @@unique([marketId, visitorId])
+  @@index([marketId])
+}
+
+// ─── Business Profile (claim/uniqueness for leaderboard) ─────────
+// First payer for a name "claims" the business + receives a claim
+// code. Future edits to website/social/category require the code.
+// Slug = stable URL handle for /b/[slug] business page.
+
+model BusinessProfile {
+  id                    String    @id @default(cuid())
+  slug                  String    @unique
+  publicName            String    @unique
+  city                  String?
+  category              String?
+  email                 String?
+  websiteUrl            String?
+  socialUrl             String?
+  claimCode             String    @unique
+  claimedAt             DateTime?
+  totalLifetimeDollars  Int       @default(0)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([publicName])
+  @@index([city])
+}

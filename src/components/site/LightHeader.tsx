@@ -19,8 +19,8 @@ export function LightHeader({ activePath }: { activePath?: string }) {
     { href: "/services", label: "Social Media" },
     { href: "/services/consulting", label: "Consulting" },
     { href: "/tiers", label: "Pricing" },
+    { href: "/leaderboard", label: "East TX Top 10" },
     { href: "/story", label: "Story" },
-    { href: "/availability", label: "Availability" },
     { href: "/contact", label: "Contact" },
   ];
 
