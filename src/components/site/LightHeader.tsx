@@ -16,13 +16,12 @@ export function LightHeader({ activePath }: { activePath?: string }) {
 
   const nav = [
     { href: "/", label: "Home" },
-    { href: "/leaderboard", label: "East TX Top 10" },
-    { href: "/voice", label: "East TX Voice" },
     { href: "/services", label: "Social Media" },
     { href: "/services/consulting", label: "Consulting" },
     { href: "/tiers", label: "Pricing" },
+    { href: "/leaderboard", label: "Top 10" },
+    { href: "/voice", label: "Voice" },
     { href: "/story", label: "Story" },
-    { href: "/availability", label: "Availability" },
     { href: "/contact", label: "Contact" },
   ];
 
