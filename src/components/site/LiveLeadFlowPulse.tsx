@@ -11,15 +11,19 @@ import {
   Clock3,
   Copy,
   ExternalLink,
+  Flame,
   Gauge,
   Link2,
   Lightbulb,
+  LockKeyhole,
   MessageSquareText,
   MousePointerClick,
   RadioTower,
   RotateCw,
   Share2,
+  Sparkles,
   ShoppingCart,
+  Trophy,
   Users,
 } from "lucide-react";
 
@@ -265,6 +269,8 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
   const [loading, setLoading] = useState(true);
   const [shareStatus, setShareStatus] = useState<string | null>(null);
   const [sharingPlatform, setSharingPlatform] = useState<string | null>(null);
+  const [sessionSeconds, setSessionSeconds] = useState(0);
+  const [sessionActions, setSessionActions] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -294,6 +300,17 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
     };
   }, []);
 
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      setSessionSeconds((seconds) => seconds + 1);
+    }, 1000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, []);
+
   const maxHour = useMemo(
     () => Math.max(...snapshot.hourly.map((hour) => hour.views), 1),
     [snapshot.hourly],
@@ -312,8 +329,21 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
     snapshot.chatQuestionsToday +
     snapshot.shareClicksToday;
 
+  const sessionPoints = Math.min(999, Math.floor(sessionSeconds / 10) + sessionActions * 5);
+  const nextMilestone = sessionPoints < 25 ? 25 : sessionPoints < 75 ? 75 : sessionPoints < 150 ? 150 : 300;
+  const rewardProgress = Math.min(100, Math.round((sessionPoints / nextMilestone) * 100));
+  const rewardTitle =
+    sessionPoints >= 150
+      ? "Builder signal"
+      : sessionPoints >= 75
+        ? "Share scout"
+        : sessionPoints >= 25
+          ? "Signal reader"
+          : "First signal";
+
   function changeTab(next: PulseTab) {
     setTab(next);
+    setSessionActions((actions) => actions + 1);
     beaconPulse(`tab_${next}`, window.location.pathname);
   }
 
@@ -360,6 +390,7 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
       fetchPulse()
         .then((next) => setSnapshot(next))
         .catch(() => undefined);
+      setSessionActions((actions) => actions + 3);
     } catch {
       setShareStatus("Share link could not be created. Try again in a minute.");
     } finally {
@@ -368,7 +399,7 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
   }
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-950 via-brand-950 to-slate-900 p-5 text-white shadow-[0_24px_70px_-24px_rgba(15,23,42,0.70)] sm:p-6">
+    <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-950 via-brand-950 to-slate-900 p-4 text-white shadow-[0_24px_70px_-24px_rgba(15,23,42,0.70)] sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-cyan-200">
@@ -390,7 +421,7 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-[1fr_auto] items-center gap-4 rounded-3xl border border-cyan-300/20 bg-white/[0.06] p-4">
+      <div className="mt-4 grid grid-cols-[1fr_auto] items-center gap-4 rounded-3xl border border-cyan-300/20 bg-white/[0.06] p-4">
         <div>
           <div className="text-sm font-medium text-cyan-100">Watching now</div>
           <div className="mt-1 text-6xl font-semibold tabular-nums tracking-tight">
@@ -408,6 +439,49 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
         </div>
       </div>
 
+      <div className="mt-3 rounded-3xl border border-accent-300/20 bg-gradient-to-br from-accent-300/15 to-cyan-300/10 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-100">
+              <Trophy className="h-4 w-4" />
+              Proof Points beta
+            </div>
+            <div className="mt-1 text-sm font-semibold text-white">
+              Stay, click, share, learn. The board gives you credit.
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-semibold tabular-nums text-accent-100">{sessionPoints}</div>
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-300">points</div>
+          </div>
+        </div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-accent-200 to-accent-400"
+            style={{ width: `${Math.max(6, rewardProgress)}%` }}
+          />
+        </div>
+        <div className="mt-3 grid gap-2 text-xs text-slate-300 sm:grid-cols-[1fr_auto] sm:items-center">
+          <div className="inline-flex items-center gap-2">
+            <Flame className="h-4 w-4 text-accent-200" />
+            <span>
+              {rewardTitle}. {Math.max(0, nextMilestone - sessionPoints)} points to the next unlock.
+            </span>
+          </div>
+          <Link
+            href="/rewards"
+            className="inline-flex items-center justify-center gap-1 rounded-full border border-white/10 bg-white/[0.08] px-3 py-1.5 font-semibold text-cyan-100 hover:bg-white/[0.12]"
+          >
+            <LockKeyhole className="h-3.5 w-3.5" />
+            How it stays safe
+          </Link>
+        </div>
+        <div className="mt-2 inline-flex items-center gap-2 text-[11px] text-slate-400">
+          <Sparkles className="h-3.5 w-3.5 text-cyan-200" />
+          Off-chain, no cash value, no public edits. This tests the reward loop before any token decision.
+        </div>
+      </div>
+
       <div className="mt-4 grid grid-cols-5 gap-2 rounded-2xl border border-white/10 bg-white/[0.05] p-1">
         <PulseTabButton active={tab === "live"} label="Live" onClick={() => changeTab("live")} />
         <PulseTabButton active={tab === "views"} label="Views" onClick={() => changeTab("views")} />
@@ -416,7 +490,7 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
         <PulseTabButton active={tab === "learn"} label="Learn" onClick={() => changeTab("learn")} />
       </div>
 
-      <div className="mt-5 min-h-[250px]">
+      <div className="mt-4 min-h-[220px]">
         {tab === "live" && (
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-2">

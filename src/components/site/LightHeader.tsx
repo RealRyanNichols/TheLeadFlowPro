@@ -116,6 +116,7 @@ export function LightFooter() {
           <Link href="/start" className="hover:text-slate-900">Start here</Link>
           <Link href="/challenge" className="hover:text-slate-900">Tool challenge</Link>
           <Link href="/pulse" className="hover:text-slate-900">Live pulse</Link>
+          <Link href="/rewards" className="hover:text-slate-900">Rewards</Link>
           <Link href="/book" className="hover:text-slate-900">Book a call</Link>
           <Link href="/contact" className="hover:text-slate-900">Contact</Link>
         </div>

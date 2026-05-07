@@ -339,8 +339,8 @@ export default async function GrowV2Page() {
           className="absolute top-1/2 right-1/3 h-[320px] w-[320px] rounded-full opacity-30 blur-3xl"
           style={{ background: "radial-gradient(circle, rgba(176,107,255,0.35) 0%, transparent 60%)" }}
         />
-        <div className="relative mx-auto max-w-7xl px-4 py-5 sm:py-8 lg:py-10">
-          <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
+        <div className="relative mx-auto max-w-7xl px-4 py-3 sm:py-5 lg:py-6">
+          <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
             <div>
               {/* Proof-forward eyebrow + live capacity pill */}
               <div className="flex flex-wrap items-center gap-2">
@@ -349,7 +349,7 @@ export default async function GrowV2Page() {
                 </div>
                 <BandwidthMeter variant="compact" />
               </div>
-              <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-slate-950 leading-tight">
+              <h1 className="mt-3 text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-semibold tracking-tight text-slate-950 leading-tight">
                 I've already built what you're trying to build.{" "}
                 <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
                   Now let's build yours.
@@ -362,17 +362,17 @@ export default async function GrowV2Page() {
                 ))}
               </div>
 
-              <p className="mt-5 text-base leading-relaxed text-slate-700 sm:text-lg">
+              <p className="mt-4 text-base leading-relaxed text-slate-700 sm:text-[17px]">
                 Six companies founded. 75,000+ followers built from zero across X, Facebook, YouTube,
                 Instagram, and TikTok. A decade running social, ads, sales, and lead gen through every
                 algorithm shift the platforms threw at me — and a written record of how I did it.
               </p>
-              <p className="mt-4 hidden text-lg text-slate-700 leading-relaxed sm:block">
+              <p className="mt-3 hidden text-base text-slate-700 leading-relaxed sm:block">
                 Spending money on me <strong className="text-slate-950">is</strong> spending money on
                 yourself. I take what you pay me and turn it into followers, leads, sales process, and
                 systems your business runs on after I'm gone. That's the deal.
               </p>
-              <div className="mt-8 hidden flex-col gap-3 lg:flex lg:flex-row">
+              <div className="mt-5 hidden flex-col gap-3 lg:flex lg:flex-row">
                 <TrackedLink
                   href="/challenge"
                   event="cta_tool_challenge"
