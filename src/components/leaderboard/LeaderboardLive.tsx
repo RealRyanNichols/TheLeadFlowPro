@@ -13,8 +13,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowRight, Crown, Flame, Loader2, MapPin, Share2, Sparkles, Trophy,
-  TrendingUp, ExternalLink, Globe2,
+  ArrowRight, Crown, Flame, HeartHandshake, Loader2, MapPin, Trophy,
+  ExternalLink, Globe2, Sparkles,
 } from "lucide-react";
 import { EAST_TX_CITIES, CATEGORIES } from "@/lib/leaderboard";
 
@@ -53,6 +53,8 @@ type Snapshot = {
   resetsInSeconds: number;
   totalEntries: number;
   totalDollars: number;
+  totalGivebackCents: number;
+  givebackRate: number;
   entries: Entry[];
   ticker: Ticker[];
   boosts?: Boost[];
@@ -206,13 +208,15 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
 
   const top3 = snap.entries.slice(0, 3);
   const rest = snap.entries.slice(3, 20);
+  const projectedGivebackCents = dollars * 70;
 
   return (
     <div className="space-y-8">
       {/* Top strip: countdown + total + share */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatPill label="Resets in" value={countdown || "—"} accent="cyan" />
-        <StatPill label="Total points this week" value={snap.totalDollars.toLocaleString()} accent="accent" />
+        <StatPill label="Total votes this week" value={snap.totalDollars.toLocaleString()} accent="accent" />
+        <StatPill label="Local giveback pool" value={formatMoneyFromCents(snap.totalGivebackCents)} accent="rose" />
         <StatPill label="Active competitors" value={String(snap.totalEntries)} accent="brand" />
       </div>
 
@@ -249,7 +253,7 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
       {snap.ticker.length > 0 && (
         <div className="rounded-2xl border border-cyan-200 bg-cyan-50/70 backdrop-blur p-3 overflow-hidden">
           <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-700 font-bold mb-2">
-            <Flame className="h-3.5 w-3.5 animate-pulse" /> LIVE · just bought in
+            <Flame className="h-3.5 w-3.5 animate-pulse" /> LIVE · just backed the board
           </div>
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
             {snap.ticker.map((t, i) => (
@@ -303,11 +307,12 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
           <Crown className="h-3.5 w-3.5" /> Climb the East TX Top 10
         </div>
         <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-slate-950">
-          $1 = 1 point. Slide your bid. Take the throne.
+          $1 = 1 point. Slide your vote. Take the throne.
         </h2>
         <p className="mt-2 text-sm text-slate-700">
-          Name + city + how much you want to climb. We&rsquo;ll redirect you to Stripe. Card lands,
-          points go up.
+          Name + city + how much you want to climb. Stripe handles checkout. Points go up, and
+          70% of leaderboard vote proceeds are reserved for East Texas organizations, charity events,
+          or local causes.
         </p>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -384,26 +389,29 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
           </Field>
           <Field label="Website (optional, shown publicly)">
             <input
-              type="url"
+              type="text"
+              inputMode="url"
               value={websiteUrl}
               onChange={(e) => setWebsiteUrl(e.target.value)}
-              placeholder="https://yourbusiness.com"
+              placeholder="yourbusiness.com"
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200"
             />
           </Field>
           <Field label="Social link (optional, shown publicly)">
             <input
-              type="url"
+              type="text"
+              inputMode="url"
               value={socialUrl}
               onChange={(e) => setSocialUrl(e.target.value)}
-              placeholder="https://instagram.com/yourhandle"
+              placeholder="instagram.com/yourhandle"
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200"
             />
           </Field>
           <Field label="Logo image URL (optional, shown publicly)">
             <div className="flex gap-2">
               <input
-                type="url"
+                type="text"
+                inputMode="url"
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 placeholder="https://yourdomain.com/logo.png"
@@ -430,7 +438,7 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
           <div className="flex items-baseline justify-between">
             <div>
               <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
-                Your bid
+                Your vote
               </div>
               <div className="mt-1 text-5xl sm:text-6xl font-bold tabular-nums">
                 <span className="bg-gradient-to-r from-cyan-600 to-accent-600 bg-clip-text text-transparent">
@@ -439,6 +447,10 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
               </div>
               <div className="text-sm text-slate-500">
                 = {dollars} ranking points
+              </div>
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800">
+                <HeartHandshake className="h-3.5 w-3.5" />
+                {formatMoneyFromCents(projectedGivebackCents)} goes into the local giveback pool
               </div>
             </div>
             {projectedRank && (
@@ -495,6 +507,11 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
               </button>
             ))}
           </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            <GivebackNote title="Visibility" body={`${dollars} point${dollars === 1 ? "" : "s"} added instantly after checkout.`} />
+            <GivebackNote title="Local support" body={`${formatMoneyFromCents(projectedGivebackCents)} reserved for East Texas giveback.`} />
+            <GivebackNote title="Proof" body="Check/photo proof gets posted after distributions." />
+          </div>
         </div>
 
         {err && (
@@ -514,15 +531,16 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
             </>
           ) : (
             <>
-              Climb to #{projectedRank?.rank ?? "?"} for ${dollars} <ArrowRight className="h-4 w-4" />
+              Vote ${dollars} · climb to #{projectedRank?.rank ?? "?"} <ArrowRight className="h-4 w-4" />
             </>
           )}
         </button>
 
         <p className="mt-3 text-[11px] text-slate-500 text-center leading-relaxed">
           Pay-to-rank sponsored placement. Not a contest of chance, sweepstakes, or gambling. Your
-          contribution buys visible ranking points; top weekly ranks get featured placement and a
-          digital badge. All sales final. Texas-law governed.
+          payment buys visible ranking points; top weekly ranks get featured placement and a
+          digital badge. 70% of leaderboard vote proceeds are reserved for East Texas organizations,
+          charity events, or local causes. All sales final. Texas-law governed.
         </p>
       </form>
     </div>
@@ -531,11 +549,12 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
 
 /* ─── small components ─── */
 
-function StatPill({ label, value, accent }: { label: string; value: string; accent: "cyan" | "accent" | "brand" }) {
+function StatPill({ label, value, accent }: { label: string; value: string; accent: "cyan" | "accent" | "brand" | "rose" }) {
   const tone = {
     cyan: "border-cyan-300 bg-cyan-50/80",
     accent: "border-accent-300 bg-accent-300/20",
     brand: "border-brand-300 bg-brand-50",
+    rose: "border-rose-200 bg-rose-50/80",
   }[accent];
   return (
     <div className={`rounded-2xl border ${tone} backdrop-blur p-4`}>
@@ -644,9 +663,27 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function GivebackNote({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white/70 p-3">
+      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{title}</div>
+      <div className="mt-1 text-xs leading-relaxed text-slate-700">{body}</div>
+    </div>
+  );
+}
+
 function fmtAgo(s: number): string {
   if (s < 60) return `${s}s ago`;
   if (s < 3600) return `${Math.floor(s / 60)}m ago`;
   if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
   return `${Math.floor(s / 86400)}d ago`;
+}
+
+function formatMoneyFromCents(cents: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
 }

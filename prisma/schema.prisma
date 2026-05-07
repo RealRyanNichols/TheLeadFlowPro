@@ -1115,7 +1115,9 @@ model SitePulseDailyBackfill {
 
 // ─── East TX Top 10 Leaderboard ──────────────────────────────────
 // Public pay-to-rank weekly leaderboard. Pay $1 = 1 point. Bigger
-// chart bar = more visibility on the homepage + AI feeds.
+// chart bar = more visibility on the homepage + AI feeds. 70% of
+// leaderboard vote proceeds are reserved for East Texas organizations,
+// charity events, or local causes, with public proof after distributions.
 
 model LeaderboardEntry {
   id           String   @id @default(cuid())

@@ -4,18 +4,18 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowRight, Crown, ExternalLink, Globe2, MapPin, ShieldCheck, Trophy,
+  ArrowRight, ExternalLink, Globe2, HeartHandshake, MapPin, ShieldCheck, Trophy,
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { prisma } from "@/lib/prisma";
-import { currentWeekStart } from "@/lib/leaderboard";
+import { currentWeekStart, leaderboardGivebackCents } from "@/lib/leaderboard";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 type Props = { params: { slug: string } };
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://theleadflowpro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.theleadflowpro.com";
 
 function qrUrl(target: string, size = 280): string {
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(target)}`;
@@ -151,10 +151,15 @@ export default async function BusinessPage({ params }: Props) {
               </p>
 
               {/* Rank cards */}
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <Stat label="This week's rank" value={rank ? `#${rank}` : "—"} accent="accent" />
                 <Stat label="Points this week" value={(thisWeek?.points ?? 0).toLocaleString()} accent="cyan" />
-                <Stat label="Lifetime contributed" value={`$${(allTime._sum.amountDollars ?? 0).toLocaleString()}`} accent="brand" />
+                <Stat label="Lifetime votes" value={`$${(allTime._sum.amountDollars ?? 0).toLocaleString()}`} accent="brand" />
+                <Stat
+                  label="Local giveback generated"
+                  value={formatMoneyFromCents(leaderboardGivebackCents(allTime._sum.amountDollars ?? 0))}
+                  accent="rose"
+                />
               </div>
 
               {/* CTAs */}
@@ -164,6 +169,12 @@ export default async function BusinessPage({ params }: Props) {
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
                 >
                   Add points to {profile.publicName} <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/leaderboard#giveback"
+                  className="inline-flex items-center gap-2 rounded-xl border border-cyan-300 bg-cyan-50 px-5 py-3 font-semibold text-cyan-900 hover:border-cyan-500"
+                >
+                  <HeartHandshake className="h-4 w-4" /> 70% local giveback
                 </Link>
                 {profile.websiteUrl && (
                   <a href={profile.websiteUrl} target="_blank" rel="noopener noreferrer nofollow"
@@ -232,7 +243,7 @@ export default async function BusinessPage({ params }: Props) {
         <div className="relative mx-auto max-w-4xl px-4 py-14 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold">Want to outrank {profile.publicName}?</h2>
           <p className="mt-3 text-slate-300 max-w-xl mx-auto">
-            Type your business name on the leaderboard. Slide your bid. Take the throne.
+            Type your business name on the leaderboard. Slide your vote. Take the throne.
           </p>
           <Link
             href="/leaderboard"
@@ -248,11 +259,12 @@ export default async function BusinessPage({ params }: Props) {
   );
 }
 
-function Stat({ label, value, accent }: { label: string; value: string; accent: "cyan" | "accent" | "brand" }) {
+function Stat({ label, value, accent }: { label: string; value: string; accent: "cyan" | "accent" | "brand" | "rose" }) {
   const tone = {
     cyan: "border-cyan-300 bg-cyan-50/80",
     accent: "border-accent-300 bg-accent-300/20",
     brand: "border-brand-300 bg-brand-50",
+    rose: "border-rose-200 bg-rose-50/80",
   }[accent];
   return (
     <div className={`rounded-2xl border ${tone} backdrop-blur p-3`}>
@@ -260,4 +272,13 @@ function Stat({ label, value, accent }: { label: string; value: string; accent: 
       <div className="mt-1 text-2xl font-bold text-slate-950 tabular-nums">{value}</div>
     </div>
   );
+}
+
+function formatMoneyFromCents(cents: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
 }

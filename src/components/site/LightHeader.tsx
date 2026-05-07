@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, Gauge, Wrench } from "lucide-react";
+import { ArrowRight, Trophy, Wrench } from "lucide-react";
 import { LightMobileMenu } from "./LightMobileMenu";
 
 export function LightHeader({ activePath }: { activePath?: string }) {
@@ -22,6 +22,7 @@ export function LightHeader({ activePath }: { activePath?: string }) {
     { href: "/services/consulting", label: "Consulting" },
     { href: "/tiers", label: "Pricing" },
     { href: "/story", label: "Story" },
+    { href: "/availability", label: "Availability" },
     { href: "/contact", label: "Contact" },
   ];
 
@@ -31,7 +32,7 @@ export function LightHeader({ activePath }: { activePath?: string }) {
         <Link href="/" className="min-w-0 truncate font-bold text-slate-950 hover:text-brand-700">
           The LeadFlow Pro
         </Link>
-        <nav className="hidden lg:flex items-center gap-5 text-sm text-slate-700">
+        <nav className="hidden lg:flex items-center gap-4 text-sm text-slate-700">
           {nav.map((item) => (
             <Link key={item.href} href={item.href} className={cls(item.href, "")}>
               {item.label}
@@ -62,8 +63,8 @@ export function LightHeader({ activePath }: { activePath?: string }) {
       </div>
       <div className="lg:hidden border-t border-slate-200 bg-slate-50">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 px-4 py-2">
-          <MobileAction href="/challenge" label="Stump me" Icon={Wrench} primary />
-          <MobileAction href="/availability" label="Check capacity" Icon={Gauge} />
+          <MobileAction href="/leaderboard" label="East TX Top 10" Icon={Trophy} primary />
+          <MobileAction href="/challenge" label="Stump me" Icon={Wrench} />
         </div>
       </div>
     </header>
@@ -114,6 +115,7 @@ export function LightFooter() {
           <Link href="/services" className="hover:text-slate-900">Social Media</Link>
           <Link href="/services/consulting" className="hover:text-slate-900">Consulting</Link>
           <Link href="/tiers" className="hover:text-slate-900">Pricing</Link>
+          <Link href="/leaderboard" className="hover:text-slate-900">East TX Top 10</Link>
           <Link href="/start" className="hover:text-slate-900">Start here</Link>
           <Link href="/challenge" className="hover:text-slate-900">Tool challenge</Link>
           <Link href="/pulse" className="hover:text-slate-900">Live pulse</Link>

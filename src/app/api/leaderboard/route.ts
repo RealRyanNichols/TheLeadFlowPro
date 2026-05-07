@@ -24,6 +24,8 @@ export async function GET() {
         resetsInSeconds: 0,
         totalEntries: 0,
         totalDollars: 0,
+        totalGivebackCents: 0,
+        givebackRate: 0.7,
         entries: [],
         ticker: [],
         lastUpdated: new Date().toISOString(),

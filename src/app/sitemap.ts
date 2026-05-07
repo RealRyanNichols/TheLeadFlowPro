@@ -1,48 +1,65 @@
-// src/app/sitemap.ts — auto-generated XML sitemap.
+// src/app/sitemap.ts — public crawl map.
+//
+// Includes static buyer pages plus dynamic business profile and Voice pages
+// when the database is reachable. Dynamic sections fail closed so build and
+// deploy stay safe during env/schema setup.
 
 import type { MetadataRoute } from "next";
+import { OFFERS } from "@/lib/offers";
+import { PLATFORMS } from "@/lib/platforms";
 import { prisma } from "@/lib/prisma";
 
-const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://theleadflowpro.com";
+const BASE = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.theleadflowpro.com").replace(/\/$/, "");
 
 export const dynamic = "force-dynamic";
 export const revalidate = 300;
 
+const staticRoutes = [
+  "",
+  "/services",
+  "/services/consulting",
+  "/tiers",
+  "/story",
+  "/availability",
+  "/leaderboard",
+  "/voice",
+  "/challenge",
+  "/pulse",
+  "/rewards",
+  "/tools/seo-grader",
+  "/solutions/mortgage",
+  "/contact",
+  "/book",
+  "/legal",
+  "/login",
+  "/demo",
+  "/start",
+];
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  const staticRoutes: MetadataRoute.Sitemap = [
-    "", "/services", "/services/consulting", "/tiers", "/story",
-    "/availability", "/leaderboard", "/voice", "/contact", "/book",
-    "/legal", "/login", "/demo", "/start",
-  ].map((p) => ({
-    url: `${BASE}${p}`,
+  const staticSitemap: MetadataRoute.Sitemap = staticRoutes.map((path) => ({
+    url: `${BASE}${path}`,
     lastModified: now,
-    changeFrequency: "weekly" as const,
-    priority: p === "" ? 1.0 : 0.7,
+    changeFrequency: path === "/leaderboard" || path === "/voice" || path === "/pulse" ? "hourly" : "weekly",
+    priority: path === "" ? 1 : path === "/leaderboard" || path === "/challenge" ? 0.9 : 0.7,
   }));
 
-  // Offer pages
-  const offerRoutes: MetadataRoute.Sitemap = [
-    "quick-look", "decision-sprint", "business-audit", "working-session",
-    "sprint-4-week", "light-retainer", "power-bundle", "fb-ads",
-    "monthly-operator", "annual-advisor",
-  ].map((slug) => ({
+  const offerRoutes: MetadataRoute.Sitemap = Object.keys(OFFERS).map((slug) => ({
     url: `${BASE}/offers/${slug}`,
     lastModified: now,
-    changeFrequency: "monthly" as const,
+    changeFrequency: "monthly",
     priority: 0.8,
   }));
 
-  // Platform pages
-  const platformRoutes: MetadataRoute.Sitemap = ["tiktok", "facebook", "x", "youtube"].map((h) => ({
-    url: `${BASE}/platforms/${h}`,
+  const platformRoutes: MetadataRoute.Sitemap = Object.keys(PLATFORMS).map((handle) => ({
+    url: `${BASE}/platforms/${handle}`,
     lastModified: now,
-    changeFrequency: "weekly" as const,
+    changeFrequency: "weekly",
     priority: 0.8,
   }));
 
-  // Business profile pages (dynamic)
   let businessRoutes: MetadataRoute.Sitemap = [];
   try {
     const businesses = await prisma.businessProfile.findMany({
@@ -50,15 +67,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       orderBy: { totalLifetimeDollars: "desc" },
       take: 1000,
     });
-    businessRoutes = businesses.map((b) => ({
-      url: `${BASE}/b/${b.slug}`,
-      lastModified: b.updatedAt,
-      changeFrequency: "daily" as const,
+    businessRoutes = businesses.map((business) => ({
+      url: `${BASE}/b/${business.slug}`,
+      lastModified: business.updatedAt,
+      changeFrequency: "daily",
       priority: 0.6,
     }));
   } catch {}
 
-  // Voice topics (dynamic)
   let voiceRoutes: MetadataRoute.Sitemap = [];
   try {
     const topics = await prisma.voiceTopic.findMany({
@@ -66,13 +82,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       select: { slug: true, updatedAt: true },
       take: 500,
     });
-    voiceRoutes = topics.map((t) => ({
-      url: `${BASE}/voice/${t.slug}`,
-      lastModified: t.updatedAt,
-      changeFrequency: "hourly" as const,
+    voiceRoutes = topics.map((topic) => ({
+      url: `${BASE}/voice/${topic.slug}`,
+      lastModified: topic.updatedAt,
+      changeFrequency: "hourly",
       priority: 0.7,
     }));
   } catch {}
 
-  return [...staticRoutes, ...offerRoutes, ...platformRoutes, ...businessRoutes, ...voiceRoutes];
+  return [...staticSitemap, ...offerRoutes, ...platformRoutes, ...businessRoutes, ...voiceRoutes];
 }

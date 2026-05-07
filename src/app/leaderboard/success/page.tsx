@@ -8,19 +8,19 @@
 import Link from "next/link";
 import {
   ArrowRight, Crown, ExternalLink, Globe2, KeyRound, MapPin,
-  PartyPopper, ShieldCheck, Share2, Trophy,
+  HeartHandshake, PartyPopper, ShieldCheck, Share2, Trophy,
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
-import { currentWeekStart } from "@/lib/leaderboard";
+import { currentWeekStart, leaderboardGivebackCents } from "@/lib/leaderboard";
 import { findOrCreateProfile } from "@/lib/business-profile";
 
 export const dynamic = "force-dynamic";
 
 type Props = { searchParams: { session_id?: string } };
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://theleadflowpro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.theleadflowpro.com";
 
 function qrUrl(target: string, size = 240): string {
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(target)}`;
@@ -42,6 +42,9 @@ async function processCheckout(sessionId: string) {
   const socialUrl = session.metadata?.socialUrl || null;
   const imageUrl = session.metadata?.imageUrl || null;
   const dollars = Number(session.metadata?.dollars || 0);
+  const givebackCents = session.metadata?.givebackCents
+    ? Number(session.metadata.givebackCents)
+    : leaderboardGivebackCents(dollars);
   const weekStart = session.metadata?.weekStart
     ? new Date(session.metadata.weekStart)
     : currentWeekStart();
@@ -142,6 +145,7 @@ async function processCheckout(sessionId: string) {
     websiteUrl: websiteUrl || profile.websiteUrl,
     socialUrl: socialUrl || profile.socialUrl,
     dollars,
+    givebackCents,
     rank,
     points: me?.points ?? dollars,
     totalEntries: above,
@@ -228,6 +232,10 @@ export default async function LeaderboardSuccessPage({ searchParams }: Props) {
               +{result.dollars} points · {result.points} total this week
               {result.city ? ` · ${result.city}, TX` : ""}
             </p>
+            <div className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-cyan-300 bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-900">
+              <HeartHandshake className="h-4 w-4 text-cyan-700" />
+              {formatMoneyFromCents(result.givebackCents)} reserved for the East Texas local giveback pool
+            </div>
             {result.rank && result.rank <= 3 && (
               <div className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-accent-300 bg-accent-300/15 px-4 py-2 text-sm">
                 <Crown className="h-4 w-4 text-accent-600" /> Top 3 — featured spot live now
@@ -315,8 +323,9 @@ export default async function LeaderboardSuccessPage({ searchParams }: Props) {
           </div>
 
           <p className="mt-8 text-center text-xs text-slate-500 max-w-xl mx-auto leading-relaxed">
-            Pay-to-rank sponsored placement. Texas-law governed. Receipt sent via Stripe. Resets
-            Sunday midnight CT — every week is a fresh climb.
+            Pay-to-rank sponsored placement. Texas-law governed. Receipt sent via Stripe. 70% of
+            leaderboard vote proceeds are reserved for East Texas organizations, charity events, or
+            local causes. Resets Sunday midnight CT — every week is a fresh climb.
           </p>
         </div>
       </section>
@@ -324,4 +333,13 @@ export default async function LeaderboardSuccessPage({ searchParams }: Props) {
       <LightFooter />
     </div>
   );
+}
+
+function formatMoneyFromCents(cents: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
 }

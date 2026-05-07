@@ -1,6 +1,9 @@
 // src/lib/leaderboard.ts — East TX Top 10 leaderboard domain logic.
 //
 // Pay-to-rank: $1 = 1 point. Top 3 each week get featured + a badge.
+// 70 cents of every $1 placed is reserved for East Texas organizations,
+// charity events, or local causes, with public check/photo proof after
+// distributions.
 // Resets every Sunday 00:00 CT.
 
 import { prisma } from "./prisma";
@@ -131,11 +134,20 @@ export type LeaderboardSnapshotPublic = {
   resetsInSeconds: number; // until next week start
   totalEntries: number;
   totalDollars: number;
+  totalGivebackCents: number;
+  givebackRate: number;
   entries: LeaderboardEntryPublic[];
   ticker: LeaderboardTickerItem[];
   boosts: LeaderboardBoostPublic[];
   lastUpdated: string;
 };
+
+export const LEADERBOARD_GIVEBACK_RATE = 0.7;
+
+export function leaderboardGivebackCents(amountDollars: number): number {
+  if (!Number.isFinite(amountDollars) || amountDollars <= 0) return 0;
+  return Math.round(amountDollars * 100 * LEADERBOARD_GIVEBACK_RATE);
+}
 
 export async function getLeaderboardSnapshot(): Promise<LeaderboardSnapshotPublic> {
   const weekStart = currentWeekStart();
@@ -212,6 +224,8 @@ export async function getLeaderboardSnapshot(): Promise<LeaderboardSnapshotPubli
     resetsInSeconds: Math.max(0, Math.floor((weekEnd.getTime() - nowMs) / 1000)),
     totalEntries: entries.length,
     totalDollars: totalAgg._sum.amountDollars ?? 0,
+    totalGivebackCents: leaderboardGivebackCents(totalAgg._sum.amountDollars ?? 0),
+    givebackRate: LEADERBOARD_GIVEBACK_RATE,
     entries: entriesPublic,
     ticker: tickerItems,
     boosts,
@@ -233,6 +247,20 @@ export function isValidEastTexasCity(city: string | null | undefined): boolean {
 export function isValidCategory(cat: string | null | undefined): boolean {
   if (!cat) return false;
   return (CATEGORIES as readonly string[]).includes(cat);
+}
+
+export function normalizePublicUrl(value: unknown): string | null {
+  if (!value) return null;
+  const raw = String(value).trim().slice(0, 200);
+  if (!raw) return null;
+  const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const url = new URL(candidate);
+    if (!["http:", "https:"].includes(url.protocol)) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
 }
 
 export const MIN_DOLLARS = 1;

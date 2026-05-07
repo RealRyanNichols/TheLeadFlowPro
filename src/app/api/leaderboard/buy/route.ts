@@ -11,13 +11,15 @@ import {
   currentWeekStart,
   isValidCategory,
   isValidEastTexasCity,
+  leaderboardGivebackCents,
+  normalizePublicUrl,
   sanitizeName,
 } from "@/lib/leaderboard";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://theleadflowpro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.theleadflowpro.com";
 
 export async function POST(req: Request) {
   let body: any;
@@ -42,12 +44,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid category" }, { status: 400 });
   }
 
-  const websiteUrl = body.websiteUrl ? String(body.websiteUrl).slice(0, 200) : null;
-  const socialUrl  = body.socialUrl  ? String(body.socialUrl).slice(0, 200)  : null;
-  const imageUrl   = body.imageUrl   ? String(body.imageUrl).slice(0, 400)   : null;
+  const websiteUrl = normalizePublicUrl(body.websiteUrl);
+  const socialUrl = normalizePublicUrl(body.socialUrl);
+  const imageUrl = normalizePublicUrl(body.imageUrl);
+  if (body.websiteUrl && !websiteUrl) {
+    return NextResponse.json({ error: "Website must be a valid public link" }, { status: 400 });
+  }
+  if (body.socialUrl && !socialUrl) {
+    return NextResponse.json({ error: "Social link must be a valid public link" }, { status: 400 });
+  }
+  if (body.imageUrl && !imageUrl) {
+    return NextResponse.json({ error: "Image link must be a valid public link" }, { status: 400 });
+  }
   const email      = body.email      ? String(body.email).toLowerCase().trim() : null;
 
   const dollars = clampDollars(Number(body.dollars));
+  const givebackCents = leaderboardGivebackCents(dollars);
   const weekStart = currentWeekStart();
 
   let session;
@@ -63,7 +75,7 @@ export async function POST(req: Request) {
             unit_amount: 100, // $1 each
             product_data: {
               name: `East TX Top 10 — ${publicName}`,
-              description: `${dollars} ranking points for the week of ${weekStart.toISOString().slice(0, 10)}.${city ? ` ${city}, TX.` : ""} Sponsored placement on theleadflowpro.com/leaderboard.`,
+              description: `${dollars} ranking points for the week of ${weekStart.toISOString().slice(0, 10)}.${city ? ` ${city}, TX.` : ""} 70% of leaderboard vote proceeds are reserved for East Texas organizations, charity events, or local causes. Sponsored placement on www.theleadflowpro.com/leaderboard.`,
             },
           },
         },
@@ -82,6 +94,8 @@ export async function POST(req: Request) {
         socialUrl: socialUrl || "",
         imageUrl: imageUrl || "",
         dollars: String(dollars),
+        givebackCents: String(givebackCents),
+        givebackRate: "0.70",
         weekStart: weekStart.toISOString(),
       },
     });
