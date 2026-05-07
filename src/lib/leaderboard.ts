@@ -72,6 +72,41 @@ export const CATEGORIES = [
   "Other",
 ] as const;
 
+export const GIVEBACK_TARGETS = [
+  {
+    id: "ryan-routes",
+    shortLabel: "Ryan routes it",
+    label: "Let Ryan route it where it helps most",
+    description:
+      "Default option. Ryan reviews the live need, the vote data, and the available giveback pool before routing funds.",
+  },
+  {
+    id: "don-patty-belize",
+    shortLabel: "Belize mission trip",
+    label: "Don & Patty Nichols — Belize mission trip",
+    description:
+      "Founding giveback target: help support Don and Patty Nichols' upcoming mission trip to Belize.",
+  },
+  {
+    id: "patrick-johnson-j-star",
+    shortLabel: "J-Star Ministries",
+    label: "Patrick Johnson — J-Star Ministries",
+    description:
+      "Founding East Texas ministry giveback target for Patrick Johnson and J-Star Ministries.",
+  },
+  {
+    id: "suggest-local-ministry",
+    shortLabel: "Suggest a ministry",
+    label: "Suggest an East Texas ministry",
+    description:
+      "Tell Ryan which local ministry should be considered next. Suggestions are reviewed before funds are routed.",
+  },
+] as const;
+
+export type GivebackTargetId = (typeof GIVEBACK_TARGETS)[number]["id"];
+
+export const DEFAULT_GIVEBACK_TARGET_ID: GivebackTargetId = "ryan-routes";
+
 /* ─── Week math ─────────────────────────────────────────────────── */
 
 /**
@@ -261,6 +296,32 @@ export function normalizePublicUrl(value: unknown): string | null {
   } catch {
     return null;
   }
+}
+
+export function sanitizeGivebackNote(value: unknown): string {
+  if (!value) return "";
+  return String(value)
+    .replace(/[<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120);
+}
+
+export function resolveGivebackTarget(targetId: unknown, note?: unknown) {
+  const requestedId = String(targetId || DEFAULT_GIVEBACK_TARGET_ID);
+  const target =
+    GIVEBACK_TARGETS.find((item) => item.id === requestedId) ||
+    GIVEBACK_TARGETS.find((item) => item.id === DEFAULT_GIVEBACK_TARGET_ID)!;
+  const cleanNote = target.id === "suggest-local-ministry" ? sanitizeGivebackNote(note) : "";
+  const label = cleanNote ? `${target.shortLabel}: ${cleanNote}` : target.label;
+
+  return {
+    id: target.id,
+    shortLabel: target.shortLabel,
+    label,
+    note: cleanNote,
+    description: target.description,
+  };
 }
 
 export const MIN_DOLLARS = 1;

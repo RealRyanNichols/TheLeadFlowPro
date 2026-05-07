@@ -10,7 +10,7 @@ import type { Metadata } from "next";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { LeaderboardLive } from "@/components/leaderboard/LeaderboardLive";
 import { BoostMessageForm } from "@/components/leaderboard/BoostMessageForm";
-import { getLeaderboardSnapshot } from "@/lib/leaderboard";
+import { GIVEBACK_TARGETS, getLeaderboardSnapshot } from "@/lib/leaderboard";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 30;
@@ -204,6 +204,11 @@ export default async function LeaderboardPage({ searchParams }: Props) {
                 support engine. For every dollar placed on a leaderboard vote, 70 cents is reserved
                 for organizations, charity events, and local causes around East Texas.
               </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {GIVEBACK_TARGETS.filter((target) => target.id !== "ryan-routes").map((target) => (
+                  <GivebackTargetCard key={target.id} title={target.shortLabel} body={target.description} />
+                ))}
+              </div>
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/10 p-5 shadow-2xl shadow-cyan-950/40 backdrop-blur">
               <div className="grid gap-3">
@@ -288,6 +293,15 @@ function ProofRow({ title, body }: { title: string; body: string }) {
     <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
       <div className="text-sm font-bold text-white">{title}</div>
       <div className="mt-1 text-xs leading-relaxed text-slate-300">{body}</div>
+    </div>
+  );
+}
+
+function GivebackTargetCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4">
+      <div className="text-sm font-bold text-white">{title}</div>
+      <p className="mt-1 text-xs leading-relaxed text-slate-300">{body}</p>
     </div>
   );
 }

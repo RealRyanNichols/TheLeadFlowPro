@@ -16,7 +16,13 @@ import {
   ArrowRight, Crown, Flame, HeartHandshake, Loader2, MapPin, Trophy,
   ExternalLink, Globe2, Sparkles,
 } from "lucide-react";
-import { EAST_TX_CITIES, CATEGORIES } from "@/lib/leaderboard";
+import {
+  CATEGORIES,
+  DEFAULT_GIVEBACK_TARGET_ID,
+  EAST_TX_CITIES,
+  type GivebackTargetId,
+  GIVEBACK_TARGETS,
+} from "@/lib/leaderboard";
 
 type Entry = {
   rank: number;
@@ -76,6 +82,8 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
   const [imageUrl, setImageUrl] = useState("");
   const [email, setEmail] = useState("");
   const [dollars, setDollars] = useState(25);
+  const [givebackTargetId, setGivebackTargetId] = useState<GivebackTargetId>(DEFAULT_GIVEBACK_TARGET_ID);
+  const [givebackTargetNote, setGivebackTargetNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -174,6 +182,11 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
     return { rank, points: myPoints, passed: passed.length };
   }, [snap.entries, name, dollars]);
 
+  const selectedGivebackTarget = useMemo(
+    () => GIVEBACK_TARGETS.find((target) => target.id === givebackTargetId) || GIVEBACK_TARGETS[0],
+    [givebackTargetId]
+  );
+
   async function submitBuy(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
@@ -191,6 +204,8 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
           imageUrl: imageUrl || null,
           email: email || null,
           dollars,
+          givebackTargetId,
+          givebackTargetNote: givebackTargetNote || null,
         }),
       });
       const data = await res.json();
@@ -511,6 +526,64 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
             <GivebackNote title="Visibility" body={`${dollars} point${dollars === 1 ? "" : "s"} added instantly after checkout.`} />
             <GivebackNote title="Local support" body={`${formatMoneyFromCents(projectedGivebackCents)} reserved for East Texas giveback.`} />
             <GivebackNote title="Proof" body="Check/photo proof gets posted after distributions." />
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-cyan-200 bg-cyan-50/60 p-4">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-700 font-bold">
+            <HeartHandshake className="h-3.5 w-3.5" /> Choose the giveback direction
+          </div>
+          <p className="mt-2 text-sm text-slate-700">
+            Optional, but useful. This tracks what voters want the 70% local giveback pool pointed
+            toward. If people use it, the data tells us what to feature next.
+          </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {GIVEBACK_TARGETS.map((target) => {
+              const active = target.id === givebackTargetId;
+              return (
+                <button
+                  key={target.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setGivebackTargetId(target.id)}
+                  className={`rounded-2xl border p-3 text-left transition ${
+                    active
+                      ? "border-cyan-500 bg-white shadow-sm ring-2 ring-cyan-200"
+                      : "border-white/70 bg-white/60 hover:border-cyan-300"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-sm font-bold text-slate-950">{target.shortLabel}</div>
+                    <span
+                      className={`h-3 w-3 rounded-full border ${
+                        active ? "border-cyan-700 bg-cyan-600" : "border-slate-300 bg-white"
+                      }`}
+                    />
+                  </div>
+                  <div className="mt-1 text-xs leading-relaxed text-slate-600">{target.description}</div>
+                </button>
+              );
+            })}
+          </div>
+          {givebackTargetId === "suggest-local-ministry" && (
+            <label className="mt-3 block">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-600">
+                East Texas ministry to consider
+              </span>
+              <input
+                type="text"
+                value={givebackTargetNote}
+                onChange={(e) => setGivebackTargetNote(e.target.value)}
+                placeholder="Ministry name, church, or local cause"
+                maxLength={120}
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200"
+              />
+            </label>
+          )}
+          <div className="mt-3 rounded-xl border border-white/70 bg-white/70 p-3 text-xs leading-relaxed text-slate-600">
+            Preference selected: <strong className="text-slate-950">{selectedGivebackTarget.label}</strong>.
+            This is not a separate tax-deductible donation receipt. It is a tracked preference on a
+            paid leaderboard vote, reviewed before funds are routed.
           </div>
         </div>
 

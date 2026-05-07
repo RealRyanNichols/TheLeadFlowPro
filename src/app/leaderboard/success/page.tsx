@@ -13,7 +13,7 @@ import {
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
-import { currentWeekStart, leaderboardGivebackCents } from "@/lib/leaderboard";
+import { currentWeekStart, leaderboardGivebackCents, resolveGivebackTarget } from "@/lib/leaderboard";
 import { findOrCreateProfile } from "@/lib/business-profile";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +45,10 @@ async function processCheckout(sessionId: string) {
   const givebackCents = session.metadata?.givebackCents
     ? Number(session.metadata.givebackCents)
     : leaderboardGivebackCents(dollars);
+  const givebackTarget = resolveGivebackTarget(
+    session.metadata?.givebackTargetId,
+    session.metadata?.givebackTargetNote || session.metadata?.givebackTargetLabel
+  );
   const weekStart = session.metadata?.weekStart
     ? new Date(session.metadata.weekStart)
     : currentWeekStart();
@@ -146,6 +150,7 @@ async function processCheckout(sessionId: string) {
     socialUrl: socialUrl || profile.socialUrl,
     dollars,
     givebackCents,
+    givebackTargetLabel: session.metadata?.givebackTargetLabel || givebackTarget.label,
     rank,
     points: me?.points ?? dollars,
     totalEntries: above,
@@ -235,6 +240,10 @@ export default async function LeaderboardSuccessPage({ searchParams }: Props) {
             <div className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-cyan-300 bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-900">
               <HeartHandshake className="h-4 w-4 text-cyan-700" />
               {formatMoneyFromCents(result.givebackCents)} reserved for the East Texas local giveback pool
+            </div>
+            <div className="mx-auto mt-3 max-w-xl rounded-2xl border border-white/60 bg-white/75 px-4 py-3 text-sm text-slate-700 shadow-sm backdrop-blur">
+              Giveback preference tracked:{" "}
+              <strong className="text-slate-950">{result.givebackTargetLabel}</strong>
             </div>
             {result.rank && result.rank <= 3 && (
               <div className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-accent-300 bg-accent-300/15 px-4 py-2 text-sm">

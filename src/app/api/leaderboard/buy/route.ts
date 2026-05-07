@@ -13,6 +13,7 @@ import {
   isValidEastTexasCity,
   leaderboardGivebackCents,
   normalizePublicUrl,
+  resolveGivebackTarget,
   sanitizeName,
 } from "@/lib/leaderboard";
 
@@ -60,6 +61,7 @@ export async function POST(req: Request) {
 
   const dollars = clampDollars(Number(body.dollars));
   const givebackCents = leaderboardGivebackCents(dollars);
+  const givebackTarget = resolveGivebackTarget(body.givebackTargetId, body.givebackTargetNote);
   const weekStart = currentWeekStart();
 
   let session;
@@ -75,7 +77,7 @@ export async function POST(req: Request) {
             unit_amount: 100, // $1 each
             product_data: {
               name: `East TX Top 10 — ${publicName}`,
-              description: `${dollars} ranking points for the week of ${weekStart.toISOString().slice(0, 10)}.${city ? ` ${city}, TX.` : ""} 70% of leaderboard vote proceeds are reserved for East Texas organizations, charity events, or local causes. Sponsored placement on www.theleadflowpro.com/leaderboard.`,
+              description: `${dollars} ranking points for the week of ${weekStart.toISOString().slice(0, 10)}.${city ? ` ${city}, TX.` : ""} 70% of leaderboard vote proceeds are reserved for East Texas organizations, charity events, or local causes. Giveback preference: ${givebackTarget.shortLabel}. Sponsored placement on www.theleadflowpro.com/leaderboard.`,
             },
           },
         },
@@ -96,6 +98,9 @@ export async function POST(req: Request) {
         dollars: String(dollars),
         givebackCents: String(givebackCents),
         givebackRate: "0.70",
+        givebackTargetId: givebackTarget.id,
+        givebackTargetLabel: givebackTarget.label,
+        givebackTargetNote: givebackTarget.note,
         weekStart: weekStart.toISOString(),
       },
     });
