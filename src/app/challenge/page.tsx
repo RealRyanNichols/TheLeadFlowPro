@@ -3,7 +3,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   BadgeDollarSign,
-  Boxes,
   Brain,
   CheckCircle2,
   ClipboardList,
@@ -17,6 +16,7 @@ import {
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
+import { TOOL_CHALLENGE_DEPOSIT } from "@/lib/challenge-deposit";
 
 export const metadata: Metadata = {
   title: "Stump Ryan With a Business Tool — The LeadFlow Pro",
@@ -105,7 +105,16 @@ export default function ChallengePage() {
                 If you are a business owner and there is a tool that would change how you operate,
                 challenge me to build it. If I build it and you like it, you buy it. Plain and simple.
               </p>
-              <div className="mt-5 grid grid-cols-2 gap-2 sm:flex">
+              <div className="mt-5 grid gap-2 sm:grid-cols-3">
+                <form action="/api/challenge/deposit" method="POST">
+                  <VisitorIdField />
+                  <button
+                    type="submit"
+                    className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
+                  >
+                    Reserve $250 slot <ArrowRight className="h-4 w-4" />
+                  </button>
+                </form>
                 <Link
                   href="#tool-challenge-form"
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
@@ -114,15 +123,17 @@ export default function ChallengePage() {
                 </Link>
                 <Link
                   href="/book?source=tool-challenge"
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white/75 px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm backdrop-blur hover:bg-white"
                 >
-                  Book the call
+                  Book 10-min call
                 </Link>
               </div>
               <p className="mt-3 text-xs leading-relaxed text-slate-500">
                 This is for serious owners. No specific revenue, lead, follower, or software outcome is
                 guaranteed. The point is to build a practical system you can own and operate.
               </p>
+
+              <ReserveBuildSlotCard />
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
                 {OWNERSHIP_POINTS.map(({ Icon, title, body }) => (
@@ -345,6 +356,62 @@ function ToolChallengeForm() {
         </button>
       </div>
     </form>
+  );
+}
+
+function ReserveBuildSlotCard() {
+  return (
+    <div className="mt-5 overflow-hidden rounded-3xl border border-slate-900/10 bg-slate-950 text-white shadow-[0_26px_70px_-30px_rgba(15,23,42,0.75)]">
+      <div className="grid gap-0 sm:grid-cols-[1fr_auto]">
+        <div className="p-5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
+            <BadgeDollarSign className="h-3.5 w-3.5" /> Skip to the build slot
+          </div>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+            Put $250 down and get on the build calendar.
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-300">
+            This is the fast path for owners who already know they want an app, automation,
+            dashboard, or website update. The deposit reserves a {TOOL_CHALLENGE_DEPOSIT.reserveHours}-hour
+            capacity block and credits toward the final build.
+          </p>
+          <div className="mt-4 grid gap-2 text-xs text-slate-300 sm:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3">
+              <div className="text-lg font-semibold text-white">$250</div>
+              <div>down payment</div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3">
+              <div className="text-lg font-semibold text-white">{TOOL_CHALLENGE_DEPOSIT.reserveHours}h</div>
+              <div>capacity reserved</div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3">
+              <div className="text-lg font-semibold text-white">5 days</div>
+              <div>target first build window</div>
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-white/10 bg-gradient-to-br from-cyan-500/20 via-slate-900 to-accent-500/20 p-5 sm:w-56 sm:border-l sm:border-t-0">
+          <form action="/api/challenge/deposit" method="POST" className="grid gap-3">
+            <VisitorIdField />
+            <button
+              type="submit"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
+            >
+              Start with $250 <ArrowRight className="h-4 w-4" />
+            </button>
+            <Link
+              href="/book?source=tool-challenge-deposit"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/15"
+            >
+              Talk first
+            </Link>
+          </form>
+          <p className="mt-3 text-[11px] leading-relaxed text-slate-300">
+            If the build needs more scope, Ryan quotes the next phase before continuing.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
 

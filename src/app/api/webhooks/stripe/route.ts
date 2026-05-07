@@ -4,7 +4,8 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { BOOSTERS } from "@/lib/pricing";
 import type { PlanId } from "@/lib/pricing";
-import { deliveryDueDate, getOfferWorkload } from "@/lib/workload";
+import { addBusinessDays, deliveryDueDate, getOfferWorkload } from "@/lib/workload";
+import { TOOL_CHALLENGE_DEPOSIT } from "@/lib/challenge-deposit";
 
 export const runtime = "nodejs";
 
@@ -176,6 +177,73 @@ async function createOfferWorkOrderFromCheckout(
   }
 }
 
+async function createToolChallengeDepositWorkOrderFromCheckout(
+  session: Stripe.Checkout.Session,
+  user: Awaited<ReturnType<typeof findUserForEvent>> | null,
+  customerId: string | null,
+) {
+  const kind = session.metadata?.kind;
+  const slug = session.metadata?.slug;
+  if (kind !== TOOL_CHALLENGE_DEPOSIT.kind && slug !== TOOL_CHALLENGE_DEPOSIT.slug) {
+    return false;
+  }
+
+  const marker = `stripe_session:${session.id}`;
+  try {
+    const existing = await (prisma as any).workOrder.findFirst({
+      where: { notes: { contains: marker } },
+      select: { id: true },
+    });
+    if (existing) return true;
+
+    const buyerEmail =
+      session.customer_details?.email ||
+      session.customer_email ||
+      user?.email ||
+      null;
+    const buyerName =
+      session.customer_details?.name ||
+      user?.name ||
+      null;
+    const createdAt = new Date((session.created || Math.floor(Date.now() / 1000)) * 1000);
+    const clientName =
+      buyerName ||
+      buyerEmail ||
+      `Tool build deposit ${session.id.slice(-6)}`;
+
+    await (prisma as any).workOrder.create({
+      data: {
+        clientName,
+        publicLabel: TOOL_CHALLENGE_DEPOSIT.publicLabel,
+        offerSlug: TOOL_CHALLENGE_DEPOSIT.slug,
+        title: TOOL_CHALLENGE_DEPOSIT.title,
+        status: "intake_needed",
+        estimatedHours: TOOL_CHALLENGE_DEPOSIT.reserveHours,
+        completedHours: 0,
+        deliveryGuaranteeDays: TOOL_CHALLENGE_DEPOSIT.deliveryGuaranteeDays,
+        dueAt: addBusinessDays(createdAt, TOOL_CHALLENGE_DEPOSIT.deliveryGuaranteeDays),
+        notes: [
+          marker,
+          customerId ? `stripe_customer:${customerId}` : null,
+          buyerEmail ? `buyer_email:${buyerEmail}` : null,
+          user?.id ? `user_id:${user.id}` : null,
+          session.metadata?.visitorId ? `visitor_id:${session.metadata.visitorId}` : null,
+          `payment_status:${session.payment_status || "unknown"}`,
+          "$250 tool challenge deposit. Credits toward custom app, automation, or website work.",
+          "Auto-created from Stripe checkout so Ryan's capacity meter reflects paid build-slot deposits.",
+        ].filter(Boolean).join("\n"),
+      },
+    });
+    return true;
+  } catch (err) {
+    console.warn("Stripe webhook: tool challenge deposit work order not created", {
+      session: session.id,
+      error: err instanceof Error ? err.message : "unknown",
+    });
+    return false;
+  }
+}
+
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const userId =
     session.client_reference_id ||
@@ -188,7 +256,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const checkoutEmail = session.customer_details?.email || session.customer_email || null;
   const checkoutName = session.customer_details?.name || null;
   const user = await findOrCreateUserForCheckout(userId, customerId, checkoutEmail, checkoutName);
-  const workOrderCreated = await createOfferWorkOrderFromCheckout(session, user, customerId);
+  const workOrderCreated =
+    await createToolChallengeDepositWorkOrderFromCheckout(session, user, customerId) ||
+    await createOfferWorkOrderFromCheckout(session, user, customerId);
 
   if (!user && !workOrderCreated) {
     console.warn("Stripe webhook: no user found for session", session.id);

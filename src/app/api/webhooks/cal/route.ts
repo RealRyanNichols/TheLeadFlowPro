@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "crypto";
+import { createHash, createHmac, randomUUID, timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import { rememberPublicVisitor } from "@/lib/lead-memory";
 import { prisma } from "@/lib/prisma";
@@ -7,7 +7,14 @@ import { recordSitePulseEvent } from "@/lib/site-pulse";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-function authorized(req: Request) {
+function safeCompare(left: string, right: string) {
+  const leftBuffer = Buffer.from(left);
+  const rightBuffer = Buffer.from(right);
+
+  return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+function authorized(req: Request, rawBody: string) {
   const secret = process.env.CAL_WEBHOOK_SECRET;
   if (!secret) return { ok: false, status: 503, error: "CAL_WEBHOOK_SECRET not set" };
 
@@ -15,8 +22,16 @@ function authorized(req: Request) {
   const bearer = req.headers.get("authorization");
   const headerSecret = req.headers.get("x-cal-secret");
   const querySecret = url.searchParams.get("secret");
+  const signatureHeader = req.headers.get("x-cal-signature-256");
+  const signature = signatureHeader?.replace(/^sha256=/i, "").trim();
+  const expectedSignature = createHmac("sha256", secret).update(rawBody).digest("hex");
 
-  if (bearer === `Bearer ${secret}` || headerSecret === secret || querySecret === secret) {
+  if (
+    (signature && safeCompare(signature, expectedSignature)) ||
+    bearer === `Bearer ${secret}` ||
+    headerSecret === secret ||
+    querySecret === secret
+  ) {
     return { ok: true };
   }
 
@@ -238,14 +253,21 @@ async function createCalWorkOrder(input: {
 }
 
 export async function POST(req: Request) {
-  const auth = authorized(req);
+  let rawBody: string;
+  try {
+    rawBody = await req.text();
+  } catch {
+    return NextResponse.json({ ok: false, error: "invalid_body" }, { status: 400 });
+  }
+
+  const auth = authorized(req, rawBody);
   if (!auth.ok) {
     return NextResponse.json({ ok: false, error: auth.error }, { status: auth.status });
   }
 
   let body: Record<string, unknown>;
   try {
-    const parsed = await req.json();
+    const parsed = JSON.parse(rawBody || "{}");
     body = parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
   } catch {
     return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });

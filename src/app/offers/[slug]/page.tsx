@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
 import { BandwidthMeter } from "@/components/BandwidthMeter";
+import { InteractiveOfferDecision } from "@/components/offers/InteractiveOfferDecision";
 import { OFFERS, type OfferSlug } from "@/lib/offers";
 import { formatHours, getOfferWorkload } from "@/lib/workload";
 
@@ -44,7 +45,7 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
   const workload = getOfferWorkload(O.slug);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-slate-950 text-slate-900">
       <LightHeader />
 
       {recommendedFromStart && (
@@ -199,8 +200,21 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
         </div>
       </section>
 
+      <InteractiveOfferDecision
+        slug={O.slug}
+        category={O.category}
+        priceBig={O.price.big}
+        priceSub={O.price.sub}
+        primaryCta={O.primaryCta}
+        secondaryCta={O.secondaryCta}
+        rightFit={O.rightFit}
+        wrongFit={O.wrongFit}
+        upgradeCredit={O.upgradeCredit}
+        workload={workload}
+      />
+
       {/* WHY BUY */}
-      <section className="border-b border-slate-200 bg-white">
+      <section className="border-b border-cyan-200/60 bg-gradient-to-br from-[#fff8f1] via-[#eef9ff] to-[#f3eaff]">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:py-16">
           <div className="text-xs uppercase tracking-widest text-cyan-700 font-semibold mb-2">
             Why buy this
@@ -243,7 +257,7 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
       </section>
 
       {/* WHO IT'S FOR / NOT FOR */}
-      <section className="border-b border-slate-200 bg-white">
+      <section className="border-b border-cyan-200/60 bg-gradient-to-br from-[#eef9ff] via-[#fff8f1] to-[#fff1dd]">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:py-16">
           <div className="text-xs uppercase tracking-widest text-cyan-700 font-semibold mb-2">Save us both time</div>
           <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 mb-8">
@@ -284,7 +298,7 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
       </section>
 
       {/* PROOF */}
-      <section className="border-b border-slate-200 bg-white">
+      <section className="border-b border-cyan-200/60 bg-gradient-to-br from-[#f6f9ff] via-[#ecfbff] to-[#fff4e3]">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:py-16">
           <div className="text-xs uppercase tracking-widest text-cyan-700 font-semibold mb-2">
             Why trust Ryan with this
@@ -301,7 +315,7 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
       </section>
 
       {/* FAQ */}
-      <section className="border-b border-slate-200 bg-slate-50">
+      <section className="border-b border-cyan-200/60 bg-gradient-to-br from-[#fff8f1] via-[#f6f9ff] to-[#eef9ff]">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:py-16">
           <div className="text-xs uppercase tracking-widest text-cyan-700 font-semibold mb-2">Common questions</div>
           <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 mb-8">
@@ -361,7 +375,8 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
 
 function Reason({ Icon, title, body }: { Icon: any; title: string; body: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.12)]">
+    <div className="relative overflow-hidden rounded-2xl border border-white/70 bg-white/80 p-6 shadow-[0_22px_55px_-18px_rgba(15,23,42,0.18)] ring-1 ring-cyan-300/20 backdrop-blur">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-400 via-brand-500 to-accent-500" />
       <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-brand-600 text-white">
         <Icon className="h-5 w-5" />
       </div>
@@ -431,8 +446,13 @@ function CostBlock({ tone, title, big, sub }: { tone: "lead" | "amber"; title: s
 
 function ProofTile({ big, label }: { big: string; label: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.10)]">
-      <div className="text-3xl sm:text-4xl font-bold text-slate-950 tabular-nums">{big}</div>
+    <div className="relative overflow-hidden rounded-2xl border border-white/70 bg-white/85 p-5 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.14)] ring-1 ring-cyan-300/20 backdrop-blur">
+      <div
+        aria-hidden
+        className="absolute -right-10 -top-10 h-24 w-24 rounded-full opacity-45 blur-2xl"
+        style={{ background: "radial-gradient(circle, rgba(92,208,255,0.75) 0%, transparent 70%)" }}
+      />
+      <div className="relative text-3xl sm:text-4xl font-bold bg-gradient-to-r from-brand-700 via-cyan-600 to-accent-500 bg-clip-text text-transparent tabular-nums">{big}</div>
       <div className="mt-2 text-sm text-slate-600 leading-snug">{label}</div>
     </div>
   );
@@ -440,7 +460,7 @@ function ProofTile({ big, label }: { big: string; label: string }) {
 
 function FAQ({ q, a }: { q: string; a: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.08)]">
+    <div className="rounded-2xl border border-white/70 bg-white/80 p-5 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.12)] ring-1 ring-slate-900/5 backdrop-blur">
       <div className="font-semibold text-slate-950">{q}</div>
       <p className="mt-2 text-sm text-slate-700 leading-relaxed">{a}</p>
     </div>
