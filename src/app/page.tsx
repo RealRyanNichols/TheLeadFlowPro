@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { TrackedLink } from "@/components/TrackedLink";
 import { BandwidthMeter } from "@/components/BandwidthMeter";
-import { LiveSignalAnalyzer, type SignalPlatform } from "@/components/site/LiveSignalAnalyzer";
+import { LiveLeadFlowPulse } from "@/components/site/LiveLeadFlowPulse";
 import { LightHeader } from "@/components/site/LightHeader";
 import { getYouTubeStatsCached, getXStatsCached, getFacebookStatsCached } from "@/lib/social-sync";
 import { getCapacitySnapshot } from "@/lib/capacity";
@@ -309,51 +309,6 @@ export default async function GrowV2Page() {
   const totalReach = ytSubs + xFollowers + fbFollowers + STATIC_FALLBACK.tiktok + STATIC_FALLBACK.instagram;
   const liveCount = (yt ? 1 : 0) + (x ? 1 : 0) + (fb ? 1 : 0);
   const capacitySnapshot = await getCapacitySnapshot().catch(() => null);
-  const signalPlatforms: SignalPlatform[] = [
-    {
-      key: "x",
-      label: "X / Twitter",
-      value: xFollowers,
-      source: x ? "live" : "baseline",
-      detail: x ? `${x.posts.toLocaleString()} posts tracked from X API` : "Manual public baseline until X API token is connected",
-      color: "#0a1d3f",
-      posts: x?.posts,
-    },
-    {
-      key: "facebook",
-      label: "Facebook",
-      value: fbFollowers,
-      source: fb ? "live" : "baseline",
-      detail: fb ? "Facebook Graph API pull" : "Manual public baseline until Page token is connected",
-      color: "#1273e8",
-    },
-    {
-      key: "youtube",
-      label: "YouTube",
-      value: ytSubs,
-      source: yt ? "live" : "baseline",
-      detail: yt ? `${yt.videos.toLocaleString()} videos and ${yt.views.toLocaleString()} views from YouTube API` : "Manual public baseline until YouTube API is connected",
-      color: "#f07a10",
-      posts: yt?.videos,
-      views: yt?.views,
-    },
-    {
-      key: "instagram",
-      label: "Instagram",
-      value: STATIC_FALLBACK.instagram,
-      source: "baseline",
-      detail: "Manual public baseline until Meta IG access is connected",
-      color: "#ff9a1f",
-    },
-    {
-      key: "tiktok",
-      label: "TikTok",
-      value: STATIC_FALLBACK.tiktok,
-      source: "baseline",
-      detail: "Manual public baseline until TikTok API approval is connected",
-      color: "#5cd0ff",
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
@@ -449,16 +404,11 @@ export default async function GrowV2Page() {
               </p>
             </div>
 
-            {/* Live signal analyzer */}
+            {/* Live public counter */}
             <div>
-              <LiveSignalAnalyzer
-                platforms={signalPlatforms}
-                capacity={capacitySnapshot}
-                lastChecked={new Date().toISOString()}
-                liveSourceCount={liveCount}
-              />
+              <LiveLeadFlowPulse capacity={capacitySnapshot} />
               <p className="mt-3 text-xs text-slate-500 text-center">
-                Live API data where connected. Manual baselines are labeled until each source is wired.
+                Real public traffic starts counting from this install. No fake visitor history.
               </p>
             </div>
           </div>

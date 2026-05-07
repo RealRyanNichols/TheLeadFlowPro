@@ -1020,3 +1020,23 @@ model WorkOrder {
   @@index([engagementId])
   @@index([createdAt(sort: Desc)])
 }
+
+// ─── Public site pulse ──────────────────────────────────────────
+// Anonymous public traffic/activity counter for the homepage. This is
+// deliberately not a user/session table: no IP addresses, emails, raw user
+// agents, or private identifiers. It powers the public "Live LeadFlow Counter"
+// and starts counting real site activity from the day it is installed.
+
+model SitePulseEvent {
+  id        String   @id @default(cuid())
+  visitorId String
+  path      String   @default("/")
+  eventType String
+  source    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([visitorId, createdAt])
+  @@index([eventType, createdAt])
+  @@index([path, createdAt])
+}
