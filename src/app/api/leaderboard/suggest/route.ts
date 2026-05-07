@@ -24,6 +24,7 @@ export async function GET(req: Request) {
       category: true,
       websiteUrl: true,
       socialUrl: true,
+      imageUrl: true,
       totalLifetimeDollars: true,
     },
     orderBy: { totalLifetimeDollars: "desc" },

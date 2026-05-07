@@ -33,6 +33,7 @@ export async function findOrCreateProfile(args: {
   email?: string | null;
   websiteUrl?: string | null;
   socialUrl?: string | null;
+  imageUrl?: string | null;
 }): Promise<{
   profile: Awaited<ReturnType<typeof prisma.businessProfile.findUnique>>;
   isNew: boolean;
@@ -41,6 +42,20 @@ export async function findOrCreateProfile(args: {
     where: { publicName: args.publicName },
   });
   if (existing) {
+    // Backfill imageUrl/website/social if profile is missing them and the
+    // current buyer provided new ones (low-friction enrichment for legacy
+    // profiles that didn't have logos at first creation).
+    const updates: any = {};
+    if (!existing.imageUrl   && args.imageUrl)   updates.imageUrl   = args.imageUrl;
+    if (!existing.websiteUrl && args.websiteUrl) updates.websiteUrl = args.websiteUrl;
+    if (!existing.socialUrl  && args.socialUrl)  updates.socialUrl  = args.socialUrl;
+    if (Object.keys(updates).length > 0) {
+      const refreshed = await prisma.businessProfile.update({
+        where: { id: existing.id },
+        data: updates,
+      });
+      return { profile: refreshed, isNew: false };
+    }
     return { profile: existing, isNew: false };
   }
 
@@ -66,6 +81,7 @@ export async function findOrCreateProfile(args: {
       email: args.email || null,
       websiteUrl: args.websiteUrl || null,
       socialUrl: args.socialUrl || null,
+      imageUrl: args.imageUrl || null,
       claimCode,
     },
   });

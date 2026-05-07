@@ -44,6 +44,7 @@ export async function POST(req: Request) {
 
   const websiteUrl = body.websiteUrl ? String(body.websiteUrl).slice(0, 200) : null;
   const socialUrl  = body.socialUrl  ? String(body.socialUrl).slice(0, 200)  : null;
+  const imageUrl   = body.imageUrl   ? String(body.imageUrl).slice(0, 400)   : null;
   const email      = body.email      ? String(body.email).toLowerCase().trim() : null;
 
   const dollars = clampDollars(Number(body.dollars));
@@ -79,6 +80,7 @@ export async function POST(req: Request) {
         category: category || "",
         websiteUrl: websiteUrl || "",
         socialUrl: socialUrl || "",
+        imageUrl: imageUrl || "",
         dollars: String(dollars),
         weekStart: weekStart.toISOString(),
       },

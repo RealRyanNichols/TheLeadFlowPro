@@ -103,8 +103,19 @@ export type LeaderboardEntryPublic = {
   category: string | null;
   websiteUrl: string | null;
   socialUrl: string | null;
+  imageUrl: string | null;
   points: number;
   pctOfTop: number; // 0..100, % of #1's points (for bar width)
+};
+
+export type LeaderboardBoostPublic = {
+  publicName: string;
+  city: string | null;
+  message: string;
+  imageUrl: string | null;
+  websiteUrl: string | null;
+  amountDollars: number;
+  expiresInSeconds: number;
 };
 
 export type LeaderboardTickerItem = {
@@ -122,14 +133,16 @@ export type LeaderboardSnapshotPublic = {
   totalDollars: number;
   entries: LeaderboardEntryPublic[];
   ticker: LeaderboardTickerItem[];
+  boosts: LeaderboardBoostPublic[];
   lastUpdated: string;
 };
 
 export async function getLeaderboardSnapshot(): Promise<LeaderboardSnapshotPublic> {
   const weekStart = currentWeekStart();
   const weekEnd = nextWeekStart();
+  const now = new Date();
 
-  const [entries, ticker, totalAgg] = await Promise.all([
+  const [entries, ticker, totalAgg, activeBoosts] = await Promise.all([
     prisma.leaderboardEntry.findMany({
       where: { weekStart },
       orderBy: { points: "desc" },
@@ -144,7 +157,23 @@ export async function getLeaderboardSnapshot(): Promise<LeaderboardSnapshotPubli
       where: { weekStart },
       _sum: { amountDollars: true },
     }),
+    prisma.boostMessage.findMany({
+      where: { expiresAt: { gt: now } },
+      orderBy: [{ amountDollars: "desc" }, { expiresAt: "desc" }],
+      take: 6,
+    }),
   ]);
+
+  // Pre-fetch business image URLs for entries that don't have one inlined
+  const namesNeedingImage = entries.filter((e) => !e.imageUrl).map((e) => e.publicName);
+  const profileImages: Record<string, string | null> = {};
+  if (namesNeedingImage.length > 0) {
+    const profiles = await prisma.businessProfile.findMany({
+      where: { publicName: { in: namesNeedingImage } },
+      select: { publicName: true, imageUrl: true },
+    });
+    for (const p of profiles) profileImages[p.publicName] = p.imageUrl;
+  }
 
   const topPoints = entries[0]?.points ?? 1;
   const entriesPublic: LeaderboardEntryPublic[] = entries.map((e, i) => ({
@@ -154,26 +183,38 @@ export async function getLeaderboardSnapshot(): Promise<LeaderboardSnapshotPubli
     category: e.category,
     websiteUrl: e.websiteUrl,
     socialUrl: e.socialUrl,
+    imageUrl: e.imageUrl || profileImages[e.publicName] || null,
     points: e.points,
     pctOfTop: Math.max(2, Math.round((e.points / Math.max(1, topPoints)) * 100)),
   }));
 
-  const now = Date.now();
+  const boosts: LeaderboardBoostPublic[] = activeBoosts.map((b) => ({
+    publicName: b.publicName,
+    city: b.city,
+    message: b.message,
+    imageUrl: b.imageUrl,
+    websiteUrl: b.websiteUrl,
+    amountDollars: b.amountDollars,
+    expiresInSeconds: Math.max(0, Math.floor((b.expiresAt.getTime() - now.getTime()) / 1000)),
+  }));
+
+  const nowMs = Date.now();
   const tickerItems: LeaderboardTickerItem[] = ticker.map((p) => ({
     publicName: p.publicName,
     city: p.city,
     amountDollars: p.amountDollars,
-    agoSeconds: Math.max(1, Math.floor((now - p.createdAt.getTime()) / 1000)),
+    agoSeconds: Math.max(1, Math.floor((nowMs - p.createdAt.getTime()) / 1000)),
   }));
 
   return {
     weekStart: weekStart.toISOString(),
     weekEnd: weekEnd.toISOString(),
-    resetsInSeconds: Math.max(0, Math.floor((weekEnd.getTime() - now) / 1000)),
+    resetsInSeconds: Math.max(0, Math.floor((weekEnd.getTime() - nowMs) / 1000)),
     totalEntries: entries.length,
     totalDollars: totalAgg._sum.amountDollars ?? 0,
     entries: entriesPublic,
     ticker: tickerItems,
+    boosts,
     lastUpdated: new Date().toISOString(),
   };
 }

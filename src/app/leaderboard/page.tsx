@@ -9,6 +9,7 @@ import { ArrowRight, Crown, Flame, Share2, Trophy, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { LeaderboardLive } from "@/components/leaderboard/LeaderboardLive";
+import { BoostMessageForm } from "@/components/leaderboard/BoostMessageForm";
 import { getLeaderboardSnapshot } from "@/lib/leaderboard";
 
 export const dynamic = "force-dynamic";
@@ -42,8 +43,35 @@ export default async function LeaderboardPage({ searchParams }: Props) {
     snap = null;
   }
 
+  // JSON-LD ItemList of top businesses for AI / search citation
+  const jsonLd = snap && snap.entries.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "East TX Top 10 — Live Leaderboard",
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://theleadflowpro.com"}/leaderboard`,
+    numberOfItems: snap.entries.length,
+    itemListElement: snap.entries.slice(0, 10).map((e) => ({
+      "@type": "ListItem",
+      position: e.rank,
+      item: {
+        "@type": "LocalBusiness",
+        name: e.publicName,
+        image: e.imageUrl || undefined,
+        url: e.websiteUrl || undefined,
+        address: e.city
+          ? { "@type": "PostalAddress", addressLocality: e.city, addressRegion: "TX", addressCountry: "US" }
+          : undefined,
+        knowsAbout: e.category || undefined,
+      },
+    })),
+  } : null;
+
   return (
     <div className="min-h-screen bg-white text-slate-900">
+      {jsonLd && (
+        /* eslint-disable-next-line react/no-danger */
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      )}
       <LightHeader activePath="/leaderboard" />
 
       {/* HERO */}
@@ -113,6 +141,14 @@ export default async function LeaderboardPage({ searchParams }: Props) {
               Leaderboard is warming up. Refresh in a moment.
             </div>
           )}
+        </div>
+      </section>
+
+      {/* BOOST — paid scrolling shoutouts */}
+      <section className="relative overflow-hidden border-b border-slate-200">
+        <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(180deg, #eef9ff 0%, #fff8f1 100%)" }} />
+        <div className="relative mx-auto max-w-3xl px-4 py-10 sm:py-14">
+          <BoostMessageForm />
         </div>
       </section>
 

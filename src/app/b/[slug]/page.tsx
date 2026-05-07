@@ -68,6 +68,33 @@ export default async function BusinessPage({ params }: Props) {
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${profile.publicName} ${profile.city} TX`)}`
     : null;
 
+  // JSON-LD schema for AI / search citation
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: profile.publicName,
+    url: businessUrl,
+    image: profile.imageUrl || undefined,
+    sameAs: [profile.websiteUrl, profile.socialUrl].filter(Boolean) as string[],
+    address: profile.city
+      ? {
+          "@type": "PostalAddress",
+          addressLocality: profile.city,
+          addressRegion: "TX",
+          addressCountry: "US",
+        }
+      : undefined,
+    areaServed: { "@type": "Place", name: profile.city ? `${profile.city}, TX` : "East Texas" },
+    knowsAbout: profile.category || undefined,
+    aggregateRating: thisWeek && thisWeek.points > 0
+      ? {
+          "@type": "AggregateRating",
+          ratingValue: Math.min(5, Math.max(1, Math.round((thisWeek.points / 50) + 3))),
+          reviewCount: Math.max(1, allTime._count),
+        }
+      : undefined,
+  };
+
   const shareText = `${profile.publicName}${profile.city ? ` (${profile.city}, TX)` : ""} is climbing the East TX Top 10. Push them past #1: `;
   const xShare  = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(businessUrl)}`;
   const fbShare = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(businessUrl)}`;
@@ -75,6 +102,8 @@ export default async function BusinessPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
+      {/* eslint-disable-next-line react/no-danger */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <LightHeader />
 
       {/* HERO */}

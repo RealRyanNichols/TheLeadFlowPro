@@ -40,6 +40,7 @@ async function processCheckout(sessionId: string) {
   const category = session.metadata?.category || null;
   const websiteUrl = session.metadata?.websiteUrl || null;
   const socialUrl = session.metadata?.socialUrl || null;
+  const imageUrl = session.metadata?.imageUrl || null;
   const dollars = Number(session.metadata?.dollars || 0);
   const weekStart = session.metadata?.weekStart
     ? new Date(session.metadata.weekStart)
@@ -63,6 +64,7 @@ async function processCheckout(sessionId: string) {
     email,
     websiteUrl,
     socialUrl,
+    imageUrl,
   });
   if (!profile) {
     return { ok: false as const, reason: "Couldn't create business profile." };
@@ -79,6 +81,7 @@ async function processCheckout(sessionId: string) {
         email: email || profile.email,
         websiteUrl: websiteUrl || profile.websiteUrl,
         socialUrl: socialUrl || profile.socialUrl,
+        imageUrl: imageUrl || profile.imageUrl,
         points: dollars,
         weekStart,
       },
@@ -88,6 +91,7 @@ async function processCheckout(sessionId: string) {
         category: category || undefined,
         websiteUrl: websiteUrl || undefined,
         socialUrl: socialUrl || undefined,
+        imageUrl: imageUrl || undefined,
         email: email || undefined,
       },
     });

@@ -25,6 +25,7 @@ type Entry = {
   category: string | null;
   websiteUrl: string | null;
   socialUrl: string | null;
+  imageUrl: string | null;
   points: number;
   pctOfTop: number;
 };
@@ -36,6 +37,16 @@ type Ticker = {
   agoSeconds: number;
 };
 
+type Boost = {
+  publicName: string;
+  city: string | null;
+  message: string;
+  imageUrl: string | null;
+  websiteUrl: string | null;
+  amountDollars: number;
+  expiresInSeconds: number;
+};
+
 type Snapshot = {
   weekStart: string;
   weekEnd: string;
@@ -44,6 +55,7 @@ type Snapshot = {
   totalDollars: number;
   entries: Entry[];
   ticker: Ticker[];
+  boosts?: Boost[];
   lastUpdated: string;
 };
 
@@ -59,6 +71,7 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
   const [category, setCategory] = useState<string>("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [socialUrl, setSocialUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [email, setEmail] = useState("");
   const [dollars, setDollars] = useState(25);
   const [submitting, setSubmitting] = useState(false);
@@ -72,6 +85,7 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
     category: string | null;
     websiteUrl: string | null;
     socialUrl: string | null;
+    imageUrl: string | null;
     totalLifetimeDollars: number;
   };
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -108,6 +122,7 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
     if (s.category) setCategory(s.category);
     if (s.websiteUrl) setWebsiteUrl(s.websiteUrl);
     if (s.socialUrl) setSocialUrl(s.socialUrl);
+    if (s.imageUrl) setImageUrl(s.imageUrl);
     setMatchedExisting(s);
     setShowSuggestions(false);
   }
@@ -171,6 +186,7 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
           category: category || null,
           websiteUrl: websiteUrl || null,
           socialUrl: socialUrl || null,
+          imageUrl: imageUrl || null,
           email: email || null,
           dollars,
         }),
@@ -200,11 +216,40 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
         <StatPill label="Active competitors" value={String(snap.totalEntries)} accent="brand" />
       </div>
 
+      {/* Boost messages — paid scrolling shouts */}
+      {snap.boosts && snap.boosts.length > 0 && (
+        <div className="rounded-2xl border border-accent-400 bg-gradient-to-r from-accent-300/40 via-cyan-200/40 to-accent-300/40 backdrop-blur p-3 overflow-hidden">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-accent-700 font-bold mb-2">
+            <Sparkles className="h-3.5 w-3.5" /> BOOSTED · paid shoutouts
+          </div>
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+            {snap.boosts.map((b, i) => (
+              <div
+                key={`boost-${b.publicName}-${i}`}
+                className="shrink-0 rounded-2xl border border-accent-400 bg-white px-3 py-2 text-xs flex items-center gap-2 shadow-sm max-w-md"
+              >
+                {b.imageUrl && (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={b.imageUrl} alt="" className="h-6 w-6 rounded-md object-cover shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <div className="font-bold text-slate-900 truncate">
+                    {b.publicName}
+                    {b.city ? <span className="ml-1 text-slate-500">· {b.city}</span> : null}
+                  </div>
+                  <div className="text-slate-700 truncate">{b.message}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Live ticker */}
       {snap.ticker.length > 0 && (
         <div className="rounded-2xl border border-cyan-200 bg-cyan-50/70 backdrop-blur p-3 overflow-hidden">
           <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-700 font-bold mb-2">
-            <Flame className="h-3.5 w-3.5animate-pulse" /> LIVE · just bought in
+            <Flame className="h-3.5 w-3.5 animate-pulse" /> LIVE · just bought in
           </div>
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
             {snap.ticker.map((t, i) => (
@@ -355,6 +400,29 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200"
             />
           </Field>
+          <Field label="Logo image URL (optional, shown publicly)">
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://yourdomain.com/logo.png"
+                className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200"
+              />
+              {imageUrl && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={imageUrl}
+                  alt="Logo preview"
+                  className="h-10 w-10 rounded-lg border border-slate-300 bg-white object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+              )}
+            </div>
+            <p className="mt-1 text-[10px] text-slate-500">
+              PNG, JPG, or SVG hosted anywhere public. We&rsquo;ll show it next to your name on the chart.
+            </p>
+          </Field>
         </div>
 
         {/* SLIDER — the fun part */}
@@ -494,6 +562,15 @@ function PodiumCard({ e }: { e: Entry }) {
         <RankIcon className={`h-7 w-7 ${rankColor}`} />
         <div className="text-3xl font-bold tabular-nums text-slate-950">#{e.rank}</div>
       </div>
+      {e.imageUrl && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={e.imageUrl}
+          alt={`${e.publicName} logo`}
+          className="mt-3 h-14 w-14 rounded-2xl border border-white/80 bg-white object-cover shadow-sm"
+          onError={(ev) => { (ev.target as HTMLImageElement).style.display = "none"; }}
+        />
+      )}
       <div className="mt-3 text-lg font-bold text-slate-950 leading-tight truncate">{e.publicName}</div>
       <div className="mt-1 text-xs text-slate-600 flex items-center gap-2">
         {e.city && (<><MapPin className="h-3 w-3" /> {e.city}</>)}
@@ -528,6 +605,17 @@ function BarRow({ e }: { e: Entry }) {
   return (
     <div className="flex items-center gap-3">
       <div className="w-10 text-right text-xs font-bold tabular-nums text-slate-500">#{e.rank}</div>
+      {e.imageUrl ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={e.imageUrl}
+          alt=""
+          className="h-8 w-8 rounded-lg border border-slate-200 bg-white object-cover shrink-0"
+          onError={(ev) => { (ev.target as HTMLImageElement).style.display = "none"; }}
+        />
+      ) : (
+        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-100 to-accent-100 shrink-0" />
+      )}
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-2 text-sm">
           <span className="font-semibold text-slate-950 truncate">{e.publicName}</span>

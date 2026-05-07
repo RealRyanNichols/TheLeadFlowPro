@@ -1125,6 +1125,7 @@ model LeaderboardEntry {
   email        String?  // contact, hidden
   websiteUrl   String?
   socialUrl    String?
+  imageUrl     String?
   points       Int      @default(0)
   weekStart    DateTime
   createdAt    DateTime @default(now())
@@ -1212,6 +1213,7 @@ model BusinessProfile {
   email                 String?
   websiteUrl            String?
   socialUrl             String?
+  imageUrl              String?
   claimCode             String    @unique
   claimedAt             DateTime?
   totalLifetimeDollars  Int       @default(0)
@@ -1220,4 +1222,67 @@ model BusinessProfile {
 
   @@index([publicName])
   @@index([city])
+}
+
+// ─── Boost Messages — paid scrolling ticker messages ─────────────
+// Pay $5/$20/$50, your message scrolls in the live leaderboard ticker
+// for 1hr / 6hr / 24hr respectively. Higher tier = more visibility.
+
+model BoostMessage {
+  id              String   @id @default(cuid())
+  publicName      String
+  city            String?
+  message         String
+  imageUrl        String?
+  websiteUrl      String?
+  amountDollars   Int
+  expiresAt       DateTime
+  stripeSessionId String   @unique
+  createdAt       DateTime @default(now())
+
+  @@index([expiresAt(sort: Desc)])
+}
+
+// ─── East TX Voice — money-weighted YES/NO sentiment voting ──────
+// Pure sentiment market. Money weights public opinion on local
+// topics. Money does NOT pay out to winning side — funds platform +
+// monthly local-charity donation. Legal as paid-petition voting.
+
+model VoiceTopic {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  question      String
+  description   String?   @db.Text
+  category      String?
+  city          String?
+  status        String    @default("open") // open | closed | resolved
+  yesDollars    Int       @default(0)
+  noDollars     Int       @default(0)
+  yesVotes      Int       @default(0)
+  noVotes       Int       @default(0)
+  submitterName String?
+  closesAt      DateTime
+  resolvedAt    DateTime?
+  winningSide   String?   // "yes" | "no"
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status, closesAt(sort: Desc)])
+  @@index([city])
+}
+
+model VoiceVote {
+  id              String   @id @default(cuid())
+  topicId         String
+  topicSlug       String
+  side            String   // "yes" | "no"
+  amountDollars   Int
+  displayName     String?
+  city            String?
+  buyerEmail      String?
+  stripeSessionId String   @unique
+  createdAt       DateTime @default(now())
+
+  @@index([topicId])
+  @@index([createdAt(sort: Desc)])
 }
