@@ -7,6 +7,7 @@ import { Activity, BarChart3 } from "lucide-react";
 
 type PulseSnapshot = {
   source: "live" | "offline";
+  offlineReason?: string;
   activeNow: number;
   viewsToday: number;
 };
@@ -89,6 +90,21 @@ function beaconPulse(eventType: string, path: string) {
   }).catch(() => undefined);
 }
 
+function trackedEventForHref(href: string): string | null {
+  let path = href;
+  try {
+    path = new URL(href, window.location.origin).pathname;
+  } catch {
+    path = href.split("?")[0];
+  }
+
+  if (path === "/start" || path.startsWith("/start/")) return "cta_start";
+  if (path === "/book" || path.startsWith("/book/")) return "cta_book";
+  if (path === "/availability" || path.startsWith("/availability/")) return "cta_capacity";
+  if (path === "/pulse" || path.startsWith("/pulse/")) return "cta_pulse";
+  return null;
+}
+
 export function SitePulseTracker() {
   const pathname = usePathname();
   const [snapshot, setSnapshot] = useState<PulseSnapshot>(EMPTY_SNAPSHOT);
@@ -112,7 +128,7 @@ export function SitePulseTracker() {
           if (mounted) setSnapshot(next);
         })
         .catch(() => undefined);
-    }, 30_000);
+    }, 20_000);
 
     return () => {
       mounted = false;
@@ -120,12 +136,34 @@ export function SitePulseTracker() {
     };
   }, [enabled, pathname]);
 
+  useEffect(() => {
+    if (!enabled) return;
+
+    function onClick(event: MouseEvent) {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const anchor = target.closest("a[href]");
+      if (!(anchor instanceof HTMLAnchorElement)) return;
+      if (anchor.dataset.pulseManual === "true") return;
+
+      const eventType = trackedEventForHref(anchor.href);
+      if (!eventType) return;
+
+      const path = new URL(anchor.href, window.location.origin).pathname;
+      beaconPulse(eventType, path);
+    }
+
+    document.addEventListener("click", onClick, { capture: true });
+    return () => document.removeEventListener("click", onClick, { capture: true });
+  }, [enabled]);
+
   if (!enabled) return null;
 
   return (
     <Link
       href="/pulse"
       onClick={() => beaconPulse("cta_pulse", "/pulse")}
+      data-pulse-manual="true"
       className="fixed bottom-4 left-4 z-40 inline-flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full border border-cyan-200/80 bg-white/90 px-3 py-2 text-xs font-semibold text-slate-900 shadow-[0_18px_45px_-22px_rgba(15,23,42,0.65)] backdrop-blur hover:border-cyan-300 hover:bg-cyan-50"
       aria-label="Open the live website effectiveness board"
     >

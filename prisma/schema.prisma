@@ -1040,3 +1040,18 @@ model SitePulseEvent {
   @@index([eventType, createdAt])
   @@index([path, createdAt])
 }
+
+model SitePulseDailyBackfill {
+  id             String   @id @default(cuid())
+  date           DateTime @unique @db.Date
+  views          Int      @default(0)
+  visitors       Int      @default(0)
+  serviceClicks  Int      @default(0)
+  bookClicks     Int      @default(0)
+  capacityClicks Int      @default(0)
+  source         String   @default("manual-import")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([date(sort: Desc)])
+}

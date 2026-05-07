@@ -18,16 +18,30 @@ type PulseTab = "live" | "views" | "clicks";
 
 type PulseSnapshot = {
   source: "live" | "offline";
+  offlineReason?: string;
+  offlineDetail?: string;
   activeNow: number;
   viewsToday: number;
   visitorsToday: number;
   totalViews: number;
+  importedViews: number;
   returningVisitors: number;
   serviceClicksToday: number;
   bookClicksToday: number;
   capacityClicksToday: number;
   updatedAt: string;
   hourly: Array<{ label: string; views: number; visitors: number }>;
+  daily: Array<{
+    date: string;
+    label: string;
+    views: number;
+    visitors: number;
+    serviceClicks: number;
+    bookClicks: number;
+    capacityClicks: number;
+    liveViews: number;
+    importedViews: number;
+  }>;
   topPaths: Array<{ path: string; views: number }>;
   recent: Array<{ eventType: string; path: string; createdAt: string }>;
 };
@@ -48,6 +62,7 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
   viewsToday: 0,
   visitorsToday: 0,
   totalViews: 0,
+  importedViews: 0,
   returningVisitors: 0,
   serviceClicksToday: 0,
   bookClicksToday: 0,
@@ -57,6 +72,17 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
     label: `${index + 1}`,
     views: 0,
     visitors: 0,
+  })),
+  daily: Array.from({ length: 7 }, (_, index) => ({
+    date: "",
+    label: `${index + 1}`,
+    views: 0,
+    visitors: 0,
+    serviceClicks: 0,
+    bookClicks: 0,
+    capacityClicks: 0,
+    liveViews: 0,
+    importedViews: 0,
   })),
   topPaths: [],
   recent: [],
@@ -155,7 +181,7 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
           if (mounted) setSnapshot(next);
         })
         .catch(() => undefined);
-    }, 15_000);
+    }, 10_000);
 
     return () => {
       mounted = false;
@@ -166,6 +192,10 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
   const maxHour = useMemo(
     () => Math.max(...snapshot.hourly.map((hour) => hour.views), 1),
     [snapshot.hourly],
+  );
+  const maxDay = useMemo(
+    () => Math.max(...snapshot.daily.map((day) => day.views), 1),
+    [snapshot.daily],
   );
 
   const totalClicks =
@@ -253,6 +283,31 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
                 ))}
               </div>
             </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold text-white">Last 7 days</div>
+                <div className="text-xs text-slate-300">
+                  {snapshot.importedViews ? `${fmt(snapshot.importedViews)} imported` : "Live + imported"}
+                </div>
+              </div>
+              <div className="flex h-24 items-end gap-2">
+                {snapshot.daily.map((day, index) => (
+                  <div key={`${day.date || day.label}-${index}`} className="flex flex-1 flex-col items-center gap-2">
+                    <div className="flex h-16 w-full items-end overflow-hidden rounded-full bg-white/[0.06]">
+                      <div
+                        className="w-full rounded-full bg-gradient-to-t from-cyan-500 via-cyan-300 to-accent-200"
+                        style={{
+                          height: `${Math.max(8, Math.round((day.views / maxDay) * 100))}%`,
+                        }}
+                        title={`${day.views.toLocaleString()} views`}
+                      />
+                    </div>
+                    <div className="text-[10px] text-slate-400">{day.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -261,6 +316,37 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
             <div className="grid grid-cols-2 gap-3">
               <PulseDetail Icon={BarChart3} label="Views today" value={fmt(snapshot.viewsToday)} />
               <PulseDetail Icon={RotateCw} label="Return viewers" value={fmt(snapshot.returningVisitors)} />
+            </div>
+            <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="text-sm font-semibold">Backdated daily stats</div>
+                <div className="text-xs text-slate-300">
+                  {snapshot.importedViews ? "Imported from real analytics" : "Ready for real imports"}
+                </div>
+              </div>
+              <div className="space-y-2">
+                {snapshot.daily.map((day) => (
+                  <div key={day.date || day.label}>
+                    <div className="mb-1 flex items-center justify-between gap-3 text-xs">
+                      <span className="text-slate-200">{day.label}</span>
+                      <span className="font-semibold tabular-nums text-white">
+                        {fmt(day.views)} views
+                        {day.importedViews ? (
+                          <span className="ml-1 font-medium text-cyan-200">
+                            ({fmt(day.importedViews)} imported)
+                          </span>
+                        ) : null}
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                      <div
+                        className="h-full rounded-full bg-cyan-300"
+                        style={{ width: `${Math.max(6, Math.round((day.views / maxDay) * 100))}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
               <div className="mb-3 text-sm font-semibold">Top pages today</div>
@@ -428,6 +514,7 @@ function PulseAction({
     <Link
       href={href}
       onClick={() => beaconPulse(eventType, href)}
+      data-pulse-manual="true"
       className="group inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-white px-3 py-3 text-center text-xs font-bold text-slate-950 shadow-lg shadow-black/20 hover:bg-cyan-50"
     >
       <Icon className="h-4 w-4 text-cyan-700" />
