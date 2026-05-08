@@ -7,6 +7,7 @@ import {
   CalendarCheck,
   Car,
   CheckCircle2,
+  Clock3,
   Eye,
   Gavel,
   HeartPulse,
@@ -17,6 +18,7 @@ import {
   Radar,
   Route,
   ShieldCheck,
+  Share2,
   Trophy,
   XCircle,
 } from "lucide-react";
@@ -32,10 +34,11 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = createSeoMetadata({
   title: "Live Website Pulse — The LeadFlow Pro",
   description:
-    "Watch The LeadFlow Pro's live website brain and engine: visitors, share links, click-backs, top pages, CTA clicks, learning signals, and Ryan's available capacity.",
+    "Watch The LeadFlow Pro's live website brain: views, dwell time, source trails, share backs, CTA intent, probability scores, and next-best moves.",
   path: "/pulse",
+  image: "/pulse/opengraph-image",
   imageTitle: "Live Website Pulse",
-  imageSubtitle: "A public look inside the site's live brain: attention, clicks, shares, bookings, learning signals, and capacity.",
+  imageSubtitle: "Live attention, click intent, share backs, dwell signals, source trails, and probability scores.",
 });
 
 const SCORECARDS = [
@@ -53,6 +56,43 @@ const SCORECARDS = [
     Icon: CalendarCheck,
     title: "Can Ryan fulfill it?",
     body: "The same board points back to capacity so the site is not selling more work than Ryan can actually handle.",
+  },
+];
+
+const PULSE_TOP_ACTIONS = [
+  {
+    Icon: Clock3,
+    title: "Stay and study",
+    body: "The counter records visible time. Longer attention tells us this page has real pull.",
+  },
+  {
+    Icon: MousePointerClick,
+    title: "Click the tabs",
+    body: "Every tab, source, share, and CTA becomes a signal the model can learn from.",
+  },
+  {
+    Icon: Share2,
+    title: "Share the proof",
+    body: "Tracked share links show which social posts pull people back to the live board.",
+  },
+];
+
+const DATA_SOURCE_STEPS = [
+  {
+    title: "Browser event",
+    body: "Anonymous page views, scroll depth, section views, copy signals, dead clicks, and visible time.",
+  },
+  {
+    title: "Source trail",
+    body: "UTM tags, share-link tokens, referrals, internal movement, and return visits stay attached to the event.",
+  },
+  {
+    title: "Conversion pressure",
+    body: "Service clicks, calendar clicks, checkout starts, purchase returns, questions, and share backs build the intent score.",
+  },
+  {
+    title: "Prediction layer",
+    body: "The model turns those signals into next-24-hour probabilities and the next experiment Ryan should build.",
   },
 ];
 
@@ -184,6 +224,26 @@ export default async function PulsePage() {
               one share link. If attention turns into clicks, bookings, buyers, and new product
               ideas, the site should show that movement in public.
             </p>
+
+            <div className="mt-5 rounded-3xl border border-white/75 bg-white/75 p-4 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.38)] backdrop-blur">
+              <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                How to use this page right now
+              </div>
+              <div className="mt-3 grid gap-2">
+                {PULSE_TOP_ACTIONS.map(({ Icon, title, body }) => (
+                  <div key={title} className="flex gap-3 rounded-2xl border border-cyan-100 bg-cyan-50/70 p-3">
+                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-cyan-200">
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <div className="text-sm font-semibold text-slate-950">{title}</div>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-600">{body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="mt-6 grid grid-cols-2 gap-3 sm:flex">
               <Link
                 href="/start"
@@ -201,6 +261,36 @@ export default async function PulsePage() {
           </div>
 
           <LiveLeadFlowPulse capacity={capacitySnapshot} />
+        </div>
+      </section>
+
+      <section className="border-b border-slate-200 bg-slate-950 text-white">
+        <div className="mx-auto max-w-7xl px-4 py-8">
+          <div className="grid gap-4 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-widest text-cyan-200">
+                How the data gets pulled
+              </div>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                This is not a screenshot. It is an event trail.
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-300">
+                The public page only shows anonymous totals. A client version can attach the same
+                trail to ads, calls, texts, forms, calendar bookings, invoices, and follow-up.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {DATA_SOURCE_STEPS.map((step, index) => (
+                <div key={step.title} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+                  <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-cyan-300 text-sm font-bold text-slate-950">
+                    {index + 1}
+                  </div>
+                  <h3 className="text-sm font-semibold text-white">{step.title}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-300">{step.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 

@@ -51,12 +51,64 @@ function getVisitorId() {
   return next;
 }
 
+function cleanSourceLabel(value: string, fallback = "unknown") {
+  const cleaned = value
+    .toLowerCase()
+    .replace(/^www\./, "")
+    .replace(/[^a-z0-9:._-]/g, "")
+    .slice(0, 44);
+  return cleaned || fallback;
+}
+
+function trafficFamily(hostname: string) {
+  const host = hostname.toLowerCase().replace(/^www\./, "");
+  if (host.includes("facebook.com") || host === "fb.com" || host === "m.facebook.com") return "facebook";
+  if (host === "x.com" || host.includes("twitter.com") || host === "t.co") return "x";
+  if (host.includes("instagram.com")) return "instagram";
+  if (host.includes("tiktok.com")) return "tiktok";
+  if (host.includes("linkedin.com")) return "linkedin";
+  if (host.includes("youtube.com") || host === "youtu.be") return "youtube";
+  if (host.includes("google.")) return "google";
+  if (host.includes("bing.com")) return "bing";
+  return cleanSourceLabel(host, "referral");
+}
+
+function getTrafficSource() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("lf_share")) return "share-link";
+
+  const utmSource = params.get("utm_source");
+  if (utmSource) return `utm:${cleanSourceLabel(utmSource, "campaign")}`;
+
+  if (!document.referrer) return "direct";
+
+  try {
+    const referrer = new URL(document.referrer);
+    if (referrer.origin === window.location.origin) return "internal";
+    return `ref:${trafficFamily(referrer.hostname)}`;
+  } catch {
+    return "ref:unknown";
+  }
+}
+
+function markReturnVisit() {
+  const key = "leadflow_last_seen_at";
+  const now = Date.now();
+  const previous = Number(window.localStorage.getItem(key) || 0);
+  window.localStorage.setItem(key, String(now));
+
+  if (!previous || !Number.isFinite(previous)) return null;
+
+  const ageMinutes = Math.round((now - previous) / 60_000);
+  return ageMinutes >= 30 ? Math.min(ageMinutes, 43_200) : null;
+}
+
 function fmt(value: number) {
   if (value >= 1000) return `${(value / 1000).toFixed(value >= 10_000 ? 0 : 1)}K`;
   return value.toLocaleString();
 }
 
-async function postPulse(eventType: string, path: string, target?: string, value?: number) {
+async function postPulse(eventType: string, path: string, target?: string, value?: number, source = getTrafficSource()) {
   const response = await fetch("/api/site-pulse", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -64,7 +116,7 @@ async function postPulse(eventType: string, path: string, target?: string, value
       visitorId: getVisitorId(),
       eventType,
       path,
-      source: "site-wide",
+      source,
       target,
       value,
     }),
@@ -75,12 +127,12 @@ async function postPulse(eventType: string, path: string, target?: string, value
   return (await response.json()) as PulseSnapshot;
 }
 
-function beaconPulse(eventType: string, path: string, target?: string, value?: number) {
+function beaconPulse(eventType: string, path: string, target?: string, value?: number, source = getTrafficSource()) {
   const payload = JSON.stringify({
     visitorId: getVisitorId(),
     eventType,
     path,
-    source: "site-wide",
+    source,
     target,
     value,
   });
@@ -185,6 +237,25 @@ function describeClickTarget(target: Element) {
   return cleanTargetLabel(`${role}:${label || "unlabeled"}`);
 }
 
+function describeExternalAnchor(anchor: HTMLAnchorElement) {
+  try {
+    const url = new URL(anchor.href, window.location.origin);
+    return cleanTargetLabel(`${url.hostname}${url.pathname}`);
+  } catch {
+    return cleanTargetLabel(anchor.href);
+  }
+}
+
+function sectionLabel(section: Element, index: number) {
+  const explicit = section.getAttribute("data-pulse-section") || section.getAttribute("aria-label") || section.id;
+  if (explicit) return cleanTargetLabel(explicit);
+
+  const heading = section.querySelector("h1,h2,h3");
+  if (heading?.textContent) return cleanTargetLabel(heading.textContent);
+
+  return `section-${index + 1}`;
+}
+
 function describeFormTarget(target: Element) {
   const field = target.closest("input,select,textarea");
   if (!field) return "";
@@ -210,15 +281,22 @@ export function SitePulseTracker() {
     if (!enabled) return;
 
     let mounted = true;
+    const source = getTrafficSource();
+    const returnAgeMinutes = markReturnVisit();
 
-    postPulse("view", pathname)
+    postPulse("view", pathname, undefined, undefined, source)
       .then((next) => {
         if (mounted) setSnapshot(next);
       })
       .catch(() => undefined);
 
+    beaconPulse("traffic_source", pathname, source, 1, source);
+    if (returnAgeMinutes) {
+      beaconPulse("return_visit", pathname, "minutes-since-last-visit", returnAgeMinutes, source);
+    }
+
     const interval = window.setInterval(() => {
-      postPulse("heartbeat", pathname)
+      postPulse("heartbeat", pathname, undefined, undefined, source)
         .then((next) => {
           if (mounted) setSnapshot(next);
         })
@@ -234,9 +312,10 @@ export function SitePulseTracker() {
   useEffect(() => {
     if (!enabled) return;
 
+    const source = getTrafficSource();
     const interval = window.setInterval(() => {
       if (document.visibilityState !== "visible") return;
-      beaconPulse("engagement", pathname, "visible-seconds", 20);
+      beaconPulse("engagement", pathname, "visible-seconds", 20, source);
     }, 20_000);
 
     return () => {
@@ -254,7 +333,7 @@ export function SitePulseTracker() {
     const key = `leadflow_purchase_signal_${slug}`;
     if (window.sessionStorage.getItem(key)) return;
     window.sessionStorage.setItem(key, "1");
-    beaconPulse("purchase_complete", pathname, slug, 1);
+    beaconPulse("purchase_complete", pathname, slug, 1, getTrafficSource());
   }, [enabled, pathname]);
 
   useEffect(() => {
@@ -270,29 +349,40 @@ export function SitePulseTracker() {
     const key = `leadflow_share_click_${cleanToken}`;
     if (window.sessionStorage.getItem(key)) return;
     window.sessionStorage.setItem(key, "1");
-    beaconPulse("share_click", pathname, cleanToken, 1);
+    beaconPulse("share_click", pathname, cleanToken, 1, "share-link");
   }, [enabled, pathname]);
 
   useEffect(() => {
     if (!enabled) return;
     formSeenRef.current = new Set();
+    const source = getTrafficSource();
 
     function onClick(event: MouseEvent) {
       const target = event.target;
       if (!(target instanceof Element)) return;
       if (target.closest("[data-pulse-ignore='true']")) return;
 
-      beaconPulse("click", pathname, describeClickTarget(target));
+      const interactive = target.closest(
+        "a[href],button,input,select,textarea,summary,[role='button'],[data-pulse-target]",
+      );
+      beaconPulse("click", pathname, describeClickTarget(target), undefined, source);
+      if (!interactive) {
+        beaconPulse("dead_click", pathname, describeClickTarget(target), 1, source);
+      }
 
       const anchor = target.closest("a[href]");
       if (!(anchor instanceof HTMLAnchorElement)) return;
       if (anchor.dataset.pulseManual === "true") return;
 
+      const url = new URL(anchor.href, window.location.origin);
+      if (url.origin !== window.location.origin) {
+        beaconPulse("external_click", pathname, describeExternalAnchor(anchor), 1, source);
+      }
+
       const signal = trackedEventForHref(anchor.href);
       if (!signal) return;
 
-      const path = new URL(anchor.href, window.location.origin).pathname;
-      beaconPulse(signal.eventType, path, signal.target);
+      beaconPulse(signal.eventType, url.pathname, signal.target, undefined, source);
     }
 
     document.addEventListener("click", onClick, { capture: true });
@@ -301,6 +391,7 @@ export function SitePulseTracker() {
 
   useEffect(() => {
     if (!enabled) return;
+    const source = getTrafficSource();
 
     function onFocusIn(event: FocusEvent) {
       const target = event.target;
@@ -310,7 +401,7 @@ export function SitePulseTracker() {
       const descriptor = describeFormTarget(target);
       if (!descriptor || formSeenRef.current.has(descriptor)) return;
       formSeenRef.current.add(descriptor);
-      beaconPulse("form_interaction", pathname, descriptor);
+      beaconPulse("form_interaction", pathname, descriptor, undefined, source);
     }
 
     document.addEventListener("focusin", onFocusIn, { capture: true });
@@ -320,6 +411,7 @@ export function SitePulseTracker() {
   useEffect(() => {
     if (!enabled) return;
 
+    const source = getTrafficSource();
     const seenDepths = new Set<number>();
     const thresholds = [25, 50, 75, 90];
 
@@ -332,13 +424,85 @@ export function SitePulseTracker() {
       thresholds.forEach((threshold) => {
         if (depth < threshold || seenDepths.has(threshold)) return;
         seenDepths.add(threshold);
-        beaconPulse("scroll_depth", pathname, `${threshold}%`, threshold);
+        beaconPulse("scroll_depth", pathname, `${threshold}%`, threshold, source);
       });
     }
 
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, [enabled, pathname]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const source = getTrafficSource();
+    const startedAt = Date.now();
+    let sent = false;
+
+    function sendExitSignal() {
+      if (sent) return;
+      sent = true;
+      const seconds = Math.min(3600, Math.max(1, Math.round((Date.now() - startedAt) / 1000)));
+      beaconPulse("page_exit", pathname, "dwell-seconds", seconds, source);
+    }
+
+    function onVisibilityChange() {
+      if (document.visibilityState === "hidden") sendExitSignal();
+    }
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pagehide", sendExitSignal);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pagehide", sendExitSignal);
+      sendExitSignal();
+    };
+  }, [enabled, pathname]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const source = getTrafficSource();
+    const seenSections = new Set<string>();
+    const sections = Array.from(document.querySelectorAll("section,[data-pulse-section]")).slice(0, 18);
+    if (!sections.length || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.42) continue;
+          const label = sectionLabel(entry.target, sections.indexOf(entry.target));
+          if (!label || seenSections.has(label) || seenSections.size >= 12) continue;
+          seenSections.add(label);
+          beaconPulse("section_view", pathname, label, 1, source);
+        }
+      },
+      { threshold: [0.42, 0.66] },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [enabled, pathname]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const source = getTrafficSource();
+    let lastCopyAt = 0;
+
+    function onCopy() {
+      const now = Date.now();
+      if (now - lastCopyAt < 2000) return;
+      lastCopyAt = now;
+      const copiedLength = Math.min(5000, window.getSelection()?.toString().length ?? 0);
+      const bucket = copiedLength >= 500 ? "copy:long" : copiedLength >= 80 ? "copy:medium" : "copy:short";
+      beaconPulse("copy_signal", pathname, bucket, copiedLength, source);
+    }
+
+    document.addEventListener("copy", onCopy);
+    return () => document.removeEventListener("copy", onCopy);
   }, [enabled, pathname]);
 
   if (!enabled) return null;

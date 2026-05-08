@@ -20,6 +20,13 @@ export type SitePulseEventType =
   | "form_interaction"
   | "scroll_depth"
   | "tool_interaction"
+  | "traffic_source"
+  | "return_visit"
+  | "page_exit"
+  | "section_view"
+  | "copy_signal"
+  | "external_click"
+  | "dead_click"
   | "share_create"
   | "share_click"
   | "share_view_import"
@@ -61,6 +68,13 @@ export type SitePulseSnapshot = {
   formInteractionsToday: number;
   scrollDepthSignalsToday: number;
   toolInteractionsToday: number;
+  trafficSourceSignalsToday: number;
+  returnVisitsToday: number;
+  pageExitsToday: number;
+  sectionViewsToday: number;
+  copySignalsToday: number;
+  externalClicksToday: number;
+  deadClicksToday: number;
   shareCreatesToday: number;
   shareClicksToday: number;
   socialShareViewsToday: number;
@@ -84,6 +98,8 @@ export type SitePulseSnapshot = {
     allClicks: number;
     formInteractions: number;
     toolInteractions: number;
+    deadClicks: number;
+    returnVisits: number;
     engagementSeconds: number;
     liveViews: number;
     importedViews: number;
@@ -96,6 +112,12 @@ export type SitePulseSnapshot = {
     engagementSeconds: number;
   }>;
   topQuestionTopics: Array<{ topic: string; count: number }>;
+  topTrafficSources: Array<{
+    source: string;
+    events: number;
+    views: number;
+    visitors: number;
+  }>;
   topShares: Array<{
     token: string;
     platform: string;
@@ -105,6 +127,7 @@ export type SitePulseSnapshot = {
     reportedViews: number;
   }>;
   learning: SitePulseLearning;
+  prediction: SitePulsePrediction;
   recent: Array<{ eventType: string; path: string; createdAt: string }>;
 };
 
@@ -125,6 +148,59 @@ export type SitePulseLearning = {
     body: string;
     evidence: string;
   }>;
+};
+
+export type SitePulsePrediction = {
+  confidence: "low" | "medium" | "high";
+  sampleSize: number;
+  trafficQualityScore: number;
+  conversionReadinessScore: number;
+  projectedNext24h: {
+    views: number;
+    visitors: number;
+    trackedActions: number;
+    serviceClicks: number;
+    bookClicks: number;
+    checkoutStarts: number;
+  };
+  projectedNext7d: {
+    views: number;
+    visitors: number;
+    trackedActions: number;
+    bookClicks: number;
+    checkoutStarts: number;
+  };
+  probabilities: {
+    serviceClickNext24h: number;
+    bookClickNext24h: number;
+    checkoutStartNext24h: number;
+    purchaseSignalNext24h: number;
+    shareClickNext24h: number;
+    returnVisitNext7d: number;
+  };
+  audienceIntent: Array<{
+    segment: string;
+    probability: number;
+    evidence: string;
+  }>;
+  topOpportunity: {
+    path: string;
+    score: number;
+    reason: string;
+    suggestedMove: string;
+  } | null;
+  trafficSourceMix: Array<{
+    source: string;
+    probability: number;
+    evidence: string;
+  }>;
+  nextBestExperiments: Array<{
+    title: string;
+    why: string;
+    metricToWatch: string;
+    expectedLift: string;
+  }>;
+  modelNotes: string[];
 };
 
 export type SitePulseBackfillDay = {
@@ -153,6 +229,13 @@ type PulseSummaryRow = {
   formInteractionsToday: number | bigint | null;
   scrollDepthSignalsToday: number | bigint | null;
   toolInteractionsToday: number | bigint | null;
+  trafficSourceSignalsToday: number | bigint | null;
+  returnVisitsToday: number | bigint | null;
+  pageExitsToday: number | bigint | null;
+  sectionViewsToday: number | bigint | null;
+  copySignalsToday: number | bigint | null;
+  externalClicksToday: number | bigint | null;
+  deadClicksToday: number | bigint | null;
   shareCreatesToday: number | bigint | null;
   shareClicksToday: number | bigint | null;
   socialShareViewsToday: number | bigint | null;
@@ -185,6 +268,8 @@ type DailyRow = {
   allClicks: number | bigint | null;
   formInteractions: number | bigint | null;
   toolInteractions: number | bigint | null;
+  deadClicks: number | bigint | null;
+  returnVisits: number | bigint | null;
   engagementSeconds: number | bigint | null;
 };
 
@@ -227,6 +312,13 @@ type ShareRow = {
   reportedViews: number | bigint | null;
 };
 
+type TrafficSourceRow = {
+  source: string;
+  events: number | bigint | null;
+  views: number | bigint | null;
+  visitors: number | bigint | null;
+};
+
 type RecentRow = {
   eventType: string;
   path: string;
@@ -252,6 +344,13 @@ const ALLOWED_EVENTS: SitePulseEventType[] = [
   "form_interaction",
   "scroll_depth",
   "tool_interaction",
+  "traffic_source",
+  "return_visit",
+  "page_exit",
+  "section_view",
+  "copy_signal",
+  "external_click",
+  "dead_click",
   "share_create",
   "share_click",
   "share_view_import",
@@ -346,7 +445,7 @@ export function cleanPulseEventType(value: unknown): SitePulseEventType {
 }
 
 function cleanSource(value: unknown, fallback = "homepage") {
-  return cleanText(value, fallback, 48).replace(/[^a-zA-Z0-9 _.-]/g, "").slice(0, 48);
+  return cleanText(value, fallback, 48).replace(/[^a-zA-Z0-9 _.:/-]/g, "").slice(0, 48);
 }
 
 function cleanPulseTarget(value: unknown) {
@@ -543,6 +642,13 @@ export function emptySitePulseSnapshot(
     formInteractionsToday: 0,
     scrollDepthSignalsToday: 0,
     toolInteractionsToday: 0,
+    trafficSourceSignalsToday: 0,
+    returnVisitsToday: 0,
+    pageExitsToday: 0,
+    sectionViewsToday: 0,
+    copySignalsToday: 0,
+    externalClicksToday: 0,
+    deadClicksToday: 0,
     shareCreatesToday: 0,
     shareClicksToday: 0,
     socialShareViewsToday: 0,
@@ -555,6 +661,7 @@ export function emptySitePulseSnapshot(
     topPaths: [],
     topIntentPaths: [],
     topQuestionTopics: [],
+    topTrafficSources: [],
     topShares: [],
     learning: {
       trackingStartedAt: null,
@@ -571,6 +678,7 @@ export function emptySitePulseSnapshot(
         },
       ],
     },
+    prediction: buildEmptyPrediction(),
     recent: [],
   };
 }
@@ -643,6 +751,8 @@ function buildEmptyDays(startDate?: Date) {
       allClicks: 0,
       formInteractions: 0,
       toolInteractions: 0,
+      deadClicks: 0,
+      returnVisits: 0,
       engagementSeconds: 0,
       liveViews: 0,
       importedViews: 0,
@@ -667,6 +777,8 @@ function fillDays(liveRows: DailyRow[], backfillRows: BackfillRow[], startDate: 
         allClicks: toInt(row.allClicks),
         formInteractions: toInt(row.formInteractions),
         toolInteractions: toInt(row.toolInteractions),
+        deadClicks: toInt(row.deadClicks),
+        returnVisits: toInt(row.returnVisits),
         engagementSeconds: toInt(row.engagementSeconds),
       },
     ]),
@@ -704,11 +816,389 @@ function fillDays(liveRows: DailyRow[], backfillRows: BackfillRow[], startDate: 
       allClicks: live?.allClicks ?? 0,
       formInteractions: live?.formInteractions ?? 0,
       toolInteractions: live?.toolInteractions ?? 0,
+      deadClicks: live?.deadClicks ?? 0,
+      returnVisits: live?.returnVisits ?? 0,
       engagementSeconds: live?.engagementSeconds ?? 0,
       liveViews,
       importedViews,
     };
   });
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function roundInt(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.round(value));
+}
+
+function percentProbability(expectedCount: number) {
+  if (!Number.isFinite(expectedCount) || expectedCount <= 0) return 0;
+  return clamp(Math.round((1 - Math.exp(-expectedCount)) * 100), 1, 99);
+}
+
+function safeRate(part: number, whole: number, fallback = 0) {
+  if (!whole) return fallback;
+  return clamp(part / whole, 0, 1);
+}
+
+function buildEmptyPrediction(): SitePulsePrediction {
+  return {
+    confidence: "low",
+    sampleSize: 0,
+    trafficQualityScore: 0,
+    conversionReadinessScore: 0,
+    projectedNext24h: {
+      views: 0,
+      visitors: 0,
+      trackedActions: 0,
+      serviceClicks: 0,
+      bookClicks: 0,
+      checkoutStarts: 0,
+    },
+    projectedNext7d: {
+      views: 0,
+      visitors: 0,
+      trackedActions: 0,
+      bookClicks: 0,
+      checkoutStarts: 0,
+    },
+    probabilities: {
+      serviceClickNext24h: 0,
+      bookClickNext24h: 0,
+      checkoutStartNext24h: 0,
+      purchaseSignalNext24h: 0,
+      shareClickNext24h: 0,
+      returnVisitNext7d: 0,
+    },
+    audienceIntent: [],
+    topOpportunity: null,
+    trafficSourceMix: [],
+    nextBestExperiments: [
+      {
+        title: "Feed the model live visitors",
+        why: "Prediction confidence starts low until the site has enough views, clicks, engaged time, shares, and return visits.",
+        metricToWatch: "Views, tracked actions, engaged seconds",
+        expectedLift: "Model confidence",
+      },
+    ],
+    modelNotes: [
+      "Estimates use anonymous first-party site behavior only.",
+      "Probabilities are directional, not guarantees.",
+    ],
+  };
+}
+
+function intentSegmentForPath(path: string) {
+  if (path.includes("leaderboard") || path.includes("voice") || path.includes("support")) {
+    return "Community voter or local supporter";
+  }
+  if (path.includes("challenge") || path.includes("tool") || path.includes("start")) {
+    return "Owner who needs a custom tool";
+  }
+  if (path.includes("consulting") || path.includes("decision") || path.includes("working-session")) {
+    return "Consulting buyer";
+  }
+  if (path.includes("services") || path.includes("platforms") || path.includes("social")) {
+    return "Social media buyer";
+  }
+  if (path.includes("book") || path.includes("contact")) {
+    return "Calendar-ready lead";
+  }
+  if (path.includes("pulse")) {
+    return "Data-driven operator";
+  }
+  return "General business owner";
+}
+
+function suggestedMoveForPath(path: string, clickRate: number) {
+  if (path.includes("leaderboard") || path.includes("voice")) {
+    return "Add more share buttons, board-specific badges, and a faster paid vote path above the fold.";
+  }
+  if (path.includes("pulse")) {
+    return "Route data-minded visitors into a paid audit or build challenge while the proof is fresh.";
+  }
+  if (path.includes("challenge")) {
+    return "Make the prompt builder even shorter and put the $250 build slot after the first useful answer.";
+  }
+  if (path.includes("book")) {
+    return "Reduce choices and show the best next calendar action immediately.";
+  }
+  if (clickRate < 0.08) {
+    return "Move the primary CTA higher, sharpen the offer promise, and add a proof block before the next section.";
+  }
+  return "Clone this page's hook into a short, email, ad angle, and homepage route.";
+}
+
+function buildSitePulsePrediction(input: {
+  historyDays: number;
+  totalViews: number;
+  visitorsToday: number;
+  returningVisitors: number;
+  daily: SitePulseSnapshot["daily"];
+  topIntentPaths: SitePulseSnapshot["topIntentPaths"];
+  topTrafficSources: SitePulseSnapshot["topTrafficSources"];
+  serviceClicksToday: number;
+  bookClicksToday: number;
+  checkoutClicksToday: number;
+  purchaseSignalsToday: number;
+  shareClicksToday: number;
+  socialShareViewsToday: number;
+  totalShareClicks: number;
+  trackedActionsToday: number;
+  allClicksToday: number;
+  formInteractionsToday: number;
+  toolInteractionsToday: number;
+  trafficSourceSignalsToday: number;
+  returnVisitsToday: number;
+  pageExitsToday: number;
+  sectionViewsToday: number;
+  copySignalsToday: number;
+  externalClicksToday: number;
+  deadClicksToday: number;
+  totalEngagementSeconds: number;
+}): SitePulsePrediction {
+  if (!input.totalViews && !input.daily.some((day) => day.views > 0)) return buildEmptyPrediction();
+
+  const totals = input.daily.reduce(
+    (acc, day) => ({
+      views: acc.views + day.views,
+      visitors: acc.visitors + day.visitors,
+      trackedActions: acc.trackedActions + day.trackedActions,
+      serviceClicks: acc.serviceClicks + day.serviceClicks,
+      bookClicks: acc.bookClicks + day.bookClicks,
+      checkoutClicks: acc.checkoutClicks + day.checkoutClicks,
+      purchaseSignals: acc.purchaseSignals + day.purchaseSignals,
+      deadClicks: acc.deadClicks + (day.deadClicks ?? 0),
+      returnVisits: acc.returnVisits + (day.returnVisits ?? 0),
+      engagementSeconds: acc.engagementSeconds + day.engagementSeconds,
+    }),
+    {
+      views: 0,
+      visitors: 0,
+      trackedActions: 0,
+      serviceClicks: 0,
+      bookClicks: 0,
+      checkoutClicks: 0,
+      purchaseSignals: 0,
+      deadClicks: 0,
+      returnVisits: 0,
+      engagementSeconds: 0,
+    },
+  );
+
+  const recent = input.daily.slice(-3);
+  const previous = input.daily.slice(-6, -3);
+  const recentViewsAvg =
+    recent.reduce((sum, day) => sum + day.views, 0) / Math.max(recent.length, 1);
+  const previousViewsAvg =
+    previous.reduce((sum, day) => sum + day.views, 0) / Math.max(previous.length, 1);
+  const trendMultiplier = clamp(
+    previousViewsAvg > 0 ? recentViewsAvg / previousViewsAvg : recentViewsAvg > 0 ? 1.2 : 1,
+    0.55,
+    2.4,
+  );
+
+  const baseViews24 = Math.max(input.visitorsToday, recentViewsAvg, input.totalViews / Math.max(input.historyDays, 1));
+  const projectedViews24 = roundInt(baseViews24 * trendMultiplier);
+  const visitorRate = safeRate(totals.visitors, totals.views, 0.62);
+  const actionRate = safeRate(totals.trackedActions || input.trackedActionsToday, totals.views || input.totalViews, 0.1);
+  const serviceRate = safeRate(totals.serviceClicks + input.serviceClicksToday, totals.views + input.totalViews, 0.025);
+  const bookRate = safeRate(totals.bookClicks + input.bookClicksToday, totals.views + input.totalViews, 0.012);
+  const checkoutRate = safeRate(
+    totals.checkoutClicks + input.checkoutClicksToday,
+    totals.views + input.totalViews,
+    0.006,
+  );
+  const purchaseRate = safeRate(
+    totals.purchaseSignals + input.purchaseSignalsToday,
+    Math.max(totals.checkoutClicks + input.checkoutClicksToday, 1),
+    0.08,
+  );
+  const shareRate = safeRate(input.totalShareClicks + input.shareClicksToday, totals.views + input.totalViews, 0.006);
+  const returnRate = safeRate(input.returningVisitors + input.returnVisitsToday, input.totalViews, 0.08);
+  const avgEngagedSecondsPerView = input.totalEngagementSeconds / Math.max(input.totalViews, 1);
+  const deadClickRate = safeRate(input.deadClicksToday + totals.deadClicks, input.allClicksToday + totals.trackedActions, 0);
+
+  const projectedNext24h = {
+    views: projectedViews24,
+    visitors: roundInt(projectedViews24 * visitorRate),
+    trackedActions: roundInt(projectedViews24 * actionRate),
+    serviceClicks: roundInt(projectedViews24 * serviceRate),
+    bookClicks: roundInt(projectedViews24 * bookRate),
+    checkoutStarts: roundInt(projectedViews24 * checkoutRate),
+  };
+
+  const projectedNext7d = {
+    views: roundInt(projectedViews24 * 7 * clamp(trendMultiplier, 0.75, 1.55)),
+    visitors: roundInt(projectedViews24 * 7 * visitorRate),
+    trackedActions: roundInt(projectedViews24 * 7 * actionRate),
+    bookClicks: roundInt(projectedViews24 * 7 * bookRate),
+    checkoutStarts: roundInt(projectedViews24 * 7 * checkoutRate),
+  };
+
+  const sampleSize = roundInt(
+    input.totalViews +
+      input.trackedActionsToday +
+      totals.trackedActions +
+      input.totalEngagementSeconds / 30 +
+      input.totalShareClicks * 3,
+  );
+  const confidence =
+    sampleSize >= 750 && input.historyDays >= 7
+      ? "high"
+      : sampleSize >= 120 && input.historyDays >= 3
+        ? "medium"
+        : "low";
+
+  const trafficQualityScore = clamp(
+    Math.round(
+      safeRate(totals.trackedActions + input.trackedActionsToday, Math.max(input.totalViews, 1)) * 260 +
+        clamp(avgEngagedSecondsPerView / 16, 0, 24) +
+        returnRate * 120 +
+        shareRate * 220 -
+        deadClickRate * 45,
+    ),
+    0,
+    100,
+  );
+  const conversionReadinessScore = clamp(
+    Math.round(serviceRate * 480 + bookRate * 900 + checkoutRate * 1200 + purchaseRate * 20 + shareRate * 250),
+    0,
+    100,
+  );
+
+  const intentScores = new Map<string, { score: number; evidence: string[] }>();
+  for (const row of input.topIntentPaths) {
+    const segment = intentSegmentForPath(row.path);
+    const score = row.views + row.clicks * 8 + Math.round(row.engagementSeconds / 20);
+    const existing = intentScores.get(segment) ?? { score: 0, evidence: [] };
+    existing.score += score;
+    existing.evidence.push(`${row.path}: ${row.views} views, ${row.clicks} actions`);
+    intentScores.set(segment, existing);
+  }
+  const totalIntentScore = Array.from(intentScores.values()).reduce((sum, item) => sum + item.score, 0);
+  const audienceIntent = Array.from(intentScores.entries())
+    .map(([segment, data]) => ({
+      segment,
+      probability: totalIntentScore ? clamp(Math.round((data.score / totalIntentScore) * 100), 1, 99) : 0,
+      evidence: data.evidence.slice(0, 2).join(" | "),
+    }))
+    .sort((a, b) => b.probability - a.probability)
+    .slice(0, 5);
+
+  const topPath =
+    input.topIntentPaths
+      .map((row) => {
+        const clickRate = safeRate(row.clicks, row.views, 0);
+        return {
+          ...row,
+          score: clamp(Math.round(row.views * 1.5 + row.clicks * 10 + row.engagementSeconds / 18), 0, 1000),
+          clickRate,
+        };
+      })
+      .sort((a, b) => b.score - a.score)[0] ?? null;
+
+  const topOpportunity = topPath
+    ? {
+        path: topPath.path,
+        score: topPath.score,
+        reason:
+          topPath.clickRate < 0.06
+            ? "Attention is showing up, but intent is weak for the amount of traffic."
+            : "This path is pulling enough attention and intent to deserve more distribution.",
+        suggestedMove: suggestedMoveForPath(topPath.path, topPath.clickRate),
+      }
+    : null;
+
+  const sourceTotal = input.topTrafficSources.reduce((sum, item) => sum + item.events, 0);
+  const trafficSourceMix = input.topTrafficSources.slice(0, 5).map((item) => ({
+    source: item.source,
+    probability: sourceTotal ? clamp(Math.round((item.events / sourceTotal) * 100), 1, 99) : 0,
+    evidence: `${item.events.toLocaleString()} events, ${item.visitors.toLocaleString()} visitors`,
+  }));
+
+  const experiments: SitePulsePrediction["nextBestExperiments"] = [];
+  if (input.deadClicksToday >= 3 || deadClickRate > 0.18) {
+    experiments.push({
+      title: "Fix dead zones",
+      why: "Visitors are clicking parts of the page that are not real actions.",
+      metricToWatch: "Dead-click rate and CTA clicks",
+      expectedLift: "Cleaner path to action",
+    });
+  }
+  if (topOpportunity) {
+    experiments.push({
+      title: `Exploit ${topOpportunity.path}`,
+      why: topOpportunity.reason,
+      metricToWatch: "View-to-intent rate on that path",
+      expectedLift: "More qualified clicks",
+    });
+  }
+  if (trafficSourceMix[0]?.probability >= 35) {
+    experiments.push({
+      title: `Build for ${trafficSourceMix[0].source}`,
+      why: "One traffic source is showing up stronger than the rest.",
+      metricToWatch: "Source-specific click and booking rate",
+      expectedLift: "Better message match",
+    });
+  }
+  if (input.shareClicksToday + input.socialShareViewsToday >= 2) {
+    experiments.push({
+      title: "Turn the share loop into a product",
+      why: "Shared links are creating measurable return traffic.",
+      metricToWatch: "Share creates, click-backs, imported social views",
+      expectedLift: "More repeat visits",
+    });
+  }
+  if (conversionReadinessScore < 35 && input.totalViews >= 25) {
+    experiments.push({
+      title: "Tighten the buying path",
+      why: "Traffic exists, but the model does not see enough booking or checkout pressure yet.",
+      metricToWatch: "Book clicks, checkout starts, purchase returns",
+      expectedLift: "Higher conversion readiness",
+    });
+  }
+  if (!experiments.length) {
+    experiments.push({
+      title: "Keep pushing traffic",
+      why: "The model needs more signal before it can separate real patterns from noise.",
+      metricToWatch: "Views, engaged time, return visits",
+      expectedLift: "Higher prediction confidence",
+    });
+  }
+
+  return {
+    confidence,
+    sampleSize,
+    trafficQualityScore,
+    conversionReadinessScore,
+    projectedNext24h,
+    projectedNext7d,
+    probabilities: {
+      serviceClickNext24h: percentProbability(projectedNext24h.views * serviceRate),
+      bookClickNext24h: percentProbability(projectedNext24h.views * bookRate),
+      checkoutStartNext24h: percentProbability(projectedNext24h.views * checkoutRate),
+      purchaseSignalNext24h: percentProbability(projectedNext24h.checkoutStarts * purchaseRate),
+      shareClickNext24h: percentProbability(projectedNext24h.views * shareRate),
+      returnVisitNext7d: percentProbability(projectedNext7d.visitors * returnRate),
+    },
+    audienceIntent,
+    topOpportunity,
+    trafficSourceMix,
+    nextBestExperiments: experiments.slice(0, 5),
+    modelNotes: [
+      "Probability uses first-party anonymous events, imported daily views, share links, and engagement time.",
+      "The model is directional. It should guide what to test next, not promise revenue or bookings.",
+      confidence === "low"
+        ? "Confidence is low because the sample is still small."
+        : confidence === "medium"
+          ? "Confidence is medium because enough live behavior exists to form a useful pattern."
+          : "Confidence is high because the model has multiple days and enough signal volume.",
+    ],
+  };
 }
 
 function buildLearningSignal(input: {
@@ -834,6 +1324,7 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
     pathRows,
     intentPathRows,
     questionTopicRows,
+    trafficSourceRows,
     shareRows,
     recentRows,
   ] = await Promise.all([
@@ -908,6 +1399,41 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
             (NOW() AT TIME ZONE 'America/Chicago')::date
         ) AS "toolInteractionsToday",
         COUNT(*) FILTER (
+          WHERE "eventType" = 'traffic_source'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "trafficSourceSignalsToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'return_visit'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "returnVisitsToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'page_exit'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "pageExitsToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'section_view'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "sectionViewsToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'copy_signal'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "copySignalsToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'external_click'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "externalClicksToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'dead_click'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "deadClicksToday",
+        COUNT(*) FILTER (
           WHERE "eventType" = 'share_create'
           AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
             (NOW() AT TIME ZONE 'America/Chicago')::date
@@ -968,6 +1494,8 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
         COUNT(*) FILTER (WHERE "eventType" = 'click') AS "allClicks",
         COUNT(*) FILTER (WHERE "eventType" = 'form_interaction') AS "formInteractions",
         COUNT(*) FILTER (WHERE "eventType" = 'tool_interaction') AS "toolInteractions",
+        COUNT(*) FILTER (WHERE "eventType" = 'dead_click') AS "deadClicks",
+        COUNT(*) FILTER (WHERE "eventType" = 'return_visit') AS "returnVisits",
         COALESCE(SUM("value") FILTER (WHERE "eventType" = 'engagement'), 0) AS "engagementSeconds"
       FROM "SitePulseEvent"
       WHERE (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date >= ${dateKey(historyStart)}::date
@@ -1011,6 +1539,13 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
             'form_interaction',
             'scroll_depth',
             'tool_interaction',
+            'traffic_source',
+            'return_visit',
+            'page_exit',
+            'section_view',
+            'copy_signal',
+            'external_click',
+            'dead_click',
             'share_create',
             'share_click'
           )
@@ -1039,6 +1574,13 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
                 'form_interaction',
                 'scroll_depth',
                 'tool_interaction',
+                'traffic_source',
+                'return_visit',
+                'page_exit',
+                'section_view',
+                'copy_signal',
+                'external_click',
+                'dead_click',
                 'share_create',
                 'share_click'
               )
@@ -1055,6 +1597,18 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
       GROUP BY topic
       ORDER BY "count" DESC
       LIMIT 6
+    `,
+    prisma.$queryRaw<TrafficSourceRow[]>`
+      SELECT
+        COALESCE(NULLIF("source", ''), 'unknown') AS "source",
+        COUNT(*) AS events,
+        COUNT(*) FILTER (WHERE "eventType" = 'view') AS views,
+        COUNT(DISTINCT "visitorId") AS visitors
+      FROM "SitePulseEvent"
+      WHERE (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date >= ${dateKey(historyStart)}::date
+      GROUP BY "source"
+      ORDER BY events DESC
+      LIMIT 8
     `,
     prisma.$queryRaw<ShareRow[]>`
       SELECT
@@ -1102,6 +1656,13 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
   const formInteractionsToday = toInt(summary.formInteractionsToday);
   const scrollDepthSignalsToday = toInt(summary.scrollDepthSignalsToday);
   const toolInteractionsToday = toInt(summary.toolInteractionsToday);
+  const trafficSourceSignalsToday = toInt(summary.trafficSourceSignalsToday);
+  const returnVisitsToday = toInt(summary.returnVisitsToday);
+  const pageExitsToday = toInt(summary.pageExitsToday);
+  const sectionViewsToday = toInt(summary.sectionViewsToday);
+  const copySignalsToday = toInt(summary.copySignalsToday);
+  const externalClicksToday = toInt(summary.externalClicksToday);
+  const deadClicksToday = toInt(summary.deadClicksToday);
   const shareCreatesToday = toInt(summary.shareCreatesToday);
   const shareClicksToday = toInt(summary.shareClicksToday);
   const socialShareViewsToday = toInt(summary.socialShareViewsToday);
@@ -1116,6 +1677,12 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
   const topQuestionTopics = questionTopicRows.map((row) => ({
     topic: row.topic,
     count: toInt(row.count),
+  }));
+  const topTrafficSources = trafficSourceRows.map((row) => ({
+    source: row.source,
+    events: toInt(row.events),
+    views: toInt(row.views),
+    visitors: toInt(row.visitors),
   }));
   const topShares = shareRows.map((row) => ({
     token: row.token,
@@ -1147,6 +1714,13 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
     formInteractionsToday,
     scrollDepthSignalsToday,
     toolInteractionsToday,
+    trafficSourceSignalsToday,
+    returnVisitsToday,
+    pageExitsToday,
+    sectionViewsToday,
+    copySignalsToday,
+    externalClicksToday,
+    deadClicksToday,
     shareCreatesToday,
     shareClicksToday,
     socialShareViewsToday,
@@ -1162,6 +1736,7 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
     })),
     topIntentPaths,
     topQuestionTopics,
+    topTrafficSources,
     topShares,
     learning: buildLearningSignal({
       trackingStartedAt,
@@ -1174,6 +1749,34 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
       checkoutClicksToday,
       purchaseSignalsToday,
       chatQuestionsToday,
+      totalEngagementSeconds,
+    }),
+    prediction: buildSitePulsePrediction({
+      historyDays,
+      totalViews,
+      visitorsToday: toInt(summary.visitorsToday) + toInt(todayBackfill?.visitors),
+      returningVisitors: toInt(returning?.returningVisitors),
+      daily,
+      topIntentPaths,
+      topTrafficSources,
+      serviceClicksToday,
+      bookClicksToday,
+      checkoutClicksToday,
+      purchaseSignalsToday,
+      shareClicksToday,
+      socialShareViewsToday,
+      totalShareClicks,
+      trackedActionsToday,
+      allClicksToday,
+      formInteractionsToday,
+      toolInteractionsToday,
+      trafficSourceSignalsToday,
+      returnVisitsToday,
+      pageExitsToday,
+      sectionViewsToday,
+      copySignalsToday,
+      externalClicksToday,
+      deadClicksToday,
       totalEngagementSeconds,
     }),
     recent: recentRows.map((row) => ({

@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const SHARE_TEXT =
-  "One site. One page. One share. Watch The LeadFlow Pro show attention turning into clicks.";
+  "Watch The LeadFlow Pro think in public: live views, dwell time, share backs, click intent, and probability signals.";
 
 function cleanPlatform(value: unknown) {
   if (typeof value !== "string") return "copy";

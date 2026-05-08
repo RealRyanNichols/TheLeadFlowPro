@@ -1,5 +1,6 @@
 "use client";
 
+import type { SitePulsePrediction } from "@/lib/site-pulse";
 import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
@@ -38,6 +39,13 @@ type PulseSnapshot = {
   formInteractionsToday: number;
   scrollDepthSignalsToday: number;
   toolInteractionsToday: number;
+  trafficSourceSignalsToday: number;
+  returnVisitsToday: number;
+  pageExitsToday: number;
+  sectionViewsToday: number;
+  copySignalsToday: number;
+  externalClicksToday: number;
+  deadClicksToday: number;
   shareCreatesToday: number;
   shareClicksToday: number;
   socialShareViewsToday: number;
@@ -50,6 +58,12 @@ type PulseSnapshot = {
     clicks: number;
     engagementSeconds: number;
   }>;
+  topTrafficSources: Array<{
+    source: string;
+    events: number;
+    views: number;
+    visitors: number;
+  }>;
   learning: {
     recommendedActions: Array<{
       priority: "high" | "medium" | "watch";
@@ -58,6 +72,7 @@ type PulseSnapshot = {
       evidence: string;
     }>;
   };
+  prediction: SitePulsePrediction;
 };
 
 const EMPTY: PulseSnapshot = {
@@ -80,6 +95,13 @@ const EMPTY: PulseSnapshot = {
   formInteractionsToday: 0,
   scrollDepthSignalsToday: 0,
   toolInteractionsToday: 0,
+  trafficSourceSignalsToday: 0,
+  returnVisitsToday: 0,
+  pageExitsToday: 0,
+  sectionViewsToday: 0,
+  copySignalsToday: 0,
+  externalClicksToday: 0,
+  deadClicksToday: 0,
   shareCreatesToday: 0,
   shareClicksToday: 0,
   socialShareViewsToday: 0,
@@ -87,7 +109,29 @@ const EMPTY: PulseSnapshot = {
   totalEngagementSeconds: 0,
   updatedAt: "1970-01-01T00:00:00.000Z",
   topIntentPaths: [],
+  topTrafficSources: [],
   learning: { recommendedActions: [] },
+  prediction: {
+    confidence: "low",
+    sampleSize: 0,
+    trafficQualityScore: 0,
+    conversionReadinessScore: 0,
+    projectedNext24h: { views: 0, visitors: 0, trackedActions: 0, serviceClicks: 0, bookClicks: 0, checkoutStarts: 0 },
+    projectedNext7d: { views: 0, visitors: 0, trackedActions: 0, bookClicks: 0, checkoutStarts: 0 },
+    probabilities: {
+      serviceClickNext24h: 0,
+      bookClickNext24h: 0,
+      checkoutStartNext24h: 0,
+      purchaseSignalNext24h: 0,
+      shareClickNext24h: 0,
+      returnVisitNext7d: 0,
+    },
+    audienceIntent: [],
+    topOpportunity: null,
+    trafficSourceMix: [],
+    nextBestExperiments: [],
+    modelNotes: [],
+  },
 };
 
 function fmt(value: number) {
@@ -382,6 +426,101 @@ export function LivePulseEngineRoom() {
           </div>
         </div>
 
+        <div className="mt-8 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-cyan-100">
+                  <Brain className="h-4 w-4" />
+                  Probability engine
+                </div>
+                <h3 className="mt-3 text-2xl font-semibold tracking-tight">
+                  The longer people stay, the stronger the signal gets.
+                </h3>
+              </div>
+              <div className="rounded-2xl border border-cyan-300/25 bg-cyan-300/10 px-4 py-3 text-right">
+                <div className="text-2xl font-semibold text-cyan-100">
+                  {snapshot.prediction.confidence}
+                </div>
+                <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-300">
+                  confidence
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-slate-300">
+              Staying on the page is not just vanity time. It tells the system that the page is
+              worth studying, the topic is worth building around, and the next offer should be
+              easier to reach. This starts as off-chain Proof Points; crypto only makes sense later
+              if the reward loop proves real business value.
+            </p>
+
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <EngineKpi Icon={Activity} label="Traffic score" value={`${snapshot.prediction.trafficQualityScore}/100`} />
+              <EngineKpi Icon={ShoppingCart} label="Buy readiness" value={`${snapshot.prediction.conversionReadinessScore}/100`} />
+            </div>
+
+            <div className="mt-4 space-y-3">
+              <ProbabilityRow label="Service click in 24h" value={snapshot.prediction.probabilities.serviceClickNext24h} />
+              <ProbabilityRow label="Book click in 24h" value={snapshot.prediction.probabilities.bookClickNext24h} />
+              <ProbabilityRow label="Checkout start in 24h" value={snapshot.prediction.probabilities.checkoutStartNext24h} />
+              <ProbabilityRow label="Return visit in 7d" value={snapshot.prediction.probabilities.returnVisitNext7d} />
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-5">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-100">
+              <Lightbulb className="h-4 w-4" />
+              What the data says to build next
+            </div>
+            {snapshot.prediction.topOpportunity ? (
+              <div className="mt-4 rounded-2xl border border-accent-300/25 bg-accent-300/10 p-4">
+                <div className="text-sm font-semibold text-white">{snapshot.prediction.topOpportunity.path}</div>
+                <p className="mt-2 text-sm leading-relaxed text-slate-300">{snapshot.prediction.topOpportunity.reason}</p>
+                <div className="mt-3 rounded-xl bg-slate-950/60 p-3 text-xs font-semibold leading-relaxed text-cyan-100">
+                  {snapshot.prediction.topOpportunity.suggestedMove}
+                </div>
+              </div>
+            ) : (
+              <p className="mt-3 text-sm leading-relaxed text-slate-300">
+                The model needs more visitors, clicks, share backs, and dwell time before it can
+                name a winning path.
+              </p>
+            )}
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {snapshot.prediction.nextBestExperiments.slice(0, 4).map((experiment) => (
+                <div key={experiment.title} className="rounded-2xl border border-white/10 bg-white/[0.05] p-3">
+                  <div className="text-sm font-semibold text-white">{experiment.title}</div>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-300">{experiment.why}</p>
+                  <div className="mt-2 text-[10px] font-semibold uppercase tracking-widest text-cyan-200">
+                    Watch: {experiment.metricToWatch}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.05] p-3">
+              <div className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                Traffic source mix
+              </div>
+              <div className="mt-3 space-y-2">
+                {(snapshot.prediction.trafficSourceMix.length
+                  ? snapshot.prediction.trafficSourceMix
+                  : snapshot.topTrafficSources.map((source) => ({
+                      source: source.source,
+                      probability: 0,
+                      evidence: `${source.events} events`,
+                    }))
+                )
+                  .slice(0, 4)
+                  .map((source) => (
+                    <ProbabilityRow key={source.source} label={source.source} value={source.probability} sub={source.evidence} />
+                  ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           <OwnerUseCase
             title="What got attention?"
@@ -428,6 +567,24 @@ function SourceChip({ label, value }: { label: string; value: string }) {
         {label}
       </div>
       <div className="mt-1 text-sm font-semibold text-cyan-100">{value}</div>
+    </div>
+  );
+}
+
+function ProbabilityRow({ label, value, sub }: { label: string; value: number; sub?: string }) {
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between gap-3 text-xs">
+        <span className="font-semibold text-slate-200">{label}</span>
+        <span className="font-mono font-bold text-cyan-100">{value}%</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-white/10">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-accent-200 to-accent-400"
+          style={{ width: `${Math.max(4, value)}%` }}
+        />
+      </div>
+      {sub ? <div className="mt-1 text-[11px] text-slate-400">{sub}</div> : null}
     </div>
   );
 }

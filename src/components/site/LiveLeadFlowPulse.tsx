@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
   ArrowRight,
@@ -29,6 +29,46 @@ import {
 
 type PulseTab = "live" | "views" | "clicks" | "share" | "learn";
 
+type PulsePrediction = {
+  confidence: "low" | "medium" | "high";
+  sampleSize: number;
+  trafficQualityScore: number;
+  conversionReadinessScore: number;
+  projectedNext24h: {
+    views: number;
+    visitors: number;
+    trackedActions: number;
+    serviceClicks: number;
+    bookClicks: number;
+    checkoutStarts: number;
+  };
+  projectedNext7d: {
+    views: number;
+    visitors: number;
+    trackedActions: number;
+    bookClicks: number;
+    checkoutStarts: number;
+  };
+  probabilities: {
+    serviceClickNext24h: number;
+    bookClickNext24h: number;
+    checkoutStartNext24h: number;
+    purchaseSignalNext24h: number;
+    shareClickNext24h: number;
+    returnVisitNext7d: number;
+  };
+  audienceIntent: Array<{ segment: string; probability: number; evidence: string }>;
+  topOpportunity: { path: string; score: number; reason: string; suggestedMove: string } | null;
+  trafficSourceMix: Array<{ source: string; probability: number; evidence: string }>;
+  nextBestExperiments: Array<{
+    title: string;
+    why: string;
+    metricToWatch: string;
+    expectedLift: string;
+  }>;
+  modelNotes: string[];
+};
+
 type PulseSnapshot = {
   source: "live" | "offline";
   offlineReason?: string;
@@ -52,6 +92,13 @@ type PulseSnapshot = {
   formInteractionsToday: number;
   scrollDepthSignalsToday: number;
   toolInteractionsToday: number;
+  trafficSourceSignalsToday: number;
+  returnVisitsToday: number;
+  pageExitsToday: number;
+  sectionViewsToday: number;
+  copySignalsToday: number;
+  externalClicksToday: number;
+  deadClicksToday: number;
   shareCreatesToday: number;
   shareClicksToday: number;
   socialShareViewsToday: number;
@@ -75,6 +122,8 @@ type PulseSnapshot = {
     allClicks: number;
     formInteractions: number;
     toolInteractions: number;
+    deadClicks: number;
+    returnVisits: number;
     engagementSeconds: number;
     liveViews: number;
     importedViews: number;
@@ -87,6 +136,7 @@ type PulseSnapshot = {
     engagementSeconds: number;
   }>;
   topQuestionTopics: Array<{ topic: string; count: number }>;
+  topTrafficSources: Array<{ source: string; events: number; views: number; visitors: number }>;
   topShares: Array<{
     token: string;
     platform: string;
@@ -113,6 +163,7 @@ type PulseSnapshot = {
       evidence: string;
     }>;
   };
+  prediction: PulsePrediction;
   recent: Array<{ eventType: string; path: string; createdAt: string }>;
 };
 
@@ -147,6 +198,13 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
   formInteractionsToday: 0,
   scrollDepthSignalsToday: 0,
   toolInteractionsToday: 0,
+  trafficSourceSignalsToday: 0,
+  returnVisitsToday: 0,
+  pageExitsToday: 0,
+  sectionViewsToday: 0,
+  copySignalsToday: 0,
+  externalClicksToday: 0,
+  deadClicksToday: 0,
   shareCreatesToday: 0,
   shareClicksToday: 0,
   socialShareViewsToday: 0,
@@ -174,6 +232,8 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
     allClicks: 0,
     formInteractions: 0,
     toolInteractions: 0,
+    deadClicks: 0,
+    returnVisits: 0,
     engagementSeconds: 0,
     liveViews: 0,
     importedViews: 0,
@@ -181,6 +241,7 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
   topPaths: [],
   topIntentPaths: [],
   topQuestionTopics: [],
+  topTrafficSources: [],
   topShares: [],
   learning: {
     trackingStartedAt: null,
@@ -189,6 +250,27 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
     longestWatchedPath: null,
     topQuestionTopic: null,
     recommendedActions: [],
+  },
+  prediction: {
+    confidence: "low",
+    sampleSize: 0,
+    trafficQualityScore: 0,
+    conversionReadinessScore: 0,
+    projectedNext24h: { views: 0, visitors: 0, trackedActions: 0, serviceClicks: 0, bookClicks: 0, checkoutStarts: 0 },
+    projectedNext7d: { views: 0, visitors: 0, trackedActions: 0, bookClicks: 0, checkoutStarts: 0 },
+    probabilities: {
+      serviceClickNext24h: 0,
+      bookClickNext24h: 0,
+      checkoutStartNext24h: 0,
+      purchaseSignalNext24h: 0,
+      shareClickNext24h: 0,
+      returnVisitNext7d: 0,
+    },
+    audienceIntent: [],
+    topOpportunity: null,
+    trafficSourceMix: [],
+    nextBestExperiments: [],
+    modelNotes: [],
   },
   recent: [],
 };
@@ -240,6 +322,13 @@ function eventLabel(eventType: string) {
     form_interaction: "Touched form",
     scroll_depth: "Scrolled deeper",
     tool_interaction: "Used tool",
+    traffic_source: "Source captured",
+    return_visit: "Returned again",
+    page_exit: "Dwell recorded",
+    section_view: "Studied section",
+    copy_signal: "Copied proof",
+    external_click: "Left through link",
+    dead_click: "Clicked dead zone",
     share_create: "Shared pulse",
     share_click: "Clicked shared pulse",
     share_view_import: "Imported social views",
@@ -262,13 +351,15 @@ async function fetchPulse() {
   return (await response.json()) as PulseSnapshot;
 }
 
-function beaconPulse(eventType: string, path: string) {
+function beaconPulse(eventType: string, path: string, target?: string, value?: number) {
   if (typeof window === "undefined") return;
   const payload = JSON.stringify({
     visitorId: getVisitorId(),
     eventType,
     path,
     source: "homepage-counter",
+    target,
+    value,
   });
   const body = new Blob([payload], { type: "application/json" });
 
@@ -293,6 +384,7 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
   const [sharingPlatform, setSharingPlatform] = useState<string | null>(null);
   const [sessionSeconds, setSessionSeconds] = useState(0);
   const [sessionActions, setSessionActions] = useState(0);
+  const milestoneRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     let mounted = true;
@@ -332,6 +424,16 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
       window.clearInterval(interval);
     };
   }, []);
+
+  useEffect(() => {
+    const milestones = [25, 75, 150, 300];
+    const reached = milestones.find((milestone) => sessionSeconds >= milestone && !milestoneRef.current.has(milestone));
+    if (!reached) return;
+
+    milestoneRef.current.add(reached);
+    beaconPulse("tool_interaction", "/pulse", `stay-milestone:${reached}s`, reached);
+    setSessionActions((actions) => actions + 1);
+  }, [sessionSeconds]);
 
   const maxHour = useMemo(
     () => Math.max(...snapshot.hourly.map((hour) => hour.views), 1),
@@ -504,6 +606,32 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
         </div>
       </div>
 
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        <PulseMetric label="Traffic score" value={`${snapshot.prediction.trafficQualityScore}/100`} />
+        <PulseMetric label="Buy readiness" value={`${snapshot.prediction.conversionReadinessScore}/100`} />
+        <PulseMetric label="Model confidence" value={snapshot.prediction.confidence.toUpperCase()} />
+      </div>
+
+      <div className="mt-3 rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-cyan-100">
+              <Brain className="h-4 w-4" />
+              Next 24 hour probability
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300">
+              The model reads views, clicks, source, dwell time, shares, returns, and dead zones.
+              Then it estimates where the next action is most likely to happen.
+            </p>
+          </div>
+          <div className="grid min-w-48 gap-2 text-xs">
+            <ProbabilityMini label="Service click" value={snapshot.prediction.probabilities.serviceClickNext24h} />
+            <ProbabilityMini label="Book click" value={snapshot.prediction.probabilities.bookClickNext24h} />
+            <ProbabilityMini label="Checkout start" value={snapshot.prediction.probabilities.checkoutStartNext24h} />
+          </div>
+        </div>
+      </div>
+
       <div className="mt-4 grid grid-cols-5 gap-2 rounded-2xl border border-white/10 bg-white/[0.05] p-1">
         <PulseTabButton active={tab === "live"} label="Live" onClick={() => changeTab("live")} />
         <PulseTabButton active={tab === "views"} label="Views" onClick={() => changeTab("views")} />
@@ -661,6 +789,16 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
               <PulseMetric label="Questions" value={fmt(snapshot.chatQuestionsToday)} />
               <PulseMetric label="Tracked" value={fmt(snapshot.trackedActionsToday)} />
             </div>
+            <div className="grid grid-cols-3 gap-2">
+              <PulseMetric label="Sources" value={fmt(snapshot.trafficSourceSignalsToday)} />
+              <PulseMetric label="Sections" value={fmt(snapshot.sectionViewsToday)} />
+              <PulseMetric label="Dead zones" value={fmt(snapshot.deadClicksToday)} />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <PulseMetric label="Returns" value={fmt(snapshot.returnVisitsToday)} />
+              <PulseMetric label="Copied" value={fmt(snapshot.copySignalsToday)} />
+              <PulseMetric label="Exits" value={fmt(snapshot.pageExitsToday)} />
+            </div>
             <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
               <div className="mb-3 text-sm font-semibold">Recent public activity</div>
               <div className="space-y-2">
@@ -694,6 +832,36 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
               />
               <PulseDetail Icon={ShoppingCart} label="Checkout starts" value={fmt(snapshot.checkoutClicksToday)} />
               <PulseDetail Icon={MessageSquareText} label="Questions today" value={fmt(snapshot.chatQuestionsToday)} />
+            </div>
+
+            <div className="rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="inline-flex items-center gap-2 text-sm font-semibold text-white">
+                  <Activity className="h-4 w-4 text-cyan-200" />
+                  Predictive readout
+                </div>
+                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-100">
+                  {fmt(snapshot.prediction.sampleSize)} signal sample
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <ProbabilityCard
+                  label="Service click next 24h"
+                  value={snapshot.prediction.probabilities.serviceClickNext24h}
+                  body={`${fmt(snapshot.prediction.projectedNext24h.serviceClicks)} projected service click${snapshot.prediction.projectedNext24h.serviceClicks === 1 ? "" : "s"}`}
+                />
+                <ProbabilityCard
+                  label="Return visit next 7d"
+                  value={snapshot.prediction.probabilities.returnVisitNext7d}
+                  body={`${fmt(snapshot.prediction.projectedNext7d.visitors)} projected visitors in 7 days`}
+                />
+              </div>
+              {snapshot.prediction.topOpportunity ? (
+                <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.06] p-3 text-xs leading-relaxed text-slate-300">
+                  <strong className="text-white">Best opportunity:</strong>{" "}
+                  {snapshot.prediction.topOpportunity.path} — {snapshot.prediction.topOpportunity.suggestedMove}
+                </div>
+              ) : null}
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
@@ -967,6 +1135,41 @@ function PulseMetric({ label, value }: { label: string; value: string }) {
       <div className="mt-1 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
         {label}
       </div>
+    </div>
+  );
+}
+
+function ProbabilityMini({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span className="font-semibold text-slate-200">{label}</span>
+        <span className="font-mono font-bold text-cyan-100">{value}%</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-accent-300"
+          style={{ width: `${Math.max(4, value)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ProbabilityCard({ label, value, body }: { label: string; value: number; body: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-xs font-semibold uppercase tracking-widest text-slate-300">{label}</div>
+        <div className="font-mono text-lg font-bold text-cyan-100">{value}%</div>
+      </div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-accent-200 to-accent-400"
+          style={{ width: `${Math.max(5, value)}%` }}
+        />
+      </div>
+      <p className="mt-2 text-xs leading-relaxed text-slate-300">{body}</p>
     </div>
   );
 }

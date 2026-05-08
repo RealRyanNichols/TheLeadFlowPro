@@ -30,18 +30,18 @@ export function socialImageUrl(input: {
   });
   if (input.subtitle) params.set("subtitle", input.subtitle);
   if (input.kicker) params.set("kicker", input.kicker);
-  return `/api/og?${params.toString()}`;
+  return `${SITE_URL}/api/og?${params.toString()}`;
 }
 
 export function createSeoMetadata(input: SeoMetadataInput): Metadata {
   const url = absolutePath(input.path || "/");
-  const image =
-    input.image ||
-    socialImageUrl({
-      title: input.imageTitle || input.title.replace(/\s+·\s+The LeadFlow Pro$/, ""),
-      subtitle: input.imageSubtitle || input.description,
-      kicker: input.imageKicker || SITE_NAME,
-    });
+  const image = input.image
+    ? absolutePath(input.image)
+    : socialImageUrl({
+        title: input.imageTitle || input.title.replace(/\s+·\s+The LeadFlow Pro$/, ""),
+        subtitle: input.imageSubtitle || input.description,
+        kicker: input.imageKicker || SITE_NAME,
+      });
 
   return {
     title: input.title,
