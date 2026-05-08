@@ -4,14 +4,18 @@ import { ArrowRight, BarChart3, CalendarCheck, Eye, MousePointerClick, Radar, Ro
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { LiveLeadFlowPulse } from "@/components/site/LiveLeadFlowPulse";
 import { getCapacitySnapshot } from "@/lib/capacity";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createSeoMetadata({
   title: "Live Website Pulse — The LeadFlow Pro",
   description:
     "Watch The LeadFlow Pro's live website effectiveness board: visitors, share links, click-backs, top pages, CTA clicks, and Ryan's available capacity.",
-};
+  path: "/pulse",
+  imageTitle: "Live Website Pulse",
+  imageSubtitle: "Views, click-backs, CTA clicks, top pages, and Ryan's capacity in one public board.",
+});
 
 const SCORECARDS = [
   {

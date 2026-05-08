@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { ShieldCheck, FileText, Lock, RotateCcw, Mail, MapPin } from "lucide-react";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata = {
+export const metadata = createSeoMetadata({
   title: "Legal · Terms, Privacy & Refund — The LeadFlow Pro",
   description:
     "The short version: we're fair, we protect your data, and we refund within 14 days if LeadFlow Pro isn't right for you.",
-};
+  path: "/legal",
+  imageTitle: "Terms, Privacy & Refund",
+  imageSubtitle: "Plain-English terms for The LeadFlow Pro engagements and data handling.",
+});
 
 const LAST_UPDATED = "April 17, 2026";
 const ENTITY = "REAL RYAN NICHOLS LLC";

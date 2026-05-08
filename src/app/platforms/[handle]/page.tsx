@@ -13,6 +13,7 @@ import {
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
 import { PLATFORMS, type PlatformHandle } from "@/lib/platforms";
 import { OFFERS, type OfferSlug } from "@/lib/offers";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export function generateStaticParams() {
   return Object.keys(PLATFORMS).map((handle) => ({ handle }));
@@ -23,7 +24,14 @@ type Props = { params: { handle: string } };
 export function generateMetadata({ params }: Props) {
   const p = PLATFORMS[params.handle as PlatformHandle];
   if (!p) return { title: "Platform · The LeadFlow Pro" };
-  return { title: p.metaTitle, description: p.metaDescription };
+  return createSeoMetadata({
+    title: p.metaTitle,
+    description: p.metaDescription,
+    path: `/platforms/${p.handle}`,
+    imageTitle: `${p.displayName} Growth`,
+    imageSubtitle: p.hero.paragraph,
+    imageKicker: `${p.ryanGrowth.current} on ${p.displayName}`,
+  });
 }
 
 export default function PlatformPage({ params }: Props) {

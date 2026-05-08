@@ -42,12 +42,16 @@ import {
   type WorkStyle,
 } from "@/lib/offer-recommendation";
 import { formatHours, getOfferWorkload } from "@/lib/workload";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata = {
+export const metadata = createSeoMetadata({
   title: "Start Here - Pick Your Service · The LeadFlow Pro",
   description:
     "Answer a few practical questions and get routed to the LeadFlow Pro offer that fits your problem, budget, and urgency.",
-};
+  path: "/start",
+  imageTitle: "Find Your Next Move",
+  imageSubtitle: "Answer once. Get routed to the cleanest offer for your problem, budget, and urgency.",
+});
 
 const NEED_ICONS: Record<PrimaryNeed, LucideIcon> = {
   "next-post": PenLine,

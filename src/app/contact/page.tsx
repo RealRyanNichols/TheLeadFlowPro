@@ -16,12 +16,16 @@ import {
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { OpenChatButton } from "@/components/site/OpenChatButton";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata = {
+export const metadata = createSeoMetadata({
   title: "Contact Ryan Nichols — The LeadFlow Pro",
   description:
     "Choose the fastest way to move forward with The LeadFlow Pro: start the router, book the 10-minute call, ask Faretta AI, text, or email Ryan.",
-};
+  path: "/contact",
+  imageTitle: "Contact Ryan Nichols",
+  imageSubtitle: "Start the router, book the call, ask the AI, text, or email.",
+});
 
 const RYAN_EMAIL = "theflashflash24@gmail.com";
 const PHONE_DISPLAY = "(903) 345-8990";

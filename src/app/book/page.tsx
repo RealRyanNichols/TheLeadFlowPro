@@ -4,7 +4,6 @@
 // Cal.com event type still needs to enforce the real calendar rules:
 // duration=10, afterEventBuffer=10, slotInterval=20, limited booking window.
 
-import type { Metadata } from "next";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -22,34 +21,17 @@ import {
 } from "lucide-react";
 import { BandwidthMeter } from "@/components/BandwidthMeter";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
+export const metadata = createSeoMetadata({
   title: "Book a 10-Minute Call with Ryan — The LeadFlow Pro",
   description:
     "Free 10-minute fit call with Ryan Nichols for serious buyers considering done-for-you social media, AI agents, automation, and business systems.",
-  openGraph: {
-    title: "Book a 10-Minute Call — The LeadFlow Pro",
-    description:
-      "Ten minutes with Ryan Nichols. We decide the next move for your social media, lead flow, automation, or business systems.",
-    url: "/book",
-    siteName: "The LeadFlow Pro",
-    images: [
-      {
-        url: "/book/opengraph-image",
-        width: 1200,
-        height: 630,
-        alt: "Book a 10-Minute Call — The LeadFlow Pro",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Book a 10-Minute Call — The LeadFlow Pro",
-    description:
-      "Ten minutes with Ryan Nichols. We decide the next move.",
-    images: ["/book/twitter-image"],
-  },
-};
+  path: "/book",
+  imageTitle: "Book a 10-Minute Call",
+  imageSubtitle: "Ten minutes. We decide the next move.",
+  image: "/book/opengraph-image",
+});
 
 const RYAN_EMAIL = "theflashflash24@gmail.com";
 

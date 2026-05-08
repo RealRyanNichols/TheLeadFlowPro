@@ -9,12 +9,16 @@ import {
   ArrowRight, BadgeCheck, Compass, Flame, Heart, Sparkles, Trophy,
 } from "lucide-react";
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata = {
+export const metadata = createSeoMetadata({
   title: "The Story · How I Built It, Lost It, and Got Past the Reef Again — The LeadFlow Pro",
   description:
     "Ryan Nichols' real story: built a multi-million-dollar business from a 3rd-story apartment with a phone, lost it all to 4 years in federal prison for January 6, came home to nothing, and rebuilt with the same playbook he now teaches.",
-};
+  path: "/story",
+  imageTitle: "Built It. Lost It. Rebuilt It.",
+  imageSubtitle: "Ryan Nichols' origin story, from apartment pallets to rebuild mode.",
+});
 
 export default function StoryPage() {
   return (

@@ -15,12 +15,16 @@ import {
   Sparkles, Star, Target, Trophy, Users, Wrench,
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata = {
+export const metadata = createSeoMetadata({
   title: "Pricing & Tiers — The LeadFlow Pro",
   description:
     "From $5 to $150K. Find the level that matches where you are right now. Built by Ryan Nichols — founder of The LeadFlow Pro, RepWatchr, Faretta.Legal, Faretta.AI, and Wholesale Universe.",
-};
+  path: "/tiers",
+  imageTitle: "Pricing & Tiers",
+  imageSubtitle: "From quick direction to full operator support. Pick the level that fits.",
+});
 
 /* ─────────────────────────────────────────────────────────────────
    DATA

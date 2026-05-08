@@ -2,18 +2,16 @@ import Link from "next/link";
 import { ArrowLeft, Search, Zap, Eye } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { SeoGraderForm } from "./SeoGraderForm";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata = {
+export const metadata = createSeoMetadata({
   title: "Free SEO Grader — The LeadFlow Pro",
   description:
     "Grade any local-business website on 14 on-page SEO signals in under 10 seconds. Free, no signup. Get a clear A–F grade plus the exact fixes that'll move you up.",
-  openGraph: {
-    title: "Free SEO Grader — The LeadFlow Pro",
-    description:
-      "Grade any local-business website in 10 seconds. A–F score + the exact fixes that'll move you up. Free, no signup.",
-    type: "website"
-  }
-};
+  path: "/tools/seo-grader",
+  imageTitle: "Free SEO Grader",
+  imageSubtitle: "Grade any local-business website in 10 seconds. A-F score plus exact fixes.",
+});
 
 export default function SeoGraderPage() {
   return (

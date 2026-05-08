@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { FlowCardView } from "@/components/flowcard/FlowCardView";
 import { MOCK_FLOWCARD } from "@/lib/mock-data";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 // import { prisma } from "@/lib/db";
 
 interface Props {
@@ -16,15 +17,13 @@ async function loadCard(slug: string) {
 export async function generateMetadata({ params }: Props) {
   const card = await loadCard(params.slug);
   if (!card) return { title: "Not found · LeadFlow Pro" };
-  return {
+  return createSeoMetadata({
     title: `${card.displayName} · LeadFlow Pro`,
     description: card.tagline ?? card.bio ?? "Connect with me on every platform — one tap.",
-    openGraph: {
-      title: card.displayName,
-      description: card.tagline ?? card.bio ?? "",
-      url: `https://www.theleadflowpro.com/c/${card.slug}`
-    }
-  };
+    path: `/c/${card.slug}`,
+    imageTitle: card.displayName,
+    imageSubtitle: card.tagline ?? card.bio ?? "Connect with me on every platform — one tap.",
+  });
 }
 
 export default async function FlowCardPage({ params }: Props) {

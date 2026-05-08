@@ -24,6 +24,7 @@ import { LiveLeadFlowPulse } from "@/components/site/LiveLeadFlowPulse";
 import { LightHeader } from "@/components/site/LightHeader";
 import { getYouTubeStatsCached, getXStatsCached, getFacebookStatsCached } from "@/lib/social-sync";
 import { getCapacitySnapshot } from "@/lib/capacity";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
 // Re-validate the homepage every hour so live stats refresh.
 export const revalidate = 3600;
@@ -42,11 +43,14 @@ function fmt(n: number): string {
   return String(n);
 }
 
-export const metadata = {
+export const metadata = createSeoMetadata({
   title: "The LeadFlow Pro — for serious buyers only",
   description:
     "Built by Ryan Nichols. 75K+ across 5 platforms. Founder of LeadFlow Pro, RepWatchr, Faretta.Legal, Faretta.AI, and Wholesale Universe. Done-for-you growth on TikTok, Facebook, X, YouTube, plus dedicated Facebook Ads management. Free 10-minute call — reserved for serious buyers ready to invest.",
-};
+  path: "/",
+  imageTitle: "The LeadFlow Pro",
+  imageSubtitle: "Turn attention into conversations. No missed calls. No missed texts. No missed revenue.",
+});
 
 /* ─── Data ────────────────────────────────────────────────────── */
 

@@ -11,15 +11,19 @@ import { ArrowRight, Megaphone, ThumbsDown, ThumbsUp } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { getActiveTopics } from "@/lib/voice";
 import { TopicSubmitForm } from "@/components/voice/TopicSubmitForm";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createSeoMetadata({
   title: "East TX Voice — Money-Weighted YES/NO Voting · The LeadFlow Pro",
   description:
     "Vote with your money on East Texas issues. $1 = 1 weight unit on YES or NO. Pure sentiment market — no wagers, no payouts. A portion funds a local non-profit each month.",
-};
+  path: "/voice",
+  imageTitle: "East TX Voice",
+  imageSubtitle: "Money-weighted YES/NO sentiment voting. No wagers, no payouts, just public signal.",
+});
 
 export default async function VoiceLandingPage() {
   let topics: Awaited<ReturnType<typeof getActiveTopics>> = [];

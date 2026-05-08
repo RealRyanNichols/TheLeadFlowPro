@@ -12,11 +12,16 @@ import {
 import { LightHeader } from "@/components/site/LightHeader";
 import { OFFERS, type OfferSlug } from "@/lib/offers";
 import { getOfferWorkload } from "@/lib/workload";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata = {
+export const metadata = createSeoMetadata({
   title: "Next Step - The LeadFlow Pro",
   description: "Open your client office, send intake, and track the work after purchase.",
-};
+  path: "/start/thank-you",
+  imageTitle: "Next Step",
+  imageSubtitle: "Open your client office, send intake, and track the work after purchase.",
+  noIndex: true,
+});
 
 function str(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;

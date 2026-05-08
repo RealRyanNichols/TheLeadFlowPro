@@ -15,6 +15,7 @@ import { BandwidthMeter } from "@/components/BandwidthMeter";
 import { InteractiveOfferDecision } from "@/components/offers/InteractiveOfferDecision";
 import { OFFERS, type OfferSlug } from "@/lib/offers";
 import { formatHours, getOfferWorkload } from "@/lib/workload";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export function generateStaticParams() {
   return Object.keys(OFFERS).map((slug) => ({ slug }));
@@ -32,7 +33,14 @@ type PageProps = Props & {
 export function generateMetadata({ params }: Props) {
   const offer = OFFERS[params.slug as OfferSlug];
   if (!offer) return { title: "Offer · The LeadFlow Pro" };
-  return { title: offer.metaTitle, description: offer.metaDescription };
+  return createSeoMetadata({
+    title: offer.metaTitle,
+    description: offer.metaDescription,
+    path: `/offers/${offer.slug}`,
+    imageTitle: offer.hero.h1Highlight,
+    imageSubtitle: `${offer.price.big}${offer.price.sub ? ` ${offer.price.sub}` : ""}. ${offer.metaDescription}`,
+    imageKicker: offer.badge,
+  });
 }
 
 export default async function OfferPage({ params, searchParams }: PageProps) {

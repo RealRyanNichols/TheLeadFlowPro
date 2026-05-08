@@ -9,6 +9,7 @@ import {
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { prisma } from "@/lib/prisma";
 import { currentWeekStart, leaderboardGivebackCents } from "@/lib/leaderboard";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
@@ -24,13 +25,17 @@ function qrUrl(target: string, size = 280): string {
 export async function generateMetadata({ params }: Props) {
   const profile = await prisma.businessProfile.findUnique({
     where: { slug: params.slug },
-    select: { publicName: true, city: true, category: true },
+    select: { publicName: true, city: true, category: true, slug: true, imageUrl: true },
   });
   if (!profile) return { title: "Business · The LeadFlow Pro" };
-  return {
+  return createSeoMetadata({
     title: `${profile.publicName} — East TX Top 10 · The LeadFlow Pro`,
     description: `${profile.publicName}${profile.city ? ` of ${profile.city}, TX` : ""} on the East Texas Top 10 leaderboard. Climb past them by adding points to your own.`,
-  };
+    path: `/b/${profile.slug}`,
+    imageTitle: `${profile.publicName} is on the Top 10`,
+    imageSubtitle: `${profile.city ? `${profile.city}, TX` : "East Texas"}${profile.category ? ` · ${profile.category}` : ""}. Add points and move the board.`,
+    image: profile.imageUrl || undefined,
+  });
 }
 
 export default async function BusinessPage({ params }: Props) {

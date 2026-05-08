@@ -13,12 +13,16 @@ import {
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { TrackedLink } from "@/components/TrackedLink";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createSeoMetadata({
   title: "Proof Points Rewards — The LeadFlow Pro",
   description:
     "The LeadFlow Pro reward loop: earn off-chain Proof Points for watching, sharing, asking, and contributing without letting anyone sabotage the site.",
-};
+  path: "/rewards",
+  imageTitle: "Proof Points Rewards",
+  imageSubtitle: "A safer reward loop for watching, sharing, asking, and contributing.",
+});
 
 const EARN_ROWS = [
   {

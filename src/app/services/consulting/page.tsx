@@ -18,12 +18,16 @@ import { BandwidthMeter } from "@/components/BandwidthMeter";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { OFFERS, type OfferSlug } from "@/lib/offers";
 import { OFFER_WORKLOADS, formatHours } from "@/lib/workload";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata = {
+export const metadata = createSeoMetadata({
   title: "Business Consulting — The LeadFlow Pro",
   description:
     "Consulting with Ryan Nichols for stuck decisions, audits, working sessions, build sprints, retainers, operator support, and annual advisor relationships.",
-};
+  path: "/services/consulting",
+  imageTitle: "Business Consulting With Ryan",
+  imageSubtitle: "Decision sprints, audits, working sessions, build sprints, and operator support.",
+});
 
 const CONSULTING_SLUGS = [
   "decision-sprint",

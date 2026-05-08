@@ -11,27 +11,19 @@ import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { LeaderboardLive } from "@/components/leaderboard/LeaderboardLive";
 import { BoostMessageForm } from "@/components/leaderboard/BoostMessageForm";
 import { GIVEBACK_TARGETS, getLeaderboardSnapshot } from "@/lib/leaderboard";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createSeoMetadata({
   title: "Top 10 Boards — East Texas Live Rankings · The LeadFlow Pro",
   description:
     "Many East Texas Top 10 boards in one place: coaches, teachers, teams, restaurants, businesses, artists, ministries, and local stories. $1 = 1 point, and 70% goes back local.",
-  openGraph: {
-    title: "Top 10 Boards — East Texas Live Rankings",
-    description:
-      "Choose a local board, add points, watch the ranking move. 70% of leaderboard vote proceeds go back local.",
-    url: "/leaderboard",
-    siteName: "The LeadFlow Pro",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Top 10 Boards — East Texas Live Rankings",
-    description: "Coaches, teachers, teams, restaurants, businesses, artists, ministries, and stories. $1 = 1 point. 70% goes back local.",
-  },
-};
+  path: "/leaderboard",
+  imageTitle: "Top 10 Boards",
+  imageSubtitle: "Coaches, teachers, teams, restaurants, businesses, artists, ministries, and local stories.",
+});
 
 type Props = { searchParams: { prefill?: string; canceled?: string } };
 

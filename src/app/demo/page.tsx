@@ -15,12 +15,16 @@ import {
   Workflow, Zap,
 } from "lucide-react";
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata = {
+export const metadata = createSeoMetadata({
   title: "Demo · Inside the Operator's Office — The LeadFlow Pro",
   description:
     "What you see after signing in: lead inbox, AI insights, automations, playbooks, FlowCard, and your social-growth scoreboard. No login required to look around.",
-};
+  path: "/demo",
+  imageTitle: "Inside the Client Office",
+  imageSubtitle: "Lead inbox, AI insights, automations, playbooks, and social-growth scoreboard.",
+});
 
 const SIDEBAR = [
   { label: "Overview",        icon: LayoutDashboard, active: true  },

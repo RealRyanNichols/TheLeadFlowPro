@@ -15,15 +15,19 @@ import {
   WORK_ORDER_PRESETS,
   formatHours,
 } from "@/lib/workload";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
-export const metadata = {
+export const metadata = createSeoMetadata({
   title: "Availability · Ryan's bandwidth this week — The LeadFlow Pro",
   description:
     "Real-time view of Ryan's 60 hours/week capacity. See how much is booked, who's working with him right now, and how much is left for new engagements.",
-};
+  path: "/availability",
+  imageTitle: "Live Availability",
+  imageSubtitle: "Ryan's 60-hour weekly capacity, booked work, and remaining room for new engagements.",
+});
 
 export default async function AvailabilityPage() {
   let snap;

@@ -11,12 +11,16 @@ import {
   TrendingUp, Trophy, Twitter, Users, X as XIcon, Youtube,
 } from "lucide-react";
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata = {
+export const metadata = createSeoMetadata({
   title: "Social Media Services — Done For You · The LeadFlow Pro",
   description:
     "TikTok, Facebook, X, and YouTube — managed end-to-end by Ryan Nichols. 75K+ followers built across 5 platforms. Same playbook, your voice. Plus dedicated Facebook Ads management for owners ready to scale lead volume.",
-};
+  path: "/services",
+  imageTitle: "Social Media Done For You",
+  imageSubtitle: "Hooks, videos, posting, reply game, and lead flow built around your business.",
+});
 
 const PLATFORMS = [
   {

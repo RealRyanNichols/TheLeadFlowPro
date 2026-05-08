@@ -6,6 +6,7 @@ import { ArrowRight, Clock, MapPin, ThumbsDown, ThumbsUp } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { getTopicBySlug, toPublic } from "@/lib/voice";
 import { VoiceVoteForm } from "@/components/voice/VoiceVoteForm";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 30;
@@ -15,10 +16,14 @@ type Props = { params: { slug: string } };
 export async function generateMetadata({ params }: Props) {
   const t = await getTopicBySlug(params.slug);
   if (!t) return { title: "East TX Voice · The LeadFlow Pro" };
-  return {
+  return createSeoMetadata({
     title: `${t.question} — East TX Voice · The LeadFlow Pro`,
     description: `Money-weighted YES/NO sentiment voting on East Texas. Cast your voice with $1+. ${t.city ? `${t.city}, TX.` : ""}`,
-  };
+    path: `/voice/${t.slug}`,
+    imageTitle: t.question,
+    imageSubtitle: `${t.city ? `${t.city}, TX · ` : ""}${t.description || "Cast your voice with $1+. No wager, no payout."}`,
+    imageKicker: "East TX Voice",
+  });
 }
 
 export default async function VoiceTopicPage({ params }: Props) {

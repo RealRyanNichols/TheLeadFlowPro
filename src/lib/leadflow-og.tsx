@@ -139,10 +139,20 @@ function FunnelScene() {
 
 export function LeadFlowSocialImage({
   variant = "home",
+  title,
+  subtitle,
+  eyebrow,
 }: {
-  variant?: "home" | "book";
+  variant?: "home" | "book" | "custom";
+  title?: string;
+  subtitle?: string;
+  eyebrow?: string;
 }) {
   const isBook = variant === "book";
+  const isCustom = variant === "custom";
+  const customTitle = title || "The LeadFlow Pro";
+  const customSubtitle =
+    subtitle || "Turn attention into conversations. No missed calls. No missed texts. No missed revenue.";
   return (
     <div
       style={{
@@ -240,19 +250,45 @@ export function LeadFlowSocialImage({
         style={{
           position: "absolute",
           left: 72,
-          top: isBook ? 176 : 210,
-          width: isBook ? 660 : 720,
+          top: isBook ? 176 : isCustom ? 176 : 210,
+          width: isBook ? 660 : isCustom ? 760 : 720,
           display: "flex",
           flexDirection: "column",
         }}
       >
-        <div style={{ fontSize: isBook ? 92 : 74, lineHeight: 1.02, fontWeight: 950, letterSpacing: -1 }}>
+        {isCustom && (
+          <div
+            style={{
+              marginBottom: 18,
+              color: cyan,
+              fontSize: 26,
+              fontWeight: 850,
+              letterSpacing: 3,
+              textTransform: "uppercase",
+            }}
+          >
+            {eyebrow || "The LeadFlow Pro"}
+          </div>
+        )}
+        <div
+          style={{
+            fontSize: isBook ? 92 : isCustom ? (customTitle.length > 56 ? 58 : 68) : 74,
+            lineHeight: 1.02,
+            fontWeight: 950,
+            letterSpacing: -1,
+            whiteSpace: "pre-wrap",
+          }}
+        >
           {isBook ? (
             <>
               Book a{" "}
               <span style={{ color: cyan }}>10-Minute</span>
               <br />
               Call
+            </>
+          ) : isCustom ? (
+            <>
+              {customTitle}
             </>
           ) : (
             <>
@@ -303,11 +339,18 @@ export function LeadFlowSocialImage({
           style={{
             marginTop: 18,
             color: "rgba(255,255,255,0.92)",
-            fontSize: isBook ? 30 : 28,
+            fontSize: isBook ? 30 : isCustom ? 28 : 28,
             fontWeight: 500,
+            lineHeight: 1.25,
+            maxWidth: isCustom ? 710 : undefined,
+            whiteSpace: "pre-wrap",
           }}
         >
-          {isBook ? "Free fit call • Serious buyers only" : "No missed calls. No missed texts. No missed revenue."}
+          {isBook
+            ? "Free fit call • Serious buyers only"
+            : isCustom
+              ? customSubtitle
+              : "No missed calls. No missed texts. No missed revenue."}
         </div>
       </div>
     </div>

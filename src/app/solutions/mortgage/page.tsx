@@ -6,12 +6,16 @@ import {
 } from "lucide-react";
 import MortgagePrequalWidget from "@/components/MortgagePrequalWidget";
 import { MORTGAGE_PLANS, MORTGAGE_ADDONS, MORTGAGE_ONETIME, VERTICALS, LOAN_TYPE_ORDER } from "@/lib/mortgage";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata = {
+export const metadata = createSeoMetadata({
   title: "Mortgage OS — The LeadFlow Pro",
   description:
     "One system that replaces your CRM, dialer, compliance scanner, content engine, and rate-watch tool. Built for independent mortgage originators.",
-};
+  path: "/solutions/mortgage",
+  imageTitle: "Mortgage OS",
+  imageSubtitle: "Lead inbox, follow-up, compliance scanner, content engine, and rate-watch tools.",
+});
 
 const PROBLEMS = [
   { n: 1, p: "First-touch latency", cost: "$3–5k per lost deal ×30–60/mo", fix: "Flo Inbox", icon: Timer },

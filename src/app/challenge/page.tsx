@@ -17,18 +17,17 @@ import {
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
 import { TOOL_CHALLENGE_DEPOSIT } from "@/lib/challenge-deposit";
+import { createSeoMetadata } from "@/lib/seo-metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createSeoMetadata({
   title: "Stump Ryan With a Business Tool — The LeadFlow Pro",
   description:
     "Challenge Ryan Nichols to build the tool your business needs. If he builds it and you like it, you buy it and own it.",
-  openGraph: {
-    title: "Stump Ryan With a Business Tool",
-    description:
-      "Tell Ryan the tool that would change the way your business runs. If he builds it and you like it, you buy it and own it.",
-    images: ["/images/stump-me-tool-challenge-poster.jpg"],
-  },
-};
+  path: "/challenge",
+  imageTitle: "Stump Ryan With a Business Tool",
+  imageSubtitle: "Tell Ryan the tool that would change your business. If he builds it and you like it, you buy it and own it.",
+  image: "/images/stump-me-tool-challenge-poster.jpg",
+});
 
 const BUILD_TARGETS = [
   "Lead follow-up systems",
