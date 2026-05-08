@@ -13,7 +13,9 @@ import {
   LogIn,
   Mail,
   Menu,
+  Megaphone,
   Package,
+  Trophy,
   Wrench,
   X,
 } from "lucide-react";
@@ -28,6 +30,8 @@ const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   "/services": Package,
   "/services/consulting": BriefcaseBusiness,
   "/tiers": Package,
+  "/leaderboard": Trophy,
+  "/voice": Megaphone,
   "/story": BookOpen,
   "/availability": Gauge,
   "/contact": Mail,

@@ -54,6 +54,34 @@ export const EAST_TX_CITIES = [
 ] as const;
 
 export const CATEGORIES = [
+  "Coach",
+  "Teacher",
+  "High School Team",
+  "Athlete",
+  "Band / Choir",
+  "Restaurant",
+  "Food Truck",
+  "Coffee Shop",
+  "Barber / Salon",
+  "Realtor",
+  "Attorney / Law Office",
+  "Doctor / Clinic",
+  "Dentist",
+  "Insurance Agency",
+  "Car Dealership",
+  "Auto Shop",
+  "Contractor",
+  "Roofer",
+  "Plumber",
+  "Electrician",
+  "Church",
+  "Ministry",
+  "Nonprofit",
+  "Music Artist",
+  "Photographer / Videographer",
+  "Creator / Influencer",
+  "Civil Rights Story",
+  "Local Event",
   "Roofing & Construction",
   "Restaurant & Food",
   "Retail & Boutique",
@@ -71,6 +99,117 @@ export const CATEGORIES = [
   "Church & Non-profit",
   "Other",
 ] as const;
+
+export type LeaderboardCategory = (typeof CATEGORIES)[number];
+
+export type TopTenBoard = {
+  id: string;
+  label: string;
+  category: LeaderboardCategory | null;
+  tag: string;
+  description: string;
+};
+
+export const TOP_TEN_BOARDS: TopTenBoard[] = [
+  {
+    id: "all",
+    label: "All East TX",
+    category: null,
+    tag: "Main",
+    description: "The overall board across every East Texas category.",
+  },
+  {
+    id: "coach",
+    label: "Coaches",
+    category: "Coach",
+    tag: "Sports",
+    description: "Friday night leaders, youth coaches, trainers, and sideline legends.",
+  },
+  {
+    id: "teacher",
+    label: "Teachers",
+    category: "Teacher",
+    tag: "Schools",
+    description: "Classroom difference-makers people want to recognize publicly.",
+  },
+  {
+    id: "high-school-team",
+    label: "HS Teams",
+    category: "High School Team",
+    tag: "Sports",
+    description: "Football, baseball, softball, volleyball, band, drill team, and more.",
+  },
+  {
+    id: "restaurant",
+    label: "Restaurants",
+    category: "Restaurant",
+    tag: "Food",
+    description: "The local spots people argue about and send friends to try.",
+  },
+  {
+    id: "realtor",
+    label: "Realtors",
+    category: "Realtor",
+    tag: "Business",
+    description: "Agents and brokers competing for attention, trust, and referrals.",
+  },
+  {
+    id: "car-dealer",
+    label: "Car Dealers",
+    category: "Car Dealership",
+    tag: "Business",
+    description: "Dealerships that want phones ringing and lots moving.",
+  },
+  {
+    id: "law",
+    label: "Law Offices",
+    category: "Attorney / Law Office",
+    tag: "Professional",
+    description: "Public-facing legal offices competing on visibility, not outcome claims.",
+  },
+  {
+    id: "doctor",
+    label: "Doctors",
+    category: "Doctor / Clinic",
+    tag: "Health",
+    description: "Clinics and providers people want neighbors to know about.",
+  },
+  {
+    id: "insurance",
+    label: "Insurance",
+    category: "Insurance Agency",
+    tag: "Business",
+    description: "Local agencies fighting to be remembered before renewal time.",
+  },
+  {
+    id: "contractor",
+    label: "Contractors",
+    category: "Contractor",
+    tag: "Trades",
+    description: "Builders, remodelers, roofers, plumbers, and skilled trades.",
+  },
+  {
+    id: "music",
+    label: "Artists",
+    category: "Music Artist",
+    tag: "Culture",
+    description: "Rappers, singers, bands, and creators trying to get heard.",
+  },
+  {
+    id: "ministry",
+    label: "Ministries",
+    category: "Ministry",
+    tag: "Giveback",
+    description: "Local ministries and missions people want the giveback pool to notice.",
+  },
+  {
+    id: "story",
+    label: "Stories",
+    category: "Civil Rights Story",
+    tag: "Voice",
+    description: "Public-interest stories that need attention, documentation, and pressure.",
+  },
+];
 
 export const GIVEBACK_TARGETS = [
   {
@@ -193,7 +332,7 @@ export async function getLeaderboardSnapshot(): Promise<LeaderboardSnapshotPubli
     prisma.leaderboardEntry.findMany({
       where: { weekStart },
       orderBy: { points: "desc" },
-      take: 50,
+      take: 250,
     }),
     prisma.leaderboardPurchase.findMany({
       where: { weekStart },

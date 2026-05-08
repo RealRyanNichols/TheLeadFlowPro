@@ -22,6 +22,8 @@ import {
   EAST_TX_CITIES,
   type GivebackTargetId,
   GIVEBACK_TARGETS,
+  type TopTenBoard,
+  TOP_TEN_BOARDS,
 } from "@/lib/leaderboard";
 
 type Entry = {
@@ -72,6 +74,7 @@ const PRESETS = [1, 5, 10, 25, 50, 100, 250, 500, 1000];
 export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefill?: string }) {
   const [snap, setSnap] = useState<Snapshot>(initial);
   const [poll, setPoll] = useState(0);
+  const [selectedBoardId, setSelectedBoardId] = useState("all");
 
   // Buy form state
   const [name, setName] = useState(prefill || "");
@@ -129,7 +132,7 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
   function applySuggestion(s: Suggestion) {
     setName(s.publicName);
     if (s.city) setCity(s.city);
-    if (s.category) setCategory(s.category);
+    if (s.category) setCategoryAndBoard(s.category);
     if (s.websiteUrl) setWebsiteUrl(s.websiteUrl);
     if (s.socialUrl) setSocialUrl(s.socialUrl);
     if (s.imageUrl) setImageUrl(s.imageUrl);
@@ -168,19 +171,68 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
   }, [snap.weekEnd]);
 
   // What rank would `name` land at if they bought `dollars`?
+  const selectedBoard = useMemo(
+    () => TOP_TEN_BOARDS.find((board) => board.id === selectedBoardId) || TOP_TEN_BOARDS[0],
+    [selectedBoardId]
+  );
+
+  const rankedEntries = useMemo(() => {
+    if (!category) return snap.entries;
+    return snap.entries.filter((entry) => entry.category === category);
+  }, [category, snap.entries]);
+
+  const visibleEntries = useMemo(() => {
+    if (!selectedBoard.category) return snap.entries;
+    return snap.entries.filter((entry) => entry.category === selectedBoard.category);
+  }, [selectedBoard, snap.entries]);
+
+  const boardMarkets = useMemo(() => {
+    return TOP_TEN_BOARDS.map((board) => {
+      const entries = board.category
+        ? snap.entries.filter((entry) => entry.category === board.category)
+        : snap.entries;
+      const totalPoints = entries.reduce((sum, entry) => sum + entry.points, 0);
+      const leader = entries[0] || null;
+      const leaderShare = leader && totalPoints > 0 ? Math.round((leader.points / totalPoints) * 100) : 0;
+      return {
+        ...board,
+        entries,
+        totalPoints,
+        leader,
+        leaderShare,
+      };
+    });
+  }, [snap.entries]);
+
+  function chooseBoard(boardId: string) {
+    const board = TOP_TEN_BOARDS.find((item) => item.id === boardId) || TOP_TEN_BOARDS[0];
+    setSelectedBoardId(board.id);
+    setCategory(board.category || "");
+  }
+
+  function setCategoryAndBoard(nextCategory: string) {
+    setCategory(nextCategory);
+    const matchingBoard = TOP_TEN_BOARDS.find((board) => board.category === nextCategory);
+    if (matchingBoard) {
+      setSelectedBoardId(matchingBoard.id);
+    } else if (!nextCategory) {
+      setSelectedBoardId("all");
+    }
+  }
+
   const projectedRank = useMemo(() => {
     if (!name) return null;
     const trimmedName = name.trim();
-    const existing = snap.entries.find((e) => e.publicName.toLowerCase() === trimmedName.toLowerCase());
+    const existing = rankedEntries.find((e) => e.publicName.toLowerCase() === trimmedName.toLowerCase());
     const myPoints = (existing?.points ?? 0) + dollars;
-    const others = snap.entries.filter((e) => e.publicName.toLowerCase() !== trimmedName.toLowerCase());
+    const others = rankedEntries.filter((e) => e.publicName.toLowerCase() !== trimmedName.toLowerCase());
     let rank = 1;
     for (const o of others) {
       if (o.points > myPoints) rank++;
     }
     const passed = others.filter((o) => o.points <= myPoints && (existing ? o.points >= existing.points : true));
     return { rank, points: myPoints, passed: passed.length };
-  }, [snap.entries, name, dollars]);
+  }, [rankedEntries, name, dollars]);
 
   const selectedGivebackTarget = useMemo(
     () => GIVEBACK_TARGETS.find((target) => target.id === givebackTargetId) || GIVEBACK_TARGETS[0],
@@ -221,8 +273,8 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
     }
   }
 
-  const top3 = snap.entries.slice(0, 3);
-  const rest = snap.entries.slice(3, 20);
+  const top3 = visibleEntries.slice(0, 3);
+  const rest = visibleEntries.slice(3, 20);
   const projectedGivebackCents = dollars * 70;
 
   return (
@@ -233,6 +285,40 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
         <StatPill label="Total votes this week" value={snap.totalDollars.toLocaleString()} accent="accent" />
         <StatPill label="Local giveback pool" value={formatMoneyFromCents(snap.totalGivebackCents)} accent="rose" />
         <StatPill label="Active competitors" value={String(snap.totalEntries)} accent="brand" />
+      </div>
+
+      <div className="overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-950 text-white shadow-[0_30px_80px_-25px_rgba(15,23,42,0.55)]">
+        <div className="border-b border-white/10 bg-white/[0.03] p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-200">
+                <Sparkles className="h-3.5 w-3.5" /> Live Top 10 boards
+              </div>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+                Pick the board before you place the vote.
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300">
+                Market-style layout, local-rank mechanics. No wager. No payout. Just visible points,
+                public rank movement, and the 70% East Texas giveback loop.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-3 text-sm">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-cyan-200">Selected</div>
+              <div className="mt-1 font-bold text-white">{selectedBoard.label}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
+          {boardMarkets.map((board) => (
+            <MarketBoardButton
+              key={board.id}
+              board={board}
+              active={board.id === selectedBoardId}
+              onSelect={() => chooseBoard(board.id)}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Boost messages — paid scrolling shouts */}
@@ -295,7 +381,7 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
-          No one&rsquo;s on the board yet this week. Be the first.
+          No one&rsquo;s on {selectedBoard.label} yet this week. Be the first.
         </div>
       )}
 
@@ -303,7 +389,7 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
       {rest.length > 0 && (
         <div className="rounded-3xl border border-white/60 bg-white/70 backdrop-blur-xl p-5 sm:p-6 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.20)] ring-1 ring-slate-900/5">
           <div className="text-xs uppercase tracking-widest text-cyan-700 font-bold mb-4">
-            Positions 4 – {3 + rest.length}
+            {selectedBoard.label} · Positions 4 – {3 + rest.length}
           </div>
           <div className="space-y-2.5">
             {rest.map((e) => (
@@ -319,7 +405,7 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
         className="rounded-3xl border border-accent-300 bg-gradient-to-br from-accent-300/15 via-white to-cyan-50 backdrop-blur-xl p-5 sm:p-7 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.20)] ring-1 ring-slate-900/5"
       >
         <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-accent-700 font-bold">
-          <Crown className="h-3.5 w-3.5" /> Climb the East TX Top 10
+          <Crown className="h-3.5 w-3.5" /> Climb {selectedBoard.label === "All East TX" ? "the East TX Top 10" : `Top 10 ${selectedBoard.label}`}
         </div>
         <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-slate-950">
           $1 = 1 point. Slide your vote. Take the throne.
@@ -384,7 +470,7 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
           <Field label="Category">
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => setCategoryAndBoard(e.target.value)}
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200"
             >
               <option value="">— pick a category —</option>
@@ -634,6 +720,75 @@ function StatPill({ label, value, accent }: { label: string; value: string; acce
       <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">{label}</div>
       <div className="mt-1 text-2xl font-bold text-slate-950 tabular-nums">{value}</div>
     </div>
+  );
+}
+
+type MarketBoardView = TopTenBoard & {
+  entries: Entry[];
+  totalPoints: number;
+  leader: Entry | null;
+  leaderShare: number;
+};
+
+function MarketBoardButton({
+  board,
+  active,
+  onSelect,
+}: {
+  board: MarketBoardView;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  const leaderLabel = board.leader ? board.leader.publicName : "Open board";
+  const shownShare = board.leader ? `${board.leaderShare}%` : "0%";
+
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onSelect}
+      className={`group min-h-[186px] p-4 text-left transition ${
+        active
+          ? "bg-gradient-to-br from-cyan-400/20 via-white/[0.08] to-accent-300/15 ring-2 ring-inset ring-cyan-300"
+          : "bg-slate-950 hover:bg-white/[0.06]"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-cyan-100">
+          {board.tag}
+        </span>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          {board.entries.length > 0 ? `${board.entries.length} live` : "Open"}
+        </span>
+      </div>
+      <div className="mt-3 text-xl font-bold tracking-tight text-white">{board.label}</div>
+      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-400">{board.description}</p>
+      <div className="mt-4 grid grid-cols-[1fr_auto] items-end gap-3">
+        <div className="min-w-0">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            Current leader
+          </div>
+          <div className="mt-1 truncate text-sm font-bold text-white">{leaderLabel}</div>
+          <div className="mt-1 text-xs tabular-nums text-cyan-200">
+            {board.totalPoints.toLocaleString()} pts volume
+          </div>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-right">
+          <div className="text-[10px] uppercase tracking-widest text-slate-400">Share</div>
+          <div className="text-lg font-bold tabular-nums text-accent-200">{shownShare}</div>
+        </div>
+      </div>
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-accent-300 transition-all duration-700"
+          style={{ width: board.leader ? `${Math.max(8, board.leaderShare)}%` : "4%" }}
+        />
+      </div>
+      <div className="mt-3 flex items-center justify-between text-xs">
+        <span className="font-semibold text-slate-400">{active ? "Selected board" : "Open this board"}</span>
+        <span className="font-bold text-cyan-200 group-hover:text-white">Vote →</span>
+      </div>
+    </button>
   );
 }
 

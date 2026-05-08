@@ -16,20 +16,20 @@ export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
 export const metadata: Metadata = {
-  title: "East TX Top 10 — Live Local Leaderboard · The LeadFlow Pro",
+  title: "Top 10 Boards — East Texas Live Rankings · The LeadFlow Pro",
   description:
-    "The most-visible East Texas businesses, ranked by sponsored placement. $1 = 1 point, and 70% of leaderboard vote proceeds go back to East Texas organizations, charity events, or local causes.",
+    "Many East Texas Top 10 boards in one place: coaches, teachers, teams, restaurants, businesses, artists, ministries, and local stories. $1 = 1 point, and 70% goes back local.",
   openGraph: {
-    title: "East TX Top 10 — Live Leaderboard",
+    title: "Top 10 Boards — East Texas Live Rankings",
     description:
-      "$1 = 1 point. Climb the East Texas Top 10 in real time. 70% of leaderboard vote proceeds go back local.",
+      "Choose a local board, add points, watch the ranking move. 70% of leaderboard vote proceeds go back local.",
     url: "/leaderboard",
     siteName: "The LeadFlow Pro",
   },
   twitter: {
     card: "summary_large_image",
-    title: "East TX Top 10 — Live Leaderboard",
-    description: "Climb the East Texas Top 10 in real time. $1 = 1 point. 70% goes back local.",
+    title: "Top 10 Boards — East Texas Live Rankings",
+    description: "Coaches, teachers, teams, restaurants, businesses, artists, ministries, and stories. $1 = 1 point. 70% goes back local.",
   },
 };
 
@@ -101,16 +101,16 @@ export default async function LeaderboardPage({ searchParams }: Props) {
               <Flame className="h-3.5 w-3.5 animate-pulse" /> Live · East Texas only · 70% goes back local
             </div>
             <h1 className="mt-5 text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-slate-950 leading-[1.05]">
-              East TX Top 10.{" "}
+              One Top 10 tab.{" "}
               <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
-                Climb live. Fund local.
+                Many local boards.
               </span>
             </h1>
             <p className="mt-5 text-lg sm:text-xl text-slate-700 max-w-3xl mx-auto leading-relaxed">
-              Tyler. Longview. Marshall. Texarkana. Nacogdoches. Every business in East Texas can
-              fight for the top spot. <strong>Slide your vote, watch the chart move, take the throne.</strong>{" "}
-              Seventy cents of every dollar placed is reserved for East Texas organizations,
-              charity events, or local causes. Resets Sunday midnight.
+              Top coach. Top teacher. Top high school team. Top restaurant. Top attorney. Top
+              doctor. Top artist. Top local story. Pick the board, add points, watch the ranking
+              move. <strong>No payouts, no gambling, no fake votes.</strong> Seventy cents of every
+              dollar placed is reserved for East Texas organizations, charity events, or local causes.
             </p>
 
             <div className="mt-6 grid gap-2 sm:grid-cols-3 max-w-2xl mx-auto text-left">

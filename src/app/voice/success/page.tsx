@@ -63,7 +63,7 @@ export default async function VoiceSuccessPage({ searchParams }: Props) {
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <LightHeader />
+      <LightHeader activePath="/voice" />
       <section className="relative overflow-hidden">
         <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(135deg, #fff8f1 0%, #f6f9ff 38%, #eef9ff 70%, #f3eaff 100%)" }} />
         <div className="relative mx-auto max-w-2xl px-4 py-16 text-center">

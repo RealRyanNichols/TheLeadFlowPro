@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, Trophy, Wrench } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Package } from "lucide-react";
 import { LightMobileMenu } from "./LightMobileMenu";
 
 export function LightHeader({ activePath }: { activePath?: string }) {
@@ -62,8 +62,8 @@ export function LightHeader({ activePath }: { activePath?: string }) {
       </div>
       <div className="lg:hidden border-t border-slate-200 bg-slate-50">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 px-4 py-2">
-          <MobileAction href="/leaderboard" label="East TX Top 10" Icon={Trophy} primary />
-          <MobileAction href="/challenge" label="Stump me" Icon={Wrench} />
+          <MobileAction href="/services" label="Social Media" Icon={Package} primary />
+          <MobileAction href="/services/consulting" label="Consulting" Icon={BriefcaseBusiness} />
         </div>
       </div>
     </header>
@@ -114,7 +114,8 @@ export function LightFooter() {
           <Link href="/services" className="hover:text-slate-900">Social Media</Link>
           <Link href="/services/consulting" className="hover:text-slate-900">Consulting</Link>
           <Link href="/tiers" className="hover:text-slate-900">Pricing</Link>
-          <Link href="/leaderboard" className="hover:text-slate-900">East TX Top 10</Link>
+          <Link href="/leaderboard" className="hover:text-slate-900">Top 10</Link>
+          <Link href="/voice" className="hover:text-slate-900">Voice</Link>
           <Link href="/start" className="hover:text-slate-900">Start here</Link>
           <Link href="/challenge" className="hover:text-slate-900">Tool challenge</Link>
           <Link href="/pulse" className="hover:text-slate-900">Live pulse</Link>

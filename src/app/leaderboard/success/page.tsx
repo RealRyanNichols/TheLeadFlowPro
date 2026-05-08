@@ -178,7 +178,7 @@ export default async function LeaderboardSuccessPage({ searchParams }: Props) {
   if (!result?.ok) {
     return (
       <div className="min-h-screen bg-white text-slate-900">
-        <LightHeader />
+        <LightHeader activePath="/leaderboard" />
         <div className="mx-auto max-w-2xl px-4 py-20 text-center">
           <h1 className="text-3xl font-bold text-slate-950">Hmm.</h1>
           <p className="mt-3 text-slate-700">{result?.reason || "Couldn't verify the checkout."}</p>
@@ -200,7 +200,7 @@ export default async function LeaderboardSuccessPage({ searchParams }: Props) {
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <LightHeader />
+      <LightHeader activePath="/leaderboard" />
 
       <section className="relative overflow-hidden">
         <div
