@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   }
 
   const budgetTier = pickStr(form.get("budgetTier"), 40) ?? "2000-5000";
-  const routedTo = "/book?source=tool-challenge";
+  const routedTo = "/challenge?submitted=1#jump-line";
   const notes = [
     "Tool Challenge funnel submission.",
     `Tool name: ${toolName}`,
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         budgetTier,
         bestContactMethod: pickStr(form.get("bestContactMethod"), 40),
         notes,
-        routedTo,
+        routedTo: "/challenge?submitted=1",
       },
     });
   } catch (error) {
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
         budgetTier,
         monthlyRevenueRange: pickStr(form.get("monthlyRevenueRange"), 40),
         timeline: pickStr(form.get("timeline"), 80),
-        routedTo,
+        routedTo: "/challenge?submitted=1",
       },
     });
   } catch {

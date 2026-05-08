@@ -10,9 +10,12 @@ import {
   KeyRound,
   LockKeyhole,
   PlayCircle,
+  RefreshCw,
   ShieldCheck,
   Sparkles,
+  ThumbsUp,
   Wrench,
+  XCircle,
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
@@ -22,10 +25,10 @@ import { createSeoMetadata } from "@/lib/seo-metadata";
 export const metadata: Metadata = createSeoMetadata({
   title: "Stump Ryan With a Business Tool — The LeadFlow Pro",
   description:
-    "Challenge Ryan Nichols to build the tool your business needs. If he builds it and you like it, you buy it and own it.",
+    "Submit the business tool you wish existed. If Ryan builds a useful direction and you like it, move forward to a proposal or jump the line with a $250 deposit.",
   path: "/challenge",
   imageTitle: "Stump Ryan With a Business Tool",
-  imageSubtitle: "Tell Ryan the tool that would change your business. If he builds it and you like it, you buy it and own it.",
+  imageSubtitle: "Submit the tool free. If you want Ryan working now, put $250 down and jump the build line.",
   image: "/images/stump-me-tool-challenge-poster.jpg",
 });
 
@@ -66,7 +69,38 @@ const BUDGET_OPTIONS = [
   { value: "10000-plus", label: "$10K+", body: "Larger operating system or multi-part business tool." },
 ];
 
-export default function ChallengePage() {
+const DECISION_OPTIONS = [
+  {
+    Icon: ThumbsUp,
+    title: "Accept",
+    body: "You like the direction, we price the real build, and you move forward with a proposal.",
+    tone: "border-cyan-300 bg-cyan-50 text-cyan-800",
+  },
+  {
+    Icon: RefreshCw,
+    title: "Refine",
+    body: "The idea is close, but it needs another pass before you decide.",
+    tone: "border-accent-300 bg-accent-50 text-accent-800",
+  },
+  {
+    Icon: XCircle,
+    title: "Scrap",
+    body: "If it is not the right move, kill it cleanly and we do not force the wrong project.",
+    tone: "border-rose-200 bg-rose-50 text-rose-700",
+  },
+];
+
+type ChallengePageProps = {
+  searchParams?: {
+    submitted?: string;
+    deposit?: string;
+  };
+};
+
+export default function ChallengePage({ searchParams }: ChallengePageProps) {
+  const submitted = searchParams?.submitted === "1";
+  const depositCancelled = searchParams?.deposit === "cancelled";
+
   return (
     <div className="min-h-screen bg-white text-slate-950">
       <LightHeader activePath="/challenge" />
@@ -95,44 +129,50 @@ export default function ChallengePage() {
           <div className="relative mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-start lg:py-8">
             <div className="lg:sticky lg:top-24">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/75 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm backdrop-blur">
-                <Sparkles className="h-3.5 w-3.5" /> Business tool challenge
+                <Sparkles className="h-3.5 w-3.5" /> Free tool challenge
               </div>
               <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
                 Stump me with the tool your business needs.
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-700 sm:text-lg">
-                If you are a business owner and there is a tool that would change how you operate,
-                challenge me to build it. If I build it and you like it, you buy it. Plain and simple.
+                Fill out the form below and describe the tool you thought could not be created:
+                the one that catches the missed leads, stops the repeated work, organizes the
+                chaos, or finally makes your follow-up run the way it should.
               </p>
-              <div className="mt-5 grid gap-2 sm:grid-cols-3">
-                <form action="/api/challenge/deposit" method="POST">
-                  <VisitorIdField />
-                  <button
-                    type="submit"
-                    className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
-                  >
-                    Reserve $250 slot <ArrowRight className="h-4 w-4" />
-                  </button>
-                </form>
+              <div className="mt-5 rounded-3xl border border-white/70 bg-white/75 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] backdrop-blur">
+                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                  The path
+                </div>
+                <div className="mt-3 grid gap-3 text-sm leading-relaxed text-slate-700 sm:grid-cols-3 lg:grid-cols-1">
+                  <div>
+                    <span className="font-semibold text-slate-950">1. Dream it.</span> Tell me what
+                    your business would look like if this tool existed.
+                  </div>
+                  <div>
+                    <span className="font-semibold text-slate-950">2. I shape it.</span> I look for
+                    the fastest useful version, not a bloated software fantasy.
+                  </div>
+                  <div>
+                    <span className="font-semibold text-slate-950">3. You decide.</span> Move
+                    forward, refine the direction, or scrap it clean.
+                  </div>
+                </div>
+              </div>
+              <div className="mt-5">
                 <Link
                   href="#tool-challenge-form"
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 sm:w-auto"
                 >
-                  Submit my tool <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
-                  href="/book?source=tool-challenge"
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white/75 px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm backdrop-blur hover:bg-white"
-                >
-                  Book 10-min call
+                  Fill out the tool form <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
               <p className="mt-3 text-xs leading-relaxed text-slate-500">
-                This is for serious owners. No specific revenue, lead, follower, or software outcome is
-                guaranteed. The point is to build a practical system you can own and operate.
+                Free to submit. If you want me working now, the optional $250 fast lane appears
+                after the form and credits toward the build if you move forward.
               </p>
 
-              <ReserveBuildSlotCard />
+              {submitted ? <SubmissionReceivedCard /> : null}
+              {depositCancelled ? <DepositCancelledCard /> : null}
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
                 {OWNERSHIP_POINTS.map(({ Icon, title, body }) => (
@@ -149,7 +189,7 @@ export default function ChallengePage() {
             </div>
 
             <div className="grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(360px,1fr)]">
-              <div className="rounded-3xl border border-slate-200 bg-slate-950 p-3 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.7)]">
+              <div className="order-2 rounded-3xl border border-slate-200 bg-slate-950 p-3 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.7)] lg:order-1">
                 <div className="mb-3 flex items-center justify-between px-2 pt-1 text-xs font-semibold uppercase tracking-widest text-cyan-200">
                   <span className="inline-flex items-center gap-2">
                     <PlayCircle className="h-4 w-4" /> Watch the challenge
@@ -167,7 +207,11 @@ export default function ChallengePage() {
                 </video>
               </div>
 
-              <ToolChallengeForm />
+              <div className="order-1 grid gap-4 lg:order-2">
+                <ToolChallengeForm />
+                <DecisionDeck />
+                <ReserveBuildSlotCard />
+              </div>
             </div>
           </div>
         </section>
@@ -251,31 +295,39 @@ function ToolChallengeForm() {
     >
       <VisitorIdField />
       <div className="inline-flex items-center gap-2 rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-800">
-        <Wrench className="h-3.5 w-3.5" /> Submit the challenge
+        <Wrench className="h-3.5 w-3.5" /> Free challenge intake
       </div>
       <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
-        What tool would make your business better?
+        Fill this out so I can create the dream tool.
       </h2>
       <p className="mt-2 text-sm leading-relaxed text-slate-600">
-        Give me the problem, the current mess, and what changes if this exists.
+        Do not think like a software developer. Think like the owner who is tired of the same leak
+        every day. Tell me what you wish existed, what it would remove from your plate, and what
+        your business could become if that one tool handled the problem. This is where the idea
+        comes out of thin air and starts becoming a system you can own.
       </p>
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <PromptChip title="What disappears?" body="Missed calls, manual texts, repeat questions, messy handoff, lost leads." />
+        <PromptChip title="What wakes up?" body="Follow-up, quotes, reminders, intake, reports, content, or customer routing." />
+        <PromptChip title="What do you own?" body="Your accounts, your process, your data, and the tool built around them." />
+      </div>
 
       <div className="mt-5 grid gap-3">
-        <TextField name="toolName" label="Name the tool" placeholder="Example: missed-call follow-up dashboard" required />
+        <TextField name="toolName" label="Give the tool a name" placeholder="Example: missed-call follow-up dashboard" required />
         <TextArea
           name="toolProblem"
-          label="What problem does it solve?"
+          label="What problem would this solve?"
           placeholder="What is wasting time, costing money, losing leads, or making your team repeat the same work?"
           required
         />
         <TextArea
           name="businessImpact"
-          label="What changes if it works?"
-          placeholder="More booked calls, faster estimates, fewer missed leads, better handoff, cleaner follow-up, faster content, fewer mistakes."
+          label="If this existed, what would your business look like?"
+          placeholder="More booked calls, faster estimates, fewer missed leads, better handoff, cleaner follow-up, faster content, fewer mistakes. Paint the picture."
         />
         <TextArea
           name="currentProcess"
-          label="How do you do it now?"
+          label="How are you stuck doing it now?"
           placeholder="Spreadsheets, texts, sticky notes, missed calls, manual follow-up, too many apps, one employee's memory."
         />
 
@@ -289,7 +341,9 @@ function ToolChallengeForm() {
         </div>
 
         <div>
-          <div className="mb-2 text-sm font-semibold text-slate-800">Build budget if it makes sense</div>
+          <div className="mb-2 text-sm font-semibold text-slate-800">
+            If you like the direction, what budget range makes sense?
+          </div>
           <div className="grid gap-2 sm:grid-cols-3">
             {BUDGET_OPTIONS.map((option) => (
               <label
@@ -342,8 +396,8 @@ function ToolChallengeForm() {
             className="mt-1 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
           />
           <span>
-            I understand this is a business tool inquiry, not a guarantee. Ryan will review the
-            idea and may propose a paid build, working session, or phased prototype.
+            I understand this is a free business tool submission, not a guarantee. Ryan may propose
+            a paid build, working session, phased prototype, or the optional $250 build-slot deposit.
           </span>
         </label>
 
@@ -351,28 +405,107 @@ function ToolChallengeForm() {
           type="submit"
           className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
         >
-          Challenge Ryan to build it <ArrowRight className="h-4 w-4" />
+          Submit the challenge <ArrowRight className="h-4 w-4" />
         </button>
       </div>
     </form>
   );
 }
 
+function PromptChip({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-cyan-200 bg-cyan-50/70 p-3">
+      <div className="text-xs font-semibold text-cyan-900">{title}</div>
+      <p className="mt-1 text-[11px] leading-relaxed text-cyan-900/70">{body}</p>
+    </div>
+  );
+}
+
+function SubmissionReceivedCard() {
+  return (
+    <div className="mt-5 rounded-3xl border border-cyan-300 bg-cyan-50/90 p-5 text-cyan-950 shadow-[0_24px_60px_-34px_rgba(8,145,178,0.45)]">
+      <div className="flex items-start gap-3">
+        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-cyan-700" />
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Challenge received.</h2>
+          <p className="mt-1 text-sm leading-relaxed text-cyan-900/80">
+            Ryan has the tool idea. If you want it treated like paid work now, use the $250 fast
+            lane below. That reserves build time and credits toward the custom build if you move
+            forward.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DepositCancelledCard() {
+  return (
+    <div className="mt-5 rounded-3xl border border-accent-200 bg-accent-50/90 p-5 text-slate-950 shadow-[0_24px_60px_-34px_rgba(240,122,16,0.45)]">
+      <div className="flex items-start gap-3">
+        <RefreshCw className="mt-0.5 h-5 w-5 shrink-0 text-accent-700" />
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">No problem. Submit it free first.</h2>
+          <p className="mt-1 text-sm leading-relaxed text-slate-700">
+            The deposit is only the fast lane. You can still send the tool idea, get it reviewed,
+            and decide after Ryan sees the business problem.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DecisionDeck() {
+  return (
+    <div className="mt-5 rounded-3xl border border-white/70 bg-white/75 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] backdrop-blur">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+            After Ryan builds the direction
+          </div>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
+            You get three clean choices.
+          </h2>
+        </div>
+        <div className="hidden rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 sm:block">
+          Accept / refine / scrap
+        </div>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+        {DECISION_OPTIONS.map(({ Icon, title, body, tone }) => (
+          <div key={title} className={`rounded-2xl border p-4 ${tone}`}>
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Icon className="h-4 w-4" />
+              {title}
+            </div>
+            <p className="mt-2 text-xs leading-relaxed opacity-80">{body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ReserveBuildSlotCard() {
   return (
-    <div className="mt-5 overflow-hidden rounded-3xl border border-slate-900/10 bg-slate-950 text-white shadow-[0_26px_70px_-30px_rgba(15,23,42,0.75)]">
+    <div
+      id="jump-line"
+      className="mt-5 scroll-mt-24 overflow-hidden rounded-3xl border border-slate-900/10 bg-slate-950 text-white shadow-[0_26px_70px_-30px_rgba(15,23,42,0.75)]"
+    >
       <div className="grid gap-0 sm:grid-cols-[1fr_auto]">
         <div className="p-5">
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
-            <BadgeDollarSign className="h-3.5 w-3.5" /> Skip to the build slot
+            <BadgeDollarSign className="h-3.5 w-3.5" /> Optional fast lane
           </div>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-            Put $250 down and get on the build calendar.
+            Put $250 down and jump to the front of the build line.
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-300">
-            This is the fast path for owners who already know they want an app, automation,
-            dashboard, or website update. The deposit reserves a {TOOL_CHALLENGE_DEPOSIT.reserveHours}-hour
-            capacity block and credits toward the final build.
+            This is not required to submit an idea, and it is not the total tool price. It is the
+            fast path for owners who already know they want an app, automation, dashboard, or website
+            update. The deposit reserves a {TOOL_CHALLENGE_DEPOSIT.reserveHours}-hour capacity block
+            and credits toward the final build if you move forward.
           </p>
           <div className="mt-4 grid gap-2 text-xs text-slate-300 sm:grid-cols-3">
             <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3">
@@ -396,7 +529,7 @@ function ReserveBuildSlotCard() {
               type="submit"
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
             >
-              Start with $250 <ArrowRight className="h-4 w-4" />
+              Jump the line <ArrowRight className="h-4 w-4" />
             </button>
             <Link
               href="/book?source=tool-challenge-deposit"
