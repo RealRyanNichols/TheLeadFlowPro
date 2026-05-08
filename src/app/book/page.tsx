@@ -32,7 +32,7 @@ export const metadata = createSeoMetadata({
   path: "/book",
   imageTitle: "Book a 10-Minute Call",
   imageSubtitle: "Ten minutes. We decide the next move.",
-  image: "/book/opengraph-image",
+  image: "/images/social/book-call.png",
 });
 
 const RYAN_EMAIL = "theflashflash24@gmail.com";

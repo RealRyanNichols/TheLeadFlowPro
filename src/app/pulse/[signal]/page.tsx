@@ -65,7 +65,7 @@ export function generateMetadata({ params }: { params: { signal: string } }): Me
     title: `${signal.shortTitle} - Live Pulse Signal`,
     description: signal.description,
     path: `/pulse/${signal.slug}`,
-    image: `/pulse/${signal.slug}/opengraph-image`,
+    image: `/images/social/pulse-${signal.slug}.png`,
     imageTitle: signal.title,
     imageSubtitle: signal.description,
   });

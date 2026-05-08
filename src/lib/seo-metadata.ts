@@ -25,12 +25,8 @@ export function socialImageUrl(input: {
   subtitle?: string;
   kicker?: string;
 }) {
-  const params = new URLSearchParams({
-    title: input.title,
-  });
-  if (input.subtitle) params.set("subtitle", input.subtitle);
-  if (input.kicker) params.set("kicker", input.kicker);
-  return `${SITE_URL}/api/og?${params.toString()}`;
+  void input;
+  return `${SITE_URL}/images/leadflow-pro-social-card.png`;
 }
 
 export function createSeoMetadata(input: SeoMetadataInput): Metadata {

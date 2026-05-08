@@ -37,7 +37,7 @@ export const metadata: Metadata = createSeoMetadata({
   description:
     "Watch The LeadFlow Pro's live website brain: views, dwell time, source trails, share backs, CTA intent, probability scores, and next-best moves.",
   path: "/pulse",
-  image: "/pulse/opengraph-image",
+  image: "/images/social/pulse.png",
   imageTitle: "Live Website Pulse",
   imageSubtitle: "Live attention, click intent, share backs, dwell signals, source trails, and probability scores.",
 });
