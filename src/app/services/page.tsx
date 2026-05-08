@@ -7,10 +7,12 @@
 
 import Link from "next/link";
 import {
-  ArrowRight, BadgeCheck, Check, Facebook, Megaphone, Music2, Sparkles, Star,
-  TrendingUp, Trophy, Twitter, Users, X as XIcon, Youtube,
+  ArrowRight, BadgeCheck, Check, Megaphone, Sparkles, Star,
+  TrendingUp, Trophy, Users, X as XIcon,
 } from "lucide-react";
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
+import { MiniExplainer } from "@/components/site/MiniExplainer";
+import { PlatformBrandMark, type PlatformBrandHandle } from "@/components/site/PlatformBrandMark";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const metadata = createSeoMetadata({
@@ -25,8 +27,8 @@ export const metadata = createSeoMetadata({
 const PLATFORMS = [
   {
     handle: "tiktok",
+    brand: "tiktok",
     name: "TikTok",
-    Icon: Music2,
     blurb: "Daily short-form built around the hook patterns the algorithm is rewarding this week. Repurposed across IG Reels and YT Shorts.",
     bullets: [
       "20 short-form posts / month",
@@ -37,8 +39,8 @@ const PLATFORMS = [
   },
   {
     handle: "facebook",
+    brand: "facebook",
     name: "Facebook",
-    Icon: Facebook,
     blurb: "Page + groups strategy for businesses where buyers actually live (local services, mortgage, real estate, B2B).",
     bullets: [
       "12 long-form + 8 short videos / mo",
@@ -49,8 +51,8 @@ const PLATFORMS = [
   },
   {
     handle: "x",
+    brand: "x",
     name: "X / Twitter",
-    Icon: Twitter,
     blurb: "Daily posting + reply game. The platform I grew to 43,800+ on. Built for personal brands, founders, and operators.",
     bullets: [
       "Daily Mon–Fri posts in your voice",
@@ -61,8 +63,8 @@ const PLATFORMS = [
   },
   {
     handle: "youtube",
+    brand: "youtube",
     name: "YouTube",
-    Icon: Youtube,
     blurb: "Long-form content engine. Title + thumbnail + retention loops engineered for the home feed and search.",
     bullets: [
       "1 long-form video / week",
@@ -178,6 +180,7 @@ export default function ServicesPage() {
                 No price maze. Pick the quick review, one platform, all-platform bundle, ads
                 system, field content day, or the router if you are not sure.
               </p>
+              <MiniExplainer variant="services" className="mt-5" />
             </div>
 
             <div id="service-options" className="rounded-3xl border border-white/70 bg-white/80 p-3 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.24)] ring-1 ring-slate-900/5 backdrop-blur-xl sm:p-4">
@@ -394,7 +397,6 @@ export default function ServicesPage() {
 
           <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {PLATFORMS.map((p) => {
-              const Icon = p.Icon;
               return (
                 <Link
                   key={p.handle}
@@ -402,9 +404,7 @@ export default function ServicesPage() {
                   className="group flex flex-col rounded-2xl border border-slate-200 bg-white/80 backdrop-blur p-6 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.10)] hover:shadow-[0_30px_70px_-15px_rgba(15,23,42,0.20)] transition-shadow"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white">
-                      <Icon className="h-5 w-5" />
-                    </div>
+                    <PlatformBrandMark platform={p.brand as PlatformBrandHandle} />
                     <span className="text-[10px] uppercase tracking-widest text-cyan-700 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded-full font-semibold">
                       {p.metric}
                     </span>

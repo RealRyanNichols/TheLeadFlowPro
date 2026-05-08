@@ -7,6 +7,7 @@ import TwitterProvider from "next-auth/providers/twitter";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
+import { isAdminEmail } from "@/lib/admin-identity";
 
 const googleId   = process.env.GOOGLE_CLIENT_ID;
 const googleKey  = process.env.GOOGLE_CLIENT_SECRET;
@@ -148,6 +149,7 @@ export const authOptions: NextAuthOptions = {
       //  - on initial sign-in (user is truthy)
       //  - when the client explicitly calls session.update() after finishing onboarding
       const id = (token as { id?: string }).id;
+      (token as { isAdmin?: boolean }).isAdmin = isAdminEmail(token.email);
       if (id && (user || trigger === "update")) {
         (token as { brainCompleteness?: number }).brainCompleteness =
           await currentBrainCompleteness(id);
@@ -167,6 +169,8 @@ export const authOptions: NextAuthOptions = {
         const bc = (token as { brainCompleteness?: number }).brainCompleteness;
         (session.user as typeof session.user & { brainCompleteness?: number }).brainCompleteness =
           typeof bc === "number" ? bc : 0;
+        (session.user as typeof session.user & { isAdmin?: boolean }).isAdmin =
+          Boolean((token as { isAdmin?: boolean }).isAdmin);
       }
       return session;
     }

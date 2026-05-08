@@ -105,7 +105,7 @@ export default function DashboardReal({
               Refine Brain profile →
             </Link>
             <Link
-              href="/dashboard/impact"
+              href="/dashboard/insights"
               className="text-sm text-blue-700 hover:underline"
             >
               See your impact →

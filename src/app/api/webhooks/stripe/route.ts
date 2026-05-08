@@ -244,7 +244,68 @@ async function createToolChallengeDepositWorkOrderFromCheckout(
   }
 }
 
+async function handleSupportDonationCheckout(session: Stripe.Checkout.Session) {
+  if (session.metadata?.kind !== "support-donation") return false;
+
+  const donationId = session.metadata?.donationId || null;
+  const customerEmail = session.customer_details?.email || session.customer_email || null;
+  const customerName = session.customer_details?.name || null;
+
+  try {
+    const where = donationId
+      ? { id: donationId }
+      : session.id
+        ? { stripeSessionId: session.id }
+        : null;
+    if (!where) return true;
+
+    await (prisma as any).supportDonation.update({
+      where,
+      data: {
+        status: "paid",
+        paidAt: new Date((session.created || Math.floor(Date.now() / 1000)) * 1000),
+        stripeSessionId: session.id,
+        ...(customerEmail ? { email: customerEmail.toLowerCase() } : {}),
+        ...(customerName ? { displayName: customerName } : {}),
+      },
+    });
+  } catch (err) {
+    console.warn("Stripe webhook: support donation not updated", {
+      session: session.id,
+      donationId,
+      error: err instanceof Error ? err.message : "unknown",
+    });
+  }
+
+  try {
+    await recordDonationPulse(session);
+  } catch {
+    // Do not fail Stripe because analytics failed.
+  }
+
+  return true;
+}
+
+async function recordDonationPulse(session: Stripe.Checkout.Session) {
+  const visitorId = session.metadata?.visitorId;
+  if (!visitorId) return;
+  const amount = typeof session.amount_total === "number" ? Math.round(session.amount_total / 100) : 0;
+  const { recordSitePulseEvent } = await import("@/lib/site-pulse");
+  await recordSitePulseEvent({
+    visitorId,
+    path: "/support",
+    eventType: "purchase_complete",
+    source: "support-donation",
+    target: session.metadata?.focus || "where-needed",
+    value: amount,
+  });
+}
+
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  if (await handleSupportDonationCheckout(session)) {
+    return;
+  }
+
   const userId =
     session.client_reference_id ||
     (session.metadata?.userId as string | undefined) ||

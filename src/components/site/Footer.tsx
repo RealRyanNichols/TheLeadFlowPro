@@ -30,8 +30,8 @@ export function Footer() {
             </h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/#features" className="text-ink-100 hover:text-white">
-                  Features
+                <Link href="/services" className="text-ink-100 hover:text-white">
+                  Services
                 </Link>
               </li>
               <li>

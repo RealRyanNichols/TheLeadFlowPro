@@ -189,11 +189,38 @@ export function clientCanSeeWorkOrder(order: Pick<ClientWorkOrder, "clientName" 
 export function extractClientUpdates(notes: string | null | undefined) {
   if (!notes) return [];
   return notes
+    .split(/--- (Client|Ryan) update /)
+    .slice(1)
+    .reduce<Array<{ author: "Client" | "Ryan"; stamp: string; body: string }>>(
+      (updates, part, index, chunks) => {
+        if (part !== "Client" && part !== "Ryan") return updates;
+        const chunk = chunks[index + 1] || "";
+        const [stampPart, ...rest] = chunk.split("---");
+        const body = rest.join("---").trim();
+        if (body.length > 0) {
+          updates.push({
+            author: part,
+            stamp: stampPart.trim(),
+            body,
+          });
+        }
+        return updates;
+      },
+      [],
+    )
+    .slice(-8)
+    .reverse();
+}
+
+export function extractClientOnlyUpdates(notes: string | null | undefined) {
+  if (!notes) return [];
+  return notes
     .split("--- Client update ")
     .slice(1)
     .map((chunk) => {
       const [stampPart, ...rest] = chunk.split("---");
       return {
+        author: "Client" as const,
         stamp: stampPart.trim(),
         body: rest.join("---").trim(),
       };

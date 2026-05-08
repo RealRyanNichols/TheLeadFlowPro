@@ -14,10 +14,10 @@ import {
   ShieldCheck,
   Sparkles,
   ThumbsUp,
-  Wrench,
   XCircle,
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { MiniExplainer } from "@/components/site/MiniExplainer";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
 import { ChallengeInsightBuilder } from "@/components/challenge/ChallengeInsightBuilder";
 import { TOOL_CHALLENGE_DEPOSIT } from "@/lib/challenge-deposit";
@@ -127,91 +127,100 @@ export default function ChallengePage({ searchParams }: ChallengePageProps) {
             style={{ background: "radial-gradient(circle, rgba(255,154,31,0.46) 0%, transparent 62%)" }}
           />
 
-          <div className="relative mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-start lg:py-8">
+          <div className="relative mx-auto grid max-w-7xl gap-5 px-4 py-4 lg:grid-cols-[0.72fr_1.28fr] lg:items-start lg:py-6">
             <div className="lg:sticky lg:top-24">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/75 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm backdrop-blur">
                 <Sparkles className="h-3.5 w-3.5" /> Free tool challenge
               </div>
-              <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+              <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
                 Stump me with the tool your business needs.
               </h1>
-              <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-700 sm:text-lg">
-                Fill out the form below and describe the tool you thought could not be created:
-                the one that catches the missed leads, stops the repeated work, organizes the
-                chaos, or finally makes your follow-up run the way it should.
+              <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-700 sm:text-lg">
+                Change the sliders, describe the dream tool, and send the request. If it would
+                catch missed leads, remove repeated work, or make your business easier to run,
+                put it in the form.
               </p>
-              <div className="mt-5 rounded-3xl border border-white/70 bg-white/75 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] backdrop-blur">
-                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
-                  The path
+              <div className="mt-4 overflow-hidden rounded-2xl border border-slate-950/10 bg-slate-950 text-white shadow-[0_22px_55px_-30px_rgba(15,23,42,0.72)]">
+                <div className="bg-gradient-to-r from-cyan-500/20 via-white/[0.03] to-accent-500/20 px-4 py-3">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
+                    <Sparkles className="h-3.5 w-3.5" /> The path
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-200">
+                    Follow this order so Ryan gets a usable prompt instead of a vague idea.
+                  </p>
                 </div>
-                <div className="mt-3 grid gap-3 text-sm leading-relaxed text-slate-700 sm:grid-cols-3 lg:grid-cols-1">
-                  <div>
-                    <span className="font-semibold text-slate-950">1. Dream it.</span> Tell me what
+                <div className="grid gap-2 p-3 text-sm leading-relaxed text-slate-200 sm:grid-cols-3 lg:grid-cols-1">
+                  <div className="rounded-xl border border-white/10 bg-white/[0.06] p-3">
+                    <span className="font-semibold text-cyan-100">1. Dream it.</span> Tell me what
                     your business would look like if this tool existed.
                   </div>
-                  <div>
-                    <span className="font-semibold text-slate-950">2. I shape it.</span> I look for
+                  <div className="rounded-xl border border-white/10 bg-white/[0.06] p-3">
+                    <span className="font-semibold text-accent-100">2. I shape it.</span> I look for
                     the fastest useful version, not a bloated software fantasy.
                   </div>
-                  <div>
-                    <span className="font-semibold text-slate-950">3. You decide.</span> Move
+                  <div className="rounded-xl border border-white/10 bg-white/[0.06] p-3">
+                    <span className="font-semibold text-cyan-100">3. You decide.</span> Move
                     forward, refine the direction, or scrap it clean.
                   </div>
                 </div>
               </div>
-              <div className="mt-5">
-                <Link
-                  href="#tool-challenge-form"
-                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 sm:w-auto"
-                >
-                  Fill out the tool form <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-              <p className="mt-3 text-xs leading-relaxed text-slate-500">
-                Free to submit. If you want me working now, the optional $250 fast lane appears
-                after the form and credits toward the build if you move forward.
-              </p>
+              <MiniExplainer variant="challenge" className="mt-4" />
 
               {submitted ? <SubmissionReceivedCard /> : null}
               {depositCancelled ? <DepositCancelledCard /> : null}
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-                {OWNERSHIP_POINTS.map(({ Icon, title, body }) => (
-                  <div
-                    key={title}
-                    className="rounded-2xl border border-white/70 bg-white/75 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] backdrop-blur"
-                  >
-                    <Icon className="h-5 w-5 text-cyan-700" />
-                    <h2 className="mt-3 text-sm font-semibold text-slate-950">{title}</h2>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-600">{body}</p>
-                  </div>
-                ))}
-              </div>
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(360px,1fr)]">
-              <div className="order-2 rounded-3xl border border-slate-200 bg-slate-950 p-3 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.7)] lg:order-1">
-                <div className="mb-3 flex items-center justify-between px-2 pt-1 text-xs font-semibold uppercase tracking-widest text-cyan-200">
-                  <span className="inline-flex items-center gap-2">
-                    <PlayCircle className="h-4 w-4" /> Watch the challenge
-                  </span>
-                  <span>Under 1 minute</span>
+            <div className="grid gap-4">
+              <ToolChallengeForm />
+              <div className="rounded-3xl border border-cyan-200/80 bg-gradient-to-br from-cyan-50 via-white to-accent-50 p-4 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.4)]">
+                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                  Your accounts. Your control. No percentage grab.
                 </div>
-                <video
-                  className="aspect-[9/16] w-full rounded-2xl bg-black object-cover"
-                  controls
-                  playsInline
-                  preload="metadata"
-                  poster="/images/stump-me-tool-challenge-poster.jpg"
-                >
-                  <source src="/videos/stump-me-tool-challenge.mp4" type="video/mp4" />
-                </video>
+                <div className="mt-3 grid gap-3 md:grid-cols-3">
+                  {OWNERSHIP_POINTS.map(({ Icon, title, body }) => (
+                    <div key={title} className="rounded-2xl border border-white/80 bg-white/75 p-4 shadow-sm">
+                      <div className="flex items-start gap-3">
+                        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-cyan-200">
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <div>
+                          <h2 className="text-sm font-semibold text-slate-950">{title}</h2>
+                          <p className="mt-1 text-xs leading-relaxed text-slate-600">{body}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                  Convenient platforms make it easy to start and easy to get trapped. This challenge
+                  is different: Ryan looks at the actual work, then builds a system your business can
+                  own, understand, and keep improving.
+                </p>
               </div>
+              <div className="grid gap-4 xl:grid-cols-[minmax(260px,0.8fr)_minmax(360px,1.2fr)]">
+                <div className="rounded-3xl border border-slate-200 bg-slate-950 p-3 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.7)]">
+                  <div className="mb-3 flex items-center justify-between px-2 pt-1 text-xs font-semibold uppercase tracking-widest text-cyan-200">
+                    <span className="inline-flex items-center gap-2">
+                      <PlayCircle className="h-4 w-4" /> Watch the challenge
+                    </span>
+                    <span>Under 1 minute</span>
+                  </div>
+                  <video
+                    className="aspect-[9/16] w-full rounded-2xl bg-black object-cover"
+                    controls
+                    playsInline
+                    preload="metadata"
+                    poster="/images/stump-me-tool-challenge-poster.jpg"
+                  >
+                    <source src="/videos/stump-me-tool-challenge.mp4" type="video/mp4" />
+                  </video>
+                </div>
 
-              <div className="order-1 grid gap-4 lg:order-2">
-                <ToolChallengeForm />
-                <DecisionDeck />
-                <ReserveBuildSlotCard />
+                <div className="grid gap-4">
+                  <DecisionDeck />
+                  <ReserveBuildSlotCard />
+                </div>
               </div>
             </div>
           </div>
@@ -295,44 +304,66 @@ function ToolChallengeForm() {
       className="rounded-3xl border border-white/70 bg-white/90 p-4 shadow-[0_28px_70px_-28px_rgba(15,23,42,0.38)] backdrop-blur sm:p-5"
     >
       <VisitorIdField />
-      <div className="inline-flex items-center gap-2 rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-800">
-        <Wrench className="h-3.5 w-3.5" /> Free challenge intake
+      <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+        Free challenge intake
       </div>
-      <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
-        Fill this out so I can create the dream tool.
+      <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+        Build the request right here.
       </h2>
       <p className="mt-2 text-sm leading-relaxed text-slate-600">
-        Do not think like a software developer. Think like the owner who is tired of the same leak
-        every day. Tell me what you wish existed, what it would remove from your plate, and what
-        your business could become if that one tool handled the problem. This is where the idea
-        comes out of thin air and starts becoming a system you can own.
+        First use the calculator. Then fill in the fields like you are describing the perfect
+        employee, dashboard, follow-up system, or app you wish you already had.
       </p>
-      <div className="mt-4 grid gap-2 sm:grid-cols-3">
-        <PromptChip title="What disappears?" body="Missed calls, manual texts, repeat questions, messy handoff, lost leads." />
-        <PromptChip title="What wakes up?" body="Follow-up, quotes, reminders, intake, reports, content, or customer routing." />
-        <PromptChip title="What do you own?" body="Your accounts, your process, your data, and the tool built around them." />
-      </div>
-      <div className="mt-4">
+      <div className="mt-3">
         <ChallengeInsightBuilder />
       </div>
 
       <div className="mt-5 grid gap-3">
-        <TextField name="toolName" label="Give the tool a name" placeholder="Example: missed-call follow-up dashboard" required />
+        <div className="rounded-3xl border border-cyan-200 bg-cyan-50/80 p-4">
+          <div className="text-xs font-semibold uppercase tracking-widest text-cyan-800">
+            Prompt coach
+          </div>
+          <h3 className="mt-2 text-lg font-semibold tracking-tight text-slate-950">
+            Do not write small. Tell me the tool you would build if money, skill, and software did
+            not block you.
+          </h3>
+          <div className="mt-3 grid gap-2 text-sm leading-relaxed text-slate-700 sm:grid-cols-3">
+            <div className="rounded-2xl border border-cyan-200 bg-white/75 p-3">
+              <span className="font-semibold text-slate-950">Name the pain.</span> What keeps
+              happening that should not happen anymore?
+            </div>
+            <div className="rounded-2xl border border-cyan-200 bg-white/75 p-3">
+              <span className="font-semibold text-slate-950">Name the magic.</span> If this tool
+              worked, what would it do without you chasing it?
+            </div>
+            <div className="rounded-2xl border border-cyan-200 bg-white/75 p-3">
+              <span className="font-semibold text-slate-950">Name the money.</span> How does it
+              create leads, save hours, close sales, or stop waste?
+            </div>
+          </div>
+        </div>
+
+        <TextField
+          name="toolName"
+          label="Give the tool a name"
+          placeholder="Example: missed-call follow-up dashboard, quote tracker, client portal, content engine"
+          required
+        />
         <TextArea
           name="toolProblem"
-          label="What problem would this solve?"
-          placeholder="What is wasting time, costing money, losing leads, or making your team repeat the same work?"
+          label="Step 1: What problem would this solve?"
+          placeholder="Example: We miss calls, forget follow-up, lose leads in DMs, answer the same questions, manually build quotes, or never know which post created a real buyer."
           required
         />
         <TextArea
           name="businessImpact"
-          label="If this existed, what would your business look like?"
-          placeholder="More booked calls, faster estimates, fewer missed leads, better handoff, cleaner follow-up, faster content, fewer mistakes. Paint the picture."
+          label="Step 2: If this existed, what would your business look like?"
+          placeholder="Example: Every lead gets tagged, texted, followed up with, routed to the right offer, shown on my dashboard, and reminded until someone buys, books, or says no."
         />
         <TextArea
           name="currentProcess"
-          label="How are you stuck doing it now?"
-          placeholder="Spreadsheets, texts, sticky notes, missed calls, manual follow-up, too many apps, one employee's memory."
+          label="Step 3: How are you stuck doing it now?"
+          placeholder="Example: Spreadsheets, texts, sticky notes, missed calls, manual follow-up, too many apps, one employee's memory, screenshots, no dashboard, no owner view."
         />
 
         <div className="grid gap-3 sm:grid-cols-2">
@@ -413,15 +444,6 @@ function ToolChallengeForm() {
         </button>
       </div>
     </form>
-  );
-}
-
-function PromptChip({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="rounded-2xl border border-cyan-200 bg-cyan-50/70 p-3">
-      <div className="text-xs font-semibold text-cyan-900">{title}</div>
-      <p className="mt-1 text-[11px] leading-relaxed text-cyan-900/70">{body}</p>
-    </div>
   );
 }
 

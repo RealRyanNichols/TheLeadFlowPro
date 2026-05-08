@@ -1,7 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BarChart3, CalendarCheck, Eye, MousePointerClick, Radar, Route, ShieldCheck, Trophy } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  Building2,
+  CalendarCheck,
+  Car,
+  Eye,
+  Gavel,
+  HeartPulse,
+  Home,
+  Megaphone,
+  MousePointerClick,
+  Music2,
+  Radar,
+  Route,
+  ShieldCheck,
+  Trophy,
+} from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { LivePulseEngineRoom } from "@/components/site/LivePulseEngineRoom";
 import { LiveLeadFlowPulse } from "@/components/site/LiveLeadFlowPulse";
 import { PulseBusinessDemo } from "@/components/site/PulseBusinessDemo";
 import { getCapacitySnapshot } from "@/lib/capacity";
@@ -12,10 +30,10 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = createSeoMetadata({
   title: "Live Website Pulse — The LeadFlow Pro",
   description:
-    "Watch The LeadFlow Pro's live website effectiveness board: visitors, share links, click-backs, top pages, CTA clicks, and Ryan's available capacity.",
+    "Watch The LeadFlow Pro's live website brain and engine: visitors, share links, click-backs, top pages, CTA clicks, learning signals, and Ryan's available capacity.",
   path: "/pulse",
   imageTitle: "Live Website Pulse",
-  imageSubtitle: "Views, click-backs, CTA clicks, top pages, and Ryan's capacity in one public board.",
+  imageSubtitle: "A public look inside the site's live brain: attention, clicks, shares, bookings, learning signals, and capacity.",
 });
 
 const SCORECARDS = [
@@ -33,6 +51,68 @@ const SCORECARDS = [
     Icon: CalendarCheck,
     title: "Can Ryan fulfill it?",
     body: "The same board points back to capacity so the site is not selling more work than Ryan can actually handle.",
+  },
+];
+
+const BUSINESS_SIGNAL_STACK = [
+  {
+    Icon: Car,
+    label: "Dealerships",
+    signal: "Vehicle page -> trade-in click -> phone call -> missed-call text -> appointment",
+    decision: "Which inventory, ad, or salesperson is creating real showroom movement?",
+  },
+  {
+    Icon: Gavel,
+    label: "Attorneys",
+    signal: "Case page -> intake question -> evidence upload -> consult request -> paid review",
+    decision: "Which case type creates serious consults without leaking private details?",
+  },
+  {
+    Icon: HeartPulse,
+    label: "Doctors",
+    signal: "Service page -> insurance question -> booking click -> reminder -> completed visit",
+    decision: "Which procedure pages create patients instead of casual browsing?",
+  },
+  {
+    Icon: Home,
+    label: "Real estate",
+    signal: "Listing content -> home-value click -> saved lead -> nurture -> showing request",
+    decision: "Which neighborhoods, posts, and listings deserve more content or ad spend?",
+  },
+  {
+    Icon: Music2,
+    label: "Artists",
+    signal: "Short -> profile click -> email capture -> merch click -> show ticket",
+    decision: "Which clip, hook, city, and fan action should get pushed next?",
+  },
+  {
+    Icon: Building2,
+    label: "Local services",
+    signal: "Before/after post -> quote click -> SMS follow-up -> deposit -> job booked",
+    decision: "Where is the lead leaking: creative, page, reply speed, quote, or checkout?",
+  },
+];
+
+const AD_OWNER_STACK = [
+  {
+    stat: "Ad click",
+    title: "The click is not the win.",
+    body: "A Facebook ad manager can show clicks. The owner needs to know which click became a lead, call, text, booked slot, checkout start, or lost opportunity.",
+  },
+  {
+    stat: "Lead source",
+    title: "The source must stay attached.",
+    body: "If the lead came from an ad, reel, share link, SEO page, or live pulse post, that source should follow the customer into the CRM and client office.",
+  },
+  {
+    stat: "Reply speed",
+    title: "Follow-up is where money leaks.",
+    body: "The system should show whether the business replied in seconds, minutes, hours, or never. That is usually where ads become expensive.",
+  },
+  {
+    stat: "Owned system",
+    title: "No agency percentage grab.",
+    body: "Ryan builds it inside the client’s accounts: their page, pixel, list, automations, leads, dashboard, and sales process.",
   },
 ];
 
@@ -77,15 +157,15 @@ export default async function PulsePage() {
               <Radar className="h-3.5 w-3.5" /> Website effectiveness board
             </div>
             <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl">
-              This is not a vanity counter.{" "}
+              Look inside the brain and engine of this website.{" "}
               <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
-                It shows if the site is working.
+                Live while it runs.
               </span>
             </h1>
             <p className="mt-4 text-lg leading-relaxed text-slate-700">
               The LeadFlow Pro should prove its own pitch. One site, one page, one post, one ad,
-              one share link. If attention turns into clicks, bookings, and buyers, the site should
-              show that movement in public.
+              one share link. If attention turns into clicks, bookings, buyers, and new product
+              ideas, the site should show that movement in public.
             </p>
             <div className="mt-6 grid grid-cols-2 gap-3 sm:flex">
               <Link
@@ -104,6 +184,99 @@ export default async function PulsePage() {
           </div>
 
           <LiveLeadFlowPulse capacity={capacitySnapshot} />
+        </div>
+      </section>
+
+      <LivePulseEngineRoom />
+
+      <section className="relative overflow-hidden border-b border-slate-200 bg-white">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(135deg, #eaf9ff 0%, #fff8f1 46%, #f3eaff 100%)",
+          }}
+        />
+        <div
+          aria-hidden
+          className="absolute -left-24 top-10 h-[420px] w-[420px] rounded-full bg-cyan-300/30 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="absolute -right-24 bottom-0 h-[420px] w-[420px] rounded-full bg-accent-300/30 blur-3xl"
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-14">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/75 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm backdrop-blur">
+              <Megaphone className="h-3.5 w-3.5" /> What Facebook ad buyers should see
+            </div>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+              Ads are not successful because Meta says people clicked.
+              <span className="block bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
+                Ads are successful when the business can see the whole money trail.
+              </span>
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-slate-700">
+              This is the part most businesses do not have: a single view connecting the ad, page,
+              question, click, reply, calendar, payment, and follow-up. That is what makes the
+              difference between buying traffic and building a machine.
+            </p>
+          </div>
+
+          <div className="mt-7 grid gap-4 lg:grid-cols-[0.92fr_1.08fr]">
+            <div className="overflow-hidden rounded-3xl border border-slate-900/10 bg-slate-950 text-white shadow-[0_30px_80px_-32px_rgba(15,23,42,0.72)]">
+              <div className="border-b border-white/10 bg-gradient-to-r from-cyan-500/15 via-white/[0.03] to-accent-500/15 p-5">
+                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-100">
+                  Owner's ad scoreboard
+                </div>
+                <h3 className="mt-2 text-2xl font-semibold tracking-tight">
+                  The ad spend only matters if it creates owner-controlled movement.
+                </h3>
+              </div>
+              <div className="grid gap-3 p-4 sm:grid-cols-2">
+                {AD_OWNER_STACK.map((item) => (
+                  <div key={item.title} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-accent-100">
+                      {item.stat}
+                    </div>
+                    <h4 className="mt-2 text-base font-semibold text-white">{item.title}</h4>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-300">{item.body}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-white/10 bg-white/[0.04] p-4 text-sm leading-relaxed text-slate-300">
+                A Facebook ad operator who understands data should recognize this immediately:
+                the business does not need prettier reports. It needs an operating system that
+                catches the lead and shows the owner what to do next.
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {BUSINESS_SIGNAL_STACK.map(({ Icon, label, signal, decision }) => (
+                <div
+                  key={label}
+                  className="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.4)] backdrop-blur"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-cyan-200">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                        Business type
+                      </div>
+                      <h3 className="font-semibold text-slate-950">{label}</h3>
+                    </div>
+                  </div>
+                  <div className="mt-4 rounded-2xl border border-cyan-200 bg-cyan-50/70 p-3 text-xs font-semibold leading-relaxed text-cyan-950">
+                    {signal}
+                  </div>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-700">{decision}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 

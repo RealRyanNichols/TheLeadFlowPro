@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { BandwidthMeter } from "@/components/BandwidthMeter";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { MiniExplainer } from "@/components/site/MiniExplainer";
 import { OFFERS, type OfferSlug } from "@/lib/offers";
 import { OFFER_WORKLOADS, formatHours } from "@/lib/workload";
 import { createSeoMetadata } from "@/lib/seo-metadata";
@@ -155,6 +156,7 @@ export default function ConsultingPage() {
                 angles, Rode-mic audio, account control, sales follow-up, and the operating system
                 behind it.
               </p>
+              <MiniExplainer variant="consulting" className="mt-5" />
 
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <Link

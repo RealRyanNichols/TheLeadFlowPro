@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import {
-  ArrowRight,
   BarChart3,
   Bot,
   ChevronDown,
@@ -159,17 +159,35 @@ export function ChallengeInsightBuilder() {
               <Wand2 className="h-3.5 w-3.5" /> Prompt-to-build lab
             </div>
             <h3 className="mt-3 text-2xl font-semibold tracking-tight">
-              Click the leak. Watch the business case build itself.
+              Click the leak. Watch the request build itself.
             </h3>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300">
-              These numbers are not promises. They are a fast way to show Ryan what matters,
-              where money or time is leaking, and what kind of tool might be worth building.
+              Start left. Pick the problem that hurts most. Drag each slider until the numbers feel
+              close. Then scroll down and write the tool you wish existed. The clearer the prompt,
+              the stronger the build.
             </p>
           </div>
           <div className="rounded-2xl border border-accent-300/25 bg-accent-300/10 px-4 py-3">
             <div className="text-2xl font-bold tabular-nums">{stats.promptScore}%</div>
             <div className="text-[10px] uppercase tracking-widest text-accent-100">prompt clarity</div>
           </div>
+        </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          <InstructionStep
+            step="1"
+            title="Pick the leak"
+            body="Choose missed leads, manual work, follow-up, content, portal, or dashboard."
+          />
+          <InstructionStep
+            step="2"
+            title="Drag the numbers"
+            body="Use rough truth. You do not need perfect data to explain the business pain."
+          />
+          <InstructionStep
+            step="3"
+            title="Write the dream tool"
+            body="Tell Ryan what should happen automatically if the tool existed."
+          />
         </div>
       </div>
 
@@ -245,9 +263,24 @@ export function ChallengeInsightBuilder() {
 
         <div className="p-4 sm:p-5">
           <div className="grid gap-3 sm:grid-cols-3">
-            <MetricCard icon={<DollarSign className="h-4 w-4" />} label="Monthly exposure" value={fmt.format(stats.monthlyLeak)} />
-            <MetricCard icon={<Clock3 className="h-4 w-4" />} label="Hours/month" value={`${Math.round(stats.monthlyHours)}h`} />
-            <MetricCard icon={<Sparkles className="h-4 w-4" />} label="Build estimate" value={`${stats.buildHours}h`} />
+            <MetricCard
+              href="/challenge/insights/monthly-exposure"
+              icon={<DollarSign className="h-4 w-4" />}
+              label="Monthly exposure"
+              value={fmt.format(stats.monthlyLeak)}
+            />
+            <MetricCard
+              href="/challenge/insights/hours-per-month"
+              icon={<Clock3 className="h-4 w-4" />}
+              label="Hours/month"
+              value={`${Math.round(stats.monthlyHours)}h`}
+            />
+            <MetricCard
+              href="/challenge/insights/build-estimate"
+              icon={<Sparkles className="h-4 w-4" />}
+              label="Build estimate"
+              value={`${stats.buildHours}h`}
+            />
           </div>
 
           <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
@@ -299,27 +332,54 @@ export function ChallengeInsightBuilder() {
             </div>
           ) : null}
 
-          <a
-            href="#tool-challenge-form"
-            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
-          >
-            Use these numbers in my request <ArrowRight className="h-4 w-4" />
-          </a>
+          <div className="mt-4 rounded-xl border border-accent-300/25 bg-accent-300/10 px-4 py-3 text-sm font-semibold text-accent-50">
+            These numbers attach to the request automatically. Next: write the tool in plain English below.
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function MetricCard({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+function InstructionStep({ step, title, body }: { step: string; title: string; body: string }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3">
+      <div className="flex items-center gap-2">
+        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300 text-xs font-bold text-slate-950">
+          {step}
+        </span>
+        <span className="text-sm font-semibold text-white">{title}</span>
+      </div>
+      <p className="mt-2 text-xs leading-relaxed text-slate-300">{body}</p>
+    </div>
+  );
+}
+
+function MetricCard({
+  href,
+  icon,
+  label,
+  value,
+}: {
+  href: string;
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-2xl border border-white/10 bg-white/[0.06] p-3 transition hover:border-cyan-300/45 hover:bg-white/[0.09] focus:outline-none focus:ring-2 focus:ring-cyan-300/50"
+    >
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-300">
         <span className="text-cyan-200">{icon}</span>
         {label}
       </div>
       <div className="mt-2 text-2xl font-bold tracking-tight text-white">{value}</div>
-    </div>
+      <div className="mt-2 text-[10px] font-semibold uppercase tracking-widest text-cyan-200 opacity-80 group-hover:opacity-100">
+        Tap for breakdown
+      </div>
+    </Link>
   );
 }
 

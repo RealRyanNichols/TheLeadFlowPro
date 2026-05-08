@@ -224,7 +224,7 @@ function Report({ report, onReset }: { report: GradeReport; onReset: () => void 
           <Link href="/signup" className="btn-accent text-sm py-2.5 px-5">
             Start free <ArrowRight className="h-4 w-4" />
           </Link>
-          <Link href="/#pricing" className="btn-ghost text-sm py-2.5 px-5">
+          <Link href="/tiers" className="btn-ghost text-sm py-2.5 px-5">
             See pricing
           </Link>
         </div>

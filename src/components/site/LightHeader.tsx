@@ -10,8 +10,8 @@ import { LightMobileMenu } from "./LightMobileMenu";
 export function LightHeader({ activePath }: { activePath?: string }) {
   function cls(path: string, base: string) {
     return path === activePath
-      ? `font-semibold text-cyan-700 hover:text-cyan-800 ${base}`
-      : `hover:text-slate-950 ${base}`;
+      ? `rounded-full border border-cyan-300/60 bg-cyan-100/80 px-3 py-1.5 font-semibold text-cyan-800 shadow-sm shadow-cyan-900/5 hover:text-cyan-900 ${base}`
+      : `rounded-full px-3 py-1.5 hover:bg-white/70 hover:text-slate-950 ${base}`;
   }
 
   const nav = [
@@ -26,12 +26,29 @@ export function LightHeader({ activePath }: { activePath?: string }) {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-2.5 lg:py-3">
-        <Link href="/" className="min-w-0 truncate font-bold text-slate-950 hover:text-brand-700">
-          The LeadFlow Pro
+    <header className="sticky top-0 z-50 overflow-hidden border-b border-cyan-300/70 bg-[linear-gradient(135deg,rgba(234,246,255,0.99)_0%,rgba(213,244,255,0.96)_34%,rgba(255,247,225,0.98)_68%,rgba(255,229,190,0.96)_100%)] shadow-[0_14px_36px_-28px_rgba(15,23,42,0.75)] backdrop-blur">
+      <div
+        aria-hidden
+        className="h-1.5 w-full bg-gradient-to-r from-slate-950 via-cyan-500 to-accent-500"
+      />
+      <div className="pointer-events-none absolute -left-20 -top-24 h-40 w-40 rounded-full bg-cyan-300/25 blur-3xl" />
+      <div className="pointer-events-none absolute -right-16 -top-24 h-40 w-40 rounded-full bg-accent-300/25 blur-3xl" />
+      <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-2.5 lg:py-3">
+        <Link
+          href="/"
+          className="group flex min-w-0 items-center gap-2 truncate font-bold text-slate-950"
+        >
+          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-300/70 bg-slate-950 text-sm font-black text-cyan-200 shadow-lg shadow-cyan-900/15">
+            LF
+          </span>
+          <span className="truncate">
+            <span className="hidden text-slate-950 sm:inline">The </span>
+            <span className="bg-gradient-to-r from-brand-800 via-cyan-600 to-accent-500 bg-clip-text text-transparent">
+              LeadFlow Pro
+            </span>
+          </span>
         </Link>
-        <nav className="hidden lg:flex items-center gap-4 text-sm text-slate-700">
+        <nav className="hidden items-center gap-1 rounded-full border border-cyan-200/80 bg-white/45 px-1.5 py-1 text-sm text-slate-800 shadow-sm shadow-cyan-900/5 backdrop-blur lg:flex">
           {nav.map((item) => (
             <Link key={item.href} href={item.href} className={cls(item.href, "")}>
               {item.label}
@@ -41,26 +58,26 @@ export function LightHeader({ activePath }: { activePath?: string }) {
         <div className="flex items-center gap-2">
           <Link
             href="/login"
-            className="hidden sm:inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:border-brand-500 hover:text-brand-700"
+            className="hidden items-center rounded-xl border border-cyan-200/80 bg-white/75 px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur hover:border-brand-500 hover:text-brand-700 sm:inline-flex"
           >
             Log in
           </Link>
           <Link
             href="/challenge"
-            className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-slate-950 px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
+            className="hidden items-center gap-1.5 rounded-xl bg-gradient-to-r from-slate-950 via-brand-950 to-slate-900 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 hover:from-brand-950 hover:to-slate-950 sm:inline-flex sm:px-4 sm:py-2"
           >
             Stump me <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <Link
             href="/book"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-accent-500 px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-600"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-accent-500 to-accent-400 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:from-accent-600 hover:to-accent-500 sm:px-4 sm:py-2"
           >
             Book call <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <LightMobileMenu nav={nav} activePath={activePath} />
         </div>
       </div>
-      <div className="lg:hidden border-t border-slate-200 bg-slate-50">
+      <div className="border-t border-cyan-200/70 bg-gradient-to-r from-cyan-100/80 via-white/70 to-accent-100/75 backdrop-blur lg:hidden">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 px-4 py-2">
           <MobileAction href="/services" label="Social Media" Icon={Package} primary />
           <MobileAction href="/services/consulting" label="Consulting" Icon={BriefcaseBusiness} />
@@ -86,8 +103,8 @@ function MobileAction({
       href={href}
       className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border px-2 text-sm font-semibold shadow-sm active:scale-[0.98] ${
         primary
-          ? "border-slate-900 bg-slate-950 text-white"
-          : "border-slate-200 bg-white text-slate-900"
+          ? "border-slate-900 bg-gradient-to-r from-slate-950 via-brand-950 to-slate-900 text-white"
+          : "border-cyan-200 bg-white/80 text-slate-900"
       }`}
     >
       <Icon className={`h-4 w-4 ${primary ? "text-cyan-300" : "text-cyan-700"}`} />
@@ -119,6 +136,8 @@ export function LightFooter() {
           <Link href="/start" className="hover:text-slate-900">Start here</Link>
           <Link href="/challenge" className="hover:text-slate-900">Tool challenge</Link>
           <Link href="/pulse" className="hover:text-slate-900">Live pulse</Link>
+          <Link href="/community" className="hover:text-slate-900">Community</Link>
+          <Link href="/support" className="hover:text-slate-900">Support</Link>
           <Link href="/rewards" className="hover:text-slate-900">Rewards</Link>
           <Link href="/book" className="hover:text-slate-900">Book a call</Link>
           <Link href="/contact" className="hover:text-slate-900">Contact</Link>

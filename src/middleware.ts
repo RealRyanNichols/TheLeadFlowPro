@@ -10,6 +10,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { isAdminEmail } from "@/lib/admin-identity";
 
 const UNLOCK_THRESHOLD = 80;
 
@@ -31,6 +32,7 @@ export async function middleware(req: NextRequest) {
     typeof (token as any).brainCompleteness === "number"
       ? (token as any).brainCompleteness
       : 0;
+  const isAdmin = isAdminEmail(typeof token.email === "string" ? token.email : null);
 
   // Only gate routes under /dashboard/* and user-scoped APIs.
   // The /onboarding page + /api/onboarding endpoint are explicitly allowed through.
@@ -45,7 +47,7 @@ export async function middleware(req: NextRequest) {
     path === "/dashboard/work" ||
     path.startsWith("/dashboard/work/");
 
-  if (!onboardingAllowed && !clientOfficeAllowed && completeness < UNLOCK_THRESHOLD) {
+  if (!isAdmin && !onboardingAllowed && !clientOfficeAllowed && completeness < UNLOCK_THRESHOLD) {
     const url = new URL("/onboarding", req.url);
     url.searchParams.set("why", "profile_required");
     return NextResponse.redirect(url);

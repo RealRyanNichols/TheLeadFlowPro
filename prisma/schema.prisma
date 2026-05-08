@@ -1113,6 +1113,30 @@ model SitePulseDailyBackfill {
   @@index([date(sort: Desc)])
 }
 
+// ─── Public Support / Donations ────────────────────────────────
+// For people who believe in the mission but are not buying a service.
+// Comments are public only after payment succeeds and only when the donor
+// checks the public-comment option.
+
+model SupportDonation {
+  id              String    @id @default(cuid())
+  displayName     String?
+  email           String?
+  focus           String
+  comment         String?   @db.Text
+  amountCents     Int
+  showPublic      Boolean   @default(true)
+  status          String    @default("pending") // pending | paid | failed | hidden | refunded
+  stripeSessionId String?   @unique
+  paidAt          DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([focus])
+  @@index([email])
+}
+
 // ─── East TX Top 10 Leaderboard ──────────────────────────────────
 // Public pay-to-rank weekly leaderboard. Pay $1 = 1 point. Bigger
 // chart bar = more visibility on the homepage + AI feeds. 70% of

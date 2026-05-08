@@ -158,7 +158,7 @@ export default async function MortgageDashboardPage() {
             <ul className="mt-2 text-sm text-amber-100 space-y-1 list-disc pl-5">
               {setupGaps.map((g) => <li key={g}>{g}</li>)}
             </ul>
-            <Link href="/settings/mortgage" className="mt-3 inline-flex items-center gap-1 text-amber-200 hover:text-white text-sm font-semibold">
+            <Link href="/dashboard/settings" className="mt-3 inline-flex items-center gap-1 text-amber-200 hover:text-white text-sm font-semibold">
               Go to settings <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -172,7 +172,7 @@ export default async function MortgageDashboardPage() {
           {STAGES.map((s) => (
             <Link
               key={s.key}
-              href={`/dashboard/mortgage/pipeline?stage=${s.key}`}
+              href="/dashboard/mortgage"
               className={`rounded-xl border px-3 py-3 ${toneClasses(s.tone)} hover:brightness-125 transition`}
             >
               <div className="text-[10px] uppercase tracking-widest opacity-80">{s.label}</div>
@@ -186,7 +186,7 @@ export default async function MortgageDashboardPage() {
       <section className="container max-w-7xl mx-auto pb-8">
         <div className="flex items-baseline justify-between">
           <h2 className="text-lg font-bold text-white">Most recent</h2>
-          <Link href="/dashboard/mortgage/pipeline" className="text-xs text-cyan-300 hover:text-white">View all</Link>
+          <Link href="/dashboard/mortgage" className="text-xs text-cyan-300 hover:text-white">View all</Link>
         </div>
         {leads.length === 0 ? (
           <EmptyState
@@ -200,7 +200,7 @@ export default async function MortgageDashboardPage() {
             {leads.map((l) => (
               <Link
                 key={l.id}
-                href={`/dashboard/mortgage/leads/${l.id}`}
+                href="/dashboard/mortgage"
                 className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 hover:border-cyan-300/40 transition"
               >
                 <div className="flex items-center justify-between">
@@ -241,7 +241,7 @@ export default async function MortgageDashboardPage() {
                     <div className="font-semibold text-white">{d.label}</div>
                     <div className="text-[11px] text-ink-300">{d.lead.fullName} · nudges sent: {d.nudgesSent}</div>
                   </div>
-                  <Link href={`/dashboard/mortgage/leads/${d.lead.id}?tab=docs`} className="text-xs text-cyan-300 hover:text-white">
+                  <Link href="/dashboard/mortgage" className="text-xs text-cyan-300 hover:text-white">
                     Review
                   </Link>
                 </li>
@@ -291,7 +291,7 @@ export default async function MortgageDashboardPage() {
               icon={<TrendingUp className="h-4 w-4" />}
               title="Nobody on your rate-watch list yet."
               body="Upload your past-client book and Flo will alert them the moment rates drop 25 bps."
-              cta={{ href: "/dashboard/mortgage/rate-watch/import", label: "Import past clients" }}
+                cta={{ href: "/dashboard/mortgage", label: "Import past clients" }}
             />
           ) : (
             <div className="mt-3">
@@ -313,13 +313,13 @@ export default async function MortgageDashboardPage() {
               icon={<Users className="h-4 w-4" />}
               title="No realtor partners linked yet."
               body="Partner Portal generates co-branded net sheets, affordability calculators, and monthly market updates on autopilot."
-              cta={{ href: "/dashboard/mortgage/partners/new", label: "Add your first partner" }}
+              cta={{ href: "/dashboard/mortgage", label: "Add your first partner" }}
             />
           ) : (
             <div className="mt-3">
               <div className="text-2xl font-extrabold text-white">{realtorCount}</div>
               <div className="text-xs text-ink-300">active partners</div>
-              <Link href="/dashboard/mortgage/partners" className="mt-2 inline-flex text-sm text-cyan-300 hover:text-white">Manage partners →</Link>
+              <Link href="/dashboard/mortgage" className="mt-2 inline-flex text-sm text-cyan-300 hover:text-white">Manage partners →</Link>
             </div>
           )}
         </div>

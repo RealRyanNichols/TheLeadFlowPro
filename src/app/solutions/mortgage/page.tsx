@@ -111,7 +111,7 @@ export default function MortgagePage() {
                 See pricing <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/services/mortgage-audit"
+                href="/book?source=mortgage-audit"
                 className="inline-flex items-center gap-2 rounded-full border border-cyan-400/40 hover:border-cyan-300 px-5 py-2.5 text-sm font-semibold text-cyan-200 hover:text-white transition"
               >
                 Get a $397 Mortgage Audit
@@ -313,7 +313,7 @@ export default function MortgagePage() {
         <h2 className="text-3xl md:text-4xl font-extrabold">Close more loans. Keep your nights back.</h2>
         <p className="mt-3 text-ink-200">Start with a $397 Mortgage Audit, or skip the audit and launch Pro this week.</p>
         <div className="mt-5 flex flex-wrap justify-center gap-3">
-          <Link href="/services/mortgage-audit" className="inline-flex items-center gap-2 rounded-full border border-cyan-400/40 hover:border-cyan-300 px-5 py-2.5 text-sm font-semibold text-cyan-200 hover:text-white transition">
+          <Link href="/book?source=mortgage-audit" className="inline-flex items-center gap-2 rounded-full border border-cyan-400/40 hover:border-cyan-300 px-5 py-2.5 text-sm font-semibold text-cyan-200 hover:text-white transition">
             <Phone className="h-4 w-4" /> Book the $397 audit
           </Link>
           <Link href="/api/checkout?sku=mortgage-pro" className="inline-flex items-center gap-2 rounded-full bg-cyan-400 hover:bg-cyan-300 px-5 py-2.5 text-sm font-semibold text-slate-950 transition">
