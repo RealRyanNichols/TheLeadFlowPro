@@ -29,9 +29,11 @@ export type ToolChallengeNotificationInput = {
   toolProblem: string;
   businessImpact?: string | null;
   currentProcess?: string | null;
+  currentWebsiteNotes?: string | null;
   budgetTier?: string | null;
   timeline?: string | null;
   toolFocus?: string | null;
+  promptStack?: string | null;
   promptDraft?: string | null;
   insightSnapshot?: string | null;
   intakeId?: string | null;
@@ -66,6 +68,11 @@ export async function sendToolChallengeNotification(input: ToolChallengeNotifica
         ${line("Focus", input.toolFocus)}
         ${line("Budget tier", input.budgetTier)}
         ${line("Timeline", input.timeline)}
+        ${
+          input.currentWebsiteNotes
+            ? `<p style="margin:12px 0 6px 0"><strong>Current website / benchmark notes:</strong></p><div style="white-space:pre-wrap;background:#ecfeff;border-radius:12px;padding:12px">${escapeHtml(input.currentWebsiteNotes)}</div>`
+            : ""
+        }
         <p style="margin:12px 0 6px 0"><strong>Problem:</strong></p>
         <div style="white-space:pre-wrap;background:#f1f5f9;border-radius:12px;padding:12px">${escapeHtml(input.toolProblem)}</div>
         ${
@@ -79,6 +86,12 @@ export async function sendToolChallengeNotification(input: ToolChallengeNotifica
             : ""
         }
       </div>
+
+      ${
+        input.promptStack
+          ? `<div style="background:white;border:1px solid #e2e8f0;border-radius:18px;padding:18px;margin-bottom:14px"><h2 style="font-size:18px;margin:0 0 12px 0">Prompt Build Lab stack</h2><div style="white-space:pre-wrap;background:#ecfeff;color:#0f172a;border-radius:12px;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.6">${escapeHtml(input.promptStack)}</div></div>`
+          : ""
+      }
 
       ${
         input.promptDraft
@@ -116,6 +129,8 @@ export async function sendToolChallengeNotification(input: ToolChallengeNotifica
     input.toolProblem,
     input.businessImpact ? `\nWhat changes if it works:\n${input.businessImpact}` : null,
     input.currentProcess ? `\nCurrent process:\n${input.currentProcess}` : null,
+    input.currentWebsiteNotes ? `\nCurrent website / benchmark notes:\n${input.currentWebsiteNotes}` : null,
+    input.promptStack ? `\nPrompt Build Lab stack:\n${input.promptStack}` : null,
     input.promptDraft ? `\nPrompt Ryan gets:\n${input.promptDraft}` : null,
     input.insightSnapshot ? `\nInsight snapshot:\n${input.insightSnapshot}` : null,
   ]

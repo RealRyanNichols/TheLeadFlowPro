@@ -19,7 +19,7 @@ import {
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { MiniExplainer } from "@/components/site/MiniExplainer";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
-import { ChallengeInsightBuilder } from "@/components/challenge/ChallengeInsightBuilder";
+import { PromptBuildLab } from "@/components/challenge/PromptBuildLab";
 import { TOOL_CHALLENGE_DEPOSIT } from "@/lib/challenge-deposit";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
@@ -62,12 +62,6 @@ const OWNERSHIP_POINTS = [
     title: "No percentage grab",
     body: "You pay for the build and setup. Your leads, ads, automations, and sales process stay yours.",
   },
-];
-
-const BUDGET_OPTIONS = [
-  { value: "2000-5000", label: "$2K-$5K", body: "Prototype, workflow, or focused internal tool." },
-  { value: "5000-10000", label: "$5K-$10K", body: "Serious build with setup, handoff, and training." },
-  { value: "10000-plus", label: "$10K+", body: "Larger operating system or multi-part business tool." },
 ];
 
 const DECISION_OPTIONS = [
@@ -143,25 +137,16 @@ export default function ChallengePage({ searchParams }: ChallengePageProps) {
               <div className="mt-4 overflow-hidden rounded-2xl border border-slate-950/10 bg-slate-950 text-white shadow-[0_22px_55px_-30px_rgba(15,23,42,0.72)]">
                 <div className="bg-gradient-to-r from-cyan-500/20 via-white/[0.03] to-accent-500/20 px-4 py-3">
                   <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
-                    <Sparkles className="h-3.5 w-3.5" /> The path
+                    <Sparkles className="h-3.5 w-3.5" /> Start here
                   </div>
+                  <h2 className="mt-2 text-lg font-semibold tracking-tight">
+                    Put in the current site first. Then build the request.
+                  </h2>
                   <p className="mt-2 text-sm leading-relaxed text-slate-200">
-                    Follow this order so Ryan gets a usable prompt instead of a vague idea.
+                    The lab starts with the benchmark Ryan has to beat: your website, social page,
+                    or current process. Then it walks you through the leak, the dream tool, and the
+                    money case one screen at a time.
                   </p>
-                </div>
-                <div className="grid gap-2 p-3 text-sm leading-relaxed text-slate-200 sm:grid-cols-3 lg:grid-cols-1">
-                  <div className="rounded-xl border border-white/10 bg-white/[0.06] p-3">
-                    <span className="font-semibold text-cyan-100">1. Dream it.</span> Tell me what
-                    your business would look like if this tool existed.
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-white/[0.06] p-3">
-                    <span className="font-semibold text-accent-100">2. I shape it.</span> I look for
-                    the fastest useful version, not a bloated software fantasy.
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-white/[0.06] p-3">
-                    <span className="font-semibold text-cyan-100">3. You decide.</span> Move
-                    forward, refine the direction, or scrap it clean.
-                  </div>
                 </div>
               </div>
               <MiniExplainer variant="challenge" className="mt-4" />
@@ -172,7 +157,7 @@ export default function ChallengePage({ searchParams }: ChallengePageProps) {
             </div>
 
             <div className="grid gap-4">
-              <ToolChallengeForm />
+              <PromptBuildLab />
               <div className="rounded-3xl border border-cyan-200/80 bg-gradient-to-br from-cyan-50 via-white to-accent-50 p-4 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.4)]">
                 <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
                   Your accounts. Your control. No percentage grab.
@@ -292,158 +277,6 @@ export default function ChallengePage({ searchParams }: ChallengePageProps) {
 
       <LightFooter />
     </div>
-  );
-}
-
-function ToolChallengeForm() {
-  return (
-    <form
-      id="tool-challenge-form"
-      action="/api/tool-challenge"
-      method="POST"
-      className="rounded-3xl border border-white/70 bg-white/90 p-4 shadow-[0_28px_70px_-28px_rgba(15,23,42,0.38)] backdrop-blur sm:p-5"
-    >
-      <VisitorIdField />
-      <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
-        Free challenge intake
-      </div>
-      <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
-        Build the request right here.
-      </h2>
-      <p className="mt-2 text-sm leading-relaxed text-slate-600">
-        First use the calculator. Then fill in the fields like you are describing the perfect
-        employee, dashboard, follow-up system, or app you wish you already had.
-      </p>
-      <div className="mt-3">
-        <ChallengeInsightBuilder />
-      </div>
-
-      <div className="mt-5 grid gap-3">
-        <div className="rounded-3xl border border-cyan-200 bg-cyan-50/80 p-4">
-          <div className="text-xs font-semibold uppercase tracking-widest text-cyan-800">
-            Prompt coach
-          </div>
-          <h3 className="mt-2 text-lg font-semibold tracking-tight text-slate-950">
-            Do not write small. Tell me the tool you would build if money, skill, and software did
-            not block you.
-          </h3>
-          <div className="mt-3 grid gap-2 text-sm leading-relaxed text-slate-700 sm:grid-cols-3">
-            <div className="rounded-2xl border border-cyan-200 bg-white/75 p-3">
-              <span className="font-semibold text-slate-950">Name the pain.</span> What keeps
-              happening that should not happen anymore?
-            </div>
-            <div className="rounded-2xl border border-cyan-200 bg-white/75 p-3">
-              <span className="font-semibold text-slate-950">Name the magic.</span> If this tool
-              worked, what would it do without you chasing it?
-            </div>
-            <div className="rounded-2xl border border-cyan-200 bg-white/75 p-3">
-              <span className="font-semibold text-slate-950">Name the money.</span> How does it
-              create leads, save hours, close sales, or stop waste?
-            </div>
-          </div>
-        </div>
-
-        <TextField
-          name="toolName"
-          label="Give the tool a name"
-          placeholder="Example: missed-call follow-up dashboard, quote tracker, client portal, content engine"
-          required
-        />
-        <TextArea
-          name="toolProblem"
-          label="Step 1: What problem would this solve?"
-          placeholder="Example: We miss calls, forget follow-up, lose leads in DMs, answer the same questions, manually build quotes, or never know which post created a real buyer."
-          required
-        />
-        <TextArea
-          name="businessImpact"
-          label="Step 2: If this existed, what would your business look like?"
-          placeholder="Example: Every lead gets tagged, texted, followed up with, routed to the right offer, shown on my dashboard, and reminded until someone buys, books, or says no."
-        />
-        <TextArea
-          name="currentProcess"
-          label="Step 3: How are you stuck doing it now?"
-          placeholder="Example: Spreadsheets, texts, sticky notes, missed calls, manual follow-up, too many apps, one employee's memory, screenshots, no dashboard, no owner view."
-        />
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <TextField name="fullName" label="Your name" placeholder="First and last" required />
-          <TextField name="email" label="Email" placeholder="you@business.com" type="email" required />
-          <TextField name="phone" label="Phone" placeholder="+1 555 123 4567" />
-          <TextField name="businessName" label="Business name" placeholder="Company name" />
-          <TextField name="businessUrl" label="Website" placeholder="https://" />
-          <TextField name="industry" label="Industry" placeholder="Dealership, doctor, attorney, real estate..." />
-        </div>
-
-        <div>
-          <div className="mb-2 text-sm font-semibold text-slate-800">
-            If you like the direction, what budget range makes sense?
-          </div>
-          <div className="grid gap-2 sm:grid-cols-3">
-            {BUDGET_OPTIONS.map((option) => (
-              <label
-                key={option.value}
-                className="group cursor-pointer rounded-2xl border border-slate-200 bg-white p-3 text-sm shadow-sm has-[:checked]:border-cyan-500 has-[:checked]:bg-cyan-50"
-              >
-                <input
-                  type="radio"
-                  name="budgetTier"
-                  value={option.value}
-                  defaultChecked={option.value === "2000-5000"}
-                  className="sr-only"
-                />
-                <span className="block font-semibold text-slate-950">{option.label}</span>
-                <span className="mt-1 block text-xs leading-relaxed text-slate-500">{option.body}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <SelectField
-            name="monthlyRevenueRange"
-            label="Business size"
-            options={[
-              ["under-10k", "Under $10K/mo"],
-              ["10-50k", "$10K-$50K/mo"],
-              ["50-250k", "$50K-$250K/mo"],
-              ["250k-plus", "$250K+/mo"],
-            ]}
-          />
-          <SelectField
-            name="timeline"
-            label="How soon do you need it?"
-            options={[
-              ["now", "Now"],
-              ["30-days", "Next 30 days"],
-              ["60-90-days", "60-90 days"],
-              ["planning", "Planning"],
-            ]}
-          />
-        </div>
-
-        <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
-          <input
-            type="checkbox"
-            name="acknowledgment"
-            value="yes"
-            required
-            className="mt-1 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
-          />
-          <span>
-            I understand this is a free business tool submission, not a guarantee. Ryan may propose
-            a paid build, working session, phased prototype, or the optional $250 build-slot deposit.
-          </span>
-        </label>
-
-        <button
-          type="submit"
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
-        >
-          Submit the challenge <ArrowRight className="h-4 w-4" />
-        </button>
-      </div>
-    </form>
   );
 }
 
@@ -570,85 +403,6 @@ function ReserveBuildSlotCard() {
         </div>
       </div>
     </div>
-  );
-}
-
-function TextField({
-  name,
-  label,
-  placeholder,
-  type = "text",
-  required,
-}: {
-  name: string;
-  label: string;
-  placeholder: string;
-  type?: string;
-  required?: boolean;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-sm font-semibold text-slate-800">{label}</span>
-      <input
-        name={name}
-        type={type}
-        required={required}
-        placeholder={placeholder}
-        className="block min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
-      />
-    </label>
-  );
-}
-
-function TextArea({
-  name,
-  label,
-  placeholder,
-  required,
-}: {
-  name: string;
-  label: string;
-  placeholder: string;
-  required?: boolean;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-sm font-semibold text-slate-800">{label}</span>
-      <textarea
-        name={name}
-        rows={3}
-        maxLength={1800}
-        required={required}
-        placeholder={placeholder}
-        className="block w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
-      />
-    </label>
-  );
-}
-
-function SelectField({
-  name,
-  label,
-  options,
-}: {
-  name: string;
-  label: string;
-  options: Array<[string, string]>;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-sm font-semibold text-slate-800">{label}</span>
-      <select
-        name={name}
-        className="block min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
-      >
-        {options.map(([value, labelText]) => (
-          <option key={value} value={value}>
-            {labelText}
-          </option>
-        ))}
-      </select>
-    </label>
   );
 }
 

@@ -66,7 +66,7 @@ export function LightMobileMenu({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[80] lg:hidden">
+        <div className="fixed inset-0 z-[120] lg:hidden">
           <button
             type="button"
             aria-label="Close menu backdrop"

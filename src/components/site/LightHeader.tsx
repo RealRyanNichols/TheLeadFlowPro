@@ -26,7 +26,7 @@ export function LightHeader({ activePath }: { activePath?: string }) {
   ];
 
   return (
-    <header className="sticky top-0 z-50 overflow-hidden border-b border-cyan-300/70 bg-[linear-gradient(135deg,rgba(234,246,255,0.99)_0%,rgba(213,244,255,0.96)_34%,rgba(255,247,225,0.98)_68%,rgba(255,229,190,0.96)_100%)] shadow-[0_14px_36px_-28px_rgba(15,23,42,0.75)] backdrop-blur">
+    <header className="sticky top-0 z-50 overflow-visible border-b border-cyan-300/70 bg-[linear-gradient(135deg,rgba(234,246,255,0.99)_0%,rgba(213,244,255,0.96)_34%,rgba(255,247,225,0.98)_68%,rgba(255,229,190,0.96)_100%)] shadow-[0_14px_36px_-28px_rgba(15,23,42,0.75)] backdrop-blur">
       <div
         aria-hidden
         className="h-1.5 w-full bg-gradient-to-r from-slate-950 via-cyan-500 to-accent-500"

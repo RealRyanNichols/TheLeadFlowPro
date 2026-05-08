@@ -6,6 +6,7 @@ import {
   Building2,
   CalendarCheck,
   Car,
+  CheckCircle2,
   Eye,
   Gavel,
   HeartPulse,
@@ -17,6 +18,7 @@ import {
   Route,
   ShieldCheck,
   Trophy,
+  XCircle,
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { LivePulseEngineRoom } from "@/components/site/LivePulseEngineRoom";
@@ -115,6 +117,21 @@ const AD_OWNER_STACK = [
     body: "Ryan builds it inside the client’s accounts: their page, pixel, list, automations, leads, dashboard, and sales process.",
   },
 ];
+
+const AD_ACCOUNT_DIAGNOSTIC = {
+  scale: [
+    "The pixel, form, phone, calendar, checkout, and CRM all keep the same source trail.",
+    "Every ad has one clear next action and a follow-up sequence after the click.",
+    "The owner can see cost, lead quality, response speed, booked calls, and paid outcomes together.",
+    "Winning hooks get turned into new pages, posts, retargeting audiences, and sales tools.",
+  ],
+  flop: [
+    "The ad gets clicks, but the business cannot see who replied, booked, bought, or disappeared.",
+    "Lead forms dump into email, DMs, spreadsheets, or memory with no owner dashboard.",
+    "The page is slow, confusing, too wordy, or asks people to scroll before choosing a next step.",
+    "Nobody studies the pattern, so the same weak creative and weak offer keep getting funded.",
+  ],
+};
 
 const NEXT_LEVEL = [
   "Per-offer scoreboards: views, engaged time, service clicks, calendar clicks, Stripe starts, and paid conversions.",
@@ -222,6 +239,70 @@ export default async function PulsePage() {
               question, click, reply, calendar, payment, and follow-up. That is what makes the
               difference between buying traffic and building a machine.
             </p>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            <div className="rounded-3xl border border-cyan-200 bg-white/85 p-5 shadow-[0_24px_70px_-38px_rgba(15,23,42,0.42)] backdrop-blur">
+              <div className="inline-flex items-center gap-2 rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-800">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Ads that scale
+              </div>
+              <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
+                The account is connected to the business system.
+              </h3>
+              <div className="mt-4 grid gap-3">
+                {AD_ACCOUNT_DIAGNOSTIC.scale.map((item) => (
+                  <div key={item} className="flex gap-3 rounded-2xl border border-cyan-100 bg-cyan-50/70 p-3 text-sm leading-relaxed text-slate-700">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-700" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-3xl border border-rose-200 bg-white/85 p-5 shadow-[0_24px_70px_-38px_rgba(15,23,42,0.42)] backdrop-blur">
+              <div className="inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-rose-700">
+                <XCircle className="h-3.5 w-3.5" /> Ads that flop
+              </div>
+              <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
+                The ad is separate from the follow-up machine.
+              </h3>
+              <div className="mt-4 grid gap-3">
+                {AD_ACCOUNT_DIAGNOSTIC.flop.map((item) => (
+                  <div key={item} className="flex gap-3 rounded-2xl border border-rose-100 bg-rose-50/70 p-3 text-sm leading-relaxed text-slate-700">
+                    <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-3xl border border-accent-200 bg-gradient-to-r from-accent-50 via-white to-cyan-50 p-5 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.42)]">
+            <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+              The build Ryan sells
+            </div>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+              A client version would show the owner where the ad money became real movement.
+            </h3>
+            <p className="mt-3 max-w-4xl text-sm leading-relaxed text-slate-700">
+              The public pulse proves the concept with anonymous site behavior. A paid client
+              office can connect Meta ads, page events, phone/text follow-up, CRM stages, calendar
+              bookings, invoices, and status updates so the owner can decide what to fund, fix, or
+              kill next.
+            </p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <Link
+                href="/challenge"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+              >
+                Challenge Ryan with my tool <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/book"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-cyan-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:border-cyan-400"
+              >
+                Talk through my ad account <CalendarCheck className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
 
           <div className="mt-7 grid gap-4 lg:grid-cols-[0.92fr_1.08fr]">

@@ -62,7 +62,7 @@ const fmt = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
-export function ChallengeInsightBuilder() {
+export function ChallengeInsightBuilder({ compact = false }: { compact?: boolean }) {
   const [activeFocus, setActiveFocus] = useState<string>("missed-leads");
   const [missedLeads, setMissedLeads] = useState(6);
   const [leadValue, setLeadValue] = useState(350);
@@ -152,42 +152,24 @@ export function ChallengeInsightBuilder() {
       <input type="hidden" name="promptDraft" value={promptDraft} />
       <input type="hidden" name="insightSnapshot" value={JSON.stringify(snapshot)} />
 
-      <div className="border-b border-white/10 bg-white/[0.04] p-4 sm:p-5">
+      <div className={`border-b border-white/10 bg-white/[0.04] ${compact ? "p-4" : "p-4 sm:p-5"}`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
               <Wand2 className="h-3.5 w-3.5" /> Prompt-to-build lab
             </div>
-            <h3 className="mt-3 text-2xl font-semibold tracking-tight">
-              Click the leak. Watch the request build itself.
+            <h3 className={`${compact ? "mt-2 text-xl" : "mt-3 text-2xl"} font-semibold tracking-tight`}>
+              Put rough numbers on the leak.
             </h3>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300">
-              Start left. Pick the problem that hurts most. Drag each slider until the numbers feel
-              close. Then scroll down and write the tool you wish existed. The clearer the prompt,
-              the stronger the build.
+              Pick what hurts most and drag the sliders until the numbers feel close. This does not
+              need to be perfect. It gives Ryan a business signal to compare against the tool idea.
             </p>
           </div>
           <div className="rounded-2xl border border-accent-300/25 bg-accent-300/10 px-4 py-3">
             <div className="text-2xl font-bold tabular-nums">{stats.promptScore}%</div>
             <div className="text-[10px] uppercase tracking-widest text-accent-100">prompt clarity</div>
           </div>
-        </div>
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
-          <InstructionStep
-            step="1"
-            title="Pick the leak"
-            body="Choose missed leads, manual work, follow-up, content, portal, or dashboard."
-          />
-          <InstructionStep
-            step="2"
-            title="Drag the numbers"
-            body="Use rough truth. You do not need perfect data to explain the business pain."
-          />
-          <InstructionStep
-            step="3"
-            title="Write the dream tool"
-            body="Tell Ryan what should happen automatically if the tool existed."
-          />
         </div>
       </div>
 
@@ -337,20 +319,6 @@ export function ChallengeInsightBuilder() {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function InstructionStep({ step, title, body }: { step: string; title: string; body: string }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3">
-      <div className="flex items-center gap-2">
-        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-cyan-300 text-xs font-bold text-slate-950">
-          {step}
-        </span>
-        <span className="text-sm font-semibold text-white">{title}</span>
-      </div>
-      <p className="mt-2 text-xs leading-relaxed text-slate-300">{body}</p>
     </div>
   );
 }

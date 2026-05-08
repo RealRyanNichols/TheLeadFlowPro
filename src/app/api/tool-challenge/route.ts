@@ -27,9 +27,11 @@ export async function POST(req: NextRequest) {
   const toolProblem = pickStr(form.get("toolProblem"), 1800);
   const businessImpact = pickStr(form.get("businessImpact"), 1800);
   const currentProcess = pickStr(form.get("currentProcess"), 1800);
+  const currentWebsiteNotes = pickStr(form.get("currentWebsiteNotes"), 1800);
   const visitorId = pickStr(form.get("visitorId"), 80) ?? crypto.randomUUID();
   const toolFocus = pickStr(form.get("toolFocus"), 120);
   const promptDraft = pickStr(form.get("promptDraft"), 3000);
+  const promptStack = pickStr(form.get("promptStack"), 3000);
   const insightSnapshot = pickStr(form.get("insightSnapshot"), 3000);
 
   if (!fullName) return NextResponse.json({ error: "missing_name" }, { status: 400 });
@@ -47,10 +49,12 @@ export async function POST(req: NextRequest) {
     "Tool Challenge funnel submission.",
     `Tool name: ${toolName}`,
     toolFocus ? `Interactive tool focus: ${toolFocus}` : null,
+    currentWebsiteNotes ? `Current website / benchmark notes: ${currentWebsiteNotes}` : null,
     `Problem to solve: ${toolProblem}`,
     businessImpact ? `Business impact if solved: ${businessImpact}` : null,
     currentProcess ? `Current process: ${currentProcess}` : null,
     `Timeline: ${timeline ?? "not provided"}`,
+    promptStack ? `Prompt Build Lab stack:\n${promptStack}` : null,
     promptDraft ? `Prompt draft generated on site:\n${promptDraft}` : null,
     insightSnapshot ? `Interactive insight snapshot:\n${insightSnapshot}` : null,
     `Ownership expectation: client owns the tool, process, and setup.`,
@@ -105,10 +109,12 @@ export async function POST(req: NextRequest) {
         toolProblem,
         businessImpact,
         currentProcess,
+        currentWebsiteNotes,
         budgetTier,
         monthlyRevenueRange: pickStr(form.get("monthlyRevenueRange"), 40),
         timeline,
         toolFocus,
+        promptStack,
         promptDraft,
         insightSnapshot,
         routedTo: "/challenge?submitted=1",
@@ -143,9 +149,11 @@ export async function POST(req: NextRequest) {
       toolProblem,
       businessImpact,
       currentProcess,
+      currentWebsiteNotes,
       budgetTier,
       timeline,
       toolFocus,
+      promptStack,
       promptDraft,
       insightSnapshot,
       intakeId,
