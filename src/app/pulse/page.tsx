@@ -27,12 +27,13 @@ import { LivePulseEngineRoom } from "@/components/site/LivePulseEngineRoom";
 import { LiveLeadFlowPulse } from "@/components/site/LiveLeadFlowPulse";
 import { PulseBusinessDemo } from "@/components/site/PulseBusinessDemo";
 import { getCapacitySnapshot } from "@/lib/capacity";
+import { PULSE_SIGNAL_LIST, type PulseSignalSlug } from "@/lib/pulse-signal-pages";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createSeoMetadata({
-  title: "Live Website Pulse — The LeadFlow Pro",
+  title: "Live Website Pulse - The LeadFlow Pro",
   description:
     "Watch The LeadFlow Pro's live website brain: views, dwell time, source trails, share backs, CTA intent, probability scores, and next-best moves.",
   path: "/pulse",
@@ -76,6 +77,16 @@ const PULSE_TOP_ACTIONS = [
     body: "Tracked share links show which social posts pull people back to the live board.",
   },
 ];
+
+const PULSE_SIGNAL_ICONS: Record<PulseSignalSlug, typeof Eye> = {
+  "live-views": Eye,
+  "dwell-time": Clock3,
+  "traffic-sources": Route,
+  "click-intent": MousePointerClick,
+  "share-backs": Share2,
+  predictions: BarChart3,
+  "reward-loop": Trophy,
+};
 
 const DATA_SOURCE_STEPS = [
   {
@@ -154,7 +165,7 @@ const AD_OWNER_STACK = [
   {
     stat: "Owned system",
     title: "No agency percentage grab.",
-    body: "Ryan builds it inside the client’s accounts: their page, pixel, list, automations, leads, dashboard, and sales process.",
+    body: "Ryan builds it inside the client's accounts: their page, pixel, list, automations, leads, dashboard, and sales process.",
   },
 ];
 
@@ -290,6 +301,67 @@ export default async function PulsePage() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden border-b border-slate-200 bg-white">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(135deg, #eaf9ff 0%, #fff8f1 48%, #f3eaff 100%)" }}
+        />
+        <div aria-hidden className="absolute -left-24 top-0 h-[420px] w-[420px] rounded-full bg-cyan-300/30 blur-3xl" />
+        <div aria-hidden className="absolute -right-24 bottom-0 h-[420px] w-[420px] rounded-full bg-accent-300/25 blur-3xl" />
+        <div className="relative mx-auto max-w-7xl px-4 py-12">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                The signal map
+              </div>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                Every metric now has its own page, social card, and business explanation.
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Click a signal to see what it tracks, what it means, how it would pull live data
+                for a client, and what Ryan can build from it. This is the walk-through layer that
+                turns a counter into a sales tool.
+              </p>
+            </div>
+            <Link
+              href="/challenge"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+            >
+              Build this for my business
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {PULSE_SIGNAL_LIST.map((signal) => {
+              const Icon = PULSE_SIGNAL_ICONS[signal.slug];
+              return (
+                <Link
+                  key={signal.slug}
+                  href={`/pulse/${signal.slug}`}
+                  className="group rounded-3xl border border-white/80 bg-white/85 p-5 shadow-[0_24px_70px_-42px_rgba(15,23,42,0.42)] backdrop-blur transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-[0_28px_80px_-38px_rgba(15,23,42,0.48)]"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-cyan-200">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <ArrowRight className="mt-2 h-4 w-4 text-slate-400 transition group-hover:translate-x-1 group-hover:text-cyan-700" />
+                  </div>
+                  <div className="mt-4 text-[11px] font-semibold uppercase tracking-widest text-cyan-700">
+                    {signal.eyebrow}
+                  </div>
+                  <h3 className="mt-2 text-lg font-semibold tracking-tight text-slate-950">
+                    {signal.shortTitle}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{signal.description}</p>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
