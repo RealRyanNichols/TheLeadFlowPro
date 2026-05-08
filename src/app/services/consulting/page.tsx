@@ -8,7 +8,7 @@ import {
   Check,
   Clock,
   Compass,
-  FileText,
+  DollarSign,
   Gauge,
   Layers,
   ShieldCheck,
@@ -42,7 +42,7 @@ const CONSULTING_SLUGS = [
 const LANES = [
   {
     Icon: Compass,
-    title: "Unstick the decision",
+    title: "Decision help",
     body: "Use this when the business is not broken, but one decision is blocking everything behind it.",
     slugs: ["decision-sprint", "business-audit"] as const,
   },
@@ -59,6 +59,29 @@ const LANES = [
     slugs: ["light-retainer", "monthly-operator", "annual-advisor"] as const,
   },
 ];
+
+const HERO_PRODUCTS = [
+  {
+    slug: "decision-sprint",
+    eyebrow: "Fastest 1:1",
+    color: "border-cyan-300 bg-cyan-50",
+  },
+  {
+    slug: "business-audit",
+    eyebrow: "Written plan",
+    color: "border-accent-300 bg-accent-50",
+  },
+  {
+    slug: "working-session",
+    eyebrow: "Build with me",
+    color: "border-brand-200 bg-white",
+  },
+  {
+    slug: "sprint-4-week",
+    eyebrow: "4-week ship",
+    color: "border-slate-300 bg-slate-50",
+  },
+] as const satisfies readonly { slug: OfferSlug; eyebrow: string; color: string }[];
 
 const DAYS = [
   {
@@ -101,8 +124,8 @@ export default function ConsultingPage() {
             style={{ background: "radial-gradient(circle, rgba(255,154,31,0.45) 0%, transparent 65%)" }}
           />
 
-          <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:py-16 lg:grid-cols-5 lg:items-center">
-            <div className="lg:col-span-3">
+          <div className="relative mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:py-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
+            <div>
               <div className="flex flex-wrap items-center gap-2">
                 <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm backdrop-blur">
                   Consulting ladder
@@ -117,9 +140,9 @@ export default function ConsultingPage() {
                 </span>
               </h1>
               <p className="mt-5 max-w-3xl text-lg leading-relaxed text-slate-700">
-                This is not a vague coaching page. Pick the level of help: a $90 Decision Sprint, a
-                written audit, a working session, a 4-week build sprint, monthly operator support,
-                or annual advisor access.
+                This is not a vague coaching page. The products are on the right: the $90 Decision
+                Sprint, the written audit, the working session, and the 4-week build sprint. Pick
+                the size of the problem first. Read the deeper proof after.
               </p>
               <p className="mt-4 max-w-3xl text-base leading-relaxed text-slate-700">
                 Bigger consulting work is for businesses with budget and urgency. If you are not
@@ -135,10 +158,10 @@ export default function ConsultingPage() {
 
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/start"
+                  href="#consulting-products"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
                 >
-                  Find the right consulting path <ArrowRight className="h-4 w-4" />
+                  Pick a consulting product <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/book"
@@ -149,16 +172,39 @@ export default function ConsultingPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-2">
-              <div className="rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.25)] ring-1 ring-slate-900/5 backdrop-blur-xl">
-                <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-                  What consulting is for
+            <div id="consulting-products" className="scroll-mt-28">
+              <div className="overflow-hidden rounded-3xl border border-slate-900/10 bg-slate-950 text-white shadow-[0_30px_80px_-28px_rgba(15,23,42,0.65)]">
+                <div className="relative min-h-[170px] overflow-hidden border-b border-white/10">
+                  <img
+                    src="/images/ryan-wholesale-universe-warehouse-pallets-flag.jpg"
+                    alt="Ryan Nichols inside the Wholesale Universe warehouse"
+                    className="absolute inset-0 h-full w-full object-cover opacity-55"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/75 to-slate-950/30" />
+                  <div className="relative p-5">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
+                      <DollarSign className="h-3.5 w-3.5" /> Consulting product picker
+                    </div>
+                    <h2 className="mt-3 max-w-lg text-3xl font-semibold tracking-tight">
+                      Choose the product. Then the page will justify the price.
+                    </h2>
+                    <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300">
+                      These are the main consulting doors. They are not fine print.
+                    </p>
+                  </div>
                 </div>
-                <div className="mt-4 space-y-3">
-                  <Signal Icon={Compass} label="One decision" body="Pricing, offer, account control, lead flow, hiring, tool stack, or next move." />
-                  <Signal Icon={FileText} label="One written plan" body="A clear audit or worksheet you can hand to a team and execute." />
-                  <Signal Icon={Wrench} label="One content engine" body="Photos, videos, AI images, Meta Ray-Ban POV shots, GoPro angles, hooks, scripts, and how to move the lead after the post works." />
-                  <Signal Icon={Layers} label="One operating system" body="The recurring rhythm that keeps content, leads, follow-up, and decisions moving." />
+                <div className="grid gap-3 p-4 sm:grid-cols-2">
+                  {HERO_PRODUCTS.map((item) => (
+                    <HeroProductCard key={item.slug} {...item} />
+                  ))}
+                </div>
+                <div className="border-t border-white/10 bg-white/[0.04] p-4">
+                  <Link
+                    href="#all-consulting-offers"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 text-sm font-semibold text-white hover:bg-white/[0.12]"
+                  >
+                    See retainers and advisor options <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </div>
               </div>
             </div>
@@ -176,7 +222,7 @@ export default function ConsultingPage() {
               Choose the lane
             </div>
             <h2 className="mt-2 max-w-3xl text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-              The page should tell a buyer what to click.
+              Not sure which product fits? Start with the kind of problem.
             </h2>
             <div className="mt-7 grid gap-4 lg:grid-cols-3">
               {LANES.map((lane) => (
@@ -186,7 +232,7 @@ export default function ConsultingPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 py-12 sm:py-14">
+        <section id="all-consulting-offers" className="mx-auto max-w-7xl scroll-mt-28 px-4 py-12 sm:py-14">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
@@ -312,25 +358,38 @@ export default function ConsultingPage() {
   );
 }
 
-function Signal({
-  Icon,
-  label,
-  body,
+function HeroProductCard({
+  slug,
+  eyebrow,
+  color,
 }: {
-  Icon: LucideIcon;
-  label: string;
-  body: string;
+  slug: OfferSlug;
+  eyebrow: string;
+  color: string;
 }) {
+  const offer = OFFERS[slug];
+  const Icon = offer.Icon;
+
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <div className="flex items-start gap-3">
-        <Icon className="mt-0.5 h-5 w-5 shrink-0 text-cyan-700" />
-        <div>
-          <div className="font-semibold text-slate-950">{label}</div>
-          <p className="mt-1 text-sm leading-relaxed text-slate-600">{body}</p>
+    <Link
+      href={`/offers/${slug}`}
+      className={`group block min-h-[190px] rounded-2xl border p-4 text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl ${color}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white">
+          <Icon className="h-5 w-5" />
         </div>
+        <span className="rounded-full bg-white/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-700">
+          {eyebrow}
+        </span>
       </div>
-    </div>
+      <div className="mt-4 text-3xl font-bold tracking-tight">{offer.price.big}</div>
+      <h3 className="mt-1 text-base font-semibold">{offer.price.sub}</h3>
+      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-700">{offer.hero.h1Lead}</p>
+      <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-800">
+        Open sales page <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+      </div>
+    </Link>
   );
 }
 

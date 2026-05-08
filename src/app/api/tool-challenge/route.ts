@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { rememberPublicVisitor } from "@/lib/lead-memory";
 import { recordSitePulseEvent } from "@/lib/site-pulse";
+import { sendToolChallengeNotification } from "@/lib/tool-challenge-notifications";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +28,9 @@ export async function POST(req: NextRequest) {
   const businessImpact = pickStr(form.get("businessImpact"), 1800);
   const currentProcess = pickStr(form.get("currentProcess"), 1800);
   const visitorId = pickStr(form.get("visitorId"), 80) ?? crypto.randomUUID();
+  const toolFocus = pickStr(form.get("toolFocus"), 120);
+  const promptDraft = pickStr(form.get("promptDraft"), 3000);
+  const insightSnapshot = pickStr(form.get("insightSnapshot"), 3000);
 
   if (!fullName) return NextResponse.json({ error: "missing_name" }, { status: 400 });
   if (!email || !/.+@.+\..+/.test(email)) {
@@ -37,22 +41,28 @@ export async function POST(req: NextRequest) {
   }
 
   const budgetTier = pickStr(form.get("budgetTier"), 40) ?? "2000-5000";
+  const timeline = pickStr(form.get("timeline"), 80);
   const routedTo = "/challenge?submitted=1#jump-line";
   const notes = [
     "Tool Challenge funnel submission.",
     `Tool name: ${toolName}`,
+    toolFocus ? `Interactive tool focus: ${toolFocus}` : null,
     `Problem to solve: ${toolProblem}`,
     businessImpact ? `Business impact if solved: ${businessImpact}` : null,
     currentProcess ? `Current process: ${currentProcess}` : null,
-    `Timeline: ${pickStr(form.get("timeline"), 80) ?? "not provided"}`,
+    `Timeline: ${timeline ?? "not provided"}`,
+    promptDraft ? `Prompt draft generated on site:\n${promptDraft}` : null,
+    insightSnapshot ? `Interactive insight snapshot:\n${insightSnapshot}` : null,
     `Ownership expectation: client owns the tool, process, and setup.`,
     "Pitch promise: Ryan can review/build a practical prototype or plan; no specific business outcome is guaranteed.",
   ]
     .filter(Boolean)
     .join("\n\n");
 
+  let intakeId: string | null = null;
+
   try {
-    await prisma.publicIntake.create({
+    const intake = await prisma.publicIntake.create({
       data: {
         fullName,
         email: email.toLowerCase(),
@@ -70,6 +80,7 @@ export async function POST(req: NextRequest) {
         routedTo: "/challenge?submitted=1",
       },
     });
+    intakeId = intake.id;
   } catch (error) {
     console.error("tool_challenge_save_failed", {
       error: error instanceof Error ? error.message : "unknown",
@@ -96,7 +107,10 @@ export async function POST(req: NextRequest) {
         currentProcess,
         budgetTier,
         monthlyRevenueRange: pickStr(form.get("monthlyRevenueRange"), 40),
-        timeline: pickStr(form.get("timeline"), 80),
+        timeline,
+        toolFocus,
+        promptDraft,
+        insightSnapshot,
         routedTo: "/challenge?submitted=1",
       },
     });
@@ -115,6 +129,31 @@ export async function POST(req: NextRequest) {
     });
   } catch {
     // Never block a buyer because analytics failed.
+  }
+
+  try {
+    await sendToolChallengeNotification({
+      fullName,
+      email,
+      phone: pickStr(form.get("phone"), 32),
+      businessName: pickStr(form.get("businessName"), 200),
+      businessUrl: pickStr(form.get("businessUrl"), 300),
+      industry: pickStr(form.get("industry"), 80),
+      toolName,
+      toolProblem,
+      businessImpact,
+      currentProcess,
+      budgetTier,
+      timeline,
+      toolFocus,
+      promptDraft,
+      insightSnapshot,
+      intakeId,
+    });
+  } catch (error) {
+    console.error("tool_challenge_notification_failed", {
+      error: error instanceof Error ? error.message : "unknown",
+    });
   }
 
   return NextResponse.redirect(new URL(routedTo, req.url), { status: 303 });

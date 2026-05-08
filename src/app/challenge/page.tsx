@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
+import { ChallengeInsightBuilder } from "@/components/challenge/ChallengeInsightBuilder";
 import { TOOL_CHALLENGE_DEPOSIT } from "@/lib/challenge-deposit";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
@@ -310,6 +311,9 @@ function ToolChallengeForm() {
         <PromptChip title="What disappears?" body="Missed calls, manual texts, repeat questions, messy handoff, lost leads." />
         <PromptChip title="What wakes up?" body="Follow-up, quotes, reminders, intake, reports, content, or customer routing." />
         <PromptChip title="What do you own?" body="Your accounts, your process, your data, and the tool built around them." />
+      </div>
+      <div className="mt-4">
+        <ChallengeInsightBuilder />
       </div>
 
       <div className="mt-5 grid gap-3">

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, BarChart3, CalendarCheck, Eye, MousePointerClick, Radar, Route, ShieldCheck, Trophy } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { LiveLeadFlowPulse } from "@/components/site/LiveLeadFlowPulse";
+import { PulseBusinessDemo } from "@/components/site/PulseBusinessDemo";
 import { getCapacitySnapshot } from "@/lib/capacity";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
@@ -122,6 +123,8 @@ export default async function PulsePage() {
           </div>
         </div>
       </section>
+
+      <PulseBusinessDemo />
 
       <section className="relative overflow-hidden bg-slate-950 text-white">
         <div

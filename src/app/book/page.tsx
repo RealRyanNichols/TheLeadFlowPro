@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { BandwidthMeter } from "@/components/BandwidthMeter";
+import { BookingPathGuide } from "@/components/book/BookingPathGuide";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
@@ -41,7 +42,7 @@ const BOOKING_URL =
 
 function withCalParams(url: string): string {
   const joiner = url.includes("?") ? "&" : "?";
-  return `${url}${joiner}layout=month_view&hideEventTypeDetails=true&hideLandingPageDetails=true`;
+  return `${url}${joiner}layout=column_view&hideEventTypeDetails=true&hideLandingPageDetails=true`;
 }
 
 function mailto(subject: string, body: string): string {
@@ -115,7 +116,7 @@ export default function BookPage() {
         />
 
         <div className="relative mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:py-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(520px,1.08fr)] lg:items-start lg:py-10">
-          <div className="pt-1 lg:pt-3">
+          <div className="order-2 pt-1 lg:order-1 lg:pt-3">
             <div className="flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm backdrop-blur">
                 <Calendar className="h-3.5 w-3.5" /> Free fit call
@@ -124,36 +125,34 @@ export default function BookPage() {
             </div>
 
             <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-              Book the 10-minute fit call.{" "}
+              Pick the reason. Pick the time.{" "}
               <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
-                No doom scroll.
+                Move forward.
               </span>
             </h1>
             <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-700">
-              This is for serious buyers considering done-for-you social media, AI agents,
-              automation, lead follow-up, or a bigger 30/60/90-day buildout. Pick a window, or use
-              the router if you are not sure what to buy yet.
+              This page should feel simple. Use the guide, then pick a calendar window. The call is
+              for serious buyers considering done-for-you social media, AI agents, automation, lead
+              follow-up, or a bigger 30/60/90-day buildout.
             </p>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+            <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
               <Link
                 href="#calendar"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
               >
-                Pick a window <ArrowRight className="h-4 w-4" />
+                Go to calendar <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/start"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
+                href="/challenge#tool-challenge-form"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white/80 px-6 py-3 font-semibold text-slate-900 shadow-sm hover:bg-white"
               >
-                Use the router
+                Submit a tool first
               </Link>
-              <Link
-                href="/tiers"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white/80 px-6 py-3 font-semibold text-slate-900 shadow-sm hover:bg-white"
-              >
-                See packages
-              </Link>
+            </div>
+
+            <div className="mt-4">
+              <BookingPathGuide />
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
@@ -269,7 +268,7 @@ function BookingPanel() {
   return (
     <div
       id="calendar"
-      className="rounded-3xl border border-white/70 bg-white/80 p-3 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.28)] ring-1 ring-slate-900/5 backdrop-blur-xl sm:p-4 lg:sticky lg:top-20"
+      className="order-1 rounded-3xl border border-white/70 bg-white/80 p-3 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.28)] ring-1 ring-slate-900/5 backdrop-blur-xl sm:p-4 lg:sticky lg:top-20 lg:order-2"
     >
       <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -290,7 +289,7 @@ function BookingPanel() {
       </div>
 
       {BOOKING_URL ? (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div id="calendar-frame" className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
           <iframe
             src={withCalParams(BOOKING_URL)}
             title="Book a 10-minute fit call with Ryan Nichols"
