@@ -291,6 +291,12 @@ export default async function PulsePage() {
             </p>
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               <Link
+                href="/tools/ad-account-autopsy"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-semibold text-white hover:bg-accent-600"
+              >
+                Run the ad autopsy <BarChart3 className="h-4 w-4" />
+              </Link>
+              <Link
                 href="/challenge"
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
               >

@@ -32,6 +32,7 @@ const staticRoutes = [
   "/rewards",
   "/support",
   "/tools/seo-grader",
+  "/tools/ad-account-autopsy",
   "/solutions/mortgage",
   "/contact",
   "/book",

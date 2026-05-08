@@ -135,6 +135,7 @@ export function LightFooter() {
           <Link href="/voice" className="hover:text-slate-900">Voice</Link>
           <Link href="/start" className="hover:text-slate-900">Start here</Link>
           <Link href="/challenge" className="hover:text-slate-900">Tool challenge</Link>
+          <Link href="/tools/ad-account-autopsy" className="hover:text-slate-900">Ad autopsy</Link>
           <Link href="/pulse" className="hover:text-slate-900">Live pulse</Link>
           <Link href="/community" className="hover:text-slate-900">Community</Link>
           <Link href="/support" className="hover:text-slate-900">Support</Link>
