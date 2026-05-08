@@ -17,7 +17,6 @@ import {
   XCircle,
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
-import { MiniExplainer } from "@/components/site/MiniExplainer";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
 import { PromptBuildLab } from "@/components/challenge/PromptBuildLab";
 import { TOOL_CHALLENGE_DEPOSIT } from "@/lib/challenge-deposit";
@@ -149,7 +148,6 @@ export default function ChallengePage({ searchParams }: ChallengePageProps) {
                   </p>
                 </div>
               </div>
-              <MiniExplainer variant="challenge" className="mt-4" />
 
               {submitted ? <SubmissionReceivedCard /> : null}
               {depositCancelled ? <DepositCancelledCard /> : null}

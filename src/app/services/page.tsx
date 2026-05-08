@@ -11,7 +11,7 @@ import {
   TrendingUp, Trophy, Users, X as XIcon,
 } from "lucide-react";
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
-import { MiniExplainer } from "@/components/site/MiniExplainer";
+import { PageValueModule } from "@/components/site/PageValueModule";
 import { PlatformBrandMark, type PlatformBrandHandle } from "@/components/site/PlatformBrandMark";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
@@ -180,7 +180,7 @@ export default function ServicesPage() {
                 No price maze. Pick the quick review, one platform, all-platform bundle, ads
                 system, field content day, or the router if you are not sure.
               </p>
-              <MiniExplainer variant="services" className="mt-5" />
+              <PageValueModule variant="services" className="mt-5" />
             </div>
 
             <div id="service-options" className="rounded-3xl border border-white/70 bg-white/80 p-3 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.24)] ring-1 ring-slate-900/5 backdrop-blur-xl sm:p-4">

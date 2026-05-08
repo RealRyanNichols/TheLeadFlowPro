@@ -9,6 +9,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowRight, Megaphone, ThumbsDown, ThumbsUp } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { CommunitySubnav } from "@/components/site/CommunitySubnav";
 import { getActiveTopics } from "@/lib/voice";
 import { TopicSubmitForm } from "@/components/voice/TopicSubmitForm";
 import { createSeoMetadata } from "@/lib/seo-metadata";
@@ -32,6 +33,7 @@ export default async function VoiceLandingPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
       <LightHeader activePath="/voice" />
+      <CommunitySubnav activePath="/voice" />
 
       <section className="relative overflow-hidden">
         <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(135deg, #fff8f1 0%, #f6f9ff 38%, #eef9ff 70%, #f3eaff 100%)" }} />

@@ -33,6 +33,11 @@ type PulseSnapshot = {
   checkoutClicksToday: number;
   purchaseSignalsToday: number;
   chatQuestionsToday: number;
+  trackedActionsToday: number;
+  allClicksToday: number;
+  formInteractionsToday: number;
+  scrollDepthSignalsToday: number;
+  toolInteractionsToday: number;
   shareCreatesToday: number;
   shareClicksToday: number;
   socialShareViewsToday: number;
@@ -70,6 +75,11 @@ const EMPTY: PulseSnapshot = {
   checkoutClicksToday: 0,
   purchaseSignalsToday: 0,
   chatQuestionsToday: 0,
+  trackedActionsToday: 0,
+  allClicksToday: 0,
+  formInteractionsToday: 0,
+  scrollDepthSignalsToday: 0,
+  toolInteractionsToday: 0,
   shareCreatesToday: 0,
   shareClicksToday: 0,
   socialShareViewsToday: 0,
@@ -132,6 +142,9 @@ export function LivePulseEngineRoom() {
   }, []);
 
   const intentClicks =
+    snapshot.allClicksToday +
+    snapshot.toolInteractionsToday +
+    snapshot.formInteractionsToday +
     snapshot.serviceClicksToday +
     snapshot.bookClicksToday +
     snapshot.capacityClicksToday +

@@ -5,11 +5,13 @@
 // the buy form with that name pre-typed.
 
 import Link from "next/link";
-import { ArrowRight, Flame, HeartHandshake, Share2, ShieldCheck, Trophy } from "lucide-react";
+import { ArrowRight, Flame, HeartHandshake, Megaphone, Share2, ShieldCheck, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { LeaderboardLive } from "@/components/leaderboard/LeaderboardLive";
 import { BoostMessageForm } from "@/components/leaderboard/BoostMessageForm";
+import { TopTenExplainerMovie } from "@/components/leaderboard/TopTenExplainerMovie";
+import { CommunitySubnav } from "@/components/site/CommunitySubnav";
 import { GIVEBACK_TARGETS, getLeaderboardSnapshot } from "@/lib/leaderboard";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
@@ -65,6 +67,7 @@ export default async function LeaderboardPage({ searchParams }: Props) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       )}
       <LightHeader activePath="/leaderboard" />
+      <CommunitySubnav activePath="/leaderboard" />
 
       {/* HERO */}
       <section className="relative overflow-hidden">
@@ -87,30 +90,46 @@ export default async function LeaderboardPage({ searchParams }: Props) {
           style={{ background: "radial-gradient(circle, rgba(255,154,31,0.45) 0%, transparent 65%)" }}
         />
 
-        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-16">
-          <div className="text-center">
+        <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-9 sm:py-12 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
+          <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/70 backdrop-blur px-3 py-1 text-xs uppercase tracking-widest text-cyan-700 font-semibold shadow-sm">
               <Flame className="h-3.5 w-3.5 animate-pulse" /> Live · East Texas only · 70% goes back local
             </div>
-            <h1 className="mt-5 text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-slate-950 leading-[1.05]">
+            <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-950 leading-[1.05]">
               One Top 10 tab.{" "}
               <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
                 Many local boards.
               </span>
             </h1>
-            <p className="mt-5 text-lg sm:text-xl text-slate-700 max-w-3xl mx-auto leading-relaxed">
+            <p className="mt-5 text-lg text-slate-700 max-w-3xl leading-relaxed">
               Top coach. Top teacher. Top high school team. Top restaurant. Top attorney. Top
               doctor. Top artist. Top local story. Pick the board, add points, watch the ranking
               move. <strong>No payouts, no gambling, no fake votes.</strong> Seventy cents of every
               dollar placed is reserved for East Texas organizations, charity events, or local causes.
             </p>
 
-            <div className="mt-6 grid gap-2 sm:grid-cols-3 max-w-2xl mx-auto text-left">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="#vote"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-950 via-brand-950 to-cyan-950 px-5 text-sm font-bold text-white shadow-lg shadow-slate-950/20 hover:from-brand-950 hover:to-slate-950"
+              >
+                Vote on a board <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="#boost"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 text-sm font-bold text-white shadow-lg shadow-accent-500/25 hover:bg-accent-600"
+              >
+                Boost a shoutout <Megaphone className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="mt-6 grid gap-2 sm:grid-cols-3 text-left">
               <Pill Icon={Trophy} title="Top 3 = featured" body="Homepage banner + a digital badge for your site/socials" />
               <Pill Icon={HeartHandshake} title="70% local giveback" body="We keep the lights on, then send most vote proceeds back into East Texas." />
               <Pill Icon={Share2} title="Share-ready" body="Each business gets a QR + sharable URL for customers" />
             </div>
           </div>
+          <TopTenExplainerMovie />
         </div>
       </section>
 
@@ -137,8 +156,111 @@ export default async function LeaderboardPage({ searchParams }: Props) {
         </div>
       </section>
 
-      {/* BOOST — paid scrolling shoutouts */}
+      {/* SHARE LOOP */}
       <section className="relative overflow-hidden border-b border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg, #fff8f1 0%, #eef9ff 100%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:py-14">
+          <div className="grid gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-end">
+            <div>
+              <div className="text-xs uppercase tracking-widest text-cyan-700 font-bold">
+                Come back and share again
+              </div>
+              <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950">
+                The point is not one vote. The point is a loop people keep checking.
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                A local business can share the board, ask customers to move them up, watch rank
+                changes, and post the progress again. That turns one leaderboard into repeat visits,
+                repeat clicks, social proof, and a visible giveback story.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <LoopCard
+                Icon={Share2}
+                title="Share the race"
+                body="Every category gives owners a reason to post: help us reach #1 this week."
+              />
+              <LoopCard
+                Icon={Flame}
+                title="Watch the move"
+                body="The live board updates, so people return to see whether their vote changed the rank."
+              />
+              <LoopCard
+                Icon={Trophy}
+                title="Earn the badge"
+                body="Top ranks become shareable credibility assets for the business or person listed."
+              />
+              <LoopCard
+                Icon={HeartHandshake}
+                title="Show the giveback"
+                body="The 70% local pool gives the whole thing a real-world reason to spread."
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PAID LOOPS */}
+      <section className="relative overflow-hidden border-b border-slate-200">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg, #eef9ff 0%, #f3eaff 100%)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:py-14">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="text-xs uppercase tracking-widest text-cyan-700 font-bold">
+                Money tabs without nav clutter
+              </div>
+              <h2 className="mt-2 max-w-3xl text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+                The Top 10 tab can take money several ways.
+              </h2>
+            </div>
+            <p className="max-w-md text-sm leading-relaxed text-slate-600">
+              Keep the main nav simple. Put the paid actions inside the Community section where
+              people already understand they are voting, boosting, sharing, or supporting.
+            </p>
+          </div>
+          <div className="mt-7 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <PaidLoopCard
+              title="Rank votes"
+              price="$1+"
+              body="Move a person or business up a Top 10 board with visible points."
+              href="#vote"
+              cta="Vote now"
+            />
+            <PaidLoopCard
+              title="Boost shoutouts"
+              price="$5+"
+              body="Put a paid message in the live boost strip while people are watching the boards."
+              href="#boost"
+              cta="Boost"
+            />
+            <PaidLoopCard
+              title="Voice topics"
+              price="$1+"
+              body="Money-weighted yes/no local signal. No payout. Public sentiment with receipts."
+              href="/voice"
+              cta="Open Voice"
+            />
+            <PaidLoopCard
+              title="Support notes"
+              price="Any amount"
+              body="If people believe in the mission, they can fund the work and leave a public note."
+              href="/support"
+              cta="Support"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* BOOST — paid scrolling shoutouts */}
+      <section id="boost" className="relative scroll-mt-28 overflow-hidden border-b border-slate-200">
         <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(180deg, #eef9ff 0%, #fff8f1 100%)" }} />
         <div className="relative mx-auto max-w-3xl px-4 py-10 sm:py-14">
           <BoostMessageForm />
@@ -295,5 +417,47 @@ function GivebackTargetCard({ title, body }: { title: string; body: string }) {
       <div className="text-sm font-bold text-white">{title}</div>
       <p className="mt-1 text-xs leading-relaxed text-slate-300">{body}</p>
     </div>
+  );
+}
+
+function LoopCard({ Icon, title, body }: { Icon: any; title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-cyan-200/70 bg-white/80 p-4 shadow-sm ring-1 ring-white/60 backdrop-blur">
+      <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-accent-500 text-white shadow-lg shadow-cyan-900/15">
+        <Icon className="h-5 w-5" />
+      </div>
+      <h3 className="mt-3 font-bold text-slate-950">{title}</h3>
+      <p className="mt-1 text-sm leading-relaxed text-slate-600">{body}</p>
+    </div>
+  );
+}
+
+function PaidLoopCard({
+  title,
+  price,
+  body,
+  href,
+  cta,
+}: {
+  title: string;
+  price: string;
+  body: string;
+  href: string;
+  cta: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex min-h-[220px] flex-col rounded-2xl border border-white/70 bg-white/80 p-5 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.5)] ring-1 ring-white/70 backdrop-blur transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-white"
+    >
+      <div className="inline-flex w-fit rounded-full bg-gradient-to-r from-cyan-100 to-[#fff3d1] px-3 py-1 text-xs font-bold uppercase tracking-widest text-cyan-800">
+        {price}
+      </div>
+      <h3 className="mt-4 text-xl font-bold tracking-tight text-slate-950">{title}</h3>
+      <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{body}</p>
+      <div className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-brand-800">
+        {cta} <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+      </div>
+    </Link>
   );
 }

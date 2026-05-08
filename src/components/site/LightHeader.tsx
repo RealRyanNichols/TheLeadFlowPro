@@ -8,10 +8,10 @@ import { ArrowRight, BriefcaseBusiness, Package } from "lucide-react";
 import { LightMobileMenu } from "./LightMobileMenu";
 
 export function LightHeader({ activePath }: { activePath?: string }) {
-  function cls(path: string, base: string) {
-    return path === activePath
-      ? `rounded-full border border-cyan-300/60 bg-cyan-100/80 px-3 py-1.5 font-semibold text-cyan-800 shadow-sm shadow-cyan-900/5 hover:text-cyan-900 ${base}`
-      : `rounded-full px-3 py-1.5 hover:bg-white/70 hover:text-slate-950 ${base}`;
+  function cls(path: string, base: string, activePaths: string[] = [path]) {
+    return activePath && activePaths.includes(activePath)
+      ? `rounded-full border border-cyan-300/60 bg-cyan-100/80 px-2.5 py-1 font-semibold text-cyan-800 shadow-sm shadow-cyan-900/5 hover:text-cyan-900 ${base}`
+      : `rounded-full px-2.5 py-1 hover:bg-white/70 hover:text-slate-950 ${base}`;
   }
 
   const nav = [
@@ -19,26 +19,27 @@ export function LightHeader({ activePath }: { activePath?: string }) {
     { href: "/services", label: "Social Media" },
     { href: "/services/consulting", label: "Consulting" },
     { href: "/tiers", label: "Pricing" },
-    { href: "/leaderboard", label: "Top 10" },
-    { href: "/voice", label: "Voice" },
+    { href: "/leaderboard", label: "Community", activePaths: ["/leaderboard", "/voice", "/community", "/support"] },
     { href: "/story", label: "Story" },
     { href: "/contact", label: "Contact" },
   ];
 
   return (
-    <header className="sticky top-0 z-50 overflow-visible border-b border-cyan-300/70 bg-[linear-gradient(135deg,rgba(234,246,255,0.99)_0%,rgba(213,244,255,0.96)_34%,rgba(255,247,225,0.98)_68%,rgba(255,229,190,0.96)_100%)] shadow-[0_14px_36px_-28px_rgba(15,23,42,0.75)] backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-cyan-400/80 bg-[linear-gradient(135deg,rgba(204,239,255,0.99)_0%,rgba(167,226,247,0.97)_34%,rgba(255,233,177,0.98)_68%,rgba(255,197,111,0.97)_100%)] shadow-[0_14px_36px_-28px_rgba(15,23,42,0.82)] backdrop-blur">
       <div
         aria-hidden
-        className="h-1.5 w-full bg-gradient-to-r from-slate-950 via-cyan-500 to-accent-500"
+        className="h-1 w-full bg-gradient-to-r from-slate-950 via-cyan-500 to-accent-500"
       />
-      <div className="pointer-events-none absolute -left-20 -top-24 h-40 w-40 rounded-full bg-cyan-300/25 blur-3xl" />
-      <div className="pointer-events-none absolute -right-16 -top-24 h-40 w-40 rounded-full bg-accent-300/25 blur-3xl" />
-      <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-2.5 lg:py-3">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-20 -top-24 h-36 w-36 rounded-full bg-cyan-500/20 blur-3xl" />
+        <div className="absolute -right-16 -top-24 h-36 w-36 rounded-full bg-accent-500/20 blur-3xl" />
+      </div>
+      <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-1.5 lg:py-2">
         <Link
           href="/"
           className="group flex min-w-0 items-center gap-2 truncate font-bold text-slate-950"
         >
-          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-300/70 bg-slate-950 text-sm font-black text-cyan-200 shadow-lg shadow-cyan-900/15">
+          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-cyan-300/70 bg-slate-950 text-xs font-black text-cyan-200 shadow-lg shadow-cyan-900/15">
             LF
           </span>
           <span className="truncate">
@@ -48,9 +49,9 @@ export function LightHeader({ activePath }: { activePath?: string }) {
             </span>
           </span>
         </Link>
-        <nav className="hidden items-center gap-1 rounded-full border border-cyan-200/80 bg-white/45 px-1.5 py-1 text-sm text-slate-800 shadow-sm shadow-cyan-900/5 backdrop-blur lg:flex">
+        <nav className="hidden items-center gap-1 rounded-full border border-cyan-200/80 bg-white/40 px-1.5 py-0.5 text-sm text-slate-800 shadow-sm shadow-cyan-900/5 backdrop-blur lg:flex">
           {nav.map((item) => (
-            <Link key={item.href} href={item.href} className={cls(item.href, "")}>
+            <Link key={item.href} href={item.href} className={cls(item.href, "", item.activePaths)}>
               {item.label}
             </Link>
           ))}
@@ -58,19 +59,19 @@ export function LightHeader({ activePath }: { activePath?: string }) {
         <div className="flex items-center gap-2">
           <Link
             href="/login"
-            className="hidden items-center rounded-xl border border-cyan-200/80 bg-white/75 px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur hover:border-brand-500 hover:text-brand-700 sm:inline-flex"
+            className="hidden items-center rounded-lg border border-cyan-200/80 bg-white/75 px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur hover:border-brand-500 hover:text-brand-700 sm:inline-flex"
           >
             Log in
           </Link>
           <Link
             href="/challenge"
-            className="hidden items-center gap-1.5 rounded-xl bg-gradient-to-r from-slate-950 via-brand-950 to-slate-900 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 hover:from-brand-950 hover:to-slate-950 sm:inline-flex sm:px-4 sm:py-2"
+            className="hidden items-center gap-1.5 rounded-lg bg-gradient-to-r from-slate-950 via-brand-950 to-slate-900 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 hover:from-brand-950 hover:to-slate-950 sm:inline-flex sm:px-4"
           >
             Stump me <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <Link
             href="/book"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-accent-500 to-accent-400 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:from-accent-600 hover:to-accent-500 sm:px-4 sm:py-2"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-accent-500 to-accent-400 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:from-accent-600 hover:to-accent-500 sm:px-4"
           >
             Book call <ArrowRight className="h-3.5 w-3.5" />
           </Link>

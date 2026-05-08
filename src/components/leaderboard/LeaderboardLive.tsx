@@ -401,6 +401,7 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
 
       {/* Buy panel */}
       <form
+        id="vote"
         onSubmit={submitBuy}
         className="rounded-3xl border border-accent-300 bg-gradient-to-br from-accent-300/15 via-white to-cyan-50 backdrop-blur-xl p-5 sm:p-7 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.20)] ring-1 ring-slate-900/5"
       >

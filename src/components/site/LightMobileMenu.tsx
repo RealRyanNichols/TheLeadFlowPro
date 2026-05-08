@@ -23,6 +23,7 @@ import {
 type NavItem = {
   href: string;
   label: string;
+  activePaths?: string[];
 };
 
 const ICONS: Record<string, ComponentType<{ className?: string }>> = {
@@ -124,7 +125,11 @@ export function LightMobileMenu({
               <nav className="mt-4 grid gap-2">
                 {nav.map((item) => {
                   const Icon = ICONS[item.href] ?? ArrowRight;
-                  const active = item.href === activePath;
+                  const active =
+                    item.href === activePath ||
+                    item.activePaths?.some(
+                      (path) => activePath === path || activePath?.startsWith(`${path}/`)
+                    );
                   return (
                     <Link
                       key={item.href}

@@ -22,7 +22,7 @@ import {
 import { BandwidthMeter } from "@/components/BandwidthMeter";
 import { BookingPathGuide } from "@/components/book/BookingPathGuide";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
-import { MiniExplainer } from "@/components/site/MiniExplainer";
+import { PageValueModule } from "@/components/site/PageValueModule";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const metadata = createSeoMetadata({
@@ -136,7 +136,7 @@ export default function BookPage() {
               for serious buyers considering done-for-you social media, AI agents, automation, lead
               follow-up, or a bigger 30/60/90-day buildout.
             </p>
-            <MiniExplainer variant="book" className="mt-5" />
+            <PageValueModule variant="book" className="mt-5" />
 
             <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
               <Link

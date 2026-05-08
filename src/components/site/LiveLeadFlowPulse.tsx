@@ -47,6 +47,11 @@ type PulseSnapshot = {
   checkoutClicksToday: number;
   purchaseSignalsToday: number;
   chatQuestionsToday: number;
+  trackedActionsToday: number;
+  allClicksToday: number;
+  formInteractionsToday: number;
+  scrollDepthSignalsToday: number;
+  toolInteractionsToday: number;
   shareCreatesToday: number;
   shareClicksToday: number;
   socialShareViewsToday: number;
@@ -66,6 +71,10 @@ type PulseSnapshot = {
     checkoutClicks: number;
     purchaseSignals: number;
     chatQuestions: number;
+    trackedActions: number;
+    allClicks: number;
+    formInteractions: number;
+    toolInteractions: number;
     engagementSeconds: number;
     liveViews: number;
     importedViews: number;
@@ -133,6 +142,11 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
   checkoutClicksToday: 0,
   purchaseSignalsToday: 0,
   chatQuestionsToday: 0,
+  trackedActionsToday: 0,
+  allClicksToday: 0,
+  formInteractionsToday: 0,
+  scrollDepthSignalsToday: 0,
+  toolInteractionsToday: 0,
   shareCreatesToday: 0,
   shareClicksToday: 0,
   socialShareViewsToday: 0,
@@ -156,6 +170,10 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
     checkoutClicks: 0,
     purchaseSignals: 0,
     chatQuestions: 0,
+    trackedActions: 0,
+    allClicks: 0,
+    formInteractions: 0,
+    toolInteractions: 0,
     engagementSeconds: 0,
     liveViews: 0,
     importedViews: 0,
@@ -218,6 +236,10 @@ function eventLabel(eventType: string) {
     chat_open: "Opened chat",
     chat_question: "Asked a question",
     chat_cta: "Chat CTA click",
+    click: "Clicked page",
+    form_interaction: "Touched form",
+    scroll_depth: "Scrolled deeper",
+    tool_interaction: "Used tool",
     share_create: "Shared pulse",
     share_click: "Clicked shared pulse",
     share_view_import: "Imported social views",
@@ -625,14 +647,19 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
         {tab === "clicks" && (
           <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
-              <PulseMetric label="Services" value={fmt(snapshot.serviceClicksToday)} />
-              <PulseMetric label="Calendar" value={fmt(snapshot.bookClicksToday)} />
-              <PulseMetric label="Capacity" value={fmt(snapshot.capacityClicksToday)} />
+              <PulseMetric label="All clicks" value={fmt(snapshot.allClicksToday)} />
+              <PulseMetric label="Tool uses" value={fmt(snapshot.toolInteractionsToday)} />
+              <PulseMetric label="Forms" value={fmt(snapshot.formInteractionsToday)} />
             </div>
             <div className="grid grid-cols-3 gap-2">
+              <PulseMetric label="Services" value={fmt(snapshot.serviceClicksToday)} />
+              <PulseMetric label="Calendar" value={fmt(snapshot.bookClicksToday)} />
               <PulseMetric label="Checkout" value={fmt(snapshot.checkoutClicksToday)} />
-              <PulseMetric label="Purchases" value={fmt(snapshot.purchaseSignalsToday)} />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <PulseMetric label="Scrolls" value={fmt(snapshot.scrollDepthSignalsToday)} />
               <PulseMetric label="Questions" value={fmt(snapshot.chatQuestionsToday)} />
+              <PulseMetric label="Tracked" value={fmt(snapshot.trackedActionsToday)} />
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
               <div className="mb-3 text-sm font-semibold">Recent public activity</div>

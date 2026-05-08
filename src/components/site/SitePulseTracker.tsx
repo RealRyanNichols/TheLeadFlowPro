@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Activity, BarChart3 } from "lucide-react";
 
 type PulseSnapshot = {
@@ -132,9 +132,77 @@ function trackedEventForHref(href: string): PulseClickSignal | null {
   return null;
 }
 
+function cleanTargetLabel(value: string) {
+  return value.replace(/\s+/g, " ").replace(/[^\w\s:/.@#-]/g, "").trim().slice(0, 120);
+}
+
+function elementLabel(element: Element) {
+  const explicit =
+    element.getAttribute("data-pulse-label") ||
+    element.getAttribute("aria-label") ||
+    element.getAttribute("title") ||
+    "";
+  if (explicit) return cleanTargetLabel(explicit);
+
+  if (
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLTextAreaElement ||
+    element instanceof HTMLSelectElement
+  ) {
+    return cleanTargetLabel(element.name || element.id || element.type || "field");
+  }
+
+  const text = "innerText" in element ? String((element as HTMLElement).innerText || "") : "";
+  return cleanTargetLabel(text || element.id || element.tagName.toLowerCase() || "page");
+}
+
+function describeClickTarget(target: Element) {
+  const interactive = target.closest(
+    "a[href],button,input,select,textarea,summary,[role='button'],[data-pulse-target]",
+  );
+  const element = interactive || target;
+  const label = elementLabel(element);
+
+  if (element instanceof HTMLAnchorElement) {
+    try {
+      const url = new URL(element.href, window.location.origin);
+      return cleanTargetLabel(`link:${url.pathname}:${label || "unlabeled"}`);
+    } catch {
+      return cleanTargetLabel(`link:${label || "unlabeled"}`);
+    }
+  }
+
+  if (
+    element instanceof HTMLInputElement ||
+    element instanceof HTMLTextAreaElement ||
+    element instanceof HTMLSelectElement
+  ) {
+    const type = element instanceof HTMLInputElement ? element.type : element.tagName.toLowerCase();
+    return cleanTargetLabel(`field:${type}:${label || "unlabeled"}`);
+  }
+
+  const role = element.getAttribute("role") || element.tagName.toLowerCase();
+  return cleanTargetLabel(`${role}:${label || "unlabeled"}`);
+}
+
+function describeFormTarget(target: Element) {
+  const field = target.closest("input,select,textarea");
+  if (!field) return "";
+
+  const label = elementLabel(field);
+  const form = field.closest("form");
+  const formLabel = form
+    ? cleanTargetLabel(form.getAttribute("aria-label") || form.id || form.getAttribute("name") || "form")
+    : "form";
+  const type = field instanceof HTMLInputElement ? field.type : field.tagName.toLowerCase();
+
+  return cleanTargetLabel(`${formLabel}:${type}:${label || "unlabeled"}`);
+}
+
 export function SitePulseTracker() {
   const pathname = usePathname();
   const [snapshot, setSnapshot] = useState<PulseSnapshot>(EMPTY_SNAPSHOT);
+  const formSeenRef = useRef<Set<string>>(new Set());
 
   const enabled = isPublicMarketingPath(pathname);
 
@@ -207,10 +275,15 @@ export function SitePulseTracker() {
 
   useEffect(() => {
     if (!enabled) return;
+    formSeenRef.current = new Set();
 
     function onClick(event: MouseEvent) {
       const target = event.target;
       if (!(target instanceof Element)) return;
+      if (target.closest("[data-pulse-ignore='true']")) return;
+
+      beaconPulse("click", pathname, describeClickTarget(target));
+
       const anchor = target.closest("a[href]");
       if (!(anchor instanceof HTMLAnchorElement)) return;
       if (anchor.dataset.pulseManual === "true") return;
@@ -224,7 +297,49 @@ export function SitePulseTracker() {
 
     document.addEventListener("click", onClick, { capture: true });
     return () => document.removeEventListener("click", onClick, { capture: true });
-  }, [enabled]);
+  }, [enabled, pathname]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    function onFocusIn(event: FocusEvent) {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest("[data-pulse-ignore='true']")) return;
+
+      const descriptor = describeFormTarget(target);
+      if (!descriptor || formSeenRef.current.has(descriptor)) return;
+      formSeenRef.current.add(descriptor);
+      beaconPulse("form_interaction", pathname, descriptor);
+    }
+
+    document.addEventListener("focusin", onFocusIn, { capture: true });
+    return () => document.removeEventListener("focusin", onFocusIn, { capture: true });
+  }, [enabled, pathname]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const seenDepths = new Set<number>();
+    const thresholds = [25, 50, 75, 90];
+
+    function onScroll() {
+      const root = document.documentElement;
+      const maxScroll = Math.max(0, root.scrollHeight - window.innerHeight);
+      if (!maxScroll) return;
+
+      const depth = Math.round((window.scrollY / maxScroll) * 100);
+      thresholds.forEach((threshold) => {
+        if (depth < threshold || seenDepths.has(threshold)) return;
+        seenDepths.add(threshold);
+        beaconPulse("scroll_depth", pathname, `${threshold}%`, threshold);
+      });
+    }
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [enabled, pathname]);
 
   if (!enabled) return null;
 

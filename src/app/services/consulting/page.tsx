@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { BandwidthMeter } from "@/components/BandwidthMeter";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
-import { MiniExplainer } from "@/components/site/MiniExplainer";
+import { PageValueModule } from "@/components/site/PageValueModule";
 import { OFFERS, type OfferSlug } from "@/lib/offers";
 import { OFFER_WORKLOADS, formatHours } from "@/lib/workload";
 import { createSeoMetadata } from "@/lib/seo-metadata";
@@ -65,22 +65,22 @@ const HERO_PRODUCTS = [
   {
     slug: "decision-sprint",
     eyebrow: "Fastest 1:1",
-    color: "border-cyan-300 bg-cyan-50",
+    color: "border-cyan-300 bg-gradient-to-br from-cyan-50 via-white to-cyan-100",
   },
   {
     slug: "business-audit",
     eyebrow: "Written plan",
-    color: "border-accent-300 bg-accent-50",
+    color: "border-accent-300 bg-gradient-to-br from-[#fff8eb] via-white to-[#fff0bf]",
   },
   {
     slug: "working-session",
     eyebrow: "Build with me",
-    color: "border-brand-200 bg-white",
+    color: "border-brand-200 bg-gradient-to-br from-white via-brand-50 to-cyan-50",
   },
   {
     slug: "sprint-4-week",
     eyebrow: "4-week ship",
-    color: "border-slate-300 bg-slate-50",
+    color: "border-slate-300 bg-gradient-to-br from-white via-slate-50 to-[#eef9ff]",
   },
 ] as const satisfies readonly { slug: OfferSlug; eyebrow: string; color: string }[];
 
@@ -156,7 +156,7 @@ export default function ConsultingPage() {
                 angles, Rode-mic audio, account control, sales follow-up, and the operating system
                 behind it.
               </p>
-              <MiniExplainer variant="consulting" className="mt-5" />
+              <PageValueModule variant="consulting" className="mt-5" />
 
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <Link
@@ -175,14 +175,14 @@ export default function ConsultingPage() {
             </div>
 
             <div id="consulting-products" className="scroll-mt-28">
-              <div className="overflow-hidden rounded-3xl border border-slate-900/10 bg-slate-950 text-white shadow-[0_30px_80px_-28px_rgba(15,23,42,0.65)]">
+              <div className="overflow-hidden rounded-3xl border border-cyan-200/80 bg-white/80 text-slate-950 shadow-[0_30px_80px_-28px_rgba(15,23,42,0.40)] ring-1 ring-white/70 backdrop-blur-xl">
                 <div className="relative min-h-[170px] overflow-hidden border-b border-white/10">
                   <img
                     src="/images/ryan-wholesale-universe-warehouse-pallets-flag.jpg"
                     alt="Ryan Nichols inside the Wholesale Universe warehouse"
-                    className="absolute inset-0 h-full w-full object-cover opacity-55"
+                    className="absolute inset-0 h-full w-full object-cover opacity-70"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/75 to-slate-950/30" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-brand-950/90 via-cyan-950/70 to-accent-500/20" />
                   <div className="relative p-5">
                     <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
                       <DollarSign className="h-3.5 w-3.5" /> Consulting product picker
@@ -200,10 +200,10 @@ export default function ConsultingPage() {
                     <HeroProductCard key={item.slug} {...item} />
                   ))}
                 </div>
-                <div className="border-t border-white/10 bg-white/[0.04] p-4">
+                <div className="border-t border-cyan-100 bg-gradient-to-r from-cyan-50 via-white to-[#fff8eb] p-4">
                   <Link
                     href="#all-consulting-offers"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.08] px-4 py-3 text-sm font-semibold text-white hover:bg-white/[0.12]"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-200 bg-white px-4 py-3 text-sm font-semibold text-cyan-800 shadow-sm hover:border-cyan-300 hover:bg-cyan-50"
                   >
                     See retainers and advisor options <ArrowRight className="h-4 w-4" />
                   </Link>
@@ -378,7 +378,7 @@ function HeroProductCard({
       className={`group block min-h-[190px] rounded-2xl border p-4 text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl ${color}`}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white">
+        <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-700 via-cyan-600 to-accent-500 text-white shadow-lg shadow-cyan-900/15">
           <Icon className="h-5 w-5" />
         </div>
         <span className="rounded-full bg-white/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-700">

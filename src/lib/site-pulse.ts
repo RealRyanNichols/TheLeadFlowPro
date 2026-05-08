@@ -16,6 +16,10 @@ export type SitePulseEventType =
   | "chat_open"
   | "chat_question"
   | "chat_cta"
+  | "click"
+  | "form_interaction"
+  | "scroll_depth"
+  | "tool_interaction"
   | "share_create"
   | "share_click"
   | "share_view_import"
@@ -52,6 +56,11 @@ export type SitePulseSnapshot = {
   checkoutClicksToday: number;
   purchaseSignalsToday: number;
   chatQuestionsToday: number;
+  trackedActionsToday: number;
+  allClicksToday: number;
+  formInteractionsToday: number;
+  scrollDepthSignalsToday: number;
+  toolInteractionsToday: number;
   shareCreatesToday: number;
   shareClicksToday: number;
   socialShareViewsToday: number;
@@ -71,6 +80,10 @@ export type SitePulseSnapshot = {
     checkoutClicks: number;
     purchaseSignals: number;
     chatQuestions: number;
+    trackedActions: number;
+    allClicks: number;
+    formInteractions: number;
+    toolInteractions: number;
     engagementSeconds: number;
     liveViews: number;
     importedViews: number;
@@ -135,6 +148,11 @@ type PulseSummaryRow = {
   checkoutClicksToday: number | bigint | null;
   purchaseSignalsToday: number | bigint | null;
   chatQuestionsToday: number | bigint | null;
+  trackedActionsToday: number | bigint | null;
+  allClicksToday: number | bigint | null;
+  formInteractionsToday: number | bigint | null;
+  scrollDepthSignalsToday: number | bigint | null;
+  toolInteractionsToday: number | bigint | null;
   shareCreatesToday: number | bigint | null;
   shareClicksToday: number | bigint | null;
   socialShareViewsToday: number | bigint | null;
@@ -163,6 +181,10 @@ type DailyRow = {
   checkoutClicks: number | bigint | null;
   purchaseSignals: number | bigint | null;
   chatQuestions: number | bigint | null;
+  trackedActions: number | bigint | null;
+  allClicks: number | bigint | null;
+  formInteractions: number | bigint | null;
+  toolInteractions: number | bigint | null;
   engagementSeconds: number | bigint | null;
 };
 
@@ -226,6 +248,10 @@ const ALLOWED_EVENTS: SitePulseEventType[] = [
   "chat_open",
   "chat_question",
   "chat_cta",
+  "click",
+  "form_interaction",
+  "scroll_depth",
+  "tool_interaction",
   "share_create",
   "share_click",
   "share_view_import",
@@ -512,6 +538,11 @@ export function emptySitePulseSnapshot(
     checkoutClicksToday: 0,
     purchaseSignalsToday: 0,
     chatQuestionsToday: 0,
+    trackedActionsToday: 0,
+    allClicksToday: 0,
+    formInteractionsToday: 0,
+    scrollDepthSignalsToday: 0,
+    toolInteractionsToday: 0,
     shareCreatesToday: 0,
     shareClicksToday: 0,
     socialShareViewsToday: 0,
@@ -608,6 +639,10 @@ function buildEmptyDays(startDate?: Date) {
       checkoutClicks: 0,
       purchaseSignals: 0,
       chatQuestions: 0,
+      trackedActions: 0,
+      allClicks: 0,
+      formInteractions: 0,
+      toolInteractions: 0,
       engagementSeconds: 0,
       liveViews: 0,
       importedViews: 0,
@@ -628,6 +663,10 @@ function fillDays(liveRows: DailyRow[], backfillRows: BackfillRow[], startDate: 
         checkoutClicks: toInt(row.checkoutClicks),
         purchaseSignals: toInt(row.purchaseSignals),
         chatQuestions: toInt(row.chatQuestions),
+        trackedActions: toInt(row.trackedActions),
+        allClicks: toInt(row.allClicks),
+        formInteractions: toInt(row.formInteractions),
+        toolInteractions: toInt(row.toolInteractions),
         engagementSeconds: toInt(row.engagementSeconds),
       },
     ]),
@@ -661,6 +700,10 @@ function fillDays(liveRows: DailyRow[], backfillRows: BackfillRow[], startDate: 
       checkoutClicks: live?.checkoutClicks ?? 0,
       purchaseSignals: live?.purchaseSignals ?? 0,
       chatQuestions: live?.chatQuestions ?? 0,
+      trackedActions: live?.trackedActions ?? 0,
+      allClicks: live?.allClicks ?? 0,
+      formInteractions: live?.formInteractions ?? 0,
+      toolInteractions: live?.toolInteractions ?? 0,
       engagementSeconds: live?.engagementSeconds ?? 0,
       liveViews,
       importedViews,
@@ -840,6 +883,31 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
             (NOW() AT TIME ZONE 'America/Chicago')::date
         ) AS "chatQuestionsToday",
         COUNT(*) FILTER (
+          WHERE "eventType" <> 'heartbeat'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "trackedActionsToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'click'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "allClicksToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'form_interaction'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "formInteractionsToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'scroll_depth'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "scrollDepthSignalsToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'tool_interaction'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "toolInteractionsToday",
+        COUNT(*) FILTER (
           WHERE "eventType" = 'share_create'
           AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
             (NOW() AT TIME ZONE 'America/Chicago')::date
@@ -896,6 +964,10 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
         COUNT(*) FILTER (WHERE "eventType" = 'cta_checkout') AS "checkoutClicks",
         COUNT(*) FILTER (WHERE "eventType" = 'purchase_complete') AS "purchaseSignals",
         COUNT(*) FILTER (WHERE "eventType" = 'chat_question') AS "chatQuestions",
+        COUNT(*) FILTER (WHERE "eventType" <> 'heartbeat') AS "trackedActions",
+        COUNT(*) FILTER (WHERE "eventType" = 'click') AS "allClicks",
+        COUNT(*) FILTER (WHERE "eventType" = 'form_interaction') AS "formInteractions",
+        COUNT(*) FILTER (WHERE "eventType" = 'tool_interaction') AS "toolInteractions",
         COALESCE(SUM("value") FILTER (WHERE "eventType" = 'engagement'), 0) AS "engagementSeconds"
       FROM "SitePulseEvent"
       WHERE (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date >= ${dateKey(historyStart)}::date
@@ -935,6 +1007,10 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
             'chat_open',
             'chat_question',
             'chat_cta',
+            'click',
+            'form_interaction',
+            'scroll_depth',
+            'tool_interaction',
             'share_create',
             'share_click'
           )
@@ -959,6 +1035,10 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
                 'chat_open',
                 'chat_question',
                 'chat_cta',
+                'click',
+                'form_interaction',
+                'scroll_depth',
+                'tool_interaction',
                 'share_create',
                 'share_click'
               )
@@ -1017,6 +1097,11 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
   const checkoutClicksToday = toInt(summary.checkoutClicksToday);
   const purchaseSignalsToday = toInt(summary.purchaseSignalsToday);
   const chatQuestionsToday = toInt(summary.chatQuestionsToday);
+  const trackedActionsToday = toInt(summary.trackedActionsToday);
+  const allClicksToday = toInt(summary.allClicksToday);
+  const formInteractionsToday = toInt(summary.formInteractionsToday);
+  const scrollDepthSignalsToday = toInt(summary.scrollDepthSignalsToday);
+  const toolInteractionsToday = toInt(summary.toolInteractionsToday);
   const shareCreatesToday = toInt(summary.shareCreatesToday);
   const shareClicksToday = toInt(summary.shareClicksToday);
   const socialShareViewsToday = toInt(summary.socialShareViewsToday);
@@ -1057,6 +1142,11 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
     checkoutClicksToday,
     purchaseSignalsToday,
     chatQuestionsToday,
+    trackedActionsToday,
+    allClicksToday,
+    formInteractionsToday,
+    scrollDepthSignalsToday,
+    toolInteractionsToday,
     shareCreatesToday,
     shareClicksToday,
     socialShareViewsToday,

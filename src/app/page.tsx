@@ -22,7 +22,7 @@ import { TrackedLink } from "@/components/TrackedLink";
 import { BandwidthMeter } from "@/components/BandwidthMeter";
 import { LiveLeadFlowPulse } from "@/components/site/LiveLeadFlowPulse";
 import { LightHeader } from "@/components/site/LightHeader";
-import { MiniExplainer } from "@/components/site/MiniExplainer";
+import { PageValueModule } from "@/components/site/PageValueModule";
 import { getYouTubeStatsCached, getXStatsCached, getFacebookStatsCached } from "@/lib/social-sync";
 import { getCapacitySnapshot } from "@/lib/capacity";
 import { createSeoMetadata } from "@/lib/seo-metadata";
@@ -420,7 +420,7 @@ export default async function GrowV2Page() {
             {/* Live public counter */}
             <div>
               <LiveLeadFlowPulse capacity={capacitySnapshot} />
-              <MiniExplainer variant="home" className="mt-4" />
+              <PageValueModule variant="home" className="mt-4" />
               <p className="mt-3 text-xs text-slate-500 text-center">
                 Real public traffic starts counting from this install. No fake visitor history.
               </p>
