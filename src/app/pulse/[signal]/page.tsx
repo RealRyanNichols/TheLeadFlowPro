@@ -18,6 +18,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { PulseShareButtons } from "@/components/site/PulseShareButtons";
 import {
   PULSE_SIGNAL_LIST,
   getPulseSignalPage,
@@ -241,6 +242,22 @@ export default async function PulseSignalPage({ params }: { params: { signal: st
             <div className="mt-4 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-sm leading-relaxed text-cyan-50">
               The public page shows anonymous totals. A client version can connect the same pattern
               to ads, forms, phone calls, texts, calendars, payments, and follow-up stages.
+            </div>
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+              <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-widest text-cyan-100">
+                    Share this signal
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-300">
+                    These buttons create tracked links, so click-backs show up on Live Pulse.
+                  </p>
+                </div>
+              </div>
+              <PulseShareButtons
+                path={`/pulse/${signal.slug}`}
+                title={`${signal.shortTitle} - The LeadFlow Pro Live Pulse`}
+              />
             </div>
           </div>
         </div>

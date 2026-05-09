@@ -99,6 +99,11 @@ type PulseSnapshot = {
   copySignalsToday: number;
   externalClicksToday: number;
   deadClicksToday: number;
+  ctaImpressionsToday: number;
+  formSubmitsToday: number;
+  videoInteractionsToday: number;
+  rageClicksToday: number;
+  performanceSignalsToday: number;
   shareCreatesToday: number;
   shareClicksToday: number;
   socialShareViewsToday: number;
@@ -205,6 +210,11 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
   copySignalsToday: 0,
   externalClicksToday: 0,
   deadClicksToday: 0,
+  ctaImpressionsToday: 0,
+  formSubmitsToday: 0,
+  videoInteractionsToday: 0,
+  rageClicksToday: 0,
+  performanceSignalsToday: 0,
   shareCreatesToday: 0,
   shareClicksToday: 0,
   socialShareViewsToday: 0,
@@ -329,6 +339,11 @@ function eventLabel(eventType: string) {
     copy_signal: "Copied proof",
     external_click: "Left through link",
     dead_click: "Clicked dead zone",
+    cta_impression: "Saw CTA",
+    form_submit: "Submitted form",
+    rage_click: "Frustration click",
+    performance_signal: "Speed signal",
+    video_interaction: "Video action",
     share_create: "Shared pulse",
     share_click: "Clicked shared pulse",
     share_view_import: "Imported social views",
@@ -780,6 +795,11 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
               <PulseMetric label="Forms" value={fmt(snapshot.formInteractionsToday)} />
             </div>
             <div className="grid grid-cols-3 gap-2">
+              <PulseMetric label="Seen CTAs" value={fmt(snapshot.ctaImpressionsToday)} />
+              <PulseMetric label="Form submits" value={fmt(snapshot.formSubmitsToday)} />
+              <PulseMetric label="Speed signals" value={fmt(snapshot.performanceSignalsToday)} />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
               <PulseMetric label="Services" value={fmt(snapshot.serviceClicksToday)} />
               <PulseMetric label="Calendar" value={fmt(snapshot.bookClicksToday)} />
               <PulseMetric label="Checkout" value={fmt(snapshot.checkoutClicksToday)} />
@@ -795,9 +815,14 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
               <PulseMetric label="Dead zones" value={fmt(snapshot.deadClicksToday)} />
             </div>
             <div className="grid grid-cols-3 gap-2">
+              <PulseMetric label="Rage clicks" value={fmt(snapshot.rageClicksToday)} />
+              <PulseMetric label="Video events" value={fmt(snapshot.videoInteractionsToday)} />
+              <PulseMetric label="Exits" value={fmt(snapshot.pageExitsToday)} />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
               <PulseMetric label="Returns" value={fmt(snapshot.returnVisitsToday)} />
               <PulseMetric label="Copied" value={fmt(snapshot.copySignalsToday)} />
-              <PulseMetric label="Exits" value={fmt(snapshot.pageExitsToday)} />
+              <PulseMetric label="External" value={fmt(snapshot.externalClicksToday)} />
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
               <div className="mb-3 text-sm font-semibold">Recent public activity</div>
