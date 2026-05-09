@@ -4,9 +4,9 @@ import {
   ArrowRight,
   BriefcaseBusiness,
   ClipboardList,
-  Gauge,
   Inbox,
   MessageSquareText,
+  RadioTower,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -104,6 +104,9 @@ export default async function AdminHomePage() {
               <Link href="/admin/requests" className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/15">
                 Build requests
               </Link>
+              <Link href="/admin/pulse" className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15">
+                Pulse control
+              </Link>
               <Link href="/admin/capacity" className="rounded-xl bg-accent-500 px-4 py-3 text-sm font-semibold text-white hover:bg-accent-600">
                 Capacity
               </Link>
@@ -114,7 +117,7 @@ export default async function AdminHomePage() {
             <AdminStat icon={Users} label="Client logins" value={String(userCount)} sub="User accounts in database" />
             <AdminStat icon={BriefcaseBusiness} label="Active orders" value={String(activeWorkCount)} sub={`${formatHours(activeHours)} still reserved`} />
             <AdminStat icon={ClipboardList} label="Open intakes" value={String(openIntakeCount)} sub="Unreviewed public requests" />
-            <AdminStat icon={Gauge} label="Pulse today" value={String(pulseToday)} sub="Tracked anonymous events" />
+            <AdminStat icon={RadioTower} label="Pulse today" value={String(pulseToday)} sub="Tracked anonymous events" />
           </div>
         </div>
       </header>

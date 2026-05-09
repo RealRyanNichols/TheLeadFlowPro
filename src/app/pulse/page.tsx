@@ -26,6 +26,7 @@ import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { LivePulseEngineRoom } from "@/components/site/LivePulseEngineRoom";
 import { LiveLeadFlowPulse } from "@/components/site/LiveLeadFlowPulse";
 import { PulseBusinessDemo } from "@/components/site/PulseBusinessDemo";
+import { PulseShareButtons } from "@/components/site/PulseShareButtons";
 import { getCapacitySnapshot } from "@/lib/capacity";
 import { PULSE_SIGNAL_LIST, type PulseSignalSlug } from "@/lib/pulse-signal-pages";
 import { createSeoMetadata } from "@/lib/seo-metadata";
@@ -269,6 +270,24 @@ export default async function PulsePage() {
               >
                 Book call <CalendarCheck className="h-4 w-4" />
               </Link>
+            </div>
+
+            <div className="mt-4 rounded-3xl border border-slate-900/10 bg-slate-950 p-4 text-white shadow-[0_24px_70px_-40px_rgba(15,23,42,0.7)]">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-widest text-cyan-200">
+                    Share the live board
+                  </div>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-300">
+                    Every share creates a tracked link so click-backs can prove which post brought people here.
+                  </p>
+                </div>
+                <PulseShareButtons
+                  path="/pulse"
+                  title="Watch The LeadFlow Pro live website pulse"
+                  className="shrink-0"
+                />
+              </div>
             </div>
           </div>
 

@@ -622,9 +622,21 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
       </div>
 
       <div className="mt-3 grid gap-2 sm:grid-cols-3">
-        <PulseMetric label="Traffic score" value={`${snapshot.prediction.trafficQualityScore}/100`} />
-        <PulseMetric label="Buy readiness" value={`${snapshot.prediction.conversionReadinessScore}/100`} />
-        <PulseMetric label="Model confidence" value={snapshot.prediction.confidence.toUpperCase()} />
+        <PulseMetric
+          label="Traffic score"
+          value={`${snapshot.prediction.trafficQualityScore}/100`}
+          href="/pulse/traffic-sources"
+        />
+        <PulseMetric
+          label="Buy readiness"
+          value={`${snapshot.prediction.conversionReadinessScore}/100`}
+          href="/pulse/click-intent"
+        />
+        <PulseMetric
+          label="Model confidence"
+          value={snapshot.prediction.confidence.toUpperCase()}
+          href="/pulse/predictions"
+        />
       </div>
 
       <div className="mt-3 rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4">
@@ -659,9 +671,9 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
         {tab === "live" && (
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-2">
-              <PulseMetric label="Today" value={fmt(snapshot.viewsToday)} />
-              <PulseMetric label="Visitors" value={fmt(snapshot.visitorsToday)} />
-              <PulseMetric label="All-time" value={fmt(snapshot.totalViews)} />
+              <PulseMetric label="Today" value={fmt(snapshot.viewsToday)} href="/pulse/live-views" />
+              <PulseMetric label="Visitors" value={fmt(snapshot.visitorsToday)} href="/pulse/live-views" />
+              <PulseMetric label="All-time" value={fmt(snapshot.totalViews)} href="/pulse/live-views" />
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
@@ -790,19 +802,19 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
         {tab === "clicks" && (
           <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
-              <PulseMetric label="All clicks" value={fmt(snapshot.allClicksToday)} />
-              <PulseMetric label="Tool uses" value={fmt(snapshot.toolInteractionsToday)} />
-              <PulseMetric label="Forms" value={fmt(snapshot.formInteractionsToday)} />
+              <PulseMetric label="All clicks" value={fmt(snapshot.allClicksToday)} href="/pulse/click-intent" />
+              <PulseMetric label="Tool uses" value={fmt(snapshot.toolInteractionsToday)} href="/pulse/click-intent" />
+              <PulseMetric label="Forms" value={fmt(snapshot.formInteractionsToday)} href="/pulse/click-intent" />
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <PulseMetric label="Seen CTAs" value={fmt(snapshot.ctaImpressionsToday)} />
-              <PulseMetric label="Form submits" value={fmt(snapshot.formSubmitsToday)} />
-              <PulseMetric label="Speed signals" value={fmt(snapshot.performanceSignalsToday)} />
+              <PulseMetric label="Seen CTAs" value={fmt(snapshot.ctaImpressionsToday)} href="/pulse/click-intent" />
+              <PulseMetric label="Form submits" value={fmt(snapshot.formSubmitsToday)} href="/pulse/click-intent" />
+              <PulseMetric label="Speed signals" value={fmt(snapshot.performanceSignalsToday)} href="/pulse/speed-friction" />
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <PulseMetric label="Services" value={fmt(snapshot.serviceClicksToday)} />
-              <PulseMetric label="Calendar" value={fmt(snapshot.bookClicksToday)} />
-              <PulseMetric label="Checkout" value={fmt(snapshot.checkoutClicksToday)} />
+              <PulseMetric label="Services" value={fmt(snapshot.serviceClicksToday)} href="/pulse/click-intent" />
+              <PulseMetric label="Calendar" value={fmt(snapshot.bookClicksToday)} href="/pulse/click-intent" />
+              <PulseMetric label="Checkout" value={fmt(snapshot.checkoutClicksToday)} href="/pulse/click-intent" />
             </div>
             <div className="grid grid-cols-3 gap-2">
               <PulseMetric label="Scrolls" value={fmt(snapshot.scrollDepthSignalsToday)} />
@@ -812,11 +824,11 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
             <div className="grid grid-cols-3 gap-2">
               <PulseMetric label="Sources" value={fmt(snapshot.trafficSourceSignalsToday)} />
               <PulseMetric label="Sections" value={fmt(snapshot.sectionViewsToday)} />
-              <PulseMetric label="Dead zones" value={fmt(snapshot.deadClicksToday)} />
+              <PulseMetric label="Dead zones" value={fmt(snapshot.deadClicksToday)} href="/pulse/speed-friction" />
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <PulseMetric label="Rage clicks" value={fmt(snapshot.rageClicksToday)} />
-              <PulseMetric label="Video events" value={fmt(snapshot.videoInteractionsToday)} />
+              <PulseMetric label="Rage clicks" value={fmt(snapshot.rageClicksToday)} href="/pulse/speed-friction" />
+              <PulseMetric label="Video events" value={fmt(snapshot.videoInteractionsToday)} href="/pulse/dwell-time" />
               <PulseMetric label="Exits" value={fmt(snapshot.pageExitsToday)} />
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -1054,9 +1066,9 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
             </div>
 
             <div className="grid grid-cols-3 gap-2">
-              <PulseMetric label="Shares today" value={fmt(snapshot.shareCreatesToday)} />
-              <PulseMetric label="Click-backs" value={fmt(snapshot.shareClicksToday)} />
-              <PulseMetric label="Social views" value={fmt(snapshot.socialShareViewsToday)} />
+              <PulseMetric label="Shares today" value={fmt(snapshot.shareCreatesToday)} href="/pulse/share-backs" />
+              <PulseMetric label="Click-backs" value={fmt(snapshot.shareClicksToday)} href="/pulse/share-backs" />
+              <PulseMetric label="Social views" value={fmt(snapshot.socialShareViewsToday)} href="/pulse/share-backs" />
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
@@ -1153,13 +1165,29 @@ function PulseTabButton({
   );
 }
 
-function PulseMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3">
+function PulseMetric({ label, value, href }: { label: string; value: string; href?: string }) {
+  const className =
+    "rounded-2xl border border-white/10 bg-white/[0.06] p-3 transition hover:border-cyan-300/40 hover:bg-white/[0.09]";
+  const content = (
+    <>
       <div className="text-2xl font-bold tabular-nums text-white">{value}</div>
       <div className="mt-1 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
         {label}
       </div>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className={`${className} block`} aria-label={`Open ${label} signal page`}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div className={className}>
+      {content}
     </div>
   );
 }
