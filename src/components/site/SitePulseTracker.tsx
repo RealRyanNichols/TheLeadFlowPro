@@ -270,10 +270,29 @@ function describeFormTarget(target: Element) {
   return cleanTargetLabel(`${formLabel}:${type}:${label || "unlabeled"}`);
 }
 
+function describeForm(form: HTMLFormElement) {
+  return cleanTargetLabel(
+    form.getAttribute("aria-label") ||
+      form.id ||
+      form.getAttribute("name") ||
+      form.getAttribute("action") ||
+      "form",
+  );
+}
+
+function describeVideo(video: HTMLVideoElement, action: string) {
+  const src = video.currentSrc || video.getAttribute("src") || video.querySelector("source")?.getAttribute("src") || "video";
+  const cleanSrc = src.startsWith(window.location.origin) ? src.slice(window.location.origin.length) : src;
+  return cleanTargetLabel(`${action}:${video.getAttribute("aria-label") || video.getAttribute("title") || cleanSrc}`);
+}
+
 export function SitePulseTracker() {
   const pathname = usePathname();
   const [snapshot, setSnapshot] = useState<PulseSnapshot>(EMPTY_SNAPSHOT);
   const formSeenRef = useRef<Set<string>>(new Set());
+  const ctaSeenRef = useRef<Set<string>>(new Set());
+  const clickBurstRef = useRef<Array<{ x: number; y: number; at: number; label: string }>>([]);
+  const performanceSentRef = useRef<Set<string>>(new Set());
 
   const enabled = isPublicMarketingPath(pathname);
 
@@ -365,9 +384,24 @@ export function SitePulseTracker() {
       const interactive = target.closest(
         "a[href],button,input,select,textarea,summary,[role='button'],[data-pulse-target]",
       );
-      beaconPulse("click", pathname, describeClickTarget(target), undefined, source);
+      const describedTarget = describeClickTarget(target);
+      beaconPulse("click", pathname, describedTarget, undefined, source);
       if (!interactive) {
-        beaconPulse("dead_click", pathname, describeClickTarget(target), 1, source);
+        beaconPulse("dead_click", pathname, describedTarget, 1, source);
+      }
+
+      const now = Date.now();
+      clickBurstRef.current = [
+        ...clickBurstRef.current.filter((click) => now - click.at < 1400),
+        { x: event.clientX, y: event.clientY, at: now, label: describedTarget },
+      ].slice(-5);
+      const nearbyClicks = clickBurstRef.current.filter((click) => {
+        const distance = Math.hypot(click.x - event.clientX, click.y - event.clientY);
+        return distance <= 34 && click.label === describedTarget;
+      });
+      if (nearbyClicks.length >= 3) {
+        clickBurstRef.current = [];
+        beaconPulse("rage_click", pathname, describedTarget, nearbyClicks.length, source);
       }
 
       const anchor = target.closest("a[href]");
@@ -391,6 +425,43 @@ export function SitePulseTracker() {
 
   useEffect(() => {
     if (!enabled) return;
+    ctaSeenRef.current = new Set();
+    const source = getTrafficSource();
+    const elements = Array.from(document.querySelectorAll("a[href],button,[role='button'],[data-pulse-target]"))
+      .filter((element) => {
+        if (element.closest("[data-pulse-ignore='true']")) return false;
+        if (element instanceof HTMLAnchorElement) return Boolean(trackedEventForHref(element.href));
+        return Boolean(element.getAttribute("data-pulse-target"));
+      })
+      .slice(0, 80);
+
+    if (!elements.length || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.45) continue;
+          const element = entry.target;
+          let label = elementLabel(element);
+          if (element instanceof HTMLAnchorElement) {
+            const signal = trackedEventForHref(element.href);
+            label = signal ? `${signal.eventType}:${signal.target}:${label}` : label;
+          }
+          const cleaned = cleanTargetLabel(label || describeClickTarget(element));
+          if (!cleaned || ctaSeenRef.current.has(cleaned)) continue;
+          ctaSeenRef.current.add(cleaned);
+          beaconPulse("cta_impression", pathname, cleaned, 1, source);
+        }
+      },
+      { threshold: [0.45, 0.75] },
+    );
+
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [enabled, pathname]);
+
+  useEffect(() => {
+    if (!enabled) return;
     const source = getTrafficSource();
 
     function onFocusIn(event: FocusEvent) {
@@ -406,6 +477,113 @@ export function SitePulseTracker() {
 
     document.addEventListener("focusin", onFocusIn, { capture: true });
     return () => document.removeEventListener("focusin", onFocusIn, { capture: true });
+  }, [enabled, pathname]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const source = getTrafficSource();
+
+    function onSubmit(event: SubmitEvent) {
+      const target = event.target;
+      if (!(target instanceof HTMLFormElement)) return;
+      if (target.closest("[data-pulse-ignore='true']")) return;
+      beaconPulse("form_submit", pathname, describeForm(target), 1, source);
+    }
+
+    document.addEventListener("submit", onSubmit, { capture: true });
+    return () => document.removeEventListener("submit", onSubmit, { capture: true });
+  }, [enabled, pathname]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const source = getTrafficSource();
+
+    function onVideoEvent(event: Event) {
+      const target = event.target;
+      if (!(target instanceof HTMLVideoElement)) return;
+      if (target.closest("[data-pulse-ignore='true']")) return;
+      const value = Math.max(0, Math.round(target.currentTime || 0));
+      beaconPulse("video_interaction", pathname, describeVideo(target, event.type), value, source);
+    }
+
+    document.addEventListener("play", onVideoEvent, { capture: true });
+    document.addEventListener("pause", onVideoEvent, { capture: true });
+    document.addEventListener("ended", onVideoEvent, { capture: true });
+
+    return () => {
+      document.removeEventListener("play", onVideoEvent, { capture: true });
+      document.removeEventListener("pause", onVideoEvent, { capture: true });
+      document.removeEventListener("ended", onVideoEvent, { capture: true });
+    };
+  }, [enabled, pathname]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const source = getTrafficSource();
+
+    function sendPerformanceSignal(target: string, value: number) {
+      if (!Number.isFinite(value) || value <= 0 || performanceSentRef.current.has(target)) return;
+      performanceSentRef.current.add(target);
+      beaconPulse("performance_signal", pathname, target, Math.min(86_400, Math.round(value)), source);
+    }
+
+    const timer = window.setTimeout(() => {
+      const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+      if (navigation) {
+        sendPerformanceSignal("ttfb-ms", navigation.responseStart - navigation.requestStart);
+        sendPerformanceSignal("dom-content-loaded-ms", navigation.domContentLoadedEventEnd - navigation.startTime);
+        sendPerformanceSignal("load-ms", navigation.loadEventEnd - navigation.startTime);
+      }
+
+      const paintEntries = performance.getEntriesByType("paint");
+      for (const entry of paintEntries) {
+        if (entry.name === "first-contentful-paint") {
+          sendPerformanceSignal("fcp-ms", entry.startTime);
+        }
+      }
+    }, 2800);
+
+    let lcpObserver: PerformanceObserver | null = null;
+    let clsObserver: PerformanceObserver | null = null;
+    let clsValue = 0;
+
+    try {
+      if ("PerformanceObserver" in window) {
+        lcpObserver = new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          const last = entries[entries.length - 1];
+          if (last) sendPerformanceSignal("lcp-ms", last.startTime);
+        });
+        lcpObserver.observe({ type: "largest-contentful-paint", buffered: true });
+
+        clsObserver = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            const layoutShift = entry as PerformanceEntry & { hadRecentInput?: boolean; value?: number };
+            if (!layoutShift.hadRecentInput) clsValue += layoutShift.value || 0;
+          }
+        });
+        clsObserver.observe({ type: "layout-shift", buffered: true });
+      }
+    } catch {
+      lcpObserver = null;
+      clsObserver = null;
+    }
+
+    function flushCls() {
+      if (clsValue > 0) sendPerformanceSignal("cls-x1000", clsValue * 1000);
+    }
+
+    document.addEventListener("visibilitychange", flushCls);
+    window.addEventListener("pagehide", flushCls);
+
+    return () => {
+      window.clearTimeout(timer);
+      lcpObserver?.disconnect();
+      clsObserver?.disconnect();
+      document.removeEventListener("visibilitychange", flushCls);
+      window.removeEventListener("pagehide", flushCls);
+      flushCls();
+    };
   }, [enabled, pathname]);
 
   useEffect(() => {

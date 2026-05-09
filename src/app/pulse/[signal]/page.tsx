@@ -36,6 +36,7 @@ const ICONS: Record<PulseSignalSlug, typeof Eye> = {
   "click-intent": MousePointerClick,
   "share-backs": Share2,
   predictions: BarChart3,
+  "speed-friction": ShieldCheck,
   "reward-loop": Trophy,
 };
 
@@ -135,6 +136,12 @@ function signalStats(signal: PulseSignalPage, snapshot: SitePulseSnapshot) {
         { label: "Confidence", value: snapshot.prediction.confidence, detail: `${number(snapshot.prediction.sampleSize)} signal sample` },
         { label: "Book odds", value: percent(probability.bookClickNext24h), detail: "next 24 hours" },
         { label: "Checkout odds", value: percent(probability.checkoutStartNext24h), detail: "next 24 hours" },
+      ];
+    case "speed-friction":
+      return [
+        { label: "CTA views", value: number(snapshot.ctaImpressionsToday), detail: "buttons seen today" },
+        { label: "Friction clicks", value: number(snapshot.deadClicksToday + snapshot.rageClicksToday), detail: "dead clicks plus rage clicks" },
+        { label: "Speed signals", value: number(snapshot.performanceSignalsToday), detail: "browser timing samples" },
       ];
     case "reward-loop":
       return [

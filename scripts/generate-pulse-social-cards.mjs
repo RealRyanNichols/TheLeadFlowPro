@@ -68,6 +68,13 @@ const cards = [
       "The model studies views, clicks, dwell time, shares, source quality, and conversion pressure to recommend what to build next.",
   },
   {
+    slug: "pulse-speed-friction",
+    eyebrow: "Pulse Signal: Speed + Friction",
+    title: "Speed And Friction Show Where The Page Makes People Fight",
+    subtitle:
+      "Track page speed, CTA impressions, form submits, video actions, dead clicks, and rage clicks before buying more traffic.",
+  },
+  {
     slug: "pulse-reward-loop",
     eyebrow: "Pulse Signal: Reward Loop",
     title: "The Reward Loop Makes Attention Worth Coming Back For",

@@ -5,6 +5,7 @@ export type PulseSignalSlug =
   | "click-intent"
   | "share-backs"
   | "predictions"
+  | "speed-friction"
   | "reward-loop";
 
 export type PulseSignalPage = {
@@ -184,9 +185,36 @@ export const PULSE_SIGNAL_PAGES: Record<PulseSignalSlug, PulseSignalPage> = {
     cta: "Predict my next move",
     accent: "brand",
   },
+  "speed-friction": {
+    slug: "speed-friction",
+    eyebrow: "Signal 07",
+    title: "Speed And Friction Show Where The Page Is Making People Fight",
+    shortTitle: "Speed + Friction",
+    description:
+      "Track page-speed signals, CTA impressions, form submits, video actions, dead clicks, and rage clicks so the owner can see where the page helps or hurts.",
+    primaryQuestion: "Is the page fast, obvious, and easy to use, or are visitors clicking in frustration?",
+    whatItTracks: [
+      "Core browser timing signals like TTFB, content paint, load time, LCP, and layout shift.",
+      "CTA impressions so Ryan can see whether buttons were actually seen before judging click rate.",
+      "Form submits, video play/pause/end events, dead clicks, and rage clicks.",
+      "Friction patterns without storing private form answers.",
+    ],
+    whatItSignals: [
+      "A slow page can make a good ad look bad.",
+      "High CTA impressions with low clicks means the offer, wording, or placement is not strong enough.",
+      "Rage clicks and dead clicks show where users expected something to happen and got nothing.",
+    ],
+    clientBuild: [
+      "Give a client a page-level friction report before spending more on ads.",
+      "Show which videos, CTAs, forms, and page sections are actually being used.",
+      "Turn usability problems into a punch list that increases leads before buying more traffic.",
+    ],
+    cta: "Find my friction leaks",
+    accent: "cyan",
+  },
   "reward-loop": {
     slug: "reward-loop",
-    eyebrow: "Signal 07",
+    eyebrow: "Signal 08",
     title: "The Reward Loop Makes Attention Worth Coming Back For",
     shortTitle: "Reward Loop",
     description:

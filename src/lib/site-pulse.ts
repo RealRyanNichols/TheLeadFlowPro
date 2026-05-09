@@ -27,6 +27,11 @@ export type SitePulseEventType =
   | "copy_signal"
   | "external_click"
   | "dead_click"
+  | "cta_impression"
+  | "form_submit"
+  | "video_interaction"
+  | "rage_click"
+  | "performance_signal"
   | "share_create"
   | "share_click"
   | "share_view_import"
@@ -75,6 +80,11 @@ export type SitePulseSnapshot = {
   copySignalsToday: number;
   externalClicksToday: number;
   deadClicksToday: number;
+  ctaImpressionsToday: number;
+  formSubmitsToday: number;
+  videoInteractionsToday: number;
+  rageClicksToday: number;
+  performanceSignalsToday: number;
   shareCreatesToday: number;
   shareClicksToday: number;
   socialShareViewsToday: number;
@@ -97,8 +107,12 @@ export type SitePulseSnapshot = {
     trackedActions: number;
     allClicks: number;
     formInteractions: number;
+    formSubmits: number;
     toolInteractions: number;
     deadClicks: number;
+    rageClicks: number;
+    videoInteractions: number;
+    performanceSignals: number;
     returnVisits: number;
     engagementSeconds: number;
     liveViews: number;
@@ -236,6 +250,11 @@ type PulseSummaryRow = {
   copySignalsToday: number | bigint | null;
   externalClicksToday: number | bigint | null;
   deadClicksToday: number | bigint | null;
+  ctaImpressionsToday: number | bigint | null;
+  formSubmitsToday: number | bigint | null;
+  videoInteractionsToday: number | bigint | null;
+  rageClicksToday: number | bigint | null;
+  performanceSignalsToday: number | bigint | null;
   shareCreatesToday: number | bigint | null;
   shareClicksToday: number | bigint | null;
   socialShareViewsToday: number | bigint | null;
@@ -267,8 +286,12 @@ type DailyRow = {
   trackedActions: number | bigint | null;
   allClicks: number | bigint | null;
   formInteractions: number | bigint | null;
+  formSubmits: number | bigint | null;
   toolInteractions: number | bigint | null;
   deadClicks: number | bigint | null;
+  rageClicks: number | bigint | null;
+  videoInteractions: number | bigint | null;
+  performanceSignals: number | bigint | null;
   returnVisits: number | bigint | null;
   engagementSeconds: number | bigint | null;
 };
@@ -351,6 +374,11 @@ const ALLOWED_EVENTS: SitePulseEventType[] = [
   "copy_signal",
   "external_click",
   "dead_click",
+  "cta_impression",
+  "form_submit",
+  "video_interaction",
+  "rage_click",
+  "performance_signal",
   "share_create",
   "share_click",
   "share_view_import",
@@ -649,6 +677,11 @@ export function emptySitePulseSnapshot(
     copySignalsToday: 0,
     externalClicksToday: 0,
     deadClicksToday: 0,
+    ctaImpressionsToday: 0,
+    formSubmitsToday: 0,
+    videoInteractionsToday: 0,
+    rageClicksToday: 0,
+    performanceSignalsToday: 0,
     shareCreatesToday: 0,
     shareClicksToday: 0,
     socialShareViewsToday: 0,
@@ -750,8 +783,12 @@ function buildEmptyDays(startDate?: Date) {
       trackedActions: 0,
       allClicks: 0,
       formInteractions: 0,
+      formSubmits: 0,
       toolInteractions: 0,
       deadClicks: 0,
+      rageClicks: 0,
+      videoInteractions: 0,
+      performanceSignals: 0,
       returnVisits: 0,
       engagementSeconds: 0,
       liveViews: 0,
@@ -776,8 +813,12 @@ function fillDays(liveRows: DailyRow[], backfillRows: BackfillRow[], startDate: 
         trackedActions: toInt(row.trackedActions),
         allClicks: toInt(row.allClicks),
         formInteractions: toInt(row.formInteractions),
+        formSubmits: toInt(row.formSubmits),
         toolInteractions: toInt(row.toolInteractions),
         deadClicks: toInt(row.deadClicks),
+        rageClicks: toInt(row.rageClicks),
+        videoInteractions: toInt(row.videoInteractions),
+        performanceSignals: toInt(row.performanceSignals),
         returnVisits: toInt(row.returnVisits),
         engagementSeconds: toInt(row.engagementSeconds),
       },
@@ -815,8 +856,12 @@ function fillDays(liveRows: DailyRow[], backfillRows: BackfillRow[], startDate: 
       trackedActions: live?.trackedActions ?? 0,
       allClicks: live?.allClicks ?? 0,
       formInteractions: live?.formInteractions ?? 0,
+      formSubmits: live?.formSubmits ?? 0,
       toolInteractions: live?.toolInteractions ?? 0,
       deadClicks: live?.deadClicks ?? 0,
+      rageClicks: live?.rageClicks ?? 0,
+      videoInteractions: live?.videoInteractions ?? 0,
+      performanceSignals: live?.performanceSignals ?? 0,
       returnVisits: live?.returnVisits ?? 0,
       engagementSeconds: live?.engagementSeconds ?? 0,
       liveViews,
@@ -958,6 +1003,11 @@ function buildSitePulsePrediction(input: {
   copySignalsToday: number;
   externalClicksToday: number;
   deadClicksToday: number;
+  ctaImpressionsToday: number;
+  formSubmitsToday: number;
+  videoInteractionsToday: number;
+  rageClicksToday: number;
+  performanceSignalsToday: number;
   totalEngagementSeconds: number;
 }): SitePulsePrediction {
   if (!input.totalViews && !input.daily.some((day) => day.views > 0)) return buildEmptyPrediction();
@@ -971,7 +1021,11 @@ function buildSitePulsePrediction(input: {
       bookClicks: acc.bookClicks + day.bookClicks,
       checkoutClicks: acc.checkoutClicks + day.checkoutClicks,
       purchaseSignals: acc.purchaseSignals + day.purchaseSignals,
+      formSubmits: acc.formSubmits + (day.formSubmits ?? 0),
       deadClicks: acc.deadClicks + (day.deadClicks ?? 0),
+      rageClicks: acc.rageClicks + (day.rageClicks ?? 0),
+      videoInteractions: acc.videoInteractions + (day.videoInteractions ?? 0),
+      performanceSignals: acc.performanceSignals + (day.performanceSignals ?? 0),
       returnVisits: acc.returnVisits + (day.returnVisits ?? 0),
       engagementSeconds: acc.engagementSeconds + day.engagementSeconds,
     }),
@@ -983,7 +1037,11 @@ function buildSitePulsePrediction(input: {
       bookClicks: 0,
       checkoutClicks: 0,
       purchaseSignals: 0,
+      formSubmits: 0,
       deadClicks: 0,
+      rageClicks: 0,
+      videoInteractions: 0,
+      performanceSignals: 0,
       returnVisits: 0,
       engagementSeconds: 0,
     },
@@ -1044,7 +1102,9 @@ function buildSitePulsePrediction(input: {
       input.trackedActionsToday +
       totals.trackedActions +
       input.totalEngagementSeconds / 30 +
-      input.totalShareClicks * 3,
+      input.totalShareClicks * 3 +
+      input.formSubmitsToday * 8 +
+      input.videoInteractionsToday * 3,
   );
   const confidence =
     sampleSize >= 750 && input.historyDays >= 7
@@ -1059,7 +1119,8 @@ function buildSitePulsePrediction(input: {
         clamp(avgEngagedSecondsPerView / 16, 0, 24) +
         returnRate * 120 +
         shareRate * 220 -
-        deadClickRate * 45,
+        deadClickRate * 45 -
+        safeRate(input.rageClicksToday + totals.rageClicks, input.allClicksToday + totals.trackedActions, 0) * 60,
     ),
     0,
     100,
@@ -1127,6 +1188,30 @@ function buildSitePulsePrediction(input: {
       why: "Visitors are clicking parts of the page that are not real actions.",
       metricToWatch: "Dead-click rate and CTA clicks",
       expectedLift: "Cleaner path to action",
+    });
+  }
+  if (input.rageClicksToday > 0) {
+    experiments.push({
+      title: "Remove click confusion",
+      why: "Rage-clicks mean a visitor repeatedly clicked something that did not respond the way they expected.",
+      metricToWatch: "Rage clicks, dead clicks, and CTA impressions",
+      expectedLift: "Less frustration",
+    });
+  }
+  if (input.formSubmitsToday > 0) {
+    experiments.push({
+      title: "Follow the submitted intent",
+      why: "A form submit is stronger than a click. Turn the submitted topic into the next page, offer, or follow-up sequence.",
+      metricToWatch: "Form submits and downstream booking or checkout clicks",
+      expectedLift: "More qualified leads",
+    });
+  }
+  if (input.ctaImpressionsToday >= 10 && input.serviceClicksToday + input.bookClicksToday + input.checkoutClicksToday === 0) {
+    experiments.push({
+      title: "Fix CTA mismatch",
+      why: "Buttons are being seen, but the system is not seeing enough buyer clicks after the impressions.",
+      metricToWatch: "CTA impression-to-click rate",
+      expectedLift: "Stronger offer routing",
     });
   }
   if (topOpportunity) {
@@ -1434,6 +1519,31 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
             (NOW() AT TIME ZONE 'America/Chicago')::date
         ) AS "deadClicksToday",
         COUNT(*) FILTER (
+          WHERE "eventType" = 'cta_impression'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "ctaImpressionsToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'form_submit'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "formSubmitsToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'video_interaction'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "videoInteractionsToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'rage_click'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "rageClicksToday",
+        COUNT(*) FILTER (
+          WHERE "eventType" = 'performance_signal'
+          AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+            (NOW() AT TIME ZONE 'America/Chicago')::date
+        ) AS "performanceSignalsToday",
+        COUNT(*) FILTER (
           WHERE "eventType" = 'share_create'
           AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
             (NOW() AT TIME ZONE 'America/Chicago')::date
@@ -1493,8 +1603,12 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
         COUNT(*) FILTER (WHERE "eventType" <> 'heartbeat') AS "trackedActions",
         COUNT(*) FILTER (WHERE "eventType" = 'click') AS "allClicks",
         COUNT(*) FILTER (WHERE "eventType" = 'form_interaction') AS "formInteractions",
+        COUNT(*) FILTER (WHERE "eventType" = 'form_submit') AS "formSubmits",
         COUNT(*) FILTER (WHERE "eventType" = 'tool_interaction') AS "toolInteractions",
         COUNT(*) FILTER (WHERE "eventType" = 'dead_click') AS "deadClicks",
+        COUNT(*) FILTER (WHERE "eventType" = 'rage_click') AS "rageClicks",
+        COUNT(*) FILTER (WHERE "eventType" = 'video_interaction') AS "videoInteractions",
+        COUNT(*) FILTER (WHERE "eventType" = 'performance_signal') AS "performanceSignals",
         COUNT(*) FILTER (WHERE "eventType" = 'return_visit') AS "returnVisits",
         COALESCE(SUM("value") FILTER (WHERE "eventType" = 'engagement'), 0) AS "engagementSeconds"
       FROM "SitePulseEvent"
@@ -1546,6 +1660,11 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
             'copy_signal',
             'external_click',
             'dead_click',
+            'cta_impression',
+            'form_submit',
+            'video_interaction',
+            'rage_click',
+            'performance_signal',
             'share_create',
             'share_click'
           )
@@ -1581,6 +1700,11 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
                 'copy_signal',
                 'external_click',
                 'dead_click',
+                'cta_impression',
+                'form_submit',
+                'video_interaction',
+                'rage_click',
+                'performance_signal',
                 'share_create',
                 'share_click'
               )
@@ -1663,6 +1787,11 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
   const copySignalsToday = toInt(summary.copySignalsToday);
   const externalClicksToday = toInt(summary.externalClicksToday);
   const deadClicksToday = toInt(summary.deadClicksToday);
+  const ctaImpressionsToday = toInt(summary.ctaImpressionsToday);
+  const formSubmitsToday = toInt(summary.formSubmitsToday);
+  const videoInteractionsToday = toInt(summary.videoInteractionsToday);
+  const rageClicksToday = toInt(summary.rageClicksToday);
+  const performanceSignalsToday = toInt(summary.performanceSignalsToday);
   const shareCreatesToday = toInt(summary.shareCreatesToday);
   const shareClicksToday = toInt(summary.shareClicksToday);
   const socialShareViewsToday = toInt(summary.socialShareViewsToday);
@@ -1721,6 +1850,11 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
     copySignalsToday,
     externalClicksToday,
     deadClicksToday,
+    ctaImpressionsToday,
+    formSubmitsToday,
+    videoInteractionsToday,
+    rageClicksToday,
+    performanceSignalsToday,
     shareCreatesToday,
     shareClicksToday,
     socialShareViewsToday,
@@ -1777,6 +1911,11 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
       copySignalsToday,
       externalClicksToday,
       deadClicksToday,
+      ctaImpressionsToday,
+      formSubmitsToday,
+      videoInteractionsToday,
+      rageClicksToday,
+      performanceSignalsToday,
       totalEngagementSeconds,
     }),
     recent: recentRows.map((row) => ({

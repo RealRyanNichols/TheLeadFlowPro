@@ -46,6 +46,11 @@ type PulseSnapshot = {
   copySignalsToday: number;
   externalClicksToday: number;
   deadClicksToday: number;
+  ctaImpressionsToday: number;
+  formSubmitsToday: number;
+  videoInteractionsToday: number;
+  rageClicksToday: number;
+  performanceSignalsToday: number;
   shareCreatesToday: number;
   shareClicksToday: number;
   socialShareViewsToday: number;
@@ -102,6 +107,11 @@ const EMPTY: PulseSnapshot = {
   copySignalsToday: 0,
   externalClicksToday: 0,
   deadClicksToday: 0,
+  ctaImpressionsToday: 0,
+  formSubmitsToday: 0,
+  videoInteractionsToday: 0,
+  rageClicksToday: 0,
+  performanceSignalsToday: 0,
   shareCreatesToday: 0,
   shareClicksToday: 0,
   socialShareViewsToday: 0,
@@ -224,6 +234,14 @@ export function LivePulseEngineRoom() {
         color: "from-accent-200 to-accent-500",
       },
       {
+        Icon: Activity,
+        label: "Seen CTAs",
+        value: snapshot.ctaImpressionsToday,
+        sub: `${fmt(snapshot.formSubmitsToday)} submits, ${fmt(snapshot.rageClicksToday)} rage clicks`,
+        width: Math.max(8, Math.min(100, snapshot.ctaImpressionsToday * 9)),
+        color: "from-cyan-200 to-accent-300",
+      },
+      {
         Icon: CalendarCheck,
         label: "Calendar clicks",
         value: snapshot.bookClicksToday,
@@ -246,6 +264,14 @@ export function LivePulseEngineRoom() {
         sub: `${fmt(snapshot.shareClicksToday)} click-backs, ${fmt(snapshot.socialShareViewsToday)} imported views`,
         width: Math.max(8, Math.min(100, (snapshot.shareClicksToday + snapshot.socialShareViewsToday / 20) * 12)),
         color: "from-cyan-300 to-accent-300",
+      },
+      {
+        Icon: Sparkles,
+        label: "Media + speed",
+        value: snapshot.videoInteractionsToday + snapshot.performanceSignalsToday,
+        sub: `${fmt(snapshot.videoInteractionsToday)} video events, ${fmt(snapshot.performanceSignalsToday)} speed signals`,
+        width: Math.max(8, Math.min(100, (snapshot.videoInteractionsToday + snapshot.performanceSignalsToday) * 14)),
+        color: "from-brand-300 to-cyan-300",
       },
     ],
     [intentClicks, snapshot],
@@ -307,7 +333,7 @@ export function LivePulseEngineRoom() {
               <EngineKpi Icon={Users} label="Watching now" value={loading ? "..." : fmt(snapshot.activeNow)} />
               <EngineKpi Icon={TrendingUp} label="All-time views" value={fmt(snapshot.totalViews)} />
               <EngineKpi Icon={MousePointerClick} label="Intent today" value={fmt(intentClicks)} />
-              <EngineKpi Icon={RadioTower} label="Feed status" value={snapshot.source === "live" ? "Live" : "Connecting"} />
+              <EngineKpi Icon={RadioTower} label="Live sensors" value={fmt(snapshot.ctaImpressionsToday + snapshot.videoInteractionsToday + snapshot.performanceSignalsToday)} />
             </div>
 
             <div className="mt-5 rounded-3xl border border-white/10 bg-white/[0.06] p-4">
@@ -413,6 +439,10 @@ export function LivePulseEngineRoom() {
               <div className="grid gap-2 sm:grid-cols-4">
                 <SourceChip label="Browser views" value="Live" />
                 <SourceChip label="Heartbeat time" value="Live" />
+                <SourceChip label="CTA visibility" value="Live" />
+                <SourceChip label="Form submits" value="Live" />
+                <SourceChip label="Video actions" value="Live" />
+                <SourceChip label="Page speed" value="Live" />
                 <SourceChip label="Share links" value="Tracked" />
                 <SourceChip label="Social views" value="Import/API" />
               </div>
@@ -457,6 +487,8 @@ export function LivePulseEngineRoom() {
             <div className="mt-4 grid grid-cols-2 gap-3">
               <EngineKpi Icon={Activity} label="Traffic score" value={`${snapshot.prediction.trafficQualityScore}/100`} />
               <EngineKpi Icon={ShoppingCart} label="Buy readiness" value={`${snapshot.prediction.conversionReadinessScore}/100`} />
+              <EngineKpi Icon={MousePointerClick} label="Friction today" value={fmt(snapshot.deadClicksToday + snapshot.rageClicksToday)} />
+              <EngineKpi Icon={Sparkles} label="Proof sensors" value={fmt(snapshot.ctaImpressionsToday + snapshot.formSubmitsToday + snapshot.videoInteractionsToday)} />
             </div>
 
             <div className="mt-4 space-y-3">

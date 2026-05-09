@@ -85,6 +85,7 @@ const PULSE_SIGNAL_ICONS: Record<PulseSignalSlug, typeof Eye> = {
   "click-intent": MousePointerClick,
   "share-backs": Share2,
   predictions: BarChart3,
+  "speed-friction": ShieldCheck,
   "reward-loop": Trophy,
 };
 

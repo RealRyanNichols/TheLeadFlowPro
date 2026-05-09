@@ -7,6 +7,7 @@
 import type { MetadataRoute } from "next";
 import { OFFERS } from "@/lib/offers";
 import { PLATFORMS } from "@/lib/platforms";
+import { PULSE_SIGNAL_LIST } from "@/lib/pulse-signal-pages";
 import { prisma } from "@/lib/prisma";
 
 const BASE = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.theleadflowpro.com").replace(/\/$/, "");
@@ -29,6 +30,7 @@ const staticRoutes = [
   "/challenge/insights/build-estimate",
   "/community",
   "/pulse",
+  ...PULSE_SIGNAL_LIST.map((signal) => `/pulse/${signal.slug}`),
   "/rewards",
   "/support",
   "/tools/seo-grader",
