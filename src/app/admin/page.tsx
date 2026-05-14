@@ -104,8 +104,14 @@ export default async function AdminHomePage() {
               <Link href="/admin/requests" className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/15">
                 Build requests
               </Link>
+              <Link href="/admin/intelligence" className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15">
+                Lead intelligence
+              </Link>
               <Link href="/admin/pulse" className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15">
                 Pulse control
+              </Link>
+              <Link href="/admin/radar" className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/15">
+                Local radar
               </Link>
               <Link href="/admin/capacity" className="rounded-xl bg-accent-500 px-4 py-3 text-sm font-semibold text-white hover:bg-accent-600">
                 Capacity

@@ -1,1470 +1,724 @@
-// src/app/page.tsx — Homepage.
-//
-// Promoted from /grow-v2 (which Ryan approved on 2026-05-04). Old rainbow
-// homepage retired. /grow-v2 still exists at /grow-v2 for rollback / A-B.
-//
-// Voice anchors:
-//   - "Serious buyers only — don't waste my time"
-//   - Right fit / Wrong fit visual filter
-//   - "We'll know in 10 minutes"
-//   - The algorithm is in everything we do
-//
-// Style: light theme, brand colors only (cyan + accent + lead).
-// No rainbow gradients. Mobile-first.
-
+import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowRight, BadgeCheck, Check, ChevronRight, Clock, Crown, Facebook,
-  Megaphone, MessageSquare, Music2, Quote, ShieldCheck, Star, TrendingUp,
-  Trophy, Twitter, X as XIcon, Youtube,
+  ArrowRight,
+  BarChart3,
+  CalendarClock,
+  CheckCircle2,
+  ClipboardCheck,
+  Globe2,
+  MessageSquareText,
+  MousePointerClick,
+  PhoneCall,
+  Radar,
+  Route,
+  Sparkles,
+  Target,
+  Zap,
 } from "lucide-react";
-import { TrackedLink } from "@/components/TrackedLink";
-import { BandwidthMeter } from "@/components/BandwidthMeter";
-import { LiveLeadFlowPulse } from "@/components/site/LiveLeadFlowPulse";
-import { LightHeader } from "@/components/site/LightHeader";
-import { PageValueModule } from "@/components/site/PageValueModule";
-import { getYouTubeStatsCached, getXStatsCached, getFacebookStatsCached } from "@/lib/social-sync";
-import { getCapacitySnapshot } from "@/lib/capacity";
+import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { VisitorIdField } from "@/components/site/VisitorIdField";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
-// Re-validate the homepage every hour so live stats refresh.
-export const revalidate = 3600;
-
-// Static fallbacks if any platform's API key isn't set yet.
-const STATIC_FALLBACK = {
-  youtube: 12000,
-  x: 43800,
-  facebook: 18000,
-  tiktok: 3178,
-  instagram: 4862,
-};
-
-function fmt(n: number): string {
-  if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1) + "K";
-  return String(n);
-}
+export const revalidate = 86400;
 
 export const metadata = createSeoMetadata({
-  title: "The LeadFlow Pro — for serious buyers only",
+  title: "The LeadFlow Pro - Business Funnel, AI Follow-Up, and Growth Systems",
   description:
-    "Built by Ryan Nichols. 75K+ across 5 platforms. Founder of LeadFlow Pro, RepWatchr, Faretta.Legal, Faretta.AI, and Wholesale Universe. Done-for-you growth on TikTok, Facebook, X, YouTube, plus dedicated Facebook Ads management. Free 10-minute call — reserved for serious buyers ready to invest.",
+    "The LeadFlow Pro helps owner-led businesses capture leads, route follow-up, read the data, and book the next move with Ryan Nichols.",
   path: "/",
   imageTitle: "The LeadFlow Pro",
-  imageSubtitle: "Turn attention into conversations. No missed calls. No missed texts. No missed revenue.",
+  imageSubtitle: "A clearer lead funnel for owner-led businesses.",
 });
 
-/* ─── Data ────────────────────────────────────────────────────── */
-
-const RIGHT_FIT = [
-  "You have a real business, or you're building one with intent",
-  "You want to build your social media following the right way",
-  "You have a story to tell and want it heard",
-  "You want a website, a funnel, or both — done right",
-  "You want more leads, more often, from the right people",
-  "You're a sales manager who wants a real process built for your team",
-  "You want your tech stack dragged into the 21st century",
-  "You want to go from no sales process to a full one — fast",
-  "You're ready to invest in tools, services, or both",
-];
-
-const WRONG_FIT = [
-  "You want everything for free",
-  "You're \"just curious\" — no real plans",
-  "You want a guaranteed outcome before you commit",
-  "You're shopping consultants for the lowest price",
-];
-
-const STATS = [
-  { label: "X / Twitter",     value: "43,800+" },
-  { label: "Facebook",        value: "18K+" },
-  { label: "YouTube",         value: "12,000+" },
-  { label: "Total reach",     value: "75K+" },
-];
-
-const SOCIAL_PROOF = [
+const DAILY_FOCUS = [
   {
-    src: "/images/social-proof-x-43800.jpg",
-    alt: "X profile screenshot showing 43.8K followers",
-    platform: "X",
-    stat: "43.8K",
-    label: "followers",
-    crop: "object-top",
+    label: "Missed-call recovery",
+    title: "Catch the lead before they call the next business.",
+    metric: "0-2 min",
+    note: "Response window to protect",
   },
   {
-    src: "/images/social-proof-facebook-18k.jpg",
-    alt: "Facebook profile screenshot showing 18K followers",
-    platform: "Facebook",
-    stat: "18K",
-    label: "followers",
-    crop: "object-top",
+    label: "Social proof",
+    title: "Turn attention into a reason to book.",
+    metric: "3 posts",
+    note: "Minimum proof assets to review",
   },
   {
-    src: "/images/social-proof-youtube-12k.jpg",
-    alt: "YouTube channel screenshot showing 12K subscribers",
-    platform: "YouTube",
-    stat: "12K",
-    label: "subscribers",
-    crop: "object-top",
+    label: "Offer clarity",
+    title: "Make the next click obvious on every page.",
+    metric: "1 CTA",
+    note: "Primary action per screen",
   },
   {
-    src: "/images/social-proof-instagram-4862.jpg",
-    alt: "Instagram profile screenshot showing 4,862 followers",
-    platform: "Instagram",
-    stat: "4,862",
-    label: "followers",
-    crop: "object-top",
+    label: "Pipeline cleanup",
+    title: "Separate hot leads from people just browsing.",
+    metric: "A/B/C",
+    note: "Simple lead-quality split",
   },
   {
-    src: "/images/social-proof-tiktok-3178-24500.jpg",
-    alt: "TikTok profile screenshot showing 3,178 followers and 24.5K likes",
-    platform: "TikTok",
-    stat: "24.5K",
-    label: "likes",
-    crop: "object-top",
+    label: "Calendar pressure",
+    title: "Push serious buyers to a real time slot.",
+    metric: "10 min",
+    note: "Fit call, not a ramble",
+  },
+  {
+    label: "Ad-account triage",
+    title: "Find the spend leak before buying more traffic.",
+    metric: "$50-$200",
+    note: "Typical paid-lead risk band",
+  },
+  {
+    label: "Follow-up rhythm",
+    title: "Make every lead hear from you more than once.",
+    metric: "5 touch",
+    note: "Text, email, call, retarget, recap",
   },
 ];
 
-const FACEBOOK_COMEBACK_STATS = [
+const BEST_DEMOS = [
   {
-    value: "24,032,630",
-    label: "views",
-    note: "Meta Insights custom range",
+    title: "Lead Leak Audit",
+    body: "Find where calls, clicks, forms, DMs, and follow-up are turning into lost money.",
+    href: "/lead-leak-audit",
+    cta: "Run audit",
+    Icon: Route,
   },
   {
-    value: "401,068",
-    label: "interactions",
-    note: "reactions, comments, shares",
+    title: "Missed Call Machine",
+    body: "Turn phone leaks into instant text-back, tracking, and follow-up tasks.",
+    href: "/dashboard/leads/missed-call",
+    cta: "See the system",
+    Icon: PhoneCall,
   },
   {
-    value: "14,827",
-    label: "net follows",
-    note: "after the comeback started",
+    title: "Live Pulse Dashboard",
+    body: "Read visitors, sources, share-backs, clicks, and movement without guessing.",
+    href: "/pulse",
+    cta: "Open pulse",
+    Icon: Radar,
   },
   {
-    value: "$2,913.63",
-    label: "approx. Meta earnings",
-    note: "platform-reported, not projected",
-  },
-];
-
-const FACEBOOK_AUDIENCE_SIGNALS = [
-  "Active comeback posting starts Jan 21, 2025 — after the Jan 20 pardon.",
-  "87% of views came from non-followers in the screenshot range.",
-  "Reels carried the channel: 13,989,130 reel views and 3,766 days of watch time.",
-  "Audience is heavily U.S. and East Texas: Longview, Marshall, Harleton, Jefferson, Hallsville, Gilmer.",
-];
-
-const HERO_QUICK_ACTIONS = [
-  {
-    href: "/challenge",
-    event: "mobile_hero_tool_challenge",
-    label: "Stump me",
-    detail: "Challenge Ryan to build your tool",
-    Icon: Trophy,
-    tone: "accent",
-  },
-  {
-    href: "/start",
-    event: "mobile_hero_start_router",
-    label: "Pick my service",
-    detail: "Offers + workload",
-    Icon: MessageSquare,
-    tone: "dark",
-  },
-  {
-    href: "/offers/decision-sprint",
-    event: "mobile_hero_decision_sprint",
-    label: "$90 Sprint",
-    detail: "90 minutes, clear next move",
-    Icon: Trophy,
-    tone: "light",
-  },
-  {
-    href: "/availability",
-    event: "mobile_hero_capacity",
-    label: "Check Ryan's time",
-    detail: "Live workload meter",
-    Icon: TrendingUp,
-    tone: "light",
+    title: "Ad Account Autopsy",
+    body: "A sharper review path for businesses burning money before the funnel is fixed.",
+    href: "/tools/ad-account-autopsy",
+    cta: "Run autopsy",
+    Icon: ClipboardCheck,
   },
 ];
 
-const PLATFORMS = [
+const ROUTES = [
+  { label: "Free Lead Leak Audit", href: "/lead-leak-audit", body: "Find the first money leak without buying ads." },
+  { label: "Organic Growth Plan", href: "/organic-growth", body: "See the no-ads distribution system." },
+  { label: "Proof", href: "/proof", body: "Receipts, tools, tracking, and examples." },
+  { label: "Social Media", href: "/services", body: "Done-for-you platform growth." },
+  { label: "Consulting", href: "/services/consulting", body: "Operator help, audits, decisions." },
+];
+
+const GLOBE_NODES = [
+  { label: "Calls", value: "12", x: "18%", y: "35%" },
+  { label: "Forms", value: "7", x: "70%", y: "22%" },
+  { label: "DMs", value: "18", x: "62%", y: "70%" },
+  { label: "Ads", value: "$", x: "30%", y: "72%" },
+];
+
+const DAILY_BUILD_DROPS = [
   {
-    handle: "tiktok",
-    name: "TikTok Growth",
-    icon: Music2,
-    price: "$497",
-    cadence: "/mo per channel",
-    line: "Daily short-form built around the hook patterns the algorithm is rewarding this week. Repurposed across IG Reels and YT Shorts.",
-    bullets: [
-      "20 short-form posts / month",
-      "Hook + caption iteration weekly",
-      "Cross-post to Reels + Shorts (free)",
-    ],
+    label: "Instant Quote Tool",
+    audience: "Contractors, cleaners, med spas, repair shops",
+    title: "A calculator that prices the job and captures the buyer.",
+    build: "Questions, price range, contact capture, and a follow-up path.",
+    hook: "People play with the number, then leave their info.",
+    Icon: MousePointerClick,
   },
   {
-    handle: "facebook",
-    name: "Facebook Growth",
-    icon: Facebook,
-    price: "$497",
-    cadence: "/mo per channel",
-    line: "Page + groups strategy for businesses where buyers actually live on Facebook (local services, mortgage, real estate, B2B).",
-    bullets: [
-      "12 long-form + 8 short videos / mo",
-      "Group seeding + engagement",
-      "Messenger funnel + auto-reply",
-    ],
+    label: "Missed-Call Rescue",
+    audience: "Local service businesses and appointment shops",
+    title: "A phone leak catcher that turns silence into a text-back.",
+    build: "Missed-call page, SMS wording, callback task, and simple tracking.",
+    hook: "Shows owners exactly how many buyers they are losing.",
+    Icon: PhoneCall,
   },
   {
-    handle: "x",
-    name: "X / Twitter Growth",
-    icon: Twitter,
-    price: "$497",
-    cadence: "/mo per channel",
-    line: "Daily posting + reply game. The platform I grew to 43,800+ on. Built for personal brands, founders, and operators.",
-    bullets: [
-      "Daily Mon–Fri posts in your voice",
-      "Reply targeting that drives audience",
-      "Weekly thread + monthly long-form",
-    ],
+    label: "Lead Magnet Quiz",
+    audience: "Coaches, gyms, consultants, real estate, legal support",
+    title: "A quiz that tells the buyer what package fits them.",
+    build: "Short quiz, result screen, email capture, and recommended offer.",
+    hook: "Feels personal without forcing a sales call first.",
+    Icon: Route,
   },
   {
-    handle: "youtube",
-    name: "YouTube Growth",
-    icon: Youtube,
-    price: "$497",
-    cadence: "/mo per channel",
-    line: "Long-form content engine. Title + thumbnail + retention loops engineered for the home feed and search.",
-    bullets: [
-      "1 long-form video / week",
-      "Title + thumbnail iteration",
-      "Retention + CTR analysis monthly",
-    ],
+    label: "Owner Dashboard",
+    audience: "Any business tired of guessing what is working",
+    title: "A command board for leads, calls, clicks, tasks, and sales.",
+    build: "One screen with the numbers that decide the next move.",
+    hook: "Makes the business feel like a game they can win.",
+    Icon: BarChart3,
+  },
+  {
+    label: "Before/After Builder",
+    audience: "Beauty, fitness, home services, creative services",
+    title: "A visual proof page that turns results into booked calls.",
+    build: "Gallery, proof blocks, story captions, and CTA routing.",
+    hook: "Lets prospects see themselves in the result.",
+    Icon: Sparkles,
+  },
+  {
+    label: "Referral Game",
+    audience: "Restaurants, boutiques, creators, communities",
+    title: "A simple points or reward page that gets customers sharing.",
+    build: "Referral code, reward tracker, share CTA, and owner view.",
+    hook: "Turns happy customers into a visible growth loop.",
+    Icon: Zap,
+  },
+  {
+    label: "File-to-Funnel Page",
+    audience: "Experts with PDFs, forms, packets, or messy assets",
+    title: "A download, checklist, or intake asset that becomes a lead path.",
+    build: "Upload/download flow, lead capture, follow-up copy, and routing.",
+    hook: "Turns old files into something that sells.",
+    Icon: ClipboardCheck,
   },
 ];
 
-const FOUNDER_BRANDS = [
-  { name: "The LeadFlow Pro",   note: "Founder · this site" },
-  { name: "RepWatchr.com",      note: "Founder" },
-  { name: "Faretta.Legal",      note: "Founder" },
-  { name: "Faretta.AI",         note: "Founder" },
-  { name: "Wholesale Universe", note: "Founder" },
-  { name: "Rescue The Universe", note: "Founder" },
-];
-
-const NAMED_CLIENTS = [
+const WEEKLY_BUILD_OFFERS = [
   {
-    name: "Premier Dental Academy of Longview",
-    note: "Built website + student/admin tools + ran their ads (active client).",
+    label: "$250 Build Slot",
+    title: "$250 down. Pick the thing. Ryan builds the first serious version.",
+    body: "Website, landing page, app prototype, HTML tool, quote calculator, domain setup, lead magnet, or dashboard. The deposit reserves the work and gets credited toward the scoped build.",
+    bullets: ["No vague agency retainer", "A real asset people can click", "Scope decided after the intake"],
+  },
+  {
+    label: "72-Hour Funnel Flip",
+    title: "Turn a dead homepage into a lead-capture path.",
+    body: "A focused sprint for businesses whose site looks fine but does not make buyers leave a name, phone, email, or booking request.",
+    bullets: ["One clear offer", "One clean intake", "One next-click path"],
+  },
+  {
+    label: "Bright Object Build Week",
+    title: "Give your business one interactive thing people remember.",
+    body: "A quiz, calculator, scoreboard, checker, map, tracker, or booking tool that makes the business feel more advanced than the competition.",
+    bullets: ["Fun to click", "Useful to the buyer", "Built around follow-up"],
+  },
+  {
+    label: "Owner Control Room",
+    title: "Stop asking where the leads came from.",
+    body: "A small dashboard that shows lead source, status, follow-up, and the next move so an owner can stop hunting through tabs.",
+    bullets: ["Lead visibility", "Simple status board", "Decision-ready metrics"],
   },
 ];
 
-const PORTFOLIO_SITES = [
-  {
-    name: "The LeadFlow Pro",
-    href: "https://theleadflowpro.com",
-    note: "Offer router, capacity meter, buyer flow, client dashboard surface.",
-  },
-  {
-    name: "Faretta.Legal",
-    href: "https://faretta.legal",
-    note: "Investigative journalism and case-organizing brand with video-driven promotion.",
-  },
-  {
-    name: "Faretta.AI",
-    href: "https://faretta.ai",
-    note: "AI/tooling product line for evidence, case files, and structured review.",
-  },
-  {
-    name: "RepWatchr.com",
-    href: "https://repwatchr.com",
-    note: "Public-records and profile product build.",
-  },
-  {
-    name: "Wholesale Universe",
-    href: "https://wholesaleuniverse.com",
-    note: "E-commerce/wholesale brand built and operated by Ryan.",
-  },
-  {
-    name: "Premier Dental Academy",
-    href: "https://premierdentalacademyoflongview.com",
-    note: "Client website plus DentaOps student/admin tool buildout.",
-  },
-  {
-    name: "Missouri Dent Bully",
-    href: "https://dentbullyusa.com",
-    note: "On-site promotional video and short-form field-content support.",
-  },
-];
+function todayFocus() {
+  const dayIndex = Math.floor(Date.now() / 86_400_000) % DAILY_FOCUS.length;
+  return DAILY_FOCUS[dayIndex];
+}
 
-/* ─── Page ────────────────────────────────────────────────────── */
+function todayBuildDrop() {
+  const dayIndex = Math.floor(Date.now() / 86_400_000) % DAILY_BUILD_DROPS.length;
+  return DAILY_BUILD_DROPS[dayIndex];
+}
 
-export default async function GrowV2Page() {
-  // Pull live stats server-side, hourly cache. Falls back to static numbers
-  // when an API key isn't set or the API errors.
-  const [yt, x, fb] = await Promise.all([
-    getYouTubeStatsCached("@RealRyanNicholsSr").catch(() => null),
-    getXStatsCached("RealRyanNichols").catch(() => null),
-    getFacebookStatsCached("RealRyanNichols").catch(() => null),
-  ]);
-  const ytSubs = yt?.subscribers ?? STATIC_FALLBACK.youtube;
-  const xFollowers = x?.followers ?? STATIC_FALLBACK.x;
-  const fbFollowers = fb?.followerCount ?? STATIC_FALLBACK.facebook;
-  const totalReach = ytSubs + xFollowers + fbFollowers + STATIC_FALLBACK.tiktok + STATIC_FALLBACK.instagram;
-  const liveCount = (yt ? 1 : 0) + (x ? 1 : 0) + (fb ? 1 : 0);
-  const capacitySnapshot = await getCapacitySnapshot().catch(() => null);
+function weeklyBuildOffer() {
+  const weekIndex = Math.floor(Date.now() / (86_400_000 * 7)) % WEEKLY_BUILD_OFFERS.length;
+  return WEEKLY_BUILD_OFFERS[weekIndex];
+}
+
+export default function HomePage() {
+  const focus = todayFocus();
+  const buildDrop = todayBuildDrop();
+  const weeklyOffer = weeklyBuildOffer();
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-white text-slate-950">
       <LightHeader activePath="/" />
 
-{/* HERO — warm-glass blend (cyan + accent + soft purple blooms over a warm base) */}
-      <section className="relative overflow-hidden border-b border-slate-200">
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(135deg, #fff8f1 0%, #f6f9ff 38%, #eef9ff 70%, #f3eaff 100%)",
-          }}
-        />
-        <div
-          aria-hidden
-          className="absolute -top-32 -right-24 h-[520px] w-[520px] rounded-full opacity-55 blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(35,184,255,0.55) 0%, transparent 65%)" }}
-        />
-        <div
-          aria-hidden
-          className="absolute -bottom-40 -left-24 h-[560px] w-[560px] rounded-full opacity-55 blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(255,154,31,0.45) 0%, transparent 65%)" }}
-        />
-        <div
-          aria-hidden
-          className="absolute top-1/2 right-1/3 h-[320px] w-[320px] rounded-full opacity-30 blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(176,107,255,0.35) 0%, transparent 60%)" }}
-        />
-        <div className="relative mx-auto max-w-7xl px-4 py-3 sm:py-5 lg:py-6">
-          <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
-            <div>
-              {/* Proof-forward eyebrow + live capacity pill */}
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/70 backdrop-blur px-3 py-1 text-xs uppercase tracking-widest text-cyan-700 font-semibold shadow-sm">
-                  <BadgeCheck className="h-3.5 w-3.5" /> 75K+ followers · 6 companies · 10+ years
-                </div>
-                <BandwidthMeter variant="compact" />
-              </div>
-              <h1 className="mt-3 text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-semibold tracking-tight text-slate-950 leading-tight">
-                I've already built what you're trying to build.{" "}
-                <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
-                  Now let's build yours.
-                </span>
-              </h1>
+      <main>
+        <Hero focus={focus} />
+        <BuildDropSection dailyDrop={buildDrop} weeklyOffer={weeklyOffer} />
+        <CommandGlobeSection />
+        <BestDemoSection />
+        <LeadFunnelSection />
+        <RouteSection />
+      </main>
 
-              <div className="mt-5 grid grid-cols-2 gap-2 lg:hidden">
-                {HERO_QUICK_ACTIONS.map((action) => (
-                  <HeroQuickAction key={action.href} {...action} />
-                ))}
-              </div>
+      <LightFooter />
+    </div>
+  );
+}
 
-              <p className="mt-4 text-base leading-relaxed text-slate-700 sm:text-[17px]">
-                Six companies founded. 75,000+ followers built from zero across X, Facebook, YouTube,
-                Instagram, and TikTok. A decade running social, ads, sales, and lead gen through every
-                algorithm shift the platforms threw at me — and a written record of how I did it.
-              </p>
-              <p className="mt-3 hidden text-base text-slate-700 leading-relaxed sm:block">
-                Spending money on me <strong className="text-slate-950">is</strong> spending money on
-                yourself. I take what you pay me and turn it into followers, leads, sales process, and
-                systems your business runs on after I'm gone. That's the deal.
-              </p>
-              <div className="mt-5 hidden flex-col gap-3 lg:flex lg:flex-row">
-                <TrackedLink
-                  href="/challenge"
-                  event="cta_tool_challenge"
-                  location="homepage_hero"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
-                >
-                  Stump me with a tool <ArrowRight className="h-4 w-4" />
-                </TrackedLink>
-                <TrackedLink
-                  href="/start"
-                  event="cta_start_router"
-                  location="homepage_hero"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-6 py-3 font-semibold text-white shadow-lg shadow-cyan-500/20 hover:bg-cyan-700"
-                >
-                  Pick my service
-                </TrackedLink>
-                <TrackedLink
-                  href="/tiers"
-                  event="cta_see_tiers"
-                  location="homepage_hero"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
-                >
-                  See all packages
-                </TrackedLink>
-                <TrackedLink
-                  href="/book"
-                  event="cta_book_call"
-                  location="homepage_hero"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white/80 backdrop-blur px-6 py-3 font-semibold text-slate-800 hover:border-brand-500 hover:text-brand-700"
-                >
-                  Free 10-min call
-                </TrackedLink>
-              </div>
-              <p className="mt-3 text-xs text-slate-500">
-                Not sure where to start? The router asks the practical questions, saves Ryan the
-                context, and sends you to the cleanest offer page.
-              </p>
-            </div>
+function Hero({
+  focus,
+}: {
+  focus: (typeof DAILY_FOCUS)[number];
+}) {
+  return (
+    <section className="relative isolate min-h-[calc(100svh-112px)] overflow-hidden bg-slate-950 text-white">
+      <Image
+        src="/images/premier-dental-academy-makeover-poster.jpg"
+        alt="Business website and content work produced through The LeadFlow Pro"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover"
+      />
+      <div className="absolute inset-0 bg-slate-950/72" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.95)_0%,rgba(2,6,23,0.78)_45%,rgba(2,6,23,0.38)_100%)]" />
 
-            {/* Live public counter */}
-            <div>
-              <LiveLeadFlowPulse capacity={capacitySnapshot} />
-              <PageValueModule variant="home" className="mt-4" />
-              <p className="mt-3 text-xs text-slate-500 text-center">
-                Real public traffic starts counting from this install. No fake visitor history.
-              </p>
-            </div>
+      <div className="relative mx-auto flex min-h-[calc(100svh-112px)] max-w-7xl flex-col justify-center px-4 pb-32 pt-12 sm:px-6 sm:pb-24 lg:px-8">
+        <div className="max-w-5xl">
+          <div className="inline-flex items-center gap-2 rounded-md border border-cyan-300/50 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
+            <Sparkles className="h-3.5 w-3.5" />
+            The LeadFlow Pro
+          </div>
+          <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+            Build the business funnel that catches the lead, reads the data, and books the next move.
+          </h1>
+          <p className="mt-5 max-w-3xl text-base leading-7 text-slate-200 sm:text-lg">
+            For owner-led businesses that need more than a pretty website: lead capture,
+            missed-call recovery, social proof, follow-up, dashboards, and a clear reason for
+            buyers to leave their information.
+          </p>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/lead-leak-audit"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-accent-500/20 hover:bg-accent-400"
+            >
+              Run lead leak audit <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/organic-growth"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur hover:bg-white/15"
+            >
+              See no-ads plan <CalendarClock className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="mt-6 flex max-w-2xl flex-wrap gap-2 text-sm">
+            <span className="rounded-md border border-white/15 bg-white/10 px-3 py-2 font-semibold text-cyan-100">
+              Today: {focus.label}
+            </span>
+            <span className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-slate-200">
+              {focus.metric} - {focus.note}
+            </span>
+            <span className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-slate-200">
+              Path: name + phone + email
+            </span>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* WHY BELIEVE ME — warm-glass extension of the hero base */}
-      <section className="relative overflow-hidden border-b border-slate-200">
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, #f6f9ff 0%, #fff8f1 50%, #f3eaff 100%)",
-          }}
-        />
-        <div
-          aria-hidden
-          className="absolute top-1/3 -right-32 h-[420px] w-[420px] rounded-full opacity-30 blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(35,184,255,0.4) 0%, transparent 60%)" }}
-        />
-        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:py-16">
-          <div className="text-xs uppercase tracking-widest text-cyan-700 mb-2">Why believe me</div>
-          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 max-w-3xl">
-            I take businesses from <em>not being seen</em> to <em>being seen</em> — and I have the receipts.
+function BuildDropSection({
+  dailyDrop,
+  weeklyOffer,
+}: {
+  dailyDrop: (typeof DAILY_BUILD_DROPS)[number];
+  weeklyOffer: (typeof WEEKLY_BUILD_OFFERS)[number];
+}) {
+  const DropIcon = dailyDrop.Icon;
+
+  return (
+    <section id="build-drops" className="border-b border-slate-200 bg-white">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:px-8 lg:py-16">
+        <div className="flex flex-col justify-center">
+          <div className="inline-flex w-fit items-center gap-2 rounded-md border border-accent-300 bg-accent-100 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-slate-950">
+            <Sparkles className="h-3.5 w-3.5" />
+            Weekly business teaser
+          </div>
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+            Do not sell "anything." Show them the thing they did not know their business could have.
           </h2>
-          <p className="mt-4 text-slate-700 max-w-3xl">
-            Multi-million-dollar companies don't hire based on promises. They hire based on track
-            record. Here's what I've actually built — for myself, for clients, and for the five
-            companies I've founded or co-founded.
+          <p className="mt-4 text-base leading-7 text-slate-700">
+            The $250-down offer works when the examples are concrete: a tool, page, dashboard,
+            calculator, booking path, or mini app that makes their business feel bigger and more
+            organized the second they see it.
           </p>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <ProofTile
-              big={fmt(totalReach)}
-              label={`Followers across X, Facebook, YouTube, Instagram, TikTok${liveCount > 0 ? ` · ${liveCount} live API` + (liveCount > 1 ? "s" : "") : ""}`}
-            />
-            <ProofTile big="6" label="Companies founded — LeadFlow Pro, RepWatchr, Faretta.Legal, Faretta.AI, Wholesale Universe, Rescue The Universe" />
-            <ProofTile big="10+ yr" label="Operating in social, ads, sales, and lead generation through every algorithm shift" />
-            <ProofTile big="0 → ∞" label="The transformation we deliver: from invisible to in-front-of-the-right-buyers" />
-          </div>
-          {liveCount > 0 && (
-            <p className="mt-4 text-xs text-slate-500 flex items-center gap-2">
-              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
-              Live: {yt ? `YouTube ${ytSubs.toLocaleString()}` : null}
-              {yt && x ? " · " : null}
-              {x ? `X ${xFollowers.toLocaleString()}` : null}
-              {(yt || x) && fb ? " · " : null}
-              {fb ? `Facebook ${fbFollowers.toLocaleString()}` : null}
-              {" · refreshes hourly"}
-            </p>
-          )}
-
-          <div className="mt-10 grid gap-5 lg:grid-cols-[1.25fr_0.95fr] lg:items-stretch">
-            <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-[0_30px_70px_-25px_rgba(15,23,42,0.30)] ring-1 ring-slate-900/5 backdrop-blur">
-              <div className="relative aspect-[16/10] bg-slate-100">
-                <img
-                  src="/images/ryan-wholesale-universe-owner.jpg"
-                  alt="Ryan Nichols standing on pallets inside the Wholesale Universe warehouse"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div className="p-5">
-                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
-                  Built inside a real business
+          <div className="mt-7 rounded-lg border border-slate-200 bg-slate-950 p-5 text-white shadow-xl shadow-slate-200/80">
+            <div className="text-xs font-semibold uppercase tracking-widest text-accent-200">
+              {weeklyOffer.label}
+            </div>
+            <h3 className="mt-3 text-2xl font-black tracking-tight">{weeklyOffer.title}</h3>
+            <p className="mt-3 text-sm leading-6 text-slate-300">{weeklyOffer.body}</p>
+            <div className="mt-5 grid gap-2">
+              {weeklyOffer.bullets.map((bullet) => (
+                <div key={bullet} className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+                  <CheckCircle2 className="h-4 w-4 text-accent-300" />
+                  {bullet}
                 </div>
-                <h3 className="mt-2 text-xl font-semibold text-slate-950">
-                  I brought in pallet loads of designer goods, got attention online, sold the
-                  product, and carried the pressure of making payroll.
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                  That matters. Social media is not just posting. It is sourcing, offer, attention,
-                  trust, follow-up, sales, fulfillment, and the system that catches demand when the
-                  video works.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid gap-4">
-              <ProofPhoto
-                src="/images/ryan-wholesale-universe-2015-pallets.jpg"
-                alt="Ryan Nichols in 2015 with boxes from the early Wholesale Universe operation"
-                label="2015 apartment-to-UPS grind"
-                body="Before the warehouse, it was pallets, stairs, Amazon uploads, and daily UPS pickups. That is where the operator part started."
-              />
-              <ProofPhoto
-                src="/images/ryan-wholesale-universe-designer-rack-sale.jpg"
-                alt="Ryan Nichols at a Wholesale Universe designer goods sale"
-                label="Attention into sales"
-                body="The play was simple and hard: bring in the product, make people pay attention online, then move the inventory."
-              />
-              <ProofPhoto
-                src="/images/ryan-live-content-work-1.jpg"
-                alt="Ryan Nichols preparing live sales content for Wholesale Universe"
-                label="Live selling and content packaging"
-                body="Going live, editing the angle, reading the comments, and turning attention back into the business."
-              />
-              <ProofPhoto
-                src="/images/wholesale-universe-michael-kors-load-1.jpg"
-                alt="Designer shoe boxes from a Wholesale Universe inventory load"
-                label="Inventory people wanted"
-                body="Real product, real demand, real fulfillment. The content had to create enough trust for buyers to act."
-              />
-            </div>
-          </div>
-
-          <div className="mt-10">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
-                  Platform-native proof
-                </div>
-                <h3 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
-                  The numbers are in the account screenshots.
-                </h3>
-              </div>
-              <p className="max-w-lg text-sm leading-relaxed text-slate-600">
-                Screenshots are cropped for the useful angle: followers, subscribers, likes, and the
-                platform context behind the claim.
-              </p>
-            </div>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-              {SOCIAL_PROOF.map((item) => (
-                <SocialProofCard key={item.platform} {...item} />
               ))}
             </div>
-          </div>
-
-          <div className="mt-10 overflow-hidden rounded-3xl border border-slate-800 bg-slate-950 text-white shadow-[0_35px_90px_-35px_rgba(15,23,42,0.55)]">
-            <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
-              <div className="p-6 sm:p-8">
-                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-300">
-                  Meta receipt · Jan 21, 2025 to May 5, 2026
-                </div>
-                <h3 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-                  I came back online and turned attention into measurable proof.
-                </h3>
-                <p className="mt-4 leading-relaxed text-slate-300">
-                  The Meta dashboard range starts Jan 1, but the real posting window starts Jan 21
-                  after I got home late on Jan 20. This is not a forecast, a case study with a fake
-                  client name, or a vanity promise. It is the account receipt.
-                </p>
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  {FACEBOOK_COMEBACK_STATS.map((stat) => (
-                    <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                      <div className="text-2xl font-bold tabular-nums text-white sm:text-3xl">
-                        {stat.value}
-                      </div>
-                      <div className="mt-1 text-sm font-semibold text-cyan-200">{stat.label}</div>
-                      <div className="mt-1 text-xs text-slate-400">{stat.note}</div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 grid gap-2">
-                  {FACEBOOK_AUDIENCE_SIGNALS.map((signal) => (
-                    <div key={signal} className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm leading-relaxed text-slate-300">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent-300" />
-                      <span>{signal}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                  <TrackedLink
-                    href="/start"
-                    event="cta_meta_receipt_router"
-                    location="homepage_meta_receipt"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white hover:bg-accent-600"
-                  >
-                    Put this engine on my business <ArrowRight className="h-4 w-4" />
-                  </TrackedLink>
-                  <TrackedLink
-                    href="/offers/power-bundle"
-                    event="cta_meta_receipt_power_bundle"
-                    location="homepage_meta_receipt"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-semibold text-white hover:bg-white/10"
-                  >
-                    See the Power Bundle
-                  </TrackedLink>
-                </div>
-              </div>
-              <div className="border-t border-white/10 bg-black/20 p-4 lg:border-l lg:border-t-0">
-                <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-2xl">
-                  <img
-                    src="/images/facebook-insights-content-split-jan2025-may2026.png"
-                    alt="Meta Insights screenshot showing 24,032,630 views and audience split"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <p className="mt-3 text-xs leading-relaxed text-slate-400">
-                  Screenshot-backed proof today. When the Meta token is connected, the backend pulls
-                  supported Graph API metrics live and marks unsupported metrics instead of guessing.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            <BeliefBlock
-              n="1"
-              title="I've actually done it."
-              body="Every method I'll teach you, I've used to grow my own audience and my clients'. No theory. No frameworks I haven't tested with real money."
-            />
-            <BeliefBlock
-              n="2"
-              title="I run the platform you're hiring."
-              body="The LeadFlow Pro is my own product — same dashboard, same automations, same chatbot, same FlowCard. If it doesn't work, I'm the first person it doesn't work for."
-            />
-            <BeliefBlock
-              n="3"
-              title="I won't take you on if it won't work."
-              body="The 10-min call exists so I can tell you 'no' fast if we're not a fit. I'd rather lose the deal than burn the relationship."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* THE JOURNEY — dark contrast section, 0 → 75K visual story */}
-      <section className="border-b border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-brand-950 text-white relative overflow-hidden">
-        {/* Soft grid backdrop */}
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.07]"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-          }}
-        />
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
-          <div className="grid gap-10 lg:grid-cols-5 lg:items-center">
-            <div className="lg:col-span-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs uppercase tracking-widest text-cyan-300 font-semibold">
-                <TrendingUp className="h-3.5 w-3.5" /> The Journey · Past the Reef
-              </div>
-              <h2 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight leading-tight">
-                A phone in a third-story apartment.{" "}
-                <span className="bg-gradient-to-r from-cyan-300 to-accent-400 bg-clip-text text-transparent">
-                  Then a multi-million-dollar business. Then prison. Then this.
-                </span>
-              </h2>
-              <p className="mt-5 text-slate-300 leading-relaxed">
-                I started with <strong className="text-white">zero followers and a phone</strong>, posting from
-                a third-story two-bedroom apartment. I built it into a multi-million-dollar business.
-              </p>
-              <p className="mt-3 text-slate-300 leading-relaxed">
-                Then I lost it. <strong className="text-white">4 years in federal prison for January 6.
-                Pardoned.</strong> I came home with my phone and the followers I had left.
-              </p>
-              <p className="mt-3 text-slate-300 leading-relaxed">
-                I picked up the same playbook I used the first time. I'm rebuilding right now —{" "}
-                <strong className="text-white">75,000+ followers</strong>, six companies founded, one client
-                I'm publicly proud of, and counting.
-              </p>
-              <div className="mt-5 rounded-2xl border border-accent-400/40 bg-gradient-to-br from-accent-400/10 to-cyan-400/10 backdrop-blur p-4">
-                <div className="text-[10px] uppercase tracking-widest text-accent-300 font-bold">
-                  My operating belief
-                </div>
-                <p className="mt-1 text-base text-white leading-relaxed">
-                  Any product, backed with consistency and a website that takes payments,{" "}
-                  <strong>will</strong> take off — if you don't quit before you get past{" "}
-                  <span className="bg-gradient-to-r from-accent-300 to-cyan-300 bg-clip-text text-transparent font-bold">
-                    the reef barrier.
-                  </span>
-                </p>
-              </div>
-              <div className="mt-7 flex flex-col sm:flex-row flex-wrap gap-3">
-                <TrackedLink
-                  href="/tiers"
-                  event="cta_journey_tiers"
-                  location="homepage_journey"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white shadow-lg shadow-accent-500/30 hover:bg-accent-600"
-                >
-                  I have to work with you. Show me how. <ArrowRight className="h-4 w-4" />
-                </TrackedLink>
-                <TrackedLink
-                  href="/book"
-                  event="cta_journey_reef"
-                  location="homepage_journey"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-600"
-                >
-                  Get me past my reef
-                </TrackedLink>
-                <TrackedLink
-                  href="/offers/decision-sprint"
-                  event="cta_journey_sprint"
-                  location="homepage_journey"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 backdrop-blur px-5 py-3 font-semibold text-white hover:bg-white/10"
-                >
-                  $90 for 90 minutes
-                </TrackedLink>
-              </div>
-            </div>
-
-            {/* Animated growth curve */}
-            <div className="lg:col-span-3">
-              <FollowerJourneyChart total={totalReach} />
-            </div>
-          </div>
-
-          {/* Milestone strip */}
-          <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { stage: "Start", count: "300", note: "Friends + family" },
-              { stage: "Climb", count: "1.5K", note: "First true followers" },
-              { stage: "Break", count: "10K", note: "Algorithm starts working FOR you" },
-              { stage: "Compound", count: "75K+", note: "Where I'm at — and where you're going" },
-            ].map((m, i) => (
-              <div
-                key={m.stage}
-                className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur p-4"
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/lead-leak-audit"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-5 py-3 text-sm font-bold text-slate-950 hover:bg-accent-400"
               >
-                <div className="text-[10px] uppercase tracking-widest text-cyan-300">
-                  Stage {i + 1} · {m.stage}
+                Audit my lead path <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/challenge"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/15"
+              >
+                Reserve $250 build slot
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div className="rounded-lg border border-cyan-200 bg-cyan-50 p-5 shadow-xl shadow-cyan-100/70 sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-800">
+                  Today's bright object
                 </div>
-                <div className="mt-1 text-3xl font-bold tabular-nums">{m.count}</div>
-                <div className="mt-1 text-xs text-slate-400">{m.note}</div>
+                <h3 className="mt-3 text-2xl font-black tracking-tight text-slate-950">
+                  {dailyDrop.label}
+                </h3>
+              </div>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white text-cyan-700 shadow-sm">
+                <DropIcon className="h-6 w-6" />
+              </div>
+            </div>
+
+            <p className="mt-4 text-xl font-semibold leading-8 text-slate-950">{dailyDrop.title}</p>
+
+            <div className="mt-6 grid gap-3">
+              <BuildDropDetail label="Best fit" value={dailyDrop.audience} />
+              <BuildDropDetail label="What gets built" value={dailyDrop.build} />
+              <BuildDropDetail label="Why it gets attention" value={dailyDrop.hook} />
+            </div>
+
+            <div className="mt-6 rounded-lg border border-cyan-200 bg-white p-4">
+              <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                Simple public copy
+              </div>
+              <p className="mt-2 text-sm font-semibold leading-6 text-slate-800">
+                "$250 down. I will help you turn one business idea into a real page, tool, app,
+                calculator, or funnel people can actually click."
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {DAILY_BUILD_DROPS.slice(0, 4).map((drop) => (
+              <div key={drop.label} className="rounded-lg border border-slate-200 bg-white p-4">
+                <drop.Icon className="h-5 w-5 text-cyan-700" />
+                <div className="mt-3 text-sm font-black text-slate-950">{drop.label}</div>
+                <p className="mt-1 text-xs leading-5 text-slate-600">{drop.hook}</p>
               </div>
             ))}
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* RIGHT FIT / WRONG FIT */}
-      <section className="relative overflow-hidden border-b border-slate-200">
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, #fff8f1 0%, #f6f9ff 100%)",
-          }}
-        />
-        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-16">
-          <div className="text-xs uppercase tracking-widest text-slate-500 mb-2">Save us both time</div>
-          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950 mb-8">
-            Are you a fit?
+function BuildDropDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-cyan-200 bg-white p-4">
+      <div className="text-xs font-semibold uppercase tracking-widest text-cyan-800">{label}</div>
+      <p className="mt-2 text-sm font-semibold leading-6 text-slate-800">{value}</p>
+    </div>
+  );
+}
+
+function CommandGlobeSection() {
+  return (
+    <section className="border-b border-slate-200 bg-slate-950 text-white">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-16">
+        <div className="flex flex-col justify-center">
+          <div className="inline-flex w-fit items-center gap-2 rounded-md border border-cyan-300/35 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
+            <Globe2 className="h-3.5 w-3.5" />
+            Business command globe
+          </div>
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+            A business should feel like a control room, not a pile of tabs.
           </h2>
-          <div className="grid gap-5 md:grid-cols-2">
-            <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-cyan-100 px-3 py-1 text-xs uppercase tracking-widest text-cyan-800 font-semibold">
-                <Check className="h-3.5 w-3.5" /> Right fit
-              </div>
-              <h3 className="mt-3 text-xl font-semibold text-slate-950">Book the call</h3>
-              <ul className="mt-4 space-y-3">
-                {RIGHT_FIT.map((line) => (
-                  <li key={line} className="flex items-start gap-2 text-slate-700">
-                    <Check className="mt-0.5 h-5 w-5 shrink-0 text-cyan-600" />
-                    <span>{line}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1 text-xs uppercase tracking-widest text-rose-800 font-semibold">
-                <XIcon className="h-3.5 w-3.5" /> Wrong fit
-              </div>
-              <h3 className="mt-3 text-xl font-semibold text-slate-950">Click away. Save us both time.</h3>
-              <ul className="mt-4 space-y-3">
-                {WRONG_FIT.map((line) => (
-                  <li key={line} className="flex items-start gap-2 text-slate-700">
-                    <XIcon className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" />
-                    <span>{line}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* STATS BAND */}
-      <section className="border-b border-slate-200 bg-slate-50">
-        <div className="mx-auto max-w-7xl px-4 py-10">
-          <div className="text-xs uppercase tracking-widest text-slate-500 mb-5 text-center">
-            Built by an operator with skin in the game
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {STATS.map((s) => (
-              <div key={s.label} className="rounded-xl border border-slate-200 bg-white p-5 text-center">
-                <div className="text-3xl sm:text-4xl font-bold text-slate-950 tabular-nums">{s.value}</div>
-                <div className="mt-1 text-xs uppercase tracking-widest text-slate-500">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* THE 4 PLATFORMS */}
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:py-20">
-          <div className="text-xs uppercase tracking-widest text-cyan-700 mb-2">Pick your platform</div>
-          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
-            Done-for-you growth, one channel at a time.
-          </h2>
-          <p className="mt-3 text-slate-600 max-w-3xl">
-            Each package is a complete monthly engagement on one platform — strategy, production,
-            posting, community management, and a real performance report tied to leads and revenue.
-            Bundle two or more for cross-channel pricing on the call.
+          <p className="mt-4 text-base leading-7 text-slate-300">
+            The homepage demo is built around the idea Ryan keeps asking for: view the business
+            in a globe-style command layer where leads, files, analytics, calls, ads, and follow-up
+            make sense fast.
           </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <MiniMetric icon={MousePointerClick} label="Clicks" value="Tracked" />
+            <MiniMetric icon={MessageSquareText} label="Follow-up" value="Queued" />
+            <MiniMetric icon={BarChart3} label="Analytics" value="Readable" />
+            <MiniMetric icon={Zap} label="Next move" value="Obvious" />
+          </div>
+        </div>
 
-          <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {PLATFORMS.map((p) => {
-              const Icon = p.icon;
-              return (
+        <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4 shadow-2xl shadow-black/30">
+          <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
+            <div className="relative min-h-[360px] overflow-hidden rounded-lg border border-white/10 bg-[radial-gradient(circle_at_center,rgba(34,184,255,0.22),rgba(15,23,42,0.98)_58%)]">
+              <div className="absolute inset-8 rounded-full border border-cyan-200/20" />
+              <div className="absolute inset-16 rounded-full border border-cyan-200/15" />
+              <div className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/35 bg-cyan-300/10" />
+              <div className="absolute left-1/2 top-1/2 h-px w-[76%] -translate-x-1/2 bg-cyan-200/20" />
+              <div className="absolute left-1/2 top-1/2 h-[76%] w-px -translate-y-1/2 bg-cyan-200/20" />
+              {GLOBE_NODES.map((node) => (
                 <div
-                  key={p.name}
-                  className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
+                  key={node.label}
+                  className="absolute min-w-24 rounded-lg border border-white/15 bg-slate-950/80 px-3 py-2 shadow-lg shadow-black/25"
+                  style={{ left: node.x, top: node.y }}
                 >
-                  <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white">
-                    <Icon className="h-5 w-5" />
+                  <div className="text-[10px] font-semibold uppercase tracking-widest text-cyan-200">
+                    {node.label}
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold text-slate-950">{p.name}</h3>
-                  <div className="mt-1 flex items-baseline gap-1">
-                    <span className="text-2xl font-bold text-slate-950 tabular-nums">{p.price}</span>
-                    <span className="text-sm text-slate-500">{p.cadence}</span>
-                  </div>
-                  <p className="mt-3 text-sm text-slate-600">{p.line}</p>
-                  <ul className="mt-4 space-y-2">
-                    {p.bullets.map((b) => (
-                      <li key={b} className="flex items-start gap-2 text-sm text-slate-700">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" />
-                        <span>{b}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link
-                    href={`/platforms/${p.handle}`}
-                    className="mt-auto pt-6 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:text-brand-800"
-                  >
-                    See the {p.name.replace(" Growth", "")} comparison <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
+                  <div className="mt-1 text-xl font-black text-white">{node.value}</div>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Power Bundle */}
-          <div className="mt-8 rounded-2xl border border-brand-500 bg-gradient-to-br from-brand-50 via-white to-cyan-50 p-6 sm:p-8 ring-1 ring-brand-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-3 py-1 text-xs font-semibold text-white">
-                  <Star className="h-3 w-3" /> Power Bundle
-                </div>
-                <h3 className="mt-3 text-2xl font-semibold text-slate-950">
-                  All 4 platforms — $1,497/mo
-                </h3>
-                <p className="mt-2 text-slate-600 max-w-2xl">
-                  Saves ~$500/mo over single channels. The algorithm rewards consistency across
-                  surfaces, not just on one. For owners who want it all, simultaneously.
-                </p>
-              </div>
-              <Link
-                href="/book"
-                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white hover:bg-slate-800"
-              >
-                Book the call <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="relative overflow-hidden border-b border-slate-200">
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(180deg, #fff8f1 0%, #eef9ff 100%)" }}
-        />
-        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:py-20">
-          <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
-                Portfolio of sites and tools
-              </div>
-              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-                I do not just talk about funnels. I build the pages, tools, promos, and back office.
-              </h2>
-              <p className="mt-4 leading-relaxed text-slate-700">
-                The portfolio matters because it proves range: public brands, AI tools, investigative
-                content, e-commerce, client dashboards, DentaOps-style internal tools, and sales
-                pages that can take payment.
-              </p>
-              <div className="mt-6 overflow-hidden rounded-3xl border border-white/70 bg-white shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] ring-1 ring-slate-900/5">
-                <img
-                  src="/images/faretta-legal-promo-frame.jpg"
-                  alt="Faretta Legal promotional video frame created by Ryan Nichols"
-                  className="h-auto w-full"
-                />
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {PORTFOLIO_SITES.map((site) => (
-                <a
-                  key={site.name}
-                  href={site.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm transition hover:border-cyan-300 hover:shadow-md"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="font-semibold text-slate-950">{site.name}</h3>
-                    <ArrowRight className="h-4 w-4 shrink-0 text-cyan-700 transition group-hover:translate-x-0.5" />
-                  </div>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{site.note}</p>
-                </a>
               ))}
+              <div className="absolute bottom-4 left-4 right-4 rounded-lg border border-accent-300/25 bg-accent-300/10 p-3">
+                <div className="text-xs font-semibold uppercase tracking-widest text-accent-100">
+                  Recommended move
+                </div>
+                <div className="mt-1 text-sm font-semibold text-white">
+                  Fix intake first, then scale traffic.
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-3">
+              <PipelineStep n="01" title="Lead arrives" body="Call, form, DM, ad click, or referral." />
+              <PipelineStep n="02" title="System tags it" body="Source, intent, service fit, urgency." />
+              <PipelineStep n="03" title="Follow-up fires" body="Text, email, task, or calendar path." />
+              <PipelineStep n="04" title="Ryan sees the move" body="The dashboard shows what to fix next." />
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      <section className="relative overflow-hidden border-b border-slate-200">
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(135deg, #eef9ff 0%, #fff8f1 48%, #f3eaff 100%)" }}
-        />
-        <div
-          aria-hidden
-          className="absolute -right-28 top-0 h-[420px] w-[420px] rounded-full opacity-35 blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(35,184,255,0.45) 0%, transparent 63%)" }}
-        />
-        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-16">
-          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-            <div className="overflow-hidden rounded-3xl border border-white/70 bg-slate-950 shadow-[0_30px_80px_-35px_rgba(15,23,42,0.65)] ring-1 ring-slate-900/10">
-              <video
-                controls
-                playsInline
-                preload="metadata"
-                poster="/images/premier-dental-academy-makeover-poster.jpg"
-                className="aspect-[2/1] w-full bg-slate-950 object-cover"
-              >
-                <source src="/videos/premier-dental-academy-makeover-teaser.mp4" type="video/mp4" />
-              </video>
-            </div>
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/75 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm">
-                <Star className="h-3.5 w-3.5" /> Active client build
-              </div>
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-                Premier Dental Academy shows the actual work: page, offer, payment path, and tools.
-              </h2>
-              <p className="mt-4 leading-relaxed text-slate-700">
-                This is not a mockup. It is an active client build for Premier Dental Academy of
-                Longview: clearer positioning, a stronger site, student-facing paths, admin/tooling
-                direction, and the kind of sales flow that tells a visitor what to do next.
-              </p>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {[
-                  "Website makeover and enrollment path",
-                  "DentaOps-style student/admin tool direction",
-                  "Clearer payment and intake flow",
-                  "Marketing proof packaged into a short walkthrough",
-                ].map((item) => (
-                  <div key={item} className="rounded-2xl border border-white/70 bg-white/80 p-4 text-sm font-semibold text-slate-800 shadow-sm">
-                    <Check className="mb-2 h-4 w-4 text-cyan-700" />
-                    {item}
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href="https://premierdentalacademyoflongview.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
-                >
-                  View the PDA build <ArrowRight className="h-4 w-4" />
-                </a>
-                <TrackedLink
-                  href="/start"
-                  event="cta_pda_proof_start"
-                  location="homepage_pda_proof"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
-                >
-                  Pick my service <ArrowRight className="h-4 w-4" />
-                </TrackedLink>
-              </div>
-              <p className="mt-3 text-xs leading-relaxed text-slate-500">
-                Teaser clip from Ryan's 12-minute PDA walkthrough. Full walkthrough can be hosted
-                separately when Ryan wants the complete breakdown public.
-              </p>
-            </div>
+function MiniMetric({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof MousePointerClick;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+      <Icon className="h-5 w-5 text-cyan-200" />
+      <div className="mt-3 text-sm font-semibold text-slate-300">{label}</div>
+      <div className="mt-1 text-lg font-bold text-white">{value}</div>
+    </div>
+  );
+}
+
+function PipelineStep({ n, title, body }: { n: string; title: string; body: string }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+      <div className="text-xs font-semibold uppercase tracking-widest text-cyan-200">{n}</div>
+      <div className="mt-2 font-bold text-white">{title}</div>
+      <p className="mt-1 text-sm leading-5 text-slate-300">{body}</p>
+    </div>
+  );
+}
+
+function BestDemoSection() {
+  return (
+    <section className="border-b border-slate-200 bg-white">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        <div className="max-w-3xl">
+          <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+            Best of what is here
           </div>
-        </div>
-      </section>
-
-      {/* FACEBOOK ADS — for biz owners */}
-      <section id="fb-ads" className="border-b border-slate-200 bg-gradient-to-br from-slate-50 to-white">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:py-20">
-          <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-accent-500 px-3 py-1 text-xs font-semibold text-white">
-                <Megaphone className="h-3.5 w-3.5" /> For business owners
-              </div>
-              <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
-                Facebook Ads Management
-              </h2>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-slate-950 tabular-nums">$1,497</span>
-                <span className="text-slate-500">/mo flat management</span>
-              </div>
-              <p className="mt-4 text-slate-700">
-                Built for business owners with a real offer who want professional-grade Facebook +
-                Instagram ads built inside their own accounts. No percentage of ad spend. Full-service:
-                strategy, creative, daily monitoring, weekly optimization, transparent reporting,
-                and a follow-up process your business keeps.
-              </p>
-              <ul className="mt-5 space-y-2 text-slate-700">
-                {[
-                  "Account setup + pixel / conversion tracking installed",
-                  "8 new ad creatives / month (4 image + 4 short video)",
-                  "Daily spend monitoring + weekly optimization",
-                  "Monthly report: spend, leads, CPL, ROAS",
-                  "You pay Meta directly. I never touch ad-spend funds or take a cut.",
-                  "Your leads, ads, tracking, and follow-up system stay in your business.",
-                  "Minimum recommended monthly ad budget: $1,500",
-                ].map((b) => (
-                  <li key={b} className="flex items-start gap-2 text-sm">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" />
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/book"
-                className="mt-7 inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-sm hover:bg-accent-600"
-              >
-                Book the 10-min call <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-
-            {/* Stat card */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-md">
-              <div className="text-xs uppercase tracking-widest text-slate-500">What gets measured</div>
-              <div className="mt-3 grid gap-4 grid-cols-2">
-                <StatBlock label="Cost per lead" value="$" sub="Tracked weekly" />
-                <StatBlock label="Lead volume" value="#" sub="Tracked daily" />
-                <StatBlock label="ROAS" value="x" sub="Tracked monthly" />
-                <StatBlock label="Creative tested" value="8/mo" sub="New every month" />
-              </div>
-              <p className="mt-5 text-xs text-slate-500 leading-relaxed">
-                We do not guarantee specific lead volume, CPL, or ROAS — paid-ad performance depends
-                on offer, market, creative, and platform behavior outside our control. We guarantee
-                the work product, the strategic direction, and complete reporting transparency.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* WHAT YOU ACTUALLY GET — teach blocks for the dashboard tools */}
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:py-20">
-          <div className="text-xs uppercase tracking-widest text-cyan-700 mb-2">What you actually get</div>
-          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
-            Inside The LeadFlow Pro dashboard.
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+            Show the strongest tools first. Let the rest live where it belongs.
           </h2>
-          <p className="mt-3 text-slate-600 max-w-3xl">
-            Six tools that work together to turn attention into leads, leads into conversations,
-            and conversations into closed business. No fluff — here's what each one does and why it
-            matters.
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {BEST_DEMOS.map((demo) => (
+            <Link
+              key={demo.title}
+              href={demo.href}
+              className="group rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-lg"
+            >
+              <demo.Icon className="h-6 w-6 text-cyan-700" />
+              <h3 className="mt-4 text-lg font-bold text-slate-950">{demo.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{demo.body}</p>
+              <div className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-cyan-700 group-hover:text-cyan-900">
+                {demo.cta} <ArrowRight className="h-4 w-4" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LeadFunnelSection() {
+  return (
+    <section id="lead-funnel" className="border-b border-slate-200 bg-slate-50">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[0.88fr_1.12fr] lg:px-8 lg:py-16">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-md border border-accent-300 bg-accent-100 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-slate-950">
+            <Target className="h-3.5 w-3.5" />
+            The clean funnel
+          </div>
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+            Leave the info. Pick calendar or router. Move.
+          </h2>
+          <p className="mt-4 text-base leading-7 text-slate-700">
+            This is the home-page job: collect a real buyer, get the business context, and send
+            them to the right next step. No clutter. No maze.
+          </p>
+          <div className="mt-6 space-y-3">
+            <FunnelPoint title="For fast buyers" body="They can book the 10-minute call immediately." />
+            <FunnelPoint title="For uncertain buyers" body="The router asks enough to place them in the right offer." />
+            <FunnelPoint title="For Ryan" body="The intake saves context instead of making every conversation start from zero." />
+          </div>
+        </div>
+
+        <form
+          action="/api/intake"
+          method="post"
+          className="rounded-lg border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/70 sm:p-6"
+        >
+          <VisitorIdField />
+          <input type="hidden" name="workStyle" value="hands-on-build" />
+          <input type="hidden" name="budgetTier" value="2000-5000" />
+          <input type="hidden" name="urgency" value="this-week" />
+          <input type="hidden" name="bestContactMethod" value="any" />
+
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-cyan-700">
+            <CheckCircle2 className="h-4 w-4" />
+            Start the business review
+          </div>
+          <h3 className="mt-3 text-2xl font-bold text-slate-950">
+            Send Ryan the lead.
+          </h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            This goes into the intake system and routes you to the cleanest next page.
           </p>
 
-          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            <TeachBlock
-              icon={Megaphone}
-              title="What's a Lead?"
-              body="A lead is someone who showed interest in your business — a DM, a comment, a form fill, a missed call. Most paid leads cost \$50–\$200. We capture them from your social, your phone, your website — score them A/B/C/D — and never let one slip."
-            />
-            <TeachBlock
-              icon={MessageSquare}
-              title="What's an Automation?"
-              body="A trigger plus an action. 'DM hits Instagram → auto-reply in 30 seconds → tagged → moved to inbox → you call when ready.' One automation per channel keeps you from ever losing a lead after-hours."
-            />
-            <TeachBlock
-              icon={Trophy}
-              title="What's a FlowCard?"
-              body="One link with all your contact methods, offers, and socials. Replaces business cards. Add a QR code to your truck, your invoice, your bio — they scan, they land, they reach you."
-            />
-            <TeachBlock
-              icon={Star}
-              title="What's a Chatbot?"
-              body="An AI that answers your customers' questions 24/7 — in your voice. Qualifies them, books their call, or routes them to you only when they're ready to buy. Recovers the leads you'd lose after-hours."
-            />
-            <TeachBlock
-              icon={TrendingUp}
-              title="What's an Insight?"
-              body="AI looks at your numbers and tells you the ONE next move that will move the needle this week. Not a 30-page report — one move. Do it. Repeat next week."
-            />
-            <TeachBlock
-              icon={Crown}
-              title="What's a Playbook?"
-              body="A step-by-step proven sequence. 'Hire your first VA,' 'Run your first Facebook ad,' 'Build a lead magnet in 2 days.' You follow it, you ship the thing. No guessing."
-            />
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <Field label="Name" name="fullName" placeholder="Your name" required />
+            <Field label="Phone" name="phone" placeholder="Best number" required />
+            <Field label="Email" name="email" type="email" placeholder="you@business.com" required />
+            <Field label="Business" name="businessName" placeholder="Business name" />
           </div>
-        </div>
-      </section>
 
-      {/* THE 10-MINUTE CALL */}
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-5xl px-4 py-14 sm:py-20 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-cyan-100 px-3 py-1 text-xs uppercase tracking-widest text-cyan-800 font-semibold">
-            <Clock className="h-3.5 w-3.5" /> The first step
-          </div>
-          <h2 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight text-slate-950">
-            10 minutes. Free. We'll know.
-          </h2>
-          <p className="mt-4 text-lg text-slate-700 max-w-2xl mx-auto">
-            This isn't a coaching session. It's not a pitch. It's a 10-minute conversation where
-            we both figure out fast whether we should work together — and if yes, on which package.
-          </p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3 max-w-3xl mx-auto text-left">
-            <Step n="1" title="Pick a slot" body="Cal.com on /book. Pick a 10-minute slot that works." />
-            <Step n="2" title="We meet" body="Ryan asks 5 questions. You ask 5 questions. We know." />
-            <Step n="3" title="Move forward" body="If yes — we work together. If no — you keep your time." />
-          </div>
-          <Link
-            href="/book"
-            className="mt-10 inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-sm hover:bg-accent-600"
-          >
-            Book my 10-min call <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </section>
+          <label className="mt-4 block">
+            <span className="text-sm font-bold text-slate-800">What do you need first?</span>
+            <select
+              name="primaryNeed"
+              defaultValue="working-session"
+              className="mt-2 min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+            >
+              <option value="working-session">Build my website, app, funnel, or HTML tool</option>
+              <option value="managed-social">Run my social and content machine</option>
+              <option value="ads">Fix or launch my Meta ads</option>
+              <option value="audit">Show me what is leaking</option>
+              <option value="operator">Bring Ryan into the business operation</option>
+              <option value="one-decision">Unstick one important decision</option>
+            </select>
+          </label>
 
-      {/* FOUNDER STRIP */}
-      <section className="border-b border-slate-200 bg-slate-50">
-        <div className="mx-auto max-w-5xl px-4 py-14">
-          <div className="text-center">
-            <div className="text-xs uppercase tracking-widest text-slate-500">What I've built</div>
-            <h2 className="mt-2 text-2xl sm:text-3xl font-semibold text-slate-950">
-              Same operator. Different problems. Same playbook.
+          <label className="mt-4 block">
+            <span className="text-sm font-bold text-slate-800">Short context</span>
+            <textarea
+              name="notes"
+              rows={4}
+              placeholder="What are you selling, where are leads coming from, and what is currently broken?"
+              className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+            />
+          </label>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
+            <button
+              type="submit"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/15 hover:bg-slate-800"
+            >
+              Send and route me <ArrowRight className="h-4 w-4" />
+            </button>
+            <Link
+              href="/book"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-950 hover:bg-slate-50"
+            >
+              Calendar instead
+            </Link>
+          </div>
+        </form>
+      </div>
+    </section>
+  );
+}
+
+function Field({
+  label,
+  name,
+  placeholder,
+  type = "text",
+  required,
+}: {
+  label: string;
+  name: string;
+  placeholder: string;
+  type?: string;
+  required?: boolean;
+}) {
+  return (
+    <label className="block">
+      <span className="text-sm font-bold text-slate-800">{label}</span>
+      <input
+        name={name}
+        type={type}
+        required={required}
+        placeholder={placeholder}
+        className="mt-2 min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+      />
+    </label>
+  );
+}
+
+function FunnelPoint({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-4">
+      <div className="font-bold text-slate-950">{title}</div>
+      <p className="mt-1 text-sm leading-6 text-slate-600">{body}</p>
+    </div>
+  );
+}
+
+function RouteSection() {
+  return (
+    <section className="bg-white">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr]">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+              Everything else has a place
+            </div>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+              The homepage points. The inside pages explain.
             </h2>
           </div>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 text-center">
-            {FOUNDER_BRANDS.map((b) => (
-              <div key={b.name} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-                <div className="text-sm font-semibold text-slate-900">{b.name}</div>
-                <div className="mt-0.5 text-xs text-slate-500">{b.note}</div>
-              </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {ROUTES.map((route) => (
+              <Link
+                key={route.href}
+                href={route.href}
+                className="group rounded-lg border border-slate-200 bg-slate-50 p-5 transition hover:border-cyan-300 hover:bg-white hover:shadow-lg"
+              >
+                <div className="font-bold text-slate-950">{route.label}</div>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{route.body}</p>
+                <div className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-cyan-700 group-hover:text-cyan-900">
+                  Go there <ArrowRight className="h-4 w-4" />
+                </div>
+              </Link>
             ))}
           </div>
-
-          {/* Named clients (separate row so we don't conflate them with Ryan's own brands) */}
-          {NAMED_CLIENTS.length > 0 && (
-            <div className="mt-10">
-              <div className="text-center">
-                <div className="text-xs uppercase tracking-widest text-slate-500">Named clients</div>
-                <p className="mt-1 text-sm text-slate-700">
-                  Public client work. Same operator, same playbook, different last name.
-                </p>
-              </div>
-              <div className="mt-5 grid gap-4 md:grid-cols-2 max-w-3xl mx-auto">
-                {NAMED_CLIENTS.map((c) => (
-                  <div key={c.name} className="rounded-2xl border border-cyan-200 bg-cyan-50/60 backdrop-blur p-5">
-                    <div className="text-sm font-bold text-slate-950">{c.name}</div>
-                    <div className="mt-1 text-xs text-slate-700">{c.note}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-10 text-xs text-slate-500 grid gap-4 md:grid-cols-2">
-          <div>
-            The LeadFlow Pro · A Real Ryan Nichols LLC company · Texas-governed under mutual NDA on
-            every paid engagement. We do not guarantee specific follower-count, lead-volume,
-            conversion-rate, or revenue outcomes — what we deliver is the work product, strategic
-            direction, and reporting described in each package. Paid-ad budgets are paid by clients
-            directly to Meta, Google, or other ad platforms — never invoiced through us.
-          </div>
-          <div className="md:text-right space-x-4">
-            <Link href="/tiers" className="hover:text-slate-900">All tiers</Link>
-            <Link href="/services" className="hover:text-slate-900">Services</Link>
-            <Link href="/services/consulting" className="hover:text-slate-900">Consulting</Link>
-            <Link href="/book" className="hover:text-slate-900">Book a call</Link>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-/* ─── Components ──────────────────────────────────────────────── */
-
-function Step({ n, title, body }: { n: string; title: string; body: string }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-      <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-white text-xs font-bold">
-        {n}
-      </div>
-      <div className="mt-3 font-semibold text-slate-950">{title}</div>
-      <div className="mt-1 text-sm text-slate-600">{body}</div>
-    </div>
-  );
-}
-
-function TeachBlock({
-  icon: Icon, title, body,
-}: { icon: any; title: string; body: string }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-brand-600 text-white shadow-sm">
-        <Icon className="h-5 w-5" />
-      </div>
-      <h3 className="mt-4 text-xl font-semibold text-slate-950">{title}</h3>
-      <p className="mt-2 text-sm text-slate-700 leading-relaxed">{body}</p>
-    </div>
-  );
-}
-
-function HeroQuickAction({
-  href,
-  event,
-  label,
-  detail,
-  Icon,
-  tone,
-}: {
-  href: string;
-  event: string;
-  label: string;
-  detail: string;
-  Icon: any;
-  tone: string;
-}) {
-  const cls =
-    tone === "dark"
-      ? "border-slate-900 bg-slate-950 text-white shadow-slate-950/20"
-      : tone === "accent"
-        ? "border-accent-500 bg-accent-500 text-white shadow-accent-500/20"
-        : "border-white/70 bg-white/85 text-slate-950 shadow-slate-900/10";
-  const iconCls = tone === "light" ? "text-cyan-700" : "text-white";
-
-  return (
-    <TrackedLink
-      href={href}
-      event={event}
-      location="homepage_mobile_hero"
-      className={`min-h-[104px] rounded-2xl border p-3 shadow-lg active:scale-[0.98] ${cls}`}
-    >
-      <Icon className={`h-5 w-5 ${iconCls}`} />
-      <div className="mt-3 text-sm font-semibold leading-tight">{label}</div>
-      <div className={`mt-1 text-xs leading-snug ${tone === "light" ? "text-slate-600" : "text-white/80"}`}>
-        {detail}
-      </div>
-    </TrackedLink>
-  );
-}
-
-function ProofTile({ big, label }: { big: string; label: string }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="text-3xl sm:text-4xl font-bold text-slate-950 tabular-nums">{big}</div>
-      <div className="mt-2 text-sm text-slate-600 leading-snug">{label}</div>
-    </div>
-  );
-}
-
-function ProofPhoto({
-  src,
-  alt,
-  label,
-  body,
-}: {
-  src: string;
-  alt: string;
-  label: string;
-  body: string;
-}) {
-  return (
-    <div className="grid grid-cols-[112px_1fr] overflow-hidden rounded-2xl border border-white/70 bg-white/80 shadow-sm ring-1 ring-slate-900/5 backdrop-blur">
-      <img src={src} alt={alt} className="h-full min-h-[126px] w-full object-cover" />
-      <div className="p-4">
-        <div className="text-[10px] font-semibold uppercase tracking-widest text-accent-700">
-          {label}
-        </div>
-        <p className="mt-1 text-sm leading-relaxed text-slate-700">{body}</p>
-      </div>
-    </div>
-  );
-}
-
-function SocialProofCard({
-  src,
-  alt,
-  platform,
-  stat,
-  label,
-  crop,
-}: {
-  src: string;
-  alt: string;
-  platform: string;
-  stat: string;
-  label: string;
-  crop: string;
-}) {
-  return (
-    <div className="overflow-hidden rounded-3xl border border-white/70 bg-white shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] ring-1 ring-slate-900/5">
-      <div className="relative h-52 bg-slate-950 sm:h-60">
-        <img src={src} alt={alt} className={`h-full w-full object-cover ${crop}`} />
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent p-4 text-white">
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-cyan-200">
-            {platform}
-          </div>
-          <div className="mt-1 text-2xl font-bold tabular-nums">{stat}</div>
-          <div className="text-xs text-slate-300">{label}</div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function BeliefBlock({
-  n, title, body,
-}: { n: string; title: string; body: string }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-brand-600 text-white text-sm font-bold">
-        {n}
-      </div>
-      <h3 className="mt-3 font-semibold text-slate-950 text-lg">{title}</h3>
-      <p className="mt-2 text-sm text-slate-700 leading-relaxed">{body}</p>
-    </div>
-  );
-}
-
-function StatBlock({ label, value, sub }: { label: string; value: string; sub: string }) {
-  return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-      <div className="text-2xl font-bold text-slate-950 tabular-nums">{value}</div>
-      <div className="text-xs font-semibold text-slate-700 mt-1">{label}</div>
-      <div className="text-[10px] text-slate-500 mt-0.5">{sub}</div>
-    </div>
-  );
-}
-
-function FollowerJourneyChart({ total }: { total: number }) {
-  // Animated 0 → 75K growth curve. Pure SVG with <animate> — no JS deps.
-  // The line draws itself in over 2.4s, milestone points pulse, and a
-  // ghost area beneath the curve fades up. Designed for the dark hero
-  // section so it pops against the navy background.
-  //
-  // X axis is "time" (years 1 → 5+ in conceptual terms, not literal).
-  // Y axis is followers, log-ish so the early-stage detail is visible.
-  const W = 640;
-  const H = 320;
-  const points = [
-    { x: 40,  y: 280, label: "300",   sub: "Start" },
-    { x: 160, y: 250, label: "1.5K",  sub: "Year 1" },
-    { x: 270, y: 200, label: "10K",   sub: "Year 2" },
-    { x: 380, y: 130, label: "25K",   sub: "Year 3" },
-    { x: 490, y: 80,  label: "50K",   sub: "Year 4" },
-    { x: 600, y: 40,  label: "75K+",  sub: "Now" },
-  ];
-  const path = `M ${points[0].x} ${points[0].y} ` +
-    points.slice(1).map((p, i) => {
-      const prev = points[i];
-      const cx1 = prev.x + (p.x - prev.x) / 2;
-      const cy1 = prev.y;
-      const cx2 = prev.x + (p.x - prev.x) / 2;
-      const cy2 = p.y;
-      return `C ${cx1} ${cy1}, ${cx2} ${cy2}, ${p.x} ${p.y}`;
-    }).join(" ");
-  const areaPath = path + ` L ${points[points.length - 1].x} ${H - 10} L ${points[0].x} ${H - 10} Z`;
-
-  return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur p-5 sm:p-6 shadow-2xl shadow-black/40">
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-[11px] uppercase tracking-widest text-cyan-300 font-semibold">
-          The growth pattern
-        </div>
-        <div className="inline-flex items-center gap-1.5 text-[11px] text-slate-300">
-          <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
-          Live · {total.toLocaleString()} total
-        </div>
-      </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="block w-full">
-        <defs>
-          <linearGradient id="journey-line" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stopColor="#22b8ff" />
-            <stop offset="100%" stopColor="#fb923c" />
-          </linearGradient>
-          <linearGradient id="journey-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#22b8ff" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#22b8ff" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-
-        {/* Y grid lines */}
-        {[60, 120, 180, 240, 300].map((y) => (
-          <line key={y} x1="20" y1={y} x2={W - 10} y2={y} stroke="#ffffff14" strokeDasharray="2 4" />
-        ))}
-
-        {/* Filled area beneath the curve */}
-        <path d={areaPath} fill="url(#journey-area)">
-          <animate attributeName="opacity" from="0" to="1" dur="2.6s" fill="freeze" />
-        </path>
-
-        {/* The growth curve itself — draws in over 2.4s */}
-        <path
-          d={path}
-          fill="none"
-          stroke="url(#journey-line)"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          pathLength="1"
-          strokeDasharray="1"
-          strokeDashoffset="1"
-        >
-          <animate attributeName="stroke-dashoffset" from="1" to="0" dur="2.4s" fill="freeze" />
-        </path>
-
-        {/* Milestone points */}
-        {points.map((p, i) => (
-          <g key={p.label}>
-            <circle cx={p.x} cy={p.y} r="14" fill="#22b8ff" opacity="0.18">
-              <animate attributeName="r" values="10;18;10" dur="2.4s" repeatCount="indefinite" begin={`${i * 0.4}s`} />
-              <animate attributeName="opacity" values="0.25;0.08;0.25" dur="2.4s" repeatCount="indefinite" begin={`${i * 0.4}s`} />
-            </circle>
-            <circle cx={p.x} cy={p.y} r="5" fill="#ffffff" stroke="#22b8ff" strokeWidth="2.5" />
-            <text x={p.x} y={p.y - 22} fontSize="13" fontWeight="700" fill="#ffffff" textAnchor="middle">
-              {p.label}
-            </text>
-            <text x={p.x} y={H - 16} fontSize="10" fontWeight="600" fill="#94a3b8" textAnchor="middle" letterSpacing="1">
-              {p.sub.toUpperCase()}
-            </text>
-          </g>
-        ))}
-      </svg>
-      <div className="mt-3 text-[11px] text-slate-400 leading-relaxed">
-        The shape of the curve never changes. Every operator I've helped follows the same arc — slow
-        early, sharp at the bend, compounding once the algorithm starts trusting you. Where are you on it?
-      </div>
-    </div>
+    </section>
   );
 }

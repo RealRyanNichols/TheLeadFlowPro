@@ -62,7 +62,7 @@ export default function AdminRequestsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/intakes?goal=tool-challenge&take=100", {
+      const res = await fetch("/api/admin/intakes?take=100", {
         headers: { "x-admin-secret": s },
       });
       if (!res.ok) {
@@ -155,7 +155,7 @@ export default function AdminRequestsPage() {
           </div>
           <h1 className="mt-4 text-3xl font-semibold tracking-tight">Build request queue</h1>
           <p className="mt-2 text-sm leading-relaxed text-slate-300">
-            Paste the admin secret to see Stump Me tool submissions.
+            Paste the admin secret to see audit requests, tool challenges, and public buyer submissions.
           </p>
           <input
             type="password"
@@ -178,14 +178,14 @@ export default function AdminRequestsPage() {
         <div className="flex flex-col gap-4 border-b border-white/10 pb-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
-              <Sparkles className="h-3.5 w-3.5" /> Stump Me admin queue
+              <Sparkles className="h-3.5 w-3.5" /> Organic lead queue
             </div>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Build requests Ryan can act on.
+              Audit requests and buyer context Ryan can act on.
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300">
-              Free submissions land here. Paid $250 deposits create work orders and hit the
-              capacity ledger separately.
+              Lead leak audits, offer-router intakes, and free submissions land here. Paid deposits
+              create work orders and hit the capacity ledger separately.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -284,7 +284,8 @@ function IntakeCard({
   onHandled: (id: string, handled: boolean) => void;
 }) {
   const created = new Date(intake.createdAt);
-  const mailto = `mailto:${intake.email}?subject=${encodeURIComponent(`Re: ${intake.businessName || intake.fullName} tool challenge`)}`;
+  const goalLabel = intake.biggestGoal || "intake";
+  const mailto = `mailto:${intake.email}?subject=${encodeURIComponent(`Re: ${intake.businessName || intake.fullName} ${goalLabel}`)}`;
 
   return (
     <article className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.06] shadow-2xl shadow-black/20">
@@ -315,8 +316,10 @@ function IntakeCard({
             <div>{created.toLocaleString()}</div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+            <Mini label="Goal" value={goalLabel} />
             <Mini label="Budget" value={intake.budgetTier} />
             <Mini label="Industry" value={intake.industry || "Not set"} />
+            <Mini label="Routed" value={intake.routedTo || "Not set"} />
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <a

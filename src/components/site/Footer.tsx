@@ -30,6 +30,21 @@ export function Footer() {
             </h4>
             <ul className="space-y-2 text-sm">
               <li>
+                <Link href="/lead-leak-audit" className="text-ink-100 hover:text-white">
+                  Free Lead Leak Audit
+                </Link>
+              </li>
+              <li>
+                <Link href="/organic-growth" className="text-ink-100 hover:text-white">
+                  Organic Growth Plan
+                </Link>
+              </li>
+              <li>
+                <Link href="/proof" className="text-ink-100 hover:text-white">
+                  Proof
+                </Link>
+              </li>
+              <li>
                 <Link href="/services" className="text-ink-100 hover:text-white">
                   Services
                 </Link>
@@ -98,6 +113,11 @@ export function Footer() {
               <li>
                 <Link href="/legal" className="text-ink-100 hover:text-white">
                   Legal · Terms · Privacy
+                </Link>
+              </li>
+              <li>
+                <Link href="/legal#refund" className="text-ink-100 hover:text-white">
+                  Refund policy
                 </Link>
               </li>
               <li>

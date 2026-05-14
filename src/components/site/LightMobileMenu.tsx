@@ -8,6 +8,7 @@ import {
   BookOpen,
   BriefcaseBusiness,
   Calendar,
+  ClipboardCheck,
   Gauge,
   Home,
   LogIn,
@@ -16,7 +17,6 @@ import {
   Megaphone,
   Package,
   Trophy,
-  Wrench,
   X,
 } from "lucide-react";
 
@@ -28,6 +28,9 @@ type NavItem = {
 
 const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   "/": Home,
+  "/lead-leak-audit": ClipboardCheck,
+  "/organic-growth": Gauge,
+  "/proof": Trophy,
   "/services": Package,
   "/services/consulting": BriefcaseBusiness,
   "/tiers": Package,
@@ -99,25 +102,25 @@ export function LightMobileMenu({
             <div className="p-4">
               <div className="grid grid-cols-2 gap-2">
                 <Link
-                  href="/challenge"
+                  href="/lead-leak-audit"
                   onClick={() => setOpen(false)}
                   className="rounded-2xl bg-gradient-to-br from-slate-950 via-brand-950 to-cyan-950 p-4 text-white shadow-lg shadow-slate-950/20 active:scale-[0.98]"
                 >
-                  <Wrench className="h-5 w-5 text-cyan-300" />
-                  <div className="mt-3 text-sm font-semibold">Stump Ryan</div>
+                  <ClipboardCheck className="h-5 w-5 text-cyan-300" />
+                  <div className="mt-3 text-sm font-semibold">Free audit</div>
                   <div className="mt-1 text-xs leading-relaxed text-slate-300">
-                    Challenge him with the tool you need.
+                    Find where leads are leaking.
                   </div>
                 </Link>
                 <Link
-                  href="/book"
+                  href="/organic-growth"
                   onClick={() => setOpen(false)}
                   className="rounded-2xl bg-accent-500 p-4 text-white shadow-lg shadow-accent-500/25 active:scale-[0.98]"
                 >
                   <Calendar className="h-5 w-5" />
-                  <div className="mt-3 text-sm font-semibold">Book 10-min call</div>
+                  <div className="mt-3 text-sm font-semibold">Organic plan</div>
                   <div className="mt-1 text-xs leading-relaxed text-white/85">
-                    Serious buyers only.
+                    See the no-ads engine.
                   </div>
                 </Link>
               </div>

@@ -6,6 +6,7 @@
 
 import type { MetadataRoute } from "next";
 import { OFFERS } from "@/lib/offers";
+import { ORGANIC_LANDING_PAGES } from "@/lib/organic-growth";
 import { PLATFORMS } from "@/lib/platforms";
 import { PULSE_SIGNAL_LIST } from "@/lib/pulse-signal-pages";
 import { prisma } from "@/lib/prisma";
@@ -29,6 +30,10 @@ const staticRoutes = [
   "/challenge/insights/hours-per-month",
   "/challenge/insights/build-estimate",
   "/community",
+  "/facebook-ad-offer",
+  "/lead-leak-audit",
+  "/organic-growth",
+  "/proof",
   "/pulse",
   ...PULSE_SIGNAL_LIST.map((signal) => `/pulse/${signal.slug}`),
   "/rewards",
@@ -68,6 +73,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  const organicRoutes: MetadataRoute.Sitemap = ORGANIC_LANDING_PAGES.map((page) => ({
+    url: `${BASE}/growth/${page.slug}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.86,
+  }));
+
   let businessRoutes: MetadataRoute.Sitemap = [];
   try {
     const businesses = await prisma.businessProfile.findMany({
@@ -98,5 +110,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   } catch {}
 
-  return [...staticSitemap, ...offerRoutes, ...platformRoutes, ...businessRoutes, ...voiceRoutes];
+  return [...staticSitemap, ...offerRoutes, ...platformRoutes, ...organicRoutes, ...businessRoutes, ...voiceRoutes];
 }

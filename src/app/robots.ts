@@ -11,7 +11,7 @@ const BASE = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.theleadflowpro.co
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      { userAgent: "*", allow: "/", disallow: ["/admin/", "/api/admin/", "/dashboard/"] },
+      { userAgent: "*", allow: "/", disallow: ["/admin/", "/api/admin/", "/dashboard/", "/audit/"] },
       { userAgent: "GPTBot", allow: "/" },
       { userAgent: "ClaudeBot", allow: "/" },
       { userAgent: "anthropic-ai", allow: "/" },

@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, BriefcaseBusiness, Package } from "lucide-react";
+import { ArrowRight, ClipboardCheck, Gauge } from "lucide-react";
 import { LightMobileMenu } from "./LightMobileMenu";
 
 export function LightHeader({ activePath }: { activePath?: string }) {
@@ -16,6 +16,9 @@ export function LightHeader({ activePath }: { activePath?: string }) {
 
   const nav = [
     { href: "/", label: "Home" },
+    { href: "/lead-leak-audit", label: "Free Audit" },
+    { href: "/organic-growth", label: "Organic Plan" },
+    { href: "/proof", label: "Proof" },
     { href: "/services", label: "Social Media" },
     { href: "/services/consulting", label: "Consulting" },
     { href: "/tiers", label: "Pricing" },
@@ -64,10 +67,10 @@ export function LightHeader({ activePath }: { activePath?: string }) {
             Log in
           </Link>
           <Link
-            href="/challenge"
+            href="/lead-leak-audit"
             className="hidden items-center gap-1.5 rounded-lg bg-gradient-to-r from-slate-950 via-brand-950 to-slate-900 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 hover:from-brand-950 hover:to-slate-950 sm:inline-flex sm:px-4"
           >
-            Stump me <ArrowRight className="h-3.5 w-3.5" />
+            Free audit <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <Link
             href="/book"
@@ -80,8 +83,8 @@ export function LightHeader({ activePath }: { activePath?: string }) {
       </div>
       <div className="border-t border-cyan-200/70 bg-gradient-to-r from-cyan-100/80 via-white/70 to-accent-100/75 backdrop-blur lg:hidden">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 px-4 py-2">
-          <MobileAction href="/services" label="Social Media" Icon={Package} primary />
-          <MobileAction href="/services/consulting" label="Consulting" Icon={BriefcaseBusiness} />
+          <MobileAction href="/lead-leak-audit" label="Free Audit" Icon={ClipboardCheck} primary />
+          <MobileAction href="/organic-growth" label="Organic Plan" Icon={Gauge} />
         </div>
       </div>
     </header>
@@ -129,6 +132,9 @@ export function LightFooter() {
         </div>
         <div className="md:text-right space-x-4">
           <Link href="/" className="hover:text-slate-900">Home</Link>
+          <Link href="/lead-leak-audit" className="hover:text-slate-900">Free audit</Link>
+          <Link href="/organic-growth" className="hover:text-slate-900">Organic plan</Link>
+          <Link href="/proof" className="hover:text-slate-900">Proof</Link>
           <Link href="/services" className="hover:text-slate-900">Social Media</Link>
           <Link href="/services/consulting" className="hover:text-slate-900">Consulting</Link>
           <Link href="/tiers" className="hover:text-slate-900">Pricing</Link>
@@ -143,6 +149,10 @@ export function LightFooter() {
           <Link href="/rewards" className="hover:text-slate-900">Rewards</Link>
           <Link href="/book" className="hover:text-slate-900">Book a call</Link>
           <Link href="/contact" className="hover:text-slate-900">Contact</Link>
+          <Link href="/legal" className="hover:text-slate-900">Legal</Link>
+          <Link href="/legal#privacy" className="hover:text-slate-900">Privacy</Link>
+          <Link href="/legal#terms" className="hover:text-slate-900">Terms</Link>
+          <Link href="/legal#refund" className="hover:text-slate-900">Refunds</Link>
         </div>
       </div>
     </footer>

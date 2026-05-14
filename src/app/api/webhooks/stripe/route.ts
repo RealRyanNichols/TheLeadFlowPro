@@ -101,13 +101,60 @@ async function findOrCreateUserForCheckout(
   }
 }
 
-function checkoutOfferSlug(session: Stripe.Checkout.Session): string | null {
+function metadataOfferSlug(metadata: Stripe.Metadata | null | undefined): string | null {
   return (
-    (session.metadata?.slug as string | undefined) ||
-    (session.metadata?.offerSlug as string | undefined) ||
-    (session.metadata?.offer as string | undefined) ||
+    (metadata?.slug as string | undefined) ||
+    (metadata?.offerSlug as string | undefined) ||
+    (metadata?.offer as string | undefined) ||
     null
   );
+}
+
+async function checkoutOfferSlug(session: Stripe.Checkout.Session): Promise<string | null> {
+  const sessionSlug = metadataOfferSlug(session.metadata);
+  if (sessionSlug) return sessionSlug;
+
+  const paymentLinkId =
+    typeof session.payment_link === "string"
+      ? session.payment_link
+      : session.payment_link?.id ?? null;
+  if (paymentLinkId) {
+    try {
+      const paymentLink = await stripe().paymentLinks.retrieve(paymentLinkId);
+      const paymentLinkSlug = metadataOfferSlug(paymentLink.metadata);
+      if (paymentLinkSlug) return paymentLinkSlug;
+    } catch (err) {
+      console.warn("Stripe webhook: payment link metadata lookup failed", {
+        session: session.id,
+        paymentLinkId,
+        error: err instanceof Error ? err.message : "unknown",
+      });
+    }
+  }
+
+  try {
+    const lineItems = await stripe().checkout.sessions.listLineItems(session.id, {
+      limit: 10,
+      expand: ["data.price.product"],
+    });
+    for (const item of lineItems.data) {
+      const priceSlug = metadataOfferSlug(item.price?.metadata);
+      if (priceSlug) return priceSlug;
+
+      const product = item.price?.product;
+      if (product && typeof product !== "string" && "metadata" in product) {
+        const productSlug = metadataOfferSlug(product.metadata);
+        if (productSlug) return productSlug;
+      }
+    }
+  } catch (err) {
+    console.warn("Stripe webhook: line item metadata lookup failed", {
+      session: session.id,
+      error: err instanceof Error ? err.message : "unknown",
+    });
+  }
+
+  return null;
 }
 
 async function createOfferWorkOrderFromCheckout(
@@ -115,7 +162,7 @@ async function createOfferWorkOrderFromCheckout(
   user: Awaited<ReturnType<typeof findUserForEvent>> | null,
   customerId: string | null,
 ) {
-  const offerSlug = checkoutOfferSlug(session);
+  const offerSlug = await checkoutOfferSlug(session);
   const workload = getOfferWorkload(offerSlug);
   if (!offerSlug || !workload) return false;
 
