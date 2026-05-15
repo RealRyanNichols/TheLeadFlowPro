@@ -34,7 +34,7 @@ export function MetaPixel() {
     if (submitted !== "1") return;
 
     let contentName: string | null = null;
-    if (pathname === "/stump-ryan" || pathname === "/challenge") {
+    if (pathname === "/stump-ryan" || pathname === "/challenge" || pathname === "/stump-ryan/thank-you") {
       contentName = "Stump Ryan Build Blueprint";
     } else if (pathname.startsWith("/audit/") || pathname === "/lead-leak-audit/thank-you") {
       contentName = "Lead Leak Audit";

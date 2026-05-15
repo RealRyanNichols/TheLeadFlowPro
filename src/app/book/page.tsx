@@ -23,6 +23,7 @@ import { BandwidthMeter } from "@/components/BandwidthMeter";
 import { BookingPathGuide } from "@/components/book/BookingPathGuide";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { PageValueModule } from "@/components/site/PageValueModule";
+import { LEADFLOW_PUBLIC_EMAIL } from "@/lib/contact";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const metadata = createSeoMetadata({
@@ -35,8 +36,6 @@ export const metadata = createSeoMetadata({
   image: "/images/social/book-call.png",
 });
 
-const RYAN_EMAIL = "theflashflash24@gmail.com";
-
 const BOOKING_URL =
   process.env.NEXT_PUBLIC_BOOKING_URL ||
   "https://cal.com/realryannichols/leadflow-pro-strategy-call";
@@ -47,7 +46,7 @@ function withCalParams(url: string): string {
 }
 
 function mailto(subject: string, body: string): string {
-  return `mailto:${RYAN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  return `mailto:${LEADFLOW_PUBLIC_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 const RIGHT_FIT = [

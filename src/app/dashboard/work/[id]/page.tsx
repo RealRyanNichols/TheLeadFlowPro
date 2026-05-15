@@ -23,6 +23,7 @@ import {
   orderHoursLabel,
   progressPercent,
 } from "@/lib/client-office";
+import { LEADFLOW_PUBLIC_EMAIL } from "@/lib/contact";
 import { ClientUpdateForm } from "./ClientUpdateForm";
 
 export const dynamic = "force-dynamic";
@@ -76,7 +77,7 @@ export default async function ClientWorkOrderPage({ params }: { params: { id: st
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:w-[360px]">
             <a
-              href={`mailto:theflashflash24@gmail.com?subject=${encodeURIComponent(`Files for LeadFlow order ${order.id.slice(-6)}`)}`}
+              href={`mailto:${LEADFLOW_PUBLIC_EMAIL}?subject=${encodeURIComponent(`Files for LeadFlow order ${order.id.slice(-6)}`)}`}
               className="btn-primary justify-center"
             >
               Email files <Mail className="h-4 w-4" />

@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { LEADFLOW_PUBLIC_EMAIL } from "@/lib/contact";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -135,7 +136,7 @@ export function FarettaChatbot() {
             role: "assistant",
             content:
               data.fallback ||
-              "I'm offline right now. Email Ryan directly at theflashflash24@gmail.com or book the 10-min call.",
+              `I'm offline right now. Email Ryan directly at ${LEADFLOW_PUBLIC_EMAIL} or book the 10-min call.`,
           },
         ]);
       }
@@ -145,7 +146,7 @@ export function FarettaChatbot() {
         {
           role: "assistant",
           content:
-            "Connection hiccup. Email Ryan at theflashflash24@gmail.com or book the 10-min call at /book.",
+            `Connection hiccup. Email Ryan at ${LEADFLOW_PUBLIC_EMAIL} or book the 10-min call at /book.`,
         },
       ]);
     } finally {

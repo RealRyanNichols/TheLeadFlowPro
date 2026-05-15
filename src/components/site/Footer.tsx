@@ -1,5 +1,6 @@
 // src/components/site/Footer.tsx
 import Link from "next/link";
+import { LEADFLOW_PUBLIC_EMAIL } from "@/lib/contact";
 import { FunnelMark } from "./Logo";
 
 export function Footer() {
@@ -122,7 +123,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:support@theleadflowpro.com"
+                  href={`mailto:${LEADFLOW_PUBLIC_EMAIL}`}
                   className="text-ink-100 hover:text-white"
                 >
                   Contact support

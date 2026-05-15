@@ -164,7 +164,15 @@ function preview(value: string, fallback: string, max = 118) {
   return clean.length > max ? `${clean.slice(0, max - 3)}...` : clean;
 }
 
-export function PromptBuildLab() {
+type PromptBuildLabProps = {
+  source?: string;
+  landingPage?: string;
+};
+
+export function PromptBuildLab({
+  source = "stump-ryan-blueprint",
+  landingPage = "/stump-ryan",
+}: PromptBuildLabProps = {}) {
   const [step, setStep] = useState(0);
   const [values, setValues] = useState<LabValues>(INITIAL_VALUES);
   const [error, setError] = useState<string | null>(null);
@@ -258,6 +266,8 @@ export function PromptBuildLab() {
       className="overflow-hidden rounded-3xl border border-white/70 bg-white/90 shadow-[0_28px_70px_-28px_rgba(15,23,42,0.38)] backdrop-blur"
     >
       <VisitorIdField />
+      <input type="hidden" name="source" value={source} />
+      <input type="hidden" name="landingPage" value={landingPage} />
       <input type="hidden" name="promptStack" value={promptStack} />
       <input type="hidden" name="budgetTier" value={budgetTier} />
       <input type="hidden" name="ownershipPreference" value={values.ownershipPreference} />

@@ -1,8 +1,10 @@
+import { LEADFLOW_FROM_EMAIL, LEADFLOW_PUBLIC_EMAIL } from "@/lib/contact";
+
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_FROM =
   process.env.RESEND_FROM_ADDRESS ||
-  "Ryan @ The LeadFlow Pro <hello@theleadflowpro.com>";
-const DEFAULT_NOTIFY_EMAIL = "theflashflash24@gmail.com";
+  `Ryan @ The LeadFlow Pro <${LEADFLOW_FROM_EMAIL}>`;
+const DEFAULT_NOTIFY_EMAIL = LEADFLOW_PUBLIC_EMAIL;
 
 function escapeHtml(value: string | null | undefined) {
   return String(value || "")

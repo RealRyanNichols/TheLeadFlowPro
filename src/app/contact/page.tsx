@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { OpenChatButton } from "@/components/site/OpenChatButton";
+import { LEADFLOW_PUBLIC_EMAIL, leadflowMailto } from "@/lib/contact";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const metadata = createSeoMetadata({
@@ -27,14 +28,11 @@ export const metadata = createSeoMetadata({
   imageSubtitle: "Start the router, book the call, ask the AI, text, or email.",
 });
 
-const RYAN_EMAIL = "theflashflash24@gmail.com";
 const PHONE_DISPLAY = "(903) 345-8990";
 const PHONE_HREF = "+19033458990";
 
 function mailto(subject: string, body = "") {
-  const params = new URLSearchParams({ subject });
-  if (body) params.set("body", body);
-  return `mailto:${RYAN_EMAIL}?${params.toString()}`;
+  return leadflowMailto(subject, body);
 }
 
 const CONTEXT_BODY =
@@ -162,7 +160,7 @@ export default function ContactPage() {
                     href={mailto("LeadFlow Pro — serious inquiry", CONTEXT_BODY)}
                     Icon={Mail}
                     label="Email Ryan"
-                    body={RYAN_EMAIL}
+                    body={LEADFLOW_PUBLIC_EMAIL}
                   />
                   <QuickLink
                     href={`tel:${PHONE_HREF}`}

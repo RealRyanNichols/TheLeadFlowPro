@@ -4,6 +4,7 @@
 // Falls back gracefully when ANTHROPIC_API_KEY isn't set in Vercel.
 
 import { NextResponse } from "next/server";
+import { LEADFLOW_PUBLIC_EMAIL } from "@/lib/contact";
 import {
   buildLeadMemoryContext,
   cleanLeadVisitorId,
@@ -53,7 +54,7 @@ Voice rules:
 
 If they ask about something not above (legal questions, healthcare, etc.), say: "Best to get on the call with Ryan — book at /book."
 
-If they want to email Ryan: theflashflash24@gmail.com.
+If they want to email Ryan: ${LEADFLOW_PUBLIC_EMAIL}.
 
 Keep replies tight. Don't over-explain.`;
 
@@ -218,7 +219,7 @@ Use the saved memory naturally. Do not act creepy. If name/business/email are un
   } catch (err) {
     return NextResponse.json({
       ok: false,
-      fallback: `I hit a network error. Email Ryan at theflashflash24@gmail.com.`,
+      fallback: `I hit a network error. Email Ryan at ${LEADFLOW_PUBLIC_EMAIL}.`,
     });
   }
 
@@ -226,7 +227,7 @@ Use the saved memory naturally. Do not act creepy. If name/business/email are un
     const text = await res.text().catch(() => "");
     return NextResponse.json({
       ok: false,
-      fallback: `Anthropic API ${res.status}. Email Ryan at theflashflash24@gmail.com.`,
+      fallback: `Anthropic API ${res.status}. Email Ryan at ${LEADFLOW_PUBLIC_EMAIL}.`,
       detail: process.env.NODE_ENV === "development" ? text.slice(0, 200) : undefined,
     });
   }
@@ -238,7 +239,7 @@ Use the saved memory naturally. Do not act creepy. If name/business/email are un
   if (!reply) {
     return NextResponse.json({
       ok: false,
-      fallback: "I got an empty reply. Email Ryan directly at theflashflash24@gmail.com.",
+      fallback: `I got an empty reply. Email Ryan directly at ${LEADFLOW_PUBLIC_EMAIL}.`,
     });
   }
 

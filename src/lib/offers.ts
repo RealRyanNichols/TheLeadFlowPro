@@ -17,6 +17,7 @@ import {
   LineChart, Megaphone, Rocket, ShieldCheck, Sparkles, Target, TrendingUp,
   Trophy, Users, Wrench, Zap,
 } from "lucide-react";
+import { LEADFLOW_PUBLIC_EMAIL } from "./contact";
 import { STRIPE_PAYMENT_LINKS } from "./stripe-links";
 
 export type OfferSlug =
@@ -74,10 +75,8 @@ export type Offer = {
   upgradeCredit?: string;                            // "Apply $90 toward $497 within 30 days"
 };
 
-const RYAN_EMAIL = "theflashflash24@gmail.com";
-
 function mailto(subject: string): string {
-  return `mailto:${RYAN_EMAIL}?subject=${encodeURIComponent(subject)}`;
+  return `mailto:${LEADFLOW_PUBLIC_EMAIL}?subject=${encodeURIComponent(subject)}`;
 }
 
 /**

@@ -35,6 +35,8 @@ export async function POST(req: NextRequest) {
   const ownershipPreference =
     pickStr(form.get("ownershipPreference"), 180) ??
     "client-owned-accounts-code-data-assets";
+  const source = pickStr(form.get("source"), 120) ?? "stump-ryan-blueprint-form";
+  const landingPage = pickStr(form.get("landingPage"), 240) ?? "/stump-ryan";
   const promptDraft = pickStr(form.get("promptDraft"), 3000);
   const promptStack = pickStr(form.get("promptStack"), 3000);
   const insightSnapshot = pickStr(form.get("insightSnapshot"), 3000);
@@ -49,10 +51,12 @@ export async function POST(req: NextRequest) {
 
   const budgetTier = pickStr(form.get("budgetTier"), 40) ?? "blueprint-first";
   const timeline = pickStr(form.get("timeline"), 80);
-  const routedTo = "/stump-ryan?submitted=1#continue-build";
+  const routedTo = "/stump-ryan/thank-you?submitted=1";
   const notes = [
     "Stump Ryan Blueprint Request.",
     "Free offer: Ryan finds the lead leak, maps the dream tool, and sends a 1-3 page plan/proposal before paid buildout.",
+    `Source: ${source}`,
+    `Landing page: ${landingPage}`,
     `Tool name: ${toolName}`,
     toolFocus ? `Interactive tool focus: ${toolFocus}` : null,
     platformTarget ? `Target platform / home: ${platformTarget}` : null,
@@ -89,7 +93,7 @@ export async function POST(req: NextRequest) {
         budgetTier,
         bestContactMethod: pickStr(form.get("bestContactMethod"), 40),
         notes,
-        routedTo: "/stump-ryan?submitted=1",
+        routedTo,
       },
     });
     intakeId = intake.id;
@@ -111,8 +115,9 @@ export async function POST(req: NextRequest) {
       topic: "custom tool",
       stage: "blueprint_requested",
       path: "/stump-ryan",
-      source: "stump-ryan-blueprint-form",
+      source,
       profile: {
+        landingPage,
         toolName,
         toolProblem,
         businessImpact,
@@ -128,7 +133,7 @@ export async function POST(req: NextRequest) {
         promptStack,
         promptDraft,
         insightSnapshot,
-        routedTo: "/stump-ryan?submitted=1",
+        routedTo,
       },
     });
   } catch {
@@ -140,7 +145,7 @@ export async function POST(req: NextRequest) {
       visitorId,
       path: "/stump-ryan",
       eventType: "form_submit",
-      source: "stump-ryan-blueprint-form",
+      source,
       target: "blueprint-request-submit",
       value: 1,
     });

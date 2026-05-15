@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ShieldCheck, FileText, Lock, RotateCcw, Mail, MapPin } from "lucide-react";
+import { LEADFLOW_PUBLIC_EMAIL } from "@/lib/contact";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const metadata = createSeoMetadata({
@@ -13,7 +14,7 @@ export const metadata = createSeoMetadata({
 
 const LAST_UPDATED = "April 17, 2026";
 const ENTITY = "REAL RYAN NICHOLS LLC";
-const CONTACT_EMAIL = "support@theleadflowpro.com";
+const CONTACT_EMAIL = LEADFLOW_PUBLIC_EMAIL;
 
 export default function LegalPage() {
   return (

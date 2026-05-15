@@ -10,11 +10,12 @@
 // which is wired in src/lib/auth.ts.
 
 import { NextResponse } from "next/server";
+import { LEADFLOW_FROM_EMAIL, LEADFLOW_PUBLIC_EMAIL } from "@/lib/contact";
 import { prisma } from "@/lib/prisma";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const RESEND_FROM = process.env.RESEND_FROM_ADDRESS || "Ryan @ The LeadFlow Pro <hello@theleadflowpro.com>";
-const SUPPORT_EMAIL = "theflashflash24@gmail.com";
+const RESEND_FROM = process.env.RESEND_FROM_ADDRESS || `Ryan @ The LeadFlow Pro <${LEADFLOW_FROM_EMAIL}>`;
+const SUPPORT_EMAIL = LEADFLOW_PUBLIC_EMAIL;
 
 function generateOtp(): string {
   // 6-digit numeric, zero-padded.
