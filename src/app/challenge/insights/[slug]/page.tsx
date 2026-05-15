@@ -128,7 +128,105 @@ const INSIGHTS = {
 } as const;
 
 type InsightSlug = keyof typeof INSIGHTS;
-type Props = { params: { slug: string } };
+type SearchParams = Record<string, string | string[] | undefined>;
+type Props = { params: { slug: string }; searchParams?: SearchParams };
+
+const BUILD_LEVELS = {
+  "quick-prototype": { label: "Quick prototype", multiplier: 0.75 },
+  "business-tool": { label: "Business tool", multiplier: 1 },
+  "operating-system": { label: "Operating system", multiplier: 1.45 },
+} as const;
+
+const FOCUS_LABELS: Record<string, string> = {
+  "missed-leads": "Missed leads",
+  "manual-work": "Manual work",
+  "follow-up": "Follow-up",
+  "content-engine": "Content engine",
+  "client-portal": "Client portal",
+  "owner-dashboard": "Owner dashboard",
+};
+
+const money = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
+
+function firstParam(searchParams: SearchParams | undefined, key: string) {
+  const value = searchParams?.[key];
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function numberParam(searchParams: SearchParams | undefined, key: string, fallback: number, min: number, max: number) {
+  const value = Number(firstParam(searchParams, key));
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, value));
+}
+
+function calculatorContext(searchParams: SearchParams | undefined, slug: InsightSlug) {
+  const hasInputs = [
+    "missedLeads",
+    "leadValue",
+    "manualHours",
+    "responseDelay",
+    "teamSize",
+    "buildLevel",
+  ].some((key) => firstParam(searchParams, key));
+  const missedLeads = numberParam(searchParams, "missedLeads", 6, 0, 40);
+  const leadValue = numberParam(searchParams, "leadValue", 350, 25, 5000);
+  const manualHours = numberParam(searchParams, "manualHours", 7, 0, 40);
+  const responseDelay = numberParam(searchParams, "responseDelay", 12, 0, 72);
+  const teamSize = numberParam(searchParams, "teamSize", 3, 1, 50);
+  const buildLevelKey = firstParam(searchParams, "buildLevel") || "business-tool";
+  const buildLevel = BUILD_LEVELS[buildLevelKey as keyof typeof BUILD_LEVELS] ?? BUILD_LEVELS["business-tool"];
+  const focus = FOCUS_LABELS[firstParam(searchParams, "focus") || ""] ?? "Your business";
+  const monthlyExposure = Math.round(missedLeads * leadValue * 4.33);
+  const monthlyHours = Math.round(manualHours * 4.33);
+  const buildHours = Math.max(
+    4,
+    Math.round((4 + manualHours * 0.65 + teamSize * 0.8 + responseDelay * 0.12) * buildLevel.multiplier),
+  );
+
+  if (slug === "monthly-exposure") {
+    return {
+      hasInputs,
+      focus,
+      metric: money.format(monthlyExposure),
+      metricLabel: hasInputs ? "estimated monthly exposure from your inputs" : "starting monthly exposure estimate",
+      inputTitle: hasInputs ? "Your inputs" : "Starting inputs",
+      inputBody: `${missedLeads} missed leads/week x ${money.format(leadValue)} average value x 4.33 = ${money.format(monthlyExposure)}/month exposed`,
+      plainEnglish: hasInputs
+        ? "This is based on the numbers you just moved. If the assumptions are close, this is the size of the leak Ryan should look for in your calls, forms, DMs, booking path, and follow-up."
+        : "These are starting assumptions until you move the sliders. The point is to replace random business stats with your own rough numbers.",
+    };
+  }
+
+  if (slug === "hours-per-month") {
+    return {
+      hasInputs,
+      focus,
+      metric: `${monthlyHours}h`,
+      metricLabel: hasInputs ? "estimated monthly time waste from your inputs" : "starting monthly time waste estimate",
+      inputTitle: hasInputs ? "Your inputs" : "Starting inputs",
+      inputBody: `${manualHours} manual hours/week x 4.33 = ${monthlyHours} hours/month`,
+      plainEnglish: hasInputs
+        ? "This is your rough time leak. If those hours are real, Ryan should look for the repeated work that can become a tool, template, reminder, dashboard, or client portal."
+        : "These are starting assumptions until you move the sliders. Your own time waste matters more than a generic industry average.",
+    };
+  }
+
+  return {
+    hasInputs,
+    focus,
+    metric: `${buildHours}h`,
+    metricLabel: hasInputs ? "estimated first build from your inputs" : "starting first build estimate",
+    inputTitle: hasInputs ? "Your inputs" : "Starting inputs",
+    inputBody: `(4 base + ${manualHours} manual hours x .65 + ${teamSize} team members x .8 + ${responseDelay} delay hours x .12) x ${buildLevel.multiplier} ${buildLevel.label.toLowerCase()} = ${buildHours} hours`,
+    plainEnglish: hasInputs
+      ? "This is not the final quote. It is a first sizing pass from your own leak, delay, team size, and build level so Ryan can decide whether to prototype, build a focused tool, or map a larger operating system."
+      : "These are starting assumptions until you move the sliders. A real build estimate should be tied to your process, not someone else's business.",
+  };
+}
 
 export function generateStaticParams() {
   return Object.keys(INSIGHTS).map((slug) => ({ slug }));
@@ -139,7 +237,7 @@ export function generateMetadata({ params }: Props): Metadata {
   if (!insight) return { title: "Insight · The LeadFlow Pro" };
 
   return createSeoMetadata({
-    title: `${insight.title} Breakdown — The LeadFlow Pro`,
+    title: `${insight.title} Breakdown | The LeadFlow Pro`,
     description: insight.description,
     path: `/challenge/insights/${params.slug}`,
     imageTitle: `${insight.title} Breakdown`,
@@ -147,9 +245,10 @@ export function generateMetadata({ params }: Props): Metadata {
   });
 }
 
-export default function ChallengeInsightPage({ params }: Props) {
+export default function ChallengeInsightPage({ params, searchParams }: Props) {
   const insight = INSIGHTS[params.slug as InsightSlug];
   if (!insight) notFound();
+  const calculator = calculatorContext(searchParams, params.slug as InsightSlug);
 
   return (
     <div className="min-h-screen bg-white text-slate-950">
@@ -203,26 +302,28 @@ export default function ChallengeInsightPage({ params }: Props) {
             <div className="overflow-hidden rounded-3xl border border-slate-900/10 bg-slate-950 text-white shadow-[0_30px_90px_-36px_rgba(15,23,42,0.75)]">
               <div className="border-b border-white/10 bg-white/[0.04] p-5">
                 <div className="text-xs font-semibold uppercase tracking-widest text-cyan-200">
-                  Current calculator example
+                  {calculator.hasInputs ? "Your calculator estimate" : "Calculator starting point"}
                 </div>
-                <div className="mt-3 flex items-end gap-3">
-                  <div className="text-6xl font-semibold tracking-tight tabular-nums">
-                    {insight.metric}
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-3">
+                  <div className="break-words text-5xl font-semibold tracking-tight tabular-nums sm:text-6xl">
+                    {calculator.metric}
                   </div>
-                  <div className="pb-2 text-sm text-slate-300">{insight.metricLabel}</div>
+                  <div className="text-sm text-slate-300 sm:pb-2">{calculator.metricLabel}</div>
+                </div>
+                <div className="mt-3 inline-flex rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-100">
+                  Focus: {calculator.focus}
                 </div>
               </div>
               <div className="grid gap-3 p-5">
                 <FormulaCard title="Formula" body={insight.formula} Icon={Bot} />
-                <FormulaCard title="Example" body={insight.example} Icon={DollarSign} />
+                <FormulaCard title={calculator.inputTitle} body={calculator.inputBody} Icon={DollarSign} />
                 <div className="rounded-2xl border border-accent-300/25 bg-accent-300/10 p-4">
                   <div className="flex items-center gap-2 text-sm font-semibold text-accent-100">
                     <Lightbulb className="h-4 w-4" />
                     Plain English
                   </div>
                   <p className="mt-2 text-sm leading-relaxed text-slate-300">
-                    This number is a starting point for a conversation. Better connected data turns
-                    it from an estimate into an operating signal.
+                    {calculator.plainEnglish}
                   </p>
                 </div>
               </div>

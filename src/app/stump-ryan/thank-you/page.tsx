@@ -10,6 +10,7 @@ import {
   KeyRound,
   MessageSquareText,
 } from "lucide-react";
+import { ClearPromptBuildLabDraft } from "@/components/challenge/ClearPromptBuildLabDraft";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
 import { TOOL_CHALLENGE_DEPOSIT } from "@/lib/challenge-deposit";
@@ -53,6 +54,7 @@ const BLUEPRINT_OUTPUT = [
 export default function StumpRyanThankYouPage() {
   return (
     <div className="min-h-screen bg-white text-slate-950">
+      <ClearPromptBuildLabDraft />
       <LightHeader activePath="/stump-ryan" />
 
       <main>

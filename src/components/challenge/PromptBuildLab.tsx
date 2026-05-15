@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import {
   ArrowRight,
@@ -154,6 +154,75 @@ const INITIAL_VALUES: LabValues = {
   acknowledgment: false,
 };
 
+const DRAFT_STORAGE_PREFIX = "leadflow.prompt-build-lab.";
+const DRAFT_VERSION = 1;
+const LAB_VALUE_KEYS = Object.keys(INITIAL_VALUES) as Array<keyof LabValues>;
+
+type SavedLabDraft = {
+  version?: number;
+  step?: number;
+  values?: unknown;
+  updatedAt?: string;
+};
+
+function draftStorageKey(source: string, landingPage: string) {
+  return `${DRAFT_STORAGE_PREFIX}${source}.${landingPage}`;
+}
+
+function restoredValuesFrom(candidate: unknown) {
+  if (!candidate || typeof candidate !== "object") return null;
+
+  const incoming = candidate as Record<string, unknown>;
+  const restored: Record<string, string | boolean> = { ...INITIAL_VALUES };
+
+  for (const key of LAB_VALUE_KEYS) {
+    const value = incoming[key];
+    if (typeof INITIAL_VALUES[key] === "boolean") {
+      if (typeof value === "boolean") restored[key] = value;
+      continue;
+    }
+    if (typeof value === "string") restored[key] = value;
+  }
+
+  restored.ownershipPreference = OWNERSHIP_PREFERENCE;
+  restored.budgetTier = budgetTierFor(String(restored.blueprintIntent));
+
+  return restored as LabValues;
+}
+
+function parseDraft(raw: string | null) {
+  if (!raw) return null;
+
+  try {
+    const draft = JSON.parse(raw) as SavedLabDraft;
+    return draft.version === DRAFT_VERSION ? draft : null;
+  } catch {
+    return null;
+  }
+}
+
+function newestDraftFromStorage(storageKey: string) {
+  if (typeof window === "undefined") return null;
+
+  const exactDraft = parseDraft(window.localStorage.getItem(storageKey));
+  if (exactDraft) return exactDraft;
+
+  let newest: { draft: SavedLabDraft; time: number } | null = null;
+
+  for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+    const key = window.localStorage.key(index);
+    if (!key?.startsWith(DRAFT_STORAGE_PREFIX)) continue;
+
+    const draft = parseDraft(window.localStorage.getItem(key));
+    if (!draft) continue;
+
+    const time = Date.parse(draft.updatedAt || "") || 0;
+    if (!newest || time > newest.time) newest = { draft, time };
+  }
+
+  return newest?.draft ?? null;
+}
+
 function emailLooksValid(email: string) {
   return /.+@.+\..+/.test(email.trim());
 }
@@ -176,6 +245,55 @@ export function PromptBuildLab({
   const [step, setStep] = useState(0);
   const [values, setValues] = useState<LabValues>(INITIAL_VALUES);
   const [error, setError] = useState<string | null>(null);
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+  const storageKey = useMemo(() => draftStorageKey(source, landingPage), [landingPage, source]);
+
+  const persistDraft = useCallback((nextValues: LabValues, nextStep: number) => {
+    if (typeof window === "undefined") return;
+
+    try {
+      window.localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          version: DRAFT_VERSION,
+          step: nextStep,
+          values: nextValues,
+          updatedAt: new Date().toISOString(),
+        }),
+      );
+    } catch {
+      // Losing draft storage should never block the form.
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    try {
+      const draft = newestDraftFromStorage(storageKey);
+      if (!draft) {
+        setDraftLoaded(true);
+        return;
+      }
+
+      const restored = restoredValuesFrom(draft.values);
+      if (restored) {
+        const restoredStep =
+          typeof draft.step === "number" ? Math.min(STEPS.length - 1, Math.max(0, draft.step)) : 0;
+        setValues(restored);
+        setStep(restoredStep);
+        setDraftRestored(true);
+      }
+    } catch {
+      // Bad local drafts should not trap a visitor on a broken form.
+    } finally {
+      setDraftLoaded(true);
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (!draftLoaded) return;
+    persistDraft(values, step);
+  }, [draftLoaded, persistDraft, step, values]);
 
   const promptStack = useMemo(() => {
     return [
@@ -199,7 +317,11 @@ export function PromptBuildLab({
   }, [values]);
 
   function setValue<K extends keyof LabValues>(key: K, value: LabValues[K]) {
-    setValues((current) => ({ ...current, [key]: value }));
+    setValues((current) => {
+      const next = { ...current, [key]: value };
+      persistDraft(next, step);
+      return next;
+    });
     setError(null);
   }
 
@@ -235,12 +357,20 @@ export function PromptBuildLab({
       setError(message);
       return;
     }
-    setStep((current) => Math.min(current + 1, STEPS.length - 1));
+    setStep((current) => {
+      const next = Math.min(current + 1, STEPS.length - 1);
+      persistDraft(values, next);
+      return next;
+    });
   }
 
   function previousStep() {
     setError(null);
-    setStep((current) => Math.max(current - 1, 0));
+    setStep((current) => {
+      const next = Math.max(current - 1, 0);
+      persistDraft(values, next);
+      return next;
+    });
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -305,11 +435,20 @@ export function PromptBuildLab({
               style={{ width: `${progress}%` }}
             />
           </div>
+          <div className="mt-2 text-xs font-medium text-cyan-100">
+            Draft autosaves on this device, including the current step.
+          </div>
         </div>
       </div>
 
       <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="p-4 sm:p-5">
+          {draftRestored ? (
+            <div className="mb-4 rounded-2xl border border-cyan-200 bg-cyan-50 p-3 text-sm font-semibold text-cyan-950">
+              Saved draft restored. You can check a breakdown page and come back without losing this request.
+            </div>
+          ) : null}
+
           <div className="mb-4 rounded-3xl border border-cyan-200 bg-cyan-50/80 p-4">
             <div className="flex items-start gap-3">
               <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-cyan-200">

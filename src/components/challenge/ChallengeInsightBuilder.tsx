@@ -146,6 +146,21 @@ export function ChallengeInsightBuilder({ compact = false }: { compact?: boolean
     [active.label, activeFocus, buildLevel, leadValue, level.label, manualHours, missedLeads, responseDelay, stats, teamSize],
   );
 
+  const insightQuery = useMemo(() => {
+    const params = new URLSearchParams({
+      focus: activeFocus,
+      missedLeads: String(missedLeads),
+      leadValue: String(leadValue),
+      manualHours: String(manualHours),
+      responseDelay: String(responseDelay),
+      teamSize: String(teamSize),
+      buildLevel,
+    });
+    return params.toString();
+  }, [activeFocus, buildLevel, leadValue, manualHours, missedLeads, responseDelay, teamSize]);
+
+  const insightHref = (slug: string) => `/challenge/insights/${slug}?${insightQuery}`;
+
   return (
     <div className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 text-white shadow-[0_26px_70px_-32px_rgba(15,23,42,0.75)]">
       <input type="hidden" name="toolFocus" value={active.label} />
@@ -173,8 +188,8 @@ export function ChallengeInsightBuilder({ compact = false }: { compact?: boolean
         </div>
       </div>
 
-      <div className="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="border-b border-white/10 p-4 sm:p-5 lg:border-b-0 lg:border-r">
+      <div className={compact ? "grid gap-0" : "grid gap-0 lg:grid-cols-[0.95fr_1.05fr]"}>
+        <div className={`border-b border-white/10 p-4 sm:p-5 ${compact ? "" : "lg:border-b-0 lg:border-r"}`}>
           <div className="grid grid-cols-2 gap-2">
             {FOCUS_OPTIONS.map((option) => {
               const selected = option.key === activeFocus;
@@ -244,21 +259,21 @@ export function ChallengeInsightBuilder({ compact = false }: { compact?: boolean
         </div>
 
         <div className="p-4 sm:p-5">
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,10.5rem),1fr))]">
             <MetricCard
-              href="/challenge/insights/monthly-exposure"
+              href={insightHref("monthly-exposure")}
               icon={<DollarSign className="h-4 w-4" />}
               label="Monthly exposure"
               value={fmt.format(stats.monthlyLeak)}
             />
             <MetricCard
-              href="/challenge/insights/hours-per-month"
+              href={insightHref("hours-per-month")}
               icon={<Clock3 className="h-4 w-4" />}
               label="Hours/month"
               value={`${Math.round(stats.monthlyHours)}h`}
             />
             <MetricCard
-              href="/challenge/insights/build-estimate"
+              href={insightHref("build-estimate")}
               icon={<Sparkles className="h-4 w-4" />}
               label="Build estimate"
               value={`${stats.buildHours}h`}
@@ -281,7 +296,7 @@ export function ChallengeInsightBuilder({ compact = false }: { compact?: boolean
               <Lightbulb className="h-4 w-4 text-accent-200" />
               Build level
             </div>
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(min(100%,8.75rem),1fr))]">
               {BUILD_LEVELS.map((item) => (
                 <button
                   key={item.key}
@@ -337,14 +352,14 @@ function MetricCard({
   return (
     <Link
       href={href}
-      className="group rounded-2xl border border-white/10 bg-white/[0.06] p-3 transition hover:border-cyan-300/45 hover:bg-white/[0.09] focus:outline-none focus:ring-2 focus:ring-cyan-300/50"
+      className="group min-w-0 rounded-2xl border border-white/10 bg-white/[0.06] p-3 transition hover:border-cyan-300/45 hover:bg-white/[0.09] focus:outline-none focus:ring-2 focus:ring-cyan-300/50"
     >
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-300">
-        <span className="text-cyan-200">{icon}</span>
-        {label}
+      <div className="flex min-w-0 items-start gap-2 text-xs font-semibold uppercase leading-tight tracking-[0.16em] text-slate-300">
+        <span className="shrink-0 text-cyan-200">{icon}</span>
+        <span className="min-w-0 break-words">{label}</span>
       </div>
-      <div className="mt-2 text-2xl font-bold tracking-tight text-white">{value}</div>
-      <div className="mt-2 text-[10px] font-semibold uppercase tracking-widest text-cyan-200 opacity-80 group-hover:opacity-100">
+      <div className="mt-3 break-words text-2xl font-bold tracking-tight text-white">{value}</div>
+      <div className="mt-2 text-[10px] font-semibold uppercase leading-tight tracking-[0.16em] text-cyan-200 opacity-80 group-hover:opacity-100">
         Tap for breakdown
       </div>
     </Link>
