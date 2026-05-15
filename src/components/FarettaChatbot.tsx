@@ -13,15 +13,14 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 const GREETING: Msg = {
   role: "assistant",
-  content:
-    "I'm Ryan's routing assistant. I help serious buyers get to the free blueprint, leak audit, service path, or call in about 30 seconds. What are you trying to figure out?",
+  content: "Tell me what you need. I’ll point you to the right next step.",
 };
 
 const QUICK_PROMPTS = [
-  "Stump Ryan with a tool",
-  "I want help growing my social",
-  "I need a sales process built",
-  "What package fits me?",
+  "Build a tool",
+  "Grow my social",
+  "Fix my leads",
+  "What fits?",
 ];
 
 function getVisitorId() {
@@ -136,7 +135,7 @@ export function FarettaChatbot() {
             role: "assistant",
             content:
               data.fallback ||
-              `I'm offline right now. Email Ryan directly at ${LEADFLOW_PUBLIC_EMAIL} or book the 10-min call.`,
+              `I’m offline. Email ${LEADFLOW_PUBLIC_EMAIL} or book here: /book.`,
           },
         ]);
       }
@@ -145,8 +144,7 @@ export function FarettaChatbot() {
         ...m,
         {
           role: "assistant",
-          content:
-            `Connection hiccup. Email Ryan at ${LEADFLOW_PUBLIC_EMAIL} or book the 10-min call at /book.`,
+          content: `Connection hiccup. Email ${LEADFLOW_PUBLIC_EMAIL} or book here: /book.`,
         },
       ]);
     } finally {
@@ -175,16 +173,16 @@ export function FarettaChatbot() {
 
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-5 right-5 z-50 flex h-[520px] w-[360px] max-w-[calc(100vw-2rem)] flex-col rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <div className="fixed inset-x-2 bottom-0 z-50 flex h-[72svh] max-h-[640px] flex-col rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:bottom-5 sm:left-auto sm:right-5 sm:h-[560px] sm:w-[420px] sm:max-w-[calc(100vw-2rem)] sm:rounded-2xl">
           {/* Header */}
           <div className="flex items-center justify-between rounded-t-2xl bg-gradient-to-br from-cyan-500 to-brand-700 px-4 py-3 text-white">
             <div className="flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/20 font-bold">F</span>
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/20 font-bold">LF</span>
               <div>
                 <div className="font-semibold">LeadFlow Assistant</div>
                 <div className="text-[11px] opacity-90 flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 animate-pulse" />
-                  online · remembers context
+                  online
                 </div>
               </div>
             </div>
@@ -198,14 +196,14 @@ export function FarettaChatbot() {
           </div>
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-slate-50">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto bg-slate-50 px-3 py-3 space-y-2.5 sm:px-4">
             {messages.map((m, i) => (
               <div
                 key={i}
                 className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap leading-relaxed ${
+                  className={`max-w-[92%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap leading-6 sm:max-w-[86%] ${
                     m.role === "user"
                       ? "bg-slate-900 text-white"
                       : "bg-white border border-slate-200 text-slate-800 shadow-sm"
@@ -235,7 +233,7 @@ export function FarettaChatbot() {
                 <button
                   key={p}
                   onClick={() => send(p)}
-                  className="text-xs rounded-full border border-slate-300 bg-white px-2.5 py-1 text-slate-700 hover:border-brand-500 hover:text-brand-700"
+                  className="rounded-full border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:border-brand-500 hover:text-brand-700"
                 >
                   {p}
                 </button>
@@ -248,23 +246,23 @@ export function FarettaChatbot() {
             <Link
               href="/stump-ryan"
               onClick={() => beaconPulse("chat_cta", "stump-ryan")}
-              className="flex-1 text-center text-xs rounded-lg bg-cyan-600 px-2 py-1.5 font-semibold text-white hover:bg-cyan-700"
+              className="flex-1 rounded-lg bg-cyan-600 px-2 py-2 text-center text-xs font-semibold text-white hover:bg-cyan-700"
             >
-              Free blueprint
+              Blueprint
             </Link>
             <Link
               href="/book"
               onClick={() => beaconPulse("chat_cta", "book")}
-              className="flex-1 text-center text-xs rounded-lg bg-accent-500 px-2 py-1.5 font-semibold text-white hover:bg-accent-600"
+              className="flex-1 rounded-lg bg-accent-500 px-2 py-2 text-center text-xs font-semibold text-white hover:bg-accent-600"
             >
-              Book call
+              Call
             </Link>
             <Link
               href="/tiers"
               onClick={() => beaconPulse("chat_cta", "tiers")}
-              className="flex-1 text-center text-xs rounded-lg bg-slate-900 px-2 py-1.5 font-semibold text-white hover:bg-slate-800"
+              className="flex-1 rounded-lg bg-slate-900 px-2 py-2 text-center text-xs font-semibold text-white hover:bg-slate-800"
             >
-              Bring me in
+              Pricing
             </Link>
           </div>
 
@@ -279,7 +277,7 @@ export function FarettaChatbot() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Tell me what you need..."
+              placeholder="What do you need?"
               className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand-500"
               disabled={busy}
             />
@@ -291,9 +289,8 @@ export function FarettaChatbot() {
               Send
             </button>
           </form>
-          <div className="rounded-b-2xl border-t border-slate-100 bg-white px-3 pb-2 text-[10px] leading-relaxed text-slate-500">
-            Private memory: this assistant remembers returning buyers when you share your name,
-            business, or email. It does not publish that context.
+          <div className="border-t border-slate-100 bg-white px-3 pb-2 text-[10px] leading-relaxed text-slate-500 sm:rounded-b-2xl">
+            Private. Nothing posts publicly.
           </div>
         </div>
       )}
