@@ -25,6 +25,7 @@ const staticRoutes = [
   "/availability",
   "/leaderboard",
   "/voice",
+  "/stump-ryan",
   "/challenge",
   "/challenge/insights/monthly-exposure",
   "/challenge/insights/hours-per-month",
@@ -56,7 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${BASE}${path}`,
     lastModified: now,
     changeFrequency: path === "/leaderboard" || path === "/voice" || path === "/pulse" ? "hourly" : "weekly",
-    priority: path === "" ? 1 : path === "/leaderboard" || path === "/challenge" ? 0.9 : 0.7,
+    priority: path === "" ? 1 : path === "/stump-ryan" ? 0.95 : path === "/leaderboard" || path === "/challenge" ? 0.9 : 0.7,
   }));
 
   const offerRoutes: MetadataRoute.Sitemap = Object.keys(OFFERS).map((slug) => ({

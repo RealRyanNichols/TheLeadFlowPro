@@ -30,6 +30,11 @@ export async function POST(req: NextRequest) {
   const currentWebsiteNotes = pickStr(form.get("currentWebsiteNotes"), 1800);
   const visitorId = pickStr(form.get("visitorId"), 80) ?? crypto.randomUUID();
   const toolFocus = pickStr(form.get("toolFocus"), 120);
+  const platformTarget = pickStr(form.get("platformTarget"), 120);
+  const blueprintIntent = pickStr(form.get("blueprintIntent"), 120);
+  const ownershipPreference =
+    pickStr(form.get("ownershipPreference"), 180) ??
+    "client-owned-accounts-code-data-assets";
   const promptDraft = pickStr(form.get("promptDraft"), 3000);
   const promptStack = pickStr(form.get("promptStack"), 3000);
   const insightSnapshot = pickStr(form.get("insightSnapshot"), 3000);
@@ -42,13 +47,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "missing_tool_context" }, { status: 400 });
   }
 
-  const budgetTier = pickStr(form.get("budgetTier"), 40) ?? "2000-5000";
+  const budgetTier = pickStr(form.get("budgetTier"), 40) ?? "blueprint-first";
   const timeline = pickStr(form.get("timeline"), 80);
-  const routedTo = "/challenge?submitted=1#jump-line";
+  const routedTo = "/stump-ryan?submitted=1#continue-build";
   const notes = [
-    "Tool Challenge funnel submission.",
+    "Stump Ryan Blueprint Request.",
+    "Free offer: Ryan finds the lead leak, maps the dream tool, and sends a 1-3 page plan/proposal before paid buildout.",
     `Tool name: ${toolName}`,
     toolFocus ? `Interactive tool focus: ${toolFocus}` : null,
+    platformTarget ? `Target platform / home: ${platformTarget}` : null,
+    blueprintIntent ? `Blueprint intent: ${blueprintIntent}` : null,
     currentWebsiteNotes ? `Current website / benchmark notes: ${currentWebsiteNotes}` : null,
     `Problem to solve: ${toolProblem}`,
     businessImpact ? `Business impact if solved: ${businessImpact}` : null,
@@ -57,8 +65,8 @@ export async function POST(req: NextRequest) {
     promptStack ? `Prompt Build Lab stack:\n${promptStack}` : null,
     promptDraft ? `Prompt draft generated on site:\n${promptDraft}` : null,
     insightSnapshot ? `Interactive insight snapshot:\n${insightSnapshot}` : null,
-    `Ownership expectation: client owns the tool, process, and setup.`,
-    "Pitch promise: Ryan can review/build a practical prototype or plan; no specific business outcome is guaranteed.",
+    `Ownership expectation: ${ownershipPreference}. Client owns the code, assets, data, accounts, keys, and access unless a separate managed hosting agreement is chosen.`,
+    "Pitch promise: Ryan can review/build a practical blueprint, prototype path, or proposal; no specific business outcome is guaranteed.",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -76,12 +84,12 @@ export async function POST(req: NextRequest) {
         industry: pickStr(form.get("industry"), 80),
         platforms: {},
         monthlyRevenueRange: pickStr(form.get("monthlyRevenueRange"), 40),
-        biggestGoal: "tool-challenge",
+        biggestGoal: "stump-ryan-blueprint",
         biggestBlocker: toolProblem,
         budgetTier,
         bestContactMethod: pickStr(form.get("bestContactMethod"), 40),
         notes,
-        routedTo: "/challenge?submitted=1",
+        routedTo: "/stump-ryan?submitted=1",
       },
     });
     intakeId = intake.id;
@@ -101,15 +109,18 @@ export async function POST(req: NextRequest) {
       businessUrl: pickStr(form.get("businessUrl"), 300),
       industry: pickStr(form.get("industry"), 80),
       topic: "custom tool",
-      stage: "tool-challenge",
-      path: "/challenge",
-      source: "tool-challenge-form",
+      stage: "blueprint_requested",
+      path: "/stump-ryan",
+      source: "stump-ryan-blueprint-form",
       profile: {
         toolName,
         toolProblem,
         businessImpact,
         currentProcess,
         currentWebsiteNotes,
+        platformTarget,
+        blueprintIntent,
+        ownershipPreference,
         budgetTier,
         monthlyRevenueRange: pickStr(form.get("monthlyRevenueRange"), 40),
         timeline,
@@ -117,7 +128,7 @@ export async function POST(req: NextRequest) {
         promptStack,
         promptDraft,
         insightSnapshot,
-        routedTo: "/challenge?submitted=1",
+        routedTo: "/stump-ryan?submitted=1",
       },
     });
   } catch {
@@ -127,10 +138,10 @@ export async function POST(req: NextRequest) {
   try {
     await recordSitePulseEvent({
       visitorId,
-      path: "/challenge",
-      eventType: "cta_service",
-      source: "tool-challenge-form",
-      target: "tool-challenge-submit",
+      path: "/stump-ryan",
+      eventType: "form_submit",
+      source: "stump-ryan-blueprint-form",
+      target: "blueprint-request-submit",
       value: 1,
     });
   } catch {
@@ -153,6 +164,9 @@ export async function POST(req: NextRequest) {
       budgetTier,
       timeline,
       toolFocus,
+      platformTarget,
+      blueprintIntent,
+      ownershipPreference,
       promptStack,
       promptDraft,
       insightSnapshot,

@@ -155,7 +155,7 @@ export default function AdminRequestsPage() {
           </div>
           <h1 className="mt-4 text-3xl font-semibold tracking-tight">Build request queue</h1>
           <p className="mt-2 text-sm leading-relaxed text-slate-300">
-            Paste the admin secret to see audit requests, tool challenges, and public buyer submissions.
+            Paste the admin secret to see audit requests, Stump Ryan blueprints, and public buyer submissions.
           </p>
           <input
             type="password"

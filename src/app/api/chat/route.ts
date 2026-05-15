@@ -85,7 +85,7 @@ function routeWithoutAnthropic(messages: Msg[], memory: PublicChatMemory | null)
     return {
       mode: "router",
       reply:
-        `${remembered}If the thing you need is a business tool, go straight to the Tool Challenge. Tell Ryan what would change how your business runs. If he can build it and you like it, you buy it and own it. Start here -> /challenge${ask}`,
+        `${remembered}If the thing you need is a business tool, go straight to Stump Ryan. Tell Ryan what would change how your business runs and get the free leak + build blueprint first. If you like it, you can continue into paid buildout and own the asset. Start here -> /stump-ryan${ask}`,
     };
   }
 
@@ -124,7 +124,7 @@ function routeWithoutAnthropic(messages: Msg[], memory: PublicChatMemory | null)
   return {
     mode: "router",
     reply:
-      `${remembered}I can route you without wasting time. If you need a tool built, use /challenge. If you need a service picked, use /start. If you are ready to talk to Ryan, use /book.${ask}`,
+      `${remembered}I can route you without wasting time. If you need a tool built, use /stump-ryan. If you need a service picked, use /start. If you are ready to talk to Ryan, use /book.${ask}`,
   };
 }
 

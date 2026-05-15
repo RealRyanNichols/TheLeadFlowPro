@@ -10,10 +10,10 @@ const PATHS = [
     label: "Build me a tool",
     Icon: Wrench,
     prompt: "I have a business problem and I want Ryan to build the tool, dashboard, or automation that fixes it.",
-    direction: "Book the call if you can explain the problem in ten minutes. Use Stump Me if you want to write it out first.",
+    direction: "Book the call if you can explain the problem in ten minutes. Use Stump Ryan if you want the free blueprint first.",
     primaryHref: "#calendar-frame",
     primaryLabel: "Pick my time",
-    secondaryHref: "/challenge#tool-challenge-form",
+    secondaryHref: "/stump-ryan#tool-challenge-form",
     secondaryLabel: "Submit the tool first",
   },
   {

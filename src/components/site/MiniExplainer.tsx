@@ -36,7 +36,7 @@ const EXPLAINERS: Record<MiniExplainerVariant, ExplainerConfig> = {
     frames: [
       "The site is watching clicks, calls, shares, and service intent.",
       "Pick a service if you know what you need.",
-      "Stump Ryan if you need a tool built inside your business.",
+      "Stump Ryan if you want the free leak + build blueprint first.",
       "Book only if you are ready to decide the next move.",
     ],
     script:
@@ -56,7 +56,7 @@ const EXPLAINERS: Record<MiniExplainerVariant, ExplainerConfig> = {
       "Ryan shapes the first useful version. You decide whether to buy, refine, or scrap it.",
     ],
     script:
-      "Use this page to challenge Ryan with the tool your business needs. Move the sliders, describe the bottleneck, and tell him what the business would look like if the tool existed. Submit it free, or reserve the build slot if you want Ryan working on it now.",
+      "Use this page to challenge Ryan with the tool your business needs. Move the sliders, describe the bottleneck, and tell him what the business would look like if the tool existed. Submit it free, get the blueprint first, then continue with the $250 deposit if the plan makes sense.",
     ctaHref: "#tool-challenge-form",
     ctaLabel: "Build the prompt",
     Icon: Bot,
@@ -69,7 +69,7 @@ const EXPLAINERS: Record<MiniExplainerVariant, ExplainerConfig> = {
       "The calendar is for serious buyers, not free coaching.",
       "Ryan holds a buffer around calls so the work stays clean.",
       "Pick the reason first, then choose the calendar window.",
-      "If you need a tool built, submit the challenge before the call.",
+      "If you need a tool built, submit the Stump Ryan blueprint request before the call.",
     ],
     script:
       "This page is simple on purpose. Pick the reason for the call, then pick a calendar window. The call is ten minutes because the goal is not a long free consultation. The goal is to decide the next move and whether Ryan should build with you.",

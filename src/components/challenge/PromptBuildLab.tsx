@@ -19,11 +19,69 @@ import {
 import { VisitorIdField } from "@/components/site/VisitorIdField";
 import { ChallengeInsightBuilder } from "@/components/challenge/ChallengeInsightBuilder";
 
-const BUDGET_OPTIONS = [
-  { value: "2000-5000", label: "$2K-$5K", body: "Prototype, workflow, or focused internal tool." },
-  { value: "5000-10000", label: "$5K-$10K", body: "Serious build with setup, handoff, and training." },
-  { value: "10000-plus", label: "$10K+", body: "Larger operating system or multi-part business tool." },
+const BLUEPRINT_INTENT_OPTIONS = [
+  {
+    value: "free-blueprint-first",
+    label: "Free blueprint first",
+    body: "Send the 1-3 page plan before I decide.",
+  },
+  {
+    value: "250-continuation-if-right",
+    label: "$250 if it makes sense",
+    body: "If the plan is right, I can put down the continuation deposit.",
+  },
+  {
+    value: "urgent-build-path",
+    label: "Urgent build path",
+    body: "I need the fastest serious path after the blueprint.",
+  },
 ];
+
+const PLATFORM_OPTIONS: Array<[string, string]> = [
+  ["existing-site", "Add it to my current website"],
+  ["shopify", "Shopify"],
+  ["wix", "Wix"],
+  ["wordpress", "WordPress"],
+  ["vercel-github-supabase", "Vercel / GitHub / Supabase"],
+  ["not-sure", "Not sure yet"],
+];
+
+const OWNERSHIP_PROMISE =
+  "Client-owned install: client owns code, assets, data, accounts, keys, and access.";
+
+const OWNERSHIP_PREFERENCE = "client-owned-accounts-code-data-assets";
+
+const BLUEPRINT_INTENT_LABELS: Record<string, string> = {
+  "free-blueprint-first": "Free blueprint first",
+  "250-continuation-if-right": "$250 continuation if the plan is right",
+  "urgent-build-path": "Urgent build path after blueprint",
+};
+
+const PLATFORM_LABELS: Record<string, string> = {
+  "existing-site": "Add it to my current website",
+  shopify: "Shopify",
+  wix: "Wix",
+  wordpress: "WordPress",
+  "vercel-github-supabase": "Vercel / GitHub / Supabase",
+  "not-sure": "Not sure yet",
+};
+
+function labelFor(map: Record<string, string>, value: string) {
+  return map[value] ?? value;
+}
+
+function budgetTierFor(intent: string) {
+  if (intent === "250-continuation-if-right") return "250-continuation";
+  if (intent === "urgent-build-path") return "urgent-build-path";
+  return "blueprint-first";
+}
+
+function budgetLabel(value: string) {
+  if (value === "250-continuation") return "$250 continuation ready";
+  if (value === "urgent-build-path") return "Urgent build path";
+  return "Blueprint first";
+}
+
 
 const STEPS = [
   {
@@ -41,13 +99,13 @@ const STEPS = [
   {
     label: "Tool",
     title: "Build the dream tool in plain English.",
-    body: "Tell me what should happen automatically if this tool existed and the business finally worked right.",
+    body: "Tell me what should happen automatically, where it should live, and what would change if the first version existed.",
     Icon: Wrench,
   },
   {
     label: "Send",
-    title: "Send the buildout request to Ryan.",
-    body: "Add your contact info, timeline, and budget range so Ryan can act on it instead of guessing.",
+    title: "Request the free Build Blueprint.",
+    body: "Add contact info and urgency. Ryan gets the leak, the dream tool, the account path, and the ownership expectation.",
     Icon: Send,
   },
 ];
@@ -61,6 +119,9 @@ type LabValues = {
   currentProcess: string;
   toolName: string;
   businessImpact: string;
+  platformTarget: string;
+  blueprintIntent: string;
+  ownershipPreference: string;
   fullName: string;
   email: string;
   phone: string;
@@ -80,10 +141,13 @@ const INITIAL_VALUES: LabValues = {
   currentProcess: "",
   toolName: "",
   businessImpact: "",
+  platformTarget: "existing-site",
+  blueprintIntent: "free-blueprint-first",
+  ownershipPreference: OWNERSHIP_PREFERENCE,
   fullName: "",
   email: "",
   phone: "",
-  budgetTier: "2000-5000",
+  budgetTier: "blueprint-first",
   monthlyRevenueRange: "10-50k",
   timeline: "now",
   bestContactMethod: "text",
@@ -107,7 +171,7 @@ export function PromptBuildLab() {
 
   const promptStack = useMemo(() => {
     return [
-      "Prompt Build Lab request.",
+      "Stump Ryan Blueprint request.",
       `Benchmark business: ${values.businessName || "not provided"}.`,
       `Current website/account: ${values.businessUrl || "not provided"}.`,
       `Industry: ${values.industry || "not provided"}.`,
@@ -115,9 +179,12 @@ export function PromptBuildLab() {
       `Business leak: ${values.toolProblem || "not provided"}.`,
       values.currentProcess ? `Current process: ${values.currentProcess}` : null,
       `Dream tool: ${values.toolName || "not provided"}.`,
+      `Target platform: ${labelFor(PLATFORM_LABELS, values.platformTarget)}.`,
       values.businessImpact ? `Desired outcome: ${values.businessImpact}` : null,
-      `Budget tier: ${values.budgetTier}.`,
+      `Blueprint intent: ${labelFor(BLUEPRINT_INTENT_LABELS, values.blueprintIntent)}.`,
+      `Budget signal: ${budgetLabel(values.budgetTier)}.`,
       `Timeline: ${values.timeline}.`,
+      `Ownership expectation: ${OWNERSHIP_PROMISE}`,
     ]
       .filter(Boolean)
       .join("\n");
@@ -180,6 +247,7 @@ export function PromptBuildLab() {
   const active = STEPS[step];
   const ActiveIcon = active.Icon;
   const progress = ((step + 1) / STEPS.length) * 100;
+  const budgetTier = budgetTierFor(values.blueprintIntent);
 
   return (
     <form
@@ -191,19 +259,21 @@ export function PromptBuildLab() {
     >
       <VisitorIdField />
       <input type="hidden" name="promptStack" value={promptStack} />
+      <input type="hidden" name="budgetTier" value={budgetTier} />
+      <input type="hidden" name="ownershipPreference" value={values.ownershipPreference} />
 
       <div className="border-b border-cyan-200/80 bg-gradient-to-r from-slate-950 via-brand-950 to-cyan-950 p-4 text-white sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
-              <Sparkles className="h-3.5 w-3.5" /> Prompt-to-build lab
+              <Sparkles className="h-3.5 w-3.5" /> Blueprint lab
             </div>
             <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-              One step at a time. Build the request as you go.
+              Free plan first. Build only if the plan makes sense.
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300">
-              Start with the current website or business. Then the lab walks you into the leak,
-              the dream tool, and the reason it is worth building.
+              Start with the current website or business. Then show Ryan the leak, the dream tool,
+              and where the first client-owned version should live.
             </p>
           </div>
           <div className="rounded-2xl border border-accent-300/25 bg-accent-300/10 px-4 py-3">
@@ -317,6 +387,13 @@ export function PromptBuildLab() {
               onChange={(value) => setValue("businessImpact", value)}
               rows={5}
             />
+            <LabSelect
+              name="platformTarget"
+              label="Where should the first version live?"
+              value={values.platformTarget}
+              onChange={(value) => setValue("platformTarget", value)}
+              options={PLATFORM_OPTIONS}
+            />
             <ChallengeInsightBuilder compact />
           </div>
 
@@ -369,20 +446,23 @@ export function PromptBuildLab() {
 
             <div>
               <div className="mb-2 text-sm font-semibold text-slate-800">
-                If you like the direction, what budget range makes sense?
+                What happens after Ryan sends the free 1-3 page blueprint?
               </div>
               <div className="grid gap-2 sm:grid-cols-3">
-                {BUDGET_OPTIONS.map((option) => (
+                {BLUEPRINT_INTENT_OPTIONS.map((option) => (
                   <label
                     key={option.value}
                     className="group cursor-pointer rounded-2xl border border-slate-200 bg-white p-3 text-sm shadow-sm has-[:checked]:border-cyan-500 has-[:checked]:bg-cyan-50"
                   >
                     <input
                       type="radio"
-                      name="budgetTier"
+                      name="blueprintIntent"
                       value={option.value}
-                      checked={values.budgetTier === option.value}
-                      onChange={() => setValue("budgetTier", option.value)}
+                      checked={values.blueprintIntent === option.value}
+                      onChange={() => {
+                        setValue("blueprintIntent", option.value);
+                        setValue("budgetTier", budgetTierFor(option.value));
+                      }}
                       className="sr-only"
                     />
                     <span className="block font-semibold text-slate-950">{option.label}</span>
@@ -429,9 +509,10 @@ export function PromptBuildLab() {
                 className="mt-1 h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
               />
               <span>
-                I understand this is a free business tool submission, not a guarantee. Ryan may
-                propose a paid build, working session, phased prototype, or the optional $250
-                build-slot deposit.
+                I understand this is a free blueprint request, not a guarantee or finished app.
+                Ryan may send a 1-3 page plan, a paid proposal, a phased prototype path, or the
+                optional $250 continuation deposit. If a build moves forward, the goal is a
+                client-owned setup.
               </span>
             </label>
           </div>
@@ -459,7 +540,7 @@ export function PromptBuildLab() {
                 type="submit"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
               >
-                Submit the challenge <ArrowRight className="h-4 w-4" />
+                Request free blueprint <ArrowRight className="h-4 w-4" />
               </button>
             )}
           </div>
@@ -471,7 +552,7 @@ export function PromptBuildLab() {
               <Bot className="h-3.5 w-3.5" /> Watch it stack
             </div>
             <h3 className="mt-3 text-xl font-semibold tracking-tight text-slate-950">
-              The clearer the prompt, the stronger the build.
+              The clearer the request, the stronger the blueprint.
             </h3>
             <div className="mt-4 grid gap-3">
               <StackCard
@@ -492,7 +573,10 @@ export function PromptBuildLab() {
               <StackCard
                 Icon={Wrench}
                 label="Dream tool"
-                value={preview(values.toolName, "Give the tool a working name.")}
+                value={preview(
+                  [values.toolName, labelFor(PLATFORM_LABELS, values.platformTarget)].filter(Boolean).join(" / "),
+                  "Give the tool a working name and target platform.",
+                )}
                 complete={Boolean(values.toolName.trim())}
               />
               <StackCard
@@ -504,9 +588,9 @@ export function PromptBuildLab() {
             </div>
 
             <div className="mt-4 rounded-3xl border border-accent-200 bg-white/80 p-4 text-sm leading-relaxed text-slate-700">
-              <strong className="text-slate-950">Step 1 matters.</strong> Your website and current
-              setup give Ryan the starting line. The build has to outperform that baseline, not just
-              look impressive.
+              <strong className="text-slate-950">The free blueprint is the first deliverable.</strong>{" "}
+              It should show the leak, the first useful tool, where it lives, and what the $250
+              continuation would unlock.
             </div>
           </div>
         </aside>

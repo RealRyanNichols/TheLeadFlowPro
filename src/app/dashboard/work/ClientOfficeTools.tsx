@@ -102,7 +102,7 @@ function LeadLeakTool() {
         title={`${formatCurrency(math.monthlyLeak)} / month`}
         body={`${math.missed} leads per week look exposed. If even ${math.recoveredSales.toFixed(1)} convert, the follow-up system matters now.`}
         cta="Build the recovery system"
-        href="/challenge"
+        href="/stump-ryan"
       />
     </div>
   );
@@ -156,8 +156,8 @@ function FollowUpTool() {
         eyebrow="Next move"
         title="Turn this into a real automation."
         body="The script is the start. The money is in connecting it to forms, calls, DMs, reminders, and owner approval."
-        cta="Reserve a build slot"
-        href="/challenge"
+        cta="Request the build blueprint"
+        href="/stump-ryan"
       />
     </div>
   );

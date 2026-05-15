@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -78,6 +77,13 @@ const DAILY_FOCUS = [
 
 const BEST_DEMOS = [
   {
+    title: "Stump Ryan Blueprint",
+    body: "Submit the lead leak or dream tool and get a free 1-3 page build plan before paid work.",
+    href: "/stump-ryan",
+    cta: "Start blueprint",
+    Icon: Sparkles,
+  },
+  {
     title: "Lead Leak Audit",
     body: "Find where calls, clicks, forms, DMs, and follow-up are turning into lost money.",
     href: "/lead-leak-audit",
@@ -98,16 +104,10 @@ const BEST_DEMOS = [
     cta: "Open pulse",
     Icon: Radar,
   },
-  {
-    title: "Ad Account Autopsy",
-    body: "A sharper review path for businesses burning money before the funnel is fixed.",
-    href: "/tools/ad-account-autopsy",
-    cta: "Run autopsy",
-    Icon: ClipboardCheck,
-  },
 ];
 
 const ROUTES = [
+  { label: "Stump Ryan Blueprint", href: "/stump-ryan", body: "Get the free leak + dream-tool build plan first." },
   { label: "Free Lead Leak Audit", href: "/lead-leak-audit", body: "Find the first money leak without buying ads." },
   { label: "Organic Growth Plan", href: "/organic-growth", body: "See the no-ads distribution system." },
   { label: "Proof", href: "/proof", body: "Receipts, tools, tracking, and examples." },
@@ -120,6 +120,20 @@ const GLOBE_NODES = [
   { label: "Forms", value: "7", x: "70%", y: "22%" },
   { label: "DMs", value: "18", x: "62%", y: "70%" },
   { label: "Ads", value: "$", x: "30%", y: "72%" },
+];
+
+const HERO_SYSTEM_NODES = [
+  { label: "Leak", value: "missed calls", x: "8%", y: "22%" },
+  { label: "Tool", value: "quote builder", x: "58%", y: "12%" },
+  { label: "Memory", value: "client brain", x: "68%", y: "58%" },
+  { label: "Handoff", value: "owned accounts", x: "16%", y: "70%" },
+];
+
+const HERO_BLUEPRINT_ROWS = [
+  { label: "Lead leak", value: "Where buyers disappear" },
+  { label: "Dream tool", value: "First useful version" },
+  { label: "Memory loop", value: "Calls into actions" },
+  { label: "Handoff", value: "Client owns the asset" },
 ];
 
 const DAILY_BUILD_DROPS = [
@@ -183,10 +197,10 @@ const DAILY_BUILD_DROPS = [
 
 const WEEKLY_BUILD_OFFERS = [
   {
-    label: "$250 Build Slot",
-    title: "$250 down. Pick the thing. Ryan builds the first serious version.",
-    body: "Website, landing page, app prototype, HTML tool, quote calculator, domain setup, lead magnet, or dashboard. The deposit reserves the work and gets credited toward the scoped build.",
-    bullets: ["No vague agency retainer", "A real asset people can click", "Scope decided after the intake"],
+    label: "Free Blueprint + $250 Continuation",
+    title: "Submit the idea free. If the plan hits, $250 starts the first build.",
+    body: "Website, landing page, app prototype, HTML tool, quote calculator, domain setup, lead magnet, or dashboard. The free blueprint maps the first useful version before the continuation deposit.",
+    bullets: ["No vague agency retainer", "A real asset people can click", "Scope decided before buildout"],
   },
   {
     label: "72-Hour Funnel Flip",
@@ -253,16 +267,8 @@ function Hero({
 }) {
   return (
     <section className="relative isolate min-h-[calc(100svh-112px)] overflow-hidden bg-slate-950 text-white">
-      <Image
-        src="/images/premier-dental-academy-makeover-poster.jpg"
-        alt="Business website and content work produced through The LeadFlow Pro"
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover"
-      />
-      <div className="absolute inset-0 bg-slate-950/72" />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.95)_0%,rgba(2,6,23,0.78)_45%,rgba(2,6,23,0.38)_100%)]" />
+      <HeroBuildBackdrop />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.94)_0%,rgba(2,6,23,0.82)_45%,rgba(2,6,23,0.72)_100%)] sm:bg-[linear-gradient(90deg,rgba(2,6,23,0.98)_0%,rgba(2,6,23,0.86)_48%,rgba(2,6,23,0.48)_100%)]" />
 
       <div className="relative mx-auto flex min-h-[calc(100svh-112px)] max-w-7xl flex-col justify-center px-4 pb-32 pt-12 sm:px-6 sm:pb-24 lg:px-8">
         <div className="max-w-5xl">
@@ -271,25 +277,24 @@ function Hero({
             The LeadFlow Pro
           </div>
           <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-            Build the business funnel that catches the lead, reads the data, and books the next move.
+            Stump Ryan with the business tool you wish existed. Get the free build blueprint first.
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-slate-200 sm:text-lg">
-            For owner-led businesses that need more than a pretty website: lead capture,
-            missed-call recovery, social proof, follow-up, dashboards, and a clear reason for
-            buyers to leave their information.
+            Show the leak, the repeated task, or the app idea. Ryan maps the first useful version,
+            where it should live, what you own, and what the $250 continuation would unlock.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link
-              href="/lead-leak-audit"
+              href="/stump-ryan"
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-accent-500/20 hover:bg-accent-400"
             >
-              Run lead leak audit <ArrowRight className="h-4 w-4" />
+              Get free blueprint <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/organic-growth"
+              href="/lead-leak-audit"
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur hover:bg-white/15"
             >
-              See no-ads plan <CalendarClock className="h-4 w-4" />
+              Run leak audit <CalendarClock className="h-4 w-4" />
             </Link>
           </div>
           <div className="mt-6 flex max-w-2xl flex-wrap gap-2 text-sm">
@@ -300,12 +305,108 @@ function Hero({
               {focus.metric} - {focus.note}
             </span>
             <span className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-slate-200">
-              Path: name + phone + email
+              Path: leak + tool + account owner
             </span>
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function HeroBuildBackdrop() {
+  return (
+    <div aria-hidden className="absolute inset-0 overflow-hidden bg-slate-950">
+      <div
+        className="absolute inset-0 opacity-[0.11]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(125,211,252,0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(125,211,252,0.18) 1px, transparent 1px)",
+          backgroundSize: "42px 42px",
+        }}
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(8,47,73,0.42)_0%,rgba(2,6,23,0)_42%,rgba(251,146,60,0.24)_100%)]" />
+
+      <div className="absolute -right-44 top-10 hidden h-[620px] w-[780px] rotate-[-7deg] rounded-[2rem] border border-cyan-200/20 bg-white/[0.05] p-5 shadow-[0_38px_110px_rgba(8,47,73,0.42)] lg:block">
+        <div className="h-full rounded-[1.5rem] border border-white/10 bg-slate-950/86 p-5 shadow-2xl shadow-slate-950/80">
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-300/80" />
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-300/80" />
+              <span className="h-2.5 w-2.5 rounded-full bg-cyan-300/80" />
+            </div>
+            <div className="rounded-full border border-cyan-200/20 bg-cyan-200/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-cyan-100">
+              Build blueprint
+            </div>
+          </div>
+
+          <div className="grid h-[calc(100%-3.75rem)] grid-cols-[0.82fr_1.18fr] gap-4 pt-5">
+            <div className="space-y-3">
+              {HERO_BLUEPRINT_ROWS.map((row) => (
+                <div key={row.label} className="rounded-xl border border-white/10 bg-white/[0.06] p-4">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-100">
+                    {row.label}
+                  </div>
+                  <div className="mt-2 text-sm font-semibold text-white">{row.value}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="relative rounded-2xl border border-cyan-200/15 bg-[linear-gradient(145deg,rgba(8,47,73,0.64),rgba(15,23,42,0.94))] p-5">
+              <div className="absolute left-8 top-16 h-[1px] w-72 rotate-12 bg-cyan-200/25" />
+              <div className="absolute left-20 top-36 h-[1px] w-64 -rotate-12 bg-accent-200/25" />
+              <div className="absolute left-16 top-60 h-[1px] w-72 rotate-6 bg-cyan-200/20" />
+              {HERO_SYSTEM_NODES.map((node) => (
+                <div
+                  key={node.label}
+                  className="absolute w-36 rounded-2xl border border-cyan-200/20 bg-slate-950/80 p-3 shadow-xl shadow-slate-950/40"
+                  style={{ left: node.x, top: node.y }}
+                >
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-200">
+                    {node.label}
+                  </div>
+                  <div className="mt-1 text-sm font-semibold text-white">{node.value}</div>
+                </div>
+              ))}
+              <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-100">
+                      Next move
+                    </div>
+                    <div className="mt-2 text-lg font-semibold text-white">Ship the first useful tool</div>
+                  </div>
+                  <div className="h-14 w-14 rounded-2xl border border-accent-200/30 bg-accent-300/20" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="absolute inset-x-4 bottom-8 top-[44%] opacity-55 sm:hidden">
+        <div className="h-full rounded-[1.5rem] border border-cyan-200/20 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/80">
+          <div className="grid grid-cols-2 gap-3">
+            {HERO_BLUEPRINT_ROWS.map((row) => (
+              <div key={row.label} className="min-h-24 rounded-2xl border border-white/10 bg-white/[0.07] p-3">
+                <div className="text-[9px] font-semibold uppercase tracking-[0.22em] text-cyan-100">
+                  {row.label}
+                </div>
+                <div className="mt-2 text-xs font-semibold text-white/90">{row.value}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 rounded-2xl border border-accent-200/20 bg-accent-300/10 p-3">
+            <div className="text-[9px] font-semibold uppercase tracking-[0.22em] text-accent-100">
+              Client-owned
+            </div>
+            <div className="mt-2 h-2 rounded-full bg-white/15">
+              <div className="h-2 w-3/4 rounded-full bg-accent-300" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -330,9 +431,9 @@ function BuildDropSection({
             Do not sell "anything." Show them the thing they did not know their business could have.
           </h2>
           <p className="mt-4 text-base leading-7 text-slate-700">
-            The $250-down offer works when the examples are concrete: a tool, page, dashboard,
-            calculator, booking path, or mini app that makes their business feel bigger and more
-            organized the second they see it.
+            The free blueprint makes the $250 decision easier: first show the leak, the tool, the
+            platform path, and the first build block. Then the owner can continue without feeling
+            trapped in a mystery app pitch.
           </p>
 
           <div className="mt-7 rounded-lg border border-slate-200 bg-slate-950 p-5 text-white shadow-xl shadow-slate-200/80">
@@ -351,16 +452,16 @@ function BuildDropSection({
             </div>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/lead-leak-audit"
+                href="/stump-ryan"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-5 py-3 text-sm font-bold text-slate-950 hover:bg-accent-400"
               >
-                Audit my lead path <ArrowRight className="h-4 w-4" />
+                Stump Ryan free <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/challenge"
+                href="/lead-leak-audit"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/15"
               >
-                Reserve $250 build slot
+                Audit lead leaks
               </Link>
             </div>
           </div>
@@ -395,8 +496,8 @@ function BuildDropSection({
                 Simple public copy
               </div>
               <p className="mt-2 text-sm font-semibold leading-6 text-slate-800">
-                "$250 down. I will help you turn one business idea into a real page, tool, app,
-                calculator, or funnel people can actually click."
+                "Tell me the tool you wish existed. I will map the first useful version free. If
+                you like the blueprint, $250 continues it into the build."
               </p>
             </div>
           </div>

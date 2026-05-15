@@ -7,7 +7,6 @@ import {
   ArrowRight,
   BookOpen,
   BriefcaseBusiness,
-  Calendar,
   ClipboardCheck,
   Gauge,
   Home,
@@ -16,6 +15,7 @@ import {
   Menu,
   Megaphone,
   Package,
+  Sparkles,
   Trophy,
   X,
 } from "lucide-react";
@@ -28,6 +28,7 @@ type NavItem = {
 
 const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   "/": Home,
+  "/stump-ryan": Sparkles,
   "/lead-leak-audit": ClipboardCheck,
   "/organic-growth": Gauge,
   "/proof": Trophy,
@@ -102,25 +103,25 @@ export function LightMobileMenu({
             <div className="p-4">
               <div className="grid grid-cols-2 gap-2">
                 <Link
-                  href="/lead-leak-audit"
+                  href="/stump-ryan"
                   onClick={() => setOpen(false)}
                   className="rounded-2xl bg-gradient-to-br from-slate-950 via-brand-950 to-cyan-950 p-4 text-white shadow-lg shadow-slate-950/20 active:scale-[0.98]"
                 >
-                  <ClipboardCheck className="h-5 w-5 text-cyan-300" />
-                  <div className="mt-3 text-sm font-semibold">Free audit</div>
+                  <Sparkles className="h-5 w-5 text-cyan-300" />
+                  <div className="mt-3 text-sm font-semibold">Free blueprint</div>
                   <div className="mt-1 text-xs leading-relaxed text-slate-300">
-                    Find where leads are leaking.
+                    Stump Ryan with the tool idea.
                   </div>
                 </Link>
                 <Link
-                  href="/organic-growth"
+                  href="/lead-leak-audit"
                   onClick={() => setOpen(false)}
                   className="rounded-2xl bg-accent-500 p-4 text-white shadow-lg shadow-accent-500/25 active:scale-[0.98]"
                 >
-                  <Calendar className="h-5 w-5" />
-                  <div className="mt-3 text-sm font-semibold">Organic plan</div>
+                  <ClipboardCheck className="h-5 w-5" />
+                  <div className="mt-3 text-sm font-semibold">Leak audit</div>
                   <div className="mt-1 text-xs leading-relaxed text-white/85">
-                    See the no-ads engine.
+                    Find what is leaking first.
                   </div>
                 </Link>
               </div>

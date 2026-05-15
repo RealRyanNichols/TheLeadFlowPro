@@ -256,7 +256,7 @@ async function createToolChallengeDepositWorkOrderFromCheckout(
     const clientName =
       buyerName ||
       buyerEmail ||
-      `Tool build deposit ${session.id.slice(-6)}`;
+      `Stump Ryan continuation ${session.id.slice(-6)}`;
 
     await (prisma as any).workOrder.create({
       data: {
@@ -276,14 +276,14 @@ async function createToolChallengeDepositWorkOrderFromCheckout(
           user?.id ? `user_id:${user.id}` : null,
           session.metadata?.visitorId ? `visitor_id:${session.metadata.visitorId}` : null,
           `payment_status:${session.payment_status || "unknown"}`,
-          "$250 tool challenge deposit. Credits toward custom app, automation, or website work.",
-          "Auto-created from Stripe checkout so Ryan's capacity meter reflects paid build-slot deposits.",
+          "$250 Stump Ryan continuation deposit. Credits toward custom app, automation, or website work.",
+          "Auto-created from Stripe checkout so Ryan's capacity meter reflects paid blueprint continuations.",
         ].filter(Boolean).join("\n"),
       },
     });
     return true;
   } catch (err) {
-    console.warn("Stripe webhook: tool challenge deposit work order not created", {
+    console.warn("Stripe webhook: Stump Ryan continuation work order not created", {
       session: session.id,
       error: err instanceof Error ? err.message : "unknown",
     });

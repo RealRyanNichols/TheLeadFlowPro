@@ -170,6 +170,8 @@ function trackedEventForHref(href: string): PulseClickSignal | null {
   }
   if (path === "/pulse" || path.startsWith("/pulse/")) return { eventType: "cta_pulse", target: "pulse-board" };
   if (
+    path === "/stump-ryan" ||
+    path.startsWith("/stump-ryan/") ||
     path === "/challenge" ||
     path.startsWith("/challenge/") ||
     path === "/services" ||

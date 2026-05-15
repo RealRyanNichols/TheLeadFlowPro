@@ -76,7 +76,7 @@ export default async function SupportPage({ searchParams }: Props) {
                   What this funds
                 </div>
                 <p className="mt-3 text-sm leading-relaxed text-slate-300">
-                  Live dashboards, client portals, the Stump Me build lab, community connector
+                  Live dashboards, client portals, the Stump Ryan build lab, community connector
                   tools, share tracking, and public experiments that turn one page, one post, or one
                   ad into measurable attention.
                 </p>

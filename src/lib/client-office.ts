@@ -234,7 +234,7 @@ export function clientActionForOrder(order: ClientWorkOrder | null) {
   if (!order) {
     return {
       label: "Pick a paid entry point",
-      body: "No active work order is linked yet. Start the router, reserve a build slot, or book the fit call.",
+      body: "No active work order is linked yet. Start the router, request a build blueprint, or book the fit call.",
       href: "/start",
       cta: "Start router",
     };

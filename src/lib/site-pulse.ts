@@ -940,7 +940,7 @@ function intentSegmentForPath(path: string) {
   if (path.includes("leaderboard") || path.includes("voice") || path.includes("support")) {
     return "Community voter or local supporter";
   }
-  if (path.includes("challenge") || path.includes("tool") || path.includes("start")) {
+  if (path.includes("stump-ryan") || path.includes("challenge") || path.includes("tool") || path.includes("start")) {
     return "Owner who needs a custom tool";
   }
   if (path.includes("consulting") || path.includes("decision") || path.includes("working-session")) {
@@ -963,10 +963,10 @@ function suggestedMoveForPath(path: string, clickRate: number) {
     return "Add more share buttons, board-specific badges, and a faster paid vote path above the fold.";
   }
   if (path.includes("pulse")) {
-    return "Route data-minded visitors into a paid audit or build challenge while the proof is fresh.";
+    return "Route data-minded visitors into a paid audit or Stump Ryan blueprint while the proof is fresh.";
   }
-  if (path.includes("challenge")) {
-    return "Make the prompt builder even shorter and put the $250 build slot after the first useful answer.";
+  if (path.includes("stump-ryan") || path.includes("challenge")) {
+    return "Keep the free blueprint above the fold and put the $250 continuation after the first useful answer.";
   }
   if (path.includes("book")) {
     return "Reduce choices and show the best next calendar action immediately.";

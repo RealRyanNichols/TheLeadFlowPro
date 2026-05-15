@@ -256,10 +256,10 @@ export function AdAccountAutopsyTool() {
           </div>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Link
-              href="/challenge?source=ad-autopsy"
+              href="/stump-ryan?source=ad-autopsy"
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-semibold text-white hover:bg-accent-600"
             >
-              Challenge Ryan to build my tracker <ArrowRight className="h-4 w-4" />
+              Stump Ryan with my tracker <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/book?source=ad-autopsy"

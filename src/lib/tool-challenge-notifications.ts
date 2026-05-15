@@ -33,6 +33,9 @@ export type ToolChallengeNotificationInput = {
   budgetTier?: string | null;
   timeline?: string | null;
   toolFocus?: string | null;
+  platformTarget?: string | null;
+  blueprintIntent?: string | null;
+  ownershipPreference?: string | null;
   promptStack?: string | null;
   promptDraft?: string | null;
   insightSnapshot?: string | null;
@@ -41,14 +44,14 @@ export type ToolChallengeNotificationInput = {
 
 export async function sendToolChallengeNotification(input: ToolChallengeNotificationInput) {
   const to = process.env.LEADFLOW_NOTIFY_EMAIL || DEFAULT_NOTIFY_EMAIL;
-  const subject = `New Stump Me request: ${input.toolName} — ${input.fullName}`;
+  const subject = `New Stump Ryan blueprint: ${input.toolName} — ${input.fullName}`;
   const adminHref = "https://www.theleadflowpro.com/admin/requests";
   const html = `
     <div style="font-family:Inter,system-ui,sans-serif;max-width:720px;margin:0 auto;padding:24px;color:#0f172a;background:#f8fafc">
       <div style="background:#020617;color:white;border-radius:20px;padding:22px;margin-bottom:18px">
-        <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#67e8f9;font-weight:700">The LeadFlow Pro · Stump Me</div>
-        <h1 style="margin:10px 0 0 0;font-size:26px;line-height:1.15">New buildout request</h1>
-        <p style="margin:10px 0 0 0;color:#cbd5e1">This came from /challenge. The visitor created a prompt, business leak estimate, and tool request.</p>
+        <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#67e8f9;font-weight:700">The LeadFlow Pro · Stump Ryan</div>
+        <h1 style="margin:10px 0 0 0;font-size:26px;line-height:1.15">New blueprint request</h1>
+        <p style="margin:10px 0 0 0;color:#cbd5e1">This came from the Stump Ryan funnel. The visitor asked for a free 1-3 page leak + dream-tool blueprint before paid buildout.</p>
       </div>
 
       <div style="background:white;border:1px solid #e2e8f0;border-radius:18px;padding:18px;margin-bottom:14px">
@@ -66,8 +69,11 @@ export async function sendToolChallengeNotification(input: ToolChallengeNotifica
         <h2 style="font-size:18px;margin:0 0 12px 0">Tool request</h2>
         ${line("Tool", input.toolName)}
         ${line("Focus", input.toolFocus)}
-        ${line("Budget tier", input.budgetTier)}
+        ${line("Platform target", input.platformTarget)}
+        ${line("Blueprint intent", input.blueprintIntent)}
+        ${line("Budget signal", input.budgetTier)}
         ${line("Timeline", input.timeline)}
+        ${line("Ownership", input.ownershipPreference)}
         ${
           input.currentWebsiteNotes
             ? `<p style="margin:12px 0 6px 0"><strong>Current website / benchmark notes:</strong></p><div style="white-space:pre-wrap;background:#ecfeff;border-radius:12px;padding:12px">${escapeHtml(input.currentWebsiteNotes)}</div>`
@@ -110,7 +116,8 @@ export async function sendToolChallengeNotification(input: ToolChallengeNotifica
   `;
 
   const text = [
-    "New Stump Me buildout request",
+    "New Stump Ryan blueprint request",
+    "Free offer: 1-3 page leak + dream-tool blueprint before paid buildout.",
     "",
     `Name: ${input.fullName}`,
     `Email: ${input.email}`,
@@ -122,8 +129,11 @@ export async function sendToolChallengeNotification(input: ToolChallengeNotifica
     "",
     `Tool: ${input.toolName}`,
     input.toolFocus ? `Focus: ${input.toolFocus}` : null,
-    input.budgetTier ? `Budget: ${input.budgetTier}` : null,
+    input.platformTarget ? `Platform target: ${input.platformTarget}` : null,
+    input.blueprintIntent ? `Blueprint intent: ${input.blueprintIntent}` : null,
+    input.budgetTier ? `Budget signal: ${input.budgetTier}` : null,
     input.timeline ? `Timeline: ${input.timeline}` : null,
+    input.ownershipPreference ? `Ownership: ${input.ownershipPreference}` : null,
     "",
     "Problem:",
     input.toolProblem,

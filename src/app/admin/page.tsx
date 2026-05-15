@@ -4,6 +4,7 @@ import {
   ArrowRight,
   BriefcaseBusiness,
   ClipboardList,
+  FileText,
   Inbox,
   MessageSquareText,
   RadioTower,
@@ -104,6 +105,9 @@ export default async function AdminHomePage() {
               <Link href="/admin/requests" className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/15">
                 Build requests
               </Link>
+              <Link href="/admin/blueprint-lab" className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15">
+                Blueprint lab
+              </Link>
               <Link href="/admin/intelligence" className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15">
                 Lead intelligence
               </Link>
@@ -201,6 +205,15 @@ export default async function AdminHomePage() {
         </div>
 
         <aside className="space-y-6">
+          <SidePanel title="Build brain" icon={FileText}>
+            <Link
+              href="/admin/blueprint-lab"
+              className="block rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15"
+            >
+              Generate a blueprint, AI memory file, repo prompt, and handoff checklist from a client idea.
+            </Link>
+          </SidePanel>
+
           <SidePanel title="Open intakes" icon={Inbox}>
             {openIntakes.length > 0 ? openIntakes.map((intake) => (
               <Link

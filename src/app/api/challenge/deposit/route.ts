@@ -30,16 +30,16 @@ async function visitorIdFrom(req: NextRequest) {
 async function createCheckout(req: NextRequest) {
   const origin = originFrom(req);
   const visitorId = await visitorIdFrom(req);
-  const successUrl = `${origin}/book?source=tool-build-deposit&deposit=paid&session_id={CHECKOUT_SESSION_ID}`;
-  const cancelUrl = `${origin}/challenge?deposit=cancelled`;
+  const successUrl = `${origin}/book?source=stump-ryan-continuation&deposit=paid&session_id={CHECKOUT_SESSION_ID}`;
+  const cancelUrl = `${origin}/stump-ryan?deposit=cancelled`;
 
   if (visitorId) {
     try {
       await recordSitePulseEvent({
         visitorId,
-        path: "/challenge",
+        path: "/stump-ryan",
         eventType: "cta_checkout",
-        source: "tool-challenge-deposit",
+        source: "stump-ryan-continuation-deposit",
         target: TOOL_CHALLENGE_DEPOSIT.slug,
         value: 250,
       });
@@ -78,7 +78,7 @@ async function createCheckout(req: NextRequest) {
       slug: TOOL_CHALLENGE_DEPOSIT.slug,
       kind: TOOL_CHALLENGE_DEPOSIT.kind,
       reserveHours: String(TOOL_CHALLENGE_DEPOSIT.reserveHours),
-      source: "challenge-page",
+      source: "stump-ryan-page",
       ...(visitorId ? { visitorId } : {}),
     },
     payment_intent_data: {
@@ -87,14 +87,14 @@ async function createCheckout(req: NextRequest) {
         slug: TOOL_CHALLENGE_DEPOSIT.slug,
         kind: TOOL_CHALLENGE_DEPOSIT.kind,
         reserveHours: String(TOOL_CHALLENGE_DEPOSIT.reserveHours),
-        source: "challenge-page",
+        source: "stump-ryan-page",
         ...(visitorId ? { visitorId } : {}),
       },
     },
     custom_text: {
       submit: {
         message:
-          "$250 reserves a build slot and credits toward your custom tool or website work. Real Ryan Nichols LLC engagements use Texas-law terms, mutual NDA language where needed, and no specific outcome guarantees.",
+          "$250 continues the Stump Ryan blueprint into a real build block and credits toward your custom tool or website work. Real Ryan Nichols LLC engagements use Texas-law terms, mutual NDA language where needed, and no specific outcome guarantees.",
       },
     },
   });
@@ -123,4 +123,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
-

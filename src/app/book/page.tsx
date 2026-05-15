@@ -146,7 +146,7 @@ export default function BookPage() {
                 Go to calendar <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/challenge#tool-challenge-form"
+                href="/stump-ryan#tool-challenge-form"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white/80 px-6 py-3 font-semibold text-slate-900 shadow-sm hover:bg-white"
               >
                 Submit a tool first

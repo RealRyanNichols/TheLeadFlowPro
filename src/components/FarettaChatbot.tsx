@@ -13,11 +13,11 @@ type Msg = { role: "user" | "assistant"; content: string };
 const GREETING: Msg = {
   role: "assistant",
   content:
-    "I'm Ryan's routing assistant. I help serious buyers find the right service, tool challenge, or call in about 30 seconds. What are you trying to figure out?",
+    "I'm Ryan's routing assistant. I help serious buyers get to the free blueprint, leak audit, service path, or call in about 30 seconds. What are you trying to figure out?",
 };
 
 const QUICK_PROMPTS = [
-  "Challenge Ryan with a tool",
+  "Stump Ryan with a tool",
   "I want help growing my social",
   "I need a sales process built",
   "What package fits me?",
@@ -245,11 +245,11 @@ export function FarettaChatbot() {
           {/* Quick CTAs always visible */}
           <div className="px-3 py-2 border-t border-slate-200 bg-white flex gap-2">
             <Link
-              href="/challenge"
-              onClick={() => beaconPulse("chat_cta", "challenge")}
+              href="/stump-ryan"
+              onClick={() => beaconPulse("chat_cta", "stump-ryan")}
               className="flex-1 text-center text-xs rounded-lg bg-cyan-600 px-2 py-1.5 font-semibold text-white hover:bg-cyan-700"
             >
-              Tool challenge
+              Free blueprint
             </Link>
             <Link
               href="/book"

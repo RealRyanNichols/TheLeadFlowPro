@@ -121,12 +121,12 @@ export default function RewardsPage() {
                 Watch the board <ArrowRight className="h-4 w-4" />
               </TrackedLink>
               <TrackedLink
-                href="/challenge"
+                href="/stump-ryan"
                 event="cta_tool_challenge"
                 location="rewards_hero"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
               >
-                Stump me
+                Stump Ryan
               </TrackedLink>
             </div>
           </div>

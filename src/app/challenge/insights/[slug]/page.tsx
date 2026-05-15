@@ -113,7 +113,7 @@ const INSIGHTS = {
       "Client approval, refine, or scrap decisions",
     ],
     decisions: [
-      "Do we start with a $250 build slot or talk first?",
+      "Do we continue with the $250 build block or talk first?",
       "Is the first version a one-page tool, a dashboard, a portal, or an automation chain?",
       "What should be built now, and what should wait until the data proves it?",
       "What does the owner need to control without an agency holding the keys?",
@@ -143,7 +143,7 @@ export function generateMetadata({ params }: Props): Metadata {
     description: insight.description,
     path: `/challenge/insights/${params.slug}`,
     imageTitle: `${insight.title} Breakdown`,
-    imageSubtitle: "Formula, live data path, and business decisions behind the Stump Me calculator.",
+    imageSubtitle: "Formula, live data path, and business decisions behind the Stump Ryan calculator.",
   });
 }
 
@@ -153,7 +153,7 @@ export default function ChallengeInsightPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-white text-slate-950">
-      <LightHeader activePath="/challenge" />
+      <LightHeader activePath="/stump-ryan" />
 
       <main>
         <section className="relative overflow-hidden border-b border-slate-200">
@@ -186,7 +186,7 @@ export default function ChallengeInsightPage({ params }: Props) {
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/challenge#tool-challenge-form"
+                  href="/stump-ryan#tool-challenge-form"
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
                 >
                   Use this in my tool request <ArrowRight className="h-4 w-4" />

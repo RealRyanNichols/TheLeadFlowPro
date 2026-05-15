@@ -328,7 +328,7 @@ export default async function PulseSignalPage({ params }: { params: { signal: st
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <Link
-              href="/challenge"
+              href="/stump-ryan"
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-accent-500 to-accent-400 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:from-accent-600 hover:to-accent-500"
             >
               {signal.cta}

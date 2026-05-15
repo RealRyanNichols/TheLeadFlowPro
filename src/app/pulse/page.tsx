@@ -349,7 +349,7 @@ export default async function PulsePage() {
               </p>
             </div>
             <Link
-              href="/challenge"
+              href="/stump-ryan"
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
             >
               Build this for my business
@@ -479,7 +479,7 @@ export default async function PulsePage() {
                 Run the ad autopsy <BarChart3 className="h-4 w-4" />
               </Link>
               <Link
-                href="/challenge"
+                href="/stump-ryan"
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
               >
                 Challenge Ryan with my tool <ArrowRight className="h-4 w-4" />

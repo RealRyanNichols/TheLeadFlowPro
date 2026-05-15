@@ -121,7 +121,7 @@ export default async function AdminPulsePage() {
               <Link href="/pulse" className="rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 hover:bg-cyan-50">
                 Public pulse
               </Link>
-              <Link href="/challenge" className="rounded-xl bg-accent-500 px-4 py-3 text-sm font-semibold text-white hover:bg-accent-600">
+              <Link href="/stump-ryan" className="rounded-xl bg-accent-500 px-4 py-3 text-sm font-semibold text-white hover:bg-accent-600">
                 Push build funnel
               </Link>
               <Link href="/admin" className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/15">

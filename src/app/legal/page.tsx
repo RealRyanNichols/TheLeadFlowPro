@@ -80,6 +80,13 @@ export default function LegalPage() {
               your identity and hand us a session token; nothing more.
             </p>
             <p>
+              Custom build requests may include business context, website links, call notes, tool
+              ideas, platform access notes, and files you choose to provide. We use that information
+              to plan, build, hand off, and support the requested work. Do not send secrets,
+              private keys, or sensitive customer data unless Ryan has specifically asked for a
+              secure handoff path.
+            </p>
+            <p>
               You can request a full export or deletion of your account data at any time by
               emailing{" "}
               <a href={`mailto:${CONTACT_EMAIL}`} className="text-cyan-300 hover:underline">
@@ -109,6 +116,19 @@ export default function LegalPage() {
               We may update the service, adjust pricing, or change features. For pricing changes on
               existing plans we give at least 30 days notice. You can cancel any time before then
               and the change doesn't affect you.
+            </p>
+            <p>
+              For custom websites, apps, dashboards, automations, and business tools, ownership is
+              simple unless a separate written agreement says otherwise: work is built in your
+              accounts or transferred to your accounts, and you control the code, assets, data,
+              platform logins, API keys, and deployment access. Optional managed hosting or
+              maintenance can be chosen separately, but the default is not hostage hosting.
+            </p>
+            <p>
+              A free Stump Ryan blueprint is a planning deliverable, not a finished product or a
+              promise that every idea is worth building. Paid deposits and build phases are credited
+              or scoped as described at checkout or in the proposal. We do not guarantee sales,
+              leads, rankings, ad performance, revenue, or platform approval.
             </p>
             <p>
               These terms are governed by the laws of the <strong className="text-white">State of Texas,

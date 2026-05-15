@@ -183,7 +183,7 @@ export function PulseBusinessDemo() {
                   </h3>
                 </div>
                 <Link
-                  href="/challenge#tool-challenge-form"
+                  href="/stump-ryan#tool-challenge-form"
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
                 >
                   Submit my tracker <ArrowRight className="h-4 w-4" />
@@ -280,7 +280,7 @@ export function PulseBusinessDemo() {
 
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   <Link
-                    href="/challenge#tool-challenge-form"
+                    href="/stump-ryan#tool-challenge-form"
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-50"
                   >
                     {industry.cta} <ArrowRight className="h-4 w-4" />

@@ -156,6 +156,6 @@ export async function POST(req: NextRequest) {
 
   const destination = auditPublicId
     ? `/audit/${auditPublicId}?submitted=1&source=${encodeURIComponent(source)}`
-    : `${routedTo}?source=${encodeURIComponent(source)}`;
+    : `${routedTo}?submitted=1&source=${encodeURIComponent(source)}`;
   return NextResponse.redirect(new URL(destination, req.url), { status: 303 });
 }

@@ -127,8 +127,8 @@ export default async function ClientWorkOfficePage() {
             can reserve capacity and stay tied to your account.
           </p>
           <div className="mt-4 grid gap-2">
-            <Link href="/challenge" className="rounded-xl border border-accent-400/25 bg-accent-400/10 px-4 py-3 text-sm font-semibold text-accent-100 hover:bg-accent-400/15">
-              Reserve $250 build slot <ArrowRight className="ml-2 inline h-3.5 w-3.5" />
+            <Link href="/stump-ryan" className="rounded-xl border border-accent-400/25 bg-accent-400/10 px-4 py-3 text-sm font-semibold text-accent-100 hover:bg-accent-400/15">
+              Request build blueprint <ArrowRight className="ml-2 inline h-3.5 w-3.5" />
             </Link>
             <Link href="/offers/quick-look" className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-400/15">
               Add Quick-Look review <ArrowRight className="ml-2 inline h-3.5 w-3.5" />
