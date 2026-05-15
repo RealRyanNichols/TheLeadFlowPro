@@ -93,7 +93,7 @@ export function LightHeader({ activePath }: { activePath?: string }) {
           </Link>
           <Link
             href="/book"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-accent-500 to-accent-400 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:from-accent-600 hover:to-accent-500 sm:px-4"
+            className="hidden items-center gap-1.5 rounded-lg bg-gradient-to-r from-accent-500 to-accent-400 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:from-accent-600 hover:to-accent-500 sm:inline-flex sm:px-4"
           >
             Book call <ArrowRight className="h-3.5 w-3.5" />
           </Link>
