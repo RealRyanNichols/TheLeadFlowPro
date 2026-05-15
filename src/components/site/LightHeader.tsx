@@ -4,17 +4,27 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, ClipboardCheck, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronDown, ClipboardCheck, Sparkles } from "lucide-react";
 import { LightMobileMenu } from "./LightMobileMenu";
 
+type NavItem = {
+  href: string;
+  label: string;
+  activePaths?: string[];
+};
+
 export function LightHeader({ activePath }: { activePath?: string }) {
+  function isActive(path: string, activePaths: string[] = [path]) {
+    return Boolean(activePath && activePaths.includes(activePath));
+  }
+
   function cls(path: string, base: string, activePaths: string[] = [path]) {
-    return activePath && activePaths.includes(activePath)
+    return isActive(path, activePaths)
       ? `rounded-full border border-cyan-300/60 bg-cyan-100/80 px-2.5 py-1 font-semibold text-cyan-800 shadow-sm shadow-cyan-900/5 hover:text-cyan-900 ${base}`
       : `rounded-full px-2.5 py-1 hover:bg-white/70 hover:text-slate-950 ${base}`;
   }
 
-  const nav = [
+  const nav: NavItem[] = [
     { href: "/", label: "Home" },
     { href: "/stump-ryan", label: "Stump Ryan", activePaths: ["/stump-ryan", "/challenge"] },
     { href: "/lead-leak-audit", label: "Leak Audit" },
@@ -27,6 +37,22 @@ export function LightHeader({ activePath }: { activePath?: string }) {
     { href: "/story", label: "Story" },
     { href: "/contact", label: "Contact" },
   ];
+  const primaryNav: NavItem[] = [
+    { href: "/lead-leak-audit", label: "Leak Audit" },
+    { href: "/proof", label: "Proof" },
+    { href: "/services", label: "Services" },
+    { href: "/tiers", label: "Pricing" },
+  ];
+  const secondaryNav: NavItem[] = [
+    { href: "/organic-growth", label: "Organic Plan" },
+    { href: "/services/consulting", label: "Consulting" },
+    { href: "/leaderboard", label: "Community", activePaths: ["/leaderboard", "/voice", "/community", "/support"] },
+    { href: "/story", label: "Story" },
+    { href: "/contact", label: "Contact" },
+    { href: "/pulse", label: "Live Pulse" },
+    { href: "/login", label: "Client Login" },
+  ];
+  const moreActive = secondaryNav.some((item) => isActive(item.href, item.activePaths));
 
   return (
     <header className="sticky top-0 z-50 border-b border-cyan-400/80 bg-[linear-gradient(135deg,rgba(204,239,255,0.99)_0%,rgba(167,226,247,0.97)_34%,rgba(255,233,177,0.98)_68%,rgba(255,197,111,0.97)_100%)] shadow-[0_14px_36px_-28px_rgba(15,23,42,0.82)] backdrop-blur">
@@ -38,10 +64,10 @@ export function LightHeader({ activePath }: { activePath?: string }) {
         <div className="absolute -left-20 -top-24 h-36 w-36 rounded-full bg-cyan-500/20 blur-3xl" />
         <div className="absolute -right-16 -top-24 h-36 w-36 rounded-full bg-accent-500/20 blur-3xl" />
       </div>
-      <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-1.5 lg:py-2">
+      <div className="relative mx-auto flex max-w-[92rem] items-center justify-between gap-3 px-4 py-2">
         <Link
           href="/"
-          className="group flex min-w-0 items-center gap-2 truncate font-bold text-slate-950"
+          className="group flex min-w-0 flex-1 items-center gap-2 truncate font-bold text-slate-950 xl:flex-none"
         >
           <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-cyan-300/70 bg-slate-950 text-xs font-black text-cyan-200 shadow-lg shadow-cyan-900/15">
             LF
@@ -53,20 +79,43 @@ export function LightHeader({ activePath }: { activePath?: string }) {
             </span>
           </span>
         </Link>
-        <nav className="hidden items-center gap-1 rounded-full border border-cyan-200/80 bg-white/40 px-1.5 py-0.5 text-sm text-slate-800 shadow-sm shadow-cyan-900/5 backdrop-blur lg:flex">
-          {nav.map((item) => (
+        <nav className="hidden min-w-0 items-center gap-1 rounded-full border border-cyan-200/80 bg-white/45 px-1.5 py-0.5 text-sm text-slate-800 shadow-sm shadow-cyan-900/5 backdrop-blur xl:flex">
+          {primaryNav.map((item) => (
             <Link key={item.href} href={item.href} className={cls(item.href, "", item.activePaths)}>
               {item.label}
             </Link>
           ))}
+          <div className="group relative">
+            <button
+              type="button"
+              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-medium hover:bg-white/70 hover:text-slate-950 ${
+                moreActive ? "border border-cyan-300/60 bg-cyan-100/80 text-cyan-800 shadow-sm shadow-cyan-900/5" : ""
+              }`}
+              aria-haspopup="true"
+            >
+              More <ChevronDown className="h-3.5 w-3.5 transition group-hover:rotate-180 group-focus-within:rotate-180" />
+            </button>
+            <div className="invisible absolute right-0 top-full z-50 mt-3 w-64 translate-y-1 rounded-2xl border border-cyan-100 bg-white p-2 text-sm text-slate-800 opacity-0 shadow-2xl shadow-slate-950/10 transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+              <div className="px-3 pb-2 pt-1 text-[0.65rem] font-black uppercase tracking-[0.22em] text-slate-400">
+                More paths
+              </div>
+              <div className="grid gap-1">
+                {secondaryNav.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`rounded-xl px-3 py-2 font-semibold hover:bg-cyan-50 hover:text-slate-950 ${
+                      isActive(item.href, item.activePaths) ? "bg-cyan-50 text-cyan-800" : ""
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
         </nav>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/login"
-            className="hidden items-center rounded-lg border border-cyan-200/80 bg-white/75 px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur hover:border-brand-500 hover:text-brand-700 sm:inline-flex"
-          >
-            Log in
-          </Link>
+        <div className="flex shrink-0 items-center gap-2">
           <Link
             href="/stump-ryan"
             className="hidden items-center gap-1.5 rounded-lg bg-gradient-to-r from-slate-950 via-brand-950 to-slate-900 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 hover:from-brand-950 hover:to-slate-950 sm:inline-flex sm:px-4"

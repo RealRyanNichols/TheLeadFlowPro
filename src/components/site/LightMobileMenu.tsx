@@ -64,14 +64,14 @@ export function LightMobileMenu({
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open site menu"
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-cyan-300/40 bg-gradient-to-r from-slate-950 via-brand-950 to-cyan-950 px-3 text-sm font-semibold text-white shadow-lg shadow-cyan-900/15 active:scale-[0.98] lg:hidden"
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-cyan-300/40 bg-gradient-to-r from-slate-950 via-brand-950 to-cyan-950 px-3 text-sm font-semibold text-white shadow-lg shadow-cyan-900/15 active:scale-[0.98] xl:hidden"
       >
         <Menu className="h-4 w-4" />
         Menu
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[120] lg:hidden">
+        <div className="fixed inset-0 z-[120] xl:hidden">
           <button
             type="button"
             aria-label="Close menu backdrop"

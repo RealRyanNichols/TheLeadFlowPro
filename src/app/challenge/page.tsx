@@ -120,8 +120,8 @@ export default function ChallengePage({ searchParams }: ChallengePageProps) {
             style={{ background: "radial-gradient(circle, rgba(255,154,31,0.46) 0%, transparent 62%)" }}
           />
 
-          <div className="relative mx-auto grid max-w-7xl gap-5 px-4 py-4 lg:grid-cols-[0.72fr_1.28fr] lg:items-start lg:py-6">
-            <div className="lg:sticky lg:top-24">
+          <div className="relative mx-auto grid max-w-[92rem] gap-5 px-4 py-4 lg:grid-cols-[minmax(280px,0.68fr)_minmax(0,1.32fr)] lg:items-start lg:py-6">
+            <div className="xl:sticky xl:top-24">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/75 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm backdrop-blur">
                 <Sparkles className="h-3.5 w-3.5" /> Free build blueprint
               </div>
@@ -181,8 +181,8 @@ export default function ChallengePage({ searchParams }: ChallengePageProps) {
                   stay under your control.
                 </p>
               </div>
-              <div className="grid gap-4 xl:grid-cols-[minmax(260px,0.8fr)_minmax(360px,1.2fr)]">
-                <div className="rounded-3xl border border-slate-200 bg-slate-950 p-3 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.7)]">
+              <div className="grid gap-4 xl:grid-cols-[minmax(220px,320px)_minmax(0,1fr)] xl:items-start">
+                <div className="self-start rounded-3xl border border-slate-200 bg-slate-950 p-3 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.7)]">
                   <div className="mb-3 flex items-center justify-between px-2 pt-1 text-xs font-semibold uppercase tracking-widest text-cyan-200">
                     <span className="inline-flex items-center gap-2">
                       <PlayCircle className="h-4 w-4" /> Watch the promise
@@ -190,7 +190,7 @@ export default function ChallengePage({ searchParams }: ChallengePageProps) {
                     <span>Under 1 minute</span>
                   </div>
                   <video
-                    className="aspect-[9/16] w-full rounded-2xl bg-black object-cover"
+                    className="aspect-[9/16] max-h-[560px] w-full rounded-2xl bg-black object-cover"
                     controls
                     playsInline
                     preload="metadata"
@@ -316,7 +316,7 @@ function DepositCancelledCard() {
 
 function DecisionDeck() {
   return (
-    <div className="mt-5 rounded-3xl border border-white/70 bg-white/75 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] backdrop-blur">
+    <div className="rounded-3xl border border-white/70 bg-white/75 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] backdrop-blur">
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
@@ -349,57 +349,57 @@ function ReserveBuildSlotCard() {
   return (
     <div
       id="continue-build"
-      className="mt-5 scroll-mt-24 overflow-hidden rounded-3xl border border-slate-900/10 bg-slate-950 text-white shadow-[0_26px_70px_-30px_rgba(15,23,42,0.75)]"
+      className="scroll-mt-24 overflow-hidden rounded-3xl border border-slate-900/10 bg-slate-950 text-white shadow-[0_26px_70px_-30px_rgba(15,23,42,0.75)]"
     >
-      <div className="grid gap-0 sm:grid-cols-[1fr_auto]">
-        <div className="p-5">
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
-            <BadgeDollarSign className="h-3.5 w-3.5" /> Optional continuation
+      <div className="p-5">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_230px] lg:items-start">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
+              <BadgeDollarSign className="h-3.5 w-3.5" /> Optional continuation
+            </div>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-balance">
+              Like the blueprint? Reserve the first build block.
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300">
+              The $250 deposit is optional. It is not required for the free blueprint, and it is not
+              the total tool price. It reserves a {TOOL_CHALLENGE_DEPOSIT.reserveHours}-hour build
+              block and credits toward the scoped version if you move forward.
+            </p>
+            <div className="mt-4 grid gap-2 text-xs text-slate-300 sm:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3 text-center sm:text-left">
+                <div className="text-lg font-semibold text-white">$250</div>
+                <div>deposit</div>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3 text-center sm:text-left">
+                <div className="text-lg font-semibold text-white">{TOOL_CHALLENGE_DEPOSIT.reserveHours}h</div>
+                <div>reserved</div>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3 text-center sm:text-left">
+                <div className="text-lg font-semibold text-white">5 days</div>
+                <div>target</div>
+              </div>
+            </div>
           </div>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-            Like the blueprint? Put $250 down and continue into the first build.
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-300">
-            This is not required to get the free blueprint, and it is not the total tool price. It is
-            the continuation step for owners who like the plan and want Ryan building the app,
-            automation, dashboard, or website tool. The deposit reserves a{" "}
-            {TOOL_CHALLENGE_DEPOSIT.reserveHours}-hour capacity block and credits toward the scoped
-            build if you move forward.
-          </p>
-          <div className="mt-4 grid gap-2 text-xs text-slate-300 sm:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3">
-              <div className="text-lg font-semibold text-white">$250</div>
-              <div>continuation deposit</div>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3">
-              <div className="text-lg font-semibold text-white">{TOOL_CHALLENGE_DEPOSIT.reserveHours}h</div>
-              <div>capacity reserved</div>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3">
-              <div className="text-lg font-semibold text-white">5 days</div>
-              <div>target first build window</div>
-            </div>
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-cyan-500/20 via-white/[0.03] to-accent-500/20 p-4">
+            <form action="/api/challenge/deposit" method="POST" className="grid gap-3">
+              <VisitorIdField />
+              <button
+                type="submit"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
+              >
+                Continue the build <ArrowRight className="h-4 w-4" />
+              </button>
+              <Link
+                href="/book?source=stump-ryan-continuation"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/15"
+              >
+                Talk first
+              </Link>
+            </form>
+            <p className="mt-3 text-[11px] leading-relaxed text-slate-300">
+              If the build needs more scope, Ryan quotes the next phase before continuing.
+            </p>
           </div>
-        </div>
-        <div className="border-t border-white/10 bg-gradient-to-br from-cyan-500/20 via-slate-900 to-accent-500/20 p-5 sm:w-56 sm:border-l sm:border-t-0">
-          <form action="/api/challenge/deposit" method="POST" className="grid gap-3">
-            <VisitorIdField />
-            <button
-              type="submit"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
-            >
-              Continue the build <ArrowRight className="h-4 w-4" />
-            </button>
-            <Link
-              href="/book?source=stump-ryan-continuation"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/15"
-            >
-              Talk first
-            </Link>
-          </form>
-          <p className="mt-3 text-[11px] leading-relaxed text-slate-300">
-            If the build needs more scope, Ryan quotes the next phase before continuing.
-          </p>
         </div>
       </div>
     </div>
