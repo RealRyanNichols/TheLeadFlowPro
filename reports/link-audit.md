@@ -1,6 +1,6 @@
 # Paid Traffic Link Audit
 
-Generated: 2026-05-15T18:19:47.219Z
+Generated: 2026-05-15T18:23:37.173Z
 
 ## Summary
 

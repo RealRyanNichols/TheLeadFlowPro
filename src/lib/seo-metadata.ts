@@ -54,7 +54,7 @@ export function createSeoMetadata(input: SeoMetadataInput): Metadata {
           url: image,
           width: 1200,
           height: 630,
-          alt: `${input.imageTitle || input.title} — ${SITE_NAME}`,
+          alt: `${input.imageTitle || input.title} | ${SITE_NAME}`,
         },
       ],
     },
