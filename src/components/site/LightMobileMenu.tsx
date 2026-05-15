@@ -10,7 +10,6 @@ import {
   ClipboardCheck,
   Gauge,
   Home,
-  LogIn,
   Mail,
   Menu,
   Megaphone,
@@ -29,14 +28,19 @@ type NavItem = {
 const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   "/": Home,
   "/stump-ryan": Sparkles,
+  "/lead-leak-audit-197": ClipboardCheck,
   "/lead-leak-audit": ClipboardCheck,
   "/organic-growth": Gauge,
   "/proof": Trophy,
   "/services": Package,
   "/services/consulting": BriefcaseBusiness,
+  "/start": Sparkles,
+  "/tools/ad-account-autopsy": Megaphone,
+  "/pulse": Gauge,
   "/tiers": Package,
-  "/leaderboard": Trophy,
-  "/voice": Megaphone,
+  "/community": Trophy,
+  "/support": Mail,
+  "/rewards": Trophy,
   "/story": BookOpen,
   "/availability": Gauge,
   "/contact": Mail,
@@ -103,25 +107,25 @@ export function LightMobileMenu({
             <div className="p-4">
               <div className="grid grid-cols-2 gap-2">
                 <Link
-                  href="/stump-ryan"
+                  href="/lead-leak-audit-197"
                   onClick={() => setOpen(false)}
                   className="rounded-2xl bg-gradient-to-br from-slate-950 via-brand-950 to-cyan-950 p-4 text-white shadow-lg shadow-slate-950/20 active:scale-[0.98]"
                 >
-                  <Sparkles className="h-5 w-5 text-cyan-300" />
-                  <div className="mt-3 text-sm font-semibold">Free blueprint</div>
+                  <ClipboardCheck className="h-5 w-5 text-cyan-300" />
+                  <div className="mt-3 text-sm font-semibold">$197 audit</div>
                   <div className="mt-1 text-xs leading-relaxed text-slate-300">
-                    Stump Ryan with the tool idea.
+                    Find the leak before more traffic.
                   </div>
                 </Link>
                 <Link
-                  href="/lead-leak-audit"
+                  href="/book"
                   onClick={() => setOpen(false)}
                   className="rounded-2xl bg-accent-500 p-4 text-white shadow-lg shadow-accent-500/25 active:scale-[0.98]"
                 >
-                  <ClipboardCheck className="h-5 w-5" />
-                  <div className="mt-3 text-sm font-semibold">Leak audit</div>
+                  <Sparkles className="h-5 w-5" />
+                  <div className="mt-3 text-sm font-semibold">Book call</div>
                   <div className="mt-1 text-xs leading-relaxed text-white/85">
-                    Find what is leaking first.
+                    Ten-minute fit check.
                   </div>
                 </Link>
               </div>
@@ -157,12 +161,12 @@ export function LightMobileMenu({
 
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <Link
-                  href="/login"
+                  href="/lead-leak-audit"
                   onClick={() => setOpen(false)}
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-cyan-200 bg-white/80 text-sm font-semibold text-slate-900 shadow-sm active:scale-[0.98]"
                 >
-                  <LogIn className="h-4 w-4 text-slate-600" />
-                  Log in
+                  <ClipboardCheck className="h-4 w-4 text-slate-600" />
+                  Free audit
                 </Link>
                 <Link
                   href="/contact"

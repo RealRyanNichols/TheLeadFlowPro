@@ -164,6 +164,12 @@ function trackedEventForHref(href: string): PulseClickSignal | null {
 
   if (host === "buy.stripe.com") return { eventType: "cta_checkout", target: "stripe-checkout" };
   if (path === "/start" || path.startsWith("/start/")) return { eventType: "cta_start", target: "offer-router" };
+  if (path === "/lead-leak-audit-197" || path.startsWith("/lead-leak-audit-197/")) {
+    return { eventType: "cta_service", target: "paid-lead-leak-audit-197" };
+  }
+  if (path === "/lead-leak-audit" || path.startsWith("/lead-leak-audit/")) {
+    return { eventType: "cta_service", target: "lead-leak-audit" };
+  }
   if (path === "/book" || path.startsWith("/book/")) return { eventType: "cta_book", target: "calendar" };
   if (path === "/availability" || path.startsWith("/availability/")) {
     return { eventType: "cta_capacity", target: "capacity" };

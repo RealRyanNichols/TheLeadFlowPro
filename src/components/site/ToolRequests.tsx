@@ -25,7 +25,7 @@ export function ToolRequests() {
                   Free
                 </span>
                 <span className="text-sm">
-                  If it helps everyone, we ship it into the platform — at no extra cost to you.
+                  If it helps everyone, we ship it into the platform at no extra cost to you.
                 </span>
               </li>
               <li className="flex gap-3">
@@ -33,7 +33,7 @@ export function ToolRequests() {
                   Custom
                 </span>
                 <span className="text-sm">
-                  If it's just for your business, we quote you a fair one-time price (often $5–$50).
+                  If it's just for your business, we quote you a fair one-time price (often $5-$50).
                 </span>
               </li>
               <li className="flex gap-3">
@@ -41,7 +41,7 @@ export function ToolRequests() {
                   Gifted
                 </span>
                 <span className="text-sm">
-                  Sometimes we just build it for free — because it's a good idea and we want you to win.
+                  Sometimes we just build it for free because it's a good idea and we want you to win.
                 </span>
               </li>
             </ul>
@@ -72,7 +72,7 @@ export function ToolRequests() {
                 <Wrench className="h-3.5 w-3.5" /> Our reply
               </p>
               <p className="text-sm text-ink-100">
-                "Yes — we'll build the personalized-GIF generator into the platform for
+                "Yes. We'll build the personalized-GIF generator into the platform for
                 everyone (free) since 14 other users have asked for something similar.
                 Live in 7 days. We'll text you when it's ready."
               </p>

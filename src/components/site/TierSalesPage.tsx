@@ -26,7 +26,7 @@ export function TierSalesPage({ tier }: { tier: Tier }) {
         </div>
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
           <span className="funnel-text">{tier.name}</span>{" "}
-          <span className="text-white">— ${tier.priceMonthly}/mo</span>
+          <span className="text-white">${tier.priceMonthly}/mo</span>
         </h1>
         <p className="mt-4 text-xl md:text-2xl text-ink-100 leading-relaxed">{tier.subhead}</p>
         <p className="mt-3 text-base md:text-lg text-ink-300 leading-relaxed">{tier.tagline}</p>
@@ -37,7 +37,7 @@ export function TierSalesPage({ tier }: { tier: Tier }) {
             variant="accent"
             className="text-base py-3 px-6"
           >
-            Start {tier.name} — ${tier.priceMonthly}/mo
+            Start {tier.name} ${tier.priceMonthly}/mo
           </CheckoutButton>
           <Link href="/signup" className="btn-ghost text-base py-3 px-6">
             Try the free tier first
@@ -70,7 +70,7 @@ export function TierSalesPage({ tier }: { tier: Tier }) {
           What <span className="funnel-text">{tier.name}</span> actually does for you
         </h2>
         <p className="mt-3 text-center text-ink-300 max-w-2xl mx-auto">
-          Four real scenarios. Not features — moments where this plan pays you back.
+          Four real scenarios. Not features. Moments where this plan can pay you back.
         </p>
         <div className="mt-8 grid md:grid-cols-2 gap-4 md:gap-6">
           {tier.useCases.map((uc, i) => (
@@ -134,7 +134,7 @@ export function TierSalesPage({ tier }: { tier: Tier }) {
         </div>
       </section>
 
-      {/* TESTIMONIAL — only render if a real one has been provided. No invented quotes. */}
+      {/* TESTIMONIAL: only render if a real one has been provided. No invented quotes. */}
       {tier.testimonial && (
         <section className="container py-8 md:py-12 max-w-3xl mx-auto animate-fade-up">
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 md:p-8">
@@ -181,7 +181,7 @@ export function TierSalesPage({ tier }: { tier: Tier }) {
           Ready to try <span className="funnel-text">{tier.name}</span>?
         </h2>
         <p className="mt-3 text-ink-300 max-w-xl mx-auto">
-          14 days to decide. If it doesn't earn back the ${tier.priceMonthly} we owe you, we refund it. Simple.
+          Use it for 14 days. If it is not a fit, ask for a refund under the refund policy. Simple.
         </p>
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
           <CheckoutButton
@@ -189,7 +189,7 @@ export function TierSalesPage({ tier }: { tier: Tier }) {
             variant="accent"
             className="text-base py-3 px-6"
           >
-            Start {tier.name} — ${tier.priceMonthly}/mo
+            Start {tier.name} ${tier.priceMonthly}/mo
           </CheckoutButton>
           <Link
             href="/pricing"

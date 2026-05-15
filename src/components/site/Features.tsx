@@ -32,7 +32,7 @@ const FEATURES = [
   {
     icon: Bot,
     title: "AI Chatbot Responder",
-    body: "Claude-powered chatbot answers questions, qualifies leads, and books appointments 24/7 — using your voice, your scripts, your videos.",
+    body: "Claude-powered chatbot answers questions, qualifies leads, and books appointments 24/7 using your voice, your scripts, your videos.",
     href: "/dashboard/chatbot"
   },
   {
@@ -56,7 +56,7 @@ const FEATURES = [
   {
     icon: Target,
     title: "Real Target Audience",
-    body: "Not who you think buys from you — who actually does. Cross-platform audience analysis in one report.",
+    body: "Not who you think buys from you. Who actually does. Cross-platform audience analysis in one report.",
     href: "/dashboard/audience"
   },
   {
@@ -88,11 +88,11 @@ export function Features() {
             One dashboard. Every tool you need to grow.
           </p>
           <h2 className="text-3xl md:text-5xl font-extrabold">
-            All your data — and the <span className="funnel-text">next move</span> beside it
+            All your data and the <span className="funnel-text">next move</span> beside it
           </h2>
           <p className="mt-3 md:mt-5 text-ink-200 text-base md:text-lg">
             You shouldn't have to log into 8 apps to know what's working. LeadFlow Pro
-            is the melting pot — leads, ads, social, and AI sitting side by side, with
+            is the melting pot: leads, ads, social, and AI sitting side by side, with
             a clear "next move" recommendation on every screen.
           </p>
         </div>

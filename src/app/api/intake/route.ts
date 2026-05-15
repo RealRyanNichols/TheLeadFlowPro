@@ -25,6 +25,7 @@ import {
 } from "@/lib/offer-recommendation";
 import { rememberPublicVisitor } from "@/lib/lead-memory";
 import { recordSitePulseEvent } from "@/lib/site-pulse";
+import { attributionNoteBlock, extractFormAttribution } from "@/lib/form-attribution";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,6 +51,10 @@ export async function POST(req: NextRequest) {
   const workStyle   = (pickStr(form.get("workStyle"), 40) || "").toLowerCase();
   const budgetTier  = (pickStr(form.get("budgetTier"), 40) || "").toLowerCase();
   const urgency     = (pickStr(form.get("urgency"), 40) || "").toLowerCase();
+  const attribution = extractFormAttribution(form, {
+    formType: "start_router",
+    sourcePage: "/start",
+  });
 
   if (!fullName) return NextResponse.json({ error: "missing_name" }, { status: 400 });
   if (!email || !/.+@.+\..+/.test(email)) {
@@ -79,6 +84,7 @@ export async function POST(req: NextRequest) {
   const routedTo = routeForRecommendation({ primaryNeed, budgetTier, urgency });
   const notes = pickStr(form.get("notes"), 2000);
   const routerNotes = [
+    attributionNoteBlock(attribution),
     `Recommended offer: ${recommendation.slug}`,
     `Recommendation reason: ${recommendation.reason}`,
     `Work style: ${workStyle}`,

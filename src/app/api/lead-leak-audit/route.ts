@@ -3,6 +3,7 @@ import { createLeadAuditReport } from "@/lib/lead-intelligence";
 import { rememberPublicVisitor } from "@/lib/lead-memory";
 import { prisma } from "@/lib/prisma";
 import { recordSitePulseEvent } from "@/lib/site-pulse";
+import { attributionNoteBlock, extractFormAttribution } from "@/lib/form-attribution";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,6 +46,10 @@ export async function POST(req: NextRequest) {
   const leakConcern = pickStr(form.get("leakConcern"), 2000);
   const monthlyRevenueRange = pickStr(form.get("monthlyRevenueRange"), 60);
   const phone = pickStr(form.get("phone"), 40);
+  const attribution = extractFormAttribution(form, {
+    formType: "free_lead_leak_audit",
+    sourcePage: landingPage,
+  });
 
   if (!fullName) return NextResponse.json({ error: "missing_name" }, { status: 400 });
   if (!validEmail(email)) return NextResponse.json({ error: "invalid_email" }, { status: 400 });
@@ -54,6 +59,7 @@ export async function POST(req: NextRequest) {
 
   const routedTo = "/lead-leak-audit/thank-you";
   const notes = [
+    attributionNoteBlock(attribution),
     "Requested free lead leak audit.",
     `Source: ${source}`,
     `Landing page: ${landingPage}`,

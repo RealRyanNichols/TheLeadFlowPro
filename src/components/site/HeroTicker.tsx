@@ -2,21 +2,21 @@
 import { useEffect, useState } from "react";
 
 const STATS = [
-  "Recover 30–40% of missed calls automatically",
+  "Recover 30-40% of missed calls automatically",
   "Reply to every lead in under 60 seconds",
   "Turn every missed text into booked revenue",
   "Cut your cost per lead in half with smarter targeting",
-  "Turn one post into 5 pieces of content — instantly",
+  "Turn one post into 5 pieces of content instantly",
   "An AI chatbot that sounds like you, working 24/7",
   "Every call, text, DM, and form in one unified inbox",
-  "Know the next move on every lead — before it goes cold",
+  "Know the next move on every lead before it goes cold",
   "Fill a slow week with one playbook click",
-  "Stop chasing leads — start closing them",
-  "Ship ad copy for IG, TikTok, and Facebook — all at once",
+  "Stop chasing leads. Start closing them",
+  "Ship ad copy for IG, TikTok, and Facebook all at once",
   "Win back dead leads with proven re-engage scripts",
   "Monday recap: who to call, what to say, what it's worth",
   "Replace every paper business card with one FlowCard",
-  "Free SEO Grader — honest score in 10 seconds"
+  "Free SEO Grader with an honest score in 10 seconds"
 ];
 
 export function HeroTicker() {

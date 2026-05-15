@@ -5,21 +5,21 @@ const STAGES = [
   {
     icon: PhoneIncoming,
     title: "You attract a lead",
-    body: "Use our playbooks to know where to fish. Call, text, form, DM, ad click — it lands in your inbox.",
+    body: "Use our playbooks to know where to fish. Call, text, form, DM, ad click. It lands in your inbox.",
     tint: "from-cyan-400 to-brand-500",
     href: "/dashboard/leads"
   },
   {
     icon: Bot,
     title: "AI chatbot answers fast",
-    body: "Trained on your scripts. Answers FAQs, qualifies, books — in your voice, instantly.",
+    body: "Trained on your scripts. Answers FAQs, qualifies, and books in your voice.",
     tint: "from-cyan-500 to-brand-600",
     href: "/dashboard/chatbot"
   },
   {
     icon: MessageSquare,
     title: "Nurture sequence runs",
-    body: "Your videos, your GIFs, your story — sent at the right moment to build know-like-trust.",
+    body: "Your videos, your GIFs, your story, sent at the right moment to build trust.",
     tint: "from-brand-500 to-accent-500",
     href: "/dashboard/automations"
   },
@@ -52,7 +52,7 @@ export function AutomationFlow() {
             <span className="funnel-text">We hand you the tools.</span>
           </h2>
           <p className="mt-3 md:mt-5 text-ink-200 text-base md:text-lg">
-            LeadFlow Pro doesn't close deals for you — you do. We give you the AI
+            LeadFlow Pro doesn't close deals for you. You do. We give you the AI
             chatbot, the follow-up sequences, the videos, the GIFs, and the playbooks
             so you spend time on conversations that matter.
           </p>

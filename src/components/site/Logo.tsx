@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * SVG fallback that mirrors the real logo (funnel + green dots).
- * Replace /public/logo.png with your actual artwork — it'll render automatically.
+ * Replace /public/logo.png with your actual artwork. It renders automatically.
  */
 export function FunnelMark({ className }: { className?: string }) {
   return (

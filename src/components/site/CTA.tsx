@@ -10,7 +10,7 @@ export function CTA() {
             See the data. <span className="funnel-text">Make the move.</span>
           </h2>
           <p className="mt-3 md:mt-4 text-ink-200 text-base md:text-lg max-w-2xl mx-auto">
-            Free forever tier. No card. 3-minute setup. You stay in the driver's seat —
+            Free forever tier. No card. 3-minute setup. You stay in the driver's seat.
             we just make sure you can see the road.
           </p>
           <div className="mt-6 md:mt-8 flex flex-wrap justify-center gap-3">

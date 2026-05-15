@@ -30,17 +30,17 @@ export function Hero() {
 
         <div className="mt-3 md:mt-4 spectrum-line animate-fade-up" />
 
-        {/* Top CTAs — interact immediately, no scroll required */}
+        {/* Top CTAs: interact immediately, no scroll required */}
         <div className="mt-4 md:mt-5 flex flex-wrap justify-center gap-2 md:gap-3 animate-fade-up">
           <Link href="/signup" className="btn-accent text-sm py-2.5 px-4">
-            Start free — no card needed
+            Start free, no card needed
           </Link>
           <Link href="#features" className="btn-ghost text-sm py-2.5 px-4">
             See every tool
           </Link>
         </div>
 
-        {/* Quick-jump tiles — bordered + glowing so mobile reads them as tappable */}
+        {/* Quick-jump tiles: bordered and glowing so mobile reads them as tappable */}
         <div className="mt-4 md:mt-5 grid grid-cols-3 sm:grid-cols-6 gap-2 max-w-2xl mx-auto animate-fade-up">
           {QUICK_TOOLS.map((t) => (
             <Link
@@ -60,7 +60,7 @@ export function Hero() {
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-400/15 text-cyan-200 font-semibold">calls</span>,{" "}
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-400/15 text-orange-200 font-semibold">texts</span>, or{" "}
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-300/15 text-amber-200 font-semibold">online leads</span>
-          {" "}—
+          {", "}
           <br className="hidden md:block" />
           <span className="text-white font-bold text-xl md:text-3xl">this is for you.</span>
         </p>
@@ -68,9 +68,9 @@ export function Hero() {
         <p className="mt-3 md:mt-4 text-base md:text-lg text-ink-200 max-w-2xl mx-auto animate-fade-up">
           Most small businesses are{" "}
           <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-300 font-semibold">
-            <AlertTriangle className="h-3.5 w-3.5" /> bleeding $2k–$15k a month
+            <AlertTriangle className="h-3.5 w-3.5" /> bleeding $2k-$15k a month
           </span>
-          {" "}in missed leads — without realizing it.
+          {" "}in missed leads without realizing it.
         </p>
 
         {/* three pillars: matches promo card icon row, with border so they read as cards */}
@@ -80,7 +80,7 @@ export function Hero() {
           <Pillar icon={<Wallet className="h-6 w-6 md:h-10 md:w-10" />} label="No Missed Revenue" />
         </div>
 
-        {/* Mid-scroll CTA — stops the drop-off */}
+        {/* Mid-scroll CTA: stops the drop-off */}
         <div className="mt-7 md:mt-10 flex flex-col items-center gap-2 animate-fade-up">
           <Link
             href="/tools/seo-grader"
@@ -92,7 +92,7 @@ export function Hero() {
           <span className="text-xs text-ink-300">Free SEO + lead audit · no signup · honest score in 10 seconds</span>
         </div>
 
-        {/* Tri-color word-art — each outcome gets its own brand color */}
+        {/* Tri-color word-art: each outcome gets its own brand color */}
         <p className="mt-8 md:mt-12 text-base md:text-xl font-extrabold tracking-wide animate-fade-up">
           TURN <span className="text-cyan-300">ATTENTION</span>{" "}
           INTO <span className="text-amber-300">CONVERSATIONS</span>,
@@ -101,13 +101,13 @@ export function Hero() {
           CLOSE MORE <span className="funnel-text">SALES</span>
         </p>
 
-        {/* Concrete example — the claim lands because it's specific */}
+        {/* Concrete example: the claim lands because it's specific */}
         <div className="mt-4 md:mt-5 max-w-xl mx-auto animate-fade-up">
           <p className="text-sm md:text-lg text-cyan-200 font-semibold">
-            We show you the data <span className="text-white">— and the next move.</span>
+            We show you the data <span className="text-white">and the next move.</span>
           </p>
           <p className="mt-2 inline-block rounded-lg bg-slate-900/60 border border-cyan-400/20 px-3 py-2 font-mono text-xs md:text-sm text-ink-100">
-            Like: <span className="text-amber-200">“Call Jane back before 2pm — she's a $480 lead.”</span>
+            Like: <span className="text-amber-200">“Call Jane back before 2pm. She's a $480 lead.”</span>
           </p>
         </div>
 
@@ -115,13 +115,13 @@ export function Hero() {
           We don't promise you leads. We don't make the calls for you.
           {" "}
           <span className="text-white font-semibold">We hand you the tools, the data, and the play</span>
-          {" "}— you go run it.
+          {". You go run it."}
         </p>
 
         <div className="mt-5 md:mt-8 flex flex-col items-center gap-2 animate-fade-up">
           <div className="flex flex-wrap justify-center gap-3">
             <Link href="/signup" className="btn-accent text-base">
-              Start free — no card needed
+              Start free, no card needed
             </Link>
             <Link href="#how" className="btn-ghost text-base">
               See how it works
@@ -151,4 +151,3 @@ function Pillar({ icon, label }: { icon: React.ReactNode; label: string }) {
     </div>
   );
 }
-

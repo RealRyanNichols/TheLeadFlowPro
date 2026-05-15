@@ -5,54 +5,23 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, ChevronDown, ClipboardCheck, Sparkles } from "lucide-react";
+import {
+  isActiveNavItem,
+  SITE_FOOTER_NAV,
+  SITE_MOBILE_NAV,
+  SITE_MORE_NAV,
+  SITE_PRIMARY_NAV,
+} from "@/lib/site-navigation";
 import { LightMobileMenu } from "./LightMobileMenu";
 
-type NavItem = {
-  href: string;
-  label: string;
-  activePaths?: string[];
-};
-
 export function LightHeader({ activePath }: { activePath?: string }) {
-  function isActive(path: string, activePaths: string[] = [path]) {
-    return Boolean(activePath && activePaths.includes(activePath));
-  }
-
-  function cls(path: string, base: string, activePaths: string[] = [path]) {
-    return isActive(path, activePaths)
+  function cls(item: (typeof SITE_PRIMARY_NAV)[number], base: string) {
+    return isActiveNavItem(item, activePath)
       ? `rounded-full border border-cyan-300/60 bg-cyan-100/80 px-2.5 py-1 font-semibold text-cyan-800 shadow-sm shadow-cyan-900/5 hover:text-cyan-900 ${base}`
       : `rounded-full px-2.5 py-1 hover:bg-white/70 hover:text-slate-950 ${base}`;
   }
 
-  const nav: NavItem[] = [
-    { href: "/", label: "Home" },
-    { href: "/stump-ryan", label: "Stump Ryan", activePaths: ["/stump-ryan", "/challenge"] },
-    { href: "/lead-leak-audit", label: "Leak Audit" },
-    { href: "/organic-growth", label: "Organic" },
-    { href: "/proof", label: "Proof" },
-    { href: "/services", label: "Social Media" },
-    { href: "/services/consulting", label: "Consulting" },
-    { href: "/tiers", label: "Pricing" },
-    { href: "/leaderboard", label: "Community", activePaths: ["/leaderboard", "/voice", "/community", "/support"] },
-    { href: "/story", label: "Story" },
-    { href: "/contact", label: "Contact" },
-  ];
-  const primaryNav: NavItem[] = [
-    { href: "/lead-leak-audit", label: "Leak Audit" },
-    { href: "/proof", label: "Proof" },
-    { href: "/services", label: "Services" },
-    { href: "/tiers", label: "Pricing" },
-  ];
-  const secondaryNav: NavItem[] = [
-    { href: "/organic-growth", label: "Organic Plan" },
-    { href: "/services/consulting", label: "Consulting" },
-    { href: "/leaderboard", label: "Community", activePaths: ["/leaderboard", "/voice", "/community", "/support"] },
-    { href: "/story", label: "Story" },
-    { href: "/contact", label: "Contact" },
-    { href: "/pulse", label: "Live Pulse" },
-    { href: "/login", label: "Client Login" },
-  ];
-  const moreActive = secondaryNav.some((item) => isActive(item.href, item.activePaths));
+  const moreActive = SITE_MORE_NAV.some((item) => isActiveNavItem(item, activePath));
 
   return (
     <header className="sticky top-0 z-50 border-b border-cyan-400/80 bg-[linear-gradient(135deg,rgba(204,239,255,0.99)_0%,rgba(167,226,247,0.97)_34%,rgba(255,233,177,0.98)_68%,rgba(255,197,111,0.97)_100%)] shadow-[0_14px_36px_-28px_rgba(15,23,42,0.82)] backdrop-blur">
@@ -80,8 +49,8 @@ export function LightHeader({ activePath }: { activePath?: string }) {
           </span>
         </Link>
         <nav className="hidden min-w-0 items-center gap-1 rounded-full border border-cyan-200/80 bg-white/45 px-1.5 py-0.5 text-sm text-slate-800 shadow-sm shadow-cyan-900/5 backdrop-blur xl:flex">
-          {primaryNav.map((item) => (
-            <Link key={item.href} href={item.href} className={cls(item.href, "", item.activePaths)}>
+          {SITE_PRIMARY_NAV.map((item) => (
+            <Link key={item.href} href={item.href} className={cls(item, "")}>
               {item.label}
             </Link>
           ))}
@@ -100,12 +69,12 @@ export function LightHeader({ activePath }: { activePath?: string }) {
                 More paths
               </div>
               <div className="grid gap-1">
-                {secondaryNav.map((item) => (
+                {SITE_MORE_NAV.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={`rounded-xl px-3 py-2 font-semibold hover:bg-cyan-50 hover:text-slate-950 ${
-                      isActive(item.href, item.activePaths) ? "bg-cyan-50 text-cyan-800" : ""
+                      isActiveNavItem(item, activePath) ? "bg-cyan-50 text-cyan-800" : ""
                     }`}
                   >
                     {item.label}
@@ -117,10 +86,10 @@ export function LightHeader({ activePath }: { activePath?: string }) {
         </nav>
         <div className="flex shrink-0 items-center gap-2">
           <Link
-            href="/stump-ryan"
+            href="/lead-leak-audit-197"
             className="hidden items-center gap-1.5 rounded-lg bg-gradient-to-r from-slate-950 via-brand-950 to-slate-900 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 hover:from-brand-950 hover:to-slate-950 sm:inline-flex sm:px-4"
           >
-            Free blueprint <ArrowRight className="h-3.5 w-3.5" />
+            Start audit <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <Link
             href="/book"
@@ -128,13 +97,13 @@ export function LightHeader({ activePath }: { activePath?: string }) {
           >
             Book call <ArrowRight className="h-3.5 w-3.5" />
           </Link>
-          <LightMobileMenu nav={nav} activePath={activePath} />
+          <LightMobileMenu nav={SITE_MOBILE_NAV} activePath={activePath} />
         </div>
       </div>
       <div className="border-t border-cyan-200/70 bg-gradient-to-r from-cyan-100/80 via-white/70 to-accent-100/75 backdrop-blur lg:hidden">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 px-4 py-2">
-          <MobileAction href="/stump-ryan" label="Free Blueprint" Icon={Sparkles} primary />
-          <MobileAction href="/lead-leak-audit" label="Leak Audit" Icon={ClipboardCheck} />
+          <MobileAction href="/lead-leak-audit-197" label="$197 Audit" Icon={ClipboardCheck} primary />
+          <MobileAction href="/book" label="Book Call" Icon={Sparkles} />
         </div>
       </div>
     </header>
@@ -170,41 +139,38 @@ function MobileAction({
 export function LightFooter() {
   return (
     <footer className="border-t border-slate-200 bg-slate-50">
-      <div className="mx-auto max-w-7xl px-4 py-10 text-xs text-slate-500 grid gap-6 md:grid-cols-2">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-xs text-slate-500 lg:grid-cols-[1.25fr_2fr]">
         <div>
           <div className="font-semibold text-slate-700">The LeadFlow Pro</div>
-          <div className="mt-1">A Real Ryan Nichols LLC company · Texas</div>
+          <div className="mt-1">A Real Ryan Nichols LLC company - Texas</div>
           <div className="mt-3 max-w-xl">
             We do not guarantee specific follower-count, lead-volume, conversion-rate, or
             revenue outcomes. Paid-ad budgets are paid by clients directly to Meta, Google, or
-            other ad platforms — never invoiced through us.
+            other ad platforms, never invoiced through us.
           </div>
         </div>
-        <div className="md:text-right space-x-4">
-          <Link href="/" className="hover:text-slate-900">Home</Link>
-          <Link href="/stump-ryan" className="hover:text-slate-900">Stump Ryan</Link>
-          <Link href="/lead-leak-audit" className="hover:text-slate-900">Leak audit</Link>
-          <Link href="/organic-growth" className="hover:text-slate-900">Organic plan</Link>
-          <Link href="/proof" className="hover:text-slate-900">Proof</Link>
-          <Link href="/services" className="hover:text-slate-900">Social Media</Link>
-          <Link href="/services/consulting" className="hover:text-slate-900">Consulting</Link>
-          <Link href="/tiers" className="hover:text-slate-900">Pricing</Link>
-          <Link href="/leaderboard" className="hover:text-slate-900">Top 10</Link>
-          <Link href="/voice" className="hover:text-slate-900">Voice</Link>
-          <Link href="/start" className="hover:text-slate-900">Start here</Link>
-          <Link href="/tools/ad-account-autopsy" className="hover:text-slate-900">Ad autopsy</Link>
-          <Link href="/pulse" className="hover:text-slate-900">Live pulse</Link>
-          <Link href="/community" className="hover:text-slate-900">Community</Link>
-          <Link href="/support" className="hover:text-slate-900">Support</Link>
-          <Link href="/rewards" className="hover:text-slate-900">Rewards</Link>
-          <Link href="/book" className="hover:text-slate-900">Book a call</Link>
-          <Link href="/contact" className="hover:text-slate-900">Contact</Link>
-          <Link href="/legal" className="hover:text-slate-900">Legal</Link>
-          <Link href="/legal#privacy" className="hover:text-slate-900">Privacy</Link>
-          <Link href="/legal#terms" className="hover:text-slate-900">Terms</Link>
-          <Link href="/legal#refund" className="hover:text-slate-900">Refunds</Link>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <FooterGroup title="Funnel" items={SITE_FOOTER_NAV.funnel} />
+          <FooterGroup title="Company" items={SITE_FOOTER_NAV.company} />
+          <FooterGroup title="Tools" items={SITE_FOOTER_NAV.tools} />
+          <FooterGroup title="Legal" items={SITE_FOOTER_NAV.legal} />
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterGroup({ title, items }: { title: string; items: Array<{ href: string; label: string }> }) {
+  return (
+    <div>
+      <div className="font-semibold uppercase tracking-widest text-slate-400">{title}</div>
+      <div className="mt-3 grid gap-2">
+        {items.map((item) => (
+          <Link key={item.href} href={item.href} className="font-medium text-slate-600 hover:text-slate-950">
+            {item.label}
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }

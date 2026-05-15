@@ -90,7 +90,7 @@ export default function OrganicLandingPage({ params }: PageProps) {
                   {page.primaryCta} <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
-                  href="/organic-growth"
+                  href={page.secondaryHref}
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-900 hover:border-cyan-400"
                 >
                   {page.secondaryCta}

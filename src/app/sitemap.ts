@@ -1,4 +1,4 @@
-// src/app/sitemap.ts — public crawl map.
+// src/app/sitemap.ts: public crawl map.
 //
 // Includes static buyer pages plus dynamic business profile and Voice pages
 // when the database is reachable. Dynamic sections fail closed so build and
@@ -33,6 +33,7 @@ const staticRoutes = [
   "/community",
   "/facebook-ad-offer",
   "/lead-leak-audit",
+  "/lead-leak-audit-197",
   "/organic-growth",
   "/proof",
   "/pulse",
@@ -45,6 +46,9 @@ const staticRoutes = [
   "/contact",
   "/book",
   "/legal",
+  "/privacy-policy",
+  "/terms",
+  "/refunds",
   "/login",
   "/demo",
   "/start",

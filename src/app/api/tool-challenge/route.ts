@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { rememberPublicVisitor } from "@/lib/lead-memory";
 import { recordSitePulseEvent } from "@/lib/site-pulse";
 import { sendToolChallengeNotification } from "@/lib/tool-challenge-notifications";
+import { attributionNoteBlock, extractFormAttribution } from "@/lib/form-attribution";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,6 +41,10 @@ export async function POST(req: NextRequest) {
   const promptDraft = pickStr(form.get("promptDraft"), 3000);
   const promptStack = pickStr(form.get("promptStack"), 3000);
   const insightSnapshot = pickStr(form.get("insightSnapshot"), 3000);
+  const attribution = extractFormAttribution(form, {
+    formType: "blueprint_request",
+    sourcePage: landingPage,
+  });
 
   if (!fullName) return NextResponse.json({ error: "missing_name" }, { status: 400 });
   if (!email || !/.+@.+\..+/.test(email)) {
@@ -53,6 +58,7 @@ export async function POST(req: NextRequest) {
   const timeline = pickStr(form.get("timeline"), 80);
   const routedTo = "/stump-ryan/thank-you?submitted=1";
   const notes = [
+    attributionNoteBlock(attribution),
     "Stump Ryan Blueprint Request.",
     "Free offer: Ryan finds the lead leak, maps the dream tool, and sends a 1-3 page plan/proposal before paid buildout.",
     `Source: ${source}`,

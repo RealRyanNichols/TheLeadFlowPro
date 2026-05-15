@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
 import { MobileMenu } from "./MobileMenu";
+import { SITE_PRIMARY_NAV } from "@/lib/site-navigation";
 
 export function Header() {
   return (
     // Solid bg on mobile (backdrop-blur is unreliable on iOS Safari and
-    // some Android Chrome builds — without it the 70%-opacity navy used to
+    // some Android Chrome builds. Without it the 70%-opacity navy used to
     // bleed page content through the header on mobile).
     <header className="sticky top-0 z-40 border-b border-white/10 bg-ink-950 md:bg-ink-950/70 md:backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between gap-2">
@@ -14,21 +15,18 @@ export function Header() {
         </div>
         <nav className="hidden md:flex items-center gap-5 text-sm text-ink-200">
           <Link href="/" className="hover:text-white font-semibold text-cyan-300">Home</Link>
-          <Link href="/tiers" className="hover:text-white">Pricing</Link>
-          <Link href="/services" className="hover:text-white">Social Media</Link>
-          <Link href="/services/consulting" className="hover:text-white">Consulting</Link>
-          <Link href="/book" className="hover:text-white">Book a call</Link>
-          <Link href="/contact" className="hover:text-white">Contact</Link>
+          {SITE_PRIMARY_NAV.map((item) => (
+            <Link key={item.href} href={item.href} className="hover:text-white">
+              {item.label}
+            </Link>
+          ))}
         </nav>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Link href="/login" className="hidden sm:inline-flex btn-ghost text-sm py-2 px-4">
-            Log in
-          </Link>
           <Link
-            href="/signup"
+            href="/lead-leak-audit-197"
             className="inline-flex btn-accent text-sm py-2 px-3 sm:px-4 whitespace-nowrap"
           >
-            Start free
+            Start audit
           </Link>
           <MobileMenu />
         </div>

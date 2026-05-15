@@ -5,13 +5,14 @@ import { SessionProvider } from "@/components/auth/SessionProvider";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { FarettaChatbot } from "@/components/FarettaChatbot";
+import { ConversionEventTracker } from "@/components/site/ConversionEvents";
 import { MetaPixel } from "@/components/site/MetaPixel";
 import { SitePulseTracker } from "@/components/site/SitePulseTracker";
 
 export const metadata: Metadata = {
-  title: "The LeadFlow Pro — No missed calls. No missed texts. No missed revenue.",
+  title: "The LeadFlow Pro | No missed calls. No missed texts. No missed revenue.",
   description:
-    "If your business gets calls, texts, or online leads — this is for you. Capture every lead, automate follow-up, and close more sales. AI-powered social intelligence + lead inbox in one dashboard.",
+    "If your business gets calls, texts, or online leads, this is for you. Capture every lead, automate follow-up, and close more sales. AI-powered social intelligence + lead inbox in one dashboard.",
   metadataBase: new URL("https://www.theleadflowpro.com"),
   applicationName: "The LeadFlow Pro",
   category: "business",
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
         url: "/images/leadflow-pro-social-card.png",
         width: 1200,
         height: 630,
-        alt: "The LeadFlow Pro — Turn Attention Into Conversations",
+        alt: "The LeadFlow Pro | Turn Attention Into Conversations",
       },
     ],
   },
@@ -99,6 +100,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SessionProvider>{children}</SessionProvider>
         <Suspense fallback={null}>
           <MetaPixel />
+          <ConversionEventTracker />
         </Suspense>
         <SitePulseTracker />
         <FarettaChatbot />

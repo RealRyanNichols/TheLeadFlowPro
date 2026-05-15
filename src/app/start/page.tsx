@@ -29,6 +29,7 @@ import {
   Zap,
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { ConversionHiddenFields } from "@/components/site/ConversionEvents";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
 import { OFFERS, type OfferSlug } from "@/lib/offers";
 import {
@@ -336,8 +337,16 @@ export default function StartPage() {
       </section>
 
       <main id="router" className="mx-auto grid max-w-7xl gap-8 px-4 py-12 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <form action="/api/intake" method="POST" className="space-y-8">
+        <form
+          action="/api/intake"
+          method="POST"
+          data-conversion-event="start_router_submit"
+          data-conversion-cta="Route my offer"
+          data-conversion-source-page="/start"
+          className="space-y-8"
+        >
           <VisitorIdField />
+          <ConversionHiddenFields formType="start_router" sourcePage="/start" />
           <FormSection
             n={1}
             title="What are you trying to fix first?"

@@ -1,6 +1,7 @@
 // src/components/site/Footer.tsx
 import Link from "next/link";
 import { LEADFLOW_PUBLIC_EMAIL } from "@/lib/contact";
+import { SITE_FOOTER_NAV } from "@/lib/site-navigation";
 import { FunnelMark } from "./Logo";
 
 export function Footer() {
@@ -17,132 +18,49 @@ export function Footer() {
               </span>
             </div>
             <p className="text-ink-300 text-sm leading-relaxed">
-              Turn attention into conversations. Automate follow-up. Close more sales.
+              Turn attention into conversations, follow-up, and owner-visible next moves.
             </p>
             <p className="mt-3 text-ink-300 text-xs">
-              theleadflowpro.com — built for businesses that get calls, texts, and online leads.
+              theleadflowpro.com - built for businesses that get calls, texts, and online leads.
             </p>
           </div>
 
-          {/* Product */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-ink-300 mb-3">
-              Product
-            </h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/lead-leak-audit" className="text-ink-100 hover:text-white">
-                  Free Lead Leak Audit
-                </Link>
-              </li>
-              <li>
-                <Link href="/organic-growth" className="text-ink-100 hover:text-white">
-                  Organic Growth Plan
-                </Link>
-              </li>
-              <li>
-                <Link href="/proof" className="text-ink-100 hover:text-white">
-                  Proof
-                </Link>
-              </li>
-              <li>
-                <Link href="/services" className="text-ink-100 hover:text-white">
-                  Services
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing" className="text-ink-100 hover:text-white">
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link href="/tools/seo-grader" className="text-ink-100 hover:text-white">
-                  Free SEO Grader
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard" className="text-ink-100 hover:text-white">
-                  Dashboard
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Plans */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-ink-300 mb-3">Plans</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/pricing/starter" className="text-ink-100 hover:text-white">
-                  Starter — $5
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing/growth" className="text-ink-100 hover:text-white">
-                  Growth — $15
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing/pro" className="text-ink-100 hover:text-white">
-                  Pro — $35
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing/agency" className="text-ink-100 hover:text-white">
-                  Agency — $95
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Company + Legal */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-ink-300 mb-3">
-              Company
-            </h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/login" className="text-ink-100 hover:text-white">
-                  Log in
-                </Link>
-              </li>
-              <li>
-                <Link href="/signup" className="text-ink-100 hover:text-white">
-                  Start free
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal" className="text-ink-100 hover:text-white">
-                  Legal · Terms · Privacy
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal#refund" className="text-ink-100 hover:text-white">
-                  Refund policy
-                </Link>
-              </li>
-              <li>
-                <a
-                  href={`mailto:${LEADFLOW_PUBLIC_EMAIL}`}
-                  className="text-ink-100 hover:text-white"
-                >
-                  Contact support
-                </a>
-              </li>
-            </ul>
-          </div>
+          <FooterGroup title="Funnel" items={SITE_FOOTER_NAV.funnel} />
+          <FooterGroup title="Company" items={SITE_FOOTER_NAV.company} />
+          <FooterGroup title="Legal" items={SITE_FOOTER_NAV.legal} />
         </div>
 
         <div className="mt-10 md:mt-14 pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between gap-3 text-xs text-ink-300">
-          <span>© {new Date().getFullYear()} REAL RYAN NICHOLS LLC · The LeadFlow Pro</span>
+          <span>© {new Date().getFullYear()} REAL RYAN NICHOLS LLC - The LeadFlow Pro</span>
           <span>
-            Built with care ·{" "}
-            <Link href="/legal#refund" className="hover:text-white">
-              14-day money-back guarantee
+            Questions?{" "}
+            <a href={`mailto:${LEADFLOW_PUBLIC_EMAIL}`} className="hover:text-white">
+              {LEADFLOW_PUBLIC_EMAIL}
+            </a>{" "}
+            -{" "}
+            <Link href="/refunds" className="hover:text-white">
+              Refund policy
             </Link>
           </span>
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterGroup({ title, items }: { title: string; items: Array<{ href: string; label: string }> }) {
+  return (
+    <div>
+      <h4 className="mb-3 text-xs font-bold uppercase tracking-widest text-ink-300">{title}</h4>
+      <ul className="space-y-2 text-sm">
+        {items.map((item) => (
+          <li key={item.href}>
+            <Link href={item.href} className="text-ink-100 hover:text-white">
+              {item.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

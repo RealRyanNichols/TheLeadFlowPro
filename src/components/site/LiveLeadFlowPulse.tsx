@@ -896,7 +896,7 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
               {snapshot.prediction.topOpportunity ? (
                 <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.06] p-3 text-xs leading-relaxed text-slate-300">
                   <strong className="text-white">Best opportunity:</strong>{" "}
-                  {snapshot.prediction.topOpportunity.path} — {snapshot.prediction.topOpportunity.suggestedMove}
+                  {snapshot.prediction.topOpportunity.path}: {snapshot.prediction.topOpportunity.suggestedMove}
                 </div>
               ) : null}
             </div>

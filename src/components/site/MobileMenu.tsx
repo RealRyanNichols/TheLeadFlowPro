@@ -3,18 +3,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
+import { SITE_MOBILE_NAV } from "@/lib/site-navigation";
 
-// Public marketing nav only. Members-area links live behind /login.
-// Dashboard pages still work for anyone who's logged in; we just don't
-// advertise the back-end surface to anonymous visitors.
-const NAV = [
-  { href: "/",                     label: "Home" },
-  { href: "/services",             label: "Social Media" },
-  { href: "/services/consulting",  label: "Business Consulting" },
-  { href: "/tiers",                label: "Pricing & Tiers" },
-  { href: "/book",                 label: "Book a 10-min call" },
-  { href: "/contact",              label: "Contact" },
-];
+// Public marketing nav only. The client office is not promoted to cold traffic.
 
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
@@ -57,7 +48,7 @@ export function MobileMenu() {
               </button>
             </div>
             <nav className="flex flex-col gap-1 overflow-y-auto -mx-1 px-1">
-              {NAV.map((n) => (
+              {SITE_MOBILE_NAV.map((n) => (
                 <Link
                   key={n.href}
                   href={n.href}
@@ -70,18 +61,11 @@ export function MobileMenu() {
             </nav>
             <div className="mt-auto pt-4 space-y-2">
               <Link
-                href="/signup"
+                href="/lead-leak-audit-197"
                 onClick={() => setOpen(false)}
                 className="btn-accent w-full text-sm py-2.5 justify-center"
               >
-                Start free
-              </Link>
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="btn-ghost w-full text-sm py-2.5 justify-center"
-              >
-                Log in
+                Start audit
               </Link>
             </div>
           </div>

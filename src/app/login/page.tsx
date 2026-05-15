@@ -23,7 +23,7 @@ type AuthMode = "signin" | "signup" | "code";
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<LoginLoadingFallback />}>
       <LoginInner />
     </Suspense>
   );
@@ -38,6 +38,31 @@ function safeNext(raw: string | null) {
     if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
   }
   return "/dashboard/work";
+}
+
+function LoginLoadingFallback() {
+  return (
+    <div className="min-h-screen bg-ink-950 px-4 py-10 text-white">
+      <div className="mx-auto max-w-xl rounded-3xl border border-cyan-400/20 bg-white/[0.04] p-6 shadow-2xl shadow-black/30">
+        <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-200">
+          <ShieldCheck className="h-3.5 w-3.5" /> Client Login
+        </div>
+        <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Client portal access is loading.</h1>
+        <p className="mt-3 text-sm leading-relaxed text-ink-200">
+          Current clients receive their private workspace link directly from Ryan.
+          For access help, email Hello@TheLeadFlowPro.com.
+        </p>
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+          <Link href="/lead-leak-audit-197" className="btn-accent justify-center text-sm">
+            Start the $197 audit
+          </Link>
+          <Link href="/" className="btn-ghost justify-center text-sm">
+            Back to site
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function LoginInner() {

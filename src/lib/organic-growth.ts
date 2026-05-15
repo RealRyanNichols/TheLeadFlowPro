@@ -10,6 +10,7 @@ export type OrganicLandingPage = {
   promise: string;
   primaryCta: string;
   secondaryCta: string;
+  secondaryHref: string;
   industry: string;
   searchIntent: string[];
   symptoms: string[];
@@ -34,6 +35,7 @@ export const ORGANIC_LANDING_PAGES: OrganicLandingPage[] = [
       "The LeadFlow Pro builds the reply path, status board, owner alerts, and next-step follow-up so every missed call becomes a visible sales task.",
     primaryCta: "Run my lead leak audit",
     secondaryCta: "See the ad autopsy",
+    secondaryHref: "/tools/ad-account-autopsy",
     industry: "Local services",
     searchIntent: [
       "missed call text back system",
@@ -75,6 +77,7 @@ export const ORGANIC_LANDING_PAGES: OrganicLandingPage[] = [
       "Ryan turns scattered lead activity into a plain-English system: capture, source, status, follow-up, and next move.",
     primaryCta: "Check my lead follow-up",
     secondaryCta: "Open organic plan",
+    secondaryHref: "/organic-growth",
     industry: "Local business",
     searchIntent: [
       "local business lead follow up",
@@ -116,6 +119,7 @@ export const ORGANIC_LANDING_PAGES: OrganicLandingPage[] = [
       "Build a quote-intake path that captures the job, urgency, photos, location, budget signal, and next action before the lead cools off.",
     primaryCta: "Audit my quote path",
     secondaryCta: "Book 10 minutes",
+    secondaryHref: "/book?source=contractor-lead-follow-up",
     industry: "Contractors",
     searchIntent: [
       "contractor lead follow up",
@@ -157,6 +161,7 @@ export const ORGANIC_LANDING_PAGES: OrganicLandingPage[] = [
       "Create a student-intake path that explains the offer, captures intent, answers common objections, and routes serious students to the next step.",
     primaryCta: "Audit my enrollment funnel",
     secondaryCta: "See proof page",
+    secondaryHref: "/proof",
     industry: "Education",
     searchIntent: [
       "dental academy lead generation",
@@ -198,6 +203,7 @@ export const ORGANIC_LANDING_PAGES: OrganicLandingPage[] = [
       "Build the practical system behind the marketing: landing page, intake, missed-call recovery, follow-up, proof, and owner visibility.",
     primaryCta: "Run my East Texas audit",
     secondaryCta: "Open local playbook",
+    secondaryHref: "/organic-growth",
     industry: "East Texas business",
     searchIntent: [
       "Longview Texas marketing help",
@@ -239,6 +245,7 @@ export const ORGANIC_LANDING_PAGES: OrganicLandingPage[] = [
       "Connect the money trail from campaign to page, lead, follow-up, booked call, sale status, and next fix.",
     primaryCta: "Run the ad autopsy",
     secondaryCta: "Audit my funnel",
+    secondaryHref: "/lead-leak-audit-197",
     industry: "Paid ads",
     searchIntent: [
       "facebook ad tracking for leads",
@@ -280,6 +287,7 @@ export const ORGANIC_LANDING_PAGES: OrganicLandingPage[] = [
       "Rebuild the page around one offer, one buyer problem, one intake path, one booking path, and one follow-up system.",
     primaryCta: "Check my website leak",
     secondaryCta: "See organic plan",
+    secondaryHref: "/organic-growth",
     industry: "Website conversion",
     searchIntent: [
       "website not converting leads",
