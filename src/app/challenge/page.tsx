@@ -154,56 +154,60 @@ export default function ChallengePage({ searchParams }: ChallengePageProps) {
 
             </div>
 
-            <div className="grid gap-4">
+            <div>
               <PromptBuildLab />
-              <div className="rounded-3xl border border-cyan-200/80 bg-gradient-to-br from-cyan-50 via-white to-accent-50 p-4 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.4)]">
-                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
-                  Your accounts. Your code. Your control.
-                </div>
-                <div className="mt-3 grid gap-3 md:grid-cols-3">
-                  {OWNERSHIP_POINTS.map(({ Icon, title, body }) => (
-                    <div key={title} className="rounded-2xl border border-white/80 bg-white/75 p-4 shadow-sm">
-                      <div className="flex items-start gap-3">
-                        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-cyan-200">
-                          <Icon className="h-4 w-4" />
-                        </span>
-                        <div>
-                          <h2 className="text-sm font-semibold text-slate-950">{title}</h2>
-                          <p className="mt-1 text-xs leading-relaxed text-slate-600">{body}</p>
-                        </div>
+            </div>
+          </div>
+
+          <div className="relative mx-auto grid max-w-[92rem] gap-4 px-4 pb-10">
+            <div className="rounded-3xl border border-cyan-200/80 bg-gradient-to-br from-cyan-50 via-white to-accent-50 p-4 shadow-[0_22px_60px_-34px_rgba(15,23,42,0.4)]">
+              <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                Your accounts. Your code. Your control.
+              </div>
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
+                {OWNERSHIP_POINTS.map(({ Icon, title, body }) => (
+                  <div key={title} className="rounded-2xl border border-white/80 bg-white/75 p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-cyan-200">
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <h2 className="text-sm font-semibold text-slate-950">{title}</h2>
+                        <p className="mt-1 text-xs leading-relaxed text-slate-600">{body}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                  Convenient platforms make it easy to start and easy to get trapped. This is built
-                  in your account or transferred to your account: code, assets, data, keys, and access
-                  stay under your control.
-                </p>
-              </div>
-              <div className="grid gap-4 xl:grid-cols-[minmax(220px,320px)_minmax(0,1fr)] xl:items-start">
-                <div className="self-start rounded-3xl border border-slate-200 bg-slate-950 p-3 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.7)]">
-                  <div className="mb-3 flex items-center justify-between px-2 pt-1 text-xs font-semibold uppercase tracking-widest text-cyan-200">
-                    <span className="inline-flex items-center gap-2">
-                      <PlayCircle className="h-4 w-4" /> Watch the promise
-                    </span>
-                    <span>Under 1 minute</span>
                   </div>
-                  <video
-                    className="aspect-[9/16] max-h-[560px] w-full rounded-2xl bg-black object-cover"
-                    controls
-                    playsInline
-                    preload="metadata"
-                    poster="/images/stump-me-tool-challenge-poster.jpg"
-                  >
-                    <source src="/videos/stump-me-tool-challenge.mp4" type="video/mp4" />
-                  </video>
-                </div>
+                ))}
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Convenient platforms make it easy to start and easy to get trapped. This is built
+                in your account or transferred to your account: code, assets, data, keys, and access
+                stay under your control.
+              </p>
+            </div>
 
-                <div className="grid gap-4">
-                  <DecisionDeck />
-                  <ReserveBuildSlotCard />
+            <div className="grid gap-4 xl:grid-cols-[minmax(220px,320px)_minmax(0,1fr)] xl:items-start">
+              <div className="self-start rounded-3xl border border-slate-200 bg-slate-950 p-3 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.7)]">
+                <div className="mb-3 flex items-center justify-between px-2 pt-1 text-xs font-semibold uppercase tracking-widest text-cyan-200">
+                  <span className="inline-flex items-center gap-2">
+                    <PlayCircle className="h-4 w-4" /> Watch the promise
+                  </span>
+                  <span>Under 1 minute</span>
                 </div>
+                <video
+                  className="aspect-[9/16] max-h-[560px] w-full rounded-2xl bg-black object-cover"
+                  controls
+                  playsInline
+                  preload="metadata"
+                  poster="/images/stump-me-tool-challenge-poster.jpg"
+                >
+                  <source src="/videos/stump-me-tool-challenge.mp4" type="video/mp4" />
+                </video>
+              </div>
+
+              <div className="grid gap-4">
+                <DecisionDeck />
+                <ReserveBuildSlotCard />
               </div>
             </div>
           </div>
