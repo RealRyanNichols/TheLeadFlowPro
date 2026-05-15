@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
+  Brain,
   BriefcaseBusiness,
   ClipboardList,
-  FileText,
   Inbox,
   MessageSquareText,
   RadioTower,
@@ -108,6 +108,9 @@ export default async function AdminHomePage() {
               <Link href="/admin/blueprint-lab" className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15">
                 Blueprint lab
               </Link>
+              <Link href="/admin/growth-os" className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15">
+                Growth OS
+              </Link>
               <Link href="/admin/intelligence" className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15">
                 Lead intelligence
               </Link>
@@ -205,7 +208,13 @@ export default async function AdminHomePage() {
         </div>
 
         <aside className="space-y-6">
-          <SidePanel title="Build brain" icon={FileText}>
+          <SidePanel title="Build brain" icon={Brain}>
+            <Link
+              href="/admin/growth-os"
+              className="block rounded-2xl border border-accent-300/20 bg-accent-300/10 p-3 text-sm font-semibold text-accent-100 hover:bg-accent-300/15"
+            >
+              Open the Growth OS: idea, create, advertise, sell, follow up, ship, and learn.
+            </Link>
             <Link
               href="/admin/blueprint-lab"
               className="block rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15"
