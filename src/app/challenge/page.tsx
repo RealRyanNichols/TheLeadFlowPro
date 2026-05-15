@@ -19,6 +19,7 @@ import {
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
 import { PromptBuildLab } from "@/components/challenge/PromptBuildLab";
+import { BUILT_PROJECTS } from "@/lib/built-projects";
 import { TOOL_CHALLENGE_DEPOSIT } from "@/lib/challenge-deposit";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
@@ -146,6 +147,31 @@ export default function ChallengePage({ searchParams }: ChallengePageProps) {
                     Shopify, Wix, WordPress, or current process. Then it walks through the leak,
                     the dream tool, and the ownership path.
                   </p>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-cyan-200 bg-white/85 p-4 shadow-sm">
+                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                  Live builds behind the promise
+                </div>
+                <div className="mt-3 grid gap-2">
+                  {BUILT_PROJECTS.map((project) => (
+                    <Link
+                      key={project.name}
+                      href={project.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group rounded-xl border border-slate-200 bg-white p-3 transition hover:border-cyan-300 hover:bg-cyan-50"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="font-semibold text-slate-950">{project.name}</div>
+                          <div className="mt-1 text-xs leading-5 text-slate-600">{project.type}</div>
+                        </div>
+                        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-cyan-700 transition group-hover:translate-x-0.5" />
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               </div>
 

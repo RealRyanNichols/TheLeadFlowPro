@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
+import { BUILT_PROJECTS } from "@/lib/built-projects";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const revalidate = 86400;
@@ -29,51 +30,6 @@ export const metadata = createSeoMetadata({
   imageTitle: "The LeadFlow Pro",
   imageSubtitle: "A clearer lead funnel for owner-led businesses.",
 });
-
-const DAILY_FOCUS = [
-  {
-    label: "Missed-call recovery",
-    title: "Catch the lead before they call the next business.",
-    metric: "0-2 min",
-    note: "Response window to protect",
-  },
-  {
-    label: "Social proof",
-    title: "Turn attention into a reason to book.",
-    metric: "3 posts",
-    note: "Minimum proof assets to review",
-  },
-  {
-    label: "Offer clarity",
-    title: "Make the next click obvious on every page.",
-    metric: "1 CTA",
-    note: "Primary action per screen",
-  },
-  {
-    label: "Pipeline cleanup",
-    title: "Separate hot leads from people just browsing.",
-    metric: "A/B/C",
-    note: "Simple lead-quality split",
-  },
-  {
-    label: "Calendar pressure",
-    title: "Push serious buyers to a real time slot.",
-    metric: "10 min",
-    note: "Fit call, not a ramble",
-  },
-  {
-    label: "Ad-account triage",
-    title: "Find the spend leak before buying more traffic.",
-    metric: "$50-$200",
-    note: "Typical paid-lead risk band",
-  },
-  {
-    label: "Follow-up rhythm",
-    title: "Make every lead hear from you more than once.",
-    metric: "5 touch",
-    note: "Text, email, call, retarget, recap",
-  },
-];
 
 const BEST_DEMOS = [
   {
@@ -222,11 +178,6 @@ const WEEKLY_BUILD_OFFERS = [
   },
 ];
 
-function todayFocus() {
-  const dayIndex = Math.floor(Date.now() / 86_400_000) % DAILY_FOCUS.length;
-  return DAILY_FOCUS[dayIndex];
-}
-
 function todayBuildDrop() {
   const dayIndex = Math.floor(Date.now() / 86_400_000) % DAILY_BUILD_DROPS.length;
   return DAILY_BUILD_DROPS[dayIndex];
@@ -238,7 +189,6 @@ function weeklyBuildOffer() {
 }
 
 export default function HomePage() {
-  const focus = todayFocus();
   const buildDrop = todayBuildDrop();
   const weeklyOffer = weeklyBuildOffer();
 
@@ -247,7 +197,7 @@ export default function HomePage() {
       <LightHeader activePath="/" />
 
       <main>
-        <Hero focus={focus} />
+        <Hero />
         <BuildDropSection dailyDrop={buildDrop} weeklyOffer={weeklyOffer} />
         <CommandGlobeSection />
         <BestDemoSection />
@@ -260,11 +210,7 @@ export default function HomePage() {
   );
 }
 
-function Hero({
-  focus,
-}: {
-  focus: (typeof DAILY_FOCUS)[number];
-}) {
+function Hero() {
   return (
     <section className="relative isolate min-h-[calc(100svh-112px)] overflow-hidden bg-slate-950 text-white">
       <HeroBuildBackdrop />
@@ -298,18 +244,45 @@ function Hero({
             </Link>
           </div>
           <p className="mt-4 max-w-xl text-sm font-semibold leading-6 text-cyan-100 sm:hidden">
-            Free plan first. $250 only if the blueprint makes sense.
+            Free plan first. Built live:{" "}
+            {BUILT_PROJECTS.map((project, index) => (
+              <span key={project.name}>
+                <Link href={project.href} target="_blank" rel="noreferrer" className="underline underline-offset-4">
+                  {project.name.replace(/^www\./i, "")}
+                </Link>
+                {index < BUILT_PROJECTS.length - 1 ? ", " : "."}
+              </span>
+            ))}
           </p>
-          <div className="mt-6 hidden max-w-2xl flex-wrap gap-2 text-sm sm:flex">
-            <span className="rounded-md border border-white/15 bg-white/10 px-3 py-2 font-semibold text-cyan-100">
-              Today: {focus.label}
-            </span>
-            <span className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-slate-200">
-              {focus.metric} - {focus.note}
-            </span>
-            <span className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-slate-200">
-              Path: leak + tool + account owner
-            </span>
+          <div className="mt-6 hidden max-w-4xl border-l border-cyan-300/35 pl-4 sm:block">
+            <div className="text-xs font-semibold uppercase tracking-widest text-cyan-100">
+              Proof Ryan ships real sites
+            </div>
+            <div className="mt-3 grid gap-2 text-sm text-slate-200 md:grid-cols-3">
+              {BUILT_PROJECTS.map((project) => (
+                <Link
+                  key={project.name}
+                  href={project.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group rounded-xl border border-white/15 bg-white/[0.06] p-3 text-left transition hover:border-cyan-300/50 hover:bg-white/[0.1]"
+                >
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" />
+                    <div>
+                      <div className="font-semibold text-white group-hover:text-cyan-100">
+                        {project.name}
+                      </div>
+                      <div className="mt-1 text-xs leading-5 text-slate-300">{project.type}</div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
+              LeadFlow Pro, RepWatchr, and Faretta.legal are live builds Ryan coded and deployed to
+              solve different problems: sales flow, data organization, and niche trust.
+            </p>
           </div>
         </div>
       </div>

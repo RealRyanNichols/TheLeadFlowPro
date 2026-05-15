@@ -13,6 +13,7 @@ import {
 import { ConversionAnchor, ConversionHiddenFields, ConversionLink } from "@/components/site/ConversionEvents";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
+import { BUILT_PROJECTS } from "@/lib/built-projects";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const metadata = createSeoMetadata({
@@ -286,6 +287,39 @@ export default function PaidLeadLeakAuditPage({
                     Built for serious owners who want the leak found before buying more traffic.
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-slate-200 bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                  Proof Ryan ships
+                </div>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+                  Three live builds. Three different problems solved.
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-slate-700">
+                  The audit is not theory. Ryan has built and deployed real systems for funnel flow,
+                  public data organization, and trust-heavy niche positioning.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {BUILT_PROJECTS.map((project) => (
+                  <div
+                    key={project.name}
+                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                  >
+                    <div className="text-sm font-black text-slate-950">{project.name}</div>
+                    <div className="mt-2 text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                      {project.type}
+                    </div>
+                    <p className="mt-3 text-xs leading-5 text-slate-600">{project.angle}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

@@ -8,9 +8,11 @@ import {
   Eye,
   LayoutDashboard,
   MousePointerClick,
+  ExternalLink,
 } from "lucide-react";
 import { OrganicAuditForm } from "@/components/site/OrganicAuditForm";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { BUILT_PROJECTS } from "@/lib/built-projects";
 import { PROOF_ASSETS } from "@/lib/organic-growth";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
@@ -110,6 +112,51 @@ export default function ProofPage() {
                   shareable case-style asset with what changed and why it matters.
                 </p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-slate-200 bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+            <div className="max-w-3xl">
+              <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                Built, coded, deployed
+              </div>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                Three live projects. Three different proof angles.
+              </h2>
+              <p className="mt-4 text-base leading-7 text-slate-700">
+                This is the real advantage: Ryan is not selling theory. These are live builds that
+                show funnel work, data organization, vertical positioning, and client-ready web
+                systems.
+              </p>
+            </div>
+            <div className="mt-8 grid gap-4 lg:grid-cols-3">
+              {BUILT_PROJECTS.map((project) => (
+                <Link
+                  key={project.name}
+                  href={project.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex min-h-full flex-col rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-white hover:shadow-xl hover:shadow-cyan-950/10"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+                        {project.type}
+                      </div>
+                      <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
+                        {project.name}
+                      </h3>
+                    </div>
+                    <ExternalLink className="h-5 w-5 shrink-0 text-slate-400 group-hover:text-cyan-700" />
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-slate-700">{project.proof}</p>
+                  <div className="mt-5 rounded-xl border border-cyan-100 bg-white p-3 text-sm font-semibold leading-6 text-slate-800">
+                    {project.angle}
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
