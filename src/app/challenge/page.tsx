@@ -207,9 +207,10 @@ export default function ChallengePage({ searchParams }: ChallengePageProps) {
 
               <div className="grid gap-4">
                 <DecisionDeck />
-                <ReserveBuildSlotCard />
               </div>
             </div>
+
+            <ReserveBuildSlotCard />
           </div>
         </section>
 
