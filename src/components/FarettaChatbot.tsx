@@ -2,14 +2,19 @@
 
 // src/components/FarettaChatbot.tsx
 // Faretta AI — site-wide floating chat widget powered by Claude.
-// Qualifies visitors, answers questions, converts to /start, /book, or /tiers.
+// Qualifies visitors, answers questions, and renders plain-English CTA buttons.
 // Falls back to a graceful "we'll email you" form when ANTHROPIC_API_KEY isn't set.
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { LEADFLOW_PUBLIC_EMAIL } from "@/lib/contact";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type ChatAction = {
+  label: string;
+  href: string;
+};
+
+type Msg = { role: "user" | "assistant"; content: string; actions?: ChatAction[] };
 
 const GREETING: Msg = {
   role: "assistant",
@@ -81,6 +86,33 @@ function beaconPulse(eventType: string, target: string, value = 1) {
   }).catch(() => undefined);
 }
 
+function ChatActionButton({ action }: { action: ChatAction }) {
+  const className =
+    "inline-flex min-h-9 items-center justify-center rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-slate-800";
+
+  if (action.href.startsWith("/")) {
+    return (
+      <Link
+        href={action.href}
+        onClick={() => beaconPulse("chat_answer_cta", action.href)}
+        className={className}
+      >
+        {action.label}
+      </Link>
+    );
+  }
+
+  return (
+    <a
+      href={action.href}
+      onClick={() => beaconPulse("chat_answer_cta", action.href)}
+      className={className}
+    >
+      {action.label}
+    </a>
+  );
+}
+
 export function FarettaChatbot() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([GREETING]);
@@ -127,7 +159,14 @@ export function FarettaChatbot() {
         window.localStorage.setItem("leadflow_public_visitor_id", data.remembered.visitorId);
       }
       if (data.ok && data.reply) {
-        setMessages((m) => [...m, { role: "assistant", content: data.reply }]);
+        setMessages((m) => [
+          ...m,
+          {
+            role: "assistant",
+            content: data.reply,
+            actions: Array.isArray(data.actions) ? data.actions : undefined,
+          },
+        ]);
       } else {
         setMessages((m) => [
           ...m,
@@ -135,7 +174,11 @@ export function FarettaChatbot() {
             role: "assistant",
             content:
               data.fallback ||
-              `I’m offline. Email ${LEADFLOW_PUBLIC_EMAIL} or book here: /book.`,
+              `I’m offline. Email ${LEADFLOW_PUBLIC_EMAIL} or book a call.`,
+            actions: [
+              { label: "Book the call", href: "/book" },
+              { label: "Email Ryan", href: `mailto:${LEADFLOW_PUBLIC_EMAIL}` },
+            ],
           },
         ]);
       }
@@ -144,7 +187,11 @@ export function FarettaChatbot() {
         ...m,
         {
           role: "assistant",
-          content: `Connection hiccup. Email ${LEADFLOW_PUBLIC_EMAIL} or book here: /book.`,
+          content: `Connection hiccup. Email ${LEADFLOW_PUBLIC_EMAIL} or book a call.`,
+          actions: [
+            { label: "Book the call", href: "/book" },
+            { label: "Email Ryan", href: `mailto:${LEADFLOW_PUBLIC_EMAIL}` },
+          ],
         },
       ]);
     } finally {
@@ -209,7 +256,14 @@ export function FarettaChatbot() {
                       : "bg-white border border-slate-200 text-slate-800 shadow-sm"
                   }`}
                 >
-                  {m.content}
+                  <div>{m.content}</div>
+                  {m.role === "assistant" && m.actions?.length ? (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {m.actions.map((action) => (
+                        <ChatActionButton key={`${action.href}-${action.label}`} action={action} />
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               </div>
             ))}

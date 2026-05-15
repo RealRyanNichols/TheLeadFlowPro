@@ -17,18 +17,24 @@ export const runtime = "nodejs";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
+type ChatAction = {
+  label: string;
+  href: string;
+};
+
 type RouteReply = {
   reply: string;
   mode: "anthropic" | "router";
+  actions: ChatAction[];
 };
 
 const SYSTEM_PROMPT = `You are Faretta AI — the live assistant for The LeadFlow Pro, Ryan Nichols's platform.
 
-Your job: route visitors in one short reply, then stop. Use one clear CTA:
-  • /start — answer a few questions and get routed to the right offer
-  • /book — book the free 10-minute strategy call
-  • /tiers — compare the full price ladder
-  • /stump-ryan — submit a free build blueprint request
+Your job: route visitors in one short reply, then stop. Use one clear CTA in plain English:
+  • Find my best option — answer a few questions and get routed to the right offer
+  • Book the call — book the free 10-minute strategy call
+  • See pricing — compare the full price ladder
+  • Get free blueprint — submit a free build blueprint request
 
 About Ryan Nichols:
 - Built 75,000+ followers from zero across X (43.8K), Facebook (18.9K), YouTube (12K), Instagram, TikTok
@@ -48,18 +54,37 @@ Voice rules:
 - Plain English. Operator-to-operator. No fluff.
 - Default reply is 1 sentence. 2 sentences max. Under 45 words.
 - Do not explain every option. Pick the best next click.
+- Do not show raw URLs, slash routes, or paths like /start, /book, /tiers, or /stump-ryan.
 - No corporate-speak, no "happy to help!" cheer.
 - Honest about pricing — never invent or hedge.
 - NEVER promise specific outcomes / guarantees.
 - If they're a wrong-fit (free seekers, just-curious, want guarantees, lowest-price shoppers): say so directly and politely.
-- Always end serious-buyer replies with one CTA: "/stump-ryan", "/start", "/book", or "/tiers".
+- Always end serious-buyer replies with one plain CTA label, not a website path.
 - Do not mention memory, returning visitors, or saved context unless they ask.
 
-If they ask about something not above (legal questions, healthcare, etc.), say: "Best to get on the call with Ryan — book at /book."
+If they ask about something not above (legal questions, healthcare, etc.), say: "Best to get on the call with Ryan."
 
 If they want to email Ryan: ${LEADFLOW_PUBLIC_EMAIL}.
 
 Keep replies tight. Do not make them read a book.`;
+
+const CHAT_ACTIONS = {
+  blueprint: { label: "Get free blueprint", href: "/stump-ryan" },
+  start: { label: "Find my best option", href: "/start" },
+  book: { label: "Book the call", href: "/book" },
+  tiers: { label: "See pricing", href: "/tiers" },
+  powerBundle: { label: "See Power Bundle", href: "/offers/power-bundle" },
+  fbAds: { label: "See Meta ads offer", href: "/offers/fb-ads" },
+} satisfies Record<string, ChatAction>;
+
+const KNOWN_ROUTE_ACTIONS = [
+  CHAT_ACTIONS.powerBundle,
+  CHAT_ACTIONS.fbAds,
+  CHAT_ACTIONS.blueprint,
+  CHAT_ACTIONS.start,
+  CHAT_ACTIONS.book,
+  CHAT_ACTIONS.tiers,
+];
 
 function latestUserMessage(messages: Msg[]) {
   return [...messages].reverse().find((message) => message.role === "user")?.content ?? "";
@@ -85,48 +110,137 @@ function compactReply(reply: string) {
   return `${clean.slice(0, 277).trim()}...`;
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function uniqueActions(actions: ChatAction[]) {
+  const seen = new Set<string>();
+  return actions.filter((action) => {
+    if (seen.has(action.href)) return false;
+    seen.add(action.href);
+    return true;
+  });
+}
+
+function actionsFromRawReply(reply: string) {
+  return KNOWN_ROUTE_ACTIONS.filter((action) =>
+    new RegExp(`${escapeRegExp(action.href)}\\b`, "i").test(reply),
+  );
+}
+
+function actionForIntent(latest: string): ChatAction {
+  const normalized = latest.toLowerCase();
+
+  if (/(tool|software|app|dashboard|portal|calculator|automation|crm|system|build)/.test(normalized)) {
+    return CHAT_ACTIONS.blueprint;
+  }
+  if (/(price|cost|package|tier|budget|afford|how much)/.test(normalized)) {
+    return CHAT_ACTIONS.tiers;
+  }
+  if (/(social|facebook|tiktok|youtube|instagram|\bx\b|twitter|post|reel|short|content)/.test(normalized)) {
+    return CHAT_ACTIONS.powerBundle;
+  }
+  if (/(meta|ad|ads)/.test(normalized)) {
+    return CHAT_ACTIONS.fbAds;
+  }
+  if (/(lead|leads|funnel|sales|follow up|follow-up)/.test(normalized)) {
+    return CHAT_ACTIONS.start;
+  }
+  if (/(book|call|talk|calendar|meeting|consult)/.test(normalized)) {
+    return CHAT_ACTIONS.book;
+  }
+
+  return CHAT_ACTIONS.start;
+}
+
+function removeRawRoutes(reply: string) {
+  let cleaned = compactReply(reply);
+
+  for (const action of KNOWN_ROUTE_ACTIONS) {
+    const route = escapeRegExp(action.href);
+    cleaned = cleaned
+      .replace(
+        new RegExp(
+          `\\s*(?:at|use|open|visit|go to|see|start here:?|book here:?|book at|cta:?|click)\\s+${route}\\b\\.?`,
+          "gi",
+        ),
+        "",
+      )
+      .replace(new RegExp(route, "gi"), "");
+  }
+
+  cleaned = cleaned
+    .replace(/\s+([,.;:!?])/g, "$1")
+    .replace(/([:;,-])\s*([.?!])/g, "$2")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s*[-–—]\s*$/g, "")
+    .replace(/[:;,]\s*$/g, ".")
+    .trim();
+
+  return cleaned || "Use the best next step below.";
+}
+
+function buildDisplayReply(rawReply: string, latest: string) {
+  const routeActions = actionsFromRawReply(rawReply);
+  const actions = uniqueActions([...routeActions, actionForIntent(latest)]).slice(0, 1);
+
+  return {
+    reply: removeRawRoutes(rawReply),
+    actions,
+  };
+}
+
 function routeWithoutAnthropic(messages: Msg[], memory: PublicChatMemory | null): RouteReply {
-  const latest = latestUserMessage(messages).toLowerCase();
+  const latestRaw = latestUserMessage(messages);
+  const latest = latestRaw.toLowerCase();
   const remembered = memoryLeadIn(memory);
 
   if (/(tool|software|app|dashboard|portal|calculator|automation|crm|system|build)/.test(latest)) {
     return {
       mode: "router",
-      reply: `${remembered}Start with Stump Ryan: /stump-ryan. Send the leak or tool idea; Ryan maps the first useful version before paid buildout.`,
+      reply: `${remembered}Start with Stump Ryan. Send the leak or tool idea; Ryan maps the first useful version before paid buildout.`,
+      actions: [CHAT_ACTIONS.blueprint],
     };
   }
 
   if (/(price|cost|package|tier|budget|afford|how much)/.test(latest)) {
     return {
       mode: "router",
-      reply: `${remembered}Need prices? Use /tiers. Not sure what fits? Use /start.`,
+      reply: `${remembered}Need prices? Start with the simple pricing ladder.`,
+      actions: [CHAT_ACTIONS.tiers],
     };
   }
 
   if (/(social|facebook|tiktok|youtube|instagram|\bx\b|twitter|post|reel|short|content)/.test(latest)) {
     return {
       mode: "router",
-      reply: `${remembered}For social growth, start here: /start. Want Ryan running the content engine? See /offers/power-bundle.`,
+      reply: `${remembered}For social growth, look at the Power Bundle first.`,
+      actions: [CHAT_ACTIONS.powerBundle],
     };
   }
 
   if (/(ad|ads|meta|lead|leads|funnel|sales|follow up|follow-up)/.test(latest)) {
+    const action = /(ad|ads|meta)/.test(latest) ? CHAT_ACTIONS.fbAds : CHAT_ACTIONS.start;
     return {
       mode: "router",
-      reply: `${remembered}For leads, follow-up, or sales process, start here: /start. Meta ads specifically: /offers/fb-ads.`,
+      reply: `${remembered}For leads, follow-up, or sales process, start with the offer picker.`,
+      actions: [action],
     };
   }
 
   if (/(book|call|talk|calendar|meeting|consult)/.test(latest)) {
     return {
       mode: "router",
-      reply: `${remembered}Book the 10-minute fit call: /book. Bring the business, problem, and next decision.`,
+      reply: `${remembered}Book the 10-minute fit call. Bring the business, problem, and next decision.`,
+      actions: [CHAT_ACTIONS.book],
     };
   }
 
   return {
     mode: "router",
-    reply: `${remembered}Pick the lane: tool -> /stump-ryan, service -> /start, call -> /book.`,
+    reply: `${remembered}Tell Ryan what you need, and the picker will route you.`,
+    actions: [actionForIntent(latestRaw)],
   };
 }
 
@@ -179,7 +293,13 @@ export async function POST(req: Request) {
     } catch {
       // Do not block the public chatbot if memory write fails.
     }
-    return NextResponse.json({ ok: true, reply: routed.reply, mode: routed.mode, remembered });
+    return NextResponse.json({
+      ok: true,
+      reply: routed.reply,
+      actions: routed.actions,
+      mode: routed.mode,
+      remembered,
+    });
   }
 
   // Build the Anthropic messages array (system goes separately).
@@ -220,7 +340,7 @@ Use saved memory only if it shortens the answer. Do not ask for name, business, 
   } catch (err) {
     return NextResponse.json({
       ok: false,
-      fallback: `I hit a network error. Email Ryan at ${LEADFLOW_PUBLIC_EMAIL}.`,
+      fallback: `I’m having trouble answering here. Email Ryan at ${LEADFLOW_PUBLIC_EMAIL} or book a call.`,
     });
   }
 
@@ -228,7 +348,7 @@ Use saved memory only if it shortens the answer. Do not ask for name, business, 
     const text = await res.text().catch(() => "");
     return NextResponse.json({
       ok: false,
-      fallback: `Anthropic API ${res.status}. Email Ryan at ${LEADFLOW_PUBLIC_EMAIL}.`,
+      fallback: `I’m having trouble answering here. Email Ryan at ${LEADFLOW_PUBLIC_EMAIL} or book a call.`,
       detail: process.env.NODE_ENV === "development" ? text.slice(0, 200) : undefined,
     });
   }
@@ -236,11 +356,12 @@ Use saved memory only if it shortens the answer. Do not ask for name, business, 
   const data = (await res.json()) as {
     content?: Array<{ type: string; text?: string }>;
   };
-  const reply = compactReply(data.content?.find((c) => c.type === "text")?.text ?? "");
+  const rawReply = compactReply(data.content?.find((c) => c.type === "text")?.text ?? "");
+  const { reply, actions } = buildDisplayReply(rawReply, latestUserMessage(messages));
   if (!reply) {
     return NextResponse.json({
       ok: false,
-      fallback: `I got an empty reply. Email Ryan directly at ${LEADFLOW_PUBLIC_EMAIL}.`,
+      fallback: `I’m having trouble answering here. Email Ryan at ${LEADFLOW_PUBLIC_EMAIL} or book a call.`,
     });
   }
 
@@ -250,5 +371,5 @@ Use saved memory only if it shortens the answer. Do not ask for name, business, 
     // Do not block a valid AI reply because memory write failed.
   }
 
-  return NextResponse.json({ ok: true, reply, mode: "anthropic", remembered });
+  return NextResponse.json({ ok: true, reply, actions, mode: "anthropic", remembered });
 }

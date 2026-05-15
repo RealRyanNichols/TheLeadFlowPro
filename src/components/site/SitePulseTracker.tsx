@@ -692,7 +692,7 @@ export function SitePulseTracker() {
       href="/pulse"
       onClick={() => beaconPulse("cta_pulse", "/pulse", "floating-live-pulse")}
       data-pulse-manual="true"
-      className="fixed bottom-4 left-4 z-40 inline-flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full border border-cyan-200/80 bg-white/90 px-3 py-2 text-xs font-semibold text-slate-900 shadow-[0_18px_45px_-22px_rgba(15,23,42,0.65)] backdrop-blur hover:border-cyan-300 hover:bg-cyan-50"
+      className="fixed bottom-4 left-4 z-40 hidden max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full border border-cyan-200/80 bg-white/90 px-3 py-2 text-xs font-semibold text-slate-900 shadow-[0_18px_45px_-22px_rgba(15,23,42,0.65)] backdrop-blur hover:border-cyan-300 hover:bg-cyan-50 sm:inline-flex"
       aria-label="Open the live website effectiveness board"
     >
       <span
