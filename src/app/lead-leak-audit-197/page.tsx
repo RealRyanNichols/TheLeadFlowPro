@@ -187,13 +187,13 @@ export default function PaidLeadLeakAuditPage({
 
       <main>
         <section className="relative overflow-hidden border-b border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#eef9ff_44%,#fff7ed_100%)]">
-          <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:px-8 lg:py-14">
-            <div className="flex flex-col justify-center">
+          <div className="mx-auto grid w-full min-w-0 max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:px-8 lg:py-14">
+            <div className="min-w-0 flex flex-col justify-center">
               <div className="inline-flex w-fit items-center gap-2 rounded-md border border-cyan-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-800">
                 <ClipboardCheck className="h-3.5 w-3.5" />
                 $197 Lead Leak Audit
               </div>
-              <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+              <h1 className="mt-5 max-w-full break-words text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
                 Find the leak before you spend another dollar on traffic.
               </h1>
               <p className="mt-5 max-w-3xl text-base leading-7 text-slate-700 sm:text-lg">
@@ -241,7 +241,7 @@ export default function PaidLeadLeakAuditPage({
               </p>
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(260px,0.7fr)] lg:items-stretch">
+            <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(260px,0.7fr)] lg:items-stretch">
               <div className="rounded-3xl border border-slate-900/10 bg-slate-950 p-4 text-white shadow-[0_30px_80px_-36px_rgba(15,23,42,0.72)]">
                 <div className="relative overflow-hidden rounded-2xl bg-slate-900">
                   <Image

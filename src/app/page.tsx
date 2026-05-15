@@ -216,13 +216,13 @@ function Hero() {
       <HeroBuildBackdrop />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.94)_0%,rgba(2,6,23,0.82)_45%,rgba(2,6,23,0.72)_100%)] sm:bg-[linear-gradient(90deg,rgba(2,6,23,0.98)_0%,rgba(2,6,23,0.86)_48%,rgba(2,6,23,0.48)_100%)]" />
 
-      <div className="relative mx-auto flex min-h-[calc(100svh-112px)] max-w-7xl flex-col justify-center px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-12 lg:px-8">
-        <div className="max-w-5xl">
+      <div className="relative mx-auto flex min-h-[calc(100svh-112px)] w-full min-w-0 max-w-7xl flex-col justify-center px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-12 lg:px-8">
+        <div className="min-w-0 max-w-5xl">
           <div className="inline-flex items-center gap-2 rounded-md border border-cyan-300/50 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
             <Sparkles className="h-3.5 w-3.5" />
             The LeadFlow Pro
           </div>
-          <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="mt-5 max-w-full break-words text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
             Stump Ryan with the business tool you wish existed. Get the free build blueprint first.
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-slate-200 sm:text-lg">
@@ -243,11 +243,16 @@ function Hero() {
               Run leak audit <CalendarClock className="h-4 w-4" />
             </Link>
           </div>
-          <p className="mt-4 max-w-xl text-sm font-semibold leading-6 text-cyan-100 sm:hidden">
+          <p className="mt-4 max-w-full break-words text-sm font-semibold leading-6 text-cyan-100 sm:hidden">
             Free plan first. Built live:{" "}
             {BUILT_PROJECTS.map((project, index) => (
               <span key={project.name}>
-                <Link href={project.href} target="_blank" rel="noreferrer" className="underline underline-offset-4">
+                <Link
+                  href={project.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="break-all underline underline-offset-4"
+                >
                   {project.name.replace(/^www\./i, "")}
                 </Link>
                 {index < BUILT_PROJECTS.length - 1 ? ", " : "."}
