@@ -285,8 +285,9 @@ function Hero() {
               ))}
             </div>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
-              LeadFlow Pro, RepWatchr, and Faretta.legal are live builds Ryan coded and deployed to
-              solve different problems: sales flow, data organization, and niche trust.
+              Premier Dental Academy of Longview, RepWatchr, and Faretta.legal are live builds Ryan
+              coded and deployed to solve different problems: local offer clarity, data organization,
+              and niche trust.
             </p>
           </div>
         </div>

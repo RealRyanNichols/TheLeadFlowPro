@@ -1,11 +1,11 @@
 export const BUILT_PROJECTS = [
   {
-    name: "TheLeadFlowPro.com",
-    href: "https://www.TheLeadFlowPro.com",
-    type: "Business funnel and client-owned tools",
+    name: "Premier Dental Academy of Longview",
+    href: "https://www.PremierDentalAcademyofLongview.com",
+    type: "PremierDentalAcademyofLongview.com",
     proof:
-      "This site proves the offer on itself: sales pages, audit funnels, Stump Ryan intake, tracking, chat, admin visibility, and client-office paths.",
-    angle: "If Ryan can build the funnel you are using right now, he can map the first useful version for your business.",
+      "A local business site built around offer clarity, trust, service explanation, booking intent, and a cleaner path for prospective students.",
+    angle: "This shows Ryan can turn a real local-business offer into a focused web presence people can understand fast.",
   },
   {
     name: "RepWatchr.com",
