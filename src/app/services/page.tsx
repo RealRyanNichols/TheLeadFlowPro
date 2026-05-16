@@ -1,4 +1,4 @@
-// src/app/services/page.tsx — Social Media services hub.
+// src/app/services/page.tsx - Social Media services hub.
 //
 // Full rewrite. Warm-glass hero + dark navy accent sections matching the
 // homepage Journey aesthetic. NO emerald/green palette anywhere. Platform
@@ -16,7 +16,7 @@ import { PlatformBrandMark, type PlatformBrandHandle } from "@/components/site/P
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const metadata = createSeoMetadata({
-  title: "Social Media Services — Done For You · The LeadFlow Pro",
+  title: "Social Media Services | Done For You · The LeadFlow Pro",
   description:
     "Ryan builds the content engine, production workflow, posting rhythm, and lead path across TikTok, Facebook, X, YouTube, and Meta ads.",
   path: "/services",
@@ -139,7 +139,7 @@ export default function ServicesPage() {
     <div className="min-h-screen bg-white text-slate-900">
       <LightHeader activePath="/services" />
 
-      {/* HERO — warm-glass blend */}
+      {/* HERO - warm-glass blend */}
       <section className="relative overflow-hidden">
         <div
           aria-hidden
@@ -434,7 +434,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* POWER BUNDLE — dark accent */}
+      {/* POWER BUNDLE - dark accent */}
       <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-brand-950 text-white">
         <div
           aria-hidden
@@ -540,7 +540,7 @@ export default function ServicesPage() {
                 </span>
               </h2>
               <p className="mt-5 text-slate-700 leading-relaxed">
-                I run your campaigns end-to-end — audience research, creative iteration, daily
+                I run your campaigns end-to-end: audience research, creative iteration, daily
                 optimization, weekly reports tied to leads and revenue. You pay Meta directly, and
                 I do not take a percentage of your ad spend. The account, pixel, campaigns,
                 follow-up, and lead flow stay inside your business.
@@ -555,7 +555,7 @@ export default function ServicesPage() {
                   href="/offers/fb-ads"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/30 hover:bg-slate-800"
                 >
-                  Start the Ads System — $1,497/mo <ArrowRight className="h-4 w-4" />
+                  Start the Ads System - $1,497/mo <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/book"
@@ -666,7 +666,7 @@ export default function ServicesPage() {
                 "You'll do a 30-min content sync once a week",
                 "You're committed to 90 days minimum (algorithm runway)",
                 "Your offer is real and your sales process can handle leads",
-                "You want lead flow — not vanity follower count",
+                "You want lead flow, not vanity follower count",
               ]}
             />
             <FitBlock
@@ -684,7 +684,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* FINAL CTA — dark glass */}
+      {/* FINAL CTA - dark glass */}
       <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-brand-900 to-cyan-900 text-white">
         <div
           aria-hidden
@@ -696,21 +696,21 @@ export default function ServicesPage() {
             Get past the reef on every platform that matters.
           </h2>
           <p className="mt-3 text-slate-300 max-w-2xl mx-auto">
-            Pick a tier, a platform, or all four. Either way the algorithm starts working with you,
-            not against you, in 90 days.
+            Pick a tier, a platform, or all four. Either way, the business gets a cleaner content
+            workflow, clearer signals, and a better place to send attention.
           </p>
           <div className="mt-7 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3">
             <Link
               href="/offers/power-bundle"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/30 hover:bg-accent-600"
             >
-              Power Bundle — $1,497/mo <ArrowRight className="h-4 w-4" />
+              Power Bundle - $1,497/mo <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/offers/quick-look"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-cyan-500/30 hover:bg-cyan-600"
             >
-              Quick-Look — $47
+              Quick-Look - $47
             </Link>
             <Link
               href="/book"
@@ -721,7 +721,7 @@ export default function ServicesPage() {
           </div>
           <p className="mt-6 text-xs text-slate-400 max-w-2xl mx-auto leading-relaxed">
             Real Ryan Nichols LLC · Texas-governed under mutual NDA on every paid engagement. Paid
-            ad budgets are paid by clients directly to Meta — never invoiced through us.
+            ad budgets are paid by clients directly to Meta, never invoiced through us.
           </p>
         </div>
       </section>

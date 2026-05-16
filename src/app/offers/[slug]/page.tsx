@@ -1,4 +1,4 @@
-// src/app/offers/[slug]/page.tsx — Universal offer sales page.
+// src/app/offers/[slug]/page.tsx - Universal offer sales page.
 //
 // Renders any offer from /lib/offers.ts. The visual language follows the
 // "Journey" aesthetic Ryan approved: dark glass cards on a navy gradient
@@ -323,7 +323,7 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
             What it costs to NOT do this.
           </h2>
           <p className="text-slate-300 max-w-2xl">
-            Spending money on me <em>is</em> spending money on you — because I turn around and put it back
+            Spending money on me <em>is</em> spending money on you - because I turn around and put it back
             into your business as a real result. Here's the math both ways.
           </p>
           <div className="mt-8 grid gap-5 md:grid-cols-2">
@@ -396,7 +396,7 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
             </Link>
           </div>
           <p className="mt-4 text-xs text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Real Ryan Nichols LLC · Texas-governed under mutual NDA. We do not promise specific outcomes —
+            Real Ryan Nichols LLC · Texas-governed under mutual NDA. We do not promise specific outcomes -
             we deliver the work and the deliverables described above.
           </p>
         </div>

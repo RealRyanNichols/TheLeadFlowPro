@@ -1,4 +1,4 @@
-// src/lib/offers.ts — Single source of truth for all sellable offers.
+// src/lib/offers.ts - Single source of truth for all sellable offers.
 //
 // Every offer renders through /app/offers/[slug]/page.tsx using the same
 // section structure: HERO + price card / WHY BUY / WHAT HAPPENS WHEN YOU
@@ -81,7 +81,7 @@ function mailto(subject: string): string {
 
 /**
  * Resolution order for the buy button URL:
- *   1. STRIPE_LINK_<SLUG> env var if set (override path — useful for one-off
+ *   1. STRIPE_LINK_<SLUG> env var if set (override path - useful for one-off
  *      promo links without a code change)
  *   2. STRIPE_PAYMENT_LINKS[slug] from /lib/stripe-links.ts (the canonical
  *      live URLs created in Stripe on 2026-05-05)
@@ -107,9 +107,9 @@ function buyHref(slug: string, fallbackSubject: string): string {
 
 const RYAN_PROOF = [
   { big: "75K+",  label: "Followers built from zero across 5 platforms" },
-  { big: "6",     label: "Companies founded — LeadFlow Pro, RepWatchr, Faretta.Legal, Faretta.AI, Wholesale Universe, Rescue The Universe" },
+  { big: "6",     label: "Companies founded - LeadFlow Pro, RepWatchr, Faretta.Legal, Faretta.AI, Wholesale Universe, Rescue The Universe" },
   { big: "10+ yr", label: "Years operating in social, ads, sales, lead gen" },
-  { big: "Premier Dental Academy", label: "Of Longview — client work: built website + student/admin tools + ran their ads" },
+  { big: "Premier Dental Academy", label: "Of Longview - client work: built website + student/admin tools + ran their ads" },
 ];
 
 const TEXAS_NDA_FAQ = {
@@ -120,7 +120,7 @@ const TEXAS_NDA_FAQ = {
 /* ─── offer catalog ───────────────────────────────────────────── */
 
 export const OFFERS: Record<OfferSlug, Offer> = {
-  /* ──────────── 0. QUICK-LOOK VIDEO — Tier 1 micro — $47 ──────────── */
+  /* ──────────── 0. QUICK-LOOK VIDEO - Tier 1 micro - $47 ──────────── */
   "quick-look": {
     slug: "quick-look",
     tier: 1,
@@ -128,7 +128,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     cadence: "one-time",
     badge: "Tier 1 micro · One-time · 5-15 min video notes",
     Icon: Sparkles,
-    metaTitle: "Quick-Look Video — $47 · The LeadFlow Pro",
+    metaTitle: "Quick-Look Video - $47 · The LeadFlow Pro",
     metaDescription:
       "I look at your socials and tell you what to fix next. 15-20 minutes of review, 5-15 minutes of direct video notes, and a proposal for how I can help if you want me involved.",
 
@@ -152,7 +152,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "A follow-on proposal for how I can help next if you want results",
       ],
     },
-    primaryCta: { label: "Reserve Quick-Look — $47", href: buyHref("quick-look", "Buy: Quick-Look Video $47") },
+    primaryCta: { label: "Reserve Quick-Look - $47", href: buyHref("quick-look", "Buy: Quick-Look Video $47") },
     secondaryCta: { label: "See the $90 Sprint instead", href: "/offers/decision-sprint" },
 
     whyBuy: [
@@ -186,17 +186,17 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     },
     proof: RYAN_PROOF,
     faqs: [
-      { q: "Is this a recurring thing?", a: "No — one-time. If you want regular eyes, that's the $1,997/mo Light Retainer or the Power Bundle." },
+      { q: "Is this a recurring thing?", a: "No - one-time. If you want regular eyes, that's the $1,997/mo Light Retainer or the Power Bundle." },
       { q: "What platforms do you cover?", a: "Up to 3 of: TikTok, FB, X, YouTube, Instagram, LinkedIn. Pick the most important to you on intake." },
       { q: "What if I want a follow-up?", a: "Apply the $47 toward a $90 Decision Sprint or a $497 Audit within 30 days." },
-      { q: "Refunds?", a: "If I can't deliver in 48 hours, full refund. Otherwise, you got the work — no refund." },
-      { q: "Can you do this for a friend / partner?", a: "Yes — name on intake. Buy gift-style — they'll get the email." },
+      { q: "Refunds?", a: "If I can't deliver in 48 hours, full refund. Otherwise, you got the work - no refund." },
+      { q: "Can you do this for a friend / partner?", a: "Yes - name on intake. Buy gift-style - they'll get the email." },
       TEXAS_NDA_FAQ,
     ],
     upgradeCredit: "Apply $47 toward a $90 Decision Sprint or $497 Audit within 30 days.",
   },
 
-  /* ──────────── 1. DECISION SPRINT — Tier 1 — $90/90 ──────────── */
+  /* ──────────── 1. DECISION SPRINT - Tier 1 - $90/90 ──────────── */
   "decision-sprint": {
     slug: "decision-sprint",
     tier: 1,
@@ -204,15 +204,15 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     cadence: "one-time",
     badge: "Tier 1 · One-time · Lowest-friction 1:1 with Ryan",
     Icon: Compass,
-    metaTitle: "$90 for 90 Minutes — A Dollar Per Minute With Ryan · The LeadFlow Pro",
+    metaTitle: "$90 for 90 Minutes - A Dollar Per Minute With Ryan · The LeadFlow Pro",
     metaDescription:
-      "One stuck business decision unpacked in 90 minutes with Ryan Nichols. Recorded call, full transcript, action worksheet — all delivered within 24 hours.",
+      "One stuck business decision unpacked in 90 minutes with Ryan Nichols. Recorded call, full transcript, action worksheet - all delivered within 24 hours.",
 
     hero: {
       h1Lead: "$90 for 90 minutes.",
       h1Highlight: "A dollar a minute with Ryan.",
       paragraph:
-        "One stuck decision. 90 focused minutes. A written action worksheet in your inbox by tomorrow. Not a discovery call. Not a coaching session. A working session priced so a serious business owner says yes on the spot — but cheap-shoppers click away.",
+        "One stuck decision. 90 focused minutes. A written action worksheet in your inbox by tomorrow. Not a discovery call. Not a coaching session. A working session priced so a serious business owner says yes on the spot - but cheap-shoppers click away.",
       paragraph2:
         "I've changed the trajectory of businesses in 20-minute conversations. Imagine what we can do with 90.",
     },
@@ -221,10 +221,10 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       sub: "for 90 minutes",
       badge: "$1 / minute",
       deliverables: [
-        "90 minutes, just you and me — FaceTime, Zoom, or phone",
-        "Recorded call — yours forever, delivered same day",
-        "Full transcript — searchable copy of everything we said",
-        "Action worksheet — what we covered + your next 3 moves, in your inbox by tomorrow",
+        "90 minutes, just you and me - FaceTime, Zoom, or phone",
+        "Recorded call - yours forever, delivered same day",
+        "Full transcript - searchable copy of everything we said",
+        "Action worksheet - what we covered + your next 3 moves, in your inbox by tomorrow",
       ],
       addOn: {
         title: "Local in-person add-on · +$100",
@@ -232,7 +232,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
           "East Texas only. $50 there + $50 back. Same 90 minutes, same deliverables. Anywhere outside East Texas → FaceTime / Zoom / phone (no travel cost).",
       },
     },
-    primaryCta: { label: "Reserve the Sprint — $90", href: buyHref("decision-sprint", "Buy: 90-Minute Decision Sprint $90") },
+    primaryCta: { label: "Reserve the Sprint - $90", href: buyHref("decision-sprint", "Buy: 90-Minute Decision Sprint $90") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
@@ -249,7 +249,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       {
         Icon: Zap,
         title: "Why 90 min not 60 min",
-        body: "60 minutes is enough to talk about a decision. 90 minutes is enough to actually MAKE the decision — surface every constraint, weigh every trade-off, and end with the call written down.",
+        body: "60 minutes is enough to talk about a decision. 90 minutes is enough to actually MAKE the decision - surface every constraint, weigh every trade-off, and end with the call written down.",
       },
     ],
     timeline: [
@@ -262,11 +262,11 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       "You have one specific decision that's been stuck for 2+ weeks",
       "You can describe the decision in one sentence",
       "You'll do 5 minutes of pre-work (the 1-paragraph note)",
-      "You're a real operator with a real business — not just kicking tires",
+      "You're a real operator with a real business - not just kicking tires",
       "You'll act on the recommendation within 30 days, even if you disagree",
     ],
     wrongFit: [
-      "You don't actually have a decision yet — you have 'general questions'",
+      "You don't actually have a decision yet - you have 'general questions'",
       "You want a 90-minute coaching session on ten different topics",
       "You want guarantees about which option will work best",
       "You're shopping consultants for the lowest price",
@@ -274,21 +274,21 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     ],
     costMath: {
       stuck: { big: "$1,200+", sub: "Median weekly opportunity cost of a delayed pricing/hire/offer decision (4 weeks at ~$300/wk impact). Plus team morale, lost momentum, and the 'just keep doing what we're doing' default." },
-      buy:   { big: "$90",     sub: "One time. 90 minutes. A written recommendation in your inbox. Even if you disagree with the call, you've eliminated the option you didn't pick — that alone is worth the price." },
+      buy:   { big: "$90",     sub: "One time. 90 minutes. A written recommendation in your inbox. Even if you disagree with the call, you've eliminated the option you didn't pick - that alone is worth the price." },
     },
     proof: RYAN_PROOF,
     faqs: [
       { q: "What if my decision isn't really 'one' decision?", a: "Then you book the $497 Business Audit instead. The Decision Sprint is for one stuck thing. The Audit is for the whole business." },
       { q: "Can I get a refund if I disagree with the recommendation?", a: "No. You're paying for the working session and the written recommendation, not for the recommendation matching what you wanted to hear. Refunds available within 24 hours of paying if scheduling falls through." },
       { q: "Will Ryan record the call?", a: "Yes. Recording delivered same day. You own it forever. You also get a full transcript." },
-      { q: "Can we meet in person?", a: "If you're in East Texas — yes. Local in-person add-on is +$100 ($50 there, $50 back). Anywhere else in the U.S. is FaceTime, Zoom, or phone. Same 90 minutes, same deliverables." },
+      { q: "Can we meet in person?", a: "If you're in East Texas - yes. Local in-person add-on is +$100 ($50 there, $50 back). Anywhere else in the U.S. is FaceTime, Zoom, or phone. Same 90 minutes, same deliverables." },
       { q: "What if I need a follow-up?", a: "Book another sprint, or apply the $90 toward the $497 Audit if you do that within 30 days." },
       TEXAS_NDA_FAQ,
     ],
     upgradeCredit: "Apply your $90 toward the $497 Business Audit within 30 days.",
   },
 
-  /* ──────────── 2. BUSINESS AUDIT — Tier 2 — $497 ──────────── */
+  /* ──────────── 2. BUSINESS AUDIT - Tier 2 - $497 ──────────── */
   "business-audit": {
     slug: "business-audit",
     tier: 2,
@@ -296,13 +296,13 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     cadence: "one-time",
     badge: "Tier 2 · One-time · Whole-business written audit",
     Icon: FileText,
-    metaTitle: "Business Audit — $497 · The LeadFlow Pro",
+    metaTitle: "Business Audit - $497 · The LeadFlow Pro",
     metaDescription:
       "Comprehensive written audit of your offer, lead flow, pricing, sales process, and tech stack. PDF + editable doc delivered within 7 days. Built for owners ready to fix what's actually broken.",
 
     hero: {
       h1Lead: "$497 for the whole picture.",
-      h1Highlight: "What's bleeding money — in writing.",
+      h1Highlight: "What's bleeding money - in writing.",
       paragraph:
         "I review your offer, your lead flow, your pricing, your sales process, and your tech stack. You get a 12–18 page written audit naming exactly what's leaking revenue, what's overbuilt, and what to fix in what order.",
       paragraph2:
@@ -320,11 +320,11 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "Audit recording you keep forever",
       ],
     },
-    primaryCta: { label: "Begin the Audit — $497", href: buyHref("business-audit", "Buy: Business Audit $497") },
+    primaryCta: { label: "Begin the Audit - $497", href: buyHref("business-audit", "Buy: Business Audit $497") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
-      { Icon: LineChart, title: "You can't fix what you can't see", body: "Most owners can name 1–2 problems. The audit names 8–14 — and ranks them so you fix the leak that's bleeding the most first." },
+      { Icon: LineChart, title: "You can't fix what you can't see", body: "Most owners can name 1–2 problems. The audit names 8–14 - and ranks them so you fix the leak that's bleeding the most first." },
       { Icon: Wrench,    title: "Written, not 'we discussed'",       body: "A call is forgotten in a week. A 12–18 page document on your desktop is referenced for years." },
       { Icon: Trophy,    title: "Worth the money if one leak is real", body: "If the audit finds one broken offer, ad leak, dead follow-up path, or wasted workflow you actually fix, the written plan can pay for itself." },
     ],
@@ -342,7 +342,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       "You'll act on at least the top-3 fixes within 60 days",
     ],
     wrongFit: [
-      "You haven't started yet — there's nothing to audit",
+      "You haven't started yet - there's nothing to audit",
       "You want a 'gut check', not a written deliverable",
       "You won't grant read-only access (then there's nothing to audit)",
       "You're allergic to feedback that doesn't agree with you",
@@ -358,13 +358,13 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       { q: "What if my audit reveals something embarrassing?", a: "It will. That's the point. Texas-law mutual NDA means none of it leaves the room." },
       { q: "Can the audit replace a fractional COO?", a: "No. The audit is a snapshot diagnosis. Implementation is a separate engagement (Light Retainer $1,997/mo or Monthly Operator $4,997/mo)." },
       { q: "What if I need help implementing?", a: "Apply the $497 toward a Light Retainer ($1,997/mo) or Monthly Operator ($4,997/mo) within 60 days." },
-      { q: "Can I expense it as professional services?", a: "Yes — Real Ryan Nichols LLC, Texas-law engagement letter, invoice issued on payment." },
+      { q: "Can I expense it as professional services?", a: "Yes - Real Ryan Nichols LLC, Texas-law engagement letter, invoice issued on payment." },
       TEXAS_NDA_FAQ,
     ],
     upgradeCredit: "Apply your $497 toward a Light Retainer or Monthly Operator engagement within 60 days.",
   },
 
-  /* ──────────── 3. LIGHT RETAINER — Tier 2 — $1,997/mo ──────────── */
+  /* ──────────── 3. LIGHT RETAINER - Tier 2 - $1,997/mo ──────────── */
   "light-retainer": {
     slug: "light-retainer",
     tier: 2,
@@ -372,9 +372,9 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     cadence: "monthly",
     badge: "Tier 2 · Monthly · Fractional advisor on retainer",
     Icon: Briefcase,
-    metaTitle: "Light Retainer — $1,997/mo · The LeadFlow Pro",
+    metaTitle: "Light Retainer - $1,997/mo · The LeadFlow Pro",
     metaDescription:
-      "Fractional advisor on retainer. Two 60-min strategy calls per month, async voice memo support, every-other-week written briefing. For owners doing $20K+/mo who need a sharp second brain — not a fractional COO.",
+      "Fractional advisor on retainer. Two 60-min strategy calls per month, async voice memo support, every-other-week written briefing. For owners doing $20K+/mo who need a sharp second brain - not a fractional COO.",
 
     hero: {
       h1Lead: "$1,997 a month for a sharp second brain.",
@@ -396,12 +396,12 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "First-look at every new playbook & framework",
       ],
     },
-    primaryCta: { label: "Start retainer — $1,997/mo", href: buyHref("light-retainer", "Buy: Light Retainer $1,997/mo") },
+    primaryCta: { label: "Start retainer - $1,997/mo", href: buyHref("light-retainer", "Buy: Light Retainer $1,997/mo") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
       { Icon: TrendingUp, title: "Compounding context",       body: "Month 1, I learn your business. Month 6, I know it better than your accountant. Decisions get faster and sharper because I'm not re-loading context every call." },
-      { Icon: Sparkles,   title: "Async > scheduled",         body: "The good decisions aren't on the calendar — they're at 8:42 a.m. when you spot something weird in the data. Voice memo me. I respond." },
+      { Icon: Sparkles,   title: "Async > scheduled",         body: "The good decisions aren't on the calendar - they're at 8:42 a.m. when you spot something weird in the data. Voice memo me. I respond." },
       { Icon: ShieldCheck, title: "Skin in your game",        body: "Mutual Texas-law NDA. No equity stake (you keep all upside). No commission (no incentive to push you toward bad ideas). Cash retainer only." },
     ],
     timeline: [
@@ -414,11 +414,11 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       "You're doing $20K+/mo and growing",
       "You make 3–5 strategic decisions per month and want backup",
       "You'll send a voice memo when something feels weird (not bottle it)",
-      "You can defend your numbers — bring real metrics, not vibes",
+      "You can defend your numbers - bring real metrics, not vibes",
       "You commit to 90 days minimum to give the engagement time to compound",
     ],
     wrongFit: [
-      "You haven't made any money yet — start with the $497 Audit",
+      "You haven't made any money yet - start with the $497 Audit",
       "You want someone to do the work for you (that's the Monthly Operator)",
       "You want me on every internal call (that's the Annual Advisor)",
       "You can't articulate one decision per month worth advising on",
@@ -430,9 +430,9 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     },
     proof: RYAN_PROOF,
     faqs: [
-      { q: "How fast do you respond to voice memos?", a: "Within one business day Mon–Fri. I don't promise nights or weekends — that's a boundary that keeps the work sharp." },
-      { q: "Can I roll unused calls forward?", a: "One call rolls forward one month if not used. After that, it expires. The point is the rhythm — async fills the gaps." },
-      { q: "Can my partner / co-founder be on calls?", a: "Yes — up to 2 people on the call. More than that is a different kind of engagement." },
+      { q: "How fast do you respond to voice memos?", a: "Within one business day Mon–Fri. I don't promise nights or weekends - that's a boundary that keeps the work sharp." },
+      { q: "Can I roll unused calls forward?", a: "One call rolls forward one month if not used. After that, it expires. The point is the rhythm - async fills the gaps." },
+      { q: "Can my partner / co-founder be on calls?", a: "Yes - up to 2 people on the call. More than that is a different kind of engagement." },
       { q: "What if I want to upgrade to Monthly Operator?", a: "Pro-rated. Last month's retainer applies as credit toward the first month of Monthly Operator." },
       { q: "Is there an exclusivity / non-compete?", a: "I won't take on a direct competitor in your specific niche while we're working together. Mutual." },
       TEXAS_NDA_FAQ,
@@ -440,7 +440,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     upgradeCredit: "Last month's retainer credits toward Month 1 of Monthly Operator if you upgrade.",
   },
 
-  /* ──────────── 4. POWER BUNDLE — Tier 2 — $1,497/mo ──────────── */
+  /* ──────────── 4. POWER BUNDLE - Tier 2 - $1,497/mo ──────────── */
   "power-bundle": {
     slug: "power-bundle",
     tier: 2,
@@ -512,7 +512,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     ],
     costMath: {
       stuck: { big: "$1,988", sub: "What this same coverage costs if you buy each $497/mo channel separately. Bundle saves $491/mo." },
-      buy:   { big: "$1,497/mo", sub: "All 4 platforms managed. Same operator, same voice, same deliverables — one monthly invoice instead of four." },
+      buy:   { big: "$1,497/mo", sub: "All 4 platforms connected to one content engine: source footage, angles, templates, posting rhythm, review loop, and lead path." },
     },
     proof: RYAN_PROOF,
     faqs: [
@@ -522,14 +522,14 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       { q: "Do I get to approve content before it posts?", a: "The first cycle has tighter review so the voice gets set. After that, the goal is an operating rhythm, not approval paralysis. Anything sensitive can be marked for approval before publishing." },
       { q: "Can I add Instagram or Threads?", a: "IG Reels can use the short-form lane. Threads can use the X lane when it fits. Native IG feed posts, Stories, or heavier community work are scoped separately." },
       { q: "What about TikTok or FB Ads?", a: "Organic only on this bundle. Add Facebook Ads for a flat $1,497/mo management fee with $2K minimum Meta spend paid directly by you. See the dedicated FB Ads offer." },
-      { q: "Can I cancel mid-month?", a: "30-day notice. Last month is the wind-down month. Algorithms hate sudden silence — we ramp down properly." },
+      { q: "Can I cancel mid-month?", a: "30-day notice. Last month is the wind-down month. Algorithms hate sudden silence, so we ramp down properly." },
       { q: "What's the lock-in?", a: "First-month commitment only. Month 2 onward is month-to-month with 30-day notice." },
       TEXAS_NDA_FAQ,
     ],
     upgradeCredit: "Stack with Facebook Ads ($1,497/mo flat, no ad-spend percentage) for full attention-and-conversion coverage.",
   },
 
-  /* ──────────── 5. FACEBOOK ADS — Tier 2 — $1,497/mo flat ──────────── */
+  /* ──────────── 5. FACEBOOK ADS - Tier 2 - $1,497/mo flat ──────────── */
   "fb-ads": {
     slug: "fb-ads",
     tier: 2,
@@ -537,7 +537,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     cadence: "monthly",
     badge: "Tier 2 · Monthly · Performance ad management",
     Icon: Megaphone,
-    metaTitle: "Facebook Ads Management — $1,497/mo Flat · The LeadFlow Pro",
+    metaTitle: "Facebook Ads Management - $1,497/mo Flat · The LeadFlow Pro",
     metaDescription:
       "Done-for-you Meta ad management inside your own accounts. Flat management fee, no percentage of spend. Targeting, creative iteration, weekly reporting, and systems you keep.",
 
@@ -545,7 +545,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       h1Lead: "Your ads. Your accounts.",
       h1Highlight: "My execution. $1,497/mo flat.",
       paragraph:
-        "I come into your business and build the Meta ads system inside your own assets — business manager, page, pixel, campaigns, follow-up, and reporting. You pay Meta directly. I do not take a percentage of your ad spend.",
+        "I come into your business and build the Meta ads system inside your own assets - business manager, page, pixel, campaigns, follow-up, and reporting. You pay Meta directly. I do not take a percentage of your ad spend.",
       paragraph2:
         "The goal is ownership. The leads are yours. The ads are yours. The process is yours. This is for businesses already doing $20K+/mo with enough budget and sales process to handle more lead volume.",
     },
@@ -565,7 +565,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "Landing page review + recommendations (build is separate)",
       ],
     },
-    primaryCta: { label: "Start the Ads System — $1,497/mo", href: buyHref("fb-ads", "Buy: Facebook Ads $1,497/mo") },
+    primaryCta: { label: "Start the Ads System - $1,497/mo", href: buyHref("fb-ads", "Buy: Facebook Ads $1,497/mo") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
@@ -584,7 +584,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       "You can fund $2K/mo minimum to Meta directly",
       "You have a working sales process to handle the lead bump",
       "You'll respond to creative requests (we need video / photos / examples)",
-      "You commit 90 days — Meta needs 60+ days of data to optimize",
+      "You commit 90 days - Meta needs 60+ days of data to optimize",
     ],
     wrongFit: [
       "You haven't run an ad before (start with $497 Audit)",
@@ -602,15 +602,15 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       { q: "Do you take a percentage of ad spend?", a: "No. I do not want the agency model where the operator gets a bigger cut just because you spend more. You pay a flat management fee. Meta bills your card directly." },
       { q: "What do I actually own when this is built?", a: "Your business owns the ad account, audiences, pixel, campaigns, creative library, lead flow, follow-up process, and reporting trail. If you ever stop working with me, the system stays with you." },
       { q: "Do you guarantee a CPL or ROAS?", a: "No. Anyone who guarantees Meta ad performance is lying or about to be sued. I commit to the work, the iteration, and the reporting." },
-      { q: "Can you also run TikTok / Google ads?", a: "TikTok ads — yes, +$997/mo on top. Google ads — not currently. I'd refer you out before doing it badly." },
-      { q: "Do I need to build a landing page first?", a: "Not necessarily — many accounts run on existing pages. If your page is the bottleneck, we'll flag it in week 1 and quote the build separately." },
-      { q: "What if I want to pause?", a: "30-day notice on the retainer. Pause Meta spend anytime — instantly, on your dashboard." },
+      { q: "Can you also run TikTok / Google ads?", a: "TikTok ads - yes, +$997/mo on top. Google ads - not currently. I'd refer you out before doing it badly." },
+      { q: "Do I need to build a landing page first?", a: "Not necessarily - many accounts run on existing pages. If your page is the bottleneck, we'll flag it in week 1 and quote the build separately." },
+      { q: "What if I want to pause?", a: "30-day notice on the retainer. Pause Meta spend anytime - instantly, on your dashboard." },
       TEXAS_NDA_FAQ,
     ],
     upgradeCredit: "Stack with the Power Bundle ($1,497/mo) for organic + paid attention coverage.",
   },
 
-  /* ──────────── 6. WORKING SESSION — Tier 2 — $2,997 ──────────── */
+  /* ──────────── 6. WORKING SESSION - Tier 2 - $2,997 ──────────── */
   "working-session": {
     slug: "working-session",
     tier: 2,
@@ -618,7 +618,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     cadence: "one-time",
     badge: "Tier 2 · One-time · Half-day intensive",
     Icon: Zap,
-    metaTitle: "Half-Day Working Session — $2,997 · The LeadFlow Pro",
+    metaTitle: "Half-Day Working Session - $2,997 · The LeadFlow Pro",
     metaDescription:
       "4 hours, 1:1 with Ryan, building one specific deliverable end-to-end. Rebuild your sales process. Rewrite your offer. Build your hiring scorecard. You leave with the asset, not just notes.",
 
@@ -649,11 +649,11 @@ export const OFFERS: Record<OfferSlug, Offer> = {
           "Anywhere in Texas: I drive to you, we do 8 hours instead of 4, lunch on me. Bigger deliverable scope (e.g., full sales OS, not one process). Travel beyond TX is custom-quoted.",
       },
     },
-    primaryCta: { label: "Reserve the Working Session — $2,997", href: buyHref("working-session", "Buy: Working Session $2,997") },
+    primaryCta: { label: "Reserve the Working Session - $2,997", href: buyHref("working-session", "Buy: Working Session $2,997") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
-      { Icon: Wrench,    title: "Built, not 'discussed'",        body: "Most consultants leave you with a deck. You leave the working session with the actual artifact — running, deployed, in your business." },
+      { Icon: Wrench,    title: "Built, not 'discussed'",        body: "Most consultants leave you with a deck. You leave the working session with the actual artifact - running, deployed, in your business." },
       { Icon: Clock,     title: "4 hours of full attention",     body: "No multitasking. No 'let me get back to you.' Block 4 hours, ship one big thing, never have to revisit it as 'TBD.'" },
       { Icon: TrendingUp, title: "Compounds for years",          body: "A rebuilt sales process or rewritten offer pays you back every week for the rest of the year. The session pays for itself in 30–60 days." },
     ],
@@ -668,32 +668,32 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       "You'll block 4 uninterrupted hours (no Slack, no calls)",
       "You'll come prepared with examples / data / context",
       "You're the decision-maker (or have one in the room)",
-      "You'll actually use the deliverable — not just save it",
+      "You'll actually use the deliverable - not just save it",
     ],
     wrongFit: [
-      "You can't pick one thing — you want 'general help'",
+      "You can't pick one thing - you want 'general help'",
       "You can't block 4 hours straight (book the Sprint instead)",
       "You want me to also do the 90 days of execution after",
       "You want to test the engagement out at $90 first (Sprint, not this)",
-      "You want a money-back guarantee (no — you keep the deliverable)",
+      "You want a money-back guarantee (no - you keep the deliverable)",
     ],
     costMath: {
-      stuck: { big: "$10K+", sub: "Median cost of NOT having a written sales process for 6 months — leaks, dropped follow-ups, miscommunication, lost deals. Multiply by months you've put it off." },
+      stuck: { big: "$10K+", sub: "Median cost of NOT having a written sales process for 6 months - leaks, dropped follow-ups, miscommunication, lost deals. Multiply by months you've put it off." },
       buy:   { big: "$2,997", sub: "One day. The asset is yours. Pays for itself the first month it stops a single dropped lead or untrained-rep mistake." },
     },
     proof: RYAN_PROOF,
     faqs: [
       { q: "What deliverables work best?", a: "Sales process, written offer/script, hiring scorecard, content engine, FlowCard playbook, intake form, follow-up sequence. We pick on the scope call." },
-      { q: "Can I bring my team?", a: "Up to 3 people on the working session. More than that, the bandwidth gets messy — we'd quote a different engagement." },
+      { q: "Can I bring my team?", a: "Up to 3 people on the working session. More than that, the bandwidth gets messy - we'd quote a different engagement." },
       { q: "What if we don't finish in 4 hours?", a: "We will. Scope is set ahead of time precisely so this isn't a worry. If it spills, the refinement call is where we close." },
-      { q: "Refunds?", a: "No refund post-session — you have the asset. 24-hour scheduling refund if a slot can't be set." },
-      { q: "Texas in-person?", a: "Yes — +$2,000 add-on covers full day in TX with travel + meal. We can scope a bigger deliverable (e.g., full sales OS, not one process)." },
+      { q: "Refunds?", a: "No refund post-session - you have the asset. 24-hour scheduling refund if a slot can't be set." },
+      { q: "Texas in-person?", a: "Yes - +$2,000 add-on covers full day in TX with travel + meal. We can scope a bigger deliverable (e.g., full sales OS, not one process)." },
       TEXAS_NDA_FAQ,
     ],
     upgradeCredit: "Apply $2,997 toward the first month of Monthly Operator if you upgrade within 60 days.",
   },
 
-  /* ──────────── 7. MONTHLY OPERATOR — Tier 3 — $4,997/mo ──────────── */
+  /* ──────────── 7. MONTHLY OPERATOR - Tier 3 - $4,997/mo ──────────── */
   "monthly-operator": {
     slug: "monthly-operator",
     tier: 3,
@@ -701,9 +701,9 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     cadence: "monthly",
     badge: "Tier 3 · Monthly · Fractional COO-style operator",
     Icon: Rocket,
-    metaTitle: "Monthly Operator — $4,997/mo · The LeadFlow Pro",
+    metaTitle: "Monthly Operator - $4,997/mo · The LeadFlow Pro",
     metaDescription:
-      "Fractional COO/CMO operator. Weekly working sessions, async hands-on, written ops scoreboard. Built for owners doing $50K+/mo who need someone in the trenches — not just an advisor.",
+      "Fractional COO/CMO operator. Weekly working sessions, async hands-on, written ops scoreboard. Built for owners doing $50K+/mo who need someone in the trenches - not just an advisor.",
 
     hero: {
       h1Lead: "$4,997 a month. I'm in the trenches.",
@@ -722,16 +722,16 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "Hands-on inside your tools (Slack, Notion, HubSpot, Stripe, ad accounts)",
         "Marketing, lead generation, creative, and sales follow-up work handled inside the operating rhythm",
         "Weekly written ops scoreboard (revenue, CAC, leads, drop-offs)",
-        "Async Slack channel — same-day response Mon–Fri",
+        "Async Slack channel - same-day response Mon–Fri",
         "Quarterly off-site planning day (in-person if Texas, remote elsewhere)",
         "First-look access to every new playbook + template",
       ],
     },
-    primaryCta: { label: "Start Operator — $4,997/mo", href: buyHref("monthly-operator", "Buy: Monthly Operator $4,997/mo") },
+    primaryCta: { label: "Start Operator - $4,997/mo", href: buyHref("monthly-operator", "Buy: Monthly Operator $4,997/mo") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
-      { Icon: Briefcase, title: "Cheaper than a hire",      body: "A full-time COO is $150–250K fully loaded. The Monthly Operator is $60K/yr — without health insurance, without equity, without 'is this person going to work out?'" },
+      { Icon: Briefcase, title: "Cheaper than a hire",      body: "A full-time COO is $150–250K fully loaded. The Monthly Operator is $60K/yr - without health insurance, without equity, without 'is this person going to work out?'" },
       { Icon: TrendingUp, title: "Outcomes, not hours",     body: "I'm not billing you for 8 hours/week of 'consulting.' I'm in the work, fixing the leak, shipping the system, in whatever tool gets it done." },
       { Icon: ShieldCheck, title: "30-day exit anytime",    body: "After the 90-day commit, it's month-to-month with 30-day notice. No long contracts. No surprises." },
     ],
@@ -750,7 +750,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     ],
     wrongFit: [
       "You're under $20K/mo (start with the $497 Audit + Light Retainer)",
-      "You won't grant tool access (no point — I can't operate from the outside)",
+      "You won't grant tool access (no point - I can't operate from the outside)",
       "You want a quiet advisor (you want Light Retainer, not this)",
       "You want me on every internal call (Annual Advisor)",
       "You're hoping I'll grow your business while you're hands-off",
@@ -761,17 +761,17 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     },
     proof: RYAN_PROOF,
     faqs: [
-      { q: "How is this different from Light Retainer ($1,997/mo)?", a: "Retainer is advice + briefings. Monthly Operator is execution — I'm in your tools, building, shipping, fixing. Different role, different price." },
-      { q: "Will you replace my team?", a: "No. I work WITH your team. Often I help you hire / fire / retrain — but I'm not replacing your ops manager or marketing lead." },
-      { q: "Can I do 6 months and pause?", a: "Yes — after the 90-day commit, pause anytime with 30-day notice. We document the state and you can resume in 1–4 months without re-onboarding." },
-      { q: "What about Annual Advisor?", a: "Annual Advisor is the next tier — $75K/yr — and includes a board-style relationship (quarterly in-person, on every internal strategy call). This is execution; that's governance." },
+      { q: "How is this different from Light Retainer ($1,997/mo)?", a: "Retainer is advice + briefings. Monthly Operator is execution - I'm in your tools, building, shipping, fixing. Different role, different price." },
+      { q: "Will you replace my team?", a: "No. I work WITH your team. Often I help you hire / fire / retrain - but I'm not replacing your ops manager or marketing lead." },
+      { q: "Can I do 6 months and pause?", a: "Yes - after the 90-day commit, pause anytime with 30-day notice. We document the state and you can resume in 1–4 months without re-onboarding." },
+      { q: "What about Annual Advisor?", a: "Annual Advisor is the next tier - $75K/yr - and includes a board-style relationship (quarterly in-person, on every internal strategy call). This is execution; that's governance." },
       { q: "Is there an exclusivity?", a: "I won't take a direct competitor in your specific niche while we're working. Mutual." },
       TEXAS_NDA_FAQ,
     ],
     upgradeCredit: "Last month's fee credits toward Annual Advisor if you upgrade.",
   },
 
-  /* ──────────── 8. 4-WEEK BUILD SPRINT — Tier 3 — $9,997 ──────────── */
+  /* ──────────── 8. 4-WEEK BUILD SPRINT - Tier 3 - $9,997 ──────────── */
   "sprint-4-week": {
     slug: "sprint-4-week",
     tier: 3,
@@ -779,7 +779,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     cadence: "4-week sprint",
     badge: "Tier 3 · One-time · 4-week build sprint",
     Icon: Rocket,
-    metaTitle: "4-Week Build Sprint — $9,997 · The LeadFlow Pro",
+    metaTitle: "4-Week Build Sprint - $9,997 · The LeadFlow Pro",
     metaDescription:
       "Four weeks of full-attention build. Rebuild your sales OS, ship a real funnel, retrain your team, light up automation. You start the sprint behind. You finish ahead by 6 months.",
 
@@ -787,7 +787,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       h1Lead: "$9,997 for 4 weeks of full attention.",
       h1Highlight: "Start behind. Finish 6 months ahead.",
       paragraph:
-        "Four weeks of intense, focused build. We pick ONE big initiative — sales OS rebuild, full funnel build, content engine launch, retraining the team on a new process — and we ship it before week 4 closes.",
+        "Four weeks of intense, focused build. We pick ONE big initiative - sales OS rebuild, full funnel build, content engine launch, retraining the team on a new process - and we ship it before week 4 closes.",
       paragraph2:
         "No retainer. No 'how about we talk again next quarter.' Four weeks, one outcome, document everything, hand it off.",
     },
@@ -804,13 +804,13 @@ export const OFFERS: Record<OfferSlug, Offer> = {
         "30-day post-sprint Slack support (same-day Mon–Fri)",
       ],
     },
-    primaryCta: { label: "Start the Sprint — $9,997", href: buyHref("sprint-4-week", "Buy: 4-Week Build Sprint $9,997") },
+    primaryCta: { label: "Start the Sprint - $9,997", href: buyHref("sprint-4-week", "Buy: 4-Week Build Sprint $9,997") },
     secondaryCta: { label: "Free 10-min call first", href: "/book" },
 
     whyBuy: [
-      { Icon: Rocket,    title: "Velocity > strategy",         body: "Most businesses don't fail from bad strategy — they fail from no execution. The sprint replaces 6 months of 'we'll get to it' with 4 weeks of 'we shipped it.'" },
-      { Icon: Wrench,    title: "Built once, run forever",     body: "What we ship in the sprint runs without me afterward. SOPs, recordings, documentation — your team operates it Day 29 onward." },
-      { Icon: TrendingUp, title: "Better than 90 days of advice", body: "$9,997 buys the same operator-time as 5 months of Light Retainer — concentrated into 4 weeks of building, not advising." },
+      { Icon: Rocket,    title: "Velocity > strategy",         body: "Most businesses don't fail from bad strategy - they fail from no execution. The sprint replaces 6 months of 'we'll get to it' with 4 weeks of 'we shipped it.'" },
+      { Icon: Wrench,    title: "Built once, run forever",     body: "What we ship in the sprint runs without me afterward. SOPs, recordings, documentation - your team operates it Day 29 onward." },
+      { Icon: TrendingUp, title: "Better than 90 days of advice", body: "$9,997 buys the same operator-time as 5 months of Light Retainer - concentrated into 4 weeks of building, not advising." },
     ],
     timeline: [
       { n: "1", minutes: "Day 0",       title: "Scope + kickoff",   body: "60-min kickoff. Pick the ONE big outcome. Set milestones for weeks 1–4. 50% deposit clears." },
@@ -820,16 +820,16 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     ],
     rightFit: [
       "You're $50K+/mo and ready to scale a specific lever",
-      "You can name the ONE outcome — sales OS, funnel, training program, etc.",
+      "You can name the ONE outcome - sales OS, funnel, training program, etc.",
       "Your team is available for daily 30-min standups M–F",
       "You can commit 4 weeks (no major travel / launches that month)",
-      "You'll act on the SOP after handoff — not shelve it",
+      "You'll act on the SOP after handoff - not shelve it",
     ],
     wrongFit: [
       "You want a low-touch engagement (this is high-touch by design)",
       "Your team can't do daily standups",
       "You want me to keep running it after week 4 (that's Monthly Operator)",
-      "You can't pick ONE outcome — you want 'overall improvement'",
+      "You can't pick ONE outcome - you want 'overall improvement'",
       "You expect a 10× revenue jump in 4 weeks (not how this works)",
     ],
     costMath: {
@@ -839,16 +839,16 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     proof: RYAN_PROOF,
     faqs: [
       { q: "What kinds of outcomes work?", a: "Sales OS rebuild, funnel build, content engine launch, hiring system, lead-flow automation, FlowCard rollout, ops scoreboard, AI chatbot deployment." },
-      { q: "Can I extend it to 8 weeks?", a: "Yes — second 4 weeks at the same scope is +$7,997 (volume discount). Locked at start of week 4." },
+      { q: "Can I extend it to 8 weeks?", a: "Yes - second 4 weeks at the same scope is +$7,997 (volume discount). Locked at start of week 4." },
       { q: "What's the payment schedule?", a: "50% on signed engagement letter. 50% on Day 7 (start of week 2). All in before final week so my bandwidth is yours, not collections'." },
-      { q: "Can I run two sprints in parallel?", a: "No — too much context-switching for the operator. Sequential only." },
+      { q: "Can I run two sprints in parallel?", a: "No - too much context-switching for the operator. Sequential only." },
       { q: "What about Monthly Operator after?", a: "Common path. Last $9,997 of the sprint applies as credit toward the first 2 months of Monthly Operator if you continue within 60 days." },
       TEXAS_NDA_FAQ,
     ],
     upgradeCredit: "Apply 100% of the sprint fee toward the first 2 months of Monthly Operator if you continue within 60 days.",
   },
 
-  /* ──────────── 9. ANNUAL ADVISOR — Tier 4 — $75K/yr ──────────── */
+  /* ──────────── 9. ANNUAL ADVISOR - Tier 4 - $75K/yr ──────────── */
   "annual-advisor": {
     slug: "annual-advisor",
     tier: 4,
@@ -856,17 +856,17 @@ export const OFFERS: Record<OfferSlug, Offer> = {
     cadence: "annual",
     badge: "Tier 4 · Annual · Board-style strategic advisor",
     Icon: Trophy,
-    metaTitle: "Annual Advisor — $75,000/year · The LeadFlow Pro",
+    metaTitle: "Annual Advisor - $75,000/year · The LeadFlow Pro",
     metaDescription:
       "Board-level advisor. On every quarterly strategy meeting, on every major hire, in the room when the stakes are real. Reserved for owners doing $1M+/yr who need a second mind in their corner all year.",
 
     hero: {
       h1Lead: "$75,000 a year. In your corner.",
-      h1Highlight: "Board-level advisor — not a consultant.",
+      h1Highlight: "Board-level advisor - not a consultant.",
       paragraph:
         "Reserved for 4 owners per year. You get me on every quarterly strategy meeting, on every major hire, in the room when the contracts are signed. Two in-person days per quarter, unlimited async, written quarterly memo to your board (or yourself if you're the only board there is).",
       paragraph2:
-        "This isn't 'fractional anything.' This is the relationship every founder I respect has with their advisors — a person who knows their business as well as they do, says the hard thing, and means it.",
+        "This isn't 'fractional anything.' This is the relationship every founder I respect has with their advisors - a person who knows their business as well as they do, says the hard thing, and means it.",
     },
     price: {
       big: "$75,000",
@@ -875,24 +875,24 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       deliverables: [
         "On every quarterly strategy meeting + major hires",
         "2 in-person days per quarter (in TX or I fly to you, travel covered separately)",
-        "Unlimited async Slack — 4-hour response M–F, same-day weekends if pre-flagged",
+        "Unlimited async Slack - 4-hour response M–F, same-day weekends if pre-flagged",
         "Written quarterly memo (board-style)",
         "On the call when contracts >$50K are negotiated",
         "Monthly 60-min recorded strategy call",
       ],
     },
-    primaryCta: { label: "Apply — Annual Advisor", href: buyHref("annual-advisor", "Apply: Annual Advisor $75K/yr") },
+    primaryCta: { label: "Apply - Annual Advisor", href: buyHref("annual-advisor", "Apply: Annual Advisor $75K/yr") },
     secondaryCta: { label: "Free 30-min call first", href: "/book" },
 
     whyBuy: [
-      { Icon: Trophy,    title: "The seat at the table",        body: "Most advisors sell hours. This is a seat — at every quarterly review, every major hire, every contract signing >$50K. The decisions you make at that level move the year." },
+      { Icon: Trophy,    title: "The seat at the table",        body: "Most advisors sell hours. This is a seat - at every quarterly review, every major hire, every contract signing >$50K. The decisions you make at that level move the year." },
       { Icon: ShieldCheck, title: "Reserved availability",      body: "Capped at 4 owners per year. Your business gets first claim on my calendar, ahead of any retainer or sprint client. Real exclusivity." },
       { Icon: TrendingUp, title: "Compounds across years",      body: "Year 1, I learn the business. Year 2, I'm catching things you can't. Year 3, your team treats me like a co-founder. The relationship is the asset." },
     ],
     timeline: [
       { n: "1", minutes: "Quarter 1",   title: "Onboarding quarter",   body: "Two in-person days. Full operating-system audit. Rewrite top-3 broken processes. Establish quarterly cadence." },
       { n: "2", minutes: "Quarter 2",   title: "Hiring + scaling",     body: "On the calls for every hire >$80K base. Help craft the offer letter. In the room when major customer contracts are negotiated." },
-      { n: "3", minutes: "Quarter 3",   title: "Strategy + market",    body: "Strategic review. Adjacencies. Acquisitions if relevant. New offers / markets / channels — fully road-mapped." },
+      { n: "3", minutes: "Quarter 3",   title: "Strategy + market",    body: "Strategic review. Adjacencies. Acquisitions if relevant. New offers / markets / channels - fully road-mapped." },
       { n: "4", minutes: "Quarter 4",   title: "Board memo + plan",    body: "End-of-year board memo. Written. The story of the year + the plan for next year. Yours forever." },
     ],
     rightFit: [
@@ -900,25 +900,25 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       "You make 5+ board-level decisions per year (hire, fire, raise, new market, acquisition)",
       "You'll bring me into the room when stakes are real (not just 'fyi')",
       "You'll commit a year minimum (the relationship needs the runway)",
-      "You're hiring a peer — not a vendor",
+      "You're hiring a peer - not a vendor",
     ],
     wrongFit: [
-      "Under $1M/yr — start with Light Retainer or Monthly Operator",
+      "Under $1M/yr - start with Light Retainer or Monthly Operator",
       "You want me to do the work (Annual is governance + counsel)",
       "You want a guarantee about year-over-year growth",
-      "You want unlimited time (it's bounded — quarterly + async, not 24/7)",
+      "You want unlimited time (it's bounded - quarterly + async, not 24/7)",
       "You're shopping advisors on price (this isn't a discount tier)",
     ],
     costMath: {
       stuck: { big: "$300K–$1M", sub: "Cost of a wrong $200K hire, a botched market entry, or signing a one-sided enterprise contract. One avoided mistake at this level pays for the year 4× over." },
-      buy:   { big: "$75K/yr",   sub: "$18,750 per quarter. One avoided wrong-hire, one re-negotiated contract, one strategic pivot you saw 6 months early — pays for the year." },
+      buy:   { big: "$75K/yr",   sub: "$18,750 per quarter. One avoided wrong-hire, one re-negotiated contract, one strategic pivot you saw 6 months early - pays for the year." },
     },
     proof: RYAN_PROOF,
     faqs: [
       { q: "Is it really only 4 owners per year?", a: "Yes. Hard cap. When seats are full, the next opening is when one closes." },
-      { q: "Do you take equity instead of cash?", a: "No. Cash retainer only. Keeps the incentives clean — I don't make money if you exit, so I'm not pushing you toward an exit." },
+      { q: "Do you take equity instead of cash?", a: "No. Cash retainer only. Keeps the incentives clean - I don't make money if you exit, so I'm not pushing you toward an exit." },
       { q: "What if I want to renew?", a: "Year 2 onward, the rate is locked at the original number for the duration of the relationship. Loyalty pricing." },
-      { q: "Travel?", a: "Two in-person days per quarter. Travel + meals are covered separately at cost (no markup). Domestic only — international is custom-quoted." },
+      { q: "Travel?", a: "Two in-person days per quarter. Travel + meals are covered separately at cost (no markup). Domestic only - international is custom-quoted." },
       { q: "What if I don't use you for a quarter?", a: "The seat is yours regardless. The relationship is the product, not the hours." },
       TEXAS_NDA_FAQ,
     ],
