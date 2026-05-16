@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
   BarChart3,
@@ -20,6 +21,7 @@ import { BuiltProjectCard } from "@/components/site/BuiltProjectCard";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
 import { BUILT_PROJECTS } from "@/lib/built-projects";
 import { createSeoMetadata } from "@/lib/seo-metadata";
+import { TOOLS, type ToolSlug } from "@/lib/tools";
 
 export const revalidate = 86400;
 
@@ -93,40 +95,59 @@ const HERO_BLUEPRINT_ROWS = [
   { label: "Handoff", value: "Client owns the asset" },
 ];
 
+// The first 4 entries are sourced from TOOLS via toolDrop() so the homepage
+// and /tools never drift apart. The remaining entries are inspirational
+// build ideas without a dedicated /tools page.
+function toolDrop(
+  slug: ToolSlug,
+  title: string,
+  build: string,
+  hook: string,
+  Icon: LucideIcon,
+) {
+  const tool = TOOLS[slug];
+  return {
+    slug,
+    label: tool.name,
+    audience: tool.audience,
+    title,
+    build,
+    hook: hook || tool.oneLineOutcome,
+    Icon,
+  };
+}
+
 const DAILY_BUILD_DROPS = [
+  toolDrop(
+    "instant-quote",
+    "A calculator that prices the job and captures the buyer.",
+    "Questions, price range, contact capture, and a follow-up path.",
+    "People play with the number, then leave their info.",
+    MousePointerClick,
+  ),
+  toolDrop(
+    "missed-call-rescue",
+    "A phone leak catcher that turns silence into a text-back.",
+    "Missed-call page, SMS wording, callback task, and simple tracking.",
+    "Shows owners exactly how many buyers they are losing.",
+    PhoneCall,
+  ),
+  toolDrop(
+    "lead-magnet-quiz",
+    "A quiz that tells the buyer what package fits them.",
+    "Short quiz, result screen, email capture, and recommended offer.",
+    "Feels personal without forcing a sales call first.",
+    Route,
+  ),
+  toolDrop(
+    "owner-dashboard",
+    "A command board for leads, calls, clicks, tasks, and sales.",
+    "One screen with the numbers that decide the next move.",
+    "Makes the business feel like a game they can win.",
+    BarChart3,
+  ),
   {
-    label: "Instant Quote Tool",
-    audience: "Contractors, cleaners, med spas, repair shops",
-    title: "A calculator that prices the job and captures the buyer.",
-    build: "Questions, price range, contact capture, and a follow-up path.",
-    hook: "People play with the number, then leave their info.",
-    Icon: MousePointerClick,
-  },
-  {
-    label: "Missed-Call Rescue",
-    audience: "Local service businesses and appointment shops",
-    title: "A phone leak catcher that turns silence into a text-back.",
-    build: "Missed-call page, SMS wording, callback task, and simple tracking.",
-    hook: "Shows owners exactly how many buyers they are losing.",
-    Icon: PhoneCall,
-  },
-  {
-    label: "Lead Magnet Quiz",
-    audience: "Coaches, gyms, consultants, real estate, legal support",
-    title: "A quiz that tells the buyer what package fits them.",
-    build: "Short quiz, result screen, email capture, and recommended offer.",
-    hook: "Feels personal without forcing a sales call first.",
-    Icon: Route,
-  },
-  {
-    label: "Owner Dashboard",
-    audience: "Any business tired of guessing what is working",
-    title: "A command board for leads, calls, clicks, tasks, and sales.",
-    build: "One screen with the numbers that decide the next move.",
-    hook: "Makes the business feel like a game they can win.",
-    Icon: BarChart3,
-  },
-  {
+    slug: undefined,
     label: "Before/After Builder",
     audience: "Beauty, fitness, home services, creative services",
     title: "A visual proof page that turns results into booked calls.",
@@ -135,6 +156,7 @@ const DAILY_BUILD_DROPS = [
     Icon: Sparkles,
   },
   {
+    slug: undefined,
     label: "Referral Game",
     audience: "Restaurants, boutiques, creators, communities",
     title: "A simple points or reward page that gets customers sharing.",
@@ -143,6 +165,7 @@ const DAILY_BUILD_DROPS = [
     Icon: Zap,
   },
   {
+    slug: undefined,
     label: "File-to-Funnel Page",
     audience: "Experts with PDFs, forms, packets, or messy assets",
     title: "A download, checklist, or intake asset that becomes a lead path.",
@@ -459,16 +482,40 @@ function BuildDropSection({
                 you like the blueprint, $250 continues it into the build."
               </p>
             </div>
+
+            {dailyDrop.slug ? (
+              <Link
+                href={`/tools/${dailyDrop.slug}`}
+                className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800"
+              >
+                Try the {dailyDrop.label} demo <ArrowRight className="h-4 w-4" />
+              </Link>
+            ) : null}
           </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {DAILY_BUILD_DROPS.slice(0, 4).map((drop) => (
-              <div key={drop.label} className="rounded-lg border border-slate-200 bg-white p-4">
-                <drop.Icon className="h-5 w-5 text-cyan-700" />
-                <div className="mt-3 text-sm font-black text-slate-950">{drop.label}</div>
-                <p className="mt-1 text-xs leading-5 text-slate-600">{drop.hook}</p>
-              </div>
-            ))}
+            {DAILY_BUILD_DROPS.slice(0, 4).map((drop) =>
+              drop.slug ? (
+                <Link
+                  key={drop.label}
+                  href={`/tools/${drop.slug}`}
+                  className="group rounded-lg border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-lg"
+                >
+                  <drop.Icon className="h-5 w-5 text-cyan-700" />
+                  <div className="mt-3 text-sm font-black text-slate-950">{drop.label}</div>
+                  <p className="mt-1 text-xs leading-5 text-slate-600">{drop.hook}</p>
+                  <div className="mt-3 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-cyan-700 group-hover:text-cyan-900">
+                    Try the demo <ArrowRight className="h-3 w-3" />
+                  </div>
+                </Link>
+              ) : (
+                <div key={drop.label} className="rounded-lg border border-slate-200 bg-white p-4">
+                  <drop.Icon className="h-5 w-5 text-cyan-700" />
+                  <div className="mt-3 text-sm font-black text-slate-950">{drop.label}</div>
+                  <p className="mt-1 text-xs leading-5 text-slate-600">{drop.hook}</p>
+                </div>
+              ),
+            )}
           </div>
         </div>
       </div>

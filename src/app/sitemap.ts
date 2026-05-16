@@ -9,6 +9,7 @@ import { OFFERS } from "@/lib/offers";
 import { ORGANIC_LANDING_PAGES } from "@/lib/organic-growth";
 import { PLATFORMS } from "@/lib/platforms";
 import { PULSE_SIGNAL_LIST } from "@/lib/pulse-signal-pages";
+import { TOOLS } from "@/lib/tools";
 import { prisma } from "@/lib/prisma";
 
 const BASE = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.theleadflowpro.com").replace(/\/$/, "");
@@ -40,7 +41,7 @@ const staticRoutes = [
   ...PULSE_SIGNAL_LIST.map((signal) => `/pulse/${signal.slug}`),
   "/rewards",
   "/support",
-  "/tools/seo-grader",
+  "/tools",
   "/tools/ad-account-autopsy",
   "/solutions/mortgage",
   "/contact",
@@ -85,6 +86,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.86,
   }));
 
+  const toolRoutes: MetadataRoute.Sitemap = Object.keys(TOOLS).map((slug) => ({
+    url: `${BASE}/tools/${slug}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
+
   let businessRoutes: MetadataRoute.Sitemap = [];
   try {
     const businesses = await prisma.businessProfile.findMany({
@@ -115,5 +123,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   } catch {}
 
-  return [...staticSitemap, ...offerRoutes, ...platformRoutes, ...organicRoutes, ...businessRoutes, ...voiceRoutes];
+  return [...staticSitemap, ...offerRoutes, ...platformRoutes, ...organicRoutes, ...toolRoutes, ...businessRoutes, ...voiceRoutes];
 }
