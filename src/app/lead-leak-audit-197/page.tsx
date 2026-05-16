@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { ConversionAnchor, ConversionHiddenFields, ConversionLink } from "@/components/site/ConversionEvents";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { BuiltProjectCard } from "@/components/site/BuiltProjectCard";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
 import { BUILT_PROJECTS } from "@/lib/built-projects";
 import { createSeoMetadata } from "@/lib/seo-metadata";
@@ -309,16 +310,13 @@ export default function PaidLeadLeakAuditPage({
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
                 {BUILT_PROJECTS.map((project) => (
-                  <div
+                  <BuiltProjectCard
                     key={project.name}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-                  >
-                    <div className="text-sm font-black text-slate-950">{project.name}</div>
-                    <div className="mt-2 text-xs font-semibold uppercase tracking-widest text-cyan-700">
-                      {project.type}
-                    </div>
-                    <p className="mt-3 text-xs leading-5 text-slate-600">{project.angle}</p>
-                  </div>
+                    project={project}
+                    variant="light"
+                    density="compact"
+                    showAngle
+                  />
                 ))}
               </div>
             </div>

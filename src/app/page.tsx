@@ -16,6 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { BuiltProjectCard } from "@/components/site/BuiltProjectCard";
 import { VisitorIdField } from "@/components/site/VisitorIdField";
 import { BUILT_PROJECTS } from "@/lib/built-projects";
 import { createSeoMetadata } from "@/lib/seo-metadata";
@@ -265,23 +266,7 @@ function Hero() {
             </div>
             <div className="mt-3 grid gap-2 text-sm text-slate-200 md:grid-cols-3">
               {BUILT_PROJECTS.map((project) => (
-                <Link
-                  key={project.name}
-                  href={project.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group rounded-xl border border-white/15 bg-white/[0.06] p-3 text-left transition hover:border-cyan-300/50 hover:bg-white/[0.1]"
-                >
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" />
-                    <div>
-                      <div className="font-semibold text-white group-hover:text-cyan-100">
-                        {project.name}
-                      </div>
-                      <div className="mt-1 text-xs leading-5 text-slate-300">{project.type}</div>
-                    </div>
-                  </div>
-                </Link>
+                <BuiltProjectCard key={project.name} project={project} variant="dark" density="compact" />
               ))}
             </div>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
