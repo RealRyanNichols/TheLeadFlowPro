@@ -18,10 +18,10 @@ import { createSeoMetadata } from "@/lib/seo-metadata";
 export const metadata = createSeoMetadata({
   title: "Social Media Services — Done For You · The LeadFlow Pro",
   description:
-    "TikTok, Facebook, X, and YouTube — managed end-to-end by Ryan Nichols. 75K+ followers built across 5 platforms. Same playbook, your voice. Plus dedicated Facebook Ads management for owners ready to scale lead volume.",
+    "Ryan builds the content engine, production workflow, posting rhythm, and lead path across TikTok, Facebook, X, YouTube, and Meta ads.",
   path: "/services",
   imageTitle: "Social Media Done For You",
-  imageSubtitle: "Hooks, videos, posting, reply game, and lead flow built around your business.",
+  imageSubtitle: "Hooks, footage workflow, posting rhythm, reply game, and lead flow built around your business.",
 });
 
 const PLATFORMS = [
@@ -29,10 +29,11 @@ const PLATFORMS = [
     handle: "tiktok",
     brand: "tiktok",
     name: "TikTok",
-    blurb: "Daily short-form built around the hook patterns the algorithm is rewarding this week. Repurposed across IG Reels and YT Shorts.",
+    blurb: "Short-form workflow built around the hook patterns the algorithm is rewarding this week. Repurposed across IG Reels and YT Shorts.",
     bullets: [
-      "20 short-form posts / month",
+      "20 planned short-form outputs / month",
       "Hook + caption iteration weekly",
+      "Source footage lane picked up front",
       "Cross-post to Reels & Shorts (free)",
     ],
     metric: "FYP-first",
@@ -89,7 +90,7 @@ const SERVICE_OPTIONS = [
     title: "Single Platform",
     price: "$497/mo",
     cadence: "one channel",
-    body: "TikTok, Facebook, X, or YouTube managed end-to-end.",
+    body: "TikTok, Facebook, X, or YouTube run through a clear content workflow.",
     href: "#single-platforms",
     cta: "Pick platform",
     tone: "border-brand-300 bg-white",
@@ -98,7 +99,7 @@ const SERVICE_OPTIONS = [
     title: "Power Bundle",
     price: "$1,497/mo",
     cadence: "most popular",
-    body: "All four social platforms run in one content rhythm.",
+    body: "All four social platforms run through one source-footage and posting system.",
     href: "/offers/power-bundle",
     cta: "Reserve bundle",
     tone: "border-accent-300 bg-accent-100/70",
