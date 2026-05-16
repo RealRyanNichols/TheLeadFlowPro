@@ -171,14 +171,14 @@ export const OFFER_WORKLOADS: Record<OfferSlug, OfferWorkload> = {
   "power-bundle": {
     slug: "power-bundle",
     label: "Power Bundle",
-    visibleTime: "4 social platforms managed",
+    visibleTime: "4-platform content engine",
     planningHours: 8,
     reserveHours: 8,
     deliveryKind: "ongoing",
     deliveryMinDays: 5,
     deliveryMaxDays: 5,
-    deliveryPromise: "Monthly content engine with weekly production and reporting rhythm.",
-    workloadNote: "Content planning, production queue, posting, engagement review, and performance reporting.",
+    deliveryPromise: "Monthly content engine with a chosen production lane, weekly review, and reporting rhythm.",
+    workloadNote: "Content strategy, production workflow, review loop, posting path, lead routing, and performance reporting.",
   },
   "fb-ads": {
     slug: "fb-ads",

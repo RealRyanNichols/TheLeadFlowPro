@@ -244,22 +244,35 @@ function Hero() {
               Run leak audit <CalendarClock className="h-4 w-4" />
             </Link>
           </div>
-          <p className="mt-4 max-w-full break-words text-sm font-semibold leading-6 text-cyan-100 sm:hidden">
-            Free plan first. Built live:{" "}
-            {BUILT_PROJECTS.map((project, index) => (
-              <span key={project.name}>
-                <Link
-                  href={project.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="break-all underline underline-offset-4"
-                >
-                  {project.name.replace(/^www\./i, "")}
-                </Link>
-                {index < BUILT_PROJECTS.length - 1 ? ", " : "."}
-              </span>
-            ))}
-          </p>
+          <div className="mt-5 rounded-2xl border border-cyan-300/15 bg-slate-950/72 p-3 shadow-2xl shadow-slate-950/35 sm:hidden">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-cyan-100">
+                  Real builds Ryan shipped
+                </div>
+                <p className="mt-1 text-xs font-semibold leading-5 text-slate-300">
+                  Tap one. These are live sites, not mockups.
+                </p>
+              </div>
+              <Link
+                href="/proof"
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-cyan-200/25 bg-cyan-200/10 px-3 py-1.5 text-[0.66rem] font-black uppercase tracking-widest text-cyan-100"
+              >
+                Proof <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+            <div className="grid gap-2.5">
+              {BUILT_PROJECTS.map((project) => (
+                <BuiltProjectCard
+                  key={project.name}
+                  project={project}
+                  variant="dark"
+                  density="mini"
+                  className="rounded-xl"
+                />
+              ))}
+            </div>
+          </div>
           <div className="mt-6 hidden max-w-4xl border-l border-cyan-300/35 pl-4 sm:block">
             <div className="text-xs font-semibold uppercase tracking-widest text-cyan-100">
               Proof Ryan ships real sites

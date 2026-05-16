@@ -190,7 +190,7 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
                         <div className="font-semibold text-slate-950">Capacity math</div>
                         <p className="mt-1 leading-relaxed">
                           {workload.visibleTime} reserves {formatHours(workload.reserveHours)} of
-                          Ryan's 60-hour week. Planning estimate:{" "}
+                          Ryan-led strategy, review, and delivery capacity. Planning estimate:{" "}
                           {formatHours(workload.planningHours)}.
                         </p>
                       </div>

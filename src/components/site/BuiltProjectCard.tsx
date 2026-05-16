@@ -8,7 +8,7 @@ type BuiltProject = (typeof BUILT_PROJECTS)[number];
 type BuiltProjectCardProps = {
   project: BuiltProject;
   variant?: "dark" | "light";
-  density?: "compact" | "full";
+  density?: "mini" | "compact" | "full";
   showProof?: boolean;
   showAngle?: boolean;
   className?: string;
@@ -23,7 +23,8 @@ export function BuiltProjectCard({
   className = "",
 }: BuiltProjectCardProps) {
   const dark = variant === "dark";
-  const compact = density === "compact";
+  const mini = density === "mini";
+  const compact = density !== "full";
   const cardStyle = {
     borderColor: dark ? project.theme.darkBorder : project.theme.lightBorder,
     background: dark ? project.theme.darkBackground : project.theme.lightBackground,
@@ -47,7 +48,9 @@ export function BuiltProjectCard({
       target="_blank"
       rel="noreferrer"
       style={cardStyle}
-      className={`group flex min-h-full flex-col rounded-2xl border text-left transition hover:-translate-y-0.5 hover:shadow-xl ${compact ? "p-3" : "p-5"} ${
+      className={`group flex min-h-full flex-col rounded-2xl border text-left transition hover:-translate-y-0.5 hover:shadow-xl ${
+        mini ? "p-2.5" : compact ? "p-3" : "p-5"
+      } ${
         dark ? "text-white" : "text-slate-950"
       } ${className}`}
     >
@@ -56,17 +59,19 @@ export function BuiltProjectCard({
           aria-label={project.logoLabel}
           style={logoStyle}
           className={`flex shrink-0 items-center justify-center rounded-xl border border-white/30 font-black tracking-tight text-white ${
-            compact ? "h-11 w-11 text-sm" : "h-14 w-14 text-base"
+            mini ? "h-10 w-10 text-xs" : compact ? "h-11 w-11 text-sm" : "h-14 w-14 text-base"
           }`}
         >
           {project.logoText}
         </div>
         <div className="min-w-0 flex-1">
-          <div className={`font-semibold leading-snug ${dark ? "text-white" : "text-slate-950"}`}>
+          <div className={`font-semibold leading-snug ${mini ? "text-sm" : ""} ${dark ? "text-white" : "text-slate-950"}`}>
             {project.name}
           </div>
           <div
-            className={`mt-1 break-words text-xs font-semibold uppercase leading-5 tracking-widest ${
+            className={`break-words font-semibold uppercase ${
+              mini ? "mt-0.5 text-[0.66rem] leading-4 tracking-[0.14em]" : "mt-1 text-xs leading-5 tracking-widest"
+            } ${
               dark ? "text-slate-300" : "text-slate-600"
             }`}
           >
@@ -96,10 +101,12 @@ export function BuiltProjectCard({
         </div>
       ) : null}
 
-      <div className="mt-4 flex">
+      <div className={`${mini ? "mt-2.5" : "mt-4"} flex`}>
         <span
           style={ctaStyle}
-          className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-widest transition group-hover:gap-2"
+          className={`inline-flex items-center gap-1.5 rounded-full border font-black uppercase tracking-widest transition group-hover:gap-2 ${
+            mini ? "px-2.5 py-1 text-[0.62rem]" : "px-3 py-1.5 text-xs"
+          }`}
         >
           View build <ArrowRight className="h-3.5 w-3.5" />
         </span>

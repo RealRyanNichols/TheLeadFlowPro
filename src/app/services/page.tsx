@@ -459,30 +459,29 @@ export default function ServicesPage() {
           <div className="grid gap-10 lg:grid-cols-5 lg:items-center">
             <div className="lg:col-span-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-accent-400/40 bg-accent-400/10 px-3 py-1 text-xs uppercase tracking-widest text-accent-300 font-semibold">
-                <Star className="h-3.5 w-3.5" /> Power Bundle · Saves $491/mo
+                <Star className="h-3.5 w-3.5" /> Power Bundle · Content engine
               </div>
               <h2 className="mt-5 text-3xl sm:text-5xl font-semibold tracking-tight leading-tight">
                 All four platforms.{" "}
                 <span className="bg-gradient-to-r from-cyan-300 to-accent-400 bg-clip-text text-transparent">
-                  $1,497 a month. One operator.
+                  $1,497 a month. One system.
                 </span>
               </h2>
               <p className="mt-5 text-slate-300 leading-relaxed">
-                The algorithm rewards consistency <em>across</em> platforms — not just one. The
-                Power Bundle runs TikTok, Facebook, X, and YouTube simultaneously so the signals
-                compound. Same operator, same voice, same deliverables — one monthly invoice
-                instead of four.
+                The Power Bundle is not Ryan sitting there hand-editing every short. It is the
+                content engine: shot list, source-footage workflow, templates, posting rhythm,
+                review loop, and where the lead goes next.
               </p>
               <p className="mt-3 text-slate-300 leading-relaxed">
-                One long YouTube video → 4 TikToks → 4 Reels → 6 X threads → 2 FB posts. The
-                bundle math works because the source content is shared.
+                We choose the production lane on the fit call: client uploads, Opus, CapCut,
+                templates, custom upload queue, scoped editor, or field content day.
               </p>
               <div className="mt-7 flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/offers/power-bundle"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/30 hover:bg-accent-600"
                 >
-                  Reserve the Power Bundle — $1,497/mo <ArrowRight className="h-4 w-4" />
+                  Reserve the Power Bundle - $1,497/mo <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/book"
