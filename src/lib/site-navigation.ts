@@ -9,6 +9,8 @@ export const SITE_PRIMARY_NAV: SiteNavItem[] = [
   { href: "/proof", label: "Proof" },
   { href: "/services", label: "Services" },
   { href: "/tiers", label: "Pricing", activePaths: ["/tiers", "/pricing"] },
+  { href: "/tools", label: "Tools" },
+  { href: "/leaderboard", label: "Top 10" },
   { href: "/book", label: "Book Call" },
 ];
 
@@ -47,6 +49,7 @@ export const SITE_FOOTER_NAV = {
     { href: "/contact", label: "Contact" },
   ],
   tools: [
+    { href: "/tools", label: "Tools hub" },
     { href: "/organic-growth", label: "Organic plan" },
     { href: "/tools/ad-account-autopsy", label: "Ad autopsy" },
     { href: "/pulse", label: "Live pulse" },
