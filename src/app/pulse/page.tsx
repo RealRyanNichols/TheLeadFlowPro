@@ -238,7 +238,22 @@ export default async function PulsePage() {
 
   return (
     <div className="min-h-screen bg-white text-slate-950">
-      <LightHeader activePath="/pulse" />
+      <LightHeader
+        activePath="/pulse"
+        primaryAction={{
+          href: "#live-engine",
+          label: "View engine",
+          mobileDescription: "Watch the live scoring engine.",
+          Icon: Radar,
+        }}
+        secondaryAction={{
+          href: "#signal-map",
+          label: "See signals",
+          mobileDescription: "Open the signal map first.",
+          Icon: MousePointerClick,
+          muted: true,
+        }}
+      />
 
       <section className="relative overflow-hidden border-b border-slate-200">
         <div
@@ -315,7 +330,9 @@ export default async function PulsePage() {
             </div>
           </div>
 
-          <LiveLeadFlowPulse capacity={capacitySnapshot} />
+          <div id="live-engine" className="scroll-mt-32">
+            <LiveLeadFlowPulse capacity={capacitySnapshot} />
+          </div>
         </div>
       </section>
 
@@ -387,7 +404,7 @@ export default async function PulsePage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden border-b border-slate-200 bg-white">
+      <section id="signal-map" className="relative scroll-mt-32 overflow-hidden border-b border-slate-200 bg-white">
         <div
           aria-hidden
           className="absolute inset-0"
