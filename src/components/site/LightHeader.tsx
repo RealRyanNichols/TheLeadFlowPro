@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, ChevronDown, ClipboardCheck, LogIn, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronDown, ClipboardCheck, Sparkles } from "lucide-react";
 import {
   isActiveNavItem,
   SITE_FOOTER_NAV,
@@ -12,6 +12,7 @@ import {
   SITE_MORE_NAV,
   SITE_PRIMARY_NAV,
 } from "@/lib/site-navigation";
+import { HeaderAuthActions } from "@/components/auth/HeaderAuthActions";
 import { LightMobileMenu } from "./LightMobileMenu";
 
 export function LightHeader({ activePath }: { activePath?: string }) {
@@ -85,12 +86,7 @@ export function LightHeader({ activePath }: { activePath?: string }) {
           </div>
         </nav>
         <div className="flex shrink-0 items-center gap-2">
-          <Link
-            href="/login"
-            className="hidden items-center gap-1.5 rounded-lg border border-slate-300 bg-white/85 px-3 py-1.5 text-sm font-semibold text-slate-800 hover:border-cyan-400 hover:text-slate-950 sm:inline-flex sm:px-4"
-          >
-            <LogIn className="h-3.5 w-3.5" /> Sign in
-          </Link>
+          <HeaderAuthActions />
           <Link
             href="/lead-leak-audit-197"
             className="hidden items-center gap-1.5 rounded-lg bg-gradient-to-r from-slate-950 via-brand-950 to-slate-900 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 hover:from-brand-950 hover:to-slate-950 sm:inline-flex sm:px-4"

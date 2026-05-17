@@ -3,6 +3,7 @@ import { Bell, Search } from "lucide-react";
 import { MOCK_NOTIFS } from "@/lib/notifications";
 import { MobileSidebar } from "./Sidebar";
 import { currentUser } from "@/lib/auth";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 
 export async function Topbar() {
   const urgentUnread = MOCK_NOTIFS.filter((n) => !n.read && n.severity === "urgent").length;
@@ -60,6 +61,7 @@ export async function Topbar() {
             <div className="text-[11px] text-ink-400 leading-none mt-0.5 truncate max-w-[10rem]">{businessName}</div>
           </div>
         </Link>
+        <SignOutButton />
       </div>
     </header>
   );
