@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, ChevronDown, ClipboardCheck, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronDown, ClipboardCheck, LogIn, Sparkles } from "lucide-react";
 import {
   isActiveNavItem,
   SITE_FOOTER_NAV,
@@ -118,6 +118,13 @@ export function LightHeader({
           </div>
         </nav>
         <div className="flex shrink-0 items-center gap-2">
+          <Link
+            href="/backend"
+            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-cyan-300/70 bg-white/85 px-3 text-sm font-black text-slate-950 shadow-sm shadow-cyan-900/10 hover:border-cyan-400 hover:bg-white"
+          >
+            <LogIn className="h-4 w-4 text-cyan-700" />
+            Login
+          </Link>
           <Link
             href={primary.href}
             data-conversion-event={primary.eventName}
