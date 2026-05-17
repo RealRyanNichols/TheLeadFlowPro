@@ -18,7 +18,7 @@
 
 import type { OfferSlug } from "./offers";
 
-export const STRIPE_PAYMENT_LINKS: Record<OfferSlug, string> = {
+export const STRIPE_PAYMENT_LINKS: Partial<Record<OfferSlug, string>> = {
   "quick-look":       "https://buy.stripe.com/fZudR852y7IM5WgaIK5AQ00",
   "decision-sprint":  "https://buy.stripe.com/dRmdR852yd361G07wy5AQ01",
   "business-audit":   "https://buy.stripe.com/8x28wObqW8MQ0BWg345AQ02",

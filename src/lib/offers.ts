@@ -24,6 +24,7 @@ export type OfferSlug =
   | "quick-look"
   | "decision-sprint"
   | "business-audit"
+  | "funnel-flip"
   | "light-retainer"
   | "power-bundle"
   | "fb-ads"
@@ -362,6 +363,87 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       TEXAS_NDA_FAQ,
     ],
     upgradeCredit: "Apply your $497 toward a Light Retainer or Monthly Operator engagement within 60 days.",
+  },
+
+  /* ──────────── 2A. FUNNEL FLIP - Tier 2 - $250 continuation ──────────── */
+  "funnel-flip": {
+    slug: "funnel-flip",
+    tier: 2,
+    category: "consulting",
+    cadence: "72-hour sprint",
+    badge: "Tier 2 · 72-hour sprint · Lead path cleanup",
+    Icon: Wrench,
+    metaTitle: "72-Hour Funnel Flip · The LeadFlow Pro",
+    metaDescription:
+      "A focused LeadFlow Pro sprint that turns a confusing homepage or offer path into a cleaner lead-capture path with one clear next step.",
+
+    hero: {
+      h1Lead: "72 hours to clean up the path.",
+      h1Highlight: "One offer. One intake. One next click.",
+      paragraph:
+        "The Funnel Flip is for a business whose site looks fine but does not make buyers leave a name, phone, email, or booking request. Ryan maps the leak, tightens the offer path, and shows what should change first.",
+      paragraph2:
+        "Start with the free blueprint. If the plan makes sense, the $250 continuation deposit reserves the first build block and credits toward the scoped fix.",
+    },
+    price: {
+      big: "$250",
+      sub: "continuation deposit after blueprint",
+      badge: "Free blueprint first",
+      deliverables: [
+        "Review of the current homepage, offer, intake, and booking path",
+        "One cleaner lead-capture path mapped in plain English",
+        "Recommended first build block for the 72-hour sprint",
+        "CTA cleanup so the buyer knows what to do next",
+        "Continuation deposit credited toward the scoped build if you move forward",
+      ],
+      addOn: {
+        title: "Scope comes before buildout",
+        body:
+          "The $250 is not a blank check and not the full build price. Ryan confirms the first useful version before the work continues.",
+      },
+    },
+    primaryCta: { label: "Get the free blueprint first", href: "/stump-ryan" },
+    secondaryCta: { label: "Book the 10-minute fit call", href: "/book" },
+
+    whyBuy: [
+      { Icon: Target, title: "Your buyer needs one clean path", body: "Most pages ask visitors to understand too much. The flip makes the next action obvious." },
+      { Icon: Wrench, title: "Fix the handoff before adding traffic", body: "Traffic only helps when the page catches calls, forms, DMs, booking requests, and follow-up context." },
+      { Icon: Rocket, title: "Start with the first useful version", body: "The goal is not a giant rebuild. The goal is the smallest useful path that can start collecting better leads." },
+    ],
+    timeline: [
+      { n: "1", minutes: "Day 0", title: "Send the current path", body: "Share the website, offer, intake, booking link, and where leads currently get lost." },
+      { n: "2", minutes: "Day 0-1", title: "Ryan maps the leak", body: "The review looks for confusion, weak CTAs, dead forms, missing follow-up, and unclear ownership." },
+      { n: "3", minutes: "Day 1-2", title: "Blueprint first", body: "You get the first useful version mapped before deciding whether to continue." },
+      { n: "4", minutes: "Day 2-3", title: "Build block starts", body: "If you like the plan, the continuation deposit starts the scoped fix." },
+    ],
+    rightFit: [
+      "Your site gets attention but not enough contact information",
+      "You can explain what you sell in plain English",
+      "You want one stronger intake, booking, or follow-up path",
+      "You can make a decision after seeing the blueprint",
+      "You are willing to fix the path before buying more traffic",
+    ],
+    wrongFit: [
+      "You want free coaching with no build intent",
+      "You want a full brand rebuild for a $250 deposit",
+      "You do not have a real offer yet",
+      "You want guaranteed leads, sales, or ad results",
+      "You are shopping for the cheapest possible website tweak",
+    ],
+    costMath: {
+      stuck: { big: "Missed leads", sub: "A confusing path loses calls, texts, forms, DMs, and booking intent before the owner ever sees it." },
+      buy: { big: "$250", sub: "Continuation deposit after the free blueprint. Credited toward the scoped first build block." },
+    },
+    proof: RYAN_PROOF,
+    faqs: [
+      { q: "Is the blueprint free?", a: "Yes. The first step is the free blueprint request. Ryan maps the leak and the first useful version before the continuation deposit." },
+      { q: "Is $250 the full build price?", a: "No. It is the continuation deposit for the first build block after the blueprint makes sense." },
+      { q: "What can get fixed?", a: "Usually the offer path, CTA structure, form, booking handoff, follow-up copy, or the first useful landing page/tool." },
+      { q: "Do you guarantee leads?", a: "No. Ryan identifies the leak and the next practical move. No guaranteed leads, sales, ROAS, CPL, revenue, or ad approval." },
+      { q: "Where should I start?", a: "Use the free blueprint request and include the current website, the leak, and what the page should make buyers do next." },
+      TEXAS_NDA_FAQ,
+    ],
+    upgradeCredit: "The $250 continuation deposit credits toward the scoped first build block.",
   },
 
   /* ──────────── 3. LIGHT RETAINER - Tier 2 - $1,997/mo ──────────── */
@@ -929,6 +1011,7 @@ export const OFFER_LIST: Offer[] = [
   OFFERS["quick-look"],
   OFFERS["decision-sprint"],
   OFFERS["business-audit"],
+  OFFERS["funnel-flip"],
   OFFERS["working-session"],
   OFFERS["light-retainer"],
   OFFERS["power-bundle"],

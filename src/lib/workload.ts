@@ -132,6 +132,18 @@ export const OFFER_WORKLOADS: Record<OfferSlug, OfferWorkload> = {
     deliveryPromise: "Final written audit within 7 business days after complete intake.",
     workloadNote: "Review, findings, 12-18 page write-up, proof check, and final delivery.",
   },
+  "funnel-flip": {
+    slug: "funnel-flip",
+    label: "72-Hour Funnel Flip",
+    visibleTime: "72-hour lead path sprint",
+    planningHours: 4,
+    reserveHours: 4,
+    deliveryKind: "business-days",
+    deliveryMinDays: 3,
+    deliveryMaxDays: 3,
+    deliveryPromise: "Blueprint first. Scoped first build block target: 3 business days after continuation.",
+    workloadNote: "Review current path, map the leak, tighten the CTA and intake path, and prepare the first build block.",
+  },
   "working-session": {
     slug: "working-session",
     label: "Working Session",

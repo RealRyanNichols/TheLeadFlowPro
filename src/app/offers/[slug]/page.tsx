@@ -20,6 +20,7 @@ import {
   Route,
   ShieldCheck,
   Sparkles,
+  Wrench,
   X as XIcon,
 } from "lucide-react";
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
@@ -452,6 +453,17 @@ const DEFAULT_STORIES: Record<OfferSlug, OfferStory> = {
       { Icon: BadgeCheck, title: "Collect the real context", body: "Access, screenshots, links, numbers, and the current operating rhythm." },
       { Icon: Lightbulb, title: "Rank the damage", body: "Not every problem matters equally. The audit tells you what to fix first." },
       { Icon: FileText, title: "Hand the team a plan", body: "A document that can be reread, assigned, and executed." },
+    ],
+  },
+  "funnel-flip": {
+    eyebrow: "Clean the path",
+    headline: "If the page is confusing, the buyer leaves before the lead exists.",
+    body:
+      "The Funnel Flip is for the owner whose website or offer path needs one cleaner next step. Ryan reviews the current path, names the leak, and maps the first useful version before the continuation deposit.",
+    beats: [
+      { Icon: Route, title: "Show the current path", body: "Website, offer, intake, booking link, and follow-up path. The review starts with what buyers see now." },
+      { Icon: Lightbulb, title: "Name the leak", body: "Confusing CTA, dead form, weak offer, poor handoff, missed follow-up, or no owner visibility." },
+      { Icon: Wrench, title: "Flip the funnel", body: "One clearer lead-capture path gets mapped so the next build block has a practical target." },
     ],
   },
   "working-session": {
