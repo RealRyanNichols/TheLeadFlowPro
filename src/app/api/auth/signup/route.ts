@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
 import { stripe } from "@/lib/stripe";
+import { isAdminEmail } from "@/lib/admin-identity";
 
 export const runtime = "nodejs";
 
@@ -24,6 +25,13 @@ export async function POST(req: NextRequest) {
       );
     }
     const { email, password, name, businessName } = parsed.data;
+
+    if (isAdminEmail(email)) {
+      return NextResponse.json(
+        { error: "Admin accounts are created from the secure bootstrap path. Use the existing admin login." },
+        { status: 403 }
+      );
+    }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {

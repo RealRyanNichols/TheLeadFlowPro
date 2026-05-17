@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import {
   LayoutDashboard, Inbox, Bot, Megaphone, Target, Users,
   Sparkles, FilmIcon, Settings, Lightbulb, Workflow, IdCard, Menu, X,
-  BookOpen, Mail, Compass, MessageSquareQuote, BriefcaseBusiness
+  BookOpen, Mail, Compass, MessageSquareQuote, BriefcaseBusiness, ShieldCheck
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { cn } from "@/lib/utils";
@@ -79,6 +79,11 @@ function PlanFooter() {
       <div className="glass rounded-xl p-3 text-xs text-ink-300">
         <p className="font-semibold text-white mb-1">{plan.name}</p>
         <p>{plan.tagline}</p>
+        {(session?.user as { isAdmin?: boolean } | undefined)?.isAdmin ? (
+          <Link href="/admin" className="mt-3 inline-flex items-center gap-1 text-accent-300 hover:underline">
+            <ShieldCheck className="h-3.5 w-3.5" /> Ryan admin
+          </Link>
+        ) : null}
         <Link href="/dashboard/billing" className="text-cyan-400 hover:underline mt-2 inline-block">
           {cta}
         </Link>

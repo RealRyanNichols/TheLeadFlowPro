@@ -1,7 +1,7 @@
 import { prisma } from "../src/lib/prisma";
 import { hashPassword } from "../src/lib/password";
 
-const email = (process.env.ADMIN_BOOTSTRAP_EMAIL || "Ryan@RealRyanNichols.com").trim().toLowerCase();
+const email = (process.env.ADMIN_BOOTSTRAP_EMAIL || "Hello@TheLeadFlowPro.com").trim().toLowerCase();
 const password = process.env.ADMIN_BOOTSTRAP_PASSWORD;
 
 async function main() {

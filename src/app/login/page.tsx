@@ -21,6 +21,8 @@ import {
 
 type AuthMode = "signin" | "signup" | "code";
 
+const ADMIN_LOGIN_EMAILS = new Set(["hello@theleadflowpro.com", "ryan@realryannichols.com"]);
+
 export default function LoginPage() {
   return (
     <Suspense fallback={<LoginLoadingFallback />}>
@@ -38,6 +40,16 @@ function safeNext(raw: string | null) {
     if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
   }
   return "/dashboard/work";
+}
+
+function isAdminLoginEmail(email: string) {
+  return ADMIN_LOGIN_EMAILS.has(email.trim().toLowerCase());
+}
+
+function postLoginUrl(email: string, next: string) {
+  if (!isAdminLoginEmail(email)) return next;
+  if (next === "/dashboard" || next === "/dashboard/work" || next === "/backend") return "/admin";
+  return next.startsWith("/admin") ? next : "/admin";
 }
 
 function LoginLoadingFallback() {
@@ -239,14 +251,14 @@ function PasswordSignInForm({ next, onCode }: { next: string; onCode: () => void
       email,
       password,
       redirect: false,
-      callbackUrl: next,
+      callbackUrl: postLoginUrl(email, next),
     });
     if (!res || res.error) {
       setError("That email and password did not match. Try the email-code tab if Stripe created the account first.");
       setLoading(false);
       return;
     }
-    router.push(res.url || next);
+    router.push(res.url || postLoginUrl(email, next));
     router.refresh();
   }
 
@@ -303,6 +315,12 @@ function CreateAccountForm({ next }: { next: string }) {
     setError(null);
 
     try {
+      if (isAdminLoginEmail(email)) {
+        setError("Admin access already exists. Use the Log in tab with the admin password.");
+        setLoading(false);
+        return;
+      }
+
       const signupRes = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -435,14 +453,14 @@ function EmailOtpForm({ next }: { next: string }) {
       email,
       otp,
       redirect: false,
-      callbackUrl: next,
+      callbackUrl: postLoginUrl(email, next),
     });
     if (!res || res.error) {
       setError("That code did not match or expired.");
       setLoading(false);
       return;
     }
-    router.push(res.url || next);
+    router.push(res.url || postLoginUrl(email, next));
     router.refresh();
   }
 

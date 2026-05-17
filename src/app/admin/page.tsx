@@ -6,6 +6,7 @@ import {
   BriefcaseBusiness,
   ClipboardList,
   Inbox,
+  Lightbulb,
   MessageSquareText,
   RadioTower,
   ShieldCheck,
@@ -33,6 +34,7 @@ export default async function AdminHomePage() {
     openIntakeCount,
     workOrders,
     activeWorkCount,
+    openToolRequestCount,
     pulseToday,
     recentChats,
   ] = await Promise.all([
@@ -62,6 +64,11 @@ export default async function AdminHomePage() {
       take: 12,
     }),
     (prisma as any).workOrder.count({ where: { status: { in: ACTIVE_WORK_STATUSES } } }),
+    prisma.toolRequest.count({
+      where: {
+        status: { notIn: ["shipped_one", "shipped_all", "gifted", "declined"] },
+      },
+    }),
     prisma.sitePulseEvent.count({ where: { createdAt: { gte: dayStart } } }).catch(() => 0),
     prisma.publicChatMessage.findMany({
       orderBy: { createdAt: "desc" },
@@ -105,6 +112,9 @@ export default async function AdminHomePage() {
               <Link href="/admin/requests" className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/15">
                 Lead applications
               </Link>
+              <Link href="/admin/tools" className="rounded-xl border border-accent-300/30 bg-accent-300/10 px-4 py-3 text-sm font-semibold text-accent-100 hover:bg-accent-300/15">
+                Tool requests
+              </Link>
               <Link href="/admin/blueprint-lab" className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15">
                 Blueprint lab
               </Link>
@@ -130,6 +140,7 @@ export default async function AdminHomePage() {
             <AdminStat icon={Users} label="Client logins" value={String(userCount)} sub="User accounts in database" />
             <AdminStat icon={BriefcaseBusiness} label="Active orders" value={String(activeWorkCount)} sub={`${formatHours(activeHours)} still reserved`} />
             <AdminStat icon={ClipboardList} label="Open intakes" value={String(openIntakeCount)} sub="Unreviewed public requests" />
+            <AdminStat icon={Lightbulb} label="Tool requests" value={String(openToolRequestCount)} sub="Client ideas waiting on Ryan" />
             <AdminStat icon={RadioTower} label="Pulse today" value={String(pulseToday)} sub="Tracked anonymous events" />
           </div>
         </div>

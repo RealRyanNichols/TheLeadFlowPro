@@ -1,7 +1,14 @@
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login?next=/dashboard/work");
+  }
+
   return (
     <div className="min-h-screen flex">
       <Sidebar />

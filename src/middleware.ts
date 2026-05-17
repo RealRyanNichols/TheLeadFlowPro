@@ -46,8 +46,17 @@ export async function middleware(req: NextRequest) {
   const clientOfficeAllowed =
     path === "/dashboard/work" ||
     path.startsWith("/dashboard/work/");
+  const toolRequestsAllowed =
+    path === "/dashboard/requests" ||
+    path.startsWith("/dashboard/requests/");
 
-  if (!isAdmin && !onboardingAllowed && !clientOfficeAllowed && completeness < UNLOCK_THRESHOLD) {
+  if (
+    !isAdmin &&
+    !onboardingAllowed &&
+    !clientOfficeAllowed &&
+    !toolRequestsAllowed &&
+    completeness < UNLOCK_THRESHOLD
+  ) {
     const url = new URL("/onboarding", req.url);
     url.searchParams.set("why", "profile_required");
     return NextResponse.redirect(url);
