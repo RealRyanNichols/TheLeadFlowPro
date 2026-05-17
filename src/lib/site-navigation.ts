@@ -32,6 +32,7 @@ export const SITE_MOBILE_NAV: SiteNavItem[] = [
   { href: "/", label: "Home" },
   ...SITE_PRIMARY_NAV,
   ...SITE_MORE_NAV,
+  { href: "/login", label: "Sign in" },
 ];
 
 export const SITE_FOOTER_NAV = {
@@ -47,6 +48,7 @@ export const SITE_FOOTER_NAV = {
     { href: "/tiers", label: "Pricing" },
     { href: "/story", label: "Story" },
     { href: "/contact", label: "Contact" },
+    { href: "/login", label: "Sign in" },
   ],
   tools: [
     { href: "/tools", label: "Tools hub" },
