@@ -483,11 +483,11 @@ function WhatHappensNext() {
         What happens next?
       </h3>
       <ol className="mt-4 grid gap-3 text-sm font-semibold leading-6 text-slate-700">
-        <li>1. You send the business, website, and lead-flow details.</li>
-        <li>2. Ryan reviews whether the audit makes sense.</li>
-        <li>3. If it is a fit, you get the payment step for the $197 audit.</li>
-        <li>4. Ryan reviews the business path and identifies the top leaks.</li>
-        <li>5. You get the next practical move.</li>
+        <li>You send the business, website, and lead-flow details.</li>
+        <li>Ryan reviews whether the audit makes sense.</li>
+        <li>If it is a fit, you get the payment step for the $197 audit.</li>
+        <li>Ryan reviews the business path and identifies the top leaks.</li>
+        <li>You get the next practical move.</li>
       </ol>
       <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-slate-500">
         No fake guarantees. No free coaching. No vague marketing fog.
