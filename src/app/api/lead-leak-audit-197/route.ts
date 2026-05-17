@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { attributionNoteBlock, extractFormAttribution } from "@/lib/form-attribution";
 import { rememberPublicVisitor } from "@/lib/lead-memory";
+import { sendPaidAuditNotification } from "@/lib/paid-audit-notifications";
 import { prisma } from "@/lib/prisma";
 import { recordSitePulseEvent } from "@/lib/site-pulse";
 
@@ -42,6 +43,8 @@ export async function POST(req: NextRequest) {
   const leakConcern = pickStr(form.get("leakConcern"), 2000);
   const auditReadiness = pickStr(form.get("auditReadiness"), 200);
   const reviewTimeline = pickStr(form.get("reviewTimeline"), 120);
+  const currentPageUrl = pickStr(form.get("currentPageUrl"), 500);
+  const clientCreatedAt = pickStr(form.get("clientCreatedAt"), 80);
   const visitorId = pickStr(form.get("visitorId"), 80) ?? crypto.randomUUID();
   const attribution = extractFormAttribution(form, {
     formType: "paid_lead_leak_audit_197",
@@ -50,11 +53,12 @@ export async function POST(req: NextRequest) {
 
   if (!fullName) return NextResponse.json({ error: "missing_name" }, { status: 400 });
   if (!validEmail(email)) return NextResponse.json({ error: "invalid_email" }, { status: 400 });
+  if (!phone) return NextResponse.json({ error: "missing_phone" }, { status: 400 });
   if (!businessName && !businessUrl) {
     return NextResponse.json({ error: "missing_business" }, { status: 400 });
   }
 
-  const routedTo = "/lead-leak-audit-197?submitted=1";
+  const routedTo = "/lead-leak-audit-197/thank-you?application=1";
   const budgetSignal = auditReadiness?.toLowerCase().includes("yes") ? "197-ready" : "fit-confirm-first";
   const notes = [
     attributionNoteBlock(attribution),
@@ -70,6 +74,8 @@ export async function POST(req: NextRequest) {
     leakConcern ? `problem: ${leakConcern}` : null,
     auditReadiness ? `budget_signal: ${auditReadiness}` : null,
     reviewTimeline ? `urgency: ${reviewTimeline}` : null,
+    currentPageUrl ? `current_page_url: ${currentPageUrl}` : null,
+    clientCreatedAt ? `client_created_at: ${clientCreatedAt}` : null,
     "deliverable: plain-English readout, top 3 leaks, recommended next move, screenshots where appropriate, path to fix with Ryan if it makes sense.",
   ]
     .filter(Boolean)
@@ -100,6 +106,56 @@ export async function POST(req: NextRequest) {
     console.error("paid_lead_leak_audit_save_failed", {
       error: error instanceof Error ? error.message : "unknown",
     });
+    try {
+      await sendPaidAuditNotification({
+        intakeId: "database-save-failed",
+        fullName,
+        email: email!,
+        phone,
+        businessName,
+        businessUrl,
+        monthlyRevenueRange,
+        currentLeadSource,
+        responseTime,
+        leakConcern,
+        auditReadiness,
+        reviewTimeline,
+        currentPageUrl,
+        clientCreatedAt,
+        attribution,
+      });
+    } catch (notificationError) {
+      console.error("paid_lead_leak_audit_failure_notification_failed", {
+        error: notificationError instanceof Error ? notificationError.message : "unknown",
+      });
+    }
+    return NextResponse.redirect(new URL("/lead-leak-audit-197?error=save_failed#audit-application", req.url), {
+      status: 303,
+    });
+  }
+
+  try {
+    await sendPaidAuditNotification({
+      intakeId,
+      fullName,
+      email: email!,
+      phone,
+      businessName,
+      businessUrl,
+      monthlyRevenueRange,
+      currentLeadSource,
+      responseTime,
+      leakConcern,
+      auditReadiness,
+      reviewTimeline,
+      currentPageUrl,
+      clientCreatedAt,
+      attribution,
+    });
+  } catch (error) {
+    console.error("paid_lead_leak_audit_notification_failed", {
+      error: error instanceof Error ? error.message : "unknown",
+    });
   }
 
   try {
@@ -123,6 +179,8 @@ export async function POST(req: NextRequest) {
         leakConcern,
         auditReadiness,
         reviewTimeline,
+        currentPageUrl,
+        clientCreatedAt,
         attribution,
       },
     });

@@ -7,6 +7,10 @@ type SeoMetadataInput = {
   title: string;
   description: string;
   path?: string;
+  openGraphTitle?: string;
+  openGraphDescription?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
   imageTitle?: string;
   imageSubtitle?: string;
   imageKicker?: string;
@@ -44,8 +48,8 @@ export function createSeoMetadata(input: SeoMetadataInput): Metadata {
     description: input.description,
     alternates: { canonical: url },
     openGraph: {
-      title: input.imageTitle || input.title,
-      description: input.description,
+      title: input.openGraphTitle || input.imageTitle || input.title,
+      description: input.openGraphDescription || input.description,
       url,
       siteName: SITE_NAME,
       type: input.type || "website",
@@ -60,8 +64,8 @@ export function createSeoMetadata(input: SeoMetadataInput): Metadata {
     },
     twitter: {
       card: "summary_large_image",
-      title: input.imageTitle || input.title,
-      description: input.description,
+      title: input.twitterTitle || input.openGraphTitle || input.imageTitle || input.title,
+      description: input.twitterDescription || input.openGraphDescription || input.description,
       images: [image],
     },
     robots: input.noIndex ? { index: false, follow: false } : undefined,

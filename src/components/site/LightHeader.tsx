@@ -14,7 +14,28 @@ import {
 } from "@/lib/site-navigation";
 import { LightMobileMenu } from "./LightMobileMenu";
 
-export function LightHeader({ activePath }: { activePath?: string }) {
+type HeaderAction = {
+  href: string;
+  label: string;
+  eventName?: string;
+  ctaText?: string;
+  sourcePage?: string;
+  mobileDescription?: string;
+  Icon?: LucideIcon;
+  muted?: boolean;
+};
+
+export function LightHeader({
+  activePath,
+  primaryAction,
+  secondaryAction,
+  hideFreeAuditLink,
+}: {
+  activePath?: string;
+  primaryAction?: HeaderAction;
+  secondaryAction?: HeaderAction;
+  hideFreeAuditLink?: boolean;
+}) {
   function cls(item: (typeof SITE_PRIMARY_NAV)[number], base: string) {
     return isActiveNavItem(item, activePath)
       ? `rounded-full border border-cyan-300/60 bg-cyan-100/80 px-2.5 py-1 font-semibold text-cyan-800 shadow-sm shadow-cyan-900/5 hover:text-cyan-900 ${base}`
@@ -22,6 +43,18 @@ export function LightHeader({ activePath }: { activePath?: string }) {
   }
 
   const moreActive = SITE_MORE_NAV.some((item) => isActiveNavItem(item, activePath));
+  const primary = primaryAction ?? {
+    href: "/lead-leak-audit-197",
+    label: "Start audit",
+    mobileDescription: "Find the leak before more traffic.",
+    Icon: ClipboardCheck,
+  };
+  const secondary = secondaryAction ?? {
+    href: "/book",
+    label: "Book call",
+    mobileDescription: "Ten-minute fit check.",
+    Icon: Sparkles,
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-cyan-400/80 bg-[linear-gradient(135deg,rgba(204,239,255,0.99)_0%,rgba(167,226,247,0.97)_34%,rgba(255,233,177,0.98)_68%,rgba(255,197,111,0.97)_100%)] shadow-[0_14px_36px_-28px_rgba(15,23,42,0.82)] backdrop-blur">
@@ -66,7 +99,7 @@ export function LightHeader({ activePath }: { activePath?: string }) {
             </button>
             <div className="invisible absolute right-0 top-full z-50 mt-3 w-64 translate-y-1 rounded-2xl border border-cyan-100 bg-white p-2 text-sm text-slate-800 opacity-0 shadow-2xl shadow-slate-950/10 transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
               <div className="px-3 pb-2 pt-1 text-[0.65rem] font-black uppercase tracking-[0.22em] text-slate-400">
-                More paths
+                More options
               </div>
               <div className="grid gap-1">
                 {SITE_MORE_NAV.map((item) => (
@@ -86,24 +119,54 @@ export function LightHeader({ activePath }: { activePath?: string }) {
         </nav>
         <div className="flex shrink-0 items-center gap-2">
           <Link
-            href="/lead-leak-audit-197"
+            href={primary.href}
+            data-conversion-event={primary.eventName}
+            data-conversion-cta={primary.ctaText ?? primary.label}
+            data-conversion-source-page={primary.sourcePage}
             className="hidden items-center gap-1.5 rounded-lg bg-gradient-to-r from-slate-950 via-brand-950 to-slate-900 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 hover:from-brand-950 hover:to-slate-950 sm:inline-flex sm:px-4"
           >
-            Start audit <ArrowRight className="h-3.5 w-3.5" />
+            {primary.label} <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <Link
-            href="/book"
-            className="hidden items-center gap-1.5 rounded-lg bg-gradient-to-r from-accent-500 to-accent-400 px-3 py-1.5 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:from-accent-600 hover:to-accent-500 sm:inline-flex sm:px-4"
+            href={secondary.href}
+            data-conversion-event={secondary.eventName}
+            data-conversion-cta={secondary.ctaText ?? secondary.label}
+            data-conversion-source-page={secondary.sourcePage}
+            className={`hidden items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold shadow-lg sm:inline-flex sm:px-4 ${
+              secondary.muted
+                ? "border border-cyan-200 bg-white/80 text-slate-900 shadow-cyan-900/5 hover:border-cyan-300"
+                : "bg-gradient-to-r from-accent-500 to-accent-400 text-white shadow-accent-500/20 hover:from-accent-600 hover:to-accent-500"
+            }`}
           >
-            Book call <ArrowRight className="h-3.5 w-3.5" />
+            {secondary.label} <ArrowRight className="h-3.5 w-3.5" />
           </Link>
-          <LightMobileMenu nav={SITE_MOBILE_NAV} activePath={activePath} />
+          <LightMobileMenu
+            nav={SITE_MOBILE_NAV}
+            activePath={activePath}
+            primaryAction={{
+              href: primary.href,
+              label: primary.label,
+              description: primary.mobileDescription ?? primary.label,
+              eventName: primary.eventName,
+              ctaText: primary.ctaText,
+              sourcePage: primary.sourcePage,
+            }}
+            secondaryAction={{
+              href: secondary.href,
+              label: secondary.label,
+              description: secondary.mobileDescription ?? secondary.label,
+              eventName: secondary.eventName,
+              ctaText: secondary.ctaText,
+              sourcePage: secondary.sourcePage,
+            }}
+            hideFreeAuditLink={hideFreeAuditLink}
+          />
         </div>
       </div>
       <div className="border-t border-cyan-200/70 bg-gradient-to-r from-cyan-100/80 via-white/70 to-accent-100/75 backdrop-blur lg:hidden">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 px-4 py-2">
-          <MobileAction href="/lead-leak-audit-197" label="$197 Audit" Icon={ClipboardCheck} primary />
-          <MobileAction href="/book" label="Book Call" Icon={Sparkles} />
+          <MobileAction action={primary} primary />
+          <MobileAction action={secondary} />
         </div>
       </div>
     </header>
@@ -111,19 +174,19 @@ export function LightHeader({ activePath }: { activePath?: string }) {
 }
 
 function MobileAction({
-  href,
-  label,
-  Icon,
+  action,
   primary,
 }: {
-  href: string;
-  label: string;
-  Icon: LucideIcon;
+  action: HeaderAction;
   primary?: boolean;
 }) {
+  const Icon = action.Icon ?? (primary ? ClipboardCheck : Sparkles);
   return (
     <Link
-      href={href}
+      href={action.href}
+      data-conversion-event={action.eventName}
+      data-conversion-cta={action.ctaText ?? action.label}
+      data-conversion-source-page={action.sourcePage}
       className={`inline-flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-xl border px-2 text-sm font-semibold shadow-sm active:scale-[0.98] ${
         primary
           ? "border-slate-900 bg-gradient-to-r from-slate-950 via-brand-950 to-slate-900 text-white"
@@ -131,12 +194,16 @@ function MobileAction({
       }`}
     >
       <Icon className={`h-4 w-4 ${primary ? "text-cyan-300" : "text-cyan-700"}`} />
-      {label}
+      <span className="min-w-0 text-center leading-tight">{action.label}</span>
     </Link>
   );
 }
 
-export function LightFooter() {
+export function LightFooter({ hideFreeAuditLink }: { hideFreeAuditLink?: boolean }) {
+  const funnelItems = hideFreeAuditLink
+    ? SITE_FOOTER_NAV.funnel.filter((item) => item.href !== "/lead-leak-audit")
+    : SITE_FOOTER_NAV.funnel;
+
   return (
     <footer className="border-t border-slate-200 bg-slate-50">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-xs text-slate-500 lg:grid-cols-[1.25fr_2fr]">
@@ -150,7 +217,7 @@ export function LightFooter() {
           </div>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <FooterGroup title="Funnel" items={SITE_FOOTER_NAV.funnel} />
+          <FooterGroup title="Funnel" items={funnelItems} />
           <FooterGroup title="Company" items={SITE_FOOTER_NAV.company} />
           <FooterGroup title="Tools" items={SITE_FOOTER_NAV.tools} />
           <FooterGroup title="Legal" items={SITE_FOOTER_NAV.legal} />

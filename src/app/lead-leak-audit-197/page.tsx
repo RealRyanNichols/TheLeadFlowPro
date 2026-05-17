@@ -1,4 +1,3 @@
-import Image from "next/image";
 import {
   ArrowRight,
   BadgeCheck,
@@ -20,10 +19,11 @@ import { createSeoMetadata } from "@/lib/seo-metadata";
 export const metadata = createSeoMetadata({
   title: "$197 Lead Leak Audit | The LeadFlow Pro",
   description:
-    "Find where your business is losing leads from missed calls, texts, DMs, website forms, booking gaps, ads, and slow follow-up. Built by Ryan Nichols for serious business owners.",
+    "Find where your business is losing leads from missed calls, texts, DMs, website forms, ads, booking gaps, and slow follow-up. Built by Ryan Nichols for serious business owners.",
   path: "/lead-leak-audit-197",
-  imageTitle: "Stop Losing Leads",
-  imageSubtitle: "Find the leak before you spend another dollar on traffic.",
+  openGraphTitle: "$197 Lead Leak Audit | The LeadFlow Pro",
+  openGraphDescription:
+    "Find the leaks in your calls, texts, DMs, forms, ads, booking path, and follow-up before you spend more money on traffic.",
   image: "/images/lead-leak-audit-197-og.png",
 });
 
@@ -57,6 +57,7 @@ const RIGHT_FIT = [
   "Real estate and insurance",
   "Car dealerships",
   "Owners who know leads are slipping",
+  "People who can make a decision",
 ];
 
 const WRONG_FIT = [
@@ -111,10 +112,11 @@ function auditCheckoutHref() {
 export default function PaidLeadLeakAuditPage({
   searchParams,
 }: {
-  searchParams?: { submitted?: string };
+  searchParams?: { submitted?: string; error?: string };
 }) {
   const checkoutHref = auditCheckoutHref();
   const submitted = searchParams?.submitted === "1";
+  const saveError = searchParams?.error === "save_failed";
   const serviceSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -184,7 +186,28 @@ export default function PaidLeadLeakAuditPage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-      <LightHeader activePath="/lead-leak-audit-197" />
+      <LightHeader
+        activePath="/lead-leak-audit-197"
+        hideFreeAuditLink
+        primaryAction={{
+          href: "#audit-application",
+          label: "Apply for the $197 Audit",
+          eventName: "lead_leak_197_apply_click",
+          ctaText: "Apply for the $197 Audit",
+          sourcePage: "/lead-leak-audit-197",
+          mobileDescription: "Send the details first.",
+        }}
+        secondaryAction={{
+          href: "/book?source=lead-leak-audit-197",
+          label: "Book the 10-minute fit call",
+          eventName: "lead_leak_197_book_call_click",
+          ctaText: "Book the 10-minute fit call",
+          sourcePage: "/lead-leak-audit-197",
+          mobileDescription: "Quick fit check.",
+          Icon: CalendarCheck,
+          muted: true,
+        }}
+      />
 
       <main>
         <section className="relative overflow-hidden border-b border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#eef9ff_44%,#fff7ed_100%)]">
@@ -205,30 +228,18 @@ export default function PaidLeadLeakAuditPage({
                 Built by an operator with 82K+ audience across Facebook, X, YouTube, Instagram, and TikTok.
               </div>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                {checkoutHref ? (
-                  <ConversionAnchor
-                    href={checkoutHref}
-                    eventName="stripe_checkout_click"
-                    ctaText="Start the $197 Lead Leak Audit"
-                    sourcePage="/lead-leak-audit-197"
-                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-accent-500/20 hover:bg-accent-400"
-                  >
-                    Start the $197 Lead Leak Audit <ArrowRight className="h-4 w-4" />
-                  </ConversionAnchor>
-                ) : (
-                  <ConversionAnchor
-                    href="#audit-application"
-                    eventName="audit_start_click"
-                    ctaText="Start the $197 Lead Leak Audit"
-                    sourcePage="/lead-leak-audit-197"
-                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-accent-500/20 hover:bg-accent-400"
-                  >
-                    Start the $197 Lead Leak Audit <ArrowRight className="h-4 w-4" />
-                  </ConversionAnchor>
-                )}
+                <ConversionAnchor
+                  href="#audit-application"
+                  eventName="lead_leak_197_apply_click"
+                  ctaText="Apply for the $197 Audit"
+                  sourcePage="/lead-leak-audit-197"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-accent-500/20 hover:bg-accent-400"
+                >
+                  Apply for the $197 Audit <ArrowRight className="h-4 w-4" />
+                </ConversionAnchor>
                 <ConversionLink
                   href="/book?source=lead-leak-audit-197"
-                  eventName="book_call_click"
+                  eventName="lead_leak_197_book_call_click"
                   ctaText="Book the 10-minute fit call"
                   sourcePage="/lead-leak-audit-197"
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-900 hover:border-cyan-400"
@@ -245,24 +256,28 @@ export default function PaidLeadLeakAuditPage({
             <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(260px,0.7fr)] lg:items-stretch">
               <div className="rounded-3xl border border-slate-900/10 bg-slate-950 p-4 text-white shadow-[0_30px_80px_-36px_rgba(15,23,42,0.72)]">
                 <div className="relative overflow-hidden rounded-2xl bg-slate-900">
-                  <Image
-                    src="/images/lead-leak-audit-197-ad-still.jpg"
-                    alt="Ryan Nichols meeting a person in public during a mall video shoot"
-                    width={1614}
-                    height={2868}
-                    priority
-                    className="h-full max-h-[660px] w-full object-cover"
-                    sizes="(min-width: 1024px) 34vw, 100vw"
-                  />
+                  <video
+                    className="mx-auto aspect-[9/16] max-h-[660px] w-full bg-slate-950 object-cover"
+                    controls
+                    controlsList="nodownload"
+                    disablePictureInPicture
+                    playsInline
+                    preload="metadata"
+                    poster="/images/lead-leak-audit-197-ad-still.jpg"
+                    aria-label="Lead Leak Audit ad video with Ryan Nichols meeting a person who recognized him in public"
+                  >
+                    <source src="/videos/lead-leak-audit-197-ad.mp4" type="video/mp4" />
+                    Your browser does not support this video.
+                  </video>
                 </div>
                 <div className="mt-4 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4">
                   <div className="text-xs font-semibold uppercase tracking-widest text-cyan-100">
-                    From the ad
+                    Watch the ad
                   </div>
                   <p className="mt-2 text-sm leading-6 text-slate-200">
-                    A real mall interaction, caught on camera. The point is simple: when people
-                    know who you are, they walk up. The audit finds whether your business path is
-                    ready when that attention turns into calls, texts, DMs, forms, or bookings.
+                    A real mall interaction, caught on camera. When attention turns into a click,
+                    call, text, DM, form, or booking request, the business path has to catch it.
+                    That is what the $197 audit checks.
                   </p>
                 </div>
               </div>
@@ -383,27 +398,32 @@ export default function PaidLeadLeakAuditPage({
                 Start here
               </div>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-                {checkoutHref ? "Ready to buy the audit?" : "Apply for the $197 audit fit check."}
+                Apply for the $197 Audit.
               </h2>
               <p className="mt-4 text-base leading-7 text-slate-700">
-                {checkoutHref
-                  ? "Use checkout when you already know you want Ryan to review the lead path. Use the fit call if you need one quick confirmation first."
-                  : "Stripe checkout is not wired for this exact audit yet. This form sends the application into Ryan's sales queue so he can confirm fit and send the next step."}
+                Submit the application below. If the fit is clear, Ryan will confirm the next step
+                and send the payment link for the $197 Lead Leak Audit.
               </p>
+              <p className="mt-5 text-sm leading-6 text-slate-700">
+                For $197, Ryan reviews your website, calls, forms, DMs, ads, booking path,
+                and follow-up process so you can see where serious leads are falling out.
+              </p>
+              {checkoutHref ? <PaymentLinkNote checkoutHref={checkoutHref} /> : null}
             </div>
 
-            {submitted ? (
-              <CompletionState />
-            ) : checkoutHref ? (
-              <CheckoutState checkoutHref={checkoutHref} />
-            ) : (
-              <AuditApplicationForm />
-            )}
+            <div>
+              {!submitted ? <WhatHappensNext /> : null}
+              {submitted ? (
+                <CompletionState />
+              ) : (
+                <AuditApplicationForm saveError={saveError} />
+              )}
+            </div>
           </div>
         </section>
       </main>
 
-      <LightFooter />
+      <LightFooter hideFreeAuditLink />
     </div>
   );
 }
@@ -456,6 +476,26 @@ function MiniMetric({ label, value }: { label: string; value: string }) {
   );
 }
 
+function WhatHappensNext() {
+  return (
+    <div className="mb-5 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+      <h3 className="text-xl font-semibold tracking-tight text-slate-950">
+        What happens next?
+      </h3>
+      <ol className="mt-4 grid gap-3 text-sm font-semibold leading-6 text-slate-700">
+        <li>1. You send the business, website, and lead-flow details.</li>
+        <li>2. Ryan reviews whether the audit makes sense.</li>
+        <li>3. If it is a fit, you get the payment step for the $197 audit.</li>
+        <li>4. Ryan reviews the business path and identifies the top leaks.</li>
+        <li>5. You get the next practical move.</li>
+      </ol>
+      <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-slate-500">
+        No fake guarantees. No free coaching. No vague marketing fog.
+      </p>
+    </div>
+  );
+}
+
 function CompletionState() {
   return (
     <div className="rounded-3xl border border-cyan-200 bg-cyan-50 p-6 shadow-xl shadow-cyan-100/70">
@@ -464,12 +504,12 @@ function CompletionState() {
         Your audit application is in.
       </h2>
       <p className="mt-3 text-base leading-7 text-slate-700">
-        Ryan will review the business path and follow up with the next step.
-        If you already know you are ready, book the 10-minute fit call.
+        Ryan will review what you sent. If the fit is clear, he will follow up with
+        the next step for the $197 Lead Leak Audit.
       </p>
       <ConversionLink
         href="/book?source=lead-leak-audit-197-submitted"
-        eventName="book_call_click"
+        eventName="lead_leak_197_book_call_click"
         ctaText="Book the 10-minute fit call"
         sourcePage="/lead-leak-audit-197"
         className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-slate-950 px-6 py-3 text-sm font-bold text-white hover:bg-slate-800"
@@ -480,48 +520,46 @@ function CompletionState() {
   );
 }
 
-function CheckoutState({ checkoutHref }: { checkoutHref: string }) {
+function PaymentLinkNote({ checkoutHref }: { checkoutHref: string }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70">
-      <ClipboardCheck className="h-10 w-10 text-cyan-700" />
-      <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">
-        Start the $197 Lead Leak Audit.
-      </h2>
-      <p className="mt-3 text-base leading-7 text-slate-700">
-        Stripe handles payment. Ryan reviews the path and follows up with the readout and next move.
+    <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="text-sm font-semibold leading-6 text-slate-700">
+        Already confirmed by Ryan?
       </p>
       <ConversionAnchor
         href={checkoutHref}
-        eventName="stripe_checkout_click"
-        ctaText="Start the $197 Lead Leak Audit"
+        eventName="lead_leak_197_payment_link_click"
+        ctaText="Already confirmed by Ryan? Pay the $197 audit"
         sourcePage="/lead-leak-audit-197"
-        className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-slate-950 hover:bg-accent-400"
+        className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-accent-300 bg-accent-50 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-accent-100"
       >
-        Start the $197 Lead Leak Audit <ArrowRight className="h-4 w-4" />
+        Pay the $197 audit <ArrowRight className="h-4 w-4" />
       </ConversionAnchor>
-      <p className="mt-3 text-xs leading-5 text-slate-500">
-        Need a quick fit check first? Use the 10-minute call instead.
-      </p>
     </div>
   );
 }
 
-function AuditApplicationForm() {
+function AuditApplicationForm({ saveError }: { saveError?: boolean }) {
   return (
     <form
       action="/api/lead-leak-audit-197"
       method="post"
-      data-conversion-event="audit_form_submit"
-      data-conversion-cta="Submit audit application"
+      data-conversion-event="lead_leak_197_form_submit"
+      data-conversion-cta="Apply for the $197 Audit"
       data-conversion-source-page="/lead-leak-audit-197"
       className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/70 sm:p-6"
     >
       <VisitorIdField />
       <ConversionHiddenFields formType="paid_lead_leak_audit_197" sourcePage="/lead-leak-audit-197" />
+      {saveError ? (
+        <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold leading-6 text-rose-900">
+          The application did not save. Try again or book the 10-minute fit call so Ryan can catch it directly.
+        </div>
+      ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Name" name="fullName" placeholder="Your name" required />
         <Field label="Email" name="email" type="email" placeholder="you@business.com" required />
-        <Field label="Phone" name="phone" placeholder="Best number" />
+        <Field label="Phone" name="phone" placeholder="Best number" required />
         <Field label="Business name" name="businessName" placeholder="Business name" required />
         <Field label="Website" name="businessUrl" placeholder="https://yourbusiness.com" />
         <Select label="Monthly revenue range" name="monthlyRevenueRange" options={REVENUE_OPTIONS} />
@@ -550,7 +588,7 @@ function AuditApplicationForm() {
         type="submit"
         className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-500 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-accent-500/20 hover:bg-accent-400"
       >
-        Submit audit application <ArrowRight className="h-4 w-4" />
+        Apply for the $197 Audit <ArrowRight className="h-4 w-4" />
       </button>
       <p className="mt-3 text-xs leading-5 text-slate-500">
         This is not free coaching. It is the fit path for a paid audit. No outcome guarantees.

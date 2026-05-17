@@ -25,6 +25,15 @@ type NavItem = {
   activePaths?: string[];
 };
 
+type MobileFeaturedAction = {
+  href: string;
+  label: string;
+  description: string;
+  eventName?: string;
+  ctaText?: string;
+  sourcePage?: string;
+};
+
 const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   "/": Home,
   "/stump-ryan": Sparkles,
@@ -49,11 +58,30 @@ const ICONS: Record<string, ComponentType<{ className?: string }>> = {
 export function LightMobileMenu({
   nav,
   activePath,
+  primaryAction,
+  secondaryAction,
+  hideFreeAuditLink,
 }: {
   nav: NavItem[];
   activePath?: string;
+  primaryAction?: MobileFeaturedAction;
+  secondaryAction?: MobileFeaturedAction;
+  hideFreeAuditLink?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const featuredPrimary = primaryAction ?? {
+    href: "/lead-leak-audit-197",
+    label: "$197 audit",
+    description: "Find the leak before more traffic.",
+  };
+  const featuredSecondary = secondaryAction ?? {
+    href: "/book",
+    label: "Book call",
+    description: "Ten-minute fit check.",
+  };
+  const menuNav = hideFreeAuditLink
+    ? nav.filter((item) => item.href !== "/lead-leak-audit")
+    : nav;
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -107,31 +135,37 @@ export function LightMobileMenu({
             <div className="p-4">
               <div className="grid grid-cols-2 gap-2">
                 <Link
-                  href="/lead-leak-audit-197"
+                  href={featuredPrimary.href}
                   onClick={() => setOpen(false)}
+                  data-conversion-event={featuredPrimary.eventName}
+                  data-conversion-cta={featuredPrimary.ctaText ?? featuredPrimary.label}
+                  data-conversion-source-page={featuredPrimary.sourcePage}
                   className="rounded-2xl bg-gradient-to-br from-slate-950 via-brand-950 to-cyan-950 p-4 text-white shadow-lg shadow-slate-950/20 active:scale-[0.98]"
                 >
                   <ClipboardCheck className="h-5 w-5 text-cyan-300" />
-                  <div className="mt-3 text-sm font-semibold">$197 audit</div>
+                  <div className="mt-3 text-sm font-semibold">{featuredPrimary.label}</div>
                   <div className="mt-1 text-xs leading-relaxed text-slate-300">
-                    Find the leak before more traffic.
+                    {featuredPrimary.description}
                   </div>
                 </Link>
                 <Link
-                  href="/book"
+                  href={featuredSecondary.href}
                   onClick={() => setOpen(false)}
+                  data-conversion-event={featuredSecondary.eventName}
+                  data-conversion-cta={featuredSecondary.ctaText ?? featuredSecondary.label}
+                  data-conversion-source-page={featuredSecondary.sourcePage}
                   className="rounded-2xl bg-accent-500 p-4 text-white shadow-lg shadow-accent-500/25 active:scale-[0.98]"
                 >
                   <Sparkles className="h-5 w-5" />
-                  <div className="mt-3 text-sm font-semibold">Book call</div>
+                  <div className="mt-3 text-sm font-semibold">{featuredSecondary.label}</div>
                   <div className="mt-1 text-xs leading-relaxed text-white/85">
-                    Ten-minute fit check.
+                    {featuredSecondary.description}
                   </div>
                 </Link>
               </div>
 
               <nav className="mt-4 grid gap-2">
-                {nav.map((item) => {
+                {menuNav.map((item) => {
                   const Icon = ICONS[item.href] ?? ArrowRight;
                   const active =
                     item.href === activePath ||
@@ -159,23 +193,8 @@ export function LightMobileMenu({
                 })}
               </nav>
 
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <Link
-                  href="/lead-leak-audit"
-                  onClick={() => setOpen(false)}
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-cyan-200 bg-white/80 text-sm font-semibold text-slate-900 shadow-sm active:scale-[0.98]"
-                >
-                  <ClipboardCheck className="h-4 w-4 text-slate-600" />
-                  Free audit
-                </Link>
-                <Link
-                  href="/contact"
-                  onClick={() => setOpen(false)}
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-accent-200 bg-accent-100/80 text-sm font-semibold text-slate-950 shadow-sm active:scale-[0.98]"
-                >
-                  <Mail className="h-4 w-4" />
-                  Contact
-                </Link>
+              <div className="mt-4 rounded-2xl border border-cyan-100 bg-white/55 px-4 py-3 text-xs font-semibold leading-relaxed text-slate-600">
+                Pick the closest path. If the fit is not obvious, book the 10-minute call and Ryan will point you to the right next step.
               </div>
             </div>
           </div>

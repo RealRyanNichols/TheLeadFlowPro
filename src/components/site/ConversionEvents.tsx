@@ -13,6 +13,12 @@ type ConversionEventName =
   | "phone_click"
   | "email_click"
   | "lead_leak_page_view"
+  | "lead_leak_197_page_view"
+  | "lead_leak_197_apply_click"
+  | "lead_leak_197_form_submit"
+  | "lead_leak_197_context_submit"
+  | "lead_leak_197_book_call_click"
+  | "lead_leak_197_payment_link_click"
   | "ad_autopsy_submit"
   | "start_router_submit";
 
@@ -78,11 +84,11 @@ export function ConversionEventTracker() {
 
   useEffect(() => {
     if (pathname !== "/lead-leak-audit-197") return;
-    const key = `leadflow.conversion.lead_leak_page_view.${pathname}.${search}`;
+    const key = `leadflow.conversion.lead_leak_197_page_view.${pathname}.${search}`;
     if (window.sessionStorage.getItem(key)) return;
     window.sessionStorage.setItem(key, "1");
     sendConversionEvent(
-      "lead_leak_page_view",
+      "lead_leak_197_page_view",
       attribution(pathname, "page view", `${pathname}${search ? `?${search}` : ""}`, pathname),
     );
   }, [pathname, search]);
@@ -119,7 +125,7 @@ export function ConversionEventTracker() {
       const action = target.getAttribute("action") || "";
       const eventName =
         explicit ||
-        (action.includes("/api/lead-leak-audit-197") ? "audit_form_submit" : null) ||
+        (action.includes("/api/lead-leak-audit-197") ? "lead_leak_197_form_submit" : null) ||
         (action.includes("/api/intake") ? "start_router_submit" : null) ||
         (action.includes("/api/ad-account-autopsy") ? "ad_autopsy_submit" : null);
       if (!eventName) return;
@@ -204,16 +210,22 @@ export function ConversionHiddenFields({ formType, sourcePage }: { formType: str
     [],
   );
   const [values, setValues] = useState(empty);
+  const [pageUrl, setPageUrl] = useState("");
+  const [clientCreatedAt, setClientCreatedAt] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setValues(Object.fromEntries(UTM_KEYS.map((key) => [key, params.get(key) || ""])) as Record<(typeof UTM_KEYS)[number], string>);
+    setPageUrl(window.location.href);
+    setClientCreatedAt(new Date().toISOString());
   }, []);
 
   return (
     <>
       <input type="hidden" name="formType" value={formType} />
       <input type="hidden" name="sourcePage" value={sourcePage} />
+      <input type="hidden" name="currentPageUrl" value={pageUrl} />
+      <input type="hidden" name="clientCreatedAt" value={clientCreatedAt} />
       {UTM_KEYS.map((key) => (
         <input key={key} type="hidden" name={key} value={values[key]} />
       ))}
