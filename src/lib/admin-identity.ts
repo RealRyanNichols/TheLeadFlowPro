@@ -1,4 +1,4 @@
-const DEFAULT_ADMIN_EMAILS = ["ryan@realryannichols.com"];
+const DEFAULT_ADMIN_EMAILS = ["ryan@realryannichols.com", "hello@theleadflowpro.com"];
 
 export function adminEmails() {
   const configured = (process.env.LEADFLOW_ADMIN_EMAILS || "")

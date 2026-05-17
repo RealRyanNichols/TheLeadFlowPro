@@ -10,6 +10,7 @@ const expectedRoutes = [
   "/",
   "/lead-leak-audit",
   "/lead-leak-audit-197",
+  "/lead-leak-audit-197/thank-you",
   "/stump-ryan",
   "/proof",
   "/services",

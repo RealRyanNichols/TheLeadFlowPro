@@ -16,6 +16,7 @@ import {
   ArrowRight, Crown, Flame, HeartHandshake, Loader2, MapPin, Trophy,
   ExternalLink, Globe2, Sparkles,
 } from "lucide-react";
+import { E164_US_MOBILE_PATTERN } from "@/lib/phone";
 import {
   CATEGORIES,
   DEFAULT_GIVEBACK_TARGET_ID,
@@ -84,6 +85,8 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
   const [socialUrl, setSocialUrl] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [smsOptOut, setSmsOptOut] = useState(false);
   const [dollars, setDollars] = useState(25);
   const [givebackTargetId, setGivebackTargetId] = useState<GivebackTargetId>(DEFAULT_GIVEBACK_TARGET_ID);
   const [givebackTargetNote, setGivebackTargetNote] = useState("");
@@ -254,7 +257,9 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
           websiteUrl: websiteUrl || null,
           socialUrl: socialUrl || null,
           imageUrl: imageUrl || null,
-          email: email || null,
+          email,
+          phone: smsOptOut ? null : phone,
+          smsOptOut,
           dollars,
           givebackTargetId,
           givebackTargetNote: givebackTargetNote || null,
@@ -480,14 +485,29 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
               ))}
             </select>
           </Field>
-          <Field label="Email (for receipt)">
+          <Field label="Email for Stripe record *">
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
               placeholder="you@business.com"
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200"
             />
+          </Field>
+          <Field label="Mobile (we text receipts) *">
+            <input
+              type="tel"
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              required={!smsOptOut}
+              disabled={smsOptOut}
+              pattern={E164_US_MOBILE_PATTERN}
+              placeholder="+19031234567"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 disabled:bg-slate-100 disabled:text-slate-400"
+            />
+            <p className="mt-1 text-[10px] text-slate-500">Use +1 followed by 10 digits.</p>
           </Field>
           <Field label="Website (optional, shown publicly)">
             <input
@@ -534,6 +554,16 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
             </p>
           </Field>
         </div>
+
+        <label className="mt-4 flex items-start gap-2 rounded-2xl border border-slate-200 bg-white/70 p-3 text-xs leading-relaxed text-slate-700">
+          <input
+            type="checkbox"
+            checked={smsOptOut}
+            onChange={(e) => setSmsOptOut(e.target.checked)}
+            className="mt-0.5"
+          />
+          <span>I&rsquo;d rather not text. Show me the confirmation on the success page.</span>
+        </label>
 
         {/* SLIDER — the fun part */}
         <div className="mt-7 rounded-2xl border border-white/60 bg-white/80 backdrop-blur p-5 shadow-sm">
@@ -682,7 +712,7 @@ export function LeaderboardLive({ initial, prefill }: { initial: Snapshot; prefi
 
         <button
           type="submit"
-          disabled={submitting || !name}
+          disabled={submitting || !name || !email || (!smsOptOut && !phone)}
           className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-4 text-base font-bold text-white shadow-lg shadow-slate-900/30 hover:bg-slate-800 disabled:opacity-60"
         >
           {submitting ? (

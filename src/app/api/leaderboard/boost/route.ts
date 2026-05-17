@@ -13,6 +13,7 @@ import {
   isValidEastTexasCity,
   sanitizeName,
 } from "@/lib/leaderboard";
+import { cleanE164UsPhone, parseSmsOptOut } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -24,6 +25,13 @@ const TIERS: Record<number, { hours: number; label: string }> = {
   20: { hours: 6,  label: "6-hour boost" },
   50: { hours: 24, label: "24-hour boost" },
 };
+
+function cleanEmail(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const email = value.trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
+  return email.slice(0, 240);
+}
 
 export async function POST(req: Request) {
   let body: any;
@@ -48,7 +56,16 @@ export async function POST(req: Request) {
   }
   const imageUrl   = body.imageUrl   ? String(body.imageUrl).slice(0, 400)   : null;
   const websiteUrl = body.websiteUrl ? String(body.websiteUrl).slice(0, 200) : null;
-  const email      = body.email      ? String(body.email).toLowerCase().trim() : null;
+  const email = cleanEmail(body.email);
+  if (!email) {
+    return NextResponse.json({ error: "Valid email required for Stripe" }, { status: 400 });
+  }
+
+  const smsOptOut = parseSmsOptOut(body.smsOptOut);
+  const buyerPhone = smsOptOut ? null : cleanE164UsPhone(body.phone);
+  if (!smsOptOut && !buyerPhone) {
+    return NextResponse.json({ error: "Mobile must be E.164 format, like +19031234567" }, { status: 400 });
+  }
 
   const tier = TIERS[dollars];
 
@@ -73,7 +90,7 @@ export async function POST(req: Request) {
       success_url: `${SITE_URL}/leaderboard/boost-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${SITE_URL}/leaderboard?canceled=1`,
       billing_address_collection: "auto",
-      customer_email: email || undefined,
+      customer_email: email,
       metadata: {
         type: "leaderboard_boost",
         publicName,
@@ -83,6 +100,8 @@ export async function POST(req: Request) {
         websiteUrl: websiteUrl || "",
         dollars: String(dollars),
         hours: String(tier.hours),
+        buyerPhone: buyerPhone || "",
+        smsOptOut: smsOptOut ? "true" : "false",
       },
     });
   } catch (err) {

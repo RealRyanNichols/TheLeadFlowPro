@@ -10,17 +10,44 @@ import {
   ArrowRight, Crown, ExternalLink, Globe2, KeyRound, MapPin,
   HeartHandshake, PartyPopper, ShieldCheck, Share2, Trophy,
 } from "lucide-react";
+import { CheckoutSmsNotice } from "@/components/checkout/CheckoutSmsNotice";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { currentWeekStart, leaderboardGivebackCents, resolveGivebackTarget } from "@/lib/leaderboard";
 import { findOrCreateProfile } from "@/lib/business-profile";
+import { sendCheckoutSmsOnce, type CheckoutSmsResult } from "@/lib/checkout-sms";
+import { parseSmsOptOut } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
 
 type Props = { searchParams: { session_id?: string } };
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.theleadflowpro.com";
+
+async function safeSms(input: {
+  stripeSessionId: string;
+  message: string;
+  toPhone: string | null | undefined;
+  smsOptOut: boolean;
+}): Promise<CheckoutSmsResult> {
+  try {
+    return await sendCheckoutSmsOnce({
+      stripeSessionId: input.stripeSessionId,
+      template: "LeaderboardPlaced",
+      message: input.message,
+      toPhone: input.toPhone,
+      smsOptOut: input.smsOptOut,
+    });
+  } catch (err) {
+    return {
+      status: input.smsOptOut ? "skipped_opt_out" : "failed",
+      message: input.message,
+      toPhone: input.toPhone || null,
+      error: err instanceof Error ? err.message : "SMS fallback active",
+    };
+  }
+}
 
 function qrUrl(target: string, size = 240): string {
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(target)}`;
@@ -53,6 +80,8 @@ async function processCheckout(sessionId: string) {
     ? new Date(session.metadata.weekStart)
     : currentWeekStart();
   const email = session.customer_email || session.customer_details?.email || null;
+  const buyerPhone = session.metadata?.buyerPhone || null;
+  const smsOptOut = parseSmsOptOut(session.metadata?.smsOptOut);
 
   if (!publicName || dollars <= 0) {
     return { ok: false as const, reason: "Bad metadata on the session." };
@@ -137,6 +166,15 @@ async function processCheckout(sessionId: string) {
         where: { weekStart, points: { gt: me.points } },
       })) + 1
     : null;
+  const businessUrl = `${SITE_URL}/b/${profile.slug}`;
+  const amount = dollars.toLocaleString("en-US");
+  const message = `🏆 You're now #${rank ?? "?"} on the ${city || "East TX"} Top 10 — $${amount} placed. Share your rank: ${businessUrl}. Reset Sunday midnight CT.`;
+  const sms = await safeSms({
+    stripeSessionId: session.id,
+    message,
+    toPhone: buyerPhone,
+    smsOptOut,
+  });
 
   return {
     ok: true as const,
@@ -154,6 +192,7 @@ async function processCheckout(sessionId: string) {
     rank,
     points: me?.points ?? dollars,
     totalEntries: above,
+    sms,
   };
 }
 
@@ -244,6 +283,9 @@ export default async function LeaderboardSuccessPage({ searchParams }: Props) {
             <div className="mx-auto mt-3 max-w-xl rounded-2xl border border-white/60 bg-white/75 px-4 py-3 text-sm text-slate-700 shadow-sm backdrop-blur">
               Giveback preference tracked:{" "}
               <strong className="text-slate-950">{result.givebackTargetLabel}</strong>
+            </div>
+            <div className="mx-auto max-w-xl">
+              <CheckoutSmsNotice sms={result.sms} />
             </div>
             {result.rank && result.rank <= 3 && (
               <div className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-accent-300 bg-accent-300/15 px-4 py-2 text-sm">

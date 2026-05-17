@@ -1,12 +1,12 @@
 # Paid Traffic Link Audit
 
-Generated: 2026-05-16T19:55:27.674Z
+Generated: 2026-05-17T12:21:24.068Z
 
 ## Summary
 
-- Static internal hrefs checked: 301
-- App/API targets available: 153
-- Expected paid-traffic routes checked: 34
+- Static internal hrefs checked: 297
+- App/API targets available: 157
+- Expected paid-traffic routes checked: 35
 - Missing expected routes: 0
 - Missing static targets: 0
 - Blank page risks: 0
@@ -22,6 +22,7 @@ Generated: 2026-05-16T19:55:27.674Z
 - / - OK
 - /lead-leak-audit - OK
 - /lead-leak-audit-197 - OK
+- /lead-leak-audit-197/thank-you - OK
 - /stump-ryan - OK
 - /proof - OK
 - /services - OK

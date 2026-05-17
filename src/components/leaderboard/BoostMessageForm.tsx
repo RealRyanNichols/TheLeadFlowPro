@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { ArrowRight, Loader2, Megaphone } from "lucide-react";
 import { EAST_TX_CITIES } from "@/lib/leaderboard";
+import { E164_US_MOBILE_PATTERN } from "@/lib/phone";
 
 const TIERS = [
   { dollars: 5,  hours: 1,  label: "$5 · 1 hour" },
@@ -19,6 +20,8 @@ export function BoostMessageForm() {
   const [imageUrl, setImageUrl] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [smsOptOut, setSmsOptOut] = useState(false);
   const [tier, setTier] = useState(TIERS[0]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -36,7 +39,9 @@ export function BoostMessageForm() {
         message,
         imageUrl: imageUrl || null,
         websiteUrl: websiteUrl || null,
-        email: email || null,
+        email,
+        phone: smsOptOut ? null : phone,
+        smsOptOut,
         dollars: tier.dollars,
       }),
     });
@@ -111,15 +116,37 @@ export function BoostMessageForm() {
         ))}
       </div>
 
-      <Field label="Email for receipt (optional)" className="mt-3">
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@business.com"
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200" />
-      </Field>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <Field label="Email for Stripe record *">
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="you@business.com"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200" />
+        </Field>
+        <Field label="Mobile (we text receipts) *">
+          <input type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+            required={!smsOptOut}
+            disabled={smsOptOut}
+            pattern={E164_US_MOBILE_PATTERN}
+            placeholder="+19031234567"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-200 disabled:bg-slate-100 disabled:text-slate-400" />
+          <p className="mt-1 text-[10px] text-slate-500">Use +1 followed by 10 digits.</p>
+        </Field>
+      </div>
+
+      <label className="mt-3 flex items-start gap-2 rounded-2xl border border-slate-200 bg-white/70 p-3 text-xs leading-relaxed text-slate-700">
+        <input
+          type="checkbox"
+          checked={smsOptOut}
+          onChange={(e) => setSmsOptOut(e.target.checked)}
+          className="mt-0.5"
+        />
+        <span>I&rsquo;d rather not text. Show me the confirmation on the success page.</span>
+      </label>
 
       {err && <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 p-2 text-xs text-rose-900">{err}</div>}
 
-      <button type="submit" disabled={busy || !name || message.length < 5}
+      <button type="submit" disabled={busy || !name || message.length < 5 || !email || (!smsOptOut && !phone)}
         className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-base font-bold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 disabled:opacity-60">
         {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening checkout…</> : <>Boost it — ${tier.dollars} <ArrowRight className="h-4 w-4" /></>}
       </button>

@@ -48,12 +48,13 @@ export function MetaPixel() {
     if (typeof window.fbq !== "function") return;
 
     const submitted = searchParams.get("submitted");
-    if (submitted !== "1") return;
+    const application = searchParams.get("application");
+    if (submitted !== "1" && application !== "1") return;
 
     let contentName: string | null = null;
     if (pathname === "/stump-ryan" || pathname === "/challenge" || pathname === "/stump-ryan/thank-you") {
       contentName = "Stump Ryan Build Blueprint";
-    } else if (pathname === "/lead-leak-audit-197") {
+    } else if (pathname === "/lead-leak-audit-197" || pathname === "/lead-leak-audit-197/thank-you") {
       contentName = "$197 Lead Leak Audit";
     } else if (pathname.startsWith("/audit/") || pathname === "/lead-leak-audit/thank-you") {
       contentName = "Lead Leak Audit";

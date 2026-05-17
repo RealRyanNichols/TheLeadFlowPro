@@ -16,11 +16,19 @@ import {
   resolveGivebackTarget,
   sanitizeName,
 } from "@/lib/leaderboard";
+import { cleanE164UsPhone, parseSmsOptOut } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.theleadflowpro.com";
+
+function cleanEmail(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const email = value.trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
+  return email.slice(0, 240);
+}
 
 export async function POST(req: Request) {
   let body: any;
@@ -57,7 +65,16 @@ export async function POST(req: Request) {
   if (body.imageUrl && !imageUrl) {
     return NextResponse.json({ error: "Image link must be a valid public link" }, { status: 400 });
   }
-  const email      = body.email      ? String(body.email).toLowerCase().trim() : null;
+  const email = cleanEmail(body.email);
+  if (!email) {
+    return NextResponse.json({ error: "Valid email required for Stripe" }, { status: 400 });
+  }
+
+  const smsOptOut = parseSmsOptOut(body.smsOptOut);
+  const buyerPhone = smsOptOut ? null : cleanE164UsPhone(body.phone);
+  if (!smsOptOut && !buyerPhone) {
+    return NextResponse.json({ error: "Mobile must be E.164 format, like +19031234567" }, { status: 400 });
+  }
 
   const dollars = clampDollars(Number(body.dollars));
   const givebackCents = leaderboardGivebackCents(dollars);
@@ -86,7 +103,7 @@ export async function POST(req: Request) {
       cancel_url: `${SITE_URL}/leaderboard?canceled=1`,
       allow_promotion_codes: false,
       billing_address_collection: "auto",
-      customer_email: email || undefined,
+      customer_email: email,
       metadata: {
         type: "leaderboard_point",
         publicName,
@@ -102,6 +119,8 @@ export async function POST(req: Request) {
         givebackTargetLabel: givebackTarget.label,
         givebackTargetNote: givebackTarget.note,
         weekStart: weekStart.toISOString(),
+        buyerPhone: buyerPhone || "",
+        smsOptOut: smsOptOut ? "true" : "false",
       },
     });
   } catch (err) {

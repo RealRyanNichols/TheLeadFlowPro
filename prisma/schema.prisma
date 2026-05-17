@@ -1312,3 +1312,22 @@ model VoiceVote {
   @@index([topicId])
   @@index([createdAt(sort: Desc)])
 }
+
+// ─── Checkout SMS receipts via Quo ──────────────────────────────
+// One log row per Stripe checkout session. This prevents duplicate texts when
+// the success page refreshes or a buyer opens it more than once.
+
+model SmsLog {
+  id              String   @id @default(cuid())
+  stripeSessionId String   @unique
+  sentAt          DateTime @default(now())
+  template        String
+  toPhone         String?
+  message         String   @db.Text
+  status          String   @default("sent") // sent | failed | skipped_opt_out
+  error           String?  @db.Text
+  createdAt       DateTime @default(now())
+
+  @@index([template, sentAt(sort: Desc)])
+  @@index([toPhone])
+}

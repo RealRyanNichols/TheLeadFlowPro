@@ -103,7 +103,7 @@ export default async function AdminHomePage() {
                 My client office
               </Link>
               <Link href="/admin/requests" className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/15">
-                Build requests
+                Lead applications
               </Link>
               <Link href="/admin/blueprint-lab" className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-300/15">
                 Blueprint lab
@@ -223,7 +223,7 @@ export default async function AdminHomePage() {
             </Link>
           </SidePanel>
 
-          <SidePanel title="Open intakes" icon={Inbox}>
+          <SidePanel title="Open lead applications" icon={Inbox}>
             {openIntakes.length > 0 ? openIntakes.map((intake) => (
               <Link
                 key={intake.id}

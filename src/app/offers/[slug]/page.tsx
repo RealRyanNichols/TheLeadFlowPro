@@ -26,6 +26,8 @@ import {
 import { LightHeader, LightFooter } from "@/components/site/LightHeader";
 import { BandwidthMeter } from "@/components/BandwidthMeter";
 import { InteractiveOfferDecision } from "@/components/offers/InteractiveOfferDecision";
+import { OfferCheckoutForm } from "@/components/offers/OfferCheckoutForm";
+import { isOfferCheckoutEligible } from "@/lib/offer-checkout";
 import { OFFERS, type Offer, type OfferSlug } from "@/lib/offers";
 import { formatHours, getOfferWorkload, type OfferWorkload } from "@/lib/workload";
 import { createSeoMetadata } from "@/lib/seo-metadata";
@@ -65,6 +67,11 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
   const recommendedFromStart = searchParams?.source === "start";
   const workload = getOfferWorkload(O.slug);
   const story = getOfferStory(O.slug);
+  const checkoutEligible = isOfferCheckoutEligible(O.slug);
+  const checkoutLabel = O.slug === "funnel-flip" ? "Continue with $250 deposit" : O.primaryCta.label;
+  const purchaseCta = checkoutEligible
+    ? { ...O.primaryCta, label: checkoutLabel, href: "#offer-checkout" }
+    : O.primaryCta;
 
   return (
     <div className="min-h-screen bg-[#fff8f1] text-slate-900">
@@ -133,10 +140,10 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
               )}
               <div className="mt-7 flex flex-col sm:flex-row gap-3">
                 <Link
-                  href={O.primaryCta.href}
+                  href={purchaseCta.href}
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/30 hover:bg-slate-800"
                 >
-                  {O.primaryCta.label} <ArrowRight className="h-4 w-4" />
+                  {purchaseCta.label} <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href={O.secondaryCta.href}
@@ -210,6 +217,15 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
                   <Calendar className="inline h-3.5 w-3.5 mr-1 text-cyan-600" />
                   Cancel/reschedule with 24hr notice. Mutual NDA. No specific-outcome guarantees.
                 </div>
+
+                {checkoutEligible && (
+                  <OfferCheckoutForm
+                    slug={O.slug}
+                    offerName={O.metaTitle.replace(/\s*·\s*The LeadFlow Pro$/, "")}
+                    priceLabel={`${O.price.big} ${O.price.sub}`.trim()}
+                    ctaLabel={checkoutLabel}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -223,7 +239,7 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
         category={O.category}
         priceBig={O.price.big}
         priceSub={O.price.sub}
-        primaryCta={O.primaryCta}
+        primaryCta={purchaseCta}
         secondaryCta={O.secondaryCta}
         rightFit={O.rightFit}
         wrongFit={O.wrongFit}
@@ -384,10 +400,10 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
           )}
           <div className="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
-              href={O.primaryCta.href}
+              href={purchaseCta.href}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/30 hover:bg-accent-600"
             >
-              {O.primaryCta.label} <ArrowRight className="h-4 w-4" />
+              {purchaseCta.label} <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href={O.secondaryCta.href}

@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { ArrowRight, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { EAST_TX_CITIES } from "@/lib/leaderboard";
+import { E164_US_MOBILE_PATTERN } from "@/lib/phone";
 
 const PRESETS = [1, 5, 10, 25, 50, 100, 250, 500];
 
@@ -13,6 +14,8 @@ export function VoiceVoteForm({ slug, side, accent }: { slug: string; side: "yes
   const [name, setName] = useState("");
   const [city, setCity] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [smsOptOut, setSmsOptOut] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -23,7 +26,16 @@ export function VoiceVoteForm({ slug, side, accent }: { slug: string; side: "yes
     const res = await fetch("/api/voice/buy", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug, side, dollars, displayName: name || null, city: city || null, email: email || null }),
+      body: JSON.stringify({
+        slug,
+        side,
+        dollars,
+        displayName: name || null,
+        city: city || null,
+        email,
+        phone: smsOptOut ? null : phone,
+        smsOptOut,
+      }),
     });
     const data = await res.json();
     if (!res.ok || !data.url) {
@@ -83,13 +95,34 @@ export function VoiceVoteForm({ slug, side, accent }: { slug: string; side: "yes
           <option value="">— your East TX city (optional) —</option>
           {EAST_TX_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email for receipt (optional)"
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email for Stripe record"
+          required
           className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none" />
+        <input
+          type="tel"
+          inputMode="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="Mobile (we text receipts): +19031234567"
+          required={!smsOptOut}
+          disabled={smsOptOut}
+          pattern={E164_US_MOBILE_PATTERN}
+          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400"
+        />
+        <label className="flex items-start gap-2 rounded-xl border border-slate-200 bg-white/70 p-3 text-xs leading-relaxed text-slate-700">
+          <input
+            type="checkbox"
+            checked={smsOptOut}
+            onChange={(e) => setSmsOptOut(e.target.checked)}
+            className="mt-0.5"
+          />
+          <span>I&rsquo;d rather not text. Show me the confirmation on the success page.</span>
+        </label>
       </div>
 
       {err && <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 p-2 text-xs text-rose-900">{err}</div>}
 
-      <button type="submit" disabled={busy}
+      <button type="submit" disabled={busy || !email || (!smsOptOut && !phone)}
         className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl ${tone.btn} px-5 py-3 font-bold text-white disabled:opacity-60`}>
         {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening…</> : <>Cast ${dollars} on {side.toUpperCase()} <ArrowRight className="h-4 w-4" /></>}
       </button>

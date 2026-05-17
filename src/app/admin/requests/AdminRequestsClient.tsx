@@ -1,0 +1,326 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Mail,
+  RefreshCw,
+  Search,
+  Sparkles,
+  XCircle,
+} from "lucide-react";
+
+type Intake = {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string | null;
+  businessName: string | null;
+  businessUrl: string | null;
+  industry: string | null;
+  monthlyRevenueRange: string | null;
+  biggestGoal: string | null;
+  biggestBlocker: string | null;
+  budgetTier: string;
+  bestContactMethod: string | null;
+  notes: string | null;
+  routedTo: string | null;
+  handled: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export function AdminRequestsClient({
+  initialIntakes,
+  goalFilter,
+}: {
+  initialIntakes: Intake[];
+  goalFilter?: string | null;
+}) {
+  const [intakes, setIntakes] = useState<Intake[]>(initialIntakes);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"open" | "all" | "handled">("open");
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function refresh() {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({ take: "100" });
+      if (goalFilter) params.set("goal", goalFilter);
+      const res = await fetch(`/api/admin/intakes?${params.toString()}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.error || `HTTP ${res.status}`);
+        return;
+      }
+      const data = await res.json();
+      setIntakes(data.intakes || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "fetch failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function setHandled(id: string, handled: boolean) {
+    const previous = intakes;
+    setIntakes((rows) => rows.map((row) => (row.id === id ? { ...row, handled } : row)));
+    try {
+      const res = await fetch("/api/admin/intakes", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id, handled }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      setIntakes(previous);
+      setError(err instanceof Error ? err.message : "update failed");
+    }
+  }
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return intakes.filter((intake) => {
+      if (filter === "open" && intake.handled) return false;
+      if (filter === "handled" && !intake.handled) return false;
+      if (!q) return true;
+      return [
+        intake.fullName,
+        intake.email,
+        intake.phone,
+        intake.businessName,
+        intake.businessUrl,
+        intake.industry,
+        intake.biggestBlocker,
+        intake.notes,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q);
+    });
+  }, [filter, intakes, query]);
+
+  const openCount = intakes.filter((intake) => !intake.handled).length;
+  const handledCount = intakes.length - openCount;
+  const paidAuditCount = intakes.filter((intake) => intake.biggestGoal === "paid-lead-leak-audit-197").length;
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-white">
+      <div className="mx-auto max-w-7xl px-4 py-6">
+        <div className="flex flex-col gap-4 border-b border-white/10 pb-5 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-100">
+              <Sparkles className="h-3.5 w-3.5" /> Organic lead queue
+            </div>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+              Audit requests and buyer context Ryan can act on.
+            </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300">
+                Lead leak audits, offer-router intakes, and free submissions land here. Paid deposits
+                create work orders and hit the capacity ledger separately.
+              </p>
+              {goalFilter ? (
+                <p className="mt-2 text-xs font-semibold uppercase tracking-widest text-cyan-100">
+                  Filtered to {goalFilter}
+                </p>
+              ) : null}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => refresh()}
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-semibold hover:bg-white/[0.1]"
+            >
+              <RefreshCw className="h-4 w-4" /> Refresh
+            </button>
+            <Link
+              href="/admin/capacity"
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-50"
+            >
+              Capacity <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/admin"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-semibold hover:bg-white/[0.1]"
+            >
+              <XCircle className="h-4 w-4" /> Admin home
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid gap-3 py-5 sm:grid-cols-3">
+          <Stat label="Open" value={String(openCount)} />
+          <Stat label="$197 audits" value={String(paidAuditCount)} />
+          <Stat label="Handled" value={String(handledCount)} />
+        </div>
+
+        <div className="mb-5 grid gap-3 lg:grid-cols-[1fr_auto]">
+          <label className="flex min-h-12 items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-3">
+            <Search className="h-4 w-4 text-slate-400" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search name, business, problem, email..."
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+            />
+          </label>
+          <div className="grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-white/[0.06] p-1">
+            {(["open", "all", "handled"] as const).map((item) => (
+              <button
+                key={item}
+                onClick={() => setFilter(item)}
+                className={`rounded-xl px-3 py-2 text-sm font-semibold capitalize ${
+                  filter === item ? "bg-cyan-300 text-slate-950" : "text-slate-300 hover:bg-white/[0.08]"
+                }`}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {error ? (
+          <div className="mb-5 rounded-2xl border border-rose-300/30 bg-rose-300/10 p-4 text-sm text-rose-100">
+            {error}
+          </div>
+        ) : null}
+
+        {loading ? (
+          <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-8 text-center text-slate-300">
+            Loading requests...
+          </div>
+        ) : filtered.length ? (
+          <div className="grid gap-4">
+            {filtered.map((intake) => (
+              <IntakeCard key={intake.id} intake={intake} onHandled={setHandled} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-8 text-center text-slate-300">
+            No requests match this view.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+      <div className="text-xs font-semibold uppercase tracking-widest text-cyan-100">{label}</div>
+      <div className="mt-2 text-3xl font-bold tracking-tight">{value}</div>
+    </div>
+  );
+}
+
+function IntakeCard({
+  intake,
+  onHandled,
+}: {
+  intake: Intake;
+  onHandled: (id: string, handled: boolean) => void;
+}) {
+  const created = new Date(intake.createdAt);
+  const goalLabel = intake.biggestGoal || "intake";
+  const mailto = `mailto:${intake.email}?subject=${encodeURIComponent(`Re: ${intake.businessName || intake.fullName} ${goalLabel}`)}`;
+
+  return (
+    <article className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.06] shadow-2xl shadow-black/20">
+      <div className="grid gap-0 lg:grid-cols-[0.72fr_1.28fr]">
+        <div className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-widest text-cyan-100">
+                {intake.handled ? "Handled" : "Open request"}
+              </div>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight">{intake.businessName || intake.fullName}</h2>
+              <p className="mt-1 text-sm text-slate-300">{intake.fullName}</p>
+            </div>
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${intake.handled ? "bg-white/10 text-slate-300" : "bg-accent-500 text-white"}`}>
+              {intake.handled ? "done" : "new"}
+            </span>
+          </div>
+          <div className="mt-4 grid gap-2 text-sm text-slate-300">
+            <a className="inline-flex items-center gap-2 hover:text-white" href={mailto}>
+              <Mail className="h-4 w-4" /> {intake.email}
+            </a>
+            {intake.phone ? (
+              <a className="inline-flex items-center gap-2 hover:text-white" href={`tel:${intake.phone}`}>
+                {intake.phone}
+              </a>
+            ) : null}
+            {intake.businessUrl ? (
+              <a href={intake.businessUrl} target="_blank" rel="noreferrer" className="text-cyan-100 hover:text-cyan-50">
+                {intake.businessUrl}
+              </a>
+            ) : null}
+            <div>{created.toLocaleString()}</div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+            <Mini label="Goal" value={goalLabel} />
+            <Mini label="Budget" value={intake.budgetTier} />
+            <Mini label="Industry" value={intake.industry || "Not set"} />
+            <Mini label="Routed" value={intake.routedTo || "Not set"} />
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <a
+              href={mailto}
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-50"
+            >
+              Reply <ArrowRight className="h-4 w-4" />
+            </a>
+            <button
+              onClick={() => onHandled(intake.id, !intake.handled)}
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-sm font-semibold hover:bg-white/[0.1]"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              {intake.handled ? "Reopen" : "Mark handled"}
+            </button>
+          </div>
+        </div>
+
+        <div className="p-5">
+          <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+            <div className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+              Problem to solve
+            </div>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-100">
+              {intake.biggestBlocker || "No problem text captured."}
+            </p>
+          </div>
+          {intake.notes ? (
+            <div className="mt-3 rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+              <div className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                Full request notes
+              </div>
+              <pre className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap text-xs leading-relaxed text-slate-200">
+                {intake.notes}
+              </pre>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function Mini({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+      <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">{label}</div>
+      <div className="mt-1 font-semibold text-white">{value}</div>
+    </div>
+  );
+}

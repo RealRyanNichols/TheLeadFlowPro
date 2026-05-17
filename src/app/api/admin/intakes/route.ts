@@ -1,29 +1,30 @@
 import { NextResponse } from "next/server";
+import { requireAdminSession } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-function checkAuth(req: Request): { ok: true } | { ok: false; res: NextResponse } {
+async function checkAuth(req: Request): Promise<{ ok: true } | { ok: false; res: NextResponse }> {
   const expected = process.env.ADMIN_INIT_SECRET;
-  if (!expected) {
-    return {
-      ok: false,
-      res: NextResponse.json({ error: "ADMIN_INIT_SECRET not set" }, { status: 503 }),
-    };
-  }
   const provided = req.headers.get("x-admin-secret");
-  if (provided !== expected) {
-    return {
-      ok: false,
-      res: NextResponse.json({ error: "unauthorized" }, { status: 401 }),
-    };
+  if (expected && provided === expected) {
+    return { ok: true };
   }
-  return { ok: true };
+
+  const session = await requireAdminSession();
+  if (session) {
+    return { ok: true };
+  }
+
+  return {
+    ok: false,
+    res: NextResponse.json({ error: "unauthorized" }, { status: 401 }),
+  };
 }
 
 export async function GET(req: Request) {
-  const auth = checkAuth(req);
+  const auth = await checkAuth(req);
   if (!auth.ok) return auth.res;
 
   const url = new URL(req.url);
@@ -47,7 +48,7 @@ export async function GET(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const auth = checkAuth(req);
+  const auth = await checkAuth(req);
   if (!auth.ok) return auth.res;
 
   let body: { id?: string; handled?: boolean };

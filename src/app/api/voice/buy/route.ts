@@ -7,11 +7,19 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { clampVoiceDollars } from "@/lib/voice";
 import { sanitizeName } from "@/lib/leaderboard";
+import { cleanE164UsPhone, parseSmsOptOut } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://theleadflowpro.com";
+
+function cleanEmail(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const email = value.trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
+  return email.slice(0, 240);
+}
 
 export async function POST(req: Request) {
   let body: any;
@@ -29,7 +37,16 @@ export async function POST(req: Request) {
   const dollars = clampVoiceDollars(Number(body.dollars));
   const displayName = body.displayName ? sanitizeName(String(body.displayName)) : null;
   const city  = body.city  ? String(body.city).slice(0, 80) : null;
-  const email = body.email ? String(body.email).toLowerCase().trim() : null;
+  const email = cleanEmail(body.email);
+  if (!email) {
+    return NextResponse.json({ error: "Valid email required for Stripe" }, { status: 400 });
+  }
+
+  const smsOptOut = parseSmsOptOut(body.smsOptOut);
+  const buyerPhone = smsOptOut ? null : cleanE164UsPhone(body.phone);
+  if (!smsOptOut && !buyerPhone) {
+    return NextResponse.json({ error: "Mobile must be E.164 format, like +19031234567" }, { status: 400 });
+  }
 
   const topic = await prisma.voiceTopic.findUnique({ where: { slug } });
   if (!topic) return NextResponse.json({ error: "Topic not found" }, { status: 404 });
@@ -55,7 +72,7 @@ export async function POST(req: Request) {
       success_url: `${SITE_URL}/voice/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${SITE_URL}/voice/${slug}?canceled=1`,
       billing_address_collection: "auto",
-      customer_email: email || undefined,
+      customer_email: email,
       metadata: {
         type: "voice_vote",
         topicId: topic.id,
@@ -64,6 +81,8 @@ export async function POST(req: Request) {
         displayName: displayName || "",
         city: city || "",
         dollars: String(dollars),
+        buyerPhone: buyerPhone || "",
+        smsOptOut: smsOptOut ? "true" : "false",
       },
     });
   } catch (err) {
