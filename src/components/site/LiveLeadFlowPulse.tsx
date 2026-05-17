@@ -126,8 +126,12 @@ type PulseSnapshot = {
     trackedActions: number;
     allClicks: number;
     formInteractions: number;
+    formSubmits: number;
     toolInteractions: number;
     deadClicks: number;
+    rageClicks: number;
+    videoInteractions: number;
+    performanceSignals: number;
     returnVisits: number;
     engagementSeconds: number;
     liveViews: number;
@@ -241,8 +245,12 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
     trackedActions: 0,
     allClicks: 0,
     formInteractions: 0,
+    formSubmits: 0,
     toolInteractions: 0,
     deadClicks: 0,
+    rageClicks: 0,
+    videoInteractions: 0,
+    performanceSignals: 0,
     returnVisits: 0,
     engagementSeconds: 0,
     liveViews: 0,
@@ -317,7 +325,7 @@ function eventLabel(eventType: string) {
     view: "New view",
     heartbeat: "Still watching",
     engagement: "Engaged time",
-    cta_start: "Picked service",
+    cta_start: "Started build request",
     cta_book: "Opened calendar",
     cta_capacity: "Checked capacity",
     cta_pulse: "Opened pulse board",
@@ -391,6 +399,113 @@ function beaconPulse(eventType: string, path: string, target?: string, value?: n
   }).catch(() => undefined);
 }
 
+type DailyPulseRow = PulseSnapshot["daily"][number];
+type ClickDrilldownKey =
+  | "allClicks"
+  | "serviceClicks"
+  | "bookClicks"
+  | "checkoutClicks"
+  | "forms"
+  | "toolUses"
+  | "questions"
+  | "deadZones";
+
+const CLICK_DRILLDOWNS: Record<
+  ClickDrilldownKey,
+  {
+    label: string;
+    eyebrow: string;
+    getValue: (snapshot: PulseSnapshot) => number;
+    getDailyValue: (day: DailyPulseRow) => number;
+    why: string;
+    model: string;
+    evidence: string[];
+    nextMove: string;
+  }
+> = {
+  allClicks: {
+    label: "All clicks",
+    eyebrow: "Intent pressure",
+    getValue: (snapshot) => snapshot.allClicksToday,
+    getDailyValue: (day) => day.allClicks,
+    why: "A click is the first proof that attention became action. It tells Ryan the page is not only being seen.",
+    model:
+      "Feeds Traffic Score as action rate. If clicks rise without bookings or forms, Buy Readiness needs a clearer next step.",
+    evidence: ["click events", "CTA impressions", "top intent paths", "recent public activity"],
+    nextMove: "Find which section earned the click and make that action easier, clearer, or higher on the page.",
+  },
+  serviceClicks: {
+    label: "Service clicks",
+    eyebrow: "Offer interest",
+    getValue: (snapshot) => snapshot.serviceClicksToday,
+    getDailyValue: (day) => day.serviceClicks,
+    why: "A service click means the visitor is comparing what Ryan can actually build or fix.",
+    model: "Feeds Buy Readiness because it shows offer interest before a booking or checkout start.",
+    evidence: ["cta_service events", "services path movement", "top intent paths", "source trail"],
+    nextMove: "If service clicks cluster around one offer, make that offer the next ad angle or top-screen CTA.",
+  },
+  bookClicks: {
+    label: "Booking clicks",
+    eyebrow: "Sales intent",
+    getValue: (snapshot) => snapshot.bookClicksToday,
+    getDailyValue: (day) => day.bookClicks,
+    why: "A booking click is stronger than a browse click. It shows someone may want Ryan involved.",
+    model: "Carries heavier Buy Readiness weight than generic clicks because it moves toward a sales conversation.",
+    evidence: ["cta_book events", "calendar handoff", "highest-intent paths", "return visits"],
+    nextMove: "Compare booking clicks against completed bookings. If the handoff leaks, fix the calendar path.",
+  },
+  checkoutClicks: {
+    label: "Checkout starts",
+    eyebrow: "Payment pressure",
+    getValue: (snapshot) => snapshot.checkoutClicksToday,
+    getDailyValue: (day) => day.checkoutClicks,
+    why: "A checkout start shows the offer is close enough for someone to consider paying.",
+    model: "Carries the strongest Buy Readiness weight before an actual purchase return signal.",
+    evidence: ["cta_checkout events", "purchase return signals", "offer page movement", "Stripe return path"],
+    nextMove: "Check whether checkout starts return as paid signals. If not, inspect price, trust, copy, or payment setup.",
+  },
+  forms: {
+    label: "Forms",
+    eyebrow: "Lead capture",
+    getValue: (snapshot) => snapshot.formInteractionsToday + snapshot.formSubmitsToday,
+    getDailyValue: (day) => day.formInteractions + day.formSubmits,
+    why: "A form touch means a visitor is trying to tell the business something. A submit is a real lead signal.",
+    model: "Raises Buy Readiness because it shows willingness to identify the problem and leave contact details.",
+    evidence: ["form interactions", "form submits", "source page", "UTM trail"],
+    nextMove: "Shorten the form if people touch it but do not submit. Follow up fast when submits appear.",
+  },
+  toolUses: {
+    label: "Tool uses",
+    eyebrow: "Product proof",
+    getValue: (snapshot) => snapshot.toolInteractionsToday,
+    getDailyValue: (day) => day.toolInteractions,
+    why: "Tool use shows people are not just reading. They are testing the machine.",
+    model: "Improves Traffic Score because interactive use is stronger than passive time on page.",
+    evidence: ["tool interaction events", "tab activity", "calculator use", "session milestones"],
+    nextMove: "Turn the most-used tool into a stronger demo, lead magnet, or paid diagnostic.",
+  },
+  questions: {
+    label: "Questions",
+    eyebrow: "Buyer language",
+    getValue: (snapshot) => snapshot.chatQuestionsToday,
+    getDailyValue: (day) => day.chatQuestions,
+    why: "Questions reveal the words buyers use before they are ready to buy. That is offer research.",
+    model: "Raises the learning signal and helps Atlas Brain decide what page, short, email, or FAQ to build next.",
+    evidence: ["question topic counts", "chat question events", "common objections", "intent paths"],
+    nextMove: "Build the next content block around the repeated question, then measure whether clicks improve.",
+  },
+  deadZones: {
+    label: "Dead zones",
+    eyebrow: "Friction",
+    getValue: (snapshot) => snapshot.deadClicksToday + snapshot.rageClicksToday,
+    getDailyValue: (day) => day.deadClicks + day.rageClicks,
+    why: "Dead clicks show someone expected an action and did not get one. That is a leak.",
+    model: "Subtracts from Traffic Score because confusion lowers the quality of the visit.",
+    evidence: ["dead click events", "rage clicks", "CTA impression mismatch", "speed signals"],
+    nextMove: "Turn false buttons into real actions, remove confusing chips, or make the active CTA obvious.",
+  },
+};
+
 export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
   const [snapshot, setSnapshot] = useState<PulseSnapshot>(EMPTY_SNAPSHOT);
   const [tab, setTab] = useState<PulseTab>("live");
@@ -399,6 +514,7 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
   const [sharingPlatform, setSharingPlatform] = useState<string | null>(null);
   const [sessionSeconds, setSessionSeconds] = useState(0);
   const [sessionActions, setSessionActions] = useState(0);
+  const [clickDrilldown, setClickDrilldown] = useState<ClickDrilldownKey>("allClicks");
   const milestoneRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
@@ -459,6 +575,11 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
     () => Math.max(...recentDaily.map((day) => day.views), 1),
     [recentDaily],
   );
+  const selectedClickDetail = CLICK_DRILLDOWNS[clickDrilldown];
+  const maxClickDetailDay = useMemo(
+    () => Math.max(...recentDaily.map((day) => selectedClickDetail.getDailyValue(day)), 1),
+    [recentDaily, selectedClickDetail],
+  );
 
   const totalClicks =
     snapshot.serviceClicksToday +
@@ -484,6 +605,12 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
     setTab(next);
     setSessionActions((actions) => actions + 1);
     beaconPulse(`tab_${next}`, window.location.pathname);
+  }
+
+  function changeClickDrilldown(next: ClickDrilldownKey) {
+    setClickDrilldown(next);
+    setSessionActions((actions) => actions + 1);
+    beaconPulse("tool_interaction", "/pulse", `click-drilldown:${next}`);
   }
 
   async function createShare(platform: string) {
@@ -567,7 +694,8 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
             {loading ? "..." : fmt(snapshot.activeNow)}
           </div>
           <div className="mt-2 text-xs leading-relaxed text-slate-300">
-            Counts anonymous visitors active in the last 2 minutes.
+            Active visitors in the last 2 minutes. This tells Ryan whether the page has live
+            pressure right now, then the engine watches what those visitors do next.
           </div>
         </div>
         <div className="relative h-24 w-24">
@@ -575,6 +703,27 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
           <div className="absolute inset-2 rounded-full border border-cyan-300/20" />
           <div className="absolute inset-4 animate-pulse rounded-full bg-cyan-300/20 shadow-[0_0_38px_rgba(92,208,255,0.55)]" />
           <Users className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-cyan-100" />
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3">
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-cyan-100">
+            Why it matters
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-slate-300">
+            A live visitor is a chance to catch the leak in motion: where they came from, what they
+            read, what they clicked, and where they quit.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-accent-300/20 bg-accent-300/10 p-3">
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-accent-100">
+            Score impact
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-slate-300">
+            Views start the model. Engaged time, return visits, clicks, forms, shares, and fewer
+            dead clicks raise the quality of the signal.
+          </p>
         </div>
       </div>
 
@@ -637,6 +786,29 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
           value={snapshot.prediction.confidence.toUpperCase()}
           href="/pulse/predictions"
         />
+      </div>
+
+      <div className="mt-3 rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-cyan-100">
+              Traffic model
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-slate-300">
+              Actions per view, engaged time, return visits, share click-backs, and clean source
+              trails raise the score. Dead clicks and rage clicks pull it down.
+            </p>
+          </div>
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-accent-100">
+              Buy readiness model
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-slate-300">
+              Service clicks, booking clicks, checkout starts, form submits, buyer questions,
+              return visits, purchase returns, and share intent tell the engine what is close to money.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="mt-3 rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4">
@@ -801,40 +973,133 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
 
         {tab === "clicks" && (
           <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-2">
-              <PulseMetric label="All clicks" value={fmt(snapshot.allClicksToday)} href="/pulse/click-intent" />
-              <PulseMetric label="Tool uses" value={fmt(snapshot.toolInteractionsToday)} href="/pulse/click-intent" />
-              <PulseMetric label="Forms" value={fmt(snapshot.formInteractionsToday)} href="/pulse/click-intent" />
+            <div className="rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-cyan-100">
+                    <MousePointerClick className="h-4 w-4" />
+                    Click intelligence
+                  </div>
+                  <h3 className="mt-2 text-xl font-semibold tracking-tight text-white">
+                    Pick a signal and the board explains what it means.
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                    These are not decorative buttons. Each one opens the evidence, model impact,
+                    chart, and next move Ryan would inspect.
+                  </p>
+                </div>
+                <Link
+                  href="/pulse/click-intent"
+                  className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.08] px-3 py-2 text-xs font-bold text-cyan-100 hover:bg-white/[0.12]"
+                >
+                  Full signal page <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(Object.keys(CLICK_DRILLDOWNS) as ClickDrilldownKey[]).map((key) => {
+                const detail = CLICK_DRILLDOWNS[key];
+                return (
+                  <DrilldownButton
+                    key={key}
+                    active={clickDrilldown === key}
+                    label={detail.label}
+                    eyebrow={detail.eyebrow}
+                    value={fmt(detail.getValue(snapshot))}
+                    onClick={() => changeClickDrilldown(key)}
+                  />
+                );
+              })}
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-4">
+              <div className="grid gap-4 lg:grid-cols-[0.92fr_1.08fr]">
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-widest text-cyan-100">
+                    {selectedClickDetail.eyebrow}
+                  </div>
+                  <div className="mt-2 flex items-end gap-3">
+                    <div className="text-5xl font-semibold tabular-nums text-white">
+                      {fmt(selectedClickDetail.getValue(snapshot))}
+                    </div>
+                    <div className="pb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
+                      today
+                    </div>
+                  </div>
+                  <h3 className="mt-3 text-xl font-semibold tracking-tight text-white">
+                    {selectedClickDetail.label}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                    {selectedClickDetail.why}
+                  </p>
+                  <div className="mt-3 rounded-2xl border border-accent-300/20 bg-accent-300/10 p-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-accent-100">
+                      Model impact
+                    </div>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-300">
+                      {selectedClickDetail.model}
+                    </p>
+                  </div>
+                  <div className="mt-3 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-cyan-100">
+                      What Ryan checks next
+                    </div>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-300">
+                      {selectedClickDetail.nextMove}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-white/10 bg-slate-950/40 p-4">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div className="text-sm font-semibold text-white">Last 14 tracked days</div>
+                    <div className="text-xs text-slate-400">Signal volume</div>
+                  </div>
+                  <div className="flex h-28 items-end gap-2">
+                    {recentDaily.map((day, index) => {
+                      const value = selectedClickDetail.getDailyValue(day);
+                      return (
+                        <div key={`${day.date || day.label}-${index}`} className="flex flex-1 flex-col items-center gap-2">
+                          <div className="flex h-20 w-full items-end rounded-full bg-white/[0.06]">
+                            <div
+                              className="w-full rounded-full bg-gradient-to-t from-accent-400 via-cyan-400 to-cyan-200"
+                              style={{
+                                height: `${Math.max(8, Math.round((value / maxClickDetailDay) * 100))}%`,
+                              }}
+                              title={`${fmt(value)} ${selectedClickDetail.label.toLowerCase()}`}
+                            />
+                          </div>
+                          <div className="text-[10px] text-slate-400">{day.label}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-4 grid gap-2">
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                      Evidence used
+                    </div>
+                    {selectedClickDetail.evidence.map((item) => (
+                      <div key={item} className="flex items-center gap-2 rounded-2xl bg-white/[0.06] px-3 py-2 text-xs text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-3 gap-2">
               <PulseMetric label="Seen CTAs" value={fmt(snapshot.ctaImpressionsToday)} href="/pulse/click-intent" />
-              <PulseMetric label="Form submits" value={fmt(snapshot.formSubmitsToday)} href="/pulse/click-intent" />
-              <PulseMetric label="Speed signals" value={fmt(snapshot.performanceSignalsToday)} href="/pulse/speed-friction" />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <PulseMetric label="Services" value={fmt(snapshot.serviceClicksToday)} href="/pulse/click-intent" />
-              <PulseMetric label="Calendar" value={fmt(snapshot.bookClicksToday)} href="/pulse/click-intent" />
-              <PulseMetric label="Checkout" value={fmt(snapshot.checkoutClicksToday)} href="/pulse/click-intent" />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
               <PulseMetric label="Scrolls" value={fmt(snapshot.scrollDepthSignalsToday)} />
-              <PulseMetric label="Questions" value={fmt(snapshot.chatQuestionsToday)} />
-              <PulseMetric label="Tracked" value={fmt(snapshot.trackedActionsToday)} />
+              <PulseMetric label="Speed signals" value={fmt(snapshot.performanceSignalsToday)} href="/pulse/speed-friction" />
             </div>
             <div className="grid grid-cols-3 gap-2">
               <PulseMetric label="Sources" value={fmt(snapshot.trafficSourceSignalsToday)} />
               <PulseMetric label="Sections" value={fmt(snapshot.sectionViewsToday)} />
-              <PulseMetric label="Dead zones" value={fmt(snapshot.deadClicksToday)} href="/pulse/speed-friction" />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <PulseMetric label="Rage clicks" value={fmt(snapshot.rageClicksToday)} href="/pulse/speed-friction" />
-              <PulseMetric label="Video events" value={fmt(snapshot.videoInteractionsToday)} href="/pulse/dwell-time" />
-              <PulseMetric label="Exits" value={fmt(snapshot.pageExitsToday)} />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
               <PulseMetric label="Returns" value={fmt(snapshot.returnVisitsToday)} />
-              <PulseMetric label="Copied" value={fmt(snapshot.copySignalsToday)} />
-              <PulseMetric label="External" value={fmt(snapshot.externalClicksToday)} />
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
               <div className="mb-3 text-sm font-semibold">Recent public activity</div>
@@ -1109,12 +1374,12 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
 
       <div className="mt-5 grid grid-cols-3 gap-2">
         <PulseAction
-          href="/start"
+          href="/stump-ryan"
           eventType="cta_start"
-          label="Pick service"
+          label="Build mine"
           Icon={MousePointerClick}
         />
-        <PulseAction href="/book" eventType="cta_book" label="Book call" Icon={CalendarCheck} />
+        <PulseAction href="/book?source=pulse" eventType="cta_book" label="Talk with Ryan" Icon={CalendarCheck} />
         <PulseAction href="/availability" eventType="cta_capacity" label="Capacity" Icon={Gauge} />
       </div>
 
@@ -1161,6 +1426,40 @@ function PulseTabButton({
       }
     >
       {label}
+    </button>
+  );
+}
+
+function DrilldownButton({
+  active,
+  label,
+  eyebrow,
+  value,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  eyebrow: string;
+  value: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        active
+          ? "rounded-2xl border border-cyan-300 bg-cyan-300 p-3 text-left text-slate-950 shadow-lg shadow-cyan-950/20"
+          : "rounded-2xl border border-white/10 bg-white/[0.06] p-3 text-left text-white transition hover:border-cyan-300/50 hover:bg-white/[0.09]"
+      }
+    >
+      <div className={active ? "text-[10px] font-bold uppercase tracking-widest text-cyan-950" : "text-[10px] font-bold uppercase tracking-widest text-cyan-100"}>
+        {eyebrow}
+      </div>
+      <div className="mt-2 text-2xl font-bold tabular-nums">{value}</div>
+      <div className={active ? "mt-1 text-xs font-semibold text-slate-800" : "mt-1 text-xs font-semibold text-slate-300"}>
+        {label}
+      </div>
     </button>
   );
 }

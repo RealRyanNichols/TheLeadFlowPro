@@ -989,6 +989,7 @@ function buildSitePulsePrediction(input: {
   bookClicksToday: number;
   checkoutClicksToday: number;
   purchaseSignalsToday: number;
+  chatQuestionsToday: number;
   shareClicksToday: number;
   socialShareViewsToday: number;
   totalShareClicks: number;
@@ -1021,6 +1022,7 @@ function buildSitePulsePrediction(input: {
       bookClicks: acc.bookClicks + day.bookClicks,
       checkoutClicks: acc.checkoutClicks + day.checkoutClicks,
       purchaseSignals: acc.purchaseSignals + day.purchaseSignals,
+      chatQuestions: acc.chatQuestions + day.chatQuestions,
       formSubmits: acc.formSubmits + (day.formSubmits ?? 0),
       deadClicks: acc.deadClicks + (day.deadClicks ?? 0),
       rageClicks: acc.rageClicks + (day.rageClicks ?? 0),
@@ -1037,6 +1039,7 @@ function buildSitePulsePrediction(input: {
       bookClicks: 0,
       checkoutClicks: 0,
       purchaseSignals: 0,
+      chatQuestions: 0,
       formSubmits: 0,
       deadClicks: 0,
       rageClicks: 0,
@@ -1070,6 +1073,8 @@ function buildSitePulsePrediction(input: {
     totals.views + input.totalViews,
     0.006,
   );
+  const formSubmitRate = safeRate(totals.formSubmits + input.formSubmitsToday, totals.views + input.totalViews, 0.004);
+  const chatRate = safeRate(totals.chatQuestions + input.chatQuestionsToday, totals.views + input.totalViews, 0.006);
   const purchaseRate = safeRate(
     totals.purchaseSignals + input.purchaseSignalsToday,
     Math.max(totals.checkoutClicks + input.checkoutClicksToday, 1),
@@ -1126,7 +1131,16 @@ function buildSitePulsePrediction(input: {
     100,
   );
   const conversionReadinessScore = clamp(
-    Math.round(serviceRate * 480 + bookRate * 900 + checkoutRate * 1200 + purchaseRate * 20 + shareRate * 250),
+    Math.round(
+      serviceRate * 420 +
+        bookRate * 800 +
+        checkoutRate * 1150 +
+        formSubmitRate * 900 +
+        chatRate * 260 +
+        purchaseRate * 20 +
+        shareRate * 230 +
+        returnRate * 80,
+    ),
     0,
     100,
   );
@@ -1275,7 +1289,7 @@ function buildSitePulsePrediction(input: {
     trafficSourceMix,
     nextBestExperiments: experiments.slice(0, 5),
     modelNotes: [
-      "Probability uses first-party anonymous events, imported daily views, share links, and engagement time.",
+      "Probability uses first-party anonymous events, imported daily views, share links, engagement time, forms, buyer questions, and return visits.",
       "The model is directional. It should guide what to test next, not promise revenue or bookings.",
       confidence === "low"
         ? "Confidence is low because the sample is still small."
@@ -1897,6 +1911,7 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
       bookClicksToday,
       checkoutClicksToday,
       purchaseSignalsToday,
+      chatQuestionsToday,
       shareClicksToday,
       socialShareViewsToday,
       totalShareClicks,

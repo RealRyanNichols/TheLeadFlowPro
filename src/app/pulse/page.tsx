@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   BarChart3,
+  Brain,
   Building2,
   CalendarCheck,
   Car,
@@ -61,21 +62,59 @@ const SCORECARDS = [
   },
 ];
 
-const PULSE_TOP_ACTIONS = [
+const PULSE_ENGINE_STACK = [
   {
-    Icon: Clock3,
-    title: "Stay and study",
-    body: "The counter records visible time. Longer attention tells us this page has real pull.",
+    Icon: Radar,
+    title: "Live sensors",
+    body: "Views, scroll depth, source trails, share backs, dead clicks, form touches, video actions, and button clicks get counted as first-party signals.",
   },
   {
-    Icon: MousePointerClick,
-    title: "Click the tabs",
-    body: "Every tab, source, share, and CTA becomes a signal the model can learn from.",
+    Icon: BarChart3,
+    title: "Score model",
+    body: "Traffic Score grades attention quality. Buy Readiness grades buyer pressure. Both get stronger as more real behavior stacks up.",
   },
   {
-    Icon: Share2,
-    title: "Share the proof",
-    body: "Tracked share links show which social posts pull people back to the live board.",
+    Icon: Brain,
+    title: "Atlas Brain",
+    body: "Client Brains learn each business. Atlas Brain studies the pattern warehouse across all builds so Ryan can spot stronger plays faster.",
+  },
+];
+
+const PULSE_BRAIN_LAYERS = [
+  {
+    Icon: Brain,
+    title: "Client Brain",
+    body: "One private memory model per business. It holds that client's offers, audience, pages, ads, leads, calls, follow-up, bottlenecks, and next moves.",
+  },
+  {
+    Icon: Radar,
+    title: "Live Signal Engine",
+    body: "The sensor layer watches what buyers actually do: view, stay, scroll, click, ask, share, return, submit, book, pay, or bounce.",
+  },
+  {
+    Icon: BarChart3,
+    title: "Atlas Brain",
+    body: "The internal warehouse. It keeps anonymized patterns from every Client Brain so the system gets smarter without exposing private client data.",
+  },
+  {
+    Icon: Route,
+    title: "Next Move Engine",
+    body: "The output layer. It turns the signal stack into what Ryan would fix, build, split-test, publish, automate, or kill next.",
+  },
+];
+
+const SCORE_MODEL_EXPLAINERS = [
+  {
+    label: "Traffic Score",
+    body: "Measures quality of attention: actions per view, engaged time, return visits, source trails, share click-backs, and fewer dead or rage clicks.",
+  },
+  {
+    label: "Buy Readiness Score",
+    body: "Measures buyer pressure: service clicks, booking clicks, checkout starts, form submits, chat questions, return visits, purchase signals, and share intent.",
+  },
+  {
+    label: "Compounding Memory",
+    body: "Every session teaches the page what content pulls attention, where buyers hesitate, which source sends better traffic, and which next step deserves more focus.",
   },
 ];
 
@@ -240,10 +279,10 @@ export default async function PulsePage() {
 
             <div className="mt-5 rounded-3xl border border-white/75 bg-white/75 p-4 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.38)] backdrop-blur">
               <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
-                How to use this page right now
+                What the engine reads first
               </div>
               <div className="mt-3 grid gap-2">
-                {PULSE_TOP_ACTIONS.map(({ Icon, title, body }) => (
+                {PULSE_ENGINE_STACK.map(({ Icon, title, body }) => (
                   <div key={title} className="flex gap-3 rounded-2xl border border-cyan-100 bg-cyan-50/70 p-3">
                     <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-cyan-200">
                       <Icon className="h-4 w-4" />
@@ -255,21 +294,6 @@ export default async function PulsePage() {
                   </div>
                 ))}
               </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:flex">
-              <Link
-                href="/start"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
-              >
-                Pick my service <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/book"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-accent-500/20 hover:bg-accent-600"
-              >
-                Book call <CalendarCheck className="h-4 w-4" />
-              </Link>
             </div>
 
             <div className="mt-4 rounded-3xl border border-slate-900/10 bg-slate-950 p-4 text-white shadow-[0_24px_70px_-40px_rgba(15,23,42,0.7)]">
@@ -296,11 +320,49 @@ export default async function PulsePage() {
       </section>
 
       <section className="border-b border-slate-200 bg-slate-950 text-white">
-        <div className="mx-auto max-w-7xl px-4 py-8">
+        <div className="mx-auto max-w-7xl px-4 py-10">
           <div className="grid gap-4 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
             <div>
               <div className="text-xs font-semibold uppercase tracking-widest text-cyan-200">
-                How the data gets pulled
+                Brain architecture
+              </div>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                Each client gets a brain. Atlas Brain studies the warehouse.
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-300">
+                The client brain stays private to that business. Atlas Brain is the internal pattern
+                warehouse that learns which traffic sources, offers, pages, hooks, and follow-up
+                paths create stronger buying signals across the whole system.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {PULSE_BRAIN_LAYERS.map(({ Icon, title, body }) => (
+                <div key={title} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-300 text-slate-950">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-3 text-sm font-semibold text-white">{title}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-300">{body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            {SCORE_MODEL_EXPLAINERS.map((item) => (
+              <div key={item.label} className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4">
+                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-100">
+                  {item.label}
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-slate-300">{item.body}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-widest text-cyan-200">
+                How signals enter the warehouse
               </div>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
                 This is not a screenshot. It is an event trail.
