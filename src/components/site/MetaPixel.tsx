@@ -1,7 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
-import Script from "next/script";
+// MetaPixel — SPA navigation + conversion tracker.
+//
+// The base pixel <script> + <noscript> are rendered server-side in
+// src/app/layout.tsx <head>, which is what Meta Pixel Helper looks for first.
+// This component does NOT re-inject the script. It only:
+//   1. Fires fbq("track", "PageView") on App-Router client navigation
+//      (Next.js doesn't reload, so the head-injected PageView would miss
+//      every internal nav without this).
+//   2. Fires fbq("track", "Lead") when ?submitted=1 appears on known intake
+//      pages, idempotent per pathname+search via sessionStorage.
+//
+// Skip the first PageView fire to avoid double-counting the head-injected one.
+
+import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 declare global {
@@ -11,8 +23,6 @@ declare global {
   }
 }
 
-const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
-
 function eventKey(pathname: string, search: string, eventName: string) {
   return `leadflow.meta.${eventName}.${pathname}.${search}`;
 }
@@ -21,14 +31,21 @@ export function MetaPixel() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const search = searchParams.toString();
+  const initialPageView = useRef(true);
 
+  // SPA route-change PageView (skip first run — head script already fired it)
   useEffect(() => {
-    if (!PIXEL_ID || typeof window.fbq !== "function") return;
+    if (initialPageView.current) {
+      initialPageView.current = false;
+      return;
+    }
+    if (typeof window.fbq !== "function") return;
     window.fbq("track", "PageView");
   }, [pathname, search]);
 
+  // Lead conversion event
   useEffect(() => {
-    if (!PIXEL_ID || typeof window.fbq !== "function") return;
+    if (typeof window.fbq !== "function") return;
 
     const submitted = searchParams.get("submitted");
     if (submitted !== "1") return;
@@ -53,34 +70,5 @@ export function MetaPixel() {
     });
   }, [pathname, search, searchParams]);
 
-  if (!PIXEL_ID) return null;
-
-  return (
-    <>
-      <Script id="meta-pixel" strategy="afterInteractive">
-        {`
-          !function(f,b,e,v,n,t,s)
-          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-          n.queue=[];t=b.createElement(e);t.async=!0;
-          t.src=v;s=b.getElementsByTagName(e)[0];
-          s.parentNode.insertBefore(t,s)}(window, document,'script',
-          'https://connect.facebook.net/en_US/fbevents.js');
-          fbq('init', '${PIXEL_ID}');
-          fbq('track', 'PageView');
-        `}
-      </Script>
-      <noscript>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          height="1"
-          width="1"
-          style={{ display: "none" }}
-          src={`https://www.facebook.com/tr?id=${PIXEL_ID}&ev=PageView&noscript=1`}
-          alt=""
-        />
-      </noscript>
-    </>
-  );
+  return null;
 }

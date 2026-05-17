@@ -70,6 +70,10 @@ export const metadata: Metadata = {
   },
 };
 
+// Meta Pixel ID — hardcoded so it works without an env var, override via
+// NEXT_PUBLIC_META_PIXEL_ID in Vercel if you ever rotate accounts.
+const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "1012793881211964";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const organizationSchema = {
     "@context": "https://schema.org",
@@ -92,6 +96,42 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" className="dark">
+      <head>
+        {/*
+          Meta Pixel — base code rendered in <head> per Meta's install
+          instructions so Meta Pixel Helper and the Events Manager test tool
+          detect it as "Active" reliably. Per-route PageView and Lead events
+          are fired client-side from <MetaPixel /> below using the same fbq
+          queue. The guard `if (f.fbq) return;` inside the snippet prevents
+          double-initialization.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              !function(f,b,e,v,n,t,s)
+              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+              n.queue=[];t=b.createElement(e);t.async=!0;
+              t.src=v;s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s)}(window, document,'script',
+              'https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', '${META_PIXEL_ID}');
+              fbq('track', 'PageView');
+            `,
+          }}
+        />
+        <noscript>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+            alt=""
+          />
+        </noscript>
+      </head>
       <body>
         <script
           type="application/ld+json"
