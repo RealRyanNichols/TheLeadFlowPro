@@ -71,13 +71,13 @@ export function LightMobileMenu({
   hideFreeAuditLink?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const featuredPrimary = primaryAction ?? {
+  const featuredPrimary: MobileFeaturedAction = primaryAction ?? {
     href: "/lead-leak-audit-197",
     label: "$197 audit",
     description: "Find the leak before more traffic.",
     Icon: ClipboardCheck,
   };
-  const featuredSecondary = secondaryAction ?? {
+  const featuredSecondary: MobileFeaturedAction = secondaryAction ?? {
     href: "/book",
     label: "Book call",
     description: "Ten-minute fit check.",
