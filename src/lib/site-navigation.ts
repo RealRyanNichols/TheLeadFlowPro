@@ -5,6 +5,7 @@ export type SiteNavItem = {
 };
 
 export const SITE_PRIMARY_NAV: SiteNavItem[] = [
+  { href: "/action-menu", label: "Buy Menu", activePaths: ["/action-menu", "/offers", "/tiers", "/pricing"] },
   {
     href: "/lead-leak-audit-197",
     label: "$197 Audit",
@@ -12,11 +13,11 @@ export const SITE_PRIMARY_NAV: SiteNavItem[] = [
   },
   { href: "/stump-ryan", label: "Custom Builds", activePaths: ["/stump-ryan", "/challenge"] },
   { href: "/proof", label: "Build Proof" },
-  { href: "/tiers", label: "Pricing", activePaths: ["/tiers", "/pricing", "/services", "/services/consulting"] },
   { href: "/book", label: "Book Call" },
 ];
 
 export const SITE_MORE_NAV: SiteNavItem[] = [
+  { href: "/tiers", label: "Full Pricing" },
   { href: "/organic-growth", label: "Follow-Up Plan" },
   { href: "/tools/ad-account-autopsy", label: "Ad Account Check" },
   { href: "/pulse", label: "Live Activity" },
@@ -32,6 +33,8 @@ export const SITE_MOBILE_NAV: SiteNavItem[] = [
 
 export const SITE_FOOTER_NAV = {
   funnel: [
+    { href: "/action-menu", label: "Buy menu" },
+    { href: "/offers/quick-look", label: "$47 Quick-Look" },
     { href: "/lead-leak-audit-197", label: "$197 Lead Leak Audit" },
     { href: "/stump-ryan", label: "Custom Build Blueprint" },
     { href: "/proof", label: "Build proof" },

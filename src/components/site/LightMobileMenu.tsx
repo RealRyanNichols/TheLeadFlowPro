@@ -29,6 +29,7 @@ type MobileFeaturedAction = {
   href: string;
   label: string;
   description: string;
+  Icon?: ComponentType<{ className?: string }>;
   eventName?: string;
   ctaText?: string;
   sourcePage?: string;
@@ -36,6 +37,7 @@ type MobileFeaturedAction = {
 
 const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   "/": Home,
+  "/action-menu": Package,
   "/stump-ryan": Sparkles,
   "/lead-leak-audit-197": ClipboardCheck,
   "/lead-leak-audit": ClipboardCheck,
@@ -73,12 +75,16 @@ export function LightMobileMenu({
     href: "/lead-leak-audit-197",
     label: "$197 audit",
     description: "Find the leak before more traffic.",
+    Icon: ClipboardCheck,
   };
   const featuredSecondary = secondaryAction ?? {
     href: "/book",
     label: "Book call",
     description: "Ten-minute fit check.",
+    Icon: Sparkles,
   };
+  const FeaturedPrimaryIcon = featuredPrimary.Icon ?? ClipboardCheck;
+  const FeaturedSecondaryIcon = featuredSecondary.Icon ?? Sparkles;
   const menuNav = hideFreeAuditLink
     ? nav.filter((item) => item.href !== "/lead-leak-audit")
     : nav;
@@ -142,7 +148,7 @@ export function LightMobileMenu({
                   data-conversion-source-page={featuredPrimary.sourcePage}
                   className="rounded-2xl bg-gradient-to-br from-slate-950 via-brand-950 to-cyan-950 p-4 text-white shadow-lg shadow-slate-950/20 active:scale-[0.98]"
                 >
-                  <ClipboardCheck className="h-5 w-5 text-cyan-300" />
+                  <FeaturedPrimaryIcon className="h-5 w-5 text-cyan-300" />
                   <div className="mt-3 text-sm font-semibold">{featuredPrimary.label}</div>
                   <div className="mt-1 text-xs leading-relaxed text-slate-300">
                     {featuredPrimary.description}
@@ -156,7 +162,7 @@ export function LightMobileMenu({
                   data-conversion-source-page={featuredSecondary.sourcePage}
                   className="rounded-2xl bg-accent-500 p-4 text-white shadow-lg shadow-accent-500/25 active:scale-[0.98]"
                 >
-                  <Sparkles className="h-5 w-5" />
+                  <FeaturedSecondaryIcon className="h-5 w-5" />
                   <div className="mt-3 text-sm font-semibold">{featuredSecondary.label}</div>
                   <div className="mt-1 text-xs leading-relaxed text-white/85">
                     {featuredSecondary.description}

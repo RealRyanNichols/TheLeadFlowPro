@@ -77,8 +77,8 @@ const ATTENTION_MECHANISMS = [
   {
     title: "Micro-purchase entry points",
     body: "$47 quick looks, $197 audits, leaderboard votes, boost messages, and build deposits give serious buyers a low-friction way to move now.",
-    href: "/tiers",
-    cta: "See entry points",
+    href: "/action-menu",
+    cta: "Open buy menu",
     Icon: MousePointerClick,
   },
   {

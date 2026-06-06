@@ -18,6 +18,7 @@ export const revalidate = 300;
 
 const staticRoutes = [
   "",
+  "/action-menu",
   "/services",
   "/services/consulting",
   "/tiers",
