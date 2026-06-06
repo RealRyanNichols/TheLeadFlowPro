@@ -2,9 +2,12 @@ import Link from "next/link";
 import {
   ArrowRight,
   BarChart3,
+  Bot,
   CalendarClock,
   CheckCircle2,
   ClipboardCheck,
+  Database,
+  Eye,
   Globe2,
   MessageSquareText,
   MousePointerClick,
@@ -25,58 +28,58 @@ import { createSeoMetadata } from "@/lib/seo-metadata";
 export const revalidate = 86400;
 
 export const metadata = createSeoMetadata({
-  title: "The LeadFlow Pro - Business Funnel, AI Follow-Up, and Growth Systems",
+  title: "The LeadFlow Pro - Leads, Data, Automation, and AI Tools",
   description:
-    "The LeadFlow Pro helps owner-led businesses capture leads, route follow-up, read the data, and move through automated purchase and message paths.",
+    "The LeadFlow Pro helps owner-led businesses turn sites, calls, DMs, ads, social content, and analytics into clearer lead flow, automation, and buyer action.",
   path: "/",
   imageTitle: "The LeadFlow Pro",
-  imageSubtitle: "A clearer lead funnel for owner-led businesses.",
+  imageSubtitle: "A business growth machine for leads, data, automation, and AI tools.",
 });
 
 const BEST_DEMOS = [
   {
-    title: "Stump Ryan Blueprint",
-    body: "Submit the lead leak or dream tool and get a free 1-3 page build plan before paid work.",
-    href: "/stump-ryan",
-    cta: "Start blueprint",
-    Icon: Sparkles,
+    title: "Growth Machine Menu",
+    body: "Pick a small buy, paid audit, public signal, automation path, or bigger build without wandering the whole site.",
+    href: "/action-menu",
+    cta: "Open menu",
+    Icon: MousePointerClick,
   },
   {
-    title: "Lead Leak Audit",
-    body: "Find where calls, clicks, forms, DMs, and follow-up are turning into lost money.",
-    href: "/lead-leak-audit",
-    cta: "Run audit",
-    Icon: Route,
+    title: "$197 Lead Leak Audit",
+    body: "Put in the website, calls, forms, DMs, ads, booking, and follow-up path. Get the leak readout.",
+    href: "/lead-leak-audit-197",
+    cta: "Apply for audit",
+    Icon: ClipboardCheck,
   },
   {
-    title: "Missed Call Machine",
-    body: "Turn phone leaks into instant text-back, tracking, and follow-up tasks.",
-    href: "/dashboard/leads/missed-call",
-    cta: "See the system",
-    Icon: PhoneCall,
-  },
-  {
-    title: "Live Pulse Dashboard",
-    body: "Read visitors, sources, share-backs, clicks, and movement without guessing.",
+    title: "Pulse Analytics",
+    body: "See views, clicks, questions, source paths, and buying signals instead of guessing what happened.",
     href: "/pulse",
     cta: "Open pulse",
-    Icon: Radar,
+    Icon: BarChart3,
+  },
+  {
+    title: "Automation Blueprint",
+    body: "Submit the lead leak or dream tool and get a free first build plan before paid work.",
+    href: "/stump-ryan",
+    cta: "Start blueprint",
+    Icon: Bot,
   },
 ];
 
 const ROUTES = [
+  { label: "Growth Machine Menu", href: "/action-menu", body: "Pick a micro-buy, paid audit, public loop, blueprint, or monthly system." },
+  { label: "$197 Lead Leak Audit", href: "/lead-leak-audit-197", body: "Find the first serious leak before spending more on traffic." },
   { label: "Stump Ryan Blueprint", href: "/stump-ryan", body: "Get the free leak + dream-tool build plan first." },
-  { label: "Free Lead Leak Audit", href: "/lead-leak-audit", body: "Find the first money leak without buying ads." },
-  { label: "Organic Growth Plan", href: "/organic-growth", body: "See the no-ads distribution system." },
+  { label: "Pulse Analytics", href: "/pulse", body: "See views, clicks, questions, source paths, and buyer signals." },
   { label: "Proof", href: "/proof", body: "Receipts, tools, tracking, and examples." },
-  { label: "Social Media", href: "/services", body: "Done-for-you platform growth." },
-  { label: "Consulting", href: "/services/consulting", body: "Operator help, audits, decisions." },
+  { label: "Services", href: "/services", body: "Built paths for content, ads, websites, tools, and automation." },
 ];
 
 const ATTENTION_MECHANISMS = [
   {
     title: "Micro-purchase entry points",
-    body: "$47 quick looks, $197 audits, leaderboard votes, boost messages, and build deposits give serious buyers a low-friction way to move now.",
+    body: "$47 quick looks, $90 sprints, $197 audits, leaderboard votes, boost messages, and build deposits give serious buyers a low-friction way to move now.",
     href: "/action-menu",
     cta: "Open buy menu",
     Icon: MousePointerClick,
@@ -97,10 +100,61 @@ const ATTENTION_MECHANISMS = [
   },
   {
     title: "Owner visibility",
-    body: "Forms, UTMs, pulse events, and admin queues keep the lead path visible so Ryan can see what came in and what needs the next move.",
+    body: "Forms, UTMs, pulse events, chat memory, and admin queues keep the lead path visible so the business can see what came in and what needs the next move.",
     href: "/pulse",
     cta: "View pulse",
     Icon: Radar,
+  },
+];
+
+const MACHINE_OUTPUTS = [
+  {
+    label: "Lead leak data",
+    input: "Website, forms, calls, DMs, ads, booking, and follow-up",
+    output: "Top leaks, urgency ranking, and the next practical fix",
+    href: "/lead-leak-audit-197",
+    cta: "Start $197 audit",
+    Icon: ClipboardCheck,
+  },
+  {
+    label: "Engagement readout",
+    input: "Social profiles, content, hooks, proof, comments, and shares",
+    output: "What is getting attention, what is not, and what Ryan would fix first",
+    href: "/offers/quick-look",
+    cta: "Buy $47 Quick-Look",
+    Icon: Eye,
+  },
+  {
+    label: "Automation blueprint",
+    input: "Repeated task, tool idea, customer path, platform, and ownership needs",
+    output: "Free first build plan, then optional $250 continuation into the first useful version",
+    href: "/stump-ryan",
+    cta: "Get blueprint",
+    Icon: Bot,
+  },
+  {
+    label: "Live pulse analytics",
+    input: "Page views, clicks, chat questions, CTAs, UTMs, and source paths",
+    output: "Traffic score, buy-readiness signal, and proof of what people are doing",
+    href: "/pulse",
+    cta: "View pulse",
+    Icon: Database,
+  },
+  {
+    label: "Public attention loop",
+    input: "Votes, boosts, local boards, topics, and shareable proof",
+    output: "A reason for people to click, share, revisit, and move a visible signal",
+    href: "/leaderboard",
+    cta: "Open loop",
+    Icon: Trophy,
+  },
+  {
+    label: "Bigger build path",
+    input: "Offer, data, workflow, accounts, assets, and business goal",
+    output: "Website, dashboard, AI assistant, funnel, automation, or client-owned tool",
+    href: "/action-menu",
+    cta: "Open machine",
+    Icon: Zap,
   },
 ];
 
@@ -147,7 +201,7 @@ const DAILY_BUILD_DROPS = [
     audience: "Coaches, gyms, consultants, real estate, legal support",
     title: "A quiz that tells the buyer what package fits them.",
     build: "Short quiz, result screen, email capture, and recommended offer.",
-    hook: "Feels personal without forcing a sales call first.",
+    hook: "Feels personal without forcing a conversation first.",
     Icon: Route,
   },
   {
@@ -231,6 +285,7 @@ export default function HomePage() {
 
       <main>
         <Hero />
+        <MachineSection />
         <BuildDropSection dailyDrop={buildDrop} weeklyOffer={weeklyOffer} />
         <CommandGlobeSection />
         <BestDemoSection />
@@ -263,25 +318,31 @@ function Hero() {
             The LeadFlow Pro
           </div>
           <h1 className="mt-5 max-w-full break-words text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-            Stump Ryan with the business tool you wish existed. Get the free build blueprint first.
+            Put business data in. Get leads, automation, analytics, and the next move out.
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-slate-200 sm:text-lg">
-            Show the leak, the repeated task, or the app idea. Ryan maps the first useful version,
-            where it should live, what you own, and what the $250 continuation would unlock.
+            The LeadFlow Pro is a growth machine for owners who want more lead flow, more useful
+            engagement, clearer analytics, better follow-up, and AI tools that turn scattered
+            business information into action.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link
-              href="/stump-ryan"
+              href="/action-menu"
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-accent-500/20 hover:bg-accent-400"
             >
-              Get free blueprint <ArrowRight className="h-4 w-4" />
+              Open the growth machine <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/lead-leak-audit"
+              href="/lead-leak-audit-197"
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur hover:bg-white/15"
             >
-              Run leak audit <CalendarClock className="h-4 w-4" />
+              Start $197 audit <CalendarClock className="h-4 w-4" />
             </Link>
+          </div>
+          <div className="mt-5 grid max-w-4xl gap-3 text-sm sm:grid-cols-3">
+            <HeroInput label="Put in" value="Website, ads, calls, DMs, socials, analytics, offer, or tool idea" />
+            <HeroInput label="Get out" value="Readout, audit, automation, dashboard, blueprint, or build path" />
+            <HeroInput label="Buy level" value="$1 public loops, $47 reads, $197 audits, $250 builds, monthly systems" />
           </div>
           <div className="mt-5 rounded-2xl border border-cyan-300/20 bg-slate-950/78 p-3 shadow-2xl shadow-slate-950/35 sm:hidden">
             <div className="mb-3 flex items-center justify-between gap-3">
@@ -343,6 +404,117 @@ function Hero() {
         </div>
       </div>
     </section>
+  );
+}
+
+function HeroInput({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-cyan-200/20 bg-white/[0.07] p-3 backdrop-blur">
+      <div className="text-[0.68rem] font-black uppercase tracking-widest text-cyan-100">
+        {label}
+      </div>
+      <p className="mt-1 text-sm font-semibold leading-5 text-slate-100">{value}</p>
+    </div>
+  );
+}
+
+function MachineSection() {
+  return (
+    <section className="border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#eef9ff_52%,#fff8f1_100%)]">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[0.78fr_1.22fr] lg:px-8 lg:py-16">
+        <div className="flex flex-col justify-center">
+          <div className="inline-flex w-fit items-center gap-2 rounded-md border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-800">
+            <Database className="h-3.5 w-3.5" />
+            Growth machine
+          </div>
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+            A vending machine for data, lead flow, automation, and AI tools.
+          </h2>
+          <p className="mt-4 text-base leading-7 text-slate-700">
+            Put in the business problem. Pick the output. Get a readout, public signal,
+            automation plan, dashboard path, or client-owned build instead of waiting on a long
+            sales process.
+          </p>
+
+          <div className="mt-6 grid gap-3">
+            <MachineRail
+              label="What goes in"
+              value="Website, offer, social handles, ad path, missed calls, DMs, forms, analytics, repeated tasks, or the tool idea."
+            />
+            <MachineRail
+              label="What comes out"
+              value="Leak readout, quick-look video, blueprint, dashboard, automation, public loop, owned build, or next practical move."
+            />
+            <MachineRail
+              label="Internal brain"
+              value="The Signal Warehouse connects site events, forms, UTMs, chat questions, and offer clicks so every build learns from the last one."
+            />
+          </div>
+
+          <p className="mt-5 text-sm leading-6 text-slate-600">
+            No guaranteed leads, sales, revenue, ROAS, rankings, follower growth, or ad approval.
+            The site sells useful outputs and clearer decisions.
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          {MACHINE_OUTPUTS.map((item) => {
+            const Icon = item.Icon;
+
+            return (
+              <div
+                key={item.label}
+                className="flex min-h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/70"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-cyan-100">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-[0.66rem] font-black uppercase tracking-widest text-cyan-800">
+                    Output
+                  </div>
+                </div>
+                <h3 className="mt-4 text-lg font-black tracking-tight text-slate-950">
+                  {item.label}
+                </h3>
+                <div className="mt-4 grid gap-3 text-sm leading-6">
+                  <MachineCardField label="Put in" value={item.input} />
+                  <MachineCardField label="Get out" value={item.output} />
+                </div>
+                <Link
+                  href={item.href}
+                  className="mt-auto inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
+                >
+                  {item.cta} <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MachineRail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white/85 p-4 shadow-sm">
+      <div className="text-[0.68rem] font-black uppercase tracking-widest text-cyan-800">
+        {label}
+      </div>
+      <p className="mt-2 text-sm font-semibold leading-6 text-slate-800">{value}</p>
+    </div>
+  );
+}
+
+function MachineCardField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <div className="text-[0.65rem] font-black uppercase tracking-widest text-slate-400">
+        {label}
+      </div>
+      <p className="mt-1 text-sm font-semibold leading-6 text-slate-700">{value}</p>
+    </div>
   );
 }
 
@@ -469,10 +641,10 @@ function BuildDropSection({
                 Stump Ryan free <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/lead-leak-audit"
+                href="/lead-leak-audit-197"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/15"
               >
-                Audit lead leaks
+                Start paid audit
               </Link>
             </div>
           </div>

@@ -8,6 +8,8 @@ export type ActionMenuKind =
   | "boost"
   | "voice"
   | "blueprint"
+  | "power-bundle"
+  | "operator"
   | "message";
 
 export type ActionMenuItem = {
@@ -131,6 +133,36 @@ export const ACTION_MENU_ITEMS: ActionMenuItem[] = [
     secondaryHref: "/proof",
     secondaryLabel: "See shipped builds",
     badge: "Build path",
+  },
+  {
+    kind: "power-bundle",
+    label: "Macro purchase",
+    title: "Power Bundle",
+    price: "$1,497/mo",
+    speed: "Monthly system",
+    buyer: "Owner who wants the social, proof, posting, and reporting machine running without managing every platform by hand.",
+    result: "A monthly content and attention system tied back to lead flow, proof assets, and the next business action.",
+    mechanism: "Moves qualified buyers from one-off reads into a managed growth system with clear monthly output.",
+    href: STRIPE_PAYMENT_LINKS["power-bundle"] || "/offers/power-bundle",
+    primaryLabel: "Start Power Bundle",
+    secondaryHref: "/offers/power-bundle",
+    secondaryLabel: "Read bundle details",
+    badge: "Monthly stack",
+  },
+  {
+    kind: "operator",
+    label: "Big build path",
+    title: "Monthly Operator",
+    price: "$4,997/mo",
+    speed: "Done with you",
+    buyer: "Serious business that needs Ryan helping shape the funnel, analytics, automation, AI tools, and owner visibility layer.",
+    result: "A higher-touch operating system for lead flow, dashboards, campaigns, automations, and useful internal tools.",
+    mechanism: "Turns scattered business activity into a working machine Ryan can help improve month after month.",
+    href: STRIPE_PAYMENT_LINKS["monthly-operator"] || "/offers/monthly-operator",
+    primaryLabel: "Start Monthly Operator",
+    secondaryHref: "/offers/monthly-operator",
+    secondaryLabel: "Read operator details",
+    badge: "Macro system",
   },
   {
     kind: "message",

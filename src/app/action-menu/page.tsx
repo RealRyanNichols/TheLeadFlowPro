@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
+  BarChart3,
   ClipboardCheck,
   Eye,
   Gauge,
@@ -20,12 +21,12 @@ import { createSeoMetadata } from "@/lib/seo-metadata";
 export const revalidate = 300;
 
 export const metadata = createSeoMetadata({
-  title: "Buy Menu | The LeadFlow Pro",
+  title: "Growth Machine Menu | The LeadFlow Pro",
   description:
-    "Pick the fastest next move with Ryan Nichols: $47 Quick-Look, $90 Sprint, $197 Lead Leak Audit, public leaderboard votes, ticker boosts, Voice topics, or custom build blueprint.",
+    "Pick the fastest next move with Ryan Nichols: quick reads, paid audits, public attention loops, automation blueprints, and monthly growth systems.",
   path: "/action-menu",
-  imageTitle: "The LeadFlow Pro Buy Menu",
-  imageSubtitle: "Micro-purchases, public loops, audits, and custom build paths in one place.",
+  imageTitle: "The LeadFlow Pro Growth Machine",
+  imageSubtitle: "Micro-purchases, public loops, audits, automation blueprints, and monthly systems.",
 });
 
 const ICONS: Record<ActionMenuKind, LucideIcon> = {
@@ -36,6 +37,8 @@ const ICONS: Record<ActionMenuKind, LucideIcon> = {
   boost: Megaphone,
   voice: ThumbsUp,
   blueprint: Sparkles,
+  "power-bundle": BarChart3,
+  operator: Zap,
   message: MessageSquareText,
 };
 
@@ -48,7 +51,7 @@ const MECHANISM_LADDER = [
   {
     label: "Signal",
     title: "Turn the click into a choice.",
-    body: "Every path asks for money, business context, a public vote, a booking, or a blueprint request.",
+    body: "Every path asks for money, business context, a public vote, a message, or a blueprint request.",
   },
   {
     label: "Delivery",
@@ -58,7 +61,7 @@ const MECHANISM_LADDER = [
   {
     label: "Upsell",
     title: "Route serious buyers to the bigger move.",
-    body: "The small purchase creates trust, then points to audit, custom build, consulting, social, or operator work.",
+    body: "The small purchase creates trust, then points to the audit, custom build, Power Bundle, or Monthly Operator path.",
   },
 ];
 
@@ -99,12 +102,12 @@ export default function ActionMenuPage() {
                 Pick a move
               </div>
               <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-                Do not wander the site. Pick the action that fits where you are.
+                Put in the business signal. Pick the output you want next.
               </h1>
               <p className="mt-5 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
-                The LeadFlow Pro is built around small useful moves that create momentum: buy a
-                quick read, apply for the audit, move a public board, boost a message, vote on a
-                topic, or ask Ryan to map the tool you wish existed.
+                This is the growth machine menu. Buy a quick read, apply for the audit, move a
+                public board, boost a message, vote on a topic, map a tool, or step into a monthly
+                operating system.
               </p>
               <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-400">
                 No guaranteed leads, sales, revenue, ROAS, followers, or ad approval. Each purchase
@@ -115,18 +118,18 @@ export default function ActionMenuPage() {
             <div className="rounded-3xl border border-white/10 bg-white/[0.055] p-4 shadow-2xl shadow-slate-950/30 sm:p-5">
               <div className="grid gap-3 sm:grid-cols-2">
                 <HeroMetric label="Fastest buy" value="$47" body="Quick-Look video" />
-                <HeroMetric label="Paid ad path" value="$197" body="Lead Leak Audit" />
-                <HeroMetric label="Public loop" value="$1+" body="Rank or Voice vote" />
-                <HeroMetric label="Custom build" value="$250" body="Continuation deposit after blueprint" />
+                <HeroMetric label="Paid audit" value="$197" body="Lead Leak Audit" />
+                <HeroMetric label="First build" value="$250" body="Continuation deposit after blueprint" />
+                <HeroMetric label="Macro system" value="$1,497+" body="Monthly growth path" />
               </div>
               <div className="mt-4 rounded-2xl border border-accent-300/25 bg-accent-300/10 p-4">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-100">
                   <Zap className="h-4 w-4" />
-                  What this page is for
+                  What this page is
                 </div>
                 <p className="mt-2 text-sm font-semibold leading-6 text-white">
-                  A visitor should land here and know exactly how to spend, engage, share, or ask
-                  for the next useful thing.
+                  A vending machine for attention, analytics, lead flow, automation, AI tools, and
+                  next-step business output.
                 </p>
               </div>
             </div>
