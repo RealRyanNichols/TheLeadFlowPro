@@ -316,14 +316,14 @@ export default function PaidLeadLeakAuditPage({
                   Proof Ryan ships
                 </div>
                 <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
-                  Three live builds. Three different problems solved.
+                  Four live builds. Four different problems solved.
                 </h2>
                 <p className="mt-3 text-sm leading-6 text-slate-700">
                   The audit is not theory. Ryan has built and deployed real systems for funnel flow,
-                  public data organization, and trust-heavy niche positioning.
+                  public data organization, trust-heavy niche positioning, and founder-led service intake.
                 </p>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 {BUILT_PROJECTS.map((project) => (
                   <BuiltProjectCard
                     key={project.name}

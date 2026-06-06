@@ -13,6 +13,7 @@ import {
   Route,
   Sparkles,
   Target,
+  Trophy,
   Zap,
 } from "lucide-react";
 import { LightFooter, LightHeader } from "@/components/site/LightHeader";
@@ -70,6 +71,37 @@ const ROUTES = [
   { label: "Proof", href: "/proof", body: "Receipts, tools, tracking, and examples." },
   { label: "Social Media", href: "/services", body: "Done-for-you platform growth." },
   { label: "Consulting", href: "/services/consulting", body: "Operator help, audits, decisions." },
+];
+
+const ATTENTION_MECHANISMS = [
+  {
+    title: "Micro-purchase entry points",
+    body: "$47 quick looks, $197 audits, leaderboard votes, boost messages, and build deposits give serious buyers a low-friction way to move now.",
+    href: "/tiers",
+    cta: "See entry points",
+    Icon: MousePointerClick,
+  },
+  {
+    title: "Share loops",
+    body: "Leaderboards, public proof cards, live pulse signals, badges, and build examples create reasons for visitors to come back and send someone else.",
+    href: "/leaderboard",
+    cta: "Open the loop",
+    Icon: Trophy,
+  },
+  {
+    title: "Skip-the-line paths",
+    body: "Fast buyers can book, apply, pay, boost, or request a blueprint without waiting for a long sales conversation.",
+    href: "/lead-leak-audit-197",
+    cta: "Start paid audit",
+    Icon: Zap,
+  },
+  {
+    title: "Owner visibility",
+    body: "Forms, UTMs, pulse events, and admin queues keep the lead path visible so Ryan can see what came in and what needs the next move.",
+    href: "/pulse",
+    cta: "View pulse",
+    Icon: Radar,
+  },
 ];
 
 const GLOBE_NODES = [
@@ -202,6 +234,7 @@ export default function HomePage() {
         <BuildDropSection dailyDrop={buildDrop} weeklyOffer={weeklyOffer} />
         <CommandGlobeSection />
         <BestDemoSection />
+        <AttentionMechanismSection />
         <LeadFunnelSection />
         <RouteSection />
       </main>
@@ -213,7 +246,13 @@ export default function HomePage() {
 
 function Hero() {
   return (
-    <section className="relative isolate min-h-[calc(100svh-112px)] overflow-hidden bg-slate-950 text-white">
+    <section
+      className="relative isolate min-h-[calc(100svh-112px)] overflow-hidden bg-slate-950 text-white"
+      style={{
+        background:
+          "radial-gradient(circle at 20% 12%, rgba(35,184,255,0.28), transparent 30%), radial-gradient(circle at 85% 22%, rgba(255,154,31,0.2), transparent 32%), #020617",
+      }}
+    >
       <HeroBuildBackdrop />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.94)_0%,rgba(2,6,23,0.82)_45%,rgba(2,6,23,0.72)_100%)] sm:bg-[linear-gradient(90deg,rgba(2,6,23,0.98)_0%,rgba(2,6,23,0.86)_48%,rgba(2,6,23,0.48)_100%)]" />
 
@@ -244,7 +283,7 @@ function Hero() {
               Run leak audit <CalendarClock className="h-4 w-4" />
             </Link>
           </div>
-          <div className="mt-5 rounded-2xl border border-cyan-300/15 bg-slate-950/72 p-3 shadow-2xl shadow-slate-950/35 sm:hidden">
+          <div className="mt-5 rounded-2xl border border-cyan-300/20 bg-slate-950/78 p-3 shadow-2xl shadow-slate-950/35 sm:hidden">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <div className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-cyan-100">
@@ -273,19 +312,32 @@ function Hero() {
               ))}
             </div>
           </div>
-          <div className="mt-6 hidden max-w-4xl border-l border-cyan-300/35 pl-4 sm:block">
-            <div className="text-xs font-semibold uppercase tracking-widest text-cyan-100">
-              Proof Ryan ships real sites
+          <div className="mt-7 hidden max-w-6xl rounded-3xl border border-cyan-200/15 bg-slate-950/58 p-4 shadow-2xl shadow-slate-950/35 backdrop-blur sm:block">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-widest text-cyan-100">
+                  Proof Ryan ships real sites
+                </div>
+                <p className="mt-1 text-sm leading-6 text-slate-300">
+                  Four live builds. Four different problems solved.
+                </p>
+              </div>
+              <Link
+                href="/proof"
+                className="inline-flex w-fit items-center gap-1 rounded-full border border-cyan-200/25 bg-cyan-200/10 px-3 py-1.5 text-[0.7rem] font-black uppercase tracking-widest text-cyan-100 hover:bg-cyan-200/15"
+              >
+                Full proof <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
-            <div className="mt-3 grid gap-2 text-sm text-slate-200 md:grid-cols-3">
+            <div className="mt-4 grid gap-3 text-sm text-slate-200 md:grid-cols-2 xl:grid-cols-4">
               {BUILT_PROJECTS.map((project) => (
                 <BuiltProjectCard key={project.name} project={project} variant="dark" density="compact" />
               ))}
             </div>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
-              Premier Dental Academy of Longview, RepWatchr, and Faretta.legal are live builds Ryan
-              coded and deployed to solve different problems: local offer clarity, data organization,
-              and niche trust.
+              Premier Dental Academy of Longview, RepWatchr, Faretta.legal, and RealRyanNichols.com
+              are live builds Ryan coded and deployed to solve different problems: local offer
+              clarity, data organization, niche trust, and founder-led service intake.
             </p>
           </div>
         </div>
@@ -609,6 +661,56 @@ function BestDemoSection() {
               </div>
             </Link>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AttentionMechanismSection() {
+  return (
+    <section className="relative overflow-hidden border-b border-slate-200 bg-slate-950 text-white">
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 15% 20%, rgba(35,184,255,0.18), transparent 28%), radial-gradient(circle at 86% 8%, rgba(255,154,31,0.18), transparent 30%)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-end">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-md border border-accent-300/35 bg-accent-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent-100">
+              <Zap className="h-3.5 w-3.5" />
+              Attention into action
+            </div>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+              The site should not just explain. It should make people click, share, pay, and come back.
+            </h2>
+            <p className="mt-4 text-base leading-7 text-slate-300">
+              The operating idea is simple: show a useful thing, collect the signal, offer a small
+              paid next step, then route serious buyers into audit, build, consulting, or community
+              mechanics.
+            </p>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            {ATTENTION_MECHANISMS.map((item) => (
+              <Link
+                key={item.title}
+                href={item.href}
+                className="group rounded-2xl border border-white/10 bg-white/[0.055] p-5 shadow-xl shadow-slate-950/20 transition hover:-translate-y-0.5 hover:border-cyan-200/40 hover:bg-white/[0.08]"
+              >
+                <item.Icon className="h-6 w-6 text-cyan-200" />
+                <h3 className="mt-4 text-lg font-bold text-white">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{item.body}</p>
+                <div className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-accent-200 group-hover:text-accent-100">
+                  {item.cta} <ArrowRight className="h-4 w-4" />
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </section>

@@ -62,4 +62,26 @@ export const BUILT_PROJECTS = [
       lightBorder: "rgba(168,85,247,0.34)",
     },
   },
+  {
+    name: "RealRyanNichols.com",
+    href: "https://www.RealRyanNichols.com",
+    type: "Investigative research + case-prep platform",
+    logoText: "RRN",
+    logoLabel: "Real Ryan Nichols logo mark",
+    proof:
+      "A public-facing service site built around case review, evidence organization, public-records support, paid service entry points, and trust-heavy personal positioning.",
+    angle:
+      "This shows Ryan can build a founder-led platform where the offer, story, intake, payments, and public proof all work together.",
+    theme: {
+      primary: "#DC2626",
+      secondary: "#F59E0B",
+      logoBackground: "linear-gradient(135deg, #0F172A 0%, #DC2626 54%, #F59E0B 100%)",
+      darkBackground:
+        "linear-gradient(135deg, rgba(220,38,38,0.22) 0%, rgba(15,23,42,0.66) 54%, rgba(245,158,11,0.16) 100%)",
+      lightBackground:
+        "linear-gradient(135deg, rgba(255,247,237,0.98) 0%, rgba(255,255,255,0.98) 48%, rgba(254,242,242,0.98) 100%)",
+      darkBorder: "rgba(248,113,113,0.42)",
+      lightBorder: "rgba(220,38,38,0.28)",
+    },
+  },
 ] as const;

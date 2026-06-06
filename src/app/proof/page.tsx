@@ -123,7 +123,7 @@ export default function ProofPage() {
                 Built, coded, deployed
               </div>
               <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-                Three live projects. Three different proof angles.
+                Four live projects. Four different proof angles.
               </h2>
               <p className="mt-4 text-base leading-7 text-slate-700">
                 This is the real advantage: Ryan is not selling theory. These are live builds that
@@ -131,7 +131,7 @@ export default function ProofPage() {
                 systems.
               </p>
             </div>
-            <div className="mt-8 grid gap-4 lg:grid-cols-3">
+            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {BUILT_PROJECTS.map((project) => (
                 <BuiltProjectCard
                   key={project.name}
