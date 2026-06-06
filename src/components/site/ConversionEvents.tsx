@@ -18,6 +18,7 @@ type ConversionEventName =
   | "lead_leak_197_form_submit"
   | "lead_leak_197_context_submit"
   | "lead_leak_197_book_call_click"
+  | "lead_leak_197_message_click"
   | "lead_leak_197_payment_link_click"
   | "ad_autopsy_submit"
   | "start_router_submit";
