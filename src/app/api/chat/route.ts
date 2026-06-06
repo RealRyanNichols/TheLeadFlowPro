@@ -32,7 +32,7 @@ const SYSTEM_PROMPT = `You are Faretta AI — the live assistant for The LeadFlo
 
 Your job: route visitors in one short reply, then stop. Use one clear CTA in plain English:
   • Find my best option — answer a few questions and get routed to the right offer
-  • Book the call — book the free 10-minute strategy call
+  • Leave a message — send context for the assistant to route or Ryan to review later
   • See pricing — compare the full price ladder
   • Get free blueprint — submit a free build blueprint request
 
@@ -54,7 +54,7 @@ Voice rules:
 - Plain English. Operator-to-operator. No fluff.
 - Default reply is 1 sentence. 2 sentences max. Under 45 words.
 - Do not explain every option. Pick the best next click.
-- Do not show raw URLs, slash routes, or paths like /start, /book, /tiers, or /stump-ryan.
+- Do not show raw URLs, slash routes, or paths like /start, /contact, /tiers, or /stump-ryan.
 - No corporate-speak, no "happy to help!" cheer.
 - Honest about pricing — never invent or hedge.
 - NEVER promise specific outcomes / guarantees.
@@ -62,7 +62,7 @@ Voice rules:
 - Always end serious-buyer replies with one plain CTA label, not a website path.
 - Do not mention memory, returning visitors, or saved context unless they ask.
 
-If they ask about something not above (legal questions, healthcare, etc.), say: "Best to get on the call with Ryan."
+If they ask about something not above (legal questions, healthcare, etc.), say: "Leave a message for Ryan to review later."
 
 If they want to email Ryan: ${LEADFLOW_PUBLIC_EMAIL}.
 
@@ -71,7 +71,7 @@ Keep replies tight. Do not make them read a book.`;
 const CHAT_ACTIONS = {
   blueprint: { label: "Get free blueprint", href: "/stump-ryan" },
   start: { label: "Find my best option", href: "/start" },
-  book: { label: "Book the call", href: "/book" },
+  message: { label: "Leave a message", href: "/contact?source=chat" },
   tiers: { label: "See pricing", href: "/tiers" },
   powerBundle: { label: "See Power Bundle", href: "/offers/power-bundle" },
   fbAds: { label: "See Meta ads offer", href: "/offers/fb-ads" },
@@ -82,7 +82,7 @@ const KNOWN_ROUTE_ACTIONS = [
   CHAT_ACTIONS.fbAds,
   CHAT_ACTIONS.blueprint,
   CHAT_ACTIONS.start,
-  CHAT_ACTIONS.book,
+  CHAT_ACTIONS.message,
   CHAT_ACTIONS.tiers,
 ];
 
@@ -148,7 +148,7 @@ function actionForIntent(latest: string): ChatAction {
     return CHAT_ACTIONS.start;
   }
   if (/(book|call|talk|calendar|meeting|consult)/.test(normalized)) {
-    return CHAT_ACTIONS.book;
+    return CHAT_ACTIONS.message;
   }
 
   return CHAT_ACTIONS.start;
@@ -232,8 +232,8 @@ function routeWithoutAnthropic(messages: Msg[], memory: PublicChatMemory | null)
   if (/(book|call|talk|calendar|meeting|consult)/.test(latest)) {
     return {
       mode: "router",
-      reply: `${remembered}Book the 10-minute fit call. Bring the business, problem, and next decision.`,
-      actions: [CHAT_ACTIONS.book],
+      reply: `${remembered}Leave a message with the business, problem, and next decision. The assistant routes first; Ryan can review later if needed.`,
+      actions: [CHAT_ACTIONS.message],
     };
   }
 
@@ -340,7 +340,7 @@ Use saved memory only if it shortens the answer. Do not ask for name, business, 
   } catch (err) {
     return NextResponse.json({
       ok: false,
-      fallback: `I’m having trouble answering here. Email Ryan at ${LEADFLOW_PUBLIC_EMAIL} or book a call.`,
+      fallback: `I’m having trouble answering here. Leave a message or email Ryan at ${LEADFLOW_PUBLIC_EMAIL}.`,
     });
   }
 
@@ -348,7 +348,7 @@ Use saved memory only if it shortens the answer. Do not ask for name, business, 
     const text = await res.text().catch(() => "");
     return NextResponse.json({
       ok: false,
-      fallback: `I’m having trouble answering here. Email Ryan at ${LEADFLOW_PUBLIC_EMAIL} or book a call.`,
+      fallback: `I’m having trouble answering here. Leave a message or email Ryan at ${LEADFLOW_PUBLIC_EMAIL}.`,
       detail: process.env.NODE_ENV === "development" ? text.slice(0, 200) : undefined,
     });
   }
@@ -361,7 +361,7 @@ Use saved memory only if it shortens the answer. Do not ask for name, business, 
   if (!reply) {
     return NextResponse.json({
       ok: false,
-      fallback: `I’m having trouble answering here. Email Ryan at ${LEADFLOW_PUBLIC_EMAIL} or book a call.`,
+      fallback: `I’m having trouble answering here. Leave a message or email Ryan at ${LEADFLOW_PUBLIC_EMAIL}.`,
     });
   }
 

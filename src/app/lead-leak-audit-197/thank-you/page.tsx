@@ -1,9 +1,9 @@
 import {
   ArrowRight,
-  CalendarCheck,
   CheckCircle2,
   ClipboardCheck,
   Link2,
+  MessageSquareText,
   ShieldCheck,
 } from "lucide-react";
 import { ConversionHiddenFields, ConversionLink } from "@/components/site/ConversionEvents";
@@ -33,13 +33,13 @@ export default function PaidAuditThankYouPage({
         activePath="/lead-leak-audit-197"
         hideFreeAuditLink
         primaryAction={{
-          href: "/book?source=lead-leak-audit-197-thank-you",
-          label: "Book the 10-minute fit call",
-          eventName: "lead_leak_197_book_call_click",
-          ctaText: "Book the 10-minute fit call",
+          href: "/contact?source=lead-leak-audit-197-thank-you",
+          label: "Leave a message",
+          eventName: "lead_leak_197_message_click",
+          ctaText: "Leave a message",
           sourcePage: "/lead-leak-audit-197/thank-you",
-          mobileDescription: "Quick fit check.",
-          Icon: CalendarCheck,
+          mobileDescription: "AI first. Ryan later if needed.",
+          Icon: MessageSquareText,
         }}
         secondaryAction={{
           href: "#next-step-context",
@@ -70,13 +70,13 @@ export default function PaidAuditThankYouPage({
               </p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <ConversionLink
-                  href="/book?source=lead-leak-audit-197-thank-you"
-                  eventName="lead_leak_197_book_call_click"
-                  ctaText="Book the 10-minute fit call"
+                  href="/contact?source=lead-leak-audit-197-thank-you"
+                  eventName="lead_leak_197_message_click"
+                  ctaText="Leave a message"
                   sourcePage="/lead-leak-audit-197/thank-you"
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-accent-500/20 hover:bg-accent-400"
                 >
-                  Book the 10-minute fit call <CalendarCheck className="h-4 w-4" />
+                  Leave a message <MessageSquareText className="h-4 w-4" />
                 </ConversionLink>
                 <a
                   href="#next-step-context"
@@ -149,7 +149,7 @@ export default function PaidAuditThankYouPage({
               ) : null}
               {contextError ? (
                 <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold leading-6 text-rose-900">
-                  That context did not save. Try again or book the fit call.
+                  That context did not save. Try again or leave a message.
                 </div>
               ) : null}
               <div className="grid gap-4 sm:grid-cols-2">

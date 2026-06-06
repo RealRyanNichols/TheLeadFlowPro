@@ -5,7 +5,6 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
   Bot,
-  Calendar,
   CheckCircle2,
   Mail,
   MapPin,
@@ -22,10 +21,10 @@ import { createSeoMetadata } from "@/lib/seo-metadata";
 export const metadata = createSeoMetadata({
   title: "Contact Ryan Nichols — The LeadFlow Pro",
   description:
-    "Choose the fastest way to move forward with The LeadFlow Pro: start the router, book the 10-minute call, ask Faretta AI, text, or email Ryan.",
+    "Choose the fastest way to move forward with The LeadFlow Pro: start the router, ask the site assistant, leave a message, text, or email Ryan.",
   path: "/contact",
   imageTitle: "Contact Ryan Nichols",
-  imageSubtitle: "Start the router, book the call, ask the AI, text, or email.",
+  imageSubtitle: "Start the router, ask the AI, leave a message, text, or email.",
 });
 
 const PHONE_DISPLAY = "(903) 345-8990";
@@ -47,11 +46,11 @@ const SHOULD_USE = [
     cta: "Pick my service",
   },
   {
-    Icon: Calendar,
-    title: "Book the 10-minute call",
-    body: "Best if you are a serious buyer and can explain the business, the account, and the stuck decision fast.",
-    href: "/book",
-    cta: "Pick a call window",
+    Icon: MessageSquareText,
+    title: "Leave a message",
+    body: "Best if the assistant cannot finish the route or you need Ryan to review links and context later.",
+    href: "#contact-options",
+    cta: "Open message options",
   },
   {
     Icon: Mail,
@@ -100,13 +99,13 @@ export default function ContactPage() {
                 </span>
               </h1>
               <p className="mt-4 text-base leading-relaxed text-slate-700 sm:text-lg">
-                If you are ready to move, use the router or book the call. If you need an answer
-                before you choose, ask Faretta AI. If there is context I need to see, text or email
-                it cleanly.
+                If you are ready to move, use the router or buy from the menu. If you need an
+                answer before you choose, ask the site assistant. If there is context Ryan needs to
+                see later, leave it cleanly.
               </p>
               <div className="mt-5 rounded-2xl border border-cyan-200 bg-white/75 p-4 text-sm leading-relaxed text-slate-700 shadow-sm backdrop-blur">
-                The first goal is simple: figure out whether this is a 10-minute fit check, a lower
-                paid entry, or a bigger 30/60/90-day buildout.
+                The first goal is simple: figure out whether this is a small paid entry, the $197
+                audit, a free blueprint request, or a bigger automated buildout.
               </div>
             </div>
 
@@ -135,10 +134,10 @@ export default function ContactPage() {
                     primary
                   />
                   <QuickLink
-                    href="/book"
-                    Icon={Calendar}
-                    label="Book the 10-min call"
-                    body="A fit check for serious buyers. No long free coaching."
+                    href="#contact-options"
+                    Icon={MessageSquareText}
+                    label="Leave a message"
+                    body="AI routes first. Ryan reviews later if the message needs a person."
                     accent
                   />
                   <OpenChatButton className="group flex min-h-[112px] flex-col rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-50">
@@ -166,7 +165,7 @@ export default function ContactPage() {
                     href={`tel:${PHONE_HREF}`}
                     Icon={Phone}
                     label="Call Ryan"
-                    body="Use sparingly. The 10-minute call is the cleaner lane."
+                    body="Use sparingly. The automated paths keep everything cleaner."
                   />
                 </div>
               </div>
@@ -224,8 +223,8 @@ export default function ContactPage() {
               Ready means ready to choose.
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-slate-300">
-              Start with the router if you want the cleanest path. Book the call if you already know
-              this deserves Ryan's time.
+              Start with the router if you want the cleanest path. Use the message lane if the
+              assistant needs Ryan to review the context later.
             </p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
@@ -235,10 +234,10 @@ export default function ContactPage() {
                 Pick my service <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/book"
+                href="/contact?source=final-message"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur hover:bg-white/15"
               >
-                Book the 10-min call
+                Leave a message
               </Link>
             </div>
           </div>

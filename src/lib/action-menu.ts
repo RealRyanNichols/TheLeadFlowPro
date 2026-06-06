@@ -8,7 +8,7 @@ export type ActionMenuKind =
   | "boost"
   | "voice"
   | "blueprint"
-  | "call";
+  | "message";
 
 export type ActionMenuItem = {
   kind: ActionMenuKind;
@@ -133,19 +133,18 @@ export const ACTION_MENU_ITEMS: ActionMenuItem[] = [
     badge: "Build path",
   },
   {
-    kind: "call",
-    label: "Human handoff",
-    title: "10-Minute Fit Call",
+    kind: "message",
+    label: "Message handoff",
+    title: "Leave a Message",
     price: "Free",
-    speed: "Short call",
-    buyer: "Serious buyer who knows they need help and wants Ryan to confirm the correct path.",
-    result: "A fast fit check that routes into audit, build, consulting, social, or no-go.",
-    mechanism: "Keeps ready buyers from wandering through pages when they already know they need a person.",
-    href: "/book?source=action-menu",
-    primaryLabel: "Book the fit call",
+    speed: "AI first",
+    buyer: "Serious buyer who has context, links, or a question that should not wait on Ryan's calendar.",
+    result: "The site assistant routes the next step. Ryan can review the message later if it needs a human response.",
+    mechanism: "Keeps the site automated while still giving qualified buyers a place to leave useful context.",
+    href: "/contact?source=action-menu",
+    primaryLabel: "Leave a message",
     secondaryHref: "/contact",
-    secondaryLabel: "Contact instead",
-    badge: "Fit check",
+    secondaryLabel: "Open contact",
+    badge: "AI handoff",
   },
 ];
-

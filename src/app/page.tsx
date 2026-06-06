@@ -27,7 +27,7 @@ export const revalidate = 86400;
 export const metadata = createSeoMetadata({
   title: "The LeadFlow Pro - Business Funnel, AI Follow-Up, and Growth Systems",
   description:
-    "The LeadFlow Pro helps owner-led businesses capture leads, route follow-up, read the data, and book the next move with Ryan Nichols.",
+    "The LeadFlow Pro helps owner-led businesses capture leads, route follow-up, read the data, and move through automated purchase and message paths.",
   path: "/",
   imageTitle: "The LeadFlow Pro",
   imageSubtitle: "A clearer lead funnel for owner-led businesses.",
@@ -90,7 +90,7 @@ const ATTENTION_MECHANISMS = [
   },
   {
     title: "Skip-the-line paths",
-    body: "Fast buyers can book, apply, pay, boost, or request a blueprint without waiting for a long sales conversation.",
+    body: "Fast buyers can buy, apply, pay, boost, or request a blueprint without waiting for a long sales conversation.",
     href: "/lead-leak-audit-197",
     cta: "Start paid audit",
     Icon: Zap,
@@ -161,7 +161,7 @@ const DAILY_BUILD_DROPS = [
   {
     label: "Before/After Builder",
     audience: "Beauty, fitness, home services, creative services",
-    title: "A visual proof page that turns results into booked calls.",
+    title: "A visual proof page that turns results into buyer action.",
     build: "Gallery, proof blocks, story captions, and CTA routing.",
     hook: "Lets prospects see themselves in the result.",
     Icon: Sparkles,
@@ -595,7 +595,7 @@ function CommandGlobeSection() {
             <div className="grid gap-3">
               <PipelineStep n="01" title="Lead arrives" body="Call, form, DM, ad click, or referral." />
               <PipelineStep n="02" title="System tags it" body="Source, intent, service fit, urgency." />
-              <PipelineStep n="03" title="Follow-up fires" body="Text, email, task, or calendar path." />
+              <PipelineStep n="03" title="Follow-up fires" body="Text, email, task, checkout, or message path." />
               <PipelineStep n="04" title="Ryan sees the move" body="The dashboard shows what to fix next." />
             </div>
           </div>
@@ -727,14 +727,14 @@ function LeadFunnelSection() {
             The clean funnel
           </div>
           <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-            Leave the info. Pick calendar or router. Move.
+            Leave the info. Let the system route it. Move.
           </h2>
           <p className="mt-4 text-base leading-7 text-slate-700">
             This is the home-page job: collect a real buyer, get the business context, and send
             them to the right next step. No clutter. No maze.
           </p>
           <div className="mt-6 space-y-3">
-            <FunnelPoint title="For fast buyers" body="They can book the 10-minute call immediately." />
+            <FunnelPoint title="For fast buyers" body="They can buy, apply, or leave a message without waiting on a calendar." />
             <FunnelPoint title="For uncertain buyers" body="The router asks enough to place them in the right offer." />
             <FunnelPoint title="For Ryan" body="The intake saves context instead of making every conversation start from zero." />
           </div>
@@ -803,10 +803,10 @@ function LeadFunnelSection() {
               Send and route me <ArrowRight className="h-4 w-4" />
             </button>
             <Link
-              href="/book"
+              href="/contact?source=home-funnel"
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-950 hover:bg-slate-50"
             >
-              Calendar instead
+              Message instead
             </Link>
           </div>
         </form>

@@ -45,7 +45,6 @@ const staticRoutes = [
   "/tools/ad-account-autopsy",
   "/solutions/mortgage",
   "/contact",
-  "/book",
   "/legal",
   "/privacy-policy",
   "/terms",

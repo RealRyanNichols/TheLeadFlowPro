@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, ChevronDown, ClipboardCheck, LogIn, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronDown, ClipboardCheck, LogIn, MessageSquareText, Sparkles } from "lucide-react";
 import {
   isActiveNavItem,
   SITE_FOOTER_NAV,
@@ -50,10 +50,10 @@ export function LightHeader({
     Icon: ClipboardCheck,
   };
   const secondary = secondaryAction ?? {
-    href: "/book",
-    label: "Book call",
-    mobileDescription: "Ten-minute fit check.",
-    Icon: Sparkles,
+    href: "/contact",
+    label: "Leave message",
+    mobileDescription: "AI first. Ryan later if needed.",
+    Icon: MessageSquareText,
   };
 
   return (
@@ -154,7 +154,6 @@ export function LightHeader({
               href: primary.href,
               label: primary.label,
               description: primary.mobileDescription ?? primary.label,
-              Icon: primary.Icon,
               eventName: primary.eventName,
               ctaText: primary.ctaText,
               sourcePage: primary.sourcePage,
@@ -163,7 +162,6 @@ export function LightHeader({
               href: secondary.href,
               label: secondary.label,
               description: secondary.mobileDescription ?? secondary.label,
-              Icon: secondary.Icon,
               eventName: secondary.eventName,
               ctaText: secondary.ctaText,
               sourcePage: secondary.sourcePage,

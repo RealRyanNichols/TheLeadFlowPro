@@ -1,10 +1,10 @@
 import {
   ArrowRight,
   BadgeCheck,
-  CalendarCheck,
   CheckCircle2,
   ClipboardCheck,
   Eye,
+  MessageSquareText,
   ShieldCheck,
   Target,
   XCircle,
@@ -198,13 +198,13 @@ export default function PaidLeadLeakAuditPage({
           mobileDescription: "Send the details first.",
         }}
         secondaryAction={{
-          href: "/book?source=lead-leak-audit-197",
-          label: "Book the 10-minute fit call",
-          eventName: "lead_leak_197_book_call_click",
-          ctaText: "Book the 10-minute fit call",
+          href: "/contact?source=lead-leak-audit-197",
+          label: "Leave a message",
+          eventName: "lead_leak_197_message_click",
+          ctaText: "Leave a message",
           sourcePage: "/lead-leak-audit-197",
-          mobileDescription: "Quick fit check.",
-          Icon: CalendarCheck,
+          mobileDescription: "AI first. Ryan later if needed.",
+          Icon: MessageSquareText,
           muted: true,
         }}
       />
@@ -238,13 +238,13 @@ export default function PaidLeadLeakAuditPage({
                   Apply for the $197 Audit <ArrowRight className="h-4 w-4" />
                 </ConversionAnchor>
                 <ConversionLink
-                  href="/book?source=lead-leak-audit-197"
-                  eventName="lead_leak_197_book_call_click"
-                  ctaText="Book the 10-minute fit call"
+                  href="/contact?source=lead-leak-audit-197"
+                  eventName="lead_leak_197_message_click"
+                  ctaText="Leave a message"
                   sourcePage="/lead-leak-audit-197"
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-900 hover:border-cyan-400"
                 >
-                  Book the 10-minute fit call <CalendarCheck className="h-4 w-4" />
+                  Leave a message <MessageSquareText className="h-4 w-4" />
                 </ConversionLink>
               </div>
               <p className="mt-4 max-w-2xl text-xs leading-5 text-slate-500">
@@ -508,13 +508,13 @@ function CompletionState() {
         the next step for the $197 Lead Leak Audit.
       </p>
       <ConversionLink
-        href="/book?source=lead-leak-audit-197-submitted"
-        eventName="lead_leak_197_book_call_click"
-        ctaText="Book the 10-minute fit call"
+        href="/contact?source=lead-leak-audit-197-submitted"
+        eventName="lead_leak_197_message_click"
+        ctaText="Leave a message"
         sourcePage="/lead-leak-audit-197"
         className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-slate-950 px-6 py-3 text-sm font-bold text-white hover:bg-slate-800"
       >
-        Book the 10-minute fit call <ArrowRight className="h-4 w-4" />
+        Leave a message <ArrowRight className="h-4 w-4" />
       </ConversionLink>
     </div>
   );
@@ -553,7 +553,7 @@ function AuditApplicationForm({ saveError }: { saveError?: boolean }) {
       <ConversionHiddenFields formType="paid_lead_leak_audit_197" sourcePage="/lead-leak-audit-197" />
       {saveError ? (
         <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold leading-6 text-rose-900">
-          The application did not save. Try again or book the 10-minute fit call so Ryan can catch it directly.
+          The application did not save. Try again or leave a message so the assistant can route it.
         </div>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
@@ -580,7 +580,7 @@ function AuditApplicationForm({ saveError }: { saveError?: boolean }) {
         <Select
           label="Are you ready to invest $197 if Ryan confirms fit?"
           name="auditReadiness"
-          options={["Yes, if Ryan confirms fit", "I need one quick fit call first", "Not sure yet"]}
+          options={["Yes, if Ryan confirms fit", "I need one quick message first", "Not sure yet"]}
         />
         <Select label="How soon do you want this reviewed?" name="reviewTimeline" options={TIMELINES} />
       </div>

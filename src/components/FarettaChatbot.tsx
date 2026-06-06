@@ -174,9 +174,9 @@ export function FarettaChatbot() {
             role: "assistant",
             content:
               data.fallback ||
-              `I’m offline. Email ${LEADFLOW_PUBLIC_EMAIL} or book a call.`,
+              `I’m offline. Leave a message or email ${LEADFLOW_PUBLIC_EMAIL}.`,
             actions: [
-              { label: "Book the call", href: "/book" },
+              { label: "Leave message", href: "/contact?source=chat-fallback" },
               { label: "Email Ryan", href: `mailto:${LEADFLOW_PUBLIC_EMAIL}` },
             ],
           },
@@ -187,9 +187,9 @@ export function FarettaChatbot() {
         ...m,
         {
           role: "assistant",
-          content: `Connection hiccup. Email ${LEADFLOW_PUBLIC_EMAIL} or book a call.`,
+          content: `Connection hiccup. Leave a message or email ${LEADFLOW_PUBLIC_EMAIL}.`,
           actions: [
-            { label: "Book the call", href: "/book" },
+            { label: "Leave message", href: "/contact?source=chat-error" },
             { label: "Email Ryan", href: `mailto:${LEADFLOW_PUBLIC_EMAIL}` },
           ],
         },
@@ -305,11 +305,11 @@ export function FarettaChatbot() {
               Blueprint
             </Link>
             <Link
-              href="/book"
-              onClick={() => beaconPulse("chat_cta", "book")}
+              href="/contact?source=chat-quick-cta"
+              onClick={() => beaconPulse("chat_cta", "message")}
               className="flex-1 rounded-lg bg-accent-500 px-2 py-2 text-center text-xs font-semibold text-white hover:bg-accent-600"
             >
-              Call
+              Message
             </Link>
             <Link
               href="/tiers"

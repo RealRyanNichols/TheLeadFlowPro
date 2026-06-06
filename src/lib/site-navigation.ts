@@ -13,7 +13,7 @@ export const SITE_PRIMARY_NAV: SiteNavItem[] = [
   },
   { href: "/stump-ryan", label: "Custom Builds", activePaths: ["/stump-ryan", "/challenge"] },
   { href: "/proof", label: "Build Proof" },
-  { href: "/book", label: "Book Call" },
+  { href: "/contact", label: "Leave Message" },
 ];
 
 export const SITE_MORE_NAV: SiteNavItem[] = [
@@ -22,7 +22,6 @@ export const SITE_MORE_NAV: SiteNavItem[] = [
   { href: "/tools/ad-account-autopsy", label: "Ad Account Check" },
   { href: "/pulse", label: "Live Activity" },
   { href: "/story", label: "Ryan's Story" },
-  { href: "/contact", label: "Contact" },
 ];
 
 export const SITE_MOBILE_NAV: SiteNavItem[] = [
@@ -38,7 +37,7 @@ export const SITE_FOOTER_NAV = {
     { href: "/lead-leak-audit-197", label: "$197 Lead Leak Audit" },
     { href: "/stump-ryan", label: "Custom Build Blueprint" },
     { href: "/proof", label: "Build proof" },
-    { href: "/book", label: "Book call" },
+    { href: "/contact", label: "Leave message" },
   ],
   company: [
     { href: "/tiers", label: "Pricing" },

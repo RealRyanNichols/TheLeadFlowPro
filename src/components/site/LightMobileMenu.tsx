@@ -29,7 +29,6 @@ type MobileFeaturedAction = {
   href: string;
   label: string;
   description: string;
-  Icon?: ComponentType<{ className?: string }>;
   eventName?: string;
   ctaText?: string;
   sourcePage?: string;
@@ -75,16 +74,16 @@ export function LightMobileMenu({
     href: "/lead-leak-audit-197",
     label: "$197 audit",
     description: "Find the leak before more traffic.",
-    Icon: ClipboardCheck,
   };
   const featuredSecondary: MobileFeaturedAction = secondaryAction ?? {
-    href: "/book",
-    label: "Book call",
-    description: "Ten-minute fit check.",
-    Icon: Sparkles,
+    href: "/contact",
+    label: "Leave message",
+    description: "AI first. Ryan later if needed.",
   };
-  const FeaturedPrimaryIcon = featuredPrimary.Icon ?? ClipboardCheck;
-  const FeaturedSecondaryIcon = featuredSecondary.Icon ?? Sparkles;
+  const primaryIconKey = featuredPrimary.href.split(/[?#]/)[0] || featuredPrimary.href;
+  const secondaryIconKey = featuredSecondary.href.split(/[?#]/)[0] || featuredSecondary.href;
+  const FeaturedPrimaryIcon = ICONS[primaryIconKey] ?? ClipboardCheck;
+  const FeaturedSecondaryIcon = ICONS[secondaryIconKey] ?? Sparkles;
   const menuNav = hideFreeAuditLink
     ? nav.filter((item) => item.href !== "/lead-leak-audit")
     : nav;
@@ -200,7 +199,7 @@ export function LightMobileMenu({
               </nav>
 
               <div className="mt-4 rounded-2xl border border-cyan-100 bg-white/55 px-4 py-3 text-xs font-semibold leading-relaxed text-slate-600">
-                Pick the closest path. If the fit is not obvious, book the 10-minute call and Ryan will point you to the right next step.
+                Pick the closest path. If the fit is not obvious, leave a message and the assistant will route the next step.
               </div>
             </div>
           </div>

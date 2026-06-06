@@ -2,11 +2,11 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
-  CalendarCheck,
   ClipboardCheck,
   Eye,
   Gauge,
   Megaphone,
+  MessageSquareText,
   MousePointerClick,
   Sparkles,
   ThumbsUp,
@@ -36,7 +36,7 @@ const ICONS: Record<ActionMenuKind, LucideIcon> = {
   boost: Megaphone,
   voice: ThumbsUp,
   blueprint: Sparkles,
-  call: CalendarCheck,
+  message: MessageSquareText,
 };
 
 const MECHANISM_LADDER = [
@@ -198,7 +198,8 @@ export default function ActionMenuPage() {
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
                 The cheapest serious signal is the $47 Quick-Look. The strongest paid traffic path
-                is the $197 audit. The custom-build path starts with Stump Ryan.
+                is the $197 audit. The custom-build path starts with Stump Ryan. Questions go
+                through the message-first assistant path.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -296,4 +297,3 @@ function InfoBlock({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
