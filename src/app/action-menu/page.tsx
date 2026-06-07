@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
   BarChart3,
+  Bot,
   ClipboardCheck,
   Eye,
   Gauge,
@@ -21,12 +22,12 @@ import { createSeoMetadata } from "@/lib/seo-metadata";
 export const revalidate = 300;
 
 export const metadata = createSeoMetadata({
-  title: "Growth Machine Menu | The LeadFlow Pro",
+  title: "Automated Growth Tools | The LeadFlow Pro",
   description:
-    "Pick the fastest next move with Ryan Nichols: quick reads, paid audits, public attention loops, automation blueprints, and monthly growth systems.",
+    "Self-serve lead-flow, follow-up, content, automation, and analytics tools with free previews and paid document unlocks.",
   path: "/action-menu",
-  imageTitle: "The LeadFlow Pro Growth Machine",
-  imageSubtitle: "Micro-purchases, public loops, audits, automation blueprints, and monthly systems.",
+  imageTitle: "The LeadFlow Pro Automated Growth Tools",
+  imageSubtitle: "Put in business data, get the readout, unlock the documents.",
 });
 
 const ICONS: Record<ActionMenuKind, LucideIcon> = {
@@ -45,23 +46,23 @@ const ICONS: Record<ActionMenuKind, LucideIcon> = {
 const MECHANISM_LADDER = [
   {
     label: "Attention",
-    title: "Give them something to click.",
-    body: "Proof cards, leaderboards, topics, boosts, audits, and build menus make the site feel alive instead of static.",
+    title: "Give them a tool, not a brochure.",
+    body: "The visitor should enter real business data and see a useful readout before anyone asks for a bigger payment.",
   },
   {
     label: "Signal",
-    title: "Turn the click into a choice.",
-    body: "Every path asks for money, business context, a public vote, a message, or a blueprint request.",
+    title: "Turn the input into a score.",
+    body: "Visitors reveal their offer, traffic, leads, response speed, tracking, content, and automation gaps while using the tool.",
   },
   {
     label: "Delivery",
-    title: "Give them something for the spend.",
-    body: "Video notes, working sessions, audit readouts, public rank movement, ticker time, or a build blueprint.",
+    title: "Lock the documents they need.",
+    body: "The free preview proves the value. The full report, scripts, blueprint, dashboard map, or export gets unlocked at the pressure point.",
   },
   {
     label: "Upsell",
-    title: "Route serious buyers to the bigger move.",
-    body: "The small purchase creates trust, then points to the audit, custom build, Power Bundle, or Monthly Operator path.",
+    title: "Let the system route bigger buyers.",
+    body: "Small unlocks can point to deeper reports, automation maps, Growth OS, or dashboard systems without forcing a call.",
   },
 ];
 
@@ -71,16 +72,16 @@ export default function ActionMenuPage() {
       <LightHeader
         activePath="/action-menu"
         primaryAction={{
-          href: "/offers/quick-look",
-          label: "$47 Quick-Look",
-          mobileDescription: "Fastest paid path to Ryan's eyes.",
+          href: "/tools/growth-machine#unlock-47",
+          label: "$47 Snapshot",
+          mobileDescription: "Fastest paid report unlock.",
           Icon: Eye,
         }}
         secondaryAction={{
-          href: "/lead-leak-audit-197#audit-application",
-          label: "$197 Audit",
-          mobileDescription: "Apply for the paid lead leak audit.",
-          Icon: ClipboardCheck,
+          href: "/tools/growth-machine#tool",
+          label: "Run Tool",
+          mobileDescription: "Start with the free machine snapshot.",
+          Icon: Bot,
           muted: true,
         }}
       />
@@ -99,15 +100,15 @@ export default function ActionMenuPage() {
             <div>
               <div className="inline-flex items-center gap-2 rounded-md border border-accent-300/35 bg-accent-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent-100">
                 <MousePointerClick className="h-3.5 w-3.5" />
-                Pick a move
+                Automated tool menu
               </div>
               <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-                Put in the business signal. Pick the output you want next.
+                The site should run even if Ryan is not available.
               </h1>
               <p className="mt-5 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
-                This is the growth machine menu. Buy a quick read, apply for the audit, move a
-                public board, boost a message, vote on a topic, map a tool, or step into a monthly
-                operating system.
+                This menu is shifting to self-serve tools. The user enters business data, gets a
+                useful free preview, then unlocks the report, scripts, automation map, dashboard
+                spec, or export when the missing information matters.
               </p>
               <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-400">
                 No guaranteed leads, sales, revenue, ROAS, followers, or ad approval. Each purchase
@@ -117,10 +118,10 @@ export default function ActionMenuPage() {
 
             <div className="rounded-3xl border border-white/10 bg-white/[0.055] p-4 shadow-2xl shadow-slate-950/30 sm:p-5">
               <div className="grid gap-3 sm:grid-cols-2">
-                <HeroMetric label="Fastest buy" value="$47" body="Quick-Look video" />
-                <HeroMetric label="Paid audit" value="$197" body="Lead Leak Audit" />
-                <HeroMetric label="First build" value="$250" body="Continuation deposit after blueprint" />
-                <HeroMetric label="Macro system" value="$1,497+" body="Monthly growth path" />
+                <HeroMetric label="Free first" value="Score" body="Business data snapshot" />
+                <HeroMetric label="Fast unlock" value="$47" body="Full growth report" />
+                <HeroMetric label="Deep unlock" value="$197" body="Lead leak document" />
+                <HeroMetric label="System path" value="$1,497+" body="Growth OS output" />
               </div>
               <div className="mt-4 rounded-2xl border border-accent-300/25 bg-accent-300/10 p-4">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-accent-100">
@@ -128,8 +129,8 @@ export default function ActionMenuPage() {
                   What this page is
                 </div>
                 <p className="mt-2 text-sm font-semibold leading-6 text-white">
-                  A vending machine for attention, analytics, lead flow, automation, AI tools, and
-                  next-step business output.
+                  A vending machine for lead-flow data, follow-up scripts, automation maps,
+                  dashboards, paid exports, and business memory.
                 </p>
               </div>
             </div>
@@ -140,10 +141,10 @@ export default function ActionMenuPage() {
           <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
             <div className="max-w-3xl">
               <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
-                Action menu
+                Self-serve tools
               </div>
               <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-                Start small, play the loop, or move straight into the serious path.
+                Put information in. Get the useful part out. Unlock the rest when it matters.
               </h2>
             </div>
 
@@ -165,9 +166,9 @@ export default function ActionMenuPage() {
                 A site needs a reason to click before it earns a reason to buy.
               </h2>
               <p className="mt-4 text-base leading-7 text-slate-700">
-                The action menu gives different buyers a different door without making them read the
-                whole site. Some people buy a quick look. Some apply for the audit. Some play the
-                public boards. Some bring Ryan a custom build idea.
+                The page should not depend on a human making videos, explaining the offer, or
+                jumping on calls. It should turn visitor input into a score, a preview, a locked
+                document, and a next purchase path.
               </p>
             </div>
 
@@ -200,23 +201,23 @@ export default function ActionMenuPage() {
                 Pick one move. Do not wait on perfect.
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                The cheapest serious signal is the $47 Quick-Look. The strongest paid traffic path
-                is the $197 audit. The custom-build path starts with Stump Ryan. Questions go
-                through the message-first assistant path.
+                The cheapest serious unlock is the $47 Growth Snapshot. The stronger paid traffic
+                path is the $197 Lead Leak Report. The bigger path is a tool, dashboard, automation,
+                or Growth OS that keeps producing output without a human bottleneck.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/offers/quick-look"
+                href="/tools/growth-machine#tool"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-5 py-3 text-sm font-bold text-slate-950 hover:bg-accent-400"
               >
-                Start with $47 <ArrowRight className="h-4 w-4" />
+                Run free tool <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/lead-leak-audit-197#audit-application"
+                href="/tools/growth-machine#unlock"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/15"
               >
-                Apply for $197 audit
+                See paid unlocks
               </Link>
             </div>
           </div>

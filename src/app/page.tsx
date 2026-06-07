@@ -3,7 +3,6 @@ import {
   ArrowRight,
   BarChart3,
   Bot,
-  CalendarClock,
   CheckCircle2,
   ClipboardCheck,
   Database,
@@ -38,17 +37,17 @@ export const metadata = createSeoMetadata({
 
 const BEST_DEMOS = [
   {
-    title: "Growth Machine Menu",
-    body: "Pick a small buy, paid audit, public signal, automation path, or bigger build without wandering the whole site.",
+    title: "Automated Growth Tools",
+    body: "Enter business data, get the first readout, then unlock reports, scripts, maps, dashboards, and exports.",
     href: "/action-menu",
     cta: "Open menu",
     Icon: MousePointerClick,
   },
   {
-    title: "$197 Lead Leak Audit",
-    body: "Put in the website, calls, forms, DMs, ads, booking, and follow-up path. Get the leak readout.",
-    href: "/lead-leak-audit-197",
-    cta: "Apply for audit",
+    title: "Growth Machine Tool",
+    body: "Put in visitors, leads, response speed, tracking, proof, automation, and offer data. Get the machine score.",
+    href: "/tools/growth-machine",
+    cta: "Run tool",
     Icon: ClipboardCheck,
   },
   {
@@ -60,17 +59,17 @@ const BEST_DEMOS = [
   },
   {
     title: "Automation Blueprint",
-    body: "Submit the lead leak or dream tool and get a free first build plan before paid work.",
-    href: "/stump-ryan",
-    cta: "Start blueprint",
+    body: "Turn a repeated task, customer path, or tool idea into an input-output map and build checklist.",
+    href: "/tools/growth-machine#automation-map",
+    cta: "Open blueprint",
     Icon: Bot,
   },
 ];
 
 const ROUTES = [
-  { label: "Growth Machine Menu", href: "/action-menu", body: "Pick a micro-buy, paid audit, public loop, blueprint, or monthly system." },
-  { label: "$197 Lead Leak Audit", href: "/lead-leak-audit-197", body: "Find the first serious leak before spending more on traffic." },
-  { label: "Stump Ryan Blueprint", href: "/stump-ryan", body: "Get the free leak + dream-tool build plan first." },
+  { label: "Automated Growth Tools", href: "/tools/growth-machine", body: "Run the free snapshot and unlock the document pack when the gap is clear." },
+  { label: "Action Menu", href: "/action-menu", body: "Pick a report, script pack, public loop, automation map, or Growth OS." },
+  { label: "$197 Lead Leak Report", href: "/tools/growth-machine#lead-leak-report", body: "Unlock the deeper leak math, source trail, dashboard fields, and fix order." },
   { label: "Pulse Analytics", href: "/pulse", body: "See views, clicks, questions, source paths, and buyer signals." },
   { label: "Proof", href: "/proof", body: "Receipts, tools, tracking, and examples." },
   { label: "Services", href: "/services", body: "Built paths for content, ads, websites, tools, and automation." },
@@ -79,7 +78,7 @@ const ROUTES = [
 const ATTENTION_MECHANISMS = [
   {
     title: "Micro-purchase entry points",
-    body: "$47 quick looks, $90 sprints, $197 audits, leaderboard votes, boost messages, and build deposits give serious buyers a low-friction way to move now.",
+    body: "$47 reports, $90 script packs, $197 lead-leak documents, leaderboard votes, boost messages, and Growth OS paths give buyers a low-friction way to move now.",
     href: "/action-menu",
     cta: "Open buy menu",
     Icon: MousePointerClick,
@@ -93,9 +92,9 @@ const ATTENTION_MECHANISMS = [
   },
   {
     title: "Skip-the-line paths",
-    body: "Fast buyers can buy, apply, pay, boost, or request a blueprint without waiting for a long sales conversation.",
-    href: "/lead-leak-audit-197",
-    cta: "Start paid audit",
+    body: "Fast buyers can run the tool, pay, unlock, boost, export, or map a blueprint without waiting for a conversation.",
+    href: "/tools/growth-machine#tool",
+    cta: "Run tool",
     Icon: Zap,
   },
   {
@@ -111,25 +110,25 @@ const MACHINE_OUTPUTS = [
   {
     label: "Lead leak data",
     input: "Website, forms, calls, DMs, ads, booking, and follow-up",
-    output: "Top leaks, urgency ranking, and the next practical fix",
-    href: "/lead-leak-audit-197",
-    cta: "Start $197 audit",
+    output: "Free snapshot, locked report, urgency ranking, and next practical fix",
+    href: "/tools/growth-machine#lead-leak-report",
+    cta: "Open report path",
     Icon: ClipboardCheck,
   },
   {
     label: "Engagement readout",
     input: "Social profiles, content, hooks, proof, comments, and shares",
-    output: "What is getting attention, what is not, and what Ryan would fix first",
-    href: "/offers/quick-look",
-    cta: "Buy $47 Quick-Look",
+    output: "What is getting attention, what is not, and what the system flags first",
+    href: "/tools/growth-machine#unlock-47",
+    cta: "Unlock snapshot",
     Icon: Eye,
   },
   {
     label: "Automation blueprint",
     input: "Repeated task, tool idea, customer path, platform, and ownership needs",
-    output: "Free first build plan, then optional $250 continuation into the first useful version",
-    href: "/stump-ryan",
-    cta: "Get blueprint",
+    output: "Input-output map, automation path, handoff checklist, and first useful version",
+    href: "/tools/growth-machine#automation-map",
+    cta: "Open blueprint",
     Icon: Bot,
   },
   {
@@ -152,8 +151,8 @@ const MACHINE_OUTPUTS = [
     label: "Bigger build path",
     input: "Offer, data, workflow, accounts, assets, and business goal",
     output: "Website, dashboard, AI assistant, funnel, automation, or client-owned tool",
-    href: "/action-menu",
-    cta: "Open machine",
+    href: "/tools/growth-machine#growth-os",
+    cta: "Open Growth OS",
     Icon: Zap,
   },
 ];
@@ -327,22 +326,22 @@ function Hero() {
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link
-              href="/action-menu"
+              href="/tools/growth-machine#tool"
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-accent-500/20 hover:bg-accent-400"
             >
-              Open the growth machine <ArrowRight className="h-4 w-4" />
+              Run free snapshot <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/lead-leak-audit-197"
+              href="/action-menu"
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur hover:bg-white/15"
             >
-              Start $197 audit <CalendarClock className="h-4 w-4" />
+              See paid unlocks <MousePointerClick className="h-4 w-4" />
             </Link>
           </div>
           <div className="mt-5 grid max-w-4xl gap-3 text-sm sm:grid-cols-3">
             <HeroInput label="Put in" value="Website, ads, calls, DMs, socials, analytics, offer, or tool idea" />
-            <HeroInput label="Get out" value="Readout, audit, automation, dashboard, blueprint, or build path" />
-            <HeroInput label="Buy level" value="$1 public loops, $47 reads, $197 audits, $250 builds, monthly systems" />
+            <HeroInput label="Get out" value="Snapshot, report, scripts, automation, dashboard map, blueprint, or export" />
+            <HeroInput label="Buy level" value="$1 public loops, $47 reports, $90 kits, $197 documents, monthly systems" />
           </div>
           <div className="mt-5 rounded-2xl border border-cyan-300/20 bg-slate-950/78 p-3 shadow-2xl shadow-slate-950/35 sm:hidden">
             <div className="mb-3 flex items-center justify-between gap-3">
@@ -443,7 +442,7 @@ function MachineSection() {
             />
             <MachineRail
               label="What comes out"
-              value="Leak readout, quick-look video, blueprint, dashboard, automation, public loop, owned build, or next practical move."
+              value="Leak readout, full report, script pack, blueprint, dashboard map, automation path, public loop, or export."
             />
             <MachineRail
               label="Internal brain"
@@ -614,9 +613,9 @@ function BuildDropSection({
             Do not sell "anything." Show them the thing they did not know their business could have.
           </h2>
           <p className="mt-4 text-base leading-7 text-slate-700">
-            The free blueprint makes the $250 decision easier: first show the leak, the tool, the
-            platform path, and the first build block. Then the owner can continue without feeling
-            trapped in a mystery app pitch.
+            The free tool makes the paid unlock easier: first show the leak, the score, the
+            platform path, and the locked document they need next. Then the owner can continue
+            without waiting on a call.
           </p>
 
           <div className="mt-7 rounded-lg border border-slate-200 bg-slate-950 p-5 text-white shadow-xl shadow-slate-200/80">
@@ -635,16 +634,16 @@ function BuildDropSection({
             </div>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/stump-ryan"
+                href="/tools/growth-machine#automation-map"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-5 py-3 text-sm font-bold text-slate-950 hover:bg-accent-400"
               >
-                Stump Ryan free <ArrowRight className="h-4 w-4" />
+                Open blueprint tool <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/lead-leak-audit-197"
+                href="/tools/growth-machine#tool"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/15"
               >
-                Start paid audit
+                Run free snapshot
               </Link>
             </div>
           </div>
@@ -679,8 +678,8 @@ function BuildDropSection({
                 Simple public copy
               </div>
               <p className="mt-2 text-sm font-semibold leading-6 text-slate-800">
-                "Tell me the tool you wish existed. I will map the first useful version free. If
-                you like the blueprint, $250 continues it into the build."
+                "Enter the business problem. Get the first machine readout free. If the locked
+                document is the missing piece, unlock the report, scripts, map, or export."
               </p>
             </div>
           </div>
@@ -722,9 +721,8 @@ function CommandGlobeSection() {
             A business should feel like a control room, not a pile of tabs.
           </h2>
           <p className="mt-4 text-base leading-7 text-slate-300">
-            The homepage demo is built around the idea Ryan keeps asking for: view the business
-            in a globe-style command layer where leads, files, analytics, calls, ads, and follow-up
-            make sense fast.
+            The homepage demo is built around one idea: view the business in a control layer where
+            leads, files, analytics, calls, ads, and follow-up make sense fast.
           </p>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <MiniMetric icon={MousePointerClick} label="Clicks" value="Tracked" />
@@ -768,7 +766,7 @@ function CommandGlobeSection() {
               <PipelineStep n="01" title="Lead arrives" body="Call, form, DM, ad click, or referral." />
               <PipelineStep n="02" title="System tags it" body="Source, intent, service fit, urgency." />
               <PipelineStep n="03" title="Follow-up fires" body="Text, email, task, checkout, or message path." />
-              <PipelineStep n="04" title="Ryan sees the move" body="The dashboard shows what to fix next." />
+              <PipelineStep n="04" title="System shows the move" body="The dashboard shows what to fix next." />
             </div>
           </div>
         </div>
@@ -908,7 +906,7 @@ function LeadFunnelSection() {
           <div className="mt-6 space-y-3">
             <FunnelPoint title="For fast buyers" body="They can buy, apply, or leave a message without waiting on a calendar." />
             <FunnelPoint title="For uncertain buyers" body="The router asks enough to place them in the right offer." />
-            <FunnelPoint title="For Ryan" body="The intake saves context instead of making every conversation start from zero." />
+            <FunnelPoint title="For the system" body="The intake saves context so the next tool starts with what the buyer already entered." />
           </div>
         </div>
 
@@ -928,7 +926,7 @@ function LeadFunnelSection() {
             Start the business review
           </div>
           <h3 className="mt-3 text-2xl font-bold text-slate-950">
-            Send Ryan the lead.
+            Send the machine the signal.
           </h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             This goes into the intake system and routes you to the cleanest next page.
@@ -952,7 +950,7 @@ function LeadFunnelSection() {
               <option value="managed-social">Run my social and content machine</option>
               <option value="ads">Fix or launch my Meta ads</option>
               <option value="audit">Show me what is leaking</option>
-              <option value="operator">Bring Ryan into the business operation</option>
+              <option value="operator">Open the automated Growth OS path</option>
               <option value="one-decision">Unstick one important decision</option>
             </select>
           </label>
