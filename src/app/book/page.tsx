@@ -22,8 +22,8 @@ export default function BookPage() {
         activePath="/contact"
         primaryAction={{
           href: "/action-menu",
-          label: "Open buy menu",
-          mobileDescription: "Pick a paid or free next move.",
+          label: "Open unlocks",
+          mobileDescription: "Pick a report, kit, map, loop, or Growth OS path.",
           Icon: MousePointerClick,
         }}
         secondaryAction={{
@@ -56,7 +56,7 @@ export default function BookPage() {
                   href="/action-menu"
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-accent-500/20 hover:bg-accent-400"
                 >
-                  Open buy menu <ArrowRight className="h-4 w-4" />
+                  Open unlocks <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/contact?source=book-retired"
@@ -72,9 +72,9 @@ export default function BookPage() {
                 <RouteCard
                   Icon={MousePointerClick}
                   title="Want to buy or engage now?"
-                  body="Use the Buy Menu for the $47 Quick-Look, $197 audit, leaderboard votes, boost messages, Voice topics, and build paths."
+                  body="Use the unlock menu for reports, script kits, lead leak documents, public loops, boost messages, Voice topics, and Growth OS paths."
                   href="/action-menu"
-                  cta="Open buy menu"
+                  cta="Open unlocks"
                 />
                 <RouteCard
                   Icon={Bot}

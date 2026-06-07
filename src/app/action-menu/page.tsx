@@ -103,7 +103,7 @@ export default function ActionMenuPage() {
                 Automated tool menu
               </div>
               <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-                The site should run even if Ryan is not available.
+                The site should run without waiting on a human.
               </h1>
               <p className="mt-5 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
                 This menu is shifting to self-serve tools. The user enters business data, gets a

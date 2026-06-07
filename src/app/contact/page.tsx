@@ -1,4 +1,4 @@
-// src/app/contact/page.tsx — mobile-first contact command center.
+// src/app/contact/page.tsx - mobile-first contact command center.
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
@@ -6,10 +6,9 @@ import {
   ArrowRight,
   Bot,
   CheckCircle2,
+  Lock,
   Mail,
-  MapPin,
   MessageSquareText,
-  Phone,
   Route,
   ShieldCheck,
 } from "lucide-react";
@@ -19,45 +18,42 @@ import { LEADFLOW_PUBLIC_EMAIL, leadflowMailto } from "@/lib/contact";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const metadata = createSeoMetadata({
-  title: "Contact Ryan Nichols — The LeadFlow Pro",
+  title: "Automated Message Router | The LeadFlow Pro",
   description:
-    "Choose the fastest way to move forward with The LeadFlow Pro: start the router, ask the site assistant, leave a message, text, or email Ryan.",
+    "Use The LeadFlow Pro automated router, assistant, paid unlocks, or message path to get the next business growth output without booking a call.",
   path: "/contact",
-  imageTitle: "Contact Ryan Nichols",
-  imageSubtitle: "Start the router, ask the AI, leave a message, text, or email.",
+  imageTitle: "Automated Message Router",
+  imageSubtitle: "Run the tool, unlock the report, ask the assistant, or leave context.",
 });
-
-const PHONE_DISPLAY = "(903) 345-8990";
-const PHONE_HREF = "+19033458990";
 
 function mailto(subject: string, body = "") {
   return leadflowMailto(subject, body);
 }
 
 const CONTEXT_BODY =
-  "Hi Ryan,\n\nBusiness/account:\n\nWhat I need built or fixed:\n\nBudget range I am considering:\n\nTimeline:\n\nBest next step:\n\n";
+  "Business/account:\n\nWhat I need scored, fixed, or automated:\n\nBudget range I am considering:\n\nTimeline:\n\nBest next step:\n\n";
 
 const SHOULD_USE = [
   {
     Icon: Route,
-    title: "Start with the router",
-    body: "Best first move if you are not sure which paid offer fits. It routes you by problem, budget, and urgency.",
-    href: "/start",
-    cta: "Pick my service",
+    title: "Run the Growth Machine",
+    body: "Best first move if you want a free score before paying for the full report, script pack, map, or Growth OS path.",
+    href: "/tools/growth-machine#tool",
+    cta: "Run free snapshot",
+  },
+  {
+    Icon: Lock,
+    title: "Open the paid unlocks",
+    body: "Best if you already know you need the $47 report, $90 follow-up kit, $197 lead leak report, or bigger system path.",
+    href: "/action-menu",
+    cta: "View unlocks",
   },
   {
     Icon: MessageSquareText,
     title: "Leave a message",
-    body: "Best if the assistant cannot finish the route or you need Ryan to review links and context later.",
+    body: "Best if the assistant cannot finish the route or the site needs extra context before the next automated step.",
     href: "#contact-options",
     cta: "Open message options",
-  },
-  {
-    Icon: Mail,
-    title: "Email context",
-    body: "Best if you need to send links, screenshots, a longer explanation, or a team member into the thread.",
-    href: mailto("LeadFlow Pro — serious inquiry", CONTEXT_BODY),
-    cta: "Email Ryan",
   },
 ];
 
@@ -90,22 +86,22 @@ export default function ContactPage() {
           <div className="relative mx-auto grid max-w-7xl gap-7 px-4 py-8 sm:py-12 lg:grid-cols-5 lg:items-center">
             <div className="lg:col-span-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm backdrop-blur">
-                Contact Ryan
+                Automated router
               </div>
               <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-                Do not wander.{" "}
+                Do not wait on a calendar.{" "}
                 <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
-                  Pick the next move.
+                  Let the site route the next move.
                 </span>
               </h1>
               <p className="mt-4 text-base leading-relaxed text-slate-700 sm:text-lg">
-                If you are ready to move, use the router or buy from the menu. If you need an
-                answer before you choose, ask the site assistant. If there is context Ryan needs to
-                see later, leave it cleanly.
+                The LeadFlow Pro now routes through automated paths first. Run the tool, unlock a
+                report, ask the assistant, or leave clean context so the system can point you to the
+                right next output.
               </p>
               <div className="mt-5 rounded-2xl border border-cyan-200 bg-white/75 p-4 text-sm leading-relaxed text-slate-700 shadow-sm backdrop-blur">
-                The first goal is simple: figure out whether this is a small paid entry, the $197
-                audit, a free blueprint request, or a bigger automated buildout.
+                The first goal is simple: figure out whether you need a free snapshot, paid report,
+                script kit, lead leak document, automation blueprint, or full Growth OS path.
               </div>
             </div>
 
@@ -117,7 +113,7 @@ export default function ContactPage() {
                       Contact command panel
                     </div>
                     <div className="mt-1 text-lg font-bold text-slate-950">
-                      Choose one. I will route from there.
+                      Choose one. The site routes from there.
                     </div>
                   </div>
                   <span className="hidden rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800 sm:inline-flex">
@@ -127,45 +123,39 @@ export default function ContactPage() {
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <QuickLink
-                    href="/start"
+                    href="/tools/growth-machine#tool"
                     Icon={Route}
-                    label="Start the router"
-                    body="Best path if you want the site to tell you what to do next."
+                    label="Run the Growth Machine"
+                    body="Enter business data and get the free score before unlocking anything."
                     primary
+                  />
+                  <QuickLink
+                    href="/action-menu"
+                    Icon={Lock}
+                    label="Open paid unlocks"
+                    body="Reports, scripts, lead leak documents, public loops, and Growth OS paths."
+                    accent
                   />
                   <QuickLink
                     href="#contact-options"
                     Icon={MessageSquareText}
                     label="Leave a message"
-                    body="AI routes first. Ryan reviews later if the message needs a person."
-                    accent
+                    body="Use this only when the tool or assistant cannot finish the route."
                   />
                   <OpenChatButton className="group flex min-h-[112px] flex-col rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-50">
                     <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-600 text-white">
                       <Bot className="h-5 w-5" />
                     </span>
-                    <span className="mt-3 text-sm font-bold text-slate-950">Ask Faretta AI</span>
+                    <span className="mt-3 text-sm font-bold text-slate-950">Ask LeadFlow Assistant</span>
                     <span className="mt-1 text-xs leading-relaxed text-slate-600">
-                      Opens the site assistant for package fit, pricing, and next-step questions.
+                      Opens the site assistant for tool fit, pricing, and next-step questions.
                     </span>
                   </OpenChatButton>
                   <QuickLink
-                    href={`sms:${PHONE_HREF}`}
-                    Icon={MessageSquareText}
-                    label="Text Ryan"
-                    body={`${PHONE_DISPLAY}. Use this when the context is short.`}
-                  />
-                  <QuickLink
-                    href={mailto("LeadFlow Pro — serious inquiry", CONTEXT_BODY)}
+                    href={mailto("LeadFlow Pro automated route", CONTEXT_BODY)}
                     Icon={Mail}
-                    label="Email Ryan"
-                    body={LEADFLOW_PUBLIC_EMAIL}
-                  />
-                  <QuickLink
-                    href={`tel:${PHONE_HREF}`}
-                    Icon={Phone}
-                    label="Call Ryan"
-                    body="Use sparingly. The automated paths keep everything cleaner."
+                    label="Email context"
+                    body={`${LEADFLOW_PUBLIC_EMAIL}. Fallback path for links and longer context.`}
                   />
                 </div>
               </div>
@@ -203,12 +193,12 @@ export default function ContactPage() {
           <InfoCard
             Icon={ShieldCheck}
             title="No fake promises"
-            body="I will tell you what I think the next move is. I do not guarantee specific followers, leads, sales, or revenue."
+            body="The tools give scores, documents, scripts, maps, and next-step paths. They do not guarantee followers, leads, sales, or revenue."
           />
           <InfoCard
-            Icon={MapPin}
-            title="East Texas, remote everywhere"
-            body="Virtual work is normal. Local travel can be discussed when it makes sense and the client covers travel."
+            Icon={Lock}
+            title="Pay at the pressure point"
+            body="Free previews should be useful. The full document, script pack, report, export, or system map unlocks when the missing piece is obvious."
           />
         </section>
 
@@ -224,20 +214,20 @@ export default function ContactPage() {
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-slate-300">
               Start with the router if you want the cleanest path. Use the message lane if the
-              assistant needs Ryan to review the context later.
+              assistant needs extra context before it can route the next output.
             </p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
-                href="/start"
+                href="/tools/growth-machine#tool"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/25 hover:bg-accent-600"
               >
-                Pick my service <ArrowRight className="h-4 w-4" />
+                Run free snapshot <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/contact?source=final-message"
+                href="/action-menu"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur hover:bg-white/15"
               >
-                Leave a message
+                View paid unlocks
               </Link>
             </div>
           </div>

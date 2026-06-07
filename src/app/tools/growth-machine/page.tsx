@@ -46,7 +46,7 @@ export default function GrowthMachinePage() {
         }}
         secondaryAction={{
           href: "/action-menu",
-          label: "Buy menu",
+          label: "Unlocks",
           mobileDescription: "See every self-serve tool path.",
           Icon: MousePointerClick,
           muted: true,
@@ -81,7 +81,7 @@ export default function GrowthMachinePage() {
                   Put your business data in. Get the machine readout back.
                 </h1>
                 <p className="mt-5 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
-                  This is the direction: tools that keep working whether Ryan is available or not.
+                  This is the direction: tools that keep working without a human bottleneck.
                   The user enters rough business data, gets a useful free snapshot, then unlocks
                   the remaining report, scripts, automation map, and export when the missing pieces
                   become obvious.

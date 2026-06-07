@@ -5,15 +5,18 @@ import type { ComponentType } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
+  Bot,
   BookOpen,
   BriefcaseBusiness,
   ClipboardCheck,
+  Database,
   Gauge,
   Home,
   Mail,
   Menu,
   Megaphone,
   Package,
+  Search,
   Sparkles,
   Trophy,
   X,
@@ -37,6 +40,8 @@ type MobileFeaturedAction = {
 const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   "/": Home,
   "/action-menu": Package,
+  "/tools/growth-machine": Bot,
+  "/tools/seo-grader": Search,
   "/stump-ryan": Sparkles,
   "/lead-leak-audit-197": ClipboardCheck,
   "/lead-leak-audit": ClipboardCheck,
@@ -54,6 +59,7 @@ const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   "/story": BookOpen,
   "/availability": Gauge,
   "/contact": Mail,
+  "/backend": Database,
 };
 
 export function LightMobileMenu({
@@ -71,18 +77,18 @@ export function LightMobileMenu({
 }) {
   const [open, setOpen] = useState(false);
   const featuredPrimary: MobileFeaturedAction = primaryAction ?? {
-    href: "/lead-leak-audit-197",
-    label: "$197 audit",
-    description: "Find the leak before more traffic.",
+    href: "/tools/growth-machine#tool",
+    label: "Run tool",
+    description: "Enter business data and get the free snapshot.",
   };
   const featuredSecondary: MobileFeaturedAction = secondaryAction ?? {
-    href: "/contact",
-    label: "Leave message",
-    description: "AI first. Ryan later if needed.",
+    href: "/action-menu",
+    label: "Unlocks",
+    description: "Reports, scripts, maps, and Growth OS paths.",
   };
   const primaryIconKey = featuredPrimary.href.split(/[?#]/)[0] || featuredPrimary.href;
   const secondaryIconKey = featuredSecondary.href.split(/[?#]/)[0] || featuredSecondary.href;
-  const FeaturedPrimaryIcon = ICONS[primaryIconKey] ?? ClipboardCheck;
+  const FeaturedPrimaryIcon = ICONS[primaryIconKey] ?? Bot;
   const FeaturedSecondaryIcon = ICONS[secondaryIconKey] ?? Sparkles;
   const menuNav = hideFreeAuditLink
     ? nav.filter((item) => item.href !== "/lead-leak-audit")
@@ -101,7 +107,7 @@ export function LightMobileMenu({
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open site menu"
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-cyan-300/40 bg-gradient-to-r from-slate-950 via-brand-950 to-cyan-950 px-3 text-sm font-semibold text-white shadow-lg shadow-cyan-900/15 active:scale-[0.98] xl:hidden"
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-cyan-300/25 bg-white/[0.06] px-3 text-sm font-semibold text-white shadow-lg shadow-cyan-900/20 active:scale-[0.98] xl:hidden"
       >
         <Menu className="h-4 w-4" />
         Menu
@@ -115,15 +121,15 @@ export function LightMobileMenu({
             className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute inset-x-3 top-3 max-h-[calc(100dvh-24px)] overflow-y-auto rounded-3xl border border-cyan-200/70 bg-[linear-gradient(135deg,#fff8f1_0%,#eef9ff_58%,#fff1df_100%)] shadow-2xl shadow-slate-950/25">
-            <div className="h-1 bg-gradient-to-r from-brand-700 via-cyan-400 to-accent-500" />
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-cyan-200/70 bg-white/70 px-4 py-3 backdrop-blur">
+          <div className="absolute inset-x-3 top-3 max-h-[calc(100dvh-24px)] overflow-y-auto rounded-3xl border border-cyan-300/20 bg-slate-950 shadow-2xl shadow-slate-950/40">
+            <div className="h-1 bg-gradient-to-r from-cyan-400 via-accent-500 to-cyan-200" />
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-cyan-300/15 bg-slate-950/88 px-4 py-3 backdrop-blur">
               <Link
                 href="/"
                 onClick={() => setOpen(false)}
                 className="font-bold"
               >
-                <span className="bg-gradient-to-r from-brand-800 via-cyan-600 to-accent-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-cyan-100 via-cyan-300 to-accent-300 bg-clip-text text-transparent">
                   The LeadFlow Pro
                 </span>
               </Link>
@@ -131,7 +137,7 @@ export function LightMobileMenu({
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-200 bg-white/80 text-slate-900 shadow-sm active:scale-[0.98]"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/20 bg-white/[0.06] text-white shadow-sm active:scale-[0.98]"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -145,11 +151,11 @@ export function LightMobileMenu({
                   data-conversion-event={featuredPrimary.eventName}
                   data-conversion-cta={featuredPrimary.ctaText ?? featuredPrimary.label}
                   data-conversion-source-page={featuredPrimary.sourcePage}
-                  className="rounded-2xl bg-gradient-to-br from-slate-950 via-brand-950 to-cyan-950 p-4 text-white shadow-lg shadow-slate-950/20 active:scale-[0.98]"
+                  className="rounded-2xl bg-accent-500 p-4 text-slate-950 shadow-lg shadow-accent-500/20 active:scale-[0.98]"
                 >
-                  <FeaturedPrimaryIcon className="h-5 w-5 text-cyan-300" />
+                  <FeaturedPrimaryIcon className="h-5 w-5 text-slate-950" />
                   <div className="mt-3 text-sm font-semibold">{featuredPrimary.label}</div>
-                  <div className="mt-1 text-xs leading-relaxed text-slate-300">
+                  <div className="mt-1 text-xs leading-relaxed text-slate-800">
                     {featuredPrimary.description}
                   </div>
                 </Link>
@@ -159,11 +165,11 @@ export function LightMobileMenu({
                   data-conversion-event={featuredSecondary.eventName}
                   data-conversion-cta={featuredSecondary.ctaText ?? featuredSecondary.label}
                   data-conversion-source-page={featuredSecondary.sourcePage}
-                  className="rounded-2xl bg-accent-500 p-4 text-white shadow-lg shadow-accent-500/25 active:scale-[0.98]"
+                  className="rounded-2xl border border-cyan-300/20 bg-white/[0.06] p-4 text-white shadow-lg shadow-cyan-900/20 active:scale-[0.98]"
                 >
-                  <FeaturedSecondaryIcon className="h-5 w-5" />
+                  <FeaturedSecondaryIcon className="h-5 w-5 text-cyan-200" />
                   <div className="mt-3 text-sm font-semibold">{featuredSecondary.label}</div>
-                  <div className="mt-1 text-xs leading-relaxed text-white/85">
+                  <div className="mt-1 text-xs leading-relaxed text-slate-300">
                     {featuredSecondary.description}
                   </div>
                 </Link>
@@ -184,22 +190,22 @@ export function LightMobileMenu({
                       onClick={() => setOpen(false)}
                       className={`flex min-h-14 items-center justify-between rounded-2xl border px-4 text-base font-semibold active:scale-[0.99] ${
                         active
-                          ? "border-cyan-300 bg-cyan-100/80 text-cyan-950 shadow-sm"
-                          : "border-white/80 bg-white/70 text-slate-900 shadow-sm hover:border-cyan-200"
+                          ? "border-cyan-300/45 bg-cyan-300/15 text-cyan-100 shadow-sm"
+                          : "border-cyan-300/15 bg-white/[0.055] text-slate-100 shadow-sm hover:border-cyan-300/30"
                       }`}
                     >
                       <span className="inline-flex items-center gap-3">
-                        <Icon className="h-5 w-5 text-cyan-700" />
+                        <Icon className="h-5 w-5 text-cyan-200" />
                         {item.label}
                       </span>
-                      <ArrowRight className="h-4 w-4 text-slate-400" />
+                      <ArrowRight className="h-4 w-4 text-slate-500" />
                     </Link>
                   );
                 })}
               </nav>
 
-              <div className="mt-4 rounded-2xl border border-cyan-100 bg-white/55 px-4 py-3 text-xs font-semibold leading-relaxed text-slate-600">
-                Pick the closest path. If the fit is not obvious, leave a message and the assistant will route the next step.
+              <div className="mt-4 rounded-2xl border border-cyan-300/15 bg-cyan-300/10 px-4 py-3 text-xs font-semibold leading-relaxed text-slate-300">
+                Pick the closest path. If the fit is not obvious, the assistant routes the next step.
               </div>
             </div>
           </div>

@@ -19,10 +19,10 @@ import { createSeoMetadata } from "@/lib/seo-metadata";
 export const metadata = createSeoMetadata({
   title: "Proof and Receipts - The LeadFlow Pro",
   description:
-    "Proof assets for The LeadFlow Pro: business page work, Pulse tracking, ad autopsy, intake routing, dashboards, and conversion systems.",
+    "Proof assets for The LeadFlow Pro: automated tools, Pulse tracking, ad autopsy, intake routing, dashboards, and conversion systems.",
   path: "/proof",
   imageTitle: "LeadFlow Pro Proof",
-  imageSubtitle: "What has been built, what it proves, and what Ryan can build next.",
+  imageSubtitle: "What has been built, what it proves, and what the tools can route next.",
 });
 
 const RECEIPTS = [
@@ -73,15 +73,15 @@ export default function ProofPage() {
                 Cold buyers need receipts before they believe another growth promise.
               </h1>
               <p className="mt-5 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
-                This page is built to hold the proof stack: visual work, tracking, tools, intake,
-                dashboards, before/after examples, and the exact system Ryan installs for a business.
+                This page holds the proof stack: visual work, tracking, tools, intake, dashboards,
+                before/after examples, and the automated systems a business can unlock.
               </p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/lead-leak-audit"
+                  href="/tools/growth-machine#tool"
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-slate-950 hover:bg-accent-400"
                 >
-                  Run my audit <ArrowRight className="h-4 w-4" />
+                  Run growth tool <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/pulse"
@@ -126,7 +126,7 @@ export default function ProofPage() {
                 Four live projects. Four different proof angles.
               </h2>
               <p className="mt-4 text-base leading-7 text-slate-700">
-                This is the real advantage: Ryan is not selling theory. These are live builds that
+                This is the real advantage: this is not theory. These are live builds that
                 show funnel work, data organization, vertical positioning, and client-ready web
                 systems.
               </p>

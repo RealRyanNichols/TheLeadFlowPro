@@ -5,23 +5,23 @@ export type SiteNavItem = {
 };
 
 export const SITE_PRIMARY_NAV: SiteNavItem[] = [
-  { href: "/action-menu", label: "Buy Menu", activePaths: ["/action-menu", "/offers", "/tiers", "/pricing"] },
   {
-    href: "/lead-leak-audit-197",
-    label: "$197 Audit",
-    activePaths: ["/lead-leak-audit-197", "/lead-leak-audit"],
+    href: "/tools/growth-machine",
+    label: "Growth Tool",
+    activePaths: ["/tools/growth-machine", "/action-menu", "/tiers", "/pricing", "/offers"],
   },
-  { href: "/stump-ryan", label: "Custom Builds", activePaths: ["/stump-ryan", "/challenge"] },
-  { href: "/proof", label: "Build Proof" },
-  { href: "/contact", label: "Leave Message" },
+  { href: "/action-menu", label: "Unlocks", activePaths: ["/action-menu"] },
+  { href: "/pulse", label: "Pulse", activePaths: ["/pulse"] },
+  { href: "/tools/ad-account-autopsy", label: "Ad Autopsy" },
+  { href: "/proof", label: "Proof" },
 ];
 
 export const SITE_MORE_NAV: SiteNavItem[] = [
-  { href: "/tiers", label: "Full Pricing" },
-  { href: "/organic-growth", label: "Follow-Up Plan" },
-  { href: "/tools/ad-account-autopsy", label: "Ad Account Check" },
-  { href: "/pulse", label: "Live Activity" },
-  { href: "/story", label: "Ryan's Story" },
+  { href: "/tools/seo-grader", label: "SEO Grader" },
+  { href: "/leaderboard", label: "Public Loops" },
+  { href: "/voice", label: "Voice Votes" },
+  { href: "/stump-ryan", label: "Blueprint Form" },
+  { href: "/contact", label: "Assistant" },
 ];
 
 export const SITE_MOBILE_NAV: SiteNavItem[] = [
@@ -32,22 +32,23 @@ export const SITE_MOBILE_NAV: SiteNavItem[] = [
 
 export const SITE_FOOTER_NAV = {
   funnel: [
-    { href: "/action-menu", label: "Buy menu" },
-    { href: "/offers/quick-look", label: "$47 Quick-Look" },
-    { href: "/lead-leak-audit-197", label: "$197 Lead Leak Audit" },
-    { href: "/stump-ryan", label: "Custom Build Blueprint" },
-    { href: "/proof", label: "Build proof" },
-    { href: "/contact", label: "Leave message" },
+    { href: "/tools/growth-machine", label: "Run growth tool" },
+    { href: "/action-menu", label: "Paid unlocks" },
+    { href: "/tools/growth-machine#unlock-47", label: "$47 Growth Snapshot" },
+    { href: "/tools/growth-machine#follow-up-kit", label: "$90 Follow-Up Kit" },
+    { href: "/tools/growth-machine#lead-leak-report", label: "$197 Lead Leak Report" },
+    { href: "/tools/growth-machine#growth-os", label: "Growth OS" },
   ],
   company: [
-    { href: "/tiers", label: "Pricing" },
-    { href: "/story", label: "Ryan's story" },
-    { href: "/contact", label: "Contact" },
+    { href: "/proof", label: "Proof" },
+    { href: "/backend", label: "Login" },
+    { href: "/contact", label: "Assistant" },
   ],
   tools: [
-    { href: "/organic-growth", label: "Follow-up plan" },
-    { href: "/tools/ad-account-autopsy", label: "Ad account check" },
-    { href: "/pulse", label: "Live activity" },
+    { href: "/pulse", label: "Pulse analytics" },
+    { href: "/tools/ad-account-autopsy", label: "Ad autopsy" },
+    { href: "/tools/seo-grader", label: "SEO grader" },
+    { href: "/leaderboard", label: "Public loops" },
   ],
   legal: [
     { href: "/legal", label: "Legal overview" },
