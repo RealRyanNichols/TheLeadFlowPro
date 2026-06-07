@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { AutomatedDoorwayPage } from "@/components/site/AutomatedDoorwayPage";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const metadata = createSeoMetadata({
@@ -11,5 +11,16 @@ export const metadata = createSeoMetadata({
 });
 
 export default function TiersPage() {
-  redirect("/action-menu");
+  return (
+    <AutomatedDoorwayPage
+      activePath="/action-menu"
+      eyebrow="Paid unlock ladder"
+      title="The tier page is now a menu of automated unlocks."
+      body="Start free, then unlock the asset that matches the pressure point: a report, follow-up kit, lead leak document, automation blueprint, public loop, or full Growth OS path."
+      primaryHref="/action-menu"
+      primaryLabel="Open unlock menu"
+      secondaryHref="/tools/growth-machine#tool"
+      secondaryLabel="Run free snapshot"
+    />
+  );
 }

@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { AutomatedDoorwayPage } from "@/components/site/AutomatedDoorwayPage";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const metadata = createSeoMetadata({
@@ -10,5 +10,16 @@ export const metadata = createSeoMetadata({
 });
 
 export default function PricingPage() {
-  redirect("/action-menu");
+  return (
+    <AutomatedDoorwayPage
+      activePath="/action-menu"
+      eyebrow="Automated pricing"
+      title="Pricing now starts with a free score and paid document unlocks."
+      body="The model is simple: run the free snapshot, then pay for the useful asset at the moment it matters. Reports, kits, maps, dashboards, public loops, and Growth OS paths all route from the same machine."
+      primaryHref="/action-menu"
+      primaryLabel="Open unlock menu"
+      secondaryHref="/tools/growth-machine#tool"
+      secondaryLabel="Run free snapshot"
+    />
+  );
 }

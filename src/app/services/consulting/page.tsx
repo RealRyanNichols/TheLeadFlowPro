@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { AutomatedDoorwayPage } from "@/components/site/AutomatedDoorwayPage";
 import { createSeoMetadata } from "@/lib/seo-metadata";
 
 export const metadata = createSeoMetadata({
@@ -11,5 +11,12 @@ export const metadata = createSeoMetadata({
 });
 
 export default function ConsultingRedirectPage() {
-  redirect("/tools/growth-machine");
+  return (
+    <AutomatedDoorwayPage
+      activePath="/tools/growth-machine"
+      eyebrow="Consulting became automation"
+      title="The old consulting lane now routes into self-serve business outputs."
+      body="The new front door is not a call or a consulting ladder. It is a tool path: enter the business signals, get the readout, then unlock the report, scripts, map, export, or Growth OS path when the missing piece is clear."
+    />
+  );
 }
