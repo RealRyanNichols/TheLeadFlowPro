@@ -48,13 +48,13 @@ export function BuiltProjectCard({
       target="_blank"
       rel="noreferrer"
       style={cardStyle}
-      className={`group flex min-h-full flex-col rounded-2xl border text-left transition hover:-translate-y-0.5 hover:shadow-xl ${
+      className={`group flex min-h-full w-full min-w-0 max-w-full flex-col overflow-hidden rounded-2xl border text-left transition hover:-translate-y-0.5 hover:shadow-xl ${
         mini ? "p-2.5" : compact ? "p-3" : "p-5"
       } ${
         dark ? "text-white" : "text-slate-950"
       } ${className}`}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex min-w-0 items-start gap-3">
         <div
           aria-label={project.logoLabel}
           style={logoStyle}
@@ -65,11 +65,11 @@ export function BuiltProjectCard({
           {project.logoText}
         </div>
         <div className="min-w-0 flex-1">
-          <div className={`font-semibold leading-snug ${mini ? "text-sm" : ""} ${dark ? "text-white" : "text-slate-950"}`}>
+          <div className={`break-words font-semibold leading-snug ${mini ? "text-sm" : ""} ${dark ? "text-white" : "text-slate-950"}`}>
             {project.name}
           </div>
           <div
-            className={`break-words font-semibold uppercase ${
+            className={`break-all font-semibold uppercase ${
               mini ? "mt-0.5 text-[0.66rem] leading-4 tracking-[0.14em]" : "mt-1 text-xs leading-5 tracking-widest"
             } ${
               dark ? "text-slate-300" : "text-slate-600"
