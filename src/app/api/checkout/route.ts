@@ -3,6 +3,7 @@ import { stripe, priceIdFor, type StripePriceKey } from "@/lib/stripe";
 import { PLANS, BOOSTERS } from "@/lib/pricing";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { weirdProductByKey } from "@/lib/weird-stats";
 
 export const runtime = "nodejs";
 
@@ -11,6 +12,55 @@ const SUBSCRIPTION_KEYS = new Set<StripePriceKey>(["starter", "growth", "pro", "
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
+    const productKey = typeof body?.productKey === "string" ? body.productKey : null;
+    const weirdProduct = weirdProductByKey(productKey);
+    if (weirdProduct) {
+      const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "https://www.theleadflowpro.com";
+      const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : undefined;
+      const successPath = typeof body?.successPath === "string" ? body.successPath : "/request/thank-you";
+      const cancelPath = typeof body?.cancelPath === "string" ? body.cancelPath : "/request";
+      const requestId = typeof body?.requestId === "string" ? body.requestId : undefined;
+
+      const checkout = await stripe().checkout.sessions.create({
+        mode: "payment",
+        customer_email: email || undefined,
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              unit_amount: weirdProduct.amount,
+              product_data: {
+                name: weirdProduct.label,
+                description: weirdProduct.body,
+                metadata: {
+                  app: "weird_stats_clock",
+                  productKey: weirdProduct.key,
+                },
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        success_url: `${origin}${successPath}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}${cancelPath}?checkout=cancel`,
+        allow_promotion_codes: true,
+        metadata: {
+          kind: "weird_stats_clock",
+          productKey: weirdProduct.key,
+          requestId: requestId || "",
+        },
+        payment_intent_data: {
+          metadata: {
+            kind: "weird_stats_clock",
+            productKey: weirdProduct.key,
+            requestId: requestId || "",
+          },
+        },
+      });
+
+      return NextResponse.json({ url: checkout.url });
+    }
+
     const key = body?.key as StripePriceKey | undefined;
     if (!key) return NextResponse.json({ error: "Missing 'key'" }, { status: 400 });
 

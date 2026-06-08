@@ -5,23 +5,19 @@ export type SiteNavItem = {
 };
 
 export const SITE_PRIMARY_NAV: SiteNavItem[] = [
-  {
-    href: "/tools/growth-machine",
-    label: "Growth Tool",
-    activePaths: ["/tools/growth-machine", "/action-menu", "/tiers", "/pricing", "/offers"],
-  },
-  { href: "/action-menu", label: "Unlocks", activePaths: ["/action-menu"] },
-  { href: "/pulse", label: "Pulse", activePaths: ["/pulse"] },
-  { href: "/tools/ad-account-autopsy", label: "Ad Autopsy" },
-  { href: "/proof", label: "Proof" },
+  { href: "/", label: "Live Clock" },
+  { href: "/boards", label: "Boards", activePaths: ["/boards"] },
+  { href: "/requests", label: "Request Queue", activePaths: ["/requests"] },
+  { href: "/unlock", label: "Unlocks", activePaths: ["/unlock"] },
+  { href: "/request", label: "Request Stat", activePaths: ["/request"] },
 ];
 
 export const SITE_MORE_NAV: SiteNavItem[] = [
-  { href: "/tools/seo-grader", label: "SEO Grader" },
-  { href: "/leaderboard", label: "Public Loops" },
-  { href: "/voice", label: "Voice Votes" },
-  { href: "/stump-ryan", label: "Blueprint Form" },
-  { href: "/contact", label: "Assistant" },
+  { href: "/stats/unused-subscriptions-today", label: "Sample Stat" },
+  { href: "/stats/abandoned-carts-today", label: "Cart Clock" },
+  { href: "/stats/meetings-that-could-have-been-emails", label: "Work Clock" },
+  { href: "/admin", label: "Admin Login" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export const SITE_MOBILE_NAV: SiteNavItem[] = [
@@ -32,23 +28,22 @@ export const SITE_MOBILE_NAV: SiteNavItem[] = [
 
 export const SITE_FOOTER_NAV = {
   funnel: [
-    { href: "/tools/growth-machine", label: "Run growth tool" },
-    { href: "/action-menu", label: "Paid unlocks" },
-    { href: "/tools/growth-machine#unlock-47", label: "$47 Growth Snapshot" },
-    { href: "/tools/growth-machine#follow-up-kit", label: "$90 Follow-Up Kit" },
-    { href: "/tools/growth-machine#lead-leak-report", label: "$197 Lead Leak Report" },
-    { href: "/tools/growth-machine#growth-os", label: "Growth OS" },
+    { href: "/", label: "Live weird clock" },
+    { href: "/request", label: "Request a weird stat" },
+    { href: "/unlock", label: "Micropurchase unlocks" },
+    { href: "/requests", label: "Public request queue" },
+    { href: "/boards", label: "Premium boards" },
   ],
   company: [
-    { href: "/proof", label: "Proof" },
-    { href: "/backend", label: "Login" },
-    { href: "/contact", label: "Assistant" },
+    { href: "/admin", label: "Admin login" },
+    { href: "/contact", label: "Contact" },
+    { href: "/proof", label: "Old proof archive" },
   ],
   tools: [
-    { href: "/pulse", label: "Pulse analytics" },
-    { href: "/tools/ad-account-autopsy", label: "Ad autopsy" },
-    { href: "/tools/seo-grader", label: "SEO grader" },
-    { href: "/leaderboard", label: "Public loops" },
+    { href: "/stats/unused-subscriptions-today", label: "Unused subscriptions" },
+    { href: "/stats/abandoned-carts-today", label: "Abandoned carts" },
+    { href: "/stats/ai-images-generated-today", label: "AI images" },
+    { href: "/stats/forgotten-tabs-open", label: "Forgotten tabs" },
   ],
   legal: [
     { href: "/legal", label: "Legal overview" },

@@ -10,27 +10,27 @@ import { MetaPixel } from "@/components/site/MetaPixel";
 import { SitePulseTracker } from "@/components/site/SitePulseTracker";
 
 export const metadata: Metadata = {
-  title: "The LeadFlow Pro | No missed calls. No missed texts. No missed revenue.",
+  title: "The Weird Stats Clock | The LeadFlow Pro",
   description:
-    "If your business gets calls, texts, or online leads, this is for you. Capture every lead, automate follow-up, and close more sales. AI-powered social intelligence + lead inbox in one dashboard.",
+    "A live clock for strange numbers nobody else is watching. Explore weird live counters, request obscure stats, unlock premium boards, and share stat cards.",
   metadataBase: new URL("https://www.theleadflowpro.com"),
-  applicationName: "The LeadFlow Pro",
-  category: "business",
+  applicationName: "The Weird Stats Clock",
+  category: "entertainment",
   keywords: [
+    "The Weird Stats Clock",
+    "weird stats",
+    "live counters",
+    "internet dashboard",
+    "formula estimates",
+    "micropurchases",
     "The LeadFlow Pro",
     "Ryan Nichols",
-    "lead generation",
-    "social media systems",
-    "business automation",
-    "client portals",
-    "Meta ads tracking",
-    "Longview Texas marketing",
   ],
   manifest: "/site.webmanifest",
   openGraph: {
-    title: "The LeadFlow Pro",
+    title: "The Weird Stats Clock",
     description:
-      "Turn attention into conversations. Automate follow-up. Close more sales.",
+      "A live clock for strange numbers nobody else is watching.",
     url: "https://www.theleadflowpro.com",
     siteName: "The LeadFlow Pro",
     type: "website",
@@ -39,15 +39,15 @@ export const metadata: Metadata = {
         url: "/images/leadflow-pro-social-card.png",
         width: 1200,
         height: 630,
-        alt: "The LeadFlow Pro | Turn Attention Into Conversations",
+          alt: "The Weird Stats Clock by The LeadFlow Pro",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "The LeadFlow Pro",
+    title: "The Weird Stats Clock",
     description:
-      "Turn attention into conversations. Automate follow-up. Close more sales.",
+      "A live clock for strange numbers nobody else is watching.",
     images: ["/images/leadflow-pro-social-card.png"],
   },
   icons: {
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     shortcut: ["/favicon.ico"],
   },
   appleWebApp: {
-    title: "LeadFlow Pro",
+    title: "Weird Stats Clock",
     capable: true,
     statusBarStyle: "black-translucent",
   },
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
   },
 };
 
-// Meta Pixel ID — hardcoded so it works without an env var, override via
+// Meta Pixel ID is hardcoded so it works without an env var. Override via
 // NEXT_PUBLIC_META_PIXEL_ID in Vercel if you ever rotate accounts.
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "1012793881211964";
 
@@ -98,7 +98,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="dark">
       <head>
         {/*
-          Meta Pixel — base code rendered in <head> per Meta's install
+          Meta Pixel base code rendered in <head> per Meta's install
           instructions so Meta Pixel Helper and the Events Manager test tool
           detect it as "Active" reliably. Per-route PageView and Lead events
           are fired client-side from <MetaPixel /> below using the same fbq

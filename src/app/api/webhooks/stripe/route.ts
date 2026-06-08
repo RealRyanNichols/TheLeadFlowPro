@@ -6,6 +6,7 @@ import { BOOSTERS } from "@/lib/pricing";
 import type { PlanId } from "@/lib/pricing";
 import { addBusinessDays, deliveryDueDate, getOfferWorkload } from "@/lib/workload";
 import { TOOL_CHALLENGE_DEPOSIT } from "@/lib/challenge-deposit";
+import { weirdProductByKey } from "@/lib/weird-stats";
 
 export const runtime = "nodejs";
 
@@ -333,6 +334,73 @@ async function handleSupportDonationCheckout(session: Stripe.Checkout.Session) {
   return true;
 }
 
+async function handleWeirdStatsCheckout(session: Stripe.Checkout.Session) {
+  if (session.metadata?.kind !== "weird_stats_clock") return false;
+
+  const productKey = session.metadata?.productKey || "";
+  const product = weirdProductByKey(productKey);
+  const requestId = session.metadata?.requestId || null;
+  const databaseRequestId = requestId && !requestId.startsWith("pending_") ? requestId : null;
+  const buyerEmail = session.customer_details?.email || session.customer_email || null;
+  const amount = typeof session.amount_total === "number" ? session.amount_total : product?.amount ?? 0;
+  const createdAt = new Date((session.created || Math.floor(Date.now() / 1000)) * 1000);
+
+  try {
+    await (prisma as any).purchase.upsert({
+      where: { stripeSessionId: session.id },
+      update: {
+        status: session.payment_status || "paid",
+        stripePaymentIntentId:
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : session.payment_intent?.id ?? null,
+        email: buyerEmail ? buyerEmail.toLowerCase() : null,
+      },
+      create: {
+        email: buyerEmail ? buyerEmail.toLowerCase() : null,
+        productKey,
+        amount,
+        currency: session.currency || "usd",
+        stripeSessionId: session.id,
+        stripePaymentIntentId:
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : session.payment_intent?.id ?? null,
+        status: session.payment_status || "paid",
+        relatedRequestId: databaseRequestId,
+        createdAt,
+      },
+    });
+  } catch (err) {
+    console.warn("Stripe webhook: weird stats purchase not recorded", {
+      session: session.id,
+      error: err instanceof Error ? err.message : "unknown",
+    });
+  }
+
+  if (databaseRequestId) {
+    try {
+      await (prisma as any).statRequest.update({
+        where: { id: databaseRequestId },
+        data: {
+          stripeSessionId: session.id,
+          paidAmount: amount,
+          paymentStatus: session.payment_status || "paid",
+          status: productKey === "boost_stat_100" ? "boosted" : "paid",
+        },
+      });
+    } catch (err) {
+      console.warn("Stripe webhook: weird stats request not updated", {
+        session: session.id,
+        requestId: databaseRequestId,
+        error: err instanceof Error ? err.message : "unknown",
+      });
+    }
+  }
+
+  return true;
+}
+
 async function recordDonationPulse(session: Stripe.Checkout.Session) {
   const visitorId = session.metadata?.visitorId;
   if (!visitorId) return;
@@ -349,6 +417,10 @@ async function recordDonationPulse(session: Stripe.Checkout.Session) {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  if (await handleWeirdStatsCheckout(session)) {
+    return;
+  }
+
   if (await handleSupportDonationCheckout(session)) {
     return;
   }

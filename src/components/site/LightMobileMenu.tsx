@@ -11,6 +11,7 @@ import {
   ClipboardCheck,
   Database,
   Gauge,
+  BarChart3,
   Home,
   Mail,
   Menu,
@@ -39,6 +40,10 @@ type MobileFeaturedAction = {
 
 const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   "/": Home,
+  "/unlock": Package,
+  "/request": Sparkles,
+  "/requests": Trophy,
+  "/boards": BarChart3,
   "/action-menu": Package,
   "/tools/growth-machine": Bot,
   "/tools/seo-grader": Search,
@@ -77,14 +82,14 @@ export function LightMobileMenu({
 }) {
   const [open, setOpen] = useState(false);
   const featuredPrimary: MobileFeaturedAction = primaryAction ?? {
-    href: "/tools/growth-machine#tool",
-    label: "Run tool",
-    description: "Enter business data and get the free snapshot.",
+    href: "/request",
+    label: "Request Stat",
+    description: "Submit a strange number for the machine to track.",
   };
   const featuredSecondary: MobileFeaturedAction = secondaryAction ?? {
-    href: "/action-menu",
-    label: "Unlocks",
-    description: "Reports, scripts, maps, and Growth OS paths.",
+    href: "/unlock",
+    label: "Unlock Boards",
+    description: "Premium boards, research pulls, and stat pages.",
   };
   const primaryIconKey = featuredPrimary.href.split(/[?#]/)[0] || featuredPrimary.href;
   const secondaryIconKey = featuredSecondary.href.split(/[?#]/)[0] || featuredSecondary.href;
@@ -130,7 +135,7 @@ export function LightMobileMenu({
                 className="font-bold"
               >
                 <span className="bg-gradient-to-r from-cyan-100 via-cyan-300 to-accent-300 bg-clip-text text-transparent">
-                  The LeadFlow Pro
+                  Weird Stats Clock
                 </span>
               </Link>
               <button
@@ -205,7 +210,7 @@ export function LightMobileMenu({
               </nav>
 
               <div className="mt-4 rounded-2xl border border-cyan-300/15 bg-cyan-300/10 px-4 py-3 text-xs font-semibold leading-relaxed text-slate-300">
-                Pick the closest path. If the fit is not obvious, the assistant routes the next step.
+                Watch moving numbers, request a weird stat, or unlock a deeper board.
               </div>
             </div>
           </div>

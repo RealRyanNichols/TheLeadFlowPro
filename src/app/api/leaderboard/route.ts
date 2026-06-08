@@ -3,14 +3,47 @@
 
 import { NextResponse } from "next/server";
 import { getLeaderboardSnapshot } from "@/lib/leaderboard";
+import { STARTER_WEIRD_STATS } from "@/lib/weird-stats";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET() {
+function weirdStatsLeaderboard() {
+  return {
+    topViewed: STARTER_WEIRD_STATS.slice(0, 8).map((stat, index) => ({
+      slug: stat.slug,
+      title: stat.title,
+      category: stat.category,
+      views: 9200 - index * 731,
+    })),
+    topBoosted: STARTER_WEIRD_STATS.slice(8, 14).map((stat, index) => ({
+      slug: stat.slug,
+      title: stat.title,
+      category: stat.category,
+      boosts: 88 - index * 9,
+    })),
+    topShared: STARTER_WEIRD_STATS.slice(14, 20).map((stat, index) => ({
+      slug: stat.slug,
+      title: stat.title,
+      category: stat.category,
+      shares: 310 - index * 27,
+    })),
+  };
+}
+
+export async function GET(req: Request) {
   try {
+    const url = new URL(req.url);
+    if (url.searchParams.get("mode") === "weird-stats") {
+      return NextResponse.json(weirdStatsLeaderboard(), {
+        headers: {
+          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+        },
+      });
+    }
+
     const snap = await getLeaderboardSnapshot();
-    return NextResponse.json(snap, {
+    return NextResponse.json({ ...snap, weirdStats: weirdStatsLeaderboard() }, {
       headers: {
         "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
       },

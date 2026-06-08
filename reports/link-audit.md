@@ -1,11 +1,11 @@
 # Paid Traffic Link Audit
 
-Generated: 2026-06-07T01:24:35.171Z
+Generated: 2026-06-08T20:59:57.149Z
 
 ## Summary
 
-- Static internal hrefs checked: 281
-- App/API targets available: 163
+- Static internal hrefs checked: 290
+- App/API targets available: 175
 - Expected paid-traffic routes checked: 35
 - Missing expected routes: 0
 - Missing static targets: 0

@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, Bot, ChevronDown, LogIn, MousePointerClick, Sparkles } from "lucide-react";
+import { ArrowRight, BarChart3, ChevronDown, LogIn, Sparkles, Zap } from "lucide-react";
 import {
   isActiveNavItem,
   SITE_FOOTER_NAV,
@@ -44,16 +44,16 @@ export function LightHeader({
 
   const moreActive = SITE_MORE_NAV.some((item) => isActiveNavItem(item, activePath));
   const primary = primaryAction ?? {
-    href: "/tools/growth-machine#tool",
-    label: "Run tool",
-    mobileDescription: "Enter business data and get the free snapshot.",
-    Icon: Bot,
+    href: "/request",
+    label: "Request Stat",
+    mobileDescription: "Submit a strange number for the machine to track.",
+    Icon: Sparkles,
   };
   const secondary = secondaryAction ?? {
-    href: "/action-menu",
-    label: "Unlocks",
-    mobileDescription: "See paid reports, kits, maps, and Growth OS paths.",
-    Icon: MousePointerClick,
+    href: "/unlock",
+    label: "Unlock Boards",
+    mobileDescription: "Open premium boards, research pulls, and stat pages.",
+    Icon: BarChart3,
   };
 
   return (
@@ -72,12 +72,14 @@ export function LightHeader({
           className="group flex min-w-0 flex-1 items-center gap-2 truncate font-bold text-white xl:flex-none"
         >
           <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-cyan-300/50 bg-cyan-300/10 text-xs font-black text-cyan-100 shadow-lg shadow-cyan-900/20">
-            LF
+            WS
           </span>
-          <span className="truncate">
-            <span className="hidden text-white sm:inline">The </span>
-            <span className="bg-gradient-to-r from-cyan-100 via-cyan-300 to-accent-300 bg-clip-text text-transparent">
-              LeadFlow Pro
+          <span className="truncate leading-tight">
+            <span className="block bg-gradient-to-r from-cyan-100 via-cyan-300 to-accent-300 bg-clip-text text-sm text-transparent sm:text-base">
+              Weird Stats Clock
+            </span>
+            <span className="hidden text-[0.62rem] font-black uppercase tracking-[0.18em] text-slate-500 sm:block">
+              by The LeadFlow Pro
             </span>
           </span>
         </Link>
@@ -187,7 +189,7 @@ function MobileAction({
   action: HeaderAction;
   primary?: boolean;
 }) {
-  const Icon = action.Icon ?? (primary ? Bot : Sparkles);
+  const Icon = action.Icon ?? (primary ? Sparkles : Zap);
   return (
     <Link
       href={action.href}
@@ -215,12 +217,12 @@ export function LightFooter({ hideFreeAuditLink }: { hideFreeAuditLink?: boolean
     <footer className="border-t border-cyan-300/15 bg-slate-950 text-slate-400">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-xs lg:grid-cols-[1.25fr_2fr]">
         <div>
-          <div className="font-semibold text-white">The LeadFlow Pro</div>
-          <div className="mt-1">Automated growth tools by Real Ryan Nichols LLC - Texas</div>
+          <div className="font-semibold text-white">The Weird Stats Clock</div>
+          <div className="mt-1">A strange live counter machine by The LeadFlow Pro.</div>
           <div className="mt-3 max-w-xl">
-            We do not guarantee specific follower-count, lead-volume, conversion-rate, revenue,
-            ROAS, or ad approval outcomes. The tools provide structured readouts, documents,
-            scripts, maps, dashboards, and next-step paths.
+            Stats marked as estimates are generated using public assumptions, formulas, or
+            user-submitted models. They are for entertainment and directional insight only.
+            We do not guarantee perfect accuracy, viral traffic, revenue, or business outcomes.
           </div>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

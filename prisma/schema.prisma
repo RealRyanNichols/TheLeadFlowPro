@@ -1331,3 +1331,119 @@ model SmsLog {
   @@index([template, sentAt(sort: Desc)])
   @@index([toPhone])
 }
+
+// ─── Weird Stats Clock ──────────────────────────────────────────
+// Public formula counters, paid request queue, micropurchases, and board
+// unlocks for the self-serve Weird Stats Clock product.
+
+model Stat {
+  id              String   @id @default(uuid())
+  slug            String   @unique
+  title           String
+  shortDescription String? @map("short_description") @db.Text
+  longDescription  String? @map("long_description") @db.Text
+  category        String
+  unitLabel       String?  @map("unit_label")
+  baseValue       Float    @default(0) @map("base_value")
+  ratePerSecond   Float    @default(0) @map("rate_per_second")
+  varianceFactor  Float?   @map("variance_factor")
+  formulaType     String   @default("linear_estimate") @map("formula_type")
+  formulaNotes    String?  @map("formula_notes") @db.Text
+  sourceType      String   @default("formula_estimate") @map("source_type")
+  sourceNotes     String?  @map("source_notes") @db.Text
+  confidenceScore Int      @default(50) @map("confidence_score")
+  isPremium       Boolean  @default(false) @map("is_premium")
+  isActive        Boolean  @default(true) @map("is_active")
+  sponsorName     String?  @map("sponsor_name")
+  sponsorUrl      String?  @map("sponsor_url")
+  whyItMatters    String?  @map("why_it_matters") @db.Text
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  requests       StatRequest[]
+  purchases      Purchase[]
+  events         StatEvent[]
+
+  @@index([category])
+  @@index([isActive, category])
+  @@map("stats")
+}
+
+model StatRequest {
+  id              String   @id @default(uuid())
+  question        String   @db.Text
+  category        String?
+  reason          String?  @db.Text
+  email           String?
+  displayName     String?  @map("display_name")
+  visibility      String   @default("public")
+  urgency         String   @default("standard")
+  status          String   @default("new")
+  voteCount       Int      @default(0) @map("vote_count")
+  boostCount      Int      @default(0) @map("boost_count")
+  stripeSessionId String?  @map("stripe_session_id")
+  paidAmount      Int      @default(0) @map("paid_amount")
+  paymentStatus   String   @default("unpaid") @map("payment_status")
+  publishedStatId String?  @map("published_stat_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  publishedStat Stat?      @relation(fields: [publishedStatId], references: [id])
+  purchases     Purchase[]
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([category])
+  @@index([email])
+  @@map("stat_requests")
+}
+
+model Purchase {
+  id                    String   @id @default(uuid())
+  email                 String?
+  productKey            String   @map("product_key")
+  amount                Int
+  currency              String   @default("usd")
+  stripeSessionId       String   @unique @map("stripe_session_id")
+  stripePaymentIntentId String?  @map("stripe_payment_intent_id")
+  status                String   @default("pending")
+  relatedStatId         String?  @map("related_stat_id")
+  relatedRequestId      String?  @map("related_request_id")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  relatedStat    Stat?        @relation(fields: [relatedStatId], references: [id])
+  relatedRequest StatRequest? @relation(fields: [relatedRequestId], references: [id])
+
+  @@index([productKey])
+  @@index([createdAt(sort: Desc)])
+  @@map("purchases")
+}
+
+model StatEvent {
+  id        String   @id @default(uuid())
+  statId    String?  @map("stat_id")
+  eventType String   @map("event_type")
+  metadata  Json?
+  ipHash    String?  @map("ip_hash")
+  userAgent String?  @map("user_agent") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  stat Stat? @relation(fields: [statId], references: [id])
+
+  @@index([statId, createdAt(sort: Desc)])
+  @@index([eventType, createdAt(sort: Desc)])
+  @@map("stat_events")
+}
+
+model BoardUnlock {
+  id              String   @id @default(uuid())
+  email           String?
+  boardKey        String   @map("board_key")
+  stripeSessionId String?  @map("stripe_session_id")
+  status          String   @default("pending")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([boardKey])
+  @@index([createdAt(sort: Desc)])
+  @@map("board_unlocks")
+}
