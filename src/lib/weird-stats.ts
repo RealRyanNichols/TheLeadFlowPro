@@ -730,3 +730,41 @@ export function getWeirdStatBySlug(slug: string) {
 export function relatedWeirdStats(stat: WeirdStat) {
   return STARTER_WEIRD_STATS.filter((item) => item.category === stat.category && item.slug !== stat.slug).slice(0, 4);
 }
+
+export function getWeirdStatTags(stat: WeirdStat) {
+  const text = `${stat.title} ${stat.shortDescription} ${stat.longDescription} ${stat.whyItMatters}`.toLowerCase();
+  const tags = new Set<string>([stat.category]);
+
+  if (/(lead|call|dm|form|cart|checkout|cta|unsubscribe|business)/.test(text)) {
+    tags.add("Lead Leaks");
+  }
+  if (/(money|dollars|subscription|expense|receipt|reimbursement|spend)/.test(text)) {
+    tags.add("Money Leaks");
+  }
+  if (/(attention|notification|click|scroll|tab|inbox|email|spam)/.test(text)) {
+    tags.add("Attention");
+  }
+  if (/(ai|prompt|image|robot|output|synthetic)/.test(text)) {
+    tags.add("AI Signals");
+  }
+  if (/(meeting|calendar|work|office|coffee)/.test(text)) {
+    tags.add("Work Drag");
+  }
+  if (/(shop|cart|return|gym|streaming|screenshot|consumer)/.test(text)) {
+    tags.add("Consumer Behavior");
+  }
+  if (/(swipe|dating|relationship|reply|social)/.test(text)) {
+    tags.add("Social Behavior");
+  }
+  if (stat.sourceType === "verified_source" || stat.sourceType === "live_api") {
+    tags.add("Higher Confidence");
+  }
+  if (stat.sourceType === "experimental" || stat.confidenceScore < 35) {
+    tags.add("Experimental");
+  }
+  if (stat.isPremium) {
+    tags.add("Premium");
+  }
+
+  return Array.from(tags).sort((a, b) => a.localeCompare(b));
+}

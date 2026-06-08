@@ -135,7 +135,7 @@ function LiveClockSection() {
               Live weird stats
             </div>
             <h2 className="mt-4 max-w-4xl text-3xl font-black tracking-tight sm:text-5xl">
-              A dense wall of moving numbers, source labels, and weird little truths.
+              Search the clock, collapse the boards, change the color, and request the next number.
             </h2>
           </div>
           <Link

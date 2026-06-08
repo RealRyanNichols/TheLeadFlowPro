@@ -20,7 +20,7 @@ export default function RequestPage({
 }) {
   const product = weirdProductByKey(searchParams?.product) ?? weirdProductByKey("submit_weird_stat_300");
   const stat = searchParams?.stat ? getWeirdStatBySlug(searchParams.stat) : null;
-  const defaultQuestion = stat ? `Deeper version of: ${stat.title}` : "";
+  const defaultQuestion = stat ? `Deeper version of: ${stat.title}` : searchParams?.request ?? "";
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">

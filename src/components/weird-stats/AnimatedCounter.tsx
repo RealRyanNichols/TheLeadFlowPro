@@ -19,10 +19,16 @@ export function AnimatedCounter({
   }, []);
 
   const value = useMemo(() => calculateStatValue(stat, now), [stat, now]);
+  const formatted = formatStatValue(stat, value);
 
   return (
-    <span className={className} aria-label={`${formatStatValue(stat, value)} ${stat.unitLabel}`}>
-      {formatStatValue(stat, value)}
+    <span
+      className={`${className ?? ""} inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap font-mono [font-variant-numeric:tabular-nums]`}
+      aria-label={`${formatted} ${stat.unitLabel}`}
+      style={{ fontVariantNumeric: "tabular-nums" }}
+      title={formatted}
+    >
+      {formatted}
     </span>
   );
 }
