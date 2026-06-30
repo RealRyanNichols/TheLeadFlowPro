@@ -10,7 +10,7 @@ export async function Topbar() {
 
   const user = await currentUser().catch(() => null);
   const displayName = user?.name?.trim() || user?.email?.split("@")[0] || "Your account";
-  const businessName = user?.businessName || "Free plan";
+  const businessName = user?.businessName || "Signal account";
   const initial = displayName.charAt(0).toUpperCase();
 
   return (
@@ -22,7 +22,7 @@ export async function Topbar() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400" />
           <input
             type="search"
-            placeholder="Search leads, messages, insights…"
+            placeholder="Search people, companies, sources, buyer requests..."
             className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm placeholder:text-ink-400 focus:outline-none focus:border-cyan-500/50"
           />
         </div>

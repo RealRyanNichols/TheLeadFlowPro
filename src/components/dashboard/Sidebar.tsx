@@ -4,40 +4,35 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import {
-  LayoutDashboard, Inbox, Bot, Megaphone, Target, Users,
-  Sparkles, FilmIcon, Settings, Lightbulb, Workflow, IdCard, Menu, X,
-  BookOpen, Mail, Compass, MessageSquareQuote, BriefcaseBusiness, ShieldCheck
+  LayoutDashboard, Inbox, Target, Users,
+  Sparkles, Settings, Lightbulb, Workflow, Menu, X,
+  BriefcaseBusiness, ShieldCheck, DatabaseZap, ShoppingCart, Radar
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { cn } from "@/lib/utils";
 
 // Plan labels mirror /lib/tiers.ts; change there if pricing copy changes.
 const PLAN_LABELS: Record<string, { name: string; tagline: string }> = {
-  free:    { name: "Free plan",    tagline: "50 leads/mo · upgrade for more" },
-  starter: { name: "Starter plan", tagline: "Core tools for solo operators" },
-  growth:  { name: "Growth plan",  tagline: "Unlimited AI insights · 5,000 leads/mo" },
-  pro:     { name: "Pro plan",     tagline: "Multi-location, priority support" },
-  agency:  { name: "Agency plan",  tagline: "Unlimited seats, white-label, priority" },
+  free:    { name: "Free command",    tagline: "Start capturing demand signals" },
+  starter: { name: "Starter command", tagline: "Build scored starter lists" },
+  growth:  { name: "Growth command",  tagline: "More sources, scoring, and volume" },
+  pro:     { name: "Pro command",     tagline: "Buyer-ready packages and review" },
+  agency:  { name: "Agency command",  tagline: "Multi-client data operations" },
 };
 
 const NAV = [
-  { href: "/dashboard",            label: "Overview",        icon: LayoutDashboard },
-  { href: "/dashboard/work",       label: "Client Office",   icon: BriefcaseBusiness },
-  { href: "/dashboard/onboarding", label: "Get started",     icon: Compass },
-  { href: "/dashboard/playbooks",  label: "Playbooks",       icon: BookOpen },
-  { href: "/dashboard/scripts",    label: "Scripts library", icon: MessageSquareQuote },
-  { href: "/dashboard/recap",      label: "Weekly recap",    icon: Mail },
-  { href: "/dashboard/leads",      label: "Lead Inbox",      icon: Inbox },
-  { href: "/dashboard/chatbot",    label: "AI Chatbot",      icon: Bot },
-  { href: "/dashboard/automations",label: "Automations",     icon: Workflow },
-  { href: "/dashboard/media",      label: "Video & GIFs",    icon: FilmIcon },
-  { href: "/dashboard/card",       label: "FlowCard",        icon: IdCard },
-  { href: "/dashboard/social",     label: "Social Accounts", icon: Users },
-  { href: "/dashboard/insights",   label: "AI Insights",     icon: Sparkles },
-  { href: "/dashboard/audience",   label: "Target Audience", icon: Target },
-  { href: "/dashboard/ad-copy",    label: "Ad Copy",         icon: Megaphone },
-  { href: "/dashboard/requests",   label: "Request a Tool",  icon: Lightbulb },
-  { href: "/dashboard/settings",   label: "Settings",        icon: Settings }
+  { href: "/dashboard",               label: "Signal Command", icon: LayoutDashboard },
+  { href: "/data-marketplace",        label: "Marketplace",    icon: ShoppingCart },
+  { href: "/dashboard/data-requests", label: "Data Requests",  icon: DatabaseZap },
+  { href: "/problem-intake",          label: "Intent Intake",  icon: Radar },
+  { href: "/dashboard/leads",         label: "Lead Vault",     icon: Inbox },
+  { href: "/dashboard/audience",      label: "Buyer Targets",  icon: Target },
+  { href: "/dashboard/social",        label: "Source Accounts",icon: Users },
+  { href: "/dashboard/insights",      label: "Scoring",        icon: Sparkles },
+  { href: "/dashboard/automations",   label: "Workflows",      icon: Workflow },
+  { href: "/dashboard/work",          label: "Client Office",  icon: BriefcaseBusiness },
+  { href: "/dashboard/requests",      label: "Build Requests", icon: Lightbulb },
+  { href: "/dashboard/settings",      label: "Settings",       icon: Settings },
 ];
 
 function NavList({ pathname, onItemClick }: { pathname: string; onItemClick?: () => void }) {
@@ -73,7 +68,7 @@ function PlanFooter() {
   // read off the session user object if present, falling back to "free".
   const planRaw = ((session?.user as { plan?: string } | undefined)?.plan || "free").toLowerCase();
   const plan = PLAN_LABELS[planRaw] || PLAN_LABELS.free;
-  const cta = planRaw === "free" ? "Upgrade →" : "Manage plan →";
+  const cta = planRaw === "free" ? "Upgrade list volume" : "Manage plan";
   return (
     <div className="p-4 border-t border-white/5">
       <div className="glass rounded-xl p-3 text-xs text-ink-300">
@@ -95,7 +90,7 @@ function PlanFooter() {
 export function Sidebar() {
   const pathname = usePathname();
   return (
-    <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-white/5 bg-ink-950/80 backdrop-blur-xl">
+    <aside className="hidden lg:flex w-72 shrink-0 flex-col border-r border-white/5 bg-ink-950/80 backdrop-blur-xl">
       <div className="p-5 border-b border-white/5">
         <Logo href="/dashboard" />
       </div>
