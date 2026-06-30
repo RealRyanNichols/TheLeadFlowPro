@@ -17,11 +17,23 @@
   }
   html, body {
     @apply bg-ink-950 text-ink-50 antialiased;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+  img,
+  svg,
+  video,
+  canvas {
+    max-width: 100%;
   }
   body {
+    background-color: #050918;
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(35, 184, 255, 0.12), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 100% 100%, rgba(255, 154, 31, 0.08), transparent 60%);
+      linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(35, 184, 255, 0.09), transparent 30rem),
+      linear-gradient(112deg, rgba(184, 243, 107, 0.045), transparent 38%, rgba(255, 154, 31, 0.075));
+    background-size: 56px 56px, 56px 56px, auto, auto;
     background-attachment: fixed;
   }
   /* Spectrum line under WELCOME headlines */
@@ -32,6 +44,88 @@
 }
 
 @layer components {
+  .lead-shell {
+    @apply rounded-lg border border-white/10 bg-[#090d13]/90 shadow-2xl shadow-black/40;
+    background-image:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.075), transparent 18rem),
+      linear-gradient(180deg, rgba(53, 213, 255, 0.055), transparent 24rem);
+  }
+  .lead-panel {
+    @apply rounded-lg border border-white/10 bg-[#0b1017]/85;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  }
+  .lead-panel-strong {
+    @apply rounded-lg border border-white/10 bg-[#0d1117]/95 shadow-xl shadow-black/30;
+    background-image:
+      linear-gradient(90deg, rgba(53, 213, 255, 0.12), transparent 18rem),
+      linear-gradient(180deg, rgba(184, 243, 107, 0.045), transparent 22rem);
+  }
+  .lead-control {
+    @apply min-h-12 rounded-lg border border-white/10 bg-[#05080d]/85 px-3 py-3 text-sm text-white placeholder:text-ink-500 outline-none transition focus:border-lead-400/70 focus:ring-2 focus:ring-lead-400/20;
+  }
+  .lead-option-grid {
+    @apply grid gap-3;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  }
+  .signal-page {
+    @apply relative overflow-hidden;
+  }
+  .signal-eyebrow {
+    @apply inline-flex items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-cyan-200;
+  }
+  .signal-hero-grid {
+    @apply grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,34rem)] xl:items-start;
+  }
+  .signal-pressure-rail {
+    @apply overflow-hidden rounded-lg border border-white/10 bg-[#080c12]/90;
+  }
+  .signal-pressure-row {
+    @apply grid gap-3 border-b border-white/10 p-4 last:border-b-0 sm:grid-cols-[3.25rem_1fr];
+  }
+  .signal-index {
+    @apply flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-xs font-extrabold;
+  }
+  .signal-map {
+    @apply relative min-h-[30rem] overflow-hidden rounded-lg border border-white/10 bg-[#080c12]/95 p-4 shadow-2xl shadow-black/30;
+  }
+  .signal-map-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+  .signal-node {
+    @apply absolute flex items-center justify-center rounded-full border text-xs font-bold text-white;
+  }
+  .signal-choice {
+    @apply relative min-h-32 min-w-0 overflow-hidden rounded-lg border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lead-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950;
+  }
+  .signal-choice::before {
+    content: "";
+    @apply absolute bottom-0 left-0 top-0 w-1 bg-white/10;
+  }
+  .signal-choice-active {
+    @apply border-lead-400/50 bg-lead-400/10 shadow-lg shadow-black/20;
+  }
+  .signal-choice-active::before {
+    @apply bg-lead-400;
+  }
+  .signal-choice-idle {
+    @apply border-white/10 bg-white/[0.025] hover:border-cyan-400/35 hover:bg-white/[0.04];
+  }
+  .signal-section-head {
+    @apply mb-5 grid gap-4 md:grid-cols-[4.5rem_1fr];
+  }
+  .signal-section-icon {
+    @apply flex h-14 w-14 items-center justify-center rounded-lg border border-white/10 bg-[#05080d] text-accent-300;
+  }
+  .signal-score-panel {
+    @apply rounded-lg border border-white/10 bg-[#080c12]/95 p-5 shadow-2xl shadow-black/35;
+  }
+  .signal-score-panel::before {
+    content: "";
+    @apply mb-5 block h-1 w-full rounded-full bg-gradient-to-r from-lead-400 via-cyan-400 to-accent-400;
+  }
   .glass {
     @apply bg-ink-900/60 border border-white/5 backdrop-blur-xl;
   }
@@ -39,7 +133,7 @@
     @apply bg-ink-900/80 border border-white/10 backdrop-blur-xl;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-lg px-5 py-3 text-center font-semibold leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
   }
   .btn-primary {
     @apply btn text-white shadow-lg shadow-cyan-500/20;

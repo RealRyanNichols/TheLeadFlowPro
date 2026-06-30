@@ -123,42 +123,34 @@ export function ProblemIntakeClient() {
   }
 
   return (
-    <section className="py-10 md:py-16">
+    <section className="signal-page py-10 md:py-16">
       <div className="container">
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
           <div className="space-y-8">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-lg border border-lead-400/30 bg-lead-400/10 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-lead-400">
-                <UserCheck className="h-4 w-4" />
-                Signal, not noise
+            <div className="signal-hero-grid">
+              <div>
+                <div className="signal-eyebrow">
+                  <UserCheck className="h-4 w-4" />
+                  Signal, not noise
+                </div>
+                <h1 className="mt-5 max-w-4xl text-4xl font-extrabold leading-tight text-white md:text-6xl">
+                  Stop asking safe questions. Find the buying signal.
+                </h1>
+                <p className="mt-4 max-w-3xl text-base leading-7 text-ink-100 md:text-lg">
+                  The intake should feel like a private decision console: pressure,
+                  search behavior, timing, budget, and what would make someone act.
+                  That is the data worth scoring, matching, and selling.
+                </p>
+                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  <SignalMetric value={score.leadScore.toString()} label="live signal score" tone="lead" />
+                  <SignalMetric value={form.problemCategories.length.toString()} label="pressure tags" tone="cyan" />
+                  <SignalMetric value={form.interests.length.toString()} label="interest lanes" tone="accent" />
+                </div>
               </div>
-              <h1 className="mt-5 max-w-4xl text-4xl font-extrabold leading-tight text-white md:text-6xl">
-                What do you need solved badly enough to answer honestly?
-              </h1>
-              <p className="mt-4 max-w-3xl text-base leading-7 text-ink-200 md:text-lg">
-                Skip the polite version. Tell us what is broken, expensive,
-                confusing, slow, embarrassing, risky, or overdue. The useful answer
-                is usually hiding behind the thing people avoid saying out loud.
-              </p>
+              <SignalMap score={score} />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
-              <ValueCard
-                icon={Target}
-                title="What hurts?"
-                body="Time, money, customers, confidence, status, clarity, or momentum."
-              />
-              <ValueCard
-                icon={Radar}
-                title="What are you chasing?"
-                body="The thing you keep searching, comparing, watching, saving, or almost buying."
-              />
-              <ValueCard
-                icon={ShieldCheck}
-                title="What would move you?"
-                body="A real offer, better list, clearer answer, trusted provider, or useful next step."
-              />
-            </div>
+            <PressureRail />
 
             <form onSubmit={submit} className="space-y-8">
               <BuilderSection
@@ -372,22 +364,105 @@ export function ProblemIntakeClient() {
   );
 }
 
-function ValueCard({
-  icon: Icon,
-  title,
-  body
+function SignalMetric({
+  value,
+  label,
+  tone
 }: {
-  icon: typeof Radar;
-  title: string;
-  body: string;
+  value: string;
+  label: string;
+  tone: "lead" | "cyan" | "accent";
 }) {
+  const toneClass =
+    tone === "lead" ? "text-lead-400" : tone === "cyan" ? "text-cyan-300" : "text-accent-300";
+
   return (
-    <div className="lead-panel min-h-44 p-4">
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-300">
-        <Icon className="h-5 w-5" />
+    <div className="lead-panel min-h-24 p-4">
+      <p className={["text-3xl font-extrabold", toneClass].join(" ")}>{value}</p>
+      <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-ink-400">{label}</p>
+    </div>
+  );
+}
+
+function PressureRail() {
+  const rows = [
+    {
+      n: "01",
+      title: "What hurts?",
+      body: "Time, money, customers, confidence, status, clarity, or momentum.",
+      tone: "text-lead-400"
+    },
+    {
+      n: "02",
+      title: "What keeps getting searched?",
+      body: "Tools, providers, comparisons, watched offers, saved posts, and almost-buys.",
+      tone: "text-cyan-300"
+    },
+    {
+      n: "03",
+      title: "What would move money or action?",
+      body: "A better list, clearer answer, trusted provider, useful price, or clean next step.",
+      tone: "text-accent-300"
+    }
+  ];
+
+  return (
+    <div className="signal-pressure-rail">
+      {rows.map((row) => (
+        <div key={row.n} className="signal-pressure-row">
+          <div className={["signal-index", row.tone].join(" ")}>{row.n}</div>
+          <div className="min-w-0">
+            <h2 className="text-xl font-extrabold text-white">{row.title}</h2>
+            <p className="mt-1 text-sm leading-6 text-ink-300">{row.body}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SignalMap({
+  score
+}: {
+  score: ReturnType<typeof estimateAdultInterest>;
+}) {
+  const nodes = [
+    { label: "Pain", className: "left-[12%] top-[16%] h-20 w-20 border-cyan-400/70 bg-cyan-400/15" },
+    { label: "Intent", className: "right-[12%] top-[14%] h-24 w-24 border-lead-400/70 bg-lead-400/15" },
+    { label: "Budget", className: "left-[35%] top-[38%] h-28 w-28 border-accent-400/70 bg-accent-400/15" },
+    { label: "Risk", className: "left-[12%] bottom-[20%] h-16 w-16 border-red-400/70 bg-red-400/15" },
+    { label: "Route", className: "right-[14%] bottom-[19%] h-20 w-20 border-cyan-300/70 bg-cyan-300/15" }
+  ];
+
+  return (
+    <div className="signal-map signal-map-grid">
+      <div className="relative z-10 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">Profile fit engine</p>
+          <h2 className="mt-1 text-2xl font-extrabold text-white">Live signal map</h2>
+        </div>
+        <div className="rounded-lg border border-lead-400/30 bg-lead-400/10 px-4 py-3 text-right">
+          <p className="text-3xl font-extrabold text-lead-400">{score.leadScore}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-400">score</p>
+        </div>
       </div>
-      <h3 className="mt-4 font-bold text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-ink-300">{body}</p>
+
+      <div className="absolute inset-x-4 top-24 h-64 rounded-lg border border-white/10 bg-black/20" />
+      {nodes.map((node) => (
+        <div key={node.label} className={["signal-node", node.className].join(" ")}>
+          {node.label}
+        </div>
+      ))}
+
+      <div className="absolute inset-x-4 bottom-4 space-y-2">
+        {score.notes.slice(0, 3).map((note, index) => (
+          <div key={note} className="grid min-h-12 grid-cols-[0.35rem_1fr_2.5rem] items-center gap-3 rounded-lg border border-white/10 bg-[#070a10]/90 p-3 text-sm">
+            <span className={index === 0 ? "h-8 rounded-full bg-lead-400" : index === 1 ? "h-8 rounded-full bg-cyan-300" : "h-8 rounded-full bg-accent-300"} />
+            <span className="min-w-0 text-ink-100">{note}</span>
+            <span className="font-extrabold text-lead-400">{Math.max(72, score.leadScore - index * 6)}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -406,14 +481,14 @@ function BuilderSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="lead-panel-strong p-5 md:p-6">
-      <div className="mb-5 flex items-start gap-4">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-accent-400/10 text-accent-300">
+    <section className="lead-panel-strong overflow-hidden p-5 md:p-6">
+      <div className="signal-section-head">
+        <div className="signal-section-icon">
           <Icon className="h-5 w-5" />
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">{eyebrow}</p>
-          <h2 className="mt-1 text-2xl font-extrabold text-white">{title}</h2>
+          <h2 className="mt-1 text-2xl font-extrabold leading-tight text-white md:text-3xl">{title}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-300">{body}</p>
         </div>
       </div>
@@ -442,17 +517,15 @@ function OptionButton({
       type="button"
       onClick={onClick}
       className={[
-        "min-h-40 min-w-0 rounded-lg border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",
-        active
-          ? "border-cyan-400/50 bg-cyan-400/10 shadow-lg shadow-cyan-950/20"
-          : "border-white/10 bg-white/[0.03] hover:border-cyan-400/30"
+        "signal-choice",
+        active ? "signal-choice-active" : "signal-choice-idle"
       ].join(" ")}
     >
-      <span className="flex min-w-0 items-center gap-2 break-words text-base font-bold text-white">
-        {active ? <CheckCircle2 className="h-5 w-5 shrink-0 text-lead-400" /> : null}
+      <span className="relative flex min-w-0 items-center gap-2 break-words text-base font-bold text-white">
+        {active ? <CheckCircle2 className="h-5 w-5 shrink-0 text-lead-400" /> : <span className="h-5 w-5 shrink-0 rounded-full border border-white/20" />}
         {title}
       </span>
-      <span className="mt-2 block text-sm leading-6 text-ink-300">{body}</span>
+      <span className="relative mt-2 block text-sm leading-6 text-ink-300">{body}</span>
     </button>
   );
 }
@@ -473,17 +546,15 @@ function RadioCard({
       type="button"
       onClick={onClick}
       className={[
-        "min-h-36 min-w-0 rounded-lg border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",
-        active
-          ? "border-accent-400/60 bg-accent-400/10 shadow-lg shadow-ink-950/20"
-          : "border-white/10 bg-white/[0.03] hover:border-accent-400/40"
+        "signal-choice",
+        active ? "border-accent-400/60 bg-accent-400/10 shadow-lg shadow-black/20 before:bg-accent-400" : "signal-choice-idle"
       ].join(" ")}
     >
-      <span className="flex min-w-0 items-center gap-2 break-words text-base font-bold text-white">
-        {active ? <CheckCircle2 className="h-5 w-5 shrink-0 text-accent-300" /> : null}
+      <span className="relative flex min-w-0 items-center gap-2 break-words text-base font-bold text-white">
+        {active ? <CheckCircle2 className="h-5 w-5 shrink-0 text-accent-300" /> : <span className="h-5 w-5 shrink-0 rounded-full border border-white/20" />}
         {title}
       </span>
-      <span className="mt-2 block text-sm leading-6 text-ink-300">{body}</span>
+      <span className="relative mt-2 block text-sm leading-6 text-ink-300">{body}</span>
     </button>
   );
 }
@@ -594,7 +665,7 @@ function ScorePanel({
 }) {
   return (
     <div className="space-y-4">
-      <div className="lead-shell p-5">
+      <div className="signal-score-panel">
         <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
           Signal strength
         </p>
@@ -615,7 +686,7 @@ function ScorePanel({
           <ScoreBar label="Boundary" value={score.complianceScore} />
         </div>
 
-        <div className="mt-5 rounded-lg border border-white/10 bg-white/[0.035] p-4">
+        <div className="mt-5 rounded-lg border border-white/10 bg-[#05080d]/70 p-4">
           <p className="flex items-center gap-2 text-sm font-bold text-white">
             <LockKeyhole className="h-4 w-4 text-lead-400" />
             Keep it usable

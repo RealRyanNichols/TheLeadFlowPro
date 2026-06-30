@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   AlertCircle,
   ArrowRight,
-  BadgeCheck,
   Check,
   CheckCircle2,
   Database,
@@ -122,43 +121,35 @@ export function DataMarketplaceClient() {
   }
 
   return (
-    <section className="py-10 md:py-16">
+    <section className="signal-page py-10 md:py-16">
       <div className="container">
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
           <div className="space-y-8">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-cyan-200">
-                <Database className="h-4 w-4" />
-                Universal lead intake
+            <div className="signal-hero-grid">
+              <div>
+                <div className="signal-eyebrow">
+                  <Database className="h-4 w-4" />
+                  Universal lead intake
+                </div>
+                <h1 className="mt-5 max-w-4xl text-4xl font-extrabold leading-tight text-white md:text-6xl">
+                  Build or list the lead source. Score it before anyone buys it.
+                </h1>
+                <p className="mt-4 max-w-3xl text-base leading-7 text-ink-100 md:text-lg">
+                  Request lists, submit source maps, price demand, and build the
+                  lead brain across businesses, ecommerce, AI, local services,
+                  creator channels, websites, routes, directories, and public
+                  opportunity signals.
+                </p>
+                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  <SignalMetric value={score.totalScore.toString()} label="data score" tone="lead" />
+                  <SignalMetric value={form.sourceLanes.length.toString()} label="source lanes" tone="cyan" />
+                  <SignalMetric value={formatCurrency(score.estimatedPriceUsd)} label="est. package" tone="accent" />
+                </div>
               </div>
-              <h1 className="mt-5 max-w-4xl text-4xl font-extrabold leading-tight text-white md:text-6xl">
-                One intake flow for every lead source your business can use.
-              </h1>
-              <p className="mt-4 max-w-3xl text-base leading-7 text-ink-200 md:text-lg">
-                Request lists, submit source maps, score demand, and build a main
-                brain database of leads across businesses, ecommerce, AI, local
-                services, creator channels, websites, routes, directories, and
-                public-source opportunity signals.
-              </p>
+              <MarketplaceMap score={score} isSourceMode={isSourceMode} />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <ValueCard
-                icon={Radar}
-                title="Any lead source"
-                body="Lists, stores, tools, routes, datasets, domains, channels, communities, and public opportunity maps."
-              />
-              <ValueCard
-                icon={BadgeCheck}
-                title="Source proof plus score"
-                body="Every submitted source gets depth, proof, intent, freshness, and compliance scoring."
-              />
-              <ValueCard
-                icon={FileDown}
-                title="Lead brain output"
-                body="Turn intake into lead profiles, CSV drops, CRM imports, watched segments, and managed research packs."
-              />
-            </div>
+            <MarketplaceRail />
 
             <form onSubmit={submit} className="space-y-8">
               <BuilderSection
@@ -433,22 +424,109 @@ export function DataMarketplaceClient() {
   );
 }
 
-function ValueCard({
-  icon: Icon,
-  title,
-  body
+function SignalMetric({
+  value,
+  label,
+  tone
 }: {
-  icon: typeof Radar;
-  title: string;
-  body: string;
+  value: string;
+  label: string;
+  tone: "lead" | "cyan" | "accent";
 }) {
+  const toneClass =
+    tone === "lead" ? "text-lead-400" : tone === "cyan" ? "text-cyan-300" : "text-accent-300";
+
   return (
-    <div className="lead-panel min-h-44 p-4">
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-400/10 text-cyan-300">
-        <Icon className="h-5 w-5" />
+    <div className="lead-panel min-h-24 p-4">
+      <p className={["text-2xl font-extrabold sm:text-3xl", toneClass].join(" ")}>{value}</p>
+      <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-ink-400">{label}</p>
+    </div>
+  );
+}
+
+function MarketplaceRail() {
+  const rows = [
+    {
+      n: "01",
+      title: "Source class",
+      body: "Dataset, website, store, route, directory, public profile set, or submitted opportunity map.",
+      tone: "text-lead-400"
+    },
+    {
+      n: "02",
+      title: "Proof depth",
+      body: "Links, sample rows, source notes, buyer use case, suppression state, and confidence level.",
+      tone: "text-cyan-300"
+    },
+    {
+      n: "03",
+      title: "Buyer route",
+      body: "Public listing, CSV drop, profile vault, weekly drop, managed workspace, or qualified handoff.",
+      tone: "text-accent-300"
+    }
+  ];
+
+  return (
+    <div className="signal-pressure-rail">
+      {rows.map((row) => (
+        <div key={row.n} className="signal-pressure-row">
+          <div className={["signal-index", row.tone].join(" ")}>{row.n}</div>
+          <div className="min-w-0">
+            <h2 className="text-xl font-extrabold text-white">{row.title}</h2>
+            <p className="mt-1 text-sm leading-6 text-ink-300">{row.body}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MarketplaceMap({
+  score,
+  isSourceMode
+}: {
+  score: ReturnType<typeof estimateDataProduct>;
+  isSourceMode: boolean;
+}) {
+  const nodes = [
+    { label: "Source", className: "left-[12%] top-[16%] h-20 w-20 border-cyan-400/70 bg-cyan-400/15" },
+    { label: "Proof", className: "right-[12%] top-[14%] h-24 w-24 border-lead-400/70 bg-lead-400/15" },
+    { label: "Price", className: "left-[34%] top-[38%] h-28 w-28 border-accent-400/70 bg-accent-400/15" },
+    { label: "Risk", className: "left-[12%] bottom-[20%] h-16 w-16 border-red-400/70 bg-red-400/15" },
+    { label: "Route", className: "right-[14%] bottom-[19%] h-20 w-20 border-cyan-300/70 bg-cyan-300/15" }
+  ];
+
+  return (
+    <div className="signal-map signal-map-grid">
+      <div className="relative z-10 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
+            {isSourceMode ? "Source listing engine" : "Buyer request engine"}
+          </p>
+          <h2 className="mt-1 text-2xl font-extrabold text-white">Marketplace graph</h2>
+        </div>
+        <div className="rounded-lg border border-lead-400/30 bg-lead-400/10 px-4 py-3 text-right">
+          <p className="text-3xl font-extrabold text-lead-400">{score.totalScore}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-400">score</p>
+        </div>
       </div>
-      <h3 className="mt-4 font-bold text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-ink-300">{body}</p>
+
+      <div className="absolute inset-x-4 top-24 h-64 rounded-lg border border-white/10 bg-black/20" />
+      {nodes.map((node) => (
+        <div key={node.label} className={["signal-node", node.className].join(" ")}>
+          {node.label}
+        </div>
+      ))}
+
+      <div className="absolute inset-x-4 bottom-4 space-y-2">
+        {score.notes.slice(0, 3).map((note, index) => (
+          <div key={note} className="grid min-h-12 grid-cols-[0.35rem_1fr_3.5rem] items-center gap-3 rounded-lg border border-white/10 bg-[#070a10]/90 p-3 text-sm">
+            <span className={index === 0 ? "h-8 rounded-full bg-lead-400" : index === 1 ? "h-8 rounded-full bg-cyan-300" : "h-8 rounded-full bg-accent-300"} />
+            <span className="min-w-0 text-ink-100">{note}</span>
+            <span className="font-extrabold text-accent-300">{formatCurrency(Math.max(49, score.priceFloorUsd + index * 35))}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -467,14 +545,14 @@ function BuilderSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="lead-panel-strong p-5 md:p-6">
-      <div className="mb-5 flex items-start gap-4">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-accent-400/10 text-accent-300">
+    <section className="lead-panel-strong overflow-hidden p-5 md:p-6">
+      <div className="signal-section-head">
+        <div className="signal-section-icon">
           <Icon className="h-5 w-5" />
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">{eyebrow}</p>
-          <h2 className="mt-1 text-2xl font-extrabold text-white">{title}</h2>
+          <h2 className="mt-1 text-2xl font-extrabold leading-tight text-white md:text-3xl">{title}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-300">{body}</p>
         </div>
       </div>
@@ -503,17 +581,15 @@ function OptionButton({
       type="button"
       onClick={onClick}
       className={[
-        "min-h-40 min-w-0 rounded-lg border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",
-        active
-          ? "border-cyan-400/50 bg-cyan-400/10 shadow-lg shadow-cyan-950/20"
-          : "border-white/10 bg-white/[0.03] hover:border-cyan-400/30"
+        "signal-choice",
+        active ? "signal-choice-active" : "signal-choice-idle"
       ].join(" ")}
     >
-      <span className="flex min-w-0 items-center gap-2 break-words text-base font-bold text-white">
-        {active ? <CheckCircle2 className="h-5 w-5 text-lead-400" /> : null}
+      <span className="relative flex min-w-0 items-center gap-2 break-words text-base font-bold text-white">
+        {active ? <CheckCircle2 className="h-5 w-5 shrink-0 text-lead-400" /> : <span className="h-5 w-5 shrink-0 rounded-full border border-white/20" />}
         {title}
       </span>
-      <span className="mt-2 block text-sm leading-6 text-ink-300">{body}</span>
+      <span className="relative mt-2 block text-sm leading-6 text-ink-300">{body}</span>
     </button>
   );
 }
@@ -534,17 +610,15 @@ function ModeButton({
       type="button"
       onClick={onClick}
       className={[
-        "min-h-40 min-w-0 rounded-lg border p-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",
-        active
-          ? "border-accent-400/60 bg-accent-400/10 shadow-lg shadow-ink-950/20"
-          : "border-white/10 bg-white/[0.03] hover:border-accent-400/40"
+        "signal-choice min-h-40",
+        active ? "border-accent-400/60 bg-accent-400/10 shadow-lg shadow-black/20 before:bg-accent-400" : "signal-choice-idle"
       ].join(" ")}
     >
-      <span className="flex min-w-0 items-center gap-2 break-words text-lg font-extrabold text-white">
-        {active ? <CheckCircle2 className="h-5 w-5 text-accent-300" /> : null}
+      <span className="relative flex min-w-0 items-center gap-2 break-words text-lg font-extrabold text-white">
+        {active ? <CheckCircle2 className="h-5 w-5 shrink-0 text-accent-300" /> : <span className="h-5 w-5 shrink-0 rounded-full border border-white/20" />}
         {title}
       </span>
-      <span className="mt-2 block text-sm leading-6 text-ink-300">{body}</span>
+      <span className="relative mt-2 block text-sm leading-6 text-ink-300">{body}</span>
     </button>
   );
 }
@@ -627,7 +701,7 @@ function ScorePanel({
   const isSourceMode = form.requestMode === "list";
   return (
     <div className="space-y-4">
-      <div className="lead-shell p-5">
+      <div className="signal-score-panel">
         <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
           {isSourceMode ? "Source estimate" : "Live estimate"}
         </p>
@@ -655,7 +729,7 @@ function ScorePanel({
           <ScoreBar label="Compliance" value={score.complianceScore} />
         </div>
 
-        <div className="mt-5 rounded-lg border border-white/10 bg-white/[0.035] p-4">
+        <div className="mt-5 rounded-lg border border-white/10 bg-[#05080d]/70 p-4">
           <p className="flex items-center gap-2 text-sm font-bold text-white">
             <LockKeyhole className="h-4 w-4 text-lead-400" />
             Compliance posture
