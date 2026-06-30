@@ -87,7 +87,7 @@ const workflow = [
   {
     icon: DatabaseZap,
     title: "Route the deal",
-    body: "Publish the lead-source profile, collect inquiries, send payment links, route qualified handoffs, or create a managed lead workspace."
+    body: "Publish the lead-source profile, price the package fairly, collect inquiries, send payment links, route qualified handoffs, or create a managed lead workspace."
   }
 ];
 
@@ -112,6 +112,42 @@ const products = [
   }
 ];
 
+const buyerProducts = [
+  {
+    title: "Starter lead drop",
+    price: "$49-$149",
+    body: "A narrow source-backed list for buyers who need a first batch, not a bloated file.",
+    points: ["50-500 records", "Source links", "Confidence labels"]
+  },
+  {
+    title: "Verified profile pack",
+    price: "$99-$499",
+    body: "Reviewed lead-source profiles with proof notes, buyer-use context, and suppression status.",
+    points: ["Sample rows", "Proof review", "Buyer-fit notes"]
+  },
+  {
+    title: "Weekly demand drop",
+    price: "$75-$350/wk",
+    body: "Recurring fresh signals for a niche, geography, source lane, or buyer problem.",
+    points: ["Freshness pass", "New signals", "Review queue"]
+  },
+  {
+    title: "Managed data room",
+    price: "Custom",
+    body: "Higher-value data, larger volumes, private samples, and qualified handoff workflows.",
+    points: ["Scoped access", "Invoice path", "Review before release"]
+  }
+];
+
+const fairRateRules = [
+  "Price is based on source depth, volume, freshness, confidence, fields, and review time.",
+  "Buyers should know what they are paying for before money moves.",
+  "Small, useful lists should stay affordable enough for real operators to test.",
+  "Premium pricing belongs on verified proof, qualified intent, recurring freshness, or managed review.",
+  "No buyer gets private personal records, protected-trait targeting, minors' data, or unreviewed sensitive material.",
+  "Suppression and do-not-contact status reduce sellable value and must travel with the data."
+];
+
 const rules = [
   "Public and permissioned sources only.",
   "Signal intake must stay adult-only and clear about submitted data use.",
@@ -132,6 +168,7 @@ export default function HomePage() {
         <ProfileSection />
         <WorkflowSection />
         <ProductSection />
+        <FairRateSection />
         <ComplianceSection />
         <FinalCta />
       </main>
@@ -157,7 +194,8 @@ function HeroSection() {
           <p className="mt-6 max-w-2xl text-lg leading-8 text-ink-100 md:text-2xl">
             People reveal value when they say what hurts, what they keep
             searching, what they almost bought, and what would make them act.
-            LeadFlow turns those answers into signal you can score, match, and sell.
+            LeadFlow turns those answers into scored, source-backed data products
+            buyers can purchase at a fair rate.
           </p>
           <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap">
             <Link href="/problem-intake" className="btn-accent w-full text-base sm:w-auto">
@@ -170,8 +208,8 @@ function HeroSection() {
           </div>
           <div className="mt-10 grid max-w-3xl gap-3 sm:grid-cols-3">
             <Metric value="18+" label="adult-only intake" />
-            <Metric value="2" label="request and submit paths" />
-            <Metric value="100%" label="review-gated release" />
+            <Metric value="2" label="buyer and source paths" />
+            <Metric value="$49+" label="starter data products" />
           </div>
         </div>
         <HeroVisual />
@@ -447,6 +485,77 @@ function ProductSection() {
               </div>
             </article>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FairRateSection() {
+  return (
+    <section id="fair-rates" className="py-16 md:py-24">
+      <div className="container">
+        <div className="grid gap-8 xl:grid-cols-[0.85fr_1.15fr] xl:items-start">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
+              Buyer data exchange
+            </p>
+            <h2 className="mt-3 text-3xl font-extrabold text-white md:text-5xl">
+              Capture the lead signal. Sell the useful data at a fair rate.
+            </h2>
+            <p className="mt-5 text-base leading-7 text-ink-200 md:text-lg">
+              LeadFlow should collect problem intent, source proof, buyer need,
+              category, region, freshness, and confidence. Then it should package
+              the useful rows into data products a buyer can actually act on.
+            </p>
+            <div className="mt-6 rounded-lg border border-lead-400/25 bg-lead-400/10 p-5">
+              <p className="text-sm font-bold uppercase tracking-wider text-lead-400">
+                Fair-rate rule
+              </p>
+              <p className="mt-2 text-sm leading-6 text-ink-100">
+                The price should follow the value: source depth, verified proof,
+                intent strength, freshness, volume, field quality, review time,
+                and buyer use case. No mystery dumps. No inflated private-profile pricing.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {buyerProducts.map((product) => (
+              <article key={product.title} className="lead-shell p-5">
+                <p className="text-sm font-extrabold text-accent-300">{product.price}</p>
+                <h3 className="mt-2 text-xl font-extrabold text-white">{product.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-200">{product.body}</p>
+                <ul className="mt-4 space-y-2 text-sm text-ink-100">
+                  {product.points.map((point) => (
+                    <li key={point} className="flex gap-2">
+                      <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" />
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {fairRateRules.map((rule) => (
+            <div key={rule} className="lead-panel flex min-h-24 gap-3 p-4 text-sm leading-6 text-ink-100">
+              <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-lead-400" />
+              <span>{rule}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Link href="/data-marketplace" className="btn-accent text-base">
+            Request buyer data
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link href="/problem-intake" className="btn-ghost text-base">
+            Add a signal
+          </Link>
         </div>
       </div>
     </section>

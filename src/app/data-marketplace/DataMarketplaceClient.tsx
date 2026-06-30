@@ -143,12 +143,13 @@ export function DataMarketplaceClient() {
                   Request lists, submit source maps, price demand, and build the
                   lead brain across businesses, ecommerce, AI, local services,
                   creator channels, websites, routes, directories, and public
-                  opportunity signals.
+                  opportunity signals. Buyers get reviewed lead data at a rate
+                  tied to source quality, volume, freshness, and proof.
                 </p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-3">
                   <SignalMetric value={score.totalScore.toString()} label="data score" tone="lead" />
                   <SignalMetric value={form.sourceLanes.length.toString()} label="source lanes" tone="cyan" />
-                  <SignalMetric value={formatCurrency(score.estimatedPriceUsd)} label="est. package" tone="accent" />
+                  <SignalMetric value={formatCurrency(score.estimatedPriceUsd)} label="fair start" tone="accent" />
                 </div>
               </div>
               <MarketplaceMap score={score} isSourceMode={isSourceMode} />
@@ -564,7 +565,7 @@ function MarketplaceDealRoom({
         <p className="mt-3 max-w-3xl text-sm leading-6 text-ink-300 md:text-base">
           This is the part that makes the marketplace useful: source class,
           sample records, field requirements, confidence, suppression status,
-          fulfillment path, and the first commercial action.
+          fulfillment path, fair-rate pricing, and the first commercial action.
         </p>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2">
@@ -877,7 +878,7 @@ function ScorePanel({
               {formatCurrency(score.estimatedPriceUsd)}
             </p>
             <p className="mt-1 text-xs text-ink-400">
-              {isSourceMode ? "estimated source package" : "estimated start"}
+              {isSourceMode ? "estimated source package" : "fair starting rate"}
             </p>
           </div>
         </div>

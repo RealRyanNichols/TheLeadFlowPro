@@ -12,7 +12,7 @@ import { SitePulseTracker } from "@/components/site/SitePulseTracker";
 export const metadata: Metadata = {
   title: "The LeadFlow Pro - Universal Lead Brain",
   description:
-    "Collect adult pain and intent signals, score lead intent, and build a source-backed lead brain across businesses, ecommerce, AI, websites, and demand sources.",
+    "Collect adult pain and intent signals, score lead intent, and sell fair-rate source-backed lead data across businesses, ecommerce, AI, websites, and demand sources.",
   metadataBase: new URL("https://www.theleadflowpro.com"),
   applicationName: "The LeadFlow Pro",
   category: "business",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "The LeadFlow Pro",
     description:
-      "Find the signal behind what people need solved, score it, and build source-backed lead products.",
+      "Find the signal behind what people need solved, score it, and build fair-rate source-backed lead data products.",
     url: "https://www.theleadflowpro.com",
     siteName: "The LeadFlow Pro",
     type: "website",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "The LeadFlow Pro",
     description:
-      "Find the signal behind what people need solved.",
+      "Find the signal behind what people need solved and turn it into fair-rate lead data.",
     images: ["/images/leadflow-pro-social-card.png"],
   },
   icons: {

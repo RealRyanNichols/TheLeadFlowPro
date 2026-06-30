@@ -10,10 +10,11 @@ export function Header() {
         <nav className="hidden xl:flex items-center gap-7 text-sm text-ink-200">
           <Link href="/problem-intake" className="hover:text-white">Find Signal</Link>
           <Link href="/data-marketplace" className="hover:text-white">Marketplace</Link>
-          <Link href="#data" className="hover:text-white">Data</Link>
-          <Link href="#profiles" className="hover:text-white">Profiles</Link>
-          <Link href="#workflow" className="hover:text-white">Workflow</Link>
-          <Link href="#compliance" className="hover:text-white">Compliance</Link>
+          <Link href="/#data" className="hover:text-white">Data</Link>
+          <Link href="/#profiles" className="hover:text-white">Profiles</Link>
+          <Link href="/#fair-rates" className="hover:text-white">Fair Rates</Link>
+          <Link href="/#workflow" className="hover:text-white">Workflow</Link>
+          <Link href="/#compliance" className="hover:text-white">Compliance</Link>
           <Link href="/dashboard" className="hover:text-white">Dashboard</Link>
         </nav>
         <div className="flex items-center gap-2">

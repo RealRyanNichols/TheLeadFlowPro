@@ -9,6 +9,7 @@ export const SITE_PRIMARY_NAV: SiteNavItem[] = [
   { href: "/data-marketplace", label: "Marketplace", activePaths: ["/data-marketplace"] },
   { href: "/#data", label: "Data" },
   { href: "/#profiles", label: "Profiles" },
+  { href: "/#fair-rates", label: "Fair Rates" },
   { href: "/#workflow", label: "Workflow" },
 ];
 
@@ -29,6 +30,7 @@ export const SITE_FOOTER_NAV = {
     { href: "/data-marketplace", label: "Marketplace" },
     { href: "/#data", label: "Lead sources" },
     { href: "/#profiles", label: "Profile model" },
+    { href: "/#fair-rates", label: "Fair rates" },
     { href: "/#workflow", label: "Workflow" },
   ],
   company: [
@@ -39,6 +41,7 @@ export const SITE_FOOTER_NAV = {
   tools: [
     { href: "/problem-intake", label: "Signal intake" },
     { href: "/data-marketplace", label: "Data requests" },
+    { href: "/#fair-rates", label: "Buyer rate card" },
     { href: "/dashboard/data-requests", label: "Request dashboard" },
   ],
   legal: [
