@@ -255,6 +255,165 @@
   .signal-action-card span {
     @apply text-ink-300;
   }
+  .marketplace-solver-stage {
+    @apply grid gap-4 overflow-hidden rounded-lg border border-white/10 bg-[#05080d]/95 p-4 shadow-2xl shadow-black/35 md:p-5 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.72fr)];
+    min-width: 0;
+    background-image:
+      linear-gradient(125deg, rgba(92, 208, 255, 0.12), transparent 26rem),
+      linear-gradient(304deg, rgba(184, 243, 107, 0.09), transparent 20rem),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 18rem);
+  }
+  .marketplace-solver-copy {
+    @apply min-w-0;
+  }
+  .marketplace-mechanism-grid {
+    @apply grid gap-2 sm:grid-cols-2 lg:grid-cols-5;
+  }
+  .marketplace-mechanism-card {
+    @apply min-h-40 rounded-lg border border-white/10 bg-white/[0.035] p-3;
+    min-width: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  }
+  .marketplace-mechanism-icon {
+    @apply flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-300/25 bg-cyan-300/10 text-cyan-200;
+  }
+  .marketplace-mechanism-card h3 {
+    @apply mt-3 text-sm font-extrabold uppercase tracking-wider text-white;
+  }
+  .marketplace-mechanism-card p {
+    @apply mt-2 text-xs leading-5 text-ink-300;
+  }
+  .marketplace-solver-console {
+    @apply min-w-0 rounded-lg border border-cyan-300/20 bg-[#030609]/90 p-4 shadow-inner shadow-black;
+    background-image:
+      linear-gradient(rgba(92, 208, 255, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(92, 208, 255, 0.04) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .marketplace-console-top {
+    @apply flex min-w-0 items-start justify-between gap-3;
+  }
+  .marketplace-score-orb {
+    @apply flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-full border border-lead-400/35 bg-lead-400/10 text-center;
+    box-shadow: inset 0 0 22px rgba(184, 243, 107, 0.14), 0 0 38px -14px rgba(184, 243, 107, 0.8);
+  }
+  .marketplace-score-orb strong {
+    @apply text-2xl font-extrabold text-lead-400;
+  }
+  .marketplace-score-orb span {
+    @apply text-[0.62rem] font-bold uppercase tracking-wider text-ink-400;
+  }
+  .marketplace-live-path {
+    @apply mt-4 space-y-2;
+  }
+  .marketplace-live-row {
+    @apply relative grid min-h-20 min-w-0 grid-cols-[2.75rem_minmax(0,1fr)] items-center gap-3 rounded-lg border border-white/10 p-3 text-sm;
+    background-color: rgba(7, 11, 17, 0.88);
+  }
+  .marketplace-live-index {
+    @apply flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-xs font-extrabold text-cyan-200;
+  }
+  .marketplace-live-row p {
+    @apply text-xs font-semibold uppercase tracking-wider text-ink-500;
+  }
+  .marketplace-live-row strong {
+    @apply mt-1 block text-sm leading-5 text-ink-100;
+  }
+  .marketplace-live-arrow {
+    @apply absolute -bottom-3 left-7 text-cyan-300/80;
+    transform: rotate(90deg);
+  }
+  .marketplace-signal-chip {
+    @apply min-h-20 rounded-lg border border-white/10 bg-white/[0.035] p-3;
+    min-width: 0;
+  }
+  .marketplace-signal-chip span {
+    @apply text-xs font-semibold uppercase tracking-wider text-ink-500;
+  }
+  .marketplace-signal-chip strong {
+    @apply mt-1 block text-base font-extrabold leading-5 text-white;
+  }
+  .marketplace-starter-strip {
+    @apply col-span-full grid gap-3 md:grid-cols-2 xl:grid-cols-4;
+  }
+  .marketplace-problem-card {
+    @apply relative min-h-44 min-w-0 overflow-hidden rounded-lg border border-white/10 bg-white/[0.035] p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .marketplace-problem-card::before {
+    content: "";
+    @apply absolute inset-x-0 top-0 h-1;
+    background: linear-gradient(90deg, rgba(92, 208, 255, 0), rgba(92, 208, 255, 0.8), rgba(255, 214, 107, 0));
+  }
+  .marketplace-problem-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(92, 208, 255, 0.36);
+    background-color: rgba(255, 255, 255, 0.055);
+  }
+  .marketplace-problem-card-lead::before {
+    background: linear-gradient(90deg, rgba(184, 243, 107, 0), rgba(184, 243, 107, 0.9), rgba(92, 208, 255, 0));
+  }
+  .marketplace-problem-card-cyan::before {
+    background: linear-gradient(90deg, rgba(92, 208, 255, 0), rgba(92, 208, 255, 0.95), rgba(184, 243, 107, 0));
+  }
+  .marketplace-problem-card-accent::before {
+    background: linear-gradient(90deg, rgba(255, 214, 107, 0), rgba(255, 214, 107, 0.95), rgba(255, 154, 31, 0));
+  }
+  .marketplace-card-kicker {
+    @apply text-xs font-semibold uppercase tracking-wider text-cyan-300;
+  }
+  .marketplace-problem-card strong {
+    @apply mt-3 block text-xl font-extrabold leading-6 text-white;
+  }
+  .marketplace-problem-card span:last-child {
+    @apply mt-3 block text-sm leading-6 text-ink-300;
+  }
+  .marketplace-graph-stage {
+    isolation: isolate;
+    background-image:
+      linear-gradient(rgba(92, 208, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(92, 208, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(145deg, rgba(92, 208, 255, 0.13), transparent 22rem),
+      linear-gradient(328deg, rgba(255, 214, 107, 0.1), transparent 24rem);
+    background-size: 34px 34px, 34px 34px, auto, auto;
+  }
+  .marketplace-radar-field {
+    @apply absolute inset-x-4 top-24 h-64 rounded-lg border border-white/10 bg-black/20;
+    background:
+      radial-gradient(circle at center, rgba(92, 208, 255, 0.12), transparent 44%),
+      repeating-conic-gradient(from 0deg at 50% 52%, rgba(92, 208, 255, 0.12) 0deg 2deg, transparent 2deg 28deg),
+      rgba(0, 0, 0, 0.2);
+  }
+  .marketplace-radar-field::after {
+    content: "";
+    @apply absolute left-1/2 top-1/2 h-48 w-px origin-top bg-gradient-to-b from-lead-400/80 to-transparent;
+    animation: marketplaceRadar 6s linear infinite;
+  }
+  .marketplace-core {
+    @apply absolute left-1/2 top-[48%] z-10 flex h-36 w-36 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-white/15 bg-[#05080d]/95 p-4 text-center;
+    box-shadow:
+      inset 0 0 34px rgba(92, 208, 255, 0.15),
+      0 0 42px -18px rgba(92, 208, 255, 0.9),
+      0 0 52px -28px rgba(255, 214, 107, 0.75);
+  }
+  .marketplace-core span {
+    @apply text-[0.62rem] font-bold uppercase tracking-wider text-ink-400;
+  }
+  .marketplace-core strong {
+    @apply mt-1 max-w-[7rem] text-sm font-extrabold leading-4 text-white;
+  }
+  .marketplace-core small {
+    @apply mt-2 text-sm font-extrabold text-accent-300;
+  }
+  .signal-node {
+    @apply flex-col text-center leading-none;
+  }
+  .signal-node strong {
+    @apply text-sm font-extrabold;
+  }
+  .signal-node span {
+    @apply mt-1 text-[0.62rem] font-semibold uppercase tracking-wider text-ink-200;
+  }
   .signal-float {
     animation: signalFloat 7s ease-in-out infinite;
   }
@@ -945,6 +1104,20 @@
   }
 }
 
+@keyframes marketplaceRadar {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0.36;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: rotate(360deg);
+    opacity: 0.36;
+  }
+}
+
 @keyframes liveDotPulse {
   0%, 100% {
     transform: scale(1);
@@ -1068,6 +1241,7 @@
   .dashboard-orbit-panel::after,
   .dashboard-orbit-grid::after,
   .dashboard-market-node,
+  .marketplace-radar-field::after,
   .btn-magnetic {
     animation: none;
   }
@@ -1231,6 +1405,44 @@
   }
   .signal-map {
     min-height: 31rem;
+  }
+  .marketplace-solver-stage {
+    padding: 0.75rem;
+  }
+  .marketplace-mechanism-grid,
+  .marketplace-starter-strip {
+    grid-template-columns: 1fr;
+  }
+  .marketplace-console-top {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .marketplace-score-orb {
+    height: 4.5rem;
+    width: 100%;
+    border-radius: 0.5rem;
+  }
+  .marketplace-live-row {
+    min-height: 5.5rem;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+  }
+  .marketplace-graph-stage {
+    min-height: 34rem;
+  }
+  .marketplace-radar-field {
+    inset-inline: 0.75rem;
+    top: 6.25rem;
+    height: 18rem;
+  }
+  .marketplace-core {
+    top: 48%;
+    height: 7.5rem;
+    width: 7.5rem;
+    padding: 0.75rem;
+  }
+  .marketplace-core strong {
+    max-width: 6.25rem;
+    font-size: 0.75rem;
   }
   .signal-map .absolute.inset-x-4.bottom-4 {
     bottom: 0.75rem;

@@ -4,9 +4,9 @@ import { Footer } from "@/components/site/Footer";
 import { DataMarketplaceClient } from "./DataMarketplaceClient";
 
 export const metadata: Metadata = {
-  title: "Universal Lead Intake - The LeadFlow Pro",
+  title: "Data Marketplace - The LeadFlow Pro",
   description:
-    "Request leads or submit public-source lead sources for scoring, tagging, review, and storage in the LeadFlow brain."
+    "Start with the problem to solve, then request or list source-backed lead data with scoring, proof, exclusions, and fair-rate pricing."
 };
 
 export default function DataMarketplacePage() {

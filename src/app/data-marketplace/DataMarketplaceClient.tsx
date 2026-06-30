@@ -3,23 +3,34 @@
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  Activity,
   AlertCircle,
   ArrowRight,
   BadgeDollarSign,
+  BrainCircuit,
   Check,
   CheckCircle2,
+  CircuitBoard,
+  Crosshair,
   Database,
   FileDown,
+  Flame,
+  Gauge,
   Layers3,
   Loader2,
   LockKeyhole,
+  MousePointerClick,
+  Network,
   Radar,
+  Route,
+  ScanSearch,
   Search,
   ShieldCheck,
   SlidersHorizontal,
   Sparkles,
   Tags,
-  TrendingUp
+  TrendingUp,
+  Workflow
 } from "lucide-react";
 import {
   DELIVERABLES,
@@ -74,6 +85,101 @@ const initialState: FormState = {
   complianceAccepted: false
 };
 
+type ProblemStarter = {
+  title: string;
+  pain: string;
+  targetCustomer: string;
+  useCase: string;
+  requestMode: FormState["requestMode"];
+  listTypes: string[];
+  sourceLanes: string[];
+  deliverable: string;
+  accent: "lead" | "cyan" | "accent";
+};
+
+const PROBLEM_STARTERS: ProblemStarter[] = [
+  {
+    title: "Find buyers with budget",
+    pain: "I need the owners already showing spend, growth, hiring, or vendor-fit pressure.",
+    targetCustomer:
+      "US-based business owners and operators with public websites, hiring/growth signals, visible service needs, and reachable company contact paths.",
+    useCase:
+      "Build a source-backed outreach list that explains why each business is worth contacting, what problem they appear to have, and which field proves the signal.",
+    requestMode: "buy",
+    listTypes: ["local_business_owners", "funding_hiring_signals"],
+    sourceLanes: ["websites", "directories", "job_posts", "public_business_records"],
+    deliverable: "csv",
+    accent: "lead"
+  },
+  {
+    title: "Map ecommerce opportunities",
+    pain: "I need stores, brands, or online assets that show buyer intent, vendor gaps, or acquisition value.",
+    targetCustomer:
+      "Ecommerce stores, content sites, Shopify brands, domains, and marketplace sellers with public product, traffic, category, or vendor-fit clues.",
+    useCase:
+      "Create a lead product that tags stores by category, likely need, public source, quality score, and the most useful reason a buyer should care.",
+    requestMode: "buy",
+    listTypes: ["ecommerce_stores", "domains_and_websites"],
+    sourceLanes: ["marketplaces", "websites", "directories", "verified_asset_docs"],
+    deliverable: "profile_vault",
+    accent: "cyan"
+  },
+  {
+    title: "Sell a source or dataset",
+    pain: "I have a useful source, route, directory, list, audience, or database and need it packaged without looking like a raw dump.",
+    targetCustomer:
+      "A submitted source with records, reach, URLs, screenshots, public proof, audience notes, and a clear buyer who could use it.",
+    useCase:
+      "Score the source, create a clean marketplace listing, define proof requirements, and route buyer interest to the right paid handoff or data room.",
+    requestMode: "list",
+    listTypes: ["datasets_and_databases", "local_service_routes"],
+    sourceLanes: ["owner_submitted_listings", "verified_asset_docs", "websites"],
+    deliverable: "public_listing",
+    accent: "accent"
+  },
+  {
+    title: "Find public demand signals",
+    pain: "People are saying what they need, what broke, or what they almost bought, but nobody is converting it into a list.",
+    targetCustomer:
+      "Adults posting public demand signals, product complaints, business needs, buying research, service requests, or niche comparison language.",
+    useCase:
+      "Turn public demand into a reviewed signal feed with source links, intent reason, category tags, suppression status, and a safer buyer route.",
+    requestMode: "buy",
+    listTypes: ["social_intent_posts", "ai_saas_companies"],
+    sourceLanes: ["social_public_posts", "launch_databases", "websites"],
+    deliverable: "custom_brief",
+    accent: "lead"
+  }
+];
+
+const INTAKE_MECHANISMS = [
+  {
+    icon: Flame,
+    title: "Pain",
+    body: "What hurts, what is expensive, what keeps getting searched, delayed, compared, or almost bought."
+  },
+  {
+    icon: ScanSearch,
+    title: "Signal",
+    body: "The public or submitted clue that proves the person, business, source, or market is worth reviewing."
+  },
+  {
+    icon: CircuitBoard,
+    title: "Proof",
+    body: "Source URL, sample row, screenshot, public profile, field list, contact route, and suppression state."
+  },
+  {
+    icon: Gauge,
+    title: "Score",
+    body: "Intent, source depth, freshness, compliance, volume, fields, urgency, and route quality."
+  },
+  {
+    icon: Route,
+    title: "Solve",
+    body: "A buyer list, source listing, profile vault, custom brief, weekly drop, or managed data room."
+  }
+];
+
 export function DataMarketplaceClient() {
   const [form, setForm] = useState<FormState>(initialState);
   const [submitting, setSubmitting] = useState(false);
@@ -96,6 +202,28 @@ export function DataMarketplaceClient() {
   function setValue<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
   }
+
+  function applyProblemStarter(starter: ProblemStarter) {
+    setForm((current) => ({
+      ...current,
+      requestMode: starter.requestMode,
+      targetCustomer: starter.targetCustomer,
+      useCase: starter.useCase,
+      listTypes: starter.listTypes,
+      sourceLanes: starter.sourceLanes,
+      deliverable: starter.deliverable,
+      mustHaveFields: Array.from(
+        new Set([
+          ...current.mustHaveFields,
+          "Source URL",
+          "Intent reason",
+          "Confidence score",
+          "Suppression status"
+        ])
+      ).slice(0, 12)
+    }));
+  }
+
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -133,27 +261,29 @@ export function DataMarketplaceClient() {
             <div className="signal-hero-grid">
               <div>
                 <div className="signal-eyebrow">
-                  <Database className="h-4 w-4" />
-                  Universal lead intake
+                  <BrainCircuit className="h-4 w-4" />
+                  Problem-led data marketplace
                 </div>
                 <h1 className="mt-5 max-w-full break-words text-4xl font-extrabold leading-tight text-white md:max-w-4xl md:text-6xl">
-                  Build or list the lead source. Score it before anyone buys it.
+                  Tell us the problem. We turn it into a scored lead product.
                 </h1>
                 <p className="mt-4 max-w-3xl text-base leading-7 text-ink-100 md:text-lg">
-                  Request lists, submit source maps, price demand, and build the
-                  lead brain across businesses, ecommerce, AI, local services,
-                  creator channels, websites, routes, directories, and public
-                  opportunity signals. Buyers get reviewed lead data at a rate
-                  tied to source quality, volume, freshness, and proof.
+                  People do not buy data because rows look nice. They buy it
+                  when it helps them find customers, source assets, validate a
+                  market, spot demand, or sell a useful lead source. This page
+                  intakes the pain first, then turns it into source-backed data
+                  with scoring, exclusions, proof, and a clean buyer route.
                 </p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                  <SignalMetric value={score.totalScore.toString()} label="data score" tone="lead" />
+                  <SignalMetric value={score.totalScore.toString()} label="solve score" tone="lead" />
                   <SignalMetric value={form.sourceLanes.length.toString()} label="source lanes" tone="cyan" />
                   <SignalMetric value={formatCurrency(score.estimatedPriceUsd)} label="fair start" tone="accent" />
                 </div>
               </div>
-              <MarketplaceMap score={score} isSourceMode={isSourceMode} />
+              <MarketplaceMap form={form} score={score} isSourceMode={isSourceMode} />
             </div>
+
+            <ProblemSolverPanel form={form} score={score} onApplyStarter={applyProblemStarter} />
 
             <MarketplaceRail />
 
@@ -164,7 +294,7 @@ export function DataMarketplaceClient() {
                 icon={Database}
                 eyebrow="Step 0"
                 title="Choose your intake path"
-                body="Keep one simple flow: request leads you want or submit a source that should be added to the lead brain."
+                body="One flow handles both sides: buyers who need useful data and source owners who want a source packaged, scored, and sold."
               >
                 <div className="grid gap-3 md:grid-cols-2">
                   <ModeButton
@@ -183,8 +313,38 @@ export function DataMarketplaceClient() {
               </BuilderSection>
 
               <BuilderSection
-                icon={SlidersHorizontal}
+                icon={Crosshair}
                 eyebrow="Step 1"
+                title="Name the problem we are solving"
+                body="This is the signal. A useful marketplace starts with the pain, target, and exclusions before it asks for a package format."
+              >
+                <div className="grid gap-4">
+                  <TextArea
+                    label={isSourceMode ? "What source or market pain does this solve?" : "What problem needs solved?"}
+                    value={form.useCase}
+                    onChange={(value) => setValue("useCase", value)}
+                    required
+                    placeholder={isSourceMode ? "Example: Buyers need a reliable way to find local service routes with proof, public source links, and enough context to know which routes are worth pursuing." : "Example: I need a list of business owners already showing budget pressure, hiring needs, launch momentum, or vendor-fit signals so outreach starts with a real reason."}
+                  />
+                  <TextArea
+                    label={isSourceMode ? "Who would buy or use this source?" : "Who or what is the answer?"}
+                    value={form.targetCustomer}
+                    onChange={(value) => setValue("targetCustomer", value)}
+                    required
+                    placeholder={isSourceMode ? "Example: Agencies, brokers, lenders, acquisition buyers, recruiters, software sellers, or operators who can use this source to find qualified demand." : "Example: US-based Shopify store owners, AI SaaS founders, home service operators, agency owners, ecommerce sellers, or a tighter segment."}
+                  />
+                  <TextArea
+                    label={isSourceMode ? "What should be excluded before this is sold?" : "Who or what should be filtered out?"}
+                    value={form.excludedTargets}
+                    onChange={(value) => setValue("excludedTargets", value)}
+                    placeholder="Example: No minors, no private addresses, no medical data, no protected-trait targeting, no do-not-contact records, no scraped private spaces."
+                  />
+                </div>
+              </BuilderSection>
+
+              <BuilderSection
+                icon={SlidersHorizontal}
+                eyebrow="Step 2"
                 title={isSourceMode ? "Pick the source category" : "Pick the lead category"}
                 body={isSourceMode ? "Choose the lead-source class. The submission gets stronger when the source, sample records, audience, and buyer value are clear." : "Start narrow. One good list, source, or signal package beats a huge dump nobody trusts."}
               >
@@ -203,7 +363,7 @@ export function DataMarketplaceClient() {
 
               <BuilderSection
                 icon={Radar}
-                eyebrow="Step 2"
+                eyebrow="Step 3"
                 title={isSourceMode ? "Attach the source lanes" : "Choose source lanes"}
                 body={isSourceMode ? "These lanes tell the system what supports the source: submitted details, public pages, analytics summaries, source links, and verification docs." : "These lanes shape data quality, price, and compliance review time."}
               >
@@ -222,7 +382,7 @@ export function DataMarketplaceClient() {
 
               <BuilderSection
                 icon={FileDown}
-                eyebrow="Step 3"
+                eyebrow="Step 4"
                 title={isSourceMode ? "Source package and proof fields" : "Package and fields"}
                 body={isSourceMode ? "Choose how this should feed the lead brain: searchable profile, qualified handoff, managed workspace, or reviewed research pack." : "Choose how the buyer should receive the list and what must be attached to each row."}
               >
@@ -279,9 +439,9 @@ export function DataMarketplaceClient() {
 
               <BuilderSection
                 icon={ShieldCheck}
-                eyebrow="Step 4"
-                title={isSourceMode ? "Source and submitter details" : "Buyer and target details"}
-                body={isSourceMode ? "This is the information we collect so the source can be reviewed, scored, priced, and routed cleanly." : "This is the information we collect from the buyer so the list can be built and sold cleanly."}
+                eyebrow="Step 5"
+                title={isSourceMode ? "Source owner and scope details" : "Buyer and scope details"}
+                body={isSourceMode ? "This captures who submitted the source, where it lives, how big it is, and what must be reviewed before it enters the marketplace." : "This captures the buyer route, region, timeline, budget range, and review guardrails before the request becomes a quote."}
               >
                 <div className="grid gap-4 md:grid-cols-2">
                   <TextField
@@ -353,29 +513,6 @@ export function DataMarketplaceClient() {
                       placeholder="500"
                     />
                   </div>
-                </div>
-
-                <div className="mt-4 grid gap-4">
-                  <TextArea
-                    label={isSourceMode ? "What source should be added?" : "Who do you want on this list?"}
-                    value={form.targetCustomer}
-                    onChange={(value) => setValue("targetCustomer", value)}
-                    required
-                    placeholder={isSourceMode ? "Example: A database of 4,800 ecommerce brands with source links, category tags, and vendor-fit notes." : "Example: US-based Shopify store owners selling premium home goods, showing recent launch or vendor-fit signals."}
-                  />
-                  <TextArea
-                    label={isSourceMode ? "Why does this source matter?" : "What will you use this data for?"}
-                    value={form.useCase}
-                    onChange={(value) => setValue("useCase", value)}
-                    required
-                    placeholder={isSourceMode ? "Example: This source can power vendor outreach, agency prospecting, acquisition research, or niche market mapping. I can show sample rows and proof of source." : "Example: Build a prospect list for agency outreach, with a reason to contact each company and a confidence score."}
-                  />
-                  <TextArea
-                    label={isSourceMode ? "Restrictions, exclusions, or source notes" : "Who should be excluded?"}
-                    value={form.excludedTargets}
-                    onChange={(value) => setValue("excludedTargets", value)}
-                    placeholder="Example: No minors, no private addresses, no medical data, no protected-trait targeting, no do-not-contact records."
-                  />
                 </div>
 
                 <label className="mt-5 flex items-start gap-3 rounded-lg border border-white/10 bg-white/[0.035] p-4 text-sm text-ink-100">
@@ -452,22 +589,149 @@ function SignalMetric({
   );
 }
 
+function ProblemSolverPanel({
+  form,
+  score,
+  onApplyStarter
+}: {
+  form: FormState;
+  score: ReturnType<typeof estimateDataProduct>;
+  onApplyStarter: (starter: ProblemStarter) => void;
+}) {
+  const blueprint = buildMarketplaceBlueprint(form, score);
+  const hasProblem = form.useCase.trim().length >= 20 && form.targetCustomer.trim().length >= 10;
+  const selectedSources = form.sourceLanes.map((id) => labelFor(SOURCE_LANES, id)).slice(0, 3);
+  const selectedLists = form.listTypes.map((id) => labelFor(LIST_TYPES, id)).slice(0, 2);
+  const solvePath = [
+    {
+      label: "Problem",
+      value: form.useCase.trim() || "What is costing money, time, customers, clarity, or momentum?"
+    },
+    {
+      label: "Target",
+      value: form.targetCustomer.trim() || "Which buyer, source, niche, asset, or demand signal would solve it?"
+    },
+    {
+      label: "Source map",
+      value: selectedSources.length ? selectedSources.join(" + ") : "Public, submitted, or permissioned proof lanes."
+    },
+    {
+      label: "Data product",
+      value: `${blueprint.packageName} / ${labelFor(DELIVERABLES, form.deliverable)}`
+    }
+  ];
+
+  return (
+    <section className="marketplace-solver-stage">
+      <div className="marketplace-solver-copy">
+        <div className="signal-eyebrow">
+          <Workflow className="h-4 w-4" />
+          Intake that solves something
+        </div>
+        <h2 className="mt-4 text-3xl font-extrabold leading-tight text-white md:text-5xl">
+          The mechanism is not “collect names.” It is problem capture, proof, scoring, and route.
+        </h2>
+        <p className="mt-4 text-sm leading-6 text-ink-200 md:text-base">
+          The page asks what hurts, who needs to be found, which public or
+          submitted source proves it, what fields matter, who must be excluded,
+          and how the buyer should receive the data. That turns vague demand
+          into a priced lead product instead of a dead spreadsheet.
+        </p>
+
+        <div className="marketplace-mechanism-grid mt-5">
+          {INTAKE_MECHANISMS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.title} className="marketplace-mechanism-card">
+                <div className="marketplace-mechanism-icon">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="marketplace-solver-console">
+        <div className="marketplace-console-top">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
+              Live solve path
+            </p>
+            <h3 className="mt-1 text-2xl font-extrabold text-white">
+              {hasProblem ? "Problem signal detected" : "Start with one painful sentence"}
+            </h3>
+          </div>
+          <div className="marketplace-score-orb">
+            <strong>{score.totalScore}</strong>
+            <span>score</span>
+          </div>
+        </div>
+
+        <div className="marketplace-live-path">
+          {solvePath.map((item, index) => (
+            <div key={item.label} className="marketplace-live-row">
+              <span className="marketplace-live-index">{String(index + 1).padStart(2, "0")}</span>
+              <div>
+                <p>{item.label}</p>
+                <strong>{item.value}</strong>
+              </div>
+              {index < solvePath.length - 1 ? <ArrowRight className="marketplace-live-arrow h-4 w-4" /> : null}
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <div className="marketplace-signal-chip">
+            <span>Selected demand</span>
+            <strong>{selectedLists.length ? selectedLists.join(" + ") : "Pick a category"}</strong>
+          </div>
+          <div className="marketplace-signal-chip">
+            <span>Fair-rate estimate</span>
+            <strong>{formatCurrency(score.estimatedPriceUsd)}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div className="marketplace-starter-strip">
+        {PROBLEM_STARTERS.map((starter) => (
+          <button
+            key={starter.title}
+            type="button"
+            onClick={() => onApplyStarter(starter)}
+            className={["marketplace-problem-card", `marketplace-problem-card-${starter.accent}`].join(" ")}
+          >
+            <span className="marketplace-card-kicker">Use case</span>
+            <strong>{starter.title}</strong>
+            <span>{starter.pain}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function MarketplaceRail() {
   const rows = [
     {
       n: "01",
+      icon: Activity,
       title: "Source class",
       body: "Dataset, website, store, route, directory, public profile set, or submitted opportunity map.",
       tone: "text-lead-400"
     },
     {
       n: "02",
+      icon: Network,
       title: "Proof depth",
       body: "Links, sample rows, source notes, buyer use case, suppression state, and confidence level.",
       tone: "text-cyan-300"
     },
     {
       n: "03",
+      icon: MousePointerClick,
       title: "Buyer route",
       body: "Public listing, CSV drop, profile vault, weekly drop, managed workspace, or qualified handoff.",
       tone: "text-accent-300"
@@ -476,15 +740,21 @@ function MarketplaceRail() {
 
   return (
     <div className="signal-pressure-rail">
-      {rows.map((row) => (
+      {rows.map((row) => {
+        const Icon = row.icon;
+        return (
         <div key={row.n} className="signal-pressure-row">
-          <div className={["signal-index", row.tone].join(" ")}>{row.n}</div>
+          <div className={["signal-index", row.tone].join(" ")}>
+            <Icon className="h-4 w-4" />
+          </div>
           <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">Mechanism {row.n}</p>
             <h2 className="text-xl font-extrabold text-white">{row.title}</h2>
             <p className="mt-1 text-sm leading-6 text-ink-300">{row.body}</p>
           </div>
         </div>
-      ))}
+      );
+      })}
     </div>
   );
 }
@@ -631,28 +901,31 @@ function MarketplaceDealRoom({
 }
 
 function MarketplaceMap({
+  form,
   score,
   isSourceMode
 }: {
+  form: FormState;
   score: ReturnType<typeof estimateDataProduct>;
   isSourceMode: boolean;
 }) {
+  const blueprint = buildMarketplaceBlueprint(form, score);
   const nodes = [
-    { label: "Source", className: "left-[12%] top-[16%] h-20 w-20 border-cyan-400/70 bg-cyan-400/15" },
-    { label: "Proof", className: "right-[12%] top-[14%] h-24 w-24 border-lead-400/70 bg-lead-400/15" },
-    { label: "Price", className: "left-[34%] top-[38%] h-28 w-28 border-accent-400/70 bg-accent-400/15" },
-    { label: "Risk", className: "left-[12%] bottom-[20%] h-16 w-16 border-red-400/70 bg-red-400/15" },
-    { label: "Route", className: "right-[14%] bottom-[19%] h-20 w-20 border-cyan-300/70 bg-cyan-300/15" }
+    { label: "Pain", detail: "what hurts", className: "left-[7%] top-[19%] h-24 w-24 border-accent-300/70 bg-accent-300/15" },
+    { label: "Intent", detail: "why now", className: "right-[7%] top-[16%] h-24 w-24 border-lead-400/70 bg-lead-400/15" },
+    { label: "Proof", detail: "source trail", className: "left-[33%] top-[40%] h-32 w-32 border-cyan-300/70 bg-cyan-300/15" },
+    { label: "Risk", detail: "exclusions", className: "left-[9%] bottom-[20%] h-20 w-20 border-red-400/70 bg-red-400/15" },
+    { label: "Route", detail: "buyer path", className: "right-[11%] bottom-[18%] h-24 w-24 border-cyan-300/70 bg-cyan-300/15" }
   ];
 
   return (
-    <div className="signal-map signal-map-grid">
+    <div className="signal-map signal-map-grid marketplace-graph-stage">
       <div className="relative z-10 flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
-            {isSourceMode ? "Source listing engine" : "Buyer request engine"}
+            {isSourceMode ? "Source listing engine" : "Buyer problem engine"}
           </p>
-          <h2 className="mt-1 text-2xl font-extrabold text-white">Marketplace graph</h2>
+          <h2 className="mt-1 text-2xl font-extrabold text-white">Signal solve graph</h2>
         </div>
         <div className="rounded-lg border border-lead-400/30 bg-lead-400/10 px-4 py-3 text-right">
           <p className="text-3xl font-extrabold text-lead-400">{score.totalScore}</p>
@@ -660,13 +933,20 @@ function MarketplaceMap({
         </div>
       </div>
 
-      <div className="absolute inset-x-4 top-24 h-64 rounded-lg border border-white/10 bg-black/20" />
-      <span className="signal-route-line left-[22%] top-[34%] w-[54%] rotate-[11deg]" />
-      <span className="signal-route-line left-[22%] bottom-[34%] w-[55%] -rotate-[12deg]" />
-      <span className="signal-route-line left-[40%] top-[52%] w-[34%] rotate-[34deg]" />
+      <div className="marketplace-radar-field" />
+      <div className="marketplace-core">
+        <span>Build</span>
+        <strong>{blueprint.packageName}</strong>
+        <small>{formatCurrency(score.estimatedPriceUsd)}</small>
+      </div>
+      <span className="signal-route-line left-[18%] top-[36%] w-[62%] rotate-[10deg]" />
+      <span className="signal-route-line left-[18%] bottom-[34%] w-[58%] -rotate-[12deg]" />
+      <span className="signal-route-line left-[42%] top-[52%] w-[36%] rotate-[34deg]" />
+      <span className="signal-route-line left-[19%] top-[56%] w-[34%] -rotate-[38deg]" />
       {nodes.map((node) => (
         <div key={node.label} className={["signal-node", node.className].join(" ")}>
-          {node.label}
+          <strong>{node.label}</strong>
+          <span>{node.detail}</span>
         </div>
       ))}
 
