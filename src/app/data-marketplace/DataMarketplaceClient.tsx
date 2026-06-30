@@ -5,16 +5,21 @@ import Link from "next/link";
 import {
   AlertCircle,
   ArrowRight,
+  BadgeDollarSign,
   Check,
   CheckCircle2,
   Database,
   FileDown,
+  Layers3,
   Loader2,
   LockKeyhole,
   Radar,
+  Search,
   ShieldCheck,
   SlidersHorizontal,
-  Sparkles
+  Sparkles,
+  Tags,
+  TrendingUp
 } from "lucide-react";
 import {
   DELIVERABLES,
@@ -123,15 +128,15 @@ export function DataMarketplaceClient() {
   return (
     <section className="signal-page py-10 md:py-16">
       <div className="container">
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
-          <div className="space-y-8">
+        <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
+          <div className="min-w-0 space-y-8">
             <div className="signal-hero-grid">
               <div>
                 <div className="signal-eyebrow">
                   <Database className="h-4 w-4" />
                   Universal lead intake
                 </div>
-                <h1 className="mt-5 max-w-4xl text-4xl font-extrabold leading-tight text-white md:text-6xl">
+                <h1 className="mt-5 max-w-full break-words text-4xl font-extrabold leading-tight text-white md:max-w-4xl md:text-6xl">
                   Build or list the lead source. Score it before anyone buys it.
                 </h1>
                 <p className="mt-4 max-w-3xl text-base leading-7 text-ink-100 md:text-lg">
@@ -150,6 +155,8 @@ export function DataMarketplaceClient() {
             </div>
 
             <MarketplaceRail />
+
+            <MarketplaceDealRoom form={form} score={score} />
 
             <form onSubmit={submit} className="space-y-8">
               <BuilderSection
@@ -415,7 +422,7 @@ export function DataMarketplaceClient() {
             </form>
           </div>
 
-          <aside className="xl:sticky xl:top-24 xl:self-start">
+          <aside className="min-w-0 xl:sticky xl:top-24 xl:self-start">
             <ScorePanel form={form} score={score} />
           </aside>
         </div>
@@ -481,6 +488,147 @@ function MarketplaceRail() {
   );
 }
 
+function buildMarketplaceBlueprint(form: FormState, score: ReturnType<typeof estimateDataProduct>) {
+  const listLabels = form.listTypes.map((id) => labelFor(LIST_TYPES, id));
+  const sourceLabels = form.sourceLanes.map((id) => labelFor(SOURCE_LANES, id));
+  const primaryList = listLabels[0] ?? "lead source";
+  const primarySource = sourceLabels[0] ?? "source lane";
+  const deliverable = labelFor(DELIVERABLES, form.deliverable);
+  const region = form.regions[0] ?? "selected market";
+  const isSourceMode = form.requestMode === "list";
+  const packageName = isSourceMode
+    ? `${primaryList} source profile`
+    : `${primaryList} buyer list`;
+  const route = isSourceMode
+    ? form.deliverable === "public_listing"
+      ? "review, score, then publish as a searchable marketplace listing"
+      : "review proof, create sample records, then route qualified buyer interest"
+    : form.urgency === "weekly"
+      ? "build a recurring weekly drop with suppression and confidence labels"
+      : "build a first lead package, verify source links, then price delivery";
+
+  return {
+    isSourceMode,
+    packageName,
+    primaryList,
+    primarySource,
+    deliverable,
+    region,
+    route,
+    buyerValue:
+      score.totalScore >= 84
+        ? "Premium-ready: strong source depth, clear buyer use case, and enough proof to package."
+        : score.totalScore >= 70
+          ? "Marketable: good starting signal, but it needs tighter proof and sample rows."
+          : "Early-stage: collect more proof, narrow the category, and reduce noisy fields.",
+    records: `${form.volume.toLocaleString()} ${isSourceMode ? "units or reach" : "records"}`,
+    marginNote:
+      score.estimatedPriceUsd > 500
+        ? "High-value request. Route to review before payment."
+        : "Starter package. Good fit for fast quote or self-serve checkout.",
+    steps: [
+      "classify the source",
+      "attach proof and links",
+      "score confidence and freshness",
+      "price the package",
+      "route buyer or source owner"
+    ]
+  };
+}
+
+function MarketplaceDealRoom({
+  form,
+  score
+}: {
+  form: FormState;
+  score: ReturnType<typeof estimateDataProduct>;
+}) {
+  const blueprint = buildMarketplaceBlueprint(form, score);
+  const stages = [
+    { icon: Search, label: "Source", value: blueprint.primarySource },
+    { icon: Tags, label: "Package", value: blueprint.packageName },
+    { icon: BadgeDollarSign, label: "Price", value: formatCurrency(score.estimatedPriceUsd) },
+    { icon: TrendingUp, label: "Route", value: blueprint.route }
+  ];
+
+  return (
+    <section className="signal-command-center">
+      <div className="min-w-0">
+        <div className="signal-eyebrow">
+          <Layers3 className="h-4 w-4" />
+          Marketplace deal room
+        </div>
+        <h2 className="mt-4 max-w-full break-words text-3xl font-extrabold leading-tight text-white md:max-w-3xl md:text-4xl">
+          Every lead source needs proof, price, and a clean buyer route.
+        </h2>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-ink-300 md:text-base">
+          This is the part that makes the marketplace useful: source class,
+          sample records, field requirements, confidence, suppression status,
+          fulfillment path, and the first commercial action.
+        </p>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="signal-work-card">
+            <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">Product being built</p>
+            <h3 className="mt-2 text-xl font-extrabold text-white">{blueprint.packageName}</h3>
+            <p className="mt-2 text-sm leading-6 text-ink-300">{blueprint.buyerValue}</p>
+          </div>
+          <div className="signal-work-card">
+            <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">Commercial route</p>
+            <h3 className="mt-2 text-xl font-extrabold text-white">{blueprint.deliverable}</h3>
+            <p className="mt-2 text-sm leading-6 text-ink-300">
+              {blueprint.records} in {blueprint.region}. {blueprint.marginNote}
+            </p>
+          </div>
+        </div>
+
+        <div className="signal-action-strip mt-4">
+          {stages.slice(0, 3).map((stage) => {
+            const Icon = stage.icon;
+            return (
+              <div key={stage.label} className="signal-action-card">
+                <Icon className="h-5 w-5 text-lead-400" />
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-ink-400">{stage.label}</p>
+                <p className="mt-1 text-sm leading-6">
+                  <strong>{stage.value}</strong>
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="signal-terminal self-stretch">
+        <div className="border-b border-cyan-300/20 px-3 py-3">
+          <p className="text-xs uppercase tracking-wider text-cyan-300">Fulfillment logic</p>
+        </div>
+        {stages.map((stage) => (
+          <div key={stage.label} className="signal-terminal-row">
+            <span className="signal-terminal-dot" />
+            <span>
+              <span className="text-accent-300">{stage.label.toUpperCase()}</span>
+              <span className="text-ink-500"> / </span>
+              {stage.value}
+            </span>
+          </div>
+        ))}
+        <div className="px-3 py-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">Release checklist</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {blueprint.steps.map((step) => (
+              <span key={step} className="signal-rail-pill">
+                <CheckCircle2 className="h-3.5 w-3.5 text-lead-400" />
+                {step}
+              </span>
+            ))}
+          </div>
+          <p className="mt-4 text-sm leading-6 text-ink-200">{blueprint.route}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function MarketplaceMap({
   score,
   isSourceMode
@@ -512,6 +660,9 @@ function MarketplaceMap({
       </div>
 
       <div className="absolute inset-x-4 top-24 h-64 rounded-lg border border-white/10 bg-black/20" />
+      <span className="signal-route-line left-[22%] top-[34%] w-[54%] rotate-[11deg]" />
+      <span className="signal-route-line left-[22%] bottom-[34%] w-[55%] -rotate-[12deg]" />
+      <span className="signal-route-line left-[40%] top-[52%] w-[34%] rotate-[34deg]" />
       {nodes.map((node) => (
         <div key={node.label} className={["signal-node", node.className].join(" ")}>
           {node.label}
@@ -699,6 +850,15 @@ function ScorePanel({
   score: ReturnType<typeof estimateDataProduct>;
 }) {
   const isSourceMode = form.requestMode === "list";
+  const blueprint = buildMarketplaceBlueprint(form, score);
+  const readiness = [
+    form.listTypes.length > 0,
+    form.sourceLanes.length >= 2,
+    form.mustHaveFields.length >= 4,
+    form.targetCustomer.length >= 40,
+    form.useCase.length >= 50
+  ].filter(Boolean).length;
+
   return (
     <div className="space-y-4">
       <div className="signal-score-panel">
@@ -740,6 +900,31 @@ function ScorePanel({
             status, and review before release.
           </p>
         </div>
+      </div>
+
+      <div className="lead-panel-strong p-5 signal-float">
+        <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">
+          {isSourceMode ? "Source revenue path" : "Buyer fulfillment path"}
+        </p>
+        <h3 className="mt-2 text-xl font-extrabold text-white">{blueprint.packageName}</h3>
+        <p className="mt-2 text-sm leading-6 text-ink-300">{blueprint.buyerValue}</p>
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="signal-kpi-tile">
+            <p className="text-2xl font-extrabold text-lead-400">{readiness}/5</p>
+            <p className="mt-1 text-xs text-ink-400">package readiness</p>
+            <div className="signal-kpi-meter">
+              <div className="signal-kpi-fill" style={{ width: `${readiness * 20}%` }} />
+            </div>
+          </div>
+          <div className="signal-kpi-tile">
+            <p className="text-2xl font-extrabold text-cyan-300">{formatCurrency(score.estimatedPriceUsd)}</p>
+            <p className="mt-1 text-xs text-ink-400">starting package</p>
+            <div className="signal-kpi-meter">
+              <div className="signal-kpi-fill" style={{ width: `${Math.min(100, Math.max(18, score.estimatedPriceUsd / 12))}%` }} />
+            </div>
+          </div>
+        </div>
+        <p className="mt-4 text-sm leading-6 text-ink-200">{blueprint.route}</p>
       </div>
 
       <div className="lead-panel p-5">

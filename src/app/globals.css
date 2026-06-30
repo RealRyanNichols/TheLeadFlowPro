@@ -46,16 +46,19 @@
 @layer components {
   .lead-shell {
     @apply rounded-lg border border-white/10 bg-[#090d13]/90 shadow-2xl shadow-black/40;
+    min-width: 0;
     background-image:
       linear-gradient(135deg, rgba(255, 255, 255, 0.075), transparent 18rem),
       linear-gradient(180deg, rgba(53, 213, 255, 0.055), transparent 24rem);
   }
   .lead-panel {
     @apply rounded-lg border border-white/10 bg-[#0b1017]/85;
+    min-width: 0;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
   }
   .lead-panel-strong {
     @apply rounded-lg border border-white/10 bg-[#0d1117]/95 shadow-xl shadow-black/30;
+    min-width: 0;
     background-image:
       linear-gradient(90deg, rgba(53, 213, 255, 0.12), transparent 18rem),
       linear-gradient(180deg, rgba(184, 243, 107, 0.045), transparent 22rem);
@@ -70,11 +73,28 @@
   .signal-page {
     @apply relative overflow-hidden;
   }
+  .signal-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(162deg, rgba(35, 184, 255, 0.14), transparent 22rem),
+      linear-gradient(24deg, transparent 0%, rgba(255, 214, 107, 0.1) 46%, transparent 72%),
+      linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.055) 48%, transparent 56%);
+    background-size: auto, auto, 280% 100%;
+    animation: signalSweep 12s linear infinite;
+  }
+  .signal-page > * {
+    position: relative;
+    z-index: 1;
+  }
   .signal-eyebrow {
     @apply inline-flex items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-cyan-200;
   }
   .signal-hero-grid {
     @apply grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,34rem)] xl:items-start;
+    min-width: 0;
   }
   .signal-pressure-rail {
     @apply overflow-hidden rounded-lg border border-white/10 bg-[#080c12]/90;
@@ -87,6 +107,20 @@
   }
   .signal-map {
     @apply relative min-h-[30rem] overflow-hidden rounded-lg border border-white/10 bg-[#080c12]/95 p-4 shadow-2xl shadow-black/30;
+    min-width: 0;
+    width: 100%;
+  }
+  .signal-map::before {
+    content: "";
+    position: absolute;
+    inset: 5rem 1rem 5.5rem;
+    border-radius: 0.5rem;
+    background:
+      linear-gradient(90deg, transparent, rgba(92, 208, 255, 0.18), transparent),
+      linear-gradient(180deg, transparent, rgba(255, 214, 107, 0.12), transparent);
+    opacity: 0.85;
+    transform: translateX(-74%);
+    animation: signalMapSweep 5.8s ease-in-out infinite;
   }
   .signal-map-grid {
     background-image:
@@ -96,6 +130,13 @@
   }
   .signal-node {
     @apply absolute flex items-center justify-center rounded-full border text-xs font-bold text-white;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.025), 0 0 28px rgba(35, 184, 255, 0.12);
+    animation: nodePulse 3.8s ease-in-out infinite;
+  }
+  .signal-route-line {
+    @apply absolute h-px origin-left bg-gradient-to-r from-cyan-300/0 via-cyan-300/70 to-accent-300/0;
+    filter: drop-shadow(0 0 8px rgba(92, 208, 255, 0.34));
+    animation: lineFlow 4.4s ease-in-out infinite;
   }
   .signal-choice {
     @apply relative min-h-32 min-w-0 overflow-hidden rounded-lg border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lead-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950;
@@ -126,6 +167,67 @@
     content: "";
     @apply mb-5 block h-1 w-full rounded-full bg-gradient-to-r from-lead-400 via-cyan-400 to-accent-400;
   }
+  .signal-command-center {
+    @apply grid gap-4 rounded-lg border border-white/10 bg-[#070b11]/95 p-4 shadow-2xl shadow-black/30 md:p-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)];
+    min-width: 0;
+    background-image:
+      linear-gradient(115deg, rgba(35, 184, 255, 0.12), transparent 24rem),
+      linear-gradient(290deg, rgba(255, 154, 31, 0.12), transparent 26rem);
+  }
+  .signal-work-card {
+    @apply relative min-h-36 overflow-hidden rounded-lg border border-white/10 bg-white/[0.035] p-4;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .signal-work-card::before {
+    content: "";
+    @apply absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/80 to-transparent;
+  }
+  .signal-terminal {
+    @apply overflow-hidden rounded-lg border border-cyan-300/20 bg-[#030609]/90 font-mono text-xs text-cyan-100 shadow-inner shadow-black;
+    min-width: 0;
+  }
+  .signal-terminal-row {
+    @apply grid grid-cols-[0.75rem_1fr] gap-2 border-b border-white/5 px-3 py-2 last:border-b-0;
+    min-width: 0;
+  }
+  .signal-terminal-row > span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .signal-terminal-dot {
+    @apply mt-1.5 h-2 w-2 rounded-full bg-lead-400;
+    box-shadow: 0 0 12px rgba(184, 243, 107, 0.8);
+  }
+  .signal-rail-pill {
+    @apply inline-flex min-h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-semibold text-ink-100;
+    min-width: 0;
+  }
+  .signal-kpi-tile {
+    @apply rounded-lg border border-white/10 bg-[#05080d]/80 p-3;
+  }
+  .signal-kpi-meter {
+    @apply mt-3 h-2 overflow-hidden rounded-full bg-white/10;
+  }
+  .signal-kpi-fill {
+    @apply h-full rounded-full bg-gradient-to-r from-lead-400 via-cyan-300 to-accent-300;
+    transition: width 240ms ease;
+  }
+  .signal-action-strip {
+    @apply grid gap-3 md:grid-cols-3;
+  }
+  .signal-action-card {
+    @apply min-h-36 rounded-lg border border-white/10 bg-[#05080d]/85 p-4;
+  }
+  .signal-action-card strong {
+    @apply text-white;
+  }
+  .signal-action-card span {
+    @apply text-ink-300;
+  }
+  .signal-float {
+    animation: signalFloat 7s ease-in-out infinite;
+  }
   .glass {
     @apply bg-ink-900/60 border border-white/5 backdrop-blur-xl;
   }
@@ -149,21 +251,6 @@
   .btn-ghost {
     @apply btn text-ink-100 border border-white/10 hover:bg-white/5;
   }
-  .lead-shell {
-    @apply rounded-lg border border-white/10 bg-ink-950/75 shadow-2xl shadow-black/30 backdrop-blur-xl;
-  }
-  .lead-panel {
-    @apply rounded-lg border border-white/10 bg-white/[0.035];
-  }
-  .lead-panel-strong {
-    @apply rounded-lg border border-cyan-400/20 bg-ink-900/70;
-  }
-  .lead-control {
-    @apply rounded-lg border border-white/10 bg-ink-950/80 px-3 py-3 text-sm text-white placeholder:text-ink-500 outline-none transition focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/20;
-  }
-  .lead-option-grid {
-    @apply grid gap-3 md:grid-cols-2;
-  }
   .stat-pill {
     @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium;
   }
@@ -172,5 +259,104 @@
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+  }
+}
+
+@keyframes signalSweep {
+  0% {
+    background-position: 0 0, 0 0, 180% 0;
+  }
+  100% {
+    background-position: 0 0, 0 0, -80% 0;
+  }
+}
+
+@keyframes signalMapSweep {
+  0%, 100% {
+    transform: translateX(-82%);
+    opacity: 0.2;
+  }
+  45%, 55% {
+    transform: translateX(82%);
+    opacity: 0.9;
+  }
+}
+
+@keyframes nodePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+@keyframes lineFlow {
+  0%, 100% {
+    opacity: 0.22;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes signalFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-page::before,
+  .signal-map::before,
+  .signal-node,
+  .signal-route-line,
+  .signal-float {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .signal-page .container {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .signal-page h1 {
+    max-width: calc(100vw - 2rem);
+    font-size: 2rem;
+    line-height: 1.08;
+  }
+  .signal-page p,
+  .signal-page h2,
+  .signal-page h3,
+  .signal-page span,
+  .signal-page dd {
+    overflow-wrap: anywhere;
+  }
+  .signal-map,
+  .signal-command-center,
+  .signal-pressure-rail,
+  .lead-panel,
+  .lead-panel-strong,
+  .signal-score-panel {
+    max-width: calc(100vw - 2rem);
+  }
+  .signal-map {
+    min-height: 31rem;
+  }
+  .signal-map .absolute.inset-x-4.bottom-4 {
+    bottom: 0.75rem;
+  }
+  .signal-map .grid.min-h-12 {
+    grid-template-columns: 0.35rem minmax(0, 1fr);
+  }
+  .signal-map .grid.min-h-12 > span:last-child {
+    display: none;
+  }
+  .signal-node {
+    font-size: 0.68rem;
   }
 }

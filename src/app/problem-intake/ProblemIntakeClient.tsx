@@ -6,12 +6,17 @@ import {
   AlertCircle,
   ArrowRight,
   CheckCircle2,
+  DatabaseZap,
+  Layers3,
   Loader2,
   LockKeyhole,
   Radar,
+  Search,
   ShieldCheck,
   Sparkles,
   Target,
+  Tags,
+  TrendingUp,
   UserCheck
 } from "lucide-react";
 import {
@@ -125,15 +130,15 @@ export function ProblemIntakeClient() {
   return (
     <section className="signal-page py-10 md:py-16">
       <div className="container">
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
-          <div className="space-y-8">
+        <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
+          <div className="min-w-0 space-y-8">
             <div className="signal-hero-grid">
               <div>
                 <div className="signal-eyebrow">
                   <UserCheck className="h-4 w-4" />
                   Signal, not noise
                 </div>
-                <h1 className="mt-5 max-w-4xl text-4xl font-extrabold leading-tight text-white md:text-6xl">
+                <h1 className="mt-5 max-w-full break-words text-4xl font-extrabold leading-tight text-white md:max-w-4xl md:text-6xl">
                   Stop asking safe questions. Find the buying signal.
                 </h1>
                 <p className="mt-4 max-w-3xl text-base leading-7 text-ink-100 md:text-lg">
@@ -151,6 +156,8 @@ export function ProblemIntakeClient() {
             </div>
 
             <PressureRail />
+
+            <SignalOutcomeConsole form={form} score={score} />
 
             <form onSubmit={submit} className="space-y-8">
               <BuilderSection
@@ -355,7 +362,7 @@ export function ProblemIntakeClient() {
             </form>
           </div>
 
-          <aside className="xl:sticky xl:top-24 xl:self-start">
+          <aside className="min-w-0 xl:sticky xl:top-24 xl:self-start">
             <ScorePanel form={form} score={score} />
           </aside>
         </div>
@@ -421,6 +428,156 @@ function PressureRail() {
   );
 }
 
+function buildSignalBlueprint(form: FormState, score: ReturnType<typeof estimateAdultInterest>) {
+  const problemLabels = form.problemCategories.map((id) => labelFor(PROBLEM_CATEGORIES, id));
+  const interestLabels = form.interests.map((id) => labelFor(INTERESTS, id));
+  const primaryProblem = problemLabels[0] ?? "a real problem";
+  const primaryInterest = interestLabels[0] ?? "a useful solution";
+  const urgency = labelFor(URGENCIES, form.urgency);
+  const budget = labelFor(BUDGET_RANGES, form.budgetRange);
+  const contact = labelFor(CONTACT_PREFERENCES, form.preferredContact);
+  const product =
+    form.interests.includes("marketing_sales") || form.problemCategories.includes("find_customers")
+      ? "buyer-intent lead list"
+      : form.interests.includes("software_ai") || form.problemCategories.includes("ai_automation")
+        ? "AI-tool and automation match list"
+        : form.interests.includes("ecommerce")
+          ? "ecommerce operator and vendor-fit map"
+          : form.problemCategories.includes("local_service_need")
+            ? "local provider and appointment-demand map"
+            : "ranked solution and provider shortlist";
+  const route =
+    form.preferredContact === "no_contact_yet"
+      ? "save as signal only until a stronger match exists"
+      : form.preferredContact === "text"
+        ? "send a short text only when a relevant match is ready"
+        : form.preferredContact === "phone"
+          ? "call only after the source map shows a strong fit"
+          : "send a scored match summary by email";
+
+  return {
+    primaryProblem,
+    primaryInterest,
+    urgency,
+    budget,
+    contact,
+    product,
+    route,
+    leadName: `${primaryInterest} for people dealing with ${primaryProblem.toLowerCase()}`,
+    buyerValue:
+      score.leadScore >= 82
+        ? "High-intent profile: this can become a priced list, handoff, or recommendation quickly."
+        : score.leadScore >= 68
+          ? "Good problem signal: sharpen the pain and desired outcome before selling it."
+          : "Early research signal: keep asking until the reason to act becomes obvious.",
+    nextMove:
+      form.activeSearches.length > 30
+        ? "Use the search behavior as the first source map."
+        : "Add what you searched, clicked, saved, compared, or almost bought.",
+    fields: [
+      "problem pressure",
+      "interest lane",
+      "budget comfort",
+      "urgency",
+      "contact route",
+      "noise exclusions"
+    ]
+  };
+}
+
+function SignalOutcomeConsole({
+  form,
+  score
+}: {
+  form: FormState;
+  score: ReturnType<typeof estimateAdultInterest>;
+}) {
+  const blueprint = buildSignalBlueprint(form, score);
+  const stages = [
+    { icon: Search, label: "Decode", value: blueprint.primaryProblem },
+    { icon: Tags, label: "Tag", value: blueprint.primaryInterest },
+    { icon: DatabaseZap, label: "Build", value: blueprint.product },
+    { icon: TrendingUp, label: "Route", value: blueprint.route }
+  ];
+
+  return (
+    <section className="signal-command-center">
+      <div className="min-w-0">
+        <div className="signal-eyebrow">
+          <Layers3 className="h-4 w-4" />
+          Lead brain preview
+        </div>
+        <h2 className="mt-4 max-w-full break-words text-3xl font-extrabold leading-tight text-white md:max-w-3xl md:text-4xl">
+          Your answers should turn into a list, a match, or a next move.
+        </h2>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-ink-300 md:text-base">
+          LeadFlow should not just collect a form. It should decide what the problem
+          means, what source would solve it, what data product can be sold, and what
+          should be ignored.
+        </p>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="signal-work-card">
+            <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">List to build</p>
+            <h3 className="mt-2 text-xl font-extrabold text-white">{blueprint.leadName}</h3>
+            <p className="mt-2 text-sm leading-6 text-ink-300">{blueprint.buyerValue}</p>
+          </div>
+          <div className="signal-work-card">
+            <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">What keeps them moving</p>
+            <h3 className="mt-2 text-xl font-extrabold text-white">{blueprint.product}</h3>
+            <p className="mt-2 text-sm leading-6 text-ink-300">
+              Timing: {blueprint.urgency}. Budget: {blueprint.budget}. Contact path: {blueprint.contact}.
+            </p>
+          </div>
+        </div>
+
+        <div className="signal-action-strip mt-4">
+          {stages.slice(0, 3).map((stage) => {
+            const Icon = stage.icon;
+            return (
+              <div key={stage.label} className="signal-action-card">
+                <Icon className="h-5 w-5 text-lead-400" />
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-ink-400">{stage.label}</p>
+                <p className="mt-1 text-sm leading-6">
+                  <strong>{stage.value}</strong>
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="signal-terminal self-stretch">
+        <div className="border-b border-cyan-300/20 px-3 py-3">
+          <p className="text-xs uppercase tracking-wider text-cyan-300">Live routing logic</p>
+        </div>
+        {stages.map((stage) => (
+          <div key={stage.label} className="signal-terminal-row">
+            <span className="signal-terminal-dot" />
+            <span>
+              <span className="text-accent-300">{stage.label.toUpperCase()}</span>
+              <span className="text-ink-500"> / </span>
+              {stage.value}
+            </span>
+          </div>
+        ))}
+        <div className="px-3 py-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">Fields this profile needs</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {blueprint.fields.map((field) => (
+              <span key={field} className="signal-rail-pill">
+                <CheckCircle2 className="h-3.5 w-3.5 text-lead-400" />
+                {field}
+              </span>
+            ))}
+          </div>
+          <p className="mt-4 text-sm leading-6 text-ink-200">{blueprint.nextMove}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function SignalMap({
   score
 }: {
@@ -448,6 +605,9 @@ function SignalMap({
       </div>
 
       <div className="absolute inset-x-4 top-24 h-64 rounded-lg border border-white/10 bg-black/20" />
+      <span className="signal-route-line left-[22%] top-[34%] w-[54%] rotate-[11deg]" />
+      <span className="signal-route-line left-[22%] bottom-[34%] w-[55%] -rotate-[12deg]" />
+      <span className="signal-route-line left-[40%] top-[52%] w-[34%] rotate-[34deg]" />
       {nodes.map((node) => (
         <div key={node.label} className={["signal-node", node.className].join(" ")}>
           {node.label}
@@ -663,6 +823,15 @@ function ScorePanel({
   form: FormState;
   score: ReturnType<typeof estimateAdultInterest>;
 }) {
+  const blueprint = buildSignalBlueprint(form, score);
+  const completeness = [
+    form.problemStatement.length >= 80,
+    form.desiredOutcome.length >= 60,
+    form.activeSearches.length >= 30,
+    form.sourceContext.length >= 20,
+    form.fullName.length >= 2 && form.email.length >= 4
+  ].filter(Boolean).length;
+
   return (
     <div className="space-y-4">
       <div className="signal-score-panel">
@@ -696,6 +865,29 @@ function ScorePanel({
             protected traits, private addresses, medical details, and financial accounts.
           </p>
         </div>
+      </div>
+
+      <div className="lead-panel-strong p-5 signal-float">
+        <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">Recommended move</p>
+        <h3 className="mt-2 text-xl font-extrabold text-white">{blueprint.product}</h3>
+        <p className="mt-2 text-sm leading-6 text-ink-300">{blueprint.buyerValue}</p>
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="signal-kpi-tile">
+            <p className="text-2xl font-extrabold text-lead-400">{completeness}/5</p>
+            <p className="mt-1 text-xs text-ink-400">signal depth</p>
+            <div className="signal-kpi-meter">
+              <div className="signal-kpi-fill" style={{ width: `${completeness * 20}%` }} />
+            </div>
+          </div>
+          <div className="signal-kpi-tile">
+            <p className="text-2xl font-extrabold text-cyan-300">{form.interests.length + form.problemCategories.length}</p>
+            <p className="mt-1 text-xs text-ink-400">tags attached</p>
+            <div className="signal-kpi-meter">
+              <div className="signal-kpi-fill" style={{ width: `${Math.min(100, (form.interests.length + form.problemCategories.length) * 10)}%` }} />
+            </div>
+          </div>
+        </div>
+        <p className="mt-4 text-sm leading-6 text-ink-200">{blueprint.nextMove}</p>
       </div>
 
       <div className="lead-panel p-5">
