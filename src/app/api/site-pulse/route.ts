@@ -58,9 +58,18 @@ export async function POST(request: NextRequest) {
       value: body.value,
     });
 
-    const snapshot = await getSitePulseSnapshot();
-    logPulse("info", { method: "POST", source: snapshot.source, ms: Date.now() - startedAt });
-    return json(snapshot);
+    // Keep POST as a cheap write-only tracker. The previous version wrote the
+    // event, then immediately ran the full dashboard snapshot query set on every
+    // browser event. On Supabase's limited pool this caused production pool
+    // timeouts. GET still serves the full live snapshot for UI reads.
+    const ack = {
+      ok: true,
+      source: "recorded",
+      updatedAt: new Date().toISOString(),
+    };
+
+    logPulse("info", { method: "POST", source: ack.source, ms: Date.now() - startedAt });
+    return json(ack, 202);
   } catch (error) {
     const reason = classifySitePulseError(error, "insert_failed");
     const detail = sanitizeSitePulseError(error);
