@@ -2,8 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * SVG fallback that mirrors the real logo (funnel + green dots).
- * Replace /public/logo.png with your actual artwork. It renders automatically.
+ * Abstract signal-pull mark used across the public site and app shell.
  */
 export function FunnelMark({ className }: { className?: string }) {
   return (
@@ -13,23 +12,27 @@ export function FunnelMark({ className }: { className?: string }) {
       aria-hidden
     >
       <defs>
-        <linearGradient id="lf-funnel" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2a90ff" />
-          <stop offset="35%" stopColor="#23b8ff" />
-          <stop offset="70%" stopColor="#ff9a1f" />
+        <radialGradient id="lf-signal-bg" cx="50%" cy="35%" r="74%">
+          <stop offset="0%" stopColor="#123a68" />
+          <stop offset="52%" stopColor="#071525" />
+          <stop offset="100%" stopColor="#02050b" />
+        </radialGradient>
+        <linearGradient id="lf-signal-line" x1="8" x2="56" y1="52" y2="12">
+          <stop offset="0%" stopColor="#a6e36b" />
+          <stop offset="46%" stopColor="#5cd0ff" />
           <stop offset="100%" stopColor="#ffd66b" />
         </linearGradient>
       </defs>
-      {/* lead drops */}
-      <circle cx="22" cy="6" r="2.4" fill="#7fc93f" />
-      <circle cx="29" cy="9" r="2.4" fill="#a6e36b" />
-      <circle cx="18" cy="11" r="2.4" fill="#5fa726" />
-      <circle cx="26" cy="14" r="2.4" fill="#7fc93f" />
-      {/* funnel */}
-      <path
-        d="M8 18 L40 18 L30 38 L30 56 L24 56 L24 38 Z"
-        fill="url(#lf-funnel)"
-      />
+      <rect x="5" y="5" width="54" height="54" rx="15" fill="url(#lf-signal-bg)" />
+      <rect x="6" y="6" width="52" height="52" rx="14" fill="none" stroke="#5cd0ff" strokeOpacity=".38" strokeWidth="1.5" />
+      <path d="M14 45 25 32 33 36 48 18 55 23" fill="none" stroke="url(#lf-signal-line)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="14" cy="45" r="6" fill="#a6e36b" />
+      <circle cx="25" cy="32" r="5" fill="#5cd0ff" />
+      <circle cx="33" cy="36" r="4.5" fill="#ffffff" />
+      <circle cx="48" cy="18" r="6.5" fill="#ffd66b" />
+      <circle cx="55" cy="23" r="4.5" fill="#ffd66b" />
+      <circle cx="32" cy="32" r="13" fill="#02050b" fillOpacity=".58" stroke="#5cd0ff" strokeOpacity=".55" strokeWidth="1.5" />
+      <path d="M25 39V25h5v9h8v5H25Z" fill="#ffffff" />
     </svg>
   );
 }

@@ -36,6 +36,7 @@
       linear-gradient(64deg, rgba(255, 214, 107, 0.075), transparent 30%, rgba(92, 208, 255, 0.08) 76%, transparent);
     background-size: 56px 56px, 56px 56px, auto, auto, auto;
     background-attachment: fixed;
+    overflow-x: hidden;
   }
   /* Spectrum line under WELCOME headlines */
   .spectrum-line {
@@ -301,108 +302,206 @@
     @apply inline-flex min-h-7 items-center justify-center rounded-md border border-cyan-300/25 bg-cyan-300/10 px-2 text-[0.68rem] font-extrabold uppercase tracking-wider text-cyan-200;
   }
   .lead-brain-visual {
-    @apply relative min-h-[42rem] overflow-hidden rounded-lg border border-white/10 bg-[#02050b] p-4 shadow-2xl shadow-black/60;
-    background-image:
-      linear-gradient(135deg, rgba(92, 208, 255, 0.18), transparent 18rem),
-      linear-gradient(315deg, rgba(255, 154, 31, 0.19), transparent 18rem),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 16rem);
+    @apply relative min-h-[43rem] overflow-hidden rounded-lg border border-white/10 bg-[#02050b] p-4 shadow-2xl shadow-black/60;
+    isolation: isolate;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.075), transparent 18rem),
+      linear-gradient(310deg, rgba(255, 214, 107, 0.13), transparent 19rem),
+      linear-gradient(180deg, rgba(92, 208, 255, 0.12), transparent 26rem),
+      #02050b;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 36px 90px -46px rgba(92, 208, 255, 0.64),
-      0 36px 90px -48px rgba(255, 154, 31, 0.56),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+      0 44px 110px -54px rgba(92, 208, 255, 0.72),
+      0 44px 110px -58px rgba(255, 154, 31, 0.62),
       0 30px 70px -34px rgba(0, 0, 0, 0.96);
   }
+  .lead-brain-visual::before,
   .lead-brain-visual::after {
     content: "";
     position: absolute;
-    inset: 0;
     pointer-events: none;
     border-radius: inherit;
+  }
+  .lead-brain-visual::before {
+    inset: 1px;
+    z-index: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     background:
-      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent),
-      linear-gradient(180deg, rgba(255, 214, 107, 0.08), transparent 12rem);
-    opacity: 0.6;
-    mix-blend-mode: screen;
+      linear-gradient(115deg, rgba(255, 255, 255, 0.12), transparent 18%, transparent 76%, rgba(255, 214, 107, 0.1)),
+      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
+    mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.78) 52%, rgba(0, 0, 0, 0.42) 100%);
+    opacity: 0.9;
+  }
+  .lead-brain-visual::after {
+    inset: -28%;
+    z-index: 0;
+    background:
+      conic-gradient(from 160deg at 50% 48%, transparent, rgba(92, 208, 255, 0.16), transparent, rgba(255, 214, 107, 0.13), transparent),
+      radial-gradient(circle at 50% 48%, rgba(255, 255, 255, 0.08), transparent 28%);
+    filter: blur(18px);
+    opacity: 0.82;
+    animation: trapPull 14s linear infinite;
   }
   .lead-brain-visual > * {
     position: relative;
     z-index: 1;
   }
+  .lead-gravity-aurora {
+    position: absolute;
+    inset: -20%;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 22% 72%, rgba(184, 243, 107, 0.16), transparent 24%),
+      radial-gradient(circle at 82% 22%, rgba(255, 214, 107, 0.18), transparent 25%),
+      radial-gradient(circle at 50% 48%, rgba(92, 208, 255, 0.16), transparent 28%);
+    filter: blur(24px) saturate(1.15);
+    opacity: 0.92;
+    animation: auroraShift 12s ease-in-out infinite;
+  }
   .lead-brain-topbar {
-    @apply flex items-center justify-between gap-3 border-b border-white/10 pb-3;
+    @apply flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.045] px-3 py-3 backdrop-blur-xl;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
   .lead-brain-topbar p {
-    @apply text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink-400;
+    @apply text-[0.66rem] font-bold uppercase tracking-[0.2em] text-cyan-200/80;
   }
   .lead-brain-topbar strong {
     @apply block truncate text-sm text-white;
   }
   .lead-brain-badge {
     @apply inline-flex shrink-0 items-center gap-2 rounded-lg border border-lead-400/35 bg-lead-400/10 px-3 py-2 text-xs font-extrabold text-lead-400;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 26px rgba(184, 243, 107, 0.1);
   }
-  .lead-brain-canvas-wrap {
-    @apply relative mt-4 h-[22rem] overflow-hidden rounded-lg border border-white/10 bg-[#010307];
+  .lead-gravity-stage {
+    @apply relative mt-4 h-[26rem] overflow-hidden rounded-lg border border-white/10 bg-[#010307];
+    transform-style: preserve-3d;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent 24%),
+      radial-gradient(circle at 50% 50%, rgba(92, 208, 255, 0.12), transparent 44%),
+      #010307;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -30px 90px rgba(0, 0, 0, 0.55);
   }
-  .lead-brain-canvas-wrap canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-  .lead-brain-canvas-wrap::after {
+  .lead-gravity-stage::after {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 20%),
-      radial-gradient(circle at 50% 44%, rgba(255, 214, 107, 0.1), transparent 34%);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 16%, transparent 74%, rgba(0, 0, 0, 0.42)),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 14px);
+    mix-blend-mode: screen;
+    opacity: 0.38;
   }
-  .lead-brain-orbit-card {
-    @apply absolute flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-extrabold uppercase tracking-wider text-white shadow-xl shadow-black/40 backdrop-blur;
-    background: rgba(5, 8, 13, 0.82);
+  .lead-gravity-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
-  .lead-brain-orbit-card svg {
-    @apply text-cyan-200;
+  .gravity-glass-card {
+    position: absolute;
+    max-width: 15.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 0.85rem;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.04)),
+      rgba(5, 8, 13, 0.48);
+    box-shadow: 0 22px 60px -36px rgba(0, 0, 0, 0.92), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(18px) saturate(1.25);
+    padding: 0.85rem;
+    animation: floatGlass 7.5s ease-in-out infinite;
   }
-  .orbit-intent {
+  .gravity-source-card {
     left: 1rem;
     top: 1rem;
-    border-color: rgba(184, 243, 107, 0.28);
+    border-color: rgba(184, 243, 107, 0.24);
   }
-  .orbit-review {
+  .gravity-buyer-card {
     right: 1rem;
-    top: 4.25rem;
-    border-color: rgba(92, 208, 255, 0.3);
+    top: 1.3rem;
+    border-color: rgba(255, 214, 107, 0.26);
+    animation-delay: -2.6s;
   }
-  .orbit-route {
-    bottom: 1rem;
-    left: 1.5rem;
+  .gravity-card-kicker {
+    @apply text-[0.62rem] font-extrabold uppercase tracking-wider text-cyan-200/80;
+  }
+  .gravity-glass-card strong {
+    @apply mt-2 block text-sm font-extrabold leading-snug text-white;
+  }
+  .gravity-glass-card p {
+    @apply mt-1 text-xs leading-5 text-ink-200;
+  }
+  .gravity-center-readout {
+    @apply absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full border px-3 py-2 text-xs font-extrabold uppercase tracking-wider text-white backdrop-blur-xl;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.045)),
+      rgba(3, 7, 12, 0.74);
     border-color: rgba(255, 214, 107, 0.32);
+    box-shadow: 0 0 42px rgba(255, 214, 107, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    animation: readoutPulse 4.8s ease-in-out infinite;
   }
-  .lead-lane-grid {
-    @apply mt-4 grid gap-3 sm:grid-cols-3;
+  .gravity-center-readout svg {
+    @apply text-accent-300;
   }
-  .lead-lane-card {
-    @apply min-h-20 rounded-lg border bg-white/[0.045] p-3;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  .gravity-center-readout strong {
+    @apply text-accent-300;
   }
-  .lead-lane-card span {
-    @apply block text-[0.66rem] font-bold uppercase tracking-wider text-ink-400;
+  .gravity-action-stack {
+    @apply absolute bottom-3 left-3 right-3 grid gap-2 sm:grid-cols-3;
   }
-  .lead-lane-card strong {
+  .gravity-signal-tile {
+    @apply min-h-20 rounded-lg border border-white/10 bg-black/30 p-3 backdrop-blur-xl;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  .gravity-signal-tile span,
+  .gravity-signal-tile small {
+    @apply block text-[0.64rem] font-extrabold uppercase tracking-wider text-ink-300;
+  }
+  .gravity-signal-tile strong {
     @apply mt-1 block text-2xl font-extrabold text-white;
   }
-  .lead-lane-lead {
-    border-color: rgba(184, 243, 107, 0.28);
+  .lead-capture-strip {
+    @apply mt-3 grid grid-cols-4 gap-2;
   }
-  .lead-lane-cyan {
-    border-color: rgba(92, 208, 255, 0.28);
+  .capture-step {
+    @apply relative min-h-14 overflow-hidden rounded-lg border border-white/10 bg-white/[0.04] px-2 py-2 text-center;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
-  .lead-lane-accent {
-    border-color: rgba(255, 214, 107, 0.32);
+  .capture-step::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(92, 208, 255, 0.12), transparent);
+    transform: translateX(-100%);
+    animation: scanSweep 6.2s ease-in-out infinite;
+  }
+  .capture-step span {
+    @apply relative z-10 mx-auto flex h-5 w-5 items-center justify-center rounded-full bg-cyan-300/15 text-[0.62rem] font-extrabold text-cyan-200;
+  }
+  .capture-step strong {
+    @apply relative z-10 mt-1 block truncate text-[0.68rem] font-extrabold uppercase tracking-wider text-white;
+  }
+  .lead-buyer-tape {
+    @apply mt-3 grid gap-2;
+  }
+  .buyer-tape-card {
+    @apply flex min-h-14 items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .buyer-tape-card strong {
+    @apply block truncate text-sm font-extrabold text-white;
+  }
+  .buyer-tape-card span {
+    @apply block truncate text-xs text-ink-300;
+  }
+  .buyer-tape-card em {
+    @apply shrink-0 not-italic text-sm font-extrabold text-lead-400;
   }
   .lead-brain-footer {
-    @apply mt-4 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-3 text-xs font-bold uppercase tracking-wider text-ink-200;
+    @apply mt-3 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-3 text-xs font-bold uppercase tracking-wider text-ink-200 backdrop-blur-xl;
   }
   .lead-brain-footer svg {
     @apply text-accent-300;
@@ -604,6 +703,51 @@
   }
 }
 
+@keyframes auroraShift {
+  0%, 100% {
+    transform: translate3d(-1%, 0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate3d(1.5%, -1.5%, 0) rotate(7deg) scale(1.04);
+  }
+}
+
+@keyframes trapPull {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    transform: rotate(360deg) scale(1.02);
+  }
+}
+
+@keyframes scanSweep {
+  0%, 62%, 100% {
+    transform: translateX(-110%);
+  }
+  78% {
+    transform: translateX(110%);
+  }
+}
+
+@keyframes floatGlass {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -7px, 0);
+  }
+}
+
+@keyframes readoutPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.025);
+  }
+}
+
 @keyframes magneticBreath {
   0%, 100% {
     box-shadow:
@@ -627,6 +771,11 @@
   .signal-node,
   .signal-route-line,
   .signal-float,
+  .lead-gravity-aurora,
+  .lead-brain-visual::after,
+  .gravity-glass-card,
+  .gravity-center-readout,
+  .capture-step::after,
   .lead-live-dot,
   .btn-magnetic {
     animation: none;
@@ -661,20 +810,33 @@
 @media (max-width: 640px) {
   main > section:first-of-type .container {
     max-width: 100%;
+    width: 100%;
     overflow: hidden;
+  }
+  main > section:first-of-type .container > div:first-child {
+    width: min(100%, calc(100vw - 2rem));
+    max-width: calc(100vw - 2rem);
+  }
+  main > section:first-of-type .container > div:first-child > * {
+    max-width: 100%;
   }
   main > section:first-of-type h1 {
     max-width: calc(100vw - 2rem);
-    font-size: 2.2rem;
+    font-size: 2rem;
     line-height: 1.08;
     overflow-wrap: anywhere;
+    word-break: normal;
   }
   main > section:first-of-type p {
     max-width: calc(100vw - 2rem);
     overflow-wrap: anywhere;
   }
+  main > section:first-of-type a {
+    max-width: calc(100vw - 2rem);
+  }
   .hero-signal-chip {
     max-width: calc(100vw - 2rem);
+    width: 100%;
     min-width: 0;
   }
   .hero-signal-chip strong {
@@ -720,8 +882,15 @@
     font-size: 0.68rem;
   }
   .lead-brain-visual {
-    min-height: 38rem;
+    max-width: calc(100vw - 2rem);
+    min-height: 44rem;
     padding: 0.75rem;
+  }
+  .lead-gravity-stage,
+  .lead-capture-strip,
+  .lead-buyer-tape,
+  .lead-brain-footer {
+    max-width: 100%;
   }
   .lead-brain-topbar {
     align-items: flex-start;
@@ -730,24 +899,64 @@
     padding-inline: 0.55rem;
     font-size: 0.68rem;
   }
-  .lead-brain-canvas-wrap {
-    height: 18rem;
+  .lead-gravity-stage {
+    height: 27rem;
   }
-  .lead-brain-orbit-card {
-    padding: 0.42rem 0.52rem;
+  .gravity-glass-card {
+    max-width: 12rem;
+    padding: 0.62rem;
+  }
+  .gravity-source-card {
+    left: 0.55rem;
+    top: 0.55rem;
+  }
+  .gravity-buyer-card {
+    right: 0.55rem;
+    top: 7.3rem;
+  }
+  .gravity-glass-card strong {
+    font-size: 0.75rem;
+  }
+  .gravity-glass-card p {
+    display: none;
+  }
+  .gravity-center-readout {
+    padding: 0.42rem 0.62rem;
     font-size: 0.62rem;
+    display: none;
   }
-  .orbit-review {
-    right: 0.5rem;
-    top: 3.5rem;
+  .gravity-action-stack {
+    grid-template-columns: 1fr;
+    gap: 0.42rem;
+    left: 0.55rem;
+    right: 0.55rem;
+    bottom: 0.65rem;
   }
-  .orbit-route {
-    left: 0.65rem;
+  .gravity-signal-tile {
+    min-height: 3.1rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.3rem 0.55rem;
+    padding: 0.55rem;
   }
-  .lead-market-row {
-    grid-template-columns: minmax(0, 1fr) 4.6rem 3.8rem;
+  .gravity-signal-tile strong {
+    margin-top: 0;
+    font-size: 1rem;
   }
-  .lead-market-row > span:nth-of-type(1) {
+  .gravity-signal-tile small {
+    grid-column: 1 / -1;
+  }
+  .lead-capture-strip {
+    gap: 0.35rem;
+  }
+  .capture-step strong {
+    font-size: 0.58rem;
+  }
+  .buyer-tape-card {
+    min-height: 3rem;
+  }
+  .buyer-tape-card span {
     display: none;
   }
   .lead-brain-footer {
@@ -762,11 +971,11 @@
   .dock-inner {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.65rem;
-    padding: 0.7rem;
+    gap: 0;
+    padding: 0.55rem;
   }
   .dock-proof {
-    align-items: flex-start;
+    display: none;
   }
   .dock-proof p {
     white-space: normal;
@@ -788,7 +997,7 @@
   }
   .dock-primary,
   .dock-secondary {
-    min-height: 2.75rem;
+    min-height: 2.9rem;
     overflow: hidden;
     padding-inline: 0.45rem;
     text-overflow: ellipsis;
