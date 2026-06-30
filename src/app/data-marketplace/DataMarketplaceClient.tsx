@@ -42,6 +42,7 @@ import {
   labelFor
 } from "@/lib/data-market";
 import { formatCurrency } from "@/lib/utils";
+import { SignalConversionDock } from "@/components/site/SignalConversionDock";
 
 type Urgency = "standard" | "rush" | "weekly";
 
@@ -254,7 +255,7 @@ export function DataMarketplaceClient() {
   }
 
   return (
-    <section className="signal-page py-10 md:py-16">
+    <section className="signal-page pb-32 pt-10 md:pb-36 md:pt-16">
       <div className="container">
         <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
           <div className="min-w-0 space-y-8">
@@ -289,7 +290,15 @@ export function DataMarketplaceClient() {
 
             <MarketplaceDealRoom form={form} score={score} />
 
-            <form onSubmit={submit} className="space-y-8">
+            <form
+              id="data-marketplace-request-form"
+              onSubmit={submit}
+              className="space-y-8"
+              data-conversion-event="data_marketplace_form_submit"
+              data-conversion-cta={isSourceMode ? "Submit lead source" : "Request this data product"}
+              data-conversion-source-page="/data-marketplace"
+              data-conversion-destination="/api/data-requests"
+            >
               <BuilderSection
                 icon={Database}
                 eyebrow="Step 0"
@@ -565,6 +574,22 @@ export function DataMarketplaceClient() {
           </aside>
         </div>
       </div>
+      <SignalConversionDock
+        proofTitle={isSourceMode ? "Package the source before buyers see it" : "LeadFlow is building a fair-rate data request"}
+        proofBody="Problem, source lanes, proof fields, exclusions, score, and buyer route stay attached to the request."
+        metrics={[
+          { value: `${score.totalScore}`, label: "score" },
+          { value: formatCurrency(score.estimatedPriceUsd), label: "fair start" },
+          { value: `${form.sourceLanes.length}`, label: "sources" }
+        ]}
+        primaryHref="#data-marketplace-request-form"
+        primaryLabel={isSourceMode ? "Submit source" : "Request quote"}
+        primaryEvent="data_marketplace_start_click"
+        secondaryHref="/problem-intake"
+        secondaryLabel="Start intake"
+        secondaryEvent="data_marketplace_problem_intake_click"
+        sourcePage="/data-marketplace"
+      />
     </section>
   );
 }
@@ -702,6 +727,10 @@ function ProblemSolverPanel({
             type="button"
             onClick={() => onApplyStarter(starter)}
             className={["marketplace-problem-card", `marketplace-problem-card-${starter.accent}`].join(" ")}
+            data-conversion-event="data_marketplace_starter_click"
+            data-conversion-cta={starter.title}
+            data-conversion-source-page="/data-marketplace"
+            data-conversion-destination="#data-marketplace-request-form"
           >
             <span className="marketplace-card-kicker">Use case</span>
             <strong>{starter.title}</strong>

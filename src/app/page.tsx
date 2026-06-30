@@ -23,6 +23,7 @@ import {
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { LeadBrainVisual } from "@/components/site/LeadBrainVisual";
+import { SignalConversionDock } from "@/components/site/SignalConversionDock";
 
 const sourceGroups = [
   {
@@ -211,7 +212,22 @@ export default function HomePage() {
         <ComplianceSection />
         <FinalCta />
       </main>
-      <StickyConversionDock />
+      <SignalConversionDock
+        proofTitle="LeadFlow is collecting buyer/source signal"
+        proofBody="Adult-only intake. Fair-rate data products. Review-gated release."
+        metrics={[
+          { value: "$49+", label: "starter" },
+          { value: "2 paths", label: "buyer/source" },
+          { value: "18+", label: "adult only" }
+        ]}
+        primaryHref="/problem-intake"
+        primaryLabel="Start intake"
+        primaryEvent="problem_intake_start_click"
+        secondaryHref="/data-marketplace"
+        secondaryLabel="Request data"
+        secondaryEvent="data_marketplace_start_click"
+        sourcePage="/"
+      />
       <Footer />
     </>
   );
@@ -332,44 +348,6 @@ function MechanicsSection() {
   );
 }
 
-function StickyConversionDock() {
-  return (
-    <aside className="sticky-conversion-dock" aria-label="LeadFlow quick actions">
-      <div className="dock-inner">
-        <div className="dock-proof">
-          <span className="lead-live-dot" />
-          <div>
-            <p>LeadFlow is collecting buyer/source signal</p>
-            <span>Adult-only intake. Fair-rate data products. Review-gated release.</span>
-          </div>
-        </div>
-        <div className="dock-metrics">
-          <div>
-            <strong>$49+</strong>
-            <span>starter</span>
-          </div>
-          <div>
-            <strong>2 paths</strong>
-            <span>buyer/source</span>
-          </div>
-          <div>
-            <strong>18+</strong>
-            <span>adult only</span>
-          </div>
-        </div>
-        <div className="dock-actions">
-          <Link href="/problem-intake" className="btn-accent btn-magnetic dock-primary">
-            Start intake
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link href="/data-marketplace" className="dock-secondary">
-            Request data
-          </Link>
-        </div>
-      </div>
-    </aside>
-  );
-}
 function SourceSection() {
   return (
     <section id="data" className="py-16 md:py-24">

@@ -29,6 +29,7 @@ import {
   estimateAdultInterest,
   labelFor
 } from "@/lib/adult-interest-intake";
+import { SignalConversionDock } from "@/components/site/SignalConversionDock";
 
 type FormState = {
   fullName: string;
@@ -128,7 +129,7 @@ export function ProblemIntakeClient() {
   }
 
   return (
-    <section className="signal-page py-10 md:py-16">
+    <section className="signal-page pb-32 pt-10 md:pb-36 md:pt-16">
       <div className="container">
         <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)]">
           <div className="min-w-0 space-y-8">
@@ -159,7 +160,15 @@ export function ProblemIntakeClient() {
 
             <SignalOutcomeConsole form={form} score={score} />
 
-            <form onSubmit={submit} className="space-y-8">
+            <form
+              id="signal-intake-form"
+              onSubmit={submit}
+              className="space-y-8"
+              data-conversion-event="problem_intake_form_submit"
+              data-conversion-cta="Find the signal"
+              data-conversion-source-page="/problem-intake"
+              data-conversion-destination="/api/problem-intake"
+            >
               <BuilderSection
                 icon={Sparkles}
                 eyebrow="Start here"
@@ -354,7 +363,11 @@ export function ProblemIntakeClient() {
                   so they can be scored, reviewed, and routed toward relevant matches,
                   recommendations, lists, offers, or follow-up.
                 </p>
-                <button type="submit" disabled={submitting} className="btn-accent w-full text-base md:w-auto">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="btn-accent w-full text-base md:w-auto"
+                >
                   {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                   {submitting ? "Reading the signal..." : "Find the signal"}
                 </button>
@@ -367,6 +380,22 @@ export function ProblemIntakeClient() {
           </aside>
         </div>
       </div>
+      <SignalConversionDock
+        proofTitle="LeadFlow is reading pain, intent, budget, and search behavior"
+        proofBody="Adult-only signal capture. No minors, private addresses, medical data, or protected-trait targeting."
+        metrics={[
+          { value: `${score.leadScore}`, label: "score" },
+          { value: `${form.problemCategories.length}`, label: "pain tags" },
+          { value: "18+", label: "adult only" }
+        ]}
+        primaryHref="#signal-intake-form"
+        primaryLabel="Find the signal"
+        primaryEvent="problem_intake_start_click"
+        secondaryHref="/data-marketplace"
+        secondaryLabel="Request data"
+        secondaryEvent="problem_intake_marketplace_click"
+        sourcePage="/problem-intake"
+      />
     </section>
   );
 }

@@ -21,7 +21,14 @@ type ConversionEventName =
   | "lead_leak_197_message_click"
   | "lead_leak_197_payment_link_click"
   | "ad_autopsy_submit"
-  | "start_router_submit";
+  | "start_router_submit"
+  | "problem_intake_start_click"
+  | "problem_intake_form_submit"
+  | "problem_intake_marketplace_click"
+  | "data_marketplace_start_click"
+  | "data_marketplace_form_submit"
+  | "data_marketplace_starter_click"
+  | "data_marketplace_problem_intake_click";
 
 type ConversionPayload = {
   route: string;
@@ -98,11 +105,14 @@ export function ConversionEventTracker() {
     function onClick(event: MouseEvent) {
       const target = event.target;
       if (!(target instanceof Element)) return;
-      const anchor = target.closest("a[href]");
-      if (!(anchor instanceof HTMLAnchorElement)) return;
+      const tracked = target.closest("[data-conversion-event]");
+      if (!(tracked instanceof HTMLElement)) return;
 
-      const explicit = anchor.dataset.conversionEvent as ConversionEventName | undefined;
-      const href = anchor.getAttribute("href") || anchor.href || "";
+      const explicit = tracked.dataset.conversionEvent as ConversionEventName | undefined;
+      const href =
+        tracked instanceof HTMLAnchorElement
+          ? tracked.getAttribute("href") || tracked.href || ""
+          : tracked.dataset.conversionDestination || "";
       let eventName = explicit;
       if (!eventName && href.startsWith("tel:")) eventName = "phone_click";
       if (!eventName && href.startsWith("mailto:")) eventName = "email_click";
@@ -112,9 +122,9 @@ export function ConversionEventTracker() {
         eventName,
         attribution(
           pathname,
-          anchor.dataset.conversionCta || anchor.innerText || anchor.getAttribute("aria-label") || eventName,
+          tracked.dataset.conversionCta || tracked.innerText || tracked.getAttribute("aria-label") || eventName,
           href,
-          anchor.dataset.conversionSourcePage || pathname,
+          tracked.dataset.conversionSourcePage || pathname,
         ),
       );
     }
@@ -137,7 +147,7 @@ export function ConversionEventTracker() {
         attribution(
           pathname,
           target.dataset.conversionCta || submitter?.innerText || eventName,
-          action,
+          target.dataset.conversionDestination || action,
           target.dataset.conversionSourcePage || pathname,
         ),
       );
