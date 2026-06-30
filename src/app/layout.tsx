@@ -36,10 +36,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/images/leadflow-pro-social-card.png",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
-          alt: "The LeadFlow Pro lead intelligence dashboard",
+        alt: "The LeadFlow Pro lead intelligence data exchange",
       },
     ],
   },
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     title: "The LeadFlow Pro",
     description:
       "Find the signal behind what people need solved and turn it into fair-rate lead data.",
-    images: ["/images/leadflow-pro-social-card.png"],
+    images: ["/twitter-image"],
   },
   icons: {
     icon: [
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
   },
   other: {
     "msapplication-TileColor": "#061833",
-    "msapplication-TileImage": "/images/leadflow-pro-app-icon-192.png",
+    "msapplication-TileImage": "/favicon-32x32.png",
   },
 };
 
@@ -80,8 +80,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     "@type": "Organization",
     name: "The LeadFlow Pro",
     url: "https://www.theleadflowpro.com",
-    logo: "https://www.theleadflowpro.com/images/leadflow-pro-app-icon-512.png",
-    image: "https://www.theleadflowpro.com/images/leadflow-pro-social-card.png",
+    logo: "https://www.theleadflowpro.com/favicon.svg",
+    image: "https://www.theleadflowpro.com/opengraph-image",
     founder: {
       "@type": "Person",
       name: "Ryan Nichols",

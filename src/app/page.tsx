@@ -1,14 +1,18 @@
 import Link from "next/link";
 import {
+  Activity,
   ArrowRight,
   BadgeCheck,
   Binary,
   Building2,
+  CircleDollarSign,
   CheckCircle2,
   DatabaseZap,
   Layers3,
   LockKeyhole,
+  MousePointerClick,
   Radar,
+  Route,
   Search,
   ShieldCheck,
   ShoppingCart,
@@ -18,6 +22,7 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
+import { LeadBrainVisual } from "@/components/site/LeadBrainVisual";
 
 const sourceGroups = [
   {
@@ -148,6 +153,39 @@ const fairRateRules = [
   "Suppression and do-not-contact status reduce sellable value and must travel with the data."
 ];
 
+const conversionMechanics = [
+  {
+    icon: MousePointerClick,
+    title: "One loud next action",
+    body: "Primary actions use the warm money color. Secondary actions stay quiet so buyers are not forced to choose between five equal buttons.",
+    metric: "High contrast CTA"
+  },
+  {
+    icon: Activity,
+    title: "Live score feedback",
+    body: "Every form, category, and buyer request shows a score or value signal so people keep moving instead of wondering what happens next.",
+    metric: "Instant feedback"
+  },
+  {
+    icon: Route,
+    title: "Two clear lanes",
+    body: "Visitors self-select fast: add a signal or request buyer data. No generic brochure loop, no buried intake.",
+    metric: "Buyer/source split"
+  },
+  {
+    icon: CircleDollarSign,
+    title: "Visible price anchors",
+    body: "Reasonable starter ranges make the marketplace feel purchasable before a sales call, while high-value data still routes to review.",
+    metric: "$49+ entry"
+  }
+];
+
+const heroSignals = [
+  { label: "Pain signal", value: "92", tone: "lead" },
+  { label: "Proof depth", value: "7/9", tone: "cyan" },
+  { label: "Buyer fit", value: "$149", tone: "accent" }
+];
+
 const rules = [
   "Public and permissioned sources only.",
   "Signal intake must stay adult-only and clear about submitted data use.",
@@ -162,9 +200,10 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <main>
+      <main className="pb-28 lg:pb-24">
         <HeroSection />
         <SourceSection />
+        <MechanicsSection />
         <ProfileSection />
         <WorkflowSection />
         <ProductSection />
@@ -172,6 +211,7 @@ export default function HomePage() {
         <ComplianceSection />
         <FinalCta />
       </main>
+      <StickyConversionDock />
       <Footer />
     </>
   );
@@ -182,13 +222,13 @@ function HeroSection() {
     <section className="relative min-h-[calc(100svh-4rem)] overflow-hidden border-b border-white/10">
       <DataBackdrop />
       <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(5,9,24,0.96)_0%,rgba(5,9,24,0.82)_52%,rgba(255,154,31,0.16)_100%)]" />
-      <div className="container relative z-10 grid min-h-[calc(100svh-4rem)] items-center gap-8 py-10 md:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,34rem)]">
-        <div className="max-w-4xl">
+      <div className="container relative z-10 grid min-h-[calc(100svh-4rem)] min-w-0 items-center gap-8 py-10 md:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,34rem)]">
+        <div className="min-w-0 max-w-4xl">
           <div className="inline-flex items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-cyan-200">
             <Radar className="h-4 w-4" />
             Signal, not noise
           </div>
-          <h1 className="mt-6 max-w-4xl text-4xl font-extrabold leading-tight text-white md:text-7xl">
+          <h1 className="mt-6 max-w-full break-words text-4xl font-extrabold leading-tight text-white md:text-7xl">
             Build the lead brain around what people actually need solved.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-ink-100 md:text-2xl">
@@ -198,13 +238,21 @@ function HeroSection() {
             buyers can purchase at a fair rate.
           </p>
           <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap">
-            <Link href="/problem-intake" className="btn-accent w-full text-base sm:w-auto">
+            <Link href="/problem-intake" className="btn-accent btn-magnetic w-full text-base sm:w-auto">
               Find the signal
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="/data-marketplace" className="btn-ghost w-full text-base sm:w-auto">
               Open marketplace
             </Link>
+          </div>
+          <div className="mt-7 grid max-w-2xl gap-2 sm:grid-cols-3">
+            {heroSignals.map((signal) => (
+              <div key={signal.label} className={`hero-signal-chip hero-signal-${signal.tone}`}>
+                <span>{signal.label}</span>
+                <strong>{signal.value}</strong>
+              </div>
+            ))}
           </div>
           <div className="mt-10 grid max-w-3xl gap-3 sm:grid-cols-3">
             <Metric value="18+" label="adult-only intake" />
@@ -242,58 +290,86 @@ function DataBackdrop() {
 }
 
 function HeroVisual() {
-  const rows = [
-    ["Dataset", "4,800 ecommerce records", "Submitted"],
-    ["AI tool", "New launch and pricing", "Buyer interest"],
-    ["Service route", "Local appointment demand", "Qualified handoff"],
-    ["Creator channel", "Public audience proof", "Review"],
-    ["Domain/site", "Traffic and category fit", "Workspace"]
-  ];
+  return <LeadBrainVisual />;
+}
 
+function MechanicsSection() {
   return (
-    <div className="lead-shell w-full overflow-hidden p-3 sm:p-4">
-      <div className="aspect-[4/5] min-h-[30rem] sm:aspect-[5/4] lg:aspect-[4/5]">
-        <div className="flex h-full flex-col rounded-lg border border-white/10 bg-ink-950/80 p-4">
-          <div className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-xs uppercase tracking-wider text-ink-400">Live lead brain board</p>
-              <p className="mt-1 text-lg font-bold text-white">Universal opportunity graph</p>
-            </div>
-            <div className="shrink-0 rounded-lg border border-lead-400/30 bg-lead-400/10 px-3 py-2 text-xs font-semibold text-lead-400">
-              18,402 signals
-            </div>
+    <section className="relative py-10 md:py-16">
+      <div className="container">
+        <div className="conversion-mechanics">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">
+              Sticky conversion mechanics
+            </p>
+            <h2 className="mt-3 text-3xl font-extrabold text-white md:text-5xl">
+              The page should keep asking for the next useful action.
+            </h2>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-ink-200 md:text-lg">
+              The visual system is built around one job: move adults into signal
+              intake, move buyers into data requests, and make fair pricing feel
+              clear before a sales call.
+            </p>
           </div>
-          <div className="mt-4 grid grid-cols-[1.1fr_0.95fr_0.75fr] gap-2 text-xs text-ink-300">
-            <span>Source type</span>
-            <span>Proof or signal</span>
-            <span>Deal state</span>
-          </div>
-          <div className="mt-2 flex-1 space-y-2 overflow-hidden">
-            {rows.map((row) => (
-              <div
-                key={row.join("-")}
-                className="grid min-h-14 grid-cols-[1.1fr_0.95fr_0.75fr] items-center gap-2 rounded-lg border border-white/5 bg-white/[0.035] p-3 text-xs sm:text-sm"
-              >
-                <span className="min-w-0 break-words font-semibold text-white">{row[0]}</span>
-                <span className="min-w-0 break-words text-ink-200">{row[1]}</span>
-                <span className="min-w-0 break-words font-semibold text-accent-300">{row[2]}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            {["Source proof", "Lead score", "Suppression"].map((label) => (
-              <div key={label} className="min-h-20 rounded-lg border border-white/10 bg-ink-900/70 p-3">
-                <p className="text-xs text-ink-400">{label}</p>
-                <p className="mt-1 text-sm font-bold text-cyan-300">Tracked</p>
-              </div>
+
+          <div className="grid gap-3 lg:grid-cols-4">
+            {conversionMechanics.map((item) => (
+              <article key={item.title} className="conversion-mechanic-card">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="mechanic-icon">
+                    <item.icon className="h-5 w-5" />
+                  </div>
+                  <span>{item.metric}</span>
+                </div>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </article>
             ))}
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
+function StickyConversionDock() {
+  return (
+    <aside className="sticky-conversion-dock" aria-label="LeadFlow quick actions">
+      <div className="dock-inner">
+        <div className="dock-proof">
+          <span className="lead-live-dot" />
+          <div>
+            <p>LeadFlow is collecting buyer/source signal</p>
+            <span>Adult-only intake. Fair-rate data products. Review-gated release.</span>
+          </div>
+        </div>
+        <div className="dock-metrics">
+          <div>
+            <strong>$49+</strong>
+            <span>starter</span>
+          </div>
+          <div>
+            <strong>2 paths</strong>
+            <span>buyer/source</span>
+          </div>
+          <div>
+            <strong>18+</strong>
+            <span>adult only</span>
+          </div>
+        </div>
+        <div className="dock-actions">
+          <Link href="/problem-intake" className="btn-accent btn-magnetic dock-primary">
+            Start intake
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link href="/data-marketplace" className="dock-secondary">
+            Request data
+          </Link>
+        </div>
+      </div>
+    </aside>
+  );
+}
 function SourceSection() {
   return (
     <section id="data" className="py-16 md:py-24">

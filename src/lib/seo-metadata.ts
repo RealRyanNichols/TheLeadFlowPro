@@ -30,7 +30,7 @@ export function socialImageUrl(input: {
   kicker?: string;
 }) {
   void input;
-  return `${SITE_URL}/images/leadflow-pro-social-card.png`;
+  return `${SITE_URL}/opengraph-image`;
 }
 
 export function createSeoMetadata(input: SeoMetadataInput): Metadata {

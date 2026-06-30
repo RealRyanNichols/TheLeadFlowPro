@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="The LeadFlow Pro logo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="The LeadFlow Pro signal graph mark">
   <defs>
-    <radialGradient id="bg" cx="48%" cy="33%" r="72%">
-      <stop offset="0%" stop-color="#084b78"/>
-      <stop offset="58%" stop-color="#061833"/>
-      <stop offset="100%" stop-color="#020817"/>
+    <radialGradient id="bg" cx="55%" cy="34%" r="78%">
+      <stop offset="0%" stop-color="#123a68"/>
+      <stop offset="48%" stop-color="#071525"/>
+      <stop offset="100%" stop-color="#02050b"/>
     </radialGradient>
     <linearGradient id="cyan" x1="0" x2="1" y1="0" y2="1">
       <stop offset="0%" stop-color="#62ffff"/>
@@ -13,21 +13,33 @@
       <stop offset="0%" stop-color="#fff3a5"/>
       <stop offset="100%" stop-color="#f59e0b"/>
     </linearGradient>
+    <linearGradient id="line" x1="31" x2="149" y1="139" y2="41">
+      <stop offset="0%" stop-color="#b8f36b"/>
+      <stop offset="47%" stop-color="#5cd0ff"/>
+      <stop offset="100%" stop-color="#ffd66b"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.2 0 0 0 0 0.9 0 0 0 0 1 0 0 0 .65 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
-  <circle cx="90" cy="90" r="88" fill="url(#bg)"/>
-  <circle cx="90" cy="90" r="86" fill="none" stroke="#29e6f2" stroke-opacity=".32" stroke-width="2"/>
-  <path d="M49 66c0-12 82-12 82 0s-82 12-82 0Z" fill="url(#cyan)"/>
-  <path d="M55 78h70l-18 43H73Z" fill="url(#cyan)" opacity=".94"/>
-  <path d="M73 126h35l-11 32H84Z" fill="url(#cyan)" opacity=".86"/>
-  <path d="M29 144c35 18 100-10 121-64" fill="none" stroke="url(#gold)" stroke-width="13" stroke-linecap="round"/>
-  <path d="m139 78 24-29 4 38Z" fill="url(#gold)"/>
-  <circle cx="69" cy="158" r="15" fill="url(#gold)"/>
-  <path d="M69 148v20M61 154h13c8 0 8 8 0 8H62" fill="none" stroke="#734900" stroke-width="4" stroke-linecap="round"/>
-  <rect x="92" y="142" width="11" height="28" rx="2" fill="url(#gold)"/>
-  <rect x="110" y="127" width="11" height="43" rx="2" fill="url(#gold)"/>
-  <path d="M55 31c-14 14-8 28 7 31" fill="none" stroke="url(#cyan)" stroke-width="11" stroke-linecap="round"/>
-  <path d="M96 30h33c12 0 20 9 20 20s-8 20-20 20h-27L84 85l4-16c-10-3-15-10-15-19 0-11 10-20 23-20Z" fill="url(#cyan)"/>
-  <circle cx="105" cy="50" r="4" fill="#052140"/>
-  <circle cx="119" cy="50" r="4" fill="#052140"/>
-  <circle cx="134" cy="50" r="4" fill="#052140"/>
+  <rect x="8" y="8" width="164" height="164" rx="36" fill="url(#bg)"/>
+  <rect x="10" y="10" width="160" height="160" rx="34" fill="none" stroke="#5cd0ff" stroke-opacity=".28" stroke-width="2"/>
+  <g opacity=".18" stroke="#ffffff" stroke-width="1">
+    <path d="M31 28v124M59 28v124M87 28v124M115 28v124M143 28v124"/>
+    <path d="M28 31h124M28 59h124M28 87h124M28 115h124M28 143h124"/>
+  </g>
+  <path d="M39 128 69 95 91 107 123 61 145 76" fill="none" stroke="url(#line)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+  <path d="M40 128 69 95 91 107 123 61 145 76" fill="none" stroke="#ffffff" stroke-opacity=".26" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="39" cy="128" r="13" fill="#b8f36b"/>
+  <circle cx="69" cy="95" r="13" fill="url(#cyan)"/>
+  <circle cx="91" cy="107" r="11" fill="#5cd0ff"/>
+  <circle cx="123" cy="61" r="14" fill="url(#gold)"/>
+  <circle cx="145" cy="76" r="11" fill="#ffd66b"/>
+  <circle cx="90" cy="90" r="34" fill="#02050b" fill-opacity=".72" stroke="#5cd0ff" stroke-opacity=".4" stroke-width="2"/>
+  <text x="90" y="102" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="39" font-weight="900" fill="#ffffff">LF</text>
 </svg>

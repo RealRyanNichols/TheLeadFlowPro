@@ -1,138 +1,136 @@
 import type { CSSProperties } from "react";
 
-const navy = "#061833";
-const cyan = "#29e6f2";
-const cyanDark = "#0796b7";
-const gold = "#ffd66b";
-const goldDeep = "#f59e0b";
+const ink = "#050918";
+const panel = "#09101b";
+const cyan = "#5cd0ff";
+const lead = "#a6e36b";
+const amber = "#ffd66b";
+const orange = "#ff9a1f";
 
 const absoluteFill: CSSProperties = {
   position: "absolute",
   inset: 0,
 };
 
-function LeadFlowMark({ compact = false }: { compact?: boolean }) {
-  const size = compact ? 150 : 220;
+function SignalMark() {
   return (
     <div
       style={{
-        width: size,
-        height: size,
-        borderRadius: size,
-        background:
-          "radial-gradient(circle at 45% 35%, rgba(41,230,242,0.30), rgba(6,24,51,0.95) 58%, rgba(0,0,0,0.35))",
-        border: "1px solid rgba(41,230,242,0.28)",
+        width: 58,
+        height: 58,
+        borderRadius: 16,
         display: "flex",
+        position: "relative",
+        overflow: "hidden",
         alignItems: "center",
         justifyContent: "center",
-        position: "relative",
-        boxShadow: "0 22px 80px rgba(41,230,242,0.22)",
+        border: "1px solid rgba(92,208,255,0.35)",
+        background:
+          "linear-gradient(135deg, rgba(92,208,255,0.24), rgba(255,154,31,0.18))",
       }}
     >
-      <svg width={compact ? 110 : 160} height={compact ? 110 : 160} viewBox="0 0 160 160">
-        <defs>
-          <linearGradient id="lf-og-cyan" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#62ffff" />
-            <stop offset="100%" stopColor="#08a6bb" />
-          </linearGradient>
-          <linearGradient id="lf-og-gold" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#fff3a5" />
-            <stop offset="100%" stopColor="#f59e0b" />
-          </linearGradient>
-        </defs>
+      <svg width="42" height="42" viewBox="0 0 42 42">
         <path
-          d="M42 54 C42 44 118 44 118 54 C118 64 42 64 42 54 Z"
-          fill="url(#lf-og-cyan)"
-        />
-        <path d="M48 64 H112 L96 102 H64 Z" fill="url(#lf-og-cyan)" opacity="0.94" />
-        <path d="M64 108 H96 L86 137 H74 Z" fill="url(#lf-og-cyan)" opacity="0.88" />
-        <path
-          d="M28 126 C58 142 116 116 134 72"
+          d="M7 30 16 19 23 23 34 10"
           fill="none"
-          stroke="url(#lf-og-gold)"
-          strokeWidth="13"
+          stroke={cyan}
+          strokeWidth="5"
           strokeLinecap="round"
+          strokeLinejoin="round"
         />
-        <path d="M124 71 L145 48 L149 80 Z" fill="url(#lf-og-gold)" />
-        <circle cx="62" cy="139" r="14" fill="url(#lf-og-gold)" />
-        <path d="M62 129 V149 M55 135 H66 C72 135 72 143 66 143 H56" stroke="#7a4a00" strokeWidth="4" strokeLinecap="round" fill="none" />
-        <rect x="82" y="126" width="10" height="24" rx="2" fill="url(#lf-og-gold)" />
-        <rect x="98" y="114" width="10" height="36" rx="2" fill="url(#lf-og-gold)" />
-        <path
-          d="M50 28 C38 40 43 52 56 54"
-          fill="none"
-          stroke="url(#lf-og-cyan)"
-          strokeWidth="11"
-          strokeLinecap="round"
-        />
-        <path d="M88 26 H118 C128 26 134 34 134 44 C134 54 128 62 118 62 H93 L78 75 L81 62 C72 59 68 52 68 44 C68 34 76 26 88 26 Z" fill="url(#lf-og-cyan)" />
-        <circle cx="94" cy="44" r="4" fill="#052140" />
-        <circle cx="107" cy="44" r="4" fill="#052140" />
-        <circle cx="120" cy="44" r="4" fill="#052140" />
+        <circle cx="7" cy="30" r="5" fill={lead} />
+        <circle cx="16" cy="19" r="5" fill={cyan} />
+        <circle cx="23" cy="23" r="5" fill="#ffffff" />
+        <circle cx="34" cy="10" r="5" fill={amber} />
       </svg>
     </div>
   );
 }
 
-function LeadFlowWordmark() {
-  return (
-    <div style={{ display: "flex", alignItems: "baseline", gap: 18 }}>
-      <span style={{ color: "white", fontSize: 54, fontWeight: 800 }}>The</span>
-      <span
-        style={{
-          fontSize: 60,
-          fontWeight: 900,
-          background: `linear-gradient(90deg, ${cyan} 0%, #46c8ff 58%, ${gold} 100%)`,
-          backgroundClip: "text",
-          color: "transparent",
-        }}
-      >
-        LeadFlow Pro
-      </span>
-    </div>
-  );
-}
+function SignalGraph() {
+  const nodes = [
+    [98, 250, lead, 18],
+    [178, 156, cyan, 16],
+    [254, 194, "#ffffff", 13],
+    [348, 88, amber, 21],
+    [402, 145, amber, 16],
+    [320, 292, lead, 14],
+  ];
 
-function FunnelScene() {
   return (
     <div
       style={{
         position: "absolute",
-        right: -30,
-        top: 110,
-        width: 470,
-        height: 420,
+        right: 64,
+        top: 78,
+        width: 468,
+        height: 474,
+        borderRadius: 28,
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        overflow: "hidden",
+        border: "1px solid rgba(255,255,255,0.16)",
+        background: "rgba(3,7,12,0.76)",
+        boxShadow:
+          "0 34px 92px rgba(0,0,0,0.55), 0 0 76px rgba(92,208,255,0.18)",
       }}
     >
-      <svg width="470" height="420" viewBox="0 0 470 420">
-        <defs>
-          <linearGradient id="lf-scene-cyan" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#5fffff" />
-            <stop offset="100%" stopColor="#0694a6" />
-          </linearGradient>
-          <linearGradient id="lf-scene-gold" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#fff1a1" />
-            <stop offset="100%" stopColor="#f59e0b" />
-          </linearGradient>
-        </defs>
-        <path d="M120 120 C120 85 370 85 370 120 C370 155 120 155 120 120 Z" fill="url(#lf-scene-cyan)" opacity="0.98" />
-        <path d="M138 150 H352 L298 270 H190 Z" fill="url(#lf-scene-cyan)" opacity="0.92" />
-        <path d="M198 292 H288 L262 370 H224 Z" fill="url(#lf-scene-cyan)" opacity="0.86" />
-        <path
-          d="M18 354 C135 408 358 310 428 63"
-          fill="none"
-          stroke="url(#lf-scene-gold)"
-          strokeWidth="34"
-          strokeLinecap="round"
-        />
-        <path d="M400 64 L464 0 L468 91 Z" fill="url(#lf-scene-gold)" />
-        <circle cx="334" cy="365" r="36" fill="url(#lf-scene-gold)" />
-        <rect x="388" y="310" width="22" height="80" rx="3" fill="url(#lf-scene-gold)" />
-        <rect x="422" y="274" width="22" height="116" rx="3" fill="url(#lf-scene-gold)" />
+      <div
+        style={{
+          ...absoluteFill,
+          background:
+            "linear-gradient(135deg, rgba(92,208,255,0.14), rgba(5,9,24,0) 52%, rgba(255,214,107,0.12))",
+        }}
+      />
+      <svg width="468" height="320" viewBox="0 0 468 320" style={{ position: "absolute", top: 44, left: 0 }}>
+        <g opacity="0.13" stroke="#ffffff">
+          {[84, 162, 240, 318, 396].map((x) => (
+            <path key={`v-${x}`} d={`M${x} 18V302`} />
+          ))}
+          {[48, 118, 188, 258].map((y) => (
+            <path key={`h-${y}`} d={`M42 ${y}H426`} />
+          ))}
+        </g>
+        <path d="M98 250 178 156 254 194 348 88 402 145" fill="none" stroke={cyan} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" opacity="0.72" />
+        <path d="M98 250 178 156 254 194 348 88 402 145" fill="none" stroke={amber} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.58" />
+        <ellipse cx="260" cy="170" rx="132" ry="84" fill="none" stroke={amber} strokeWidth="1.5" opacity="0.2" />
+        <ellipse cx="260" cy="170" rx="82" ry="142" fill="none" stroke={cyan} strokeWidth="1.5" opacity="0.18" transform="rotate(18 260 170)" />
       </svg>
+
+      {nodes.map(([x, y, color, size], index) => (
+        <div
+          key={index}
+          style={{
+            position: "absolute",
+            left: Number(x) - Number(size) / 2,
+            top: Number(y) - Number(size) / 2 + 44,
+            width: Number(size),
+            height: Number(size),
+            borderRadius: 999,
+            background: String(color),
+            boxShadow: `0 0 30px ${color}`,
+          }}
+        />
+      ))}
+
+      <div style={{ position: "absolute", left: 24, top: 24, right: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ color: "#8291b1", fontSize: 13, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase" }}>Live lead brain</div>
+        <div style={{ border: `1px solid ${lead}66`, borderRadius: 12, color: lead, background: `${lead}18`, padding: "8px 12px", fontSize: 16, fontWeight: 900 }}>18,402 signals</div>
+      </div>
+
+      <div style={{ position: "absolute", left: 24, right: 24, bottom: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+        {[
+          ["Ecom operators", "Buyable", "$149"],
+          ["AI launch pages", "Watch", "$99"],
+          ["Service routes", "Handoff", "$249"],
+        ].map(([source, state, price]) => (
+          <div key={source} style={{ display: "flex", alignItems: "center", height: 54, borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: `${panel}dd`, padding: "0 14px", gap: 12 }}>
+            <div style={{ width: 150, fontSize: 17, fontWeight: 850 }}>{source}</div>
+            <div style={{ flex: 1, height: 7, borderRadius: 999, background: `linear-gradient(90deg, ${lead}, ${cyan}, ${amber})` }} />
+            <div style={{ width: 78, textAlign: "center", border: `1px solid ${cyan}55`, color: "#a8f7ff", borderRadius: 8, padding: "6px 0", fontSize: 12, fontWeight: 950, letterSpacing: 1.2, textTransform: "uppercase" }}>{state}</div>
+            <div style={{ width: 48, textAlign: "right", color: amber, fontSize: 16, fontWeight: 900 }}>{price}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -150,9 +148,15 @@ export function LeadFlowSocialImage({
 }) {
   const isBook = variant === "book";
   const isCustom = variant === "custom";
-  const customTitle = title || "The LeadFlow Pro";
-  const customSubtitle =
-    subtitle || "Turn attention into conversations. No missed calls. No missed texts. No missed revenue.";
+  const displayEyebrow = eyebrow || (isBook ? "Buyer fit call" : "Buyer data exchange");
+  const displayTitle =
+    title || (isBook ? "Book a data fit call." : "Build the lead brain.");
+  const displaySubtitle =
+    subtitle ||
+    (isBook
+      ? "Ten minutes to decide the data lane, list type, fair budget, and next move."
+      : "Score adult intent, source proof, buyer fit, freshness, and fair-rate lead data.");
+
   return (
     <div
       style={{
@@ -162,7 +166,7 @@ export function LeadFlowSocialImage({
         position: "relative",
         overflow: "hidden",
         background:
-          "radial-gradient(circle at 80% 15%, rgba(41,230,242,0.18), transparent 30%), linear-gradient(135deg, #041023 0%, #071b38 48%, #021025 100%)",
+          "linear-gradient(118deg, #050918 0%, #07111f 45%, #11100a 100%)",
         color: "white",
         fontFamily:
           'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -172,186 +176,87 @@ export function LeadFlowSocialImage({
         style={{
           ...absoluteFill,
           background:
-            "radial-gradient(circle at 22% 82%, rgba(255,214,107,0.10), transparent 34%)",
-          opacity: 0.9,
+            "linear-gradient(118deg, rgba(92,208,255,0.18) 0%, rgba(5,9,24,0) 42%, rgba(255,154,31,0.18) 100%)",
         }}
       />
-      <FunnelScene />
-
-      {isBook ? (
-        <div
-          style={{
-            position: "absolute",
-            right: 96,
-            bottom: 80,
-            width: 350,
-            height: 230,
-            borderRadius: 30,
-            border: "1px solid rgba(41,230,242,0.35)",
-            background: "rgba(5,20,42,0.86)",
-            display: "flex",
-            flexDirection: "column",
-            padding: 24,
-          }}
-        >
-          <div
-            style={{
-              height: 48,
-              borderRadius: 16,
-              background: `linear-gradient(90deg, ${cyan}, #7fffff)`,
-              color: "#061833",
-              fontSize: 26,
-              fontWeight: 900,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            10:00 AM
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 18 }}>
-            {["9:00 AM", "11:00 AM", "1:00 PM", "2:00 PM"].map((slot) => (
-              <div
-                key={slot}
-                style={{
-                  width: 138,
-                  height: 46,
-                  borderRadius: 14,
-                  border: "1px solid rgba(255,255,255,0.14)",
-                  color: "rgba(255,255,255,0.40)",
-                  fontSize: 20,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {slot}
-              </div>
-            ))}
-          </div>
+      <div style={{ position: "absolute", left: 72, top: 72, display: "flex", gap: 14, alignItems: "center" }}>
+        <SignalMark />
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8, fontSize: 34, fontWeight: 900 }}>
+          <span>The</span>
+          <span style={{ color: cyan }}>LeadFlow</span>
+          <span style={{ color: amber }}>Pro</span>
         </div>
-      ) : null}
-
-      <div
-        style={{
-          position: "absolute",
-          left: 62,
-          top: 54,
-          display: "flex",
-          alignItems: "center",
-          gap: 28,
-        }}
-      >
-        <LeadFlowMark compact />
-        <LeadFlowWordmark />
       </div>
 
-      <div
-        style={{
-          position: "absolute",
-          left: 72,
-          top: isBook ? 176 : isCustom ? 176 : 210,
-          width: isBook ? 660 : isCustom ? 760 : 720,
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        {isCustom && (
-          <div
-            style={{
-              marginBottom: 18,
-              color: cyan,
-              fontSize: 26,
-              fontWeight: 850,
-              letterSpacing: 3,
-              textTransform: "uppercase",
-            }}
-          >
-            {eyebrow || "The LeadFlow Pro"}
-          </div>
-        )}
+      <div style={{ position: "absolute", left: 72, top: 152, width: isCustom ? 690 : 610, display: "flex", flexDirection: "column" }}>
         <div
           style={{
-            fontSize: isBook ? 92 : isCustom ? (customTitle.length > 56 ? 58 : 68) : 74,
-            lineHeight: 1.02,
-            fontWeight: 950,
-            letterSpacing: -1,
-            whiteSpace: "pre-wrap",
+            display: "flex",
+            border: "1px solid rgba(92,208,255,0.35)",
+            borderRadius: 12,
+            padding: "10px 16px",
+            color: "#b8f7ff",
+            fontSize: 16,
+            fontWeight: 800,
+            letterSpacing: 2.2,
+            textTransform: "uppercase",
+            background: "rgba(92,208,255,0.09)",
           }}
         >
-          {isBook ? (
-            <>
-              Book a{" "}
-              <span style={{ color: cyan }}>10-Minute</span>
-              <br />
-              Call
-            </>
-          ) : isCustom ? (
-            <>
-              {customTitle}
-            </>
-          ) : (
-            <>
-              Turn Attention Into
-              <br />
-              <span style={{ color: gold }}>Conversations.</span>
-            </>
-          )}
+          {displayEyebrow}
         </div>
-
-        <div
-          style={{
-            marginTop: 30,
-            width: 320,
-            height: 3,
-            background: `linear-gradient(90deg, ${gold}, rgba(255,214,107,0))`,
-          }}
-        />
 
         <div
           style={{
             marginTop: 28,
-            display: "flex",
-            alignItems: "center",
-            gap: 20,
-            color: isBook ? "white" : cyan,
-            fontSize: isBook ? 40 : 32,
-            fontWeight: 850,
-          }}
-        >
-          {isBook ? (
-            <>
-              <span>Ten minutes.</span>
-              <span style={{ color: gold }}>We decide the next move.</span>
-            </>
-          ) : (
-            <>
-              <span>75K+ followers</span>
-              <span style={{ color: gold }}>•</span>
-              <span>6 companies</span>
-              <span style={{ color: gold }}>•</span>
-              <span>10+ years</span>
-            </>
-          )}
-        </div>
-
-        <div
-          style={{
-            marginTop: 18,
-            color: "rgba(255,255,255,0.92)",
-            fontSize: isBook ? 30 : isCustom ? 28 : 28,
-            fontWeight: 500,
-            lineHeight: 1.25,
-            maxWidth: isCustom ? 710 : undefined,
+            fontSize: displayTitle.length > 46 ? 60 : 74,
+            lineHeight: 0.96,
+            fontWeight: 950,
+            letterSpacing: -2,
             whiteSpace: "pre-wrap",
           }}
         >
-          {isBook
-            ? "Free fit call • Serious buyers only"
-            : isCustom
-              ? customSubtitle
-              : "No missed calls. No missed texts. No missed revenue."}
+          {displayTitle}
         </div>
+
+        <div style={{ marginTop: 22, width: isCustom ? 660 : 560, color: "#dce6f7", fontSize: 29, lineHeight: 1.25, fontWeight: 600, whiteSpace: "pre-wrap" }}>
+          {displaySubtitle}
+        </div>
+
+        <div style={{ display: "flex", gap: 14, marginTop: 34 }}>
+          {[
+            ["Adult intent", "92", lead],
+            ["Source proof", "7/9", cyan],
+            ["Fair start", isBook ? "$0" : "$149", amber],
+          ].map(([label, value, color]) => (
+            <div
+              key={label}
+              style={{
+                width: 172,
+                display: "flex",
+                flexDirection: "column",
+                border: "1px solid rgba(255,255,255,0.18)",
+                borderRadius: 14,
+                padding: 16,
+                background: "rgba(255,255,255,0.045)",
+                boxShadow: `0 0 28px ${color}22`,
+              }}
+            >
+              <div style={{ color: "#98a7c3", fontSize: 13, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase" }}>
+                {label}
+              </div>
+              <div style={{ marginTop: 8, color, fontSize: 34, fontWeight: 950 }}>{value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <SignalGraph />
+
+      <div style={{ position: "absolute", left: 72, bottom: 46, display: "flex", gap: 14, alignItems: "center", color: "#9fb0cb", fontSize: 18, fontWeight: 750 }}>
+        <span style={{ color: orange }}>Fair-rate buyer lists</span>
+        <span>Adult-only intake</span>
+        <span>Review-gated release</span>
       </div>
     </div>
   );
