@@ -23,13 +23,13 @@ const PIPELINE: { id: LeadStatus; label: string }[] = [
 
 function nextMoveFor(status: LeadStatus): { headline: string; body: string; cta: string; href: string } {
   switch (status) {
-    case "new":       return { headline: "Reply in under 5 minutes",     body: "First-mover wins. Send Script K2 — a question-based opener — and mention what they asked about.", cta: "Open scripts",   href: "/dashboard/scripts" };
-    case "contacted": return { headline: "Ask the qualifying question",  body: "One specific question beats a pitch. 'What's the one thing you're hoping to solve?'",           cta: "Open scripts",   href: "/dashboard/scripts" };
-    case "nurturing": return { headline: "Send a video or GIF",           body: "Script L1 — the 45-second video bump. Replies double when the bump offers value.",              cta: "Open scripts",   href: "/dashboard/scripts" };
-    case "qualified": return { headline: "Offer 2–3 booking times",       body: "Remove the back-and-forth. Paste the booking link from your FlowCard.",                         cta: "View FlowCard",  href: "/dashboard/card"    };
-    case "booked":    return { headline: "Send a morning-of prep text",   body: "Day-of text cuts no-shows by 30–40%. Include parking + one prep item.",                         cta: "Open scripts",   href: "/dashboard/scripts" };
-    case "won":       return { headline: "Ask for the review + referral", body: "Script T1 (review) + Script T2 (referral). 24 hours after service is the sweet spot.",          cta: "Open scripts",   href: "/dashboard/scripts" };
-    default:          return { headline: "Follow up",                     body: "Send a re-engagement script from the library.",                                                 cta: "Open scripts",   href: "/dashboard/scripts" };
+    case "new":       return { headline: "Attach the source trail", body: "Before this record becomes useful, confirm where it came from, what problem it signals, and whether the contact path is reachable.", cta: "Review scoring", href: "/dashboard/insights" };
+    case "contacted": return { headline: "Ask the qualifying question", body: "Find the pain, urgency, budget range, and what would make them move. That answer is the signal.", cta: "Capture intent", href: "/problem-intake" };
+    case "nurturing": return { headline: "Wait for stronger intent", body: "Keep the record, but do not package it until there is clearer demand, source depth, or buyer fit.", cta: "Open vault", href: "/dashboard/leads" };
+    case "qualified": return { headline: "Package for a buyer request", body: "This record may belong in a scored list. Check fields, exclusions, and delivery readiness.", cta: "Data requests", href: "/dashboard/data-requests" };
+    case "booked":    return { headline: "Mark delivery context", body: "Record what was promised, which fields are safe to deliver, and what still needs review.", cta: "Open requests", href: "/dashboard/data-requests" };
+    case "won":       return { headline: "Use as proof of demand", body: "A won record strengthens the buyer segment. Roll it into future scoring and package estimates.", cta: "Open marketplace", href: "/data-marketplace" };
+    default:          return { headline: "Review the record", body: "Confirm source, intent, contactability, and buyer fit before it moves forward.", cta: "Review scoring", href: "/dashboard/insights" };
   }
 }
 
@@ -71,7 +71,7 @@ export default async function LeadDetailPage({ params }: { params: { id: string 
     <div className="max-w-6xl space-y-5">
       {/* Back */}
       <Link href="/dashboard/leads" className="text-xs text-ink-400 hover:text-cyan-400 inline-flex items-center gap-1.5">
-        <ArrowLeft className="h-3.5 w-3.5" /> Back to inbox
+        <ArrowLeft className="h-3.5 w-3.5" /> Back to vault
       </Link>
 
       {/* Header */}

@@ -1,5 +1,5 @@
 /**
- * Social Accounts dashboard.
+ * Source Accounts dashboard.
  *
  * Pulls real connections from the database (no MOCK_SOCIAL anymore — once a
  * user is logged in, every metric is real or zero, per the no-fake-stats rule).
@@ -96,14 +96,14 @@ export default async function SocialPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       <div>
-        <p className="text-cyan-400 text-sm font-semibold">Social Accounts</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-white">
-          All your platforms, <span className="funnel-text">one view</span>
+          <p className="text-cyan-400 text-sm font-semibold">Source Accounts</p>
+          <h1 className="mt-1 text-3xl font-extrabold text-white">
+          Public source channels, <span className="funnel-text">one view</span>
         </h1>
         <p className="mt-2 text-ink-300 max-w-2xl">
-          Hook up every social profile and Page you run. Flo pulls followers,
-          engagement, and top-post data so the AI can find your real audience —
-          and we never invent numbers we can&apos;t see.
+          Connect public profiles and Pages that can support source labels,
+          audience clues, credibility checks, and buyer-target discovery. Real
+          numbers only.
         </p>
       </div>
 
@@ -116,11 +116,11 @@ export default async function SocialPage() {
             </div>
             <div>
               <p className="font-bold text-white">
-                Free plan — {usedFreeSlots} of {FREE_TOTAL_SOCIAL_CAP} accounts connected
+                Free command — {usedFreeSlots} of {FREE_TOTAL_SOCIAL_CAP} source accounts connected
               </p>
               <p className="text-sm text-ink-300">
                 {freeSlotsRemaining === 0
-                  ? "You've hit the Free cap. Upgrade to connect every platform you run."
+                  ? "You've hit the Free cap. Upgrade to connect more public source accounts."
                   : `You can connect ${freeSlotsRemaining} more. Facebook is capped at 1 personal + 1 page on Free.`}
               </p>
             </div>
@@ -135,11 +135,11 @@ export default async function SocialPage() {
         <StatCard
           label="Total followers"
           value={formatNumber(totalFollowers)}
-          sub={connectedCount === 0 ? "Connect an account to start tracking" : "Across all connected platforms"}
+          sub={connectedCount === 0 ? "Connect a source account to start tracking" : "Across connected sources"}
           highlight
         />
         <StatCard
-          label="Avg engagement"
+          label="Avg public engagement"
           value={`${avgEngagementPct.toFixed(1)}%`}
           sub={engagementValues.length > 0 ? "Weighted across platforms" : "Real numbers fill in once data syncs"}
         />
@@ -316,4 +316,3 @@ function ConnectedRowCard({ row }: { row: ConnectedRow }) {
     </div>
   );
 }
-

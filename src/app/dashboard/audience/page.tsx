@@ -5,10 +5,9 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { auth } from "@/lib/auth";
 import { getBrainContext } from "@/lib/brain";
 
-// Audience analysis derives from real lead data. Until that exists, we
-// show the user's OWN description of their ideal customer (from
-// BrainProfile.idealCustomer) as a starting reference card, plus a
-// connect CTA for the integrations that'll feed real persona data in.
+// Buyer-target analysis derives from real lead and intake data. Until that
+// exists, show the user's own description as a starting reference card, plus
+// CTAs that feed the LeadFlow marketplace with scored demand.
 
 export default async function AudiencePage() {
   const session = await auth();
@@ -28,21 +27,21 @@ export default async function AudiencePage() {
     <div className="max-w-7xl mx-auto space-y-8">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-cyan-400 text-sm font-semibold">Target Audience</p>
+          <p className="text-cyan-400 text-sm font-semibold">Buyer Targets</p>
           <h1 className="mt-1 text-3xl font-extrabold text-white">
-            Who actually buys from you — <span className="funnel-text">not who you think</span>
+            Who actually buys — <span className="funnel-text">and why they move</span>
           </h1>
           <p className="mt-2 text-ink-300">
-            Flo analyzes your leads, ad data, and social engagement to find the real
-            patterns. Then tells you exactly where to find more of them.
+            LeadFlow scores pain, urgency, public source depth, buyer fit, and
+            reachable contact paths so lists are built around signal instead of noise.
           </p>
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Personas detected" value="0" sub="Unlocks after ~20 real leads" />
-        <StatCard label="Highest-value persona" value="—" sub="Revealed once data flows in" />
-        <StatCard label="Underserved persona"   value="—" sub="Where you're under-spending vs. demand" />
+        <StatCard label="Target clusters" value="0" sub="Unlocks after scored records" />
+        <StatCard label="Highest-value buyer" value="—" sub="Revealed once demand flows in" />
+        <StatCard label="Underserved demand" value="—" sub="Where buyers need supply" />
       </div>
 
       {/* User's own words — a starting reference card, clearly labelled */}
@@ -76,9 +75,9 @@ export default async function AudiencePage() {
                 </div>
               )}
               <p className="mt-4 text-xs text-ink-400">
-                This is what you told Flo. Once real leads flow in, she'll cluster
-                them into data-backed personas — what you wrote here stays as your
-                reference.
+                This is your reference target. Once real intake and marketplace data
+                flows in, LeadFlow will cluster buyers by pain, urgency, region,
+                source depth, and likely purchase path.
               </p>
             </div>
           </div>
@@ -93,28 +92,28 @@ export default async function AudiencePage() {
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-bold text-white">
-              Flo needs real leads before she can find data-backed personas
+              LeadFlow needs captured demand before it can score buyer targets
             </h2>
             <p className="mt-1 text-sm text-ink-200">
-              Personas come from patterns in the people who actually contact you.
-              Connect any of the sources below and Flo will start clustering them
-              the minute data arrives — usually after around twenty leads.
+              Buyer targets come from patterns in the people and companies who
+              disclose intent, request lists, submit sources, or show public demand.
+              Start with one capture lane and the clusters will sharpen from there.
             </p>
             <div className="mt-4 grid sm:grid-cols-2 gap-2">
-              <Link href="/dashboard/settings" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
-                <span className="text-sm text-white">Connect your phone number <span className="text-ink-400">· SMS + calls</span></span>
+              <Link href="/problem-intake" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
+                <span className="text-sm text-white">Capture problem intent <span className="text-ink-400">· pain + urgency</span></span>
                 <ArrowRight className="h-4 w-4 text-cyan-400" />
               </Link>
-              <Link href="/dashboard/settings" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
-                <span className="text-sm text-white">Connect Meta Business <span className="text-ink-400">· Facebook + IG ads/DMs</span></span>
+              <Link href="/data-marketplace" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
+                <span className="text-sm text-white">Open marketplace <span className="text-ink-400">· buyer requests</span></span>
                 <ArrowRight className="h-4 w-4 text-cyan-400" />
               </Link>
-              <Link href="/dashboard/settings" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
-                <span className="text-sm text-white">Connect Google Ads <span className="text-ink-400">· Search + Maps leads</span></span>
+              <Link href="/dashboard/social" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
+                <span className="text-sm text-white">Source accounts <span className="text-ink-400">· public profiles</span></span>
                 <ArrowRight className="h-4 w-4 text-cyan-400" />
               </Link>
-              <Link href="/dashboard/settings" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
-                <span className="text-sm text-white">Add a lead form <span className="text-ink-400">· Website or landing page</span></span>
+              <Link href="/dashboard/data-requests" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
+                <span className="text-sm text-white">Review requests <span className="text-ink-400">· scoring + delivery</span></span>
                 <ArrowRight className="h-4 w-4 text-cyan-400" />
               </Link>
             </div>
@@ -129,10 +128,9 @@ export default async function AudiencePage() {
           <p className="text-[10px] uppercase tracking-widest font-semibold">What this page will look like</p>
         </div>
         <p className="mt-2 text-sm text-ink-200">
-          Once leads start flowing, Flo will show up to four distinct personas,
-          each with age range, geography, where they spend time online, why they
-          buy, and the message that tends to land — so you know exactly who to
-          target next and how to talk to them.
+          Once demand starts flowing, LeadFlow will show distinct buyer clusters,
+          each with region, pain, source trail, likely field requirements,
+          urgency, and the list package that is most likely to sell.
         </p>
         <div className="mt-4 grid sm:grid-cols-4 gap-2">
           <Placeholder label="Persona 1" />

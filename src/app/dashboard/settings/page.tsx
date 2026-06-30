@@ -43,7 +43,8 @@ export default async function SettingsPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white">Settings</h1>
           <p className="text-sm text-ink-300 mt-1">
-            Keep your business info sharp. We use it everywhere — chatbot, texts, emails, FlowCard.
+            Keep account, source, buyer, and delivery details clean so LeadFlow can
+            score and package data without confusing the record.
           </p>
         </div>
         <Link href="/dashboard/billing" className="btn-accent text-sm py-2 px-4">

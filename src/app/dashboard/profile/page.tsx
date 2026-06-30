@@ -157,7 +157,7 @@ export default async function ProfilePage() {
             <div className="space-y-2">
               <QuickLink href="/dashboard/settings" label="Account settings" />
               <QuickLink href="/dashboard/billing"  label="Billing & plan" />
-              <QuickLink href="/dashboard/card"     label="My FlowCard" />
+              <QuickLink href="/dashboard/data-requests" label="Data requests" />
               <QuickLink href="/dashboard/onboarding" label="Onboarding" />
             </div>
           </Section>

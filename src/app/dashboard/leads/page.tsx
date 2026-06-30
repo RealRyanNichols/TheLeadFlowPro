@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { PhoneCall, MessageSquare, Settings2, Plus, Inbox } from "lucide-react";
+import { ArrowRight, DatabaseZap, Plus, Inbox } from "lucide-react";
 import { LeadStatusBadge, LeadSourceLabel } from "@/components/dashboard/LeadStatusBadge";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { auth } from "@/lib/auth";
@@ -30,39 +30,40 @@ export default async function LeadsPage() {
     <div className="max-w-7xl mx-auto space-y-8">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-cyan-400 text-sm font-semibold">Lead Inbox</p>
+          <p className="text-cyan-400 text-sm font-semibold">Lead Vault</p>
           <h1 className="mt-1 text-3xl font-extrabold text-white">
-            Every lead. <span className="funnel-text">One inbox.</span>
+            Every person and company signal. <span className="funnel-text">One vault.</span>
           </h1>
           <p className="mt-2 text-ink-300">
-            Calls, texts, forms, DMs — all here. The Next Move on each is up to you.
+            CRM leads, problem-intake records, source submissions, buyer requests,
+            and scored contacts belong in one reviewable place.
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/dashboard/leads/missed-call" className="btn-ghost text-sm py-2 px-3">
-            <Settings2 className="h-4 w-4" /> Missed-call settings
+          <Link href="/problem-intake" className="btn-ghost text-sm py-2 px-3">
+            <DatabaseZap className="h-4 w-4" /> Capture intent
           </Link>
-          <button className="btn-primary text-sm py-2 px-3">
-            <Plus className="h-4 w-4" /> Add lead
-          </button>
+          <Link href="/data-marketplace" className="btn-primary text-sm py-2 px-3">
+            <Plus className="h-4 w-4" /> Build list
+          </Link>
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-4">
-        <StatCard label="Total leads" value={leads.length.toString()} sub="Grows as leads arrive" />
-        <StatCard label="New today" value={newToday.toString()} sub="Resets each morning" />
+        <StatCard label="Vault records" value={leads.length.toString()} sub="Grows as signals arrive" />
+        <StatCard label="New today" value={newToday.toString()} sub="Fresh demand today" />
         <StatCard
-          label="Pipeline value"
+          label="Potential value"
           value={formatCurrency(totalEstValue)}
           sub="Sum of estimated values"
           highlight
         />
-        <StatCard label="Avg response" value="—" sub="Tracked from first reply" />
+        <StatCard label="Review status" value="—" sub="Scoring and packaging next" />
       </div>
 
       <div className="glass rounded-2xl overflow-hidden">
         <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-white">All leads</h2>
+          <h2 className="text-sm font-bold text-white">All vault records</h2>
           <div className="flex items-center gap-2">
             {["All", "New", "Nurturing", "Booked", "Won"].map((f, i) => (
               <button
@@ -123,15 +124,15 @@ export default async function LeadsPage() {
                 <div className="flex gap-1 shrink-0">
                   <span
                     className="h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-300 hover:text-cyan-400"
-                    title="Call"
+                    title="Open source detail"
                   >
-                    <PhoneCall className="h-4 w-4" />
+                    <DatabaseZap className="h-4 w-4" />
                   </span>
                   <span
                     className="h-9 w-9 rounded-lg hover:bg-white/5 flex items-center justify-center text-ink-300 hover:text-cyan-400"
-                    title="Text"
+                    title="Package for request"
                   >
-                    <MessageSquare className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4" />
                   </span>
                 </div>
               </Link>
@@ -142,18 +143,17 @@ export default async function LeadsPage() {
             <div className="h-12 w-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto">
               <Inbox className="h-5 w-5 text-ink-400" />
             </div>
-            <p className="mt-4 text-sm text-white font-semibold">No leads yet</p>
+            <p className="mt-4 text-sm text-white font-semibold">No vault records yet</p>
             <p className="mt-1 text-xs text-ink-300 max-w-sm mx-auto">
-              The second a call, text, DM, or form comes in, it lands here with a
-              Next Move from Flo. Connect your socials to get going — or set up
-              missed-call text-back so no call goes unanswered.
+              Start with problem intake or a marketplace request. The signal lands
+              here after it has a person, company, source, and use case attached.
             </p>
             <div className="mt-4 flex justify-center gap-2">
-              <Link href="/dashboard/social" className="btn-ghost text-xs py-2 px-3">
-                Connect social accounts
+              <Link href="/problem-intake" className="btn-ghost text-xs py-2 px-3">
+                Capture problem intent
               </Link>
-              <Link href="/dashboard/leads/missed-call" className="btn-primary text-xs py-2 px-3">
-                Set up missed-call text-back
+              <Link href="/data-marketplace" className="btn-primary text-xs py-2 px-3">
+                Open marketplace
               </Link>
             </div>
           </div>

@@ -192,7 +192,7 @@ function ConnectBody({
           </p>
           <p className="mt-2 text-xs text-ink-300">
             Paste your public handle or profile URL below. We&apos;ll pull what&apos;s visible
-            (followers, bio, recent posts) so Flo has something to work with right now.
+            (followers, bio, recent posts) so LeadFlow has source context to score.
           </p>
           <div className="mt-4">
             <ManualHandleForm

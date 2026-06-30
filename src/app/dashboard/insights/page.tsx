@@ -3,10 +3,9 @@ import Link from "next/link";
 import { NextMoveCard } from "@/components/dashboard/NextMoveCard";
 import { MOCK_NEXT_MOVES } from "@/lib/mock-data";
 
-// Real insights derive from a user's real data. Until Flo has something
-// worth saying, we show the four kinds of insight she'll produce — labelled
-// as previews, not claims. No fabricated TikTok engagement numbers, no made-
-// up CPL drift, no invented confidence percentages.
+// Real insights derive from real LeadFlow data. Until the signal brain has
+// enough source-backed records, show the insight categories as previews, not
+// claims. No fabricated engagement numbers, no made-up confidence scores.
 
 type InsightKind = "strength" | "weakness" | "opportunity" | "risk";
 
@@ -14,26 +13,26 @@ const PREVIEWS: { kind: InsightKind; icon: any; title: string; body: string }[] 
   {
     kind: "strength",
     icon: TrendingUp,
-    title: "What's working — Flo doubles down",
-    body: "Channels, posts, offers, or scripts outperforming your own average. Flo shows exactly why and how to pour more gas on it.",
+    title: "Strong signal — build the list",
+    body: "Pain, urgency, contactability, and source depth are strong enough to package into a buyer-ready segment.",
   },
   {
     kind: "weakness",
     icon: AlertTriangle,
-    title: "What's leaking money — Flo flags early",
-    body: "Slow replies, dead funnels, quiet channels, ignored messages. Caught before they turn into lost leads.",
+    title: "Weak source depth — hold delivery",
+    body: "The target looks useful, but provenance, exclusions, fields, or contact paths need review before it should be sold.",
   },
   {
     kind: "opportunity",
     icon: Lightbulb,
-    title: "What you're missing — Flo finds quietly",
-    body: "Windows your audience is online that you're not posting in, lookalike customers you haven't targeted, offers you haven't tested.",
+    title: "Buyer demand — quote the package",
+    body: "Multiple requests point at the same list type, region, or business category. That demand should become a priced data product.",
   },
   {
     kind: "risk",
     icon: ShieldAlert,
-    title: "What's drifting — Flo catches before it breaks",
-    body: "Rising cost per lead, creative fatigue, delivery issues, renewal dates. Named with the specific thing to do about it.",
+    title: "Compliance risk — tighten the gate",
+    body: "Sensitive fields, weak consent, excluded targets, or unclear source labels should pause delivery until the record is cleaned.",
   },
 ];
 
@@ -52,13 +51,13 @@ export default function InsightsPage() {
     <div className="max-w-7xl mx-auto space-y-8">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-cyan-400 text-sm font-semibold">AI Insights</p>
+          <p className="text-cyan-400 text-sm font-semibold">Scoring</p>
           <h1 className="mt-1 text-3xl font-extrabold text-white">
-            What's working. <span className="funnel-text">What's not.</span>
+            Signal worth selling. <span className="funnel-text">Noise worth rejecting.</span>
           </h1>
           <p className="mt-2 text-ink-300">
-            Flo reads your data daily and surfaces what changed, what to double down
-            on, and what to fix. You decide what to act on.
+            LeadFlow reads demand, source depth, intent, budget, contactability,
+            and compliance gates before a list becomes a product.
           </p>
         </div>
         <button className="btn-primary text-sm py-2 px-3" disabled={!hasInsights}>
@@ -74,19 +73,19 @@ export default function InsightsPage() {
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-lg font-bold text-white">
-                Flo is ready — she just needs your data
+                The signal brain needs scored records
               </h2>
               <p className="mt-1 text-sm text-ink-200">
-                Connect one or more sources (ads, social, calls, leads) and Flo will
-                start surfacing insights the moment there's a pattern worth showing.
-                Real numbers only — no invented stats.
+                Capture problem intent, buyer requests, source submissions, and
+                public profile data. Insights appear when there is a pattern worth
+                showing. Real numbers only.
               </p>
               <div className="mt-4 flex gap-2 flex-wrap">
-                <Link href="/dashboard/social" className="btn-primary text-xs py-2 px-3">
-                  Connect social accounts
+                <Link href="/problem-intake" className="btn-primary text-xs py-2 px-3">
+                  Capture intent
                 </Link>
-                <Link href="/dashboard/leads" className="btn-ghost text-xs py-2 px-3">
-                  Import existing leads
+                <Link href="/data-marketplace" className="btn-ghost text-xs py-2 px-3">
+                  Open marketplace
                 </Link>
               </div>
             </div>
@@ -97,7 +96,7 @@ export default function InsightsPage() {
       {/* Preview of what insights look like */}
       <div>
         <h2 className="text-lg font-bold text-white mb-3">
-          The four kinds of insight Flo produces
+          The four scoring judgments LeadFlow produces
         </h2>
         <div className="grid gap-4 lg:grid-cols-2">
           {PREVIEWS.map((i) => (
@@ -124,7 +123,7 @@ export default function InsightsPage() {
         <div>
           <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-cyan-400" />
-            Next moves Flo recommends
+            Next moves LeadFlow recommends
           </h2>
           <div className="grid gap-4 lg:grid-cols-2">
             {MOCK_NEXT_MOVES.map((m) => <NextMoveCard key={m.id} move={m} />)}

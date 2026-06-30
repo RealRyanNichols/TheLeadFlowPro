@@ -4,7 +4,7 @@
  * Auto-approve config card.
  *
  * Lets the user set a monthly cap (in dollars) for $5 micro-purchases that
- * Flo can auto-trigger when their task credit balance dips below the cost
+ * LeadFlow can auto-trigger when their task credit balance dips below the cost
  * of the next task.
  *
  * Defaults: cap = $0 (off), increment = $5.
@@ -70,7 +70,7 @@ export function AutoApproveCard({
         <div>
           <h2 className="text-lg font-bold text-white">Auto top-up settings</h2>
           <p className="text-sm text-ink-300">
-            When your task credits run low, Flo can auto-charge a small purchase
+            When your task credits run low, LeadFlow can auto-charge a small purchase
             so heavy work doesn&apos;t stall mid-flight. You set the ceiling — we
             never go over it without asking.
           </p>

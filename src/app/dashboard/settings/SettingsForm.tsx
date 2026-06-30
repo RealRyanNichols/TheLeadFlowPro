@@ -6,12 +6,12 @@ import {
 } from "lucide-react";
 
 const NOTIF_FIELDS = [
-  { key: "push_new_lead",        label: "Push — new lead",             default: true  },
-  { key: "push_missed_call",     label: "Push — missed call",          default: true  },
-  { key: "push_bot_escalation",  label: "Push — chatbot needs you",    default: true  },
-  { key: "email_weekly_recap",   label: "Email — weekly recap",        default: true  },
-  { key: "email_daily_digest",   label: "Email — daily AI digest",     default: false },
-  { key: "sms_hot_lead",         label: "SMS — hot lead alerts",       default: false }
+  { key: "push_new_lead",        label: "Push — new vault record",     default: true  },
+  { key: "push_missed_call",     label: "Push — source review needed", default: true  },
+  { key: "push_bot_escalation",  label: "Push — buyer request update", default: true  },
+  { key: "email_weekly_recap",   label: "Email — marketplace recap",   default: true  },
+  { key: "email_daily_digest",   label: "Email — signal digest",       default: false },
+  { key: "sms_hot_lead",         label: "SMS — high-intent signal",    default: false }
 ] as const;
 
 export type SettingsUser = {
@@ -155,7 +155,8 @@ export function SettingsForm({ user }: { user: SettingsUser }) {
           <Bell className="h-4 w-4 text-cyan-400" /> Notifications
         </h2>
         <p className="text-xs text-ink-400 mb-4">
-          Critical alerts are always on — missed calls, hot leads, chatbot escalations. Tune the rest.
+          Critical alerts are always on for high-intent signals, buyer requests,
+          source review, and delivery status. Tune the rest.
         </p>
         <div className="space-y-3">
           {NOTIF_FIELDS.map((n) => (
@@ -208,8 +209,8 @@ export function SettingsForm({ user }: { user: SettingsUser }) {
           />
           <DangerRow
             icon={MessageSquare}
-            title="Clear chatbot history"
-            hint="Delete every saved conversation. Can't undo."
+            title="Clear signal history"
+            hint="Delete saved signal notes and review history. Can't undo."
             cta="Clear"
             disabled
           />

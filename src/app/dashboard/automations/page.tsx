@@ -4,10 +4,10 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { MOCK_AUTOMATIONS } from "@/lib/mock-data";
 
 const TEMPLATES = [
-  { name: "5-day patient nurture", desc: "SMS day 0, 1, 3, 5 + a video on day 2", icon: "🦷" },
-  { name: "Cold lead re-engage",   desc: "GIF + text after 14 days of silence", icon: "❄️" },
-  { name: "Post-appointment ask",  desc: "Thank-you GIF + Google review request", icon: "⭐" },
-  { name: "Birthday + anniversary", desc: "Auto SMS + offer on the day",        icon: "🎂" }
+  { name: "High-intent intake review", desc: "Route painful, urgent answers into scoring and list packaging", icon: "01" },
+  { name: "Buyer request quote", desc: "Turn volume, fields, region, and use case into a fair-rate estimate", icon: "02" },
+  { name: "Source submission check", desc: "Verify source labels, excluded targets, and delivery readiness", icon: "03" },
+  { name: "Ready package handoff", desc: "Notify the buyer when a reviewed list is ready to deliver", icon: "04" }
 ];
 
 export default function AutomationsPage() {
@@ -15,12 +15,13 @@ export default function AutomationsPage() {
     <div className="max-w-7xl mx-auto space-y-8">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-cyan-400 text-sm font-semibold">Automations</p>
+          <p className="text-cyan-400 text-sm font-semibold">Workflows</p>
           <h1 className="mt-1 text-3xl font-extrabold text-white">
-            QUO-style follow-up, <span className="funnel-text">simpler</span>
+            Move signal from intake to sale, <span className="funnel-text">without drift</span>
           </h1>
           <p className="mt-2 text-ink-300">
-            You design the sequence. We fire it on schedule. You stay in control.
+            Automate review steps around scoring, quoting, source checks, and
+            delivery gates while keeping the final judgment visible.
           </p>
         </div>
         <button className="btn-primary text-sm py-2 px-3">
@@ -29,14 +30,14 @@ export default function AutomationsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Active automations" value={MOCK_AUTOMATIONS.filter(a => a.status === "active").length.toString()} sub="Grows with each one you turn on" />
-        <StatCard label="Runs this month"    value={MOCK_AUTOMATIONS.reduce((s,a) => s+a.runsThisMonth,0).toString()} sub="Counts each time an automation fires" />
-        <StatCard label="Leads recovered"    value={MOCK_AUTOMATIONS.reduce((s,a) => s+a.leadsRecovered,0).toString()} sub="Saved by auto follow-up" highlight />
+        <StatCard label="Active workflows" value={MOCK_AUTOMATIONS.filter(a => a.status === "active").length.toString()} sub="Grows with each one you turn on" />
+        <StatCard label="Runs this month" value={MOCK_AUTOMATIONS.reduce((s,a) => s+a.runsThisMonth,0).toString()} sub="Counts each time a workflow fires" />
+        <StatCard label="Signals moved" value={MOCK_AUTOMATIONS.reduce((s,a) => s+a.leadsRecovered,0).toString()} sub="Moved toward scoring or delivery" highlight />
       </div>
 
       {/* user's automations */}
       <div>
-        <h2 className="text-lg font-bold text-white mb-3">Your automations</h2>
+        <h2 className="text-lg font-bold text-white mb-3">Your workflows</h2>
         {MOCK_AUTOMATIONS.length > 0 ? (
           <div className="space-y-3">
             {MOCK_AUTOMATIONS.map((a) => (
@@ -51,7 +52,7 @@ export default function AutomationsPage() {
                   </div>
                   <p className="text-xs text-ink-400 mt-1">Trigger: {a.trigger.replace(/_/g, " ")}</p>
                   <p className="text-xs text-ink-300 mt-2">
-                    {a.runsThisMonth} runs this month · {a.leadsRecovered} leads recovered
+                    {a.runsThisMonth} runs this month · {a.leadsRecovered} signals moved
                   </p>
                 </div>
                 <div className="flex gap-2 shrink-0 w-full sm:w-auto">
@@ -70,7 +71,7 @@ export default function AutomationsPage() {
             <div className="h-11 w-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto">
               <Workflow className="h-5 w-5 text-ink-400" />
             </div>
-            <p className="mt-3 text-sm text-white font-semibold">No automations yet</p>
+            <p className="mt-3 text-sm text-white font-semibold">No workflows yet</p>
             <p className="mt-1 text-xs text-ink-300 max-w-sm mx-auto">
               Start from a template below or hit <span className="text-white">New automation</span> to build one from scratch.
             </p>
@@ -84,7 +85,7 @@ export default function AutomationsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {TEMPLATES.map((t) => (
             <div key={t.name} className="glass rounded-2xl p-5 hover:border-cyan-500/30 transition group cursor-pointer">
-              <div className="text-3xl">{t.icon}</div>
+              <div className="text-sm font-extrabold text-cyan-300">{t.icon}</div>
               <h3 className="mt-3 text-base font-bold text-white">{t.name}</h3>
               <p className="mt-1 text-xs text-ink-200">{t.desc}</p>
               <div className="mt-3 text-xs text-cyan-400 group-hover:underline">Use template →</div>
@@ -94,7 +95,7 @@ export default function AutomationsPage() {
       </div>
 
       <p className="text-xs text-ink-400 text-center">
-        Already on QUO, GoHighLevel, or Twilio? <Link href="/dashboard/settings" className="text-cyan-400 hover:underline">Connect them</Link> — we sync without ripping anything out.
+        Already using another CRM or data source? <Link href="/dashboard/settings" className="text-cyan-400 hover:underline">Connect it</Link> when the integration is ready.
       </p>
     </div>
   );
