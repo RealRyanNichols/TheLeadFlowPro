@@ -10,27 +10,27 @@ import { MetaPixel } from "@/components/site/MetaPixel";
 import { SitePulseTracker } from "@/components/site/SitePulseTracker";
 
 export const metadata: Metadata = {
-  title: "The Weird Stats Clock | The LeadFlow Pro",
+  title: "The LeadFlow Pro - Universal Lead Brain",
   description:
-    "A live clock for strange numbers nobody else is watching. Explore weird live counters, request obscure stats, unlock premium boards, and share stat cards.",
+    "Collect adult pain and intent signals, score lead intent, and build a source-backed lead brain across businesses, ecommerce, AI, websites, and demand sources.",
   metadataBase: new URL("https://www.theleadflowpro.com"),
-  applicationName: "The Weird Stats Clock",
-  category: "entertainment",
+  applicationName: "The LeadFlow Pro",
+  category: "business",
   keywords: [
-    "The Weird Stats Clock",
-    "weird stats",
-    "live counters",
-    "internet dashboard",
-    "formula estimates",
-    "micropurchases",
     "The LeadFlow Pro",
+    "lead intelligence",
+    "lead database",
+    "business leads",
+    "intent data",
+    "source-backed profiles",
+    "market signals",
     "Ryan Nichols",
   ],
   manifest: "/site.webmanifest",
   openGraph: {
-    title: "The Weird Stats Clock",
+    title: "The LeadFlow Pro",
     description:
-      "A live clock for strange numbers nobody else is watching.",
+      "Find the signal behind what people need solved, score it, and build source-backed lead products.",
     url: "https://www.theleadflowpro.com",
     siteName: "The LeadFlow Pro",
     type: "website",
@@ -39,15 +39,15 @@ export const metadata: Metadata = {
         url: "/images/leadflow-pro-social-card.png",
         width: 1200,
         height: 630,
-          alt: "The Weird Stats Clock by The LeadFlow Pro",
+          alt: "The LeadFlow Pro lead intelligence dashboard",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "The Weird Stats Clock",
+    title: "The LeadFlow Pro",
     description:
-      "A live clock for strange numbers nobody else is watching.",
+      "Find the signal behind what people need solved.",
     images: ["/images/leadflow-pro-social-card.png"],
   },
   icons: {
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     shortcut: ["/favicon.ico"],
   },
   appleWebApp: {
-    title: "Weird Stats Clock",
+    title: "The LeadFlow Pro",
     capable: true,
     statusBarStyle: "black-translucent",
   },

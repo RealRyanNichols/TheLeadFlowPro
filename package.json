@@ -2,7 +2,7 @@
   "name": "leadflow-pro",
   "version": "0.1.0",
   "private": true,
-  "description": "LeadFlow Pro, the all-in-one social intelligence dashboard. theleadflowpro.com",
+  "description": "LeadFlow Pro - public lead intelligence, source-backed profiles, and market-signal data products. theleadflowpro.com",
   "scripts": {
     "dev": "next dev",
     "build": "node scripts/audit-internal-links.mjs && prisma generate && next build",

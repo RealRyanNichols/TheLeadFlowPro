@@ -13,7 +13,7 @@ export function Header() {
         <div className="min-w-0 flex-shrink">
           <Logo />
         </div>
-        <nav className="hidden md:flex items-center gap-5 text-sm text-ink-200">
+        <nav className="hidden xl:flex items-center gap-5 text-sm text-ink-200">
           <Link href="/" className="hover:text-white font-semibold text-cyan-300">Home</Link>
           {SITE_PRIMARY_NAV.map((item) => (
             <Link key={item.href} href={item.href} className="hover:text-white">
@@ -23,10 +23,10 @@ export function Header() {
         </nav>
         <div className="flex items-center gap-2 flex-shrink-0">
           <Link
-            href="/lead-leak-audit-197"
+            href="/problem-intake"
             className="inline-flex btn-accent text-sm py-2 px-3 sm:px-4 whitespace-nowrap"
           >
-            Start audit
+            Find signal
           </Link>
           <MobileMenu />
         </div>

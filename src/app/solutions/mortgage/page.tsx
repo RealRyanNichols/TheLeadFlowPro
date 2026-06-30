@@ -35,7 +35,7 @@ const MODULES = [
   },
   {
     n: 2, t: "Direct Lead Engine", s: "Own your funnel",
-    body: "Compliance-reviewed Meta and Google creatives per loan type per state. Public-record triggers: divorces, probates, FSBOs, 62-birthday pre-list. QR codes for open houses, embedded widget for partner sites.",
+    body: "Compliance-reviewed Meta and Google creatives per loan type per state. Public-record triggers: divorces, probates, owner-direct home sellers, 62-birthday pre-list. QR codes for open houses, embedded widget for partner sites.",
   },
   {
     n: 3, t: "Doc Chaser", s: "Full file in under 21 days",

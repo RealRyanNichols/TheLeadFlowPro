@@ -164,6 +164,8 @@ model User {
   ownedMortgageLeads MortgageLead[]   @relation("OwnedMortgageLeads")
   realtorPartners    RealtorPartner[] @relation("LoRealtorPartners")
   notifications      Notification[]   @relation("UserNotifications")
+  dataListRequests   DataListRequest[]
+  adultInterestIntakes AdultInterestIntake[]
 }
 
 // ─── Flo / Brain Profile ────────────────────────────────────────
@@ -1446,4 +1448,82 @@ model BoardUnlock {
   @@index([boardKey])
   @@index([createdAt(sort: Desc)])
   @@map("board_unlocks")
+}
+
+// ─── LeadFlow data marketplace ─────────────────────────────────
+
+enum DataListRequestStatus {
+  new
+  reviewing
+  quoted
+  building
+  ready
+  delivered
+  declined
+}
+
+model DataListRequest {
+  id                 String                @id @default(cuid())
+  userId             String?
+  requestMode        String                @default("buy")
+  buyerName          String
+  buyerEmail         String
+  companyName        String?
+  website            String?
+  useCase            String                @db.Text
+  targetCustomer     String                @db.Text
+  listTypes          String[]
+  sourceLanes        String[]
+  regions            String[]
+  volume             Int
+  budgetUsd          Int?
+  urgency            String
+  deliverable        String
+  mustHaveFields     String[]
+  excludedTargets    String?               @db.Text
+  scoring            Json
+  estimatedPriceUsd  Int
+  complianceAccepted Boolean               @default(false)
+  status             DataListRequestStatus @default(new)
+  adminNotes         String?               @db.Text
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  user               User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([buyerEmail])
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+}
+
+model AdultInterestIntake {
+  id                         String   @id @default(cuid())
+  userId                     String?
+  fullName                   String
+  email                      String
+  phone                      String?
+  companyName                String?
+  requestType                String
+  problemCategories          String[]
+  interests                  String[]
+  urgency                    String
+  budgetRange                String?
+  preferredContact           String
+  problemStatement           String   @db.Text
+  desiredOutcome             String   @db.Text
+  activeSearches             String?  @db.Text
+  sourceContext              String?  @db.Text
+  score                      Json
+  leadScore                  Int
+  adultConfirmed             Boolean  @default(false)
+  consentAccepted            Boolean  @default(false)
+  sensitiveDataAcknowledged  Boolean  @default(false)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  user                       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([leadScore, createdAt])
+  @@index([userId, createdAt])
 }

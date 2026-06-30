@@ -5,17 +5,14 @@ export type SiteNavItem = {
 };
 
 export const SITE_PRIMARY_NAV: SiteNavItem[] = [
-  { href: "/", label: "Live Clock" },
-  { href: "/boards", label: "Boards", activePaths: ["/boards"] },
-  { href: "/requests", label: "Request Queue", activePaths: ["/requests"] },
-  { href: "/unlock", label: "Unlocks", activePaths: ["/unlock"] },
-  { href: "/request", label: "Request Stat", activePaths: ["/request"] },
+  { href: "/problem-intake", label: "Find Signal", activePaths: ["/problem-intake"] },
+  { href: "/data-marketplace", label: "Marketplace", activePaths: ["/data-marketplace"] },
+  { href: "/#data", label: "Data" },
+  { href: "/#profiles", label: "Profiles" },
+  { href: "/#workflow", label: "Workflow" },
 ];
 
 export const SITE_MORE_NAV: SiteNavItem[] = [
-  { href: "/stats/unused-subscriptions-today", label: "Sample Stat" },
-  { href: "/stats/abandoned-carts-today", label: "Cart Clock" },
-  { href: "/stats/meetings-that-could-have-been-emails", label: "Work Clock" },
   { href: "/admin", label: "Admin Login" },
   { href: "/contact", label: "Contact" },
 ];
@@ -28,22 +25,21 @@ export const SITE_MOBILE_NAV: SiteNavItem[] = [
 
 export const SITE_FOOTER_NAV = {
   funnel: [
-    { href: "/", label: "Live weird clock" },
-    { href: "/request", label: "Request a weird stat" },
-    { href: "/unlock", label: "Micropurchase unlocks" },
-    { href: "/requests", label: "Public request queue" },
-    { href: "/boards", label: "Premium boards" },
+    { href: "/problem-intake", label: "Find signal" },
+    { href: "/data-marketplace", label: "Marketplace" },
+    { href: "/#data", label: "Lead sources" },
+    { href: "/#profiles", label: "Profile model" },
+    { href: "/#workflow", label: "Workflow" },
   ],
   company: [
     { href: "/admin", label: "Admin login" },
     { href: "/contact", label: "Contact" },
-    { href: "/proof", label: "Old proof archive" },
+    { href: "/dashboard", label: "Dashboard" },
   ],
   tools: [
-    { href: "/stats/unused-subscriptions-today", label: "Unused subscriptions" },
-    { href: "/stats/abandoned-carts-today", label: "Abandoned carts" },
-    { href: "/stats/ai-images-generated-today", label: "AI images" },
-    { href: "/stats/forgotten-tabs-open", label: "Forgotten tabs" },
+    { href: "/problem-intake", label: "Signal intake" },
+    { href: "/data-marketplace", label: "Data requests" },
+    { href: "/dashboard/data-requests", label: "Request dashboard" },
   ],
   legal: [
     { href: "/legal", label: "Legal overview" },

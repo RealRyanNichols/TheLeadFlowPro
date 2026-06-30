@@ -24,13 +24,13 @@ export function MobileMenu() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
-        className="md:hidden h-10 w-10 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 active:bg-white/15 flex items-center justify-center text-white shrink-0"
+        className="xl:hidden h-10 w-10 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 active:bg-white/15 flex items-center justify-center text-white shrink-0"
       >
         <Menu className="h-5 w-5" strokeWidth={2.25} />
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[60] md:hidden">
+        <div className="fixed inset-0 z-[60] xl:hidden">
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setOpen(false)}
@@ -61,11 +61,11 @@ export function MobileMenu() {
             </nav>
             <div className="mt-auto pt-4 space-y-2">
               <Link
-                href="/lead-leak-audit-197"
+                href="/problem-intake"
                 onClick={() => setOpen(false)}
                 className="btn-accent w-full text-sm py-2.5 justify-center"
               >
-                Start audit
+                Find signal
               </Link>
             </div>
           </div>

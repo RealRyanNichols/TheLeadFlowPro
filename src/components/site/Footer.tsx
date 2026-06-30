@@ -18,10 +18,10 @@ export function Footer() {
               </span>
             </div>
             <p className="text-ink-300 text-sm leading-relaxed">
-              Turn attention into conversations, follow-up, and owner-visible next moves.
+              Signal intake, pain-and-intent scoring, source-backed lead profiles, and data products for real business demand.
             </p>
             <p className="mt-3 text-ink-300 text-xs">
-              theleadflowpro.com - built for businesses that get calls, texts, and online leads.
+              theleadflowpro.com - adults only, submitted answers, public or permissioned sources, source proof, and suppression controls.
             </p>
           </div>
 
