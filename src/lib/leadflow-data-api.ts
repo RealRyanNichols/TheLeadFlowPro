@@ -33,32 +33,91 @@ export function leadflowQuery(params: Record<string, string | number | boolean |
   return search.toString();
 }
 
+type DataApiProfile = "leadflow" | "public";
+
+class LeadFlowDataApiRequestError extends Error {
+  status: number;
+  table: string;
+  profile: DataApiProfile;
+  body: unknown;
+
+  constructor(input: { table: string; profile: DataApiProfile; status: number; body: unknown }) {
+    super(`LeadFlow Data API ${input.table} request failed: ${input.status}`);
+    this.name = "LeadFlowDataApiRequestError";
+    this.table = input.table;
+    this.profile = input.profile;
+    this.status = input.status;
+    this.body = input.body;
+  }
+}
+
+function profileHeaders(profile: DataApiProfile) {
+  if (profile === "public") return [];
+  return {
+    "content-profile": "leadflow",
+    "accept-profile": "leadflow",
+  };
+}
+
+function shouldRetryPublicFallback(error: unknown) {
+  if (!(error instanceof LeadFlowDataApiRequestError)) return false;
+  if (error.profile !== "leadflow") return false;
+  return [400, 404, 406, 500, 503].includes(error.status);
+}
+
+function parseDataApiResponse(text: string) {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { raw: text.slice(0, 500) };
+  }
+}
+
+async function leadflowDataApiWithProfile<T>(
+  table: string,
+  init: RequestInit & { query?: string } = {},
+  profile: DataApiProfile,
+): Promise<T> {
+  const { url, key } = requireLeadFlowDataApiConfig();
+  const path = `${url}/rest/v1/${table}${init.query ? `?${init.query}` : ""}`;
+  const headers = new Headers(init.headers);
+  headers.set("apikey", key);
+  headers.set("authorization", `Bearer ${key}`);
+  headers.set("content-type", "application/json");
+  for (const [name, value] of Object.entries(profileHeaders(profile))) {
+    headers.set(name, value);
+  }
+  const response = await fetch(path, {
+    ...init,
+    headers,
+    cache: "no-store",
+  });
+  const text = await response.text();
+  const data = parseDataApiResponse(text);
+
+  if (!response.ok) {
+    throw new LeadFlowDataApiRequestError({
+      table,
+      profile,
+      status: response.status,
+      body: data,
+    });
+  }
+
+  return data as T;
+}
+
 export async function leadflowDataApi<T>(
   table: string,
   init: RequestInit & { query?: string } = {},
 ): Promise<T> {
-  const { url, key } = requireLeadFlowDataApiConfig();
-  const path = `${url}/rest/v1/${table}${init.query ? `?${init.query}` : ""}`;
-  const response = await fetch(path, {
-    ...init,
-    headers: {
-      apikey: key,
-      authorization: `Bearer ${key}`,
-      "content-type": "application/json",
-      "content-profile": "leadflow",
-      "accept-profile": "leadflow",
-      ...(init.headers || {}),
-    },
-    cache: "no-store",
-  });
-  const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
-
-  if (!response.ok) {
-    throw new Error(`LeadFlow Data API ${table} request failed: ${response.status}`);
+  try {
+    return await leadflowDataApiWithProfile<T>(table, init, "leadflow");
+  } catch (error) {
+    if (!shouldRetryPublicFallback(error)) throw error;
   }
-
-  return data as T;
+  return leadflowDataApiWithProfile<T>(table, init, "public");
 }
 
 export async function selectLeadFlowRows<T>(table: string, params: Record<string, string | number | boolean | null | undefined>) {
