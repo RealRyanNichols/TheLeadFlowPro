@@ -14,6 +14,8 @@ Commercial value can be used only after the system has already passed these gate
 
 For identified leads, bid or price can only be a tie-breaker in the multi-seller mode after fairness and transparency gates pass. For exclusive leads and aggregate-only products, highest-bid routing is blocked.
 
+Consumer-facing consent, suppression, ADMT, email, mortgage/refi, and age-gating copy lives in `docs/leadflow-compliance-copy.md` and `src/lib/leadflow-compliance-copy.ts`. Routing UI should render from that registry so the copy shown to a consumer matches the consent scope stored in the ledger.
+
 ## Modes
 
 ### 1. Exclusive Lead

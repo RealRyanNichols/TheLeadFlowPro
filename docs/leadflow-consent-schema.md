@@ -15,6 +15,7 @@ Related architecture:
 - `docs/leadflow-analytics-event-taxonomy.md`
 - `docs/leadflow-predictive-models.md`
 - `docs/leadflow-marketplace-routing.md`
+- `docs/leadflow-compliance-copy.md`
 
 ## Scope
 

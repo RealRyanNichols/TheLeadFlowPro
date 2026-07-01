@@ -54,6 +54,7 @@ export const SITE_FOOTER_NAV = {
   ],
   company: [
     { href: "/#compliance", label: "Data rules" },
+    { href: "/privacy-center", label: "Privacy center" },
     { href: "/admin", label: "Operator login" },
     { href: "/contact", label: "Talk to us" },
     { href: "/dashboard", label: "Command console" },
@@ -67,6 +68,7 @@ export const SITE_FOOTER_NAV = {
   legal: [
     { href: "/legal", label: "Legal overview" },
     { href: "/privacy-policy", label: "Privacy policy" },
+    { href: "/privacy-center", label: "Privacy center" },
     { href: "/terms", label: "Terms" },
     { href: "/refunds", label: "Refunds" },
   ],
