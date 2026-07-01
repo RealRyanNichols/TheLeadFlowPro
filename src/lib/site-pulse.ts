@@ -132,6 +132,11 @@ export type SitePulseSnapshot = {
     views: number;
     visitors: number;
   }>;
+  topToolTargets: Array<{
+    target: string;
+    events: number;
+    value: number;
+  }>;
   topShares: Array<{
     token: string;
     platform: string;
@@ -340,6 +345,12 @@ type TrafficSourceRow = {
   events: number | bigint | null;
   views: number | bigint | null;
   visitors: number | bigint | null;
+};
+
+type ToolTargetRow = {
+  target: string;
+  events: number | bigint | null;
+  value: number | bigint | null;
 };
 
 type RecentRow = {
@@ -695,6 +706,7 @@ export function emptySitePulseSnapshot(
     topIntentPaths: [],
     topQuestionTopics: [],
     topTrafficSources: [],
+    topToolTargets: [],
     topShares: [],
     learning: {
       trackingStartedAt: null,
@@ -1424,6 +1436,7 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
     intentPathRows,
     questionTopicRows,
     trafficSourceRows,
+    toolTargetRows,
     shareRows,
     recentRows,
   ] = await Promise.all([
@@ -1748,6 +1761,19 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
       ORDER BY events DESC
       LIMIT 8
     `,
+    prisma.$queryRaw<ToolTargetRow[]>`
+      SELECT
+        COALESCE(NULLIF("target", ''), 'unlabeled-tool') AS target,
+        COUNT(*) AS events,
+        COALESCE(SUM("value"), 0) AS value
+      FROM "SitePulseEvent"
+      WHERE "eventType" = 'tool_interaction'
+      AND (("createdAt" AT TIME ZONE 'UTC') AT TIME ZONE 'America/Chicago')::date =
+        (NOW() AT TIME ZONE 'America/Chicago')::date
+      GROUP BY target
+      ORDER BY events DESC, value DESC
+      LIMIT 8
+    `,
     prisma.$queryRaw<ShareRow[]>`
       SELECT
         s."token",
@@ -1827,6 +1853,11 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
     views: toInt(row.views),
     visitors: toInt(row.visitors),
   }));
+  const topToolTargets = toolTargetRows.map((row) => ({
+    target: row.target,
+    events: toInt(row.events),
+    value: toInt(row.value),
+  }));
   const topShares = shareRows.map((row) => ({
     token: row.token,
     platform: row.platform,
@@ -1885,6 +1916,7 @@ export async function getSitePulseSnapshot(): Promise<SitePulseSnapshot> {
     topIntentPaths,
     topQuestionTopics,
     topTrafficSources,
+    topToolTargets,
     topShares,
     learning: buildLearningSignal({
       trackingStartedAt,

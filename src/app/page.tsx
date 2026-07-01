@@ -29,7 +29,7 @@ const sourceGroups = [
   {
     icon: UserRoundSearch,
     title: "Perfect-fit answers",
-    body: "Adults describe the house, car, meal, trip, money target, routine, or next move they actually want.",
+    body: "Adults describe the house, car, meal, trip, boat, community, money target, routine, business fix, or next move they actually want.",
     points: ["18+ only", "Preference tags", "Instant map"]
   },
   {
@@ -73,7 +73,7 @@ const workflow = [
   {
     icon: Search,
     title: "Ask what perfect means",
-    body: "Start with a question people already care about: perfect house, car, meal, vacation, income target, or life fit."
+    body: "Start with a question people already care about: perfect house, car, meal, vacation, boat, church/community, income target, business fix, or life fit."
   },
   {
     icon: Tags,
@@ -111,9 +111,9 @@ const products = [
     bullets: ["Must-haves", "Local context", "Search filters"]
   },
   {
-    title: "Perfect Taste, Trip, Money, and Life Maps",
+    title: "Perfect Taste, Trip, Boat, Community, Money, and Life Maps",
     price: "Repeat-use tools",
-    body: "Small tools people can use over and over for food, vacation, money goals, community fit, routines, hobbies, and choices.",
+    body: "Small tools people can use over and over for food, vacation, outdoor choices, community fit, business needs, money goals, routines, hobbies, and choices.",
     bullets: ["Instant result", "Saveable profile", "Return path"]
   }
 ];
@@ -210,7 +210,7 @@ export default function HomePage() {
         proofTitle="People are building perfect-fit maps now"
         proofBody="Instant value first. Saved maps become adult-only first-party preference signals."
         metrics={[
-          { value: "6", label: "tools" },
+          { value: "9", label: "tools" },
           { value: "Now", label: "instant map" },
           { value: "18+", label: "adult only" }
         ]}

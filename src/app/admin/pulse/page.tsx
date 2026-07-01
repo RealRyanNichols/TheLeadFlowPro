@@ -298,6 +298,24 @@ export default async function AdminPulsePage() {
             )}
           </SidePanel>
 
+          <SidePanel title="Intake tool moves" icon={Sparkles}>
+            {snapshot.topToolTargets.length ? (
+              snapshot.topToolTargets.slice(0, 8).map((row) => (
+                <div key={row.target} className="rounded-2xl border border-white/10 bg-white/[0.05] p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="truncate text-sm font-semibold text-white">{row.target}</span>
+                    <span className="font-mono text-sm font-bold text-cyan-100">{fmt(row.events)}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {fmt(row.value)} scored signal value
+                  </p>
+                </div>
+              ))
+            ) : (
+              <EmptyState>Preference Lab choices and other tool interactions will rank here.</EmptyState>
+            )}
+          </SidePanel>
+
           <SidePanel title="Tracked shares" icon={Share2}>
             {snapshot.topShares.length ? (
               snapshot.topShares.slice(0, 6).map((share) => (

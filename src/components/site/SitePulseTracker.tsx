@@ -17,6 +17,14 @@ type PulseClickSignal = {
   target: string;
 };
 
+type LeadflowPulseEventDetail = {
+  eventType?: string;
+  path?: string;
+  target?: string;
+  value?: number;
+  source?: string;
+};
+
 const EMPTY_SNAPSHOT: PulseSnapshot = {
   source: "offline",
   activeNow: 0,
@@ -318,6 +326,18 @@ function describeVideo(video: HTMLVideoElement, action: string) {
   return cleanTargetLabel(`${action}:${video.getAttribute("aria-label") || video.getAttribute("title") || cleanSrc}`);
 }
 
+function detailIsPulsePayload(value: unknown): value is LeadflowPulseEventDetail {
+  if (!value || typeof value !== "object") return false;
+  const detail = value as LeadflowPulseEventDetail;
+  return (
+    (detail.eventType === undefined || typeof detail.eventType === "string") &&
+    (detail.path === undefined || typeof detail.path === "string") &&
+    (detail.target === undefined || typeof detail.target === "string") &&
+    (detail.value === undefined || typeof detail.value === "number") &&
+    (detail.source === undefined || typeof detail.source === "string")
+  );
+}
+
 export function SitePulseTracker() {
   const pathname = usePathname();
   const [snapshot, setSnapshot] = useState<PulseSnapshot>(EMPTY_SNAPSHOT);
@@ -363,6 +383,29 @@ export function SitePulseTracker() {
       mounted = false;
       window.clearInterval(interval);
     };
+  }, [enabled, pathname]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    function onCustomPulse(event: Event) {
+      const detail =
+        event instanceof CustomEvent && detailIsPulsePayload(event.detail)
+          ? event.detail
+          : null;
+      if (!detail) return;
+
+      beaconPulse(
+        detail.eventType || "tool_interaction",
+        detail.path || pathname,
+        detail.target,
+        detail.value,
+        detail.source || getTrafficSource(),
+      );
+    }
+
+    window.addEventListener("leadflow:pulse", onCustomPulse);
+    return () => window.removeEventListener("leadflow:pulse", onCustomPulse);
   }, [enabled, pathname]);
 
   useEffect(() => {

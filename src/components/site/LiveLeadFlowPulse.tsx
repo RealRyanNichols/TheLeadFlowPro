@@ -146,6 +146,7 @@ type PulseSnapshot = {
   }>;
   topQuestionTopics: Array<{ topic: string; count: number }>;
   topTrafficSources: Array<{ source: string; events: number; views: number; visitors: number }>;
+  topToolTargets: Array<{ target: string; events: number; value: number }>;
   topShares: Array<{
     token: string;
     platform: string;
@@ -260,6 +261,7 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
   topIntentPaths: [],
   topQuestionTopics: [],
   topTrafficSources: [],
+  topToolTargets: [],
   topShares: [],
   learning: {
     trackingStartedAt: null,
@@ -1170,6 +1172,35 @@ export function LiveLeadFlowPulse({ capacity }: { capacity: SignalCapacity }) {
                   {snapshot.prediction.topOpportunity.path}: {snapshot.prediction.topOpportunity.suggestedMove}
                 </div>
               ) : null}
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="inline-flex items-center gap-2 text-sm font-semibold text-white">
+                  <Sparkles className="h-4 w-4 text-accent-300" />
+                  Intake tool moves
+                </div>
+                <div className="text-xs text-slate-300">
+                  {fmt(snapshot.toolInteractionsToday)} today
+                </div>
+              </div>
+              <div className="space-y-2">
+                {snapshot.topToolTargets.length ? (
+                  snapshot.topToolTargets.slice(0, 5).map((row) => (
+                    <div
+                      key={row.target}
+                      className="flex items-center justify-between gap-3 rounded-2xl bg-white/[0.06] px-3 py-2 text-xs"
+                    >
+                      <span className="truncate font-semibold text-white">{row.target}</span>
+                      <span className="font-mono text-cyan-100">{fmt(row.events)}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-300">
+                    Preference Lab choices, sliders, copy actions, and save attempts will rank here.
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-white/[0.05] p-4">

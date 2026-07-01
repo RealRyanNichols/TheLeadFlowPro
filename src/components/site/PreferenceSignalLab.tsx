@@ -6,20 +6,25 @@ import {
   ArrowRight,
   Car,
   CheckCircle2,
+  Copy,
   DollarSign,
+  Gauge,
   Heart,
   Home,
   Loader2,
   MapPin,
   Plane,
+  RotateCw,
   Send,
+  SlidersHorizontal,
   Sparkles,
   Utensils
 } from "lucide-react";
 
-type CategoryId = "home" | "vehicle" | "food" | "vacation" | "money" | "life";
+type CategoryId = "home" | "vehicle" | "food" | "vacation" | "money" | "life" | "boat" | "community" | "business";
 type UrgencyId = "now" | "this_week" | "this_month" | "researching";
 type BudgetRangeId = "unknown" | "under_100" | "100_500" | "500_2500" | "2500_plus";
+type TradeoffId = "speed" | "wow" | "certainty";
 
 type PreferenceCategory = {
   id: CategoryId;
@@ -43,6 +48,8 @@ type FormState = {
   goal: string;
   location: string;
   style: string;
+  anchors: string[];
+  tradeoffs: Record<TradeoffId, number>;
   budgetRange: BudgetRangeId;
   urgency: UrgencyId;
   dealbreakers: string;
@@ -111,6 +118,36 @@ const categories: PreferenceCategory[] = [
     problemCategories: ["home_lifestyle", "career_or_skill", "local_service_need"],
     interests: ["education_training", "local_providers", "real_world_events"],
     resultNoun: "life-fit map"
+  },
+  {
+    id: "boat",
+    label: "Perfect boat or catch",
+    prompt: "What boat, fishing day, water setup, or catch would feel like the right win?",
+    quickWin: "An outdoor-fit map with use case, weather, budget comfort, gear clues, and local route signals.",
+    icon: MapPin,
+    problemCategories: ["home_lifestyle", "local_service_need", "buy_or_sell_asset"],
+    interests: ["product_research", "local_providers", "real_world_events"],
+    resultNoun: "outdoor fit map"
+  },
+  {
+    id: "community",
+    label: "Perfect church or group",
+    prompt: "What church, group, neighborhood, class, or local circle would actually fit you?",
+    quickWin: "A community-fit map that keeps sensitive details out of sellable targeting and focuses on stated preferences.",
+    icon: Heart,
+    problemCategories: ["home_lifestyle", "local_service_need", "career_or_skill"],
+    interests: ["local_providers", "education_training", "real_world_events"],
+    resultNoun: "community fit map"
+  },
+  {
+    id: "business",
+    label: "Perfect business help",
+    prompt: "What would make your business easier, faster, more profitable, or less chaotic?",
+    quickWin: "A business-fit map with pain, budget comfort, vendor clues, automation needs, and buyer-ready next steps.",
+    icon: Gauge,
+    problemCategories: ["business_growth", "find_customers", "ai_automation", "save_time"],
+    interests: ["business_services", "software_ai", "marketing_sales"],
+    resultNoun: "business solve map"
   }
 ];
 
@@ -138,11 +175,40 @@ const timelineOptions: { id: UrgencyId; label: string }[] = [
   { id: "researching", label: "Just exploring" }
 ];
 
+const anchorOptions: Record<CategoryId, string[]> = {
+  home: ["safe neighborhood", "space to grow", "low payment", "land", "modern kitchen", "quiet"],
+  vehicle: ["daily comfort", "family room", "tow power", "low payment", "good MPG", "status feel"],
+  food: ["bold flavor", "healthy enough", "fast", "local favorite", "premium ingredients", "comfort food"],
+  vacation: ["beach", "mountains", "kid friendly", "quiet", "nightlife", "all inclusive"],
+  money: ["higher income", "less stress", "retirement target", "business cash flow", "debt plan", "skill path"],
+  life: ["routine", "trust", "community", "family fit", "confidence", "new start"],
+  boat: ["fish finder", "family day", "shallow water", "big catch", "easy towing", "low maintenance"],
+  community: ["strong teaching", "family programs", "local people", "service opportunities", "quiet fit", "accountability"],
+  business: ["more leads", "less manual work", "AI setup", "better follow-up", "higher ticket", "clean dashboard"]
+};
+
+const tradeoffOptions: Array<{
+  id: TradeoffId;
+  label: string;
+  low: string;
+  high: string;
+}> = [
+  { id: "speed", label: "Speed vs. exact fit", low: "Take my time", high: "Move now" },
+  { id: "wow", label: "Value vs. wow factor", low: "Best value", high: "Make it impressive" },
+  { id: "certainty", label: "Safe vs. exploratory", low: "Proven choice", high: "Show me wildcards" }
+];
+
 const initialState: FormState = {
   category: "vehicle",
   goal: "I want something that fits my real life, budget, taste, and next move.",
   location: "",
   style: "value",
+  anchors: ["daily comfort", "low payment", "good MPG"],
+  tradeoffs: {
+    speed: 62,
+    wow: 38,
+    certainty: 44
+  },
   budgetRange: "unknown",
   urgency: "this_week",
   dealbreakers: "",
@@ -166,18 +232,22 @@ function buildBlueprint(form: FormState) {
   const timeline = optionLabel(timelineOptions, form.urgency);
   const location = form.location.trim() || "wherever the best fit exists";
   const dealbreakers = form.dealbreakers.trim() || "anything that wastes money, time, or trust";
+  const anchors = form.anchors.length ? form.anchors : anchorOptions[form.category].slice(0, 3);
   const specificity =
     (form.goal.trim().length > 80 ? 28 : form.goal.trim().length > 35 ? 18 : 8) +
     (form.location.trim().length > 2 ? 12 : 0) +
-    (form.dealbreakers.trim().length > 12 ? 18 : 0);
+    (form.dealbreakers.trim().length > 12 ? 18 : 0) +
+    Math.min(20, anchors.length * 4);
   const heat = form.urgency === "now" ? 28 : form.urgency === "this_week" ? 20 : form.urgency === "this_month" ? 12 : 4;
   const spend = form.budgetRange === "2500_plus" ? 24 : form.budgetRange === "500_2500" ? 18 : form.budgetRange === "100_500" ? 12 : form.budgetRange === "under_100" ? 8 : 4;
-  const score = Math.min(99, 38 + specificity + heat + spend);
+  const tradeoffSignal =
+    Math.round((form.tradeoffs.speed + form.tradeoffs.wow + form.tradeoffs.certainty) / 30);
+  const score = Math.min(99, 34 + specificity + heat + spend + tradeoffSignal);
 
   const plan = [
-    `Define the non-negotiable: ${style.label.toLowerCase()} fit, ${budget.toLowerCase()}, ${timeline.toLowerCase()}.`,
+    `Define the non-negotiable: ${style.label.toLowerCase()} fit, ${budget.toLowerCase()}, ${timeline.toLowerCase()}, anchored by ${anchors.slice(0, 3).join(", ")}.`,
     `Filter the search around ${location} and remove ${dealbreakers}.`,
-    `Turn this into a shortlist: best match, best value, fastest option, and one wildcard.`
+    `Turn this into a shortlist: best match, best value, fastest option, and ${form.tradeoffs.certainty >= 55 ? "two wildcards" : "one safe backup"}.`
   ];
 
   const dataSignals = [
@@ -185,9 +255,25 @@ function buildBlueprint(form: FormState) {
     "budget comfort",
     "timeline",
     "style preference",
+    "must-have anchors",
+    "tradeoff sliders",
     "location clue",
     "dealbreakers"
   ];
+
+  const buyerSignal =
+    form.urgency === "now" || form.urgency === "this_week"
+      ? "active buyer signal"
+      : form.budgetRange === "2500_plus" || form.budgetRange === "500_2500"
+        ? "budget-backed research signal"
+        : "preference research signal";
+
+  const nextClick =
+    score >= 82
+      ? "Save the map or request a matched shortlist."
+      : score >= 68
+        ? "Add one location clue and one dealbreaker."
+        : "Pick more anchors before this becomes useful.";
 
   return {
     category,
@@ -196,9 +282,12 @@ function buildBlueprint(form: FormState) {
     timeline,
     location,
     dealbreakers,
+    anchors,
     score,
     plan,
     dataSignals,
+    buyerSignal,
+    nextClick,
     headline: `${style.label} ${category.resultNoun}`,
     summary: category.quickWin,
     immediateAnswer:
@@ -213,22 +302,113 @@ function buildBlueprint(form: FormState) {
 export function PreferenceSignalLab() {
   const [form, setForm] = useState<FormState>(initialState);
   const [generated, setGenerated] = useState(true);
+  const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<null | { id: string; leadScore: number }>(null);
   const blueprint = useMemo(() => buildBlueprint(form), [form]);
 
+  function pulse(target: string, value = 1) {
+    window.dispatchEvent(
+      new CustomEvent("leadflow:pulse", {
+        detail: {
+          eventType: "tool_interaction",
+          path: "/",
+          target,
+          value
+        }
+      })
+    );
+  }
+
   function setValue<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((current) => ({ ...current, [key]: value }));
+    setForm((current) => {
+      if (key === "category") {
+        const category = value as CategoryId;
+        return {
+          ...current,
+          category,
+          anchors: anchorOptions[category].slice(0, 3),
+          goal: categoryFor(category).prompt
+        };
+      }
+      return { ...current, [key]: value };
+    });
     setGenerated(true);
+    setCopied(false);
     setError(null);
     setSuccess(null);
+    if (["category", "style", "budgetRange", "urgency"].includes(key)) {
+      pulse(`preference:${String(key)}:${String(value)}`, key === "urgency" ? 3 : 2);
+    }
+  }
+
+  function toggleAnchor(anchor: string) {
+    setForm((current) => {
+      const active = current.anchors.includes(anchor);
+      const anchors = active
+        ? current.anchors.filter((item) => item !== anchor)
+        : [...current.anchors, anchor].slice(0, 6);
+      return { ...current, anchors };
+    });
+    setGenerated(true);
+    setCopied(false);
+    pulse(`preference:anchor:${anchor}`, 2);
+  }
+
+  function setTradeoff(id: TradeoffId, value: number) {
+    setForm((current) => ({
+      ...current,
+      tradeoffs: {
+        ...current.tradeoffs,
+        [id]: value
+      }
+    }));
+    setGenerated(true);
+  }
+
+  function commitTradeoff(id: TradeoffId, value: number) {
+    pulse(`preference:tradeoff:${id}:${value}`, Math.max(1, Math.round(value / 20)));
+  }
+
+  function resetMap() {
+    setForm(initialState);
+    setGenerated(true);
+    setCopied(false);
+    setError(null);
+    setSuccess(null);
+    pulse("preference:reset-map", 1);
+  }
+
+  async function copyReceipt() {
+    const receipt = [
+      `${blueprint.headline} (${blueprint.score}/99)`,
+      `Signal: ${blueprint.buyerSignal}`,
+      `Category: ${blueprint.category.label}`,
+      `Anchors: ${blueprint.anchors.join(", ")}`,
+      `Budget: ${blueprint.budget}`,
+      `Timing: ${blueprint.timeline}`,
+      `Context: ${blueprint.location}`,
+      `Avoid: ${blueprint.dealbreakers}`,
+      `Next click: ${blueprint.nextClick}`,
+      ...blueprint.plan.map((step, index) => `${index + 1}. ${step}`)
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(receipt);
+      setCopied(true);
+      pulse("preference:copy-receipt", 4);
+    } catch {
+      setCopied(false);
+      pulse("preference:copy-receipt-failed", 1);
+    }
   }
 
   async function saveSignal(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    pulse("preference:save-attempt", 5);
 
     if (form.fullName.trim().length < 2 || !form.email.includes("@")) {
       setError("Add your name and email if you want this map saved and sent back to you.");
@@ -256,6 +436,8 @@ export function PreferenceSignalLab() {
         problemStatement: [
           blueprint.category.prompt,
           `What they want: ${form.goal.trim() || "A better fit."}`,
+          `Anchors: ${blueprint.anchors.join(", ")}`,
+          `Tradeoffs: speed ${form.tradeoffs.speed}/100, wow ${form.tradeoffs.wow}/100, certainty ${form.tradeoffs.certainty}/100`,
           `Location/context: ${blueprint.location}`,
           `Dealbreakers: ${blueprint.dealbreakers}`
         ].join("\\n"),
@@ -264,7 +446,7 @@ export function PreferenceSignalLab() {
           blueprint.summary,
           ...blueprint.plan.map((step, index) => `${index + 1}. ${step}`)
         ].join("\\n"),
-        activeSearches: `Preference Lab category: ${blueprint.category.label}. Style: ${blueprint.style.label}. Budget: ${blueprint.budget}. Timeline: ${blueprint.timeline}.`,
+        activeSearches: `Preference Lab category: ${blueprint.category.label}. Style: ${blueprint.style.label}. Anchors: ${blueprint.anchors.join(", ")}. Budget: ${blueprint.budget}. Timeline: ${blueprint.timeline}. Tradeoffs: speed ${form.tradeoffs.speed}, wow ${form.tradeoffs.wow}, certainty ${form.tradeoffs.certainty}.`,
         sourceContext:
           "Saved from the public Preference Lab. Use as first-party preference data for relevant recommendations only. Do not use for minors, private addresses, medical data, protected-trait targeting, or sensitive personal targeting.",
         adultConfirmed: true,
@@ -280,6 +462,7 @@ export function PreferenceSignalLab() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Could not save this preference map.");
       setSuccess({ id: data.intake.id, leadScore: data.intake.leadScore });
+      pulse("preference:save-success", 8);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save this preference map.");
     } finally {
@@ -301,8 +484,9 @@ export function PreferenceSignalLab() {
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-ink-100 md:text-xl">
             Pick the decision in front of you: house, vehicle, meal, trip,
-            money target, or life fit. Get a fit score, a shortlist path, what
-            to avoid, and the next move before you save anything.
+            boat, community, business fix, money target, or life fit. Get a fit
+            score, a shortlist path, what to avoid, and the next move before
+            you save anything.
           </p>
 
           <div className="mt-6 grid gap-2 sm:grid-cols-3">
@@ -379,6 +563,66 @@ export function PreferenceSignalLab() {
                     <span>{option.description}</span>
                   </button>
                 ))}
+              </div>
+
+              <div className="preference-signal-stack mt-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-ink-400">
+                    Pick the anchors
+                  </p>
+                  <span className="text-xs font-semibold text-cyan-300">
+                    {form.anchors.length}/6
+                  </span>
+                </div>
+                <div className="preference-anchor-grid mt-2">
+                  {anchorOptions[form.category].map((anchor) => {
+                    const active = form.anchors.includes(anchor);
+                    return (
+                      <button
+                        key={anchor}
+                        type="button"
+                        onClick={() => toggleAnchor(anchor)}
+                        className={["preference-anchor-chip", active ? "preference-anchor-chip-active" : ""].join(" ")}
+                        data-pulse-target={`preference-anchor:${anchor}`}
+                      >
+                        {active ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5" />}
+                        {anchor}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="preference-signal-stack mt-4">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-400">
+                  <SlidersHorizontal className="h-4 w-4 text-cyan-300" />
+                  Tune the decision
+                </div>
+                <div className="preference-tuner-grid mt-3">
+                  {tradeoffOptions.map((tradeoff) => (
+                    <label key={tradeoff.id} className="preference-tuner">
+                      <span className="flex items-center justify-between gap-3">
+                        <strong>{tradeoff.label}</strong>
+                        <em>{form.tradeoffs[tradeoff.id]}</em>
+                      </span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={form.tradeoffs[tradeoff.id]}
+                        onChange={(e) => setTradeoff(tradeoff.id, Number(e.target.value))}
+                        onPointerUp={(e) => commitTradeoff(tradeoff.id, Number(e.currentTarget.value))}
+                        onKeyUp={(e) => commitTradeoff(tradeoff.id, Number(e.currentTarget.value))}
+                        aria-label={tradeoff.label}
+                      />
+                      <span className="preference-tuner-labels">
+                        <small>{tradeoff.low}</small>
+                        <small>{tradeoff.high}</small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -538,6 +782,45 @@ export function PreferenceSignalLab() {
             </div>
           </div>
 
+          <div className="signal-receipt mt-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">
+                  Signal receipt
+                </p>
+                <h3 className="mt-1 text-xl font-extrabold text-white">
+                  {blueprint.buyerSignal}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={copyReceipt}
+                className="signal-receipt-copy"
+                aria-label="Copy signal receipt"
+              >
+                <Copy className="h-4 w-4" />
+                {copied ? "Copied" : "Copy"}
+              </button>
+            </div>
+            <div className="signal-receipt-grid mt-4">
+              <div>
+                <span>Anchors</span>
+                <strong>{blueprint.anchors.slice(0, 4).join(", ")}</strong>
+              </div>
+              <div>
+                <span>Next click</span>
+                <strong>{blueprint.nextClick}</strong>
+              </div>
+              <div>
+                <span>Tradeoff read</span>
+                <strong>
+                  {form.tradeoffs.speed >= 55 ? "fast" : "patient"} / {form.tradeoffs.wow >= 55 ? "wow" : "value"} /{" "}
+                  {form.tradeoffs.certainty >= 55 ? "wildcards" : "safe"}
+                </strong>
+              </div>
+            </div>
+          </div>
+
           <div className="mt-5 space-y-3">
             {blueprint.plan.map((step, index) => (
               <div key={step} className="preference-plan-row">
@@ -565,7 +848,10 @@ export function PreferenceSignalLab() {
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <button
               type="button"
-              onClick={() => setGenerated(true)}
+              onClick={() => {
+                setGenerated(true);
+                pulse("preference:build-map-click", 4);
+              }}
               className="btn-accent text-sm"
               data-conversion-event="preference_lab_result_click"
               data-conversion-cta="Build my map"
@@ -585,6 +871,15 @@ export function PreferenceSignalLab() {
               Answer deeper questions
             </a>
           </div>
+
+          <button
+            type="button"
+            onClick={resetMap}
+            className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 text-sm font-bold text-ink-100 transition hover:border-cyan-300/35 hover:bg-white/[0.06]"
+          >
+            <RotateCw className="h-4 w-4 text-cyan-300" />
+            Build another perfect map
+          </button>
         </aside>
       </div>
     </section>
