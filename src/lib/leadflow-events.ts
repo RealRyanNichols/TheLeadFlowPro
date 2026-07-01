@@ -145,6 +145,10 @@ export const LEADFLOW_FUNNEL_EVENTS = [
   "custom_sourcing_reviewed",
   "custom_sourcing_quoted",
   "custom_sourcing_accepted",
+  "ops_dashboard_viewed",
+  "ops_date_range_changed",
+  "ops_vertical_filter_changed",
+  "ops_action_clicked",
 ] as const;
 
 const EMAIL_LIKE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;

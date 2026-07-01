@@ -44,6 +44,7 @@ const PLAN_LABELS: Record<string, { name: string; tagline: string }> = {
 
 const NAV = [
   { href: "/dashboard#overview", label: "Overview", icon: LayoutDashboard },
+  { href: "/dashboard/ops", label: "Ops Dashboard", icon: Gauge },
   { href: "/dashboard#lead-profiles", label: "Lead Profiles", icon: Inbox },
   { href: "/dashboard#marketplace-listings", label: "Marketplace Listings", icon: ShoppingCart },
   { href: "/dashboard#submitted-sources", label: "Submitted Sources", icon: UploadCloud },
