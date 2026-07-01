@@ -59,6 +59,16 @@ export default function BuildMySystemPage() {
                     Start the Build Intake
                     <ArrowRight className="h-4 w-4" />
                   </Link>
+                  <Link
+                    href="/machine"
+                    className="btn-ghost text-base"
+                    data-conversion-event="build_system_machine_click"
+                    data-conversion-cta="View the Machine"
+                    data-conversion-source-page="/build-my-system"
+                    data-conversion-destination="/machine"
+                  >
+                    View the Machine
+                  </Link>
                   <Link href="/contact" className="btn-ghost text-base">
                     Talk Through My System
                   </Link>

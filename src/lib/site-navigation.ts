@@ -33,6 +33,14 @@ export const SITE_PRIMARY_NAV: SiteNavItem[] = [
     activePaths: ["/submit-source"]
   },
   {
+    href: "/machine",
+    label: "Machine",
+    shortLabel: "Machine",
+    description: "Phase 3 intake, scoring, routing, and review system.",
+    icon: "dashboard",
+    activePaths: ["/machine"]
+  },
+  {
     href: "/data-marketplace",
     label: "Marketplace",
     shortLabel: "Market",
@@ -71,6 +79,7 @@ export const SITE_FOOTER_NAV = {
   funnel: [
     { href: "/buy-leads", label: "Buy signals" },
     { href: "/build-my-system", label: "Build machine" },
+    { href: "/machine", label: "LeadFlow machine" },
     { href: "/submit-source", label: "Submit source" },
     { href: "/data-marketplace", label: "Marketplace" },
     { href: "/#data", label: "Signal proof" },
@@ -87,6 +96,7 @@ export const SITE_FOOTER_NAV = {
   ],
   tools: [
     { href: "/problem-intake", label: "Problem intake" },
+    { href: "/machine", label: "Phase 3 machine" },
     { href: "/buy-leads", label: "Buyer signal lane" },
     { href: "/build-my-system", label: "Lead machine lane" },
     { href: "/submit-source", label: "Source review lane" },
