@@ -23,6 +23,24 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
   viewsToday: 0,
 };
 
+function finiteNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function normalizeSnapshot(candidate: unknown): PulseSnapshot {
+  if (!candidate || typeof candidate !== "object") return EMPTY_SNAPSHOT;
+
+  const snapshot = candidate as Partial<PulseSnapshot> & { source?: unknown };
+  const source = snapshot.source === "live" || snapshot.source === "offline" ? snapshot.source : "offline";
+
+  return {
+    source,
+    offlineReason: typeof snapshot.offlineReason === "string" ? snapshot.offlineReason : undefined,
+    activeNow: finiteNumber(snapshot.activeNow),
+    viewsToday: finiteNumber(snapshot.viewsToday),
+  };
+}
+
 const SKIPPED_PREFIXES = [
   "/api",
   "/admin",
@@ -103,9 +121,10 @@ function markReturnVisit() {
   return ageMinutes >= 30 ? Math.min(ageMinutes, 43_200) : null;
 }
 
-function fmt(value: number) {
-  if (value >= 1000) return `${(value / 1000).toFixed(value >= 10_000 ? 0 : 1)}K`;
-  return value.toLocaleString();
+function fmt(value: number | null | undefined) {
+  const safe = finiteNumber(value);
+  if (safe >= 1000) return `${(safe / 1000).toFixed(safe >= 10_000 ? 0 : 1)}K`;
+  return safe.toLocaleString();
 }
 
 async function postPulse(eventType: string, path: string, target?: string, value?: number, source = getTrafficSource()) {
@@ -124,7 +143,12 @@ async function postPulse(eventType: string, path: string, target?: string, value
   });
 
   if (!response.ok) throw new Error("Pulse request failed");
-  return (await response.json()) as PulseSnapshot;
+}
+
+async function fetchPulseSnapshot() {
+  const response = await fetch("/api/site-pulse", { cache: "no-store" });
+  if (!response.ok) throw new Error("Pulse snapshot request failed");
+  return normalizeSnapshot(await response.json());
 }
 
 function beaconPulse(eventType: string, path: string, target?: string, value?: number, source = getTrafficSource()) {
@@ -312,10 +336,14 @@ export function SitePulseTracker() {
     const returnAgeMinutes = markReturnVisit();
 
     postPulse("view", pathname, undefined, undefined, source)
-      .then((next) => {
-        if (mounted) setSnapshot(next);
-      })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => {
+        fetchPulseSnapshot()
+          .then((next) => {
+            if (mounted) setSnapshot(next);
+          })
+          .catch(() => undefined);
+      });
 
     beaconPulse("traffic_source", pathname, source, 1, source);
     if (returnAgeMinutes) {
@@ -323,7 +351,8 @@ export function SitePulseTracker() {
     }
 
     const interval = window.setInterval(() => {
-      postPulse("heartbeat", pathname, undefined, undefined, source)
+      postPulse("heartbeat", pathname, undefined, undefined, source).catch(() => undefined);
+      fetchPulseSnapshot()
         .then((next) => {
           if (mounted) setSnapshot(next);
         })

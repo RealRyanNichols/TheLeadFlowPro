@@ -293,17 +293,23 @@ const EMPTY_SNAPSHOT: PulseSnapshot = {
   recent: [],
 };
 
-function fmt(value: number) {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 10_000) return `${Math.round(value / 1000)}K`;
-  if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-  return value.toLocaleString();
+function finiteNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
-function fmtDuration(seconds: number) {
-  if (seconds >= 3600) return `${(seconds / 3600).toFixed(seconds >= 36_000 ? 0 : 1)}h`;
-  if (seconds >= 60) return `${Math.round(seconds / 60)}m`;
-  return `${seconds}s`;
+function fmt(value: number | null | undefined) {
+  const safe = finiteNumber(value);
+  if (safe >= 1_000_000) return `${(safe / 1_000_000).toFixed(1)}M`;
+  if (safe >= 10_000) return `${Math.round(safe / 1000)}K`;
+  if (safe >= 1000) return `${(safe / 1000).toFixed(1)}K`;
+  return safe.toLocaleString();
+}
+
+function fmtDuration(seconds: number | null | undefined) {
+  const safe = finiteNumber(seconds);
+  if (safe >= 3600) return `${(safe / 3600).toFixed(safe >= 36_000 ? 0 : 1)}h`;
+  if (safe >= 60) return `${Math.round(safe / 60)}m`;
+  return `${safe}s`;
 }
 
 function getVisitorId() {
