@@ -160,6 +160,7 @@ export type AdminSaveWidgetInput = {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FORBIDDEN_ANSWER_RE =
   /\b(ssn|social security|driver'?s license|bank account|routing number|credit card|medical|diagnosis|minor|under 18|race|ethnicity|religion|sexual orientation|private political|password|login|hacked|leaked)\b/i;
+const SAFE_WIDGET_QUERY_KEYS = new Set(["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"]);
 
 function cleanWidgetId(value: string) {
   return value.replace(/\.js$/i, "").replace(/[^a-zA-Z0-9_.:-]/g, "").slice(0, 120);
@@ -187,6 +188,11 @@ function cleanDomain(input: string) {
 function safeUrl(input: string, fallback = "https://www.theleadflowpro.com/widgets") {
   try {
     const url = new URL(input || fallback);
+    const safeParams = new URLSearchParams();
+    for (const [key, value] of url.searchParams.entries()) {
+      if (SAFE_WIDGET_QUERY_KEYS.has(key)) safeParams.set(key, value.slice(0, 160));
+    }
+    url.search = safeParams.toString();
     url.hash = "";
     return url.toString().slice(0, 900);
   } catch {

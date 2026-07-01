@@ -1,3 +1,5 @@
+import "server-only";
+
 export class LeadFlowDataApiConfigError extends Error {
   constructor(message = "LeadFlow Supabase Data API is not configured.") {
     super(message);

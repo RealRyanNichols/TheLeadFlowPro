@@ -396,8 +396,8 @@ function validateWebhookUrl(rawUrl: string) {
     return { ok: false as const, error: "Enter a valid HTTPS webhook URL.", reason: "invalid_webhook_url" };
   }
 
-  if (!["https:", "http:"].includes(parsed.protocol)) {
-    return { ok: false as const, error: "Webhook URL must use HTTP or HTTPS.", reason: "invalid_webhook_protocol" };
+  if (parsed.protocol !== "https:") {
+    return { ok: false as const, error: "Webhook URL must use HTTPS.", reason: "invalid_webhook_protocol" };
   }
   if (isPrivateHostname(parsed.hostname)) {
     return { ok: false as const, error: "Webhook URL cannot point to localhost or private network addresses.", reason: "private_webhook_url" };

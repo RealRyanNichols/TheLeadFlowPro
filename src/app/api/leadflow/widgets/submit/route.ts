@@ -28,14 +28,22 @@ function clientIp(req: Request) {
   );
 }
 
+function sourceDomainFromRequest(req: Request, body: { pageUrl?: string; sourceDomain?: string }) {
+  try {
+    const pageUrl = new URL(body.pageUrl || "");
+    return pageUrl.hostname || body.sourceDomain || req.headers.get("origin") || req.headers.get("referer") || "";
+  } catch {
+    return body.sourceDomain || req.headers.get("origin") || req.headers.get("referer") || "";
+  }
+}
+
 export async function POST(req: Request) {
   const parsed = WidgetSubmitSchema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) {
     return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message || "Invalid widget response." }, { status: 400 });
   }
 
-  const sourceDomain =
-    parsed.data.sourceDomain || req.headers.get("origin") || req.headers.get("referer") || "";
+  const sourceDomain = sourceDomainFromRequest(req, parsed.data);
   const result = await submitWidgetResponse({
     ...parsed.data,
     answers: parsed.data.answers as QuestionnaireAnswerMap,

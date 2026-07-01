@@ -654,6 +654,20 @@ async function resolveBuilderAccess(): Promise<BuilderAccess> {
   return { allowed: false, role: "public", reason: "Your account must be approved before building questionnaires." };
 }
 
+async function canModifyQuestionnaire(questionnaireId: string, access: BuilderAccess) {
+  if (access.role === "admin") return true;
+  if (!access.ownerAccountId || !access.ownerAccountType) return false;
+
+  const rows = await selectLeadFlowRows<Pick<QuestionnaireRow, "id" | "owner_account_id" | "owner_account_type">>("questionnaires", {
+    select: "id,owner_account_id,owner_account_type",
+    id: `eq.${questionnaireId}`,
+    deleted_at: "is.null",
+    limit: 1,
+  }).catch(() => []);
+  const row = rows[0];
+  return Boolean(row && row.owner_account_id === access.ownerAccountId && row.owner_account_type === access.ownerAccountType);
+}
+
 function draftFromRows(row: QuestionnaireRow, version?: QuestionnaireVersionRow): BuilderQuestionnaireDraft {
   const schema = version?.question_schema as unknown as QuestionnaireDefinition | undefined;
   const metadata = (row.metadata || {}) as { builder?: Partial<BuilderQuestionnaireDraft>; resultPages?: BuilderResultPage[]; consentModules?: BuilderConsentModule[]; theme?: BuilderTheme };
@@ -937,6 +951,9 @@ export async function saveQuestionnaireBuilder(input: BuilderSaveInput) {
 
   if (input.action === "archive") {
     if (!input.questionnaireId) return { ok: false as const, status: 400, error: "Missing questionnaire id." };
+    if (!(await canModifyQuestionnaire(input.questionnaireId, access))) {
+      return { ok: false as const, status: 403, error: "You can only archive questionnaires owned by your account." };
+    }
     await patchLeadFlowRows("questionnaires", { id: `eq.${input.questionnaireId}` }, {
       status: "archived",
       archived_at: new Date().toISOString(),
@@ -975,6 +992,9 @@ export async function saveQuestionnaireBuilder(input: BuilderSaveInput) {
   const questionnaireId = input.action === "create" || input.action === "clone" || !input.questionnaireId
     ? null
     : input.questionnaireId;
+  if (questionnaireId && !(await canModifyQuestionnaire(questionnaireId, access))) {
+    return { ok: false as const, status: 403, error: "You can only edit questionnaires owned by your account." };
+  }
   const row = {
     title: draft.title,
     slug: draft.slug,
