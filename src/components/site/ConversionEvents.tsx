@@ -28,7 +28,11 @@ type ConversionEventName =
   | "data_marketplace_start_click"
   | "data_marketplace_form_submit"
   | "data_marketplace_starter_click"
-  | "data_marketplace_problem_intake_click";
+  | "data_marketplace_problem_intake_click"
+  | "preference_lab_category_click"
+  | "preference_lab_result_click"
+  | "preference_lab_save_submit"
+  | "preference_lab_deep_intake_click";
 
 type ConversionPayload = {
   route: string;

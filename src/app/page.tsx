@@ -22,169 +22,163 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
-import { LeadBrainVisual } from "@/components/site/LeadBrainVisual";
+import { PreferenceSignalLab } from "@/components/site/PreferenceSignalLab";
 import { SignalConversionDock } from "@/components/site/SignalConversionDock";
 
 const sourceGroups = [
   {
     icon: UserRoundSearch,
-    title: "Adult pain and intent signals",
-    body: "Answers from adults about what hurts, what they keep searching, what they almost buy, and what would move them.",
-    points: ["18+ only", "Pain and intent tags", "Noise filter"]
+    title: "Perfect-fit answers",
+    body: "Adults describe the house, car, meal, trip, money target, routine, or next move they actually want.",
+    points: ["18+ only", "Preference tags", "Instant map"]
   },
   {
     icon: Building2,
-    title: "Business and service assets",
-    body: "Local service routes, vendor books, appointment demand, operator lists, public directories, and operating opportunities.",
-    points: ["Submitted lead sources", "Local market category", "Buyer inquiry route"]
+    title: "Local context and timing",
+    body: "The tool learns where the answer needs to exist, how soon the visitor wants it, and what real-world limits matter.",
+    points: ["Location clue", "Timeline", "Local need"]
   },
   {
     icon: ShoppingCart,
-    title: "Ecommerce stores and operator accounts",
-    body: "Stores, product catalogs, marketplace accounts, SKU maps, traffic clues, vendor opportunities, and niche buyer demand.",
-    points: ["Catalog and platform tags", "Source proof notes", "Growth or neglect signal"]
+    title: "Product and shopping intent",
+    body: "Vehicles, food, drinks, tools, stores, products, boats, vacations, and other choices become structured demand signals.",
+    points: ["Budget comfort", "Style fit", "Dealbreakers"]
   },
   {
     icon: Binary,
-    title: "AI tools, SaaS, sites, and domains",
-    body: "Software products, app directories, content sites, domains, communities, launch pages, pricing, integrations, and founder signals.",
-    points: ["Use-case map", "Stack and integration tags", "Launch or traffic movement"]
+    title: "Personal recommendation logic",
+    body: "Each click tightens the map: best match, best value, fastest option, what to ignore, and what to do next.",
+    points: ["Best match", "Fastest option", "Shortlist"]
   },
   {
     icon: Radar,
-    title: "Datasets and demand signals",
-    body: "Submitted databases, public-source lead lists, buyer-intent feeds, creator channels, newsletter audiences, and market maps.",
-    points: ["Intent phrases", "Proof of source", "Sample records"]
+    title: "Demand signal layer",
+    body: "The useful business data is the pattern behind the tool: what people want, what they reject, and when they are ready.",
+    points: ["Intent phrase", "Market category", "Follow-up route"]
   }
 ];
 
 const profileFields = [
-  "Public source links",
-  "Source proof",
-  "Lead-source context",
-  "Buyer-intent tags",
-  "Contact-route hints",
-  "Lead confidence score",
-  "Last-seen timestamp",
-  "Suppression status"
+  "Category intent",
+  "Budget comfort",
+  "Timeline",
+  "Style preference",
+  "Location clue",
+  "Dealbreakers",
+  "Fit score",
+  "Follow-up route"
 ];
 
 const workflow = [
   {
     icon: Search,
-    title: "Ask what actually hurts",
-    body: "Start with the problem they will answer honestly: what costs time, money, customers, confidence, clarity, or momentum."
+    title: "Ask what perfect means",
+    body: "Start with a question people already care about: perfect house, car, meal, vacation, income target, or life fit."
   },
   {
     icon: Tags,
-    title: "Attach proof and tags",
-    body: "Every profile is labeled by category, market, source, proof, confidence, buyer use case, price path, and suppression rules."
+    title: "Turn answers into tags",
+    body: "Budget, timing, style, location, must-haves, dealbreakers, and category become structured preference signals."
   },
   {
     icon: Layers3,
-    title: "Build the source profile",
-    body: "The system turns source notes and public facts into one source-backed page with samples, warnings, open questions, and next step."
+    title: "Give a map immediately",
+    body: "The visitor gets a shortlist path, next move, tradeoffs, and what to ignore before any sales pitch happens."
   },
   {
     icon: TrendingUp,
-    title: "Score the opportunity",
-    body: "Proof, intent, freshness, source depth, buyer demand, and compliance status become a plain-English reason to buy, list, watch, or reject."
+    title: "Score the intent",
+    body: "Specific answers score higher because they reveal urgency, budget comfort, taste, constraints, and likely next action."
   },
   {
     icon: DatabaseZap,
-    title: "Route the deal",
-    body: "Publish the lead-source profile, price the package fairly, collect inquiries, send payment links, route qualified handoffs, or create a managed lead workspace."
+    title: "Route the next click",
+    body: "Save the map, answer deeper questions, request help, share it, or return later to build another perfect-fit profile."
   }
 ];
 
 const products = [
   {
-    title: "Signal Intake",
-    price: "Start free",
-    body: "A sharp intake for adults who want something solved, compared, found, fixed, automated, or matched.",
-    bullets: ["18+ only", "Pain and intent score", "Noise filter"]
+    title: "Perfect Vehicle Builder",
+    price: "Free map",
+    body: "A fast way to describe the vehicle someone wants, how they will use it, what they can spend, and what kills the deal.",
+    bullets: ["Use case", "Budget comfort", "Dealer/search clues"]
   },
   {
-    title: "Verified Package",
-    price: "From $99",
-    body: "An enhanced lead-source profile with score, sample records, source proof, buyer-use notes, and cleaner positioning.",
-    bullets: ["Verification checklist", "Featured marketplace placement", "Scored lead profile"]
+    title: "Perfect Home Finder",
+    price: "Free map",
+    body: "A home-fit map for location, timing, style, space, payment comfort, and the non-negotiables that actually matter.",
+    bullets: ["Must-haves", "Local context", "Search filters"]
   },
   {
-    title: "Managed Lead Workspace",
-    price: "Custom",
-    body: "A reviewed workspace for sensitive datasets, serious buyers, larger lists, and higher-value lead sources.",
-    bullets: ["Qualified buyer review", "Private samples and proof", "Invoice or handoff workflow"]
+    title: "Perfect Taste, Trip, Money, and Life Maps",
+    price: "Repeat-use tools",
+    body: "Small tools people can use over and over for food, vacation, money goals, community fit, routines, hobbies, and choices.",
+    bullets: ["Instant result", "Saveable profile", "Return path"]
   }
 ];
 
 const buyerProducts = [
   {
-    title: "Starter lead drop",
-    price: "$49-$149",
-    body: "A narrow source-backed list for buyers who need a first batch, not a bloated file.",
-    points: ["50-500 records", "Source links", "Confidence labels"]
+    title: "Preference heat map",
+    price: "Aggregated",
+    body: "A category-level view of what people are trying to build, buy, avoid, or solve.",
+    points: ["Category demand", "Budget bands", "Timing"]
   },
   {
-    title: "Verified profile pack",
-    price: "$99-$499",
-    body: "Reviewed lead-source profiles with proof notes, buyer-use context, and suppression status.",
-    points: ["Sample rows", "Proof review", "Buyer-fit notes"]
+    title: "Saved intent profile",
+    price: "Opt-in",
+    body: "A saved first-party profile for a person who asked for follow-up, recommendations, or a map by email.",
+    points: ["Opt-in route", "Fit score", "Need stated"]
   },
   {
-    title: "Weekly demand drop",
-    price: "$75-$350/wk",
-    body: "Recurring fresh signals for a niche, geography, source lane, or buyer problem.",
-    points: ["Freshness pass", "New signals", "Review queue"]
+    title: "Weekly trend report",
+    price: "Reviewed",
+    body: "A clean report showing what categories are heating up, which constraints repeat, and where demand is forming.",
+    points: ["Fresh signals", "Repeated patterns", "No sensitive targeting"]
   },
   {
-    title: "Managed data room",
-    price: "Custom",
-    body: "Higher-value data, larger volumes, private samples, and qualified handoff workflows.",
-    points: ["Scoped access", "Invoice path", "Review before release"]
+    title: "Partner recommendation lane",
+    price: "Qualified",
+    body: "A reviewed route for matching people to useful offers, providers, products, or tools after they ask for help.",
+    points: ["Relevant match", "Consent route", "Review before release"]
   }
 ];
 
 const fairRateRules = [
-  "Price is based on source depth, volume, freshness, confidence, fields, and review time.",
-  "Buyers should know what they are paying for before money moves.",
-  "Small, useful lists should stay affordable enough for real operators to test.",
-  "Premium pricing belongs on verified proof, qualified intent, recurring freshness, or managed review.",
-  "No buyer gets private personal records, protected-trait targeting, minors' data, or unreviewed sensitive material.",
-  "Suppression and do-not-contact status reduce sellable value and must travel with the data."
+  "The visitor gets a map before LeadFlow asks them to save anything.",
+  "Saved answers must come from adults and stay tied to a clear follow-up route.",
+  "Use aggregated patterns for market demand and reviewed opt-in profiles for follow-up.",
+  "Premium value belongs to qualified intent, freshness, specificity, and relevance.",
+  "No buyer gets minors' data, private addresses, medical data, financial account data, or protected-trait targeting.",
+  "Suppression, opt-out, and do-not-contact status must travel with any usable signal."
 ];
 
 const conversionMechanics = [
   {
     icon: MousePointerClick,
-    title: "One loud next action",
-    body: "Primary actions use the warm money color. Secondary actions stay quiet so buyers are not forced to choose between five equal buttons.",
-    metric: "High contrast CTA"
+    title: "Useful first click",
+    body: "The first click is not 'buy data.' It is 'build my map.' The visitor gets value before LeadFlow asks them to save.",
+    metric: "Instant use"
   },
   {
     icon: Activity,
-    title: "Live score feedback",
-    body: "Every form, category, and buyer request shows a score or value signal so people keep moving instead of wondering what happens next.",
-    metric: "Instant feedback"
+    title: "Live fit score",
+    body: "Every answer changes the fit score so the visitor sees why more detail makes the result better.",
+    metric: "Score loop"
   },
   {
     icon: Route,
-    title: "Two clear lanes",
-    body: "Visitors self-select fast: add a signal or request buyer data. No generic brochure loop, no buried intake.",
-    metric: "Buyer/source split"
+    title: "Next-click ladder",
+    body: "Build the map, save it, answer deeper questions, share it, or build another one. Every move teaches the system.",
+    metric: "Click path"
   },
   {
     icon: CircleDollarSign,
-    title: "Visible price anchors",
-    body: "Reasonable starter ranges make the marketplace feel purchasable before a sales call, while high-value data still routes to review.",
-    metric: "$49+ entry"
+    title: "Buyer value becomes obvious",
+    body: "When buyers see the preference engine, they understand the data without being hard-sold on the homepage.",
+    metric: "Demand proof"
   }
-];
-
-const heroSignals = [
-  { label: "Pain signal", value: "92", tone: "lead" },
-  { label: "Proof depth", value: "7/9", tone: "cyan" },
-  { label: "Buyer fit", value: "$149", tone: "accent" }
 ];
 
 const rules = [
@@ -202,7 +196,7 @@ export default function HomePage() {
     <>
       <Header />
       <main className="pb-28 lg:pb-24">
-        <HeroSection />
+        <PreferenceSignalLab />
         <SourceSection />
         <MechanicsSection />
         <ProfileSection />
@@ -213,100 +207,24 @@ export default function HomePage() {
         <FinalCta />
       </main>
       <SignalConversionDock
-        proofTitle="LeadFlow is collecting buyer/source signal"
-        proofBody="Adult-only intake. Fair-rate data products. Review-gated release."
+        proofTitle="People are building perfect-fit maps now"
+        proofBody="Instant value first. Saved maps become adult-only first-party preference signals."
         metrics={[
-          { value: "$49+", label: "starter" },
-          { value: "2 paths", label: "buyer/source" },
+          { value: "6", label: "tools" },
+          { value: "Now", label: "instant map" },
           { value: "18+", label: "adult only" }
         ]}
-        primaryHref="/problem-intake"
-        primaryLabel="Start intake"
-        primaryEvent="problem_intake_start_click"
-        secondaryHref="/data-marketplace"
-        secondaryLabel="Request data"
-        secondaryEvent="data_marketplace_start_click"
+        primaryHref="#preference-lab"
+        primaryLabel="Build my map"
+        primaryEvent="preference_lab_result_click"
+        secondaryHref="/problem-intake"
+        secondaryLabel="Deep intake"
+        secondaryEvent="preference_lab_deep_intake_click"
         sourcePage="/"
       />
       <Footer />
     </>
   );
-}
-
-function HeroSection() {
-  return (
-    <section className="relative min-h-[calc(100svh-4rem)] overflow-hidden border-b border-white/10">
-      <DataBackdrop />
-      <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(5,9,24,0.96)_0%,rgba(5,9,24,0.82)_52%,rgba(255,154,31,0.16)_100%)]" />
-      <div className="container relative z-10 grid min-h-[calc(100svh-4rem)] min-w-0 items-center gap-8 py-10 md:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,34rem)]">
-        <div className="min-w-0 max-w-4xl">
-          <div className="inline-flex items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-cyan-200">
-            <Radar className="h-4 w-4" />
-            Signal, not noise
-          </div>
-          <h1 className="mt-6 max-w-full break-words text-4xl font-extrabold leading-tight text-white md:text-7xl">
-            Build the lead brain around what people actually need solved.
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-ink-100 md:text-2xl">
-            People reveal value when they say what hurts, what they keep
-            searching, what they almost bought, and what would make them act.
-            LeadFlow turns those answers into scored, source-backed data products
-            buyers can purchase at a fair rate.
-          </p>
-          <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap">
-            <Link href="/problem-intake" className="btn-accent btn-magnetic w-full text-base sm:w-auto">
-              Find the signal
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link href="/data-marketplace" className="btn-ghost w-full text-base sm:w-auto">
-              Open marketplace
-            </Link>
-          </div>
-          <div className="mt-7 grid max-w-2xl gap-2 sm:grid-cols-3">
-            {heroSignals.map((signal) => (
-              <div key={signal.label} className={`hero-signal-chip hero-signal-${signal.tone}`}>
-                <span>{signal.label}</span>
-                <strong>{signal.value}</strong>
-              </div>
-            ))}
-          </div>
-          <div className="mt-10 grid max-w-3xl gap-3 sm:grid-cols-3">
-            <Metric value="18+" label="adult-only intake" />
-            <Metric value="2" label="buyer and source paths" />
-            <Metric value="$49+" label="starter data products" />
-          </div>
-        </div>
-        <HeroVisual />
-      </div>
-    </section>
-  );
-}
-
-function Metric({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4 backdrop-blur-md">
-      <div className="text-2xl font-extrabold text-white">{value}</div>
-      <div className="mt-1 text-sm text-ink-300">{label}</div>
-    </div>
-  );
-}
-
-function DataBackdrop() {
-  return (
-    <div
-      className="absolute inset-0"
-      aria-hidden="true"
-      style={{
-        backgroundImage:
-          "linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px)",
-        backgroundSize: "44px 44px"
-      }}
-    />
-  );
-}
-
-function HeroVisual() {
-  return <LeadBrainVisual />;
 }
 
 function MechanicsSection() {
@@ -316,15 +234,15 @@ function MechanicsSection() {
         <div className="conversion-mechanics">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">
-              Sticky conversion mechanics
+              Attention mechanics
             </p>
             <h2 className="mt-3 text-3xl font-extrabold text-white md:text-5xl">
-              The page should keep asking for the next useful action.
+              The page has to help them before it asks for anything.
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-7 text-ink-200 md:text-lg">
-              The visual system is built around one job: move adults into signal
-              intake, move buyers into data requests, and make fair pricing feel
-              clear before a sales call.
+              The mechanism is simple: ask a fun question, produce a useful
+              answer, show why details matter, then make saving or sharing the
+              map feel like the next natural move.
             </p>
           </div>
 
@@ -353,9 +271,9 @@ function SourceSection() {
     <section id="data" className="py-16 md:py-24">
       <div className="container">
         <SectionHeader
-          eyebrow="What goes into the brain"
-          title="Not a single-niche list. A lead brain for every business category."
-          body="Use one signal path for any lead source: adult pain-and-intent answers, business owners, ecommerce stores, AI tools, websites, service routes, creator channels, datasets, and public demand signals."
+          eyebrow="What people use"
+          title="A site full of tools people want to click again."
+          body="The homepage starts with one preference lab, then expands into useful tools for vehicles, houses, food, trips, money targets, routines, shopping, and real-life decisions."
         />
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           {sourceGroups.map((group) => (
@@ -392,15 +310,15 @@ function ProfileSection() {
         <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
-              Profiles, not blind dumps
+              Preference profiles, not blind forms
             </p>
             <h2 className="mt-3 text-3xl font-extrabold text-white md:text-5xl">
-              Every lead profile should explain the opportunity in sixty seconds.
+              Every saved map becomes a clearer picture of what the person wants.
             </h2>
             <p className="mt-5 text-base leading-7 text-ink-200 md:text-lg">
-              The buyer should not receive a mystery CSV, vague website, or unverified asset.
-              They should see what the submitter claims, what the public sources show, what still
-              needs verification, and the cleanest path to inquire or buy.
+              A person should get something useful first: a recommendation map,
+              shortlist, timeline, or next move. LeadFlow gets structured
+              preference data only when they choose to save or continue.
             </p>
             <div className="mt-6 grid gap-2 sm:grid-cols-2">
               {profileFields.map((field) => (
@@ -416,37 +334,37 @@ function ProfileSection() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
               <div>
                 <p className="text-xs uppercase tracking-wider text-ink-400">Example profile</p>
-                <h3 className="mt-1 text-2xl font-extrabold text-white">Ecommerce Vendor Signal Book</h3>
-                <p className="mt-1 text-sm text-ink-300">Fictional lead-source profile for product demonstration</p>
+                <h3 className="mt-1 text-2xl font-extrabold text-white">Perfect Vehicle Build Sheet</h3>
+                <p className="mt-1 text-sm text-ink-300">Example of a saved first-party preference profile</p>
               </div>
               <div className="rounded-lg bg-lead-400/10 px-3 py-2 text-sm font-bold text-lead-400">
-                87 lead score
+                87 fit score
               </div>
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               <ProfileStat label="Category" value="Dataset" />
-              <ProfileStat label="Signal" value="Vendor-fit records" />
-              <ProfileStat label="Fit" value="Agency buyer" />
+              <ProfileStat label="Signal" value="Vehicle intent" />
+              <ProfileStat label="Fit" value="Ready this week" />
             </div>
 
             <div className="mt-5 rounded-lg border border-white/10 bg-white/[0.035] p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">Why this profile exists</p>
               <p className="mt-2 text-sm leading-6 text-ink-100">
-                The submission says the list contains ecommerce brands with public source links,
-                platform tags, category labels, and vendor-fit notes. The buyer should see
-                sample rows, proof of source, suppression rules, and a clear inquiry route.
+                The visitor wants a sharp-looking vehicle that fits family weekends,
+                towing, and budget comfort. The map stores style, timeline, price
+                comfort, local search context, and dealbreakers.
               </p>
             </div>
 
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               <SourceList
                 title="Evidence attached"
-                items={["Sample rows attached", "Source proof requested", "Source links indexed", "Category tags visible"]}
+                items={["Category selected", "Budget comfort saved", "Timeline attached", "Style tag visible"]}
               />
               <SourceList
                 title="Open questions"
-                items={["Verify source rights", "Confirm buyer use case", "Check suppression list", "Review platform terms"]}
+                items={["Need exact location", "Need payment ceiling", "Need must-have features", "Need trade-in status"]}
               />
             </div>
           </div>
@@ -487,8 +405,8 @@ function WorkflowSection() {
       <div className="container">
         <SectionHeader
           eyebrow="How it works"
-          title="From honest answer to scored lead signal."
-          body="The moat is not scraping alone. The moat is pain, intent, proof, tagging, scoring, review, buyer routing, and clean handoff into a sales workflow."
+          title="From fun question to usable plan to saved signal."
+          body="The moat is not scraping alone. The moat is repeated first-party preference capture, useful outputs, scoring, follow-up paths, and clean boundaries around what data can be used."
         />
         <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {workflow.map((step, index) => (
@@ -514,9 +432,9 @@ function ProductSection() {
     <section id="access" className="border-y border-white/10 bg-ink-900/45 py-16 md:py-24">
       <div className="container">
         <SectionHeader
-          eyebrow="What people buy"
-          title="Adult intake, verified package, or managed lead workspace."
-          body="LeadFlow keeps the simple intake ladder: collect consented adult problem data, submit the source, verify the evidence, score the opportunity, and route the next action."
+          eyebrow="What people come back for"
+          title="Small tools that answer real-life choices fast."
+          body="LeadFlow starts with a preference lab and expands into repeatable tools people can use for decisions they already care about."
         />
         <div className="mt-10 grid gap-4 lg:grid-cols-3">
           {products.map((product) => (
@@ -533,8 +451,8 @@ function ProductSection() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/data-marketplace" className="btn-ghost mt-auto w-full text-sm">
-                  Open this path
+                <Link href="#preference-lab" className="btn-ghost mt-auto w-full text-sm">
+                  Build this map
                 </Link>
               </div>
             </article>
@@ -552,24 +470,26 @@ function FairRateSection() {
         <div className="grid gap-8 xl:grid-cols-[0.85fr_1.15fr] xl:items-start">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
-              Buyer data exchange
+              Why buyers will want it
             </p>
             <h2 className="mt-3 text-3xl font-extrabold text-white md:text-5xl">
-              Capture the lead signal. Sell the useful data at a fair rate.
+              Do not pitch the data first. Let them see the data being created.
             </h2>
             <p className="mt-5 text-base leading-7 text-ink-200 md:text-lg">
-              LeadFlow should collect problem intent, source proof, buyer need,
-              category, region, freshness, and confidence. Then it should package
-              the useful rows into data products a buyer can actually act on.
+              A buyer who watches people build vehicle maps, home maps, taste
+              profiles, trip plans, and money targets understands the value
+              without a hard sell. The homepage should prove the source of the
+              signal by being the tool that creates it.
             </p>
             <div className="mt-6 rounded-lg border border-lead-400/25 bg-lead-400/10 p-5">
               <p className="text-sm font-bold uppercase tracking-wider text-lead-400">
                 Fair-rate rule
               </p>
               <p className="mt-2 text-sm leading-6 text-ink-100">
-                The price should follow the value: source depth, verified proof,
-                intent strength, freshness, volume, field quality, review time,
-                and buyer use case. No mystery dumps. No inflated private-profile pricing.
+                Sell only lawful, reviewed, permissioned, aggregated, or
+                first-party preference signals. Sensitive personal details,
+                minors' data, private addresses, medical details, and
+                protected-trait targeting do not belong in sellable data.
               </p>
             </div>
           </div>
@@ -604,11 +524,11 @@ function FairRateSection() {
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Link href="/data-marketplace" className="btn-accent text-base">
-            Request buyer data
+            See the data marketplace
             <ArrowRight className="h-4 w-4" />
           </Link>
-          <Link href="/problem-intake" className="btn-ghost text-base">
-            Add a signal
+          <Link href="#preference-lab" className="btn-ghost text-base">
+            Build a map
           </Link>
         </div>
       </div>
