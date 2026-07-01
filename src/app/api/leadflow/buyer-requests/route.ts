@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { runAndStoreBuyerRequestMatch } from "@/lib/matching/match-buyer-request";
 
 export const runtime = "nodejs";
 
@@ -213,6 +214,8 @@ export async function POST(req: NextRequest) {
     const persisted = !requestInsert.skipped;
     const insertedId = persisted ? requestInsert.data?.[0]?.id : null;
 
+    let matching: unknown = null;
+
     if (persisted) {
       await insertLeadFlowRow("events", {
         event_name: data.requestType === "access" ? "access_request_submitted" : "sample_request_submitted",
@@ -234,6 +237,18 @@ export async function POST(req: NextRequest) {
           persisted: true,
         },
       }).catch(() => null);
+
+      if (insertedId) {
+        matching = await runAndStoreBuyerRequestMatch({
+          buyerRequestId: insertedId,
+          buyerAccountId: null,
+        }).catch((error) => ({
+          ok: false,
+          persisted: false,
+          message: error instanceof Error ? error.message : "Buyer matching failed.",
+          results: [],
+        }));
+      }
     }
 
     return NextResponse.json({
@@ -241,6 +256,7 @@ export async function POST(req: NextRequest) {
       persisted,
       requestId: insertedId || requestId,
       mode: persisted ? "supabase" : "placeholder",
+      matching,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Buyer request failed.";

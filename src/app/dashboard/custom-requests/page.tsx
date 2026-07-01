@@ -2,23 +2,22 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ShieldAlert } from "lucide-react";
 import { getAdminTokenSession } from "@/lib/admin-token";
-import { getProductFactoryData } from "@/lib/product-factory";
-import { ProductFactoryClient } from "./ProductFactoryClient";
+import { getAdminCustomRequestsData } from "@/lib/custom-sourcing";
+import { AdminCustomRequestsClient } from "./AdminCustomRequestsClient";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Product Factory | The LeadFlow Pro",
-  description: "Admin-only Product Factory for turning reviewed signal groups into marketplace listings, samples, and exclusive offers.",
+  title: "Custom Requests | The LeadFlow Pro",
+  description: "Admin-only custom sourcing request review, feasibility scoring, quotes, and Product Factory handoff.",
   robots: {
     index: false,
     follow: false,
   },
 };
 
-export default async function ProductFactoryPage() {
+export default async function DashboardCustomRequestsPage() {
   const admin = await getAdminTokenSession();
-
   if (!admin) {
     return (
       <div className="mx-auto max-w-3xl rounded-2xl border border-white/10 bg-[#060a11]/92 p-6 shadow-2xl shadow-black/25">
@@ -28,11 +27,11 @@ export default async function ProductFactoryPage() {
           </div>
           <div>
             <p className="text-xs font-extrabold uppercase tracking-wider text-red-200">Admin only</p>
-            <h1 className="mt-2 text-3xl font-black text-white">Product Factory is locked.</h1>
+            <h1 className="mt-2 text-3xl font-black text-white">Custom requests are locked.</h1>
             <p className="mt-3 text-sm leading-6 text-ink-300">
-              This tool creates sellable signal products, samples, exclusive offers, and audit records. Sign in with a LeadFlow admin account before creating or attaching product runs.
+              This dashboard reviews buyer demand, contact requests, feasibility scores, quotes, and Product Factory handoffs. Sign in with a LeadFlow admin account.
             </p>
-            <Link href="/login?callbackUrl=%2Fdashboard%2Fproduct-factory" className="btn-primary mt-5 inline-flex justify-center text-sm">
+            <Link href="/login?callbackUrl=%2Fdashboard%2Fcustom-requests" className="btn-primary mt-5 inline-flex justify-center text-sm">
               Admin login
             </Link>
           </div>
@@ -41,6 +40,6 @@ export default async function ProductFactoryPage() {
     );
   }
 
-  const data = await getProductFactoryData(admin.email);
-  return <ProductFactoryClient data={data} />;
+  const data = await getAdminCustomRequestsData();
+  return <AdminCustomRequestsClient data={data} />;
 }

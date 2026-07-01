@@ -7,6 +7,7 @@ import {
   type BuyerRequest,
 } from "@/lib/buyer-portal";
 import { insertLeadFlowRow, selectLeadFlowRows } from "@/lib/leadflow-data-api";
+import { runAndStoreBuyerRequestMatch } from "@/lib/matching/match-buyer-request";
 import { getBuyerAuthState } from "@/lib/supabase-buyer-auth";
 
 export const runtime = "nodejs";
@@ -82,7 +83,19 @@ export async function POST(req: Request) {
       request_type: data.requestType,
     }).catch(() => null);
 
-    return NextResponse.json({ ok: true, request });
+    const matching = request?.id
+      ? await runAndStoreBuyerRequestMatch({
+          buyerRequestId: request.id,
+          buyerAccountId: account.id,
+        }).catch((error) => ({
+          ok: false,
+          persisted: false,
+          message: error instanceof Error ? error.message : "Buyer matching failed.",
+          results: [],
+        }))
+      : null;
+
+    return NextResponse.json({ ok: true, request, matching });
   } catch (error: unknown) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Buyer request failed." }, { status: 500 });
   }

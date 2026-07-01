@@ -18,6 +18,7 @@ import { trackLeadFlowEvent } from "@/lib/leadflow-events-client";
 import type {
   ProductFactoryAction,
   ProductFactoryBuyerUseCase,
+  ProductFactoryBuyerRequestOption,
   ProductFactoryComplianceChecklist,
   ProductFactoryComplianceSummary,
   ProductFactoryDashboardData,
@@ -157,6 +158,7 @@ export function ProductFactoryClient({ data }: { data: ProductFactoryDashboardDa
   const [activeStep, setActiveStep] = useState(0);
   const [sourceType, setSourceType] = useState<ProductFactorySourceType>(firstSource?.sourceType || "segment");
   const [sourceId, setSourceId] = useState(firstSource?.id || "");
+  const [attachedBuyerRequestId, setAttachedBuyerRequestId] = useState(data.buyerRequests[0]?.id || "");
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [buyerUseCase, setBuyerUseCase] = useState<ProductFactoryBuyerUseCase>(() => defaultBuyerUseCase(firstSource));
   const [listingSettings, setListingSettings] = useState<ProductFactoryListingSettings>(() => defaultListingSettings(firstSource));
@@ -282,6 +284,7 @@ export function ProductFactoryClient({ data }: { data: ProductFactoryDashboardDa
           sourceType,
           sourceId,
           selectedMemberIds,
+          attachedBuyerRequestId,
           buyerUseCase,
           listingSettings,
           complianceChecklist,
@@ -455,6 +458,9 @@ export function ProductFactoryClient({ data }: { data: ProductFactoryDashboardDa
               compliance={compliance}
               result={result}
               pendingAction={pendingAction}
+              buyerRequests={data.buyerRequests}
+              attachedBuyerRequestId={attachedBuyerRequestId}
+              onAttachedBuyerRequest={setAttachedBuyerRequestId}
               onAction={submit}
             />
           ) : null}
@@ -487,7 +493,7 @@ export function ProductFactoryClient({ data }: { data: ProductFactoryDashboardDa
           <table className="min-w-full divide-y divide-white/10 text-left text-sm">
             <thead>
               <tr>
-                {["Source", "Status", "Profiles", "Average score", "Listing", "Sample", "Created"].map((header) => (
+                {["Source", "Status", "Profiles", "Average score", "Buyer request", "Listing", "Sample", "Created"].map((header) => (
                   <th key={header} className="whitespace-nowrap bg-white/[0.035] px-3 py-3 text-xs font-extrabold uppercase tracking-wider text-ink-400">{header}</th>
                 ))}
               </tr>
@@ -504,6 +510,7 @@ export function ProductFactoryClient({ data }: { data: ProductFactoryDashboardDa
                     <td className="border-t border-white/10 px-3 py-3"><Badge label={readable(run.status)} tone={statusTone(run.status)} /></td>
                     <td className="border-t border-white/10 px-3 py-3 font-mono text-ink-200">{qualitySummary.profileCount ?? 0}</td>
                     <td className="border-t border-white/10 px-3 py-3 font-mono text-ink-200">{qualitySummary.averageScore ?? 0}</td>
+                    <td className="border-t border-white/10 px-3 py-3 font-mono text-xs text-ink-300">{run.attached_buyer_request_id || "Not attached"}</td>
                     <td className="border-t border-white/10 px-3 py-3 font-mono text-xs text-ink-300">{run.generated_listing_id || "Not created"}</td>
                     <td className="border-t border-white/10 px-3 py-3 font-mono text-xs text-ink-300">{run.generated_sample_id || "Not created"}</td>
                     <td className="whitespace-nowrap border-t border-white/10 px-3 py-3 text-ink-300">{new Date(run.created_at).toLocaleString()}</td>
@@ -511,7 +518,7 @@ export function ProductFactoryClient({ data }: { data: ProductFactoryDashboardDa
                 );
               }) : (
                 <tr>
-                  <td colSpan={7} className="border-t border-white/10 px-3 py-8 text-center text-sm text-ink-400">
+                  <td colSpan={8} className="border-t border-white/10 px-3 py-8 text-center text-sm text-ink-400">
                     No Product Factory runs loaded yet.
                   </td>
                 </tr>
@@ -611,6 +618,18 @@ function QualityStep(props: {
             <Stat label="Average score" value={quality.averageScore} />
             <Stat label="Proof coverage" value={`${quality.sourceProofCoverage}%`} />
             <Stat label="Freshness" value={quality.freshness} />
+          </div>
+          <div className="mt-5 rounded-lg border border-cyan-300/25 bg-cyan-300/10 p-4">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-wider text-cyan-200">Pricing suggestion</p>
+                <p className="mt-2 text-sm leading-6 text-ink-200">{quality.pricingSuggestion.reasoning}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:min-w-72">
+                <Stat label="Listing" value={dollars(quality.pricingSuggestion.listingPrice)} />
+                <Stat label="Sample" value={dollars(quality.pricingSuggestion.samplePrice)} />
+              </div>
+            </div>
           </div>
           <div className="mt-5 grid gap-4 lg:grid-cols-2">
             <Panel title="Confidence distribution">
@@ -877,11 +896,23 @@ function CopyStep({ copy, updateCopy, updateFaq, onGenerate, onNext, pending }: 
   );
 }
 
-function PublishStep({ quality, compliance, result, pendingAction, onAction }: {
+function PublishStep({
+  quality,
+  compliance,
+  result,
+  pendingAction,
+  buyerRequests,
+  attachedBuyerRequestId,
+  onAttachedBuyerRequest,
+  onAction,
+}: {
   quality: ProductFactoryQualitySummary | null;
   compliance: ProductFactoryComplianceSummary | null;
   result: { error?: string; message?: string; runId?: string; listingId?: string; sampleId?: string } | null;
   pendingAction: ProductFactoryAction | null;
+  buyerRequests: ProductFactoryBuyerRequestOption[];
+  attachedBuyerRequestId: string;
+  onAttachedBuyerRequest: (value: string) => void;
   onAction: (action: ProductFactoryAction) => void;
 }) {
   const blocked = Boolean(compliance?.blocked);
@@ -912,6 +943,34 @@ function PublishStep({ quality, compliance, result, pendingAction, onAction }: {
           ) : <p className="text-sm text-ink-300">No action submitted yet.</p>}
         </Panel>
       </div>
+
+      <Panel title="Attach buyer request" className="mt-5">
+        {buyerRequests.length ? (
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+            <Select
+              label="Buyer request"
+              value={attachedBuyerRequestId}
+              onChange={onAttachedBuyerRequest}
+              options={buyerRequests.map((request) => ({
+                value: request.id,
+                label: `${request.label} | ${request.requestType} | ${request.budgetRange} | ${request.status}`,
+              }))}
+            />
+            <ActionButton label="Attach request" action="attach_buyer_request" pendingAction={pendingAction} onAction={onAction} />
+            <div className="lg:col-span-2">
+              {buyerRequests.filter((request) => request.id === attachedBuyerRequestId).map((request) => (
+                <div key={request.id} className="rounded-lg border border-white/10 bg-ink-950/70 p-3 text-sm leading-6 text-ink-300">
+                  <span className="font-black text-white">{request.vertical}</span> | {request.category} | intended use: {request.intendedUse}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm leading-6 text-ink-300">
+            No buyer requests loaded. Save the product run or publish the listing first, then attach it after buyer demand is available.
+          </p>
+        )}
+      </Panel>
 
       <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
         <ActionButton label="Save draft" action="save_draft" pendingAction={pendingAction} onAction={onAction} />
@@ -1029,4 +1088,3 @@ function Select({ label, value, onChange, options }: { label: string; value: str
     </label>
   );
 }
-

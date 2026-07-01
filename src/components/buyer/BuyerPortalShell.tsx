@@ -21,6 +21,8 @@ import {
   PlugZap,
   Settings,
   ShieldCheck,
+  Sparkles,
+  Target,
   UserRoundCheck,
 } from "lucide-react";
 import { LeadScoreBadge } from "@/components/leadflow-system";
@@ -43,6 +45,8 @@ const buyerNav = [
   { href: "/buyer/access", label: "Access", icon: DatabaseZap },
   { href: "/buyer/samples", label: "Samples", icon: FlaskConical },
   { href: "/buyer/orders", label: "Orders", icon: CreditCard },
+  { href: "/buyer/recommendations", label: "Recommendations", icon: Sparkles },
+  { href: "/buyer/custom-requests", label: "Custom Requests", icon: Target },
   { href: "/buyer/insights", label: "Insights", icon: Gauge },
   { href: "/buyer/exports", label: "Exports", icon: Download },
   { href: "/buyer/integrations", label: "Integrations", icon: PlugZap },

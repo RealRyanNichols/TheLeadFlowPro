@@ -89,6 +89,7 @@ const ProductFactorySchema = z.object({
   action: z.enum(PRODUCT_FACTORY_ACTIONS),
   sourceType: z.enum(PRODUCT_FACTORY_SOURCE_TYPES),
   sourceId: z.string().trim().max(160).optional().nullable(),
+  attachedBuyerRequestId: z.string().trim().max(160).optional().nullable(),
   selectedMemberIds: z.array(z.string().trim().max(160)).max(500).default([]),
   buyerUseCase: BuyerUseCaseSchema,
   listingSettings: ListingSettingsSchema,
@@ -125,4 +126,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json(result);
 }
-

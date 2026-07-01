@@ -67,6 +67,11 @@ export type ProductFactoryQualitySummary = {
   suppressionCount: number;
   highRiskCount: number;
   prohibitedCount: number;
+  pricingSuggestion: {
+    listingPrice: number;
+    samplePrice: number;
+    reasoning: string;
+  };
   riskFlags: string[];
   missingFields: string[];
   exportEligibility: "eligible" | "needs_review" | "blocked";
@@ -137,6 +142,7 @@ export type ProductFactoryRunRecord = {
   id: string;
   source_type: ProductFactorySourceType;
   source_id: string | null;
+  attached_buyer_request_id: string | null;
   status: string;
   quality_summary: ProductFactoryQualitySummary | Record<string, unknown>;
   compliance_summary: ProductFactoryComplianceSummary | Record<string, unknown>;
@@ -150,6 +156,18 @@ export type ProductFactoryRunRecord = {
   updated_at: string;
 };
 
+export type ProductFactoryBuyerRequestOption = {
+  id: string;
+  label: string;
+  requestType: string;
+  vertical: string;
+  category: string;
+  budgetRange: string;
+  intendedUse: string;
+  status: string;
+  createdAt: string;
+};
+
 export type ProductFactoryDashboardData = {
   mode: "live" | "offline";
   loadErrors: string[];
@@ -158,6 +176,7 @@ export type ProductFactoryDashboardData = {
   segments: SegmentRecord[];
   previewsBySegment: Record<string, SegmentPreview>;
   recentRuns: ProductFactoryRunRecord[];
+  buyerRequests: ProductFactoryBuyerRequestOption[];
   stats: {
     sourceOptions: number;
     productRuns: number;
@@ -172,6 +191,7 @@ export type ProductFactorySubmission = {
   action: ProductFactoryAction;
   sourceType: ProductFactorySourceType;
   sourceId?: string | null;
+  attachedBuyerRequestId?: string | null;
   selectedMemberIds: string[];
   buyerUseCase: ProductFactoryBuyerUseCase;
   listingSettings: ProductFactoryListingSettings;
@@ -279,6 +299,29 @@ function riskLevelForMembers(members: SegmentCandidate[]): SegmentRiskLevel {
   return "low";
 }
 
+function pricingSuggestionForMembers(input: {
+  profileCount: number;
+  averageScore: number;
+  proofCoverage: number;
+  highRiskCount: number;
+  sourceType?: ProductFactorySourceType;
+}) {
+  const countFactor = input.profileCount >= 250 ? 3 : input.profileCount >= 100 ? 2.2 : input.profileCount >= 25 ? 1.45 : 1;
+  const scoreFactor = input.averageScore >= 85 ? 1.45 : input.averageScore >= 75 ? 1.25 : input.averageScore >= 60 ? 1 : 0.75;
+  const proofFactor = input.proofCoverage >= 95 ? 1.25 : input.proofCoverage >= 75 ? 1 : 0.72;
+  const riskFactor = input.highRiskCount > 0 ? 0.75 : 1;
+  const civicFactor = input.sourceType === "civic_aggregate" ? 0.7 : 1;
+  const rawListingPrice = 149 * countFactor * scoreFactor * proofFactor * riskFactor * civicFactor;
+  const listingPrice = Math.max(49, Math.round(rawListingPrice / 25) * 25 - 1);
+  const samplePrice = input.profileCount > 0 ? Math.max(19, Math.min(249, Math.round(listingPrice * 0.28 / 10) * 10 - 1)) : 0;
+
+  return {
+    listingPrice,
+    samplePrice,
+    reasoning: `Based on ${input.profileCount} profiles, average score ${input.averageScore}, ${input.proofCoverage}% proof coverage, and ${input.highRiskCount} high-risk records.`,
+  };
+}
+
 function sourceOptionFromSegment(segment: SegmentRecord, preview?: SegmentPreview): ProductFactorySourceOption {
   const members = preview?.members || [];
   const averageScore = members.length
@@ -369,7 +412,7 @@ function resolveMembers(input: {
   return filtered;
 }
 
-export function calculateProductFactoryQuality(members: SegmentCandidate[]): ProductFactoryQualitySummary {
+export function calculateProductFactoryQuality(members: SegmentCandidate[], sourceType?: ProductFactorySourceType): ProductFactoryQualitySummary {
   const profileCount = members.length;
   const averageScore = profileCount
     ? Math.round(members.reduce((sum, member) => sum + member.score, 0) / profileCount)
@@ -393,6 +436,13 @@ export function calculateProductFactoryQuality(members: SegmentCandidate[]): Pro
     ...(prohibitedCount ? [`${prohibitedCount} prohibited record${prohibitedCount === 1 ? "" : "s"} block product creation.`] : []),
     ...(missingProofCount ? [`${missingProofCount} record${missingProofCount === 1 ? "" : "s"} still need proof coverage.`] : []),
   ];
+  const pricingSuggestion = pricingSuggestionForMembers({
+    profileCount,
+    averageScore,
+    proofCoverage: sourceProofCoverage,
+    highRiskCount,
+    sourceType,
+  });
 
   return {
     profileCount,
@@ -403,6 +453,7 @@ export function calculateProductFactoryQuality(members: SegmentCandidate[]): Pro
     suppressionCount,
     highRiskCount,
     prohibitedCount,
+    pricingSuggestion,
     riskFlags,
     missingFields,
     exportEligibility: prohibitedCount || suppressionCount ? "blocked" : highRiskCount || missingProofCount ? "needs_review" : "eligible",
@@ -587,6 +638,7 @@ function runStatusForAction(action: ProductFactoryAction, compliance: ProductFac
   if (action === "publish_listing") return "published";
   if (action === "create_sample") return "sample_created";
   if (action === "create_exclusive_offer") return "exclusive_offer_created";
+  if (action === "attach_buyer_request") return "attached_to_buyer_request";
   return "draft";
 }
 
@@ -766,6 +818,7 @@ async function insertFactoryRun(input: {
   const inserted = await insertLeadFlowRow<{ id: string }>("product_factory_runs", {
     source_type: input.submission.sourceType,
     source_id: input.submission.sourceId || null,
+    attached_buyer_request_id: uuidOrNull(input.submission.attachedBuyerRequestId),
     created_by: uuidOrNull(input.adminUserId),
     status: runStatusForAction(input.submission.action, input.compliance),
     quality_summary: input.quality,
@@ -798,11 +851,39 @@ export async function getProductFactoryData(adminEmail?: string): Promise<Produc
   const errors = [...segmentData.loadErrors];
   const recentRuns = hasLeadFlowDataApiConfig()
     ? await safeSelect<ProductFactoryRunRecord>("product_factory_runs", {
-        select: "id,source_type,source_id,status,quality_summary,compliance_summary,generated_listing_id,generated_sample_id,generated_copy,buyer_use_case,listing_settings,selected_member_ids,created_at,updated_at",
+        select: "id,source_type,source_id,attached_buyer_request_id,status,quality_summary,compliance_summary,generated_listing_id,generated_sample_id,generated_copy,buyer_use_case,listing_settings,selected_member_ids,created_at,updated_at",
         deleted_at: "is.null",
         order: "created_at.desc",
         limit: 30,
       }, errors)
+    : [];
+  const buyerRequests = hasLeadFlowDataApiConfig()
+    ? (await safeSelect<{
+        id: string;
+        request_type: string | null;
+        vertical: string | null;
+        category: string | null;
+        budget_range: string | null;
+        intended_use: string | null;
+        buyer_use_case: string | null;
+        status: string | null;
+        created_at: string;
+      }>("buyer_requests", {
+        select: "id,request_type,vertical,category,budget_range,intended_use,buyer_use_case,status,created_at",
+        status: "in.(submitted,pending_review,review,approved)",
+        order: "created_at.desc",
+        limit: 40,
+      }, errors)).map((request) => ({
+        id: request.id,
+        label: `${request.vertical || "General"} ${request.category || "buyer request"}`,
+        requestType: request.request_type || "access",
+        vertical: request.vertical || "General",
+        category: request.category || "Buyer request",
+        budgetRange: request.budget_range || "not provided",
+        intendedUse: request.intended_use || request.buyer_use_case || "not provided",
+        status: request.status || "submitted",
+        createdAt: request.created_at,
+      } satisfies ProductFactoryBuyerRequestOption))
     : [];
 
   const sources = [
@@ -824,12 +905,13 @@ export async function getProductFactoryData(adminEmail?: string): Promise<Produc
     segments: segmentData.segments,
     previewsBySegment: segmentData.previewsBySegment,
     recentRuns,
+    buyerRequests,
     stats: {
       sourceOptions: sources.length,
       productRuns: recentRuns.length,
       draftRuns: recentRuns.filter((run) => run.status === "draft").length,
       reviewRuns: recentRuns.filter((run) => run.status === "review").length,
-      publishedRuns: recentRuns.filter((run) => ["published", "listing_created", "sample_created", "exclusive_offer_created"].includes(run.status)).length,
+      publishedRuns: recentRuns.filter((run) => ["published", "listing_created", "sample_created", "exclusive_offer_created", "attached_to_buyer_request"].includes(run.status)).length,
       blockedRuns: recentRuns.filter((run) => run.status === "blocked").length,
     },
   };
@@ -847,7 +929,7 @@ export async function handleProductFactorySubmission(input: {
     sourceId: input.submission.sourceId,
     selectedMemberIds: input.submission.selectedMemberIds,
   });
-  const quality = calculateProductFactoryQuality(members);
+  const quality = calculateProductFactoryQuality(members, input.submission.sourceType);
   const compliance = buildProductFactoryCompliance({
     sourceType: input.submission.sourceType,
     quality,
@@ -927,6 +1009,19 @@ export async function handleProductFactorySubmission(input: {
       mode: hasLeadFlowDataApiConfig() ? "live" : "missing_supabase_config",
       status: 400,
       message: "Confirmation required for this Product Factory action.",
+      quality,
+      compliance,
+      generatedCopy,
+    };
+  }
+
+  if (input.submission.action === "attach_buyer_request" && !uuidOrNull(input.submission.attachedBuyerRequestId)) {
+    return {
+      ok: false,
+      persisted: false,
+      mode: hasLeadFlowDataApiConfig() ? "live" : "missing_supabase_config",
+      status: 400,
+      message: "Choose a buyer request before attaching this Product Factory run.",
       quality,
       compliance,
       generatedCopy,
@@ -1014,6 +1109,7 @@ export async function handleProductFactorySubmission(input: {
     details: {
       source_type: input.submission.sourceType,
       source_id: input.submission.sourceId || null,
+      attached_buyer_request_id: input.submission.attachedBuyerRequestId || null,
       profile_count: quality.profileCount,
       average_score: quality.averageScore,
       source_proof_coverage: quality.sourceProofCoverage,

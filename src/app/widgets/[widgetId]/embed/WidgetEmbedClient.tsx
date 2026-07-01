@@ -73,7 +73,7 @@ export function WidgetEmbedClient({
     window.parent?.postMessage({ type: "leadflow-widget-resize", widgetId: widget.slug, height: document.body.scrollHeight }, "*");
   }, [answers, started, stepIndex, result, widget.slug]);
 
-  async function track(eventName: string, properties: Record<string, unknown> = {}) {
+  async function trackWidgetEvent(eventName: string, properties: Record<string, unknown> = {}) {
     if (!anon) return;
     await fetch("/api/leadflow/widgets/event", {
       method: "POST",
@@ -97,7 +97,7 @@ export function WidgetEmbedClient({
 
   async function start() {
     setStarted(true);
-    await track("widget_started", { tool_slug: widget.definition.toolSlug, vertical: widget.definition.vertical });
+    await trackWidgetEvent("widget_started", { tool_slug: widget.definition.toolSlug, vertical: widget.definition.vertical });
   }
 
   async function next() {
@@ -106,7 +106,7 @@ export function WidgetEmbedClient({
       setMissing(validation.missingQuestionIds);
       return;
     }
-    await track("widget_step_completed", {
+    await trackWidgetEvent("widget_step_completed", {
       tool_slug: widget.definition.toolSlug,
       vertical: widget.definition.vertical,
       step_number: stepIndex + 1,
@@ -144,7 +144,7 @@ export function WidgetEmbedClient({
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload.ok) throw new Error(payload.error || "Widget submission failed.");
       setResult(payload.result);
-      await track("widget_result_viewed", {
+      await trackWidgetEvent("widget_result_viewed", {
         tool_slug: widget.definition.toolSlug,
         score_range: payload.result?.score >= 80 ? "high" : payload.result?.score >= 60 ? "medium" : "low",
         confidence: payload.result?.confidence,

@@ -23,6 +23,7 @@ create table if not exists leadflow.product_factory_runs (
   id uuid primary key default gen_random_uuid(),
   source_type text not null,
   source_id text,
+  attached_buyer_request_id uuid references leadflow.buyer_requests(id) on delete set null,
   created_by uuid,
   status text not null default 'draft',
   quality_summary jsonb not null default '{}',
@@ -51,11 +52,40 @@ create table if not exists leadflow.product_factory_runs (
     'listing_created',
     'sample_created',
     'exclusive_offer_created',
+    'attached_to_buyer_request',
     'published',
     'blocked',
     'archived'
   ))
 );
+
+alter table if exists leadflow.product_factory_runs
+  add column if not exists attached_buyer_request_id uuid references leadflow.buyer_requests(id) on delete set null;
+
+do $$
+begin
+  if exists (
+    select 1 from pg_constraint
+    where conrelid = 'leadflow.product_factory_runs'::regclass
+      and conname = 'product_factory_runs_status_check'
+  ) then
+    alter table leadflow.product_factory_runs drop constraint product_factory_runs_status_check;
+  end if;
+
+  alter table leadflow.product_factory_runs
+    add constraint product_factory_runs_status_check
+    check (status in (
+      'draft',
+      'review',
+      'listing_created',
+      'sample_created',
+      'exclusive_offer_created',
+      'attached_to_buyer_request',
+      'published',
+      'blocked',
+      'archived'
+    ));
+end $$;
 
 comment on table leadflow.product_factory_runs is
   'Admin-only Product Factory run ledger. Turns reviewed, permissioned, suppression-aware inputs into marketplace listings, samples, and exclusive offers.';
@@ -63,6 +93,8 @@ comment on column leadflow.product_factory_runs.quality_summary is
   'Safe operational summary only: counts, score ranges, proof coverage, missing fields, suppression counts, and export eligibility.';
 comment on column leadflow.product_factory_runs.compliance_summary is
   'Compliance checklist and block warnings. Do not store raw answers, protected traits, minors data, medical data, private financial data, or individual political persuasion data.';
+comment on column leadflow.product_factory_runs.attached_buyer_request_id is
+  'Optional buyer request this product run was attached to. Used to connect demand to sellable listings without exposing unauthorized lead records.';
 comment on column leadflow.product_factory_runs.generated_copy is
   'Editable generated listing copy. No guaranteed revenue, lead volume, ROAS, CPL, conversion rate, or hidden identity dossier claims.';
 comment on column leadflow.product_factory_runs.selected_member_ids is
@@ -112,6 +144,9 @@ create index if not exists product_factory_runs_source_idx
 create index if not exists product_factory_runs_status_idx
   on leadflow.product_factory_runs(status, created_at desc)
   where deleted_at is null;
+create index if not exists product_factory_runs_buyer_request_idx
+  on leadflow.product_factory_runs(attached_buyer_request_id, created_at desc)
+  where deleted_at is null and attached_buyer_request_id is not null;
 create index if not exists product_factory_runs_listing_idx
   on leadflow.product_factory_runs(generated_listing_id, generated_sample_id)
   where deleted_at is null;
@@ -153,4 +188,3 @@ grant all on leadflow.samples, leadflow.sample_items to service_role;
 grant select, insert on leadflow.audit_log to service_role;
 grant select, insert on leadflow.events to service_role;
 grant usage, select on all sequences in schema leadflow to service_role;
-

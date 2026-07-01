@@ -28,6 +28,7 @@ import {
   PlugZap,
   Code2,
   Vote,
+  Target,
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { cn } from "@/lib/utils";
@@ -59,6 +60,8 @@ const NAV = [
   { href: "/dashboard/exclusive", label: "Exclusive", icon: Crown },
   { href: "/dashboard/segments", label: "Segments", icon: GitBranch },
   { href: "/dashboard/product-factory", label: "Product Factory", icon: Factory },
+  { href: "/dashboard/buyer-matching", label: "Buyer Matching", icon: Target },
+  { href: "/dashboard/custom-requests", label: "Custom Requests", icon: Target },
   { href: "/dashboard/partners", label: "Partners", icon: Handshake },
   { href: "/dashboard/predictive", label: "Predictive Engine", icon: Gauge },
   { href: "/dashboard/analytics", label: "Funnel Analytics", icon: Activity },
