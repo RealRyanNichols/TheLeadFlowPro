@@ -191,11 +191,75 @@ const rules = [
   "Platform terms, robots controls, and outreach laws must be respected before production collection."
 ];
 
+const heroProofChips = [
+  "Source-backed profiles",
+  "Intent scoring",
+  "Suppression controls",
+  "Review-gated release",
+  "Built by an operator"
+];
+
+const heroSignals = [
+  {
+    title: "Ecommerce vendor signal",
+    score: 87,
+    proof: "Attached",
+    buyerType: "Agency, wholesaler, ads team",
+    status: "Sample available",
+    accent: "from-cyan-400/25 to-lead-400/10"
+  },
+  {
+    title: "Local service route",
+    score: 79,
+    proof: "Public directory plus submitted route",
+    buyerType: "Contractor, agency, local operator",
+    status: "Inquiry open",
+    accent: "from-accent-400/25 to-cyan-400/10"
+  },
+  {
+    title: "AI tool launch signal",
+    score: 82,
+    proof: "Pricing page, launch post, traffic clue",
+    buyerType: "SaaS agency, integration builder",
+    status: "Watchlist",
+    accent: "from-lead-400/20 to-accent-400/10"
+  }
+];
+
+const heroPaths = [
+  {
+    icon: Radar,
+    title: "I want leads.",
+    body: "Get access to scored buyer signals, source-backed lead profiles, niche lists, public demand signals, and verified opportunities.",
+    href: "/buy-leads",
+    event: "homepage_lane_buy_leads_click",
+    cta: "Buy lead signals"
+  },
+  {
+    icon: DatabaseZap,
+    title: "I want the system.",
+    body: "Get the website, AI agent, forms, automations, dashboards, follow-up, ads, and routing built inside your business.",
+    href: "/build-my-system",
+    event: "homepage_lane_build_system_click",
+    cta: "Build my lead machine"
+  },
+  {
+    icon: Tags,
+    title: "I have a source.",
+    body: "Submit a source, list, tool, directory, audience, or signal category so LeadFlow can review it, score it, and decide the right route.",
+    href: "/submit-source",
+    event: "homepage_lane_submit_source_click",
+    cta: "Submit source"
+  }
+];
+
 export default function HomePage() {
   return (
     <>
       <Header />
       <main className="pb-28 lg:pb-24">
+        <BuyerSignalHero />
+        <SignalPathSection />
         <PreferenceSignalLab />
         <SourceSection />
         <MechanicsSection />
@@ -224,6 +288,215 @@ export default function HomePage() {
       />
       <Footer />
     </>
+  );
+}
+
+function BuyerSignalHero() {
+  return (
+    <section className="buyer-signal-hero relative isolate overflow-hidden border-b border-white/10 pt-8 md:pt-12">
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_8%,rgba(35,184,255,0.18),transparent_34%),radial-gradient(circle_at_82%_20%,rgba(255,154,31,0.15),transparent_30%),linear-gradient(135deg,#030711_0%,#070c18_46%,#101008_100%)]" />
+      <div className="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-cyan-300/60 to-transparent" />
+      <div className="container">
+        <div className="grid gap-8 pb-10 lg:grid-cols-[minmax(0,0.96fr)_minmax(380px,0.72fr)] lg:items-center lg:pb-12">
+          <div className="max-w-4xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-cyan-100 shadow-[0_0_30px_rgba(35,184,255,0.14)]">
+              <Radar className="h-4 w-4" />
+              Buyer signal system
+            </div>
+            <h1 className="mt-6 max-w-4xl text-5xl font-black leading-[0.92] tracking-normal text-white sm:text-6xl lg:text-7xl">
+              Stop buying blind lists.
+              <span className="mt-3 block bg-gradient-to-r from-cyan-200 via-white to-accent-200 bg-clip-text text-transparent">
+                Buy buyer signals.
+              </span>
+            </h1>
+            <p className="mt-6 max-w-3xl text-lg leading-8 text-ink-100 md:text-xl">
+              LeadFlow Pro collects, scores, verifies, and routes lead opportunities with source proof, intent tags, confidence scores, and clean follow-up paths.
+            </p>
+
+            <div className="mt-6 grid gap-2 text-base font-semibold text-white sm:grid-cols-3">
+              {["No mystery CSVs.", "No dead lists.", "No fake lead promises."].map((line) => (
+                <div key={line} className="flex min-h-14 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.045] px-4">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-lead-400" />
+                  <span>{line}</span>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-6 max-w-3xl text-base leading-7 text-ink-200 md:text-lg">
+              Just source-backed signals, buyer intent, confidence scores, and a clean path to the next conversation.
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Link
+                href="/buy-leads"
+                className="btn-accent text-base"
+                data-conversion-event="homepage_hero_buy_signals_click"
+                data-conversion-cta="Buy Lead Signals"
+                data-conversion-source-page="/"
+                data-conversion-destination="/buy-leads"
+              >
+                Buy Lead Signals
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/build-my-system"
+                className="btn-ghost text-base"
+                data-conversion-event="homepage_hero_build_machine_click"
+                data-conversion-cta="Build My Lead Machine"
+                data-conversion-source-page="/"
+                data-conversion-destination="/build-my-system"
+              >
+                Build My Lead Machine
+              </Link>
+              <Link
+                href="/submit-source"
+                className="btn-ghost border-cyan-300/30 text-base text-cyan-100 hover:border-cyan-200/50"
+                data-conversion-event="homepage_hero_submit_source_click"
+                data-conversion-cta="Submit a Lead Source"
+                data-conversion-source-page="/"
+                data-conversion-destination="/submit-source"
+              >
+                Submit a Lead Source
+              </Link>
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-2">
+              {heroProofChips.map((chip) => (
+                <span key={chip} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-ink-900/70 px-3 py-2 text-xs font-bold uppercase tracking-wide text-ink-100">
+                  <BadgeCheck className="h-3.5 w-3.5 text-lead-400" />
+                  {chip}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <LiveSignalBoard />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LiveSignalBoard() {
+  return (
+    <aside className="live-signal-board lead-shell relative overflow-hidden p-4 shadow-[0_24px_90px_rgba(0,0,0,0.42)]">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-cyan-300/20 via-cyan-200/80 to-accent-300/20" />
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-4">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-wider text-cyan-300">Live signal board</p>
+          <h2 className="mt-1 text-2xl font-black text-white">Opportunities with proof attached</h2>
+        </div>
+        <div className="rounded-lg border border-lead-400/25 bg-lead-400/10 px-3 py-2 text-right">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-lead-300">Review queue</p>
+          <p className="text-xl font-black text-white">246</p>
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {heroSignals.map((signal) => (
+          <article key={signal.title} className={`rounded-lg border border-white/10 bg-gradient-to-br ${signal.accent} p-4`}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-base font-extrabold text-white">{signal.title}</h3>
+                <p className="mt-1 text-xs uppercase tracking-wider text-ink-300">Source proof: {signal.proof}</p>
+              </div>
+              <div className="min-w-16 rounded-lg border border-white/15 bg-ink-950/70 px-3 py-2 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-ink-400">Score</p>
+                <p className="text-2xl font-black text-white">{signal.score}</p>
+              </div>
+            </div>
+            <div className="mt-3 grid gap-2 text-xs text-ink-100 sm:grid-cols-2">
+              <div className="rounded-md border border-white/10 bg-ink-950/45 p-2">
+                <span className="block font-bold text-ink-400">Buyer type</span>
+                {signal.buyerType}
+              </div>
+              <div className="rounded-md border border-white/10 bg-ink-950/45 p-2">
+                <span className="block font-bold text-ink-400">Status</span>
+                {signal.status}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <Link
+          href="/data-marketplace"
+          className="btn-ghost justify-center px-3 py-3 text-xs"
+          data-conversion-event="homepage_marketplace_preview_view_sample_click"
+          data-conversion-cta="View Sample"
+          data-conversion-source-page="/"
+          data-conversion-destination="/data-marketplace"
+        >
+          View Sample
+        </Link>
+        <Link
+          href="/buy-leads"
+          className="btn-accent justify-center px-3 py-3 text-xs"
+          data-conversion-event="homepage_marketplace_preview_request_access_click"
+          data-conversion-cta="Request Access"
+          data-conversion-source-page="/"
+          data-conversion-destination="/buy-leads"
+        >
+          Request Access
+        </Link>
+        <Link
+          href="/build-my-system"
+          className="btn-ghost justify-center px-3 py-3 text-xs"
+          data-conversion-event="homepage_marketplace_preview_build_similar_click"
+          data-conversion-cta="Build Similar"
+          data-conversion-source-page="/"
+          data-conversion-destination="/build-my-system"
+        >
+          Build Similar
+        </Link>
+      </div>
+    </aside>
+  );
+}
+
+function SignalPathSection() {
+  return (
+    <section className="signal-path-section relative border-b border-white/10 bg-ink-950/80 py-8 md:py-10">
+      <div className="container">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">What are you here for?</p>
+            <h2 className="mt-2 text-3xl font-black text-white md:text-4xl">Choose the lane and move.</h2>
+          </div>
+          <p className="max-w-xl text-sm leading-6 text-ink-300">
+            Buyers see the signal products. Operators get the machine built. Source owners can submit data for review.
+          </p>
+        </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          {heroPaths.map((path) => (
+            <Link
+              key={path.title}
+              href={path.href}
+              className="group lead-panel flex min-h-64 flex-col p-5 transition duration-300 hover:-translate-y-1 hover:border-cyan-300/35 hover:bg-white/[0.055]"
+              data-conversion-event={path.event}
+              data-conversion-cta={path.cta}
+              data-conversion-source-page="/"
+              data-conversion-destination={path.href}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-cyan-300/25 bg-cyan-300/10 text-cyan-200">
+                  <path.icon className="h-5 w-5" />
+                </div>
+                <ArrowRight className="h-5 w-5 text-ink-500 transition group-hover:translate-x-1 group-hover:text-accent-300" />
+              </div>
+              <h3 className="mt-5 text-2xl font-black text-white">{path.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-ink-200">{path.body}</p>
+              <span className="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-extrabold uppercase tracking-wide text-accent-300">
+                {path.cta}
+                <ArrowRight className="h-4 w-4" />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

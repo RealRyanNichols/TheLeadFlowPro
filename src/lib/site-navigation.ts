@@ -9,28 +9,52 @@ export type SiteNavItem = {
 
 export const SITE_PRIMARY_NAV: SiteNavItem[] = [
   {
-    href: "/problem-intake",
-    label: "Map Builder",
+    href: "/buy-leads",
+    label: "Buy Signals",
+    shortLabel: "Buy",
+    description: "Source-backed signal products.",
+    icon: "market",
+    activePaths: ["/buy-leads"]
+  },
+  {
+    href: "/build-my-system",
+    label: "Build Machine",
     shortLabel: "Build",
-    description: "Build and save your preference map.",
-    icon: "map",
-    activePaths: ["/problem-intake"]
+    description: "Website, AI, forms, follow-up, and routing.",
+    icon: "score",
+    activePaths: ["/build-my-system", "/problem-intake"]
+  },
+  {
+    href: "/submit-source",
+    label: "Submit Source",
+    shortLabel: "Source",
+    description: "Send a source, list, tool, or audience for review.",
+    icon: "source",
+    activePaths: ["/submit-source"]
   },
   {
     href: "/data-marketplace",
-    label: "Signal Shop",
-    shortLabel: "Shop",
-    description: "Buy scored demand and intent lists.",
+    label: "Marketplace",
+    shortLabel: "Market",
+    description: "Review scored demand and intent lists.",
     icon: "market",
     activePaths: ["/data-marketplace"]
   },
-  { href: "/#data", label: "Signal Streams", shortLabel: "Streams", description: "See captured intake signals.", icon: "source" },
-  { href: "/#profiles", label: "Intent Profiles", shortLabel: "Profiles", description: "Tags, fit scores, and profiles.", icon: "profile" },
-  { href: "/#fair-rates", label: "Fair Pricing", shortLabel: "Pricing", description: "Buyer rates and data boundaries.", icon: "rate" },
-  { href: "/#workflow", label: "Score Lab", shortLabel: "Scores", description: "Turn answers into usable intent.", icon: "score" },
+  { href: "/#data", label: "Signal Proof", shortLabel: "Proof", description: "See captured intake signals.", icon: "profile" },
+  { href: "/#workflow", label: "Scoring", shortLabel: "Scores", description: "Turn answers into usable intent.", icon: "score" },
 ];
 
 export const SITE_MORE_NAV: SiteNavItem[] = [
+  {
+    href: "/problem-intake",
+    label: "Problem Intake",
+    shortLabel: "Intake",
+    description: "Build and save a preference map.",
+    icon: "map",
+    activePaths: ["/problem-intake"]
+  },
+  { href: "/#profiles", label: "Intent Profiles", shortLabel: "Profiles", description: "Tags, fit scores, and profiles.", icon: "profile" },
+  { href: "/#fair-rates", label: "Fair Pricing", shortLabel: "Pricing", description: "Buyer rates and data boundaries.", icon: "rate" },
   { href: "/#compliance", label: "Data Rules", shortLabel: "Rules", description: "Adult-only reviewed signal rules.", icon: "guardrail" },
   { href: "/dashboard", label: "Command Console", shortLabel: "Console", description: "Dashboard and request flow.", icon: "dashboard" },
   { href: "/admin", label: "Operator Login", shortLabel: "Admin", description: "Private operator access.", icon: "admin" },
@@ -45,12 +69,14 @@ export const SITE_MOBILE_NAV: SiteNavItem[] = [
 
 export const SITE_FOOTER_NAV = {
   funnel: [
-    { href: "/problem-intake", label: "Map builder" },
-    { href: "/data-marketplace", label: "Signal shop" },
-    { href: "/#data", label: "Signal streams" },
+    { href: "/buy-leads", label: "Buy signals" },
+    { href: "/build-my-system", label: "Build machine" },
+    { href: "/submit-source", label: "Submit source" },
+    { href: "/data-marketplace", label: "Marketplace" },
+    { href: "/#data", label: "Signal proof" },
     { href: "/#profiles", label: "Intent profiles" },
     { href: "/#fair-rates", label: "Fair pricing" },
-    { href: "/#workflow", label: "Score lab" },
+    { href: "/#workflow", label: "Scoring" },
   ],
   company: [
     { href: "/#compliance", label: "Data rules" },
@@ -60,7 +86,10 @@ export const SITE_FOOTER_NAV = {
     { href: "/dashboard", label: "Command console" },
   ],
   tools: [
-    { href: "/problem-intake", label: "Preference builder" },
+    { href: "/problem-intake", label: "Problem intake" },
+    { href: "/buy-leads", label: "Buyer signal lane" },
+    { href: "/build-my-system", label: "Lead machine lane" },
+    { href: "/submit-source", label: "Source review lane" },
     { href: "/data-marketplace", label: "Buyer request desk" },
     { href: "/#fair-rates", label: "Pricing desk" },
     { href: "/dashboard/data-requests", label: "Request dashboard" },

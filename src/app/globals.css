@@ -1945,6 +1945,61 @@
   main > section:first-of-type a {
     max-width: calc(100vw - 2rem);
   }
+  .buyer-signal-hero,
+  .signal-path-section {
+    overflow: hidden;
+  }
+  .buyer-signal-hero .container,
+  .signal-path-section .container {
+    max-width: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+  .buyer-signal-hero *,
+  .signal-path-section * {
+    min-width: 0;
+  }
+  .buyer-signal-hero h1,
+  .buyer-signal-hero h2,
+  .buyer-signal-hero h3,
+  .buyer-signal-hero p,
+  .buyer-signal-hero span,
+  .signal-path-section h2,
+  .signal-path-section h3,
+  .signal-path-section p,
+  .signal-path-section span {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .buyer-signal-hero .btn-accent,
+  .buyer-signal-hero .btn-ghost {
+    width: 100%;
+    justify-content: center;
+    padding-inline: 0.85rem;
+    text-align: center;
+    white-space: normal;
+  }
+  .live-signal-board {
+    width: 100%;
+    max-width: calc(100vw - 2rem);
+  }
+  .live-signal-board h2 {
+    font-size: 1.45rem;
+    line-height: 1.12;
+  }
+  .live-signal-board article {
+    max-width: 100%;
+  }
+  .live-signal-board article > div:first-child,
+  .live-signal-board article .grid {
+    grid-template-columns: 1fr;
+  }
+  .live-signal-board .btn-accent,
+  .live-signal-board .btn-ghost {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+  }
   .hero-signal-chip {
     max-width: calc(100vw - 2rem);
     width: 100%;
