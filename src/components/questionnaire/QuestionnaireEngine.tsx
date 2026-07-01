@@ -349,6 +349,7 @@ function QuestionRenderer({
   onChange: (value: QuestionnaireAnswerValue) => void;
   invalid?: boolean;
 }) {
+  if (question.type === "custom_hidden") return null;
   const options = question.type === "budget_range" ? question.options ?? budgetOptions : question.options ?? [];
 
   return (
@@ -360,17 +361,41 @@ function QuestionRenderer({
           <OptionGrid options={options} value={typeof value === "string" ? value : ""} onChange={onChange} />
         ) : null}
 
-        {question.type === "multi_select" || question.type === "seller_selection_checkbox" ? (
+        {question.type === "multi_select" || question.type === "seller_selection_checkbox" || question.type === "seller_selection" ? (
           <OptionGrid options={options} value={Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []} onChange={onChange} multiple />
         ) : null}
 
-        {question.type === "short_text" || question.type === "location" || question.type === "url" ? (
+        {question.type === "short_text" || question.type === "location" || question.type === "url" || question.type === "phone" || question.type === "email" || question.type === "calendar_intent" ? (
           <input
-            type={question.type === "url" ? "url" : "text"}
+            type={question.type === "url" ? "url" : question.type === "email" ? "email" : question.type === "phone" ? "tel" : question.type === "calendar_intent" ? "date" : "text"}
             value={typeof value === "string" ? value : ""}
             onChange={(event) => onChange(event.target.value)}
             placeholder={question.placeholder}
             className="h-12 w-full rounded-lg border border-white/10 bg-ink-950 px-3 text-sm text-white outline-none placeholder:text-ink-500 focus:border-cyan-300/60"
+          />
+        ) : null}
+
+        {question.type === "number" ? (
+          <input
+            type="number"
+            min={question.min}
+            max={question.max}
+            step={question.step ?? 1}
+            value={typeof value === "number" || typeof value === "string" ? value : ""}
+            onChange={(event) => onChange(Number(event.target.value))}
+            placeholder={question.placeholder}
+            className="h-12 w-full rounded-lg border border-white/10 bg-ink-950 px-3 text-sm text-white outline-none placeholder:text-ink-500 focus:border-cyan-300/60"
+          />
+        ) : null}
+
+        {question.type === "yes_no" ? (
+          <OptionGrid
+            options={question.options?.length ? options : [
+              { id: "yes", label: "Yes", score: 5, tags: ["yes"] },
+              { id: "no", label: "No", score: 0, tags: ["no"] },
+            ]}
+            value={typeof value === "string" ? value : ""}
+            onChange={onChange}
           />
         ) : null}
 
@@ -384,11 +409,11 @@ function QuestionRenderer({
           />
         ) : null}
 
-        {question.type === "number_range" || question.type === "rating_scale" ? (
+        {question.type === "number_range" || question.type === "range" || question.type === "rating_scale" ? (
           <RangeInput question={question} value={typeof value === "number" ? value : question.min ?? 0} onChange={onChange} />
         ) : null}
 
-        {question.type === "priority_ranking" ? (
+        {question.type === "priority_ranking" || question.type === "ranking" ? (
           <PriorityRanking options={options} value={Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []} onChange={onChange} />
         ) : null}
 
@@ -400,6 +425,7 @@ function QuestionRenderer({
             <span>{question.helperText || "I consent."}</span>
           </label>
         ) : null}
+
       </div>
     </fieldset>
   );

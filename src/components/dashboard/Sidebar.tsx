@@ -18,6 +18,7 @@ import {
   Download,
   Activity,
   ClipboardList,
+  Factory,
   Gauge,
   GitBranch,
   Handshake,
@@ -25,6 +26,8 @@ import {
   Crown,
   CreditCard,
   PlugZap,
+  Code2,
+  Vote,
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { cn } from "@/lib/utils";
@@ -50,8 +53,12 @@ const NAV = [
   { href: "/dashboard/samples", label: "Samples", icon: FlaskConical },
   { href: "/dashboard/orders", label: "Orders", icon: CreditCard },
   { href: "/dashboard/integrations", label: "Integrations", icon: PlugZap },
+  { href: "/dashboard/questionnaires", label: "Questionnaires", icon: ClipboardList },
+  { href: "/dashboard/widgets", label: "Widgets", icon: Code2 },
+  { href: "/dashboard/civic", label: "Civic", icon: Vote },
   { href: "/dashboard/exclusive", label: "Exclusive", icon: Crown },
   { href: "/dashboard/segments", label: "Segments", icon: GitBranch },
+  { href: "/dashboard/product-factory", label: "Product Factory", icon: Factory },
   { href: "/dashboard/partners", label: "Partners", icon: Handshake },
   { href: "/dashboard/predictive", label: "Predictive Engine", icon: Gauge },
   { href: "/dashboard/analytics", label: "Funnel Analytics", icon: Activity },

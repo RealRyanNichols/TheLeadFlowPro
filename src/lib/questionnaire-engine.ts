@@ -5,16 +5,25 @@ export type QuestionnaireQuestionType =
   | "multi_select"
   | "short_text"
   | "long_text"
+  | "number"
+  | "range"
   | "number_range"
   | "budget_range"
   | "location"
   | "industry"
   | "url"
+  | "phone"
+  | "email"
   | "file_upload"
   | "consent_checkbox"
   | "seller_selection_checkbox"
+  | "seller_selection"
   | "rating_scale"
-  | "priority_ranking";
+  | "priority_ranking"
+  | "ranking"
+  | "yes_no"
+  | "calendar_intent"
+  | "custom_hidden";
 
 export type QuestionnaireOption = {
   id: string;
