@@ -336,6 +336,8 @@ export default async function DashboardOverview() {
             </p>
           </div>
 
+          <LeadRepOrchestratorCard />
+
           <Link href="/dashboard/work" className="dashboard-side-panel block transition hover:border-cyan-300/35">
             <p className="dashboard-kicker">Client office</p>
             <h3>Fulfillment lane</h3>
@@ -382,6 +384,38 @@ export default async function DashboardOverview() {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+function LeadRepOrchestratorCard() {
+  const packageIdeas = [
+    "Buyer-ready data packages",
+    "Predictive signal sweeps",
+    "Conversion fixes from verified demand",
+  ];
+
+  return (
+    <div className="dashboard-side-panel">
+      <p className="dashboard-kicker">LeadRep agent bus</p>
+      <h3>GitHub to Supabase to Grok</h3>
+      <p className="mt-2 text-sm leading-6 text-ink-300">
+        Agent runs stay in dry-run until manual approval clears the handoff. Supabase stores the memory trail;
+        GitHub issues keep the handoff log.
+      </p>
+      <div className="mt-4 grid gap-2">
+        <QualityRow icon={BrainCircuit} label="Agent runs" value="approval gated" />
+        <QualityRow icon={PackageCheck} label="Package ideas" value="candidate only" />
+        <QualityRow icon={ShieldCheck} label="Outbound actions" value="blocked" />
+      </div>
+      <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.035] p-3">
+        <p className="text-xs font-bold uppercase tracking-wide text-ink-400">Queue focus</p>
+        <ul className="mt-2 space-y-1 text-sm font-semibold leading-6 text-ink-300">
+          {packageIdeas.map((idea) => (
+            <li key={idea}>{idea}</li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

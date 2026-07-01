@@ -258,6 +258,9 @@
   .lead-control {
     @apply min-h-12 rounded-lg border border-white/10 bg-[#05080d]/85 px-3 py-3 text-sm text-white placeholder:text-ink-500 outline-none transition focus:border-lead-400/70 focus:ring-2 focus:ring-lead-400/20;
   }
+  .field {
+    @apply min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200;
+  }
   .lead-option-grid {
     @apply grid gap-3;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
