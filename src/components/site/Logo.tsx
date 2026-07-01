@@ -52,10 +52,12 @@ export function Logo({
   href?: string;
 }) {
   return (
-    <Link href={href} className={cn("flex items-center gap-2 group", className)}>
-      <FunnelMark className="h-9 w-9 transition group-hover:scale-105" />
+    <Link href={href} className={cn("lead-logo group", className)}>
+      <span className="lead-logo-orb">
+        <FunnelMark className="h-9 w-9 transition group-hover:scale-105" />
+      </span>
       {withWordmark && (
-        <span className="font-extrabold text-lg leading-none">
+        <span className="lead-wordmark">
           <span className="text-ink-50">The </span>
           <span className="bg-gradient-to-r from-cyan-400 to-accent-400 bg-clip-text text-transparent">
             LeadFlow

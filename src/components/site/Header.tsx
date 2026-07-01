@@ -1,28 +1,66 @@
 import Link from "next/link";
+import {
+  BadgeCheck,
+  CircleDollarSign,
+  DatabaseZap,
+  LayoutDashboard,
+  LogIn,
+  Map,
+  Route,
+  ShieldCheck,
+  Sparkles,
+  Store,
+  type LucideIcon
+} from "lucide-react";
 import { Logo } from "./Logo";
 import { MobileMenu } from "./MobileMenu";
+import { SITE_MORE_NAV, SITE_PRIMARY_NAV, type SiteNavItem } from "@/lib/site-navigation";
+
+const navIcons: Record<NonNullable<SiteNavItem["icon"]>, LucideIcon> = {
+  admin: ShieldCheck,
+  contact: Sparkles,
+  dashboard: LayoutDashboard,
+  guardrail: ShieldCheck,
+  home: Sparkles,
+  map: Map,
+  market: Store,
+  profile: BadgeCheck,
+  rate: CircleDollarSign,
+  score: Route,
+  source: DatabaseZap
+};
+
+const headerNav = [
+  ...SITE_PRIMARY_NAV,
+  ...SITE_MORE_NAV.filter((item) => item.icon === "guardrail" || item.icon === "dashboard")
+];
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 border-b border-white/5 bg-ink-950/70 backdrop-blur-xl">
+    <header className="site-header sticky top-0 z-40">
       <div className="container flex h-16 min-w-0 items-center justify-between gap-3">
         <Logo className="min-w-0" />
-        <nav className="hidden xl:flex items-center gap-7 text-sm text-ink-200">
-          <Link href="/problem-intake" className="hover:text-white">Find Signal</Link>
-          <Link href="/data-marketplace" className="hover:text-white">Marketplace</Link>
-          <Link href="/#data" className="hover:text-white">Data</Link>
-          <Link href="/#profiles" className="hover:text-white">Profiles</Link>
-          <Link href="/#fair-rates" className="hover:text-white">Fair Rates</Link>
-          <Link href="/#workflow" className="hover:text-white">Workflow</Link>
-          <Link href="/#compliance" className="hover:text-white">Compliance</Link>
-          <Link href="/dashboard" className="hover:text-white">Dashboard</Link>
+        <nav className="lead-nav hidden xl:flex" aria-label="Main navigation">
+          {headerNav.map((item) => {
+            const Icon = item.icon ? navIcons[item.icon] : Sparkles;
+            return (
+              <Link key={item.href} href={item.href} className="lead-nav-link">
+                <span className="lead-nav-icon">
+                  <Icon className="h-3.5 w-3.5" />
+                </span>
+                <span>{item.shortLabel ?? item.label}</span>
+              </Link>
+            );
+          })}
         </nav>
         <div className="flex items-center gap-2">
-          <Link href="/login" className="hidden sm:inline-flex btn-ghost text-sm py-2 px-4">
-            Log in
+          <Link href="/login" className="header-utility-btn hidden sm:inline-flex">
+            <LogIn className="h-4 w-4" />
+            Client vault
           </Link>
-          <Link href="/problem-intake" className="hidden sm:inline-flex btn-accent text-sm py-2 px-4">
-            Find signal
+          <Link href="/problem-intake" className="btn-accent header-primary-btn hidden sm:inline-flex">
+            <Sparkles className="h-4 w-4" />
+            Start map
           </Link>
           <MobileMenu />
         </div>

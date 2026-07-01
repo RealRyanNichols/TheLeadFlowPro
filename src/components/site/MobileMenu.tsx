@@ -1,11 +1,42 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import {
+  BadgeCheck,
+  CircleDollarSign,
+  DatabaseZap,
+  Home,
+  LayoutDashboard,
+  LockKeyhole,
+  Mail,
+  Map,
+  Menu,
+  Route,
+  ShieldCheck,
+  Sparkles,
+  Store,
+  X,
+  type LucideIcon
+} from "lucide-react";
 import { Logo } from "./Logo";
-import { SITE_MOBILE_NAV } from "@/lib/site-navigation";
+import { SITE_MOBILE_NAV, type SiteNavItem } from "@/lib/site-navigation";
 
-// Public marketing nav only. The client office is not promoted to cold traffic.
+// Public drawer with buyer, intake, command, and operator routes surfaced as clear actions.
+
+const mobileIcons: Record<NonNullable<SiteNavItem["icon"]>, LucideIcon> = {
+  admin: LockKeyhole,
+  contact: Mail,
+  dashboard: LayoutDashboard,
+  guardrail: ShieldCheck,
+  home: Home,
+  map: Map,
+  market: Store,
+  profile: BadgeCheck,
+  rate: CircleDollarSign,
+  score: Route,
+  source: DatabaseZap
+};
 
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
@@ -16,61 +47,93 @@ export function MobileMenu() {
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [open]);
+
+  const drawer = open ? (
+    <div className="fixed inset-0 z-[80] h-dvh xl:hidden">
+      <div
+        className="absolute inset-0 bg-black/75 backdrop-blur-md"
+        onClick={() => setOpen(false)}
+      />
+      <div className="mobile-menu-shell">
+        <div className="mb-5 flex items-center justify-between">
+          <Logo />
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label="Close menu"
+            className="menu-trigger"
+          >
+            <X className="h-5 w-5" strokeWidth={2.25} />
+          </button>
+        </div>
+        <div className="mobile-menu-kicker">
+          <Sparkles className="h-4 w-4" />
+          Choose the next signal
+        </div>
+        <nav className="-mx-1 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-1 pb-3">
+          {SITE_MOBILE_NAV.map((item) => {
+            const Icon = item.icon ? mobileIcons[item.icon] : Sparkles;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="mobile-menu-link"
+              >
+                <span className="mobile-menu-icon">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="min-w-0">
+                  <strong>{item.label}</strong>
+                  {item.description ? <span>{item.description}</span> : null}
+                </span>
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="space-y-2 pt-3">
+          <Link
+            href="/problem-intake"
+            onClick={() => setOpen(false)}
+            className="btn-accent w-full justify-center py-2.5 text-sm"
+          >
+            <Sparkles className="h-4 w-4" />
+            Start my map
+          </Link>
+          <Link
+            href="/data-marketplace"
+            onClick={() => setOpen(false)}
+            className="btn-ghost w-full justify-center py-2.5 text-sm"
+          >
+            Open signal shop
+          </Link>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <>
-      {/* Visible-by-default hamburger: explicit border + background so it
-          reads as a tappable target even when backdrop-blur fails. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
-        className="xl:hidden h-10 w-10 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 active:bg-white/15 flex items-center justify-center text-white shrink-0"
+        className="menu-trigger xl:hidden"
       >
         <Menu className="h-5 w-5" strokeWidth={2.25} />
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-[60] xl:hidden">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setOpen(false)}
-          />
-          <div className="absolute right-0 top-0 bottom-0 w-72 max-w-[85vw] bg-ink-950 border-l border-white/10 p-5 flex flex-col animate-fade-up shadow-2xl shadow-black/50">
-            <div className="flex items-center justify-between mb-6">
-              <Logo />
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label="Close menu"
-                className="h-10 w-10 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 flex items-center justify-center text-white shrink-0"
-              >
-                <X className="h-5 w-5" strokeWidth={2.25} />
-              </button>
-            </div>
-            <nav className="flex flex-col gap-1 overflow-y-auto -mx-1 px-1">
-              {SITE_MOBILE_NAV.map((n) => (
-                <Link
-                  key={n.href}
-                  href={n.href}
-                  onClick={() => setOpen(false)}
-                  className="px-3 py-3 rounded-lg text-base text-ink-100 hover:bg-white/5 hover:text-white"
-                >
-                  {n.label}
-                </Link>
-              ))}
-            </nav>
-            <div className="mt-auto pt-4 space-y-2">
-              <Link
-                href="/problem-intake"
-                onClick={() => setOpen(false)}
-                className="btn-accent w-full text-sm py-2.5 justify-center"
-              >
-                Find signal
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
+      {drawer ? createPortal(drawer, document.body) : null}
     </>
   );
 }
