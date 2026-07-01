@@ -10,6 +10,12 @@ Tests:
 
 - `supabase/tests/leadflow_rls_consent_policy_tests.sql`
 
+Related architecture:
+
+- `docs/leadflow-analytics-event-taxonomy.md`
+- `docs/leadflow-predictive-models.md`
+- `docs/leadflow-marketplace-routing.md`
+
 ## Scope
 
 This schema creates a private `leadflow` schema for a consent-based questionnaire and lead-routing platform. It separates anonymous telemetry, identified profiles, consent, seller entitlements, scoring, exports, suppression, and DSAR workflows.

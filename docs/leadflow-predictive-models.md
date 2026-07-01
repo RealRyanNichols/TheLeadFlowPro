@@ -15,6 +15,8 @@ Implementation references:
 - `src/components/site/LeadFlowVercelAnalytics.tsx`
 - `src/app/api/analytics/vercel-drain/route.ts`
 - `src/lib/predictive-models.ts`
+- `src/lib/leadflow-routing.ts`
+- `docs/leadflow-marketplace-routing.md`
 - `leadflow.scoreable_profiles`
 - `leadflow.score_runs`
 - `leadflow.scores`
