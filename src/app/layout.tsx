@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import "./globals.css";
 import { SessionProvider } from "@/components/auth/SessionProvider";
-import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { FarettaChatbot } from "@/components/FarettaChatbot";
 import { ConversionEventTracker } from "@/components/site/ConversionEvents";
 import { MetaPixel } from "@/components/site/MetaPixel";
 import { SitePulseTracker } from "@/components/site/SitePulseTracker";
+import { LeadFlowVercelAnalytics } from "@/components/site/LeadFlowVercelAnalytics";
 
 export const metadata: Metadata = {
   title: "The LeadFlow Pro - Universal Lead Brain",
@@ -144,7 +144,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Suspense>
         <SitePulseTracker />
         <FarettaChatbot />
-        <Analytics />
+        <LeadFlowVercelAnalytics />
         <SpeedInsights />
       </body>
     </html>
