@@ -1,0 +1,74 @@
+name: LeadRep Orchestrator
+
+on:
+  workflow_dispatch:
+    inputs:
+      approval_required:
+        description: "Require manual approval before Grok API orchestration"
+        required: false
+        default: "true"
+  repository_dispatch:
+    types:
+      - leadrep_orchestrator
+      - leadrep_handoff
+  issue_comment:
+    types:
+      - created
+  push:
+    branches:
+      - main
+  workflow_run:
+    workflows:
+      - Build
+      - CI
+      - Vercel Production Deployment
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  orchestrate:
+    if: github.event_name != 'issue_comment' || contains(github.event.comment.body, '/leadrep') || contains(github.event.comment.body, 'LeadRep')
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      LEADREP_BUS_URL: ${{ vars.LEADREP_BUS_URL || secrets.LEADREP_BUS_URL }}
+      LEADREP_BUS_SERVICE_KEY: ${{ secrets.LEADREP_BUS_SERVICE_KEY }}
+      LEADREP_GROK_MODE: ${{ vars.LEADREP_GROK_MODE || 'dry_run' }}
+      LEADREP_APPROVAL_MODE: ${{ vars.LEADREP_APPROVAL_MODE || 'manual' }}
+      GROK_MAX_DAILY_COST_USD: ${{ vars.GROK_MAX_DAILY_COST_USD || '10' }}
+      LEADREP_GITHUB_REPOSITORY: RealRyanNichols/TheLeadFlowPro
+      LEADREP_VERCEL_PROJECT: realryannichols/the-lead-flow-pro
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install
+        run: npm install
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: npm run build
+
+      - name: LeadRep handoff
+        if: always()
+        env:
+          LEADREP_BUILD_STATUS: ${{ steps.build.outcome }}
+        run: node scripts/leadrep-orchestrator.mjs
+
+      - name: Fail when build fails
+        if: steps.build.outcome != 'success'
+        run: exit 1
