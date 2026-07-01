@@ -5,6 +5,7 @@ import {
   patchLeadFlowRows,
   selectLeadFlowRows,
 } from "@/lib/leadflow-data-api";
+import { sanitizeLeadFlowEventProperties } from "@/lib/leadflow-events";
 import { getBuyerAuthState, type SupabaseBuyerUser } from "@/lib/supabase-buyer-auth";
 
 export type BuyerAccountStatus =
@@ -358,12 +359,19 @@ export async function updateBuyerAccount(user: SupabaseBuyerUser, patch: Partial
 
 export async function trackBuyerEvent(eventName: string, properties: Record<string, unknown> = {}) {
   if (!hasLeadFlowDataApiConfig()) return { skipped: true };
+  const safeProperties = sanitizeLeadFlowEventProperties(properties);
   await insertLeadFlowRow("events", {
     event_name: eventName,
     event_type: "buyer",
     tool_slug: "buyer_portal",
+    route: typeof safeProperties.route === "string" ? safeProperties.route : "/buyer",
+    auth_user_id: typeof safeProperties.auth_user_id === "string" ? safeProperties.auth_user_id : null,
+    user_role: "buyer",
     source_path: "/buyer",
-    properties,
+    properties: {
+      ...safeProperties,
+      user_role: "buyer",
+    },
   });
   return { skipped: false };
 }

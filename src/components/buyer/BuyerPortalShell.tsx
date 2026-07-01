@@ -11,6 +11,7 @@ import {
   Eye,
   FileCheck2,
   Globe2,
+  Gauge,
   LayoutDashboard,
   LockKeyhole,
   Mail,
@@ -37,6 +38,7 @@ const buyerNav = [
   { href: "/buyer/requests", label: "Requests", icon: ClipboardList },
   { href: "/buyer/watchlist", label: "Watchlist", icon: BookmarkCheck },
   { href: "/buyer/access", label: "Access", icon: DatabaseZap },
+  { href: "/buyer/insights", label: "Insights", icon: Gauge },
   { href: "/buyer/exports", label: "Exports", icon: Download },
   { href: "/buyer/settings", label: "Settings", icon: Settings },
 ];

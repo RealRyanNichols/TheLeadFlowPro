@@ -3,18 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { track } from "@vercel/analytics";
 import { ArrowRight, KeyRound, Loader2, Mail, ShieldCheck, UserPlus } from "lucide-react";
-import { sanitizeVercelEventProperties } from "@/lib/analytics-taxonomy";
+import { trackEvent } from "@/lib/events";
 
 type BuyerAuthMode = "magic" | "password" | "create";
 
 function trackBuyerAuth(eventName: string, properties: Record<string, string | number | boolean>) {
-  try {
-    track(eventName, sanitizeVercelEventProperties({ page: "/login", ...properties }));
-  } catch {
-    // Login must not depend on anonymous analytics.
-  }
+  trackEvent(eventName, { route: "/login", ...properties });
 }
 
 export function BuyerAuthPanel({ next = "/buyer" }: { next?: string }) {
@@ -32,7 +27,7 @@ export function BuyerAuthPanel({ next = "/buyer" }: { next?: string }) {
   async function submitMagicLink(event: React.FormEvent) {
     event.preventDefault();
     setStatus({ type: "saving", message: "Sending buyer magic link." });
-    trackBuyerAuth("buyer_signup_started", { method: "magic_link" });
+    trackBuyerAuth("buyer_login_started", { method: "magic_link" });
     const response = await fetch("/api/buyer/auth/magic-link", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -50,6 +45,7 @@ export function BuyerAuthPanel({ next = "/buyer" }: { next?: string }) {
     event.preventDefault();
     const isCreate = mode === "create";
     setStatus({ type: "saving", message: isCreate ? "Creating buyer account." : "Opening buyer portal." });
+    trackBuyerAuth("buyer_login_started", { method: isCreate ? "password_signup" : "password" });
     if (isCreate) trackBuyerAuth("buyer_signup_started", { method: "password" });
     const response = await fetch("/api/buyer/auth/password", {
       method: "POST",
@@ -71,7 +67,8 @@ export function BuyerAuthPanel({ next = "/buyer" }: { next?: string }) {
       setStatus({ type: "success", message: data.message || "Check email to confirm this buyer account." });
       return;
     }
-    trackBuyerAuth(isCreate ? "buyer_signup_completed" : "buyer_login", { method: "password" });
+    trackBuyerAuth("buyer_login_completed", { method: isCreate ? "password_signup" : "password" });
+    if (isCreate) trackBuyerAuth("buyer_signup_completed", { method: "password" });
     router.push(data.redirectTo || next);
     router.refresh();
   }

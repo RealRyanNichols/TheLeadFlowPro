@@ -469,6 +469,8 @@ export async function getAdminReviewDashboardData(adminEmail: string): Promise<A
   await insertLeadFlowRow("events", {
     event_name: "admin_dashboard_viewed",
     event_type: "server",
+    route: "/dashboard",
+    user_role: "admin",
     source_path: "/dashboard",
     properties: {
       user_role: "admin",

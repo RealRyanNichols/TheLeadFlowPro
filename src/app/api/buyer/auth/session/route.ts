@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const session = parsed.data;
     const user = await getSupabaseBuyerUser(session.access_token);
     await ensureBuyerAccountForUser(user).catch(() => null);
-    await trackBuyerEvent("buyer_login", { method: "magic_or_oauth", auth_user_id: user.id }).catch(() => null);
+    await trackBuyerEvent("buyer_login_completed", { method: "magic_or_oauth", auth_user_id: user.id }).catch(() => null);
 
     const response = NextResponse.json({ ok: true, redirectTo: "/buyer" });
     setBuyerAuthCookies(response, { ...session, user });

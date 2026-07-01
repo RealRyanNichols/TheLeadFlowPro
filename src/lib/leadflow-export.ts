@@ -14,6 +14,7 @@ import {
   patchLeadFlowRows,
   selectLeadFlowRows,
 } from "@/lib/leadflow-data-api";
+import { sanitizeLeadFlowEventProperties } from "@/lib/leadflow-events";
 
 export const EXPORT_FIELD_GROUPS = [
   "public_profile",
@@ -346,11 +347,16 @@ const profileSelect = [
 
 async function trackExportEvent(eventName: string, properties: Record<string, unknown>) {
   if (!hasLeadFlowDataApiConfig()) return;
+  const safeProperties = sanitizeLeadFlowEventProperties(properties);
+  const route = typeof safeProperties.route === "string" ? safeProperties.route : "/exports";
+  const actor = typeof safeProperties.actor === "string" ? safeProperties.actor : "export";
   await insertLeadFlowRow("events", {
     event_name: eventName,
-    event_type: String(properties.actor || "export"),
-    source_path: String(properties.route || "/exports"),
-    properties,
+    event_type: actor,
+    route,
+    user_role: actor === "admin" ? "admin" : actor === "buyer" ? "buyer" : "system",
+    source_path: route,
+    properties: safeProperties,
   }).catch(() => null);
 }
 

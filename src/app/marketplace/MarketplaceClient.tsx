@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { track } from "@vercel/analytics";
 import {
   ArrowRight,
   BookmarkPlus,
@@ -28,7 +27,7 @@ import {
   type ConfidenceLevel,
   type SignalStatus,
 } from "@/components/leadflow-system";
-import { sanitizeVercelEventProperties } from "@/lib/analytics-taxonomy";
+import { trackEvent } from "@/lib/events";
 
 type MarketplaceListing = {
   id: string;
@@ -485,11 +484,7 @@ const featuredIds = [
 ];
 
 function trackMarketplaceEvent(eventName: string, properties: Record<string, string | number | boolean>) {
-  try {
-    track(eventName, sanitizeVercelEventProperties({ page: "/marketplace", ...properties }));
-  } catch {
-    // Anonymous analytics must never block marketplace browsing.
-  }
+  trackEvent(eventName, { route: "/marketplace", ...properties });
 }
 
 function matchesFilter(listing: MarketplaceListing, selectedFilters: Record<FilterKey, string>) {
@@ -521,7 +516,7 @@ export function MarketplaceClient() {
   );
 
   useEffect(() => {
-    trackMarketplaceEvent("marketplace_page_view", {
+    trackMarketplaceEvent("marketplace_viewed", {
       listing_count: marketplaceListings.length,
       featured_count: featuredListings.length,
     });
@@ -551,20 +546,28 @@ export function MarketplaceClient() {
   function openListing(listing: MarketplaceListing, openSource: string, nextRequestType: RequestType | null = null) {
     setSelectedListing(listing);
     setRequestType(nextRequestType);
-    trackMarketplaceEvent("marketplace_modal_opened", {
+    trackMarketplaceEvent("listing_card_clicked", {
       listing_id: listing.id,
       category: listing.category,
       vertical: listing.industry,
       lead_score: listing.leadScore,
       open_source: openSource,
     });
-    trackMarketplaceEvent("marketplace_listing_viewed", {
+    trackMarketplaceEvent("listing_preview_opened", {
       listing_id: listing.id,
       category: listing.category,
       vertical: listing.industry,
       lead_score: listing.leadScore,
       view_source: openSource,
     });
+    if (nextRequestType) {
+      trackMarketplaceEvent(nextRequestType === "access" ? "access_request_started" : "sample_request_started", {
+        listing_id: listing.id,
+        category: listing.category,
+        vertical: listing.industry,
+        request_type: nextRequestType,
+      });
+    }
   }
 
   function closeModal() {
@@ -587,7 +590,7 @@ export function MarketplaceClient() {
         category: listing.category,
       }),
     }).catch(() => null);
-    trackMarketplaceEvent("marketplace_watchlist_added", {
+    trackMarketplaceEvent("watchlist_added", {
       listing_id: listing.id,
       category: listing.category,
       vertical: listing.industry,
@@ -1073,7 +1076,7 @@ function BuyerRequestForm({ listing, requestType }: { listing: MarketplaceListin
       }
 
       const savedToBuyerPortal = Boolean(result.request?.id);
-      const eventName = isAccess ? "marketplace_access_requested" : "marketplace_sample_requested";
+      const eventName = isAccess ? "access_request_submitted" : "sample_request_submitted";
       trackMarketplaceEvent(eventName, {
         listing_id: listing.id,
         category: listing.category,

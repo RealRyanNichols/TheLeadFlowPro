@@ -91,14 +91,14 @@ export default function IndustryPage({ params }: IndustryPageProps) {
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <Link href="/marketplace" className="btn-accent text-base">
-                    Open lead marketplace
+                    Browse Available Signals
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                   <Link href="/build-my-system" className="btn-ghost text-base">
-                    Build my lead machine
+                    Build My Lead Machine
                   </Link>
                   <Link href="/tools" className="btn-ghost text-base">
-                    Start a tool
+                    Start related tool
                   </Link>
                 </div>
               </div>
@@ -200,10 +200,13 @@ export default function IndustryPage({ params }: IndustryPageProps) {
               </div>
               <div className="grid gap-4">
                 {page.faq.map((item) => (
-                  <article key={item.question} className="lead-shell p-5">
-                    <h3 className="text-xl font-black text-white">{item.question}</h3>
+                  <details key={item.question} className="lead-shell group p-5">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left text-xl font-black text-white">
+                      <span>{item.question}</span>
+                      <ArrowRight className="h-5 w-5 shrink-0 rotate-90 text-ink-500 transition group-open:-rotate-90 group-open:text-accent-300" />
+                    </summary>
                     <p className="mt-3 text-sm leading-6 text-ink-200">{item.answer}</p>
-                  </article>
+                  </details>
                 ))}
               </div>
             </div>
@@ -219,10 +222,13 @@ export default function IndustryPage({ params }: IndustryPageProps) {
                 </p>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-200">
                   Keep moving through the lead flow: compare source-backed leads, run the tools,
-                  inspect the profile model, or build the capture system.
+                  inspect the profile model, review buyer paths, or build the capture system.
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                <Link href="/buy-leads" className="btn-ghost justify-center text-sm">
+                  Buy Leads
+                </Link>
                 <Link href="/tools" className="btn-ghost justify-center text-sm">
                   Tools
                 </Link>
@@ -236,6 +242,21 @@ export default function IndustryPage({ params }: IndustryPageProps) {
                   Privacy center
                 </Link>
               </div>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {page.relatedSlugs.map((slug) => {
+                const related = getLeadFlowIndustryPage(slug);
+                if (!related) return null;
+                return (
+                  <Link
+                    key={slug}
+                    href={`/industries/${slug}`}
+                    className="rounded-lg border border-white/10 bg-white/[0.045] px-3 py-2 text-xs font-extrabold text-ink-100 transition hover:border-cyan-300/35 hover:text-cyan-100"
+                  >
+                    {related.shortTitle}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -262,11 +283,13 @@ function SampleProfilePanel({ page }: { page: LeadFlowIndustryPage }) {
         </div>
       </div>
       <div className="mt-5 grid gap-3">
+        <ProfileFact label="Category" value={profile.category} />
         <ProfileFact label="Confidence" value={profile.confidence} />
         <ProfileFact label="Source type" value={profile.sourceType} />
         <ProfileFact label="Best buyer" value={profile.bestBuyer} />
+        <ProfileFact label="Buyer use case" value={profile.buyerUseCase} />
         <ProfileFact label="Proof" value={profile.proof} />
-        <ProfileFact label="Next action" value={profile.nextAction} />
+        <ProfileFact label="Recommended next action" value={profile.nextAction} />
       </div>
       <Link href="/profile-model" className="btn-ghost mt-5 w-full justify-center text-sm">
         See profile model

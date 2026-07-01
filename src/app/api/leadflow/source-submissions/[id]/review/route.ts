@@ -224,12 +224,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   });
 
   await insertLeadFlowRow("events", {
-    event_name: "source_submission_reviewed",
+    event_name: "admin_source_reviewed",
     event_type: "server",
+    route: "/dashboard/source-submissions",
+    user_role: "admin",
     vertical: source.vertical,
     category: source.categories[0] ?? null,
     source_path: "/dashboard/source-submissions",
     properties: {
+      user_role: "admin",
       submitted_source_id: source.id,
       action,
       review_status: toStatus,

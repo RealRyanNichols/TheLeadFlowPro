@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { BuyerDashboardView, BuyerPortalShell } from "@/components/buyer/BuyerPortalShell";
-import { getBuyerPortalData } from "@/lib/buyer-portal";
+import { getBuyerPortalData, trackBuyerEvent } from "@/lib/buyer-portal";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +11,14 @@ export const metadata: Metadata = {
 
 export default async function BuyerDashboardPage() {
   const data = await getBuyerPortalData();
+  if (data.authenticated && data.account) {
+    await trackBuyerEvent("buyer_dashboard_viewed", {
+      route: "/buyer",
+      buyer_account_id: data.account.id,
+      access_level: data.accessLevel,
+      status: data.accountStatus,
+    }).catch(() => null);
+  }
   return (
     <BuyerPortalShell
       data={data}

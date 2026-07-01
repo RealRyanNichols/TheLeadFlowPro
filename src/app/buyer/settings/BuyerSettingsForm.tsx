@@ -3,10 +3,9 @@
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
-import { track } from "@vercel/analytics";
 import { ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import type { BuyerAccount } from "@/lib/buyer-portal";
-import { sanitizeVercelEventProperties } from "@/lib/analytics-taxonomy";
+import { trackEvent } from "@/lib/events";
 
 const buyerTypes = [
   "Business owner",
@@ -83,20 +82,13 @@ export function BuyerSettingsForm({ account, email }: { account: BuyerAccount | 
       return;
     }
 
-    try {
-      track(
-        "buyer_profile_completed",
-        sanitizeVercelEventProperties({
-          page: "/buyer/settings",
-          buyer_type: form.buyer_type,
-          industry: form.industry,
-          budget_range: form.budget_range,
-          communication_preference: form.communication_preference,
-        }),
-      );
-    } catch {
-      // Profile saving must not depend on anonymous analytics.
-    }
+    trackEvent("buyer_profile_updated", {
+      route: "/buyer/settings",
+      buyer_type: form.buyer_type,
+      industry: form.industry,
+      budget_range: form.budget_range,
+      communication_preference: form.communication_preference,
+    });
 
     setStatus({ kind: "success", message: "Buyer profile saved for review." });
     router.refresh();

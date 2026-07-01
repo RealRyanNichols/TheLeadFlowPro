@@ -172,11 +172,14 @@ async function insertEvent(eventName: string, data: z.infer<typeof SourceSubmiss
   await insertLeadFlowRow("events", {
     event_name: eventName,
     event_type: "server",
+    route: sourcePathOnly(data.source_path),
+    user_role: "anonymous",
     vertical: data.vertical,
     category: data.categories[0] ?? null,
     source_url: `https://www.theleadflowpro.com${sourcePathOnly(data.source_path)}`,
     source_path: sourcePathOnly(data.source_path),
     properties: {
+      user_role: "anonymous",
       source_type: data.source_type,
       risk_level: riskLevel,
       ...properties,

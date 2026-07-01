@@ -1,18 +1,17 @@
 import figma from "@figma/code-connect";
+import { AdminStatCard } from "../../src/components/dashboard/admin-stat-card";
+import { ExportConfirmModal } from "../../src/components/dashboard/export-confirm-modal";
+import { LeadProfileHeader, ToolCard } from "../../src/components/leadflow";
+import { MarketplaceCard } from "../../src/components/marketplace";
 import {
-  AdminStatCard,
   Badge,
   Button,
   ConfidenceBadge,
-  ExportConfirmModal,
-  LeadProfileHeader,
-  MarketplaceCard,
   ProgressIndicator,
   RiskBadge,
   ScoreBadge,
   StatusBadge,
-  ToolCard,
-} from "../../src/components/leadflow-system";
+} from "../../src/components/ui";
 
 /*
   Replace each PASTE_FIGMA_NODE_URL value with a published Figma component URL.

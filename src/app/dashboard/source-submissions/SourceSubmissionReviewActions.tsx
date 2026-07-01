@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { track } from "@vercel/analytics";
 import { CheckCircle2, FileSearch, Loader2, PackageCheck, ShieldAlert, XCircle } from "lucide-react";
-import { sanitizeVercelEventProperties } from "@/lib/analytics-taxonomy";
+import { trackEvent } from "@/lib/events";
 
 type ReviewAction =
   | "approve_research"
@@ -57,19 +56,12 @@ export function SourceSubmissionReviewActions({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Review action failed.");
-      try {
-        track(
-          "source_submission_reviewed",
-          sanitizeVercelEventProperties({
-            page: "/dashboard/source-submissions",
-            action,
-            source_type: sourceType,
-            risk_level: riskLevel,
-          }),
-        );
-      } catch {
-        // Analytics cannot block admin review.
-      }
+      trackEvent("admin_source_reviewed", {
+        route: "/dashboard/source-submissions",
+        action,
+        source_type: sourceType,
+        risk_level: riskLevel,
+      });
       setNotes("");
       router.refresh();
     } catch (err) {

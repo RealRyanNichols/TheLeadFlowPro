@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { track } from "@vercel/analytics";
 import {
   AlertTriangle,
   ArrowRight,
@@ -37,7 +36,7 @@ import {
   SourceProofChip,
   SuppressionStatusBadge,
 } from "@/components/leadflow-system";
-import { sanitizeVercelEventProperties } from "@/lib/analytics-taxonomy";
+import { trackEvent } from "@/lib/events";
 import type {
   LeadProfileHistoryRecord,
   LeadProfileScoreBreakdown,
@@ -81,20 +80,13 @@ function trackProfileEvent(
   profile: ProtectedLeadProfileDetail,
   properties: Record<string, string | number | boolean | null | undefined> = {},
 ) {
-  try {
-    track(
-      eventName,
-      sanitizeVercelEventProperties({
-        page: `/lead-profile/${profile.id}`,
-        signal_id: profile.id,
-        category: profile.category,
-        lead_score: profile.leadScore,
-        ...properties,
-      }),
-    );
-  } catch {
-    // Anonymous analytics should never block profile browsing.
-  }
+  trackEvent(eventName, {
+    route: `/lead-profile/${profile.id}`,
+    profile_id: profile.id,
+    category: profile.category,
+    score_range: profile.leadScore >= 80 ? "high" : profile.leadScore >= 60 ? "medium" : "low",
+    ...properties,
+  });
 }
 
 async function postProfileAction(profileId: string, role: ViewerRole, action: string) {

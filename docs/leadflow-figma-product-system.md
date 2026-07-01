@@ -27,6 +27,7 @@ That is a Figma project URL, not a design file URL. Code Connect needs published
 - Figma/Tokens Studio JSON: `src/design/leadflow-product-system.tokens.json`
 - Figma component manifest: `figma/leadflow-product-system.manifest.json`
 - Code Connect example: `figma/code-connect/LeadFlowProductSystem.figma.ts.example`
+- Component registry: `src/design/leadflow-component-registry.ts`
 
 ## Color Tokens
 
@@ -91,37 +92,37 @@ Create Figma number variables under `LeadFlow/Radius`.
 
 ## React Component Mapping
 
-All production-facing components export from `src/components/leadflow-system`.
+All production-facing components should import through the canonical shared directories. The deeper implementation currently re-exports from `src/components/leadflow-system` while the system is being split into stable product areas.
 
-| Figma name | React component | Core props |
-| --- | --- | --- |
-| `Component/Button/Primary` | `Button` | `variant`, `href`, `disabled` |
-| `Component/Badge` | `Badge` | `variant` |
-| `Component/ScoreBadge` | `ScoreBadge` | `score`, `variant`, `label` |
-| `Component/ConfidenceBadge` | `ConfidenceBadge` | `confidence`, `label` |
-| `Component/StatusBadge` | `StatusBadge` | `status`, `label` |
-| `Component/SourceProofChip` | `SourceProofChip` | `label`, `verified` |
-| `Component/SuppressionBadge` | `SuppressionStatusBadge` | `status`, `label` |
-| `Component/RiskBadge` | `RiskBadge` | `risk`, `label` |
-| `Component/BuyerPathCard` | `BuyerPathCard` | `title`, `body`, `href`, `proof` |
-| `Component/MarketplaceCard` | `MarketplaceCard` | `variant`, `score`, `confidence`, `title`, `category`, `href`, `locked`, `adminOnly` |
-| `Component/ListingPreviewModal` | `ListingPreviewModal` | `title`, `body`, `open` |
-| `Component/LeadProfileHeader` | `LeadProfileHeader` | `title`, `category`, `vertical`, `score`, `confidence`, `sourceStatus`, `suppressionStatus` |
-| `Component/ScoreBreakdownCard` | `ScoreBreakdownCard` | `title`, `items` |
-| `Component/SourceProofList` | `SourceProofList` | `items` |
-| `Component/BuyerRequestForm` | `BuyerRequestForm` | `title`, `ctaLabel` |
-| `Component/ToolCard` | `ToolCard` | `title`, `who`, `answer`, `time`, `dataCategory`, `href` |
-| `Component/QuestionnaireStep` | `QuestionnaireStep` | `eyebrow`, `title`, `body`, `current`, `total` |
-| `Component/ProgressIndicator` | `ProgressIndicator` | `current`, `total`, `label` |
-| `Component/AdminDataTable` | `AdminDataTable` | `title`, `columns`, `rows` |
-| `Component/AdminStatCard` | `AdminStatCard` | `title`, `value`, `trend`, `status` |
-| `Component/FilterBar` | `FilterBar` | `filters` |
-| `Component/SearchInput` | `SearchInput` | `label`, `placeholder` |
-| `Component/EmptyState` | `EmptyState` | `title`, `body`, `ctaLabel`, `href` |
-| `Component/LoadingState` | `LoadingState` | `label` |
-| `Component/ErrorState` | `ErrorState` | `title`, `body` |
-| `Component/ConsentModule` | `ConsentModule` | `title`, `body`, `bullets`, `status`, `ctaLabel` |
-| `Component/ExportConfirmModal` | `ExportConfirmModal` | `title`, `body`, `fieldGroups` |
+| Figma name | React component | Import path | Core props |
+| --- | --- | --- | --- |
+| `Component/Button/Primary` | `Button` | `@/components/ui` | `variant`, `href`, `disabled` |
+| `Component/Badge` | `Badge` | `@/components/ui` | `variant` |
+| `Component/ScoreBadge` | `ScoreBadge` | `@/components/ui` | `score`, `variant`, `label` |
+| `Component/ConfidenceBadge` | `ConfidenceBadge` | `@/components/ui` | `confidence`, `label` |
+| `Component/StatusBadge` | `StatusBadge` | `@/components/ui` | `status`, `label` |
+| `Component/SourceProofChip` | `SourceProofChip` | `@/components/ui` | `label`, `verified` |
+| `Component/SuppressionBadge` | `SuppressionStatusBadge` | `@/components/ui` | `status`, `label` |
+| `Component/RiskBadge` | `RiskBadge` | `@/components/ui` | `risk`, `label` |
+| `Component/BuyerPathCard` | `BuyerPathCard` | `@/components/leadflow` | `title`, `body`, `href`, `proof` |
+| `Component/MarketplaceCard` | `MarketplaceCard` | `@/components/marketplace` | `variant`, `score`, `confidence`, `title`, `category`, `href`, `locked`, `adminOnly` |
+| `Component/ListingPreviewModal` | `ListingPreviewModal` | `@/components/marketplace` | `title`, `body`, `open` |
+| `Component/LeadProfileHeader` | `LeadProfileHeader` | `@/components/leadflow` | `title`, `category`, `vertical`, `score`, `confidence`, `sourceStatus`, `suppressionStatus` |
+| `Component/ScoreBreakdownCard` | `ScoreBreakdownCard` | `@/components/leadflow` | `title`, `items` |
+| `Component/SourceProofList` | `SourceProofList` | `@/components/leadflow` | `items` |
+| `Component/BuyerRequestForm` | `BuyerRequestForm` | `@/components/forms` | `title`, `ctaLabel` |
+| `Component/ToolCard` | `ToolCard` | `@/components/leadflow` | `title`, `who`, `answer`, `time`, `dataCategory`, `href` |
+| `Component/QuestionnaireStep` | `QuestionnaireStep` | `@/components/forms` | `eyebrow`, `title`, `body`, `current`, `total` |
+| `Component/ProgressIndicator` | `ProgressIndicator` | `@/components/ui` | `current`, `total`, `label` |
+| `Component/AdminDataTable` | `AdminDataTable` | `@/components/dashboard/admin-data-table` | `title`, `columns`, `rows` |
+| `Component/AdminStatCard` | `AdminStatCard` | `@/components/dashboard/admin-stat-card` | `title`, `value`, `trend`, `status` |
+| `Component/FilterBar` | `FilterBar` | `@/components/leadflow` | `filters` |
+| `Component/SearchInput` | `SearchInput` | `@/components/leadflow` | `label`, `placeholder` |
+| `Component/EmptyState` | `EmptyState` | `@/components/ui` | `title`, `body`, `ctaLabel`, `href` |
+| `Component/LoadingState` | `LoadingState` | `@/components/ui` | `label` |
+| `Component/ErrorState` | `ErrorState` | `@/components/ui` | `title`, `body` |
+| `Component/ConsentModule` | `ConsentModule` | `@/components/forms` | `title`, `body`, `bullets`, `status`, `ctaLabel` |
+| `Component/ExportConfirmModal` | `ExportConfirmModal` | `@/components/dashboard/export-confirm-modal` | `title`, `body`, `fieldGroups` |
 
 ## Variants
 

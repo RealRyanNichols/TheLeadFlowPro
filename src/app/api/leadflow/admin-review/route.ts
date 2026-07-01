@@ -69,7 +69,7 @@ function uuidOrNull(value: string | null | undefined) {
 }
 
 function actionEventName(targetType: string, action: string) {
-  if (targetType === "lead_profile" && action === "approve") return "admin_profile_approved";
+  if (targetType === "lead_profile" || targetType === "lead_profiles_bulk") return "admin_profile_reviewed";
   if (targetType === "submitted_source") return "admin_source_reviewed";
   if (targetType === "buyer_request") return "admin_buyer_request_reviewed";
   if (targetType === "suppression_request") return "admin_suppression_resolved";
@@ -103,8 +103,13 @@ async function trackAdminEvent(eventName: string, properties: Record<string, unk
   await insertLeadFlowRow("events", {
     event_name: eventName,
     event_type: "server",
+    route: "/dashboard",
+    user_role: "admin",
     source_path: "/dashboard",
-    properties,
+    properties: {
+      ...properties,
+      user_role: "admin",
+    },
   }).catch(() => null);
 }
 

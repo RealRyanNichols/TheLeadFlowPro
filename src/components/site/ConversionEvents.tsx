@@ -2,8 +2,8 @@
 
 import Link, { type LinkProps } from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { track } from "@vercel/analytics";
 import { useEffect, useMemo, useState, type AnchorHTMLAttributes, type ReactNode } from "react";
+import { trackEvent } from "@/lib/events";
 
 type ConversionEventName =
   | "audit_start_click"
@@ -51,7 +51,49 @@ type ConversionEventName =
   | "preference_lab_category_click"
   | "preference_lab_result_click"
   | "preference_lab_save_submit"
-  | "preference_lab_deep_intake_click";
+  | "preference_lab_deep_intake_click"
+  | "homepage_viewed"
+  | "hero_cta_clicked"
+  | "buyer_lane_clicked"
+  | "system_lane_clicked"
+  | "submit_source_lane_clicked"
+  | "listing_card_clicked"
+  | "marketplace_viewed"
+  | "marketplace_filter_changed"
+  | "listing_preview_opened"
+  | "sample_request_started"
+  | "sample_request_submitted"
+  | "access_request_started"
+  | "access_request_submitted"
+  | "watchlist_added"
+  | "tools_hub_viewed"
+  | "tool_card_clicked"
+  | "questionnaire_started"
+  | "questionnaire_step_completed"
+  | "questionnaire_completed"
+  | "result_viewed"
+  | "consent_given"
+  | "contact_request_submitted"
+  | "submit_source_viewed"
+  | "source_submission_started"
+  | "source_submission_step_completed"
+  | "source_file_uploaded"
+  | "source_submission_completed"
+  | "source_submission_flagged"
+  | "buyer_login_started"
+  | "buyer_login_completed"
+  | "buyer_dashboard_viewed"
+  | "buyer_profile_updated"
+  | "buyer_request_viewed"
+  | "buyer_export_started"
+  | "buyer_export_completed"
+  | "admin_dashboard_viewed"
+  | "admin_table_filtered"
+  | "admin_profile_reviewed"
+  | "admin_source_reviewed"
+  | "admin_buyer_request_reviewed"
+  | "admin_export_created"
+  | "admin_suppression_resolved";
 
 type ConversionPayload = {
   route: string;
@@ -95,11 +137,7 @@ function attribution(route: string, ctaText: string, destination: string, source
 }
 
 function sendConversionEvent(eventName: ConversionEventName, payload: ConversionPayload) {
-  try {
-    track(eventName, payload);
-  } catch {
-    // Analytics must never block the buyer.
-  }
+  trackEvent(eventName, payload);
 
   try {
     window.fbq?.("trackCustom", eventName, payload);

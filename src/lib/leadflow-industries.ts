@@ -6,10 +6,12 @@ export type IndustryToolLink = {
 
 export type IndustryLeadProfile = {
   title: string;
+  category: string;
   score: number;
   confidence: "High" | "Medium" | "Review";
   sourceType: string;
   bestBuyer: string;
+  buyerUseCase: string;
   proof: string;
   nextAction: string;
 };
@@ -23,6 +25,8 @@ export type LeadFlowIndustryPage = {
   slug: string;
   title: string;
   shortTitle: string;
+  industryLabel: string;
+  opportunityLabel: string;
   eyebrow: string;
   metaTitle: string;
   metaDescription: string;
@@ -36,7 +40,11 @@ export type LeadFlowIndustryPage = {
   marketplaceAngle: string;
   buildSystemAngle: string;
   primaryKeywords: string[];
+  relatedSlugs: string[];
 };
+
+const standardComplianceNote =
+  "LeadFlow Pro uses public, submitted, permissioned, or consented signal data. Access is review-gated, suppression-aware, and source-backed. We do not promise guaranteed sales, revenue, lead volume, ROAS, conversion rate, or cost per lead.";
 
 const standardTools: IndustryToolLink[] = [
   {
@@ -47,7 +55,7 @@ const standardTools: IndustryToolLink[] = [
   {
     label: "What Type of Leads Should You Buy?",
     href: "/tools",
-    fit: "Match the buyer to the right lead marketplace product and release mode.",
+    fit: "Match the buyer to the right lead marketplace product, sample path, and release mode.",
   },
   {
     label: "Business Signal Score",
@@ -57,43 +65,96 @@ const standardTools: IndustryToolLink[] = [
 ];
 
 const systemKeywordFit =
-  "This vertical can connect lead generation, lead flow, business automation, lead scoring, CRM automation, website funnel cleanup, appointment booking, buyer intent, lead marketplace access, and source-backed leads. When the buyer needs the system built, the stack can include an AI receptionist, AI chatbot, AI agent, Facebook ads, Instagram ads, local business marketing, and missed-call, missed-text, and missed-DM follow-up.";
+  "The system path connects lead generation, lead flow, business automation, lead scoring, CRM automation, website funnel cleanup, appointment booking, buyer intent, lead marketplace access, and source-backed leads. When the buyer needs implementation, the build can include an AI receptionist, AI chatbot, AI agent, Facebook ads, Instagram ads, local business marketing, and missed-call, missed-text, and missed-DM follow-up.";
+
+function heroFor(opportunity: string) {
+  return `The LeadFlow Pro helps serious buyers find, score, review, and route ${opportunity} opportunities using source-backed signals, confidence labels, and clean follow-up paths.`;
+}
+
+function commonPain(industry: string, extra: string[] = []) {
+  return [
+    `Blind ${industry} lists get recycled, resold, and worked before a serious buyer can trust them.`,
+    "Old data kills follow-up because nobody knows when the signal was found, verified, or last reviewed.",
+    "Slow follow-up turns calls, texts, DMs, forms, comments, and ad clicks into missed revenue conversations.",
+    "Weak websites, unclear CTAs, no lead scoring, and no CRM routing make good attention hard to catch.",
+    "Most lists do not show source proof, suppression status, buyer fit, or a clear reason the person or business may care right now.",
+    ...extra,
+  ];
+}
+
+function commonFaq(input: {
+  industry: string;
+  signalAnswer: string;
+  differenceAnswer: string;
+  verifyAnswer: string;
+  exclusiveAnswer: string;
+  buildAnswer: string;
+}) {
+  return [
+    {
+      question: "What is a lead signal?",
+      answer: input.signalAnswer,
+    },
+    {
+      question: `How is this different from a ${input.industry} lead list?`,
+      answer: input.differenceAnswer,
+    },
+    {
+      question: "Do you verify the source?",
+      answer: input.verifyAnswer,
+    },
+    {
+      question: "Can I buy exclusive access?",
+      answer: input.exclusiveAnswer,
+    },
+    {
+      question: "Can you build this system inside my business?",
+      answer: input.buildAnswer,
+    },
+  ];
+}
 
 export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
   {
     slug: "ecommerce-leads",
-    title: "Ecommerce Lead Signals",
+    title: "Ecommerce lead signals with source proof.",
     shortTitle: "Ecommerce",
+    industryLabel: "Ecommerce",
+    opportunityLabel: "ecommerce",
     eyebrow: "Ecommerce lead generation",
-    metaTitle: "Ecommerce Leads and Buyer Signals | The LeadFlow Pro",
+    metaTitle: "Ecommerce Lead Signals | The LeadFlow Pro",
     metaDescription:
-      "Buy source-backed ecommerce lead signals or build a lead flow system for vendors, stores, agencies, product sourcers, and marketplace operators.",
-    hero:
-      "Ecommerce buyers do not need another scraped vendor CSV. They need source-backed leads that show product category, platform clue, sourcing pain, buyer intent, and a reason to start the conversation.",
-    buyerPain: [
-      "Vendor lists go stale before the first outreach sequence starts.",
-      "Agencies and sourcers cannot tell which stores need traffic, sourcing, conversion, or automation help.",
-      "Facebook ads and Instagram ads create attention, but weak website funnel and CRM automation paths lose the signal.",
-    ],
+      "Source-backed ecommerce lead signals for vendors, stores, agencies, product sourcers, and marketplace operators.",
+    hero: heroFor("ecommerce"),
+    buyerPain: commonPain("ecommerce", [
+      "Stores and vendors can look active from the outside while the real pain sits in sourcing, fulfillment, abandoned sites, weak offers, or poor conversion paths.",
+    ]),
     signalsMatter: [
-      "Platform, product type, storefront quality, and marketplace activity.",
-      "Revenue band, sourcing pain, ad traffic clue, abandoned cart or conversion path issue.",
-      "Freshness, source proof, lead scoring, contactability, and suppression status.",
+      "Vendor lists",
+      "Product sourcing signals",
+      "Marketplace seller signals",
+      "Abandoned brand sites",
+      "Active offer pages",
+      "Fulfillment pain",
+      "Product launch clues",
+      "Storefront conversion gaps",
     ],
     sampleProfile: {
       title: "Ecommerce Vendor Signal Pack",
+      category: "Ecommerce",
       score: 87,
       confidence: "High",
       sourceType: "Public marketplace plus submitted source review",
       bestBuyer: "Ecommerce agency, product sourcer, marketplace operator",
-      proof: "Sample rows, public source links, platform tags, product category, and review status.",
-      nextAction: "Request a reviewed sample, then decide shared or exclusive access.",
+      buyerUseCase: "Find vendors or stores that may need sourcing help, traffic, conversion cleanup, automation, or marketplace support.",
+      proof: "Sample rows, public source links, platform tags, product category, freshness, and review status.",
+      nextAction: "Request a reviewed sample, then decide shared, limited-seat, or exclusive access.",
     },
     availableTools: [
       {
         label: "Ecommerce Growth Finder",
         href: "/tools",
-        fit: "Map product, platform, sourcing, traffic, and conversion pain.",
+        fit: "Map platform, product, sourcing, traffic, conversion, and follow-up pain.",
       },
       {
         label: "Website Money Leak Checker",
@@ -102,52 +163,59 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
       },
       ...standardTools,
     ],
-    complianceNote:
-      "Ecommerce profiles are reviewed for source proof, permission status, suppression status, and buyer use case. LeadFlow does not release hacked stores, private account access, minors, or protected-trait targeting.",
-    faq: [
-      {
-        question: "What makes an ecommerce lead signal different from a vendor list?",
-        answer:
-          "A lead signal includes why the opportunity exists: product category, platform clue, source proof, score, confidence, freshness, and buyer use case. A plain list usually gives names without context.",
-      },
-      {
-        question: "Can LeadFlow build the ecommerce lead flow system too?",
-        answer:
-          "Yes. The build path can include a website funnel, AI chatbot, AI agent, CRM automation, follow-up, appointment booking, dashboards, and paid traffic setup without promising guaranteed sales or ROAS.",
-      },
-    ],
-    marketplaceAngle: "Browse ecommerce signal packs with source proof attached.",
+    complianceNote: standardComplianceNote,
+    faq: commonFaq({
+      industry: "ecommerce",
+      signalAnswer:
+        "An ecommerce lead signal is a source-backed clue that a store, vendor, marketplace seller, or product operator may have a real business need. It can include category, platform clue, offer page, sourcing pain, freshness, score, and proof.",
+      differenceAnswer:
+        "A list usually gives names without context. A signal product explains why the opportunity exists, how fresh it is, what proof is attached, what buyer use case fits, and what is still missing.",
+      verifyAnswer:
+        "Every released ecommerce profile should show source context, proof status, confidence, suppression status, and review status before a buyer sees more than the preview.",
+      exclusiveAnswer:
+        "Some ecommerce packs can be shared, limited-seat, or exclusive. Exclusive access depends on source rights, category, geography, risk level, buyer use case, and admin review.",
+      buildAnswer:
+        "Yes. The build path can include a website funnel, AI chatbot, AI agent, CRM automation, follow-up, appointment booking, dashboards, and paid traffic setup.",
+    }),
+    marketplaceAngle: "Browse ecommerce signal packs with proof attached.",
     buildSystemAngle: "Build the ecommerce capture, follow-up, ads, and automation system.",
-    primaryKeywords: ["ecommerce lead generation", "source-backed leads", "buyer intent", "lead marketplace"],
+    primaryKeywords: ["ecommerce lead generation", "lead marketplace", "buyer intent", "source-backed leads"],
+    relatedSlugs: ["ai-saas-leads", "creator-audience-leads", "local-business-leads"],
   },
   {
     slug: "real-estate-leads",
-    title: "Real Estate Lead Signals",
+    title: "Real estate lead signals with source proof.",
     shortTitle: "Real Estate",
+    industryLabel: "Real estate",
+    opportunityLabel: "real estate",
     eyebrow: "Real estate lead flow",
-    metaTitle: "Real Estate Leads and Opportunity Signals | The LeadFlow Pro",
+    metaTitle: "Real Estate Lead Signals | The LeadFlow Pro",
     metaDescription:
-      "Source-backed real estate lead signals for brokerages, agent teams, CRM operators, and local market builders without blind lists or hidden owner dossiers.",
-    hero:
-      "Real estate teams need market signals they can trust: listing movement, coverage gaps, neighborhood demand, agent opportunity, and clear follow-up paths.",
-    buyerPain: [
-      "Blind real estate lead lists are often stale, recycled, or already worked by too many people.",
-      "Teams spend on traffic before they know whether their appointment booking, CRM automation, and follow-up path can catch the demand.",
-      "Agents need buyer intent and source proof, not trademark-adjacent pages or hidden identity dossiers.",
-    ],
+      "Source-backed real estate opportunity signals for brokerages, agent teams, CRM operators, and local market builders.",
+    hero: heroFor("real estate"),
+    buyerPain: commonPain("real estate", [
+      "Real estate teams often spend on traffic before their intake, appointment booking, and CRM follow-up can catch active market demand.",
+    ]),
     signalsMatter: [
-      "Listing movement, neighborhood demand, coverage gaps, and inquiry patterns.",
-      "Agent or brokerage fit, market freshness, source proof, and lead scoring.",
-      "Missed calls, missed texts, missed DMs, website funnel gaps, and booking path weakness.",
+      "Agent activity",
+      "Neglected listing pages",
+      "Local demand",
+      "Expired listing-related public signals where legally allowed",
+      "Buyer education demand",
+      "Relocation content",
+      "Neighborhood search interest",
+      "CRM and booking path gaps",
     ],
     sampleProfile: {
       title: "Real Estate Agent Opportunity Map",
+      category: "Real estate",
       score: 76,
       confidence: "Medium",
-      sourceType: "Public listing pattern and market coverage review",
+      sourceType: "Public market activity and listing pattern review",
       bestBuyer: "Brokerage, agent team, CRM operator",
-      proof: "Listing movement, public source context, coverage gap, and buyer-use review.",
-      nextAction: "Request the opportunity map and confirm allowed market use.",
+      buyerUseCase: "Spot agent, market, content, or follow-up gaps where a reviewed outreach or system build makes sense.",
+      proof: "Listing movement, public source context, coverage gap, freshness, and review notes.",
+      nextAction: "Request the opportunity map and confirm the allowed market use.",
     },
     availableTools: [
       {
@@ -162,51 +230,58 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
       },
       ...standardTools,
     ],
-    complianceNote:
-      "Real estate data products must stay source-backed and review-gated. LeadFlow does not sell hidden homeowner dossiers, protected-trait targeting, private financial account data, or contact routing without the right consent mode.",
-    faq: [
-      {
-        question: "Is this a blind real estate lead list?",
-        answer:
-          "No. The page is built around market signals, source proof, lead scoring, freshness, buyer fit, and review status. The goal is a better reason to start a conversation.",
-      },
-      {
-        question: "Can a real estate team use this for local business marketing?",
-        answer:
-          "Yes, when the use case is reviewed and lawful. The system can support local business marketing, website funnel cleanup, AI receptionist routing, and CRM automation.",
-      },
-    ],
+    complianceNote: standardComplianceNote,
+    faq: commonFaq({
+      industry: "real estate",
+      signalAnswer:
+        "A real estate lead signal is a reviewed market clue tied to source proof, timing, geography, buyer education demand, listing activity, or a follow-up gap.",
+      differenceAnswer:
+        "A list can hide stale records and unclear origin. A signal page keeps source context, confidence, freshness, review status, and buyer use case attached.",
+      verifyAnswer:
+        "Real estate profiles are reviewed for public source context, freshness, suppression status, and appropriate buyer use before deeper access is released.",
+      exclusiveAnswer:
+        "Some real estate signal products may be available by market, category, or time window. Exclusive access is manually reviewed before release.",
+      buildAnswer:
+        "Yes. LeadFlow can build real estate landing pages, AI receptionist routing, CRM automation, appointment booking, follow-up, dashboards, and ad tracking.",
+    }),
     marketplaceAngle: "Open reviewed real estate opportunity signals.",
     buildSystemAngle: "Build the real estate follow-up, booking, and automation system.",
     primaryKeywords: ["real estate leads", "lead flow", "appointment booking", "CRM automation"],
+    relatedSlugs: ["mortgage-leads", "home-service-leads", "local-business-leads"],
   },
   {
     slug: "mortgage-leads",
-    title: "Mortgage Lead Signals",
+    title: "Mortgage lead signals with source proof.",
     shortTitle: "Mortgage",
+    industryLabel: "Mortgage",
+    opportunityLabel: "mortgage",
     eyebrow: "Mortgage lead readiness",
-    metaTitle: "Mortgage Leads and Refi Interest Signals | The LeadFlow Pro",
+    metaTitle: "Mortgage Lead Signals | The LeadFlow Pro",
     metaDescription:
-      "Consent-aware mortgage and refi interest signals for licensed buyers, with source proof, suppression checks, and named routing controls.",
-    hero:
-      "Mortgage buyers need permissioned interest, not vague lead resale. The signal has to show timing, loan interest type, consent path, licensed-area fit, and clean follow-up status.",
-    buyerPain: [
-      "Shared mortgage leads often arrive late, over-sold, or without a clear consent path.",
-      "Teams cannot safely act when the lead source, seller permission, or suppression status is unclear.",
-      "Slow replies, missed texts, and weak appointment booking turn expensive interest into dead follow-up.",
-    ],
+      "Consent-aware mortgage and refinance interest signals for licensed buyers, with source proof and suppression checks.",
+    hero: heroFor("mortgage and refinance"),
+    buyerPain: commonPain("mortgage", [
+      "Mortgage teams cannot act safely when loan interest, state fit, consent, seller scope, or suppression status is unclear.",
+    ]),
     signalsMatter: [
-      "Loan interest type, timing, state or licensed-area fit, and named consent status.",
-      "Lead scoring, urgency, source proof, contactability, and suppression status.",
-      "Non-account financial ranges only when disclosed and useful. No private account access.",
+      "Refinance interest",
+      "VA loan education",
+      "Rate concern signals",
+      "Mortgage statement review requests",
+      "Homeowner education pages",
+      "Consented questionnaire responses",
+      "Licensed-area fit",
+      "Contact preference and named routing permission",
     ],
     sampleProfile: {
       title: "Mortgage Refi Interest Signal",
+      category: "Mortgage",
       score: 81,
       confidence: "High",
       sourceType: "Consented questionnaire and named partner path",
-      bestBuyer: "Licensed mortgage team or approved refi partner",
-      proof: "Consent snapshot, source URL, timing, broad interest category, and suppression status.",
+      bestBuyer: "Licensed mortgage team or approved refinance partner",
+      buyerUseCase: "Review broad refinance interest, timing, consent scope, licensed-area fit, and allowed follow-up path.",
+      proof: "Consent snapshot, source URL, timing, broad interest category, review status, and suppression check.",
       nextAction: "Review licensed-area fit before any named routing or contact.",
     },
     availableTools: [
@@ -222,52 +297,126 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
       },
       ...standardTools,
     ],
-    complianceNote:
-      "Mortgage and refi signals require careful review. LeadFlow does not collect SSNs, credit report credentials, bank account access, private financial account data, minors, or hidden sensitive data. Licensed partner fit matters before release.",
-    faq: [
-      {
-        question: "Can mortgage leads be routed to any buyer?",
-        answer:
-          "No. Mortgage routing must account for consent, named partner scope, licensed-area fit, suppression status, source proof, and buyer-use review.",
-      },
-      {
-        question: "Does LeadFlow guarantee mortgage lead volume or closing rate?",
-        answer:
-          "No. LeadFlow can provide source-backed signals, scoring, review, routing logic, automation, and follow-up systems. It does not guarantee lead volume, CPL, ROAS, closings, or revenue.",
-      },
-    ],
-    marketplaceAngle: "Review mortgage and refi signals with compliance status visible.",
+    complianceNote: standardComplianceNote,
+    faq: commonFaq({
+      industry: "mortgage",
+      signalAnswer:
+        "A mortgage lead signal is a consent-aware clue about broad loan interest, timing, state fit, education need, or follow-up preference. It should not include SSNs, bank access, credit credentials, or private account data.",
+      differenceAnswer:
+        "A mortgage list can be over-sold or unclear. A signal product shows source proof, consent scope, suppression status, licensed-area fit, confidence, and review status.",
+      verifyAnswer:
+        "Mortgage signals are reviewed for consent path, source context, licensed-area fit, suppression status, and allowed use before release.",
+      exclusiveAnswer:
+        "Exclusive mortgage access requires manual review because consent, licensing, geography, contact fields, and source rights matter.",
+      buildAnswer:
+        "Yes. LeadFlow can build mortgage intake, AI receptionist response, appointment booking, CRM automation, follow-up, dashboards, and reporting.",
+    }),
+    marketplaceAngle: "Review mortgage and refinance signals with compliance status visible.",
     buildSystemAngle: "Build the mortgage response, booking, AI receptionist, and CRM automation system.",
-    primaryKeywords: ["mortgage leads", "buyer intent", "AI receptionist", "lead scoring"],
+    primaryKeywords: ["mortgage leads", "lead scoring", "AI receptionist", "buyer intent"],
+    relatedSlugs: ["va-irrrl-leads", "real-estate-leads", "home-service-leads"],
+  },
+  {
+    slug: "va-irrrl-leads",
+    title: "VA IRRRL lead signals with source proof.",
+    shortTitle: "VA IRRRL",
+    industryLabel: "VA IRRRL",
+    opportunityLabel: "VA IRRRL education and refinance",
+    eyebrow: "VA refinance education signals",
+    metaTitle: "VA IRRRL Lead Signals | The LeadFlow Pro",
+    metaDescription:
+      "Consent-aware VA IRRRL education and refinance interest signals for licensed mortgage buyers and approved routing paths.",
+    hero: heroFor("VA IRRRL education and refinance"),
+    buyerPain: commonPain("VA IRRRL", [
+      "VA refinance interest is easy to mishandle when buyers cannot see consent, timing, licensed-area fit, or allowed use.",
+    ]),
+    signalsMatter: [
+      "VA refinance education interest",
+      "Rate concern signals",
+      "Mortgage payment review requests",
+      "Broad timeline and state fit",
+      "Consent to contact",
+      "Named seller or selected seller permission",
+      "Suppression status",
+      "Licensed buyer fit",
+    ],
+    sampleProfile: {
+      title: "VA IRRRL Education Interest Signal",
+      category: "Mortgage",
+      score: 80,
+      confidence: "Review",
+      sourceType: "Consented education tool and licensed routing review",
+      bestBuyer: "Licensed VA mortgage team",
+      buyerUseCase: "Identify consented VA refinance education interest and route only when the buyer, state, consent, and allowed use fit.",
+      proof: "Consent text, source path, broad timeline, state band, review notes, and suppression check.",
+      nextAction: "Confirm licensing and named consent before routing or deeper access.",
+    },
+    availableTools: [
+      {
+        label: "Mortgage Lead Readiness Tool",
+        href: "/tools",
+        fit: "Collect broad education intent and route only through the right consent path.",
+      },
+      {
+        label: "Lead Leak Audit",
+        href: "/tools",
+        fit: "Find missed calls, texts, and follow-up failures in the mortgage response path.",
+      },
+      ...standardTools,
+    ],
+    complianceNote: standardComplianceNote,
+    faq: commonFaq({
+      industry: "VA IRRRL",
+      signalAnswer:
+        "A VA IRRRL lead signal is a consent-aware clue about refinance education interest, timing, state fit, or follow-up preference. It is not a credit file, benefit claim, or private financial account record.",
+      differenceAnswer:
+        "A basic list may not show where the interest came from or what consent allows. A VA IRRRL signal should show source proof, consent version, suppression status, licensed-area fit, and review status.",
+      verifyAnswer:
+        "VA IRRRL signals require review for consent, source path, licensing fit, suppressed records, and allowed use before any named buyer receives deeper access.",
+      exclusiveAnswer:
+        "Exclusive VA IRRRL access can be requested, but it is manually reviewed for territory, license fit, source rights, consent scope, and compliance risk.",
+      buildAnswer:
+        "Yes. LeadFlow can build education pages, intake tools, AI receptionist follow-up, appointment booking, CRM automation, dashboards, and reporting.",
+    }),
+    marketplaceAngle: "Review consent-aware VA IRRRL education signals.",
+    buildSystemAngle: "Build the VA refinance education, intake, and follow-up system.",
+    primaryKeywords: ["VA IRRRL leads", "mortgage leads", "lead scoring", "appointment booking"],
+    relatedSlugs: ["mortgage-leads", "real-estate-leads", "home-service-leads"],
   },
   {
     slug: "home-service-leads",
-    title: "Home Service Lead Signals",
+    title: "Home service lead signals with source proof.",
     shortTitle: "Home Services",
+    industryLabel: "Home service",
+    opportunityLabel: "home service",
     eyebrow: "Home service lead generation",
-    metaTitle: "Home Service Leads and Local Demand Signals | The LeadFlow Pro",
+    metaTitle: "Home Service Lead Signals | The LeadFlow Pro",
     metaDescription:
-      "Source-backed home service lead signals for contractors, roofers, HVAC, plumbing, restoration, and local operators who need cleaner demand.",
-    hero:
-      "Home service businesses lose money when calls, texts, forms, and DMs are not caught fast enough. The best lead flow shows local demand, service category, timing, and follow-up readiness.",
-    buyerPain: [
-      "Contractors buy generic lead generation lists with no proof, no freshness, and too many competitors.",
-      "Missed calls, missed texts, missed DMs, and weak appointment booking waste demand the business already earned.",
-      "Local business marketing breaks when Facebook ads, Instagram ads, and website funnels are not connected to CRM automation.",
-    ],
+      "Source-backed home service demand signals for contractors, HVAC, plumbing, restoration, and local operators.",
+    hero: heroFor("home service"),
+    buyerPain: commonPain("home service", [
+      "Seasonal demand moves fast, and local operators lose serious jobs when calls, quote forms, and texts sit too long.",
+    ]),
     signalsMatter: [
-      "City, service category, urgency, search demand, directory gaps, review patterns, and route fit.",
-      "Source-backed leads with lead scoring, confidence, freshness, and suppression checks.",
-      "Speed-to-lead, AI receptionist fit, booking path, and owner-visible dashboard status.",
+      "Missed call demand",
+      "Quote request behavior",
+      "Local service gaps",
+      "Seasonal demand",
+      "Neighborhood growth",
+      "Competitor website weakness",
+      "Review pattern changes",
+      "Appointment booking friction",
     ],
     sampleProfile: {
-      title: "Contractor Demand Signal",
+      title: "Local Service Route Signal",
+      category: "Home services",
       score: 84,
       confidence: "High",
-      sourceType: "Public demand clue and service route review",
-      bestBuyer: "Roofing, HVAC, plumbing, remodeling, restoration",
-      proof: "Search demand, directory gap, review pattern, source link, and category tags.",
-      nextAction: "Request the local sample and confirm category, city, and release mode.",
+      sourceType: "Public demand clue and local route review",
+      bestBuyer: "Roofing, HVAC, plumbing, restoration, remodeling, landscaping",
+      buyerUseCase: "Find local service categories where demand, weak follow-up, or competitor gaps create a better entry point.",
+      proof: "Search demand clue, directory gap, review pattern, source link, category tags, and suppression status.",
+      nextAction: "Request the local sample and confirm category, city, and access model.",
     },
     availableTools: [
       {
@@ -282,51 +431,125 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
       },
       ...standardTools,
     ],
-    complianceNote:
-      "Home service signals are reviewed for source proof, suppression status, and buyer use case. LeadFlow does not promise jobs, booked appointments, ROAS, CPL, or exclusive volume.",
-    faq: [
-      {
-        question: "What home service businesses fit this page?",
-        answer:
-          "Roofing, HVAC, plumbing, electrical, remodeling, restoration, landscaping, pest control, and other local operators can use source-backed demand signals and lead flow systems.",
-      },
-      {
-        question: "Can LeadFlow help fix missed calls and texts?",
-        answer:
-          "Yes. The build path can include AI receptionist logic, AI chatbot intake, CRM automation, appointment booking, owner alerts, and follow-up sequences.",
-      },
-    ],
-    marketplaceAngle: "Browse reviewed local service route and contractor demand signals.",
+    complianceNote: standardComplianceNote,
+    faq: commonFaq({
+      industry: "home service",
+      signalAnswer:
+        "A home service lead signal is a source-backed clue about local demand, quote behavior, missed response paths, seasonal need, or competitor weakness.",
+      differenceAnswer:
+        "A lead list usually gives contact rows. A signal product explains city, category, source proof, score, confidence, freshness, suppression status, and buyer use case.",
+      verifyAnswer:
+        "Released home service signals should include source proof status, freshness, review status, suppression checks, and a clear allowed use.",
+      exclusiveAnswer:
+        "Some local packs may be exclusive by city, service category, territory, or time window after review.",
+      buildAnswer:
+        "Yes. LeadFlow can build an AI receptionist, missed-call text-back, quote forms, CRM automation, appointment booking, ads tracking, and owner dashboards.",
+    }),
+    marketplaceAngle: "Browse reviewed home service demand signals.",
     buildSystemAngle: "Build the missed-call, booking, follow-up, and local ads system.",
-    primaryKeywords: ["home service leads", "local business marketing", "missed calls", "CRM automation"],
+    primaryKeywords: ["home service leads", "missed calls", "local business marketing", "CRM automation"],
+    relatedSlugs: ["contractor-leads", "local-business-leads", "real-estate-leads"],
+  },
+  {
+    slug: "contractor-leads",
+    title: "Contractor lead signals with source proof.",
+    shortTitle: "Contractor",
+    industryLabel: "Contractor",
+    opportunityLabel: "contractor",
+    eyebrow: "Contractor demand signals",
+    metaTitle: "Contractor Lead Signals | The LeadFlow Pro",
+    metaDescription:
+      "Source-backed contractor lead signals for roofers, remodelers, trades, local crews, agencies, and operators.",
+    hero: heroFor("contractor"),
+    buyerPain: commonPain("contractor", [
+      "Contractors need jobs, but many lead sellers give them recycled rows with no source proof, no job context, and no clear follow-up path.",
+    ]),
+    signalsMatter: [
+      "Quote request behavior",
+      "Storm, repair, remodel, and seasonal demand",
+      "Weak contractor websites",
+      "Missed call and slow text signals",
+      "Service area gaps",
+      "Review and reputation clues",
+      "Public directory gaps",
+      "Budget and timeline ranges where consented",
+    ],
+    sampleProfile: {
+      title: "Contractor Demand Signal",
+      category: "Contractor",
+      score: 85,
+      confidence: "High",
+      sourceType: "Local demand review and consented tool path",
+      bestBuyer: "Contractor, trades agency, local service operator",
+      buyerUseCase: "Find service demand and weak follow-up paths that can support a sample request, access request, or system build.",
+      proof: "Source URL, category, city, service need, freshness, proof status, and suppression status.",
+      nextAction: "Request a category sample or start a custom sourcing request for a territory.",
+    },
+    availableTools: [
+      {
+        label: "Website Money Leak Checker",
+        href: "/tools/seo-grader",
+        fit: "Find the website funnel and CTA problems that make contractors lose jobs.",
+      },
+      {
+        label: "Local Demand Finder",
+        href: "/tools",
+        fit: "Map local service category and timing demand.",
+      },
+      ...standardTools,
+    ],
+    complianceNote: standardComplianceNote,
+    faq: commonFaq({
+      industry: "contractor",
+      signalAnswer:
+        "A contractor lead signal is a reviewed clue tied to service need, geography, timing, website weakness, quote behavior, or follow-up gap.",
+      differenceAnswer:
+        "A list can be stale and overworked. A contractor signal explains why the opportunity exists, where it came from, how fresh it is, and what use is allowed.",
+      verifyAnswer:
+        "Contractor signals are reviewed for source proof, suppression status, category fit, confidence, and buyer use case before deeper access.",
+      exclusiveAnswer:
+        "A contractor buyer can request exclusive territory, service category, or time-window access when the listing supports it and admin review approves it.",
+      buildAnswer:
+        "Yes. LeadFlow can build contractor funnels, AI receptionist response, quote forms, missed-call follow-up, CRM routing, appointment booking, dashboards, and ads setup.",
+    }),
+    marketplaceAngle: "Browse contractor demand signals with proof attached.",
+    buildSystemAngle: "Build the contractor quote, booking, and follow-up system.",
+    primaryKeywords: ["contractor leads", "home service leads", "lead flow", "website funnel"],
+    relatedSlugs: ["home-service-leads", "local-business-leads", "dental-marketing-leads"],
   },
   {
     slug: "dental-marketing-leads",
-    title: "Dental Marketing Lead Signals",
+    title: "Dental marketing lead signals with source proof.",
     shortTitle: "Dental",
-    eyebrow: "Dental marketing lead flow",
-    metaTitle: "Dental Marketing Leads and Appointment Signals | The LeadFlow Pro",
+    industryLabel: "Dental marketing",
+    opportunityLabel: "dental marketing and appointment",
+    eyebrow: "Dental appointment demand",
+    metaTitle: "Dental Marketing Lead Signals | The LeadFlow Pro",
     metaDescription:
       "Dental marketing lead signals and lead flow systems for appointment demand, missed calls, local ads, AI reception, and compliant follow-up.",
-    hero:
-      "Dental offices need non-medical appointment intent, fast response, and a cleaner path from ad click or local search to booked visit.",
-    buyerPain: [
-      "Dental marketing spend leaks when calls are missed, texts sit unanswered, and forms are not routed.",
-      "Facebook ads, Instagram ads, and local business marketing do not work well if the office cannot catch appointment intent.",
-      "Generic dental lists often lack source proof, freshness, consent status, and compliance boundaries.",
-    ],
+    hero: heroFor("dental marketing and appointment"),
+    buyerPain: commonPain("dental marketing", [
+      "Dental offices lose appointment demand when calls are missed, texts sit unanswered, forms go nowhere, and front-desk follow-up is not measured.",
+    ]),
     signalsMatter: [
-      "Broad appointment interest, location, timing, service category, source path, and contact preference.",
-      "Missed calls, missed texts, missed DMs, booking gaps, and website funnel friction.",
-      "Lead scoring, confidence, suppression status, and review-gated buyer access.",
+      "Broad appointment interest",
+      "Missed calls and missed texts",
+      "Local search gaps",
+      "Website funnel issues",
+      "Appointment booking friction",
+      "Ad response path",
+      "Location and timing",
+      "Contact preference with consent",
     ],
     sampleProfile: {
       title: "Dental Appointment Demand Signal",
+      category: "Dental marketing",
       score: 83,
       confidence: "High",
       sourceType: "Consented tool answer and local funnel review",
       bestBuyer: "Dental office, dental marketer, call handling team",
-      proof: "Source URL, broad appointment category, timing, contact preference, and suppression status.",
+      buyerUseCase: "Identify broad appointment demand and the office follow-up path needed to handle it.",
+      proof: "Source URL, broad appointment category, timing, contact preference, suppression status, and review notes.",
       nextAction: "Request sample structure, then decide whether to buy signals or build the office system.",
     },
     availableTools: [
@@ -342,51 +565,58 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
       },
       ...standardTools,
     ],
-    complianceNote:
-      "Dental pages must avoid collecting medical details, health history, minors, or sensitive health data in the general product. Broad appointment interest and contact preference can be reviewed without turning the profile into a health dossier.",
-    faq: [
-      {
-        question: "Can this collect dental patient health information?",
-        answer:
-          "No. The general LeadFlow product should collect broad appointment intent, location, timing, and contact path only. Medical details and minors are out of scope.",
-      },
-      {
-        question: "What can be built for a dental office?",
-        answer:
-          "LeadFlow can build an AI receptionist path, AI chatbot intake, CRM automation, appointment booking flow, follow-up sequences, and a website funnel without guaranteeing patient volume or revenue.",
-      },
-    ],
+    complianceNote: standardComplianceNote,
+    faq: commonFaq({
+      industry: "dental marketing",
+      signalAnswer:
+        "A dental marketing signal is a business-safe clue about appointment demand, local search friction, website leaks, call handling, or follow-up readiness.",
+      differenceAnswer:
+        "A basic list does not explain timing, source proof, suppression status, contact permission, or office follow-up readiness. A signal product does.",
+      verifyAnswer:
+        "Dental signals should be reviewed for source proof, consent, suppression status, and allowed use. The general product should not collect medical details or health histories.",
+      exclusiveAnswer:
+        "Exclusive access may be available by market, service category, or time window after review.",
+      buildAnswer:
+        "Yes. LeadFlow can build dental funnels, AI receptionist routing, appointment booking, missed-call follow-up, CRM automation, local ads tracking, and reporting.",
+    }),
     marketplaceAngle: "Review dental appointment demand signals and sample structure.",
     buildSystemAngle: "Build the dental missed-call, booking, and follow-up system.",
     primaryKeywords: ["dental marketing leads", "appointment booking", "AI receptionist", "website funnel"],
+    relatedSlugs: ["local-business-leads", "home-service-leads", "legal-leads"],
   },
   {
     slug: "legal-leads",
-    title: "Legal Lead Signals",
+    title: "Legal lead signals with source proof.",
     shortTitle: "Legal",
-    eyebrow: "Legal lead generation",
-    metaTitle: "Legal Leads and Consented Inquiry Signals | The LeadFlow Pro",
+    industryLabel: "Legal",
+    opportunityLabel: "legal inquiry",
+    eyebrow: "Legal inquiry signals",
+    metaTitle: "Legal Lead Signals | The LeadFlow Pro",
     metaDescription:
-      "Consent-aware legal lead signals and intake systems for attorneys and legal marketers, with source proof, suppression controls, and review-gated release.",
-    hero:
-      "Legal leads are too sensitive for mystery lists. The usable signal is a consented inquiry, jurisdiction fit, case category, urgency, source proof, and a clean next step.",
-    buyerPain: [
-      "Legal lead generation breaks when the source, consent, jurisdiction, or case category is unclear.",
-      "Attorneys and legal marketers waste time on recycled inquiries with no proof of current intent.",
-      "Missed calls, missed texts, missed DMs, and slow intake can lose serious inquiries before review.",
-    ],
+      "Consent-aware legal inquiry signals and intake systems for attorneys and legal marketers, with source proof and review-gated release.",
+    hero: heroFor("legal inquiry"),
+    buyerPain: commonPain("legal", [
+      "Legal buyers need jurisdiction, practice area, consent scope, urgency, conflict awareness, and a clean source path before intake can be trusted.",
+    ]),
     signalsMatter: [
-      "Case category, jurisdiction, urgency, contact preference, source URL, and consent status.",
-      "Named seller or selected seller permission before attorney or legal vendor routing.",
-      "Lead scoring, suppression status, buyer use case, and review history.",
+      "Practice-area demand",
+      "Local search gaps",
+      "Intake form issues",
+      "Missed consultation flow",
+      "Jurisdiction and category fit",
+      "Consented inquiry path",
+      "Source-backed public business signals",
+      "Suppression and do-not-contact status",
     ],
     sampleProfile: {
       title: "Legal Inquiry Readiness Signal",
+      category: "Legal",
       score: 78,
       confidence: "Review",
       sourceType: "Consented inquiry and source-path review",
       bestBuyer: "Attorney, intake team, legal marketing operator",
-      proof: "Questionnaire path, category, jurisdiction band, consent text, and suppression check.",
+      buyerUseCase: "Review category, jurisdiction, urgency, consent, and intake path before routing or buying deeper access.",
+      proof: "Questionnaire path, category, jurisdiction band, consent text, proof status, and suppression check.",
       nextAction: "Review buyer eligibility, conflict rules, and named routing before access.",
     },
     availableTools: [
@@ -402,51 +632,58 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
       },
       ...standardTools,
     ],
-    complianceNote:
-      "Legal signals require review. LeadFlow does not provide legal advice, guarantee case outcomes, sell minors, publish hidden sensitive records, or route inquiries to unnamed sellers. Buyer access must match consent, jurisdiction, suppression, and use case.",
-    faq: [
-      {
-        question: "Are legal lead signals sold like ordinary business leads?",
-        answer:
-          "No. Legal inquiries need stricter consent, source proof, jurisdiction fit, conflict-aware review, suppression controls, and buyer-use limits.",
-      },
-      {
-        question: "Can LeadFlow build legal intake automation?",
-        answer:
-          "Yes. It can build intake forms, AI chatbot triage, CRM automation, appointment booking, and dashboards. It should not replace licensed legal advice.",
-      },
-    ],
+    complianceNote: standardComplianceNote,
+    faq: commonFaq({
+      industry: "legal",
+      signalAnswer:
+        "A legal lead signal is a consent-aware clue about inquiry category, jurisdiction fit, urgency, source path, and allowed follow-up. It is not legal advice and not a guaranteed case.",
+      differenceAnswer:
+        "A list can hide old or unclear inquiries. A legal signal keeps category, source proof, consent, suppression, buyer fit, review status, and caution notes attached.",
+      verifyAnswer:
+        "Legal signals require review for source proof, consent scope, jurisdiction, suppression, and buyer use before release.",
+      exclusiveAnswer:
+        "Exclusive legal access is manually reviewed because source rights, jurisdiction, conflicts, seller scope, and consent matter.",
+      buildAnswer:
+        "Yes. LeadFlow can build legal intake, AI chatbot triage, CRM automation, appointment booking, dashboards, and follow-up. It should not replace licensed legal advice.",
+    }),
     marketplaceAngle: "Request review-gated legal inquiry signal samples.",
     buildSystemAngle: "Build the legal intake, routing, CRM, and follow-up system.",
     primaryKeywords: ["legal leads", "lead generation", "AI chatbot", "lead scoring"],
+    relatedSlugs: ["dental-marketing-leads", "local-business-leads", "political-data-and-issue-signals"],
   },
   {
     slug: "ai-saas-leads",
-    title: "AI SaaS Lead Signals",
+    title: "AI SaaS lead signals with source proof.",
     shortTitle: "AI SaaS",
-    eyebrow: "AI and SaaS lead marketplace",
-    metaTitle: "AI SaaS Leads and Launch Signals | The LeadFlow Pro",
+    industryLabel: "AI SaaS",
+    opportunityLabel: "AI SaaS",
+    eyebrow: "AI and SaaS demand signals",
+    metaTitle: "AI SaaS Lead Signals | The LeadFlow Pro",
     metaDescription:
       "AI SaaS lead signals for agencies, integration builders, automation shops, and software teams looking for source-backed buyer intent.",
-    hero:
-      "AI and SaaS teams need launch, pricing, integration, usage, and workflow signals before the market gets crowded.",
-    buyerPain: [
-      "AI tool lists are noisy and rarely show who needs setup, integration, automation, or distribution help.",
-      "SaaS teams can get attention but miss the lead flow when website funnel, CRM automation, and follow-up are weak.",
-      "Buyers need source-backed leads, not fake AI screenshots or scraped private identity records.",
-    ],
+    hero: heroFor("AI SaaS"),
+    buyerPain: commonPain("AI SaaS", [
+      "AI tool lists are noisy, and many do not show who needs setup, integration, workflow automation, distribution, or CRM follow-up.",
+    ]),
     signalsMatter: [
-      "Launch page, pricing page, product category, integration clue, founder signal, and traffic clue.",
-      "Buyer intent from tool comparisons, workflow pain, automation readiness, and implementation budget band.",
-      "Freshness, lead scoring, source proof, confidence, and aggregate versus named release mode.",
+      "AI tool launch signals",
+      "Pricing page changes",
+      "Integration needs",
+      "Workflow pain",
+      "Automation readiness",
+      "Comparison and buying intent",
+      "Product category and adoption clue",
+      "Implementation budget band where consented",
     ],
     sampleProfile: {
       title: "AI Tool Launch Signal",
+      category: "AI SaaS",
       score: 82,
       confidence: "Medium",
       sourceType: "Launch page, pricing page, and public adoption clue",
       bestBuyer: "SaaS agency, integration builder, automation shop",
-      proof: "Launch post, pricing page, category tags, traffic clue, and review notes.",
+      buyerUseCase: "Find AI tools, SaaS teams, and businesses that may need setup, integration, automation, or distribution support.",
+      proof: "Launch post, pricing page, category tags, traffic clue, freshness, and review notes.",
       nextAction: "Request sample profiles and build a watchlist for relevant categories.",
     },
     availableTools: [
@@ -462,51 +699,58 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
       },
       ...standardTools,
     ],
-    complianceNote:
-      "AI SaaS signals are reviewed for public source proof, permission status, and buyer use case. LeadFlow does not use hacked accounts, hidden private workspace data, protected traits, or individual political persuasion targeting.",
-    faq: [
-      {
-        question: "Who buys AI SaaS lead signals?",
-        answer:
-          "Agencies, integration builders, automation shops, productized service providers, software companies, and operators looking for workflow pain and implementation demand.",
-      },
-      {
-        question: "Can this feed an AI agent sales system?",
-        answer:
-          "Yes. The build path can connect source-backed signals to scoring, CRM automation, AI agent follow-up, appointment booking, and dashboards without guaranteeing conversion rates.",
-      },
-    ],
+    complianceNote: standardComplianceNote,
+    faq: commonFaq({
+      industry: "AI SaaS",
+      signalAnswer:
+        "An AI SaaS lead signal is a source-backed clue about launch activity, workflow pain, implementation interest, pricing review, integration need, or automation readiness.",
+      differenceAnswer:
+        "A tool list gives names. A signal product explains why the opportunity exists, what proof is attached, how fresh it is, and what buyer use case fits.",
+      verifyAnswer:
+        "AI SaaS signals are reviewed for public source proof, permission status, confidence, suppression, and buyer use case.",
+      exclusiveAnswer:
+        "Some AI SaaS signal products can be sold as shared, limited-seat, exclusive category, or time-window access after review.",
+      buildAnswer:
+        "Yes. LeadFlow can build AI SaaS funnels, demo request paths, AI agent follow-up, CRM automation, lead scoring, dashboards, and reporting.",
+    }),
     marketplaceAngle: "Open AI SaaS launch and automation demand signals.",
     buildSystemAngle: "Build the AI SaaS capture, scoring, chatbot, and CRM system.",
     primaryKeywords: ["AI SaaS leads", "AI agent", "business automation", "buyer intent"],
+    relatedSlugs: ["ecommerce-leads", "creator-audience-leads", "local-business-leads"],
   },
   {
     slug: "local-business-leads",
-    title: "Local Business Lead Signals",
+    title: "Local business lead signals with source proof.",
     shortTitle: "Local Business",
+    industryLabel: "Local business",
+    opportunityLabel: "local business",
     eyebrow: "Local business marketing",
-    metaTitle: "Local Business Leads and Lead Flow Systems | The LeadFlow Pro",
+    metaTitle: "Local Business Lead Signals | The LeadFlow Pro",
     metaDescription:
-      "Local business lead generation, source-backed demand signals, AI receptionist paths, CRM automation, and lead flow systems for operators.",
-    hero:
-      "Local businesses already create signals every day. Calls, texts, DMs, forms, reviews, searches, and ad clicks show demand if the lead flow is built to catch it.",
-    buyerPain: [
-      "Owners buy lead generation before fixing missed calls, missed texts, missed DMs, and weak website funnels.",
-      "Local business marketing gets judged too early when appointment booking and follow-up are not connected.",
-      "The owner cannot see which Facebook ads, Instagram ads, forms, or calls created real buyer intent.",
-    ],
+      "Local business lead generation, source-backed demand signals, AI receptionist paths, CRM automation, and lead flow systems.",
+    hero: heroFor("local business"),
+    buyerPain: commonPain("local business", [
+      "Owners often buy attention before they can catch attention, route it, score it, and follow up fast enough.",
+    ]),
     signalsMatter: [
-      "City, category, service need, local search demand, ad click, form path, and response speed.",
-      "AI receptionist fit, AI chatbot fit, CRM automation status, lead scoring, and booking path.",
-      "Source-backed leads, confidence, freshness, suppression status, and marketplace release mode.",
+      "Missed calls",
+      "Missed texts",
+      "Missed DMs",
+      "Weak websites",
+      "Facebook ads and Instagram ads response paths",
+      "Local search demand",
+      "Appointment booking gaps",
+      "CRM automation readiness",
     ],
     sampleProfile: {
       title: "Local Business Signal Score",
+      category: "Local business",
       score: 86,
       confidence: "High",
       sourceType: "Tool answers, public page review, and local demand clue",
       bestBuyer: "Local operator, agency, web builder, automation shop",
-      proof: "Website URL, source path, local category, missed follow-up clue, and scoring explanation.",
+      buyerUseCase: "Find the business problem behind the lead flow issue and decide whether to buy signals or build the system.",
+      proof: "Website URL, source path, local category, missed follow-up clue, score explanation, and review status.",
       nextAction: "Run the tool, then choose buy lead signals or build the lead machine.",
     },
     availableTools: [
@@ -522,51 +766,58 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
       },
       ...standardTools,
     ],
-    complianceNote:
-      "Local business signals must keep source context, suppression status, and buyer-use review attached. LeadFlow does not promise rankings, calls, booked appointments, CPL, ROAS, or revenue.",
-    faq: [
-      {
-        question: "What does a local business lead flow system include?",
-        answer:
-          "It can include AI receptionist routing, AI chatbot intake, website funnel cleanup, CRM automation, appointment booking, missed-call text-back, dashboards, and ads tracking.",
-      },
-      {
-        question: "Can local businesses buy signals instead of building the system?",
-        answer:
-          "Yes. A buyer can start with the lead marketplace, request source-backed samples, and then decide if building the capture system is the better next move.",
-      },
-    ],
+    complianceNote: standardComplianceNote,
+    faq: commonFaq({
+      industry: "local business",
+      signalAnswer:
+        "A local business lead signal is a source-backed clue about demand, missed follow-up, local search, website weakness, ad response, or buyer intent.",
+      differenceAnswer:
+        "A list gives rows. A local signal shows why the opportunity exists, where the source came from, how fresh it is, what the score means, and what path should happen next.",
+      verifyAnswer:
+        "Local business signals are reviewed for source proof, freshness, confidence, suppression, and allowed use before deeper access.",
+      exclusiveAnswer:
+        "Exclusive access may be available by city, category, route, or time window if the listing and source rights allow it.",
+      buildAnswer:
+        "Yes. LeadFlow can build local funnels, AI receptionist response, missed-call text-back, CRM automation, appointment booking, ads tracking, and dashboards.",
+    }),
     marketplaceAngle: "Browse local business demand and website neglect signals.",
     buildSystemAngle: "Build the local business marketing, follow-up, and automation system.",
     primaryKeywords: ["local business leads", "local business marketing", "lead flow", "AI receptionist"],
+    relatedSlugs: ["home-service-leads", "contractor-leads", "dental-marketing-leads"],
   },
   {
     slug: "political-data-and-issue-signals",
-    title: "Political Data and Issue Signals",
+    title: "Political data and issue signals with source proof.",
     shortTitle: "Issue Signals",
+    industryLabel: "Political data and issue",
+    opportunityLabel: "aggregate civic issue",
     eyebrow: "Aggregate civic issue signals",
     metaTitle: "Political Data and Issue Signals | The LeadFlow Pro",
     metaDescription:
       "Aggregate political issue signals and civic data products focused on public issue demand, district-level trends, and source-backed insight.",
-    hero:
-      "Civic data should measure public issue signals without turning people into persuasion dossiers. The useful product is aggregate issue demand, source context, and transparent limits.",
-    buyerPain: [
-      "Political and civic buyers often see noisy opinion data without source proof, freshness, or clear geography.",
-      "Individual persuasion targeting creates privacy and trust risk when the user expected an issue pulse or public-interest tool.",
-      "Issue campaigns need aggregate buyer intent style signals, not hidden private identity or protected-trait targeting.",
-    ],
+    hero: heroFor("aggregate civic issue"),
+    buyerPain: commonPain("political and civic", [
+      "Civic data becomes risky when it turns public issue interest into hidden individual persuasion profiles instead of aggregate issue signals.",
+    ]),
     signalsMatter: [
-      "Issue priority, geography band, public source context, district trend, and aggregate response count.",
-      "Source proof, freshness, confidence, sample size, suppression status, and review status.",
-      "Anonymous analytics and aggregate-only release mode unless a separate explicit permission path exists.",
+      "Issue-level public sentiment",
+      "Public meeting interest",
+      "District-level concern patterns",
+      "Petition or survey responses with consent",
+      "Aggregate civic issue dashboards",
+      "Public source context",
+      "Approved public comments",
+      "Anonymous issue priority counts",
     ],
     sampleProfile: {
       title: "Aggregate Issue Pulse Signal",
+      category: "Civic issue signals",
       score: 74,
       confidence: "Review",
       sourceType: "Aggregate tool responses and public issue source review",
       bestBuyer: "Civic organization, media desk, issue researcher, campaign analyst",
-      proof: "Aggregate count, issue category, geography band, source path, and review notes.",
+      buyerUseCase: "Understand aggregate public issue demand by geography or topic without building an individual persuasion dossier.",
+      proof: "Aggregate count, issue category, geography band, source path, methodology note, and review status.",
       nextAction: "Request aggregate insight only and review methodology before use.",
     },
     availableTools: [
@@ -576,29 +827,97 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
         fit: "Collect aggregate issue priority and public opinion signals without individual persuasion targeting.",
       },
       {
-        label: "Buyer Personality Signal Quiz",
+        label: "Lead Leak Audit",
         href: "/tools",
-        fit: "Use general preference logic only outside protected or persuasion-sensitive targeting.",
+        fit: "Use only for civic organization intake, response, and follow-up system gaps.",
       },
       ...standardTools,
     ],
-    complianceNote:
-      "Political issue products must stay aggregate unless explicit, purpose-specific permission exists. LeadFlow does not build individual political persuasion targeting, protected-trait targeting, hidden sensitive dossiers, or minor-focused civic profiles.",
-    faq: [
-      {
-        question: "Can LeadFlow sell individual political persuasion profiles?",
-        answer:
-          "No. This page is for aggregate civic issue signals, public source context, and transparent data products. Individual political persuasion targeting is out of scope.",
-      },
-      {
-        question: "Who can use aggregate issue signals?",
-        answer:
-          "Civic organizations, media teams, researchers, public-interest groups, and campaign analysts can request aggregate issue insight when the use case matches the collection context.",
-      },
-    ],
+    complianceNote: standardComplianceNote,
+    faq: commonFaq({
+      industry: "political data and issue",
+      signalAnswer:
+        "A civic issue signal is an aggregate or consented clue about what issues people care about, where attention is moving, and what public sources show.",
+      differenceAnswer:
+        "A voter or persuasion list can target people in ways they did not expect. LeadFlow civic pages are built for aggregate issue insight, public source context, consented survey responses, and manual review.",
+      verifyAnswer:
+        "Civic signals require source review, aggregate thresholds, consent checks, suppression controls, and methodology notes before release.",
+      exclusiveAnswer:
+        "Civic exclusivity is limited and review-heavy. Individual political persuasion profiles are not built or sold without explicit, lawful, informed consent and legal review.",
+      buildAnswer:
+        "Yes. LeadFlow can build an issue pulse survey, public intake, aggregate dashboard, source monitor, opt-in updates, and review workflow.",
+    }),
     marketplaceAngle: "Request aggregate civic issue signal products.",
     buildSystemAngle: "Build an aggregate issue pulse, dashboard, and public intake system.",
     primaryKeywords: ["political data", "issue signals", "source-backed leads", "buyer intent"],
+    relatedSlugs: ["legal-leads", "local-business-leads", "creator-audience-leads"],
+  },
+  {
+    slug: "creator-audience-leads",
+    title: "Creator audience lead signals with source proof.",
+    shortTitle: "Creator Audience",
+    industryLabel: "Creator audience",
+    opportunityLabel: "creator audience",
+    eyebrow: "Creator and audience signals",
+    metaTitle: "Creator Audience Lead Signals | The LeadFlow Pro",
+    metaDescription:
+      "Creator audience lead signals for brands, agencies, operators, sponsors, and partners looking for source-backed audience demand.",
+    hero: heroFor("creator audience"),
+    buyerPain: commonPain("creator audience", [
+      "Brands and agencies see follower counts but miss audience need, buyer intent, offer fit, and whether a creator channel can actually route demand.",
+    ]),
+    signalsMatter: [
+      "Creator channel category",
+      "Audience intent clues",
+      "Engagement pattern",
+      "Offer and sponsor fit",
+      "Comment and question themes",
+      "Landing page or link-in-bio gaps",
+      "Email or community capture readiness",
+      "Consent for submitted audience sources",
+    ],
+    sampleProfile: {
+      title: "Creator Audience Signal",
+      category: "Creator audience",
+      score: 79,
+      confidence: "Medium",
+      sourceType: "Public creator channel and submitted audience review",
+      bestBuyer: "Brand, agency, sponsor, productized service operator",
+      buyerUseCase: "Find audience demand and sponsor fit without relying only on follower count or vanity metrics.",
+      proof: "Public channel link, audience category, engagement clue, offer fit, source review, and suppression status.",
+      nextAction: "Request a redacted sample or submit a creator source for review.",
+    },
+    availableTools: [
+      {
+        label: "Buyer Personality Signal Quiz",
+        href: "/tools",
+        fit: "Collect general preference and buying style signals for non-sensitive commercial categories.",
+      },
+      {
+        label: "Ecommerce Growth Finder",
+        href: "/tools",
+        fit: "Match creator audiences to product, offer, and marketplace opportunity.",
+      },
+      ...standardTools,
+    ],
+    complianceNote: standardComplianceNote,
+    faq: commonFaq({
+      industry: "creator audience",
+      signalAnswer:
+        "A creator audience lead signal is a source-backed clue about audience demand, category fit, engagement pattern, offer interest, or sponsor opportunity.",
+      differenceAnswer:
+        "A creator list often stops at handles and follower counts. A signal product explains audience context, source proof, confidence, buyer use case, and what can be done next.",
+      verifyAnswer:
+        "Creator audience signals are reviewed for public source context, submitted-source rights, suppression status, confidence, and buyer use case.",
+      exclusiveAnswer:
+        "Some creator audience products may be available as shared, limited-seat, sponsor-category, or time-window access after review.",
+      buildAnswer:
+        "Yes. LeadFlow can build creator landing pages, quiz funnels, audience capture, CRM automation, sponsor intake, dashboards, and reporting.",
+    }),
+    marketplaceAngle: "Browse creator audience signals with proof attached.",
+    buildSystemAngle: "Build the creator audience capture, scoring, and sponsor routing system.",
+    primaryKeywords: ["creator audience leads", "lead marketplace", "buyer intent", "source-backed leads"],
+    relatedSlugs: ["ecommerce-leads", "ai-saas-leads", "political-data-and-issue-signals"],
   },
 ];
 

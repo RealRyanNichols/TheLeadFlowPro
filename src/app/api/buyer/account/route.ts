@@ -39,7 +39,7 @@ export async function PATCH(req: Request) {
       ...parsed.data,
       email: auth.user.email,
     });
-    await trackBuyerEvent("buyer_profile_completed", {
+    await trackBuyerEvent("buyer_profile_updated", {
       buyer_account_id: account.id,
       account_status: account.account_status,
     }).catch(() => null);

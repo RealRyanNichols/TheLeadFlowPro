@@ -11,8 +11,8 @@
 // is enabled in the project settings.
 
 import Link, { type LinkProps } from "next/link";
-import { track } from "@vercel/analytics";
 import type { ReactNode, MouseEvent } from "react";
+import { trackEvent } from "@/lib/events";
 
 type Props = LinkProps & {
   event: string;
@@ -25,11 +25,7 @@ export function TrackedLink({
   event, location, children, className, onClick, ...linkProps
 }: Props) {
   function handleClick(e: MouseEvent<HTMLAnchorElement>) {
-    try {
-      track(event, location ? { location } : undefined);
-    } catch {
-      // Don't block navigation if analytics fails
-    }
+    trackEvent(event, location ? { location } : {});
     if (onClick) onClick(e as any);
   }
   return (

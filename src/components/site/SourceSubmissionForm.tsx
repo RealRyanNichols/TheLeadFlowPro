@@ -1,7 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-import { track } from "@vercel/analytics";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -14,7 +13,7 @@ import {
   ShieldAlert,
   UploadCloud,
 } from "lucide-react";
-import { sanitizeVercelEventProperties } from "@/lib/analytics-taxonomy";
+import { trackEvent } from "@/lib/events";
 import {
   SOURCE_SUBMISSION_VERSION,
   emptyPermissionAnswers,
@@ -107,16 +106,8 @@ function cleanScalar(value: string, max = 1600) {
   return value.replace(/\s+/g, " ").trim().slice(0, max);
 }
 
-function eventProperties(extra: Record<string, unknown>) {
-  return sanitizeVercelEventProperties({ page: "/submit-source", ...extra });
-}
-
 function sendSourceEvent(eventName: string, properties: Record<string, unknown>) {
-  try {
-    track(eventName, eventProperties(properties));
-  } catch {
-    // Analytics can never block source intake.
-  }
+  trackEvent(eventName, { route: "/submit-source", ...properties });
 }
 
 export function SourceSubmissionForm() {
@@ -141,6 +132,12 @@ export function SourceSubmissionForm() {
   );
 
   const completion = Math.round(((step + 1) / steps.length) * 100);
+
+  useEffect(() => {
+    sendSourceEvent("submit_source_viewed", {
+      step_number: 1,
+    });
+  }, []);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setState((current) => ({ ...current, [key]: value }));
@@ -195,7 +192,7 @@ export function SourceSubmissionForm() {
 
     setError(null);
     sendSourceEvent(step === 0 ? "source_submission_started" : "source_submission_step_completed", {
-      step_index: step + 1,
+      step_number: step + 1,
       step_name: steps[step],
       source_type: state.sourceType,
       risk_level: risk.riskLevel,

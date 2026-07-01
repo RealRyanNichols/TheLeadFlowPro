@@ -215,8 +215,10 @@ export async function POST(req: NextRequest) {
 
     if (persisted) {
       await insertLeadFlowRow("events", {
-        event_name: data.requestType === "access" ? "marketplace_access_requested" : "marketplace_sample_requested",
+        event_name: data.requestType === "access" ? "access_request_submitted" : "sample_request_submitted",
         event_type: "anonymous",
+        route: sourcePath,
+        user_role: "anonymous",
         tool_slug: "marketplace",
         vertical: data.vertical,
         category: data.category,
@@ -224,6 +226,7 @@ export async function POST(req: NextRequest) {
         source_path: sourcePath,
         ...utm,
         properties: {
+          user_role: "anonymous",
           request_id: requestId,
           buyer_request_id: insertedId,
           listing_id: data.listingId,

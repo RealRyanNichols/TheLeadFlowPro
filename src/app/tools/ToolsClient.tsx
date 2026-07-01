@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { track } from "@vercel/analytics";
 import {
   AlertCircle,
   ArrowRight,
@@ -14,7 +13,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { leadFlowTools, protectedDataWarning, type LeadFlowTool } from "@/lib/leadflow-tools";
-import { sanitizeVercelEventProperties } from "@/lib/analytics-taxonomy";
+import { trackEvent } from "@/lib/events";
 
 const privacyRules = [
   "Your answers create a private signal profile.",
@@ -51,11 +50,7 @@ function getSessionId() {
 }
 
 function trackToolEvent(eventName: string, properties: Record<string, string | number>) {
-  try {
-    track(eventName, sanitizeVercelEventProperties({ page: "/tools", ...properties }));
-  } catch {
-    // Analytics must never block a tool answer.
-  }
+  trackEvent(eventName, { route: "/tools", ...properties });
 }
 
 export function ToolsClient() {
@@ -68,6 +63,9 @@ export function ToolsClient() {
 
   useEffect(() => {
     setSessionId(getSessionId());
+    trackToolEvent("tools_hub_viewed", {
+      tool_count: leadFlowTools.length,
+    });
   }, []);
 
   const categoryCount = useMemo(
@@ -79,10 +77,15 @@ export function ToolsClient() {
     setSelectedTool(tool);
     setError(null);
     setResult(null);
-    trackToolEvent("tools_start_click", {
+    trackToolEvent("tool_card_clicked", {
       tool_id: tool.id,
-      tool_name: tool.name,
       lead_category: tool.leadCategory,
+      tool_slug: tool.id,
+    });
+    trackToolEvent("questionnaire_started", {
+      tool_id: tool.id,
+      lead_category: tool.leadCategory,
+      tool_slug: tool.id,
     });
 
     window.requestAnimationFrame(() => {
@@ -111,10 +114,11 @@ export function ToolsClient() {
       clientTimestamp: new Date().toISOString(),
     };
 
-    trackToolEvent("tools_signal_submit", {
+    trackToolEvent("questionnaire_step_completed", {
       tool_id: selectedTool.id,
-      tool_name: selectedTool.name,
       lead_category: selectedTool.leadCategory,
+      tool_slug: selectedTool.id,
+      step_number: 1,
       urgency: payload.urgency,
     });
 
@@ -133,19 +137,33 @@ export function ToolsClient() {
         leadCategory: data.intake.leadCategory,
       });
 
-      trackToolEvent("tools_signal_save_success", {
+      trackToolEvent("questionnaire_completed", {
         tool_id: selectedTool.id,
-        tool_name: selectedTool.name,
         lead_category: selectedTool.leadCategory,
+        tool_slug: selectedTool.id,
         lead_score: data.intake.leadScore,
       });
+      trackToolEvent("result_viewed", {
+        tool_id: selectedTool.id,
+        lead_category: selectedTool.leadCategory,
+        tool_slug: selectedTool.id,
+        score_range: data.intake.leadScore >= 80 ? "high" : data.intake.leadScore >= 60 ? "medium" : "low",
+      });
+      if (payload.consentAccepted) {
+        trackToolEvent("consent_given", {
+          tool_id: selectedTool.id,
+          lead_category: selectedTool.leadCategory,
+          tool_slug: selectedTool.id,
+          consent_scope: "tool_answers_only",
+        });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Could not save this tool answer.";
       setError(message);
-      trackToolEvent("tools_signal_save_error", {
+      trackToolEvent("questionnaire_error", {
         tool_id: selectedTool.id,
-        tool_name: selectedTool.name,
         lead_category: selectedTool.leadCategory,
+        tool_slug: selectedTool.id,
       });
     } finally {
       setSubmitting(false);

@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { track } from "@vercel/analytics";
 import {
   ArrowRight,
   CheckCircle2,
@@ -16,6 +15,7 @@ import {
   type LeadFlowConsentModuleDefinition,
   type LeadFlowConsentType,
 } from "@/lib/leadflow-consent";
+import { trackEvent } from "@/lib/events";
 import { cn } from "@/lib/utils";
 
 type ConsentCardState = {
@@ -177,17 +177,13 @@ function ConsentModuleCard({
         throw new Error(payload.error || "Consent event was not saved.");
       }
 
-      try {
-        track("lf_consent_accepted", {
-          quiz_key: module.toolSlug ?? toolSlug,
-          consent_scope: module.type,
-          notice_version: LEADFLOW_CONSENT_VERSION,
-          permission_mode: module.mode,
-          seller_count_bucket: selectedSellers.length > 1 ? "multiple" : primarySellerId ? "one" : "none",
-        });
-      } catch {
-        // Analytics must never block consent capture.
-      }
+      trackEvent("consent_given", {
+        tool_slug: module.toolSlug ?? toolSlug,
+        consent_scope: module.type,
+        notice_version: LEADFLOW_CONSENT_VERSION,
+        permission_mode: module.mode,
+        seller_count_bucket: selectedSellers.length > 1 ? "multiple" : primarySellerId ? "one" : "none",
+      });
 
       updateState(module.type, {
         status: "saved",

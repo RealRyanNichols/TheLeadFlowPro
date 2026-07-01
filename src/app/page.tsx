@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, BadgeCheck, CircleCheck, DatabaseZap, Radar } from "lucide-react";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
+import { LeadFlowPageView } from "@/components/site/LeadFlowPageView";
 import { leadFlowSections, signalProducts } from "@/lib/leadflow-sections";
 
 const proofChips = [
@@ -17,6 +18,7 @@ export default function HomePage() {
 
   return (
     <>
+      <LeadFlowPageView eventName="homepage_viewed" route="/" />
       <Header />
       <main className="pb-24">
         <section className="relative isolate overflow-hidden border-b border-white/10 py-12 md:py-20">
@@ -41,7 +43,7 @@ export default function HomePage() {
                   <Link
                     href="/buy-leads"
                     className="btn-accent text-base"
-                    data-conversion-event="homepage_router_buy_leads_click"
+                    data-conversion-event="hero_cta_clicked"
                     data-conversion-cta="Buy Lead Signals"
                     data-conversion-source-page="/"
                     data-conversion-destination="/buy-leads"
@@ -52,7 +54,7 @@ export default function HomePage() {
                   <Link
                     href="/build-my-system"
                     className="btn-ghost text-base"
-                    data-conversion-event="homepage_router_build_system_click"
+                    data-conversion-event="hero_cta_clicked"
                     data-conversion-cta="Build My Lead Machine"
                     data-conversion-source-page="/"
                     data-conversion-destination="/build-my-system"
@@ -60,14 +62,14 @@ export default function HomePage() {
                     Build My Lead Machine
                   </Link>
                   <Link
-                    href="/tools"
+                    href="/submit-source"
                     className="btn-ghost border-cyan-300/30 text-base text-cyan-100 hover:border-cyan-200/50"
-                    data-conversion-event="homepage_router_tools_click"
-                    data-conversion-cta="Open Tools"
+                    data-conversion-event="submit_source_lane_clicked"
+                    data-conversion-cta="Submit a Lead Source"
                     data-conversion-source-page="/"
-                    data-conversion-destination="/tools"
+                    data-conversion-destination="/submit-source"
                   >
-                    Open Tools
+                    Submit a Lead Source
                   </Link>
                 </div>
                 <div className="mt-8 flex flex-wrap gap-2">
@@ -94,7 +96,7 @@ export default function HomePage() {
                       key={signal.title}
                       href="/marketplace"
                       className="block rounded-lg border border-white/10 bg-white/[0.035] p-4 transition hover:-translate-y-0.5 hover:border-cyan-300/30 hover:bg-white/[0.055]"
-                      data-conversion-event="homepage_signal_preview_click"
+                      data-conversion-event="listing_card_clicked"
                       data-conversion-cta={signal.title}
                       data-conversion-source-page="/"
                       data-conversion-destination="/marketplace"
@@ -133,12 +135,20 @@ export default function HomePage() {
             <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {leadFlowSections.map((section) => {
                 const Icon = section.icon;
+                const eventName =
+                  section.href === "/buy-leads"
+                    ? "buyer_lane_clicked"
+                    : section.href === "/build-my-system"
+                      ? "system_lane_clicked"
+                      : section.href === "/submit-source"
+                        ? "submit_source_lane_clicked"
+                        : "hero_cta_clicked";
                 return (
                   <Link
                     key={section.href}
                     href={section.href}
                     className="group lead-panel flex min-h-80 flex-col p-5 transition duration-300 hover:-translate-y-1 hover:border-cyan-300/35 hover:bg-white/[0.055]"
-                    data-conversion-event="homepage_section_card_click"
+                    data-conversion-event={eventName}
                     data-conversion-cta={section.navLabel}
                     data-conversion-source-page="/"
                     data-conversion-destination={section.href}

@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     const data = parsed.data;
+    await trackBuyerEvent("buyer_login_started", { method: data.mode === "signup" ? "password_signup" : "password" }).catch(() => null);
     if (data.mode === "signup") {
       await trackBuyerEvent("buyer_signup_started", { method: "password" }).catch(() => null);
     }
@@ -45,10 +46,13 @@ export async function POST(req: NextRequest) {
     }
 
     await ensureBuyerAccountForUser(session.user).catch(() => null);
-    await trackBuyerEvent(data.mode === "signup" ? "buyer_signup_completed" : "buyer_login", {
-      method: "password",
+    await trackBuyerEvent("buyer_login_completed", {
+      method: data.mode === "signup" ? "password_signup" : "password",
       auth_user_id: session.user.id,
     }).catch(() => null);
+    if (data.mode === "signup") {
+      await trackBuyerEvent("buyer_signup_completed", { method: "password", auth_user_id: session.user.id }).catch(() => null);
+    }
 
     const response = NextResponse.json({ ok: true, redirectTo: "/buyer" });
     setBuyerAuthCookies(response, session);

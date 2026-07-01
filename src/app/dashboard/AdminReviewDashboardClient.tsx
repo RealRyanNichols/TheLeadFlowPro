@@ -53,6 +53,15 @@ const nav = [
 
 const sensitiveActions = new Set(["suppress", "approve_suppression", "grant_entitlement", "create_export", "archive"]);
 
+function adminEventName(targetType: TargetType, action: string) {
+  if (targetType === "lead_profile" || targetType === "lead_profiles_bulk") return "admin_profile_reviewed";
+  if (targetType === "submitted_source") return "admin_source_reviewed";
+  if (targetType === "buyer_request") return "admin_buyer_request_reviewed";
+  if (targetType === "suppression_request") return "admin_suppression_resolved";
+  if (action === "create_export") return "admin_export_created";
+  return "admin_review_action";
+}
+
 function dateLabel(value: string | null | undefined) {
   if (!value) return "Not set";
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value));
@@ -178,7 +187,7 @@ function AdminActionButton({
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Admin action failed.");
-      trackLeadFlowEvent("admin_review_action", { target_type: targetType, action, status: "completed", route: "/dashboard" });
+      trackLeadFlowEvent(adminEventName(targetType, action), { target_type: targetType, action, status: "completed", route: "/dashboard" });
       router.refresh();
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "Admin action failed.");
@@ -292,6 +301,18 @@ export function AdminReviewDashboardClient({ data }: { data: AdminReviewDashboar
   const auditLog = data.auditLog.filter((row) => rowMatches(row as unknown as Record<string, unknown>, search, "all", "all"));
   const events = data.events.filter((row) => rowMatches(row as unknown as Record<string, unknown>, search, vertical, "all"));
 
+  function updateFilter(filterKey: "search" | "vertical" | "status", value: string) {
+    if (filterKey === "search") setSearch(value);
+    if (filterKey === "vertical") setVertical(value);
+    if (filterKey === "status") setStatus(value);
+    trackLeadFlowEvent("admin_table_filtered", {
+      route: "/dashboard",
+      filter_key: filterKey,
+      status: filterKey === "status" ? value : status,
+      vertical: filterKey === "vertical" ? value : vertical,
+    });
+  }
+
   async function bulkProfiles(action: "needs_review" | "archive") {
     if (!selectedProfiles.length) return;
     const confirmed = action === "archive" ? window.confirm(`Archive ${selectedProfiles.length} selected profiles?`) : true;
@@ -312,7 +333,7 @@ export function AdminReviewDashboardClient({ data }: { data: AdminReviewDashboar
       return;
     }
     setSelectedProfiles([]);
-    trackLeadFlowEvent("admin_review_action", { target_type: "lead_profiles_bulk", action, count: selectedProfiles.length, route: "/dashboard" });
+    trackLeadFlowEvent("admin_profile_reviewed", { target_type: "lead_profiles_bulk", action, count: selectedProfiles.length, route: "/dashboard" });
     window.location.reload();
   }
 
@@ -374,7 +395,16 @@ export function AdminReviewDashboardClient({ data }: { data: AdminReviewDashboar
         </div>
       </Section>
 
-      <Toolbar search={search} setSearch={setSearch} vertical={vertical} setVertical={setVertical} status={status} setStatus={setStatus} verticals={verticals} statuses={statuses} />
+      <Toolbar
+        search={search}
+        setSearch={(value) => updateFilter("search", value)}
+        vertical={vertical}
+        setVertical={(value) => updateFilter("vertical", value)}
+        status={status}
+        setStatus={(value) => updateFilter("status", value)}
+        verticals={verticals}
+        statuses={statuses}
+      />
 
       <Section id="lead-profiles" title="Lead Profiles">
         <BulkProfileBar selectedCount={selectedProfiles.length} onNeedsReview={() => bulkProfiles("needs_review")} onArchive={() => bulkProfiles("archive")} />

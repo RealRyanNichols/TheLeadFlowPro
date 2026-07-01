@@ -1,20 +1,18 @@
 import figma from "@figma/code-connect";
+import { LeadDashboardTable } from "../../src/components/dashboard/admin-data-table";
+import { ConsentModule, RequestAccessFormCard, SubmitSourceFormCard } from "../../src/components/forms";
 import {
   BuyerPathCard,
   ConfidenceLabel,
-  ConsentModule,
-  LeadDashboardTable,
   LeadFlowCta,
   LeadMarketplaceCard,
   LeadScoreBadge,
   ProfileDetailPanel,
   PublicQuizCard,
-  RequestAccessFormCard,
   SourceProofChip,
-  SubmitSourceFormCard,
   SuppressionStatusBadge,
   ToolLandingPageShell,
-} from "../../src/components/leadflow-system";
+} from "../../src/components/leadflow";
 
 /*
   Replace each PASTE_FIGMA_NODE_URL value with a node-specific Figma component URL.

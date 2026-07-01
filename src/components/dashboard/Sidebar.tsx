@@ -18,6 +18,8 @@ import {
   Download,
   Activity,
   ClipboardList,
+  Gauge,
+  GitBranch,
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { cn } from "@/lib/utils";
@@ -40,6 +42,9 @@ const NAV = [
   { href: "/dashboard#source-proof", label: "Source Proof", icon: FileCheck2 },
   { href: "/dashboard#suppression", label: "Suppression", icon: LockKeyhole },
   { href: "/dashboard/exports", label: "Exports", icon: Download },
+  { href: "/dashboard/segments", label: "Segments", icon: GitBranch },
+  { href: "/dashboard/predictive", label: "Predictive Engine", icon: Gauge },
+  { href: "/dashboard/analytics", label: "Funnel Analytics", icon: Activity },
   { href: "/dashboard#events", label: "Events", icon: Activity },
   { href: "/dashboard#settings", label: "Settings", icon: Settings },
   { href: "/dashboard/source-submissions", label: "Source Review Queue", icon: DatabaseZap },

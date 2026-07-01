@@ -57,7 +57,14 @@ export default function SubmitSourcePage() {
                   Found a business list, public directory, audience, website, niche, tool, data source, or signal opportunity that could turn into buyers? Submit it for review.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                  <Link href="#source-review-form" className="btn-accent text-base">
+                  <Link
+                    href="#source-review-form"
+                    className="btn-accent text-base"
+                    data-conversion-event="source_submission_started"
+                    data-conversion-cta="Start Source Submission"
+                    data-conversion-source-page="/submit-source"
+                    data-conversion-destination="#source-review-form"
+                  >
                     Start Source Submission
                     <ArrowRight className="h-4 w-4" />
                   </Link>
