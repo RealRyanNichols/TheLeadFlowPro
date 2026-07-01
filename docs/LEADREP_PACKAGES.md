@@ -72,13 +72,21 @@ Sites:
 - TheLeadFlowPro.com: `/tools/sales-rep-signal`
 - RepWatchr.com: `https://www.repwatchr.com/tools/sales-rep-signal`
 
-Build status: landing/waitlist only.
+Build status: opt-in MVP signal preview.
+
+Output preview:
+
+- Sales Rep Signal score
+- consent/source check
+- proof package placeholder
+- compliance boundary
+- recommended next action
 
 Rules:
 
 - opt-in only
 - self-submitted LinkedIn, resume, or profile URL only
-- no report sale yet
+- no employment report sale
 - not a background check
 - not an employment decision tool
 - not a consumer report

@@ -138,8 +138,28 @@ export async function writeLeadRepHandoff(input: LeadRepHandoffInput) {
     ...baseRow,
     status: input.confidence_score && input.confidence_score >= 70 ? "qualified_signal" : "candidate",
   });
+  const packageRequest = await insertLeadRepRow("leadrep_package_requests", {
+    repo: baseRow.repo,
+    branch: baseRow.branch,
+    package_type: input.package_type,
+    industry: input.industry,
+    buyer_type: input.buyer_type,
+    source_url: input.source_url,
+    urgency: input.urgency,
+    budget_range: input.budget_range,
+    confidence_score: input.confidence_score,
+    requested_report: input.requested_report,
+    recurring_interest: input.recurring_interest,
+    source_agent: baseRow.source_agent,
+    target_agent: baseRow.target_agent,
+    status: baseRow.status,
+    payload_json: payload,
+    result_json: input.result_json || {},
+    cost_estimate: baseRow.cost_estimate,
+    approval_required: baseRow.approval_required,
+  });
 
-  return { handoff, packageIdea, signal };
+  return { handoff, packageIdea, signal, packageRequest };
 }
 
 export async function writeLeadRepResult(input: LeadRepHandoffInput) {

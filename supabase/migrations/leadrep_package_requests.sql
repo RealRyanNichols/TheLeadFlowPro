@@ -1,6 +1,3 @@
--- LeadRep package tracking schema proposal.
--- Review before applying. Keep public access denied by default.
-
 create extension if not exists pgcrypto;
 
 create or replace function public.set_leadrep_updated_at()
@@ -37,10 +34,6 @@ create table if not exists public.leadrep_package_requests (
   updated_at timestamptz not null default now()
 );
 
-alter table public.leadrep_package_requests enable row level security;
-revoke all on public.leadrep_package_requests from anon, authenticated;
-grant select, insert, update, delete on public.leadrep_package_requests to service_role;
-
 create index if not exists leadrep_package_requests_type_status_idx
   on public.leadrep_package_requests (package_type, status, created_at desc);
 
@@ -51,3 +44,9 @@ drop trigger if exists set_leadrep_package_requests_updated_at on public.leadrep
 create trigger set_leadrep_package_requests_updated_at
 before update on public.leadrep_package_requests
 for each row execute function public.set_leadrep_updated_at();
+
+alter table public.leadrep_package_requests enable row level security;
+revoke all on public.leadrep_package_requests from anon, authenticated;
+
+grant usage on schema public to service_role;
+grant select, insert, update, delete on public.leadrep_package_requests to service_role;
