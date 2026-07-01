@@ -18,8 +18,9 @@ import {
   User,
   Building2,
 } from "lucide-react";
+import { BuyerAuthPanel } from "@/components/buyer/BuyerAuthPanel";
 
-type AuthMode = "signin" | "signup" | "code";
+type AuthMode = "signin" | "signup" | "code" | "buyer";
 
 const ADMIN_LOGIN_EMAILS = new Set(["hello@theleadflowpro.com", "ryan@realryannichols.com"]);
 
@@ -80,12 +81,18 @@ function LoginLoadingFallback() {
 function LoginInner() {
   const params = useSearchParams();
   const requested = params.get("mode");
-  const initialMode: AuthMode = requested === "signup" || requested === "code" ? requested : "signin";
   const next = useMemo(
     () => safeNext(params.get("callbackUrl") || params.get("next")),
     [params],
   );
+  const initialMode: AuthMode =
+    requested === "signup" || requested === "code" || requested === "buyer"
+      ? requested
+      : next.startsWith("/buyer")
+        ? "buyer"
+        : "signin";
   const [mode, setMode] = useState<AuthMode>(initialMode);
+  const buyerNext = next.startsWith("/buyer") ? next : "/buyer";
 
   return (
     <div className="min-h-screen overflow-hidden bg-ink-950 text-white">
@@ -117,17 +124,17 @@ function LoginInner() {
       <main className="relative mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl gap-8 px-4 py-6 lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)] lg:items-center lg:py-10">
         <section className="glass-strong rounded-3xl border border-cyan-400/20 p-5 shadow-2xl shadow-cyan-950/30 sm:p-7">
           <div className="inline-flex items-center gap-2 rounded-full border border-accent-400/30 bg-accent-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent-300">
-            <ShieldCheck className="h-3.5 w-3.5" /> Member access
+            <ShieldCheck className="h-3.5 w-3.5" /> Member and buyer access
           </div>
           <h1 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
             Get into the back office.
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-ink-200">
-            Sign in, create your account, or use an email code. Paid work, messages,
-            intake, workload, payments, and Ryan review all connect here.
+            Sign in as a client, create your account, use an email code, or open the
+            review-gated buyer portal for lead signal access requests.
           </p>
 
-          <div className="mt-6 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-white/5 p-1">
+          <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/5 p-1 sm:grid-cols-4">
             <ModeButton active={mode === "signin"} onClick={() => setMode("signin")}>
               Log in
             </ModeButton>
@@ -137,12 +144,16 @@ function LoginInner() {
             <ModeButton active={mode === "code"} onClick={() => setMode("code")}>
               Code
             </ModeButton>
+            <ModeButton active={mode === "buyer"} onClick={() => setMode("buyer")}>
+              Buyer
+            </ModeButton>
           </div>
 
           <div className="mt-6">
             {mode === "signin" && <PasswordSignInForm next={next} onCode={() => setMode("code")} />}
             {mode === "signup" && <CreateAccountForm next={next} />}
             {mode === "code" && <EmailOtpForm next={next} />}
+            {mode === "buyer" && <BuyerAuthPanel next={buyerNext} />}
           </div>
         </section>
 
@@ -186,8 +197,8 @@ function LoginInner() {
               />
               <AccessCard
                 icon={KeyRound}
-                title="Data tools"
-                body="Decision tools help the owner see leaks, follow-up gaps, and the next move."
+                title="Buyer portal"
+                body="Lead signal buyers can request samples, manage watchlists, complete review, and view only approved access."
               />
             </div>
 

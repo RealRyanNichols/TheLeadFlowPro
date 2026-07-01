@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { MobileMenu } from "./MobileMenu";
-import { SITE_MORE_NAV, SITE_PRIMARY_NAV, type SiteNavItem } from "@/lib/site-navigation";
+import { SITE_PRIMARY_NAV, type SiteNavItem } from "@/lib/site-navigation";
 
 const navIcons: Record<NonNullable<SiteNavItem["icon"]>, LucideIcon> = {
   admin: ShieldCheck,
@@ -30,18 +30,13 @@ const navIcons: Record<NonNullable<SiteNavItem["icon"]>, LucideIcon> = {
   source: DatabaseZap
 };
 
-const headerNav = [
-  ...SITE_PRIMARY_NAV,
-  ...SITE_MORE_NAV.filter((item) => item.icon === "guardrail" || item.icon === "dashboard")
-];
-
 export function Header() {
   return (
     <header className="site-header sticky top-0 z-40">
       <div className="container flex h-16 min-w-0 items-center justify-between gap-3">
         <Logo className="min-w-0" />
         <nav className="lead-nav hidden xl:flex" aria-label="Main navigation">
-          {headerNav.map((item) => {
+          {SITE_PRIMARY_NAV.map((item) => {
             const Icon = item.icon ? navIcons[item.icon] : Sparkles;
             return (
               <Link key={item.href} href={item.href} className="lead-nav-link">
@@ -58,9 +53,9 @@ export function Header() {
             <LogIn className="h-4 w-4" />
             Client vault
           </Link>
-          <Link href="/problem-intake" className="btn-accent header-primary-btn hidden sm:inline-flex">
+          <Link href="/tools" className="btn-accent header-primary-btn hidden sm:inline-flex">
             <Sparkles className="h-4 w-4" />
-            Start map
+            Open tools
           </Link>
           <MobileMenu />
         </div>

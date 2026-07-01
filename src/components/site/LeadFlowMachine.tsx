@@ -42,7 +42,7 @@ export function LeadFlowMachine() {
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <MachineCta href="/problem-intake" eventName="phase3_machine_problem_intake_click" label="Start problem intake" primary />
-                <MachineCta href="/data-marketplace" eventName="phase3_machine_marketplace_click" label="Open marketplace" />
+                <MachineCta href="/marketplace" eventName="phase3_machine_marketplace_click" label="Open marketplace" />
                 <MachineCta href="/submit-source" eventName="phase3_machine_submit_source_click" label="Submit source" />
               </div>
             </div>
@@ -264,7 +264,7 @@ export function LeadFlowMachine() {
               </div>
             </div>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <MachineCta href="/data-marketplace" eventName="phase3_machine_final_marketplace_click" label="Open marketplace" primary />
+              <MachineCta href="/marketplace" eventName="phase3_machine_final_marketplace_click" label="Open marketplace" primary />
               <MachineCta href="/privacy-center" eventName="phase3_machine_privacy_center_click" label="Privacy center" />
             </div>
           </div>

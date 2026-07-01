@@ -43,7 +43,7 @@ export default async function LeadsPage() {
           <Link href="/problem-intake" className="btn-ghost text-sm py-2 px-3">
             <DatabaseZap className="h-4 w-4" /> Capture intent
           </Link>
-          <Link href="/data-marketplace" className="btn-primary text-sm py-2 px-3">
+          <Link href="/marketplace" className="btn-primary text-sm py-2 px-3">
             <Plus className="h-4 w-4" /> Build list
           </Link>
         </div>
@@ -152,7 +152,7 @@ export default async function LeadsPage() {
               <Link href="/problem-intake" className="btn-ghost text-xs py-2 px-3">
                 Capture problem intent
               </Link>
-              <Link href="/data-marketplace" className="btn-primary text-xs py-2 px-3">
+              <Link href="/marketplace" className="btn-primary text-xs py-2 px-3">
                 Open marketplace
               </Link>
             </div>

@@ -1,0 +1,73 @@
+{
+  "name": "LeadFlow Pro Design System",
+  "version": "0.2.0",
+  "language": "Signal Proof Score Source Route Revenue",
+  "figma": {
+    "projectUrl": "https://www.figma.com/files/team/1651991097313284183/project/620302171",
+    "requiredDesignFileUrl": "Use a /design/:fileKey URL with node-id values before publishing Code Connect mappings.",
+    "pageName": "LeadFlow Design System",
+    "componentPrefix": "Component"
+  },
+  "tokens": {
+    "source": "src/design/leadflow-product-system.tokens.json",
+    "codeSource": "src/design/leadflow-design-system.ts",
+    "collections": [
+      "LeadFlow/Color",
+      "LeadFlow/Typography",
+      "LeadFlow/Spacing",
+      "LeadFlow/Radius",
+      "LeadFlow/Shadow"
+    ]
+  },
+  "components": [
+    { "figmaName": "Component/Button/Primary", "reactName": "Button", "props": ["variant", "href", "disabled"], "variants": { "variant": ["primary", "secondary", "ghost", "outline", "danger", "premium"] } },
+    { "figmaName": "Component/Badge", "reactName": "Badge", "props": ["variant"], "variants": { "variant": ["success", "warning", "danger", "verified", "review", "suppressed", "premium", "neutral"] } },
+    { "figmaName": "Component/ScoreBadge", "reactName": "ScoreBadge", "props": ["score", "variant", "label"], "variants": { "variant": ["high", "medium", "low", "unknown"] } },
+    { "figmaName": "Component/ConfidenceBadge", "reactName": "ConfidenceBadge", "props": ["confidence", "label"], "variants": { "confidence": ["high", "medium", "low", "needs_review"] } },
+    { "figmaName": "Component/StatusBadge", "reactName": "StatusBadge", "props": ["status", "label"], "variants": { "status": ["submitted", "review", "approved", "rejected", "suppressed", "sold", "sample_available", "pending_access"] } },
+    { "figmaName": "Component/SourceProofChip", "reactName": "SourceProofChip", "props": ["label", "verified"], "variants": { "verified": ["true", "false"] } },
+    { "figmaName": "Component/SuppressionBadge", "reactName": "SuppressionStatusBadge", "props": ["status", "label"], "variants": { "status": ["submitted", "review", "approved", "rejected", "suppressed", "sold", "sample_available", "pending_access"] } },
+    { "figmaName": "Component/RiskBadge", "reactName": "RiskBadge", "props": ["risk", "label"], "variants": { "risk": ["low", "medium", "high", "prohibited", "neutral"] } },
+    { "figmaName": "Component/BuyerPathCard", "reactName": "BuyerPathCard", "props": ["title", "body", "href", "proof"] },
+    { "figmaName": "Component/MarketplaceCard", "reactName": "MarketplaceCard", "props": ["variant", "status", "score", "confidence", "title", "category", "ctaLabel", "href", "locked", "adminOnly"], "variants": { "variant": ["compact", "full", "featured", "locked", "buyer_approved", "admin"] } },
+    { "figmaName": "Component/ListingPreviewModal", "reactName": "ListingPreviewModal", "props": ["title", "body", "open"] },
+    { "figmaName": "Component/LeadProfileHeader", "reactName": "LeadProfileHeader", "props": ["title", "category", "vertical", "score", "confidence", "sourceStatus", "suppressionStatus"] },
+    { "figmaName": "Component/ScoreBreakdownCard", "reactName": "ScoreBreakdownCard", "props": ["title", "items"] },
+    { "figmaName": "Component/SourceProofList", "reactName": "SourceProofList", "props": ["items"] },
+    { "figmaName": "Component/BuyerRequestForm", "reactName": "BuyerRequestForm", "props": ["title", "ctaLabel"] },
+    { "figmaName": "Component/ToolCard", "reactName": "ToolCard", "props": ["title", "who", "answer", "time", "dataCategory", "href"] },
+    { "figmaName": "Component/QuestionnaireStep", "reactName": "QuestionnaireStep", "props": ["eyebrow", "title", "body", "current", "total"] },
+    { "figmaName": "Component/ProgressIndicator", "reactName": "ProgressIndicator", "props": ["current", "total", "label"] },
+    { "figmaName": "Component/AdminDataTable", "reactName": "AdminDataTable", "props": ["title", "columns", "rows"] },
+    { "figmaName": "Component/AdminStatCard", "reactName": "AdminStatCard", "props": ["title", "value", "trend", "status"] },
+    { "figmaName": "Component/FilterBar", "reactName": "FilterBar", "props": ["filters"] },
+    { "figmaName": "Component/SearchInput", "reactName": "SearchInput", "props": ["label", "placeholder"] },
+    { "figmaName": "Component/EmptyState", "reactName": "EmptyState", "props": ["title", "body", "ctaLabel", "href"] },
+    { "figmaName": "Component/LoadingState", "reactName": "LoadingState", "props": ["label"] },
+    { "figmaName": "Component/ErrorState", "reactName": "ErrorState", "props": ["title", "body"] },
+    { "figmaName": "Component/ConsentModule", "reactName": "ConsentModule", "props": ["title", "body", "bullets", "status", "ctaLabel"] },
+    { "figmaName": "Component/ExportConfirmModal", "reactName": "ExportConfirmModal", "props": ["title", "body", "fieldGroups"] }
+  ],
+  "templates": [
+    "Template/Page/Homepage",
+    "Template/Page/Marketplace",
+    "Template/Page/BuyerDashboard",
+    "Template/Page/LeadProfile",
+    "Template/Page/ToolsHub",
+    "Template/Page/Questionnaire",
+    "Template/Page/SubmitSource",
+    "Template/Page/AdminDashboard",
+    "Template/Page/PrivacyCenter",
+    "Template/Page/IndustrySeo"
+  ],
+  "codeConnect": {
+    "framework": "React",
+    "language": "TypeScript",
+    "exampleFile": "figma/code-connect/LeadFlowDesignSystem.figma.ts.example",
+    "blockedUntil": [
+      "Published Figma components exist in a design file",
+      "Node-specific component URLs are supplied",
+      "Code Connect is enabled for the Figma workspace"
+    ]
+  }
+}

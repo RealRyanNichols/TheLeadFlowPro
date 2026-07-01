@@ -1,0 +1,228 @@
+import figma from "@figma/code-connect";
+import {
+  BuyerPathCard,
+  ConfidenceLabel,
+  ConsentModule,
+  LeadDashboardTable,
+  LeadFlowCta,
+  LeadMarketplaceCard,
+  LeadScoreBadge,
+  ProfileDetailPanel,
+  PublicQuizCard,
+  RequestAccessFormCard,
+  SourceProofChip,
+  SubmitSourceFormCard,
+  SuppressionStatusBadge,
+  ToolLandingPageShell,
+} from "../../src/components/leadflow-system";
+
+/*
+  Replace each PASTE_FIGMA_NODE_URL value with a node-specific Figma component URL.
+  The URL must include node-id. Do not map a whole project URL.
+*/
+
+figma.connect(LeadScoreBadge, "PASTE_FIGMA_NODE_URL_FOR_LEAD_SCORE_BADGE", {
+  props: {
+    score: figma.number("Score"),
+    level: figma.enum("Level", {
+      High: "high",
+      Medium: "medium",
+      Low: "low",
+    }),
+  },
+  example: (props) => <LeadScoreBadge score={props.score} level={props.level} />,
+});
+
+figma.connect(ConfidenceLabel, "PASTE_FIGMA_NODE_URL_FOR_CONFIDENCE_LABEL", {
+  props: {
+    level: figma.enum("Level", {
+      High: "high",
+      Medium: "medium",
+      Low: "low",
+    }),
+    label: figma.string("Label"),
+  },
+  example: (props) => <ConfidenceLabel level={props.level} label={props.label} />,
+});
+
+figma.connect(SourceProofChip, "PASTE_FIGMA_NODE_URL_FOR_SOURCE_PROOF_CHIP", {
+  props: {
+    label: figma.string("Label"),
+    verified: figma.boolean("Verified"),
+  },
+  example: (props) => <SourceProofChip label={props.label} verified={props.verified} />,
+});
+
+figma.connect(SuppressionStatusBadge, "PASTE_FIGMA_NODE_URL_FOR_SUPPRESSION_STATUS_BADGE", {
+  props: {
+    status: figma.enum("Status", {
+      Submitted: "submitted",
+      Review: "review",
+      Approved: "approved",
+      Suppressed: "suppressed",
+      Sold: "sold",
+      "Sample available": "sampleAvailable",
+    }),
+    label: figma.string("Label"),
+  },
+  example: (props) => <SuppressionStatusBadge status={props.status} label={props.label} />,
+});
+
+figma.connect(LeadFlowCta, "PASTE_FIGMA_NODE_URL_FOR_CTA", {
+  props: {
+    variant: figma.enum("Variant", {
+      Primary: "primary",
+      Secondary: "secondary",
+      Ghost: "ghost",
+      Danger: "danger",
+    }),
+    text: figma.string("Text"),
+  },
+  example: (props) => (
+    <LeadFlowCta variant={props.variant} href="/marketplace">
+      {props.text}
+    </LeadFlowCta>
+  ),
+});
+
+figma.connect(LeadMarketplaceCard, "PASTE_FIGMA_NODE_URL_FOR_LEAD_MARKETPLACE_CARD", {
+  props: {
+    variant: figma.enum("Variant", {
+      Compact: "compact",
+      Full: "full",
+      Marketplace: "marketplace",
+      Dashboard: "dashboard",
+    }),
+  },
+  example: (props) => (
+    <LeadMarketplaceCard
+      variant={props.variant}
+      product={{
+        title: "Ecommerce Vendor Signal Pack",
+        category: "Ecommerce",
+        score: 87,
+        confidence: "high",
+        sourceProof: "Public source links",
+        suppressionStatus: "sampleAvailable",
+        buyerUseCase: "Agency, product sourcer, marketplace operator",
+        records: "4,800 sample set",
+        priceBand: "$149+",
+        freshness: "7 days",
+        releaseMode: "Review-gated shared",
+      }}
+    />
+  ),
+});
+
+figma.connect(BuyerPathCard, "PASTE_FIGMA_NODE_URL_FOR_BUYER_PATH_CARD", {
+  props: {
+    title: figma.string("Title"),
+    body: figma.string("Body"),
+    proof: figma.string("Proof"),
+  },
+  example: (props) => (
+    <BuyerPathCard title={props.title} body={props.body} proof={props.proof} href="/buy-leads" />
+  ),
+});
+
+figma.connect(PublicQuizCard, "PASTE_FIGMA_NODE_URL_FOR_PUBLIC_QUIZ_CARD", {
+  props: {
+    title: figma.string("Title"),
+    purpose: figma.string("Purpose"),
+    collected: figma.string("Collected"),
+    result: figma.string("Result"),
+  },
+  example: (props) => (
+    <PublicQuizCard
+      title={props.title}
+      purpose={props.purpose}
+      collected={props.collected}
+      result={props.result}
+      href="/tools"
+    />
+  ),
+});
+
+figma.connect(ToolLandingPageShell, "PASTE_FIGMA_NODE_URL_FOR_TOOL_LANDING_PAGE", {
+  props: {
+    eyebrow: figma.string("Eyebrow"),
+    title: figma.string("Title"),
+    body: figma.string("Body"),
+  },
+  example: (props) => (
+    <ToolLandingPageShell eyebrow={props.eyebrow} title={props.title} body={props.body}>
+      <LeadFlowCta href="/problem-intake">Start tool</LeadFlowCta>
+    </ToolLandingPageShell>
+  ),
+});
+
+figma.connect(LeadDashboardTable, "PASTE_FIGMA_NODE_URL_FOR_DASHBOARD_TABLE", {
+  props: {
+    title: figma.string("Title"),
+  },
+  example: (props) => (
+    <LeadDashboardTable
+      title={props.title}
+      columns={["Signal", "Score", "Status"]}
+      rows={[
+        { Signal: "Website Money Leak", Score: "84", Status: "Review" },
+        { Signal: "Local Service Route", Score: "79", Status: "Sample available" },
+      ]}
+    />
+  ),
+});
+
+figma.connect(ProfileDetailPanel, "PASTE_FIGMA_NODE_URL_FOR_PROFILE_DETAIL_PANEL", {
+  example: () => (
+    <ProfileDetailPanel
+      product={{
+        title: "Website Money Leak Demand",
+        category: "Business owners",
+        score: 84,
+        confidence: "high",
+        sourceProof: "Questionnaire and URL review",
+        suppressionStatus: "review",
+        buyerUseCase: "Web builder, AI automation shop, ads operator",
+        records: "Live scored inquiries",
+        priceBand: "$249+",
+        freshness: "Live intake",
+        releaseMode: "One seller or named seller",
+      }}
+    />
+  ),
+});
+
+figma.connect(ConsentModule, "PASTE_FIGMA_NODE_URL_FOR_CONSENT_MODULE", {
+  props: {
+    title: figma.string("Title"),
+    body: figma.string("Body"),
+    status: figma.enum("Status", {
+      Submitted: "submitted",
+      Review: "review",
+      Approved: "approved",
+      Suppressed: "suppressed",
+      Sold: "sold",
+      "Sample available": "sampleAvailable",
+    }),
+  },
+  example: (props) => (
+    <ConsentModule
+      title={props.title}
+      body={props.body}
+      status={props.status}
+      bullets={[
+        "We show who can receive the lead.",
+        "Suppression controls travel with the record.",
+        "Raw answers stay limited when access is summary-only.",
+      ]}
+    />
+  ),
+});
+
+figma.connect(RequestAccessFormCard, "PASTE_FIGMA_NODE_URL_FOR_REQUEST_ACCESS_FORM", {
+  example: () => <RequestAccessFormCard />,
+});
+
+figma.connect(SubmitSourceFormCard, "PASTE_FIGMA_NODE_URL_FOR_SUBMIT_SOURCE_FORM", {
+  example: () => <SubmitSourceFormCard />,
+});

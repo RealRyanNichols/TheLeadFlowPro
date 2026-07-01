@@ -391,7 +391,7 @@ export function ProblemIntakeClient() {
         primaryHref="#signal-intake-form"
         primaryLabel="Find the signal"
         primaryEvent="problem_intake_start_click"
-        secondaryHref="/data-marketplace"
+        secondaryHref="/marketplace"
         secondaryLabel="Request data"
         secondaryEvent="problem_intake_marketplace_click"
         sourcePage="/problem-intake"
@@ -943,7 +943,7 @@ function ScorePanel({
         </ul>
       </div>
 
-      <Link href="/data-marketplace" className="btn-ghost w-full text-sm">
+      <Link href="/marketplace" className="btn-ghost w-full text-sm">
         See marketplace options
       </Link>
     </div>

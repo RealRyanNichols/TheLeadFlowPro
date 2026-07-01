@@ -28,7 +28,7 @@ function nextMoveFor(status: LeadStatus): { headline: string; body: string; cta:
     case "nurturing": return { headline: "Wait for stronger intent", body: "Keep the record, but do not package it until there is clearer demand, source depth, or buyer fit.", cta: "Open vault", href: "/dashboard/leads" };
     case "qualified": return { headline: "Package for a buyer request", body: "This record may belong in a scored list. Check fields, exclusions, and delivery readiness.", cta: "Data requests", href: "/dashboard/data-requests" };
     case "booked":    return { headline: "Mark delivery context", body: "Record what was promised, which fields are safe to deliver, and what still needs review.", cta: "Open requests", href: "/dashboard/data-requests" };
-    case "won":       return { headline: "Use as proof of demand", body: "A won record strengthens the buyer segment. Roll it into future scoring and package estimates.", cta: "Open marketplace", href: "/data-marketplace" };
+    case "won":       return { headline: "Use as proof of demand", body: "A won record strengthens the buyer segment. Roll it into future scoring and package estimates.", cta: "Open marketplace", href: "/marketplace" };
     default:          return { headline: "Review the record", body: "Confirm source, intent, contactability, and buyer fit before it moves forward.", cta: "Review scoring", href: "/dashboard/insights" };
   }
 }

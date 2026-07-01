@@ -112,7 +112,7 @@ export const intakeTools: IntakeTool[] = [
     collected: "City, service category, demand clue, seasonality, source context",
     vertical: "Local services",
     output: "Local demand brief",
-    route: "/data-marketplace"
+    route: "/marketplace"
   },
   {
     title: "Ecommerce Growth Finder",
@@ -152,7 +152,7 @@ export const intakeTools: IntakeTool[] = [
     collected: "Issue priority, public geography level, opinion bucket, anonymous event path",
     vertical: "Civic aggregate",
     output: "Aggregated issue pulse",
-    route: "/data-marketplace"
+    route: "/marketplace"
   },
   {
     title: "Buyer Personality Signal Quiz",

@@ -6,6 +6,8 @@
 
 import type { MetadataRoute } from "next";
 import { OFFERS } from "@/lib/offers";
+import { leadFlowIndustrySlugs } from "@/lib/leadflow-industries";
+import { getLeadProfileIds } from "@/lib/lead-profile-detail";
 import { ORGANIC_LANDING_PAGES } from "@/lib/organic-growth";
 import { PLATFORMS } from "@/lib/platforms";
 import { PULSE_SIGNAL_LIST } from "@/lib/pulse-signal-pages";
@@ -41,6 +43,17 @@ const staticRoutes = [
   ...PULSE_SIGNAL_LIST.map((signal) => `/pulse/${signal.slug}`),
   "/rewards",
   "/support",
+  "/buy-leads",
+  "/marketplace",
+  ...getLeadProfileIds().map((id) => `/lead-profile/${id}`),
+  "/build-my-system",
+  "/tools",
+  "/submit-source",
+  "/profile-model",
+  "/privacy-center",
+  "/industries",
+  ...leadFlowIndustrySlugs.map((slug) => `/industries/${slug}`),
+  "/machine",
   "/tools/seo-grader",
   "/tools/ad-account-autopsy",
   "/solutions/mortgage",

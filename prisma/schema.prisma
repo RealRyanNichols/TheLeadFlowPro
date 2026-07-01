@@ -166,6 +166,9 @@ model User {
   notifications      Notification[]   @relation("UserNotifications")
   dataListRequests   DataListRequest[]
   adultInterestIntakes AdultInterestIntake[]
+  toolSignalIntakes  ToolSignalIntake[]
+  questionnaireResponses QuestionnaireResponse[]
+  leadFlowConsentEvents LeadFlowConsentEvent[]
 }
 
 // ─── Flo / Brain Profile ────────────────────────────────────────
@@ -1526,4 +1529,130 @@ model AdultInterestIntake {
   @@index([email])
   @@index([leadScore, createdAt])
   @@index([userId, createdAt])
+}
+
+model ToolSignalIntake {
+  id                         String   @id @default(cuid())
+  userId                     String?
+  toolId                     String
+  toolName                   String
+  sessionId                  String
+  sourcePath                 String
+  leadCategory               String
+  dataCategory               String
+  whoFor                     String
+  answerGives                String
+  primaryAnswer              String   @db.Text
+  context                    String   @db.Text
+  desiredOutcome             String   @db.Text
+  urgency                    String
+  answers                    Json
+  leadScore                  Int
+  consentAccepted            Boolean  @default(false)
+  adultConfirmed             Boolean  @default(false)
+  sensitiveDataAcknowledged  Boolean  @default(false)
+  clientTimestamp            DateTime?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  user                       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([toolId, createdAt])
+  @@index([sessionId])
+  @@index([leadCategory, createdAt])
+  @@index([consentAccepted, createdAt])
+  @@index([userId, createdAt])
+}
+
+model QuestionnaireResponse {
+  id                         String   @id @default(cuid())
+  userId                     String?
+  anonymousUserId            String
+  identityId                 String?
+  identityPayload            Json?
+  toolSlug                   String
+  toolType                   String
+  vertical                   String
+  sourceUrl                  String
+  sourcePath                 String
+  utmSource                  String?
+  utmMedium                  String?
+  utmCampaign                String?
+  utmContent                 String?
+  utmTerm                    String?
+  status                     String   @default("partial")
+  currentStep                Int      @default(0)
+  tags                       String[] @default([])
+  score                      Int      @default(0)
+  confidence                 String   @default("low")
+  consentStatus              String   @default("not_requested")
+  suppressionStatus          String   @default("unchecked")
+  recommendedNextAction      String   @default("show_value_first")
+  exportProfile              Json
+  metadata                   Json?
+  startedAt                  DateTime @default(now())
+  completedAt                DateTime?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  user                       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  answers                    QuestionnaireAnswer[]
+
+  @@index([anonymousUserId, createdAt])
+  @@index([identityId, createdAt])
+  @@index([toolSlug, status, createdAt])
+  @@index([vertical, createdAt])
+  @@index([score, createdAt])
+  @@index([consentStatus, suppressionStatus, createdAt])
+  @@index([userId, createdAt])
+}
+
+model QuestionnaireAnswer {
+  id                         String   @id @default(cuid())
+  responseId                 String
+  questionId                 String
+  questionType               String
+  questionLabel              String
+  answer                     Json
+  answerText                 String?  @db.Text
+  tags                       String[] @default([])
+  scoreContribution          Int      @default(0)
+  sourcePage                 String?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  response                   QuestionnaireResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+
+  @@unique([responseId, questionId])
+  @@index([questionId, createdAt])
+  @@index([questionType, createdAt])
+  @@index([responseId])
+}
+
+model LeadFlowConsentEvent {
+  id                  String   @id @default(cuid())
+  userId              String?
+  identityId          String?
+  anonymousSessionId  String?
+  consentType         String
+  consentText         String   @db.Text
+  consentVersion      String
+  sellerId            String?
+  capturedAt          DateTime @default(now())
+  ipHash              String?
+  sourceUrl           String
+  sourcePath          String?
+  toolSlug            String?
+  userAgentHash       String?
+  metadata            Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user                User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([identityId, capturedAt])
+  @@index([anonymousSessionId, capturedAt])
+  @@index([consentType, capturedAt])
+  @@index([sellerId, capturedAt])
+  @@index([toolSlug, capturedAt])
 }

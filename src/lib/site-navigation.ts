@@ -10,49 +10,63 @@ export type SiteNavItem = {
 export const SITE_PRIMARY_NAV: SiteNavItem[] = [
   {
     href: "/buy-leads",
-    label: "Buy Signals",
-    shortLabel: "Buy",
+    label: "Buy Leads",
+    shortLabel: "Buy Leads",
     description: "Source-backed signal products.",
     icon: "market",
     activePaths: ["/buy-leads"]
   },
   {
     href: "/build-my-system",
-    label: "Build Machine",
-    shortLabel: "Build",
+    label: "Build System",
+    shortLabel: "Build System",
     description: "Website, AI, forms, follow-up, and routing.",
     icon: "score",
     activePaths: ["/build-my-system", "/problem-intake"]
   },
   {
+    href: "/tools",
+    label: "Tools",
+    shortLabel: "Tools",
+    description: "Quizzes, calculators, scorecards, and questionnaires.",
+    icon: "map",
+    activePaths: ["/tools", "/problem-intake", "/tools/seo-grader", "/tools/ad-account-autopsy", "/tools/growth-machine", "/tools/leadsource-clarity", "/tools/sales-rep-signal"]
+  },
+  {
+    href: "/marketplace",
+    label: "Marketplace",
+    shortLabel: "Marketplace",
+    description: "Search scored demand and lead signal products.",
+    icon: "market",
+    activePaths: ["/marketplace", "/data-marketplace"]
+  },
+  {
     href: "/submit-source",
     label: "Submit Source",
-    shortLabel: "Source",
+    shortLabel: "Submit Source",
     description: "Send a source, list, tool, or audience for review.",
     icon: "source",
     activePaths: ["/submit-source"]
   },
   {
+    href: "/contact",
+    label: "Contact",
+    shortLabel: "Contact",
+    description: "Talk through buying, building, or submitting sources.",
+    icon: "contact",
+    activePaths: ["/contact"]
+  },
+];
+
+export const SITE_MORE_NAV: SiteNavItem[] = [
+  {
     href: "/machine",
-    label: "Machine",
+    label: "LeadFlow Machine",
     shortLabel: "Machine",
     description: "Phase 3 intake, scoring, routing, and review system.",
     icon: "dashboard",
     activePaths: ["/machine"]
   },
-  {
-    href: "/data-marketplace",
-    label: "Marketplace",
-    shortLabel: "Market",
-    description: "Review scored demand and intent lists.",
-    icon: "market",
-    activePaths: ["/data-marketplace"]
-  },
-  { href: "/#data", label: "Signal Proof", shortLabel: "Proof", description: "See captured intake signals.", icon: "profile" },
-  { href: "/#workflow", label: "Scoring", shortLabel: "Scores", description: "Turn answers into usable intent.", icon: "score" },
-];
-
-export const SITE_MORE_NAV: SiteNavItem[] = [
   {
     href: "/problem-intake",
     label: "Problem Intake",
@@ -61,12 +75,10 @@ export const SITE_MORE_NAV: SiteNavItem[] = [
     icon: "map",
     activePaths: ["/problem-intake"]
   },
-  { href: "/#profiles", label: "Intent Profiles", shortLabel: "Profiles", description: "Tags, fit scores, and profiles.", icon: "profile" },
-  { href: "/#fair-rates", label: "Fair Pricing", shortLabel: "Pricing", description: "Buyer rates and data boundaries.", icon: "rate" },
-  { href: "/#compliance", label: "Data Rules", shortLabel: "Rules", description: "Adult-only reviewed signal rules.", icon: "guardrail" },
-  { href: "/dashboard", label: "Command Console", shortLabel: "Console", description: "Dashboard and request flow.", icon: "dashboard" },
+  { href: "/profile-model", label: "Profile Model", shortLabel: "Profiles", description: "Proof, scores, tags, suppression, and open questions.", icon: "profile" },
+  { href: "/privacy-center", label: "Privacy Center", shortLabel: "Privacy", description: "Consent, suppression, deletion, and data controls.", icon: "guardrail" },
+  { href: "/dashboard", label: "Dashboard", shortLabel: "Dashboard", description: "Internal scoring, review, export, and routing console.", icon: "dashboard" },
   { href: "/admin", label: "Operator Login", shortLabel: "Admin", description: "Private operator access.", icon: "admin" },
-  { href: "/contact", label: "Talk to Us", shortLabel: "Talk", description: "Lists, intake flows, partnerships.", icon: "contact" },
 ];
 
 export const SITE_MOBILE_NAV: SiteNavItem[] = [
@@ -77,31 +89,25 @@ export const SITE_MOBILE_NAV: SiteNavItem[] = [
 
 export const SITE_FOOTER_NAV = {
   funnel: [
-    { href: "/buy-leads", label: "Buy signals" },
-    { href: "/build-my-system", label: "Build machine" },
-    { href: "/machine", label: "LeadFlow machine" },
+    { href: "/buy-leads", label: "Buy leads" },
+    { href: "/industries", label: "Industries" },
+    { href: "/build-my-system", label: "Build system" },
+    { href: "/tools", label: "Tools" },
+    { href: "/marketplace", label: "Marketplace" },
     { href: "/submit-source", label: "Submit source" },
-    { href: "/data-marketplace", label: "Marketplace" },
-    { href: "/#data", label: "Signal proof" },
-    { href: "/#profiles", label: "Intent profiles" },
-    { href: "/#fair-rates", label: "Fair pricing" },
-    { href: "/#workflow", label: "Scoring" },
+    { href: "/profile-model", label: "Profile model" },
   ],
   company: [
-    { href: "/#compliance", label: "Data rules" },
     { href: "/privacy-center", label: "Privacy center" },
     { href: "/admin", label: "Operator login" },
-    { href: "/contact", label: "Talk to us" },
-    { href: "/dashboard", label: "Command console" },
+    { href: "/contact", label: "Contact" },
+    { href: "/dashboard", label: "Dashboard" },
   ],
   tools: [
+    { href: "/tools", label: "Public tools" },
     { href: "/problem-intake", label: "Problem intake" },
     { href: "/machine", label: "Phase 3 machine" },
-    { href: "/buy-leads", label: "Buyer signal lane" },
-    { href: "/build-my-system", label: "Lead machine lane" },
-    { href: "/submit-source", label: "Source review lane" },
-    { href: "/data-marketplace", label: "Buyer request desk" },
-    { href: "/#fair-rates", label: "Pricing desk" },
+    { href: "/data-marketplace", label: "Request builder" },
     { href: "/dashboard/data-requests", label: "Request dashboard" },
   ],
   legal: [

@@ -1,0 +1,226 @@
+import figma from "@figma/code-connect";
+import {
+  AdminStatCard,
+  Badge,
+  Button,
+  ConfidenceBadge,
+  ExportConfirmModal,
+  LeadProfileHeader,
+  MarketplaceCard,
+  ProgressIndicator,
+  RiskBadge,
+  ScoreBadge,
+  StatusBadge,
+  ToolCard,
+} from "../../src/components/leadflow-system";
+
+/*
+  Replace each PASTE_FIGMA_NODE_URL value with a published Figma component URL.
+  Required URL shape: https://www.figma.com/design/:fileKey/:fileName?node-id=123-456
+*/
+
+figma.connect(Button, "PASTE_FIGMA_NODE_URL_FOR_COMPONENT_BUTTON", {
+  props: {
+    variant: figma.enum("Variant", {
+      Primary: "primary",
+      Secondary: "secondary",
+      Ghost: "ghost",
+      Outline: "outline",
+      Danger: "danger",
+      Premium: "premium",
+    }),
+    text: figma.string("Text"),
+    disabled: figma.boolean("Disabled"),
+  },
+  example: (props) => (
+    <Button variant={props.variant} disabled={props.disabled} href="/marketplace">
+      {props.text}
+    </Button>
+  ),
+});
+
+figma.connect(Badge, "PASTE_FIGMA_NODE_URL_FOR_COMPONENT_BADGE", {
+  props: {
+    variant: figma.enum("Variant", {
+      Success: "success",
+      Warning: "warning",
+      Danger: "danger",
+      Verified: "verified",
+      Review: "review",
+      Suppressed: "suppressed",
+      Premium: "premium",
+      Neutral: "neutral",
+    }),
+    text: figma.string("Text"),
+  },
+  example: (props) => <Badge variant={props.variant}>{props.text}</Badge>,
+});
+
+figma.connect(ScoreBadge, "PASTE_FIGMA_NODE_URL_FOR_COMPONENT_SCORE_BADGE", {
+  props: {
+    score: figma.number("Score"),
+    variant: figma.enum("Variant", {
+      High: "high",
+      Medium: "medium",
+      Low: "low",
+      Unknown: "unknown",
+    }),
+    label: figma.string("Label"),
+  },
+  example: (props) => <ScoreBadge score={props.score} variant={props.variant} label={props.label} />,
+});
+
+figma.connect(ConfidenceBadge, "PASTE_FIGMA_NODE_URL_FOR_COMPONENT_CONFIDENCE_BADGE", {
+  props: {
+    confidence: figma.enum("Confidence", {
+      High: "high",
+      Medium: "medium",
+      Low: "low",
+      "Needs review": "needs_review",
+    }),
+    label: figma.string("Label"),
+  },
+  example: (props) => <ConfidenceBadge confidence={props.confidence} label={props.label} />,
+});
+
+figma.connect(StatusBadge, "PASTE_FIGMA_NODE_URL_FOR_COMPONENT_STATUS_BADGE", {
+  props: {
+    status: figma.enum("Status", {
+      Submitted: "submitted",
+      Review: "review",
+      Approved: "approved",
+      Rejected: "rejected",
+      Suppressed: "suppressed",
+      Sold: "sold",
+      "Sample available": "sample_available",
+      "Pending access": "pending_access",
+    }),
+    label: figma.string("Label"),
+  },
+  example: (props) => <StatusBadge status={props.status} label={props.label} />,
+});
+
+figma.connect(RiskBadge, "PASTE_FIGMA_NODE_URL_FOR_COMPONENT_RISK_BADGE", {
+  props: {
+    risk: figma.enum("Risk", {
+      Low: "low",
+      Medium: "medium",
+      High: "high",
+      Prohibited: "prohibited",
+      Neutral: "neutral",
+    }),
+    label: figma.string("Label"),
+  },
+  example: (props) => <RiskBadge risk={props.risk} label={props.label} />,
+});
+
+figma.connect(MarketplaceCard, "PASTE_FIGMA_NODE_URL_FOR_COMPONENT_MARKETPLACE_CARD", {
+  props: {
+    variant: figma.enum("Variant", {
+      Compact: "compact",
+      Full: "full",
+      Featured: "featured",
+      Locked: "locked",
+      "Buyer approved": "buyer_approved",
+      Admin: "admin",
+    }),
+    title: figma.string("Title"),
+    category: figma.string("Category"),
+    locked: figma.boolean("Locked"),
+  },
+  example: (props) => (
+    <MarketplaceCard
+      title={props.title}
+      category={props.category}
+      score={87}
+      confidence="high"
+      sourceType="Public marketplace"
+      bestBuyer="Agency, operator, sales team"
+      sampleCount="4,800 sample rows"
+      proofStatus="Public source proof"
+      suppressionStatus="sample_available"
+      lastUpdated="July 1, 2026"
+      variant={props.variant}
+      locked={props.locked}
+      href="/marketplace"
+    />
+  ),
+});
+
+figma.connect(LeadProfileHeader, "PASTE_FIGMA_NODE_URL_FOR_COMPONENT_LEAD_PROFILE_HEADER", {
+  props: {
+    title: figma.string("Title"),
+    category: figma.string("Category"),
+    vertical: figma.string("Vertical"),
+    score: figma.number("Score"),
+  },
+  example: (props) => (
+    <LeadProfileHeader
+      title={props.title}
+      category={props.category}
+      vertical={props.vertical}
+      score={props.score}
+      confidence="high"
+      sourceStatus="Source proof attached"
+      suppressionStatus="review"
+    />
+  ),
+});
+
+figma.connect(ToolCard, "PASTE_FIGMA_NODE_URL_FOR_COMPONENT_TOOL_CARD", {
+  props: {
+    title: figma.string("Title"),
+    who: figma.string("Who"),
+    answer: figma.string("Answer"),
+    time: figma.string("Time"),
+    dataCategory: figma.string("Data category"),
+  },
+  example: (props) => (
+    <ToolCard
+      title={props.title}
+      who={props.who}
+      answer={props.answer}
+      time={props.time}
+      dataCategory={props.dataCategory}
+      href="/tools"
+    />
+  ),
+});
+
+figma.connect(ProgressIndicator, "PASTE_FIGMA_NODE_URL_FOR_COMPONENT_PROGRESS_INDICATOR", {
+  props: {
+    current: figma.number("Current"),
+    total: figma.number("Total"),
+    label: figma.string("Label"),
+  },
+  example: (props) => <ProgressIndicator current={props.current} total={props.total} label={props.label} />,
+});
+
+figma.connect(AdminStatCard, "PASTE_FIGMA_NODE_URL_FOR_COMPONENT_ADMIN_STAT_CARD", {
+  props: {
+    title: figma.string("Title"),
+    value: figma.string("Value"),
+    trend: figma.string("Trend"),
+    status: figma.enum("Status", {
+      Success: "success",
+      Warning: "warning",
+      Danger: "danger",
+      Verified: "verified",
+      Review: "review",
+      Suppressed: "suppressed",
+      Premium: "premium",
+      Neutral: "neutral",
+    }),
+  },
+  example: (props) => <AdminStatCard title={props.title} value={props.value} trend={props.trend} status={props.status} />,
+});
+
+figma.connect(ExportConfirmModal, "PASTE_FIGMA_NODE_URL_FOR_COMPONENT_EXPORT_CONFIRM_MODAL", {
+  props: {
+    title: figma.string("Title"),
+    body: figma.string("Body"),
+  },
+  example: (props) => (
+    <ExportConfirmModal title={props.title} body={props.body} fieldGroups={["public_profile", "source_proof", "compliance"]} />
+  ),
+});

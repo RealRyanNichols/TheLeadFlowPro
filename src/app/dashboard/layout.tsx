@@ -1,12 +1,17 @@
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { auth } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/admin-identity";
 import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   if (!session?.user) {
     redirect("/login?next=/dashboard");
+  }
+
+  if (!isAdminEmail(session.user.email)) {
+    redirect("/buyer");
   }
 
   return (

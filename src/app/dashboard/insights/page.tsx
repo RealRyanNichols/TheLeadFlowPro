@@ -84,7 +84,7 @@ export default function InsightsPage() {
                 <Link href="/problem-intake" className="btn-primary text-xs py-2 px-3">
                   Capture intent
                 </Link>
-                <Link href="/data-marketplace" className="btn-ghost text-xs py-2 px-3">
+                <Link href="/marketplace" className="btn-ghost text-xs py-2 px-3">
                   Open marketplace
                 </Link>
               </div>

@@ -1,0 +1,105 @@
+{
+  "$schema": "https://tokens.studio/schemas/tokens.json",
+  "meta": {
+    "name": "LeadFlow Pro Design System",
+    "version": "0.2.0",
+    "designLanguage": "Signal Proof Score Source Route Revenue",
+    "intendedFigmaCollection": "LeadFlow/DesignSystem",
+    "intendedCodeTarget": "src/components/leadflow-system"
+  },
+  "color": {
+    "background": { "value": "#050918", "type": "color" },
+    "surface": { "value": "#060A11", "type": "color" },
+    "surfaceElevated": { "value": "#0B1017", "type": "color" },
+    "border": { "value": "rgba(255,255,255,0.12)", "type": "color" },
+    "mutedBorder": { "value": "rgba(255,255,255,0.08)", "type": "color" },
+    "textPrimary": { "value": "#FFFFFF", "type": "color" },
+    "textSecondary": { "value": "#CBD5E1", "type": "color" },
+    "textMuted": { "value": "#94A3B8", "type": "color" },
+    "primaryCta": { "value": "#FFD66B", "type": "color" },
+    "secondaryCta": { "value": "#23B8FF", "type": "color" },
+    "success": { "value": "#A6E36B", "type": "color" },
+    "warning": { "value": "#FFD66B", "type": "color" },
+    "danger": { "value": "#F87171", "type": "color" },
+    "verified": { "value": "#5CD0FF", "type": "color" },
+    "review": { "value": "#FFBA3D", "type": "color" },
+    "suppressed": { "value": "#FB7185", "type": "color" },
+    "premium": { "value": "#D946EF", "type": "color" },
+    "neutral": { "value": "#94A3B8", "type": "color" }
+  },
+  "typography": {
+    "heroHeadline": {
+      "value": { "fontFamily": "Inter", "fontWeight": "900", "fontSize": "64px", "lineHeight": "100%", "letterSpacing": "0" },
+      "type": "typography"
+    },
+    "sectionHeadline": {
+      "value": { "fontFamily": "Inter", "fontWeight": "900", "fontSize": "40px", "lineHeight": "105%", "letterSpacing": "0" },
+      "type": "typography"
+    },
+    "cardTitle": {
+      "value": { "fontFamily": "Inter", "fontWeight": "900", "fontSize": "24px", "lineHeight": "115%", "letterSpacing": "0" },
+      "type": "typography"
+    },
+    "metricNumber": {
+      "value": { "fontFamily": "Inter", "fontWeight": "900", "fontSize": "40px", "lineHeight": "100%", "letterSpacing": "0" },
+      "type": "typography"
+    },
+    "body": {
+      "value": { "fontFamily": "Inter", "fontWeight": "500", "fontSize": "16px", "lineHeight": "165%", "letterSpacing": "0" },
+      "type": "typography"
+    },
+    "small": {
+      "value": { "fontFamily": "Inter", "fontWeight": "600", "fontSize": "14px", "lineHeight": "155%", "letterSpacing": "0" },
+      "type": "typography"
+    },
+    "badge": {
+      "value": { "fontFamily": "Inter", "fontWeight": "800", "fontSize": "12px", "lineHeight": "100%", "letterSpacing": "0.08em" },
+      "type": "typography"
+    },
+    "tableHeader": {
+      "value": { "fontFamily": "Inter", "fontWeight": "800", "fontSize": "12px", "lineHeight": "120%", "letterSpacing": "0.08em" },
+      "type": "typography"
+    },
+    "formLabel": {
+      "value": { "fontFamily": "Inter", "fontWeight": "800", "fontSize": "12px", "lineHeight": "120%", "letterSpacing": "0.08em" },
+      "type": "typography"
+    },
+    "helperText": {
+      "value": { "fontFamily": "Inter", "fontWeight": "600", "fontSize": "12px", "lineHeight": "145%", "letterSpacing": "0" },
+      "type": "typography"
+    }
+  },
+  "spacing": {
+    "4": { "value": "4px", "type": "spacing" },
+    "8": { "value": "8px", "type": "spacing" },
+    "12": { "value": "12px", "type": "spacing" },
+    "16": { "value": "16px", "type": "spacing" },
+    "24": { "value": "24px", "type": "spacing" },
+    "32": { "value": "32px", "type": "spacing" },
+    "48": { "value": "48px", "type": "spacing" },
+    "64": { "value": "64px", "type": "spacing" },
+    "96": { "value": "96px", "type": "spacing" }
+  },
+  "radius": {
+    "small": { "value": "4px", "type": "borderRadius" },
+    "medium": { "value": "6px", "type": "borderRadius" },
+    "large": { "value": "8px", "type": "borderRadius" },
+    "card": { "value": "8px", "type": "borderRadius" },
+    "pill": { "value": "999px", "type": "borderRadius" },
+    "modal": { "value": "12px", "type": "borderRadius" }
+  },
+  "shadow": {
+    "panel": {
+      "value": "inset 0 1px 0 rgba(255,255,255,0.06), 0 22px 54px -36px rgba(92,208,255,0.54)",
+      "type": "boxShadow"
+    },
+    "cta": {
+      "value": "inset 0 1px 0 rgba(255,255,255,0.62), 0 18px 36px -17px rgba(255,154,31,0.92)",
+      "type": "boxShadow"
+    },
+    "dashboard": {
+      "value": "inset 0 1px 0 rgba(255,255,255,0.08), 0 32px 90px -56px rgba(92,208,255,0.60)",
+      "type": "boxShadow"
+    }
+  }
+}

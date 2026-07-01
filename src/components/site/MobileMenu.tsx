@@ -103,19 +103,19 @@ export function MobileMenu() {
         </nav>
         <div className="space-y-2 pt-3">
           <Link
-            href="/problem-intake"
+            href="/tools"
             onClick={() => setOpen(false)}
             className="btn-accent w-full justify-center py-2.5 text-sm"
           >
             <Sparkles className="h-4 w-4" />
-            Start my map
+            Open tools
           </Link>
           <Link
-            href="/data-marketplace"
+            href="/marketplace"
             onClick={() => setOpen(false)}
             className="btn-ghost w-full justify-center py-2.5 text-sm"
           >
-            Open signal shop
+            Open marketplace
           </Link>
         </div>
       </div>

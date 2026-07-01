@@ -33,6 +33,9 @@ const config: Config = {
         },
         // Logo orange→yellow gradient
         accent: {
+          50:  "#fff9e6",
+          100: "#fff0b8",
+          200: "#ffe58a",
           300: "#ffd66b",
           400: "#ffba3d",
           500: "#ff9a1f",
@@ -40,6 +43,10 @@ const config: Config = {
         },
         // Funnel "lead drop" green
         lead: {
+          50:  "#f5ffe9",
+          100: "#e6ffd0",
+          200: "#d0ffa3",
+          300: "#b8f36b",
           400: "#a6e36b",
           500: "#7fc93f",
           600: "#5fa726"

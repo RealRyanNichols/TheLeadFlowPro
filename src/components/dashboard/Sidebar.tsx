@@ -4,9 +4,20 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import {
-  LayoutDashboard, Inbox, Target, Users,
-  Sparkles, Settings, Lightbulb, Workflow, Menu, X,
-  BriefcaseBusiness, ShieldCheck, DatabaseZap, ShoppingCart, Radar
+  LayoutDashboard,
+  Inbox,
+  Settings,
+  Menu,
+  X,
+  ShieldCheck,
+  DatabaseZap,
+  ShoppingCart,
+  UploadCloud,
+  FileCheck2,
+  LockKeyhole,
+  Download,
+  Activity,
+  ClipboardList,
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { cn } from "@/lib/utils";
@@ -21,26 +32,28 @@ const PLAN_LABELS: Record<string, { name: string; tagline: string }> = {
 };
 
 const NAV = [
-  { href: "/dashboard",               label: "Signal Command", icon: LayoutDashboard },
-  { href: "/data-marketplace",        label: "Marketplace",    icon: ShoppingCart },
-  { href: "/dashboard/data-requests", label: "Data Requests",  icon: DatabaseZap },
-  { href: "/problem-intake",          label: "Intent Intake",  icon: Radar },
-  { href: "/dashboard/leads",         label: "Lead Vault",     icon: Inbox },
-  { href: "/dashboard/audience",      label: "Buyer Targets",  icon: Target },
-  { href: "/dashboard/social",        label: "Source Accounts",icon: Users },
-  { href: "/dashboard/insights",      label: "Scoring",        icon: Sparkles },
-  { href: "/dashboard/automations",   label: "Workflows",      icon: Workflow },
-  { href: "/dashboard/work",          label: "Client Office",  icon: BriefcaseBusiness },
-  { href: "/dashboard/requests",      label: "Build Requests", icon: Lightbulb },
-  { href: "/dashboard/settings",      label: "Settings",       icon: Settings },
+  { href: "/dashboard#overview", label: "Overview", icon: LayoutDashboard },
+  { href: "/dashboard#lead-profiles", label: "Lead Profiles", icon: Inbox },
+  { href: "/dashboard#marketplace-listings", label: "Marketplace Listings", icon: ShoppingCart },
+  { href: "/dashboard#submitted-sources", label: "Submitted Sources", icon: UploadCloud },
+  { href: "/dashboard#buyer-requests", label: "Buyer Requests", icon: ClipboardList },
+  { href: "/dashboard#source-proof", label: "Source Proof", icon: FileCheck2 },
+  { href: "/dashboard#suppression", label: "Suppression", icon: LockKeyhole },
+  { href: "/dashboard/exports", label: "Exports", icon: Download },
+  { href: "/dashboard#events", label: "Events", icon: Activity },
+  { href: "/dashboard#settings", label: "Settings", icon: Settings },
+  { href: "/dashboard/source-submissions", label: "Source Review Queue", icon: DatabaseZap },
 ];
 
 function NavList({ pathname, onItemClick }: { pathname: string; onItemClick?: () => void }) {
   return (
     <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
       {NAV.map((item) => {
-        const active = pathname === item.href ||
-          (item.href !== "/dashboard" && pathname.startsWith(item.href));
+        const itemPath = item.href.split("#")[0];
+        const isAnchor = item.href.includes("#");
+        const active = isAnchor
+          ? pathname === itemPath && item.href.endsWith("#overview")
+          : pathname === itemPath || (itemPath !== "/dashboard" && pathname.startsWith(itemPath));
         return (
           <Link
             key={item.href}

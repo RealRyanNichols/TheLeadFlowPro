@@ -104,7 +104,7 @@ export default async function AudiencePage() {
                 <span className="text-sm text-white">Capture problem intent <span className="text-ink-400">· pain + urgency</span></span>
                 <ArrowRight className="h-4 w-4 text-cyan-400" />
               </Link>
-              <Link href="/data-marketplace" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
+              <Link href="/marketplace" className="glass rounded-xl p-3 flex items-center justify-between hover:bg-white/5 transition">
                 <span className="text-sm text-white">Open marketplace <span className="text-ink-400">· buyer requests</span></span>
                 <ArrowRight className="h-4 w-4 text-cyan-400" />
               </Link>

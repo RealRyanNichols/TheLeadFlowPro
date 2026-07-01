@@ -59,7 +59,7 @@ export default async function DataRequestsPage() {
             Track buyer requests, source submissions, scored packages, estimates, and review status.
           </p>
         </div>
-        <Link href="/data-marketplace" className="btn-accent text-sm">
+        <Link href="/marketplace" className="btn-accent text-sm">
           Open marketplace
           <ArrowRight className="h-4 w-4" />
         </Link>
@@ -93,7 +93,7 @@ export default async function DataRequestsPage() {
             Use the marketplace builder to request a list or submit a lead source
             for review.
           </p>
-          <Link href="/data-marketplace" className="btn-accent mt-5 text-sm">
+          <Link href="/marketplace" className="btn-accent mt-5 text-sm">
             Open marketplace
           </Link>
         </div>

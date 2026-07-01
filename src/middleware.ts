@@ -24,6 +24,18 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  const path = req.nextUrl.pathname;
+  const isAdmin = isAdminEmail(typeof token.email === "string" ? token.email : null);
+
+  if (path === "/dashboard" || path.startsWith("/dashboard/")) {
+    if (!isAdmin) {
+      const url = new URL("/buyer", req.url);
+      url.searchParams.set("redirected", "admin_only");
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
   // Step 2: profile gate
   // token.brainCompleteness is populated by the NextAuth session callback (see auth.ts).
   // If it's missing (existing sessions from before this change), assume 0 \u2192 gate triggers
@@ -32,29 +44,18 @@ export async function middleware(req: NextRequest) {
     typeof (token as any).brainCompleteness === "number"
       ? (token as any).brainCompleteness
       : 0;
-  const isAdmin = isAdminEmail(typeof token.email === "string" ? token.email : null);
-
-  // Only gate routes under /dashboard/* and user-scoped APIs.
+  // Only gate user-scoped APIs and onboarding routes here. Dashboard routes
+  // are admin-only and are handled before this profile-completeness gate.
   // The /onboarding page + /api/onboarding endpoint are explicitly allowed through.
   // Client Office stays reachable for paid buyers even before the full Flo
   // profile is complete; order detail APIs still do their own auth checks.
-  const path = req.nextUrl.pathname;
   const onboardingAllowed =
     path === "/onboarding" ||
     path.startsWith("/onboarding/") ||
     path.startsWith("/api/onboarding");
-  const clientOfficeAllowed =
-    path === "/dashboard/work" ||
-    path.startsWith("/dashboard/work/");
-  const toolRequestsAllowed =
-    path === "/dashboard/requests" ||
-    path.startsWith("/dashboard/requests/");
-
   if (
     !isAdmin &&
     !onboardingAllowed &&
-    !clientOfficeAllowed &&
-    !toolRequestsAllowed &&
     completeness < UNLOCK_THRESHOLD
   ) {
     const url = new URL("/onboarding", req.url);

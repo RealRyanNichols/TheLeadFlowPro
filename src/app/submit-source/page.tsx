@@ -1,29 +1,43 @@
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, DatabaseZap, ShieldCheck, UploadCloud } from "lucide-react";
+import { ArrowRight, BadgeCheck, DatabaseZap, ShieldAlert, ShieldCheck, UploadCloud, UsersRound } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
+import { SourceSubmissionForm } from "@/components/site/SourceSubmissionForm";
 
 export const metadata = {
   title: "Submit a Lead Source | The LeadFlow Pro",
-  description: "Submit a source, list, tool, directory, or audience for review, scoring, suppression checks, and routing analysis."
+  description: "Submit a business list, public directory, audience, website, tool, dataset, or signal opportunity for LeadFlow Pro review."
 };
 
 const sourceTypes = [
-  "Public directory",
-  "Niche list",
-  "Ecommerce signal",
-  "AI tool or SaaS category",
-  "Local demand route",
-  "Audience or community",
-  "Questionnaire idea",
-  "Buyer problem pattern"
+  "Website or directory",
+  "Business list",
+  "Local service route",
+  "Ecommerce vendor source",
+  "Real estate source",
+  "Mortgage/refi source",
+  "Political/civic issue source",
+  "Creator audience",
+  "Tool or quiz idea",
+  "Other"
+];
+
+const audiences = [
+  "Business owners with lists",
+  "Agencies with niche knowledge",
+  "Operators who know a market",
+  "Creators with audiences",
+  "Local people who know local businesses",
+  "Researchers",
+  "Partners",
+  "Sales teams"
 ];
 
 const reviewRules = [
-  "Source context must stay attached.",
-  "No minors, private addresses, medical data, financial account data, or protected-trait targeting.",
-  "Suppression and do-not-contact status must be respected before release.",
-  "LeadFlow reviews fit, freshness, proof, and lawful use before marketplace access."
+  "Every submission becomes a reviewable source record.",
+  "Source context, origin, permissions, and restrictions stay attached.",
+  "Hidden, hacked, leaked, login-only, private, minors, medical, financial, or protected-trait data is not accepted.",
+  "Nothing is published, routed, exported, or sold without review."
 ];
 
 export default function SubmitSourcePage() {
@@ -35,16 +49,16 @@ export default function SubmitSourcePage() {
           <div className="container">
             <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
               <div>
-                <p className="text-xs font-extrabold uppercase tracking-wider text-lead-300">Submit a lead source</p>
+                <p className="text-xs font-extrabold uppercase tracking-wider text-lead-300">Contributor intake</p>
                 <h1 className="mt-4 max-w-4xl text-5xl font-black leading-[0.96] text-white md:text-7xl">
-                  Have a signal source? Put it in the review lane.
+                  Submit a lead source.
                 </h1>
                 <p className="mt-6 max-w-2xl text-lg leading-8 text-ink-100">
-                  Submit a source, list, tool, directory, audience, or problem pattern. LeadFlow can tag it, score it, verify source context, and decide whether it belongs in a buyer route or an aggregated insight product.
+                  Found a business list, public directory, audience, website, niche, tool, data source, or signal opportunity that could turn into buyers? Submit it for review.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                  <Link href="/data-marketplace?mode=source" className="btn-accent text-base">
-                    Open Source Review
+                  <Link href="#source-review-form" className="btn-accent text-base">
+                    Start Source Submission
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                   <Link href="/contact" className="btn-ghost text-base">
@@ -59,8 +73,8 @@ export default function SubmitSourcePage() {
                     <UploadCloud className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-ink-400">Source review</p>
-                    <h2 className="text-2xl font-black text-white">What we can inspect first.</h2>
+                    <p className="text-xs font-bold uppercase tracking-wider text-ink-400">Submission types</p>
+                    <h2 className="text-2xl font-black text-white">What can enter review.</h2>
                   </div>
                 </div>
                 <div className="mt-5 grid gap-2 sm:grid-cols-2">
@@ -80,21 +94,53 @@ export default function SubmitSourcePage() {
           <div className="container">
             <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">Review before release</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">Who this is for</p>
+                <h2 className="mt-3 text-3xl font-black text-white md:text-5xl">People who see useful signals before the market does.</h2>
+                <p className="mt-4 text-base leading-7 text-ink-200">
+                  A good source usually starts messy: a route, a spreadsheet, a directory, an audience, a niche, or a pattern people keep missing. This intake turns it into something the review desk can evaluate.
+                </p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                {audiences.map((audience) => (
+                  <div key={audience} className="lead-panel flex min-h-20 gap-3 p-5 text-sm font-semibold leading-6 text-ink-100">
+                    <UsersRound className="mt-1 h-5 w-5 shrink-0 text-cyan-300" />
+                    <span>{audience}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-t border-white/10 bg-white/[0.02] py-14 md:py-20">
+          <div className="container">
+            <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">Review before use</p>
                 <h2 className="mt-3 text-3xl font-black text-white md:text-5xl">A source is not a product until it survives review.</h2>
                 <p className="mt-4 text-base leading-7 text-ink-200">
                   The value is not raw volume. The value is useful source context, clean tags, lawful permissions, confidence, freshness, and a buyer route that makes sense.
                 </p>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
-                {reviewRules.map((rule) => (
+                {reviewRules.map((rule, index) => (
                   <div key={rule} className="lead-panel flex min-h-28 gap-3 p-5 text-sm leading-6 text-ink-100">
-                    <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-lead-400" />
+                    {index === 2 ? (
+                      <ShieldAlert className="mt-1 h-5 w-5 shrink-0 text-amber-300" />
+                    ) : (
+                      <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-lead-400" />
+                    )}
                     <span>{rule}</span>
                   </div>
                 ))}
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="border-t border-white/10 bg-white/[0.02] py-14 md:py-20">
+          <div className="container">
+            <SourceSubmissionForm />
           </div>
         </section>
 
@@ -109,8 +155,8 @@ export default function SubmitSourcePage() {
                     Start with the source review desk. If the source has commercial use, proof, freshness, and clean boundaries, it can move toward sample, score, and marketplace packaging.
                   </p>
                 </div>
-                <Link href="/data-marketplace?mode=source" className="btn-accent w-full text-base md:w-auto">
-                  Submit for Review
+                <Link href="#source-review-form" className="btn-accent w-full text-base md:w-auto">
+                  Start Source Submission
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
