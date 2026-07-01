@@ -17,6 +17,7 @@
     "audit:analytics": "node scripts/audit-analytics-privacy.mjs",
     "audit:env": "node scripts/audit-public-env.mjs",
     "audit:paid-links": "node scripts/audit-paid-traffic-links.mjs",
+    "audit:live-links": "node scripts/audit-live-site-links.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {

@@ -607,6 +607,213 @@ export const leadProfileDetails: LeadProfileDetail[] = [
   },
 ];
 
+type FallbackProfileOverride = {
+  baseId: string;
+  title: string;
+  category: string;
+  vertical: string;
+  leadScore: number;
+  confidence: ConfidenceLevel;
+  sourceType: string;
+  summary: string;
+  whyThisProfileExists: string;
+  bestBuyerType: string;
+  buyerUseCase: string;
+  recommendedNextAction: string;
+  releaseMode: string;
+  priceBand: string;
+  sampleCount: string;
+  tags: string[];
+  sourceProofLinks: SourceProofLink[];
+};
+
+const fallbackProfileOverrides: Record<string, FallbackProfileOverride> = {
+  "local-contractor-demand-signal": {
+    baseId: "contractor-demand-signal",
+    title: "Local Contractor Demand Signal",
+    category: "Home services",
+    vertical: "Contractors and local services",
+    leadScore: 84,
+    confidence: "high",
+    sourceType: "Public business website plus demand-pattern review",
+    sourceProofLinks: [
+      proof("Website and directory context", "Public source", "Public service-area pages, category pages, and directory clues are grouped for buyer review.", "verified"),
+      proof("Demand-pattern notes", "Review note", "Signals are redacted and grouped by category, location, and buyer use case before release.", "review"),
+      proof("Suppression gate", "Compliance control", "Suppressed records and high-risk data are blocked before sample or exclusive access.", "review", "/privacy-center"),
+    ],
+    summary: "A contractor and home-service demand pack built around public business clues, website leaks, service-area pressure, and follow-up gaps.",
+    whyThisProfileExists: "Local contractors need better proof than generic trade lists. This listing exists because the service category, territory, source proof, and buyer use case are clear enough for sample review.",
+    bestBuyerType: "Roofing, HVAC, plumbing, remodeling, restoration",
+    buyerUseCase: "Spot categories where missed calls, missed texts, weak websites, and local demand spikes create a follow-up opportunity.",
+    recommendedNextAction: "Request the redacted contractor sample, confirm service territory, then choose shared, limited-seat, or exclusive review.",
+    releaseMode: "Limited seats or exclusive territory",
+    priceBand: "$199 to $599",
+    sampleCount: "2,400 service-area signals",
+    tags: ["contractor", "home services", "local demand", "website leak"],
+  },
+  "va-irrrl-watchlist": {
+    baseId: "mortgage-refi-interest-signal",
+    title: "VA IRRRL Watchlist",
+    category: "Mortgage and refi",
+    vertical: "VA refinance education and mortgage-readiness signals",
+    leadScore: 78,
+    confidence: "medium",
+    sourceType: "Consented questionnaire plus public education interest",
+    sourceProofLinks: [
+      proof("VA refinance education path", "Consented or public-source signal", "Education-interest signals are kept separate from loan offers and require licensed-partner review.", "review"),
+      proof("Named routing gate", "Compliance control", "Any contact route requires consent, suppression review, and license coverage before release.", "verified", "/privacy-center"),
+      proof("No private financial account data", "Restricted data control", "Private account access, guaranteed savings claims, and hidden sensitive data are not part of this product.", "verified", "/privacy-center"),
+    ],
+    summary: "A VA IRRRL education and refinance-interest watchlist for licensed mortgage teams that need permission-aware, review-gated signals.",
+    whyThisProfileExists: "VA refinance interest has to be handled carefully. This listing exists to separate education signals, consent, license coverage, and buyer-use review before any contact path is released.",
+    bestBuyerType: "Licensed VA mortgage team",
+    buyerUseCase: "Review VA refinance interest signals without treating a public page or education click as a loan offer.",
+    recommendedNextAction: "Confirm license coverage and consent scope before requesting access.",
+    releaseMode: "Named licensed partner only",
+    priceBand: "$299 to $999",
+    sampleCount: "Reviewed education-interest signals",
+    tags: ["VA IRRRL", "mortgage", "licensed partner", "named consent"],
+  },
+  "ai-tool-buyer-intent-signal": {
+    baseId: "ai-tool-launch-signal",
+    title: "AI Tool Buyer Intent Signal",
+    category: "AI and SaaS",
+    vertical: "AI tools, SaaS launches, and automation demand",
+    leadScore: 82,
+    confidence: "medium",
+    sourceType: "Launch page, pricing clue, and public buyer-intent signal",
+    sourceProofLinks: [
+      proof("AI launch proof", "Public launch clue", "Launch pages, pricing clues, and public positioning context are grouped for review.", "verified"),
+      proof("Integration-demand clue", "Public source", "Public product gaps and setup needs are summarized without private account access.", "review"),
+      proof("Aggregate-first release", "Privacy control", "Default release is aggregate or business-facing unless named-source review is approved.", "review", "/privacy-center"),
+    ],
+    summary: "A source-backed AI and SaaS buyer-intent pack for agencies, integration builders, and automation operators.",
+    whyThisProfileExists: "AI tools often need implementation, distribution, onboarding, and integration help after launch. This listing packages those public clues into a buyer-readable signal.",
+    bestBuyerType: "SaaS agency, integration builder, automation shop",
+    buyerUseCase: "Find AI tools and SaaS teams that may need integrations, AI chatbot setup, AI agent workflows, or distribution help.",
+    recommendedNextAction: "Open the sample, choose the integration lane, then request named-source review if the business route is clear.",
+    releaseMode: "Aggregate insight plus named-source review",
+    priceBand: "$199 to $699",
+    sampleCount: "680 AI and SaaS signals",
+    tags: ["AI", "SaaS", "launch", "automation"],
+  },
+  "website-neglect-signal-pack": {
+    baseId: "website-neglect-signal",
+    title: "Website Neglect Signal Pack",
+    category: "General business",
+    vertical: "Website conversion, CRM automation, and follow-up repair",
+    leadScore: 88,
+    confidence: "high",
+    sourceType: "Website audit plus first-party tool intake",
+    sourceProofLinks: [
+      proof("Website leak sample", "Tool-generated signal", "CTA, follow-up, form, and speed-to-lead issues are summarized from the submitted path.", "verified"),
+      proof("Questionnaire source path", "First-party intake", "Answers are tied to source path, timestamp, session, category, and consent mode.", "review"),
+      proof("Named seller consent gate", "Consent control", "Routing or selling to a named seller requires the appropriate consent scope.", "review", "/privacy-center"),
+    ],
+    summary: "A high-intent signal pack built from website money leaks, tool responses, missed follow-up clues, and business-owner problem intake.",
+    whyThisProfileExists: "Businesses ask for more attention while their existing calls, forms, texts, DMs, and website traffic leak out. This listing exists because the problem and buyer fix are visible.",
+    bestBuyerType: "Web builder, ads operator, AI automation shop",
+    buyerUseCase: "Find businesses asking for help with website funnels, CRM automation, AI receptionist, missed DMs, missed calls, and follow-up.",
+    recommendedNextAction: "Request sample access, confirm the highest-value leak, then route to a buyer that can fix follow-up first.",
+    releaseMode: "One seller or named seller",
+    priceBand: "$249 to $899",
+    sampleCount: "Live scored inquiries",
+    tags: ["website audit", "CRM automation", "AI receptionist", "first-party intake"],
+  },
+  "local-service-business-lead-leak-pack": {
+    baseId: "website-neglect-signal",
+    title: "Local Service Business Lead Leak Pack",
+    category: "Local services",
+    vertical: "Local service lead flow and missed-follow-up repair",
+    leadScore: 86,
+    confidence: "high",
+    sourceType: "Lead leak audit plus public business context",
+    sourceProofLinks: [
+      proof("Lead leak audit path", "Tool-generated signal", "Missed calls, missed texts, weak forms, and follow-up gaps are summarized for review.", "verified"),
+      proof("Local business context", "Public source", "Public website and service-area context help validate buyer fit.", "review"),
+      proof("Consent and suppression gate", "Compliance control", "Named routing waits for consent scope and suppression review.", "review", "/privacy-center"),
+    ],
+    summary: "A local business signal pack focused on missed calls, missed texts, weak websites, and automation-ready lead-flow problems.",
+    whyThisProfileExists: "Local businesses often lose money after the lead shows up. This listing exists because the leak, category, follow-up gap, and buyer fix can be reviewed together.",
+    bestBuyerType: "Local agency, automation builder, operator",
+    buyerUseCase: "Sell or build business automation, AI receptionist, CRM automation, appointment booking, and follow-up repair.",
+    recommendedNextAction: "Request the local lead-leak sample, verify the route, and match the buyer to a build or lead-signal offer.",
+    releaseMode: "Shared or named buyer route",
+    priceBand: "$149 to $599",
+    sampleCount: "Local service lead-flow signals",
+    tags: ["local business", "missed calls", "automation", "follow-up"],
+  },
+  "dental-office-growth-signal": {
+    baseId: "contractor-demand-signal",
+    title: "Dental Office Growth Signal",
+    category: "Dental",
+    vertical: "Dental marketing and appointment-flow readiness",
+    leadScore: 74,
+    confidence: "medium",
+    sourceType: "Public website, local search, and appointment-flow review",
+    sourceProofLinks: [
+      proof("Dental website review", "Public source", "Public appointment pages, CTA clarity, and local search gaps are summarized for buyer review.", "review"),
+      proof("Marketing-readiness note", "Review note", "Signals show business growth needs, not protected health information or patient data.", "verified"),
+      proof("No medical data", "Restricted data control", "The product excludes patient data, health data, and private medical information.", "verified", "/privacy-center"),
+    ],
+    summary: "A dental growth signal for agencies and automation consultants reviewing public appointment-flow, marketing, and website funnel gaps.",
+    whyThisProfileExists: "Dental offices can have demand and still lose appointment opportunities through weak pages, unclear calls to action, slow response, or poor follow-up.",
+    bestBuyerType: "Dental marketing agency or automation consultant",
+    buyerUseCase: "Find practices that may need local marketing, Facebook ads, Instagram ads, website funnel repair, or lead response systems.",
+    recommendedNextAction: "Request the dental growth sample and confirm the use case stays business-marketing focused.",
+    releaseMode: "Review-gated business signal",
+    priceBand: "$199 to $699",
+    sampleCount: "Dental marketing-readiness signals",
+    tags: ["dental", "local marketing", "appointment booking", "website funnel"],
+  },
+  "political-issue-pulse-signal": {
+    baseId: "creator-audience-signal",
+    title: "Political Issue Pulse Signal",
+    category: "Civic issue signals",
+    vertical: "Aggregate civic issue attention",
+    leadScore: 71,
+    confidence: "medium",
+    sourceType: "Aggregate public-source and consented civic issue signals",
+    sourceProofLinks: [
+      proof("Issue pulse aggregate", "Aggregate civic signal", "Public and consented issue categories are grouped without individual persuasion labels.", "verified", "/civic/issue-pulse"),
+      proof("Public-source civic review", "Public source", "Public meeting, survey, and issue-submission context can support aggregate dashboards.", "review"),
+      proof("No individual political targeting", "Restricted data control", "Individual political persuasion profiles are not built or sold from this listing.", "verified", "/privacy-center"),
+    ],
+    summary: "An aggregate civic issue signal showing issue attention, public concern categories, and district-level questions without private persuasion targeting.",
+    whyThisProfileExists: "Civic teams need to know which issues people care about, but individual political identity and sensitive persuasion targeting are off limits without explicit legal review.",
+    bestBuyerType: "Campaign team, local organization, civic media buyer",
+    buyerUseCase: "Understand issue attention, public concern categories, and message questions without targeting private political identity.",
+    recommendedNextAction: "Review aggregate issue-pulse data only, then request legal and compliance review before any campaign-specific product.",
+    releaseMode: "Aggregate civic insight only",
+    priceBand: "Review required",
+    sampleCount: "Aggregate issue signals",
+    tags: ["civic", "aggregate", "issue pulse", "compliance review"],
+  },
+};
+
+export function getFallbackLeadProfileDetail(idOrSlug: string | null | undefined): LeadProfileDetail {
+  const direct = leadProfileDetails.find((profile) => profile.id === idOrSlug);
+  if (direct) return direct;
+
+  const override = idOrSlug ? fallbackProfileOverrides[idOrSlug] : undefined;
+  if (override) {
+    const base = leadProfileDetails.find((profile) => profile.id === override.baseId) || leadProfileDetails[0];
+    return {
+      ...base,
+      ...override,
+      id: idOrSlug || base.id,
+      contactRouteHints: base.contactRouteHints,
+      openQuestions: base.openQuestions,
+      signals: base.signals,
+      buyerFit: base.buyerFit,
+      complianceChecks: base.complianceChecks,
+      history: standardHistory(base.lastVerifiedDate),
+    };
+  }
+
+  return leadProfileDetails[0];
+}
+
 export function getLeadProfileDetail(id: string) {
   return leadProfileDetails.find((profile) => profile.id === id) ?? null;
 }

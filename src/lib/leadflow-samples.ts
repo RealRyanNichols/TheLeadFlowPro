@@ -1,7 +1,7 @@
 import "server-only";
 
 import type Stripe from "stripe";
-import { leadProfileDetails, type LeadProfileDetail } from "@/lib/lead-profile-detail";
+import { getFallbackLeadProfileDetail, leadProfileDetails, type LeadProfileDetail } from "@/lib/lead-profile-detail";
 import {
   buyerAccountIsRestricted,
   ensureBuyerAccountForUser,
@@ -450,7 +450,7 @@ function confidenceLabel(value: unknown) {
 }
 
 function fallbackProfile(idOrSlug: string | null | undefined): LeadProfileDetail {
-  return leadProfileDetails.find((profile) => profile.id === idOrSlug) || leadProfileDetails[0];
+  return getFallbackLeadProfileDetail(idOrSlug);
 }
 
 function fallbackListing(idOrSlug: string): SampleListingView {

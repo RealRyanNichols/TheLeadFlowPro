@@ -63,7 +63,7 @@ export default function BuyLeadsPage() {
                   Buy lead signals with proof attached.
                 </h1>
                 <p className="mt-6 max-w-2xl text-lg leading-8 text-ink-100">
-                  No mystery spreadsheets. No recycled junk. No trust me bro data. Every profile shows source context, category, score, confidence, suppression status, and why the opportunity exists.
+                  No mystery spreadsheets. No recycled junk. No unsupported data claims. Every profile shows source context, category, score, confidence, suppression status, and why the opportunity exists.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Link href="/marketplace" className="btn-accent text-base">

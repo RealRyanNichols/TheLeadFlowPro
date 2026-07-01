@@ -1,6 +1,6 @@
 import "server-only";
 
-import { leadProfileDetails, type LeadProfileDetail } from "@/lib/lead-profile-detail";
+import { getFallbackLeadProfileDetail, leadProfileDetails, type LeadProfileDetail } from "@/lib/lead-profile-detail";
 import {
   buyerAccountIsRestricted,
   ensureBuyerAccountForUser,
@@ -284,7 +284,7 @@ function isoOrNull(value: string | null | undefined) {
 }
 
 function fallbackProfile(idOrSlug: string | null | undefined): LeadProfileDetail {
-  return leadProfileDetails.find((profile) => profile.id === idOrSlug) || leadProfileDetails[0];
+  return getFallbackLeadProfileDetail(idOrSlug);
 }
 
 function accessModelFromProfile(profile: LeadProfileDetail): ListingAccessModel {

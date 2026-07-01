@@ -78,7 +78,7 @@ export const SITE_MORE_NAV: SiteNavItem[] = [
   { href: "/profile-model", label: "Profile Model", shortLabel: "Profiles", description: "Proof, scores, tags, suppression, and open questions.", icon: "profile" },
   { href: "/privacy-center", label: "Privacy Center", shortLabel: "Privacy", description: "Consent, suppression, deletion, and data controls.", icon: "guardrail" },
   { href: "/dashboard", label: "Dashboard", shortLabel: "Dashboard", description: "Internal scoring, review, export, and routing console.", icon: "dashboard" },
-  { href: "/admin", label: "Operator Login", shortLabel: "Admin", description: "Private operator access.", icon: "admin" },
+  { href: "/login?next=/admin", label: "Operator Login", shortLabel: "Admin", description: "Private operator access.", icon: "admin" },
 ];
 
 export const SITE_MOBILE_NAV: SiteNavItem[] = [
@@ -99,7 +99,7 @@ export const SITE_FOOTER_NAV = {
   ],
   company: [
     { href: "/privacy-center", label: "Privacy center" },
-    { href: "/admin", label: "Operator login" },
+    { href: "/login?next=/admin", label: "Operator login" },
     { href: "/contact", label: "Contact" },
     { href: "/dashboard", label: "Dashboard" },
   ],
