@@ -82,6 +82,46 @@ Before deploying schema-backed work:
 4. Confirm buyers only see entitled rows.
 5. Confirm service-role keys stay server-side only.
 
+Current LeadFlow checkout/data-product migrations include:
+
+- `20260701241500_leadflow_paid_sample_system.sql`
+- `20260701243000_leadflow_exclusive_listing_logic.sql`
+- `20260701244500_leadflow_checkout_orders.sql`
+- `20260701250000_leadflow_integrations_framework.sql`
+
+## LeadFlow Checkout
+
+Checkout supports reviewed samples, listing access, exclusive deposits, custom signal deposits, and a subscription placeholder. Payment creates an audited `leadflow.orders` row. Access is granted only through `buyer_entitlements` after webhook confirmation and review rules.
+
+Stripe setup:
+
+1. Set `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, and `NEXT_PUBLIC_SITE_URL`.
+2. Add a Stripe webhook endpoint for either `/api/webhooks/stripe` or `/api/stripe/webhook`.
+3. Subscribe to `checkout.session.completed`, `payment_intent.succeeded`, and `payment_intent.payment_failed`.
+4. Use Stripe test mode first. A paid order should land in `/buyer/orders` and `/dashboard/orders`.
+5. Confirm no entitlement is granted for suppressed listings, sold-exclusive listings, saturated limited-seat listings, high-risk records, or manual-review orders.
+
+## LeadFlow Integrations
+
+Buyer integrations live at `/buyer/integrations`. Admin review and safety controls live at `/dashboard/integrations`.
+
+Supported framework providers:
+
+- Webhook
+- CSV export
+- Zapier webhook
+- Make.com webhook
+- Email notification placeholder
+- Google Sheets, HubSpot, GoHighLevel, Salesforce, and Airtable placeholders
+
+Security rules:
+
+1. Every integration run checks active buyer entitlement before delivery.
+2. Payloads exclude suppressed records, raw questionnaire answers, hidden source proof, admin notes, and prohibited fields.
+3. Contact fields are only eligible when the buyer entitlement allows them.
+4. Webhook secrets are not returned to the browser.
+5. Set `LEADFLOW_INTEGRATION_SECRET_KEY` before collecting webhook secret header values. Without it, the app saves only a secret preview and does not retain the raw secret.
+
 ## Deployment
 
 `main` is the production integration branch. Vercel deploys the GitHub project `RealRyanNichols/TheLeadFlowPro` to the Vercel project `the-lead-flow-pro`.

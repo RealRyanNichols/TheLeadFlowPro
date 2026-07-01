@@ -20,6 +20,11 @@ import {
   ClipboardList,
   Gauge,
   GitBranch,
+  Handshake,
+  FlaskConical,
+  Crown,
+  CreditCard,
+  PlugZap,
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { cn } from "@/lib/utils";
@@ -42,7 +47,12 @@ const NAV = [
   { href: "/dashboard#source-proof", label: "Source Proof", icon: FileCheck2 },
   { href: "/dashboard#suppression", label: "Suppression", icon: LockKeyhole },
   { href: "/dashboard/exports", label: "Exports", icon: Download },
+  { href: "/dashboard/samples", label: "Samples", icon: FlaskConical },
+  { href: "/dashboard/orders", label: "Orders", icon: CreditCard },
+  { href: "/dashboard/integrations", label: "Integrations", icon: PlugZap },
+  { href: "/dashboard/exclusive", label: "Exclusive", icon: Crown },
   { href: "/dashboard/segments", label: "Segments", icon: GitBranch },
+  { href: "/dashboard/partners", label: "Partners", icon: Handshake },
   { href: "/dashboard/predictive", label: "Predictive Engine", icon: Gauge },
   { href: "/dashboard/analytics", label: "Funnel Analytics", icon: Activity },
   { href: "/dashboard#events", label: "Events", icon: Activity },

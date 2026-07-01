@@ -7,7 +7,7 @@ import { Loader2, ShieldCheck, TriangleAlert } from "lucide-react";
 
 export default function SupabaseAuthCallbackPage() {
   return (
-    <Suspense fallback={<CallbackShell state="loading" message="Finishing buyer login." />}>
+    <Suspense fallback={<CallbackShell state="loading" message="Finishing LeadFlow login." />}>
       <CallbackInner />
     </Suspense>
   );
@@ -27,7 +27,7 @@ function safeNext(raw: string | null) {
 function CallbackInner() {
   const router = useRouter();
   const params = useSearchParams();
-  const [message, setMessage] = useState("Finishing buyer login.");
+  const [message, setMessage] = useState("Finishing LeadFlow login.");
   const [state, setState] = useState<"loading" | "error" | "done">("loading");
 
   useEffect(() => {
@@ -52,7 +52,8 @@ function CallbackInner() {
         return;
       }
 
-      const response = await fetch("/api/buyer/auth/session", {
+      const sessionEndpoint = next.startsWith("/partner") ? "/api/partner/auth/session" : "/api/buyer/auth/session";
+      const response = await fetch(sessionEndpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -65,19 +66,19 @@ function CallbackInner() {
       const data = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) {
         setState("error");
-        setMessage(data.error || "Buyer session could not be created.");
+        setMessage(data.error || "LeadFlow session could not be created.");
         return;
       }
 
       setState("done");
-      setMessage("Buyer session created.");
+      setMessage("LeadFlow session created.");
       router.replace(next);
       router.refresh();
     }
 
     finish().catch((error: unknown) => {
       setState("error");
-      setMessage(error instanceof Error ? error.message : "Buyer login failed.");
+      setMessage(error instanceof Error ? error.message : "LeadFlow login failed.");
     });
   }, [params, router]);
 
@@ -91,12 +92,15 @@ function CallbackShell({ state, message }: { state: "loading" | "error" | "done"
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg border border-cyan-300/25 bg-cyan-300/10 text-cyan-200">
           {state === "error" ? <TriangleAlert className="h-6 w-6" /> : state === "done" ? <ShieldCheck className="h-6 w-6" /> : <Loader2 className="h-6 w-6 animate-spin" />}
         </div>
-        <h1 className="mt-5 text-3xl font-black">Buyer login</h1>
+      <h1 className="mt-5 text-3xl font-black">LeadFlow login</h1>
         <p className="mt-3 text-sm leading-6 text-ink-200">{message}</p>
         {state === "error" ? (
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link href="/login?mode=buyer" className="btn-accent justify-center text-sm">
               Back to login
+            </Link>
+            <Link href="/partner/login" className="btn-ghost justify-center text-sm">
+              Partner login
             </Link>
             <Link href="/marketplace" className="btn-ghost justify-center text-sm">
               Open marketplace

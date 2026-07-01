@@ -7,6 +7,7 @@ import {
   BookmarkPlus,
   CalendarClock,
   CheckCircle2,
+  Crown,
   DatabaseZap,
   Eye,
   FileCheck2,
@@ -28,6 +29,7 @@ import {
   type SignalStatus,
 } from "@/components/leadflow-system";
 import { trackEvent } from "@/lib/events";
+import { cn } from "@/lib/utils";
 
 type MarketplaceListing = {
   id: string;
@@ -51,6 +53,12 @@ type MarketplaceListing = {
   bestBuyer: string;
   priceLabel: string;
   sharedExclusive: string;
+  accessModel?: "shared" | "limited_seats" | "exclusive_listing" | "exclusive_geo" | "exclusive_vertical" | "exclusive_time_window" | "internal_only";
+  listingStatus?: "draft" | "review" | "sample_available" | "available" | "reserved" | "sold_shared" | "sold_exclusive" | "expired" | "archived" | "suppressed";
+  maxBuyers?: number | null;
+  currentBuyerCount?: number;
+  exclusiveTerritory?: string;
+  exclusiveWindow?: string;
   releaseMode: string;
   complianceStatus: string;
   reviewStatus: string;
@@ -156,6 +164,9 @@ const marketplaceListings: MarketplaceListing[] = [
     bestBuyer: "Agency, product sourcer, marketplace operator",
     priceLabel: "$149 to $499 starter access",
     sharedExclusive: "Shared",
+    accessModel: "shared",
+    listingStatus: "sample_available",
+    currentBuyerCount: 2,
     releaseMode: "Review-gated shared access",
     complianceStatus: "Source proof reviewed",
     reviewStatus: "Sample available",
@@ -187,7 +198,11 @@ const marketplaceListings: MarketplaceListing[] = [
     buyerUseCase: "Spot categories where missed calls, missed texts, weak websites, and demand spikes create a follow-up gap.",
     bestBuyer: "Roofing, HVAC, plumbing, remodeling, restoration",
     priceLabel: "$199 to $599",
-    sharedExclusive: "Shared",
+    sharedExclusive: "Limited seats",
+    accessModel: "limited_seats",
+    listingStatus: "available",
+    maxBuyers: 4,
+    currentBuyerCount: 2,
     releaseMode: "Shared with category limits",
     complianceStatus: "Suppression checked",
     reviewStatus: "Review",
@@ -220,6 +235,10 @@ const marketplaceListings: MarketplaceListing[] = [
     bestBuyer: "Brokerage, agent team, CRM operator",
     priceLabel: "$249 to $799",
     sharedExclusive: "Exclusive",
+    accessModel: "exclusive_geo",
+    listingStatus: "available",
+    currentBuyerCount: 0,
+    exclusiveTerritory: "Metro territory",
     releaseMode: "Territory-reviewed exclusive request",
     complianceStatus: "Needs partner review",
     reviewStatus: "Review",
@@ -252,6 +271,9 @@ const marketplaceListings: MarketplaceListing[] = [
     bestBuyer: "Licensed mortgage team or approved refi partner",
     priceLabel: "Request pricing",
     sharedExclusive: "Named seller",
+    accessModel: "exclusive_time_window",
+    listingStatus: "review",
+    currentBuyerCount: 0,
     releaseMode: "Named partner review",
     complianceStatus: "Consent checked",
     reviewStatus: "Review",
@@ -284,6 +306,9 @@ const marketplaceListings: MarketplaceListing[] = [
     bestBuyer: "Licensed VA mortgage team",
     priceLabel: "Review required",
     sharedExclusive: "Named seller",
+    accessModel: "exclusive_time_window",
+    listingStatus: "review",
+    currentBuyerCount: 0,
     releaseMode: "Named partner only",
     complianceStatus: "Licensed partner review",
     reviewStatus: "Review",
@@ -316,6 +341,9 @@ const marketplaceListings: MarketplaceListing[] = [
     bestBuyer: "SaaS agency, integration builder, automation shop",
     priceLabel: "$199 to $699",
     sharedExclusive: "Aggregated insight",
+    accessModel: "internal_only",
+    listingStatus: "available",
+    currentBuyerCount: 0,
     releaseMode: "Aggregate only",
     complianceStatus: "Aggregate only",
     reviewStatus: "Approved",
@@ -348,6 +376,9 @@ const marketplaceListings: MarketplaceListing[] = [
     bestBuyer: "Web builder, ads operator, AI automation shop",
     priceLabel: "$249 to $899",
     sharedExclusive: "Named seller",
+    accessModel: "exclusive_listing",
+    listingStatus: "sample_available",
+    currentBuyerCount: 0,
     releaseMode: "Review-gated named buyer",
     complianceStatus: "Consent checked",
     reviewStatus: "Sample available",
@@ -380,6 +411,9 @@ const marketplaceListings: MarketplaceListing[] = [
     bestBuyer: "Local agency, automation builder, operator",
     priceLabel: "$197 sample audit path",
     sharedExclusive: "Named seller",
+    accessModel: "exclusive_listing",
+    listingStatus: "sample_available",
+    currentBuyerCount: 0,
     releaseMode: "Review-gated named buyer",
     complianceStatus: "Consent checked",
     reviewStatus: "Sample available",
@@ -412,6 +446,9 @@ const marketplaceListings: MarketplaceListing[] = [
     bestBuyer: "Dental marketing agency or automation consultant",
     priceLabel: "Request sample",
     sharedExclusive: "Shared",
+    accessModel: "shared",
+    listingStatus: "review",
+    currentBuyerCount: 1,
     releaseMode: "Shared vertical sample",
     complianceStatus: "No medical data",
     reviewStatus: "Review",
@@ -444,6 +481,9 @@ const marketplaceListings: MarketplaceListing[] = [
     bestBuyer: "Campaign team, local organization, civic media buyer",
     priceLabel: "Aggregate pricing",
     sharedExclusive: "Aggregated insight",
+    accessModel: "internal_only",
+    listingStatus: "available",
+    currentBuyerCount: 0,
     releaseMode: "Aggregate only",
     complianceStatus: "No individual persuasion targeting",
     reviewStatus: "Approved",
@@ -470,7 +510,7 @@ const filters: Array<{
   { key: "freshness", label: "Freshness", placeholder: "Any freshness", options: ["Live intake", "Last 3 days", "Last 7 days", "Last 10 days", "Last 14 days", "Last 21 days", "Last 30 days"], getValue: (listing) => listing.freshness },
   { key: "dataType", label: "Data type", placeholder: "Any data type", options: ["Lead signal pack", "Demand signal map", "Opportunity map", "Consented inquiry signal", "Watchlist", "Buyer intent signal", "Audit-generated signal pack", "Lead leak pack", "Vertical opportunity signal", "Aggregated issue signal"], getValue: (listing) => listing.dataType },
   { key: "priceRange", label: "Price range", placeholder: "Any price", options: ["$149 to $499 starter access", "$199 to $599", "$249 to $799", "$199 to $699", "$249 to $899", "$197 sample audit path", "Request pricing", "Request sample", "Review required", "Aggregate pricing"], getValue: (listing) => listing.priceLabel },
-  { key: "sharedExclusive", label: "Shared or exclusive", placeholder: "Any release", options: ["Shared", "Exclusive", "Named seller", "Aggregated insight"], getValue: (listing) => listing.sharedExclusive },
+  { key: "sharedExclusive", label: "Shared or exclusive", placeholder: "Any release", options: ["Shared", "Limited seats", "Exclusive", "Named seller", "Aggregated insight"], getValue: (listing) => listing.sharedExclusive },
   { key: "complianceStatus", label: "Compliance status", placeholder: "Any status", options: ["Source proof reviewed", "Suppression checked", "Needs partner review", "Consent checked", "Licensed partner review", "Aggregate only", "No medical data", "No individual persuasion targeting"], getValue: (listing) => listing.complianceStatus },
   { key: "reviewStatus", label: "Review status", placeholder: "Any review", options: ["Sample available", "Review", "Approved"], getValue: (listing) => listing.reviewStatus },
 ];
@@ -497,6 +537,50 @@ function matchesFilter(listing: MarketplaceListing, selectedFilters: Record<Filt
 function safeSourcePath() {
   if (typeof window === "undefined") return "/marketplace";
   return `${window.location.pathname}${window.location.search}`;
+}
+
+function derivedAccessModel(listing: MarketplaceListing): NonNullable<MarketplaceListing["accessModel"]> {
+  if (listing.accessModel) return listing.accessModel;
+  if (listing.sharedExclusive === "Exclusive") return "exclusive_listing";
+  if (listing.sharedExclusive === "Limited seats") return "limited_seats";
+  if (listing.sharedExclusive === "Named seller") return "exclusive_time_window";
+  if (listing.sharedExclusive === "Aggregated insight") return "internal_only";
+  return "shared";
+}
+
+function derivedListingStatus(listing: MarketplaceListing): NonNullable<MarketplaceListing["listingStatus"]> {
+  if (listing.listingStatus) return listing.listingStatus;
+  if (listing.reviewStatus === "Sample available") return "sample_available";
+  if (listing.reviewStatus === "Approved") return "available";
+  return "review";
+}
+
+function accessStateLabel(listing: MarketplaceListing) {
+  const status = derivedListingStatus(listing);
+  const model = derivedAccessModel(listing);
+  if (status === "reserved") return "Reserved";
+  if (status === "sold_exclusive") return "Sold exclusive";
+  if (model === "limited_seats") {
+    const max = listing.maxBuyers || 0;
+    const current = listing.currentBuyerCount || 0;
+    return max > 0 && current >= max ? "Limited seats full" : "Limited seats available";
+  }
+  if (model === "internal_only") return "Aggregate or internal only";
+  if (model === "shared") return "Shared access available";
+  return "Exclusive available";
+}
+
+function exclusiveCtaLabel(listing: MarketplaceListing) {
+  const status = derivedListingStatus(listing);
+  if (status === "sold_exclusive") return "Sold Exclusive";
+  if (status === "reserved") return "Reserved";
+  if (derivedAccessModel(listing) === "shared") return "Request Exclusive";
+  return "Request Exclusive";
+}
+
+function canRequestExclusive(listing: MarketplaceListing) {
+  const status = derivedListingStatus(listing);
+  return derivedAccessModel(listing) !== "internal_only" && !["sold_exclusive", "suppressed", "archived"].includes(status);
 }
 
 export function MarketplaceClient() {
@@ -729,6 +813,15 @@ export function MarketplaceClient() {
                     watchlisted={watchlist.has(listing.id)}
                     onOpen={() => openListing(listing, "card")}
                     onRequest={(type) => openListing(listing, `card_${type}`, type)}
+                    onExclusive={() => {
+                      trackMarketplaceEvent("exclusive_request_started", {
+                        listing_id: listing.id,
+                        category: listing.category,
+                        vertical: listing.industry,
+                        access_model: derivedAccessModel(listing),
+                        status: derivedListingStatus(listing),
+                      });
+                    }}
                     onWatchlist={() => addToWatchlist(listing)}
                   />
                 ))}
@@ -838,14 +931,17 @@ function MarketplaceCard({
   watchlisted,
   onOpen,
   onRequest,
+  onExclusive,
   onWatchlist,
 }: {
   listing: MarketplaceListing;
   watchlisted: boolean;
   onOpen: () => void;
   onRequest: (type: RequestType) => void;
+  onExclusive: () => void;
   onWatchlist: () => void;
 }) {
+  const exclusiveEnabled = canRequestExclusive(listing);
   return (
     <article className="lead-shell flex min-h-[35rem] flex-col p-5">
       <button type="button" className="text-left" onClick={onOpen} aria-label={`Preview ${listing.title}`}>
@@ -863,6 +959,10 @@ function MarketplaceCard({
         <ConfidenceLabel level={listing.confidence} label={listing.confidenceLabel} />
         <SourceProofChip label={listing.sourceProofStatus} />
         <SuppressionStatusBadge status={listing.suppressionStatus} />
+        <span className="inline-flex min-h-8 items-center gap-1.5 rounded-lg border border-accent-300/25 bg-accent-300/10 px-2.5 text-xs font-extrabold text-accent-100">
+          <Crown className="h-3.5 w-3.5" />
+          {accessStateLabel(listing)}
+        </span>
       </div>
 
       <div className="mt-5 grid gap-3 md:grid-cols-2">
@@ -874,6 +974,8 @@ function MarketplaceCard({
         <SignalFact label="Best buyer" value={listing.bestBuyer} />
         <SignalFact label="Price" value={listing.priceLabel} />
         <SignalFact label="Release" value={listing.releaseMode} />
+        <SignalFact label="Access model" value={accessStateLabel(listing)} />
+        <SignalFact label="Seats" value={listing.maxBuyers ? `${listing.currentBuyerCount || 0} / ${listing.maxBuyers}` : listing.currentBuyerCount ? `${listing.currentBuyerCount} active buyers` : "No active buyer lock"} />
         <SignalFact label="Compliance" value={listing.complianceStatus} />
         <SignalFact label="Suppression" value={statusText(listing.suppressionStatus)} />
       </div>
@@ -883,13 +985,37 @@ function MarketplaceCard({
           <Eye className="h-4 w-4" />
           Preview
         </button>
-        <button type="button" onClick={() => onRequest("sample")} className="btn-ghost justify-center text-sm">
-          Request Sample
-        </button>
-        <button type="button" onClick={() => onRequest("access")} className="btn-accent justify-center text-sm">
-          Request Access
+        <Link href={`/marketplace/${listing.id}/sample`} className="btn-ghost justify-center text-sm">
+          Get Sample
+        </Link>
+        <Link
+          href={`/checkout/listing_access/${listing.id}`}
+          onClick={() => trackMarketplaceEvent("checkout_started", {
+            listing_id: listing.id,
+            category: listing.category,
+            vertical: listing.industry,
+            checkout_type: "listing_access",
+            status: derivedListingStatus(listing),
+          })}
+          className="btn-accent justify-center text-sm"
+        >
+          Buy Access
           <ArrowRight className="h-4 w-4" />
-        </button>
+        </Link>
+        <Link
+          href={`/marketplace/${listing.id}/exclusive`}
+          onClick={onExclusive}
+          aria-disabled={!exclusiveEnabled}
+          className={cn(
+            "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-bold transition",
+            exclusiveEnabled
+              ? "border-accent-300/35 bg-accent-300/10 text-accent-100 hover:bg-accent-300/15"
+              : "pointer-events-none border-white/10 bg-white/[0.025] text-ink-500",
+          )}
+        >
+          <Crown className="h-4 w-4" />
+          {exclusiveCtaLabel(listing)}
+        </Link>
         <button type="button" onClick={onWatchlist} className="btn-ghost justify-center text-sm">
           <BookmarkPlus className="h-4 w-4" />
           {watchlisted ? "Watchlisted" : "Watchlist"}
@@ -938,6 +1064,10 @@ function ListingPreviewModal({
                   <ConfidenceLabel level={listing.confidence} label={listing.confidenceLabel} />
                   <SourceProofChip label={listing.sourceProofStatus} />
                   <SuppressionStatusBadge status={listing.suppressionStatus} />
+                  <span className="inline-flex min-h-8 items-center gap-1.5 rounded-lg border border-accent-300/25 bg-accent-300/10 px-2.5 text-xs font-extrabold text-accent-100">
+                    <Crown className="h-3.5 w-3.5" />
+                    {accessStateLabel(listing)}
+                  </span>
                 </div>
               </div>
               <LeadScoreBadge score={listing.leadScore} className="min-w-[6rem]" />
@@ -950,6 +1080,8 @@ function ListingPreviewModal({
               <SignalFact label="Review status" value={listing.reviewStatus} />
               <SignalFact label="Buyer use case" value={listing.buyerUseCase} />
               <SignalFact label="Best buyer" value={listing.bestBuyer} />
+              <SignalFact label="Access model" value={accessStateLabel(listing)} />
+              <SignalFact label="Exclusive territory" value={listing.exclusiveTerritory || "Reviewed by request"} />
             </div>
 
             <div className="mt-5 grid gap-4 lg:grid-cols-3">
@@ -964,13 +1096,42 @@ function ListingPreviewModal({
             </div>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <button type="button" onClick={() => onRequestTypeChange("sample")} className="btn-ghost justify-center text-sm">
-                Request Sample
-              </button>
-              <button type="button" onClick={() => onRequestTypeChange("access")} className="btn-accent justify-center text-sm">
-                Request Full Access
+              <Link href={`/marketplace/${listing.id}/sample`} className="btn-ghost justify-center text-sm">
+                Get Sample
+              </Link>
+              <Link
+                href={`/checkout/listing_access/${listing.id}`}
+                onClick={() => trackMarketplaceEvent("checkout_started", {
+                  listing_id: listing.id,
+                  category: listing.category,
+                  vertical: listing.industry,
+                  checkout_type: "listing_access",
+                  status: derivedListingStatus(listing),
+                })}
+                className="btn-accent justify-center text-sm"
+              >
+                Buy Full Access
                 <ArrowRight className="h-4 w-4" />
-              </button>
+              </Link>
+              <Link
+                href={`/marketplace/${listing.id}/exclusive`}
+                onClick={() => trackMarketplaceEvent("exclusive_request_started", {
+                  listing_id: listing.id,
+                  category: listing.category,
+                  vertical: listing.industry,
+                  access_model: derivedAccessModel(listing),
+                  status: derivedListingStatus(listing),
+                })}
+                className={cn(
+                  "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-bold transition",
+                  canRequestExclusive(listing)
+                    ? "border-accent-300/35 bg-accent-300/10 text-accent-100 hover:bg-accent-300/15"
+                    : "pointer-events-none border-white/10 bg-white/[0.025] text-ink-500",
+                )}
+              >
+                <Crown className="h-4 w-4" />
+                {exclusiveCtaLabel(listing)}
+              </Link>
               <button type="button" onClick={onWatchlist} className="btn-ghost justify-center text-sm">
                 <BookmarkPlus className="h-4 w-4" />
                 {watchlisted ? "Watchlisted" : "Add To Watchlist"}
@@ -991,12 +1152,22 @@ function ListingPreviewModal({
                   Samples are limited previews. Full access is review-gated and depends on intended use, category fit, compliance status, and suppression checks.
                 </p>
                 <div className="mt-5 grid gap-3">
-                  <button type="button" onClick={() => onRequestTypeChange("sample")} className="btn-ghost justify-center text-sm">
-                    Request Sample
-                  </button>
-                  <button type="button" onClick={() => onRequestTypeChange("access")} className="btn-accent justify-center text-sm">
-                    Request Full Access
-                  </button>
+                  <Link href={`/marketplace/${listing.id}/sample`} className="btn-ghost justify-center text-sm">
+                    Get Sample
+                  </Link>
+                  <Link
+                    href={`/checkout/listing_access/${listing.id}`}
+                    onClick={() => trackMarketplaceEvent("checkout_started", {
+                      listing_id: listing.id,
+                      category: listing.category,
+                      vertical: listing.industry,
+                      checkout_type: "listing_access",
+                      status: derivedListingStatus(listing),
+                    })}
+                    className="btn-accent justify-center text-sm"
+                  >
+                    Buy Full Access
+                  </Link>
                 </div>
               </div>
             )}

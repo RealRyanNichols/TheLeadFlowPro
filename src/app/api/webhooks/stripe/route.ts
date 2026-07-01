@@ -6,6 +6,12 @@ import { BOOSTERS } from "@/lib/pricing";
 import type { PlanId } from "@/lib/pricing";
 import { addBusinessDays, deliveryDueDate, getOfferWorkload } from "@/lib/workload";
 import { TOOL_CHALLENGE_DEPOSIT } from "@/lib/challenge-deposit";
+import {
+  fulfillLeadFlowOrderCheckout,
+  handleLeadFlowOrderPaymentIntentFailed,
+  handleLeadFlowOrderPaymentIntentSucceeded,
+} from "@/lib/leadflow-checkout";
+import { fulfillLeadFlowSampleCheckout } from "@/lib/leadflow-samples";
 import { weirdProductByKey } from "@/lib/weird-stats";
 
 export const runtime = "nodejs";
@@ -417,6 +423,14 @@ async function recordDonationPulse(session: Stripe.Checkout.Session) {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  if (await fulfillLeadFlowSampleCheckout(session)) {
+    return;
+  }
+
+  if (await fulfillLeadFlowOrderCheckout(session)) {
+    return;
+  }
+
   if (await handleWeirdStatsCheckout(session)) {
     return;
   }
@@ -557,6 +571,12 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
       case "checkout.session.completed":
         await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+        break;
+      case "payment_intent.succeeded":
+        await handleLeadFlowOrderPaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
+        break;
+      case "payment_intent.payment_failed":
+        await handleLeadFlowOrderPaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
         break;
       case "customer.subscription.created":
       case "customer.subscription.updated":

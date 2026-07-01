@@ -102,6 +102,26 @@ export async function signUpBuyerWithPassword(input: {
   });
 }
 
+export async function signUpPartnerWithPassword(input: {
+  email: string;
+  password: string;
+  name?: string;
+  company?: string;
+}) {
+  return supabaseAuthFetch<SupabaseBuyerSession>("/signup", {
+    method: "POST",
+    body: JSON.stringify({
+      email: input.email,
+      password: input.password,
+      data: {
+        name: input.name || null,
+        company_name: input.company || null,
+        leadflow_role: "partner",
+      },
+    }),
+  });
+}
+
 export async function sendBuyerMagicLink(email: string, redirectTo: string) {
   return supabaseAuthFetch<{ message_id?: string }>("/otp", {
     method: "POST",
@@ -109,6 +129,18 @@ export async function sendBuyerMagicLink(email: string, redirectTo: string) {
       email,
       create_user: true,
       data: { leadflow_role: "buyer" },
+      options: { email_redirect_to: redirectTo },
+    }),
+  });
+}
+
+export async function sendPartnerMagicLink(email: string, redirectTo: string) {
+  return supabaseAuthFetch<{ message_id?: string }>("/otp", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      create_user: true,
+      data: { leadflow_role: "partner" },
       options: { email_redirect_to: redirectTo },
     }),
   });
@@ -169,6 +201,11 @@ export async function getBuyerAuthState(): Promise<BuyerAuthState> {
 }
 
 export function buyerAuthRedirectTo(req: NextRequest, fallbackPath = "/buyer") {
+  const origin = req.nextUrl.origin;
+  return `${origin}/auth/callback?next=${encodeURIComponent(fallbackPath)}`;
+}
+
+export function partnerAuthRedirectTo(req: NextRequest, fallbackPath = "/partner") {
   const origin = req.nextUrl.origin;
   return `${origin}/auth/callback?next=${encodeURIComponent(fallbackPath)}`;
 }

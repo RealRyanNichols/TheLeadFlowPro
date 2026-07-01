@@ -395,6 +395,15 @@ export async function POST(req: NextRequest) {
       persisted: true,
       flag_count: risk.flags.length,
     });
+    if (data.origin_type === "partner_owned" || data.payout_interest || data.partnership_interest) {
+      await insertEvent("partner_source_submitted", data, risk.riskLevel, {
+        submitted_source_id: submittedSourceId,
+        review_status: reviewStatus,
+        partner_origin: data.origin_type === "partner_owned",
+        payout_interest: data.payout_interest,
+        partnership_interest: data.partnership_interest,
+      });
+    }
     if (sampleFile) {
       await insertEvent("source_file_uploaded", data, risk.riskLevel, {
         submitted_source_id: submittedSourceId,
