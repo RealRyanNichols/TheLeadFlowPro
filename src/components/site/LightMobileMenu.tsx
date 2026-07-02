@@ -82,14 +82,14 @@ export function LightMobileMenu({
 }) {
   const [open, setOpen] = useState(false);
   const featuredPrimary: MobileFeaturedAction = primaryAction ?? {
-    href: "/request",
-    label: "Request Stat",
-    description: "Submit a strange number for the machine to track.",
+    href: "/tools",
+    label: "Open Tools",
+    description: "Run a LeadFlow scorecard, quiz, calculator, or intake path.",
   };
   const featuredSecondary: MobileFeaturedAction = secondaryAction ?? {
-    href: "/unlock",
-    label: "Unlock Boards",
-    description: "Premium boards, research pulls, and stat pages.",
+    href: "/marketplace",
+    label: "Browse Signals",
+    description: "Search source-backed marketplace signals and sample products.",
   };
   const primaryIconKey = featuredPrimary.href.split(/[?#]/)[0] || featuredPrimary.href;
   const secondaryIconKey = featuredSecondary.href.split(/[?#]/)[0] || featuredSecondary.href;
@@ -135,7 +135,7 @@ export function LightMobileMenu({
                 className="font-bold"
               >
                 <span className="bg-gradient-to-r from-cyan-100 via-cyan-300 to-accent-300 bg-clip-text text-transparent">
-                  Weird Stats Clock
+                  The LeadFlow Pro
                 </span>
               </Link>
               <button
@@ -210,7 +210,7 @@ export function LightMobileMenu({
               </nav>
 
               <div className="mt-4 rounded-2xl border border-cyan-300/15 bg-cyan-300/10 px-4 py-3 text-xs font-semibold leading-relaxed text-slate-300">
-                Watch moving numbers, request a weird stat, or unlock a deeper board.
+                Pick the lane that fits: buy signals, run tools, submit sources, or build the system.
               </div>
             </div>
           </div>

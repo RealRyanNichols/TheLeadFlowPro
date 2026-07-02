@@ -13,6 +13,7 @@ import {
   SITE_PRIMARY_NAV,
 } from "@/lib/site-navigation";
 import { LightMobileMenu } from "./LightMobileMenu";
+import { FunnelMark } from "./Logo";
 
 type HeaderAction = {
   href: string;
@@ -44,15 +45,15 @@ export function LightHeader({
 
   const moreActive = SITE_MORE_NAV.some((item) => isActiveNavItem(item, activePath));
   const primary = primaryAction ?? {
-    href: "/request",
-    label: "Request Stat",
-    mobileDescription: "Submit a strange number for the machine to track.",
+    href: "/tools",
+    label: "Open Tools",
+    mobileDescription: "Run a LeadFlow tool, scorecard, quiz, or intake path.",
     Icon: Sparkles,
   };
   const secondary = secondaryAction ?? {
-    href: "/unlock",
-    label: "Unlock Boards",
-    mobileDescription: "Open premium boards, research pulls, and stat pages.",
+    href: "/marketplace",
+    label: "Browse Signals",
+    mobileDescription: "Search source-backed lead signal products and samples.",
     Icon: BarChart3,
   };
 
@@ -71,15 +72,15 @@ export function LightHeader({
           href="/"
           className="group flex min-w-0 flex-1 items-center gap-2 truncate font-bold text-white xl:flex-none"
         >
-          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-cyan-300/50 bg-cyan-300/10 text-xs font-black text-cyan-100 shadow-lg shadow-cyan-900/20">
-            WS
+          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center">
+            <FunnelMark className="h-8 w-8" />
           </span>
           <span className="truncate leading-tight">
             <span className="block bg-gradient-to-r from-cyan-100 via-cyan-300 to-accent-300 bg-clip-text text-sm text-transparent sm:text-base">
-              Weird Stats Clock
+              The LeadFlow Pro
             </span>
             <span className="hidden text-[0.62rem] font-black uppercase tracking-[0.18em] text-slate-500 sm:block">
-              by The LeadFlow Pro
+              Signal. Proof. Score. Route.
             </span>
           </span>
         </Link>
@@ -121,11 +122,11 @@ export function LightHeader({
         </nav>
         <div className="flex shrink-0 items-center gap-2">
           <Link
-            href="/backend"
+            href="/login"
             className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-cyan-300/25 bg-white/[0.06] px-3 text-sm font-black text-white shadow-sm shadow-cyan-900/20 hover:border-cyan-300/45 hover:bg-white/10"
           >
             <LogIn className="h-4 w-4 text-cyan-200" />
-            Login
+            Client vault
           </Link>
           <Link
             href={primary.href}
@@ -217,12 +218,12 @@ export function LightFooter({ hideFreeAuditLink }: { hideFreeAuditLink?: boolean
     <footer className="border-t border-cyan-300/15 bg-slate-950 text-slate-400">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-xs lg:grid-cols-[1.25fr_2fr]">
         <div>
-          <div className="font-semibold text-white">The Weird Stats Clock</div>
-          <div className="mt-1">A strange live counter machine by The LeadFlow Pro.</div>
+          <div className="font-semibold text-white">The LeadFlow Pro</div>
+          <div className="mt-1">Source-backed lead signals, tools, marketplace products, and review-gated buyer routing.</div>
           <div className="mt-3 max-w-xl">
-            Stats marked as estimates are generated using public assumptions, formulas, or
-            user-submitted models. They are for entertainment and directional insight only.
-            We do not guarantee perfect accuracy, viral traffic, revenue, or business outcomes.
+            LeadFlow Pro uses public, submitted, permissioned, or consented signal data.
+            Access is review-gated, suppression-aware, and source-backed. We do not
+            guarantee revenue, sales, lead volume, ROAS, conversion rate, or cost per lead.
           </div>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

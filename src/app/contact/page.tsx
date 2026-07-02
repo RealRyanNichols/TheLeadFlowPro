@@ -12,7 +12,8 @@ import {
   Route,
   ShieldCheck,
 } from "lucide-react";
-import { LightFooter, LightHeader } from "@/components/site/LightHeader";
+import { Footer } from "@/components/site/Footer";
+import { Header } from "@/components/site/Header";
 import { OpenChatButton } from "@/components/site/OpenChatButton";
 import { LEADFLOW_PUBLIC_EMAIL, leadflowMailto } from "@/lib/contact";
 import { createSeoMetadata } from "@/lib/seo-metadata";
@@ -59,17 +60,17 @@ const SHOULD_USE = [
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-white text-slate-900">
-      <LightHeader activePath="/contact" />
+    <div className="min-h-screen text-ink-50">
+      <Header />
 
       <main>
-        <section className="relative overflow-hidden border-b border-slate-200">
+        <section className="relative overflow-hidden border-b border-white/10 bg-[radial-gradient(circle_at_18%_8%,rgba(35,184,255,0.17),transparent_32%),radial-gradient(circle_at_82%_10%,rgba(255,214,107,0.13),transparent_28%),linear-gradient(135deg,#030711,#070c18_55%,#07100d)]">
           <div
             aria-hidden
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(135deg, #fff8f1 0%, #f6f9ff 38%, #eef9ff 70%, #f3eaff 100%)",
+                "linear-gradient(135deg, rgba(92,208,255,0.07) 0%, transparent 38%, rgba(255,154,31,0.08) 70%, transparent 100%)",
             }}
           />
           <div
@@ -85,38 +86,38 @@ export default function ContactPage() {
 
           <div className="relative mx-auto grid max-w-7xl gap-7 px-4 py-8 sm:py-12 lg:grid-cols-5 lg:items-center">
             <div className="lg:col-span-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-700 shadow-sm backdrop-blur">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-cyan-200 shadow-sm backdrop-blur">
                 Automated router
               </div>
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+              <h1 className="mt-4 text-4xl font-black tracking-tight text-white sm:text-5xl">
                 Do not wait on a calendar.{" "}
                 <span className="bg-gradient-to-r from-brand-700 via-cyan-500 to-accent-500 bg-clip-text text-transparent">
                   Let the site route the next move.
                 </span>
               </h1>
-              <p className="mt-4 text-base leading-relaxed text-slate-700 sm:text-lg">
+              <p className="mt-4 text-base leading-relaxed text-ink-100 sm:text-lg">
                 The LeadFlow Pro now routes through automated paths first. Run the tool, unlock a
                 report, ask the assistant, or leave clean context so the system can point you to the
                 right next output.
               </p>
-              <div className="mt-5 rounded-2xl border border-cyan-200 bg-white/75 p-4 text-sm leading-relaxed text-slate-700 shadow-sm backdrop-blur">
+              <div className="lead-panel mt-5 p-4 text-sm leading-relaxed text-ink-100">
                 The first goal is simple: figure out whether you need a free snapshot, paid report,
                 script kit, lead leak document, automation blueprint, or full Growth OS path.
               </div>
             </div>
 
             <div id="contact-options" className="lg:col-span-3">
-              <div className="rounded-3xl border border-white/70 bg-white/80 p-4 shadow-[0_30px_70px_-20px_rgba(15,23,42,0.25)] ring-1 ring-slate-900/5 backdrop-blur-xl sm:p-5">
+              <div className="lead-shell p-4 sm:p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                    <div className="text-xs font-bold uppercase tracking-widest text-ink-400">
                       Contact command panel
                     </div>
-                    <div className="mt-1 text-lg font-bold text-slate-950">
+                    <div className="mt-1 text-lg font-black text-white">
                       Choose one. The site routes from there.
                     </div>
                   </div>
-                  <span className="hidden rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800 sm:inline-flex">
+                  <span className="hidden rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-bold text-cyan-200 sm:inline-flex">
                     Mobile first
                   </span>
                 </div>
@@ -142,12 +143,12 @@ export default function ContactPage() {
                     label="Leave a message"
                     body="Use this only when the tool or assistant cannot finish the route."
                   />
-                  <OpenChatButton className="group flex min-h-[112px] flex-col rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-50">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-600 text-white">
+                  <OpenChatButton className="lead-panel group flex min-h-[112px] flex-col p-4 text-left">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-300/15 text-cyan-200">
                       <Bot className="h-5 w-5" />
                     </span>
-                    <span className="mt-3 text-sm font-bold text-slate-950">Ask LeadFlow Assistant</span>
-                    <span className="mt-1 text-xs leading-relaxed text-slate-600">
+                    <span className="mt-3 text-sm font-bold text-white">Ask LeadFlow Assistant</span>
+                    <span className="mt-1 text-xs leading-relaxed text-ink-300">
                       Opens the site assistant for tool fit, pricing, and next-step questions.
                     </span>
                   </OpenChatButton>
@@ -163,17 +164,17 @@ export default function ContactPage() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden border-b border-slate-200">
+        <section className="relative overflow-hidden border-b border-white/10 bg-white/[0.02]">
           <div
             aria-hidden
             className="absolute inset-0"
-            style={{ background: "linear-gradient(180deg, #f6f9ff 0%, #fff8f1 100%)" }}
+            style={{ background: "linear-gradient(180deg, rgba(92,208,255,0.055) 0%, rgba(255,154,31,0.035) 100%)" }}
           />
           <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-14">
-            <div className="text-xs font-semibold uppercase tracking-widest text-cyan-700">
+            <div className="text-xs font-bold uppercase tracking-widest text-cyan-300">
               Fastest path
             </div>
-            <h2 className="mt-2 max-w-3xl text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+            <h2 className="mt-2 max-w-3xl text-3xl font-black tracking-tight text-white sm:text-4xl">
               Use the lane that matches where you are right now.
             </h2>
             <div className="mt-7 grid gap-4 lg:grid-cols-3">
@@ -234,7 +235,7 @@ export default function ContactPage() {
         </section>
       </main>
 
-      <LightFooter />
+      <Footer />
     </div>
   );
 }
@@ -255,25 +256,25 @@ function QuickLink({
   accent?: boolean;
 }) {
   const classes = primary
-    ? "border-slate-950 bg-slate-950 text-white hover:bg-slate-800"
+    ? "border-cyan-300/30 bg-white/[0.06] text-white hover:border-cyan-300/50 hover:bg-white/[0.08]"
     : accent
-      ? "border-accent-400 bg-accent-500 text-white hover:bg-accent-600"
-      : "border-slate-200 bg-white text-slate-950 hover:border-cyan-300 hover:bg-cyan-50/50";
+      ? "border-accent-400 bg-accent-500 text-slate-950 hover:bg-accent-400"
+      : "border-white/10 bg-white/[0.035] text-white hover:border-cyan-300/40 hover:bg-white/[0.06]";
 
   return (
     <Link
       href={href}
-      className={`group flex min-h-[112px] flex-col rounded-2xl border p-4 shadow-sm transition hover:-translate-y-0.5 ${classes}`}
+      className={`group flex min-h-[112px] flex-col rounded-lg border p-4 shadow-sm transition hover:-translate-y-0.5 ${classes}`}
     >
       <span
         className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${
-          primary || accent ? "bg-white/15 text-white" : "bg-slate-950 text-white"
+          accent ? "bg-white/20 text-slate-950" : "bg-cyan-300/10 text-cyan-200"
         }`}
       >
         <Icon className="h-5 w-5" />
       </span>
       <span className="mt-3 text-sm font-bold">{label}</span>
-      <span className={`mt-1 text-xs leading-relaxed ${primary || accent ? "text-white/80" : "text-slate-600"}`}>
+      <span className={`mt-1 text-xs leading-relaxed ${accent ? "text-slate-900/75" : "text-ink-300"}`}>
         {body}
       </span>
     </Link>
@@ -296,14 +297,14 @@ function PathCard({
   return (
     <Link
       href={href}
-      className="group rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-lg"
+      className="lead-panel group p-5"
     >
       <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-brand-700 text-white">
         <Icon className="h-5 w-5" />
       </div>
-      <h3 className="mt-4 text-lg font-semibold text-slate-950">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-slate-600">{body}</p>
-      <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-cyan-700 group-hover:text-cyan-800">
+      <h3 className="mt-4 text-lg font-black text-white">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-ink-300">{body}</p>
+      <div className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-cyan-300 group-hover:text-cyan-200">
         {cta} <ArrowRight className="h-4 w-4" />
       </div>
     </Link>
@@ -320,12 +321,12 @@ function InfoCard({
   body: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white">
+    <div className="lead-panel p-5">
+      <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-200">
         <Icon className="h-5 w-5" />
       </div>
-      <h3 className="mt-4 font-semibold text-slate-950">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-slate-600">{body}</p>
+      <h3 className="mt-4 font-black text-white">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-ink-300">{body}</p>
     </div>
   );
 }
