@@ -19,7 +19,7 @@ export const leadFlowComponentRegistry: LeadFlowComponentRegistryItem[] = [
     figmaName: "Component/Button",
     variants: ["primary", "secondary", "ghost", "outline", "danger", "premium"],
     requiredStates: ["default", "hover", "focus-visible", "disabled"],
-    pagesUsing: ["/", "/marketplace", "/tools", "/submit-source", "/privacy-center", "/dashboard"],
+    pagesUsing: ["/", "/buy-leads", "/pricing", "/submit-source", "/privacy-center", "/dashboard"],
     codeConnectNotes: "Map Figma Variant to variant and Text to children. Do not add ad hoc CTA classes on pages.",
   },
   {
@@ -45,7 +45,7 @@ export const leadFlowComponentRegistry: LeadFlowComponentRegistryItem[] = [
     figmaName: "Component/MarketplaceCard",
     variants: ["compact", "full", "featured", "locked", "buyer_approved", "admin"],
     requiredStates: ["default", "locked", "buyer approved", "admin", "focus-visible"],
-    pagesUsing: ["/marketplace", "/buy-leads", "/buyer/access", "/dashboard"],
+    pagesUsing: ["/buy-leads", "/buy-leads", "/buyer/access", "/dashboard"],
     codeConnectNotes: "Use real prop names only. Figma Locked maps to locked, Admin maps to adminOnly.",
   },
   {
@@ -56,7 +56,7 @@ export const leadFlowComponentRegistry: LeadFlowComponentRegistryItem[] = [
     figmaName: "Component/ScoreBadge",
     variants: ["high", "medium", "low", "unknown"],
     requiredStates: ["high", "medium", "low", "unknown"],
-    pagesUsing: ["/marketplace", "/lead-profile/[id]", "/dashboard", "/tools"],
+    pagesUsing: ["/buy-leads", "/lead-profile/[id]", "/dashboard", "/pricing"],
     codeConnectNotes: "Map Figma Score number to score. Variant can be omitted when code should infer level from score.",
   },
   {
@@ -67,7 +67,7 @@ export const leadFlowComponentRegistry: LeadFlowComponentRegistryItem[] = [
     figmaName: "Component/ConfidenceBadge",
     variants: ["high", "medium", "low", "needs_review"],
     requiredStates: ["high", "medium", "low", "needs review"],
-    pagesUsing: ["/marketplace", "/lead-profile/[id]", "/dashboard"],
+    pagesUsing: ["/buy-leads", "/lead-profile/[id]", "/dashboard"],
     codeConnectNotes: "Map Figma Confidence enum to confidence. Keep needs_review spelling in code.",
   },
   {
@@ -78,7 +78,7 @@ export const leadFlowComponentRegistry: LeadFlowComponentRegistryItem[] = [
     figmaName: "Component/StatusBadge",
     variants: ["submitted", "review", "approved", "rejected", "suppressed", "sold", "sample_available", "pending_access"],
     requiredStates: ["submitted", "review", "approved", "rejected", "suppressed", "sold", "sample available", "pending access"],
-    pagesUsing: ["/marketplace", "/lead-profile/[id]", "/dashboard", "/buyer"],
+    pagesUsing: ["/buy-leads", "/lead-profile/[id]", "/dashboard", "/buyer"],
     codeConnectNotes: "Use for lifecycle status. Suppression-specific copy can use SuppressionStatusBadge.",
   },
   {
@@ -89,7 +89,7 @@ export const leadFlowComponentRegistry: LeadFlowComponentRegistryItem[] = [
     figmaName: "Component/SourceProofChip",
     variants: ["verified", "unverified"],
     requiredStates: ["verified", "unverified"],
-    pagesUsing: ["/marketplace", "/profile-model", "/lead-profile/[id]", "/dashboard/source-submissions"],
+    pagesUsing: ["/buy-leads", "/buy-leads", "/lead-profile/[id]", "/dashboard/source-submissions"],
     codeConnectNotes: "Map Figma Verified boolean to verified. Label must stay source-context only, never raw private data.",
   },
   {
@@ -100,7 +100,7 @@ export const leadFlowComponentRegistry: LeadFlowComponentRegistryItem[] = [
     figmaName: "Component/SuppressionBadge",
     variants: ["submitted", "review", "approved", "suppressed", "pending_access"],
     requiredStates: ["clear", "review", "suppressed", "pending access"],
-    pagesUsing: ["/marketplace", "/lead-profile/[id]", "/privacy-center", "/dashboard"],
+    pagesUsing: ["/buy-leads", "/lead-profile/[id]", "/privacy-center", "/dashboard"],
     codeConnectNotes: "Use for suppression-aware surfaces so buyers see restriction state before requesting data.",
   },
   {
@@ -122,7 +122,7 @@ export const leadFlowComponentRegistry: LeadFlowComponentRegistryItem[] = [
     figmaName: "Component/ToolCard",
     variants: ["default"],
     requiredStates: ["default", "hover", "focus-visible"],
-    pagesUsing: ["/tools", "/industries/[slug]"],
+    pagesUsing: ["/pricing", "/industries/[slug]"],
     codeConnectNotes: "Figma text properties map directly. Tool cards must not collect data by themselves.",
   },
   {
@@ -133,7 +133,7 @@ export const leadFlowComponentRegistry: LeadFlowComponentRegistryItem[] = [
     figmaName: "Component/ConsentModule",
     variants: ["review", "approved", "suppressed", "submitted"],
     requiredStates: ["unchecked", "checked", "saving", "saved", "error"],
-    pagesUsing: ["/privacy-center", "/tools", "/submit-source"],
+    pagesUsing: ["/privacy-center", "/pricing", "/submit-source"],
     codeConnectNotes: "Do not bury consent. Map state variants separately from content variants in Figma.",
   },
   {

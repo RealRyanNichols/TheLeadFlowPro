@@ -35,11 +35,11 @@ export default function IndustriesPage() {
               for businesses that need the whole lead flow machine.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/marketplace" className="btn-accent text-base">
+              <Link href="/buy-leads" className="btn-accent text-base">
                 Open marketplace
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href="/tools" className="btn-ghost text-base">
+              <Link href="/pricing" className="btn-ghost text-base">
                 Open tools
               </Link>
             </div>

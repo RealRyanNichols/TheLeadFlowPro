@@ -41,7 +41,7 @@ const EXPLAINERS: Record<MiniExplainerVariant, ExplainerConfig> = {
     ],
     script:
       "This is The LeadFlow Pro. Ryan builds attention, lead flow, websites, automations, and business tools inside your accounts so the system belongs to you. If you already know the service, pick it. If you need a custom tool, stump Ryan. If you need ten minutes to decide, book the call.",
-    ctaHref: "/start",
+    ctaHref: "/pricing",
     ctaLabel: "Pick my next move",
     Icon: Sparkles,
     accent: "cyan",

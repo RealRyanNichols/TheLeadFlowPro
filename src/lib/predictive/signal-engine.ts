@@ -272,7 +272,7 @@ function fallbackEventsForProfile(profileId: string, category: string, vertical:
     {
       id: `${profileId}-sample-event`,
       event_name: "sample_request_submitted",
-      route: "/marketplace",
+      route: "/buy-leads",
       vertical,
       category,
       properties: { profile_id: profileId, score_range: "75-89" },
@@ -281,7 +281,7 @@ function fallbackEventsForProfile(profileId: string, category: string, vertical:
     {
       id: `${profileId}-watchlist-event`,
       event_name: "watchlist_added",
-      route: "/marketplace",
+      route: "/buy-leads",
       vertical,
       category,
       properties: { profile_id: profileId },

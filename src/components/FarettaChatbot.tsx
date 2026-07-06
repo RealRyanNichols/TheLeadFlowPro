@@ -298,7 +298,7 @@ export function FarettaChatbot() {
           {/* Quick CTAs always visible */}
           <div className="px-3 py-2 border-t border-slate-200 bg-white flex gap-2">
             <Link
-              href="/stump-ryan"
+              href="/contact"
               onClick={() => beaconPulse("chat_cta", "stump-ryan")}
               className="flex-1 rounded-lg bg-cyan-600 px-2 py-2 text-center text-xs font-semibold text-white hover:bg-cyan-700"
             >
@@ -312,7 +312,7 @@ export function FarettaChatbot() {
               Message
             </Link>
             <Link
-              href="/tiers"
+              href="/pricing"
               onClick={() => beaconPulse("chat_cta", "tiers")}
               className="flex-1 rounded-lg bg-slate-900 px-2 py-2 text-center text-xs font-semibold text-white hover:bg-slate-800"
             >

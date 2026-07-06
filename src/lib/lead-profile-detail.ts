@@ -197,7 +197,7 @@ function proof(
   type: string,
   description: string,
   status: SourceProofLink["status"] = "sample",
-  href = "/profile-model",
+  href = "/buy-leads",
 ): SourceProofLink {
   return { label, type, description, status, href };
 }
@@ -369,7 +369,7 @@ export const leadProfileDetails: LeadProfileDetail[] = [
     sourceProofLinks: [
       proof("Market movement sample", "Public listing pattern", "Redacted market pattern shows listing movement and coverage gaps."),
       proof("Agent coverage notes", "Public source", "Public coverage indicators are grouped by territory and category.", "review"),
-      proof("Use-case gate", "Review control", "Release cannot imitate or reference unrelated trademarked lead-intake brands.", "verified", "/profile-model"),
+      proof("Use-case gate", "Review control", "Release cannot imitate or reference unrelated trademarked lead-intake brands.", "verified", "/buy-leads"),
     ],
     summary: "A real estate opportunity map built around public market movement, agent coverage gaps, and buyer-use review.",
     whyThisProfileExists: "Brokerages and agent teams need territory intelligence without hidden owner dossiers or copied competitor framing. This profile packages public movement and coverage clues into a review-gated signal.",

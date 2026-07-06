@@ -208,7 +208,7 @@ function resultPagesFor(title: string): BuilderResultPage[] {
       summary: "This response has usable context but needs one more answer before routing or selling access.",
       recommendedNextAction: "Show a useful result first, then ask the missing follow-up question.",
       ctaLabel: "Get the clearer path",
-      ctaUrl: "/tools",
+      ctaUrl: "/pricing",
     },
     {
       resultKey: "low",
@@ -218,7 +218,7 @@ function resultPagesFor(title: string): BuilderResultPage[] {
       summary: "This response is useful for aggregate insight, but it needs more context before any buyer route.",
       recommendedNextAction: "Give a simple recommendation and keep the response aggregate unless more permission is granted.",
       ctaLabel: "See related tools",
-      ctaUrl: "/tools",
+      ctaUrl: "/pricing",
     },
   ];
 }
@@ -525,7 +525,7 @@ function sanitizeDraft(input: BuilderQuestionnaireDraft): BuilderQuestionnaireDr
       summary: cleanText(page.summary, 800) || "A useful result with the next step.",
       recommendedNextAction: cleanText(page.recommendedNextAction, 300) || "show_relevant_next_step",
       ctaLabel: cleanText(page.ctaLabel, 80) || "Continue",
-      ctaUrl: cleanText(page.ctaUrl, 400) || "/tools",
+      ctaUrl: cleanText(page.ctaUrl, 400) || "/pricing",
     })),
     consentModules: (input.consentModules?.length ? input.consentModules : defaultConsentModules()).slice(0, 8).map((module) => ({
       moduleType: module.moduleType,

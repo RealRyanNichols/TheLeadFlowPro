@@ -69,10 +69,10 @@ If they want to email Ryan: ${LEADFLOW_PUBLIC_EMAIL}.
 Keep replies tight. Do not make them read a book.`;
 
 const CHAT_ACTIONS = {
-  blueprint: { label: "Get free blueprint", href: "/stump-ryan" },
-  start: { label: "Find my best option", href: "/start" },
+  blueprint: { label: "Get free blueprint", href: "/contact" },
+  start: { label: "Find my best option", href: "/pricing" },
   message: { label: "Leave a message", href: "/contact?source=chat" },
-  tiers: { label: "See pricing", href: "/tiers" },
+  tiers: { label: "See pricing", href: "/pricing" },
   powerBundle: { label: "See Power Bundle", href: "/offers/power-bundle" },
   fbAds: { label: "See Meta ads offer", href: "/offers/fb-ads" },
 } satisfies Record<string, ChatAction>;

@@ -1,79 +1,31 @@
 // src/middleware.ts
-// Two-layer gate:
-//   1. Auth gate \u2014 if not logged in, redirect to /login (existing behavior).
-//   2. Profile gate \u2014 if logged in BUT BrainProfile.completeness < threshold,
-//      redirect to /onboarding. (Ryan rule: no tools unlock until the profile is built.)
-//
-// The /onboarding route itself is always reachable once logged in, so users can
-// finish it. The /legal, /pricing, /, /signup, /login, /tools/seo-grader,
-// /about, /contact routes are all public and never gated.
+// Single gate: the internal review console at /dashboard is admin-only.
+//   1. Not logged in  -> redirect to /login (with callbackUrl back to the page).
+//   2. Logged in, not an admin -> redirect to the public home page.
+// Everything else on the site is public. The dashboard layout also enforces
+// this server-side; the middleware is defense-in-depth on the edge.
 
 import { NextResponse, type NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { isAdminEmail } from "@/lib/admin-identity";
 
-const UNLOCK_THRESHOLD = 80;
-
 export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
-  // Step 1: auth
   if (!token) {
     const url = new URL("/login", req.url);
     url.searchParams.set("callbackUrl", req.nextUrl.pathname + req.nextUrl.search);
     return NextResponse.redirect(url);
   }
 
-  const path = req.nextUrl.pathname;
   const isAdmin = isAdminEmail(typeof token.email === "string" ? token.email : null);
-
-  if (path === "/dashboard" || path.startsWith("/dashboard/")) {
-    if (!isAdmin) {
-      const url = new URL("/buyer", req.url);
-      url.searchParams.set("redirected", "admin_only");
-      return NextResponse.redirect(url);
-    }
-    return NextResponse.next();
-  }
-
-  // Step 2: profile gate
-  // token.brainCompleteness is populated by the NextAuth session callback (see auth.ts).
-  // If it's missing (existing sessions from before this change), assume 0 \u2192 gate triggers
-  // and the onboarding page API will set it correctly on first save.
-  const completeness =
-    typeof (token as any).brainCompleteness === "number"
-      ? (token as any).brainCompleteness
-      : 0;
-  // Only gate user-scoped APIs and onboarding routes here. Dashboard routes
-  // are admin-only and are handled before this profile-completeness gate.
-  // The /onboarding page + /api/onboarding endpoint are explicitly allowed through.
-  // Client Office stays reachable for paid buyers even before the full Flo
-  // profile is complete; order detail APIs still do their own auth checks.
-  const onboardingAllowed =
-    path === "/onboarding" ||
-    path.startsWith("/onboarding/") ||
-    path.startsWith("/api/onboarding");
-  if (
-    !isAdmin &&
-    !onboardingAllowed &&
-    completeness < UNLOCK_THRESHOLD
-  ) {
-    const url = new URL("/onboarding", req.url);
-    url.searchParams.set("why", "profile_required");
-    return NextResponse.redirect(url);
+  if (!isAdmin) {
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/api/user/:path*",
-    "/api/billing-portal/:path*",
-    // Also gate /onboarding so unauthed users get pushed to /login first.
-    "/onboarding",
-    "/onboarding/:path*",
-    "/api/onboarding/:path*",
-  ],
+  matcher: ["/dashboard/:path*"],
 };

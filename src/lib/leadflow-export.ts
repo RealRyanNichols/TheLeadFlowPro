@@ -266,7 +266,7 @@ function fallbackProfileRow(profile: LeadProfileDetail): LeadProfileRow {
     },
     private_profile: {
       business_name: profile.title,
-      contact_page: profile.sourceProofLinks[0]?.href || "/profile-model",
+      contact_page: profile.sourceProofLinks[0]?.href || "/buy-leads",
       risk_level: "low",
       internal_notes: "Fallback sample row generated from checked-in profile model.",
     },

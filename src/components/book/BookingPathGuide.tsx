@@ -13,7 +13,7 @@ const PATHS = [
     direction: "Book the call if you can explain the problem in ten minutes. Use Stump Ryan if you want the free blueprint first.",
     primaryHref: "#calendar-frame",
     primaryLabel: "Pick my time",
-    secondaryHref: "/stump-ryan#tool-challenge-form",
+    secondaryHref: "/contact",
     secondaryLabel: "Submit the tool first",
   },
   {
@@ -33,7 +33,7 @@ const PATHS = [
     Icon: MessageSquareText,
     prompt: "I know something is leaking, but I am not sure if I need a call, audit, tool, or larger buildout.",
     direction: "Use the router if you want the site to narrow the path before you book. Book the call only if you are ready to act.",
-    primaryHref: "/start",
+    primaryHref: "/pricing",
     primaryLabel: "Use the router",
     secondaryHref: "#calendar-frame",
     secondaryLabel: "Still book the call",

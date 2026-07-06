@@ -53,7 +53,7 @@ export function AutomatedDoorwayPage({
   body,
   primaryHref = "/tools/growth-machine#tool",
   primaryLabel = "Run free snapshot",
-  secondaryHref = "/action-menu",
+  secondaryHref = "/dashboard",
   secondaryLabel = "See paid unlocks",
 }: AutomatedDoorwayPageProps) {
   return (

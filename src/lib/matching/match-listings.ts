@@ -75,7 +75,7 @@ export function listingCandidateFromRow(row: MarketplaceListingMatchRow): BuyerM
     sourceProofStatus: row.source_proof_status || "review",
     sampleEnabled: Boolean(row.sample_enabled || Number(row.sample_count || row.sample_record_count || 0) > 0),
     samplePrice: numberValue(row.sample_price, numberValue(row.price_cents) / 100),
-    href: "/marketplace",
+    href: "/buy-leads",
   };
 }
 
@@ -115,7 +115,7 @@ export function fallbackMarketplaceListingCandidates(): BuyerMatchCandidate[] {
     sourceProofStatus: "review",
     sampleEnabled: true,
     samplePrice: Number(product.priceBand.replace(/[^0-9.]/g, "")) || 49,
-    href: "/marketplace",
+    href: "/buy-leads",
   }));
 
   const profileCandidates = leadProfileDetails.map((profile): BuyerMatchCandidate => ({

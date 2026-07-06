@@ -44,7 +44,7 @@ export function segmentCandidateFromRow(row: SegmentMatchRow): BuyerMatchCandida
     availabilityStatus: row.status || "review",
     sourceProofStatus: row.compliance_status === "ready" ? "verified" : "review",
     sampleEnabled: false,
-    href: "/marketplace",
+    href: "/buy-leads",
   };
 }
 
@@ -67,7 +67,7 @@ export function fallbackSegmentCandidates(): BuyerMatchCandidate[] {
       complianceStatus: "needs_review",
       availabilityStatus: "review",
       sourceProofStatus: "review",
-      href: "/marketplace",
+      href: "/buy-leads",
     },
     {
       id: "segment-local-contractors-weak-websites",
@@ -86,7 +86,7 @@ export function fallbackSegmentCandidates(): BuyerMatchCandidate[] {
       complianceStatus: "needs_review",
       availabilityStatus: "review",
       sourceProofStatus: "review",
-      href: "/marketplace",
+      href: "/buy-leads",
     },
   ];
 }

@@ -26,7 +26,7 @@ export async function BandwidthMeter({ variant = "full" }: { variant?: Variant }
   if (variant === "compact") {
     return (
       <Link
-        href="/availability"
+        href="/contact"
         className={`inline-flex items-center gap-2 rounded-full border ${tone.border} ${tone.bg} backdrop-blur px-3 py-1 text-xs font-semibold ${tone.text} shadow-sm hover:shadow-md transition-shadow`}
       >
         <span className={`inline-flex h-1.5 w-1.5 rounded-full ${tone.dot} animate-pulse`} />
@@ -106,7 +106,7 @@ export async function BandwidthMeter({ variant = "full" }: { variant?: Variant }
       {/* Footer */}
       <div className="mt-4 flex items-center justify-between gap-3">
         <Link
-          href="/availability"
+          href="/contact"
           className="text-xs font-semibold text-cyan-700 hover:text-cyan-800 inline-flex items-center gap-1"
         >
           See full breakdown →

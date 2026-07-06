@@ -40,31 +40,17 @@ type MobileFeaturedAction = {
 
 const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   "/": Home,
-  "/unlock": Package,
-  "/request": Sparkles,
-  "/requests": Trophy,
-  "/boards": BarChart3,
-  "/action-menu": Package,
-  "/tools/growth-machine": Bot,
-  "/tools/seo-grader": Search,
-  "/stump-ryan": Sparkles,
-  "/lead-leak-audit-197": ClipboardCheck,
-  "/lead-leak-audit": ClipboardCheck,
-  "/organic-growth": Gauge,
-  "/proof": Trophy,
-  "/services": Package,
-  "/services/consulting": BriefcaseBusiness,
-  "/start": Sparkles,
-  "/tools/ad-account-autopsy": Megaphone,
-  "/pulse": Gauge,
-  "/tiers": Package,
-  "/community": Trophy,
-  "/support": Mail,
-  "/rewards": Trophy,
-  "/story": BookOpen,
-  "/availability": Gauge,
+  "/buy-leads": Search,
+  "/pricing": Package,
+  "/build-my-system": Bot,
+  "/submit-source": ClipboardCheck,
+  "/offers/quick-look": Search,
+  "/offers/business-audit": ClipboardCheck,
+  "/problem-intake": Sparkles,
+  "/industries": BarChart3,
+  "/privacy-center": Gauge,
+  "/dashboard": Package,
   "/contact": Mail,
-  "/backend": Database,
 };
 
 export function LightMobileMenu({
@@ -82,12 +68,12 @@ export function LightMobileMenu({
 }) {
   const [open, setOpen] = useState(false);
   const featuredPrimary: MobileFeaturedAction = primaryAction ?? {
-    href: "/tools",
+    href: "/pricing",
     label: "Open Tools",
     description: "Run a LeadFlow scorecard, quiz, calculator, or intake path.",
   };
   const featuredSecondary: MobileFeaturedAction = secondaryAction ?? {
-    href: "/marketplace",
+    href: "/buy-leads",
     label: "Browse Signals",
     description: "Search source-backed marketplace signals and sample products.",
   };
@@ -96,7 +82,7 @@ export function LightMobileMenu({
   const FeaturedPrimaryIcon = ICONS[primaryIconKey] ?? Bot;
   const FeaturedSecondaryIcon = ICONS[secondaryIconKey] ?? Sparkles;
   const menuNav = hideFreeAuditLink
-    ? nav.filter((item) => item.href !== "/lead-leak-audit")
+    ? nav.filter((item) => item.href !== "/offers/business-audit")
     : nav;
 
   useEffect(() => {

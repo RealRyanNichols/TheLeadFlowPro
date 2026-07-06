@@ -225,10 +225,10 @@ function cautionNote(candidate: BuyerMatchCandidate, score: number) {
 function hrefForCandidate(candidate: BuyerMatchCandidate) {
   if (candidate.entityType === "tool") return `/tools?tool=${encodeURIComponent(candidate.id)}`;
   if (candidate.entityType === "lead_profile") return `/lead-profile/${candidate.id}`;
-  if (candidate.entityType === "segment") return "/marketplace";
+  if (candidate.entityType === "segment") return "/buy-leads";
   if (candidate.entityType === "sample") return `/marketplace/${candidate.id}/sample`;
   if (candidate.entityType === "custom_sourcing") return "/custom-sourcing";
-  return "/marketplace";
+  return "/buy-leads";
 }
 
 export function sortedMatches(results: BuyerMatchResult[], limit = 8) {

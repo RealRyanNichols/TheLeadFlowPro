@@ -128,7 +128,7 @@ export const ACTION_MENU_ITEMS: ActionMenuItem[] = [
     mechanism: "The user describes the desired outcome. The system turns it into a blueprint and build checklist.",
     href: "/tools/growth-machine#automation-map",
     primaryLabel: "Open blueprint tool",
-    secondaryHref: "/stump-ryan",
+    secondaryHref: "/contact",
     secondaryLabel: "Use full blueprint form",
     badge: "Blueprint tool",
   },

@@ -39,14 +39,14 @@ const SHOULD_USE = [
     Icon: Route,
     title: "Run the Growth Machine",
     body: "Best first move if you want a free score before paying for the full report, script pack, map, or Growth OS path.",
-    href: "/tools/growth-machine#tool",
+    href: "/build-my-system",
     cta: "Run free snapshot",
   },
   {
     Icon: Lock,
     title: "Open the paid unlocks",
     body: "Best if you already know you need the $47 report, $90 follow-up kit, $197 lead leak report, or bigger system path.",
-    href: "/action-menu",
+    href: "/dashboard",
     cta: "View unlocks",
   },
   {
@@ -124,14 +124,14 @@ export default function ContactPage() {
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <QuickLink
-                    href="/tools/growth-machine#tool"
+                    href="/build-my-system"
                     Icon={Route}
                     label="Run the Growth Machine"
                     body="Enter business data and get the free score before unlocking anything."
                     primary
                   />
                   <QuickLink
-                    href="/action-menu"
+                    href="/dashboard"
                     Icon={Lock}
                     label="Open paid unlocks"
                     body="Reports, scripts, lead leak documents, public loops, and Growth OS paths."
@@ -219,13 +219,13 @@ export default function ContactPage() {
             </p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
-                href="/tools/growth-machine#tool"
+                href="/build-my-system"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 py-3 font-semibold text-white shadow-lg shadow-accent-500/25 hover:bg-accent-600"
               >
                 Run free snapshot <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/action-menu"
+                href="/dashboard"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur hover:bg-white/15"
               >
                 View paid unlocks

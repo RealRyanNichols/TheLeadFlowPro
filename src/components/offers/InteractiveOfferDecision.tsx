@@ -78,7 +78,7 @@ function moneyVerb(slug: string) {
 function lowStep(slug: string) {
   if (slug === "quick-look") {
     return {
-      href: "/book",
+      href: "/contact",
       label: "Take the free 10-minute call instead",
       note: "If even $47 feels early, talk first and let Ryan point you to the cleanest next move.",
     };

@@ -306,7 +306,7 @@ function resultFromStored(row: StoredBuyerMatchResult): BuyerMatchResult {
     recommendedAction: row.recommended_action,
     missingBuyerInfo: recordArray(row.missing_buyer_info),
     cautionNote: row.caution_note || "Access remains review-gated.",
-    href: text(metadata.href) || "/marketplace",
+    href: text(metadata.href) || "/buy-leads",
   };
 }
 

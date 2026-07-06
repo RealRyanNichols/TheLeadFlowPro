@@ -214,12 +214,12 @@ export default function BuildMySystemPage() {
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <Link
-                    href="/book"
+                    href="/contact"
                     className="btn-accent text-base"
                     data-conversion-event="build_system_fit_call_click"
                     data-conversion-cta="Book the 10-minute fit call"
                     data-conversion-source-page="/build-my-system"
-                    data-conversion-destination="/book"
+                    data-conversion-destination="/contact"
                   >
                     Book the 10-minute fit call
                     <ArrowRight className="h-4 w-4" />
@@ -289,7 +289,7 @@ export default function BuildMySystemPage() {
                   The work is practical: intake, routing, scoring, automation, follow-up, dashboards, ads setup, and sales workflow.
                 </p>
               </div>
-              <Link href="/tools" className="btn-ghost justify-center text-sm">
+              <Link href="/pricing" className="btn-ghost justify-center text-sm">
                 See intake tools
                 <ArrowRight className="h-4 w-4" />
               </Link>
@@ -349,7 +349,7 @@ export default function BuildMySystemPage() {
                     The call is short on purpose. I need to know what you sell, where leads come from, what gets missed, and whether you are ready to install the machine.
                   </p>
                   <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                    <Link href="/book" className="btn-accent text-base">
+                    <Link href="/contact" className="btn-accent text-base">
                       Book the 10-minute fit call
                       <ArrowRight className="h-4 w-4" />
                     </Link>
@@ -507,7 +507,7 @@ function OfferCard({ offer }: { offer: (typeof offerLadder)[number] }) {
           </div>
         ))}
       </div>
-      <Link href="/book" className="btn-ghost mt-5 w-full justify-center text-sm">
+      <Link href="/contact" className="btn-ghost mt-5 w-full justify-center text-sm">
         Talk through this
         <ArrowRight className="h-4 w-4" />
       </Link>

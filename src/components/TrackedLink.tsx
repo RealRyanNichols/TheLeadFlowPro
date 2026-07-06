@@ -5,7 +5,7 @@
 // on click. Use it on every key CTA so Ryan can see what visitors actually do.
 //
 // Usage:
-//   <TrackedLink href="/book" event="cta_book_call" location="hero">Book the 10-min call</TrackedLink>
+//   <TrackedLink href="/contact" event="cta_book_call" location="hero">Book the 10-min call</TrackedLink>
 //
 // Events show up in Vercel Dashboard → Analytics → Events tab once Web Analytics
 // is enabled in the project settings.

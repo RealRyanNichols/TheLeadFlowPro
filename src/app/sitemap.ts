@@ -1,137 +1,55 @@
-// src/app/sitemap.ts: public crawl map.
-//
-// Includes static buyer pages plus dynamic business profile and Voice pages
-// when the database is reachable. Dynamic sections fail closed so build and
-// deploy stay safe during env/schema setup.
+// src/app/sitemap.ts: public crawl map for the clean core.
+// Static front-door + legal routes, plus the dynamic offer and industry pages.
 
 import type { MetadataRoute } from "next";
 import { OFFERS } from "@/lib/offers";
 import { leadFlowIndustrySlugs } from "@/lib/leadflow-industries";
-import { getLeadProfileIds } from "@/lib/lead-profile-detail";
-import { ORGANIC_LANDING_PAGES } from "@/lib/organic-growth";
-import { PLATFORMS } from "@/lib/platforms";
-import { PULSE_SIGNAL_LIST } from "@/lib/pulse-signal-pages";
-import { prisma } from "@/lib/prisma";
 
 const BASE = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.theleadflowpro.com").replace(/\/$/, "");
 
-export const dynamic = "force-dynamic";
-export const revalidate = 300;
+export const revalidate = 3600;
 
 const staticRoutes = [
   "",
-  "/action-menu",
-  "/services",
-  "/services/consulting",
-  "/tiers",
-  "/story",
-  "/availability",
-  "/leaderboard",
-  "/voice",
-  "/stump-ryan",
-  "/challenge",
-  "/challenge/insights/monthly-exposure",
-  "/challenge/insights/hours-per-month",
-  "/challenge/insights/build-estimate",
-  "/community",
-  "/facebook-ad-offer",
-  "/lead-leak-audit",
-  "/lead-leak-audit-197",
-  "/organic-growth",
-  "/proof",
-  "/pulse",
-  ...PULSE_SIGNAL_LIST.map((signal) => `/pulse/${signal.slug}`),
-  "/rewards",
-  "/support",
   "/buy-leads",
-  "/marketplace",
-  ...getLeadProfileIds().map((id) => `/lead-profile/${id}`),
+  "/pricing",
   "/build-my-system",
-  "/tools",
-  "/widgets",
-  "/civic",
-  "/civic/issue-pulse",
-  "/civic/districts",
-  "/civic/surveys",
   "/submit-source",
-  "/profile-model",
-  "/privacy-center",
+  "/problem-intake",
   "/industries",
-  ...leadFlowIndustrySlugs.map((slug) => `/industries/${slug}`),
-  "/machine",
-  "/tools/seo-grader",
-  "/tools/ad-account-autopsy",
-  "/solutions/mortgage",
+  "/privacy-center",
   "/contact",
   "/legal",
   "/privacy-policy",
   "/terms",
   "/refunds",
   "/login",
-  "/demo",
-  "/start",
+  "/signup",
 ];
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
   const staticSitemap: MetadataRoute.Sitemap = staticRoutes.map((path) => ({
     url: `${BASE}${path}`,
     lastModified: now,
-    changeFrequency: path === "/leaderboard" || path === "/voice" || path === "/pulse" ? "hourly" : "weekly",
-    priority: path === "" ? 1 : path === "/stump-ryan" ? 0.95 : path === "/leaderboard" || path === "/challenge" ? 0.9 : 0.7,
+    changeFrequency: "weekly",
+    priority: path === "" ? 1 : 0.7,
   }));
 
-  const offerRoutes: MetadataRoute.Sitemap = Object.keys(OFFERS).map((slug) => ({
+  const offerRoutes: MetadataRoute.Sitemap = (Object.keys(OFFERS) as (keyof typeof OFFERS)[]).map((slug) => ({
     url: `${BASE}/offers/${slug}`,
     lastModified: now,
     changeFrequency: "monthly",
     priority: 0.8,
   }));
 
-  const platformRoutes: MetadataRoute.Sitemap = Object.keys(PLATFORMS).map((handle) => ({
-    url: `${BASE}/platforms/${handle}`,
+  const industryRoutes: MetadataRoute.Sitemap = leadFlowIndustrySlugs.map((slug) => ({
+    url: `${BASE}/industries/${slug}`,
     lastModified: now,
     changeFrequency: "weekly",
-    priority: 0.8,
+    priority: 0.7,
   }));
 
-  const organicRoutes: MetadataRoute.Sitemap = ORGANIC_LANDING_PAGES.map((page) => ({
-    url: `${BASE}/growth/${page.slug}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.86,
-  }));
-
-  let businessRoutes: MetadataRoute.Sitemap = [];
-  try {
-    const businesses = await prisma.businessProfile.findMany({
-      select: { slug: true, updatedAt: true },
-      orderBy: { totalLifetimeDollars: "desc" },
-      take: 1000,
-    });
-    businessRoutes = businesses.map((business) => ({
-      url: `${BASE}/b/${business.slug}`,
-      lastModified: business.updatedAt,
-      changeFrequency: "daily",
-      priority: 0.6,
-    }));
-  } catch {}
-
-  let voiceRoutes: MetadataRoute.Sitemap = [];
-  try {
-    const topics = await prisma.voiceTopic.findMany({
-      where: { status: "open" },
-      select: { slug: true, updatedAt: true },
-      take: 500,
-    });
-    voiceRoutes = topics.map((topic) => ({
-      url: `${BASE}/voice/${topic.slug}`,
-      lastModified: topic.updatedAt,
-      changeFrequency: "hourly",
-      priority: 0.7,
-    }));
-  } catch {}
-
-  return [...staticSitemap, ...offerRoutes, ...platformRoutes, ...organicRoutes, ...businessRoutes, ...voiceRoutes];
+  return [...staticSitemap, ...offerRoutes, ...industryRoutes];
 }

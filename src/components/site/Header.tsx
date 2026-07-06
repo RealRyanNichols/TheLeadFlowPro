@@ -53,9 +53,9 @@ export function Header() {
             <LogIn className="h-4 w-4" />
             Client vault
           </Link>
-          <Link href="/tools" className="btn-accent header-primary-btn hidden sm:inline-flex">
+          <Link href="/pricing" className="btn-accent header-primary-btn hidden sm:inline-flex">
             <Sparkles className="h-4 w-4" />
-            Open tools
+            See pricing
           </Link>
           <MobileMenu />
         </div>

@@ -352,7 +352,7 @@ export function AdminReviewDashboardClient({ data }: { data: AdminReviewDashboar
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
             <Link href="/submit-source" className="btn-ghost justify-center text-sm">Open submit source</Link>
-            <Link href="/marketplace" className="btn-accent justify-center text-sm">Open marketplace</Link>
+            <Link href="/buy-leads" className="btn-accent justify-center text-sm">Open buy leads</Link>
           </div>
         </div>
         {data.mode === "offline" || data.loadErrors.length ? (
@@ -415,7 +415,7 @@ export function AdminReviewDashboardClient({ data }: { data: AdminReviewDashboar
               {profiles.map((row) => (
                 <tr key={row.id}>
                   <Td><input aria-label={`Select ${row.title}`} type="checkbox" checked={selectedProfiles.includes(row.id)} onChange={(event) => setSelectedProfiles((current) => event.target.checked ? [...current, row.id] : current.filter((id) => id !== row.id))} /></Td>
-                  <Td><Link href={`/lead-profile/${row.id}`} className="font-bold text-white hover:text-cyan-200">{row.title}</Link></Td>
+                  <Td><span className="font-bold text-white">{row.title}</span></Td>
                   <Td>{row.vertical}</Td>
                   <Td>{row.category || "Unassigned"}</Td>
                   <Td><ScoreBadge value={row.score} /></Td>
@@ -426,7 +426,6 @@ export function AdminReviewDashboardClient({ data }: { data: AdminReviewDashboar
                   <Td>{dateLabel(row.created_at)}</Td>
                   <Td>{dateLabel(row.updated_at)}</Td>
                   <Td><ActionGrid>
-                    <Link href={`/lead-profile/${row.id}`} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-md border border-white/15 px-2.5 text-xs font-bold text-ink-100 hover:bg-white/10"><Eye className="h-3.5 w-3.5" /> View</Link>
                     <AdminActionButton targetType="lead_profile" targetId={row.id} action="approve" label="Approve" icon={CheckCircle2} tone="success" />
                     <AdminActionButton targetType="lead_profile" targetId={row.id} action="reject" label="Reject" icon={XCircle} tone="danger" />
                     <AdminActionButton targetType="lead_profile" targetId={row.id} action="needs_review" label="Needs review" icon={ShieldAlert} />
@@ -485,7 +484,7 @@ export function AdminReviewDashboardClient({ data }: { data: AdminReviewDashboar
                 <Td>{row.vertical}</Td>
                 <Td>{dateLabel(row.created_at)}</Td>
                 <Td><ActionGrid>
-                  <Link href="/dashboard/source-submissions" className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/15 px-2.5 text-xs font-bold text-ink-100 hover:bg-white/10">Review</Link>
+                  <Link href="#submitted-sources" className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/15 px-2.5 text-xs font-bold text-ink-100 hover:bg-white/10">Review</Link>
                   <AdminActionButton targetType="submitted_source" targetId={row.id} action="approve_research" label="Research" icon={CheckCircle2} tone="success" />
                   <AdminActionButton targetType="submitted_source" targetId={row.id} action="approve_marketplace" label="Marketplace" icon={BadgeCheck} tone="success" disabled={row.risk_level === "high" || row.risk_level === "prohibited"} refreshLabel="High-risk sources cannot be approved for marketplace from bulk dashboard." />
                   <AdminActionButton targetType="submitted_source" targetId={row.id} action="request_more_info" label="More info" icon={FileCheck2} />

@@ -87,7 +87,7 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
                 budget, and urgency you picked.
               </span>
             </div>
-            <Link href="/start" className="font-semibold text-cyan-700 hover:text-cyan-800">
+            <Link href="/pricing" className="font-semibold text-cyan-700 hover:text-cyan-800">
               Reroute me
             </Link>
           </div>

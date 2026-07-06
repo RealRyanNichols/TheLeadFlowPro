@@ -99,10 +99,10 @@ function CallbackShell({ state, message }: { state: "loading" | "error" | "done"
             <Link href="/login?mode=buyer" className="btn-accent justify-center text-sm">
               Back to login
             </Link>
-            <Link href="/partner/login" className="btn-ghost justify-center text-sm">
+            <Link href="/login" className="btn-ghost justify-center text-sm">
               Partner login
             </Link>
-            <Link href="/marketplace" className="btn-ghost justify-center text-sm">
+            <Link href="/buy-leads" className="btn-ghost justify-center text-sm">
               Open marketplace
             </Link>
           </div>

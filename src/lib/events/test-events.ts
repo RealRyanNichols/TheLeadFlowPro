@@ -10,7 +10,7 @@ export const LEADFLOW_SAFE_TEST_EVENTS = [
   {
     eventName: "sample_request_submitted",
     properties: {
-      route: "/marketplace",
+      route: "/buy-leads",
       listing_id: "test-listing",
       request_type: "sample",
       vertical: "Ecommerce",
@@ -21,7 +21,7 @@ export const LEADFLOW_SAFE_TEST_EVENTS = [
   {
     eventName: "questionnaire_completed",
     properties: {
-      route: "/tools",
+      route: "/pricing",
       tool_slug: "lead-leak-audit",
       step_number: 4,
       score_range: "high",
@@ -33,7 +33,7 @@ export const LEADFLOW_SAFE_TEST_EVENTS = [
 export const LEADFLOW_BLOCKED_TEST_EVENT = {
   eventName: "questionnaire_completed",
   properties: {
-    route: "/tools",
+    route: "/pricing",
     email: "blocked@example.test",
     phone: "555-123-4567",
     raw_answer: "This raw answer should never be sent to analytics.",

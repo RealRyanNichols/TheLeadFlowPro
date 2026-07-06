@@ -1261,7 +1261,7 @@ export async function getBuyerOrdersPageData(): Promise<BuyerOrdersPageData> {
   const enriched = await Promise.all(orders.map(async (order) => ({
     ...order,
     productTitle: await orderProductTitle(order),
-    productPath: order.order_type === "sample" && order.sample_id ? `/buyer/samples/${order.sample_id}` : order.listing_slug ? `/marketplace/${order.listing_slug}` : "/marketplace",
+    productPath: order.order_type === "sample" && order.sample_id ? `/buyer/samples/${order.sample_id}` : order.listing_slug ? `/marketplace/${order.listing_slug}` : "/buy-leads",
     accessStatus: order.status === "fulfilled" ? "access granted" : order.status.replace(/_/g, " "),
     nextAction: orderNextAction(order),
   })));

@@ -484,7 +484,7 @@ function offlineData(filters: LeadFlowOpsFilters, startedAt: string, endedAt: st
     loadErrors,
     today: [
       { key: "site_visits", label: "Site visits", value: 38, hint: "Demo traffic count from sanitized events", href: "/dashboard/analytics" },
-      { key: "tool_starts", label: "Tool starts", value: 11, hint: "Demo quiz and widget starts", href: "/tools", tone: "good" },
+      { key: "tool_starts", label: "Tool starts", value: 11, hint: "Demo quiz and widget starts", href: "/pricing", tone: "good" },
       { key: "new_buyer_requests", label: "Buyer requests", value: 4, hint: "Demo buyer demand queue", href: "/dashboard/buyer-matching", tone: "premium" },
       { key: "suppression_requests", label: "Suppression", value: 1, hint: "Demo compliance queue", href: "/dashboard#suppression", tone: "warning" },
     ],
@@ -621,7 +621,7 @@ export async function getLeadFlowOpsData(filtersInput: LeadFlowOpsFilters): Prom
 
   const todayMetrics: OpsMetric[] = [
     { key: "site_visits", label: "Site visits", value: countEvents(events, ["homepage_viewed", "marketplace_viewed", "tools_hub_viewed", "submit_source_viewed", "custom_sourcing_page_viewed", "widget_loaded"]), hint: "Sanitized page and widget events", href: "/dashboard/analytics" },
-    { key: "tool_starts", label: "Tool starts", value: countEvents(events, ["tool_card_clicked", "questionnaire_started", "widget_started", "civic_survey_started"]), hint: "Questionnaire and widget starts", href: "/tools", tone: "good" },
+    { key: "tool_starts", label: "Tool starts", value: countEvents(events, ["tool_card_clicked", "questionnaire_started", "widget_started", "civic_survey_started"]), hint: "Questionnaire and widget starts", href: "/pricing", tone: "good" },
     { key: "tool_completions", label: "Tool completions", value: countEvents(events, ["questionnaire_completed", "widget_completed", "civic_survey_completed", "result_viewed"]), hint: "Finished tools and viewed results", href: "/dashboard/analytics", tone: "good" },
     { key: "new_profiles", label: "New profiles", value: profiles.length, hint: "Lead profiles created in range", href: "/dashboard#lead-profiles" },
     { key: "new_buyer_requests", label: "Buyer requests", value: buyerRequests.length, hint: "Marketplace and custom demand", href: "/dashboard/buyer-matching", tone: "premium" },

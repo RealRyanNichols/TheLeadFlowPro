@@ -90,14 +90,14 @@ export default function IndustryPage({ params }: IndustryPageProps) {
                   {page.hero}
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  <Link href="/marketplace" className="btn-accent text-base">
+                  <Link href="/buy-leads" className="btn-accent text-base">
                     Browse Available Signals
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                   <Link href="/build-my-system" className="btn-ghost text-base">
                     Build My Lead Machine
                   </Link>
-                  <Link href="/tools" className="btn-ghost text-base">
+                  <Link href="/pricing" className="btn-ghost text-base">
                     Start related tool
                   </Link>
                 </div>
@@ -161,7 +161,7 @@ export default function IndustryPage({ params }: IndustryPageProps) {
                 eyebrow="Buy signals"
                 title={page.marketplaceAngle}
                 body="Search reviewed lead signal products by industry, source type, confidence, freshness, price range, release mode, and compliance status."
-                href="/marketplace"
+                href="/buy-leads"
                 label="Open marketplace"
                 accent="accent"
               />
@@ -229,13 +229,13 @@ export default function IndustryPage({ params }: IndustryPageProps) {
                 <Link href="/buy-leads" className="btn-ghost justify-center text-sm">
                   Buy Leads
                 </Link>
-                <Link href="/tools" className="btn-ghost justify-center text-sm">
+                <Link href="/pricing" className="btn-ghost justify-center text-sm">
                   Tools
                 </Link>
-                <Link href="/marketplace" className="btn-ghost justify-center text-sm">
+                <Link href="/buy-leads" className="btn-ghost justify-center text-sm">
                   Marketplace
                 </Link>
-                <Link href="/profile-model" className="btn-ghost justify-center text-sm">
+                <Link href="/buy-leads" className="btn-ghost justify-center text-sm">
                   Profile model
                 </Link>
                 <Link href="/privacy-center" className="btn-ghost justify-center text-sm">
@@ -291,7 +291,7 @@ function SampleProfilePanel({ page }: { page: LeadFlowIndustryPage }) {
         <ProfileFact label="Proof" value={profile.proof} />
         <ProfileFact label="Recommended next action" value={profile.nextAction} />
       </div>
-      <Link href="/profile-model" className="btn-ghost mt-5 w-full justify-center text-sm">
+      <Link href="/buy-leads" className="btn-ghost mt-5 w-full justify-center text-sm">
         See profile model
       </Link>
     </aside>

@@ -219,7 +219,7 @@ export function buyerCtaForPortal(data: BuyerPortalData) {
     return { href: "/buyer/access", label: "View Approved Signals" };
   }
   if (data.pendingRequestCount > 0) return { href: "/buyer/requests", label: "View Pending Requests" };
-  return { href: "/marketplace", label: "Browse Marketplace" };
+  return { href: "/buy-leads", label: "Browse Marketplace" };
 }
 
 export function buyerAccountIsRestricted(account: BuyerAccount | null) {

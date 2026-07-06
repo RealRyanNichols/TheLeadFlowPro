@@ -112,7 +112,7 @@ export const intakeTools: IntakeTool[] = [
     collected: "City, service category, demand clue, seasonality, source context",
     vertical: "Local services",
     output: "Local demand brief",
-    route: "/marketplace"
+    route: "/buy-leads"
   },
   {
     title: "Ecommerce Growth Finder",
@@ -136,7 +136,7 @@ export const intakeTools: IntakeTool[] = [
     collected: "URL, CTA path, conversion blocker, offer clarity, follow-up gap",
     vertical: "Websites",
     output: "Website leak report",
-    route: "/tools/seo-grader"
+    route: "/offers/quick-look"
   },
   {
     title: "Mortgage Lead Readiness Tool",
@@ -152,7 +152,7 @@ export const intakeTools: IntakeTool[] = [
     collected: "Issue priority, public geography level, opinion bucket, anonymous event path",
     vertical: "Civic aggregate",
     output: "Aggregated issue pulse",
-    route: "/marketplace"
+    route: "/buy-leads"
   },
   {
     title: "Buyer Personality Signal Quiz",

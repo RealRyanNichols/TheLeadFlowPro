@@ -560,7 +560,7 @@ function profileRowFromDetail(profile: LeadProfileDetail): LeadProfileSampleRow 
     },
     private_profile: {
       business_name: profile.title,
-      public_contact_page: profile.sourceProofLinks[0]?.href || "/profile-model",
+      public_contact_page: profile.sourceProofLinks[0]?.href || "/buy-leads",
       risk_level: "low",
     },
     last_verified_at: profile.lastVerifiedDate,
@@ -576,7 +576,7 @@ function itemViewFromProfile(profile: LeadProfileSampleRow, sample: LeadFlowSamp
     ? summary.source_proof_links
         .map((proof) => ({
           label: textValue((proof as Record<string, unknown>).label, profile.title),
-          href: textValue((proof as Record<string, unknown>).href, profile.source_url || "/profile-model"),
+          href: textValue((proof as Record<string, unknown>).href, profile.source_url || "/buy-leads"),
           status: textValue((proof as Record<string, unknown>).status, profile.source_proof_status),
           description: textValue((proof as Record<string, unknown>).description, "Source proof attached."),
         }))
@@ -584,7 +584,7 @@ function itemViewFromProfile(profile: LeadProfileSampleRow, sample: LeadFlowSamp
     : [
         {
           label: textValue(summary.source_title, profile.title),
-          href: profile.source_url || "/profile-model",
+          href: profile.source_url || "/buy-leads",
           status: profile.source_proof_status,
           description: textValue(summary.source_snippet, "Source proof is reviewed before full release."),
         },
@@ -635,7 +635,7 @@ function itemViewFromSampleItem(item: LeadFlowSampleItem, sample: LeadFlowSample
     sourceProofLinks: [
       {
         label: textValue(proof.source_title, textValue(record.source_title, "Source proof")),
-        href: textValue(proof.source_url, textValue(record.source_url, "/profile-model")),
+        href: textValue(proof.source_url, textValue(record.source_url, "/buy-leads")),
         status: textValue(proof.proof_status, "sample"),
         description: textValue(proof.source_snippet, "Source proof summary is redacted for sample access."),
       },

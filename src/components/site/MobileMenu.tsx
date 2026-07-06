@@ -103,7 +103,7 @@ export function MobileMenu() {
         </nav>
         <div className="space-y-2 pt-3">
           <Link
-            href="/tools"
+            href="/pricing"
             onClick={() => setOpen(false)}
             className="btn-accent w-full justify-center py-2.5 text-sm"
           >
@@ -111,7 +111,7 @@ export function MobileMenu() {
             Open tools
           </Link>
           <Link
-            href="/marketplace"
+            href="/buy-leads"
             onClick={() => setOpen(false)}
             className="btn-ghost w-full justify-center py-2.5 text-sm"
           >

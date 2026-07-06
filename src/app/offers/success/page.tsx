@@ -112,7 +112,7 @@ export default async function OfferSuccessPage({ searchParams }: Props) {
               <CheckoutSmsNotice sms={result.sms} />
               <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <Link
-                  href="/book?source=offer-success"
+                  href="/contact?source=offer-success"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800"
                 >
                   Book the kickoff call <ArrowRight className="h-4 w-4" />

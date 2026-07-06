@@ -33,11 +33,11 @@ export default function HomePage() {
                 <h1 className="mt-6 max-w-5xl text-5xl font-black leading-[0.94] tracking-normal text-white md:text-7xl">
                   Stop buying blind lists.
                   <span className="mt-3 block bg-gradient-to-r from-cyan-200 via-white to-accent-200 bg-clip-text text-transparent">
-                    Build the lead machine.
+                    Buy buyer signals.
                   </span>
                 </h1>
                 <p className="mt-6 max-w-3xl text-lg leading-8 text-ink-100 md:text-xl">
-                  LeadFlow Pro separates the machine into clear lanes: buy source-backed signals, search the marketplace, build systems, run public tools, submit sources, inspect profile proof, and manage privacy controls.
+                  LeadFlow Pro turns verified public and permissioned sources into scored, source-backed buyer signals. Buy the signal, build your lead system, submit a source for review, and keep full privacy controls.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <Link
@@ -94,12 +94,12 @@ export default function HomePage() {
                   {featuredSignals.map((signal) => (
                     <Link
                       key={signal.title}
-                      href="/marketplace"
+                      href="/buy-leads"
                       className="block rounded-lg border border-white/10 bg-white/[0.035] p-4 transition hover:-translate-y-0.5 hover:border-cyan-300/30 hover:bg-white/[0.055]"
                       data-conversion-event="listing_card_clicked"
                       data-conversion-cta={signal.title}
                       data-conversion-source-page="/"
-                      data-conversion-destination="/marketplace"
+                      data-conversion-destination="/buy-leads"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -190,8 +190,8 @@ export default function HomePage() {
                     Public tools collect useful first-party answers. Sources go through review. Profiles keep proof, timestamps, confidence, suppression status, and open questions.
                   </p>
                 </div>
-                <Link href="/marketplace" className="btn-accent w-full text-base md:w-auto">
-                  Open Marketplace
+                <Link href="/buy-leads" className="btn-accent w-full text-base md:w-auto">
+                  Browse buyer signals
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>

@@ -83,7 +83,7 @@ export function Hero() {
         {/* Mid-scroll CTA: stops the drop-off */}
         <div className="mt-7 md:mt-10 flex flex-col items-center gap-2 animate-fade-up">
           <Link
-            href="/tools/seo-grader"
+            href="/offers/quick-look"
             className="group inline-flex items-center gap-2 rounded-full px-6 py-3.5 font-bold text-base md:text-lg text-slate-900 bg-gradient-to-r from-amber-300 via-orange-400 to-amber-300 shadow-[0_0_28px_rgba(251,146,60,0.45)] hover:shadow-[0_0_36px_rgba(251,146,60,0.7)] hover:scale-[1.02] active:scale-95 transition"
           >
             See what you're leaving on the table

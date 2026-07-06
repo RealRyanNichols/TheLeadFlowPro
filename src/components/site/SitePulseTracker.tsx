@@ -195,26 +195,26 @@ function trackedEventForHref(href: string): PulseClickSignal | null {
   }
 
   if (host === "buy.stripe.com") return { eventType: "cta_checkout", target: "stripe-checkout" };
-  if (path === "/start" || path.startsWith("/start/")) return { eventType: "cta_start", target: "offer-router" };
+  if (path === "/pricing" || path.startsWith("/start/")) return { eventType: "cta_start", target: "offer-router" };
   if (path === "/lead-leak-audit-197" || path.startsWith("/lead-leak-audit-197/")) {
     return { eventType: "cta_service", target: "paid-lead-leak-audit-197" };
   }
-  if (path === "/lead-leak-audit" || path.startsWith("/lead-leak-audit/")) {
+  if (path === "/offers/business-audit" || path.startsWith("/lead-leak-audit/")) {
     return { eventType: "cta_service", target: "lead-leak-audit" };
   }
-  if (path === "/book" || path.startsWith("/book/")) return { eventType: "cta_book", target: "calendar" };
-  if (path === "/availability" || path.startsWith("/availability/")) {
+  if (path === "/contact" || path.startsWith("/book/")) return { eventType: "cta_book", target: "calendar" };
+  if (path === "/contact" || path.startsWith("/availability/")) {
     return { eventType: "cta_capacity", target: "capacity" };
   }
   if (path === "/pulse" || path.startsWith("/pulse/")) return { eventType: "cta_pulse", target: "pulse-board" };
   if (
-    path === "/stump-ryan" ||
+    path === "/contact" ||
     path.startsWith("/stump-ryan/") ||
     path === "/challenge" ||
     path.startsWith("/challenge/") ||
     path === "/services" ||
     path.startsWith("/services/") ||
-    path === "/tiers" ||
+    path === "/pricing" ||
     path.startsWith("/pricing/") ||
     path.startsWith("/offers/")
   ) {
@@ -767,7 +767,7 @@ export function SitePulseTracker() {
 
   return (
     <Link
-      href="/pulse"
+      href="/"
       onClick={() => beaconPulse("cta_pulse", "/pulse", "floating-live-pulse")}
       data-pulse-manual="true"
       className="fixed bottom-4 left-4 z-40 hidden max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full border border-cyan-200/80 bg-white/90 px-3 py-2 text-xs font-semibold text-slate-900 shadow-[0_18px_45px_-22px_rgba(15,23,42,0.65)] backdrop-blur hover:border-cyan-300 hover:bg-cyan-50 sm:inline-flex"

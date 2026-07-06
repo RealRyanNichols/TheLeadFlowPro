@@ -52,7 +52,7 @@ export function MetaPixel() {
     if (submitted !== "1" && application !== "1") return;
 
     let contentName: string | null = null;
-    if (pathname === "/stump-ryan" || pathname === "/challenge" || pathname === "/stump-ryan/thank-you") {
+    if (pathname === "/contact" || pathname === "/challenge" || pathname === "/stump-ryan/thank-you") {
       contentName = "Stump Ryan Build Blueprint";
     } else if (pathname === "/lead-leak-audit-197" || pathname === "/lead-leak-audit-197/thank-you") {
       contentName = "$197 Lead Leak Audit";

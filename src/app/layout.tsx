@@ -10,9 +10,9 @@ import { SitePulseTracker } from "@/components/site/SitePulseTracker";
 import { LeadFlowVercelAnalytics } from "@/components/site/LeadFlowVercelAnalytics";
 
 export const metadata: Metadata = {
-  title: "The LeadFlow Pro - Universal Lead Brain",
+  title: "The LeadFlow Pro — Source-Backed Buyer Signals",
   description:
-    "Collect adult pain and intent signals, score lead intent, and sell fair-rate source-backed lead data across businesses, ecommerce, AI, websites, and demand sources.",
+    "Stop buying blind lists. Buy scored, source-backed buyer signals built from verified public and permissioned demand data — with source proof, suppression controls, and review-gated release.",
   metadataBase: new URL("https://www.theleadflowpro.com"),
   applicationName: "The LeadFlow Pro",
   category: "business",

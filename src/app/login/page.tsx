@@ -18,9 +18,7 @@ import {
   User,
   Building2,
 } from "lucide-react";
-import { BuyerAuthPanel } from "@/components/buyer/BuyerAuthPanel";
-
-type AuthMode = "signin" | "signup" | "code" | "buyer";
+type AuthMode = "signin" | "signup" | "code";
 
 const ADMIN_LOGIN_EMAILS = new Set(["hello@theleadflowpro.com", "ryan@realryannichols.com"]);
 
@@ -33,14 +31,14 @@ export default function LoginPage() {
 }
 
 function safeNext(raw: string | null) {
-  if (!raw) return "/dashboard/work";
+  if (!raw) return "/dashboard";
   try {
     const decoded = decodeURIComponent(raw);
     if (decoded.startsWith("/") && !decoded.startsWith("//")) return decoded;
   } catch {
     if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
   }
-  return "/dashboard/work";
+  return "/dashboard";
 }
 
 function isAdminLoginEmail(email: string) {
@@ -48,9 +46,8 @@ function isAdminLoginEmail(email: string) {
 }
 
 function postLoginUrl(email: string, next: string) {
-  if (!isAdminLoginEmail(email)) return next;
-  if (next === "/dashboard" || next === "/dashboard/work" || next === "/backend") return "/admin";
-  return next.startsWith("/admin") ? next : "/admin";
+  if (isAdminLoginEmail(email) && (next === "/" || next === "/login")) return "/dashboard";
+  return next;
 }
 
 function LoginLoadingFallback() {
@@ -66,8 +63,8 @@ function LoginLoadingFallback() {
           For access help, email Hello@TheLeadFlowPro.com.
         </p>
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-          <Link href="/lead-leak-audit-197" className="btn-accent justify-center text-sm">
-            Start the $197 audit
+          <Link href="/offers/business-audit" className="btn-accent justify-center text-sm">
+            Start the $497 audit
           </Link>
           <Link href="/" className="btn-ghost justify-center text-sm">
             Back to site
@@ -86,13 +83,8 @@ function LoginInner() {
     [params],
   );
   const initialMode: AuthMode =
-    requested === "signup" || requested === "code" || requested === "buyer"
-      ? requested
-      : next.startsWith("/buyer")
-        ? "buyer"
-        : "signin";
+    requested === "signup" || requested === "code" ? requested : "signin";
   const [mode, setMode] = useState<AuthMode>(initialMode);
-  const buyerNext = next.startsWith("/buyer") ? next : "/buyer";
 
   return (
     <div className="min-h-screen overflow-hidden bg-ink-950 text-white">
@@ -111,8 +103,8 @@ function LoginInner() {
             The LeadFlow Pro
           </Link>
           <div className="flex items-center gap-2">
-            <Link href="/book" className="hidden rounded-xl border border-cyan-400/30 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-cyan-400/10 sm:inline-flex">
-              Book call
+            <Link href="/contact" className="hidden rounded-xl border border-cyan-400/30 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-cyan-400/10 sm:inline-flex">
+              Contact
             </Link>
             <Link href="/" className="rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-ink-200 hover:bg-white/5 hover:text-white">
               Back to site
@@ -134,7 +126,7 @@ function LoginInner() {
             review-gated buyer portal for lead signal access requests.
           </p>
 
-          <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/5 p-1 sm:grid-cols-4">
+          <div className="mt-6 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-white/5 p-1">
             <ModeButton active={mode === "signin"} onClick={() => setMode("signin")}>
               Log in
             </ModeButton>
@@ -144,16 +136,12 @@ function LoginInner() {
             <ModeButton active={mode === "code"} onClick={() => setMode("code")}>
               Code
             </ModeButton>
-            <ModeButton active={mode === "buyer"} onClick={() => setMode("buyer")}>
-              Buyer
-            </ModeButton>
           </div>
 
           <div className="mt-6">
             {mode === "signin" && <PasswordSignInForm next={next} onCode={() => setMode("code")} />}
             {mode === "signup" && <CreateAccountForm next={next} />}
             {mode === "code" && <EmailOtpForm next={next} />}
-            {mode === "buyer" && <BuyerAuthPanel next={buyerNext} />}
           </div>
         </section>
 
@@ -197,8 +185,8 @@ function LoginInner() {
               />
               <AccessCard
                 icon={KeyRound}
-                title="Buyer portal"
-                body="Lead signal buyers can request samples, manage watchlists, complete review, and view only approved access."
+                title="Review console"
+                body="Operators score submitted sources, review buyer requests, and approve what ships from a single console."
               />
             </div>
 

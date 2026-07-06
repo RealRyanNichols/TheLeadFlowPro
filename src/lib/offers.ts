@@ -234,7 +234,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       },
     },
     primaryCta: { label: "Reserve the Sprint - $90", href: buyHref("decision-sprint", "Buy: 90-Minute Decision Sprint $90") },
-    secondaryCta: { label: "Free 10-min call first", href: "/book" },
+    secondaryCta: { label: "Free 10-min call first", href: "/contact" },
 
     whyBuy: [
       {
@@ -322,7 +322,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       ],
     },
     primaryCta: { label: "Begin the Audit - $497", href: buyHref("business-audit", "Buy: Business Audit $497") },
-    secondaryCta: { label: "Free 10-min call first", href: "/book" },
+    secondaryCta: { label: "Free 10-min call first", href: "/contact" },
 
     whyBuy: [
       { Icon: LineChart, title: "You can't fix what you can't see", body: "Most owners can name 1–2 problems. The audit names 8–14 - and ranks them so you fix the leak that's bleeding the most first." },
@@ -402,8 +402,8 @@ export const OFFERS: Record<OfferSlug, Offer> = {
           "The $250 is not a blank check and not the full build price. Ryan confirms the first useful version before the work continues.",
       },
     },
-    primaryCta: { label: "Get the free blueprint first", href: "/stump-ryan" },
-    secondaryCta: { label: "Book the 10-minute fit call", href: "/book" },
+    primaryCta: { label: "Get the free blueprint first", href: "/contact" },
+    secondaryCta: { label: "Book the 10-minute fit call", href: "/contact" },
 
     whyBuy: [
       { Icon: Target, title: "Your buyer needs one clean path", body: "Most pages ask visitors to understand too much. The flip makes the next action obvious." },
@@ -479,7 +479,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       ],
     },
     primaryCta: { label: "Start retainer - $1,997/mo", href: buyHref("light-retainer", "Buy: Light Retainer $1,997/mo") },
-    secondaryCta: { label: "Free 10-min call first", href: "/book" },
+    secondaryCta: { label: "Free 10-min call first", href: "/contact" },
 
     whyBuy: [
       { Icon: TrendingUp, title: "Compounding context",       body: "Month 1, I learn your business. Month 6, I know it better than your accountant. Decisions get faster and sharper because I'm not re-loading context every call." },
@@ -563,7 +563,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       },
     },
     primaryCta: { label: "Start Power Bundle - $1,497/mo", href: buyHref("power-bundle", "Buy: Power Bundle $1,497/mo") },
-    secondaryCta: { label: "Free 10-min call first", href: "/book" },
+    secondaryCta: { label: "Free 10-min call first", href: "/contact" },
 
     whyBuy: [
       { Icon: Layers,    title: "The workflow creates consistency",  body: "The win is not random posting. The win is one place for footage, angles, captions, approvals, platform posts, and lead routing." },
@@ -648,7 +648,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       ],
     },
     primaryCta: { label: "Start the Ads System - $1,497/mo", href: buyHref("fb-ads", "Buy: Facebook Ads $1,497/mo") },
-    secondaryCta: { label: "Free 10-min call first", href: "/book" },
+    secondaryCta: { label: "Free 10-min call first", href: "/contact" },
 
     whyBuy: [
       { Icon: Target,     title: "Lead volume + cost-per-lead",  body: "Two metrics matter: how many leads, what each one costs. Everything we do drives one of those. No vanity metrics on the report." },
@@ -732,7 +732,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       },
     },
     primaryCta: { label: "Reserve the Working Session - $2,997", href: buyHref("working-session", "Buy: Working Session $2,997") },
-    secondaryCta: { label: "Free 10-min call first", href: "/book" },
+    secondaryCta: { label: "Free 10-min call first", href: "/contact" },
 
     whyBuy: [
       { Icon: Wrench,    title: "Built, not 'discussed'",        body: "Most consultants leave you with a deck. You leave the working session with the actual artifact - running, deployed, in your business." },
@@ -810,7 +810,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       ],
     },
     primaryCta: { label: "Start Operator - $4,997/mo", href: buyHref("monthly-operator", "Buy: Monthly Operator $4,997/mo") },
-    secondaryCta: { label: "Free 10-min call first", href: "/book" },
+    secondaryCta: { label: "Free 10-min call first", href: "/contact" },
 
     whyBuy: [
       { Icon: Briefcase, title: "Cheaper than a hire",      body: "A full-time COO is $150–250K fully loaded. The Monthly Operator is $60K/yr - without health insurance, without equity, without 'is this person going to work out?'" },
@@ -887,7 +887,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       ],
     },
     primaryCta: { label: "Start the Sprint - $9,997", href: buyHref("sprint-4-week", "Buy: 4-Week Build Sprint $9,997") },
-    secondaryCta: { label: "Free 10-min call first", href: "/book" },
+    secondaryCta: { label: "Free 10-min call first", href: "/contact" },
 
     whyBuy: [
       { Icon: Rocket,    title: "Velocity > strategy",         body: "Most businesses don't fail from bad strategy - they fail from no execution. The sprint replaces 6 months of 'we'll get to it' with 4 weeks of 'we shipped it.'" },
@@ -964,7 +964,7 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       ],
     },
     primaryCta: { label: "Apply - Annual Advisor", href: buyHref("annual-advisor", "Apply: Annual Advisor $75K/yr") },
-    secondaryCta: { label: "Free 30-min call first", href: "/book" },
+    secondaryCta: { label: "Free 30-min call first", href: "/contact" },
 
     whyBuy: [
       { Icon: Trophy,    title: "The seat at the table",        body: "Most advisors sell hours. This is a seat - at every quarterly review, every major hire, every contract signing >$50K. The decisions you make at that level move the year." },

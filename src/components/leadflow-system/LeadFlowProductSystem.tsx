@@ -341,7 +341,7 @@ export function LeadMarketplaceCard({
           Request access
           <ArrowRight className="h-4 w-4" />
         </LeadFlowCta>
-        <LeadFlowCta href="/profile-model" variant="ghost" className="justify-center text-sm">
+        <LeadFlowCta href="/buy-leads" variant="ghost" className="justify-center text-sm">
           View proof model
         </LeadFlowCta>
       </div>
@@ -830,7 +830,7 @@ export function MarketplaceCard({
   suppressionStatus,
   lastUpdated,
   ctaLabel = "Request access",
-  href = "/marketplace",
+  href = "/buy-leads",
   variant = "full",
   locked = false,
   adminOnly = false,
@@ -897,7 +897,7 @@ export function MarketplaceCard({
           {ctaLabel}
           <ArrowRight className="h-4 w-4" />
         </Button>
-        <Button href="/profile-model" variant="ghost" className="justify-center text-sm">
+        <Button href="/buy-leads" variant="ghost" className="justify-center text-sm">
           Proof model
         </Button>
       </div>

@@ -49,17 +49,17 @@ const standardComplianceNote =
 const standardTools: IndustryToolLink[] = [
   {
     label: "Lead Leak Audit",
-    href: "/tools",
+    href: "/pricing",
     fit: "Find missed calls, missed texts, missed DMs, form gaps, and slow follow-up.",
   },
   {
     label: "What Type of Leads Should You Buy?",
-    href: "/tools",
+    href: "/pricing",
     fit: "Match the buyer to the right lead marketplace product, sample path, and release mode.",
   },
   {
     label: "Business Signal Score",
-    href: "/tools",
+    href: "/pricing",
     fit: "Score website funnel, lead scoring, CRM automation, and appointment booking readiness.",
   },
 ];
@@ -153,12 +153,12 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
     availableTools: [
       {
         label: "Ecommerce Growth Finder",
-        href: "/tools",
+        href: "/pricing",
         fit: "Map platform, product, sourcing, traffic, conversion, and follow-up pain.",
       },
       {
         label: "Website Money Leak Checker",
-        href: "/tools/seo-grader",
+        href: "/offers/quick-look",
         fit: "Check whether the store or landing page is losing buyer intent.",
       },
       ...standardTools,
@@ -220,12 +220,12 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
     availableTools: [
       {
         label: "Local Demand Finder",
-        href: "/tools",
+        href: "/pricing",
         fit: "Map demand by city, category, timing, and market clue.",
       },
       {
         label: "Lead Leak Audit",
-        href: "/tools",
+        href: "/pricing",
         fit: "Find missed calls, missed texts, missed DMs, and weak appointment booking.",
       },
       ...standardTools,
@@ -287,12 +287,12 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
     availableTools: [
       {
         label: "Mortgage Lead Readiness Tool",
-        href: "/tools",
+        href: "/pricing",
         fit: "Route adults to education, review, or a licensed partner path.",
       },
       {
         label: "AI Automation Readiness Score",
-        href: "/tools",
+        href: "/pricing",
         fit: "Check whether an AI receptionist or AI agent can improve speed to lead.",
       },
       ...standardTools,
@@ -354,12 +354,12 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
     availableTools: [
       {
         label: "Mortgage Lead Readiness Tool",
-        href: "/tools",
+        href: "/pricing",
         fit: "Collect broad education intent and route only through the right consent path.",
       },
       {
         label: "Lead Leak Audit",
-        href: "/tools",
+        href: "/pricing",
         fit: "Find missed calls, texts, and follow-up failures in the mortgage response path.",
       },
       ...standardTools,
@@ -421,12 +421,12 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
     availableTools: [
       {
         label: "Local Demand Finder",
-        href: "/tools",
+        href: "/pricing",
         fit: "Find city, category, service need, and timing signals.",
       },
       {
         label: "Lead Leak Audit",
-        href: "/tools",
+        href: "/pricing",
         fit: "Find missed calls, missed texts, missed DMs, and slow follow-up.",
       },
       ...standardTools,
@@ -488,12 +488,12 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
     availableTools: [
       {
         label: "Website Money Leak Checker",
-        href: "/tools/seo-grader",
+        href: "/offers/quick-look",
         fit: "Find the website funnel and CTA problems that make contractors lose jobs.",
       },
       {
         label: "Local Demand Finder",
-        href: "/tools",
+        href: "/pricing",
         fit: "Map local service category and timing demand.",
       },
       ...standardTools,
@@ -555,12 +555,12 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
     availableTools: [
       {
         label: "Lead Leak Audit",
-        href: "/tools",
+        href: "/pricing",
         fit: "Find missed calls, missed texts, booking gaps, and slow front-desk follow-up.",
       },
       {
         label: "Website Money Leak Checker",
-        href: "/tools/seo-grader",
+        href: "/offers/quick-look",
         fit: "Find the website funnel issue before spending more on ads.",
       },
       ...standardTools,
@@ -622,12 +622,12 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
     availableTools: [
       {
         label: "Lead Leak Audit",
-        href: "/tools",
+        href: "/pricing",
         fit: "Find where calls, forms, texts, DMs, and intake handoffs break.",
       },
       {
         label: "What Type of Leads Should You Buy?",
-        href: "/tools",
+        href: "/pricing",
         fit: "Decide whether the buyer needs exclusive, shared, or aggregate-only legal signal products.",
       },
       ...standardTools,
@@ -689,12 +689,12 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
     availableTools: [
       {
         label: "AI Automation Readiness Score",
-        href: "/tools",
+        href: "/pricing",
         fit: "Find businesses ready for an AI receptionist, AI chatbot, AI agent, or workflow automation.",
       },
       {
         label: "Business Signal Score",
-        href: "/tools",
+        href: "/pricing",
         fit: "Score the lead flow before a SaaS team spends more on acquisition.",
       },
       ...standardTools,
@@ -756,12 +756,12 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
     availableTools: [
       {
         label: "Local Demand Finder",
-        href: "/tools",
+        href: "/pricing",
         fit: "Map local service demand, category, and timing.",
       },
       {
         label: "Website Money Leak Checker",
-        href: "/tools/seo-grader",
+        href: "/offers/quick-look",
         fit: "Find website funnel and local SEO gaps.",
       },
       ...standardTools,
@@ -823,12 +823,12 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
     availableTools: [
       {
         label: "Political Issue Pulse",
-        href: "/tools",
+        href: "/pricing",
         fit: "Collect aggregate issue priority and public opinion signals without individual persuasion targeting.",
       },
       {
         label: "Lead Leak Audit",
-        href: "/tools",
+        href: "/pricing",
         fit: "Use only for civic organization intake, response, and follow-up system gaps.",
       },
       ...standardTools,
@@ -890,12 +890,12 @@ export const leadFlowIndustryPages: LeadFlowIndustryPage[] = [
     availableTools: [
       {
         label: "Buyer Personality Signal Quiz",
-        href: "/tools",
+        href: "/pricing",
         fit: "Collect general preference and buying style signals for non-sensitive commercial categories.",
       },
       {
         label: "Ecommerce Growth Finder",
-        href: "/tools",
+        href: "/pricing",
         fit: "Match creator audiences to product, offer, and marketplace opportunity.",
       },
       ...standardTools,

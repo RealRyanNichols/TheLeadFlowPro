@@ -240,7 +240,7 @@ type PromptBuildLabProps = {
 
 export function PromptBuildLab({
   source = "stump-ryan-blueprint",
-  landingPage = "/stump-ryan",
+  landingPage = "/contact",
 }: PromptBuildLabProps = {}) {
   const [step, setStep] = useState(0);
   const [values, setValues] = useState<LabValues>(INITIAL_VALUES);

@@ -47,7 +47,7 @@ export default async function AuditReportPage({ params, searchParams }: PageProp
 
   return (
     <div className="min-h-screen bg-white text-slate-950">
-      <LightHeader activePath="/lead-leak-audit" />
+      <LightHeader activePath="/offers/business-audit" />
 
       <main>
         <section className="border-b border-slate-200 bg-slate-950 text-white">
@@ -73,13 +73,13 @@ export default async function AuditReportPage({ params, searchParams }: PageProp
                 </p>
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                   <Link
-                    href="/book?source=audit-report"
+                    href="/contact?source=audit-report"
                     className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-500 px-6 py-3 text-sm font-bold text-slate-950 hover:bg-accent-400"
                   >
                     Walk through this with Ryan <ArrowRight className="h-4 w-4" />
                   </Link>
                   <Link
-                    href="/lead-leak-audit"
+                    href="/offers/business-audit"
                     className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/10 px-6 py-3 text-sm font-bold text-white hover:bg-white/15"
                   >
                     Run another audit

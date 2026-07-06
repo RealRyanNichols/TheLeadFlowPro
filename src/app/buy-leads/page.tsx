@@ -66,7 +66,7 @@ export default function BuyLeadsPage() {
                   No mystery spreadsheets. No recycled junk. No unsupported data claims. Every profile shows source context, category, score, confidence, suppression status, and why the opportunity exists.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                  <Link href="/marketplace" className="btn-accent text-base">
+                  <Link href="/buy-leads" className="btn-accent text-base">
                     Open The Marketplace
                     <ArrowRight className="h-4 w-4" />
                   </Link>
@@ -126,7 +126,7 @@ export default function BuyLeadsPage() {
                       <SignalLine label="Status" value={pack.status} />
                     </div>
                     <div className="mt-auto grid gap-2 pt-6 sm:grid-cols-2">
-                      <Link href="/marketplace" className="btn-ghost justify-center text-sm">Request Sample</Link>
+                      <Link href="/buy-leads" className="btn-ghost justify-center text-sm">Request Sample</Link>
                       <Link href="/contact" className="btn-accent justify-center text-sm">Buy Access</Link>
                     </div>
                   </div>

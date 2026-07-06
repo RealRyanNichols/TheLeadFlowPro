@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
   const urgency     = (pickStr(form.get("urgency"), 40) || "").toLowerCase();
   const attribution = extractFormAttribution(form, {
     formType: "start_router",
-    sourcePage: "/start",
+    sourcePage: "/pricing",
   });
 
   if (!fullName) return NextResponse.json({ error: "missing_name" }, { status: 400 });
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
       industry: pickStr(form.get("industry"), 80),
       topic: primaryNeed,
       stage: "intake",
-      path: "/start",
+      path: "/pricing",
       source: "offer-router",
       profile: {
         primaryNeed,
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
     });
     await recordSitePulseEvent({
       visitorId,
-      path: "/start",
+      path: "/pricing",
       eventType: "cta_service",
       source: "offer-router-form",
       target: recommendation.slug,

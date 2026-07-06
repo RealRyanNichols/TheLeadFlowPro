@@ -294,7 +294,7 @@ export async function POST(req: Request) {
       fullName,
       topic: "booking",
       stage: "booked-call",
-      path: "/book",
+      path: "/contact",
       source: "cal-webhook",
       profile: {
         calEventType: eventType,
@@ -307,7 +307,7 @@ export async function POST(req: Request) {
 
     await recordSitePulseEvent({
       visitorId,
-      path: "/book",
+      path: "/contact",
       eventType: "api_sync",
       source: "cal-webhook",
       target: eventType,

@@ -141,11 +141,11 @@ export default function PrivacyCenterPage() {
                   source proof, suppression checks, and review-gated buyer access.
                 </p>
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                  <Link href="/tools" className="btn-accent text-base">
+                  <Link href="/pricing" className="btn-accent text-base">
                     Start a signal tool
                     <ArrowRight className="h-4 w-4" />
                   </Link>
-                  <Link href="/marketplace" className="btn-ghost text-base">
+                  <Link href="/buy-leads" className="btn-ghost text-base">
                     See buyer marketplace
                   </Link>
                 </div>

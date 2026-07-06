@@ -45,13 +45,13 @@ export function LightHeader({
 
   const moreActive = SITE_MORE_NAV.some((item) => isActiveNavItem(item, activePath));
   const primary = primaryAction ?? {
-    href: "/tools",
+    href: "/pricing",
     label: "Open Tools",
     mobileDescription: "Run a LeadFlow tool, scorecard, quiz, or intake path.",
     Icon: Sparkles,
   };
   const secondary = secondaryAction ?? {
-    href: "/marketplace",
+    href: "/buy-leads",
     label: "Browse Signals",
     mobileDescription: "Search source-backed lead signal products and samples.",
     Icon: BarChart3,
@@ -211,7 +211,7 @@ function MobileAction({
 
 export function LightFooter({ hideFreeAuditLink }: { hideFreeAuditLink?: boolean }) {
   const funnelItems = hideFreeAuditLink
-    ? SITE_FOOTER_NAV.funnel.filter((item) => item.href !== "/lead-leak-audit")
+    ? SITE_FOOTER_NAV.funnel.filter((item) => item.href !== "/offers/business-audit")
     : SITE_FOOTER_NAV.funnel;
 
   return (
