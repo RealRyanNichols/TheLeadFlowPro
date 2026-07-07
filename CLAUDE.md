@@ -65,6 +65,15 @@ speculative bloat — keep it working.
   `Partial` maps with fallbacks (the offer page generates a story from the offer;
   workload-less offers just skip work-order creation in the webhook).
 
+## Two-agent coordination (Claude Code ⇄ Claude Cowork)
+
+This repo is built by two Claude agents. `docs/AGENT_BRIDGE.md` is the protocol:
+Claude Code (this env — builder, non-interactive) owns the codebase; Claude Cowork
+(interactive, internet + connectors) owns the outside world (Stripe/Vercel/DNS/
+directories) and leads. They coordinate through the GitHub Issue "Agent Bridge:
+Claude Code <-> Claude Cowork" using a fixed message envelope, and **never put
+secrets on GitHub**. Read that file before doing launch/ops work with Cowork.
+
 ## Navigation is a single source of truth
 
 `src/lib/site-navigation.ts` drives Header, Footer, MobileMenu, and LightHeader.
