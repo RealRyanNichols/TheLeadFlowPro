@@ -88,7 +88,7 @@ export const WORK_ORDER_PRESETS: Record<string, WorkOrderPreset> = {
   },
 };
 
-export const OFFER_WORKLOADS: Record<OfferSlug, OfferWorkload> = {
+export const OFFER_WORKLOADS: Partial<Record<OfferSlug, OfferWorkload>> = {
   "quick-look": {
     slug: "quick-look",
     label: "Quick-Look Video",

@@ -12,6 +12,7 @@ export const revalidate = 3600;
 const staticRoutes = [
   "",
   "/buy-leads",
+  "/connectors",
   "/pricing",
   "/build-my-system",
   "/submit-source",

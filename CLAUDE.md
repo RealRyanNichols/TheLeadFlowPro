@@ -40,6 +40,31 @@ To add an offer: add it to `OFFERS` and `offerCheckoutShape`, then it renders an
 sells automatically at `/offers/<slug>`. Surface it on `/pricing` via
 `FEATURED_OFFERS` if it should be prominent.
 
+## The connector system (second money path)
+
+LeadFlow Pro is a **connector** in two directions. This is directed revenue, not
+speculative bloat — keep it working.
+
+- **Inbound — inside the AIs.** `src/app/api/mcp/route.ts` is a remote MCP server
+  (Streamable HTTP, JSON-RPC 2.0). Because Claude, ChatGPT, and Grok all speak
+  MCP, this one endpoint makes LeadFlow an installable connector on all three.
+  Tools are read-only over the in-repo catalog and hand off hosted checkout URLs,
+  so it answers with zero external config and is safe for directory review. Add
+  tools by appending to the `TOOLS` array. To submit: host over HTTPS, keep
+  `readOnlyHint`/`destructiveHint` annotations, add OAuth only when you add
+  state-mutating tools.
+- **Outbound — on their sites.** `src/app/connect.js/route.ts` serves the one-tag
+  embed (`<script src=".../connect.js" data-key=...>`); it renders a funnel +
+  questionnaire + pixel and POSTs to `src/app/api/connect/collect/route.ts`.
+  Collect is DB-optional: set `LEADFLOW_CONNECT_FORWARD_URL` to forward each lead
+  to a CRM/Zapier webhook; otherwise it validates and acknowledges.
+- **Offers.** `connector-status` ($199/mo), `funnel-page` ($1,500), and
+  `done-for-you` ($2,500/mo) live in `OFFERS`/`offerCheckoutShape` and sell
+  through the same money path. The public explainer is `/connectors`.
+- New offers don't need a `DEFAULT_STORIES`/`OFFER_WORKLOADS` entry — both are
+  `Partial` maps with fallbacks (the offer page generates a story from the offer;
+  workload-less offers just skip work-order creation in the webhook).
+
 ## Navigation is a single source of truth
 
 `src/lib/site-navigation.ts` drives Header, Footer, MobileMenu, and LightHeader.

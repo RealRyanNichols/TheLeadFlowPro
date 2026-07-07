@@ -30,6 +30,12 @@ export function offerCheckoutShape(slug: OfferSlug): OfferCheckoutShape | null {
       return { amountCents: 499700, recurring: "month" };
     case "annual-advisor":
       return { amountCents: 1875000, recurring: "month", intervalCount: 3 };
+    case "connector-status":
+      return { amountCents: 19900, recurring: "month" };
+    case "funnel-page":
+      return { amountCents: 150000, recurring: null };
+    case "done-for-you":
+      return { amountCents: 250000, recurring: "month" };
     default:
       return null;
   }

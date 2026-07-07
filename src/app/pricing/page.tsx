@@ -17,7 +17,14 @@ export const metadata = createSeoMetadata({
 
 // The consulting offers we surface on the hub. Every slug resolves through
 // /offers/[slug] and is checkout-ready via /api/offers/checkout.
-const FEATURED_OFFERS: OfferSlug[] = ["quick-look", "decision-sprint", "business-audit"];
+const FEATURED_OFFERS: OfferSlug[] = [
+  "quick-look",
+  "business-audit",
+  "connector-status",
+  "funnel-page",
+  "done-for-you",
+  "decision-sprint",
+];
 
 const LANES = [
   {
@@ -32,11 +39,11 @@ const LANES = [
   {
     icon: Wrench,
     eyebrow: "Bring in Ryan",
-    title: "Audits, sprints & builds",
-    body: "Start at $47 for eyes on your accounts, $497 for the full written audit, or scope a system build. Every paid engagement runs under a Texas-law letter + mutual NDA.",
+    title: "Audits, builds & connectors",
+    body: "Start at $47 for eyes on your accounts, $497 for the full written audit, or become a connector — embed on your site and get listed inside Claude, ChatGPT, and Grok. Texas-law letter + mutual NDA on paid engagements.",
     href: "#offers",
     cta: "See the offers",
-    bullets: ["Quick-Look $47", "Business Audit $497", "Retainers & builds when it fits"],
+    bullets: ["Quick-Look $47 · Audit $497", "Connector Status $199/mo", "Funnel page & done-for-you"],
   },
 ];
 
@@ -93,7 +100,7 @@ export default function PricingPage() {
           <div className="container">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">Consulting offers</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-accent-300">Offers &amp; connectors</p>
                 <h2 className="mt-2 text-3xl font-black text-white md:text-5xl">Start small, scale when it works.</h2>
               </div>
               <p className="max-w-xl text-sm leading-6 text-ink-300">

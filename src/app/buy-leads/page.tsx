@@ -66,8 +66,8 @@ export default function BuyLeadsPage() {
                   No mystery spreadsheets. No recycled junk. No unsupported data claims. Every profile shows source context, category, score, confidence, suppression status, and why the opportunity exists.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                  <Link href="/buy-leads" className="btn-accent text-base">
-                    Open The Marketplace
+                  <Link href="/offers/quick-look" className="btn-accent text-base">
+                    Request a $47 sample
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                   <Link href="/contact" className="btn-ghost text-base">
@@ -126,12 +126,33 @@ export default function BuyLeadsPage() {
                       <SignalLine label="Status" value={pack.status} />
                     </div>
                     <div className="mt-auto grid gap-2 pt-6 sm:grid-cols-2">
-                      <Link href="/buy-leads" className="btn-ghost justify-center text-sm">Request Sample</Link>
+                      <Link href="/offers/quick-look" className="btn-ghost justify-center text-sm">Request Sample</Link>
                       <Link href="/contact" className="btn-accent justify-center text-sm">Buy Access</Link>
                     </div>
                   </div>
                 </article>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-t border-white/10 py-12">
+          <div className="container">
+            <div className="rounded-lg border border-white/10 bg-[linear-gradient(135deg,rgba(35,184,255,0.1),rgba(255,154,31,0.1))] p-6 md:p-8">
+              <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+                <div>
+                  <p className="text-xs font-extrabold uppercase tracking-wider text-cyan-300">Have your own traffic?</p>
+                  <h2 className="mt-2 text-2xl font-black text-white md:text-3xl">Become a connector and capture your own leads.</h2>
+                  <p className="mt-2 max-w-2xl text-sm text-ink-100">
+                    Embed the LeadFlow funnel on your site, deliver leads to your CRM, and get listed inside Claude,
+                    ChatGPT, and Grok. Or submit a source you already have for review.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Link href="/connectors" className="btn-accent justify-center text-sm">See connectors <ArrowRight className="h-4 w-4" /></Link>
+                  <Link href="/submit-source" className="btn-ghost justify-center text-sm">Submit a source</Link>
+                </div>
+              </div>
             </div>
           </div>
         </section>

@@ -31,12 +31,15 @@ export type OfferSlug =
   | "working-session"
   | "monthly-operator"
   | "sprint-4-week"
-  | "annual-advisor";
+  | "annual-advisor"
+  | "connector-status"
+  | "funnel-page"
+  | "done-for-you";
 
 export type Offer = {
   slug: OfferSlug;
   tier: 1 | 2 | 3 | 4;
-  category: "consulting" | "social" | "ads" | "operator" | "advisor";
+  category: "consulting" | "social" | "ads" | "operator" | "advisor" | "connector";
   cadence: string;            // "one-time" / "monthly" / "annual" / "4-week sprint"
   badge: string;              // chip text in hero
   Icon: LucideIcon;
@@ -1005,6 +1008,229 @@ export const OFFERS: Record<OfferSlug, Offer> = {
       TEXAS_NDA_FAQ,
     ],
   },
+
+  /* ──────────── 8. CONNECTOR STATUS - Connector - $199/mo ──────────── */
+  "connector-status": {
+    slug: "connector-status",
+    tier: 2,
+    category: "connector",
+    cadence: "monthly",
+    badge: "Connector · Monthly · Your site on the lead network",
+    Icon: Zap,
+    metaTitle: "Connector Status - $199/mo · The LeadFlow Pro",
+    metaDescription:
+      "Turn your website into a connected node on the LeadFlow Pro lead network. A LeadFlow site key, AI-assistant connectors, and lead delivery straight into your CRM.",
+    hero: {
+      h1Lead: "$199/mo to plug your site into the network.",
+      h1Highlight: "Leads in, delivered to your CRM.",
+      paragraph:
+        "Connector Status turns your website into a connected node. You get a LeadFlow site key, the embeddable funnel and pixel, and lead delivery into the tools you already use - HubSpot, GoHighLevel, Salesforce, Zapier, Make, Airtable, Sheets, or a plain webhook.",
+      paragraph2:
+        "It is also how buyers find you inside Claude, ChatGPT, and Grok: your connected inventory becomes reachable from the LeadFlow connector those assistants already speak to.",
+    },
+    price: {
+      big: "$199",
+      sub: "/month · cancel anytime",
+      badge: "Site key + delivery included",
+      deliverables: [
+        "A LeadFlow site key + one-tag embed for your site",
+        "Funnel + questionnaire + pixel that build source-backed profiles",
+        "Lead delivery into your CRM (HubSpot, GoHighLevel, Salesforce, Zapier, Make, Airtable, Sheets, webhook)",
+        "Discoverability through the LeadFlow connector in Claude, ChatGPT, and Grok",
+        "Consent + suppression handled on every record",
+      ],
+    },
+    primaryCta: { label: "Get Connector Status - $199/mo", href: buyHref("connector-status", "Buy: Connector Status $199/mo") },
+    secondaryCta: { label: "See how the connector works", href: "/connectors" },
+    whyBuy: [
+      { Icon: Zap, title: "One tag, real capture", body: "Drop one script on your site and it starts building scored, source-backed profiles instead of leaking anonymous traffic." },
+      { Icon: Layers, title: "Delivered where you work", body: "Leads route into your existing CRM automatically. No copy-paste, no CSV graveyard." },
+      { Icon: ShieldCheck, title: "Clean by default", body: "Consent, do-not-contact, and suppression travel with every record, so what you receive is usable." },
+    ],
+    timeline: [
+      { n: "1", minutes: "Day 0", title: "Get your key", body: "Subscribe and receive a site key + the one-tag embed and pixel." },
+      { n: "2", minutes: "Day 0", title: "Drop it in", body: "Paste the tag on your site or funnel page. The questionnaire and pixel go live immediately." },
+      { n: "3", minutes: "Day 1", title: "Pick delivery", body: "Choose where leads land - HubSpot, GoHighLevel, Salesforce, Zapier, Make, Airtable, Sheets, or webhook." },
+      { n: "4", minutes: "Ongoing", title: "Leads flow", body: "Source-backed profiles get built, scored, and delivered to your CRM as visitors convert." },
+    ],
+    rightFit: [
+      "You have a website or funnel getting traffic",
+      "You want leads delivered into a CRM you already use",
+      "You want proof and suppression on every record",
+      "You can paste one script tag (or have someone who can)",
+      "You want to be reachable from AI assistants, not just search",
+    ],
+    wrongFit: [
+      "You have no site and no traffic yet",
+      "You want raw scraped lists with no consent trail",
+      "You refuse any script on your site",
+      "You want guaranteed lead volume",
+      "You want to resell data without review",
+    ],
+    costMath: {
+      stuck: { big: "Anonymous", sub: "Most site traffic leaves no usable trace. Every un-captured visitor is a lead you paid for and lost." },
+      buy: { big: "$199/mo", sub: "A connected site key + delivery into your CRM + discoverability inside the AI assistants your buyers already use." },
+    },
+    proof: RYAN_PROOF,
+    faqs: [
+      { q: "What is a connector, exactly?", a: "Two things: an embed that captures leads on your site, and a listing inside the LeadFlow connector that Claude, ChatGPT, and Grok can reach. Connector Status turns both on." },
+      { q: "Where do my leads go?", a: "Into whatever you connect - HubSpot, GoHighLevel, Salesforce, Zapier, Make, Airtable, Google Sheets, or a raw webhook." },
+      { q: "Is there setup work?", a: "One script tag and one delivery choice. If you want it done for you, add the Done-For-You retainer." },
+      { q: "Can I cancel?", a: "Yes, anytime. Your site key deactivates at the end of the billing period." },
+      { q: "Do you sell my leads to others?", a: "No. Leads captured on your site are yours. Network discoverability only exposes what you choose to list." },
+      TEXAS_NDA_FAQ,
+    ],
+    upgradeCredit: "Add the Funnel Page build or the Done-For-You retainer any time.",
+  },
+
+  /* ──────────── 9. FUNNEL PAGE - Connector - $1,500 ──────────── */
+  "funnel-page": {
+    slug: "funnel-page",
+    tier: 2,
+    category: "connector",
+    cadence: "one-time",
+    badge: "Connector · One-time · Built for you",
+    Icon: Rocket,
+    metaTitle: "LeadFlow Funnel Page - $1,500 · The LeadFlow Pro",
+    metaDescription:
+      "A LeadFlow-embedded funnel page built for your business - questionnaire, pixel, and lead routing wired in, ready to capture and deliver.",
+    hero: {
+      h1Lead: "$1,500 for a funnel that actually captures.",
+      h1Highlight: "Built, embedded, and wired to your CRM.",
+      paragraph:
+        "I build you a LeadFlow-embedded funnel page: a clean offer path, the questionnaire that qualifies, the pixel that tracks, and the routing that drops the lead into your CRM. You get a page that turns attention into source-backed profiles.",
+      paragraph2:
+        "This is the fastest way to have one page that does the whole job - capture, score, and deliver - without stitching five tools together.",
+    },
+    price: {
+      big: "$1,500",
+      sub: "one-time · 7-10 day build",
+      badge: "Page + funnel + routing",
+      deliverables: [
+        "A built funnel/landing page with your offer and copy",
+        "Embedded LeadFlow questionnaire tuned to qualify your buyer",
+        "Pixel + event tracking installed",
+        "Lead routing into your CRM of choice",
+        "A 30-minute handoff walkthrough",
+      ],
+    },
+    primaryCta: { label: "Build my funnel page - $1,500", href: buyHref("funnel-page", "Buy: LeadFlow Funnel Page $1,500") },
+    secondaryCta: { label: "Talk through the scope first", href: "/contact" },
+    whyBuy: [
+      { Icon: Target, title: "One page, whole job", body: "Capture, qualify, score, and deliver from a single page instead of a patchwork of plugins." },
+      { Icon: Wrench, title: "Built, not templated", body: "Your offer, your questions, your routing - assembled and wired, not a generic form dropped on a theme." },
+      { Icon: Rocket, title: "Live in days", body: "A working funnel in 7-10 days, connected to your CRM and ready for traffic." },
+    ],
+    timeline: [
+      { n: "1", minutes: "Day 0", title: "Scope call", body: "20 minutes to lock the offer, the buyer, and the one action the page should drive." },
+      { n: "2", minutes: "Day 1-6", title: "Build", body: "Page, copy, embedded questionnaire, pixel, and routing get assembled." },
+      { n: "3", minutes: "Day 7-9", title: "Wire delivery", body: "Leads route into your CRM. We test end to end with a live submission." },
+      { n: "4", minutes: "Day 10", title: "Handoff", body: "30-minute walkthrough. The page and its leads are yours." },
+    ],
+    rightFit: [
+      "You can name one offer and one buyer",
+      "You want capture + routing, not just a pretty page",
+      "You'll provide brand basics and access to your CRM",
+      "You want it built, not a DIY builder",
+      "You'll send traffic once it is live",
+    ],
+    wrongFit: [
+      "You want a 30-page website rebuild (that's a bigger scope)",
+      "You have no offer yet",
+      "You want guaranteed conversion rates",
+      "You won't grant CRM access for routing",
+      "You want ongoing management (add Done-For-You)",
+    ],
+    costMath: {
+      stuck: { big: "$0 captured", sub: "A page that looks fine but doesn't capture is a bill with no return. Traffic to a leaky page is money poured out." },
+      buy: { big: "$1,500", sub: "A built, embedded funnel that captures source-backed profiles and delivers them to your CRM. Pays for itself the first handful of real leads." },
+    },
+    proof: RYAN_PROOF,
+    faqs: [
+      { q: "Do I need Connector Status too?", a: "The page works on its own. Connector Status keeps it on the network and delivering month over month; many buyers pair them." },
+      { q: "Whose page is it?", a: "Yours. Built on your domain or a LeadFlow subpath - your call on the scope call." },
+      { q: "Can you write the copy?", a: "Yes. Bring the raw facts and I write the page, or bring your copy and I wire it." },
+      { q: "Refunds?", a: "24-hour scheduling refund if we can't book the scope call. After the build starts, the deliverable is yours - no refund." },
+      { q: "What CRMs do you route to?", a: "HubSpot, GoHighLevel, Salesforce, Zapier, Make, Airtable, Google Sheets, or a raw webhook." },
+      TEXAS_NDA_FAQ,
+    ],
+    upgradeCredit: "Apply toward the Done-For-You retainer within 30 days.",
+  },
+
+  /* ──────────── 10. DONE-FOR-YOU - Connector - $2,500/mo ──────────── */
+  "done-for-you": {
+    slug: "done-for-you",
+    tier: 3,
+    category: "connector",
+    cadence: "monthly",
+    badge: "Connector · Monthly · We run the machine",
+    Icon: Wrench,
+    metaTitle: "Done-For-You Lead Machine - $2,500/mo · The LeadFlow Pro",
+    metaDescription:
+      "We run the whole lead machine for you: pixels, funnels, SEO, indexing, ranking, data collection, and delivery - so leads show up in your CRM while you run your business.",
+    hero: {
+      h1Lead: "$2,500/mo and we run the machine.",
+      h1Highlight: "Pixels, funnels, SEO, delivery - handled.",
+      paragraph:
+        "The Done-For-You retainer is the whole engine, operated for you: pixels and events, funnel pages, SEO and indexing, ranking work, data collection through the right questions, and delivery into your CRM. You get the leads; we run the plumbing.",
+      paragraph2:
+        "This is for owners who want the outcome without becoming a marketing operator. We build, connect, monitor, and iterate every month.",
+    },
+    price: {
+      big: "$2,500",
+      sub: "/month · 90-day commit",
+      badge: "The whole engine, operated",
+      deliverables: [
+        "Pixels + event tracking installed and maintained",
+        "Funnel pages built and iterated",
+        "SEO, indexing, and ranking work on your intent pages",
+        "Data collection through the right questions, with consent",
+        "Lead delivery into your CRM + monthly reporting",
+        "Connector Status included while active",
+      ],
+    },
+    primaryCta: { label: "Start Done-For-You - $2,500/mo", href: buyHref("done-for-you", "Buy: Done-For-You Lead Machine $2,500/mo") },
+    secondaryCta: { label: "Book a fit call first", href: "/contact" },
+    whyBuy: [
+      { Icon: Rocket, title: "Outcome, not homework", body: "You get leads in your CRM. We handle pixels, funnels, SEO, indexing, and delivery." },
+      { Icon: LineChart, title: "Compounding, not one-off", body: "SEO and indexing build over months. The retainer is where ranking and organic demand actually accrue." },
+      { Icon: ShieldCheck, title: "Clean and accountable", body: "Consent and suppression enforced, monthly reporting on what was built and what it produced." },
+    ],
+    timeline: [
+      { n: "1", minutes: "Week 1", title: "Audit + connect", body: "We audit your funnel and traffic, install pixels, and connect delivery to your CRM." },
+      { n: "2", minutes: "Week 2", title: "Build", body: "Funnel pages, intent pages, and questionnaires go live. Indexing work begins." },
+      { n: "3", minutes: "Monthly", title: "Rank + collect", body: "SEO, indexing, and ranking work compound. Data collection runs with consent." },
+      { n: "4", minutes: "Monthly", title: "Report + iterate", body: "You get a monthly report of what shipped, what ranked, and what leads landed." },
+    ],
+    rightFit: [
+      "You want leads without running the marketing yourself",
+      "You'll commit 90 days for SEO and indexing to compound",
+      "You'll grant access to your site, CRM, and analytics",
+      "You have a real offer buyers want",
+      "You want one accountable operator, not five vendors",
+    ],
+    wrongFit: [
+      "You want results in a week (SEO needs runway)",
+      "You won't grant access to run the work",
+      "You want guaranteed rankings or lead counts",
+      "You have no offer or no site",
+      "You want to micromanage every task",
+    ],
+    costMath: {
+      stuck: { big: "$5K-$15K/mo", sub: "What a fractional team or agency retainer runs for the same scope - often with worse accountability and no lead delivery." },
+      buy: { big: "$2,500/mo", sub: "The whole engine operated: pixels, funnels, SEO, indexing, ranking, data collection, and delivery into your CRM." },
+    },
+    proof: RYAN_PROOF,
+    faqs: [
+      { q: "What's actually included?", a: "Pixels and events, funnel pages, SEO and indexing, ranking work, consented data collection, delivery to your CRM, and monthly reporting. Connector Status is included while active." },
+      { q: "Do you guarantee rankings or leads?", a: "No. Anyone who guarantees rankings or lead volume is selling you a story. We commit to the work, the build, and the reporting." },
+      { q: "How is this different from Connector Status?", a: "Connector Status is self-serve plumbing. Done-For-You is us operating the whole machine - building, ranking, and iterating for you." },
+      { q: "Can I pause?", a: "After the 90-day commit it's month-to-month with 30-day notice. SEO work is handed off in a usable state." },
+      { q: "Who owns what we build?", a: "You do - pages, pixels, funnels, and the leads. If you leave, the assets stay with you." },
+      TEXAS_NDA_FAQ,
+    ],
+    upgradeCredit: "Includes Connector Status while active.",
+  },
 };
 
 export const OFFER_LIST: Offer[] = [
@@ -1019,4 +1245,7 @@ export const OFFER_LIST: Offer[] = [
   OFFERS["monthly-operator"],
   OFFERS["sprint-4-week"],
   OFFERS["annual-advisor"],
+  OFFERS["connector-status"],
+  OFFERS["funnel-page"],
+  OFFERS["done-for-you"],
 ];

@@ -18,6 +18,14 @@ export const SITE_PRIMARY_NAV: SiteNavItem[] = [
     activePaths: ["/buy-leads", "/offers"]
   },
   {
+    href: "/connectors",
+    label: "Connectors",
+    shortLabel: "Connectors",
+    description: "Add LeadFlow to Claude, ChatGPT, and Grok — or embed it on your site.",
+    icon: "source",
+    activePaths: ["/connectors"]
+  },
+  {
     href: "/pricing",
     label: "Pricing",
     shortLabel: "Pricing",
@@ -82,6 +90,7 @@ export const SITE_MOBILE_NAV: SiteNavItem[] = [
 export const SITE_FOOTER_NAV = {
   funnel: [
     { href: "/buy-leads", label: "Buy leads" },
+    { href: "/connectors", label: "Connectors" },
     { href: "/pricing", label: "Pricing" },
     { href: "/offers/business-audit", label: "Lead Leak Audit — $497" },
     { href: "/offers/quick-look", label: "Quick-Look — $47" },

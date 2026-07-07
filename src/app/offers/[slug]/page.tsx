@@ -66,7 +66,7 @@ export default async function OfferPage({ params, searchParams }: PageProps) {
   const Icon = O.Icon;
   const recommendedFromStart = searchParams?.source === "start";
   const workload = getOfferWorkload(O.slug);
-  const story = getOfferStory(O.slug);
+  const story = getOfferStory(O);
   const checkoutEligible = isOfferCheckoutEligible(O.slug);
   const checkoutLabel = O.slug === "funnel-flip" ? "Continue with $250 deposit" : O.primaryCta.label;
   const purchaseCta = checkoutEligible
@@ -437,7 +437,7 @@ type OfferStory = {
   }>;
 };
 
-const DEFAULT_STORIES: Record<OfferSlug, OfferStory> = {
+const DEFAULT_STORIES: Partial<Record<OfferSlug, OfferStory>> = {
   "quick-look": {
     eyebrow: "The first signal",
     headline: "Before you buy a full plan, get the obvious leaks called out.",
@@ -561,8 +561,17 @@ const DEFAULT_STORIES: Record<OfferSlug, OfferStory> = {
   },
 };
 
-function getOfferStory(slug: OfferSlug) {
-  return DEFAULT_STORIES[slug];
+function getOfferStory(offer: Offer): OfferStory {
+  const preset = DEFAULT_STORIES[offer.slug];
+  if (preset) return preset;
+  // Fallback story generated from the offer itself, so every offer (including
+  // new ones) always renders a complete story spine.
+  return {
+    eyebrow: offer.badge.split("·")[0].trim(),
+    headline: `${offer.hero.h1Lead} ${offer.hero.h1Highlight}`,
+    body: offer.hero.paragraph,
+    beats: offer.whyBuy.map((w) => ({ Icon: w.Icon, title: w.title, body: w.body })),
+  };
 }
 
 function OfferStorySpine({
