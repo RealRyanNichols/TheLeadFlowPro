@@ -6,8 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Runtime uses the pooled connection (Supabase pgBouncer, port 6543).
+  url       = env("DATABASE_URL")
+  // Migrations / `prisma db push` need a direct connection (port 5432), since
+  // DDL can't run over the transaction pooler. Set DIRECT_URL in Vercel.
+  directUrl = env("DIRECT_URL")
 }
 
 // ─── Auth (NextAuth) ─────────────────────────────────────────────
