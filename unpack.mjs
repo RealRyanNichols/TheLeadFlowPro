@@ -1,13 +1,16 @@
 // Self-extracting deploy for TheLeadFlowPro.
-// Runs before `next build`: clears the old site's source, then writes the
-// current tree from payload.b64. Canonical pretty source: the versioned zips
-// (and this payload — it decompresses to the full commented source).
+// Runs before `next build`: clears EVERYTHING from the old repo except build
+// infrastructure, then writes the current tree from payload.b64.
+// Canonical pretty source: the versioned zips (payload decompresses to it).
 import { brotliDecompressSync } from "node:zlib";
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync } from "node:fs";
 import { dirname } from "node:path";
 
-const STALE = ["app","components","lib","pages","src","styles","public","middleware.ts","middleware.js","tailwind.config.ts","tailwind.config.js","postcss.config.js","postcss.config.mjs","next.config.js","next.config.mjs","next.config.ts","tsconfig.json","package-lock.json"];
-for (const d of STALE) { try { rmSync(d, { recursive: true, force: true }); } catch {} }
+const KEEP = new Set(["node_modules", ".next", ".git", ".vercel", ".npmrc", "unpack.mjs", "payload.b64", "package.json", "vercel.json"]);
+for (const entry of readdirSync(".")) {
+  if (KEEP.has(entry)) continue;
+  try { rmSync(entry, { recursive: true, force: true }); } catch {}
+}
 
 const files = JSON.parse(
   brotliDecompressSync(Buffer.from(readFileSync("payload.b64", "utf8").trim(), "base64")).toString("utf8")
