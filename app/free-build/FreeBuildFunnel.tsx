@@ -29,6 +29,7 @@ declare global {
 
 const PROOF = [
   ["Premier Dental Academy", "https://www.premierdentalacademyoflongview.com"],
+  ["LoneStarTotalWash.com", "https://www.lonestartotalwash.com"],
   ["DonAndPatti.com", "https://www.donandpatti.com"],
   ["RealRyanNichols.com", "https://realryannichols.com"],
   ["RepWatchr", "https://repwatchr.com"],
@@ -304,7 +305,8 @@ export default function FreeBuildFunnel() {
               </a>
               {i < PROOF.length - 1 ? " · " : ""}
             </span>
-          ))}
+          ))}{" "}
+          <span className="font-black text-white">+ MORE that are not even on this list.</span>
         </p>
       </section>
 
