@@ -120,10 +120,10 @@ const FEATURES = [
 ];
 
 const INDUSTRIES = [
-  { icon: House, title: "Mortgage and real estate", proof: "Proof: Green Light Mortgage" },
+  { icon: House, title: "Mortgage and real estate", proof: "Proof: private client build" },
   { icon: GraduationCap, title: "Career and dental education", proof: "Proof: Premier Dental Academy" },
   { icon: LibraryBig, title: "Media and public archives", proof: "Proof: RealRyanNichols.com" },
-  { icon: CalendarDays, title: "Local business and events", proof: "Proof: The Coop Longview" },
+  { icon: CalendarDays, title: "Local business and events", proof: "Proof: private client build" },
   { icon: Store, title: "Commerce and marketplaces", proof: "Proof: Gideon Commerce" },
   { icon: Landmark, title: "Professional services", proof: "Proof: custom systems" },
 ];
@@ -136,10 +136,10 @@ const WORK = [
     body: "Enrollment, student intake, tools, training, and an East Texas dental archive in one system.",
   },
   {
-    href: "https://www.glmtg.com",
-    tag: "Mortgage",
-    title: "Green Light Mortgage",
-    body: "A mortgage platform with industry-specific calculators, routes, records, and lead capture built around the business.",
+    href: "https://gideonhq.com",
+    tag: "Commerce platform",
+    title: "Gideon Commerce",
+    body: "A marketplace and commerce system built around direct ownership, seller economics, and a lower-fee operating model.",
   },
   {
     href: "https://realryannichols.com",
@@ -148,10 +148,10 @@ const WORK = [
     body: "Publishing, evidence collections, forms, profiles, and the January 6 Archive under one roof.",
   },
   {
-    href: "https://thecooplongview.com",
-    tag: "Local business",
-    title: "The Coop Longview",
-    body: "A business and event platform with space discovery, lead paths, and the Longview Business Archive built in.",
+    href: "https://repwatchr.com",
+    tag: "Public information software",
+    title: "RepWatchr",
+    body: "A purpose-built product for organized public records, official profiles, and structured research. Far beyond a brochure site.",
   },
 ];
 
