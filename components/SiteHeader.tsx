@@ -6,7 +6,7 @@ import { ArrowRight, Menu } from "lucide-react";
 
 const NAV_LINKS: Array<[string, string]> = [
   ["/#systems", "The System"],
-  ["/#industries", "Industries"],
+  ["/add-ons", "Add-Ons"],
   ["/pricing", "Packages"],
   ["/portfolio", "The Work"],
   ["/articles", "Articles"],
