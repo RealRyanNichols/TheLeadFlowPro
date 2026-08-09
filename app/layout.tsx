@@ -25,19 +25,19 @@ export const metadata: Metadata = {
       "One connected business system, built for your industry and installed in accounts you control.",
     url: "https://www.theleadflowpro.com",
     siteName: "The LeadFlow Pro",
-    images: [{ url: "/og/home.png", width: 1200, height: 630 }],
+    images: [{ url: "/og/free-build.jpg", width: 1200, height: 630 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Your website should run your business.",
     description: "One connected business system, built for your industry.",
-    images: ["/og/home.png"],
+    images: ["/og/free-build.jpg"],
   },
 };
 
 export const viewport = {
-  themeColor: "#060b14",
+  themeColor: "#0e1a2e",
   colorScheme: "dark" as const,
 };
 
