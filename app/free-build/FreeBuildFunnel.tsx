@@ -2,8 +2,9 @@
 
 // The Facebook-ad landing funnel. The offer: tell Ryan about your business,
 // upload anything you have, and he builds the whole site before you pay a
-// dime. Leads save to the CRM first, uploads go to private Supabase storage,
-// and the instant email + text fire on submit.
+// dime. Quick-start lives right in the hero so people start typing on the
+// first screen. Leads save to the CRM first, uploads go to private Supabase
+// storage, and the instant email + text fire on submit.
 
 import Link from "next/link";
 import { useRef, useState } from "react";
@@ -83,10 +84,25 @@ const TIERS = [
   },
 ] as const;
 
+// Optional deep-dive questions. People love talking about themselves and
+// every answer makes the first build land closer. All skippable.
+const DEEP_DIVE = [
+  { name: "dd_started", label: "When did you start the business?", ph: "2019, last month, 30 years ago..." },
+  { name: "dd_best_month", label: "What has been your best month ever?", ph: "Sales, jobs, whatever counts for you" },
+  { name: "dd_setback", label: "What has been your biggest setback?", ph: "The thing that hurt the most" },
+  { name: "dd_missing", label: "What do you wish you had that you do not?", ph: "More calls? More time? A booking system?" },
+  { name: "dd_dream_tool", label: "One tool that would change your life right now?", ph: "Dream big. I might build it." },
+  { name: "dd_fav_app", label: "An app or connector you already love?", ph: "QuickBooks, Square, Calendly..." },
+  { name: "dd_hosted", label: "Where is your website hosted right now?", ph: "Wix, GoDaddy, Facebook only, nowhere..." },
+  { name: "dd_monthly_spend", label: "Roughly what do you pay per month total?", ph: "Site + email + texting + ads + tools" },
+] as const;
+
 const MAX_FILES = 8;
 const MAX_MB = 50;
 
 export default function FreeBuildFunnel() {
+  const [business, setBusiness] = useState("");
+  const [notes, setNotes] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [sending, setSending] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -135,7 +151,17 @@ export default function FreeBuildFunnel() {
       setProgress(null);
     }
 
-    const notes = String(form.get("notes") ?? "").trim();
+    const story = notes.trim();
+    const aiPref = String(form.get("dd_ai") ?? "").trim();
+    const deepDive: Record<string, string> = {};
+    for (const q of DEEP_DIVE) {
+      const v = String(form.get(q.name) ?? "").trim();
+      if (v) deepDive[q.name.replace("dd_", "")] = v.slice(0, 300);
+    }
+    if (aiPref) deepDive.ai_preference = aiPref;
+    const deepDiveText = Object.entries(deepDive)
+      .map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`)
+      .join(" | ");
     const params = new URLSearchParams(window.location.search);
 
     // 2) Save the lead. Instant email + text fire server-side.
@@ -144,30 +170,33 @@ export default function FreeBuildFunnel() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         full_name: form.get("full_name"),
-        business_name: form.get("business_name"),
+        business_name: business,
         email: form.get("email"),
         phone: phone || null,
         website_url: form.get("website_url"),
         interest: "done_for_you",
         goals: [
           "FREE BUILD REQUEST (Facebook funnel).",
-          notes ? `Their words: ${notes}` : "",
+          story ? `Their words: ${story}` : "",
+          deepDiveText ? `Deep dive: ${deepDiveText}` : "",
           uploaded.length ? `${uploaded.length} file(s) uploaded to intake storage.` : "",
         ]
           .filter(Boolean)
-          .join(" "),
-        best_contact_method: form.get("best_contact_method"),
+          .join(" ")
+          .slice(0, 2000),
         sms_consent: smsConsent,
         marketing_email_consent: form.get("marketing_email_consent") === "on",
         utm_source: params.get("utm_source"),
         utm_medium: params.get("utm_medium"),
         utm_campaign: params.get("utm_campaign"),
         diagnostic: {
-          version: 2,
+          version: 3,
           source: "free_build_funnel",
           uploads: uploaded,
-          owner_notes: notes || null,
-          next_action: "Free build request. Review uploads, build the site, send preview. No pay until they love it.",
+          owner_notes: story || null,
+          deep_dive: Object.keys(deepDive).length ? deepDive : null,
+          next_action:
+            "Free build request. Review uploads, build the site, send preview. No pay until they love it.",
         },
       }),
     });
@@ -190,16 +219,28 @@ export default function FreeBuildFunnel() {
   return (
     <main className="pb-24">
       {/* HERO */}
-      <section className="page-hero page-hero-centered">
-        <span className="eyebrow">The free build offer</span>
-        <h1>I will build your whole website. You pay nothing until you love it.</h1>
-        <p>
-          Give me your business name and anything you have: a Facebook page, an old site,
-          photos, a voice memo, or nothing but a name. I build the complete site, the
-          works. You look at it. If you do not want it, we shake hands and you keep the
-          memory. If you love it, we agree on a fair price and it is yours.
+      <section
+        className="page-hero page-hero-centered"
+        style={{ padding: "34px 0 18px" }}
+      >
+        <span className="inline-flex items-center gap-2.5 rounded-full border border-sky-400/40 bg-gradient-to-r from-sky-500/25 via-blue-600/20 to-violet-500/25 px-4 py-2 shadow-[0_0_30px_rgba(56,189,248,0.28)] backdrop-blur">
+          <Hammer aria-hidden="true" className="h-3.5 w-3.5 text-sky-300" />
+          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-sky-100">
+            The Free Build Offer
+          </span>
+          <span className="rounded-full border border-emerald-400/50 bg-emerald-400/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-300">
+            $0 up front
+          </span>
+        </span>
+        <h1 style={{ marginTop: 18 }}>
+          I will build your whole website. You pay nothing until you love it.
+        </h1>
+        <p style={{ marginTop: 14 }}>
+          A Facebook page, an old site, photos, a voice memo, or nothing but a name. I
+          build the complete site. You look at it. Do not want it? We shake hands and
+          part friends. Love it? We agree on a fair price and it is yours.
         </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
           <button type="button" className="button-primary" onClick={scrollToForm}>
             Start My Free Build
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
@@ -208,13 +249,39 @@ export default function FreeBuildFunnel() {
             Text Me: (903) 500-8898
           </a>
         </div>
-        <p className="mt-5 text-sm font-semibold text-emerald-300">
+        <p className="mt-4 text-sm font-semibold text-emerald-300">
           No card. No deposit. No contract. The build happens first. Fair, right?
         </p>
+
+        {/* QUICK START — start typing right here on the first screen */}
+        <div className="mx-auto mt-6 w-full max-w-xl rounded-2xl border border-sky-400/30 bg-white/[0.05] p-4 text-left shadow-[0_18px_50px_rgba(0,0,0,0.35)] sm:p-5">
+          <p className="text-sm font-extrabold text-white">
+            Start right here. It takes 30 seconds.
+          </p>
+          <input
+            value={business}
+            onChange={(e) => setBusiness(e.target.value)}
+            placeholder="Your business name"
+            maxLength={200}
+            className="mt-3 w-full rounded-lg border border-white/15 bg-black/25 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-400 focus:border-sky-400/60 focus:outline-none"
+          />
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={2}
+            maxLength={2000}
+            placeholder="Tell me about it. What do you do? What do you want?"
+            className="mt-2.5 w-full rounded-lg border border-white/15 bg-black/25 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-400 focus:border-sky-400/60 focus:outline-none"
+          />
+          <button type="button" onClick={scrollToForm} className="button-primary mt-3 w-full">
+            Keep Going. I Am Already Listening.
+            <ArrowRight aria-hidden="true" className="h-4 w-4" />
+          </button>
+        </div>
       </section>
 
       {/* 3 STEPS */}
-      <section className="mx-auto w-[min(1000px,100%-40px)]">
+      <section className="mx-auto mt-10 w-[min(1000px,100%-40px)]">
         <div className="grid gap-3.5 md:grid-cols-3">
           {[
             { icon: MessageSquareMore, t: "1. Tell me about it", d: "As little or as much as you want. Name, photos, videos, voice memos, old links. Dump it all on me." },
@@ -242,7 +309,7 @@ export default function FreeBuildFunnel() {
       </section>
 
       {/* TIERS */}
-      <section className="mx-auto mt-16 w-[min(1060px,100%-40px)]">
+      <section className="mx-auto mt-14 w-[min(1060px,100%-40px)]">
         <div className="text-center">
           <span className="eyebrow">What builds usually look like</span>
           <h2 className="mt-4 text-3xl font-black text-white sm:text-4xl">
@@ -298,7 +365,7 @@ export default function FreeBuildFunnel() {
       </section>
 
       {/* INTAKE */}
-      <section ref={formRef} className="mx-auto mt-16 w-[min(860px,100%-40px)] scroll-mt-24">
+      <section ref={formRef} className="mx-auto mt-14 w-[min(860px,100%-40px)] scroll-mt-24">
         {!submitted ? (
           <div className="rounded-[20px] border border-line bg-white/[0.04] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] sm:p-9">
             <span className="eyebrow">Start your free build</span>
@@ -306,8 +373,9 @@ export default function FreeBuildFunnel() {
               Tell me about your business.
             </h2>
             <p className="mt-2 text-slate-400">
-              As little or as much as you want. The more you give me, the closer the first
-              version lands to your dream.
+              Name, business, email, and your story are all I need. Everything after
+              that is optional, but the more you give me, the closer the first version
+              lands to your dream.
             </p>
             <form onSubmit={handleSubmit} className="mt-7">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -317,7 +385,13 @@ export default function FreeBuildFunnel() {
                 </label>
                 <label className="form-field">
                   <span>Business name *</span>
-                  <input name="business_name" required maxLength={200} />
+                  <input
+                    name="business_name"
+                    required
+                    maxLength={200}
+                    value={business}
+                    onChange={(e) => setBusiness(e.target.value)}
+                  />
                 </label>
                 <label className="form-field">
                   <span>Email *</span>
@@ -333,21 +407,53 @@ export default function FreeBuildFunnel() {
                 </label>
               </div>
               <label className="form-field mt-4">
-                <span>Tell me everything you want</span>
+                <span>Tell me everything you want *</span>
                 <textarea
                   name="notes"
                   rows={5}
+                  required
                   maxLength={2000}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
                   placeholder="What you do, who your customers are, what you want the site to feel like, pages you want, colors you like, businesses you admire. Talk to me like we are at the counter."
                 />
               </label>
 
+              {/* OPTIONAL DEEP DIVE */}
+              <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+                <p className="text-sm font-extrabold text-white">
+                  Optional: the more you tell me, the better I build.
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Skip anything. Answer what you feel like. Every answer makes the first
+                  version sharper.
+                </p>
+                <div className="mt-4 grid gap-3.5 sm:grid-cols-2">
+                  {DEEP_DIVE.map((q) => (
+                    <label key={q.name} className="form-field">
+                      <span>{q.label}</span>
+                      <input name={q.name} maxLength={300} placeholder={q.ph} />
+                    </label>
+                  ))}
+                  <label className="form-field">
+                    <span>Do you use ChatGPT or Claude?</span>
+                    <select name="dd_ai" defaultValue="">
+                      <option value="">Pick one if you want</option>
+                      <option value="ChatGPT">ChatGPT mostly</option>
+                      <option value="Claude">Claude mostly</option>
+                      <option value="Both">Both</option>
+                      <option value="Neither yet">Neither yet</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+
               {/* UPLOADS */}
-              <div className="mt-4">
+              <div className="mt-5">
                 <span className="mb-2 block text-sm font-semibold text-slate-300">
                   Logos, photos, videos, voice memos (up to {MAX_FILES} files, {MAX_MB}MB each)
                 </span>
-                <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-white/15 bg-[#0c1220] px-6 py-8 text-center transition hover:border-sky-400/50">
+                <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-white/15 bg-black/25 px-6 py-8 text-center transition hover:border-sky-400/50">
                   <FileUp className="h-7 w-7 text-sky-300" />
                   <span className="text-sm font-bold text-white">Tap to add your files</span>
                   <span className="text-xs text-slate-500">Images, video, audio, documents. Anything helps.</span>
