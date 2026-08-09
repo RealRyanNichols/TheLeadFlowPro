@@ -52,20 +52,30 @@ async function sendLeadEmails(lead: {
   const key = process.env.RESEND_API_KEY;
   if (!key) return;
 
-  const send = (payload: object) =>
-    fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    }).catch(() => {});
+  // Sends from the verified realryannichols.com domain until
+  // theleadflowpro.com finishes Resend verification. Failures are logged so
+  // they show in Vercel runtime logs instead of vanishing.
+  const send = async (payload: object) => {
+    try {
+      const r = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!r.ok) console.error("Resend send failed:", r.status, await r.text().catch(() => ""));
+    } catch (e) {
+      console.error("Resend send error:", e);
+    }
+  };
 
   const first = lead.full_name.split(" ")[0];
 
   await send({
-    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+    from: "The LeadFlow Pro <leadflow@realryannichols.com>",
+    reply_to: "hello@theleadflowpro.com",
     to: ["hello@theleadflowpro.com"],
     subject: `NEW LEAD: ${lead.full_name}${lead.business_name ? ` (${lead.business_name})` : ""} — ${INTEREST_LABELS[lead.interest] ?? lead.interest}`,
     text: [
@@ -86,7 +96,7 @@ async function sendLeadEmails(lead: {
   });
 
   await send({
-    from: "Ryan Nichols <hello@theleadflowpro.com>",
+    from: "Ryan Nichols <leadflow@realryannichols.com>",
     to: [lead.email],
     reply_to: "hello@theleadflowpro.com",
     subject: `Got it, ${first}. Your system map is in my hands.`,
