@@ -10,6 +10,14 @@ export const metadata: Metadata = {
   description:
     "We build the website, CRM, portal, tools, forms, courses, archives, email, text, and automation your industry actually needs. One connected system, installed in accounts you control.",
   metadataBase: new URL("https://www.theleadflowpro.com"),
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
   alternates: { canonical: "https://www.theleadflowpro.com" },
   openGraph: {
     title: "Your website should run your business.",
