@@ -705,7 +705,7 @@ type Answers = {
   industry: string | null;
   presence: string | null;
   salesChannels: string[];
-  stage: string | null;
+  stages: string[];
   modules: string[];
 };
 
@@ -714,7 +714,7 @@ const EMPTY_ANSWERS: Answers = {
   industry: null,
   presence: null,
   salesChannels: [],
-  stage: null,
+  stages: [],
   modules: [],
 };
 
@@ -724,15 +724,35 @@ const industryOf = (id: string | null) =>
 const presenceOf = (id: string | null) =>
   PRESENCES.find((p) => p.id === id) ?? PRESENCES[3];
 const channelOf = (id: string) => CHANNELS.find((c) => c.id === id) ?? CHANNELS[9];
-const stageOf = (id: string | null) => STAGES.find((s) => s.id === id) ?? STAGES[5];
+const stageOf = (id: string) => STAGES.find((s) => s.id === id) ?? STAGES[5];
 
-function asksChannels(industry: string | null, presence: string | null) {
-  return (
-    industry === "ecommerce" ||
-    presence === "marketplace_only" ||
-    presence === "social_only" ||
-    presence === "site_and_channels"
-  );
+function listJoin(items: string[]) {
+  if (items.length <= 1) return items[0] ?? "";
+  if (items.length === 2) return items.join(" and ");
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+}
+
+const stagesShort = (ids: string[]) =>
+  ids.length ? listJoin(ids.map((id) => stageOf(id).short)) : "an unclear current stack";
+
+// Every business sells or generates leads somewhere, so the sales-channel
+// question is always asked — separately from the home-base question above it.
+const STEPS = ["goal", "industry", "presence", "channels", "stage", "modules", "result"];
+
+// Per-option gradient icon tiles. Same brand family as The Work cards:
+// cyan, violet, emerald, amber, red, sky — cycled so no two neighbors match.
+const TILE_PALETTE: Array<[string, string, string]> = [
+  ["#38bdf8", "#2563eb", "#38bdf84d"],
+  ["#a78bfa", "#d946ef", "#a78bfa4d"],
+  ["#34d399", "#0ea371", "#34d3994d"],
+  ["#fbbf24", "#f97316", "#fbbf244d"],
+  ["#f87171", "#ef4444", "#f871714d"],
+  ["#22d3ee", "#3b82f6", "#22d3ee4d"],
+];
+
+function tileVars(i: number) {
+  const [a, b, g] = TILE_PALETTE[i % TILE_PALETTE.length];
+  return { "--ta": a, "--tb": b, "--tg": g } as React.CSSProperties;
 }
 
 function QuestionShell({
@@ -766,15 +786,17 @@ function OptionButton({
   label,
   description,
   icon,
+  tint = 0,
   onClick,
 }: {
   label: string;
   description: string;
   icon: string;
+  tint?: number;
   onClick: () => void;
 }) {
   return (
-    <button type="button" className="router-option" onClick={onClick}>
+    <button type="button" className="router-option" style={tileVars(tint)} onClick={onClick}>
       <span className="router-option-icon">
         <Icon name={icon} />
       </span>
@@ -791,12 +813,14 @@ function MultiOptionButton({
   label,
   description,
   icon,
+  tint = 0,
   selected,
   onClick,
 }: {
   label: string;
   description: string;
   icon: string;
+  tint?: number;
   selected: boolean;
   onClick: () => void;
 }) {
@@ -805,6 +829,7 @@ function MultiOptionButton({
       type="button"
       aria-pressed={selected}
       className={`router-option router-option-multi ${selected ? "is-selected" : ""}`}
+      style={tileVars(tint)}
       onClick={onClick}
     >
       <span className="router-option-icon">
@@ -885,7 +910,7 @@ function ContactCard({
     const goal = goalOf(answers.goal);
     const industry = industryOf(answers.industry);
     const presence = presenceOf(answers.presence);
-    const stage = stageOf(answers.stage);
+    const stageLabels = answers.stages.map((id) => stageOf(id).label);
     const channelLabels = answers.salesChannels.map((c) => channelOf(c).label);
     const moduleLabels = recommendedModules.map((m) => MODULES[m].label);
     const ownerNotes = String(form.get("goals") ?? "").trim();
@@ -893,7 +918,7 @@ function ContactCard({
       `Primary goal: ${goal.label}.`,
       `Business home: ${presence.label}.`,
       channelLabels.length ? `Sales channels: ${channelLabels.join(", ")}.` : "",
-      `Current setup: ${stage.label}.`,
+      `Current setup: ${stageLabels.join("; ") || "Not specified"}.`,
       `Recommended path: ${PACKAGES[packageId].name}.`,
       `System map: ${moduleLabels.join(", ")}.`,
       ownerNotes ? `Owner notes: ${ownerNotes}` : "",
@@ -926,14 +951,14 @@ function ContactCard({
         utm_campaign: params.get("utm_campaign"),
         industry_label: industry.label,
         diagnostic: {
-          version: 1,
+          version: 2,
           completed: true,
           answers: {
             goal: answers.goal,
             industry: answers.industry,
             presence: answers.presence,
             sales_channels: answers.salesChannels,
-            stage: answers.stage,
+            stages: answers.stages,
             selected_modules: answers.modules,
           },
           labels: {
@@ -941,7 +966,7 @@ function ContactCard({
             industry: industry.label,
             presence: presence.label,
             sales_channels: channelLabels,
-            stage: stage.label,
+            stages: stageLabels,
           },
           recommendation: {
             package: packageId,
@@ -1091,11 +1116,7 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
   const [submitted, setSubmitted] = useState(false);
   const headingRef = useRef<HTMLHeadingElement | null>(null);
 
-  const steps = useMemo(() => {
-    const base = ["goal", "industry", "presence"];
-    if (asksChannels(answers.industry, answers.presence)) base.push("channels");
-    return [...base, "stage", "modules", "result"];
-  }, [answers.industry, answers.presence]);
+  const steps = STEPS;
 
   const stepIndex = steps.indexOf(step);
   const progress = step === "result" ? 100 : ((Math.max(0, stepIndex) + 1) / steps.length) * 100;
@@ -1129,7 +1150,7 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
   const goal = goalOf(answers.goal);
   const industry = industryOf(answers.industry);
   const presence = presenceOf(answers.presence);
-  const stage = stageOf(answers.stage);
+  const stagesText = stagesShort(answers.stages);
 
   // Package scoring, verbatim from the approved build: portal-class modules,
   // stack condition, channel spread, and goal each add weight.
@@ -1146,8 +1167,10 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
     const score =
       answers.modules.length +
       heavyCount +
-      Number(answers.stage === "disconnected" || answers.stage === "existing_crm") +
-      2 * Number(answers.stage === "custom_system") +
+      Number(
+        answers.stages.includes("disconnected") || answers.stages.includes("existing_crm"),
+      ) +
+      2 * Number(answers.stages.includes("custom_system")) +
       (answers.salesChannels.length >= 3 ? 2 : Number(answers.salesChannels.length > 0)) +
       Number(answers.presence === "site_and_channels") +
       2 * Number(answers.industry === "software") +
@@ -1222,12 +1245,13 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
             description="Pick the closest answer. You are not locking yourself into a package, and you can change anything later."
           >
             <div className="router-option-grid router-option-grid-large">
-              {GOALS.map((g) => (
+              {GOALS.map((g, i) => (
                 <OptionButton
                   key={g.id}
                   label={g.label}
                   description={g.description}
                   icon={g.icon}
+                  tint={i}
                   onClick={() => {
                     setAnswers({ ...EMPTY_ANSWERS, goal: g.id });
                     goTo("industry");
@@ -1251,19 +1275,20 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
             description="Choose the closest workflow, not the perfect label. The industry pack changes the tools, records, language, and handoffs."
           >
             <div className="router-option-grid">
-              {INDUSTRIES.map((i) => (
+              {INDUSTRIES.map((ind, i) => (
                 <OptionButton
-                  key={i.id}
-                  label={i.label}
-                  description={i.description}
-                  icon={i.icon}
+                  key={ind.id}
+                  label={ind.label}
+                  description={ind.description}
+                  icon={ind.icon}
+                  tint={i}
                   onClick={() => {
                     setAnswers((a) => ({
                       ...a,
-                      industry: i.id,
+                      industry: ind.id,
                       presence: null,
                       salesChannels: [],
-                      stage: null,
+                      stages: [],
                       modules: [],
                     }));
                     goTo("presence");
@@ -1283,21 +1308,22 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
             description="This is about the current home base, not whether it is good or bad. A mystery website, no website, and a marketplace-only business are all real starting points."
           >
             <div className="router-option-stack">
-              {PRESENCES.map((p) => (
+              {PRESENCES.map((p, i) => (
                 <OptionButton
                   key={p.id}
                   label={p.label}
                   description={p.description}
                   icon={p.icon}
+                  tint={i}
                   onClick={() => {
                     setAnswers((a) => ({
                       ...a,
                       presence: p.id,
                       salesChannels: [],
-                      stage: null,
+                      stages: [],
                       modules: [],
                     }));
-                    goTo(asksChannels(answers.industry, p.id) ? "channels" : "stage");
+                    goTo("channels");
                   }}
                 />
               ))}
@@ -1314,12 +1340,13 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
             description="Choose every channel that matters. Marketplaces can stay part of the plan. The goal is to connect the operation and build an owned home base where it helps."
           >
             <div className="router-option-grid">
-              {CHANNELS.map((c) => (
+              {CHANNELS.map((c, i) => (
                 <MultiOptionButton
                   key={c.id}
                   label={c.label}
                   description={c.description}
                   icon={c.icon}
+                  tint={i}
                   selected={answers.salesChannels.includes(c.id)}
                   onClick={() =>
                     setAnswers((a) => ({
@@ -1352,23 +1379,40 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
             headingRef={headingRef}
             eyebrow={`${industry.short} system map`}
             title="What are we working with right now?"
-            description="Now tell us how the operation works behind that home base. This decides whether the job starts with a clean foundation, a migration, or a repair."
+            description="Now tell us how the operation works behind that home base. Most businesses are more than one of these at the same time, so pick everything that is true. This decides whether the job starts with a clean foundation, a migration, or a repair."
           >
             <div className="router-option-stack">
-              {STAGES.map((s) => (
-                <OptionButton
+              {STAGES.map((s, i) => (
+                <MultiOptionButton
                   key={s.id}
                   label={s.label}
                   description={s.description}
                   icon={s.icon}
-                  onClick={() => {
-                    setAnswers((a) => ({ ...a, stage: s.id }));
-                    goTo("modules");
-                  }}
+                  tint={i}
+                  selected={answers.stages.includes(s.id)}
+                  onClick={() =>
+                    setAnswers((a) => ({
+                      ...a,
+                      stages: a.stages.includes(s.id)
+                        ? a.stages.filter((x) => x !== s.id)
+                        : [...a.stages, s.id],
+                    }))
+                  }
                 />
               ))}
             </div>
-            <BackButton onClick={goBack} />
+            <div className="router-actions">
+              <BackButton onClick={goBack} compact />
+              <button type="button" className="button-primary" onClick={() => goTo("modules")}>
+                Continue
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="router-selection-count" aria-live="polite">
+              {answers.stages.length === 0
+                ? "Not sure? You can continue and we will inventory the stack together."
+                : `${answers.stages.length} ${answers.stages.length === 1 ? "answer" : "answers"} selected.`}
+            </p>
           </QuestionShell>
         )}
 
@@ -1382,12 +1426,13 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
             <div className="router-option-grid">
               {(answers.goal ? GOAL_MODULE_ORDER[answers.goal] : GOAL_MODULE_ORDER.custom)
                 .map((id) => MODULES[id])
-                .map((m) => (
+                .map((m, i) => (
                   <MultiOptionButton
                     key={m.id}
                     label={m.label}
                     description={m.description}
                     icon={m.icon}
+                    tint={i}
                     selected={answers.modules.includes(m.id)}
                     onClick={() =>
                       setAnswers((a) => ({
@@ -1437,7 +1482,7 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                 A system for {industry.short.toLowerCase()}, built around {goal.short}.
               </h1>
               <p>
-                You told us the business is working from {presence.short} with {stage.short}.
+                You told us the business is working from {presence.short} with {stagesText}.
                 This is the connected first version I would put on the table before anybody
                 sells you random software.
               </p>
