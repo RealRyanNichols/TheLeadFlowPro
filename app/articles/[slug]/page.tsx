@@ -27,6 +27,13 @@ export async function generateMetadata({
       type: "article",
       publishedTime: article.publishedAt,
       url: `https://www.theleadflowpro.com/articles/${article.slug}`,
+      images: [{ url: article.ogImage, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description: article.description,
+      images: [article.ogImage],
     },
   };
 }
