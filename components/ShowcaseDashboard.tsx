@@ -1,0 +1,262 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+
+/**
+ * The Command Center — a live, simulated demo of the analytics + automation
+ * back office a LeadFlow Pro build ships with. Clearly labeled demo data.
+ */
+
+const CITIES = ["Longview, TX", "Tyler, TX", "Marshall, TX", "Kilgore, TX", "Gladewater, TX", "Shreveport, LA", "Dallas, TX", "Nacogdoches, TX"];
+const SOURCES = ["facebook / own-your-platform", "google / rent-receipt", "shared link", "direct", "facebook / demo-build"];
+const PAGES = ["/go", "/", "/pricing", "/demo", "/portfolio", "/pricing/done-for-you"];
+
+type Ev = { id: number; icon: string; text: string; tone: string; time: string };
+
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+export default function ShowcaseDashboard() {
+  const [visitors, setVisitors] = useState(23);
+  const [views, setViews] = useState(1847);
+  const [leads, setLeads] = useState(31);
+  const [emails, setEmails] = useState(58);
+  const [feed, setFeed] = useState<Ev[]>([]);
+  const [traffic, setTraffic] = useState<number[]>(() =>
+    Array.from({ length: 24 }, (_, i) => 18 + Math.round(14 * Math.sin(i / 3.2)) + Math.floor(Math.random() * 9))
+  );
+  const idRef = useRef(0);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      const roll = Math.random();
+      const now = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" });
+      let ev: Ev;
+      idRef.current += 1;
+      if (roll < 0.5) {
+        setViews((v) => v + 1);
+        setVisitors((v) => Math.max(9, v + (Math.random() < 0.5 ? 1 : -1)));
+        ev = { id: idRef.current, icon: "👀", text: `Visitor from ${pick(CITIES)} viewing ${pick(PAGES)} · ${pick(SOURCES)}`, tone: "text-slate-300", time: now };
+      } else if (roll < 0.68) {
+        ev = { id: idRef.current, icon: "🖱", text: `CTA click: "Book a Call" on ${pick(PAGES)}`, tone: "text-sky-300", time: now };
+      } else if (roll < 0.82) {
+        setLeads((l) => l + 1);
+        setEmails((e) => e + 2);
+        ev = { id: idRef.current, icon: "⚡", text: `LEAD CAPTURED → saved to database → owner alerted → welcome email sent in 0.${4 + Math.floor(Math.random() * 5)}s`, tone: "text-mint font-semibold", time: now };
+      } else if (roll < 0.93) {
+        ev = { id: idRef.current, icon: "🤖", text: pick([
+          "AI agent: follow-up email queued for lead with no call booked (24h rule)",
+          "AI agent: ad attribution matched — lead credited to facebook / own-your-platform",
+          "AI agent: weekly analytics digest compiled for owner",
+          "AI agent: abandoned form recovered — reminder scheduled",
+        ]), tone: "text-violet-300", time: now };
+      } else {
+        ev = { id: idRef.current, icon: "💰", text: pick([
+          "Purchase: Learn It — $497",
+          "Call booked: Done For You scoping",
+          "Event seat reserved: Own Your Platform workshop",
+        ]), tone: "text-mint font-black", time: now };
+      }
+      setFeed((f) => [ev, ...f].slice(0, 9));
+      setTraffic((tr) => {
+        const next = [...tr.slice(1), Math.max(6, tr[tr.length - 1] + Math.floor(Math.random() * 11) - 5)];
+        return next;
+      });
+    }, 2200);
+    return () => clearInterval(t);
+  }, []);
+
+  const maxT = Math.max(...traffic, 1);
+  const linePts = traffic.map((v, i) => `${(i / (traffic.length - 1)) * 700},${150 - (v / maxT) * 130}`).join(" ");
+  const areaPts = `0,150 ${linePts} 700,150`;
+
+  const funnel = [
+    { label: "Visitors", v: 2140, pct: 100, hex: "#38BDF8" },
+    { label: "Engaged (clicked)", v: 861, pct: 40, hex: "#22D3EE" },
+    { label: "Leads captured", v: 214, pct: 10, hex: "#A78BFA" },
+    { label: "Calls booked", v: 58, pct: 2.7, hex: "#34D399" },
+    { label: "Clients won", v: 19, pct: 0.9, hex: "#34D399" },
+  ];
+
+  const sources = [
+    { name: "Facebook ads", v: 46, hex: "#38BDF8" },
+    { name: "Google ads", v: 27, hex: "#A78BFA" },
+    { name: "Shares & referrals", v: 17, hex: "#34D399" },
+    { name: "Direct", v: 10, hex: "#94A3B8" },
+  ];
+
+  const agents = [
+    { name: "Lead Responder", status: "ACTIVE", detail: `${emails} emails sent · avg response 0.8s`, hex: "#34D399" },
+    { name: "Ad Attribution", status: "ACTIVE", detail: "3 campaigns tracked · every lead credited to its ad", hex: "#38BDF8" },
+    { name: "Follow-Up Sequencer", status: "ACTIVE", detail: "12 follow-ups scheduled · no lead goes cold", hex: "#A78BFA" },
+    { name: "Analytics Logger", status: "ACTIVE", detail: "first-party tracking · YOUR database, not Google's", hex: "#FDE047" },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* LIVE BAR */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <span className="relative flex h-3 w-3">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-mint opacity-60" />
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-mint" />
+          </span>
+          <span className="font-black tracking-wide text-white">LIVE</span>
+          <span className="text-sm text-slate-400">Command Center · simulated demo data</span>
+        </div>
+        <span className="rounded-full border border-violet-400/40 bg-violet-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-violet-300">
+          This is what your build includes
+        </span>
+      </div>
+
+      {/* KPI TILES */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {[
+          { v: visitors, l: "on site right now", c: "text-mint glow-mint", suffix: "" },
+          { v: views, l: "page views today", c: "text-white", suffix: "" },
+          { v: leads, l: "leads captured today", c: "text-sky-300", suffix: "" },
+          { v: emails, l: "automated emails sent", c: "text-violet-300", suffix: "" },
+        ].map((s) => (
+          <div key={s.l} className="card !p-5 text-center">
+            <div className={`text-4xl font-black tabular-nums transition-all ${s.c}`}>
+              {s.v.toLocaleString()}{s.suffix}
+            </div>
+            <div className="mt-1 text-xs uppercase tracking-wide text-slate-400">{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-5">
+        {/* TRAFFIC LINE */}
+        <div className="card lg:col-span-3">
+          <div className="flex items-baseline justify-between">
+            <h2 className="font-bold text-white">Traffic — rolling live</h2>
+            <span className="text-xs text-slate-500">last 24 intervals</span>
+          </div>
+          <svg viewBox="0 0 700 160" className="mt-4 w-full" role="img" aria-label="Live rolling traffic line chart">
+            <defs>
+              <linearGradient id="tfill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.35" />
+                <stop offset="100%" stopColor="#38BDF8" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {[40, 90, 140].map((y) => (
+              <line key={y} x1="0" x2="700" y1={y} y2={y} stroke="#1E2A44" strokeWidth="1" />
+            ))}
+            <polygon points={areaPts} fill="url(#tfill)" />
+            <polyline points={linePts} fill="none" stroke="#38BDF8" strokeWidth="2.5" style={{ filter: "drop-shadow(0 0 6px rgba(56,189,248,0.6))" }} />
+            <circle cx="700" cy={150 - (traffic[traffic.length - 1] / maxT) * 130} r="5" fill="#38BDF8">
+              <animate attributeName="r" values="4;6;4" dur="1.6s" repeatCount="indefinite" />
+            </circle>
+          </svg>
+        </div>
+
+        {/* LIVE FEED */}
+        <div className="card lg:col-span-2">
+          <h2 className="font-bold text-white">Live activity</h2>
+          <div className="mt-3 space-y-2 text-xs">
+            {feed.length === 0 && <p className="text-slate-500">Listening…</p>}
+            {feed.map((e) => (
+              <div key={e.id} className="flex gap-2 rounded-lg bg-ink p-2.5" style={{ animation: "fadeIn 0.4s ease" }}>
+                <span>{e.icon}</span>
+                <div className="min-w-0 flex-1">
+                  <p className={e.tone}>{e.text}</p>
+                  <p className="mt-0.5 text-[10px] text-slate-600">{e.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* FUNNEL */}
+        <div className="card">
+          <h2 className="font-bold text-white">The funnel — 30 days</h2>
+          <p className="mt-1 text-xs text-slate-500">Every stage tracked automatically, attributed to its source.</p>
+          <div className="mt-4 space-y-3">
+            {funnel.map((f) => (
+              <div key={f.label}>
+                <div className="flex justify-between text-xs">
+                  <span className="font-semibold text-slate-300">{f.label}</span>
+                  <span className="font-black text-white">{f.v.toLocaleString()} <span className="font-medium text-slate-500">· {f.pct}%</span></span>
+                </div>
+                <div className="mt-1 h-4 overflow-hidden rounded bg-line/40">
+                  <div className="h-full rounded-r transition-all duration-700" style={{ width: `${f.pct}%`, minWidth: "2%", backgroundColor: f.hex, boxShadow: `0 0 12px ${f.hex}66` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-mint">2.7% visitor→call rate. Every lead answered in under a second, automatically.</p>
+        </div>
+
+        {/* SOURCES + AGENTS */}
+        <div className="space-y-6">
+          <div className="card">
+            <h2 className="font-bold text-white">Where the traffic comes from</h2>
+            <div className="mt-4 space-y-3">
+              {sources.map((s) => (
+                <div key={s.name}>
+                  <div className="flex justify-between text-xs">
+                    <span className="font-semibold text-slate-300">{s.name}</span>
+                    <span className="font-black text-white">{s.v}%</span>
+                  </div>
+                  <div className="mt-1 h-3 overflow-hidden rounded bg-line/40">
+                    <div className="h-full rounded-r" style={{ width: `${s.v}%`, backgroundColor: s.hex, boxShadow: `0 0 10px ${s.hex}55` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* AI AGENTS */}
+      <div className="card border border-violet-400/30 shadow-glow-violet">
+        <div className="flex items-center gap-2">
+          <h2 className="font-bold text-white">AI agents on shift</h2>
+          <span className="rounded-full bg-mint/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-mint">24/7 · no sick days</span>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {agents.map((a) => (
+            <div key={a.name} className="flex items-start gap-3 rounded-xl bg-ink p-4">
+              <span className="relative mt-1 flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-50" style={{ backgroundColor: a.hex }} />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: a.hex }} />
+              </span>
+              <div>
+                <p className="font-bold text-white">{a.name} <span className="ml-1 text-[10px] font-black" style={{ color: a.hex }}>{a.status}</span></p>
+                <p className="mt-0.5 text-xs text-slate-400">{a.detail}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="card border border-sky-400/40 text-center shadow-glow-blue">
+        <h2 className="text-2xl font-black text-white sm:text-3xl">
+          Your business, running like <span className="text-gradient">this</span>.
+        </h2>
+        <p className="mx-auto mt-2 max-w-2xl text-slate-300">
+          Traffic tracked. Leads answered in under a second. Every dollar
+          attributed to the ad that earned it. AI agents doing the plumbing while
+          you do the business. If your online life is chaos — this is the other
+          side.
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link href="/book?utm_source=showcase&utm_medium=site&utm_campaign=command-center" className="btn-primary">
+            I Want This — Book a Call
+          </Link>
+          <Link href="/demo" className="btn-ghost">
+            See a Demo Build
+          </Link>
+        </div>
+      </div>
+
+      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }`}</style>
+    </div>
+  );
+}
