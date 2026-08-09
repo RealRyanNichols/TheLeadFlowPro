@@ -1,0 +1,435 @@
+"use client";
+
+// The Facebook-ad landing funnel. The offer: tell Ryan about your business,
+// upload anything you have, and he builds the whole site before you pay a
+// dime. Leads save to the CRM first, uploads go to private Supabase storage,
+// and the instant email + text fire on submit.
+
+import Link from "next/link";
+import { useRef, useState } from "react";
+import {
+  ArrowRight,
+  CircleCheck,
+  Check,
+  FileUp,
+  Hammer,
+  MessageSquareMore,
+  ShieldCheck,
+  Sparkles,
+  X,
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+
+declare global {
+  interface Window {
+    fbq?: (...args: unknown[]) => void;
+  }
+}
+
+const PROOF = [
+  ["Premier Dental Academy", "https://www.premierdentalacademyoflongview.com"],
+  ["DonAndPatti.com", "https://www.donandpatti.com"],
+  ["RealRyanNichols.com", "https://realryannichols.com"],
+  ["RepWatchr", "https://repwatchr.com"],
+  ["Gideon Commerce", "https://gideonhq.com"],
+  ["Faretta.legal", "https://faretta.legal"],
+] as const;
+
+const TIERS = [
+  {
+    name: "The Starter Site",
+    tag: "Get online right",
+    range: "Most land $497 to $1,500",
+    desc: "A clean, fast site that makes your business look as good as it actually is.",
+    items: [
+      "Full website with your pages, your words, your photos",
+      "Contact and lead capture forms",
+      "Click to call and click to text",
+      "Google Business Profile setup",
+      "Facebook and social pages built or cleaned up",
+      "Built in about a week or less",
+    ],
+    featured: false,
+  },
+  {
+    name: "The Business System",
+    tag: "Most popular",
+    range: "Most land $1,500 to $7,500",
+    desc: "The site plus the machine behind it: capture, follow up, book, get paid.",
+    items: [
+      "Everything in The Starter Site",
+      "CRM: every lead named, tracked, followed up",
+      "Instant text-back and email automation",
+      "Booking, scheduling, and payment buttons",
+      "Blog and content engine for Google",
+      "Member dashboard and admin portal",
+    ],
+    featured: true,
+  },
+  {
+    name: "The Full Platform",
+    tag: "The whole operation",
+    range: "Scoped from $7,500+",
+    desc: "Custom software your business runs on. Portals, tools, archives, the works.",
+    items: [
+      "Everything in The Business System",
+      "Customer, member, or student portals",
+      "Calculators, tools, and interactive features",
+      "Courses, archives, and searchable records",
+      "10 to 100 day email and text sequences",
+      "Yours: your code, your data, your customer list",
+    ],
+    featured: false,
+  },
+] as const;
+
+const MAX_FILES = 8;
+const MAX_MB = 50;
+
+export default function FreeBuildFunnel() {
+  const [files, setFiles] = useState<File[]>([]);
+  const [sending, setSending] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<string | null>(null);
+  const formRef = useRef<HTMLDivElement | null>(null);
+
+  function addFiles(list: FileList | null) {
+    if (!list) return;
+    const next = [...files];
+    for (const f of Array.from(list)) {
+      if (next.length >= MAX_FILES) break;
+      if (f.size > MAX_MB * 1024 * 1024) continue;
+      next.push(f);
+    }
+    setFiles(next);
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSending(true);
+    setError(null);
+    const form = new FormData(e.currentTarget);
+    const phone = String(form.get("phone") ?? "").trim();
+    const smsConsent = form.get("sms_consent") === "on";
+    if (smsConsent && !phone) {
+      setError("Add a mobile number so I can text you.");
+      setSending(false);
+      return;
+    }
+
+    // 1) Upload their files to private storage.
+    const uploaded: string[] = [];
+    if (files.length) {
+      setProgress(`Uploading your files (0 of ${files.length})...`);
+      const supabase = createClient();
+      const stamp = Date.now().toString(36);
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        const safe = f.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
+        const path = `${stamp}-${Math.random().toString(36).slice(2, 8)}/${safe}`;
+        const { error: upErr } = await supabase.storage.from("intake").upload(path, f);
+        if (!upErr) uploaded.push(path);
+        setProgress(`Uploading your files (${i + 1} of ${files.length})...`);
+      }
+      setProgress(null);
+    }
+
+    const notes = String(form.get("notes") ?? "").trim();
+    const params = new URLSearchParams(window.location.search);
+
+    // 2) Save the lead. Instant email + text fire server-side.
+    const res = await fetch("/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        full_name: form.get("full_name"),
+        business_name: form.get("business_name"),
+        email: form.get("email"),
+        phone: phone || null,
+        website_url: form.get("website_url"),
+        interest: "done_for_you",
+        goals: [
+          "FREE BUILD REQUEST (Facebook funnel).",
+          notes ? `Their words: ${notes}` : "",
+          uploaded.length ? `${uploaded.length} file(s) uploaded to intake storage.` : "",
+        ]
+          .filter(Boolean)
+          .join(" "),
+        best_contact_method: form.get("best_contact_method"),
+        sms_consent: smsConsent,
+        marketing_email_consent: form.get("marketing_email_consent") === "on",
+        utm_source: params.get("utm_source"),
+        utm_medium: params.get("utm_medium"),
+        utm_campaign: params.get("utm_campaign"),
+        diagnostic: {
+          version: 2,
+          source: "free_build_funnel",
+          uploads: uploaded,
+          owner_notes: notes || null,
+          next_action: "Free build request. Review uploads, build the site, send preview. No pay until they love it.",
+        },
+      }),
+    });
+    if (!res.ok) {
+      setError(
+        (await res.json().catch(() => ({}) as { error?: string })).error ??
+          "That did not go through. Try again or text me: (903) 500-8898.",
+      );
+      setSending(false);
+      return;
+    }
+    window.fbq?.("track", "Lead");
+    setSubmitted(true);
+  }
+
+  function scrollToForm() {
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  return (
+    <main className="pb-24">
+      {/* HERO */}
+      <section className="page-hero page-hero-centered">
+        <span className="eyebrow">The free build offer</span>
+        <h1>I will build your whole website. You pay nothing until you love it.</h1>
+        <p>
+          Give me your business name and anything you have: a Facebook page, an old site,
+          photos, a voice memo, or nothing but a name. I build the complete site, the
+          works. You look at it. If you do not want it, we shake hands and you keep the
+          memory. If you love it, we agree on a fair price and it is yours.
+        </p>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <button type="button" className="button-primary" onClick={scrollToForm}>
+            Start My Free Build
+            <ArrowRight aria-hidden="true" className="h-4 w-4" />
+          </button>
+          <a href="sms:+19035008898" className="button-secondary">
+            Text Me: (903) 500-8898
+          </a>
+        </div>
+        <p className="mt-5 text-sm font-semibold text-emerald-300">
+          No card. No deposit. No contract. The build happens first. Fair, right?
+        </p>
+      </section>
+
+      {/* 3 STEPS */}
+      <section className="mx-auto w-[min(1000px,100%-40px)]">
+        <div className="grid gap-3.5 md:grid-cols-3">
+          {[
+            { icon: MessageSquareMore, t: "1. Tell me about it", d: "As little or as much as you want. Name, photos, videos, voice memos, old links. Dump it all on me." },
+            { icon: Hammer, t: "2. I build the whole thing", d: "Real pages, real forms, real follow-up. Built like the live sites below, customized to you." },
+            { icon: ShieldCheck, t: "3. You decide", d: "Love it? We agree on a fair price by real hours, not agency math. Do not want it? You pay nothing." },
+          ].map((s) => (
+            <div key={s.t} className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+              <s.icon className="h-6 w-6 text-sky-300" />
+              <h2 className="mt-3 text-lg font-extrabold text-white">{s.t}</h2>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-400">{s.d}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-6 text-center text-sm text-slate-400">
+          Every one of these is live right now, built by me:{" "}
+          {PROOF.map(([n, u], i) => (
+            <span key={n}>
+              <a href={u} target="_blank" rel="noreferrer" className="font-bold text-sky-300 underline">
+                {n}
+              </a>
+              {i < PROOF.length - 1 ? " · " : ""}
+            </span>
+          ))}
+        </p>
+      </section>
+
+      {/* TIERS */}
+      <section className="mx-auto mt-16 w-[min(1060px,100%-40px)]">
+        <div className="text-center">
+          <span className="eyebrow">What builds usually look like</span>
+          <h2 className="mt-4 text-3xl font-black text-white sm:text-4xl">
+            Priced by real hours. Never agency math.
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-slate-400">
+            If your build takes me an hour, I am not charging you thousands for it. These
+            are typical ranges, and you approve the exact price before you pay anything.
+          </p>
+        </div>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {TIERS.map((t) => (
+            <div
+              key={t.name}
+              className={`flex flex-col rounded-2xl border p-6 ${
+                t.featured
+                  ? "border-sky-400/60 bg-sky-500/[0.06] shadow-[0_0_40px_rgba(56,189,248,0.15)]"
+                  : "border-white/10 bg-white/[0.03]"
+              }`}
+            >
+              <span className={`self-start rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${t.featured ? "border-sky-400/50 bg-sky-500/15 text-sky-200" : "border-white/15 bg-white/[0.05] text-slate-300"}`}>
+                {t.tag}
+              </span>
+              <h3 className="mt-3 text-2xl font-black text-white">{t.name}</h3>
+              <p className="mt-1 text-sm font-bold text-sky-300">{t.range}</p>
+              <p className="mt-2 text-sm text-slate-400">{t.desc}</p>
+              <ul className="mt-4 flex-1 space-y-2.5">
+                {t.items.map((it) => (
+                  <li key={it} className="flex items-start gap-2.5 text-sm text-slate-300">
+                    <Check className="mt-0.5 h-4 w-4 flex-none text-emerald-400" strokeWidth={3} />
+                    {it}
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                onClick={scrollToForm}
+                className={`mt-6 ${t.featured ? "button-primary" : "button-secondary"} w-full`}
+              >
+                Build Mine Free First
+              </button>
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 text-center text-sm text-slate-400">
+          Ready to commit today? Down payments and pay-in-full with card, Klarna, or
+          Afterpay are on the{" "}
+          <Link href="/packages/launch" className="font-bold text-sky-300 underline">
+            package pages
+          </Link>
+          . But the free build needs no money at all.
+        </p>
+      </section>
+
+      {/* INTAKE */}
+      <section ref={formRef} className="mx-auto mt-16 w-[min(860px,100%-40px)] scroll-mt-24">
+        {!submitted ? (
+          <div className="rounded-[20px] border border-line bg-white/[0.04] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] sm:p-9">
+            <span className="eyebrow">Start your free build</span>
+            <h2 className="mt-4 text-3xl font-black tracking-tight text-white">
+              Tell me about your business.
+            </h2>
+            <p className="mt-2 text-slate-400">
+              As little or as much as you want. The more you give me, the closer the first
+              version lands to your dream.
+            </p>
+            <form onSubmit={handleSubmit} className="mt-7">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="form-field">
+                  <span>Your name *</span>
+                  <input name="full_name" autoComplete="name" required maxLength={200} />
+                </label>
+                <label className="form-field">
+                  <span>Business name *</span>
+                  <input name="business_name" required maxLength={200} />
+                </label>
+                <label className="form-field">
+                  <span>Email *</span>
+                  <input name="email" type="email" autoComplete="email" required maxLength={200} />
+                </label>
+                <label className="form-field">
+                  <span>Mobile phone</span>
+                  <input name="phone" type="tel" autoComplete="tel" maxLength={50} />
+                </label>
+                <label className="form-field sm:col-span-2">
+                  <span>Facebook page, old website, or any link you have</span>
+                  <input name="website_url" type="text" inputMode="url" placeholder="Anything counts. Or nothing at all." maxLength={300} />
+                </label>
+              </div>
+              <label className="form-field mt-4">
+                <span>Tell me everything you want</span>
+                <textarea
+                  name="notes"
+                  rows={5}
+                  maxLength={2000}
+                  placeholder="What you do, who your customers are, what you want the site to feel like, pages you want, colors you like, businesses you admire. Talk to me like we are at the counter."
+                />
+              </label>
+
+              {/* UPLOADS */}
+              <div className="mt-4">
+                <span className="mb-2 block text-sm font-semibold text-slate-300">
+                  Logos, photos, videos, voice memos (up to {MAX_FILES} files, {MAX_MB}MB each)
+                </span>
+                <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-white/15 bg-[#0c1220] px-6 py-8 text-center transition hover:border-sky-400/50">
+                  <FileUp className="h-7 w-7 text-sky-300" />
+                  <span className="text-sm font-bold text-white">Tap to add your files</span>
+                  <span className="text-xs text-slate-500">Images, video, audio, documents. Anything helps.</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
+                    className="hidden"
+                    onChange={(e) => addFiles(e.target.files)}
+                  />
+                </label>
+                {files.length > 0 && (
+                  <ul className="mt-3 space-y-1.5">
+                    {files.map((f, i) => (
+                      <li key={`${f.name}-${i}`} className="flex items-center justify-between gap-2 rounded-lg bg-white/[0.05] px-3 py-2 text-sm text-slate-300">
+                        <span className="truncate">{f.name}</span>
+                        <button type="button" aria-label={`Remove ${f.name}`} onClick={() => setFiles(files.filter((_, x) => x !== i))}>
+                          <X className="h-4 w-4 text-slate-500 hover:text-white" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="consent-list mt-5">
+                <label>
+                  <input type="checkbox" name="sms_consent" defaultChecked />
+                  <span>
+                    Text me about my free build at the number above. The LeadFlow Pro may
+                    call or text about this request and project updates. Consent is not a
+                    condition of purchase. Message and data rates may apply. Reply STOP to
+                    opt out.
+                  </span>
+                </label>
+                <label>
+                  <input type="checkbox" name="marketing_email_consent" defaultChecked />
+                  <span>
+                    Email me about my build plus occasional LeadFlow tools and updates. I
+                    can unsubscribe at any time.
+                  </span>
+                </label>
+              </div>
+              {progress && <p className="mt-3 text-sm font-semibold text-sky-300">{progress}</p>}
+              {error && (
+                <p className="form-error mt-3" role="alert">
+                  {error}
+                </p>
+              )}
+              <button type="submit" className="button-primary mt-6 w-full sm:w-auto" disabled={sending}>
+                {sending ? "Sending It All to Ryan..." : "Build My Site Free"}
+                {!sending && <Sparkles aria-hidden="true" className="h-4 w-4" />}
+              </button>
+              <p className="form-legal mt-4">
+                By submitting, you agree to our <Link href="/terms">Terms</Link> and
+                acknowledge our <Link href="/privacy">Privacy Policy</Link>. No payment
+                is collected on this page. Ever. You pay only if you decide you want the
+                finished build.
+              </p>
+            </form>
+          </div>
+        ) : (
+          <div className="rounded-[20px] border border-emerald-400/30 bg-emerald-500/[0.06] p-9 text-center">
+            <CircleCheck className="mx-auto h-12 w-12 text-emerald-300" />
+            <h2 className="mt-4 text-3xl font-black text-white">I got it. I am on it.</h2>
+            <p className="mx-auto mt-3 max-w-xl text-slate-300">
+              Check your phone and your email: confirmation is already on the way. I am
+              reviewing everything you sent and your build goes on my bench. You will get
+              a preview link when it is standing. Remember the deal: you do not pay a dime
+              unless you love it.
+            </p>
+            <div className="mt-7 flex flex-wrap justify-center gap-3">
+              <Link href="/portfolio" className="button-secondary">
+                See What Your Site Could Look Like
+              </Link>
+              <a href="sms:+19035008898" className="button-secondary">
+                Text Me Anytime
+              </a>
+            </div>
+          </div>
+        )}
+      </section>
+    </main>
+  );
+}
