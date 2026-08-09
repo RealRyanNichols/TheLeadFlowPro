@@ -15,6 +15,8 @@ import {
   FileUp,
   Hammer,
   MessageSquareMore,
+  Mic,
+  Paperclip,
   ShieldCheck,
   Sparkles,
   X,
@@ -110,6 +112,55 @@ export default function FreeBuildFunnel() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
   const formRef = useRef<HTMLDivElement | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [recSeconds, setRecSeconds] = useState(0);
+  const recRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Push to talk: record a voice memo in the browser and attach it like any
+  // other upload. Caps at 3 minutes to keep files sane.
+  async function toggleRecording() {
+    if (recording) {
+      recRef.current?.stop();
+      return;
+    }
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setError("Voice recording is not supported on this browser. Upload a voice memo file instead.");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => {
+        if (e.data.size) chunksRef.current.push(e.data);
+      };
+      mr.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        if (timerRef.current) clearInterval(timerRef.current);
+        setRecording(false);
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType || "audio/webm" });
+        if (blob.size) {
+          const ext = (mr.mimeType || "audio/webm").includes("mp4") ? "m4a" : "webm";
+          const memo = new File([blob], `voice-memo-${Date.now().toString(36)}.${ext}`, { type: blob.type });
+          setFiles((prev) => (prev.length >= MAX_FILES ? prev : [...prev, memo]));
+        }
+      };
+      recRef.current = mr;
+      mr.start();
+      setRecSeconds(0);
+      setRecording(true);
+      timerRef.current = setInterval(() => {
+        setRecSeconds((s) => {
+          if (s + 1 >= 180) recRef.current?.stop();
+          return s + 1;
+        });
+      }, 1000);
+    } catch {
+      setError("Could not reach your microphone. You can upload a voice memo file instead.");
+    }
+  }
 
   function addFiles(list: FileList | null) {
     if (!list) return;
@@ -274,6 +325,39 @@ export default function FreeBuildFunnel() {
             placeholder="Tell me about it. What do you do? What do you want?"
             className="mt-2.5 w-full rounded-lg border border-white/15 bg-black/25 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-400 focus:border-sky-400/60 focus:outline-none"
           />
+          <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={toggleRecording}
+              className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-bold transition ${
+                recording
+                  ? "border-red-400/60 bg-red-500/15 text-red-200"
+                  : "border-white/15 bg-black/25 text-slate-200 hover:border-sky-400/50"
+              }`}
+            >
+              <Mic className={`h-4 w-4 ${recording ? "animate-pulse text-red-300" : "text-sky-300"}`} />
+              {recording ? `Recording ${recSeconds}s... tap to stop` : "Rather talk? Record a voice memo"}
+            </button>
+            <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-white/15 bg-black/25 px-3 py-2 text-sm font-bold text-slate-200 transition hover:border-sky-400/50">
+              <Paperclip className="h-4 w-4 text-sky-300" />
+              Add photos, logo, or files
+              <input
+                type="file"
+                multiple
+                accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
+                className="hidden"
+                onChange={(e) => addFiles(e.target.files)}
+              />
+            </label>
+          </div>
+          {files.length > 0 && (
+            <p className="mt-2 text-xs font-semibold text-emerald-300">
+              {files.length} file{files.length > 1 ? "s" : ""} attached. It all rides along when you hit send below.
+            </p>
+          )}
+          {error && !submitted && (
+            <p className="mt-2 text-xs font-semibold text-red-300">{error}</p>
+          )}
           <button type="button" onClick={scrollToForm} className="button-primary mt-3 w-full">
             Keep Going. I Am Already Listening.
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
