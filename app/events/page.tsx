@@ -37,9 +37,8 @@ export default async function EventsPage() {
               Next event dates coming soon
             </h2>
             <p className="mt-2 text-slate-400">
-              Workshops are being scheduled now, including sessions at The Coop in
-              Longview. Book a call and I will make sure you hear about the next
-              one first.
+              Workshops are being scheduled now across East Texas. Book a call and
+              I will make sure you hear about the next one first.
             </p>
             <a href="/book" className="btn-primary mt-6">
               Book a Call
