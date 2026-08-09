@@ -1,12 +1,15 @@
 "use client";
 
 // The order form at the bottom of every package sales page. The visitor picks
-// how they want to move: pay in full, put money down, start with the $497 map,
-// or just ask questions. Everything lands in the CRM with the intent attached.
+// how they want to move: pay in full, choose their own down payment and pay it
+// by card right now, start with the $497 map, or ask questions. Card entry
+// happens on Stripe's secure hosted checkout, never on this page. The order
+// lands in the CRM first either way, so nothing is lost if checkout is
+// abandoned.
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, CircleCheck } from "lucide-react";
+import { ArrowRight, CircleCheck, Lock } from "lucide-react";
 import BuyButton from "@/components/BuyButton";
 
 declare global {
@@ -19,12 +22,12 @@ const INTENTS: Array<{ id: string; label: string; desc: string }> = [
   {
     id: "pay_full",
     label: "I want to purchase in full",
-    desc: "Scope it fast and send me the invoice. I am ready.",
+    desc: "Pay the base price by card right now. Guarantee still applies.",
   },
   {
     id: "down_payment",
     label: "I want to put a down payment on it",
-    desc: "Reserve my build slot and phase the rest.",
+    desc: "Pick your amount, pay by card, reserve your build slot.",
   },
   {
     id: "map_first",
@@ -37,6 +40,15 @@ const INTENTS: Array<{ id: string; label: string; desc: string }> = [
     desc: "Reach out and walk me through it.",
   },
 ];
+
+const BASE_PRICE: Record<string, number> = {
+  "system-map": 497,
+  launch: 7500,
+  "industry-os": 15000,
+};
+
+const DEPOSIT_PRESETS = [500, 1000, 2500, 5000];
+const DEPOSIT_MIN = 250;
 
 export default function PackageOrderForm({
   slug,
@@ -52,9 +64,24 @@ export default function PackageOrderForm({
   buyable: boolean;
 }) {
   const [intent, setIntent] = useState<string>(buyable ? "pay_full" : "down_payment");
+  const [deposit, setDeposit] = useState<number>(1000);
+  const [customDeposit, setCustomDeposit] = useState<string>("");
   const [sending, setSending] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [payNotice, setPayNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const basePrice = BASE_PRICE[slug] ?? 0;
+  const maxDeposit = Math.min(25000, basePrice);
+  const activeDeposit = customDeposit
+    ? Math.max(DEPOSIT_MIN, Math.min(maxDeposit, Math.round(Number(customDeposit) || 0)))
+    : deposit;
+  const paysNow = intent === "pay_full" || intent === "down_payment";
+  const payAmount = intent === "pay_full" ? basePrice : activeDeposit;
+
+  function fmt(n: number) {
+    return `$${n.toLocaleString("en-US")}`;
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -62,6 +89,7 @@ export default function PackageOrderForm({
     setError(null);
     const form = new FormData(e.currentTarget);
     const phone = String(form.get("phone") ?? "").trim();
+    const email = String(form.get("email") ?? "").trim();
     const smsConsent = form.get("sms_consent") === "on";
     if (smsConsent && !phone) {
       setError("Add a mobile number before choosing call or text consent.");
@@ -71,20 +99,29 @@ export default function PackageOrderForm({
     const intentLabel = INTENTS.find((i) => i.id === intent)?.label ?? intent;
     const notes = String(form.get("notes") ?? "").trim();
     const params = new URLSearchParams(window.location.search);
+    const payLine =
+      intent === "pay_full"
+        ? `Paying in full by card now: ${fmt(basePrice)}.`
+        : intent === "down_payment"
+          ? `Paying down payment by card now: ${fmt(activeDeposit)}.`
+          : "";
 
+    // 1) The order lands in the CRM first, so nothing is lost if checkout is
+    //    abandoned on the Stripe page.
     const res = await fetch("/api/leads", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         full_name: form.get("full_name"),
         business_name: form.get("business_name"),
-        email: form.get("email"),
+        email,
         phone: phone || null,
         website_url: form.get("website_url"),
         interest,
         goals: [
           `PACKAGE ORDER: ${packageName} (${price}).`,
           `Payment intent: ${intentLabel}.`,
+          payLine,
           notes ? `Notes: ${notes}` : "",
         ]
           .filter(Boolean)
@@ -100,9 +137,10 @@ export default function PackageOrderForm({
           source: "package_page",
           package: slug,
           payment_intent: intent,
+          pay_now_usd: paysNow ? payAmount : null,
           owner_notes: notes || null,
           next_action:
-            "Package order from the sales page. Scope, invoice per intent, build. No pay if they do not like it.",
+            "Package order from the sales page. If payment initiated, confirm in Stripe. Guarantee stands.",
         },
       }),
     });
@@ -115,6 +153,46 @@ export default function PackageOrderForm({
       return;
     }
     window.fbq?.("track", "Lead");
+
+    // 2) If they chose to pay now, hand off to Stripe's secure hosted checkout.
+    if (paysNow) {
+      window.fbq?.("track", "InitiateCheckout", { value: payAmount, currency: "USD" });
+      try {
+        const co = await fetch("/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            slug === "system-map" && intent === "pay_full"
+              ? { kind: "system_map", email }
+              : {
+                  kind: intent === "pay_full" ? "package_full" : "package_deposit",
+                  package: slug,
+                  amount_usd: activeDeposit,
+                  email,
+                },
+          ),
+        });
+        if (co.ok) {
+          const j = await co.json();
+          if (j.url) {
+            window.location.href = j.url;
+            return;
+          }
+        }
+        // Checkout not configured or failed: the order is already saved.
+        setPayNotice(
+          "Card checkout is being switched on. Your order is locked in, and a secure payment link for " +
+            fmt(payAmount) +
+            " will be in your inbox within one business day.",
+        );
+      } catch {
+        setPayNotice(
+          "Card checkout could not start. Your order is locked in, and a secure payment link for " +
+            fmt(payAmount) +
+            " will be in your inbox within one business day.",
+        );
+      }
+    }
     setSubmitted(true);
   }
 
@@ -124,10 +202,9 @@ export default function PackageOrderForm({
         <CircleCheck className="mx-auto h-12 w-12 text-emerald-300" />
         <h2 className="mt-4 text-3xl font-black text-white">Your order is in.</h2>
         <p className="mx-auto mt-3 max-w-xl text-slate-300">
-          I have your {packageName} request and how you want to move. I will reach out
-          within one business day on the channel you chose. Payment happens on a secure
-          invoice after we confirm scope, and the guarantee stands: you do not pay for
-          anything you do not like.
+          {payNotice ??
+            `I have your ${packageName} request and how you want to move. I will reach out within one business day on the channel you chose.`}{" "}
+          The guarantee stands: you do not pay for anything you do not like.
         </p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <Link href="/portfolio" className="button-secondary">
@@ -148,8 +225,8 @@ export default function PackageOrderForm({
         Tell me how you want to move.
       </h2>
       <p className="mt-2 text-slate-400">
-        Pick your path, add your details, and it lands on my desk with everything
-        attached. No payment is collected on this page.
+        Pick your path and add your details. Card payments run on Stripe secure checkout,
+        and every dollar you put down is credited in full toward your build.
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -183,11 +260,77 @@ export default function PackageOrderForm({
         })}
       </div>
 
+      {intent === "down_payment" && (
+        <div className="mt-4 rounded-xl border border-sky-400/30 bg-sky-500/[0.06] p-5">
+          <p className="text-sm font-bold text-white">
+            How much do you want to put down?
+          </p>
+          <p className="mt-1 text-[12.5px] text-slate-400">
+            Your call. Every dollar is credited in full toward the {packageName} build.
+            Minimum {fmt(DEPOSIT_MIN)}.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {DEPOSIT_PRESETS.filter((v) => v <= maxDeposit).map((v) => {
+              const on = !customDeposit && deposit === v;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => {
+                    setDeposit(v);
+                    setCustomDeposit("");
+                  }}
+                  className={`rounded-full border px-4 py-2 text-sm font-bold transition ${
+                    on
+                      ? "border-sky-400 bg-sky-400/20 text-white shadow-[0_0_14px_rgba(56,189,248,0.3)]"
+                      : "border-white/15 bg-[#0c1220] text-slate-300 hover:border-white/35"
+                  }`}
+                >
+                  {fmt(v)}
+                </button>
+              );
+            })}
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-bold text-slate-400">$</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={DEPOSIT_MIN}
+                max={maxDeposit}
+                step={50}
+                placeholder="Custom"
+                value={customDeposit}
+                onChange={(e) => setCustomDeposit(e.target.value)}
+                className="w-28 rounded-lg border border-white/15 bg-[#0c1220] px-3 py-2 text-sm font-bold text-white placeholder:font-medium placeholder:text-slate-500"
+              />
+            </div>
+          </div>
+          <p className="mt-3 flex items-center gap-2 text-[12.5px] font-semibold text-sky-200">
+            <Lock className="h-3.5 w-3.5" />
+            You will pay {fmt(activeDeposit)} on Stripe secure checkout after you send the
+            order below.
+          </p>
+        </div>
+      )}
+
+      {intent === "pay_full" && (
+        <div className="mt-4 rounded-xl border border-sky-400/30 bg-sky-500/[0.06] p-5">
+          <p className="flex items-center gap-2 text-sm font-bold text-white">
+            <Lock className="h-4 w-4 text-sky-300" />
+            Pay {fmt(basePrice)} now on Stripe secure checkout.
+          </p>
+          <p className="mt-1 text-[12.5px] text-slate-400">
+            That covers the base scope. If the System Map scopes your build bigger, the
+            difference is a separate approval. If it scopes smaller, the difference is
+            credited or refunded. The guarantee applies to every phase.
+          </p>
+        </div>
+      )}
+
       {intent === "map_first" && (
         <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl border border-sky-400/30 bg-sky-500/[0.06] p-4">
           <p className="min-w-0 flex-1 text-sm text-slate-300">
-            The System Map is the one thing you can buy right now, no waiting. $497,
-            credited in full toward this build.
+            The System Map is the fastest yes. $497, credited in full toward this build.
           </p>
           <BuyButton
             kind="system_map"
@@ -267,13 +410,20 @@ export default function PackageOrderForm({
           </p>
         )}
         <button type="submit" className="button-primary mt-6 w-full sm:w-auto" disabled={sending}>
-          {sending ? "Sending Your Order..." : `Send My ${packageName} Order`}
+          {sending
+            ? paysNow
+              ? "Opening Secure Checkout..."
+              : "Sending Your Order..."
+            : paysNow
+              ? `Send Order + Pay ${fmt(payAmount)} Now`
+              : `Send My ${packageName} Order`}
           {!sending && <ArrowRight aria-hidden="true" className="h-4 w-4" />}
         </button>
         <p className="form-legal mt-4">
           By submitting, you agree to our <Link href="/terms">Terms</Link> and acknowledge
-          our <Link href="/privacy">Privacy Policy</Link>. Payment happens later on a
-          secure invoice, and only for work you approve.
+          our <Link href="/privacy">Privacy Policy</Link>. Card payments are processed by
+          Stripe on their secure checkout page. Deposits and payments are credited in
+          full toward your build, and you do not pay for work you do not approve.
         </p>
       </form>
     </div>
