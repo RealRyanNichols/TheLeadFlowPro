@@ -132,7 +132,7 @@ export default function EventsManager({ initialEvents }: { initialEvents: EventR
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label">Venue</label>
-              <input className="input" name="venue" placeholder="The Coop" />
+              <input className="input" name="venue" placeholder="Venue name" />
             </div>
             <div>
               <label className="label">City</label>
