@@ -11,6 +11,10 @@ import {
   Archive,
   ArrowLeft,
   ArrowRight,
+  Inbox,
+  Send,
+  TriangleAlert,
+  Zap,
   Blocks,
   BookOpen,
   Bot,
@@ -610,6 +614,80 @@ const MODULES: Record<string, Option> = {
     icon: "plug",
   },
 };
+
+// Why each module matters and where it is already proven live. This is what
+// turns the result from a parts list into a pitch served on a platter.
+const MODULE_META: Record<string, { why: string; proof: string }> = {
+  website_funnels: {
+    why: "Every channel you named needs one owned home base that captures the lead instead of letting it scroll past.",
+    proof: "TheLeadFlowPro.com",
+  },
+  crm_pipeline: {
+    why: "Every inquiry gets a name, a source, a status, and a next action. Nothing falls through again.",
+    proof: "TheLeadFlowPro.com",
+  },
+  admin_workspace: {
+    why: "One screen for the whole operation: review, assign, approve, export, done.",
+    proof: "TheLeadFlowPro.com",
+  },
+  customer_portal: {
+    why: "Customers log in and get what they paid for without emailing you to ask for it.",
+    proof: "DonAndPatti.com",
+  },
+  forms_tools: {
+    why: "Calculators and guided forms qualify people before you ever spend a minute talking to them.",
+    proof: "Premier Dental Academy",
+  },
+  courses_training: {
+    why: "Your knowledge delivered as lessons with progress, quizzes, and certificates. Sellable, repeatable.",
+    proof: "Premier Dental Academy",
+  },
+  archive_library: {
+    why: "Records and resources people can actually search. Authority nobody can take down.",
+    proof: "RepWatchr",
+  },
+  email_automation: {
+    why: "Every lead gets a reply in seconds and a follow-up until they answer. The money is in the follow-up.",
+    proof: "TheLeadFlowPro.com",
+  },
+  calls_texts: {
+    why: "A missed call gets a text back before that customer dials your competitor.",
+    proof: "The LeadFlow stack",
+  },
+  booking_routing: {
+    why: "The right lead lands on the right calendar without a week of phone tag.",
+    proof: "Premier Dental Academy",
+  },
+  ads_attribution: {
+    why: "Know exactly which dollar of ad spend produced which customer. Stop guessing.",
+    proof: "TheLeadFlowPro.com",
+  },
+  analytics_reporting: {
+    why: "What came in, what moved, what stalled, what made money. In your database, not rented.",
+    proof: "TheLeadFlowPro.com",
+  },
+  ai_agent: {
+    why: "An assistant trained on your business answers questions and qualifies leads around the clock.",
+    proof: "RealRyanNichols",
+  },
+  payments_checkout: {
+    why: "Deposits, payment plans, subscriptions, and invoices collected without chasing anybody.",
+    proof: "DonAndPatti.com",
+  },
+  commerce_hub: {
+    why: "Products, orders, inventory, and channel fees in one operating view you control.",
+    proof: "GideonHQ",
+  },
+  connector_mcp: {
+    why: "ChatGPT and Claude can securely work with your business data, with your permission.",
+    proof: "The LeadFlow stack",
+  },
+};
+
+function tilePair(i: number) {
+  const [a, b] = TILE_PALETTE[i % TILE_PALETTE.length];
+  return `linear-gradient(135deg, ${a}, ${b})`;
+}
 
 const GOAL_MODULE_ORDER: Record<string, string[]> = {
   demand: [
@@ -1488,8 +1566,148 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
               </p>
             </div>
 
+            {/* WHERE YOU ARE vs WHERE THIS TAKES YOU */}
+            <div className="mt-10 grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-stretch">
+              <div className="rounded-2xl border border-amber-400/25 bg-amber-500/[0.05] p-6">
+                <span className="text-xs font-black uppercase tracking-[0.18em] text-amber-300">
+                  Where you are today
+                </span>
+                <ul className="mt-4 space-y-3 text-sm text-slate-300">
+                  <li className="flex items-start gap-3">
+                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-400" />
+                    <span>Working from {presence.short}</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-400" />
+                    <span>
+                      {answers.salesChannels.length > 1
+                        ? `${answers.salesChannels.length} sales channels that do not talk to each other`
+                        : "Business coming in through channels that do not talk to each other"}
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-400" />
+                    <span>Running on {stagesText}</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-400" />
+                    <span>Leads and follow-up depend on somebody remembering</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="flex items-center justify-center md:px-1">
+                <div className="flex h-11 w-11 rotate-90 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-600 shadow-[0_0_24px_rgba(56,189,248,0.45)] md:rotate-0">
+                  <ArrowRight className="h-5 w-5 text-white" strokeWidth={2.6} />
+                </div>
+              </div>
+              <div className="rounded-2xl border border-emerald-400/25 bg-emerald-500/[0.05] p-6">
+                <span className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">
+                  Where this takes you
+                </span>
+                <ul className="mt-4 space-y-3 text-sm text-slate-200">
+                  <li className="flex items-start gap-3">
+                    <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-emerald-400" />
+                    <span>One owned platform behind every channel you already use</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-emerald-400" />
+                    <span>Every lead captured, answered in seconds, and followed up automatically</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-emerald-400" />
+                    <span>One pipeline showing what came in, what stalled, and what made money</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-emerald-400" />
+                    <span>Your code, your data, your customer list. Nobody can take it</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* THE FLOW MAP */}
+            <div className="mt-6 rounded-2xl border border-line bg-white/[0.03] p-6 sm:p-8">
+              <div className="text-center">
+                <span className="eyebrow">Your money map</span>
+                <h2 className="mt-3 text-2xl font-black text-white sm:text-3xl">
+                  Every channel feeds one system you own.
+                </h2>
+              </div>
+              <div className="mt-8 flex flex-col items-center gap-5 md:flex-row md:justify-center md:gap-0">
+                <div className="flex w-full max-w-xs flex-col gap-3 md:w-56">
+                  {(answers.salesChannels.length
+                    ? answers.salesChannels.slice(0, 4)
+                    : ["owned_site"]
+                  ).map((c, i) => {
+                    const ch = channelOf(c);
+                    return (
+                      <div
+                        key={c}
+                        className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0d1420] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(0,0,0,0.35)]"
+                      >
+                        <span
+                          className="flex h-9 w-9 flex-none items-center justify-center rounded-[10px] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
+                          style={{ background: tilePair(i) }}
+                        >
+                          <Icon name={ch.icon} className="h-[18px] w-[18px]" />
+                        </span>
+                        <span className="text-sm font-semibold text-white">{ch.short}</span>
+                      </div>
+                    );
+                  })}
+                  {answers.salesChannels.length > 4 && (
+                    <span className="text-center text-xs font-bold text-slate-500">
+                      + {answers.salesChannels.length - 4} more channels
+                    </span>
+                  )}
+                </div>
+                <div className="flow-line-v md:hidden" />
+                <div className="flow-line hidden w-16 md:block" />
+                <div className="flex flex-col items-center justify-center gap-1.5 rounded-full border-2 border-sky-400/70 bg-[#0c1320] px-2 text-center shadow-[0_0_44px_rgba(56,189,248,0.3)]" style={{ width: 168, height: 168 }}>
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-r from-sky-400 to-blue-600 shadow-[0_4px_14px_rgba(56,189,248,0.5)]">
+                    <Zap className="h-5 w-5 text-white" strokeWidth={2.4} />
+                  </span>
+                  <span className="text-[13px] font-extrabold tracking-[0.08em] text-white">
+                    YOUR PLATFORM
+                  </span>
+                  <span className="text-[11px] font-medium text-slate-400">Owned. Not rented.</span>
+                </div>
+                <div className="flow-line-v md:hidden" />
+                <div className="flow-line hidden w-16 md:block" />
+                <div className="flex w-full max-w-xs flex-col gap-3 md:w-64">
+                  <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0d1420] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(0,0,0,0.35)]">
+                    <span className="flex h-9 w-9 flex-none items-center justify-center rounded-[10px] bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
+                      <Inbox className="h-4 w-4" />
+                    </span>
+                    <span>
+                      <span className="block text-sm font-semibold text-white">One inbox and CRM</span>
+                      <span className="block text-[11.5px] text-slate-400">Every lead in your database</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0d1420] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(0,0,0,0.35)]">
+                    <span className="flex h-9 w-9 flex-none items-center justify-center rounded-[10px] bg-gradient-to-br from-cyan-400 to-indigo-500 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
+                      <Send className="h-4 w-4" />
+                    </span>
+                    <span>
+                      <span className="block text-sm font-semibold text-white">Automatic follow-up</span>
+                      <span className="block text-[11.5px] text-slate-400">Email and text until they answer</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0d1420] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(0,0,0,0.35)]">
+                    <span className="flex h-9 w-9 flex-none items-center justify-center rounded-[10px] bg-gradient-to-br from-violet-400 to-fuchsia-500 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
+                      <ChartColumn className="h-4 w-4" />
+                    </span>
+                    <span>
+                      <span className="block text-sm font-semibold text-white">Reporting you own</span>
+                      <span className="block text-[11.5px] text-slate-400">What made money, in plain sight</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {answers.salesChannels.length > 0 && (
-              <div className="result-channel-bar">
+              <div className="result-channel-bar !mt-6">
                 <div>
                   <span className="eyebrow">Channel strategy</span>
                   <strong>Keep the reach. Build the owned center.</strong>
@@ -1537,13 +1755,35 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                   </div>
                   <ShieldCheck aria-hidden="true" className="h-7 w-7 text-emerald-300" />
                 </div>
-                <div className="result-module-grid">
-                  {recommendedModules.map((id) => {
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {recommendedModules.map((id, i) => {
                     const m = MODULES[id];
+                    const meta = MODULE_META[id];
                     return (
-                      <div key={id} className="result-module">
-                        <Icon name={m.icon} className="h-4 w-4" />
-                        <span>{m.short}</span>
+                      <div
+                        key={id}
+                        className="flex items-start gap-3 rounded-xl border border-white/10 bg-[#0c1220] p-3.5"
+                      >
+                        <span
+                          className="flex h-10 w-10 flex-none items-center justify-center rounded-[11px] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
+                          style={{ background: tilePair(i) }}
+                        >
+                          <Icon name={m.icon} className="h-5 w-5" />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[15px] font-bold leading-snug text-white">
+                            {m.label}
+                          </span>
+                          <span className="mt-1 block text-[12.5px] leading-relaxed text-slate-400">
+                            {meta?.why ?? m.description}
+                          </span>
+                          {meta?.proof && (
+                            <span className="mt-1.5 flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wide text-emerald-300/90">
+                              <CircleCheck className="h-3 w-3" />
+                              Proven live on {meta.proof}
+                            </span>
+                          )}
+                        </span>
                       </div>
                     );
                   })}
@@ -1592,8 +1832,8 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                   Talk to Ryan About This Build
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </button>
-                <Link href="/pricing" className="button-secondary">
-                  Compare Packages
+                <Link href="/add-ons" className="button-secondary">
+                  Hand-Pick From the Add-On Menu
                 </Link>
                 <Link href="/portfolio" className="button-secondary">
                   See the Live Work
