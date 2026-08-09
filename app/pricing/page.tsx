@@ -53,8 +53,8 @@ export default function PricingPage() {
               <CheckItem>Recommended modules, phases, dependencies, and build range</CheckItem>
               <CheckItem>Credited toward an approved LeadFlow build</CheckItem>
             </ul>
-            <Link className="button-secondary" href="/start">
-              Map My System
+            <Link className="button-secondary" href="/packages/system-map">
+              Get the System Map
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </article>
@@ -74,8 +74,8 @@ export default function PricingPage() {
               <CheckItem>Transactional email and practical automation</CheckItem>
               <CheckItem>GitHub, Vercel, and Supabase in accounts you control</CheckItem>
             </ul>
-            <Link className="button-primary" href="/start?goal=demand">
-              Build My Starting Point
+            <Link className="button-primary" href="/packages/launch">
+              See the Full Build
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </article>
@@ -94,8 +94,8 @@ export default function PricingPage() {
               <CheckItem>Industry tools, courses, archives, calls, and texts</CheckItem>
               <CheckItem>Deeper permissions, migration, integrations, and automation</CheckItem>
             </ul>
-            <Link className="button-secondary" href="/start?goal=replace_tools">
-              Map My Industry OS
+            <Link className="button-secondary" href="/packages/industry-os">
+              See the Full System
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </article>
