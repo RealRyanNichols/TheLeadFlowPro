@@ -3,6 +3,8 @@ import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import TrackingScripts from "@/components/TrackingScripts";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getSettings } from "@/lib/settings";
 
 export const metadata: Metadata = {
@@ -50,6 +52,8 @@ export default async function RootLayout({
           <div className="site-content">{children}</div>
           <SiteFooter />
         </div>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
