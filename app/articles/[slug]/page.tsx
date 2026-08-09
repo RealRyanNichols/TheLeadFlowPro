@@ -1,0 +1,94 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import { ArrowRight } from "lucide-react";
+import { ARTICLES, getArticle } from "@/lib/articles";
+
+export function generateStaticParams() {
+  return ARTICLES.map((a) => ({ slug: a.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const article = getArticle(slug);
+  if (!article) return {};
+  return {
+    title: `${article.title} | The LeadFlow Pro`,
+    description: article.description,
+    alternates: { canonical: `https://www.theleadflowpro.com/articles/${article.slug}` },
+    openGraph: {
+      title: article.title,
+      description: article.description,
+      type: "article",
+      publishedTime: article.publishedAt,
+      url: `https://www.theleadflowpro.com/articles/${article.slug}`,
+    },
+  };
+}
+
+export default async function ArticlePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const article = getArticle(slug);
+  if (!article) notFound();
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.description,
+    datePublished: article.publishedAt,
+    author: { "@type": "Person", name: "Ryan Nichols" },
+    publisher: { "@type": "Organization", name: "The LeadFlow Pro" },
+    mainEntityOfPage: `https://www.theleadflowpro.com/articles/${article.slug}`,
+  };
+
+  return (
+    <main className="legal-page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <span className="eyebrow">
+        {new Date(article.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        })}{" "}
+        · {article.readingMinutes} min read · Ryan Nichols
+      </span>
+      <h1>{article.title}</h1>
+      <div className="prose-lfp">
+        <ReactMarkdown>{article.body}</ReactMarkdown>
+      </div>
+      <div className="final-cta portfolio-cta">
+        <div>
+          <span className="eyebrow">Put this to work</span>
+          <h2>Map your system before you buy anything.</h2>
+          <p>
+            Answer a few questions about the problem, the home base, and the sales
+            channels. You see the diagnosis and the recommended build before we ever ask
+            who you are.
+          </p>
+        </div>
+        <div>
+          <Link className="button-primary" href="/start">
+            Map My System
+            <ArrowRight aria-hidden="true" className="h-4 w-4" />
+          </Link>
+          <Link className="button-secondary" href="/articles">
+            More Articles
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}
