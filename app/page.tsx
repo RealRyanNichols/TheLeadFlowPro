@@ -427,7 +427,7 @@ export default function HomePage() {
               A working blueprint for what to build, what to connect, and what to stop
               paying for.
             </p>
-            <Link href="/pricing">
+            <Link href="/packages/system-map">
               See what is included
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
@@ -440,7 +440,7 @@ export default function HomePage() {
               Website, lead capture, CRM, admin workspace, analytics, and email response on
               the owned core.
             </p>
-            <Link href="/pricing">
+            <Link href="/packages/launch">
               See what is included
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
@@ -453,7 +453,7 @@ export default function HomePage() {
               The core plus portals, vertical tools, courses or archives, Quo, and deeper
               automation.
             </p>
-            <Link href="/pricing">
+            <Link href="/packages/industry-os">
               See what is included
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
