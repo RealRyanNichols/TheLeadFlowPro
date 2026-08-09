@@ -8,6 +8,10 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 
 const PRODUCTS: Record<string, { name: string; amount: number }> = {
   learn_it: { name: "Learn It — The LeadFlow Pro (lifetime access)", amount: 49700 },
+  system_map: {
+    name: "System Map — The LeadFlow Pro (credited toward your build)",
+    amount: 49700,
+  },
 };
 
 export async function POST(request: Request) {
@@ -47,12 +51,44 @@ export async function POST(request: Request) {
       metadata.kind = "event";
       metadata.event_id = ev.id;
       if (registrationId) metadata.registration_id = registrationId;
+    } else if (body.kind === "package_deposit" || body.kind === "package_full") {
+      // Build payments straight from the package sales pages. Deposit amount is
+      // chosen by the customer but validated server-side; full payment charges
+      // the base scope price. Everything is credited toward the final build.
+      const PACKAGES: Record<string, { label: string; base: number }> = {
+        "system-map": { label: "System Map", base: 49700 },
+        launch: { label: "LeadFlow Launch", base: 750000 },
+        "industry-os": { label: "Industry OS", base: 1500000 },
+      };
+      const pkg = PACKAGES[String(body.package ?? "")];
+      if (!pkg) return NextResponse.json({ error: "Unknown package" }, { status: 400 });
+      kind = body.kind;
+      metadata.kind = kind;
+      metadata.package = String(body.package);
+      cancelUrl = `${site}/packages/${body.package}?cancelled=1`;
+      if (body.kind === "package_full") {
+        name = `${pkg.label} — pay in full (base scope, guarantee applies)`;
+        amount = pkg.base;
+      } else {
+        // Whole dollars, clamped to sane bounds, never above the base price.
+        const requested = Math.round(Number(body.amount_usd));
+        if (!Number.isFinite(requested)) {
+          return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
+        }
+        const min = 250;
+        const max = Math.min(25000, pkg.base / 100);
+        const dollars = Math.max(min, Math.min(max, requested));
+        name = `${pkg.label} — build down payment (credited in full)`;
+        amount = dollars * 100;
+        metadata.deposit_usd = String(dollars);
+      }
     } else {
       kind = PRODUCTS[body.kind] ? body.kind : "learn_it";
       const product = PRODUCTS[kind];
       name = product.name;
       amount = product.amount;
       metadata.kind = kind;
+      if (kind === "system_map") cancelUrl = `${site}/packages/system-map?cancelled=1`;
     }
 
     const params = new URLSearchParams({
