@@ -2,11 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
-  CalendarDays,
   CodeXml,
   ExternalLink,
   GraduationCap,
-  House,
   LibraryBig,
   Store,
 } from "lucide-react";
@@ -26,25 +24,11 @@ const WORK = [
     body: "Enrollment, payment planning, student training, public career tools, office directories, and real practice-management simulators in one vertical system.",
   },
   {
-    href: "https://www.glmtg.com/",
-    icon: House,
-    tag: "Mortgage",
-    title: "Green Light Mortgage",
-    body: "A mortgage experience that qualifies the visitor one question at a time, then routes them into calculators, education, and the right loan path.",
-  },
-  {
     href: "https://realryannichols.com/",
     icon: LibraryBig,
     tag: "Independent media and public records",
     title: "RealRyanNichols.com",
     body: "Publishing, evidence collections, public records, profiles, forms, and a large searchable archive under one owned operating system.",
-  },
-  {
-    href: "https://www.thecooplongview.com/",
-    icon: CalendarDays,
-    tag: "Local business and events",
-    title: "The Coop on Judson",
-    body: "Space discovery, event paths, local business resources, and inquiry flows built around how people work, meet, host, and build in Longview.",
   },
   {
     href: "https://gideonhq.com/",
