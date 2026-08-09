@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { sendLeadText } from "@/lib/quo";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 
 const INTEREST_LABELS: Record<string, string> = {
@@ -178,6 +179,15 @@ export async function POST(request: Request) {
 
     // Automation emails (no-op until RESEND_API_KEY is configured)
     await sendLeadEmails(lead);
+
+    // Instant text-back (no-op without QUO_API_KEY; only with SMS consent)
+    if (lead.sms_consent && lead.phone) {
+      const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
+      await sendLeadText(
+        lead.phone,
+        `${first}, this is Ryan with The LeadFlow Pro. Got your request and I am already looking at it. I will text or call you shortly. Save this number, it is my direct line. Reply STOP to opt out.`,
+      );
+    }
 
     return NextResponse.json({ ok: true });
   } catch {
