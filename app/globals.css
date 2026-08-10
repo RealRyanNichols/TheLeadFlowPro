@@ -318,3 +318,17 @@ html:has(.router-page){scroll-behavior:auto;overflow-anchor:none}
 .portfolio-work-icon{width:42px;height:42px;color:var(--cyan);background:#2eb9ff17;border-radius:11px;justify-content:center;align-items:center;margin-bottom:22px;display:flex}
 .portfolio-cta{margin-top:70px}
 .system-map-form{gap:18px;display:grid}
+
+
+/* === Colorized card system: gradient icon chips + per-card accents.
+   Same six-gradient family as the /start map, applied site-wide. Not rainbow:
+   one accent per card, cycled in fixed order, everything else stays navy. === */
+.pathfinder-icon,.feature-icon,.industry-card>span{width:46px;height:46px;color:#fff;border:0;background:linear-gradient(135deg,var(--ta,#23baf8),var(--tb,#2f68f4));box-shadow:0 8px 22px var(--tg,#2eb9ff40),inset 0 1px #ffffff45;border-radius:13px}
+.pathfinder-icon svg,.feature-icon svg,.industry-card>span svg{width:22px;height:22px}
+.pathfinder-card:hover,.feature-card:hover{border-color:var(--ta,#67d8ff73)}
+.pathfinder-card{background:linear-gradient(150deg,color-mix(in srgb,var(--ta,#ffffff) 8%,transparent),#ffffff05)}
+.pathfinder-card-topline>span:first-child{color:var(--ta,#56667a)}
+.layer-card>span{display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:13px;color:#fff;font-size:15px;letter-spacing:.04em;background:linear-gradient(135deg,var(--ta,#23baf8),var(--tb,#2f68f4));box-shadow:0 8px 22px var(--tg,#2eb9ff40),inset 0 1px #ffffff45}
+.layer-card:hover{border-color:var(--ta,#67d8ff73)}
+.work-card>span{color:var(--ta,#67d8ff)}
+.work-card:hover{border-color:var(--ta,#67d8ff73)}

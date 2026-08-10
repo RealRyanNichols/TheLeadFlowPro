@@ -31,6 +31,21 @@ import {
   Wrench,
 } from "lucide-react";
 
+// Six-gradient accent family carried over from the /start map. Fixed order,
+// cycled per card, never repainted on filter.
+const TILES: Array<[string, string]> = [
+  ["#38bdf8", "#2563eb"],
+  ["#a78bfa", "#d946ef"],
+  ["#34d399", "#0ea371"],
+  ["#fbbf24", "#f97316"],
+  ["#f87171", "#ef4444"],
+  ["#22d3ee", "#3b82f6"],
+];
+const tile = (i: number) => {
+  const [a, b] = TILES[i % TILES.length];
+  return { "--ta": a, "--tb": b, "--tg": `${a}52` } as React.CSSProperties;
+};
+
 const PATHFINDER = [
   {
     num: "01",
@@ -272,8 +287,8 @@ export default function HomePage() {
           </p>
         </div>
         <div className="pathfinder-grid">
-          {PATHFINDER.map((p) => (
-            <Link key={p.goal} className="pathfinder-card" href={`/start?goal=${p.goal}`}>
+          {PATHFINDER.map((p, i) => (
+            <Link key={p.goal} className="pathfinder-card" href={`/start?goal=${p.goal}`} style={tile(i)}>
               <div className="pathfinder-card-topline">
                 <span>{p.num}</span>
                 <span className="pathfinder-icon">
@@ -309,8 +324,8 @@ export default function HomePage() {
           </p>
         </div>
         <div className="feature-grid">
-          {FEATURES.map((f) => (
-            <article key={f.title} className="feature-card">
+          {FEATURES.map((f, i) => (
+            <article key={f.title} className="feature-card" style={tile(i)}>
               <span className="feature-icon">
                 <f.icon aria-hidden="true" className="h-5 w-5" />
               </span>
@@ -334,8 +349,8 @@ export default function HomePage() {
           </p>
         </div>
         <div className="industry-grid">
-          {INDUSTRIES.map((i) => (
-            <article key={i.title} className="industry-card feature-card">
+          {INDUSTRIES.map((i, idx) => (
+            <article key={i.title} className="industry-card feature-card" style={tile(idx)}>
               <span className="feature-icon">
                 <i.icon aria-hidden="true" className="h-5 w-5" />
               </span>
@@ -356,7 +371,7 @@ export default function HomePage() {
           <h2>Three layers. No Frankenstein stack.</h2>
         </div>
         <div className="layer-grid">
-          <article className="layer-card">
+          <article className="layer-card" style={tile(0)}>
             <span>01</span>
             <h3>LeadFlow Core</h3>
             <p>
@@ -364,7 +379,7 @@ export default function HomePage() {
               infrastructure every build shares.
             </p>
           </article>
-          <article className="layer-card">
+          <article className="layer-card" style={tile(2)}>
             <span>02</span>
             <h3>Your Industry Pack</h3>
             <p>
@@ -372,7 +387,7 @@ export default function HomePage() {
               archives, and vocabulary.
             </p>
           </article>
-          <article className="layer-card">
+          <article className="layer-card" style={tile(3)}>
             <span>03</span>
             <h3>Growth and Operations</h3>
             <p>
@@ -395,8 +410,8 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="work-grid">
-          {WORK.map((w) => (
-            <a key={w.title} href={w.href} target="_blank" rel="noreferrer" className="work-card">
+          {WORK.map((w, i) => (
+            <a key={w.title} href={w.href} target="_blank" rel="noreferrer" className="work-card" style={tile(i)}>
               <span>{w.tag}</span>
               <h3>{w.title}</h3>
               <p>{w.body}</p>
