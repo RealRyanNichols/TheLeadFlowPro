@@ -26,6 +26,13 @@ export default function ArticlesPage() {
         <div className="work-grid">
           {articles.map((a) => (
             <Link key={a.slug} href={`/articles/${a.slug}`} className="work-card">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={a.ogImage}
+                alt=""
+                loading="lazy"
+                className="mb-4 aspect-[1200/630] w-full rounded-xl border border-white/10 object-cover"
+              />
               <span>
                 {new Date(a.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
                   month: "long",

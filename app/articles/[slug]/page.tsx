@@ -73,6 +73,12 @@ export default async function ArticlePage({
         · {article.readingMinutes} min read · Ryan Nichols
       </span>
       <h1>{article.title}</h1>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={article.ogImage}
+        alt={article.title}
+        className="mt-8 aspect-[1200/630] w-full rounded-2xl border border-white/10 object-cover shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
+      />
       <div className="prose-lfp">
         <ReactMarkdown>{article.body}</ReactMarkdown>
       </div>
