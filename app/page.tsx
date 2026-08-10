@@ -478,14 +478,14 @@ export default function HomePage() {
 
       <section className="connector-section section-shell">
         <div>
-          <span className="eyebrow">Connector roadmap</span>
-          <h2>Build once. Work from ChatGPT or Claude.</h2>
+          <span className="eyebrow">You hold the keys</span>
+          <h2>Built in accounts you own. Not ours.</h2>
           <p>
-            The system lives in the accounts the business already runs on: GitHub, Vercel,
-            Supabase, Figma, Notion, Resend, Quo, and Google Workspace. LeadFlow is being
-            structured around one secure remote MCP server, so the same tenant-scoped tools
-            can power a public OpenAI plugin and a Claude custom connector without
-            rebuilding the operating system twice.
+            Every system we build is installed in accounts with your name on them. Your
+            code, your data, your customer list, your email, your phone line. If we
+            disappeared tomorrow, everything keeps running and it is all still yours.
+            And it is built AI-ready: we are wiring these systems so you can one day run
+            your business by simply telling ChatGPT or Claude what you need done.
           </p>
         </div>
         <div className="connector-pills">
