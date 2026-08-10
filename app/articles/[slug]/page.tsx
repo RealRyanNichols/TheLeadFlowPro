@@ -2,6 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
+import RentVsOwnChart from "@/components/charts/RentVsOwnChart";
+import FollowUpSpeedChart from "@/components/charts/FollowUpSpeedChart";
+
+// Proof charts matched to the articles they back up.
+const ARTICLE_CHARTS: Record<string, React.ComponentType> = {
+  "cost-of-renting-business-software": RentVsOwnChart,
+  "website-builder-monthly-fees": RentVsOwnChart,
+  "small-business-website-cost": RentVsOwnChart,
+  "the-money-is-in-the-follow-up": FollowUpSpeedChart,
+  "missed-calls-cost-customers": FollowUpSpeedChart,
+  "website-traffic-but-no-customers": FollowUpSpeedChart,
+};
 import { ArrowRight } from "lucide-react";
 import { ARTICLES, getArticle } from "@/lib/articles";
 
@@ -82,6 +94,14 @@ export default async function ArticlePage({
       <div className="prose-lfp">
         <ReactMarkdown>{article.body}</ReactMarkdown>
       </div>
+      {(() => {
+        const Chart = ARTICLE_CHARTS[article.slug];
+        return Chart ? (
+          <div className="mt-10">
+            <Chart />
+          </div>
+        ) : null;
+      })()}
       <div className="final-cta portfolio-cta">
         <div>
           <span className="eyebrow">Put this to work</span>

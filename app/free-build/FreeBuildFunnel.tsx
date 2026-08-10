@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import RentVsOwnChart from "@/components/charts/RentVsOwnChart";
 
 declare global {
   interface Window {
@@ -448,6 +449,9 @@ export default function FreeBuildFunnel() {
           </Link>
           . But the free build needs no money at all.
         </p>
+        <div className="mt-8">
+          <RentVsOwnChart />
+        </div>
       </section>
 
       {/* INTAKE */}

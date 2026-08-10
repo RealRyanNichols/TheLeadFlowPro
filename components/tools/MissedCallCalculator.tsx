@@ -82,6 +82,31 @@ export default function MissedCallCalculator() {
           </div>
         </div>
       </div>
+      {/* live proof chart: 12 months of losses piling up */}
+      {yearly > 0 && (
+        <figure className="mt-6 rounded-xl border border-white/10 bg-black/20 p-4">
+          <figcaption className="text-sm font-black text-white">
+            Watch it pile up, month by month
+          </figcaption>
+          <div className="mt-3 flex h-28 items-end gap-1.5">
+            {Array.from({ length: 12 }, (_, i) => {
+              const v = monthly * (i + 1);
+              return (
+                <div
+                  key={i}
+                  className="flex-1 rounded-t"
+                  style={{ height: `${((i + 1) / 12) * 100}%`, background: "#dc4747", opacity: 0.55 + (i / 12) * 0.45 }}
+                  title={`Month ${i + 1}: ${fmt(v)} gone`}
+                />
+              );
+            })}
+          </div>
+          <div className="mt-1.5 flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <span>Month 1: {fmt(monthly)}</span>
+            <span>Month 12: {fmt(yearly)}</span>
+          </div>
+        </figure>
+      )}
       <p className="mt-4 text-center text-sm text-slate-400">
         An instant text-back system catches most of these.{" "}
         <a href="https://www.theleadflowpro.com/free-build" className="font-bold text-sky-300 underline" target="_top">

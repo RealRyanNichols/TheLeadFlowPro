@@ -76,6 +76,47 @@ export default function RentReceiptCalculator() {
           </div>
         </div>
       </div>
+      {/* live proof chart: their rent piling up over 5 years */}
+      {monthly > 0 && (
+        <figure className="mt-6 rounded-xl border border-white/10 bg-black/20 p-4">
+          <figcaption className="text-sm font-black text-white">
+            Your money, stacking up against you
+          </figcaption>
+          {(() => {
+            const W = 560;
+            const H = 170;
+            const PL = 8;
+            const PR = 86;
+            const PT = 16;
+            const PB = 24;
+            const max = monthly * 60;
+            const px = (m: number) => PL + (m / 60) * (W - PL - PR);
+            const py = (v: number) => H - PB - (v / max) * (H - PT - PB);
+            let d = `M${px(0)},${py(0)}`;
+            for (let m = 6; m <= 60; m += 6) d += ` L${px(m)},${py(monthly * m)}`;
+            const area = `${d} L${px(60)},${H - PB} L${px(0)},${H - PB} Z`;
+            return (
+              <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Your cumulative rent reaches ${fmt(monthly * 60)} after five years`} className="mt-2 w-full">
+                <path d={area} fill="#dc474726" />
+                <path d={d} fill="none" stroke="#dc4747" strokeWidth={2.5} strokeLinecap="round" />
+                {[1, 3, 5].map((yr) => (
+                  <g key={yr}>
+                    <circle cx={px(yr * 12)} cy={py(monthly * yr * 12)} r={4} fill="#dc4747">
+                      <title>{`Year ${yr}: ${fmt(monthly * yr * 12)}`}</title>
+                    </circle>
+                    <text x={px(yr * 12)} y={H - 8} textAnchor="middle" fontSize={11} fill="#748196">
+                      Yr {yr}
+                    </text>
+                  </g>
+                ))}
+                <text x={px(60) + 8} y={py(monthly * 60) + 4} fontSize={13} fontWeight={800} fill="#f7fafc">
+                  {fmt(monthly * 60)}
+                </text>
+              </svg>
+            );
+          })()}
+        </figure>
+      )}
       <p className="mt-4 text-center text-sm text-slate-400">
         That five-year number buys a system you own outright.{" "}
         <a href="https://www.theleadflowpro.com/free-build" className="font-bold text-sky-300 underline" target="_top">
