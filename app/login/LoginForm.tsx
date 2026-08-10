@@ -35,21 +35,35 @@ export default function LoginForm() {
       // otherwise Supabase sends a confirm link.
       const { data } = await supabase.auth.getUser();
       if (data.user) {
-        router.push(params.get("next") ?? "/dashboard");
+        router.push(params.get("next") ?? (await homeFor(data.user.id)));
         router.refresh();
       } else {
         setMessage("Check your email to confirm your account, then log in.");
         setBusy(false);
       }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: signIn, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) {
         setMessage(error.message);
         setBusy(false);
         return;
       }
-      router.push(params.get("next") ?? "/dashboard");
+      router.push(params.get("next") ?? (await homeFor(signIn.user?.id)));
       router.refresh();
+    }
+
+    // Admins land in the back office. Everyone else lands on their dashboard.
+    async function homeFor(userId?: string) {
+      if (!userId) return "/dashboard";
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .single();
+      return prof?.role === "admin" ? "/admin" : "/dashboard";
     }
   }
 
