@@ -20,7 +20,7 @@ export const ARTICLES: Article[] = [
       "Most businesses do not have a lead problem. They have a follow-up problem. Here is how a connected system catches the leads you already paid for.",
     publishedAt: "2026-08-08",
     readingMinutes: 6,
-    ogImage: "/og/articles/the-money-is-in-the-follow-up.png",
+    ogImage: "/og/articles/the-money-is-in-the-follow-up.jpg",
     body: `
 The post gets attention. The system makes money.
 
@@ -60,7 +60,7 @@ You do not need to buy software to find your leak. Map where inquiries come in, 
       "Marketplace sellers on Amazon, eBay, Poshmark, Mercari, or Whatnot do not need to abandon the channel. They need an owned home base next to it.",
     publishedAt: "2026-08-08",
     readingMinutes: 7,
-    ogImage: "/og/articles/marketplace-is-not-your-website.png",
+    ogImage: "/og/articles/marketplace-is-not-your-website.jpg",
     body: `
 If most of your business happens on Amazon, eBay, Poshmark, Mercari, Whatnot, or Etsy, you have probably heard two kinds of advice. One says the marketplace is all you need. The other says burn it down and build a website. Both are wrong.
 
@@ -96,7 +96,7 @@ Do not trust a blended fee percentage from a blog post, including this one. Pull
       "Template builders, agencies, and owned builds priced honestly. What you pay up front, what you pay forever, and the questions that keep you from overpaying.",
     publishedAt: "2026-08-09",
     readingMinutes: 7,
-    ogImage: "/og/articles/small-business-website-cost.png",
+    ogImage: "/og/articles/small-business-website-cost.jpg",
     body: `
 Ask five people what a small business website costs and you will get five confident answers that have nothing to do with each other. Twelve dollars a month. Five hundred bucks. Five thousand. Fifty thousand. All of them are real prices. They are just prices for different things.
 
@@ -147,7 +147,7 @@ The cheapest website is the one that catches the customers you are already payin
       "Website builders are not a scam. They are a trade. Here is exactly what you get for the monthly fee, what you give up, and when the trade stops making sense.",
     publishedAt: "2026-08-09",
     readingMinutes: 6,
-    ogImage: "/og/articles/website-builder-monthly-fees.png",
+    ogImage: "/og/articles/website-builder-monthly-fees.jpg",
     body: `
 I am not going to tell you Wix, Squarespace, and Shopify are evil. They are not. They are a trade, and trades should be understood before they are signed.
 
@@ -195,7 +195,7 @@ That is the point where ownership beats convenience, and it arrives earlier than
       "CRM in plain English: one list of every lead and customer, what happened last, and what happens next. When a spreadsheet is fine and when it stops being fine.",
     publishedAt: "2026-08-09",
     readingMinutes: 6,
-    ogImage: "/og/articles/does-my-business-need-a-crm.png",
+    ogImage: "/og/articles/does-my-business-need-a-crm.jpg",
     body: `
 CRM is one of those letters-words that software companies love and business owners quietly nod at. Customer relationship management. Fine. But what is it?
 
@@ -246,7 +246,7 @@ Do not buy a CRM because a blog told you to, including this one. Count your inqu
       "Traffic without customers is a diagnosable problem. Five leaks that turn website visitors into strangers, and how to find yours in an afternoon.",
     publishedAt: "2026-08-09",
     readingMinutes: 6,
-    ogImage: "/og/articles/website-traffic-but-no-customers.png",
+    ogImage: "/og/articles/website-traffic-but-no-customers.jpg",
     body: `
 A website that gets visitors and produces no customers is not bad luck. It is a leak, and leaks can be found. Here are the five I find most often when I map a business, in the order I check them.
 
@@ -288,7 +288,7 @@ Walk the path yourself: search, land, read, submit, call. Time the response. Che
       "People who call are ready to buy now. Here is the honest math on missed calls, and the simple system that catches them: text back, one inbox, recorded follow-up.",
     publishedAt: "2026-08-09",
     readingMinutes: 5,
-    ogImage: "/og/articles/missed-calls-cost-customers.png",
+    ogImage: "/og/articles/missed-calls-cost-customers.jpg",
     body: `
 Nobody calls a business to browse. People call when they are ready to act: the AC is out, the tooth hurts, the deadline is Friday, the water is coming through the ceiling. A caller is the most valuable visitor you will ever get, and they are the one you cannot ask to wait.
 
@@ -328,7 +328,7 @@ This is one of the cheapest leaks in business to fix, which is what makes it pai
       "Running a business on Facebook alone works until it does not. What the algorithm decides for you, what a locked account costs, and the owned home base fix.",
     publishedAt: "2026-08-09",
     readingMinutes: 6,
-    ogImage: "/og/articles/facebook-page-is-not-a-website.png",
+    ogImage: "/og/articles/facebook-page-is-not-a-website.jpg",
     body: `
 Plenty of real businesses run entirely on a Facebook page, an Instagram profile, or a TikTok account. The posts get engagement. The DMs bring orders. It works, and because it works, suggesting a website sounds like something a salesman would say.
 
@@ -370,7 +370,7 @@ Do not build anything yet. First map where your business actually lives online, 
       "Followers are rented reach. An email list is owned reach. Why the list beats the algorithm, how to build one with permission, and what to send without being spam.",
     publishedAt: "2026-08-09",
     readingMinutes: 6,
-    ogImage: "/og/articles/own-your-email-list.png",
+    ogImage: "/og/articles/own-your-email-list.jpg",
     body: `
 Ten thousand followers sounds like an audience. It is closer to an audition. Every post you make is a request to an algorithm to please show your work to the people who already said yes to you. Some days it says fine. Most days it shows a sliver.
 
@@ -414,7 +414,7 @@ An email list trapped in a rented tool with per-contact pricing is only half own
       "A Longview-based guide for East Texas owners: what a local business website must do, what it should cost, and the questions that protect you before you sign.",
     publishedAt: "2026-08-09",
     readingMinutes: 7,
-    ogImage: "/og/articles/east-texas-business-website-guide.png",
+    ogImage: "/og/articles/east-texas-business-website-guide.jpg",
     body: `
 I build business systems from Longview, and I talk to owners across East Texas: Longview, Tyler, Marshall, Kilgore, Gladewater, Hallsville, White Oak, and the towns between. The stories rhyme. Somebody paid for a website years ago. The guy who built it moved, or the agency keeps billing, or the login is lost, and nobody is sure what the site even does for the business anymore.
 
@@ -464,7 +464,7 @@ If you want a straight answer on what your business actually needs before anyone
       "Site builder, email tool, booking app, CRM seats, review widget. The worksheet that totals your real software rent, and how to read the number honestly.",
     publishedAt: "2026-08-09",
     readingMinutes: 6,
-    ogImage: "/og/articles/cost-of-renting-business-software.png",
+    ogImage: "/og/articles/cost-of-renting-business-software.jpg",
     body: `
 Nobody decides to spend serious money renting software. It accumulates. Each tool arrived on the day it solved a problem, each one costs less than lunch, and none of them ever leaves. The only way to see the real number is to add it up on purpose.
 
@@ -510,7 +510,7 @@ This is the rare business decision you can start with an hour and a bank stateme
       "Past the hype: what AI genuinely changes about building a business website and system, what it cannot do, and what it means for what owners should pay.",
     publishedAt: "2026-08-09",
     readingMinutes: 7,
-    ogImage: "/og/articles/ai-website-small-business-2026.png",
+    ogImage: "/og/articles/ai-website-small-business-2026.jpg",
     body: `
 Every software company on earth has bolted the letters AI onto its pricing page, so I understand if your eyes glaze over. Underneath the marketing, something real did change, and it matters specifically to small business owners. Here is the honest version.
 
