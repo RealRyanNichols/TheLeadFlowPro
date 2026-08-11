@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { sendLeadText } from "@/lib/quo";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
-
-const INTEREST_LABELS: Record<string, string> = {
-  learn: "Learn It (training)",
-  build_with_you: "Build It With You",
-  done_for_you: "Done For You",
-  unsure: "Not sure yet",
-  blueprint: "System Map",
-  launch_system: "LeadFlow Launch",
-  industry_os: "Industry OS",
-  custom_platform: "Custom Platform",
-  operations: "Operations Partner",
-};
+import { INTEREST_LABELS, notifyNewLead } from "@/lib/leadNotify";
 
 const ALLOWED_INTERESTS = Object.keys(INTEREST_LABELS);
 
@@ -35,92 +23,6 @@ const MODULE_IDS = new Set([
   "commerce_hub",
   "connector_mcp",
 ]);
-
-// Automation emails via Resend. Activates automatically once RESEND_API_KEY
-// is set in Vercel env vars. Never blocks the lead from being saved.
-async function sendLeadEmails(lead: {
-  full_name: string;
-  email: string;
-  phone?: string | null;
-  business_name?: string | null;
-  interest: string;
-  goals?: string | null;
-  current_platform?: string | null;
-  timeline?: string | null;
-  utm_source?: string | null;
-}) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return;
-
-  // Sends from the verified realryannichols.com domain until
-  // theleadflowpro.com finishes Resend verification. Failures are logged so
-  // they show in Vercel runtime logs instead of vanishing.
-  const send = async (payload: object) => {
-    try {
-      const r = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${key}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-      if (!r.ok) console.error("Resend send failed:", r.status, await r.text().catch(() => ""));
-    } catch (e) {
-      console.error("Resend send error:", e);
-    }
-  };
-
-  const first = lead.full_name.split(" ")[0];
-
-  await send({
-    from: "The LeadFlow Pro <leadflow@realryannichols.com>",
-    reply_to: "hello@theleadflowpro.com",
-    to: ["hello@theleadflowpro.com"],
-    subject: `NEW LEAD: ${lead.full_name}${lead.business_name ? ` (${lead.business_name})` : ""} — ${INTEREST_LABELS[lead.interest] ?? lead.interest}`,
-    text: [
-      `Name: ${lead.full_name}`,
-      `Business: ${lead.business_name || "-"}`,
-      `Email: ${lead.email}`,
-      `Phone: ${lead.phone || "-"}`,
-      `Recommended path: ${INTEREST_LABELS[lead.interest] ?? lead.interest}`,
-      `Home base: ${lead.current_platform || "-"}`,
-      `Timeline: ${lead.timeline || "-"}`,
-      `Source: ${lead.utm_source || "direct"}`,
-      ``,
-      `System map summary:`,
-      lead.goals || "-",
-      ``,
-      `Manage: https://www.theleadflowpro.com/admin`,
-    ].join("\n"),
-  });
-
-  await send({
-    from: "Ryan Nichols <leadflow@realryannichols.com>",
-    to: [lead.email],
-    reply_to: "hello@theleadflowpro.com",
-    subject: `Got it, ${first}. Your system map is in my hands.`,
-    text: [
-      `${first},`,
-      ``,
-      `Your system map request just landed in my system. Not a ticket queue. Mine. I read every one of these myself.`,
-      ``,
-      `Here is what happens next:`,
-      ``,
-      `1. I review the map you built: the problem, the home base, the channels, and the modules you picked.`,
-      `2. I reach out within one business day on the channel you chose.`,
-      `3. You leave that first conversation knowing your next three moves, whether you hire me or not.`,
-      ``,
-      `Want a head start? The live systems I have already built and handed over are here:`,
-      `https://www.theleadflowpro.com/portfolio`,
-      ``,
-      `Talk soon,`,
-      `Ryan Nichols`,
-      `The LeadFlow Pro`,
-      `https://www.theleadflowpro.com`,
-    ].join("\n"),
-  });
-}
 
 export async function POST(request: Request) {
   try {
@@ -187,17 +89,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Could not save. Try again." }, { status: 500 });
     }
 
-    // Automation emails (no-op until RESEND_API_KEY is configured)
-    await sendLeadEmails(lead);
-
-    // Instant text-back (no-op without QUO_API_KEY; only with SMS consent)
-    if (lead.sms_consent && lead.phone) {
-      const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
-      await sendLeadText(
-        lead.phone,
-        `${first}, this is Ryan with The LeadFlow Pro. Got your request and I am already looking at it. I will text or call you shortly. Save this number, it is my direct line. Reply STOP to opt out.`,
-      );
-    }
+    // Alert Ryan, reply to the lead, text them back. Shared with the Meta
+    // instant form pipeline so both doors behave the same.
+    await notifyNewLead(lead);
 
     return NextResponse.json({ ok: true });
   } catch {
