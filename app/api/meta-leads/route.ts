@@ -135,6 +135,28 @@ function mapLead(raw: MetaLead) {
   };
 }
 
+// Read-only. Answers, in one cron run, the three questions that actually
+// separate the possible causes: who does Meta think this token is, did the
+// Page token exchange really work, and which permissions were granted.
+async function logTokenDiagnostics(systemToken: string, readToken: string) {
+  const probe = async (label: string, path: string, tok: string) => {
+    try {
+      const r = await fetch(`${GRAPH}/${path}${path.includes("?") ? "&" : "?"}access_token=${encodeURIComponent(tok)}`);
+      const body = await r.text().catch(() => "");
+      console.error(`Meta diag ${label}: ${r.status} ${body.slice(0, 500)}`);
+    } catch (e) {
+      console.error(`Meta diag ${label} threw:`, e);
+    }
+  };
+
+  console.error("Meta diag: page token exchange produced a different token =", readToken !== systemToken);
+  await probe("me(system)", "me?fields=id,name", systemToken);
+  await probe("permissions(system)", "me/permissions", systemToken);
+  await probe("page(system)", `${PAGE_ID}?fields=id,name,access_token`, systemToken);
+  await probe("me(read)", "me?fields=id,name", readToken);
+  await probe("page-forms(read)", `${PAGE_ID}/leadgen_forms?fields=id,name&limit=5`, readToken);
+}
+
 async function fetchLead(leadgenId: string, token: string): Promise<MetaLead | null> {
   const url = `${GRAPH}/${leadgenId}?fields=id,created_time,form_id,field_data&access_token=${encodeURIComponent(token)}`;
   const r = await fetch(url);
@@ -255,6 +277,7 @@ export async function GET(request: Request) {
 
   const readToken = await pageToken(token);
 
+  let diagnosed = false;
   let imported = 0;
   let seen = 0;
   for (const formId of formIds) {
@@ -263,6 +286,14 @@ export async function GET(request: Request) {
     );
     if (!r.ok) {
       console.error("Meta form poll failed:", formId, r.status, await r.text().catch(() => ""));
+      // Subcode 33 on a form id reads like "wrong id" and is almost always
+      // "wrong token" or "app cannot see this Page". Guessing costs a deploy
+      // per guess, so say plainly what Meta thinks this token is. Names and
+      // ids only, never the token itself.
+      if (!diagnosed) {
+        diagnosed = true;
+        await logTokenDiagnostics(token, readToken);
+      }
       continue;
     }
     const { data } = (await r.json()) as { data?: MetaLead[] };
