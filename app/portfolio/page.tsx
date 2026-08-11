@@ -5,7 +5,7 @@ import { ArrowRight, ExternalLink } from "lucide-react";
 export const metadata: Metadata = {
   title: "The Work | The LeadFlow Pro",
   description:
-    "Seven live properties. Real sites, real businesses, real receipts. Every one of them is running right now. Click any of them. Check me.",
+    "Eight live properties. Real sites, real businesses, real receipts. Every one of them is running right now. Click any of them. Check me.",
 };
 
 type Site = {
@@ -30,7 +30,7 @@ const SITES: Site[] = [
     name: "RealRyanNichols.com",
     tag: "Media Platform",
     what: "Independent media platform and evidence archive",
-    ogImage: "https://realryannichols.com/og/site",
+    ogImage: "/og/portfolio/realryannichols.jpg",
     tagline:
       "Faith, fatherhood, building, and the long road of healing in public. Written from his own front porch, on a domain he owns.",
     detail:
@@ -46,7 +46,7 @@ const SITES: Site[] = [
     name: "Premier Dental Academy of Longview",
     tag: "School + Software",
     what: "Dental assistant school running its own enrollment",
-    ogImage: "https://www.premierdentalacademyoflongview.com/assets/og-cover.png",
+    ogImage: "/og/portfolio/premier-dental.jpg",
     tagline:
       "The only RDA program in East Texas that lets students train on real practice management software before their first office.",
     detail:
@@ -62,7 +62,7 @@ const SITES: Site[] = [
     name: "TheLeadFlowPro.com",
     tag: "Funnel + CRM",
     what: "This site. The proof you are standing on.",
-    ogImage: "/og/home.png",
+    ogImage: "/og/portfolio/theleadflowpro.jpg",
     tagline:
       "Guided system mapping, lead capture, client dashboards, admin CRM, course delivery, first party analytics, and ad tracking. All owned, all in one place.",
     detail:
@@ -78,7 +78,7 @@ const SITES: Site[] = [
     name: "RepWatchr.com",
     tag: "SaaS Product",
     what: "Public officials, on the record",
-    ogImage: "https://www.repwatchr.com/api/og/home?v=4",
+    ogImage: "/og/portfolio/repwatchr.jpg",
     tagline:
       "16,783 official profiles and 59,054 sourced records. Votes, money trails, scorecards, and accountability packets voters can inspect and share.",
     detail:
@@ -94,7 +94,7 @@ const SITES: Site[] = [
     name: "GideonHQ.com",
     tag: "Marketplace Platform",
     what: "Sell almost anything. Keep 99%.",
-    ogImage: "https://gideonhq.com/opengraph-image.png",
+    ogImage: "/og/portfolio/gideonhq.jpg",
     tagline:
       "Gideon Commerce: the seller first marketplace and operating system built around a flat 1% platform fee.",
     detail:
@@ -110,8 +110,7 @@ const SITES: Site[] = [
     name: "Faretta.legal",
     tag: "Legal Resource",
     what: "Texas pro se help + investigative reporting",
-    ogImage:
-      "https://static.wixstatic.com/media/176c3b_9eb5585b7ed34bbc8a60ad4a91de251b~mv2.png/v1/fit/w_1200,h_630,al_c/176c3b_9eb5585b7ed34bbc8a60ad4a91de251b~mv2.png",
+    ogImage: "/og/portfolio/faretta.jpg",
     tagline:
       "Flat fee case help from $5 motion skeletons to $497 done for you trial binders, a free AI legal assistant, and live case files documented in real time.",
     detail:
@@ -127,7 +126,7 @@ const SITES: Site[] = [
     name: "DonAndPatti.com",
     tag: "Mission + Nonprofit",
     what: "Medical mission platform with giving and archives",
-    ogImage: "https://www.donandpatti.com/opengraph-image",
+    ogImage: "/og/portfolio/donandpatti.jpg",
     tagline:
       "Free medical mission clinics in Belize, preaching, and local community ministry. Medical care for the body. Hope for the soul.",
     detail:
@@ -138,6 +137,22 @@ const SITES: Site[] = [
     hover: "hover:border-cyan-400/50 hover:shadow-[0_0_28px_rgba(34,211,238,0.25)]",
     whatClass: "text-cyan-300",
   },
+  {
+    url: "https://www.lonestartotalwash.com",
+    name: "LoneStarTotalWash.com",
+    tag: "Local Service Business",
+    what: "Fleet and pressure washing across East Texas",
+    ogImage: "/og/portfolio/lonestar.jpg",
+    tagline:
+      "We wash your fleet. Any size. Mobile service, free quotes, fully insured. From fleets to front porches, we wash it all.",
+    detail:
+      "A local service business put online right: what they do, what it costs, proof of finished jobs, and a free quote request that reaches them instantly. Commercial and residential pressure washing from service trucks to full-size oilfield equipment, trailers, and semis, plus buildings, parking lots, sidewalks, rooftops, drive-throughs, and dumpster pads.",
+    modules: ["Free quote intake", "Public price list", "Jobs completed gallery", "Click to call", "Mobile-first design", "Social tie-in"],
+    bar: "from-red-500 to-orange-400",
+    tagClass: "border-red-400/40 bg-red-500/10 text-red-300",
+    hover: "hover:border-red-400/50 hover:shadow-[0_0_28px_rgba(248,113,113,0.25)]",
+    whatClass: "text-red-300",
+  },
 ];
 
 export default function PortfolioPage() {
@@ -145,7 +160,7 @@ export default function PortfolioPage() {
     <main>
       <section className="page-hero page-hero-centered">
         <span className="eyebrow">Proof before promise</span>
-        <h1>Seven live properties. One reliable core.</h1>
+        <h1>Eight live properties. One reliable core.</h1>
         <p>
           These are not mockups and they are not concept cards. Every property below is a
           real business running right now on a platform it owns. Different industries,
