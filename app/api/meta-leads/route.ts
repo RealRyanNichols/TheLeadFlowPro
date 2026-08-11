@@ -108,12 +108,54 @@ async function fetchLead(leadgenId: string, token: string): Promise<MetaLead | n
   return (await r.json()) as MetaLead;
 }
 
+// Someone can already be in the leads table without an external_id: recovered
+// by hand out of Leads Center, or they filled in the website form first and the
+// ad form second. The unique index on external_id cannot see those, so a poll
+// would insert a duplicate row and text a real person a second time.
+//
+// So before inserting, look for the same human by email or phone. If they are
+// already here, stamp the external_id onto the row we already have and stay
+// quiet. Nobody gets contacted twice, and the next poll now dedupes on the
+// index like everything else.
+type ExistingLead = { id: string; external_id: string | null };
+
+async function claimExisting(
+  supabase: { from: (t: string) => any },
+  external_id: string,
+  email: string,
+  phone: string | null,
+): Promise<boolean> {
+  const real = email && !email.endsWith("@no-email.facebook.lead") ? email : null;
+  const digits = phone ? phone.replace(/\D/g, "").slice(-10) : null;
+  if (!real && !digits) return false;
+
+  const or: string[] = [];
+  if (real) or.push(`email.ilike.${real}`);
+  if (digits) or.push(`phone.ilike.%${digits}`);
+
+  const { data } = await supabase
+    .from("leads")
+    .select("id, external_id")
+    .or(or.join(","))
+    .limit(1);
+
+  const hit = (data as ExistingLead[] | null)?.[0];
+  if (!hit) return false;
+
+  if (!hit.external_id) {
+    await supabase.from("leads").update({ external_id }).eq("id", hit.id);
+  }
+  return true;
+}
+
 // Insert if new, then alert. Returns true only when this call created the row,
 // so a webhook and a backfill poll racing on the same lead cannot double-text.
 async function ingest(raw: MetaLead): Promise<boolean> {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const supabase = createSupabaseClient(SUPABASE_URL, serviceKey || SUPABASE_ANON_KEY);
   const { lead, external_id } = mapLead(raw);
+
+  if (await claimExisting(supabase, external_id, lead.email, lead.phone)) return false;
 
   const { data, error } = await supabase
     .from("leads")
