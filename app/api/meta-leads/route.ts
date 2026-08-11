@@ -25,6 +25,43 @@ import { notifyNewLead } from "@/lib/leadNotify";
 
 const GRAPH = "https://graph.facebook.com/v21.0";
 
+// The LeadFlow Pro Facebook Page.
+const PAGE_ID = process.env.META_PAGE_ID || "887023637835514";
+
+// Reading a form's leads needs a PAGE access token. The token in
+// META_PAGE_ACCESS_TOKEN is a system user token, which is not the same thing:
+// Meta answers /{form_id}/leads with "Object with ID does not exist, cannot be
+// loaded due to missing permissions" (code 100, subcode 33), which reads like a
+// wrong ID and is really a wrong token type. So trade the system user token for
+// the Page's own token first.
+//
+// Cached for the life of the lambda. Page tokens derived from a non-expiring
+// system user token do not expire either, and a cold start just fetches again.
+let cachedPageToken: string | null = null;
+
+async function pageToken(systemToken: string): Promise<string> {
+  if (cachedPageToken) return cachedPageToken;
+  try {
+    const r = await fetch(
+      `${GRAPH}/${PAGE_ID}?fields=access_token&access_token=${encodeURIComponent(systemToken)}`,
+    );
+    if (r.ok) {
+      const j = (await r.json()) as { access_token?: string };
+      if (j.access_token) {
+        cachedPageToken = j.access_token;
+        return cachedPageToken;
+      }
+    } else {
+      console.error("Meta page token exchange failed:", r.status, await r.text().catch(() => ""));
+    }
+  } catch (e) {
+    console.error("Meta page token exchange error:", e);
+  }
+  // Fall back rather than go dark. If the system token happens to work, leads
+  // still flow; if it does not, the per-form error below says so plainly.
+  return systemToken;
+}
+
 type MetaField = { name?: string; values?: string[] };
 type MetaLead = {
   id: string;
@@ -216,11 +253,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: true, skipped: "missing META_PAGE_ACCESS_TOKEN or META_LEAD_FORM_IDS" });
   }
 
+  const readToken = await pageToken(token);
+
   let imported = 0;
   let seen = 0;
   for (const formId of formIds) {
     const r = await fetch(
-      `${GRAPH}/${formId}/leads?fields=id,created_time,form_id,field_data&limit=100&access_token=${encodeURIComponent(token)}`,
+      `${GRAPH}/${formId}/leads?fields=id,created_time,form_id,field_data&limit=100&access_token=${encodeURIComponent(readToken)}`,
     );
     if (!r.ok) {
       console.error("Meta form poll failed:", formId, r.status, await r.text().catch(() => ""));
@@ -259,7 +298,7 @@ export async function POST(request: Request) {
       if (change.field !== "leadgen") continue;
       const leadgenId = change.value?.leadgen_id;
       if (!leadgenId) continue;
-      const raw = await fetchLead(leadgenId, token);
+      const raw = await fetchLead(leadgenId, await pageToken(token));
       if (raw && (await ingest(raw))) imported++;
     }
   }
