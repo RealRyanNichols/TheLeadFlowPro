@@ -14,10 +14,16 @@
 import { useState } from "react";
 import { Play, ExternalLink } from "lucide-react";
 
-const FB_REEL_URL = "https://www.facebook.com/reel/1869359370397748";
+const VIDEO_ID = "1869359370397748";
+
+// Humans get the reel link. The embed does NOT: plugins/video.php renders a
+// black box for /reel/ URLs and plays fine for watch/?v= URLs. Tested both on
+// the live site. Do not "simplify" this back to one URL.
+const FB_REEL_URL = `https://www.facebook.com/reel/${VIDEO_ID}`;
+const FB_WATCH_URL = `https://www.facebook.com/watch/?v=${VIDEO_ID}`;
 const EMBED_SRC = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
-  FB_REEL_URL
-)}&show_text=false&autoplay=true&width=560`;
+  FB_WATCH_URL
+)}&show_text=false&autoplay=true&width=400&height=711`;
 
 export default function MallWalkVideo({ onStart }: { onStart?: () => void }) {
   const [playing, setPlaying] = useState(false);
