@@ -1,0 +1,227 @@
+import { NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "crypto";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
+import { notifyNewLead } from "@/lib/leadNotify";
+
+// Facebook/Instagram instant form leads → the same pipeline as the website
+// form. Before this existed, a lead ad submission stopped dead in Meta's Leads
+// Center: no row in Supabase, no alert to Ryan, no text back. Someone filled
+// out the form and heard nothing.
+//
+// Two ways in, on purpose:
+//   POST  — Meta's leadgen webhook. Instant. Signature-checked.
+//   GET   — two jobs: Meta's webhook handshake (hub.challenge), and a manual
+//           or scheduled backfill poll when called with the cron secret. The
+//           poll is the safety net for anything the webhook missed.
+//
+// Env it needs (all missing → safe no-op, nothing breaks):
+//   META_PAGE_ACCESS_TOKEN  long-lived Page token with leads_retrieval
+//   META_APP_SECRET         to verify webhook signatures
+//   META_VERIFY_TOKEN       any string you also type into Meta's webhook setup
+//   META_LEAD_FORM_IDS      comma-separated form ids, for the backfill poll
+//   CRON_SECRET             guards the backfill poll
+//   SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, QUO_API_KEY
+
+const GRAPH = "https://graph.facebook.com/v21.0";
+
+type MetaField = { name?: string; values?: string[] };
+type MetaLead = {
+  id: string;
+  created_time?: string;
+  form_id?: string;
+  field_data?: MetaField[];
+};
+
+// Meta names custom questions after the question text, slugged. Match loosely
+// so a wording tweak in the form does not silently drop the answer.
+function pick(fields: Map<string, string>, ...needles: string[]): string | null {
+  for (const [k, v] of fields) {
+    for (const n of needles) {
+      if (k.includes(n)) return v || null;
+    }
+  }
+  return null;
+}
+
+function mapLead(raw: MetaLead) {
+  const fields = new Map<string, string>();
+  for (const f of raw.field_data ?? []) {
+    if (!f?.name) continue;
+    fields.set(String(f.name).toLowerCase(), (f.values ?? [])[0] ?? "");
+  }
+
+  const email = pick(fields, "email") ?? "";
+  const full_name =
+    pick(fields, "full_name", "full name") ??
+    [pick(fields, "first_name"), pick(fields, "last_name")].filter(Boolean).join(" ").trim();
+  const phone = pick(fields, "phone");
+
+  const industry = pick(fields, "kind_of_business", "what_kind_of_business");
+  const platform = pick(fields, "have_online", "online_right_now");
+  const timeline = pick(fields, "how_soon", "want_this_built");
+
+  // Everything the lead actually told us, kept verbatim so the admin view and
+  // the alert email show real answers instead of an empty row.
+  const answers = [...fields.entries()]
+    .filter(([k]) => !/^(email|phone_number|full_name|first_name|last_name)$/.test(k))
+    .map(([k, v]) => `${k.replace(/_/g, " ").replace(/\?$/, "")}: ${v}`);
+
+  return {
+    external_id: `meta:${raw.id}`,
+    lead: {
+      full_name: full_name || "Facebook lead",
+      email: email || `${raw.id}@no-email.facebook.lead`,
+      phone: phone || null,
+      business_name: null,
+      website_url: null,
+      current_platform: platform,
+      industry,
+      desired_modules: [] as string[],
+      interest: "done_for_you",
+      goals: answers.length ? answers.join("\n") : null,
+      budget_range: null,
+      timeline,
+      best_contact_method: phone ? "text" : "email",
+      source: "meta_lead_ad",
+      utm_source: "facebook",
+      utm_medium: "paid",
+      utm_campaign: "mall-video-leadform",
+      // The form's own data-use notice tells them Ryan replies by text or
+      // email. That is the basis for the one reply text, nothing more.
+      sms_consent: !!phone,
+      marketing_email_consent: false,
+      consent_at: new Date().toISOString(),
+      external_id: `meta:${raw.id}`,
+      diagnostic: { meta_lead_id: raw.id, form_id: raw.form_id ?? null, fields: Object.fromEntries(fields) },
+    },
+  };
+}
+
+async function fetchLead(leadgenId: string, token: string): Promise<MetaLead | null> {
+  const url = `${GRAPH}/${leadgenId}?fields=id,created_time,form_id,field_data&access_token=${encodeURIComponent(token)}`;
+  const r = await fetch(url);
+  if (!r.ok) {
+    console.error("Meta lead fetch failed:", leadgenId, r.status, await r.text().catch(() => ""));
+    return null;
+  }
+  return (await r.json()) as MetaLead;
+}
+
+// Insert if new, then alert. Returns true only when this call created the row,
+// so a webhook and a backfill poll racing on the same lead cannot double-text.
+async function ingest(raw: MetaLead): Promise<boolean> {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabase = createSupabaseClient(SUPABASE_URL, serviceKey || SUPABASE_ANON_KEY);
+  const { lead, external_id } = mapLead(raw);
+
+  const { data, error } = await supabase
+    .from("leads")
+    .insert(lead)
+    .select("id")
+    .single();
+
+  if (error) {
+    // 23505 = unique violation on external_id. Already handled, not a failure.
+    if ((error as { code?: string }).code === "23505") return false;
+    console.error("Meta lead insert failed:", external_id, error.message);
+    return false;
+  }
+  if (!data) return false;
+
+  await notifyNewLead(lead);
+  return true;
+}
+
+function signatureOk(body: string, header: string | null): boolean {
+  const secret = process.env.META_APP_SECRET;
+  if (!secret) return true; // not configured yet → do not lock Ryan out
+  if (!header?.startsWith("sha256=")) return false;
+  const expected = createHmac("sha256", secret).update(body).digest("hex");
+  const got = header.slice(7);
+  if (got.length !== expected.length) return false;
+  return timingSafeEqual(Buffer.from(got), Buffer.from(expected));
+}
+
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+
+  // 1. Meta's webhook handshake.
+  const mode = url.searchParams.get("hub.mode");
+  const challenge = url.searchParams.get("hub.challenge");
+  const verify = url.searchParams.get("hub.verify_token");
+  if (mode === "subscribe" && challenge) {
+    const expected = process.env.META_VERIFY_TOKEN;
+    if (expected && verify !== expected) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
+    return new NextResponse(challenge, { status: 200 });
+  }
+
+  // 2. Backfill poll. Pulls recent leads per form and ingests anything new.
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret && request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const token = process.env.META_PAGE_ACCESS_TOKEN;
+  const formIds = (url.searchParams.get("form_ids") || process.env.META_LEAD_FORM_IDS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (!token || !formIds.length) {
+    return NextResponse.json({ ok: true, skipped: "missing META_PAGE_ACCESS_TOKEN or META_LEAD_FORM_IDS" });
+  }
+
+  let imported = 0;
+  let seen = 0;
+  for (const formId of formIds) {
+    const r = await fetch(
+      `${GRAPH}/${formId}/leads?fields=id,created_time,form_id,field_data&limit=100&access_token=${encodeURIComponent(token)}`,
+    );
+    if (!r.ok) {
+      console.error("Meta form poll failed:", formId, r.status, await r.text().catch(() => ""));
+      continue;
+    }
+    const { data } = (await r.json()) as { data?: MetaLead[] };
+    for (const raw of data ?? []) {
+      seen++;
+      if (await ingest(raw)) imported++;
+    }
+  }
+
+  return NextResponse.json({ ok: true, seen, imported });
+}
+
+export async function POST(request: Request) {
+  const body = await request.text();
+
+  if (!signatureOk(body, request.headers.get("x-hub-signature-256"))) {
+    return NextResponse.json({ error: "Bad signature" }, { status: 401 });
+  }
+
+  const token = process.env.META_PAGE_ACCESS_TOKEN;
+  if (!token) return NextResponse.json({ ok: true, skipped: "missing META_PAGE_ACCESS_TOKEN" });
+
+  let payload: { entry?: { changes?: { field?: string; value?: { leadgen_id?: string } }[] }[] };
+  try {
+    payload = JSON.parse(body);
+  } catch {
+    return NextResponse.json({ error: "Bad request" }, { status: 400 });
+  }
+
+  let imported = 0;
+  for (const entry of payload.entry ?? []) {
+    for (const change of entry.changes ?? []) {
+      if (change.field !== "leadgen") continue;
+      const leadgenId = change.value?.leadgen_id;
+      if (!leadgenId) continue;
+      const raw = await fetchLead(leadgenId, token);
+      if (raw && (await ingest(raw))) imported++;
+    }
+  }
+
+  // Meta retries anything that is not a fast 200.
+  return NextResponse.json({ ok: true, imported });
+}

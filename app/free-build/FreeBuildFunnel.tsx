@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import RentVsOwnChart from "@/components/charts/RentVsOwnChart";
+import FollowUpSpeedChart from "@/components/charts/FollowUpSpeedChart";
+import MallWalkVideo from "@/components/site/MallWalkVideo";
 
 declare global {
   interface Window {
@@ -30,14 +32,49 @@ declare global {
   }
 }
 
+// Real screenshots of real live sites. Served from our own /public/proof so
+// they always render: hotlinking another site's OG image breaks the day that
+// site changes a path or blocks referrers, and a broken proof wall is worse
+// than no proof wall.
+// A list of blue underlined names is not proof to anybody. A wall of finished
+// work is. Every one of these is live right now and every one was built here.
 const PROOF = [
-  ["Premier Dental Academy", "https://www.premierdentalacademyoflongview.com"],
-  ["LoneStarTotalWash.com", "https://www.lonestartotalwash.com"],
-  ["DonAndPatti.com", "https://www.donandpatti.com"],
-  ["RealRyanNichols.com", "https://realryannichols.com"],
-  ["RepWatchr", "https://repwatchr.com"],
-  ["Gideon Commerce", "https://gideonhq.com"],
-  ["Faretta.legal", "https://faretta.legal"],
+  {
+    name: "Premier Dental Academy",
+    url: "https://www.premierdentalacademyoflongview.com",
+    img: "/proof/premier.jpg",
+    what: "A school running its own enrollment, payment plans, and training simulators",
+  },
+  {
+    name: "RepWatchr.com",
+    url: "https://repwatchr.com",
+    img: "/proof/repwatchr.jpg",
+    what: "A searchable database of public officials, votes, and money trails. Real software, not a brochure",
+  },
+  {
+    name: "GideonHQ.com",
+    url: "https://gideonhq.com",
+    img: "/proof/gideon.jpg",
+    what: "A full marketplace: listings, auctions, storefronts, AI listing builder",
+  },
+  {
+    name: "DonAndPatti.com",
+    url: "https://www.donandpatti.com",
+    img: "/proof/donandpatti.jpg",
+    what: "Mission platform with sponsorship checkout, a photo archive, and an open ledger",
+  },
+  {
+    name: "RealRyanNichols.com",
+    url: "https://realryannichols.com",
+    img: "/proof/rrn.jpg",
+    what: "Publishing engine, searchable case archive, tip line, and store",
+  },
+  {
+    name: "TheLeadFlowPro.com",
+    url: "https://www.theleadflowpro.com",
+    img: "/og/home.png",
+    what: "The page you are standing on. Same stack I would hand you",
+  },
 ] as const;
 
 const TIERS = [
@@ -85,6 +122,39 @@ const TIERS = [
       "Yours: your code, your data, your customer list",
     ],
     featured: false,
+  },
+] as const;
+
+// The three taps that decide everything: what they do, what they have now, and
+// how fast they want it. Same three questions as the Facebook instant form, so
+// a lead looks identical no matter which door they came through. Required,
+// because a lead with no answers is a lead Ryan cannot prioritize.
+const QUALIFIERS = [
+  {
+    name: "q_industry",
+    label: "What kind of business do you run? *",
+    options: [
+      "Home services or trades",
+      "Restaurant, retail, or shop",
+      "Health, beauty, or wellness",
+      "Professional or office services",
+      "Something else",
+    ],
+  },
+  {
+    name: "q_platform",
+    label: "What do you have online right now? *",
+    options: [
+      "Nothing at all",
+      "Just a Facebook page",
+      "An old site that needs replacing",
+      "A site I like, but no system behind it",
+    ],
+  },
+  {
+    name: "q_timeline",
+    label: "How soon do you want this built? *",
+    options: ["This week", "This month", "Next 90 days", "Just looking right now"],
   },
 ] as const;
 
@@ -227,6 +297,9 @@ export default function FreeBuildFunnel() {
         email: form.get("email"),
         phone: phone || null,
         website_url: form.get("website_url"),
+        industry: form.get("q_industry"),
+        current_platform: form.get("q_platform"),
+        timeline: form.get("q_timeline"),
         interest: "done_for_you",
         goals: [
           "FREE BUILD REQUEST (Facebook funnel).",
@@ -366,95 +439,14 @@ export default function FreeBuildFunnel() {
         </div>
       </section>
 
-      {/* 3 STEPS */}
-      <section className="mx-auto mt-10 w-[min(1000px,100%-40px)]">
-        <div className="grid gap-3.5 md:grid-cols-3">
-          {[
-            { icon: MessageSquareMore, t: "1. Tell me about it", d: "As little or as much as you want. Name, photos, videos, voice memos, old links. Dump it all on me." },
-            { icon: Hammer, t: "2. I build the whole thing", d: "Real pages, real forms, real follow-up. Built like the live sites below, customized to you." },
-            { icon: ShieldCheck, t: "3. You decide", d: "Love it? We agree on a fair price by real hours, not agency math. Do not want it? You pay nothing." },
-          ].map((s) => (
-            <div key={s.t} className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-              <s.icon className="h-6 w-6 text-sky-300" />
-              <h2 className="mt-3 text-lg font-extrabold text-white">{s.t}</h2>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate-400">{s.d}</p>
-            </div>
-          ))}
-        </div>
-        <p className="mt-6 text-center text-sm text-slate-400">
-          Every one of these is live right now, built by me:{" "}
-          {PROOF.map(([n, u], i) => (
-            <span key={n}>
-              <a href={u} target="_blank" rel="noreferrer" className="font-bold text-sky-300 underline">
-                {n}
-              </a>
-              {i < PROOF.length - 1 ? " · " : ""}
-            </span>
-          ))}{" "}
-          <span className="font-black text-white">+ MORE that are not even on this list.</span>
-        </p>
-      </section>
+      {/* MALL WALK VIDEO — first thing under the hero. Ryan talking to a real
+          business owner in the Longview Mall does more work than any paragraph
+          on this page. People meet the man, then they meet the form. */}
+      <MallWalkVideo onStart={scrollToForm} />
 
-      {/* TIERS */}
-      <section className="mx-auto mt-14 w-[min(1060px,100%-40px)]">
-        <div className="text-center">
-          <span className="eyebrow">What builds usually look like</span>
-          <h2 className="mt-4 text-3xl font-black text-white sm:text-4xl">
-            Priced by real hours. Never agency math.
-          </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-slate-400">
-            If your build takes me an hour, I am not charging you thousands for it. These
-            are typical ranges, and you approve the exact price before you pay anything.
-          </p>
-        </div>
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {TIERS.map((t) => (
-            <div
-              key={t.name}
-              className={`flex flex-col rounded-2xl border p-6 ${
-                t.featured
-                  ? "border-sky-400/60 bg-sky-500/[0.06] shadow-[0_0_40px_rgba(56,189,248,0.15)]"
-                  : "border-white/10 bg-white/[0.03]"
-              }`}
-            >
-              <span className={`self-start rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${t.featured ? "border-sky-400/50 bg-sky-500/15 text-sky-200" : "border-white/15 bg-white/[0.05] text-slate-300"}`}>
-                {t.tag}
-              </span>
-              <h3 className="mt-3 text-2xl font-black text-white">{t.name}</h3>
-              <p className="mt-1 text-sm font-bold text-sky-300">{t.range}</p>
-              <p className="mt-2 text-sm text-slate-400">{t.desc}</p>
-              <ul className="mt-4 flex-1 space-y-2.5">
-                {t.items.map((it) => (
-                  <li key={it} className="flex items-start gap-2.5 text-sm text-slate-300">
-                    <Check className="mt-0.5 h-4 w-4 flex-none text-emerald-400" strokeWidth={3} />
-                    {it}
-                  </li>
-                ))}
-              </ul>
-              <button
-                type="button"
-                onClick={scrollToForm}
-                className={`mt-6 ${t.featured ? "button-primary" : "button-secondary"} w-full`}
-              >
-                Build Mine Free First
-              </button>
-            </div>
-          ))}
-        </div>
-        <p className="mt-5 text-center text-sm text-slate-400">
-          Ready to commit today? Down payments and pay-in-full with card, Klarna, or
-          Afterpay are on the{" "}
-          <Link href="/packages/launch" className="font-bold text-sky-300 underline">
-            package pages
-          </Link>
-          . But the free build needs no money at all.
-        </p>
-        <div className="mt-8">
-          <RentVsOwnChart />
-        </div>
-      </section>
-
-      {/* INTAKE */}
+      {/* INTAKE — the form sits above the price bands on purpose. 48 ad
+          visits produced zero fills while it lived below three tiers of
+          numbers. People bounced on the price before they ever saw the ask. */}
       <section ref={formRef} className="mx-auto mt-14 w-[min(860px,100%-40px)] scroll-mt-24">
         {!submitted ? (
           <div className="rounded-[20px] border border-line bg-white/[0.04] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] sm:p-9">
@@ -463,9 +455,9 @@ export default function FreeBuildFunnel() {
               Tell me about your business.
             </h2>
             <p className="mt-2 text-slate-400">
-              Name, business, email, and your story are all I need. Everything after
-              that is optional, but the more you give me, the closer the first version
-              lands to your dream.
+              Four boxes and three taps. That is the whole ask. Everything under it is
+              optional, and the more you give me the closer the first version lands to
+              what you actually pictured.
             </p>
             <form onSubmit={handleSubmit} className="mt-7">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -488,36 +480,56 @@ export default function FreeBuildFunnel() {
                   <input name="email" type="email" autoComplete="email" required maxLength={200} />
                 </label>
                 <label className="form-field">
-                  <span>Mobile phone</span>
-                  <input name="phone" type="tel" autoComplete="tel" maxLength={50} />
-                </label>
-                <label className="form-field sm:col-span-2">
-                  <span>Facebook page, old website, or any link you have</span>
-                  <input name="website_url" type="text" inputMode="url" placeholder="Anything counts. Or nothing at all." maxLength={300} />
+                  <span>Mobile phone *</span>
+                  <input name="phone" type="tel" autoComplete="tel" required maxLength={50} />
                 </label>
               </div>
+
+              {/* THE THREE TAPS — same questions as the Facebook form */}
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                {QUALIFIERS.map((q) => (
+                  <label key={q.name} className="form-field">
+                    <span>{q.label}</span>
+                    <select name={q.name} required defaultValue="">
+                      <option value="" disabled>
+                        Pick one
+                      </option>
+                      {q.options.map((o) => (
+                        <option key={o} value={o}>
+                          {o}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ))}
+              </div>
               <label className="form-field mt-4">
-                <span>Tell me everything you want *</span>
+                <span>Anything else you want me to know</span>
                 <textarea
                   name="notes"
-                  rows={5}
-                  required
+                  rows={3}
                   maxLength={2000}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="What you do, who your customers are, what you want the site to feel like, pages you want, colors you like, businesses you admire. Talk to me like we are at the counter."
+                  placeholder="Optional. What you do, what you want the site to feel like, businesses you admire. Or skip it and I will just call you."
                 />
               </label>
 
-              {/* OPTIONAL DEEP DIVE */}
-              <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
-                <p className="text-sm font-extrabold text-white">
-                  Optional: the more you tell me, the better I build.
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
+              {/* OPTIONAL DEEP DIVE — folded away. Four required fields plus three
+                  taps is the whole ask. Everything else is for the people who
+                  want to talk, and they will open it themselves. */}
+              <details className="group mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+                <summary className="cursor-pointer list-none text-sm font-extrabold text-sky-300">
+                  Want to tell me more? Open this. Totally optional.
+                </summary>
+                <p className="mt-2 text-xs text-slate-500">
                   Skip anything. Answer what you feel like. Every answer makes the first
                   version sharper.
                 </p>
+                <label className="form-field mt-4">
+                  <span>Facebook page, old website, or any link you have</span>
+                  <input name="website_url" type="text" inputMode="url" placeholder="Anything counts. Or nothing at all." maxLength={300} />
+                </label>
                 <div className="mt-4 grid gap-3.5 sm:grid-cols-2">
                   {DEEP_DIVE.map((q) => (
                     <label key={q.name} className="form-field">
@@ -536,7 +548,7 @@ export default function FreeBuildFunnel() {
                     </select>
                   </label>
                 </div>
-              </div>
+              </details>
 
               {/* UPLOADS */}
               <div className="mt-5">
@@ -626,6 +638,145 @@ export default function FreeBuildFunnel() {
           </div>
         )}
       </section>
+      {/* 3 STEPS */}
+      <section className="mx-auto mt-10 w-[min(1000px,100%-40px)]">
+        <div className="grid gap-3.5 md:grid-cols-3">
+          {[
+            { icon: MessageSquareMore, t: "1. Tell me about it", d: "As little or as much as you want. Name, photos, videos, voice memos, old links. Dump it all on me." },
+            { icon: Hammer, t: "2. I build the whole thing", d: "Real pages, real forms, real follow-up. Built like the live sites below, customized to you." },
+            { icon: ShieldCheck, t: "3. You decide", d: "Love it? We agree on a fair price by real hours, not agency math. Do not want it? You pay nothing." },
+          ].map((s) => (
+            <div key={s.t} className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+              <s.icon className="h-6 w-6 text-sky-300" />
+              <h2 className="mt-3 text-lg font-extrabold text-white">{s.t}</h2>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-400">{s.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* PROOF WALL — screenshots, not a list of links */}
+      <section className="mx-auto mt-14 w-[min(1100px,100%-40px)]">
+        <div className="text-center">
+          <span className="eyebrow">Built by me. Live right now.</span>
+          <h2 className="mt-4 text-3xl font-black text-white sm:text-4xl">
+            Do not take my word for it. Go click on them.
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-slate-400">
+            Every screen below is a real business running on a platform they own. Open
+            any of them in a new tab and poke around. That is what yours looks like.
+          </p>
+        </div>
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {PROOF.map((site) => (
+            <a
+              key={site.name}
+              href={site.url}
+              target="_blank"
+              rel="noreferrer"
+              className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition hover:border-sky-400/50 hover:shadow-[0_0_30px_rgba(56,189,248,0.22)]"
+            >
+              <div className="aspect-[1200/630] w-full overflow-hidden bg-black/40">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={site.img}
+                  alt={`${site.name} homepage`}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+                />
+              </div>
+              <div className="p-4">
+                <p className="text-sm font-extrabold text-white">{site.name}</p>
+                <p className="mt-1 text-xs leading-relaxed text-slate-400">{site.what}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+        <p className="mt-6 text-center text-sm font-black text-white">
+          Plus more that are not even on this list.
+        </p>
+      </section>
+
+      {/* THE NUMBERS — two charts instead of two paragraphs */}
+      <section className="mx-auto mt-14 w-[min(1100px,100%-40px)]">
+        <div className="text-center">
+          <span className="eyebrow">Why this matters in dollars</span>
+          <h2 className="mt-4 text-3xl font-black text-white sm:text-4xl">
+            Renting your platform costs more than you think.
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-slate-400">
+            Published vendor pricing, not my opinion. And the second chart is the one
+            that decides whether a lead ever becomes a customer.
+          </p>
+        </div>
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          <RentVsOwnChart />
+          <FollowUpSpeedChart />
+        </div>
+        <div className="mt-6 text-center">
+          <button type="button" className="button-primary" onClick={scrollToForm}>
+            Build Mine Free
+            <ArrowRight aria-hidden="true" className="h-4 w-4" />
+          </button>
+        </div>
+      </section>
+
+      {/* TIERS */}
+      <section className="mx-auto mt-14 w-[min(1060px,100%-40px)]">
+        <div className="text-center">
+          <span className="eyebrow">What builds usually look like</span>
+          <h2 className="mt-4 text-3xl font-black text-white sm:text-4xl">
+            Priced by real hours. Never agency math.
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-slate-400">
+            If your build takes me an hour, I am not charging you thousands for it. These
+            are typical ranges, and you approve the exact price before you pay anything.
+          </p>
+        </div>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {TIERS.map((t) => (
+            <div
+              key={t.name}
+              className={`flex flex-col rounded-2xl border p-6 ${
+                t.featured
+                  ? "border-sky-400/60 bg-sky-500/[0.06] shadow-[0_0_40px_rgba(56,189,248,0.15)]"
+                  : "border-white/10 bg-white/[0.03]"
+              }`}
+            >
+              <span className={`self-start rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${t.featured ? "border-sky-400/50 bg-sky-500/15 text-sky-200" : "border-white/15 bg-white/[0.05] text-slate-300"}`}>
+                {t.tag}
+              </span>
+              <h3 className="mt-3 text-2xl font-black text-white">{t.name}</h3>
+              <p className="mt-1 text-sm font-bold text-sky-300">{t.range}</p>
+              <p className="mt-2 text-sm text-slate-400">{t.desc}</p>
+              <ul className="mt-4 flex-1 space-y-2.5">
+                {t.items.map((it) => (
+                  <li key={it} className="flex items-start gap-2.5 text-sm text-slate-300">
+                    <Check className="mt-0.5 h-4 w-4 flex-none text-emerald-400" strokeWidth={3} />
+                    {it}
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                onClick={scrollToForm}
+                className={`mt-6 ${t.featured ? "button-primary" : "button-secondary"} w-full`}
+              >
+                Build Mine Free First
+              </button>
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 text-center text-sm text-slate-400">
+          Ready to commit today? Down payments and pay-in-full with card, Klarna, or
+          Afterpay are on the{" "}
+          <Link href="/packages/launch" className="font-bold text-sky-300 underline">
+            package pages
+          </Link>
+          . But the free build needs no money at all.
+        </p>
+      </section>
+
     </main>
   );
 }
