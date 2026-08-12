@@ -391,33 +391,39 @@ is retracted here:
 - **`/pricing/[tier]` is a live ladder, not a dead one.** Learn It, Build It With You, and
   Done For You are the three public paths in Notion, and Learn It is LIVE in Stripe at $497.
 
+### Settled
+
+1. **The navy question: settled, light wins.** Ryan, Aug 12 2026: "ship the color you think
+   is going to work best. If that's white, override, rewrite and do white. That includes all
+   pages. I want the site to look the same so it doesn't look like different companies."
+   The whole site is now the warm off-white canvas with ink contrast bands. `/admin` is the
+   only dark surface left, scoped by `.is-dark-app`. This supersedes "navy stays the base"
+   in Notion `0. START HERE` and `10. Brand`.
+2. **The six-gradient tile family: kept where it earns its place.** The 78 tool cards and
+   the Add-On menu still use it and it reads well on light, which satisfies the no-bland-boxes
+   rule. It stays off the rebuilt marketing pages, where 30 near-identical gradient-chipped
+   cards were the card soup in the first place.
+3. **Every page is on one system.** `/free-build`, `/go`, `/tools`, `/add-ons`, `/articles`,
+   `/contact`, `/packages/*`, `/pricing/[tier]`, `/start`, `/login`, `/book`, `/events`,
+   `/demo`, `/showcase`, `/thank-you`, `/deposit`, `/privacy`, `/terms` and the dashboard
+   and training surfaces all render on the light canvas.
+4. **Down payments work for any build.** `/deposit` takes a customer-chosen amount clamped
+   server-side, so the free build offer's "a down payment moves it forward" finally has a
+   checkout behind it.
+
 ### Open, in priority order
 
-1. **The navy question, for Ryan.** Notion `0. START HERE` visual rule 3 says "Navy stays
-   the base", and `SOP: Visual and Design Work` repeats "Base stays navy `#0e1a2e`". This
-   redesign inverts the public canvas to warm off-white with ink contrast bands, because the
-   redesign brief asked for exactly that. Both cannot be the standard. Either Notion gets
-   updated to record the new direction, or the canvas goes back to navy. **This is the one
-   decision that should not be made without Ryan.** Everything else here follows from it.
-2. **The six-gradient tile family.** Notion's card standard requires a gradient icon chip,
-   a distinct icon, a matching accent, and a hover border on every card in a grid. The
-   rebuilt pages use flat cobalt icons on a light ground instead, because the gradient chips
-   were a large part of what made the old homepage read as card soup. Same decision as
-   item 1, and it should be resolved with it.
-3. **The three public paths have no home in the new nav.** Learn It / Build It With You /
-   Done For You are live and sellable but the rebuilt nav routes only to the build ladder
-   and the map. `app/training/[course]/page.tsx:40` is currently their only inbound link.
-4. **`/free-build` and `/go` are not yet on the `cb-` system.** Both are live revenue paths
-   and both still carry the old dark treatment, so they now look like a different site.
-   `/free-build` is the highest-value remaining conversion work on the site: it is linked
-   from the nav, the footer, and a homepage band, and it is where the ad spend lands.
-5. **`components/ShowcaseDashboard.tsx`** lists `/pricing/done-for-you` in its simulated page
+1. **Notion standards pages still need the write.** The connector reconnected mid-session
+   under a new identity requiring OAuth, which a non-interactive session cannot complete.
+   The full change set is in `docs/notion-updates-pending.md`, ready to paste.
+2. **The three public paths have no home in the new nav.** Learn It / Build It With You /
+   Done For You are live and sellable. `app/training/[course]/page.tsx:40` is currently
+   their only inbound link.
+3. **`components/ShowcaseDashboard.tsx`** lists `/pricing/done-for-you` in its simulated page
    list. Harmless, but worth pointing at a page that is actually promoted.
-6. Per-project case-study routes (`/portfolio/[slug]`) for the full eleven-part story. The
-   rebuilt index carries the story inline; dedicated routes would let each build rank on its
-   own terms.
-7. Remaining public pages onto the `cb-` system: `/add-ons`, `/tools`, `/articles`,
-   `/contact`.
+4. Per-project case-study routes (`/portfolio/[slug]`) for the full eleven-part story.
+5. Klarna, Afterpay and Affirm need enabling in the Stripe Dashboard. The checkout sets no
+   `payment_method_types`, so they appear automatically once they are on. No code needed.
 
 ### Notion pages that need updating once item 1 is settled
 

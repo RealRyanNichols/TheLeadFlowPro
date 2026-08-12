@@ -20,7 +20,7 @@ export default async function EventsPage() {
   );
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-20">
+    <section className="mx-auto max-w-4xl px-4 pb-24 pt-[22px] sm:pt-8">
       <h1 className="text-center text-4xl font-black text-[var(--heading)] sm:text-5xl">
         Live events. <span className="text-flow-400">Real answers.</span>
       </h1>

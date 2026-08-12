@@ -23,7 +23,7 @@ function Hood({ label, children }: { label: string; children: React.ReactNode })
 
 export default function DemoPage() {
   return (
-    <section className="mx-auto max-w-5xl px-4 py-12">
+    <section className="mx-auto max-w-5xl px-4 pb-20 pt-[22px] sm:pt-8">
       {/* FRAME */}
       <div className="rounded-2xl border border-violet-400/40 bg-violet-500/10 p-4 text-center">
         <p className="text-sm font-bold uppercase tracking-widest text-[var(--violet)]">
