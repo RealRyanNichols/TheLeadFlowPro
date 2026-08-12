@@ -16,7 +16,8 @@ export default function OgGallery() {
   if (process.env.NODE_ENV === "production") notFound();
 
   const cards = [
-    { label: "Directory", href: "/tools", og: "/tools/opengraph-image" },
+    // The directory card is a designed image, not a generated one.
+    { label: "Directory", href: "/tools", og: "/og/tools.jpg" },
     ...PUBLISHED_COLLECTIONS.map((c) => ({
       label: `Collection: ${c.short}`,
       href: `/tools/collections/${c.slug}`,
