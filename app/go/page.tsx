@@ -12,7 +12,7 @@ export const metadata = {
 // Ad landing page: one message, one action. Built for Facebook and Google traffic.
 export default function GoPage() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-12">
+    <section className="mx-auto max-w-6xl px-4 pb-20 pt-[22px] sm:pt-8">
       <div className="grid items-start gap-10 lg:grid-cols-2">
         {/* LEFT: the pitch */}
         <div>

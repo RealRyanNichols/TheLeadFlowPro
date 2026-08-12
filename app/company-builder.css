@@ -157,6 +157,11 @@ body:has(.cb-page) .site-footer :focus-visible {
   letter-spacing: -0.024em;
   line-height: 1.2;
 }
+/* Section-level h2 that sits inside a case row rather than heading a band, so
+   it steps down without dropping to h3 and breaking the heading order. */
+.cb-h2--case {
+  font-size: clamp(26px, 2.6vw, 38px);
+}
 
 .cb-lead {
   font-size: clamp(18px, 1.35vw, 21px);
@@ -313,12 +318,15 @@ body:has(.cb-page) .site-footer :focus-visible {
 
 /* ---------------------------------------------------------------- hero ---- */
 
+/* Top padding is the documented law from Notion 0. START HERE: 44px desktop,
+   24px mobile, matching `.hero-inner`. Ryan has flagged dead space under the
+   header repeatedly. Do not raise this to make the hero "breathe". */
 .cb-hero {
   background: var(--cb-ink);
   color: var(--cb-muted-ink);
   position: relative;
   overflow: hidden;
-  padding: clamp(52px, 7vw, 92px) 0 clamp(56px, 7vw, 96px);
+  padding: clamp(24px, 3vw, 44px) 0 clamp(56px, 7vw, 96px);
 }
 /* Faint connector field. Structural, not a glow. */
 .cb-hero::before {
@@ -983,6 +991,10 @@ body:has(.cb-page) .site-footer :focus-visible {
   gap: clamp(18px, 2.2vw, 32px);
   margin-top: clamp(42px, 5vw, 68px);
 }
+/* Three-step variant. A class, never an inline grid-template on one page. */
+.cb-steps--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 .cb-step {
   padding-top: 26px;
   border-top: 2px solid var(--cb-hair-ink);
@@ -1044,6 +1056,11 @@ body:has(.cb-page) .site-footer :focus-visible {
   padding: 0;
   display: grid;
   gap: 0;
+}
+/* Standalone receipts list, used when it follows a section header instead of
+   sitting inside a two-column block. A class, not an inline margin. */
+.cb-receipts--standalone {
+  margin-top: clamp(32px, 4vw, 52px);
 }
 .cb-receipts li {
   display: grid;

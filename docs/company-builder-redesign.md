@@ -9,20 +9,49 @@ Written during the Phase 1 audit and kept current as phases land.
 
 ---
 
-## 0. Constraints hit during the audit
+## 0. Source of truth and constraints
 
-Two inputs named in the brief were not reachable from this environment. Recorded here so
-nothing is silently assumed:
+**Notion is the brain.** The `The LeadFlow Pro` Notion project is the source of truth for
+this business, and `0. START HERE — Standing Rules and SOP Index` is the page that governs
+any work on it. This document is downstream of Notion, not a replacement for it. Anything
+here that contradicts Notion is a bug in here.
+
+The pages that bind this redesign:
+
+| Notion page | What it governs |
+| --- | --- |
+| `0. START HERE` | Standing rules: spacing law, visual rules, copy rules, work rules, security rules |
+| `1. Business Model, Offers and Money Path` | The offer ladder, the free build offer, legal identity |
+| `10. Brand, Voice and Design System` | Color tokens, the six-gradient tile family, voice |
+| `SOP: Shipping Any Change` | Pull first, fix the root, verify live, then record it in Notion |
+| `SOP: Visual and Design Work` | Card and icon standard, color discipline, image rules |
+| `SOP: Page Layout and Spacing` | The no-dead-space rule |
+
+Two inputs named in the redesign brief were not reachable from the build environment:
 
 | Input | Status | What was used instead |
 | --- | --- | --- |
-| `01-The-LeadFlow-Pro-Instructions.txt`, `02-The-LeadFlow-Pro-Website.txt` | Not present on disk or in the repo | Repo, `AGENTS.md`, `README.md`, `docs/`, and the committed production source |
+| `01-The-LeadFlow-Pro-Instructions.txt`, `02-The-LeadFlow-Pro-Website.txt` | Not on disk or in the repo | The Notion project above, plus the repo |
 | `theleadflowpro.com`, `studiomeraki.agency` | Network egress blocked by the proxy (HTTP 403 on CONNECT) | The repo **is** the deployed app. Baseline captured by building production locally and screenshotting at 1440px and 390px |
 
-The brief's own rule applies cleanly here: the current repository and production direction
-are the source of truth. Studio Meraki was treated as a described benchmark (visual polish,
-whitespace, large imagery, scannable case studies) rather than a page to inspect. Nothing in
-the new system is derived from its layouts, palette, or wording.
+Studio Meraki was treated as a described benchmark (visual polish, whitespace, large
+imagery, scannable case studies) rather than a page to inspect. Nothing in the new system is
+derived from its layouts, palette, or wording.
+
+### Standing rules this work had to satisfy
+
+- **No dead space between header and content, on every page.** Never patched with an inline
+  style on one page. Every spacing value in `company-builder.css` is a class.
+- **No fake numbers, ever.** Every figure on the rebuilt pages traces to the repo or a live
+  property. See section 5.
+- **No em dashes**, no banned phrases, plain operator English.
+- **Never claim stack ownership for Faretta.legal. It runs on Wix.** Enforced in
+  `app/portfolio/page.tsx`; the ownership line says so explicitly and the "real software
+  products on the owned stack" count excludes it.
+- **Never publish GLMTG.com or TheCoopLongview.com.** The two private builds are credited
+  as private client builds with no link and no name.
+- **Fix it everywhere, not where he pointed.** The card-soup fix was applied to the whole
+  homepage, not one section, and the design tokens are shared rather than per-page.
 
 ---
 
@@ -343,20 +372,52 @@ layout bug; the header is correct in a real viewport.
 
 ## 8. Open items, in priority order
 
-1. **`/free-build` contradicts the position.** "I'll build your website free. Pay nothing
-   until you love it" cannot coexist with a $497 System Map as the entry point. Not linked
-   from the new nav or footer. Needs Ryan's call: retire and redirect to `/start`, or keep
-   as a segregated ad-only funnel.
-2. **`/pricing/[tier]` is the old ladder.** Learn It / Build It With You / Done For You,
-   fed by `lib/tiers.ts`. Still reachable and still linked from
-   `app/training/[course]/page.tsx:40`. Needs a retire-or-keep decision before the training
-   product is promoted again.
-3. **`/go`** still argues the old "stop paying Shopify and Wix" angle. Live ad traffic may
-   depend on it. Rewrite into Company Builder language once ad status is confirmed.
-4. **`components/ShowcaseDashboard.tsx`** references `/pricing/done-for-you` in its simulated
-   page list. Cosmetic, but it surfaces a stale route in a demo.
-5. Per-project case-study routes (`/portfolio/[slug]`) for the full eleven-part story. The
+**Corrected after reading Notion.** An earlier draft of this document called `/free-build`
+and `/pricing/[tier]` stale and recommended retiring them. That was wrong on both counts and
+is retracted here:
+
+- **`/free-build` is the current lead engine.** Notion `1. Business Model` lists it as the
+  headline offer running to cold traffic, and the master page's one-sentence pitch is "I
+  will build your whole website. You pay nothing until you love it. Fair, right?" It is
+  live with the full automation chain proven. Nothing about it should be retired.
+- **`/pricing/[tier]` is a live ladder, not a dead one.** Learn It, Build It With You, and
+  Done For You are the three public paths in Notion, and Learn It is LIVE in Stripe at $497.
+
+### Open, in priority order
+
+1. **The navy question, for Ryan.** Notion `0. START HERE` visual rule 3 says "Navy stays
+   the base", and `SOP: Visual and Design Work` repeats "Base stays navy `#0e1a2e`". This
+   redesign inverts the public canvas to warm off-white with ink contrast bands, because the
+   redesign brief asked for exactly that. Both cannot be the standard. Either Notion gets
+   updated to record the new direction, or the canvas goes back to navy. **This is the one
+   decision that should not be made without Ryan.** Everything else here follows from it.
+2. **The six-gradient tile family.** Notion's card standard requires a gradient icon chip,
+   a distinct icon, a matching accent, and a hover border on every card in a grid. The
+   rebuilt pages use flat cobalt icons on a light ground instead, because the gradient chips
+   were a large part of what made the old homepage read as card soup. Same decision as
+   item 1, and it should be resolved with it.
+3. **The three public paths have no home in the new nav.** Learn It / Build It With You /
+   Done For You are live and sellable but the rebuilt nav routes only to the build ladder
+   and the map. `app/training/[course]/page.tsx:40` is currently their only inbound link.
+4. **`/free-build` and `/go` are not yet on the `cb-` system.** Both are live revenue paths
+   and both still carry the old dark treatment, so they now look like a different site.
+   Highest-value remaining conversion work.
+5. **`components/ShowcaseDashboard.tsx`** lists `/pricing/done-for-you` in its simulated page
+   list. Harmless, but worth pointing at a page that is actually promoted.
+6. Per-project case-study routes (`/portfolio/[slug]`) for the full eleven-part story. The
    rebuilt index carries the story inline; dedicated routes would let each build rank on its
    own terms.
-6. Remaining public pages onto the `cb-` system: `/add-ons`, `/tools`, `/articles`,
+7. Remaining public pages onto the `cb-` system: `/add-ons`, `/tools`, `/articles`,
    `/contact`.
+
+### Notion pages that need updating once item 1 is settled
+
+Per `SOP: Shipping Any Change` step 7:
+
+- `10. Brand, Voice and Design System` — the color system table, if the canvas changes
+- `0. START HERE` — visual rules 3 and 4, if the canvas changes
+- `SOP: Visual and Design Work` — the card and icon standard, if the chips change
+- `3. The Website — Every Page and What It Does` — the homepage section list, the new
+  `/about` page, and the new navigation
+- Master page status table — free tools reads "3 tools" but the repo ships **78**, and
+  articles reads "12 published" but the repo ships **13**

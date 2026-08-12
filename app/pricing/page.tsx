@@ -3,10 +3,13 @@ import Link from "next/link";
 import { ArrowRight, Boxes, Check, FileSearch, ShieldCheck, Store } from "lucide-react";
 import CtaLink from "@/components/site/CtaLink";
 
-// Packages. The approved ladder only: System Map, LeadFlow Launch, Industry OS,
-// and Custom Platform. The old Learn It / Build It With You / Done For You
-// ladder at /pricing/[tier] is legacy and is deliberately not linked from here.
-// See docs/company-builder-redesign.md section 7.
+// Packages: the build ladder. System Map, LeadFlow Launch, Industry OS, and
+// Custom Platform, matching Notion "1. Business Model, Offers and Money Path".
+//
+// Learn It / Build It With You / Done For You at /pricing/[tier] are the three
+// public paths from the same Notion page and are LIVE in Stripe. They are a
+// different ladder, not a dead one, and still need a home in the new nav.
+// Tracked in docs/company-builder-redesign.md section 8.
 
 export const metadata: Metadata = {
   title: "Packages | The LeadFlow Pro",
@@ -263,7 +266,7 @@ export default function PricingPage() {
               scope is decided by the map, in writing, before anyone starts building.
             </p>
           </div>
-          <ol className="cb-steps" style={{ gridTemplateColumns: "repeat(3, minmax(0,1fr))" }}>
+          <ol className="cb-steps cb-steps--three">
             {CLARITY.map((c, i) => (
               <li key={c.num} className={`cb-step${i === 0 ? " cb-step--done" : ""}`}>
                 <span className="cb-step-num">{c.num}</span>

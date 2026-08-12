@@ -33,7 +33,7 @@ const PROOF = [
   { figure: "8", label: "live systems shipped and running right now" },
   { figure: "6", label: "industries represented, from local service to software" },
   { figure: "78", label: "free working tools built and published" },
-  { figure: "5", label: "real software products operating, not brochure sites" },
+  { figure: "4", label: "real software products running on the owned stack" },
   { figure: "100%", label: "built in accounts the client controls" },
 ];
 

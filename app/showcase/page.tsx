@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function ShowcasePage() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-12">
+    <section className="mx-auto max-w-6xl px-4 pb-20 pt-[22px] sm:pt-8">
       <div className="text-center">
         <h1 className="text-3xl font-black text-white sm:text-5xl">
           The <span className="text-gradient">Command Center</span>

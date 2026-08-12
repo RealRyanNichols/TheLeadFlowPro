@@ -206,7 +206,7 @@ const FOUNDER_PLATFORMS: Project[] = [
     kind: "founder",
     kindLabel: "Founder-built platform",
     name: "Faretta.legal",
-    context: "Productized legal help. Ryan's own product",
+    context: "Productized legal help on Wix. Ryan's own product",
     what: "A flat-fee service catalog that beats a vague services page.",
     problem:
       "People representing themselves cannot find out what help costs until they have already sat through a consultation, so most of them never start.",
@@ -220,7 +220,9 @@ const FOUNDER_PLATFORMS: Project[] = [
     flow: ["Free AI assistant", "Service recommended", "Flat-fee checkout", "Evidence intake", "Member dashboard", "Case file"],
     outcome:
       "A focused offer catalog with prices attached does the qualifying work that a services page and a contact form never do.",
-    ownership: "Next.js, Supabase, Vercel. Ryan's own product.",
+    // Faretta runs on Wix. Standing rule in Notion 0. START HERE: never claim
+    // stack ownership for this property.
+    ownership: "Runs on Wix, not the LeadFlow stack. Ryan's own product, included here for the offer design rather than the build.",
     url: "https://faretta.legal",
     shot: "/og/portfolio/faretta.jpg",
     alt: "Faretta.legal homepage reading Texas pro se help, investigative reporting, one place",

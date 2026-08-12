@@ -51,7 +51,7 @@ const CHAPTERS = [
   {
     kicker: "Then the software",
     title: "He stopped renting the tools and built them.",
-    body: "Eight live systems across six industries: media platforms, a dental school's enrollment engine, a public-records product, a commerce marketplace, a legal services catalog, a nonprofit mission platform, and a local service business. Five of them are real software products with databases, search, and paid tiers, not brochure pages.",
+    body: "Eight live systems across six industries: media platforms, a dental school's enrollment engine, a public-records product, a commerce marketplace, a legal services catalog, a nonprofit mission platform, and a local service business. Four of them are real software products on the owned stack, with databases, search, and paid tiers, not brochure pages.",
     image: "/og/portfolio/repwatchr.jpg",
     alt: "RepWatchr, a public officials records product built by Ryan Nichols, showing profile and record counts",
     w: 1200,
@@ -133,7 +133,7 @@ export default function AboutPage() {
                 </div>
                 <div>
                   <p className="cb-eyebrow">{c.kicker}</p>
-                  <h2 className="cb-h2" style={{ fontSize: "clamp(26px,2.6vw,38px)" }}>
+                  <h2 className="cb-h2 cb-h2--case">
                     {c.title}
                   </h2>
                   <p className="cb-lead">{c.body}</p>
@@ -156,7 +156,7 @@ export default function AboutPage() {
               results. Just what exists and can be checked.
             </p>
           </div>
-          <ul className="cb-receipts" style={{ marginTop: "clamp(32px,4vw,52px)" }}>
+          <ul className="cb-receipts cb-receipts--standalone">
             {RECEIPTS.map((r) => (
               <li key={r.head}>
                 <BadgeCheck aria-hidden="true" className="h-5 w-5" />
