@@ -262,7 +262,7 @@ html:has(.router-page){scroll-behavior:auto;overflow-anchor:none}
 .router-success h2{margin-top:0}
 .router-success-actions{flex-wrap:wrap;gap:10px;margin-top:20px;display:flex}
 .router-footer{border-top:1px solid var(--line);color:#546176;min-height:70px;font-size:10px}
-.legal-page,.compact-page{width:min(820px,100% - 40px);margin:0 auto;padding:34px 0 110px}
+.legal-page,.compact-page{width:min(820px,100% - 40px);margin:0 auto;padding:32px 0 110px}
 .legal-page h1{color:#fff;letter-spacing:-.05em;margin:22px 0 0;font-size:clamp(40px,6vw,66px);font-weight:870;line-height:1}
 .legal-page h2{color:#fff;letter-spacing:-.025em;margin:40px 0 0;font-size:24px;font-weight:800}
 .legal-page p,.legal-page li{color:var(--muted);font-size:15px;line-height:1.75}
@@ -310,8 +310,9 @@ html:has(.router-page){scroll-behavior:auto;overflow-anchor:none}
 .industry-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:48px;display:grid}
 .industry-card{min-height:200px;padding:24px}
 .industry-card p{color:#7f8ca0}
-.legal-page,.compact-page{width:min(820px,100% - 40px);margin:0 auto;padding:34px 0 110px}
+.legal-page,.compact-page{width:min(820px,100% - 40px);margin:0 auto;padding:32px 0 110px}
 @media (max-width:760px){.site-header-inner,.site-footer-inner,.router-header,.router-footer,.section-shell,.hero-inner,.router-main,.legal-page,.compact-page{width:min(100% - 28px, var(--max))}.pathfinder-grid,.feature-grid,.industry-grid,.layer-grid,.work-grid,.package-preview-grid,.router-option-grid,.form-grid,.result-module-grid{grid-template-columns:1fr}}
+@media (max-width:760px){.legal-page,.compact-page{padding-top:22px}}
 
 /* Portfolio grid and system map form (guided build). */
 .portfolio-work-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
