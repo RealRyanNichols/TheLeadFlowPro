@@ -152,6 +152,103 @@ export type ToolImage = {
   height: number;
 };
 
+/**
+ * The OG composition families. At least eight distinct layouts so the catalog
+ * never reads as one template. Assigned per tool in lib/tools/visuals.ts and
+ * validated so no family dominates and directory neighbors differ.
+ */
+export type OgLayout =
+  /** Scene art right, headline left. The article-thumbnail composition. */
+  | "scene-right"
+  /** Scene art left, headline right. */
+  | "scene-left"
+  /** Full-bleed scene with a solid headline panel over the lower half. */
+  | "panel-over-scene"
+  /** Scene across the top, solid title band across the bottom. */
+  | "band-bottom"
+  /** Two scenes side by side for before/after and versus tools. */
+  | "split-compare"
+  /** A device (phone, terminal, screen) carries the scene, headline beside it. */
+  | "device"
+  /** A document, worksheet or checklist carries the scene, headline beside it. */
+  | "document"
+  /** A large result figure is the hero, scene art supports it. */
+  | "big-number"
+  /** Centered scene with the headline above and support line below. */
+  | "centered"
+  /** A spatial flow or route diagram carries the scene, headline beside it. */
+  | "diagram";
+
+export type SceneType =
+  | "scene"
+  | "still-life"
+  | "device"
+  | "document"
+  | "diagram"
+  | "comparison";
+
+export type VisualReviewStatus = "draft" | "review" | "approved";
+
+/**
+ * Everything about a tool's artwork that is not the formula. Authored per slug
+ * in lib/tools/visuals.ts, produced in the Figma art file, exported into
+ * /public, and validated by scripts/validate-visuals.ts.
+ */
+export type ToolVisual = {
+  /** One sentence describing the picture. The tool's real-world problem decides it. */
+  visualConcept: string;
+  /** Grouping used by the similarity checks: phone-comms, money-flow, route, ... */
+  visualFamily: string;
+  primarySubject: string;
+  supportingSubjects: string[];
+  sceneType: SceneType;
+  /** Composition note: where the subject sits, where the negative space lives. */
+  composition: string;
+  /** Index 1 to 6 into the brand's six-gradient family. An accent, never the differentiator. */
+  colorAccent: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Paths under /public. */
+  cardImage: string;
+  cardImageAlt: string;
+  heroImage: string;
+  heroImageAlt: string;
+  ogImage: string;
+  ogLayout: OgLayout;
+  /** Defaults to the tool name. Override when the name is too long for two lines. */
+  ogTitle?: string;
+  /** One short line under the title. Never wraps. */
+  ogHook: string;
+  /** 0 to 1 in both axes. Where crops must keep the subject. */
+  focalPoint: { x: number; y: number };
+  mobileFocalPoint?: { x: number; y: number };
+  /** Where the picture came from, e.g. "Original vector illustration, Figma". */
+  imageSource: string;
+  license: string;
+  /** ISO date the asset was produced or last replaced. */
+  sourceDate: string;
+  visualReviewStatus: VisualReviewStatus;
+};
+
+/* ------------------------- collection relevance ---------------------------- */
+
+/**
+ * How strongly a tool belongs to an industry. `industries` on the tool stays
+ * the generous "could this ever help" list that search falls back to; these
+ * tiers are what collections and industry ranking actually use, so a generic
+ * QR maker stops counting as a core mortgage tool.
+ */
+export type ToolRelevance = {
+  /** The tool was built for this work. Leads collection pages and search. */
+  coreIndustries: Industry[];
+  /** Strongly related: the tool's examples and presets speak this industry's language. */
+  secondaryIndustries: Industry[];
+  /** Useful to almost anyone. Shown under "Broadly useful", never counted as core. */
+  broadlyUseful: boolean;
+  /** 0 to 100. Orders tools inside a collection tier. */
+  collectionPriority: number;
+  /** One honest line: why this tool is in the collection at all. */
+  collectionReason?: string;
+};
+
 /* ---------------------------- registry metadata --------------------------- */
 
 /**

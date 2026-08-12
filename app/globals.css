@@ -38,6 +38,9 @@ body{background:var(--page);min-width:320px;color:var(--text);text-rendering:opt
 .brand-lockup{color:var(--heading);letter-spacing:-.04em;white-space:nowrap;align-items:baseline;font-size:18px;font-weight:850;display:inline-flex}
 .brand-lockup span{color:var(--blue);margin-left:2px}
 .desktop-nav{color:var(--muted);align-items:center;gap:28px;font-size:14px;font-weight:650;display:flex}
+.desktop-nav>a{white-space:nowrap}
+@media (max-width:1240px){.desktop-nav{gap:18px}}
+@media (max-width:1120px){.desktop-nav{gap:14px;font-size:13px}}
 .desktop-nav>a:not(.header-cta){transition:color .16s}
 .desktop-nav>a:not(.header-cta):hover{color:var(--heading)}
 .header-cta,.button-primary,.button-secondary,.button-quiet,.btn-primary,.btn-ghost{cursor:pointer;border:1px solid #0000;border-radius:11px;justify-content:center;align-items:center;gap:9px;min-height:48px;padding:0 20px;font-weight:760;line-height:1;transition:transform .16s,border-color .16s,background .16s,box-shadow .16s;display:inline-flex}

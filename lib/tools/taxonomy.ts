@@ -485,6 +485,7 @@ export const AUDIENCE_LIST = AUDIENCE_IDS.map((id) => ({ id, ...AUDIENCES[id] })
 
 export const DISCLAIMER_IDS = [
   "general-estimate",
+  "draft-document",
   "financial",
   "mortgage",
   "tax",
@@ -512,6 +513,10 @@ export const DISCLAIMERS: Record<DisclaimerType, DisclaimerMeta> = {
   "general-estimate": {
     label: "This is an estimate",
     body: "This tool returns an estimate based on the numbers you entered. Your real result depends on your own costs, rates and conditions. Check it against your own records before you make a decision with it.",
+  },
+  "draft-document": {
+    label: "A draft, not a final document",
+    body: "This tool assembles a working draft from what you entered. Read it once before you send or post it, and change anything that does not sound like you. You are responsible for what you publish.",
   },
   financial: {
     label: "Not financial advice",

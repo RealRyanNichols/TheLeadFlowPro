@@ -26,16 +26,24 @@ const stat = (r: ReturnType<typeof run>, label: string) => {
 
 describe("missed call money", () => {
   // 5 missed calls a week, 30 percent would have bought, $250 first sale,
-  // 2 lifetime purchases:  5 x 0.30 x 250 x 2 = $750 a week.
+  // 1 repeat purchase after the first job, so 2 purchases per customer:
+  // 5 x 0.30 x (250 x (1 + 1)) = $750 a week.
   // $750 x 52 = $39,000 a year.  $39,000 / 12 = $3,250 a month.
   test("weekly loss compounds to the yearly headline", () => {
-    const r = run("missed-call-calculator", { missed: 5, closeRate: 30, ticket: 250, repeats: 2 });
+    const r = run("missed-call-calculator", { missed: 5, closeRate: 30, ticket: 250, repeats: 1 });
     assert.equal(r.headline?.value, "$39,000");
     assert.equal(r.headline?.sub, "$3,250 a month");
     assert.equal(stat(r, "Lost per week"), "$750");
     // 5 x 0.30 x 52 = 78 customers
     assert.equal(stat(r, "Customers lost a year"), "78");
     assert.equal(stat(r, "Calls missed a year"), "260");
+  });
+
+  // Zero repeats means the customer only ever buys once:
+  // 5 x 0.30 x (250 x (1 + 0)) = $375 a week, x 52 = $19,500 a year.
+  test("zero repeats counts only the first sale", () => {
+    const r = run("missed-call-calculator", { missed: 5, closeRate: 30, ticket: 250, repeats: 0 });
+    assert.equal(r.headline?.value, "$19,500");
   });
 
   test("zero missed calls is zero lost money, not NaN", () => {
@@ -129,6 +137,48 @@ describe("customer lifetime value", () => {
     assert.equal(stat(r, "Lifetime profit"), money(2880 * 0.55));
     // one referral doubles the household value
     assert.equal(stat(r, "With referrals"), money(2880 * 0.55 * 2));
+  });
+});
+
+/* --------------------------- review response writer ------------------------ */
+
+describe("review response writer", () => {
+  // Every text field defaults to blank, so overriding only the type is the
+  // real "user typed nothing" case.
+  const types = ["good", "mixed", "bad", "unfair"] as const;
+
+  test("a blank good review never leaks placeholder fragments", () => {
+    const r = run("review-response-writer", { type: "good" });
+    const text = r.output?.text ?? "";
+    assert.ok(!text.includes("there,"), `greeted a ghost: ${text}`);
+    assert.ok(!text.includes("the owner, our team"), `placeholder signature: ${text}`);
+    assert.ok(text.includes("Thank you"), `no thanks in: ${text}`);
+  });
+
+  test("a bad review with a phone number offers the direct line", () => {
+    const r = run("review-response-writer", { type: "bad", phone: "(903) 500-8898" });
+    const text = r.output?.text ?? "";
+    assert.ok(text.includes("Call or text me directly at (903) 500-8898"), text);
+  });
+
+  test("a blank unfair review reads as complete sentences", () => {
+    const r = run("review-response-writer", { type: "unfair" });
+    const text = r.output?.text ?? "";
+    assert.ok(!text.includes(", ,"), `dangling comma pair in: ${text}`);
+    assert.ok(!text.includes(" ,"), `space before comma in: ${text}`);
+    assert.ok(!text.includes("  "), `double space in: ${text}`);
+    assert.ok(!text.includes("- ,"), `broken signature in: ${text}`);
+  });
+
+  test("no variant with blank fields starts a line with a lowercase there", () => {
+    for (const type of types) {
+      const r = run("review-response-writer", { type });
+      const text = r.output?.text ?? "";
+      assert.ok(text.length > 0, `${type} produced no reply`);
+      for (const line of text.split("\n")) {
+        assert.ok(!/^there\b/.test(line), `${type} opens a line with "there": ${line}`);
+      }
+    }
   });
 });
 

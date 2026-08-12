@@ -6,11 +6,12 @@ import {
 } from "lucide-react";
 import {
   TOOLS, TOOL_COUNT, getTool, relatedTools, toolIndex,
-  DOMAINS, TOOL_TYPES, INDUSTRIES, DISCLAIMERS,
+  DOMAINS, TOOL_TYPES, INDUSTRIES, DISCLAIMERS, SENSITIVITY_NOTE,
 } from "@/lib/tools";
 import { collectionsForTool } from "@/lib/tools/collections";
 import ToolEngine from "@/components/tools/ToolEngine";
 import ToolCard from "@/components/tools/ToolCard";
+import { SHELLS } from "@/components/tools/shell";
 
 const BASE = "https://www.theleadflowpro.com";
 
@@ -54,6 +55,10 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   const domain = DOMAINS[tool.domain];
   const type = TOOL_TYPES[tool.toolType];
   const disclaimer = DISCLAIMERS[tool.disclaimer];
+  const shell = SHELLS[tool.toolType];
+  // The estimate disclaimer is for math. Non-math tools with the generic
+  // disclaimer show the data-privacy note instead, here and in the engine.
+  const suppressEstimate = !shell.showEstimateBadge && tool.disclaimer === "general-estimate";
   const related = toolIndex(relatedTools(tool, 4));
   const collections = collectionsForTool(tool).slice(0, 3);
   const url = `${BASE}/tools/${tool.slug}`;
@@ -209,9 +214,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
       <section className="mx-auto mt-12 w-[min(1040px,100%-40px)]">
         <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-6 sm:p-8">
           <h2 className="text-2xl font-black tracking-tight text-[var(--heading)] sm:text-3xl">How to use it</h2>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            Takes about two minutes. Be honest with the numbers, the tool is not going to tell anybody.
-          </p>
+          <p className="mt-2 text-sm text-[var(--muted)]">{shell.howToIntro}</p>
           <ol className="mt-6 space-y-4">
             {tool.steps.map((s, i) => (
               <li key={i} className="tool-step">
@@ -346,7 +349,9 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
               Browse all {TOOL_COUNT} free tools
             </Link>
           </div>
-          <p className="mt-5 text-xs leading-relaxed text-[var(--quiet)]">{disclaimer.body}</p>
+          <p className="mt-5 text-xs leading-relaxed text-[var(--quiet)]">
+            {suppressEstimate ? SENSITIVITY_NOTE[tool.dataSensitivity] : disclaimer.body}
+          </p>
         </div>
       </section>
     </main>
