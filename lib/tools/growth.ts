@@ -1,8 +1,8 @@
-import { type Tool, num, str, list, money, money2, pct, count, dec } from "./types";
+import { type ToolDef, num, str, list, money, money2, pct, count, dec } from "./types";
 
 /* Reputation and website. What people see before they ever call you. */
 
-export const GROWTH_TOOLS: Tool[] = [
+export const GROWTH_TOOLS: ToolDef[] = [
   /* ------------------------------- REPUTATION ------------------------------- */
   {
     slug: "google-review-link",

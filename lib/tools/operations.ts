@@ -1,8 +1,8 @@
-import { type Tool, num, str, list, money, money2, pct, count, dec, rampMonths } from "./types";
+import { type ToolDef, num, str, list, money, money2, pct, count, dec, rampMonths } from "./types";
 
 /* Costs, ad spend, and time. The three places money leaks quietly. */
 
-export const OPERATIONS_TOOLS: Tool[] = [
+export const OPERATIONS_TOOLS: ToolDef[] = [
   /* ---------------------------------- COSTS --------------------------------- */
   {
     slug: "rent-receipt",

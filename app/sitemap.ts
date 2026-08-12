@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { ARTICLES } from "@/lib/articles";
 import { TOOLS } from "@/lib/tools";
+import { PUBLISHED_COLLECTIONS } from "@/lib/tools/collections";
 import { STAGE_SLUGS } from "@/lib/system-stages";
 import { TIERS } from "@/lib/tiers";
 
@@ -45,10 +46,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     })),
     // Free tools are the give-it-away strategy. They have to be crawlable.
+    // Only published tools are in TOOLS at all, so nothing unfinished leaks out.
     ...TOOLS.map((t) => ({
       url: `${BASE}/tools/${t.slug}`,
       changeFrequency: "monthly" as const,
       priority: 0.8,
+    })),
+    // Collections carry their own written content and only exist when enough
+    // real tools sit behind them, so they are worth indexing.
+    ...PUBLISHED_COLLECTIONS.map((c) => ({
+      url: `${BASE}/tools/collections/${c.slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
     })),
     ...Object.keys(TIERS).map((tier) => ({
       url: `${BASE}/pricing/${tier}`,

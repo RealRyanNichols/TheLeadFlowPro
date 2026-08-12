@@ -1,71 +1,108 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowRight, Download, Code2, Zap } from "lucide-react";
-import { TOOLS, TOOL_COUNT, CATEGORIES, CATEGORY_META } from "@/lib/tools";
-import ToolGrid from "@/components/tools/ToolGrid";
+import { TOOLS, TOOL_COUNT, toolIndex, sortTools } from "@/lib/tools";
+import { PUBLISHED_COLLECTIONS, collectionTools } from "@/lib/tools/collections";
+import ToolDirectory from "@/components/tools/ToolDirectory";
+import ToolFinder from "@/components/tools/ToolFinder";
+import ToolCard from "@/components/tools/ToolCard";
 
+const BASE = "https://www.theleadflowpro.com";
+
+// The OG image comes from app/tools/opengraph-image.tsx. It used to point at the
+// free-website advert, which had nothing to do with this page.
 export const metadata: Metadata = {
-  title: `${TOOL_COUNT} Free Business Tools & Calculators | The LeadFlow Pro`,
-  description: `${TOOL_COUNT} free calculators, generators and checkers for business owners. Missed call money, pricing, margins, QR codes, review links, schema and more. Use them free, embed them on your site free.`,
-  alternates: { canonical: "https://www.theleadflowpro.com/tools" },
+  title: `${TOOL_COUNT} Free Tools Built for Real Work | The LeadFlow Pro`,
+  description: `${TOOL_COUNT} free calculators, generators, planners and checkers for business owners, professionals, families and anyone trying to get something done. Use them here, save the result, put them on your own website.`,
+  alternates: { canonical: `${BASE}/tools` },
   openGraph: {
-    title: `${TOOL_COUNT} free tools for business owners. Use them. Embed them. Keep them.`,
+    title: `${TOOL_COUNT} free tools built for real work`,
     description:
-      "Calculators and generators that show you where the money is leaking, and hand you something you can use today. Free, no signup to use.",
-    url: "https://www.theleadflowpro.com/tools",
+      "Calculators, generators, planners, checkers and builders. Free to use, free to save, free to put on your own site.",
+    url: `${BASE}/tools`,
     siteName: "The LeadFlow Pro",
-    images: [{ url: "/og/free-build.jpg", width: 1200, height: 630 }],
     type: "website",
   },
+  twitter: { card: "summary_large_image" },
 };
 
+/** The no-JavaScript view of the catalogue. Every card is a real link. */
+function StaticGrid() {
+  return (
+    <div className="tool-grid">
+      {sortTools(toolIndex(), "useful").map((t, i) => (
+        <ToolCard key={t.slug} tool={t} priority={i < 3} />
+      ))}
+    </div>
+  );
+}
+
 export default function ToolsPage() {
+  const index = toolIndex();
+
+  const collections = PUBLISHED_COLLECTIONS.map((c) => ({
+    slug: c.slug,
+    short: c.short,
+    hook: c.hook,
+    count: collectionTools(c).length,
+  }));
+
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    name: `${TOOL_COUNT} Free Business Tools`,
-    description: `${TOOL_COUNT} free calculators and generators for business owners.`,
-    url: "https://www.theleadflowpro.com/tools",
-    hasPart: TOOLS.slice(0, 40).map((t) => ({
-      "@type": "WebApplication",
-      name: t.name,
-      description: t.tagline,
-      url: `https://www.theleadflowpro.com/tools/${t.slug}`,
-      applicationCategory: "BusinessApplication",
-      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-    })),
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        name: `${TOOL_COUNT} Free Tools Built for Real Work`,
+        description: `${TOOL_COUNT} free calculators, generators, planners and checkers.`,
+        url: `${BASE}/tools`,
+        isPartOf: { "@type": "WebSite", name: "The LeadFlow Pro", url: BASE },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: BASE },
+          { "@type": "ListItem", position: 2, name: "Free tools", item: `${BASE}/tools` },
+        ],
+      },
+      {
+        "@type": "ItemList",
+        numberOfItems: TOOLS.length,
+        itemListElement: TOOLS.map((t, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          url: `${BASE}/tools/${t.slug}`,
+          name: t.name,
+        })),
+      },
+    ],
   };
 
   return (
     <main className="pb-24">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <section className="page-hero page-hero-centered">
         <span className="eyebrow">
           <Zap aria-hidden="true" className="h-3.5 w-3.5" />
           {TOOL_COUNT} free tools
         </span>
-        <h1>Free tools that show you where the money went.</h1>
+        <h1>Free tools built for real work and real life.</h1>
         <p>
-          {TOOL_COUNT} calculators, generators and checkers built for real
-          business owners. No signup to use them. Give me your name, phone and
-          email once and you can download every result and put any of these on
-          your own website, free, forever.
+          Calculators, generators, planners, checkers and builders for business owners, professionals,
+          families, students, public servants, creators and people trying to get something done. Use it
+          here, save the result, put it on your website. No signup to use any of them.
         </p>
       </section>
 
-      <section className="mx-auto w-[min(1120px,100%-40px)]">
-        {/* the three promises */}
+      <section className="mx-auto w-[min(1180px,100%-40px)]">
         <div className="grid gap-3 sm:grid-cols-3">
           {[
-            { icon: <Zap className="h-5 w-5" />, title: "Free to use", body: "Every tool runs right here. No account, no trial, no credit card." },
-            { icon: <Download className="h-5 w-5" />, title: "Free to download", body: "Save your numbers, scripts, code and QR codes to your own files." },
-            { icon: <Code2 className="h-5 w-5" />, title: "Free to embed", body: "Put any tool on your own website with one line. I host it. It stays free." },
+            { icon: <Zap className="h-5 w-5" />, title: "Free to use", body: "Every tool runs in your browser. No account, no trial, no credit card." },
+            { icon: <Download className="h-5 w-5" />, title: "Free to save", body: "Download, copy or print your result. No email required for any of that." },
+            { icon: <Code2 className="h-5 w-5" />, title: "Free to embed", body: "Put any tool on your own site with one line. I host it and keep it working." },
           ].map((p) => (
-            <div key={p.title} className="rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-5">
+            <div key={p.title} className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--accent-line)] bg-[var(--accent-tint)] text-[var(--blue)]">
                 {p.icon}
               </span>
@@ -75,60 +112,42 @@ export default function ToolsPage() {
           ))}
         </div>
 
+        <div className="mt-8 flex justify-center">
+          <ToolFinder tools={index} />
+        </div>
+
+        {/* The directory reads its filters from the URL, which needs a Suspense
+            boundary. The fallback is the real card grid rather than a spinner,
+            so the catalogue is in the HTML for crawlers and for anyone whose
+            JavaScript has not arrived yet. */}
         <div className="mt-10">
-          <ToolGrid />
+          <Suspense fallback={<StaticGrid />}>
+            <ToolDirectory tools={index} collections={collections} />
+          </Suspense>
         </div>
 
-        {/* categories explainer */}
-        <div className="mt-14 rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-6 sm:p-8">
-          <h2 className="text-2xl font-black tracking-tight text-[var(--heading)]">
-            What is in the toolbox
-          </h2>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {CATEGORIES.map((c) => {
-              const m = CATEGORY_META[c];
-              const n = TOOLS.filter((t) => t.category === c).length;
-              return (
-                <div key={c} className="rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] p-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg" aria-hidden="true">
-                      {m.emoji}
-                    </span>
-                    <span className="text-sm font-black text-[var(--heading)]">{c}</span>
-                    <span className="ml-auto text-xs font-bold text-[var(--quiet)]">{n}</span>
-                  </div>
-                  <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{m.blurb}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* the offer */}
-        <div className="mt-8 rounded-2xl border border-[var(--accent-line)] bg-sky-500/[0.06] p-7 text-center sm:p-9">
+        <div className="mt-14 rounded-2xl border border-[var(--accent-line)] bg-[var(--accent-tint)] p-7 text-center sm:p-9">
           <h2 className="text-2xl font-black tracking-tight text-[var(--heading)] sm:text-3xl">
             Why is all this free?
           </h2>
           <p className="mx-auto mt-3 max-w-2xl leading-relaxed text-[var(--text)]">
-            Because this is a fraction of what a website should be doing for you.
-            If a free calculator can show you where five figures a year is
-            leaking, imagine what your actual site could do if it was built to
-            run your business instead of just sit there. Use every one of these
-            and never talk to me. That is fine. But when you are ready to stop
-            renting your platform, you will know who to call.
+            Because this is a fraction of what a website should be doing for you. If a free calculator can
+            show you where five figures a year is leaking, think about what your actual site could do if it
+            was built to run your business instead of just sit there. Use every one of these and never talk
+            to me. That is fine. When you are ready to stop renting your platform, you will know who to call.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link href="/start" className="button-primary">
-              Map My System
+              Map My Company
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
             <a href="sms:+19035008898" className="button-secondary">
-              Text Me a Tool Idea
+              Text me a tool idea
             </a>
           </div>
           <p className="mt-4 text-xs text-[var(--quiet)]">
-            New tools drop every month. If your business wishes one of these
-            existed, tell me and I might build it.
+            New tools go up every month. If your business wishes one of these existed, tell me and I might
+            build it next.
           </p>
         </div>
       </section>

@@ -1,6 +1,6 @@
-import { type Tool, num, money, money2, pct, count, dec, rampMonths } from "./types";
+import { type ToolDef, num, money, money2, pct, count, dec, rampMonths } from "./types";
 
-export const LEAD_TOOLS: Tool[] = [
+export const LEAD_TOOLS: ToolDef[] = [
   {
     slug: "missed-call-calculator",
     name: "Missed Call Money Calculator",
