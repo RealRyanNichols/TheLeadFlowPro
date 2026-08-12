@@ -1,5 +1,7 @@
+import Link from "next/link";
 import {
   ArrowLeft,
+  ArrowUpRight,
   BarChart3,
   Building2,
   CreditCard,
@@ -25,26 +27,28 @@ type Stage = {
   icon: typeof Megaphone;
   name: string;
   note: string;
+  /** Every node opens the full page for that stage. */
+  href: string;
 };
 
 const TOP: Stage[] = [
-  { index: "01", icon: Megaphone, name: "Attention", note: "Ads, search, content, referrals" },
-  { index: "02", icon: MonitorSmartphone, name: "Website", note: "The offer, explained and priced" },
-  { index: "03", icon: Radio, name: "Lead capture", note: "Forms, calls, texts, chat, DMs" },
-  { index: "04", icon: Database, name: "CRM", note: "One record per person, scored" },
+  { index: "01", icon: Megaphone, name: "Attention", note: "Ads, search, content, referrals", href: "/system/attention" },
+  { index: "02", icon: MonitorSmartphone, name: "Website", note: "The offer, explained and priced", href: "/system/website" },
+  { index: "03", icon: Radio, name: "Lead capture", note: "Forms, calls, texts, chat, DMs", href: "/system/lead-capture" },
+  { index: "04", icon: Database, name: "CRM", note: "One record per person, scored", href: "/system/crm" },
 ];
 
 const BOTTOM: Stage[] = [
-  { index: "05", icon: MessageSquareMore, name: "Follow-up", note: "Text, email, call, booking" },
-  { index: "06", icon: CreditCard, name: "Sale", note: "Quote, contract, payment" },
-  { index: "07", icon: Building2, name: "Delivery", note: "Portal, onboarding, the work" },
-  { index: "08", icon: BarChart3, name: "Reporting", note: "What produced revenue" },
+  { index: "05", icon: MessageSquareMore, name: "Follow-up", note: "Text, email, call, booking", href: "/system/follow-up" },
+  { index: "06", icon: CreditCard, name: "Sale", note: "Quote, contract, payment", href: "/system/sale" },
+  { index: "07", icon: Building2, name: "Delivery", note: "Portal, onboarding, the work", href: "/system/delivery" },
+  { index: "08", icon: BarChart3, name: "Reporting", note: "What produced revenue", href: "/system/reporting" },
 ];
 
 function Node({ stage }: { stage: Stage }) {
   const Icon = stage.icon;
   return (
-    <div className="cb-node">
+    <Link className="cb-node cb-node--link" href={stage.href}>
       <span className="cb-node-index">{stage.index}</span>
       <span className="cb-node-icon">
         <Icon aria-hidden="true" className="h-[18px] w-[18px]" />
@@ -53,7 +57,8 @@ function Node({ stage }: { stage: Stage }) {
         <strong>{stage.name}</strong>
         <small>{stage.note}</small>
       </span>
-    </div>
+      <ArrowUpRight aria-hidden="true" className="cb-node-go h-4 w-4" />
+    </Link>
   );
 }
 
@@ -62,7 +67,7 @@ export default function CompanyLoop() {
     <figure className="cb-loop">
       <figcaption className="cb-loop-title">
         <strong>How a company actually moves money</strong>
-        <span>One connected system</span>
+        <span>Open any stage</span>
       </figcaption>
 
       <div className="cb-loop-row">
