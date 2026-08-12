@@ -78,6 +78,32 @@ const LADDER = [
   },
 ];
 
+// Ryan, Aug 12 2026: "Every quote was different. Every business was different.
+// Not everybody's paying the same amount, but not everybody's getting the same
+// exact thing."
+//
+// The ladder above shows three starting points, which reads as one-size-fits-all
+// if nothing explains why two businesses on the same rung pay different numbers.
+// This is that explanation, and it turns custom pricing from evasion into the
+// reason the number is honest.
+const WHY_DIFFERENT = [
+  {
+    num: "01",
+    title: "Same door, different building",
+    body: "Two businesses can both start at LeadFlow Launch and need completely different work behind it. One has a clean brand and 40 customers in a spreadsheet. The other has eight years of records in three systems and a team that needs permissions. Same rung, different build.",
+  },
+  {
+    num: "02",
+    title: "You are quoted for what you actually need",
+    body: "Nobody pays for a portal they will not use, a migration they do not need, or an integration that does not apply. The map decides the scope, and the scope decides the number. That is why the price is a range until the map is done.",
+  },
+  {
+    num: "03",
+    title: "Priced by the real work",
+    body: "The number comes from what the build actually takes, not from a rate card that charges every client the same because it is easier to invoice. If a piece turns out simpler than expected, it costs less. That runs both ways, in writing, before anything starts.",
+  },
+];
+
 const CLARITY = [
   {
     num: "01",
@@ -208,6 +234,40 @@ export default function PricingPage() {
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </div>
+        </div>
+      </section>
+
+      <section className="cb-band cb-band--ink">
+        <div className="cb-shell">
+          <div className="cb-headrow">
+            <div>
+              <p className="cb-eyebrow">Why the number moves</p>
+              <h2 className="cb-h2 cb-heading">
+                Every quote is different, because every business is.
+              </h2>
+            </div>
+            <p className="cb-lead">
+              Not everybody pays the same amount, and not everybody is getting the same
+              thing. A price list that charges two very different companies the same number
+              is not being fair to either of them. It is just easier to print.
+            </p>
+          </div>
+          <ol className="cb-steps cb-steps--three">
+            {/* No cb-step--done accent here. These three are peers, not a
+                sequence, so nothing should read as "you are here". */}
+            {WHY_DIFFERENT.map((c) => (
+              <li key={c.num} className="cb-step">
+                <span className="cb-step-num">{c.num}</span>
+                <h3>{c.title}</h3>
+                <p>{c.body}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="cb-quotenote">
+            Worth saying plainly: this is not the cheapest way to get a website. It is the
+            way that leaves you owning the thing when it is done. If price is the only
+            number that matters, there are faster answers than this one.
+          </p>
         </div>
       </section>
 
