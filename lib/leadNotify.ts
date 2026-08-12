@@ -111,6 +111,41 @@ export async function sendLeadEmails(lead: NotifiableLead) {
   });
 }
 
+// Puts the lead onto the "Free Build 30-Day Email Series" automation in Resend.
+//
+// This is NOT a normal email send. The automation is triggered by the Resend
+// Events API, not by adding a contact to an audience. It listens for the event
+// name below and nothing else. Until this call existed the automation sat
+// Enabled with Runs: 0 forever, because the app only ever called
+// /emails (transactional) and never /events/send. Leads got the welcome email
+// and then silence.
+//
+// If the series ever stops firing, check three things in order:
+//   1. Resend -> Automations -> is it still Enabled, and is Runs climbing?
+//   2. Does SERIES_EVENT below still match the automation trigger exactly?
+//   3. Is RESEND_API_KEY set in Vercel for the environment you deployed to?
+const SERIES_EVENT = "free-build-lead";
+
+export async function enrollInEmailSeries(email: string) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key || !email) return;
+  try {
+    const r = await fetch("https://api.resend.com/events/send", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ event: SERIES_EVENT, email }),
+    });
+    if (!r.ok) {
+      console.error("Resend series enroll failed:", r.status, await r.text().catch(() => ""));
+    }
+  } catch (e) {
+    console.error("Resend series enroll error:", e);
+  }
+}
+
 export async function textLeadBack(lead: NotifiableLead) {
   if (!lead.phone) return;
   const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
@@ -120,7 +155,8 @@ export async function textLeadBack(lead: NotifiableLead) {
   );
 }
 
-// Alert + reply + text, in that order. Never throws.
+// Alert + reply + text + enroll in the 30-day series, in that order.
+// Never throws: a broken provider must never stop a lead from being saved.
 export async function notifyNewLead(lead: NotifiableLead) {
   try {
     await sendLeadEmails(lead);
@@ -131,5 +167,10 @@ export async function notifyNewLead(lead: NotifiableLead) {
     if (lead.sms_consent && lead.phone) await textLeadBack(lead);
   } catch (e) {
     console.error("lead text step failed:", e);
+  }
+  try {
+    await enrollInEmailSeries(lead.email);
+  } catch (e) {
+    console.error("lead series enroll step failed:", e);
   }
 }

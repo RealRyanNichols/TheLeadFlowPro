@@ -1,94 +1,24 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
+import { enrollInEmailSeries } from "@/lib/leadNotify";
 
-// Daily follow-up sequence for leads that haven't booked. Runs on Vercel Cron
-// (vercel.json). Needs env vars: CRON_SECRET, SUPABASE_SERVICE_ROLE_KEY,
-// RESEND_API_KEY. Missing any → safe no-op.
-// Sends at most ONE step per lead per day, in order, and never re-sends a step.
-
-const SITE = "https://www.theleadflowpro.com";
-
-const STEPS: { step: number; afterDays: number; subject: (first: string) => string; body: (first: string) => string }[] = [
-  {
-    step: 1,
-    afterDays: 1,
-    subject: (f) => `${f}, run your real numbers`,
-    body: (f) =>
-      [
-        `${f},`,
-        ``,
-        `Yesterday you told me a bit about your business. Before we ever get on a call, do one thing:`,
-        ``,
-        `Run your actual numbers through the calculator — your platform, your list size, your traffic:`,
-        `${SITE}/?utm_source=email&utm_medium=followup&utm_campaign=followup-day1#receipt`,
-        ``,
-        `Line by line, published vendor pricing, sources shown. Most owners find out they're handing $7,000 to $18,000 to rented platforms every 3 years — and owning nothing at the end of it.`,
-        ``,
-        `The tape is the tape. Run it.`,
-        ``,
-        `Ryan Nichols`,
-        `The LeadFlow Pro | Own your platform.`,
-      ].join("\n"),
-  },
-  {
-    step: 2,
-    afterDays: 3,
-    subject: () => `What a build actually looks like`,
-    body: (f) =>
-      [
-        `${f},`,
-        ``,
-        `Talk is cheap, so I built a demo you can walk through: a sample local business running on the exact system I build for clients.`,
-        ``,
-        `${SITE}/demo?utm_source=email&utm_medium=followup&utm_campaign=followup-day3`,
-        ``,
-        `Look at the annotations. The funnel, the tracking, the lead capture that answers in under a second, the back office the owner actually sees. That's not a template from a page builder. That's a platform — and the client owns every piece of it.`,
-        ``,
-        `When you're ready to see yours: ${SITE}/book`,
-        ``,
-        `Ryan Nichols`,
-      ].join("\n"),
-  },
-  {
-    step: 3,
-    afterDays: 5,
-    subject: () => `The part nobody else shows you`,
-    body: (f) =>
-      [
-        `${f},`,
-        ``,
-        `Websites are easy. What nobody hands you is the command center — live traffic, every lead attributed to the ad that earned it, AI agents doing the follow-up while you sleep.`,
-        ``,
-        `I put a live demo of it here:`,
-        `${SITE}/showcase?utm_source=email&utm_medium=followup&utm_campaign=followup-day5`,
-        ``,
-        `If your online life feels like chaos, this is what the other side looks like.`,
-        ``,
-        `Ryan Nichols`,
-      ].join("\n"),
-  },
-  {
-    step: 4,
-    afterDays: 7,
-    subject: (f) => `${f} — straight question`,
-    body: (f) =>
-      [
-        `${f},`,
-        ``,
-        `A week ago you reached out. Straight question: do you want this fixed or not?`,
-        ``,
-        `Thirty minutes. I'll come with your numbers already run and give you your next three moves — whether you hire me or not. No pressure, no scripts.`,
-        ``,
-        `Grab the call: ${SITE}/book?utm_source=email&utm_medium=followup&utm_campaign=followup-day7`,
-        ``,
-        `If the timing's wrong, reply and tell me — I'd rather hear "not yet" than silence.`,
-        ``,
-        `Ryan Nichols`,
-        `The LeadFlow Pro | Own your platform.`,
-      ].join("\n"),
-  },
-];
+// Daily enrollment sweep. Runs on Vercel Cron (vercel.json), 10am Central.
+//
+// The 4-step hardcoded email sequence that used to live here is GONE on
+// purpose (2026-08-12, Ryan's call). It overlapped the Resend "Free Build
+// 30-Day Email Series" and a lead would have gotten both. The Resend series
+// is the one follow-up sequence now.
+//
+// New leads are enrolled instantly by notifyNewLead() at capture time. This
+// cron is the safety net behind that: it sweeps every live lead from the
+// last 21 days and enrolls anyone the instant path missed - which includes
+// every lead captured during the Runs:0 window before enrollment existed.
+//
+// Step 0 in lead_emails is the enrollment marker, not an email. The table
+// has UNIQUE (lead_id, step), so a lead can never be enrolled twice, even
+// if two runs overlap. Steps 1-4 in that table are history from the retired
+// sequence; leave them.
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
@@ -107,43 +37,39 @@ export async function GET(request: Request) {
 
   const { data: leads } = await supabase
     .from("leads")
-    .select("id, created_at, full_name, email, status")
+    .select("id, created_at, full_name, email, status, is_test, email_unsubscribed_at")
     .is("deleted_at", null)
+    .is("email_unsubscribed_at", null) // never email someone who opted out
+    .not("is_test", "is", true) // test rows are not people
     .in("status", ["new", "contacted"])
     .gte("created_at", since);
 
   const { data: sentRows } = await supabase
     .from("lead_emails")
-    .select("lead_id, step");
-  const sent = new Set((sentRows ?? []).map((r) => `${r.lead_id}:${r.step}`));
+    .select("lead_id, step")
+    .eq("step", 0);
+  const enrolledAlready = new Set((sentRows ?? []).map((r) => r.lead_id));
 
-  let delivered = 0;
+  let enrolled = 0;
   for (const lead of leads ?? []) {
-    const days = Math.floor((Date.now() - new Date(lead.created_at).getTime()) / 86400e3);
-    // lowest unsent step whose day has arrived → keeps sequence order, one per run
-    const next = STEPS.find((s) => days >= s.afterDays && !sent.has(`${lead.id}:${s.step}`));
-    if (!next) continue;
+    if (enrolledAlready.has(lead.id)) continue;
 
-    // Claim the step first (unique constraint = no dupes even on overlapping runs)
+    // Claim first (unique constraint = no dupes even on overlapping runs)
     const { error: claimErr } = await supabase
       .from("lead_emails")
-      .insert({ lead_id: lead.id, step: next.step });
+      .insert({ lead_id: lead.id, step: 0 });
     if (claimErr) continue;
 
-    const first = (lead.full_name ?? "there").split(" ")[0];
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: "Ryan Nichols <hello@theleadflowpro.com>",
-        to: [lead.email],
-        reply_to: "hello@theleadflowpro.com",
-        subject: next.subject(first),
-        text: next.body(first),
-      }),
-    }).catch(() => {});
-    delivered++;
+    await enrollInEmailSeries(lead.email);
+    await supabase.from("lead_activity").insert({
+      lead_id: lead.id,
+      // 'kind' has a CHECK constraint: stage_change | owner_change | note |
+      // task | system | message | delete. Anything else throws.
+      kind: "system",
+      detail: "Enrolled in the 30-day email series",
+    });
+    enrolled++;
   }
 
-  return NextResponse.json({ ok: true, checked: (leads ?? []).length, delivered });
+  return NextResponse.json({ ok: true, checked: (leads ?? []).length, enrolled });
 }
