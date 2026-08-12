@@ -345,10 +345,7 @@ export default function FreeBuildFunnel() {
   return (
     <main className="pb-24">
       {/* HERO */}
-      <section
-        className="page-hero page-hero-centered"
-        style={{ padding: "34px 0 18px" }}
-      >
+      <section className="page-hero page-hero-centered">
         <span className="inline-flex items-center gap-2.5 rounded-full border border-sky-400/40 bg-gradient-to-r from-sky-500/25 via-blue-600/20 to-violet-500/25 px-4 py-2 shadow-[0_0_30px_rgba(56,189,248,0.28)] backdrop-blur">
           <Hammer aria-hidden="true" className="h-3.5 w-3.5 text-sky-300" />
           <span className="text-[11px] font-black uppercase tracking-[0.2em] text-sky-100">

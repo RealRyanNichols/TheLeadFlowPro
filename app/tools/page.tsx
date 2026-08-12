@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function ToolsPage() {
   return (
     <main className="pb-24">
-      <section className="page-hero page-hero-centered" style={{ padding: "44px 0 20px" }}>
+      <section className="page-hero page-hero-centered">
         <span className="eyebrow">Free tools</span>
         <h1>Free tools your business can use today.</h1>
         <p>
