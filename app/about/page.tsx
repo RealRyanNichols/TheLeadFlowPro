@@ -70,6 +70,10 @@ const RECEIPTS = [
     body: "RepWatchr is a working software product on the same stack installed for clients. Searchable database, scorecards, packet builder, paid research tiers.",
   },
   {
+    head: "He has been on the buying side of premium work.",
+    body: "Ryan has flown a specialist in first class, covered the room, the board and the food, and paid five figures for a two day shoot, because the content that came out of it paid for itself once it went to work. That is why he does not flinch at quoting a real number, and why he will tell you when something is not worth it.",
+  },
+  {
     head: "78 free working tools. 13 owned articles.",
     body: "Calculators, assessments, and generators published on infrastructure he controls, not on a rented platform that can change the terms.",
   },
