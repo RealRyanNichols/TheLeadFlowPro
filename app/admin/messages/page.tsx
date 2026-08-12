@@ -43,7 +43,7 @@ export default async function AdminMessages({
     <div className="grid gap-6 lg:grid-cols-2">
       {/* CLIENT THREADS */}
       <div>
-        <h2 className="mb-3 text-lg font-bold text-white">Client threads</h2>
+        <h2 className="mb-3 text-lg font-bold text-[var(--heading)]">Client threads</h2>
         <div className="space-y-2">
           {[...threads.entries()].map(([pid, msgs]) => {
             const p = profileById.get(pid);
@@ -56,11 +56,11 @@ export default async function AdminMessages({
                   activeThread === pid ? "border-flow-500" : ""
                 }`}
               >
-                <div className="font-bold text-white">
+                <div className="font-bold text-[var(--heading)]">
                   {p?.full_name || p?.email || "Unknown client"}
                 </div>
                 {last && (
-                  <p className="mt-1 truncate text-xs text-slate-400">
+                  <p className="mt-1 truncate text-xs text-[var(--muted)]">
                     {last.sender}: {last.body}
                   </p>
                 )}
@@ -68,7 +68,7 @@ export default async function AdminMessages({
             );
           })}
           {threads.size === 0 && (
-            <div className="card text-center text-sm text-slate-400">
+            <div className="card text-center text-sm text-[var(--muted)]">
               No client threads yet. Open one from the Clients page.
             </div>
           )}
@@ -76,7 +76,7 @@ export default async function AdminMessages({
 
         {activeThread && (
           <div className="card mt-4">
-            <h3 className="mb-3 font-bold text-white">
+            <h3 className="mb-3 font-bold text-[var(--heading)]">
               Thread with{" "}
               {profileById.get(activeThread)?.full_name ||
                 profileById.get(activeThread)?.email ||
@@ -93,15 +93,15 @@ export default async function AdminMessages({
 
       {/* VISITOR INBOX */}
       <div>
-        <h2 className="mb-3 text-lg font-bold text-white">
+        <h2 className="mb-3 text-lg font-bold text-[var(--heading)]">
           Visitor messages (contact form)
         </h2>
         <div className="space-y-2">
           {(visitorMessages ?? []).map((m) => (
             <div key={m.id} className="card !p-4">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-white">{m.visitor_name}</span>
-                <span className="text-xs text-slate-400">
+                <span className="font-bold text-[var(--heading)]">{m.visitor_name}</span>
+                <span className="text-xs text-[var(--muted)]">
                   {new Date(m.created_at).toLocaleString()}
                 </span>
               </div>
@@ -111,13 +111,13 @@ export default async function AdminMessages({
               >
                 {m.visitor_email}
               </a>
-              <p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">
+              <p className="mt-2 whitespace-pre-wrap text-sm text-[var(--text)]">
                 {m.body}
               </p>
             </div>
           ))}
           {(visitorMessages ?? []).length === 0 && (
-            <div className="card text-center text-sm text-slate-400">
+            <div className="card text-center text-sm text-[var(--muted)]">
               No visitor messages yet.
             </div>
           )}

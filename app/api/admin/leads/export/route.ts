@@ -22,6 +22,7 @@ export async function GET() {
   const { data: leads, error } = await supabase
     .from("leads")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (error) {
     return NextResponse.json({ error: "Export failed" }, { status: 500 });

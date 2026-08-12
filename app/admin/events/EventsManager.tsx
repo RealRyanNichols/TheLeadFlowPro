@@ -100,7 +100,7 @@ export default function EventsManager({ initialEvents }: { initialEvents: EventR
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <p className="text-slate-400">
+        <p className="text-[var(--muted)]">
           Create a workshop or seminar, set YOUR price (0 = free), publish when
           ready. Registrations land here.
         </p>
@@ -168,8 +168,8 @@ export default function EventsManager({ initialEvents }: { initialEvents: EventR
           <div key={ev.id} className="card">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-bold text-white">{ev.title}</h2>
-                <p className="text-xs text-slate-400">
+                <h2 className="text-lg font-bold text-[var(--heading)]">{ev.title}</h2>
+                <p className="text-xs text-[var(--muted)]">
                   {ev.starts_at
                     ? new Date(ev.starts_at).toLocaleString("en-US", { timeZone: "America/Chicago" })
                     : "Date TBA"}
@@ -190,7 +190,7 @@ export default function EventsManager({ initialEvents }: { initialEvents: EventR
                 <button
                   onClick={() => togglePublish(ev)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-bold ${
-                    ev.is_published ? "bg-mint/20 text-mint" : "bg-line text-slate-400"
+                    ev.is_published ? "bg-mint/20 text-mint" : "bg-line text-[var(--muted)]"
                   }`}
                 >
                   {ev.is_published ? "PUBLISHED" : "DRAFT — click to publish"}
@@ -201,21 +201,21 @@ export default function EventsManager({ initialEvents }: { initialEvents: EventR
             {openRegs === ev.id && (
               <div className="mt-4 space-y-2 border-t border-line pt-4">
                 {ev.event_registrations.length === 0 && (
-                  <p className="text-sm text-slate-400">No registrations yet.</p>
+                  <p className="text-sm text-[var(--muted)]">No registrations yet.</p>
                 )}
                 {ev.event_registrations.map((r) => (
                   <div
                     key={r.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-ink p-3 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-[var(--page)] p-3 text-sm"
                   >
                     <div>
-                      <span className="font-semibold text-white">{r.full_name}</span>
-                      <span className="ml-2 text-slate-400">
+                      <span className="font-semibold text-[var(--heading)]">{r.full_name}</span>
+                      <span className="ml-2 text-[var(--muted)]">
                         {r.email}
                         {r.phone && ` · ${r.phone}`}
                         {r.business_name && ` · ${r.business_name}`}
                       </span>
-                      {r.notes && <p className="mt-1 text-xs text-slate-400">{r.notes}</p>}
+                      {r.notes && <p className="mt-1 text-xs text-[var(--muted)]">{r.notes}</p>}
                     </div>
                     <select
                       className="input !w-auto !py-1 text-xs"
@@ -235,7 +235,7 @@ export default function EventsManager({ initialEvents }: { initialEvents: EventR
           </div>
         ))}
         {events.length === 0 && (
-          <div className="card text-center text-slate-400">
+          <div className="card text-center text-[var(--muted)]">
             No events yet. Create your first workshop above.
           </div>
         )}

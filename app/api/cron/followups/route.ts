@@ -108,6 +108,7 @@ export async function GET(request: Request) {
   const { data: leads } = await supabase
     .from("leads")
     .select("id, created_at, full_name, email, status")
+    .is("deleted_at", null)
     .in("status", ["new", "contacted"])
     .gte("created_at", since);
 
