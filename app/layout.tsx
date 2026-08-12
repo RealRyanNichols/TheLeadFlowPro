@@ -56,9 +56,14 @@ export const metadata: Metadata = {
   },
 };
 
+// Last two leftovers from the navy era. themeColor painted the mobile browser
+// chrome navy above a light page, and colorScheme "dark" told the UA to render
+// scrollbars, form controls and other default UI dark on a site that is now
+// light everywhere. globals.css already declares color-scheme:light on :root;
+// these are the document-level defaults that were still contradicting it.
 export const viewport = {
-  themeColor: "#0e1a2e",
-  colorScheme: "dark" as const,
+  themeColor: "#f7f5f2",
+  colorScheme: "light" as const,
 };
 
 export default async function RootLayout({
