@@ -7,6 +7,7 @@ import {
   Check,
   Database,
   ExternalLink,
+  Gift,
   KeyRound,
   Layers,
   LayoutDashboard,
@@ -196,6 +197,27 @@ const RECEIPTS = [
   {
     head: "Publishes on owned infrastructure, not rented reach.",
     body: "78 free working tools and 13 articles, all served from domains and databases under his own control.",
+  },
+];
+
+// The free build offer, stated the way it actually runs: the build happens
+// first, a down payment moves it forward. Matches /free-build and Notion
+// "1. Business Model, Offers and Money Path".
+const FREE_BUILD = [
+  {
+    num: "01",
+    title: "Tell me about it",
+    body: "As little or as much as you want. Name, photos, videos, voice memos, old links. Dump it all on me.",
+  },
+  {
+    num: "02",
+    title: "I build the whole thing",
+    body: "Real pages, real forms, real follow-up. Built like the live systems above, customized to you.",
+  },
+  {
+    num: "03",
+    title: "You decide",
+    body: "Love it? A down payment moves it forward and we price it by real hours, never agency math. Do not want it? You pay nothing.",
   },
 ];
 
@@ -614,6 +636,57 @@ export default function HomePage() {
               Map the bigger idea
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 8b ------------------------------------------------- the free build */}
+      {/* The lead magnet, and the lowest-friction way in. It sits directly
+          after the ladder on purpose: an owner who just read $7,500 needs to
+          see the zero-risk door before they bounce. */}
+      <section className="cb-band cb-band--ink cb-freebuild">
+        <div className="cb-shell">
+          <div className="cb-freebuild-grid">
+            <div>
+              <p className="cb-eyebrow">
+                <Gift aria-hidden="true" className="h-4 w-4" />
+                The free build offer
+              </p>
+              <h2 className="cb-h2 cb-heading">
+                Not ready to pay for a map? I&rsquo;ll build it first.
+              </h2>
+              <p className="cb-lead">
+                Tell me about the business. I build the whole thing before you pay anything.
+                No card, no deposit, no contract. If you love it, a down payment moves it
+                forward and we agree on a fair price by real hours. If you don&rsquo;t, we
+                shake hands and part friends.
+              </p>
+              <div className="cb-actions">
+                <CtaLink
+                  href="/free-build"
+                  event="start_free_build"
+                  placement="home_freebuild"
+                  className="cb-btn cb-btn--primary"
+                >
+                  Start My Free Build
+                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </CtaLink>
+                <a className="cb-btn cb-btn--ghost" href="sms:+19035008898">
+                  Text me: (903) 500-8898
+                </a>
+              </div>
+            </div>
+            <ol className="cb-freebuild-steps">
+              {FREE_BUILD.map((s) => (
+                <li key={s.title}>
+                  <span className="cb-freebuild-num">{s.num}</span>
+                  <div>
+                    <strong>{s.title}</strong>
+                    <span>{s.body}</span>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
         </div>
       </section>

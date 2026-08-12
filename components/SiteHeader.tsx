@@ -5,8 +5,12 @@ import { usePathname } from "next/navigation";
 import { ArrowRight, Menu } from "lucide-react";
 
 // Primary navigation is ordered by buyer intent, not by sitemap. Add-Ons and
-// Free Tools moved to the footer: their routes are unchanged, so no inbound
-// link breaks and no redirect is needed.
+// Free Tools live in the footer: their routes are unchanged, so no inbound link
+// breaks and no redirect is needed.
+//
+// Free Build leads. It is the lead magnet with the ad campaign behind it: the
+// build happens first and a down payment moves it forward. Lowest friction way
+// in, so it gets the first slot and its own accent.
 const NAV_LINKS: Array<[string, string]> = [
   ["/#what-we-build", "What We Build"],
   ["/portfolio", "The Work"],
@@ -26,6 +30,9 @@ export default function SiteHeader() {
           The LeadFlow<span>Pro</span>
         </Link>
         <nav className="desktop-nav" aria-label="Primary navigation">
+          <Link href="/free-build" className="nav-free">
+            Free Build
+          </Link>
           {NAV_LINKS.map(([href, label]) => (
             <Link key={href} href={href}>
               {label}
@@ -42,6 +49,9 @@ export default function SiteHeader() {
             <Menu aria-hidden="true" className="h-5 w-5" />
           </summary>
           <div className="mobile-nav-panel">
+            <Link href="/free-build" className="nav-free">
+              Free Build
+            </Link>
             {NAV_LINKS.map(([href, label]) => (
               <Link key={href} href={href}>
                 {label}

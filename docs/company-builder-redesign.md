@@ -106,13 +106,13 @@ Public routes and their status:
 | `/start` | The System Map intake router. Business-critical | **Untouched.** Writes to `leads.diagnostic` with attribution and consent |
 | `/about` | Did not exist | Created, Phase 4 |
 | `/contact`, `/privacy`, `/terms`, `/login` | Working | Keep |
-| `/pricing/[tier]` | **Stale.** Old low-ticket ladder: Learn It $497 / Build It With You / Done For You, sourced from `lib/tiers.ts` | Flagged. Not linked from the new nav. See §7 |
-| `/free-build` | **Stale offer.** "I'll build your website free. Pay nothing until you love it." Directly contradicts the Company Builder position and the paid System Map entry point | Flagged. Not linked from nav or footer. See §7 |
-| `/go` | Ad landing page, old "stop paying Shopify and Wix" angle | Flagged, ad traffic may still hit it. Left live, see §7 |
+| `/pricing/[tier]` | **Live ladder.** Learn It / Build It With You / Done For You, the three public paths from Notion `1. Business Model`. Learn It is LIVE in Stripe at $497 | Kept. Still needs a home in the new nav. See §8 |
+| `/free-build` | **The lead engine.** "I'll build your whole website. You pay nothing until you love it." Ryan confirmed it stays: a funnel and ad campaign run to it, and a down payment moves the build forward | **Turned back on:** first in the primary nav, in the footer, and a dedicated homepage band |
+| `/go` | Ad landing page, old "stop paying Shopify and Wix" angle | Live, ad traffic may hit it. Not yet on the `cb-` system. See §8 |
 | `/demo`, `/showcase`, `/events`, `/book` | Not in nav | Left live. `/showcase` uses simulated data and labels itself as such |
 
-Nothing was deleted in this phase. Stale routes stay reachable so inbound links and ad
-traffic do not 404; they are simply no longer promoted.
+Nothing was deleted and nothing was demoted. Every route above is still reachable at its
+original path, so no inbound link or ad destination breaks.
 
 ### What is worth preserving
 
@@ -380,6 +380,14 @@ is retracted here:
   headline offer running to cold traffic, and the master page's one-sentence pitch is "I
   will build your whole website. You pay nothing until you love it. Fair, right?" It is
   live with the full automation chain proven. Nothing about it should be retired.
+
+  **Ryan confirmed directly:** it stays, there is an entire funnel and ad campaign behind
+  it, and the mechanic is that he starts the build for free and a **down payment** moves it
+  forward if the owner likes it. It is a lead magnet, not a competing offer. It is now
+  turned back on in three places: first in the primary nav with its own green accent, in
+  the footer under Work together, and as a dedicated band on the homepage placed directly
+  after the price ladder, so an owner who just read $7,500 sees the zero-risk door before
+  they bounce.
 - **`/pricing/[tier]` is a live ladder, not a dead one.** Learn It, Build It With You, and
   Done For You are the three public paths in Notion, and Learn It is LIVE in Stripe at $497.
 
@@ -401,7 +409,8 @@ is retracted here:
    and the map. `app/training/[course]/page.tsx:40` is currently their only inbound link.
 4. **`/free-build` and `/go` are not yet on the `cb-` system.** Both are live revenue paths
    and both still carry the old dark treatment, so they now look like a different site.
-   Highest-value remaining conversion work.
+   `/free-build` is the highest-value remaining conversion work on the site: it is linked
+   from the nav, the footer, and a homepage band, and it is where the ad spend lands.
 5. **`components/ShowcaseDashboard.tsx`** lists `/pricing/done-for-you` in its simulated page
    list. Harmless, but worth pointing at a page that is actually promoted.
 6. Per-project case-study routes (`/portfolio/[slug]`) for the full eleven-part story. The
