@@ -10,8 +10,15 @@ import ToolCard from "@/components/tools/ToolCard";
 
 const BASE = "https://www.theleadflowpro.com";
 
-// The OG image comes from app/tools/opengraph-image.tsx. It used to point at the
-// free-website advert, which had nothing to do with this page.
+// The OG image is the designed card at /og/tools.jpg, not a generated one. It
+// replaced app/tools/opengraph-image.tsx (deleted), which in turn had replaced
+// the free-website advert that had nothing to do with this page.
+//
+// The card has "86" painted into the artwork. If TOOL_COUNT moves, the image has
+// to be redrawn. Everything else on the page reads the live count.
+const OG_IMAGE = "/og/tools.jpg";
+const OG_ALT = `${TOOL_COUNT} free tools built for real work, from The LeadFlow Pro`;
+
 export const metadata: Metadata = {
   title: `${TOOL_COUNT} Free Tools Built for Real Work | The LeadFlow Pro`,
   description: `${TOOL_COUNT} free calculators, generators, planners and checkers for business owners, professionals, families and anyone trying to get something done. Use them here, save the result, put them on your own website.`,
@@ -23,8 +30,15 @@ export const metadata: Metadata = {
     url: `${BASE}/tools`,
     siteName: "The LeadFlow Pro",
     type: "website",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: OG_ALT }],
   },
-  twitter: { card: "summary_large_image" },
+  twitter: {
+    card: "summary_large_image",
+    title: `${TOOL_COUNT} free tools built for real work`,
+    description:
+      "Calculators, generators, planners, checkers and builders. Free to use, free to save, free to put on your own site.",
+    images: [OG_IMAGE],
+  },
 };
 
 /** The no-JavaScript view of the catalogue. Every card is a real link. */
