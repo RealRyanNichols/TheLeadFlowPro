@@ -59,7 +59,8 @@ export default async function ArticlePage({
   const article = getArticle(slug);
   if (!article) notFound();
 
-  const jsonLd = {
+  const SITE = "https://www.theleadflowpro.com";
+  const articleLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: article.title,
@@ -67,8 +68,26 @@ export default async function ArticlePage({
     datePublished: article.publishedAt,
     author: { "@type": "Person", name: "Ryan Nichols" },
     publisher: { "@type": "Organization", name: "The LeadFlow Pro" },
-    mainEntityOfPage: `https://www.theleadflowpro.com/articles/${article.slug}`,
+    mainEntityOfPage: `${SITE}/articles/${article.slug}`,
   };
+
+  // Video articles get their own VideoObject so the clip can be indexed on its own.
+  const videoLd = article.video
+    ? {
+        "@context": "https://schema.org",
+        "@type": "VideoObject",
+        name: article.video.title,
+        description: article.video.description,
+        thumbnailUrl: [`${SITE}${article.video.poster}`],
+        uploadDate: article.publishedAt,
+        duration: `PT${article.video.durationSeconds}S`,
+        contentUrl: `${SITE}${article.video.src}`,
+        width: article.video.width,
+        height: article.video.height,
+        publisher: { "@type": "Organization", name: "The LeadFlow Pro" },
+      }
+    : null;
+  const jsonLd = videoLd ? [articleLd, videoLd] : articleLd;
 
   return (
     <main className="legal-page">
@@ -85,12 +104,42 @@ export default async function ArticlePage({
         · {article.readingMinutes} min read · Ryan Nichols
       </span>
       <h1>{article.title}</h1>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={article.ogImage}
-        alt={article.title}
-        className="mt-8 aspect-[1200/630] w-full rounded-2xl border border-white/10 object-cover shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
-      />
+      {article.video ? (
+        <figure className="mt-8 flex flex-col items-center">
+          <video
+            controls
+            playsInline
+            preload="metadata"
+            poster={article.video.poster}
+            width={article.video.width}
+            height={article.video.height}
+            className="w-full max-w-[420px] rounded-2xl border border-white/10 bg-black shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+          >
+            <source src={article.video.src} type="video/mp4" />
+            {article.video.captions ? (
+              <track
+                kind="captions"
+                srcLang="en"
+                label="English"
+                src={article.video.captions}
+                default
+              />
+            ) : null}
+            Your browser cannot play this video.{" "}
+            <a href={article.video.src}>Download it here.</a>
+          </video>
+          <figcaption className="mt-3 text-center text-sm text-white/50">
+            {article.video.title} · {article.video.durationSeconds} seconds
+          </figcaption>
+        </figure>
+      ) : (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={article.ogImage}
+          alt={article.title}
+          className="mt-8 aspect-[1200/630] w-full rounded-2xl border border-white/10 object-cover shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
+        />
+      )}
       <div className="prose-lfp">
         <ReactMarkdown>{article.body}</ReactMarkdown>
       </div>

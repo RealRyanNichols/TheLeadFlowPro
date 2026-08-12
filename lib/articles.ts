@@ -2,6 +2,19 @@
 // with the site, rank under the site's own domain, and never live in a rented
 // CMS. Each article page embeds the Map My System CTA for lead generation.
 
+// A video attached to an article. Files live under /public/video so the video is
+// served from our own domain instead of a rented player that can be pulled down.
+export type ArticleVideo = {
+  src: string; // path under /public, mp4 (h264 + aac)
+  poster: string; // path under /public, still frame
+  captions?: string; // path under /public, WebVTT
+  title: string;
+  description: string;
+  durationSeconds: number;
+  width: number;
+  height: number;
+};
+
 export type Article = {
   slug: string;
   title: string;
@@ -9,10 +22,118 @@ export type Article = {
   publishedAt: string; // ISO date
   readingMinutes: number;
   ogImage: string; // path under /public, 1200x630
+  video?: ArticleVideo; // optional, plays inline at the top of the article
   body: string; // markdown
 };
 
 export const ARTICLES: Article[] = [
+  {
+    slug: "data-centers-are-coming-to-texas",
+    title: "Data centers are coming to Texas. Here is what I am going to do about it.",
+    description:
+      "Forty-two seconds shot on my porch about the data center buildout and what it means for East Texas business owners. AI is not going away. Complaining is not a plan.",
+    publishedAt: "2026-08-12",
+    readingMinutes: 5,
+    ogImage: "/og/articles/data-centers-are-coming-to-texas.jpg",
+    video: {
+      src: "/video/data-centers-are-coming-to-texas.mp4",
+      poster: "/video/data-centers-are-coming-to-texas-poster.jpg",
+      captions: "/video/data-centers-are-coming-to-texas.vtt",
+      title: "Data centers are coming to Texas",
+      description:
+        "Ryan Nichols on the Texas data center buildout, what AI actually changed for small business owners, and why the answer is to build instead of complain.",
+      durationSeconds: 42,
+      width: 720,
+      height: 1280,
+    },
+    body: `
+I shot this on my porch. Forty-two seconds. No script, no studio, no agency.
+
+Watch it, then read the rest.
+
+## The short version
+
+Data centers are going up across Texas. You can drive past the cranes. That is not a prediction. That is concrete.
+
+I do not love every part of it, and I said so. We do not even want to go there. But we have to. They are coming.
+
+And if the data centers are coming, the AI is here. It is not going away.
+
+So what are you going to do about it?
+
+## There are two answers
+
+Complain about it. Or use it.
+
+Complaining is free. It feels good for about a day. It does not put one customer in your pipeline.
+
+Using it is work. It is also the cheapest advantage a small business owner has ever been handed.
+
+## What actually changed for an owner
+
+Here is the part nobody explains at the coffee shop.
+
+Work that used to mean a five figure quote and a three month wait now takes a weekend and tools you can cancel. A real website. A real database. Follow-up that answers a lead at eleven at night on a Sunday. Quotes, invoices, reminders, review requests, all running without anyone remembering to do it.
+
+That used to be an enterprise budget. Now it is a Tuesday.
+
+The tools got cheap. The advantage did not go to whoever has the biggest budget. It went to whoever learns to run them first.
+
+In East Texas, that list is short. That is the opening.
+
+## The trap I want you to see coming
+
+Cheap tools also mean new rent traps.
+
+Every one of those companies would love to sell you AI as one more monthly fee. Another seat. Another platform that holds your customer list and raises the price once you are too deep to leave.
+
+Same old deal, new sticker.
+
+If AI is going to run part of your business, it should run inside accounts you own. Your site. Your database. Your customer list. Your number. Your data.
+
+Own your platform. Fire your monthly fees.
+
+## What I am going to do about it
+
+I said in the video that I would tell you. Here it is.
+
+I am building owned systems for business owners while the tools are cheap and most people are still arguing about whether any of this is real.
+
+Three ways to work with me. They are the same three I would pick if I were sitting on your side of the table.
+
+1. **Learn It.** You want to run it yourself. I teach you the stack and the workflow. You keep all of it.
+2. **Build It With You.** We build it together, in your accounts, so you know how every piece works because you were there when it got built.
+3. **Done For You.** You do not want to touch it. I build it, wire it up, and hand you the keys. The accounts are still yours.
+
+There is no version of this where I hold your platform hostage. That is the entire point.
+
+## What I am not going to do
+
+I am not going to quote you a number I have not verified. I am not going to tell you a data center is landing in your county unless I can show you the filing. When numbers show up on this site, they come with a source.
+
+That is not a limitation. That is the reason to trust the rest of it.
+
+## What comes next
+
+The video says stay tuned. I meant it. This is the first one. There will be more.
+
+Data centers are not going anywhere. AI is not going anywhere. The only open question is whether you use what they power to build something, or spend the next three years complaining about it.
+
+I already picked.
+
+## Your move
+
+Map your system. You answer a few questions about the problem, your home base, and where your sales actually come from. You see the diagnosis and the recommended build before anyone asks who you are.
+
+Free to look. No call required. No card.
+
+## Full transcript
+
+"Data centers are coming to Texas. Oh, we don't even want to go there. No shooting in this area. Does that include this? Shooting? Ha, whatever. We don't want to go there, but we have to. They're coming. They're coming, aren't they? And if the data centers are coming, the AI is here, and it's not going away. What are you going to do about it? I've had a long time to think about that. I'll tell you what I'm going to do about it. I'll tell you."
+
+Data centers aren't going anywhere. Will you use what they power to build something, or just complain about it?
+`,
+  },
   {
     slug: "the-money-is-in-the-follow-up",
     title: "The money is in the follow-up",

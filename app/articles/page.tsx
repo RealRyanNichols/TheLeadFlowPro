@@ -40,6 +40,7 @@ export default function ArticlesPage() {
                   year: "numeric",
                 })}{" "}
                 · {a.readingMinutes} min read
+                {a.video ? ` · Watch ${a.video.durationSeconds}s` : ""}
               </span>
               <h2>{a.title}</h2>
               <p>{a.description}</p>
