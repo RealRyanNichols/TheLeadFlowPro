@@ -1,5 +1,5 @@
 import {
-  type Tool,
+  type ToolDef,
   num,
   money,
   money2,
@@ -9,7 +9,7 @@ import {
   rampMonths,
 } from "./types";
 
-export const MONEY_TOOLS: Tool[] = [
+export const MONEY_TOOLS: ToolDef[] = [
   {
     slug: "hourly-rate-calculator",
     name: "True Hourly Rate Calculator",

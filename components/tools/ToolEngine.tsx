@@ -1,41 +1,44 @@
 "use client";
 
 // One engine, every tool. Tools are data (fields in, a pure run() out), so the
-// 70th tool looks and behaves exactly like the first one and nothing drifts.
+// 250th tool looks and behaves exactly like the first one and nothing drifts.
+//
+// Only the slug crosses the server/client boundary. Tool objects hold functions,
+// and functions cannot be serialized into a client component, so the engine
+// looks its own tool up out of the registry.
 
-import { useMemo, useState } from "react";
-import { Copy, Check, Download, Code2, RotateCcw, Lock } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  type Tool,
-  type Values,
-  type Tone,
-  type Result,
-  CATEGORY_META,
-  TOOL_COUNT,
-  toolArt,
-  getTool,
+  Copy, Check, Download, Code2, RotateCcw, Printer, Mail, Table2, CalendarPlus,
+} from "lucide-react";
+import {
+  type Tool, type Values, type Tone, type Result,
+  DISCLAIMERS, DOMAINS, SENSITIVITY_NOTE, getTool,
 } from "@/lib/tools";
-import { useUnlock, downloadFile } from "./useUnlock";
-import UnlockModal from "./UnlockModal";
+import { copyText, downloadText, downloadCsv, downloadIcs, printResult } from "./exports";
+import { rememberTool } from "./useToolProfile";
+import SendResultModal, { type SendReason } from "./SendResultModal";
+import QrBlock from "./QrBlock";
 import ReviewLinkTool from "./ReviewLinkTool";
+import { trackTool } from "@/lib/tools/analytics";
 
 const TONE_BG: Record<Tone, string> = {
   good: "border-[var(--green-line)] bg-[var(--green-tint)]",
-  bad: "border-red-400/35 bg-[var(--danger-tint)]",
+  bad: "border-[var(--danger-line)] bg-[var(--danger-tint)]",
   warn: "border-[var(--warn-line)] bg-[var(--warn-tint)]",
   neutral: "border-[var(--line-strong)] bg-[var(--fill-2)]",
 };
 const TONE_TEXT: Record<Tone, string> = {
   good: "text-[var(--green)]",
   bad: "text-[var(--danger)]",
-  warn: "text-warn",
+  warn: "text-[var(--warn)]",
   neutral: "text-[var(--blue)]",
 };
 const TONE_BAR: Record<Tone, string> = {
-  good: "#2ed6a3",
-  bad: "#e15252",
-  warn: "#f0b23a",
-  neutral: "#3ba7f0",
+  good: "#146C34",
+  bad: "#B91C1C",
+  warn: "#92400E",
+  neutral: "#1240E8",
 };
 
 function defaults(tool: Tool): Values {
@@ -44,53 +47,74 @@ function defaults(tool: Tool): Values {
   return v;
 }
 
-// Only the slug crosses the server/client boundary. The tool objects hold
-// functions, and functions cannot be serialized into a client component, so the
-// engine looks its own tool up out of the catalog.
-export default function ToolEngine({
-  slug,
-  embedded = false,
-}: {
-  slug: string;
-  embedded?: boolean;
-}) {
+export default function ToolEngine({ slug, embedded = false }: { slug: string; embedded?: boolean }) {
   const tool = getTool(slug) as Tool;
   const [values, setValues] = useState<Values>(() => defaults(tool));
+  const [preset, setPreset] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-  const [modal, setModal] = useState<null | "download" | "embed">(null);
+  const [modal, setModal] = useState<null | SendReason>(null);
   const [showEmbed, setShowEmbed] = useState(false);
-  const { unlocked } = useUnlock();
-  const art = toolArt(tool);
-  const meta = CATEGORY_META[tool.category];
+  const started = useRef(false);
+
+  const domain = DOMAINS[tool.domain];
+  const disclaimer = DISCLAIMERS[tool.disclaimer];
 
   const result: Result = useMemo(() => {
     try {
-      if (!tool) return {};
       return tool.run(values);
     } catch {
       return { note: "Something in those numbers did not compute. Try adjusting them." };
     }
   }, [tool, values]);
 
-  const set = (id: string, val: number | string | string[]) =>
-    setValues((prev) => ({ ...prev, [id]: val }));
+  useEffect(() => {
+    if (!embedded) rememberTool(tool.slug);
+  }, [tool.slug, embedded]);
 
-  const embedSnippet = `<iframe src="https://www.theleadflowpro.com/embed/${tool.slug}" width="100%" height="${tool.embedHeight || 820}" style="border:0;border-radius:16px;max-width:760px" title="${tool.name} — free tool from The LeadFlow Pro" loading="lazy"></iframe>`;
+  const set = useCallback(
+    (id: string, val: number | string | string[]) => {
+      setValues((prev) => ({ ...prev, [id]: val }));
+      setPreset(null);
+      if (!started.current) {
+        started.current = true;
+        trackTool("tool_started", { slug: tool.slug });
+      }
+    },
+    [tool.slug],
+  );
 
-  async function copy(text: string, key: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      /* clipboard blocked, they can still select it */
-    }
-    setCopied(key);
-    setTimeout(() => setCopied(null), 1600);
+  function applyPreset(id: string) {
+    const p = tool.presets?.find((x) => x.id === id);
+    if (!p) return;
+    setValues({ ...defaults(tool), ...p.values });
+    setPreset(id);
+    trackTool("tool_preset_applied", { slug: tool.slug, preset: id });
   }
 
-  function buildReport() {
+  function reset() {
+    setValues(defaults(tool));
+    setPreset(null);
+  }
+
+  const embedSnippet = `<iframe src="https://www.theleadflowpro.com/embed/${tool.slug}" width="100%" height="${tool.embedHeight || 820}" style="border:0;border-radius:16px;max-width:760px" title="${tool.name}, a free tool from The LeadFlow Pro" loading="lazy"></iframe>`;
+
+  async function copy(text: string, key: string) {
+    const ok = await copyText(text);
+    setCopied(ok ? key : null);
+    if (ok) {
+      trackTool(key === "embed" ? "embed_code_copied" : "tool_result_copied", { slug: tool.slug });
+      setTimeout(() => setCopied(null), 1600);
+    }
+  }
+
+  const activePreset = tool.presets?.find((p) => p.id === preset);
+
+  /** The plain-text version of everything on screen. Used by copy, download and email. */
+  const report = useMemo(() => {
     const lines: string[] = [];
     lines.push(tool.name.toUpperCase());
     lines.push(tool.tagline);
+    if (activePreset) lines.push(`Preset: ${activePreset.label}`);
     lines.push("");
     lines.push("WHAT YOU PUT IN");
     for (const f of tool.fields) {
@@ -100,8 +124,10 @@ export default function ToolEngine({
     }
     lines.push("");
     lines.push("WHAT IT SAYS");
-    if (result.headline) lines.push(`  ${result.headline.label}: ${result.headline.value}${result.headline.sub ? ` (${result.headline.sub})` : ""}`);
-    for (const s of result.stats || []) lines.push(`  ${s.label}: ${s.value}${s.sub ? ` — ${s.sub}` : ""}`);
+    if (result.headline) {
+      lines.push(`  ${result.headline.label}: ${result.headline.value}${result.headline.sub ? ` (${result.headline.sub})` : ""}`);
+    }
+    for (const s of result.stats || []) lines.push(`  ${s.label}: ${s.value}${s.sub ? `, ${s.sub}` : ""}`);
     if (result.bars?.items?.length) {
       lines.push("");
       lines.push(`  ${result.bars.title || "Breakdown"}`);
@@ -112,6 +138,11 @@ export default function ToolEngine({
       lines.push(`  ${result.table.title || "Details"}`);
       lines.push(`    ${result.table.headers.join(" | ")}`);
       for (const r of result.table.rows) lines.push(`    ${r.join(" | ")}`);
+    }
+    if (result.explain) {
+      lines.push("");
+      lines.push("WHAT THAT MEANS");
+      lines.push(`  ${result.explain}`);
     }
     if (result.verdict) {
       lines.push("");
@@ -124,36 +155,24 @@ export default function ToolEngine({
       lines.push("");
       lines.push(result.output.text);
     }
+    const assumptions = [...(tool.assumptions || []), ...(result.assumptions || [])];
+    if (assumptions.length) {
+      lines.push("");
+      lines.push("WHAT THIS ASSUMED");
+      for (const a of assumptions) lines.push(`  - ${a}`);
+    }
     if (result.note) {
       lines.push("");
       lines.push(`NOTE: ${result.note}`);
     }
     lines.push("");
-    lines.push("—");
-    lines.push("Free tool from The LeadFlow Pro · theleadflowpro.com/tools");
-    lines.push("Own your platform. Fire your monthly fees. Text (903) 500-8898");
+    lines.push(disclaimer.label.toUpperCase());
+    lines.push(`  ${disclaimer.body}`);
+    if (disclaimer.dateStamp) lines.push(`  Run on ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })}.`);
+    lines.push("");
+    lines.push("Free tool from The LeadFlow Pro, theleadflowpro.com/tools");
     return lines.join("\n");
-  }
-
-  function handleDownload() {
-    if (!unlocked) {
-      setModal("download");
-      return;
-    }
-    if (result.output) {
-      downloadFile(result.output.filename, result.output.text);
-    } else {
-      downloadFile(`${tool.slug}-results.txt`, buildReport());
-    }
-  }
-
-  function handleEmbed() {
-    if (!unlocked) {
-      setModal("embed");
-      return;
-    }
-    setShowEmbed(true);
-  }
+  }, [tool, values, result, activePreset, disclaimer]);
 
   if (!tool) return null;
 
@@ -162,107 +181,114 @@ export default function ToolEngine({
       <div className="space-y-5">
         <ReviewLinkTool />
         {!embedded && (
-          <EmbedRow
-            unlocked={unlocked}
-            showEmbed={showEmbed}
+          <EmbedBlock
+            open={showEmbed}
             snippet={embedSnippet}
-            onEmbed={handleEmbed}
+            onOpen={() => { setShowEmbed(true); trackTool("embed_requested", { slug: tool.slug }); }}
             onCopy={() => copy(embedSnippet, "embed")}
+            onEmail={() => setModal("embed")}
             copied={copied === "embed"}
           />
         )}
-        <UnlockModal
+        <SendResultModal
           open={modal !== null}
-          onClose={() => {
-            const was = modal;
-            setModal(null);
-            if (was === "embed") setShowEmbed(true);
-          }}
+          onClose={() => setModal(null)}
+          onSuccess={() => setShowEmbed(true)}
           toolName={tool.name}
           toolSlug={tool.slug}
-          reason={modal || "download"}
-          toolCount={TOOL_COUNT}
+          reason={modal || "email"}
+          resultText={`${tool.name}: review link builder`}
         />
       </div>
     );
   }
 
   const hasInputs = tool.fields.length > 0;
-  // Calculators ask for numbers. Generators ask for details. Say the right thing.
   const numeric = tool.fields.some((f) => f.type === "slider" || f.type === "money" || f.type === "number");
   const inputLabel = numeric ? "Your numbers" : "Your details";
-  const outputLabel = result.headline || result.bars || result.ramp ? "What that means" : "What you get";
-  const hasResult = Boolean(
-    result.headline || result.output || result.qr || result.table || result.stats?.length,
-  );
+  const hasResult = Boolean(result.headline || result.output || result.qr || result.table || result.stats?.length);
+  const assumptions = [...(tool.assumptions || []), ...(result.assumptions || [])];
 
   return (
     <div className="tool-engine">
-      <div
-        className="overflow-hidden rounded-2xl"
-        style={{ background: art.background, border: art.border }}
-      >
-        {/* header: the detail page already says all this above the fold, so it
-            only shows inside an iframe where there is no page around it */}
+      <div className="tool-engine-shell">
         {embedded && (
-        <div className="flex items-start gap-4 border-b border-[var(--line-strong)] p-5 sm:p-6">
-          <span
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-3xl"
-            style={{ background: `${meta.from}22`, border: `1px solid ${meta.ring}` }}
-            aria-hidden="true"
-          >
-            {tool.emoji}
-          </span>
-          <div className="min-w-0">
+          <div className="border-b border-[var(--line)] p-5 sm:p-6">
             <div className="flex flex-wrap items-center gap-2">
               <span
-                className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider"
-                style={{ color: meta.text, background: `${meta.from}1f`, border: `1px solid ${meta.ring}` }}
+                className="rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider"
+                style={{ color: domain.ink, background: domain.tint, border: `1px solid ${domain.line}` }}
               >
-                {tool.category}
+                {domain.label}
               </span>
-              <span className="rounded-full border border-[var(--green-line)] bg-[var(--green-tint)] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[var(--green)]">
-                Free
-              </span>
+              <span className="tool-badge tool-badge-free">Free</span>
             </div>
-            <h2 className="mt-1.5 text-xl font-black leading-tight text-[var(--heading)] sm:text-2xl">
-              {tool.name}
-            </h2>
-            <p className="mt-0.5 text-sm font-bold" style={{ color: meta.text }}>
-              {tool.tagline}
-            </p>
+            <h2 className="mt-2 text-xl font-black leading-tight text-[var(--heading)] sm:text-2xl">{tool.name}</h2>
+            <p className="mt-0.5 text-sm font-bold" style={{ color: domain.ink }}>{tool.tagline}</p>
           </div>
-        </div>
+        )}
+
+        {tool.presets && tool.presets.length > 0 && (
+          <div className="border-b border-[var(--line)] p-5 sm:p-6">
+            <h3 className="tool-engine-label">Start from your industry</h3>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--muted)]">
+              These change the starting numbers, not the math. Adjust anything after you pick one.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {tool.presets.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className="tool-preset"
+                  aria-pressed={preset === p.id}
+                  onClick={() => applyPreset(p.id)}
+                >
+                  {p.label}
+                </button>
+              ))}
+              {preset && (
+                <button type="button" className="tool-preset" onClick={reset}>
+                  Clear
+                </button>
+              )}
+            </div>
+            {activePreset && (
+              <p className="mt-3 rounded-xl border border-[var(--accent-line)] bg-[var(--accent-tint)] px-3.5 py-2.5 text-[13px] leading-relaxed text-[var(--text)]">
+                <strong className="font-black text-[var(--heading)]">{activePreset.label}. </strong>
+                {activePreset.blurb}
+                {activePreset.example ? ` ${activePreset.example}` : ""}
+              </p>
+            )}
+          </div>
         )}
 
         <div className={hasInputs ? "grid gap-0 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]" : ""}>
-          {/* inputs */}
           {hasInputs && (
-            <div className="space-y-5 border-b border-[var(--line-strong)] p-5 sm:p-6 lg:border-b-0 lg:border-r">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--muted)]">
-                  {inputLabel}
-                </h3>
+            <div className="tool-engine-inputs space-y-5 p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="tool-engine-label">{inputLabel}</h3>
                 <button
                   type="button"
-                  onClick={() => setValues(defaults(tool))}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--quiet)] hover:text-[var(--heading)]"
+                  onClick={reset}
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg px-3 text-[12px] font-bold text-[var(--muted)] hover:bg-[var(--fill-2)] hover:text-[var(--heading)]"
                 >
-                  <RotateCcw className="h-3 w-3" />
+                  <RotateCcw aria-hidden="true" className="h-3.5 w-3.5" />
                   Reset
                 </button>
               </div>
               {tool.fields.map((f) => (
-                <FieldInput key={f.id} field={f} value={values[f.id]} onChange={(val) => set(f.id, val)} accent={meta.from} />
+                <FieldInput key={f.id} field={f} value={values[f.id]} onChange={(val) => set(f.id, val)} />
               ))}
             </div>
           )}
 
-          {/* results */}
           <div className="space-y-4 p-5 sm:p-6">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--muted)]">
-              {outputLabel}
-            </h3>
+            <h3 className="tool-engine-label">What that means</h3>
+
+            {/* Screen readers get told the headline changed, without the whole panel being re-read. */}
+            <div aria-live="polite" aria-atomic="true" className="sr-only">
+              {result.headline ? `${result.headline.label}: ${result.headline.value}` : ""}
+            </div>
 
             {result.headline && (
               <div className={`rounded-xl border p-5 text-center ${TONE_BG[result.headline.tone || "neutral"]}`}>
@@ -270,22 +296,22 @@ export default function ToolEngine({
                   {result.headline.value}
                 </div>
                 <div className="mt-2 text-sm font-bold text-[var(--heading)]">{result.headline.label}</div>
-                {result.headline.sub && (
-                  <div className="mt-1 text-xs text-[var(--muted)]">{result.headline.sub}</div>
-                )}
+                {result.headline.sub && <div className="mt-1 text-xs text-[var(--muted)]">{result.headline.sub}</div>}
               </div>
+            )}
+
+            {result.explain && (
+              <p className="rounded-xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-4 text-[14px] leading-relaxed text-[var(--text)]">
+                {result.explain}
+              </p>
             )}
 
             {result.stats && result.stats.length > 0 && (
               <div className="grid gap-2.5 sm:grid-cols-2">
                 {result.stats.map((s, i) => (
                   <div key={i} className={`rounded-xl border p-3.5 ${TONE_BG[s.tone || "neutral"]}`}>
-                    <div className={`text-lg font-black leading-tight ${TONE_TEXT[s.tone || "neutral"]}`}>
-                      {s.value}
-                    </div>
-                    <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-[var(--muted)]">
-                      {s.label}
-                    </div>
+                    <div className={`text-lg font-black leading-tight ${TONE_TEXT[s.tone || "neutral"]}`}>{s.value}</div>
+                    <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-[var(--muted)]">{s.label}</div>
                     {s.sub && <div className="mt-0.5 text-[11px] text-[var(--quiet)]">{s.sub}</div>}
                   </div>
                 ))}
@@ -296,23 +322,30 @@ export default function ToolEngine({
             {result.ramp && <RampChart ramp={result.ramp} />}
 
             {result.qr && (
-              <QrBlock data={result.qr.data} caption={result.qr.caption} size={result.qr.size} />
+              <QrBlock
+                data={result.qr.data}
+                caption={result.qr.caption}
+                size={result.qr.size ? Math.max(512, result.qr.size * 2) : 1024}
+                slug={tool.slug}
+                filename={tool.slug}
+              />
             )}
 
             {result.output && (
-              <div className="rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] p-4">
+              <div className="rounded-xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h4 className="text-sm font-black text-[var(--heading)]">{result.output.title}</h4>
                   <button
                     type="button"
                     onClick={() => copy(result.output!.text, "output")}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line-strong)] bg-[var(--fill-2)] px-2.5 py-1.5 text-xs font-bold text-[var(--heading)] hover:border-[var(--accent-line)]"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] px-3 py-2 text-xs font-bold text-[var(--heading)] hover:border-[var(--blue)]"
+                    style={{ minHeight: 44 }}
                   >
-                    {copied === "output" ? <Check className="h-3.5 w-3.5 text-[var(--green)]" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copied === "output" ? <Check aria-hidden="true" className="h-3.5 w-3.5 text-[var(--green)]" /> : <Copy aria-hidden="true" className="h-3.5 w-3.5" />}
                     {copied === "output" ? "Copied" : "Copy"}
                   </button>
                 </div>
-                <pre className={`mt-3 max-h-[420px] overflow-auto whitespace-pre-wrap break-words rounded-lg bg-[var(--panel)] p-3 text-[12px] leading-relaxed text-[var(--text)] ${result.output.mono ? "font-mono text-[var(--blue)]" : ""}`}>
+                <pre className={`mt-3 max-h-[420px] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-[var(--line)] bg-[var(--panel)] p-3 text-[12px] leading-relaxed text-[var(--text)] ${result.output.mono ? "font-mono" : ""}`}>
                   {result.output.text}
                 </pre>
               </div>
@@ -320,27 +353,21 @@ export default function ToolEngine({
 
             {result.table && result.table.rows.length > 0 && (
               <div className="rounded-xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-4">
-                {result.table.title && (
-                  <h4 className="text-sm font-black text-[var(--heading)]">{result.table.title}</h4>
-                )}
+                {result.table.title && <h4 className="text-sm font-black text-[var(--heading)]">{result.table.title}</h4>}
                 <div className="mt-3 overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead>
                       <tr className="border-b border-[var(--line-strong)]">
                         {result.table.headers.map((h, i) => (
-                          <th key={i} className="pb-2 pr-3 font-black uppercase tracking-wide text-[var(--muted)]">
-                            {h}
-                          </th>
+                          <th key={i} scope="col" className="pb-2 pr-3 font-black uppercase tracking-wide text-[var(--muted)]">{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {result.table.rows.map((row, i) => (
-                        <tr key={i} className="border-b border-[var(--line-strong)] last:border-0">
+                        <tr key={i} className="border-b border-[var(--line)] last:border-0">
                           {row.map((cell, j) => (
-                            <td key={j} className="py-2 pr-3 align-top text-[var(--text)]">
-                              <span className="break-words">{String(cell)}</span>
-                            </td>
+                            <td key={j} className="py-2 pr-3 align-top text-[var(--text)]"><span className="break-words">{String(cell)}</span></td>
                           ))}
                         </tr>
                       ))}
@@ -352,86 +379,175 @@ export default function ToolEngine({
 
             {result.verdict && (
               <div className={`rounded-xl border p-4 ${TONE_BG[result.verdict.tone]}`}>
-                <p className="text-sm font-semibold leading-relaxed text-[var(--heading)]">
-                  {result.verdict.text}
-                </p>
+                <p className="text-sm font-semibold leading-relaxed text-[var(--heading)]">{result.verdict.text}</p>
               </div>
             )}
 
-            {result.note && (
-              <p className="text-xs leading-relaxed text-[var(--quiet)]">{result.note}</p>
+            {result.note && <p className="text-xs leading-relaxed text-[var(--quiet)]">{result.note}</p>}
+
+            {assumptions.length > 0 && (
+              <div className="rounded-xl border border-[var(--line)] bg-[var(--fill-2)] p-4">
+                <h4 className="text-[11px] font-black uppercase tracking-[0.14em] text-[var(--muted)]">What this assumed</h4>
+                <ul className="mt-2 space-y-1.5">
+                  {assumptions.map((a, i) => (
+                    <li key={i} className="flex gap-2 text-[12.5px] leading-relaxed text-[var(--muted)]">
+                      <span aria-hidden="true" className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-[var(--quiet)]" />
+                      {a}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
 
-            <div className={`flex-wrap gap-2 pt-1 ${hasResult ? "flex" : "hidden"}`}>
-              <button type="button" onClick={handleDownload} className="button-primary" style={{ minHeight: 44 }}>
-                {unlocked ? <Download aria-hidden="true" className="h-4 w-4" /> : <Lock aria-hidden="true" className="h-4 w-4" />}
-                {result.output ? "Download the file" : "Download my results"}
-              </button>
-              {!embedded && (
-                <button type="button" onClick={handleEmbed} className="button-secondary" style={{ minHeight: 44 }}>
-                  <Code2 aria-hidden="true" className="h-4 w-4" />
-                  Put this on my site
+            {hasResult && (
+              <div className="tool-no-print flex flex-wrap gap-2 pt-1">
+                <button
+                  type="button"
+                  className="button-primary"
+                  style={{ minHeight: 44 }}
+                  onClick={() => {
+                    if (result.output) downloadText(result.output.filename, result.output.text);
+                    else downloadText(`${tool.slug}-result.txt`, report);
+                    trackTool("tool_result_downloaded", { slug: tool.slug, format: "txt" });
+                    trackTool("tool_completed", { slug: tool.slug, preset: preset || undefined });
+                  }}
+                >
+                  <Download aria-hidden="true" className="h-4 w-4" />
+                  {result.output ? "Download the file" : "Download my result"}
                 </button>
-              )}
-            </div>
+
+                <button type="button" className="button-secondary" style={{ minHeight: 44 }} onClick={() => copy(report, "report")}>
+                  {copied === "report" ? <Check aria-hidden="true" className="h-4 w-4" /> : <Copy aria-hidden="true" className="h-4 w-4" />}
+                  {copied === "report" ? "Copied" : "Copy result"}
+                </button>
+
+                {result.csv && (
+                  <button
+                    type="button"
+                    className="button-secondary"
+                    style={{ minHeight: 44 }}
+                    onClick={() => {
+                      downloadCsv(result.csv!.filename, result.csv!.headers, result.csv!.rows);
+                      trackTool("tool_result_downloaded", { slug: tool.slug, format: "csv" });
+                    }}
+                  >
+                    <Table2 aria-hidden="true" className="h-4 w-4" />
+                    Download CSV
+                  </button>
+                )}
+
+                {result.ics && (
+                  <button
+                    type="button"
+                    className="button-secondary"
+                    style={{ minHeight: 44 }}
+                    onClick={() => {
+                      downloadIcs(result.ics!.filename, result.ics!.text);
+                      trackTool("tool_result_downloaded", { slug: tool.slug, format: "ics" });
+                    }}
+                  >
+                    <CalendarPlus aria-hidden="true" className="h-4 w-4" />
+                    Add to calendar
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  className="button-secondary"
+                  style={{ minHeight: 44 }}
+                  onClick={() => { printResult(); trackTool("tool_result_printed", { slug: tool.slug }); }}
+                >
+                  <Printer aria-hidden="true" className="h-4 w-4" />
+                  Print or save as PDF
+                </button>
+
+                <button type="button" className="button-secondary" style={{ minHeight: 44 }} onClick={() => setModal("email")}>
+                  <Mail aria-hidden="true" className="h-4 w-4" />
+                  Email it to me
+                </button>
+              </div>
+            )}
+
+            <p className="text-[11px] leading-relaxed text-[var(--quiet)]">
+              {SENSITIVITY_NOTE[tool.dataSensitivity]}
+            </p>
           </div>
         </div>
       </div>
 
-      {!embedded && showEmbed && (
-        <EmbedRow
-          unlocked={unlocked}
-          showEmbed={showEmbed}
+      <div className="tool-disclaimer mt-4">
+        <h3>{disclaimer.label}</h3>
+        <p>{disclaimer.body}</p>
+        {disclaimer.official && disclaimer.official.length > 0 && (
+          <p>
+            Official source:{" "}
+            {disclaimer.official.map((o, i) => (
+              <span key={o.url}>
+                {i > 0 ? ", " : ""}
+                <a href={o.url} target="_blank" rel="noopener noreferrer">{o.label}</a>
+              </span>
+            ))}
+          </p>
+        )}
+        {disclaimer.dateStamp && (
+          <p className="text-[12px]">
+            You ran this on {new Date().toLocaleDateString("en-US", { dateStyle: "long" })}. Rates and rules
+            change, so check the date before you rely on a saved copy.
+          </p>
+        )}
+      </div>
+
+      {!embedded && (
+        <EmbedBlock
+          open={showEmbed}
           snippet={embedSnippet}
-          onEmbed={handleEmbed}
+          onOpen={() => { setShowEmbed(true); trackTool("embed_requested", { slug: tool.slug }); }}
           onCopy={() => copy(embedSnippet, "embed")}
+          onEmail={() => setModal("embed")}
           copied={copied === "embed"}
         />
       )}
 
-      <UnlockModal
+      <SendResultModal
         open={modal !== null}
-        onClose={() => {
-          const was = modal;
-          setModal(null);
-          if (was === "embed") setShowEmbed(true);
-        }}
+        onClose={() => setModal(null)}
+        onSuccess={() => { if (modal === "embed") setShowEmbed(true); }}
         toolName={tool.name}
         toolSlug={tool.slug}
-        reason={modal || "download"}
-        toolCount={TOOL_COUNT}
+        reason={modal || "email"}
+        resultText={report}
       />
     </div>
   );
 }
 
-/* -------------------------------- field input ------------------------------- */
+/* -------------------------------- field input ------------------------------ */
 
 function FieldInput({
   field,
   value,
   onChange,
-  accent,
 }: {
   field: Tool["fields"][number];
   value: number | string | string[] | undefined;
   onChange: (v: number | string | string[]) => void;
-  accent: string;
 }) {
+  const helpId = `${field.id}-help`;
+  const describedBy = field.help ? helpId : undefined;
+
   if (field.type === "slider") {
     const v = typeof value === "number" ? value : field.def;
     const pctPos = ((v - field.min) / Math.max(1e-9, field.max - field.min)) * 100;
     return (
-      <label className="block">
-        <div className="mb-1.5 flex items-baseline justify-between gap-3">
+      <div>
+        <label htmlFor={field.id} className="mb-1.5 flex items-baseline justify-between gap-3">
           <span className="text-[13px] font-semibold text-[var(--text)]">{field.label}</span>
-          <span className="shrink-0 text-sm font-black text-[var(--heading)]">
-            {field.prefix}
-            {v.toLocaleString("en-US")}
-            {field.suffix}
+          <span className="shrink-0 text-sm font-black tabular-nums text-[var(--heading)]">
+            {field.prefix}{v.toLocaleString("en-US")}{field.suffix}
           </span>
-        </div>
+        </label>
         <input
+          id={field.id}
           type="range"
           min={field.min}
           max={field.max}
@@ -439,97 +555,105 @@ function FieldInput({
           value={v}
           onChange={(e) => onChange(Number(e.target.value))}
           className="tool-range w-full"
-          style={{
-            background: `linear-gradient(90deg, ${accent} ${pctPos}%, rgba(255,255,255,0.12) ${pctPos}%)`,
-          }}
-          aria-label={field.label}
+          aria-describedby={describedBy}
+          style={{ background: `linear-gradient(90deg, var(--blue) ${pctPos}%, var(--fill-3) ${pctPos}%)` }}
         />
-        {field.help && <p className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
-      </label>
+        {field.help && <p id={helpId} className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
+      </div>
     );
   }
 
   if (field.type === "money" || field.type === "number") {
     const v = typeof value === "number" ? value : field.def;
     return (
-      <label className="block">
-        <span className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">{field.label}</span>
-        <div className="flex items-center rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] focus-within:border-[var(--accent-line)]">
-          {field.type === "money" && <span className="pl-3.5 text-sm font-bold text-[var(--muted)]">$</span>}
+      <div>
+        <label htmlFor={field.id} className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">{field.label}</label>
+        <div className="flex items-center rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] focus-within:border-[var(--blue)] focus-within:shadow-[0_0_0_3px_#1240e826]">
+          {field.type === "money" && <span aria-hidden="true" className="pl-3.5 text-sm font-bold text-[var(--muted)]">$</span>}
           <input
+            id={field.id}
             type="number"
             inputMode="decimal"
+            // Negative money and negative counts are almost always a typo, and a
+            // negative here turns a loss into a fake profit further down.
+            min={0}
             value={Number.isFinite(v) ? v : ""}
-            onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
-            className="w-full bg-transparent px-3 py-2.5 text-sm font-bold text-[var(--heading)] outline-none"
-            aria-label={field.label}
+            onChange={(e) => {
+              const n = e.target.value === "" ? 0 : Number(e.target.value);
+              onChange(Number.isFinite(n) ? Math.max(0, n) : 0);
+            }}
+            className="w-full min-h-[46px] bg-transparent px-3 py-2.5 text-sm font-bold text-[var(--heading)] outline-none"
+            aria-describedby={describedBy}
           />
           {field.type === "number" && field.suffix && (
-            <span className="pr-3.5 text-sm font-bold text-[var(--muted)]">{field.suffix}</span>
+            <span aria-hidden="true" className="pr-3.5 text-sm font-bold text-[var(--muted)]">{field.suffix}</span>
           )}
         </div>
-        {field.help && <p className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
-      </label>
+        {field.help && <p id={helpId} className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
+      </div>
     );
   }
 
   if (field.type === "text") {
     return (
-      <label className="block">
-        <span className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">{field.label}</span>
+      <div>
+        <label htmlFor={field.id} className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">{field.label}</label>
         <input
+          id={field.id}
           type="text"
           value={typeof value === "string" ? value : ""}
           placeholder={field.placeholder}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-3.5 py-2.5 text-sm text-[var(--heading)] placeholder:text-[var(--quiet)] focus:border-[var(--accent-line)] focus:outline-none"
+          className="tool-input"
+          aria-describedby={describedBy}
         />
-        {field.help && <p className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
-      </label>
+        {field.help && <p id={helpId} className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
+      </div>
     );
   }
 
   if (field.type === "textarea") {
     return (
-      <label className="block">
-        <span className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">{field.label}</span>
+      <div>
+        <label htmlFor={field.id} className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">{field.label}</label>
         <textarea
+          id={field.id}
           rows={field.rows || 4}
           value={typeof value === "string" ? value : ""}
           placeholder={field.placeholder}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-3.5 py-2.5 text-sm leading-relaxed text-[var(--heading)] placeholder:text-[var(--quiet)] focus:border-[var(--accent-line)] focus:outline-none"
+          className="w-full rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-3.5 py-2.5 text-sm leading-relaxed text-[var(--heading)] placeholder:text-[var(--quiet)] focus:border-[var(--blue)] focus:outline-none focus:shadow-[0_0_0_3px_#1240e826]"
+          aria-describedby={describedBy}
         />
-        {field.help && <p className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
-      </label>
+        {field.help && <p id={helpId} className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
+      </div>
     );
   }
 
   if (field.type === "select") {
     return (
-      <label className="block">
-        <span className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">{field.label}</span>
+      <div>
+        <label htmlFor={field.id} className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">{field.label}</label>
         <select
+          id={field.id}
           value={typeof value === "string" ? value : field.def}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-xl border border-[var(--line-strong)] bg-[#132238] px-3.5 py-2.5 text-sm font-semibold text-[var(--heading)] focus:border-[var(--accent-line)] focus:outline-none"
+          className="tool-select"
+          aria-describedby={describedBy}
         >
           {field.options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
+            <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
-        {field.help && <p className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
-      </label>
+        {field.help && <p id={helpId} className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
+      </div>
     );
   }
 
-  // checks
   const picked = Array.isArray(value) ? value : [];
   return (
-    <div>
-      <span className="mb-2 block text-[13px] font-semibold text-[var(--text)]">{field.label}</span>
+    <fieldset>
+      <legend className="mb-2 block text-[13px] font-semibold text-[var(--text)]">{field.label}</legend>
       <div className="grid max-h-[340px] gap-1.5 overflow-y-auto pr-1">
         {field.options.map((o) => {
           const on = picked.includes(o.value);
@@ -537,19 +661,13 @@ function FieldInput({
             <button
               key={o.value}
               type="button"
-              onClick={() =>
-                onChange(on ? picked.filter((p) => p !== o.value) : [...picked, o.value])
-              }
-              className={`flex items-start gap-2.5 rounded-lg border px-3 py-2 text-left text-[13px] leading-snug transition ${
-                on
-                  ? "border-[var(--accent-line)] bg-[var(--accent-tint)] text-[var(--heading)]"
-                  : "border-[var(--line-strong)] bg-[var(--fill-2)] text-[var(--muted)] hover:border-[var(--line-strong)]"
-              }`}
+              aria-pressed={on}
+              className="tool-check"
+              onClick={() => onChange(on ? picked.filter((p) => p !== o.value) : [...picked, o.value])}
             >
               <span
-                className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-                  on ? "border-sky-400 bg-sky-400 text-[#0e1a2e]" : "border-[var(--line-strong)]"
-                }`}
+                aria-hidden="true"
+                className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border ${on ? "border-[var(--blue)] bg-[var(--blue)] text-white" : "border-[var(--line-strong)] bg-[var(--panel)]"}`}
               >
                 {on && <Check className="h-3 w-3" strokeWidth={3.5} />}
               </span>
@@ -559,7 +677,7 @@ function FieldInput({
         })}
       </div>
       {field.help && <p className="mt-1.5 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
-    </div>
+    </fieldset>
   );
 }
 
@@ -568,23 +686,22 @@ function FieldInput({
 function BarChart({ bars }: { bars: NonNullable<Result["bars"]> }) {
   const max = Math.max(...bars.items.map((b) => Math.abs(b.value)), 1);
   return (
-    <figure className="rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] p-4">
+    <figure className="rounded-xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-4">
       {bars.title && <figcaption className="text-sm font-black text-[var(--heading)]">{bars.title}</figcaption>}
       {bars.caption && <p className="mt-0.5 text-[11px] text-[var(--quiet)]">{bars.caption}</p>}
+      {/* The bars are decoration. The numbers next to them are the content, so
+          this reads correctly with images off or in a screen reader. */}
       <div className="mt-3 space-y-2">
         {bars.items.map((b, i) => (
           <div key={i}>
             <div className="mb-1 flex items-baseline justify-between gap-3 text-[11px]">
               <span className="font-bold text-[var(--muted)]">{b.label}</span>
-              <span className="font-black text-[var(--heading)]">{b.display}</span>
+              <span className="font-black tabular-nums text-[var(--heading)]">{b.display}</span>
             </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-[var(--fill-2)]">
+            <div aria-hidden="true" className="h-2.5 overflow-hidden rounded-full bg-[var(--fill-3)]">
               <div
-                className="h-full rounded-full transition-all duration-300"
-                style={{
-                  width: `${Math.max(2, (Math.abs(b.value) / max) * 100)}%`,
-                  background: TONE_BAR[b.tone || "neutral"],
-                }}
+                className="h-full rounded-full"
+                style={{ width: `${Math.max(2, (Math.abs(b.value) / max) * 100)}%`, background: TONE_BAR[b.tone || "neutral"] }}
               />
             </div>
           </div>
@@ -597,127 +714,84 @@ function BarChart({ bars }: { bars: NonNullable<Result["bars"]> }) {
 function RampChart({ ramp }: { ramp: NonNullable<Result["ramp"]> }) {
   const max = Math.max(...ramp.points.map((p) => Math.abs(p.value)), 1);
   const color = TONE_BAR[ramp.tone || "bad"];
+  const first = ramp.points[0];
+  const last = ramp.points[ramp.points.length - 1];
   return (
-    <figure className="rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] p-4">
+    <figure className="rounded-xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-4">
       <figcaption className="text-sm font-black text-[var(--heading)]">{ramp.title}</figcaption>
       {ramp.caption && <p className="mt-0.5 text-[11px] text-[var(--quiet)]">{ramp.caption}</p>}
-      <div className="mt-3 flex h-28 items-end gap-1">
+      <div aria-hidden="true" className="mt-3 flex h-28 items-end gap-1">
         {ramp.points.map((p, i) => (
           <div
             key={i}
-            className="flex-1 rounded-t transition-all duration-300"
+            className="flex-1 rounded-t"
             style={{
               height: `${Math.max(3, (Math.abs(p.value) / max) * 100)}%`,
               background: color,
-              opacity: 0.5 + (i / Math.max(1, ramp.points.length)) * 0.5,
+              opacity: 0.45 + (i / Math.max(1, ramp.points.length)) * 0.55,
             }}
-            title={`${p.label}: ${p.display}`}
           />
         ))}
       </div>
-      <div className="mt-1.5 flex justify-between text-[10px] font-bold uppercase tracking-wider text-[var(--quiet)]">
-        <span>
-          {ramp.points[0]?.label}: {ramp.points[0]?.display}
-        </span>
-        <span>
-          {ramp.points[ramp.points.length - 1]?.label}: {ramp.points[ramp.points.length - 1]?.display}
-        </span>
-      </div>
+      <p className="mt-2 text-[11px] font-bold text-[var(--muted)]">
+        {first?.label}: {first?.display}. By {last?.label}: {last?.display}.
+      </p>
     </figure>
   );
 }
 
-function QrBlock({ data, caption, size = 400 }: { data: string; caption?: string; size?: number }) {
-  const px = Math.min(1000, Math.max(200, Math.round(size) || 400));
-  const src = `https://api.qrserver.com/v1/create-qr-code/?size=${px}x${px}&margin=10&format=png&data=${encodeURIComponent(data)}`;
-  const [failed, setFailed] = useState(false);
+/* -------------------------------- embed block ------------------------------ */
 
-  // The QR renderer is an outside service. If it ever goes down, say so plainly
-  // and still hand them the thing the code was going to encode.
-  if (failed) {
-    return (
-      <div className="rounded-xl border border-[var(--warn-line)] bg-[var(--warn-tint)] p-4">
-        <p className="text-sm font-bold text-warn">
-          The QR image did not load. That is our code generator, not your
-          browser. Try again in a minute.
-        </p>
-        <p className="mt-2 break-all font-mono text-[11px] text-[var(--text)]">{data}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-[var(--line-strong)] bg-white p-5">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={caption || "QR code"}
-        width={260}
-        height={260}
-        onError={() => setFailed(true)}
-        className="h-auto w-[260px] max-w-full"
-      />
-      <span className="text-center text-xs font-bold text-[var(--quiet)]">
-        {caption || "Scan me"}
-      </span>
-      <span className="text-center text-[11px] text-[var(--quiet)]">
-        Right-click or long-press to save. Saves at {px} x {px} pixels.
-      </span>
-    </div>
-  );
-}
-
-/* -------------------------------- embed block ------------------------------- */
-
-function EmbedRow({
-  unlocked,
-  showEmbed,
+function EmbedBlock({
+  open,
   snippet,
-  onEmbed,
+  onOpen,
   onCopy,
+  onEmail,
   copied,
 }: {
-  unlocked: boolean;
-  showEmbed: boolean;
+  open: boolean;
   snippet: string;
-  onEmbed: () => void;
+  onOpen: () => void;
   onCopy: () => void;
+  onEmail: () => void;
   copied: boolean;
 }) {
-  if (!unlocked || !showEmbed) {
+  if (!open) {
     return (
-      <button type="button" onClick={onEmbed} className="button-secondary mt-4">
+      <button type="button" onClick={onOpen} className="button-secondary tool-no-print mt-4" style={{ minHeight: 44 }}>
         <Code2 aria-hidden="true" className="h-4 w-4" />
-        Put this on my site
+        Put this tool on my website
       </button>
     );
   }
   return (
-    <div className="mt-4 rounded-2xl border border-[var(--accent-line)] bg-sky-500/[0.07] p-5">
-      <h4 className="text-sm font-black text-[var(--heading)]">
-        Paste this one line anywhere in your website&apos;s HTML.
-      </h4>
-      <p className="mt-1 text-xs text-[var(--muted)]">
-        We host it, we maintain it, it costs you nothing, and it never expires.
-        Works on WordPress, Wix, Squarespace, Shopify, GoDaddy, anywhere that
-        takes an embed.
+    <div className="tool-no-print mt-4 rounded-2xl border border-[var(--accent-line)] bg-[var(--accent-tint)] p-5">
+      <h3 className="text-sm font-black text-[var(--heading)]">Paste this one line into your website.</h3>
+      <p className="mt-1 text-xs leading-relaxed text-[var(--muted)]">
+        I host it and keep it working. It costs nothing and it does not expire. Works on WordPress, Wix,
+        Squarespace, Shopify, GoDaddy, Webflow, HubSpot, or a plain HTML page.
       </p>
       <div className="mt-3 flex flex-wrap items-start gap-2">
-        <code className="min-w-0 flex-1 break-all rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] px-3 py-3 font-mono text-[11px] leading-relaxed text-[var(--blue)]">
+        <code className="min-w-0 flex-1 break-all rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] px-3 py-3 font-mono text-[11px] leading-relaxed text-[var(--text)]">
           {snippet}
         </code>
         <button
           type="button"
           onClick={onCopy}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line-strong)] bg-[var(--fill-2)] px-3 py-2.5 text-sm font-bold text-[var(--heading)] hover:border-[var(--accent-line)]"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] px-3 py-2.5 text-sm font-bold text-[var(--heading)] hover:border-[var(--blue)]"
+          style={{ minHeight: 44 }}
         >
-          {copied ? <Check className="h-4 w-4 text-[var(--green)]" /> : <Copy className="h-4 w-4" />}
+          {copied ? <Check aria-hidden="true" className="h-4 w-4 text-[var(--green)]" /> : <Copy aria-hidden="true" className="h-4 w-4" />}
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
-      <p className="mt-3 text-xs text-[var(--muted)]">
-        Need a hand getting it in? Text me: (903) 500-8898.
-      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button type="button" onClick={onEmail} className="text-xs font-bold text-[var(--blue)] underline">
+          Email me this code and the instructions
+        </button>
+        <span className="text-xs text-[var(--muted)]">Stuck? Text (903) 500-8898.</span>
+      </div>
     </div>
   );
 }

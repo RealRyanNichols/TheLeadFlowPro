@@ -1,6 +1,21 @@
 // The free tool engine. Every tool is a data definition: fields in, a pure
-// run() out. That keeps 50+ tools consistent, fast, and impossible to break
+// run() out. That keeps 250+ tools consistent, fast, and impossible to break
 // one at a time. Add a tool by adding an object, not a page.
+//
+// Taxonomy, imagery, disclaimers and SEO live in lib/tools/meta.ts and are
+// merged onto these objects at registry build time, so a tool file stays about
+// the formula. lib/tools/validate.ts fails the build when a published tool is
+// missing anything it needs.
+
+import type {
+  Audience,
+  DataSensitivity,
+  DisclaimerType,
+  Domain,
+  Goal,
+  Industry,
+  ToolType,
+} from "./taxonomy";
 
 export type Tone = "good" | "bad" | "warn" | "neutral";
 
@@ -95,13 +110,104 @@ export type Result = {
   note?: string;
   /** What to do about the number. Shown under the result. */
   verdict?: { tone: Tone; text: string };
+  /**
+   * What the number actually means, in plain language, written from the values
+   * they entered. A big number on its own is not an answer.
+   */
+  explain?: string;
+  /** The assumptions the math made. Shown under the result, always visible. */
+  assumptions?: string[];
+  /** Extra export formats this particular result supports beyond text. */
+  csv?: { filename: string; headers: string[]; rows: (string | number)[][] };
+  /** Calendar tools return a .ics body here. */
+  ics?: { filename: string; text: string };
 };
 
-export type Tool = {
+/* ---------------------------- industry presets ----------------------------- */
+
+/**
+ * One formula, many industries. A preset changes the starting numbers, the
+ * example copy and the suggested next tools. It never changes the math, which
+ * is what keeps this from turning into fifteen duplicate pages.
+ */
+export type Preset = {
+  id: string;
+  label: string;
+  industry?: Industry;
+  /** Why these starting numbers, in one sentence. */
+  blurb: string;
+  /** Starting values for this industry. Keys must be real field ids. */
+  values: Values;
+  /** A concrete example sentence shown with the preset. */
+  example?: string;
+};
+
+/* ------------------------------- imagery ---------------------------------- */
+
+export type ToolImage = {
+  /** Path under /public. Never a remote URL. */
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+};
+
+/* ---------------------------- registry metadata --------------------------- */
+
+/**
+ * Everything about a tool that is not its formula. Authored in lib/tools/meta.ts
+ * so the tool files stay readable, merged onto the Tool at registry build time.
+ */
+export type ToolMeta = {
+  domain: Domain;
+  toolType: ToolType;
+  goals: Goal[];
+  industries: Industry[];
+  audiences: Audience[];
+  /** Words people type that are not already in the name or description. */
+  keywords: string[];
+  /** Alternate names for the same thing. Feeds the search expander. */
+  synonyms?: string[];
+  disclaimer: DisclaimerType;
+  dataSensitivity: DataSensitivity;
+  /** 0 to 100. Hand-ranked usefulness, used by the default sort. */
+  popularity: number;
+  /** Shown as a NEW ribbon and sorted to the front of "Newest". */
+  isNew?: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
+  /** Overrides the automatic related-tool picker when a better set exists. */
+  relatedSlugs?: string[];
+  presets?: Preset[];
+  /** Static assumptions shown on the page regardless of inputs. */
+  assumptions?: string[];
+  /** Extra formats the download menu offers for this tool. */
+  exportFormats?: ExportFormat[];
+  /** Only "published" tools are routable, in the sitemap, or in the directory. */
+  status?: PublicationStatus;
+};
+
+export type ExportFormat = "txt" | "csv" | "png" | "svg" | "ics" | "print";
+
+export type PublicationStatus =
+  | "proposed"
+  | "formula-review"
+  | "implementation"
+  | "image-needed"
+  | "qa"
+  | "ready"
+  | "published";
+
+/**
+ * What a tool file authors. Taxonomy fields are optional here: new tools declare
+ * them inline, and the original 78 get theirs from lib/tools/meta.ts.
+ */
+export type ToolDef = {
   slug: string;
   name: string;
   /** Short label for tight card space. Falls back to name. */
   short?: string;
+  /** A minor label accent only. Never the card artwork. */
   emoji: string;
   category: Category;
   tagline: string;
@@ -120,7 +226,21 @@ export type Tool = {
   /** Marks tools that render their own component instead of the engine. */
   custom?: "review-link";
   featured?: boolean;
-};
+} & Partial<ToolMeta>;
+
+/**
+ * A tool after the registry has merged its metadata and artwork on. Everything
+ * downstream (pages, search, sitemap, OG) consumes this, so those consumers can
+ * rely on the taxonomy being present instead of guarding every field.
+ */
+export type Tool = ToolDef &
+  ToolMeta & {
+    status: PublicationStatus;
+    image: ToolImage;
+    hero: ToolImage;
+    /** Resolved once at build so search does not rebuild it per keystroke. */
+    searchText: string;
+  };
 
 /* ---------- value helpers, used inside every run() ---------- */
 

@@ -1,5 +1,5 @@
 import {
-  type Tool,
+  type ToolDef,
   num,
   str,
   list,
@@ -14,7 +14,7 @@ import {
 
 /* Generators. Put your details in, get something you can copy, paste, print or download. */
 
-export const GENERATOR_TOOLS: Tool[] = [
+export const GENERATOR_TOOLS: ToolDef[] = [
   {
     slug: "qr-code-maker",
     name: "QR Code Maker",

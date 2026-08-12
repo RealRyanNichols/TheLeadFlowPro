@@ -3,11 +3,12 @@
 Industry-specific business systems. One connected system, installed in accounts you
 control. Live at [theleadflowpro.com](https://www.theleadflowpro.com).
 
-## This branch: unbundled source
+## Build
 
-Production `main` currently ships as a self-extracting bundle (`payload.b64` +
-`unpack.mjs`). This branch commits the real source tree directly and builds with a plain
-`next build`. Do not merge onto `main` without deciding the cutover of that mechanism.
+`main` is the real source tree and deploys straight to production through Vercel.
+`npm run build` runs the tool-registry validation first (`npm run validate:tools`),
+so a published tool that is missing metadata, imagery, a formula or a disclaimer
+fails the build instead of shipping. Node 22.6 or later is required.
 
 ## Stack
 
@@ -25,6 +26,8 @@ Production `main` currently ships as a self-extracting bundle (`payload.b64` +
   (`app/admin/leads/[id]`), CSV export (`app/api/admin/leads/export`).
 - `app/dashboard/` — member dashboard with projects, training progress, and messages.
 - `app/articles/` — owned article library (SEO + lead generation).
+- `app/tools/` and `lib/tools/` — the free tool library: registry, taxonomy, search,
+  artwork, collections and embeds. Start with `docs/TOOLS_ARCHITECTURE.md`.
 - `supabase/migrations/` — schema history. Every migration documents its rollback.
 
 ## Local development
