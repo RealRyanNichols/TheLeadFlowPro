@@ -2,7 +2,12 @@ import Link from "next/link";
 import { getSettings } from "@/lib/settings";
 import ConversionPing from "@/components/ConversionPing";
 
-export const metadata = { title: "Got It | The LeadFlow Pro" };
+// Post-conversion page. Nothing to rank here, and letting Google index it would
+// put a thin confirmation screen in front of people searching for the real pages.
+export const metadata = {
+  title: "Got It | The LeadFlow Pro",
+  robots: { index: false, follow: true },
+};
 
 export default async function ThankYou({
   searchParams,

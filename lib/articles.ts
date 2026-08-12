@@ -73,7 +73,7 @@ Using it is work. It is also the cheapest advantage a small business owner has e
 
 Here is the part nobody explains at the coffee shop.
 
-Work that used to mean a five figure quote and a three month wait now takes a weekend and tools you can cancel. A real website. A real database. Follow-up that answers a lead at eleven at night on a Sunday. Quotes, invoices, reminders, review requests, all running without anyone remembering to do it.
+Work that used to mean a [five figure quote and a three month wait](/articles/small-business-website-cost) now takes a weekend and tools you can cancel. A real website. A real database. [Follow-up that answers a lead](/articles/the-money-is-in-the-follow-up) at eleven at night on a Sunday. Quotes, invoices, reminders, review requests, all running without anyone remembering to do it.
 
 That used to be an enterprise budget. Now it is a Tuesday.
 
@@ -85,7 +85,7 @@ In East Texas, that list is short. That is the opening.
 
 Cheap tools also mean new rent traps.
 
-Every one of those companies would love to sell you AI as one more monthly fee. Another seat. Another platform that holds your customer list and raises the price once you are too deep to leave.
+Every one of those companies would love to sell you AI as [one more monthly fee](/articles/cost-of-renting-business-software). Another seat. Another platform that holds your customer list and raises the price once you are too deep to leave.
 
 Same old deal, new sticker.
 
@@ -658,6 +658,8 @@ Rule of thumb: AI drafts, humans send. Especially in a town where your customers
 It cannot know your trade, your prices, your standards, or your county. It cannot make the offer for you, answer for your reputation, or care whether the customer calls back. And it absolutely cannot fix a business that ignores its leads. An AI-built system pointed at [a follow-up leak](/articles/the-money-is-in-the-follow-up) just documents the leak faster.
 
 Anyone selling AI as a set-and-forget employee is selling you the same old magic beans with a new sticker.
+
+There is a bigger version of this question worth forty-two seconds of your time: [data centers are coming to Texas, and here is what I am going to do about it](/articles/data-centers-are-coming-to-texas).
 
 ## What this means for what you pay
 
