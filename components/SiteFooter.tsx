@@ -29,6 +29,7 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
     links: [
       ["/free-build", "Free Build Offer"],
       ["/pricing", "Packages"],
+      ["/deposit", "Make a Down Payment"],
       ["/start", "Map My Company"],
       ["/contact", "Contact"],
       ["/login", "Log in"],

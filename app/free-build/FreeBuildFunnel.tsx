@@ -765,8 +765,11 @@ export default function FreeBuildFunnel() {
           ))}
         </div>
         <p className="mt-5 text-center text-sm text-[var(--muted)]">
-          Ready to commit today? Down payments and pay-in-full with card, Klarna, or
-          Afterpay are on the{" "}
+          Ready to commit today? Put a{" "}
+          <Link href="/deposit" className="font-bold text-[var(--blue)] underline">
+            down payment
+          </Link>{" "}
+          on any amount, or see the{" "}
           <Link href="/packages/launch" className="font-bold text-[var(--blue)] underline">
             package pages
           </Link>

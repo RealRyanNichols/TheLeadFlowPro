@@ -18,10 +18,42 @@ export default async function ThankYou({
   const settings = await getSettings();
   const bought = purchase === "learn_it";
   const paidEvent = purchase === "event";
+  // Down payments: the generic Learn It confirmation is wrong for someone who
+  // just funded a build.
+  const paidDeposit =
+    purchase === "build_deposit" || purchase === "package_deposit" || purchase === "package_full";
+
+  if (paidDeposit) {
+    return (
+      <section className="mx-auto max-w-2xl px-4 pb-24 pt-[22px] text-center sm:pt-8">
+        <ConversionPing
+          googleAdsId={settings.google_ads_id}
+          conversionLabel={settings.google_ads_conversion_label}
+          purchase
+        />
+        <h1 className="text-4xl font-black text-[var(--heading)]">
+          Payment received. <span className="text-gradient">The build moves.</span>
+        </h1>
+        <p className="mt-4 text-lg text-[var(--text)]">
+          Your down payment is credited in full toward the build. Your receipt is on the
+          way by email. Ryan will be in touch with the next step and what he needs from
+          you, usually the same day.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-4">
+          <Link href="/portfolio" className="btn-primary">
+            See what gets built
+          </Link>
+          <Link href="/contact" className="btn-ghost">
+            Send Ryan a message
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   if (paidEvent) {
     return (
-      <section className="mx-auto max-w-2xl px-4 py-24 text-center">
+      <section className="mx-auto max-w-2xl px-4 pb-24 pt-[22px] text-center sm:pt-8">
         <h1 className="text-4xl font-black text-[var(--heading)]">
           Seat locked. <span className="text-gradient">See you there.</span>
         </h1>
@@ -43,7 +75,7 @@ export default async function ThankYou({
   }
 
   return (
-    <section className="mx-auto max-w-2xl px-4 py-24 text-center">
+    <section className="mx-auto max-w-2xl px-4 pb-24 pt-[22px] text-center sm:pt-8">
       <ConversionPing
         googleAdsId={settings.google_ads_id}
         conversionLabel={settings.google_ads_conversion_label}
