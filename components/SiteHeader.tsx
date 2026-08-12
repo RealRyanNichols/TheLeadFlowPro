@@ -4,12 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Menu } from "lucide-react";
 
+// Primary navigation is ordered by buyer intent, not by sitemap. Add-Ons and
+// Free Tools moved to the footer: their routes are unchanged, so no inbound
+// link breaks and no redirect is needed.
 const NAV_LINKS: Array<[string, string]> = [
-  ["/#systems", "The System"],
-  ["/add-ons", "Add-Ons"],
-  ["/tools", "Free Tools"],
-  ["/pricing", "Packages"],
+  ["/#what-we-build", "What We Build"],
   ["/portfolio", "The Work"],
+  ["/#how-it-works", "How It Works"],
+  ["/pricing", "Packages"],
+  ["/about", "About Ryan"],
   ["/articles", "Articles"],
 ];
 
@@ -29,8 +32,8 @@ export default function SiteHeader() {
             </Link>
           ))}
           <Link href="/login">Log in</Link>
-          <Link href="/start" className="header-cta">
-            Map My System
+          <Link href="/start" className="header-cta" data-analytics="cta-map-my-company-header">
+            Map My Company
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </nav>
@@ -45,8 +48,8 @@ export default function SiteHeader() {
               </Link>
             ))}
             <Link href="/login">Log in</Link>
-            <Link href="/start" className="header-cta">
-              Map My System
+            <Link href="/start" className="header-cta" data-analytics="cta-map-my-company-mobile">
+              Map My Company
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </div>

@@ -1,0 +1,1564 @@
+/* ============================================================================
+   THE COMPANY BUILDER design system
+   ----------------------------------------------------------------------------
+   Warm off-white canvas, deep ink contrast bands, cobalt connectors, editorial
+   type. Everything here is namespaced `cb-` and scoped behind `.cb-page`, so the
+   dark app surfaces (admin, dashboard, training, tools, the /start router) are
+   completely unaffected. Same `:has()` scoping the codebase already uses for
+   `.router-page`.
+
+   Contrast on every text pairing is computed, not eyeballed. See
+   docs/company-builder-redesign.md section 4.
+   ========================================================================== */
+
+:root {
+  /* Ground */
+  --cb-canvas: #f7f5f2;
+  --cb-surface: #ffffff;
+  --cb-surface-2: #efece6;
+
+  /* Ink */
+  --cb-ink: #0a1220;
+  --cb-ink-2: #111c30;
+
+  /* Type */
+  --cb-body: #39435a;
+  --cb-muted: #5c6779;
+  --cb-on-ink: #f4f6fa;
+  --cb-muted-ink: #a8b4c8;
+
+  /* Accent */
+  --cb-blue: #1240e8;
+  --cb-blue-deep: #0b2ca8;
+  --cb-blue-soft: #5b87ff;
+  --cb-cyan: #35c6f4;
+
+  /* Structure */
+  --cb-hair: #ded8d0;
+  --cb-hair-ink: #ffffff1f;
+  --cb-shell: 1240px;
+  --cb-gutter: clamp(20px, 4vw, 48px);
+
+  --cb-radius: 18px;
+  --cb-radius-lg: 26px;
+  --cb-shadow: 0 1px 2px #0a122008, 0 12px 32px #0a12200f;
+  --cb-shadow-lift: 0 2px 4px #0a12200a, 0 26px 60px #0a122021;
+}
+
+/* ---------------------------------------------------------------- page ---- */
+
+body:has(.cb-page) {
+  background: var(--cb-canvas);
+  color: var(--cb-body);
+  /* Overrides the global dark color-scheme so form controls, scrollbars, and
+     UA defaults render light on the redesigned pages only. */
+  color-scheme: light;
+}
+
+.cb-page {
+  font-family: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--cb-body);
+  background: var(--cb-canvas);
+}
+
+.cb-page ::selection {
+  background: var(--cb-blue);
+  color: #fff;
+}
+
+/* Visible keyboard focus everywhere inside the redesigned surface. */
+.cb-page :focus-visible,
+body:has(.cb-page) .site-header :focus-visible,
+body:has(.cb-page) .site-footer :focus-visible {
+  outline: 3px solid var(--cb-blue);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.cb-band--ink :focus-visible,
+body:has(.cb-page) .site-footer :focus-visible {
+  outline-color: var(--cb-cyan);
+}
+
+.cb-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--cb-ink);
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 0 0 12px 0;
+  font-weight: 700;
+}
+.cb-skip:focus {
+  left: 0;
+}
+
+/* -------------------------------------------------------------- layout ---- */
+
+.cb-shell {
+  width: min(var(--cb-shell), calc(100% - (var(--cb-gutter) * 2)));
+  margin-inline: auto;
+}
+
+.cb-band {
+  position: relative;
+  padding: clamp(64px, 8vw, 116px) 0;
+}
+.cb-band--tight {
+  padding: clamp(44px, 5vw, 72px) 0;
+}
+.cb-band--tint {
+  background: var(--cb-surface-2);
+}
+.cb-band--ink {
+  background: var(--cb-ink);
+  color: var(--cb-muted-ink);
+}
+.cb-band--ink .cb-h2,
+.cb-band--ink .cb-h3,
+.cb-band--ink strong {
+  color: var(--cb-on-ink);
+}
+.cb-band--hair {
+  border-top: 1px solid var(--cb-hair);
+}
+
+/* ---------------------------------------------------------- typography ---- */
+
+.cb-page h1,
+.cb-page h2,
+.cb-page h3,
+.cb-page h4 {
+  font-family: var(--font-archivo), Archivo, Inter, ui-sans-serif, system-ui, sans-serif;
+  color: var(--cb-ink);
+  margin: 0;
+  text-wrap: balance;
+}
+
+.cb-h1 {
+  font-size: clamp(42px, 6vw, 86px);
+  font-weight: 800;
+  letter-spacing: -0.042em;
+  line-height: 0.97;
+}
+.cb-h2 {
+  font-size: clamp(32px, 4.3vw, 58px);
+  font-weight: 800;
+  letter-spacing: -0.036em;
+  line-height: 1.03;
+}
+.cb-h3 {
+  font-size: clamp(21px, 1.7vw, 26px);
+  font-weight: 700;
+  letter-spacing: -0.024em;
+  line-height: 1.2;
+}
+
+.cb-lead {
+  font-size: clamp(18px, 1.35vw, 21px);
+  line-height: 1.58;
+  color: var(--cb-muted);
+  margin: 22px 0 0;
+  max-width: 62ch;
+}
+.cb-band--ink .cb-lead {
+  color: var(--cb-muted-ink);
+}
+
+.cb-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cb-blue);
+  margin: 0 0 20px;
+}
+.cb-band--ink .cb-eyebrow,
+.cb-hero .cb-eyebrow {
+  color: var(--cb-cyan);
+}
+.cb-eyebrow::before {
+  content: "";
+  width: 26px;
+  height: 2px;
+  background: currentColor;
+  flex: none;
+}
+
+.cb-heading {
+  max-width: 22ch;
+}
+.cb-heading--wide {
+  max-width: 30ch;
+}
+
+/* Two-column section header: statement left, supporting paragraph right. */
+.cb-headrow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(28px, 4vw, 72px);
+  align-items: end;
+}
+.cb-headrow .cb-lead {
+  margin-top: 0;
+}
+
+/* ------------------------------------------------------------- buttons ---- */
+
+.cb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 0 28px;
+  border-radius: 12px;
+  border: 1.5px solid transparent;
+  font-family: var(--font-inter), Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.16s, color 0.16s, border-color 0.16s, transform 0.16s,
+    box-shadow 0.16s;
+}
+.cb-btn svg {
+  flex: none;
+  transition: transform 0.18s;
+}
+.cb-btn:hover svg {
+  transform: translateX(3px);
+}
+
+.cb-btn--primary {
+  background: var(--cb-blue);
+  color: #fff;
+  box-shadow: 0 10px 26px #1240e833;
+}
+.cb-btn--primary:hover {
+  background: var(--cb-blue-deep);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px #1240e83d;
+}
+
+.cb-btn--ghost {
+  border-color: var(--cb-ink);
+  color: var(--cb-ink);
+  background: transparent;
+}
+.cb-btn--ghost:hover {
+  background: var(--cb-ink);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+/* On ink bands the ghost inverts. */
+.cb-band--ink .cb-btn--ghost,
+.cb-hero .cb-btn--ghost {
+  border-color: #ffffff59;
+  color: var(--cb-on-ink);
+}
+.cb-band--ink .cb-btn--ghost:hover,
+.cb-hero .cb-btn--ghost:hover {
+  background: var(--cb-on-ink);
+  color: var(--cb-ink);
+  border-color: var(--cb-on-ink);
+}
+
+.cb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 36px;
+}
+
+.cb-textlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cb-blue);
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.16s, gap 0.16s;
+}
+.cb-textlink:hover {
+  border-color: var(--cb-blue);
+  gap: 12px;
+}
+/* The footer is ink on every page, so a cobalt link there is unreadable. */
+.cb-band--ink .cb-textlink,
+.cb-hero .cb-textlink,
+.cb-final .cb-textlink,
+.cb-footer .cb-textlink {
+  color: var(--cb-cyan);
+}
+.cb-band--ink .cb-textlink:hover,
+.cb-hero .cb-textlink:hover,
+.cb-final .cb-textlink:hover,
+.cb-footer .cb-textlink:hover {
+  border-color: var(--cb-cyan);
+}
+
+/* ---------------------------------------------------------------- hero ---- */
+
+.cb-hero {
+  background: var(--cb-ink);
+  color: var(--cb-muted-ink);
+  position: relative;
+  overflow: hidden;
+  padding: clamp(52px, 7vw, 92px) 0 clamp(56px, 7vw, 96px);
+}
+/* Faint connector field. Structural, not a glow. */
+.cb-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(#ffffff08 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff08 1px, transparent 1px);
+  background-size: 74px 74px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 20%, transparent 78%);
+  pointer-events: none;
+}
+.cb-hero > * {
+  position: relative;
+}
+.cb-hero .cb-h1 {
+  color: #fff;
+  max-width: 17ch;
+}
+/* Two-tone headline. The dismissal is quiet, the claim is loud. Restraint here
+   keeps the cyan for connectors and data movement, where it means something. */
+.cb-hero .cb-h1 em,
+.cb-final .cb-h2 em {
+  font-style: normal;
+  color: #7a8aa0;
+  display: block;
+}
+.cb-hero-lead {
+  font-size: clamp(17px, 1.3vw, 20px);
+  line-height: 1.6;
+  color: var(--cb-muted-ink);
+  margin: 28px 0 0;
+  max-width: 64ch;
+}
+
+.cb-hero-own {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 34px;
+  padding-top: 26px;
+  border-top: 1px solid var(--cb-hair-ink);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cb-muted-ink);
+  max-width: 62ch;
+}
+.cb-hero-own svg {
+  flex: none;
+  color: var(--cb-cyan);
+}
+
+/* --------------------------------------------------------- company loop --- */
+
+.cb-loop {
+  margin-top: clamp(48px, 6vw, 76px);
+}
+.cb-loop-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding-bottom: 18px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid var(--cb-hair-ink);
+}
+.cb-loop-title strong {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--cb-on-ink);
+}
+.cb-loop-title span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cb-muted-ink);
+}
+
+.cb-loop-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 30px;
+  row-gap: 14px;
+}
+
+.cb-node {
+  position: relative;
+  background: #ffffff09;
+  border: 1px solid var(--cb-hair-ink);
+  border-radius: 14px;
+  padding: 18px 18px 20px;
+  min-height: 128px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cb-node-index {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--cb-cyan);
+}
+.cb-node-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #35c6f41f;
+  color: var(--cb-cyan);
+  flex: none;
+}
+.cb-node strong {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--cb-on-ink);
+  display: block;
+}
+.cb-node small {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--cb-muted-ink);
+  display: block;
+}
+
+/* Horizontal connector drawn in the grid gap. Same flowing-dash idiom the
+   /start router already uses, so the motion vocabulary is consistent. */
+.cb-node::after {
+  content: "";
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  width: 30px;
+  height: 2px;
+  transform: translateY(-50%);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--cb-cyan) 0 7px,
+    #35c6f42e 7px 14px
+  );
+  background-size: 14px 100%;
+  animation: cb-flow 0.85s linear infinite;
+}
+.cb-node:last-child::after {
+  display: none;
+}
+
+/* Both rails read left to right. The SVG sweeps carry the flow back to the left
+   margin between them, the way a line of text wraps. */
+
+@keyframes cb-flow {
+  to {
+    background-position: 14px 0;
+  }
+}
+
+/* The two sweeps that close the circuit. preserveAspectRatio="none" lets the
+   path stretch to any width; non-scaling-stroke keeps the line weight honest. */
+.cb-loop-sweep {
+  display: block;
+  width: 100%;
+  height: 58px;
+  overflow: visible;
+}
+.cb-loop-sweep path {
+  fill: none;
+  stroke: var(--cb-cyan);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 7 7;
+  animation: cb-dash 0.85s linear infinite;
+}
+.cb-loop-sweep--return path {
+  stroke: var(--cb-blue-soft);
+  opacity: 0.75;
+}
+.cb-loop-sweep polygon {
+  fill: var(--cb-cyan);
+}
+.cb-loop-sweep--return polygon {
+  fill: var(--cb-blue-soft);
+}
+@keyframes cb-dash {
+  to {
+    stroke-dashoffset: -14;
+  }
+}
+
+.cb-loop-return {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cb-muted-ink);
+}
+.cb-loop-return svg {
+  flex: none;
+  color: var(--cb-blue-soft);
+}
+
+/* --------------------------------------------------------- proof strip ---- */
+
+.cb-proof {
+  background: var(--cb-canvas);
+  border-bottom: 1px solid var(--cb-hair);
+}
+.cb-proof-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.cb-proof-item {
+  padding: clamp(28px, 3.4vw, 44px) clamp(16px, 2vw, 30px);
+  border-left: 1px solid var(--cb-hair);
+}
+.cb-proof-item:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+.cb-proof-item strong {
+  display: block;
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: clamp(34px, 3.6vw, 50px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--cb-ink);
+  font-variant-numeric: tabular-nums;
+}
+.cb-proof-item span {
+  display: block;
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--cb-muted);
+}
+
+/* -------------------------------------------- builder vs company builder -- */
+
+.cb-vs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.25fr);
+  gap: clamp(20px, 3vw, 40px);
+  align-items: stretch;
+  margin-top: clamp(40px, 5vw, 64px);
+}
+
+.cb-vs-col {
+  border-radius: var(--cb-radius-lg);
+  padding: clamp(26px, 3vw, 40px);
+  display: flex;
+  flex-direction: column;
+}
+.cb-vs-col--them {
+  background: var(--cb-surface);
+  border: 1px solid var(--cb-hair);
+}
+.cb-vs-col--us {
+  background: var(--cb-ink);
+  color: var(--cb-muted-ink);
+  box-shadow: var(--cb-shadow-lift);
+}
+
+.cb-vs-label {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cb-muted);
+}
+.cb-vs-col--us .cb-vs-label {
+  color: var(--cb-cyan);
+}
+.cb-vs-col h3 {
+  margin: 14px 0 0;
+  font-size: clamp(24px, 2.2vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+.cb-vs-col--us h3 {
+  color: #fff;
+}
+
+.cb-vs-list {
+  list-style: none;
+  margin: 26px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.cb-vs-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid var(--cb-hair);
+  font-size: 15px;
+  line-height: 1.4;
+}
+.cb-vs-col--us .cb-vs-list li {
+  border-color: var(--cb-hair-ink);
+}
+.cb-vs-list svg {
+  flex: none;
+}
+.cb-vs-col--them .cb-vs-list svg {
+  color: #a79e91;
+}
+.cb-vs-col--us .cb-vs-list svg {
+  color: var(--cb-cyan);
+}
+.cb-vs-col--them .cb-vs-list li:nth-child(n + 4) {
+  color: #9a9287;
+}
+
+.cb-vs-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cb-muted);
+}
+.cb-vs-mid::before,
+.cb-vs-mid::after {
+  content: "";
+  flex: 1;
+  width: 1px;
+  background: var(--cb-hair);
+}
+
+.cb-vs-foot {
+  margin-top: auto;
+  padding-top: 26px;
+  font-size: 15px;
+  line-height: 1.55;
+}
+.cb-vs-col--them .cb-vs-foot {
+  color: var(--cb-muted);
+}
+.cb-vs-col--us .cb-vs-foot {
+  color: var(--cb-on-ink);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------- pillars ---- */
+
+.cb-pillars {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: clamp(40px, 5vw, 64px);
+  background: var(--cb-hair);
+  border: 1px solid var(--cb-hair);
+  border-radius: var(--cb-radius-lg);
+  overflow: hidden;
+}
+.cb-pillar {
+  background: var(--cb-surface);
+  padding: clamp(26px, 2.6vw, 38px);
+  display: flex;
+  flex-direction: column;
+  transition: background 0.2s;
+}
+.cb-pillar:hover {
+  background: #fffdf9;
+}
+.cb-pillar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 22px;
+  border-bottom: 2px solid var(--cb-ink);
+}
+.cb-pillar-top h3 {
+  font-size: clamp(22px, 1.9vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.cb-pillar-top svg {
+  color: var(--cb-blue);
+  flex: none;
+}
+.cb-pillar > p {
+  margin: 20px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--cb-muted);
+}
+.cb-pillar ul {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.cb-pillar li {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cb-body);
+  background: var(--cb-surface-2);
+  border-radius: 7px;
+  padding: 6px 10px;
+}
+
+/* ---------------------------------------------------------- case study ---- */
+
+.cb-cases {
+  display: grid;
+  gap: clamp(46px, 6vw, 92px);
+  margin-top: clamp(44px, 5vw, 70px);
+}
+
+.cb-case {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 60px);
+  align-items: center;
+}
+.cb-case--flip .cb-case-shot {
+  order: 2;
+}
+
+.cb-case-shot {
+  position: relative;
+  border-radius: var(--cb-radius);
+  overflow: hidden;
+  background: var(--cb-surface);
+  border: 1px solid var(--cb-hair);
+  box-shadow: var(--cb-shadow-lift);
+  aspect-ratio: 1200 / 630;
+}
+.cb-case-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.cb-case:hover .cb-case-shot img {
+  transform: scale(1.015);
+}
+
+/* Photography, not a screenshot: 3:2 frame and a centred crop, because a
+   top-aligned crop is only right for a page you are reading down. */
+.cb-case-shot--photo {
+  aspect-ratio: 3 / 2;
+}
+.cb-case-shot--photo img {
+  object-position: center;
+}
+
+.cb-case-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+.cb-case-kind--client {
+  color: var(--cb-blue-deep);
+  background: #1240e80f;
+}
+.cb-case-kind--founder {
+  color: #7a4a00;
+  background: #f59e0b17;
+}
+.cb-case-kind--private {
+  color: #4b5563;
+  background: #4b55620f;
+}
+
+.cb-case h3 {
+  margin: 18px 0 0;
+  font-size: clamp(26px, 2.6vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.032em;
+  line-height: 1.05;
+}
+.cb-case-what {
+  margin: 12px 0 0;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--cb-muted);
+}
+
+.cb-case-block {
+  margin-top: 22px;
+}
+.cb-case-block dt {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--cb-blue);
+  margin-bottom: 7px;
+}
+.cb-case-block dd {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--cb-body);
+}
+
+.cb-case-facts {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--cb-hair);
+  border: 1px solid var(--cb-hair);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.cb-case-facts li {
+  background: var(--cb-canvas);
+  padding: 14px 14px 16px;
+}
+.cb-case-facts strong {
+  display: block;
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--cb-ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.cb-case-facts span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--cb-muted);
+}
+
+.cb-case-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 24px;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--cb-hair);
+}
+.cb-case-stack {
+  font-size: 13px;
+  color: var(--cb-muted);
+}
+
+.cb-btn--sm {
+  min-height: 46px;
+  padding: 0 18px;
+  font-size: 12.5px;
+  border-radius: 10px;
+}
+
+/* The connected workflow, as a chain. Each link is a real stage on the live
+   property, so this doubles as the system architecture for that build. */
+.cb-flowchain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 0;
+  margin-top: 24px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: var(--cb-ink);
+}
+.cb-flowchain span {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--cb-on-ink);
+  white-space: nowrap;
+}
+.cb-flowchain span + span::before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  width: 22px;
+  height: 2px;
+  margin: 0 10px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--cb-cyan) 0 5px,
+    #35c6f42e 5px 10px
+  );
+  background-size: 10px 100%;
+  animation: cb-flow-10 0.8s linear infinite;
+}
+@keyframes cb-flow-10 {
+  to {
+    background-position: 10px 0;
+  }
+}
+.cb-band--tint .cb-flowchain {
+  background: var(--cb-ink-2);
+}
+
+/* Confidential builds. Named, not hidden, and deliberately not dressed up. */
+.cb-private {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 24px);
+  margin-top: clamp(38px, 4.5vw, 56px);
+}
+.cb-private article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  padding: clamp(24px, 2.4vw, 32px);
+  border: 1px solid var(--cb-hair-ink);
+  border-radius: var(--cb-radius);
+  background: #ffffff08;
+}
+.cb-private svg {
+  color: var(--cb-muted-ink);
+  margin-top: 4px;
+  flex: none;
+}
+.cb-private h3 {
+  color: var(--cb-on-ink);
+  margin: 0;
+}
+.cb-private p {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--cb-muted-ink);
+}
+
+/* ------------------------------------------------------------- process ---- */
+
+.cb-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(18px, 2.2vw, 32px);
+  margin-top: clamp(42px, 5vw, 68px);
+}
+.cb-step {
+  padding-top: 26px;
+  border-top: 2px solid var(--cb-hair-ink);
+  position: relative;
+}
+.cb-step--done {
+  border-top-color: var(--cb-cyan);
+}
+.cb-step-num {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--cb-cyan);
+}
+.cb-step h3 {
+  margin: 14px 0 0;
+  font-size: clamp(19px, 1.6vw, 23px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--cb-on-ink);
+}
+.cb-step p {
+  margin: 12px 0 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--cb-muted-ink);
+}
+
+/* ------------------------------------------------------------ operator ---- */
+
+.cb-operator {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(30px, 4.5vw, 70px);
+  align-items: center;
+}
+.cb-operator-shot {
+  border-radius: var(--cb-radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--cb-hair);
+  box-shadow: var(--cb-shadow-lift);
+  /* Matches the source photography, so the operator shot is never cropped into
+     a headshot it was not framed to be. */
+  aspect-ratio: 4 / 3;
+  background: var(--cb-surface-2);
+}
+.cb-operator-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cb-receipts {
+  list-style: none;
+  margin: 30px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+.cb-receipts li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  padding: 16px 0;
+  border-top: 1px solid var(--cb-hair);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.cb-receipts svg {
+  color: var(--cb-blue);
+  margin-top: 3px;
+  flex: none;
+}
+.cb-receipts strong {
+  color: var(--cb-ink);
+  font-weight: 700;
+}
+
+.cb-pullquote {
+  margin: 32px 0 0;
+  padding: 24px 0 0;
+  border-top: 2px solid var(--cb-ink);
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: clamp(20px, 1.9vw, 26px);
+  font-weight: 700;
+  letter-spacing: -0.024em;
+  line-height: 1.25;
+  color: var(--cb-ink);
+}
+
+/* -------------------------------------------------------------- ladder ---- */
+
+.cb-ladder {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 24px);
+  margin-top: clamp(40px, 5vw, 62px);
+}
+.cb-rung {
+  display: flex;
+  flex-direction: column;
+  background: var(--cb-surface);
+  border: 1px solid var(--cb-hair);
+  border-radius: var(--cb-radius-lg);
+  padding: clamp(26px, 2.6vw, 36px);
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+}
+.cb-rung:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--cb-shadow-lift);
+  border-color: #c9c2b7;
+}
+.cb-rung--lead {
+  background: var(--cb-ink);
+  border-color: var(--cb-ink);
+  color: var(--cb-muted-ink);
+  position: relative;
+}
+.cb-rung-flag {
+  position: absolute;
+  top: -12px;
+  left: clamp(26px, 2.6vw, 36px);
+  background: var(--cb-blue);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+.cb-rung-kind {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--cb-muted);
+}
+.cb-rung--lead .cb-rung-kind {
+  color: var(--cb-cyan);
+}
+.cb-rung h3 {
+  margin: 14px 0 0;
+  font-size: clamp(24px, 2.1vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.cb-rung--lead h3 {
+  color: #fff;
+}
+.cb-rung > p {
+  margin: 16px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--cb-muted);
+}
+.cb-rung--lead > p {
+  color: var(--cb-muted-ink);
+}
+
+/* Declared after `.cb-rung > p` and matched on the element too, so the price is
+   the biggest thing in the card rather than losing to the body-copy rule. */
+.cb-rung > p.cb-rung-price {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: clamp(32px, 3vw, 42px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--cb-blue);
+  margin: 16px 0 0;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.cb-rung--lead > p.cb-rung-price {
+  color: var(--cb-cyan);
+}
+.cb-rung ul {
+  list-style: none;
+  margin: 24px 0 30px;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+.cb-rung li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 11px;
+  align-items: start;
+  padding: 11px 0;
+  border-top: 1px solid var(--cb-hair);
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+.cb-rung--lead li {
+  border-color: var(--cb-hair-ink);
+}
+.cb-rung li svg {
+  color: var(--cb-blue);
+  margin-top: 2px;
+  flex: none;
+}
+.cb-rung--lead li svg {
+  color: var(--cb-cyan);
+}
+.cb-rung > a {
+  margin-top: auto;
+  width: 100%;
+}
+
+.cb-custom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(20px, 3vw, 44px);
+  align-items: center;
+  margin-top: clamp(16px, 2vw, 24px);
+  padding: clamp(24px, 2.6vw, 34px);
+  border: 1px solid var(--cb-hair);
+  border-radius: var(--cb-radius-lg);
+  background: var(--cb-surface-2);
+}
+.cb-custom h3 {
+  margin: 10px 0 0;
+  font-size: clamp(21px, 1.8vw, 26px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+.cb-custom p {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--cb-muted);
+  max-width: 70ch;
+}
+
+/* ----------------------------------------------------------- final cta ---- */
+
+.cb-final {
+  background: var(--cb-ink);
+  color: var(--cb-muted-ink);
+  position: relative;
+  overflow: hidden;
+  padding: clamp(70px, 9vw, 130px) 0;
+}
+.cb-final::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(#ffffff08 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff08 1px, transparent 1px);
+  background-size: 74px 74px;
+  mask-image: radial-gradient(ellipse 80% 90% at 50% 100%, #000 10%, transparent 76%);
+  pointer-events: none;
+}
+.cb-final > * {
+  position: relative;
+}
+.cb-final .cb-h2 {
+  color: #fff;
+  max-width: 16ch;
+}
+
+/* ------------------------------------------------------ header / footer --- */
+
+body:has(.cb-page) .site-header {
+  background: #f7f5f2f2;
+  border-bottom: 1px solid var(--cb-hair);
+}
+body:has(.cb-page) .site-header-inner {
+  width: min(var(--cb-shell), calc(100% - (var(--cb-gutter) * 2)));
+  min-height: 76px;
+}
+body:has(.cb-page) .brand-lockup {
+  color: var(--cb-ink);
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+body:has(.cb-page) .brand-lockup span {
+  color: var(--cb-blue);
+}
+body:has(.cb-page) .desktop-nav {
+  color: var(--cb-body);
+  gap: 26px;
+  font-size: 14px;
+  font-weight: 650;
+}
+body:has(.cb-page) .desktop-nav > a:not(.header-cta):hover {
+  color: var(--cb-blue);
+}
+body:has(.cb-page) .header-cta {
+  background: var(--cb-blue);
+  box-shadow: none;
+  border-radius: 10px;
+  min-height: 44px;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+body:has(.cb-page) .header-cta:hover {
+  background: var(--cb-blue-deep);
+  box-shadow: 0 10px 24px #1240e833;
+}
+body:has(.cb-page) .mobile-nav summary {
+  border-color: var(--cb-hair);
+  background: var(--cb-surface);
+  color: var(--cb-ink);
+}
+body:has(.cb-page) .mobile-nav-panel {
+  background: var(--cb-surface);
+  border-color: var(--cb-hair);
+  box-shadow: var(--cb-shadow-lift);
+  width: min(300px, 100vw - 32px);
+}
+body:has(.cb-page) .mobile-nav-panel > a:not(.header-cta) {
+  color: var(--cb-body);
+  font-size: 15px;
+}
+body:has(.cb-page) .mobile-nav-panel > a:not(.header-cta):hover {
+  color: var(--cb-blue);
+  background: var(--cb-surface-2);
+}
+
+/* Footer stays ink on every page. It is the anchor of the whole site. */
+.cb-footer {
+  background: var(--cb-ink);
+  border-top: 0;
+  padding: clamp(52px, 6vw, 78px) 0 34px;
+  color: var(--cb-muted-ink);
+}
+.cb-footer-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) repeat(3, minmax(0, 0.63fr));
+  gap: clamp(28px, 4vw, 56px);
+  padding-bottom: 44px;
+  border-bottom: 1px solid var(--cb-hair-ink);
+}
+.cb-footer .brand-lockup {
+  color: #fff;
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+.cb-footer .brand-lockup span {
+  color: var(--cb-cyan);
+}
+.cb-footer-pitch {
+  margin: 16px 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--cb-muted-ink);
+  max-width: 34ch;
+}
+.cb-footer-col h2 {
+  font-family: var(--font-inter), Inter, sans-serif;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cb-cyan);
+  margin: 0 0 18px;
+}
+.cb-footer-col nav {
+  display: grid;
+  gap: 11px;
+}
+.cb-footer-col a {
+  font-size: 14.5px;
+  color: var(--cb-muted-ink);
+  transition: color 0.15s;
+  width: fit-content;
+}
+.cb-footer-col a:hover {
+  color: #fff;
+}
+.cb-footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px 30px;
+  padding-top: 26px;
+  font-size: 13px;
+  color: #7d8a9e;
+}
+.cb-footer-bottom a:hover {
+  color: #fff;
+}
+
+/* ---------------------------------------------------------- responsive ---- */
+
+@media (max-width: 1080px) {
+  .cb-headrow {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .cb-proof-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .cb-proof-item:nth-child(3n + 1) {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .cb-proof-item:nth-child(n + 4) {
+    border-top: 1px solid var(--cb-hair);
+  }
+  .cb-vs {
+    grid-template-columns: 1fr;
+  }
+  .cb-vs-mid {
+    flex-direction: row;
+    padding: 4px 0;
+  }
+  .cb-vs-mid::before,
+  .cb-vs-mid::after {
+    height: 1px;
+    width: auto;
+  }
+  .cb-pillars {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cb-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 26px;
+  }
+  .cb-ladder {
+    grid-template-columns: 1fr;
+    max-width: 620px;
+  }
+  .cb-footer-top {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .cb-case,
+  .cb-operator {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+  .cb-case--flip .cb-case-shot {
+    order: 0;
+  }
+  .cb-operator-shot {
+    aspect-ratio: 3 / 2;
+    max-height: 380px;
+  }
+  .cb-custom {
+    grid-template-columns: 1fr;
+  }
+  .cb-custom .cb-btn {
+    width: 100%;
+  }
+  .cb-private {
+    grid-template-columns: 1fr;
+  }
+
+  /* The loop goes vertical. Horizontal connectors become vertical ones and the
+     SVG sweeps are replaced by a single "loops back" line. */
+  .cb-loop-row {
+    grid-template-columns: 1fr;
+    row-gap: 30px;
+  }
+  .cb-node {
+    min-height: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+  }
+  .cb-node-index {
+    display: none;
+  }
+  .cb-node-copy {
+    min-width: 0;
+  }
+  .cb-node::after {
+    left: 32px;
+    right: auto;
+    top: 100%;
+    width: 2px;
+    height: 30px;
+    transform: none;
+    background: repeating-linear-gradient(
+      180deg,
+      var(--cb-cyan) 0 7px,
+      #35c6f42e 7px 14px
+    );
+    background-size: 100% 14px;
+    animation-name: cb-flow-v;
+  }
+  /* The two SVG sweeps only make sense across a wide circuit. On a stack the
+     rails are replaced by one continuous vertical line, so the top rail's last
+     node keeps its connector and the bottom rail makes room for it. */
+  .cb-loop-sweep {
+    display: none;
+  }
+  .cb-loop-row:first-of-type .cb-node:last-child::after {
+    display: block;
+  }
+  /* The sweeps are display:none here but still in the DOM, so the two rails are
+     not adjacent siblings. Hang the gap off the sweep instead. */
+  .cb-loop-sweep + .cb-loop-row {
+    margin-top: 30px;
+  }
+}
+
+@keyframes cb-flow-v {
+  to {
+    background-position: 0 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  .cb-proof-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cb-proof-item {
+    border-left: 0;
+    padding-left: 0;
+    padding-right: 12px;
+  }
+  .cb-proof-item:nth-child(n + 2) {
+    border-top: 1px solid var(--cb-hair);
+  }
+  .cb-proof-item:nth-child(3n + 1) {
+    border-left: 0;
+  }
+  .cb-pillars {
+    grid-template-columns: 1fr;
+  }
+  .cb-steps {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .cb-case-facts {
+    grid-template-columns: 1fr;
+  }
+  .cb-footer-top {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .cb-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cb-actions .cb-btn {
+    width: 100%;
+  }
+  .cb-hero .cb-h1 {
+    max-width: none;
+  }
+}
+
+/* ------------------------------------------------------- reduced motion --- */
+
+@media (prefers-reduced-motion: reduce) {
+  .cb-page *,
+  body:has(.cb-page) .site-header * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .cb-node::after,
+  .cb-loop-sweep path {
+    animation: none !important;
+  }
+  .cb-case:hover .cb-case-shot img,
+  .cb-btn:hover,
+  .cb-rung:hover {
+    transform: none !important;
+  }
+}

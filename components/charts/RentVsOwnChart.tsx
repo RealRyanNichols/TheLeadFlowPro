@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 // Proof chart: cumulative cost of renting your stack vs owning it.
 // Pure SVG, no dependencies, honest arithmetic only. Colors validated for
 // contrast and colorblind separation on the navy surface.
@@ -95,9 +97,9 @@ export default function RentVsOwnChart() {
       </div>
       <p className="mt-3 text-xs text-slate-500">
         Your numbers different? Run them in the{" "}
-        <a href="/tools/rent-receipt" className="font-bold text-sky-300 underline">
+        <Link href="/tools/rent-receipt" className="font-bold text-sky-300 underline">
           Rent Receipt calculator
-        </a>
+        </Link>
         .
       </p>
     </figure>
