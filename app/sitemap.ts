@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { ARTICLES } from "@/lib/articles";
 import { TOOLS } from "@/lib/tools";
+import { STAGE_SLUGS } from "@/lib/system-stages";
 import { TIERS } from "@/lib/tiers";
 
 const BASE = "https://www.theleadflowpro.com";
@@ -36,6 +37,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${BASE}${p}`,
       changeFrequency: "weekly" as const,
       priority: p === "" ? 1 : 0.7,
+    })),
+    // The eight stage pages: each one targets its own keyword set.
+    ...STAGE_SLUGS.map((slug) => ({
+      url: `${BASE}/system/${slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
     })),
     // Free tools are the give-it-away strategy. They have to be crawlable.
     ...TOOLS.map((t) => ({

@@ -6,6 +6,8 @@ export default async function AdminLeads() {
   const { data: leads } = await supabase
     .from("leads")
     .select("*")
+    // Deleted leads leave the pipeline entirely.
+    .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .limit(200);
 
@@ -22,27 +24,27 @@ export default async function AdminLeads() {
       <div className="mb-4 flex justify-end">
         <a
           href="/api/admin/leads/export"
-          className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-slate-200 hover:border-sky-400/60 hover:text-white"
+          className="rounded-lg border border-[var(--line-strong)] px-4 py-2 text-sm font-semibold text-[var(--text)] hover:border-[var(--accent-line)] hover:text-[var(--heading)]"
         >
           Export CSV
         </a>
       </div>
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div className="card !p-4 text-center">
-          <div className="text-3xl font-black text-white">{counts.total}</div>
-          <div className="text-xs uppercase tracking-wide text-slate-400">Leads</div>
+          <div className="text-3xl font-black text-[var(--heading)]">{counts.total}</div>
+          <div className="text-xs uppercase tracking-wide text-[var(--muted)]">Leads</div>
         </div>
         <div className="card !p-4 text-center">
           <div className="text-3xl font-black text-flow-400">{counts.new}</div>
-          <div className="text-xs uppercase tracking-wide text-slate-400">New</div>
+          <div className="text-xs uppercase tracking-wide text-[var(--muted)]">New</div>
         </div>
         <div className="card !p-4 text-center">
           <div className="text-3xl font-black text-warn">{counts.call_booked}</div>
-          <div className="text-xs uppercase tracking-wide text-slate-400">Calls Booked</div>
+          <div className="text-xs uppercase tracking-wide text-[var(--muted)]">Calls Booked</div>
         </div>
         <div className="card !p-4 text-center">
           <div className="text-3xl font-black text-mint">{counts.won}</div>
-          <div className="text-xs uppercase tracking-wide text-slate-400">Won</div>
+          <div className="text-xs uppercase tracking-wide text-[var(--muted)]">Won</div>
         </div>
       </div>
       <LeadsTable initialLeads={all} />

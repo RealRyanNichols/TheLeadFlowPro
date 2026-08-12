@@ -15,7 +15,7 @@ export default async function LeadWorkspacePage({
   const { data: lead } = await supabase.from("leads").select("*").eq("id", id).single();
   if (!lead) notFound();
 
-  const [{ data: notes }, { data: tasks }, { data: activity }, { data: emails }] =
+  const [{ data: notes }, { data: tasks }, { data: activity }, { data: emails }, { data: thread }] =
     await Promise.all([
       supabase
         .from("lead_notes")
@@ -37,6 +37,12 @@ export default async function LeadWorkspacePage({
         .select("*")
         .eq("lead_id", id)
         .order("sent_at", { ascending: false }),
+      // Conversation reads oldest first, the way a phone thread does.
+      supabase
+        .from("lead_messages")
+        .select("*")
+        .eq("lead_id", id)
+        .order("created_at", { ascending: true }),
     ]);
 
   return (
@@ -46,6 +52,7 @@ export default async function LeadWorkspacePage({
       initialTasks={tasks ?? []}
       initialActivity={activity ?? []}
       emails={emails ?? []}
+      initialThread={thread ?? []}
     />
   );
 }

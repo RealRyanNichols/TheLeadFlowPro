@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import LeadThread, { type LeadMsg } from "./LeadThread";
+import DeleteLead from "./DeleteLead";
 
 const STAGES = ["new", "contacted", "call_booked", "proposal", "won", "lost"] as const;
 
@@ -94,7 +96,7 @@ function ConsentBadge({
       ? "bg-mint/15 text-mint"
       : state === "withdrawn"
         ? "bg-warn/15 text-warn"
-        : "bg-white/10 text-slate-400";
+        : "bg-[var(--fill-3)] text-[var(--muted)]";
   return (
     <span className={`rounded-full px-3 py-1 text-xs font-bold ${styles}`}>
       {label}:{" "}
@@ -128,10 +130,10 @@ function DiagnosticViewer({ diagnostic }: { diagnostic: Record<string, unknown> 
   if (!diagnostic) {
     return (
       <div className="card !p-4">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-400">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
           System Map diagnostic
         </h2>
-        <p className="mt-2 text-sm text-slate-400">
+        <p className="mt-2 text-sm text-[var(--muted)]">
           No guided diagnostic on this lead. It fills in automatically when someone
           completes the Map My System flow.
         </p>
@@ -141,57 +143,57 @@ function DiagnosticViewer({ diagnostic }: { diagnostic: Record<string, unknown> 
   const d = diagnostic as Diagnostic;
   return (
     <div className="card !p-4">
-      <h2 className="text-sm font-bold uppercase tracking-wide text-slate-400">
+      <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
         System Map diagnostic
       </h2>
       {d.labels && (
         <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-slate-400">Problem</dt>
-            <dd className="text-slate-200">{d.labels.goal ?? "-"}</dd>
+            <dt className="text-[var(--muted)]">Problem</dt>
+            <dd className="text-[var(--text)]">{d.labels.goal ?? "-"}</dd>
           </div>
           <div>
-            <dt className="text-slate-400">Business</dt>
-            <dd className="text-slate-200">{d.labels.industry ?? "-"}</dd>
+            <dt className="text-[var(--muted)]">Business</dt>
+            <dd className="text-[var(--text)]">{d.labels.industry ?? "-"}</dd>
           </div>
           <div>
-            <dt className="text-slate-400">Home base</dt>
-            <dd className="text-slate-200">{d.labels.presence ?? "-"}</dd>
+            <dt className="text-[var(--muted)]">Home base</dt>
+            <dd className="text-[var(--text)]">{d.labels.presence ?? "-"}</dd>
           </div>
           <div>
-            <dt className="text-slate-400">Current setup</dt>
-            <dd className="text-slate-200">{d.labels.stage ?? "-"}</dd>
+            <dt className="text-[var(--muted)]">Current setup</dt>
+            <dd className="text-[var(--text)]">{d.labels.stage ?? "-"}</dd>
           </div>
           {(d.labels.sales_channels ?? []).length > 0 && (
             <div className="sm:col-span-2">
-              <dt className="text-slate-400">Sales channels</dt>
-              <dd className="text-slate-200">{d.labels.sales_channels!.join(", ")}</dd>
+              <dt className="text-[var(--muted)]">Sales channels</dt>
+              <dd className="text-[var(--text)]">{d.labels.sales_channels!.join(", ")}</dd>
             </div>
           )}
         </dl>
       )}
       {d.recommendation && (
-        <div className="mt-4 rounded-lg bg-ink p-3 text-sm">
-          <p className="font-bold text-white">
+        <div className="mt-4 rounded-lg bg-[var(--page)] p-3 text-sm">
+          <p className="font-bold text-[var(--heading)]">
             Recommended: {d.recommendation.package_name ?? "-"}{" "}
             <span className="text-flow-400">{d.recommendation.price_range ?? ""}</span>
           </p>
           {(d.recommendation.module_labels ?? []).length > 0 && (
-            <p className="mt-1 text-slate-300">
+            <p className="mt-1 text-[var(--text)]">
               {d.recommendation.module_labels!.join(" · ")}
             </p>
           )}
-          {d.next_action && <p className="mt-2 text-slate-400">Next: {d.next_action}</p>}
+          {d.next_action && <p className="mt-2 text-[var(--muted)]">Next: {d.next_action}</p>}
         </div>
       )}
       {d.owner_notes && (
-        <p className="mt-3 rounded-lg bg-ink p-3 text-sm text-slate-300">
-          <span className="text-slate-400">In their words:</span> {d.owner_notes}
+        <p className="mt-3 rounded-lg bg-[var(--page)] p-3 text-sm text-[var(--text)]">
+          <span className="text-[var(--muted)]">In their words:</span> {d.owner_notes}
         </p>
       )}
       <details className="mt-3">
-        <summary className="cursor-pointer text-xs text-slate-400">Raw diagnostic JSON</summary>
-        <pre className="mt-2 max-h-80 overflow-auto rounded-lg bg-ink p-3 text-xs text-slate-300">
+        <summary className="cursor-pointer text-xs text-[var(--muted)]">Raw diagnostic JSON</summary>
+        <pre className="mt-2 max-h-80 overflow-auto rounded-lg bg-[var(--page)] p-3 text-xs text-[var(--text)]">
           {JSON.stringify(diagnostic, null, 2)}
         </pre>
       </details>
@@ -205,12 +207,14 @@ export default function LeadWorkspace({
   initialTasks,
   initialActivity,
   emails,
+  initialThread,
 }: {
   lead: Lead;
   initialNotes: Note[];
   initialTasks: Task[];
   initialActivity: Activity[];
   emails: LeadEmail[];
+  initialThread: LeadMsg[];
 }) {
   const [status, setStatusState] = useState(lead.status);
   const [owner, setOwnerState] = useState(lead.owner ?? "");
@@ -308,24 +312,24 @@ export default function LeadWorkspace({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <Link href="/admin" className="text-sm text-slate-400 hover:text-white">
+          <Link href="/admin" className="text-sm text-[var(--muted)] hover:text-[var(--heading)]">
             ← All leads
           </Link>
-          <h1 className="mt-1 text-2xl font-black text-white">
+          <h1 className="mt-1 text-2xl font-black text-[var(--heading)]">
             {lead.full_name}
             {lead.business_name && (
-              <span className="ml-2 text-base font-semibold text-slate-400">
+              <span className="ml-2 text-base font-semibold text-[var(--muted)]">
                 {lead.business_name}
               </span>
             )}
           </h1>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-[var(--muted)]">
             Arrived {fmt(lead.created_at)} · {INTEREST_LABELS[lead.interest] ?? lead.interest}
             {lead.is_test && " · TEST LEAD"}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <label className="text-xs text-slate-400">
+          <label className="text-xs text-[var(--muted)]">
             Stage
             <select
               className="input !w-auto !py-1.5 ml-2 text-sm"
@@ -339,7 +343,7 @@ export default function LeadWorkspace({
               ))}
             </select>
           </label>
-          <label className="text-xs text-slate-400">
+          <label className="text-xs text-[var(--muted)]">
             Owner
             <input
               className="input !w-40 !py-1.5 ml-2 text-sm"
@@ -365,7 +369,7 @@ export default function LeadWorkspace({
           withdrawnAt={lead.sms_unsubscribed_at}
         />
         {lead.consent_at && (
-          <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-400">
+          <span className="rounded-full bg-[var(--fill-3)] px-3 py-1 text-xs text-[var(--muted)]">
             Consent recorded {fmt(lead.consent_at)}
           </span>
         )}
@@ -374,12 +378,12 @@ export default function LeadWorkspace({
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
           <div className="card !p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-slate-400">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
               Intake
             </h2>
             <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
               <div>
-                <dt className="text-slate-400">Email</dt>
+                <dt className="text-[var(--muted)]">Email</dt>
                 <dd>
                   <a href={`mailto:${lead.email}`} className="text-flow-400">
                     {lead.email}
@@ -387,7 +391,7 @@ export default function LeadWorkspace({
                 </dd>
               </div>
               <div>
-                <dt className="text-slate-400">Phone</dt>
+                <dt className="text-[var(--muted)]">Phone</dt>
                 <dd>
                   {lead.phone ? (
                     <a href={`tel:${lead.phone}`} className="text-flow-400">
@@ -399,32 +403,32 @@ export default function LeadWorkspace({
                 </dd>
               </div>
               <div>
-                <dt className="text-slate-400">Website / profile</dt>
-                <dd className="break-all text-slate-200">{lead.website_url ?? "-"}</dd>
+                <dt className="text-[var(--muted)]">Website / profile</dt>
+                <dd className="break-all text-[var(--text)]">{lead.website_url ?? "-"}</dd>
               </div>
               <div>
-                <dt className="text-slate-400">Industry</dt>
-                <dd className="text-slate-200">{pretty(lead.industry)}</dd>
+                <dt className="text-[var(--muted)]">Industry</dt>
+                <dd className="text-[var(--text)]">{pretty(lead.industry)}</dd>
               </div>
               <div>
-                <dt className="text-slate-400">Home base</dt>
-                <dd className="text-slate-200">{pretty(lead.current_platform)}</dd>
+                <dt className="text-[var(--muted)]">Home base</dt>
+                <dd className="text-[var(--text)]">{pretty(lead.current_platform)}</dd>
               </div>
               <div>
-                <dt className="text-slate-400">Budget</dt>
-                <dd className="text-slate-200">{pretty(lead.budget_range)}</dd>
+                <dt className="text-[var(--muted)]">Budget</dt>
+                <dd className="text-[var(--text)]">{pretty(lead.budget_range)}</dd>
               </div>
               <div>
-                <dt className="text-slate-400">Timeline</dt>
-                <dd className="text-slate-200">{pretty(lead.timeline)}</dd>
+                <dt className="text-[var(--muted)]">Timeline</dt>
+                <dd className="text-[var(--text)]">{pretty(lead.timeline)}</dd>
               </div>
               <div>
-                <dt className="text-slate-400">Prefers</dt>
-                <dd className="text-slate-200">{pretty(lead.best_contact_method)}</dd>
+                <dt className="text-[var(--muted)]">Prefers</dt>
+                <dd className="text-[var(--text)]">{pretty(lead.best_contact_method)}</dd>
               </div>
               <div>
-                <dt className="text-slate-400">Source</dt>
-                <dd className="text-slate-200">
+                <dt className="text-[var(--muted)]">Source</dt>
+                <dd className="text-[var(--text)]">
                   {[lead.source, lead.utm_source, lead.utm_medium, lead.utm_campaign]
                     .filter(Boolean)
                     .join(" / ") || "-"}
@@ -432,16 +436,16 @@ export default function LeadWorkspace({
               </div>
               {(lead.desired_modules ?? []).length > 0 && (
                 <div className="sm:col-span-2">
-                  <dt className="text-slate-400">Modules</dt>
-                  <dd className="text-slate-200">
+                  <dt className="text-[var(--muted)]">Modules</dt>
+                  <dd className="text-[var(--text)]">
                     {lead.desired_modules.map((m) => pretty(m)).join(", ")}
                   </dd>
                 </div>
               )}
             </dl>
             {lead.goals && (
-              <p className="mt-3 rounded-lg bg-ink p-3 text-sm text-slate-300">
-                <span className="text-slate-400">Summary:</span> {lead.goals}
+              <p className="mt-3 rounded-lg bg-[var(--page)] p-3 text-sm text-[var(--text)]">
+                <span className="text-[var(--muted)]">Summary:</span> {lead.goals}
               </p>
             )}
           </div>
@@ -449,13 +453,13 @@ export default function LeadWorkspace({
           <DiagnosticViewer diagnostic={lead.diagnostic} />
 
           <div className="card !p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-slate-400">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
               Automated emails
             </h2>
             {emails.length === 0 ? (
-              <p className="mt-2 text-sm text-slate-400">No automated emails sent yet.</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">No automated emails sent yet.</p>
             ) : (
-              <ul className="mt-2 space-y-1 text-sm text-slate-300">
+              <ul className="mt-2 space-y-1 text-sm text-[var(--text)]">
                 {emails.map((e) => (
                   <li key={e.id}>
                     Step {e.step} · sent {fmt(e.sent_at)}
@@ -467,8 +471,15 @@ export default function LeadWorkspace({
         </div>
 
         <div className="space-y-6">
+          <LeadThread
+            leadId={lead.id}
+            initialMessages={initialThread}
+            canText={Boolean(lead.phone) && lead.sms_consent && !lead.sms_unsubscribed_at}
+            hasEmail={Boolean(lead.email)}
+          />
+
           <div className="card !p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-slate-400">Notes</h2>
+            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">Notes</h2>
             <form onSubmit={addNote} className="mt-3 flex gap-2">
               <input
                 className="input text-sm"
@@ -483,25 +494,25 @@ export default function LeadWorkspace({
             </form>
             <ul className="mt-4 space-y-3">
               {lead.notes && (
-                <li className="rounded-lg bg-ink p-3 text-sm text-slate-300">
-                  <span className="text-xs text-slate-500">Legacy note</span>
+                <li className="rounded-lg bg-[var(--page)] p-3 text-sm text-[var(--text)]">
+                  <span className="text-xs text-[var(--quiet)]">Legacy note</span>
                   <p>{lead.notes}</p>
                 </li>
               )}
               {notes.map((n) => (
-                <li key={n.id} className="rounded-lg bg-ink p-3 text-sm text-slate-300">
-                  <span className="text-xs text-slate-500">{fmt(n.created_at)}</span>
+                <li key={n.id} className="rounded-lg bg-[var(--page)] p-3 text-sm text-[var(--text)]">
+                  <span className="text-xs text-[var(--quiet)]">{fmt(n.created_at)}</span>
                   <p>{n.body}</p>
                 </li>
               ))}
               {notes.length === 0 && !lead.notes && (
-                <li className="text-sm text-slate-400">No notes yet.</li>
+                <li className="text-sm text-[var(--muted)]">No notes yet.</li>
               )}
             </ul>
           </div>
 
           <div className="card !p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-slate-400">Tasks</h2>
+            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">Tasks</h2>
             <form onSubmit={addTask} className="mt-3 flex gap-2">
               <input
                 className="input text-sm"
@@ -524,37 +535,41 @@ export default function LeadWorkspace({
                     aria-label={`Mark task ${t.title} ${t.completed_at ? "open" : "done"}`}
                   />
                   <span
-                    className={t.completed_at ? "text-slate-500 line-through" : "text-slate-200"}
+                    className={t.completed_at ? "text-[var(--quiet)] line-through" : "text-[var(--text)]"}
                   >
                     {t.title}
                   </span>
                 </li>
               ))}
-              {tasks.length === 0 && <li className="text-sm text-slate-400">No tasks yet.</li>}
+              {tasks.length === 0 && <li className="text-sm text-[var(--muted)]">No tasks yet.</li>}
             </ul>
           </div>
 
           <div className="card !p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-slate-400">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
               Activity
             </h2>
             <ul className="mt-3 space-y-2 text-sm">
               {activity.map((a) => (
                 <li key={a.id} className="flex gap-3">
-                  <span className="whitespace-nowrap text-xs text-slate-500">
+                  <span className="whitespace-nowrap text-xs text-[var(--quiet)]">
                     {fmt(a.created_at)}
                   </span>
-                  <span className="text-slate-300">{a.detail}</span>
+                  <span className="text-[var(--text)]">{a.detail}</span>
                 </li>
               ))}
               {activity.length === 0 && (
-                <li className="text-sm text-slate-400">
+                <li className="text-sm text-[var(--muted)]">
                   No activity yet. Stage and owner changes are logged automatically.
                 </li>
               )}
             </ul>
           </div>
         </div>
+      </div>
+
+      <div className="flex justify-end border-t border-[var(--line)] pt-5">
+        <DeleteLead leadId={lead.id} leadName={lead.full_name} />
       </div>
     </div>
   );

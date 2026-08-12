@@ -25,7 +25,7 @@ export default async function AdminClients() {
 
   return (
     <div className="space-y-3">
-      <p className="mb-4 text-slate-400">
+      <p className="mb-4 text-[var(--muted)]">
         Every account on the platform. Click a client to open their message
         thread; their projects are managed under Projects.
       </p>
@@ -35,7 +35,7 @@ export default async function AdminClients() {
           <div key={c.id} className="card !p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <span className="font-bold text-white">
+                <span className="font-bold text-[var(--heading)]">
                   {c.full_name || c.email}
                 </span>
                 {c.role === "admin" && (
@@ -43,14 +43,14 @@ export default async function AdminClients() {
                     ADMIN
                   </span>
                 )}
-                <div className="text-xs text-slate-400">
+                <div className="text-xs text-[var(--muted)]">
                   {c.email}
                   {c.business_name && ` · ${c.business_name}`}
                   {" · joined "}
                   {new Date(c.created_at).toLocaleDateString()}
                 </div>
               </div>
-              <div className="flex items-center gap-4 text-xs text-slate-400">
+              <div className="flex items-center gap-4 text-xs text-[var(--muted)]">
                 <span>
                   {ps.length} project{ps.length === 1 ? "" : "s"}
                 </span>
@@ -79,7 +79,7 @@ export default async function AdminClients() {
         );
       })}
       {(profiles ?? []).length === 0 && (
-        <div className="card text-center text-slate-400">No accounts yet.</div>
+        <div className="card text-center text-[var(--muted)]">No accounts yet.</div>
       )}
     </div>
   );

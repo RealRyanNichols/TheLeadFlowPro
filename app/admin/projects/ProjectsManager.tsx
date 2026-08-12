@@ -116,7 +116,7 @@ export default function ProjectsManager({
   return (
     <div>
       <div className="mb-6 flex justify-between">
-        <p className="text-slate-400">
+        <p className="text-[var(--muted)]">
           {projects.length} project{projects.length === 1 ? "" : "s"}
         </p>
         <button className="btn-primary !py-2 text-sm" onClick={() => setShowNew(!showNew)}>
@@ -168,8 +168,8 @@ export default function ProjectsManager({
           <div key={p.id} className="card">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-bold text-white">{p.name}</h2>
-                <p className="text-xs text-slate-400">
+                <h2 className="text-lg font-bold text-[var(--heading)]">{p.name}</h2>
+                <p className="text-xs text-[var(--muted)]">
                   {p.profiles ? p.profiles.full_name || p.profiles.email : "No client linked"}
                   {p.old_platform && ` · leaving ${p.old_platform}`}
                   {p.old_monthly_cost ? ` · was paying $${p.old_monthly_cost}/mo` : ""}
@@ -203,12 +203,12 @@ export default function ProjectsManager({
                             ? "text-mint"
                             : m.status === "in_progress"
                               ? "text-warn"
-                              : "text-slate-600"
+                              : "text-[var(--quiet)]"
                         }
                       >
                         {m.status === "done" ? "●" : m.status === "in_progress" ? "◐" : "○"}
                       </span>
-                      <span className={m.status === "done" ? "text-slate-400 line-through" : "text-slate-200"}>
+                      <span className={m.status === "done" ? "text-[var(--muted)] line-through" : "text-[var(--text)]"}>
                         {m.title}
                       </span>
                     </button>
@@ -218,7 +218,7 @@ export default function ProjectsManager({
           </div>
         ))}
         {projects.length === 0 && (
-          <div className="card text-center text-slate-400">
+          <div className="card text-center text-[var(--muted)]">
             No projects yet. Win a lead, then create their build here.
           </div>
         )}

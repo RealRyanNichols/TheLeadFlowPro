@@ -83,23 +83,23 @@ export default function VideoStudio() {
   }
 
   if (configured === null) {
-    return <div className="card text-slate-400">Checking video service…</div>;
+    return <div className="card text-[var(--muted)]">Checking video service…</div>;
   }
 
   if (configured === false) {
     return (
       <div className="card border border-violet-400/40 shadow-glow-violet">
-        <h2 className="text-lg font-bold text-white">One step to turn this on</h2>
-        <p className="mt-2 text-sm text-slate-300">
+        <h2 className="text-lg font-bold text-[var(--heading)]">One step to turn this on</h2>
+        <p className="mt-2 text-sm text-[var(--text)]">
           The AI Video Studio runs on HeyGen — prompt in, spoken avatar video out.
           Same activation pattern as the lead emails:
         </p>
-        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-300">
+        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-[var(--text)]">
           <li>Create a HeyGen account and copy an API key from Settings → API.</li>
           <li>Vercel → the-lead-flow-pro → Settings → Environment Variables → add <code className="rounded bg-line px-1.5 py-0.5 text-flow-400">HEYGEN_API_KEY</code> (paste the key yourself).</li>
           <li>Redeploy, come back to this page, and the studio lights up. No code changes.</li>
         </ol>
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-[var(--quiet)]">
           For cinematic prompt-to-video (Runway / Veo-class), we wire that in as a
           second engine later — this studio handles tutorial, explainer, and
           talking-head content first.
@@ -119,7 +119,7 @@ export default function VideoStudio() {
           <label className="label" htmlFor="v-script">Script (what the avatar says)</label>
           <textarea id="v-script" className="input" rows={8} value={script} onChange={(e) => setScript(e.target.value)} required maxLength={5000}
             placeholder={"Stop renting your business.\nShopify, Wix, Mailchimp - an arm and a leg, every month, forever.\nI teach business owners to OWN their platform..."} />
-          <p className="mt-1 text-xs text-slate-500">{script.length}/5000 · roughly {Math.max(1, Math.round(script.split(/\s+/).filter(Boolean).length / 145))} min spoken</p>
+          <p className="mt-1 text-xs text-[var(--quiet)]">{script.length}/5000 · roughly {Math.max(1, Math.round(script.split(/\s+/).filter(Boolean).length / 145))} min spoken</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
@@ -139,39 +139,39 @@ export default function VideoStudio() {
             </select>
           </div>
         </div>
-        {error && <p className="text-sm font-medium text-red-400">{error}</p>}
+        {error && <p className="text-sm font-medium text-[var(--danger)]">{error}</p>}
         <button type="submit" disabled={busy || !script} className="btn-primary w-full disabled:opacity-50">
           {busy ? "Generating…" : "Generate Video"}
         </button>
       </form>
 
       <div className="card">
-        <h2 className="font-bold text-white">Output</h2>
+        <h2 className="font-bold text-[var(--heading)]">Output</h2>
         {!videoId && (
-          <p className="mt-3 text-sm text-slate-400">
+          <p className="mt-3 text-sm text-[var(--muted)]">
             Write the script, pick an avatar and voice, hit generate. Videos take
             a few minutes to render — this panel updates itself.
           </p>
         )}
         {videoId && !videoUrl && (
-          <div className="mt-4 flex items-center gap-3 rounded-xl bg-ink p-4">
+          <div className="mt-4 flex items-center gap-3 rounded-xl bg-[var(--page)] p-4">
             <span className="relative flex h-3 w-3">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-60" />
               <span className="relative inline-flex h-3 w-3 rounded-full bg-violet-400" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-white">Rendering on HeyGen…</p>
-              <p className="text-xs text-slate-400">status: {status ?? "queued"} · id {videoId}</p>
+              <p className="text-sm font-semibold text-[var(--heading)]">Rendering on HeyGen…</p>
+              <p className="text-xs text-[var(--muted)]">status: {status ?? "queued"} · id {videoId}</p>
             </div>
           </div>
         )}
         {videoUrl && (
           <div className="mt-4 space-y-3">
-            <video src={videoUrl} controls className="w-full rounded-xl border border-white/10" />
+            <video src={videoUrl} controls className="w-full rounded-xl border border-[var(--line-strong)]" />
             <a href={videoUrl} target="_blank" rel="noreferrer" className="btn-ghost block text-center">
               Open / Download MP4
             </a>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[var(--quiet)]">
               Download links from HeyGen expire — save the file if you're keeping it.
             </p>
           </div>

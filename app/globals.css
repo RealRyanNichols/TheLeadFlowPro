@@ -23,17 +23,14 @@
    Ryan's call, Aug 12 2026: ship one look across every page. This supersedes
    the "navy stays the base" rule in Notion 0. START HERE and 10. Brand.
 
-   The one exception is the internal back office. `.is-dark-app` on /admin keeps
-   the original navy surface, because it is Ryan's tool and nobody else sees it.
+   Aug 12 2026, second pass: the back office went light too. Ryan could not read
+   the lead email links, which had become cobalt on navy. There is no second
+   theme any more, which is one fewer thing to keep in sync.
    ============================================================ */
 :root{--lightningcss-light:initial;--lightningcss-dark: ;color-scheme:light;--page:#f7f5f2;--page-soft:#efece6;--panel:#ffffff;--panel-strong:#ffffff;--panel-soft:#faf9f7;--line:#0a12201f;--line-strong:#0a122038;--text:#0a1220;--muted:#4e5866;--quiet:#586274;--blue:#1240e8;--blue-strong:#0b2ca8;--cyan:#0e6f96;--green:#146c34;--violet:#6d28d9;--fill-1:#ffffff;--fill-2:#0a12200a;--fill-3:#0a122014;--fill-4:#0a12201a;--on-accent:#ffffff;--heading:#0a1220;--accent-tint:#1240e80f;--accent-line:#1240e82e;--surface-raised:#ffffff;--header-bg:#f7f5f2f2;--menu-bg:#ffffff;--green-tint:#146c3414;--green-line:#146c3438;--warn:#92400e;--warn-tint:#92400e14;--warn-line:#92400e38;--danger:#b91c1c;--danger-tint:#b91c1c12;--danger-line:#b91c1c33;--max:1120px}
 html{scroll-behavior:smooth;background:var(--page)}
 body{background:var(--page);min-width:320px;color:var(--text);text-rendering:optimizelegibility;margin:0;font-family:var(--font-inter),Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;overflow-x:clip}
 
-/* The internal back office keeps the original navy. Scoped, deliberate, and the
-   only surface on the whole site that is still dark. */
-.is-dark-app{--page:#0e1a2e;--page-soft:#12213a;--panel:#17263d;--panel-strong:#1c2d47;--panel-soft:#132238;--line:#ffffff21;--line-strong:#ffffff36;--text:#f7fafc;--muted:#aab5c5;--quiet:#748196;--blue:#2eb9ff;--blue-strong:#2f6fff;--cyan:#67d8ff;--green:#2ed6a3;--violet:#7b61ff;--fill-1:#ffffff08;--fill-2:#ffffff0d;--fill-3:#ffffff17;--fill-4:#ffffff21;--on-accent:#ffffff;--heading:#ffffff;--accent-tint:#2eb9ff14;--accent-line:#67d8ff33;--surface-raised:linear-gradient(160deg,#131b2af5,#090f1bf2);--header-bg:#0e1a2ed9;--menu-bg:#16273f;--green-tint:#2ed6a31f;--green-line:#2ed6a340;--warn:#fbbf24;--warn-tint:#fbbf241f;--warn-line:#fbbf2440;--danger:#fda4af;--danger-tint:#f871711f;--danger-line:#f8717140;color-scheme:dark;background:var(--page);color:var(--text)}
-body:has(.is-dark-app){background:#0e1a2e}
 .site-frame{flex-direction:column;min-height:100vh;display:flex}
 .site-content{flex:1}
 .site-header{z-index:50;border-bottom:1px solid var(--line);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);background:var(--header-bg);position:sticky;top:0}

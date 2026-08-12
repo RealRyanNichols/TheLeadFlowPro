@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   const [{ data: summary }, { data: weekLeads }, { data: weekPurchases }, { data: weekRegs }] =
     await Promise.all([
       supabase.rpc("analytics_summary", { days: 7 }),
-      supabase.from("leads").select("full_name, interest, status, utm_source, created_at").gte("created_at", weekAgo),
+      supabase.from("leads").select("full_name, interest, status, utm_source, created_at").is("deleted_at", null).gte("created_at", weekAgo),
       supabase.from("purchases").select("email, kind, amount_cents, created_at").gte("created_at", weekAgo),
       supabase.from("event_registrations").select("full_name, created_at").gte("created_at", weekAgo),
     ]);

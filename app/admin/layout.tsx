@@ -24,36 +24,33 @@ export default async function AdminLayout({
   if (profile?.role !== "admin") redirect("/dashboard");
 
   return (
-    // The back office is the one surface that stays navy. `.is-dark-app`
-    // redeclares the palette locally so every legacy class inside it keeps
-    // working exactly as before.
-    <section className="is-dark-app min-h-screen">
+    <section className="min-h-screen">
       <div className="mx-auto max-w-6xl px-4 pb-20 pt-[22px] sm:pt-8">
       <div className="mb-8 flex items-center gap-6 border-b border-line pb-4">
-        <h1 className="text-2xl font-black text-white">Back Office</h1>
+        <h1 className="text-2xl font-black text-[var(--heading)]">Back Office</h1>
         <nav className="flex flex-wrap gap-4 text-sm font-semibold">
-          <Link href="/admin" className="text-slate-300 hover:text-white">
+          <Link href="/admin" className="text-[var(--text)] hover:text-[var(--heading)]">
             Leads
           </Link>
-          <Link href="/admin/projects" className="text-slate-300 hover:text-white">
+          <Link href="/admin/projects" className="text-[var(--text)] hover:text-[var(--heading)]">
             Projects
           </Link>
-          <Link href="/admin/clients" className="text-slate-300 hover:text-white">
+          <Link href="/admin/clients" className="text-[var(--text)] hover:text-[var(--heading)]">
             Clients
           </Link>
-          <Link href="/admin/messages" className="text-slate-300 hover:text-white">
+          <Link href="/admin/messages" className="text-[var(--text)] hover:text-[var(--heading)]">
             Messages
           </Link>
-          <Link href="/admin/events" className="text-slate-300 hover:text-white">
+          <Link href="/admin/events" className="text-[var(--text)] hover:text-[var(--heading)]">
             Events
           </Link>
-          <Link href="/admin/analytics" className="text-slate-300 hover:text-white">
+          <Link href="/admin/analytics" className="text-[var(--text)] hover:text-[var(--heading)]">
             Analytics
           </Link>
-          <Link href="/admin/videos" className="text-slate-300 hover:text-white">
+          <Link href="/admin/videos" className="text-[var(--text)] hover:text-[var(--heading)]">
             Videos
           </Link>
-          <Link href="/admin/settings" className="text-slate-300 hover:text-white">
+          <Link href="/admin/settings" className="text-[var(--text)] hover:text-[var(--heading)]">
             Settings
           </Link>
         </nav>
