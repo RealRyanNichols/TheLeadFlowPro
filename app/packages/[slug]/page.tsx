@@ -184,10 +184,10 @@ export default async function PackagePage({
         <p>{p.sub}</p>
         <div className="mt-8 flex flex-col items-center gap-2">
           <div className="flex items-baseline gap-3">
-            <span className="text-2xl font-extrabold text-white">{p.name}</span>
-            <span className="text-4xl font-black text-sky-300">{p.price}</span>
+            <span className="text-2xl font-extrabold text-[var(--heading)]">{p.name}</span>
+            <span className="text-4xl font-black text-[var(--blue)]">{p.price}</span>
           </div>
-          <span className="text-sm font-medium text-slate-400">{p.priceNote}</span>
+          <span className="text-sm font-medium text-[var(--muted)]">{p.priceNote}</span>
         </div>
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           {p.buyable ? (
@@ -206,7 +206,7 @@ export default async function PackagePage({
             {p.buyable ? "Ask a question first" : "Send an interest form"}
           </a>
         </div>
-        <p className="mt-5 text-sm font-semibold text-emerald-300">
+        <p className="mt-5 text-sm font-semibold text-[var(--green)]">
           You see the whole thing working before final payment. If you do not like it, you
           do not pay. Fair, right?
         </p>
@@ -216,7 +216,7 @@ export default async function PackagePage({
       <section className="mx-auto mt-4 w-[min(1000px,100%-40px)]">
         <div className="text-center">
           <span className="eyebrow">What you get</span>
-          <h2 className="mt-4 text-3xl font-black text-white sm:text-4xl">
+          <h2 className="mt-4 text-3xl font-black text-[var(--heading)] sm:text-4xl">
             Everything included. Nothing vague.
           </h2>
         </div>
@@ -224,17 +224,17 @@ export default async function PackagePage({
           {p.included.map((item, i) => (
             <div
               key={item.name}
-              className="flex items-start gap-3.5 rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+              className="flex items-start gap-3.5 rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-5"
             >
               <span
-                className="flex h-10 w-10 flex-none items-center justify-center rounded-[11px] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
+                className="flex h-10 w-10 flex-none items-center justify-center rounded-[11px] text-[var(--heading)] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
                 style={{ background: TILE[i % TILE.length] }}
               >
                 <CircleCheck className="h-5 w-5" strokeWidth={2.2} />
               </span>
               <span>
-                <span className="block text-[15.5px] font-bold text-white">{item.name}</span>
-                <span className="mt-1 block text-[13px] leading-relaxed text-slate-400">
+                <span className="block text-[15.5px] font-bold text-[var(--heading)]">{item.name}</span>
+                <span className="mt-1 block text-[13px] leading-relaxed text-[var(--muted)]">
                   {item.why}
                 </span>
               </span>
@@ -247,7 +247,7 @@ export default async function PackagePage({
       <section className="mx-auto mt-16 w-[min(1000px,100%-40px)]">
         <div className="text-center">
           <span className="eyebrow">How it runs</span>
-          <h2 className="mt-4 text-3xl font-black text-white sm:text-4xl">
+          <h2 className="mt-4 text-3xl font-black text-[var(--heading)] sm:text-4xl">
             No mystery. This is the process.
           </h2>
         </div>
@@ -255,16 +255,16 @@ export default async function PackagePage({
           {p.phases.map((ph, i) => (
             <div
               key={ph.title}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+              className="rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-5"
             >
               <span
-                className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-black text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-black text-[var(--heading)] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
                 style={{ background: TILE[i % TILE.length] }}
               >
                 {i + 1}
               </span>
-              <h3 className="mt-3 text-[16px] font-bold text-white">{ph.title}</h3>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-slate-400">{ph.body}</p>
+              <h3 className="mt-3 text-[16px] font-bold text-[var(--heading)]">{ph.title}</h3>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--muted)]">{ph.body}</p>
             </div>
           ))}
         </div>
@@ -272,10 +272,10 @@ export default async function PackagePage({
 
       {/* PROOF */}
       <section className="mx-auto mt-16 w-[min(1000px,100%-40px)]">
-        <div className="rounded-2xl border border-emerald-400/25 bg-emerald-500/[0.04] p-6 sm:p-8">
+        <div className="rounded-2xl border border-[var(--green-line)] bg-emerald-500/[0.04] p-6 sm:p-8">
           <div className="flex items-center gap-3">
-            <BadgeCheck className="h-6 w-6 text-emerald-300" />
-            <h2 className="text-xl font-extrabold text-white sm:text-2xl">
+            <BadgeCheck className="h-6 w-6 text-[var(--green)]" />
+            <h2 className="text-xl font-extrabold text-[var(--heading)] sm:text-2xl">
               Already running live. Check me.
             </h2>
           </div>
@@ -286,20 +286,20 @@ export default async function PackagePage({
                 href={pr.url}
                 target={pr.url.startsWith("http") ? "_blank" : undefined}
                 rel="noreferrer"
-                className="rounded-xl border border-white/10 bg-[#0c1220] p-4 transition hover:border-emerald-400/40"
+                className="rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] p-4 transition hover:border-[var(--green-line)]"
               >
-                <span className="block text-[15px] font-bold text-white">{pr.name}</span>
-                <span className="mt-1 block text-[12.5px] text-slate-400">{pr.what}</span>
+                <span className="block text-[15px] font-bold text-[var(--heading)]">{pr.name}</span>
+                <span className="mt-1 block text-[12.5px] text-[var(--muted)]">{pr.what}</span>
               </a>
             ))}
           </div>
-          <p className="mt-4 text-sm text-slate-400">
+          <p className="mt-4 text-sm text-[var(--muted)]">
             Full profiles with live links on{" "}
-            <Link href="/portfolio" className="font-bold text-emerald-300 underline">
+            <Link href="/portfolio" className="font-bold text-[var(--green)] underline">
               The Work
             </Link>
             . Want to hand-pick features instead?{" "}
-            <Link href="/add-ons" className="font-bold text-emerald-300 underline">
+            <Link href="/add-ons" className="font-bold text-[var(--green)] underline">
               Browse the Add-On Menu
             </Link>
             .
@@ -309,11 +309,11 @@ export default async function PackagePage({
 
       {/* GUARANTEE */}
       <section className="mx-auto mt-16 w-[min(860px,100%-40px)] text-center">
-        <ShieldCheck className="mx-auto h-10 w-10 text-sky-300" />
-        <h2 className="mt-4 text-3xl font-black text-white">
+        <ShieldCheck className="mx-auto h-10 w-10 text-[var(--blue)]" />
+        <h2 className="mt-4 text-3xl font-black text-[var(--heading)]">
           You choose what you want. I build it.
         </h2>
-        <p className="mx-auto mt-3 max-w-xl leading-relaxed text-slate-400">
+        <p className="mx-auto mt-3 max-w-xl leading-relaxed text-[var(--muted)]">
           You tell me how you want it built. I build the whole thing on a platform you
           own: your code, your data, your customer list. You look at it working. If you do
           not like it, you do not pay a dime and we shake hands. If you love it, we go
@@ -323,17 +323,17 @@ export default async function PackagePage({
 
       {/* FAQ */}
       <section className="mx-auto mt-14 w-[min(860px,100%-40px)]">
-        <h2 className="text-center text-2xl font-extrabold text-white">Straight answers</h2>
+        <h2 className="text-center text-2xl font-extrabold text-[var(--heading)]">Straight answers</h2>
         <div className="mt-6 space-y-3">
           {p.faq.map((f) => (
             <details
               key={f.q}
-              className="group rounded-xl border border-white/10 bg-white/[0.03] p-5"
+              className="group rounded-xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-5"
             >
-              <summary className="cursor-pointer list-none text-[15.5px] font-bold text-white">
+              <summary className="cursor-pointer list-none text-[15.5px] font-bold text-[var(--heading)]">
                 {f.q}
               </summary>
-              <p className="mt-2 text-sm leading-relaxed text-slate-400">{f.a}</p>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">{f.a}</p>
             </details>
           ))}
         </div>

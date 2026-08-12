@@ -11,32 +11,32 @@ const MAX = 21;
 
 export default function FollowUpSpeedChart() {
   return (
-    <figure className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
-      <figcaption className="mb-1 text-base font-black text-white">
+    <figure className="rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-5 sm:p-6">
+      <figcaption className="mb-1 text-base font-black text-[var(--heading)]">
         Speed is the whole ballgame.
       </figcaption>
-      <p className="mb-4 text-xs text-slate-400">
+      <p className="mb-4 text-xs text-[var(--muted)]">
         Relative odds of qualifying a new web lead, by callback speed.
       </p>
       <div className="space-y-4">
         {BARS.map((b) => (
           <div key={b.label}>
             <div className="mb-1 flex items-baseline justify-between gap-3">
-              <span className="text-sm font-bold text-white">{b.label}</span>
-              <span className="text-sm font-black text-white">{b.value}x</span>
+              <span className="text-sm font-bold text-[var(--heading)]">{b.label}</span>
+              <span className="text-sm font-black text-[var(--heading)]">{b.value}x</span>
             </div>
-            <div className="h-5 w-full overflow-hidden rounded bg-white/[0.06]">
+            <div className="h-5 w-full overflow-hidden rounded bg-[var(--fill-2)]">
               <div
                 className="h-full rounded-r"
                 style={{ width: `${(b.value / MAX) * 100}%`, minWidth: 10, background: b.color }}
                 title={b.note}
               />
             </div>
-            <p className="mt-1 text-xs text-slate-500">{b.note}</p>
+            <p className="mt-1 text-xs text-[var(--quiet)]">{b.note}</p>
           </div>
         ))}
       </div>
-      <p className="mt-4 text-xs text-slate-500">
+      <p className="mt-4 text-xs text-[var(--quiet)]">
         Source: Lead Response Management Study (James Oldroyd). This is why the
         systems I build text a lead back in seconds, not hours.
       </p>

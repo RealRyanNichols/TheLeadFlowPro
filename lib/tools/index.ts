@@ -32,7 +32,7 @@ export const CATEGORY_META: Record<
     from: "#2eb9ff",
     to: "#2f6fff",
     ring: "rgba(46,185,255,0.45)",
-    text: "#8bdfff",
+    text: "#0b5f87",
   },
   Money: {
     emoji: "💰",
@@ -40,7 +40,7 @@ export const CATEGORY_META: Record<
     from: "#2ed6a3",
     to: "#16a34a",
     ring: "rgba(46,214,163,0.45)",
-    text: "#7ff0cb",
+    text: "#146c34",
   },
   Costs: {
     emoji: "🩸",
@@ -48,7 +48,7 @@ export const CATEGORY_META: Record<
     from: "#ff6b6b",
     to: "#c02626",
     ring: "rgba(255,107,107,0.45)",
-    text: "#ffb3b3",
+    text: "#b3261e",
   },
   Ads: {
     emoji: "📣",
@@ -56,7 +56,7 @@ export const CATEGORY_META: Record<
     from: "#a78bfa",
     to: "#6d28d9",
     ring: "rgba(167,139,250,0.45)",
-    text: "#d3c4ff",
+    text: "#5b21b6",
   },
   Reputation: {
     emoji: "⭐",
@@ -64,7 +64,7 @@ export const CATEGORY_META: Record<
     from: "#fbbf24",
     to: "#d97706",
     ring: "rgba(251,191,36,0.45)",
-    text: "#ffdf9e",
+    text: "#8a5a00",
   },
   Time: {
     emoji: "⏳",
@@ -72,7 +72,7 @@ export const CATEGORY_META: Record<
     from: "#fb923c",
     to: "#ea580c",
     ring: "rgba(251,146,60,0.45)",
-    text: "#ffd0ac",
+    text: "#9a4a12",
   },
   Website: {
     emoji: "🌐",
@@ -80,7 +80,7 @@ export const CATEGORY_META: Record<
     from: "#67d8ff",
     to: "#0ea5e9",
     ring: "rgba(103,216,255,0.45)",
-    text: "#b3ecff",
+    text: "#0e6f96",
   },
   Generators: {
     emoji: "🛠️",
@@ -88,7 +88,7 @@ export const CATEGORY_META: Record<
     from: "#f472b6",
     to: "#be185d",
     ring: "rgba(244,114,182,0.45)",
-    text: "#ffc4e2",
+    text: "#a02257",
   },
 };
 

@@ -73,14 +73,14 @@ export default function LoginForm() {
         <button
           type="button"
           onClick={() => setMode("login")}
-          className={`flex-1 rounded-md py-2 ${mode === "login" ? "bg-flow-500 text-white" : "text-slate-400"}`}
+          className={`flex-1 rounded-md py-2 ${mode === "login" ? "bg-flow-500 text-white" : "text-[var(--muted)]"}`}
         >
           Log In
         </button>
         <button
           type="button"
           onClick={() => setMode("signup")}
-          className={`flex-1 rounded-md py-2 ${mode === "signup" ? "bg-flow-500 text-white" : "text-slate-400"}`}
+          className={`flex-1 rounded-md py-2 ${mode === "signup" ? "bg-flow-500 text-white" : "text-[var(--muted)]"}`}
         >
           Sign Up
         </button>

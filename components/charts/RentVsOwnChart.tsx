@@ -35,11 +35,11 @@ const fmtK = (v: number) => (v >= 1000 ? `$${(v / 1000).toFixed(v % 1000 ? 1 : 0
 
 export default function RentVsOwnChart() {
   return (
-    <figure className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
-      <figcaption className="mb-1 text-base font-black text-white">
+    <figure className="rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-5 sm:p-6">
+      <figcaption className="mb-1 text-base font-black text-[var(--heading)]">
         Renting never stops charging you. Owning does.
       </figcaption>
-      <p className="mb-3 text-xs text-slate-400">
+      <p className="mb-3 text-xs text-[var(--muted)]">
         Example: ${RENT_MO}/mo in rented tools vs a ${BUILD.toLocaleString()} one-time
         build plus ${HOST_MO}/mo hosting, over 5 years.
       </p>
@@ -47,15 +47,15 @@ export default function RentVsOwnChart() {
         {/* gridlines */}
         {[0, 3000, 6000, 9000].map((v) => (
           <g key={v}>
-            <line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} stroke="#ffffff14" strokeWidth={1} />
-            <text x={PAD.l - 8} y={y(v) + 4} textAnchor="end" fontSize={11} fill="#748196">
+            <line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} stroke="#0a12201a" strokeWidth={1} />
+            <text x={PAD.l - 8} y={y(v) + 4} textAnchor="end" fontSize={11} fill="#5c6779">
               {fmtK(v)}
             </text>
           </g>
         ))}
         {/* x labels */}
         {[0, 1, 2, 3, 4, 5].map((yr) => (
-          <text key={yr} x={x(yr * 12)} y={H - 12} textAnchor="middle" fontSize={11} fill="#748196">
+          <text key={yr} x={x(yr * 12)} y={H - 12} textAnchor="middle" fontSize={11} fill="#5c6779">
             {yr === 0 ? "Start" : `Year ${yr}`}
           </text>
         ))}
@@ -63,7 +63,7 @@ export default function RentVsOwnChart() {
         <path d={path(rentAt)} fill="none" stroke="#dc4747" strokeWidth={2.5} strokeLinecap="round" />
         <path d={path(ownAt)} fill="none" stroke="#0993dd" strokeWidth={2.5} strokeLinecap="round" />
         {/* crossover marker */}
-        <circle cx={x(crossM)} cy={y(rentAt(crossM))} r={5} fill="#0e1a2e" stroke="#ffffff" strokeWidth={2}>
+        <circle cx={x(crossM)} cy={y(rentAt(crossM))} r={5} fill="#ffffff" stroke="#0a1220" strokeWidth={2}>
           <title>{`Month ${Math.ceil(crossM)}: owning is cheaper from here on`}</title>
         </circle>
         {/* end-point markers with native tooltips */}
@@ -74,18 +74,18 @@ export default function RentVsOwnChart() {
           <title>{`Owning: ${fmtK(ownAt(MONTHS))} after 5 years`}</title>
         </circle>
         {/* direct labels */}
-        <text x={x(MONTHS) + 8} y={y(rentAt(MONTHS)) + 4} fontSize={12} fontWeight={800} fill="#f7fafc">
+        <text x={x(MONTHS) + 8} y={y(rentAt(MONTHS)) + 4} fontSize={12} fontWeight={800} fill="#0a1220">
           Rent: {fmtK(rentAt(MONTHS))}
         </text>
-        <text x={x(MONTHS) + 8} y={y(ownAt(MONTHS)) + 4} fontSize={12} fontWeight={800} fill="#f7fafc">
+        <text x={x(MONTHS) + 8} y={y(ownAt(MONTHS)) + 4} fontSize={12} fontWeight={800} fill="#0a1220">
           Own: {fmtK(ownAt(MONTHS))}
         </text>
-        <text x={x(crossM) + 8} y={y(rentAt(crossM)) - 10} fontSize={11} fontWeight={700} fill="#aab5c5">
+        <text x={x(crossM) + 8} y={y(rentAt(crossM)) - 10} fontSize={11} fontWeight={700} fill="#5c6779">
           Owning wins from month {Math.ceil(crossM)}
         </text>
       </svg>
       {/* legend */}
-      <div className="mt-2 flex flex-wrap gap-4 text-xs font-bold text-slate-300">
+      <div className="mt-2 flex flex-wrap gap-4 text-xs font-bold text-[var(--text)]">
         <span className="inline-flex items-center gap-1.5">
           <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#dc4747" }} />
           Keep renting the stack
@@ -95,9 +95,9 @@ export default function RentVsOwnChart() {
           Own it once
         </span>
       </div>
-      <p className="mt-3 text-xs text-slate-500">
+      <p className="mt-3 text-xs text-[var(--quiet)]">
         Your numbers different? Run them in the{" "}
-        <Link href="/tools/rent-receipt" className="font-bold text-sky-300 underline">
+        <Link href="/tools/rent-receipt" className="font-bold text-[var(--blue)] underline">
           Rent Receipt calculator
         </Link>
         .

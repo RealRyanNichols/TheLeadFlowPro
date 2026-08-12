@@ -28,9 +28,9 @@ export default async function CoursePage({
           <Link href="/training" className="text-sm text-flow-400 hover:underline">
             ← All courses
           </Link>
-          <div className="card mt-6 border border-sky-400/40 text-center shadow-glow-blue">
-            <h1 className="text-2xl font-black text-white">{course.title}</h1>
-            <p className="mt-3 text-slate-300">
+          <div className="card mt-6 border border-[var(--accent-line)] text-center shadow-[0_12px_32px_rgba(18,64,232,0.16)]">
+            <h1 className="text-2xl font-black text-[var(--heading)]">{course.title}</h1>
+            <p className="mt-3 text-[var(--text)]">
               This course is part of the full Own Your Platform training. One
               payment, lifetime access, every course — and the capstone where
               you build your own platform.
@@ -41,7 +41,7 @@ export default async function CoursePage({
                 See What's Inside
               </Link>
             </div>
-            <p className="mt-4 text-xs text-slate-500">
+            <p className="mt-4 text-xs text-[var(--quiet)]">
               Already purchased? Log in with the same email you bought with.
             </p>
           </div>
@@ -72,12 +72,12 @@ export default async function CoursePage({
       <Link href="/training" className="text-sm text-flow-400 hover:underline">
         ← All courses
       </Link>
-      <h1 className="mt-3 text-3xl font-black text-white">{course.title}</h1>
-      <p className="mt-2 text-slate-400">{course.description}</p>
+      <h1 className="mt-3 text-3xl font-black text-[var(--heading)]">{course.title}</h1>
+      <p className="mt-2 text-[var(--muted)]">{course.description}</p>
 
       <div className="mt-8 space-y-3">
         {(lessons ?? []).length === 0 && (
-          <div className="card text-center text-slate-400">
+          <div className="card text-center text-[var(--muted)]">
             Lessons for this course are being recorded. The Start Here course is
             live now.
           </div>
@@ -90,14 +90,14 @@ export default async function CoursePage({
           >
             <span
               className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                doneIds.has(l.id) ? "bg-mint/20 text-mint" : "bg-line text-slate-400"
+                doneIds.has(l.id) ? "bg-mint/20 text-mint" : "bg-line text-[var(--muted)]"
               }`}
             >
               {doneIds.has(l.id) ? "✓" : i + 1}
             </span>
             <div>
-              <h2 className="font-bold text-white">{l.title}</h2>
-              {l.summary && <p className="text-sm text-slate-400">{l.summary}</p>}
+              <h2 className="font-bold text-[var(--heading)]">{l.title}</h2>
+              {l.summary && <p className="text-sm text-[var(--muted)]">{l.summary}</p>}
             </div>
           </Link>
         ))}

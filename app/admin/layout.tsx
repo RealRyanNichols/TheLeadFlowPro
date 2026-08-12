@@ -24,7 +24,11 @@ export default async function AdminLayout({
   if (profile?.role !== "admin") redirect("/dashboard");
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-12">
+    // The back office is the one surface that stays navy. `.is-dark-app`
+    // redeclares the palette locally so every legacy class inside it keeps
+    // working exactly as before.
+    <section className="is-dark-app min-h-screen">
+      <div className="mx-auto max-w-6xl px-4 pb-20 pt-[22px] sm:pt-8">
       <div className="mb-8 flex items-center gap-6 border-b border-line pb-4">
         <h1 className="text-2xl font-black text-white">Back Office</h1>
         <nav className="flex flex-wrap gap-4 text-sm font-semibold">
@@ -55,6 +59,7 @@ export default async function AdminLayout({
         </nav>
       </div>
       {children}
+    </div>
     </section>
   );
 }

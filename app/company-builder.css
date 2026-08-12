@@ -23,7 +23,7 @@
 
   /* Type */
   --cb-body: #39435a;
-  --cb-muted: #5c6779;
+  --cb-muted: #4e5866;
   --cb-on-ink: #f4f6fa;
   --cb-muted-ink: #a8b4c8;
 
@@ -170,7 +170,8 @@ body:has(.cb-page) .site-footer :focus-visible {
   margin: 22px 0 0;
   max-width: 62ch;
 }
-.cb-band--ink .cb-lead {
+.cb-band--ink .cb-lead,
+.cb-final .cb-lead {
   color: var(--cb-muted-ink);
 }
 
@@ -186,7 +187,8 @@ body:has(.cb-page) .site-footer :focus-visible {
   margin: 0 0 20px;
 }
 .cb-band--ink .cb-eyebrow,
-.cb-hero .cb-eyebrow {
+.cb-hero .cb-eyebrow,
+.cb-final .cb-eyebrow {
   color: var(--cb-cyan);
 }
 .cb-eyebrow::before {
@@ -268,12 +270,14 @@ body:has(.cb-page) .site-footer :focus-visible {
 
 /* On ink bands the ghost inverts. */
 .cb-band--ink .cb-btn--ghost,
-.cb-hero .cb-btn--ghost {
+.cb-hero .cb-btn--ghost,
+.cb-final .cb-btn--ghost {
   border-color: #ffffff59;
   color: var(--cb-on-ink);
 }
 .cb-band--ink .cb-btn--ghost:hover,
-.cb-hero .cb-btn--ghost:hover {
+.cb-hero .cb-btn--ghost:hover,
+.cb-final .cb-btn--ghost:hover {
   background: var(--cb-on-ink);
   color: var(--cb-ink);
   border-color: var(--cb-on-ink);
@@ -642,13 +646,13 @@ body:has(.cb-page) .site-footer :focus-visible {
   flex: none;
 }
 .cb-vs-col--them .cb-vs-list svg {
-  color: #a79e91;
+  color: #8b8275;
 }
 .cb-vs-col--us .cb-vs-list svg {
   color: var(--cb-cyan);
 }
 .cb-vs-col--them .cb-vs-list li:nth-child(n + 4) {
-  color: #9a9287;
+  color: #7d7469;
 }
 
 .cb-vs-mid {
@@ -1352,14 +1356,14 @@ body:has(.cb-page) .site-header-inner {
   width: min(var(--cb-shell), calc(100% - (var(--cb-gutter) * 2)));
   min-height: 76px;
 }
-body:has(.cb-page) .brand-lockup {
+body:has(.cb-page) .site-header .brand-lockup {
   color: var(--cb-ink);
   font-family: var(--font-archivo), Archivo, sans-serif;
   font-size: 19px;
   font-weight: 800;
   letter-spacing: -0.035em;
 }
-body:has(.cb-page) .brand-lockup span {
+body:has(.cb-page) .site-header .brand-lockup span {
   color: var(--cb-blue);
 }
 body:has(.cb-page) .desktop-nav {
@@ -1459,6 +1463,7 @@ body:has(.cb-page) .mobile-nav-panel > a:not(.header-cta):hover {
   color: #fff;
 }
 .cb-footer-bottom {
+  color: var(--cb-muted-ink);
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -1466,8 +1471,13 @@ body:has(.cb-page) .mobile-nav-panel > a:not(.header-cta):hover {
   gap: 14px 30px;
   padding-top: 26px;
   font-size: 13px;
-  color: #7d8a9e;
+  color: var(--cb-muted-ink);
 }
+.cb-footer nav a,
+.cb-footer-bottom a {
+  color: var(--cb-muted-ink);
+}
+.cb-footer nav a:hover,
 .cb-footer-bottom a:hover {
   color: #fff;
 }

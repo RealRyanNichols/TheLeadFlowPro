@@ -346,12 +346,12 @@ export default function FreeBuildFunnel() {
     <main className="pb-24">
       {/* HERO */}
       <section className="page-hero page-hero-centered">
-        <span className="inline-flex items-center gap-2.5 rounded-full border border-sky-400/40 bg-gradient-to-r from-sky-500/25 via-blue-600/20 to-violet-500/25 px-4 py-2 shadow-[0_0_30px_rgba(56,189,248,0.28)] backdrop-blur">
-          <Hammer aria-hidden="true" className="h-3.5 w-3.5 text-sky-300" />
-          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-sky-100">
+        <span className="inline-flex items-center gap-2.5 rounded-full border border-[var(--accent-line)] bg-[var(--accent-tint)] px-4 py-2">
+          <Hammer aria-hidden="true" className="h-3.5 w-3.5 text-[var(--blue)]" />
+          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--blue)]">
             The Free Build Offer
           </span>
-          <span className="rounded-full border border-emerald-400/50 bg-emerald-400/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-300">
+          <span className="rounded-full border border-[var(--green-line)] bg-[var(--green-tint)] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[var(--green)]">
             $0 up front
           </span>
         </span>
@@ -372,13 +372,13 @@ export default function FreeBuildFunnel() {
             Text Me: (903) 500-8898
           </a>
         </div>
-        <p className="mt-4 text-sm font-semibold text-emerald-300">
+        <p className="mt-4 text-sm font-semibold text-[var(--green)]">
           No card. No deposit. No contract. The build happens first. Fair, right?
         </p>
 
         {/* QUICK START — start typing right here on the first screen */}
-        <div className="mx-auto mt-6 w-full max-w-xl rounded-2xl border border-sky-400/30 bg-white/[0.05] p-4 text-left shadow-[0_18px_50px_rgba(0,0,0,0.35)] sm:p-5">
-          <p className="text-sm font-extrabold text-white">
+        <div className="mx-auto mt-6 w-full max-w-xl rounded-2xl border border-[var(--accent-line)] bg-[var(--fill-2)] p-4 text-left shadow-[0_18px_44px_rgba(10,18,32,0.10)] sm:p-5">
+          <p className="text-sm font-extrabold text-[var(--heading)]">
             Start right here. It takes 30 seconds.
           </p>
           <input
@@ -386,7 +386,7 @@ export default function FreeBuildFunnel() {
             onChange={(e) => setBusiness(e.target.value)}
             placeholder="Your business name"
             maxLength={200}
-            className="mt-3 w-full rounded-lg border border-white/15 bg-black/25 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-400 focus:border-sky-400/60 focus:outline-none"
+            className="mt-3 w-full rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] px-3.5 py-2.5 text-sm text-[var(--heading)] placeholder:text-[var(--muted)] focus:border-[var(--accent-line)] focus:outline-none"
           />
           <textarea
             value={notes}
@@ -394,7 +394,7 @@ export default function FreeBuildFunnel() {
             rows={2}
             maxLength={2000}
             placeholder="Tell me about it. What do you do? What do you want?"
-            className="mt-2.5 w-full rounded-lg border border-white/15 bg-black/25 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-400 focus:border-sky-400/60 focus:outline-none"
+            className="mt-2.5 w-full rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] px-3.5 py-2.5 text-sm text-[var(--heading)] placeholder:text-[var(--muted)] focus:border-[var(--accent-line)] focus:outline-none"
           />
           <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
             <button
@@ -402,15 +402,15 @@ export default function FreeBuildFunnel() {
               onClick={toggleRecording}
               className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-bold transition ${
                 recording
-                  ? "border-red-400/60 bg-red-500/15 text-red-200"
-                  : "border-white/15 bg-black/25 text-slate-200 hover:border-sky-400/50"
+                  ? "border-red-400/60 bg-[var(--danger-tint)] text-[var(--danger)]"
+                  : "border-[var(--line-strong)] bg-[var(--panel)] text-[var(--text)] hover:border-[var(--accent-line)]"
               }`}
             >
-              <Mic className={`h-4 w-4 ${recording ? "animate-pulse text-red-300" : "text-sky-300"}`} />
+              <Mic className={`h-4 w-4 ${recording ? "animate-pulse text-[var(--danger)]" : "text-[var(--blue)]"}`} />
               {recording ? `Recording ${recSeconds}s... tap to stop` : "Rather talk? Record a voice memo"}
             </button>
-            <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-white/15 bg-black/25 px-3 py-2 text-sm font-bold text-slate-200 transition hover:border-sky-400/50">
-              <Paperclip className="h-4 w-4 text-sky-300" />
+            <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] px-3 py-2 text-sm font-bold text-[var(--text)] transition hover:border-[var(--accent-line)]">
+              <Paperclip className="h-4 w-4 text-[var(--blue)]" />
               Add photos, logo, or files
               <input
                 type="file"
@@ -422,12 +422,12 @@ export default function FreeBuildFunnel() {
             </label>
           </div>
           {files.length > 0 && (
-            <p className="mt-2 text-xs font-semibold text-emerald-300">
+            <p className="mt-2 text-xs font-semibold text-[var(--green)]">
               {files.length} file{files.length > 1 ? "s" : ""} attached. It all rides along when you hit send below.
             </p>
           )}
           {error && !submitted && (
-            <p className="mt-2 text-xs font-semibold text-red-300">{error}</p>
+            <p className="mt-2 text-xs font-semibold text-[var(--danger)]">{error}</p>
           )}
           <button type="button" onClick={scrollToForm} className="button-primary mt-3 w-full">
             Keep Going. I Am Already Listening.
@@ -446,12 +446,12 @@ export default function FreeBuildFunnel() {
           numbers. People bounced on the price before they ever saw the ask. */}
       <section ref={formRef} className="mx-auto mt-14 w-[min(860px,100%-40px)] scroll-mt-24">
         {!submitted ? (
-          <div className="rounded-[20px] border border-line bg-white/[0.04] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] sm:p-9">
+          <div className="rounded-[20px] border border-line bg-[var(--fill-2)] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] sm:p-9">
             <span className="eyebrow">Start your free build</span>
-            <h2 className="mt-4 text-3xl font-black tracking-tight text-white">
+            <h2 className="mt-4 text-3xl font-black tracking-tight text-[var(--heading)]">
               Tell me about your business.
             </h2>
-            <p className="mt-2 text-slate-400">
+            <p className="mt-2 text-[var(--muted)]">
               Four boxes and three taps. That is the whole ask. Everything under it is
               optional, and the more you give me the closer the first version lands to
               what you actually pictured.
@@ -515,11 +515,11 @@ export default function FreeBuildFunnel() {
               {/* OPTIONAL DEEP DIVE — folded away. Four required fields plus three
                   taps is the whole ask. Everything else is for the people who
                   want to talk, and they will open it themselves. */}
-              <details className="group mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
-                <summary className="cursor-pointer list-none text-sm font-extrabold text-sky-300">
+              <details className="group mt-6 rounded-xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-4 sm:p-5">
+                <summary className="cursor-pointer list-none text-sm font-extrabold text-[var(--blue)]">
                   Want to tell me more? Open this. Totally optional.
                 </summary>
-                <p className="mt-2 text-xs text-slate-500">
+                <p className="mt-2 text-xs text-[var(--quiet)]">
                   Skip anything. Answer what you feel like. Every answer makes the first
                   version sharper.
                 </p>
@@ -549,13 +549,13 @@ export default function FreeBuildFunnel() {
 
               {/* UPLOADS */}
               <div className="mt-5">
-                <span className="mb-2 block text-sm font-semibold text-slate-300">
+                <span className="mb-2 block text-sm font-semibold text-[var(--text)]">
                   Logos, photos, videos, voice memos (up to {MAX_FILES} files, {MAX_MB}MB each)
                 </span>
-                <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-white/15 bg-black/25 px-6 py-8 text-center transition hover:border-sky-400/50">
-                  <FileUp className="h-7 w-7 text-sky-300" />
-                  <span className="text-sm font-bold text-white">Tap to add your files</span>
-                  <span className="text-xs text-slate-500">Images, video, audio, documents. Anything helps.</span>
+                <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--line-strong)] bg-[var(--panel)] px-6 py-8 text-center transition hover:border-[var(--accent-line)]">
+                  <FileUp className="h-7 w-7 text-[var(--blue)]" />
+                  <span className="text-sm font-bold text-[var(--heading)]">Tap to add your files</span>
+                  <span className="text-xs text-[var(--quiet)]">Images, video, audio, documents. Anything helps.</span>
                   <input
                     type="file"
                     multiple
@@ -567,10 +567,10 @@ export default function FreeBuildFunnel() {
                 {files.length > 0 && (
                   <ul className="mt-3 space-y-1.5">
                     {files.map((f, i) => (
-                      <li key={`${f.name}-${i}`} className="flex items-center justify-between gap-2 rounded-lg bg-white/[0.05] px-3 py-2 text-sm text-slate-300">
+                      <li key={`${f.name}-${i}`} className="flex items-center justify-between gap-2 rounded-lg bg-[var(--fill-2)] px-3 py-2 text-sm text-[var(--text)]">
                         <span className="truncate">{f.name}</span>
                         <button type="button" aria-label={`Remove ${f.name}`} onClick={() => setFiles(files.filter((_, x) => x !== i))}>
-                          <X className="h-4 w-4 text-slate-500 hover:text-white" />
+                          <X className="h-4 w-4 text-[var(--quiet)] hover:text-[var(--heading)]" />
                         </button>
                       </li>
                     ))}
@@ -596,7 +596,7 @@ export default function FreeBuildFunnel() {
                   </span>
                 </label>
               </div>
-              {progress && <p className="mt-3 text-sm font-semibold text-sky-300">{progress}</p>}
+              {progress && <p className="mt-3 text-sm font-semibold text-[var(--blue)]">{progress}</p>}
               {error && (
                 <p className="form-error mt-3" role="alert">
                   {error}
@@ -615,10 +615,10 @@ export default function FreeBuildFunnel() {
             </form>
           </div>
         ) : (
-          <div className="rounded-[20px] border border-emerald-400/30 bg-emerald-500/[0.06] p-9 text-center">
-            <CircleCheck className="mx-auto h-12 w-12 text-emerald-300" />
-            <h2 className="mt-4 text-3xl font-black text-white">I got it. I am on it.</h2>
-            <p className="mx-auto mt-3 max-w-xl text-slate-300">
+          <div className="rounded-[20px] border border-[var(--green-line)] bg-emerald-500/[0.06] p-9 text-center">
+            <CircleCheck className="mx-auto h-12 w-12 text-[var(--green)]" />
+            <h2 className="mt-4 text-3xl font-black text-[var(--heading)]">I got it. I am on it.</h2>
+            <p className="mx-auto mt-3 max-w-xl text-[var(--text)]">
               Check your phone and your email: confirmation is already on the way. I am
               reviewing everything you sent and your build goes on my bench. You will get
               a preview link when it is standing. Remember the deal: you do not pay a dime
@@ -643,10 +643,10 @@ export default function FreeBuildFunnel() {
             { icon: Hammer, t: "2. I build the whole thing", d: "Real pages, real forms, real follow-up. Built like the live sites below, customized to you." },
             { icon: ShieldCheck, t: "3. You decide", d: "Love it? We agree on a fair price by real hours, not agency math. Do not want it? You pay nothing." },
           ].map((s) => (
-            <div key={s.t} className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-              <s.icon className="h-6 w-6 text-sky-300" />
-              <h2 className="mt-3 text-lg font-extrabold text-white">{s.t}</h2>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate-400">{s.d}</p>
+            <div key={s.t} className="rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-6">
+              <s.icon className="h-6 w-6 text-[var(--blue)]" />
+              <h2 className="mt-3 text-lg font-extrabold text-[var(--heading)]">{s.t}</h2>
+              <p className="mt-1.5 text-sm leading-relaxed text-[var(--muted)]">{s.d}</p>
             </div>
           ))}
         </div>
@@ -656,10 +656,10 @@ export default function FreeBuildFunnel() {
       <section className="mx-auto mt-14 w-[min(1100px,100%-40px)]">
         <div className="text-center">
           <span className="eyebrow">Built by me. Live right now.</span>
-          <h2 className="mt-4 text-3xl font-black text-white sm:text-4xl">
+          <h2 className="mt-4 text-3xl font-black text-[var(--heading)] sm:text-4xl">
             Do not take my word for it. Go click on them.
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-slate-400">
+          <p className="mx-auto mt-3 max-w-2xl text-[var(--muted)]">
             Every screen below is a real business running on a platform they own. Open
             any of them in a new tab and poke around. That is what yours looks like.
           </p>
@@ -671,9 +671,9 @@ export default function FreeBuildFunnel() {
               href={site.url}
               target="_blank"
               rel="noreferrer"
-              className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition hover:border-sky-400/50 hover:shadow-[0_0_30px_rgba(56,189,248,0.22)]"
+              className="group overflow-hidden rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] transition hover:border-[var(--accent-line)] hover:shadow-[0_0_30px_rgba(56,189,248,0.22)]"
             >
-              <div className="aspect-[1200/630] w-full overflow-hidden bg-black/40">
+              <div className="aspect-[1200/630] w-full overflow-hidden bg-[var(--panel)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={site.img}
@@ -683,13 +683,13 @@ export default function FreeBuildFunnel() {
                 />
               </div>
               <div className="p-4">
-                <p className="text-sm font-extrabold text-white">{site.name}</p>
-                <p className="mt-1 text-xs leading-relaxed text-slate-400">{site.what}</p>
+                <p className="text-sm font-extrabold text-[var(--heading)]">{site.name}</p>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--muted)]">{site.what}</p>
               </div>
             </a>
           ))}
         </div>
-        <p className="mt-6 text-center text-sm font-black text-white">
+        <p className="mt-6 text-center text-sm font-black text-[var(--heading)]">
           Plus more that are not even on this list.
         </p>
       </section>
@@ -698,10 +698,10 @@ export default function FreeBuildFunnel() {
       <section className="mx-auto mt-14 w-[min(1100px,100%-40px)]">
         <div className="text-center">
           <span className="eyebrow">Why this matters in dollars</span>
-          <h2 className="mt-4 text-3xl font-black text-white sm:text-4xl">
+          <h2 className="mt-4 text-3xl font-black text-[var(--heading)] sm:text-4xl">
             Renting your platform costs more than you think.
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-slate-400">
+          <p className="mx-auto mt-3 max-w-2xl text-[var(--muted)]">
             Published vendor pricing, not my opinion. And the second chart is the one
             that decides whether a lead ever becomes a customer.
           </p>
@@ -722,10 +722,10 @@ export default function FreeBuildFunnel() {
       <section className="mx-auto mt-14 w-[min(1060px,100%-40px)]">
         <div className="text-center">
           <span className="eyebrow">What builds usually look like</span>
-          <h2 className="mt-4 text-3xl font-black text-white sm:text-4xl">
+          <h2 className="mt-4 text-3xl font-black text-[var(--heading)] sm:text-4xl">
             Priced by real hours. Never agency math.
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-slate-400">
+          <p className="mx-auto mt-3 max-w-2xl text-[var(--muted)]">
             If your build takes me an hour, I am not charging you thousands for it. These
             are typical ranges, and you approve the exact price before you pay anything.
           </p>
@@ -736,20 +736,20 @@ export default function FreeBuildFunnel() {
               key={t.name}
               className={`flex flex-col rounded-2xl border p-6 ${
                 t.featured
-                  ? "border-sky-400/60 bg-sky-500/[0.06] shadow-[0_0_40px_rgba(56,189,248,0.15)]"
-                  : "border-white/10 bg-white/[0.03]"
+                  ? "border-[var(--accent-line)] bg-sky-500/[0.06] shadow-[0_0_40px_rgba(56,189,248,0.15)]"
+                  : "border-[var(--line-strong)] bg-[var(--fill-2)]"
               }`}
             >
-              <span className={`self-start rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${t.featured ? "border-sky-400/50 bg-sky-500/15 text-sky-200" : "border-white/15 bg-white/[0.05] text-slate-300"}`}>
+              <span className={`self-start rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${t.featured ? "border-[var(--accent-line)] bg-[var(--accent-tint)] text-[var(--blue)]" : "border-[var(--line-strong)] bg-[var(--fill-2)] text-[var(--text)]"}`}>
                 {t.tag}
               </span>
-              <h3 className="mt-3 text-2xl font-black text-white">{t.name}</h3>
-              <p className="mt-1 text-sm font-bold text-sky-300">{t.range}</p>
-              <p className="mt-2 text-sm text-slate-400">{t.desc}</p>
+              <h3 className="mt-3 text-2xl font-black text-[var(--heading)]">{t.name}</h3>
+              <p className="mt-1 text-sm font-bold text-[var(--blue)]">{t.range}</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">{t.desc}</p>
               <ul className="mt-4 flex-1 space-y-2.5">
                 {t.items.map((it) => (
-                  <li key={it} className="flex items-start gap-2.5 text-sm text-slate-300">
-                    <Check className="mt-0.5 h-4 w-4 flex-none text-emerald-400" strokeWidth={3} />
+                  <li key={it} className="flex items-start gap-2.5 text-sm text-[var(--text)]">
+                    <Check className="mt-0.5 h-4 w-4 flex-none text-[var(--green)]" strokeWidth={3} />
                     {it}
                   </li>
                 ))}
@@ -764,10 +764,10 @@ export default function FreeBuildFunnel() {
             </div>
           ))}
         </div>
-        <p className="mt-5 text-center text-sm text-slate-400">
+        <p className="mt-5 text-center text-sm text-[var(--muted)]">
           Ready to commit today? Down payments and pay-in-full with card, Klarna, or
           Afterpay are on the{" "}
-          <Link href="/packages/launch" className="font-bold text-sky-300 underline">
+          <Link href="/packages/launch" className="font-bold text-[var(--blue)] underline">
             package pages
           </Link>
           . But the free build needs no money at all.

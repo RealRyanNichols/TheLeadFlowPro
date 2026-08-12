@@ -113,7 +113,7 @@ export default async function ArticlePage({
             poster={article.video.poster}
             width={article.video.width}
             height={article.video.height}
-            className="w-full max-w-[420px] rounded-2xl border border-white/10 bg-black shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+            className="w-full max-w-[420px] rounded-2xl border border-[var(--line-strong)] bg-black shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
           >
             <source src={article.video.src} type="video/mp4" />
             {article.video.captions ? (
@@ -128,7 +128,7 @@ export default async function ArticlePage({
             Your browser cannot play this video.{" "}
             <a href={article.video.src}>Download it here.</a>
           </video>
-          <figcaption className="mt-3 text-center text-sm text-white/50">
+          <figcaption className="mt-3 text-center text-sm text-[var(--heading)]/50">
             {article.video.title} · {article.video.durationSeconds} seconds
           </figcaption>
         </figure>
@@ -137,7 +137,7 @@ export default async function ArticlePage({
         <img
           src={article.ogImage}
           alt={article.title}
-          className="mt-8 aspect-[1200/630] w-full rounded-2xl border border-white/10 object-cover shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
+          className="mt-8 aspect-[1200/630] w-full rounded-2xl border border-[var(--line-strong)] object-cover shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
         />
       )}
       <div className="prose-lfp">

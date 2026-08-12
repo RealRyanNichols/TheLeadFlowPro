@@ -34,21 +34,21 @@ export default function ToolGrid() {
     <div>
       {/* search */}
       <div className="relative mx-auto max-w-xl">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--quiet)]" />
         <input
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search 70+ tools: pricing, reviews, QR, missed calls..."
           aria-label="Search the free tools"
-          className="w-full rounded-xl border border-white/15 bg-black/25 py-3 pl-11 pr-10 text-sm text-white placeholder:text-slate-500 focus:border-sky-400/60 focus:outline-none"
+          className="w-full rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] py-3 pl-11 pr-10 text-sm text-[var(--heading)] placeholder:text-[var(--quiet)] focus:border-[var(--accent-line)] focus:outline-none"
         />
         {q && (
           <button
             type="button"
             onClick={() => setQ("")}
             aria-label="Clear search"
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:text-white"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-[var(--quiet)] hover:text-[var(--heading)]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -63,8 +63,8 @@ export default function ToolGrid() {
           className="tool-chip"
           style={
             cat === "All"
-              ? { background: "#ffffff", color: "#0e1a2e", border: "1px solid #fff" }
-              : { background: "rgba(255,255,255,0.05)", color: "#aab5c5", border: "1px solid rgba(255,255,255,0.14)" }
+              ? { background: "var(--text)", color: "var(--on-accent)", border: "1px solid var(--text)" }
+              : { background: "var(--panel)", color: "var(--text)", border: "1px solid var(--line-strong)" }
           }
         >
           All {TOOLS.length}
@@ -81,7 +81,7 @@ export default function ToolGrid() {
               style={
                 on
                   ? { background: `${m.from}26`, color: m.text, border: `1px solid ${m.ring}` }
-                  : { background: "rgba(255,255,255,0.05)", color: "#aab5c5", border: "1px solid rgba(255,255,255,0.14)" }
+                  : { background: "var(--panel)", color: "var(--text)", border: "1px solid var(--line-strong)" }
               }
             >
               <span aria-hidden="true">{m.emoji}</span>
@@ -93,7 +93,7 @@ export default function ToolGrid() {
       </div>
 
       {cat !== "All" && (
-        <p className="mt-4 text-center text-sm text-slate-400">{CATEGORY_META[cat].blurb}</p>
+        <p className="mt-4 text-center text-sm text-[var(--muted)]">{CATEGORY_META[cat].blurb}</p>
       )}
 
       {/* grid */}
@@ -120,19 +120,19 @@ export default function ToolGrid() {
                   >
                     {t.category}
                   </span>
-                  <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-300">
+                  <span className="rounded-full border border-[var(--green-line)] bg-[var(--green-tint)] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[var(--green)]">
                     Free
                   </span>
                 </div>
-                <h3 className="mt-3 text-[17px] font-black leading-tight text-white">{t.name}</h3>
+                <h3 className="mt-3 text-[17px] font-black leading-tight text-[var(--heading)]">{t.name}</h3>
                 <p className="mt-1 text-[13px] font-bold" style={{ color: art.text }}>
                   {t.tagline}
                 </p>
-                <p className="mt-2 flex-1 text-[13px] leading-relaxed text-slate-400">
+                <p className="mt-2 flex-1 text-[13px] leading-relaxed text-[var(--muted)]">
                   {t.description.length > 130 ? `${t.description.slice(0, 128)}...` : t.description}
                 </p>
                 <span
-                  className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-black text-white transition"
+                  className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-black text-[var(--heading)] transition"
                   style={{ background: `linear-gradient(135deg, ${art.from}, ${art.to})` }}
                 >
                   Use it now
@@ -145,9 +145,9 @@ export default function ToolGrid() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
-          <p className="text-lg font-black text-white">No tool for that yet.</p>
-          <p className="mt-2 text-sm text-slate-400">
+        <div className="mt-10 rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-10 text-center">
+          <p className="text-lg font-black text-[var(--heading)]">No tool for that yet.</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">
             Text me what you were looking for at (903) 500-8898 and I might build
             it next.
           </p>

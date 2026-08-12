@@ -59,10 +59,10 @@ export default async function Dashboard() {
     <section className="mx-auto max-w-5xl px-4 py-12">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black text-white">
+          <h1 className="text-3xl font-black text-[var(--heading)]">
             {profile?.full_name ? `Welcome, ${profile.full_name.split(" ")[0]}` : "Your Dashboard"}
           </h1>
-          <p className="mt-1 text-slate-400">
+          <p className="mt-1 text-[var(--muted)]">
             Your projects, your progress, your platform.
           </p>
         </div>
@@ -71,8 +71,8 @@ export default async function Dashboard() {
 
       {(!projects || projects.length === 0) && (
         <div className="card mt-8 text-center">
-          <h2 className="text-xl font-bold text-white">No active projects yet</h2>
-          <p className="mt-2 text-slate-400">
+          <h2 className="text-xl font-bold text-[var(--heading)]">No active projects yet</h2>
+          <p className="mt-2 text-[var(--muted)]">
             Once we kick off your build, every milestone and deliverable shows up
             here. In the meantime, the training area is open.
           </p>
@@ -98,19 +98,19 @@ export default async function Dashboard() {
           return (
             <div key={p.id} className="card">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-xl font-bold text-white">{p.name}</h2>
+                <h2 className="text-xl font-bold text-[var(--heading)]">{p.name}</h2>
                 <span className="rounded-full bg-flow-600/20 px-3 py-1 text-xs font-bold text-flow-400">
                   {STATUS_LABELS[p.status] ?? p.status}
                 </span>
               </div>
-              {p.description && <p className="mt-2 text-sm text-slate-400">{p.description}</p>}
+              {p.description && <p className="mt-2 text-sm text-[var(--muted)]">{p.description}</p>}
 
               {milestones.length > 0 && (
                 <>
                   <div className="mt-4 h-2 overflow-hidden rounded-full bg-line">
                     <div className="h-full bg-mint" style={{ width: `${pct}%` }} />
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-[var(--muted)]">
                     {done} of {milestones.length} milestones done ({pct}%)
                   </p>
                   <ul className="mt-4 space-y-2">
@@ -122,12 +122,12 @@ export default async function Dashboard() {
                               ? "text-mint"
                               : m.status === "in_progress"
                                 ? "text-warn"
-                                : "text-slate-600"
+                                : "text-[var(--quiet)]"
                           }
                         >
                           {m.status === "done" ? "●" : m.status === "in_progress" ? "◐" : "○"}
                         </span>
-                        <span className={m.status === "done" ? "text-slate-400 line-through" : "text-slate-200"}>
+                        <span className={m.status === "done" ? "text-[var(--muted)] line-through" : "text-[var(--text)]"}>
                           {m.title}
                         </span>
                       </li>
@@ -138,7 +138,7 @@ export default async function Dashboard() {
 
               {(p.deliverables ?? []).length > 0 && (
                 <div className="mt-5 border-t border-line pt-4">
-                  <h3 className="text-sm font-bold uppercase tracking-wide text-slate-400">
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
                     Your deliverables
                   </h3>
                   <ul className="mt-2 space-y-1">
@@ -149,9 +149,9 @@ export default async function Dashboard() {
                             {d.title}
                           </a>
                         ) : (
-                          <span className="text-slate-200">{d.title}</span>
+                          <span className="text-[var(--text)]">{d.title}</span>
                         )}
-                        <span className="ml-2 text-xs text-slate-400">({d.kind})</span>
+                        <span className="ml-2 text-xs text-[var(--muted)]">({d.kind})</span>
                       </li>
                     ))}
                   </ul>
@@ -165,15 +165,15 @@ export default async function Dashboard() {
       {lessonCount > 0 && (
         <div className="card mt-8">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-bold text-white">Training progress</h2>
-            <span className="text-sm text-slate-400">
+            <h2 className="text-lg font-bold text-[var(--heading)]">Training progress</h2>
+            <span className="text-sm text-[var(--muted)]">
               {completedCount} of {lessonCount} lessons complete
             </span>
           </div>
           <div className="mt-4 h-2 overflow-hidden rounded-full bg-line">
             <div className="h-full bg-mint" style={{ width: `${trainingPct}%` }} />
           </div>
-          <p className="mt-1 text-xs text-slate-400">{trainingPct}% of the published curriculum</p>
+          <p className="mt-1 text-xs text-[var(--muted)]">{trainingPct}% of the published curriculum</p>
           <div className="mt-4">
             <Link href="/training" className="btn-primary">
               {completedCount === 0 ? "Start Training" : "Continue Training"}
@@ -183,8 +183,8 @@ export default async function Dashboard() {
       )}
 
       <div className="card mt-8">
-        <h2 className="text-lg font-bold text-white">Message Ryan</h2>
-        <p className="mb-4 mt-1 text-sm text-slate-400">
+        <h2 className="text-lg font-bold text-[var(--heading)]">Message Ryan</h2>
+        <p className="mb-4 mt-1 text-sm text-[var(--muted)]">
           Questions about your project or the training land straight in my back
           office.
         </p>

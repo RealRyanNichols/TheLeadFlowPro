@@ -100,7 +100,7 @@ export default function EventCard({ event }: { event: EventRow }) {
     <div className="card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white">{event.title}</h2>
+          <h2 className="text-xl font-bold text-[var(--heading)]">{event.title}</h2>
           <p className="mt-1 text-sm text-flow-400">
             {when}
             {event.venue && ` · ${event.venue}`}
@@ -112,7 +112,7 @@ export default function EventCard({ event }: { event: EventRow }) {
         </span>
       </div>
       {event.description && (
-        <p className="mt-3 text-sm text-slate-300">{event.description}</p>
+        <p className="mt-3 text-sm text-[var(--text)]">{event.description}</p>
       )}
 
       {done ? (
@@ -128,7 +128,7 @@ export default function EventCard({ event }: { event: EventRow }) {
             </button>
           )}
           {Number(event.price_usd) > 0 && payUnavailable && (
-            <p className="mt-2 text-sm text-slate-300">
+            <p className="mt-2 text-sm text-[var(--text)]">
               Payment is collected at the door or by invoice before the event.
             </p>
           )}
@@ -159,7 +159,7 @@ export default function EventCard({ event }: { event: EventRow }) {
             <label className="label">What do you want to get out of it?</label>
             <textarea className="input" name="notes" rows={2} maxLength={1000} />
           </div>
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
           <button type="submit" disabled={busy} className="btn-primary disabled:opacity-50">
             {busy ? "Saving..." : "Reserve My Seat"}
           </button>

@@ -25,29 +25,29 @@ export async function generateMetadata({
 // Accent styling per tier (static class strings for Tailwind)
 const ACCENTS = {
   sky: {
-    chip: "border-sky-400/40 bg-sky-500/10 text-sky-300",
-    text: "text-sky-300",
-    ring: "border-sky-400/40 shadow-glow-blue",
-    step: "border-sky-400/40 bg-sky-500/10 text-sky-300",
+    chip: "border-[var(--accent-line)] bg-[var(--accent-tint)] text-[var(--blue)]",
+    text: "text-[var(--blue)]",
+    ring: "border-[var(--accent-line)] shadow-[0_12px_32px_rgba(18,64,232,0.16)]",
+    step: "border-[var(--accent-line)] bg-[var(--accent-tint)] text-[var(--blue)]",
   },
   violet: {
-    chip: "border-violet-400/40 bg-violet-500/10 text-violet-300",
-    text: "text-violet-300",
+    chip: "border-violet-400/40 bg-violet-500/10 text-[var(--violet)]",
+    text: "text-[var(--violet)]",
     ring: "border-violet-400/40 shadow-glow-violet",
-    step: "border-violet-400/40 bg-violet-500/10 text-violet-300",
+    step: "border-violet-400/40 bg-violet-500/10 text-[var(--violet)]",
   },
   mint: {
-    chip: "border-emerald-400/40 bg-emerald-500/10 text-emerald-300",
-    text: "text-emerald-300",
-    ring: "border-emerald-400/40 shadow-glow-mint",
-    step: "border-emerald-400/40 bg-emerald-500/10 text-emerald-300",
+    chip: "border-[var(--green-line)] bg-[var(--green-tint)] text-[var(--green)]",
+    text: "text-[var(--green)]",
+    ring: "border-[var(--green-line)] shadow-",
+    step: "border-[var(--green-line)] bg-[var(--green-tint)] text-[var(--green)]",
   },
 } as const;
 
 const TONE = {
-  warn: "text-warn glow-amber",
-  mint: "text-mint glow-mint",
-  accent: "text-white",
+  warn: "text-warn ",
+  mint: "text-mint ",
+  accent: "text-[var(--heading)]",
 } as const;
 
 /* ---------- CHARTS (server-rendered SVG, direct-labeled) ---------- */
@@ -66,7 +66,7 @@ function WaitingChart() {
     <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Cumulative rented-stack spend by month versus the one-time $497 course price" className="w-full">
       {[1000, 2000, 3000].map((g) => (
         <g key={g}>
-          <line x1={PAD} x2={W - PAD} y1={y(g)} y2={y(g)} stroke="#1E2A44" strokeWidth="1" />
+          <line x1={PAD} x2={W - PAD} y1={y(g)} y2={y(g)} stroke="#ded8d0" strokeWidth="1" />
           <text x={PAD - 6} y={y(g) + 4} textAnchor="end" fontSize="11" fill="#64748B">${g / 1000}k</text>
         </g>
       ))}
@@ -140,7 +140,7 @@ function TcoChart() {
     <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Cumulative three-year cost: renting at $250 per month versus Done For You build plus $25 per month; lines cross near month 22" className="w-full">
       {[3000, 6000, 9000].map((g) => (
         <g key={g}>
-          <line x1={PAD} x2={W - PAD} y1={y(g)} y2={y(g)} stroke="#1E2A44" strokeWidth="1" />
+          <line x1={PAD} x2={W - PAD} y1={y(g)} y2={y(g)} stroke="#ded8d0" strokeWidth="1" />
           <text x={PAD - 6} y={y(g) + 4} textAnchor="end" fontSize="11" fill="#64748B">${g / 1000}k</text>
         </g>
       ))}
@@ -156,10 +156,10 @@ function TcoChart() {
       </defs>
       <polyline points={rentPts} fill="none" stroke="url(#rentHeat)" strokeWidth="2.5" />
       <polyline points={ownPts} fill="none" stroke="#34D399" strokeWidth="2.5" />
-      <circle cx={x(beM)} cy={y(beM * 250)} r="5" fill="#38BDF8" stroke="#070B14" strokeWidth="2">
+      <circle cx={x(beM)} cy={y(beM * 250)} r="5" fill="#1240e8" stroke="#070B14" strokeWidth="2">
         <title>Break even: around month 22 the rented stack has cost more than the entire owned build</title>
       </circle>
-      <text x={x(beM)} y={y(beM * 250) - 12} textAnchor="middle" fontSize="12" fontWeight="700" fill="#38BDF8">break even ≈ month 22</text>
+      <text x={x(beM)} y={y(beM * 250) - 12} textAnchor="middle" fontSize="12" fontWeight="700" fill="#1240e8">break even ≈ month 22</text>
       <text x={x(36) - 4} y={y(9000) + 16} textAnchor="end" fontSize="12" fontWeight="700" fill="#EF4444">Renting: $9,000 and climbing</text>
       <text x={x(36) - 4} y={y(5900) - 10} textAnchor="end" fontSize="12" fontWeight="700" fill="#34D399">Owned: $5,900 total — asset yours</text>
       <text x={W - PAD} y={H - 8} textAnchor="end" fontSize="10" fill="#64748B">month</text>
@@ -189,7 +189,7 @@ export default async function TierPage({
 
   return (
     <section className="mx-auto max-w-5xl px-4 py-14">
-      <Link href="/pricing" className="text-sm font-semibold text-slate-400 hover:text-white">
+      <Link href="/pricing" className="text-sm font-semibold text-[var(--muted)] hover:text-[var(--heading)]">
         ← All pricing
       </Link>
 
@@ -198,13 +198,13 @@ export default async function TierPage({
         <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wider ${a.chip}`}>
           {t.name}
         </span>
-        <h1 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-white sm:text-5xl">
+        <h1 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-[var(--heading)] sm:text-5xl">
           {t.headline}
         </h1>
-        <p className="mt-4 max-w-2xl text-lg text-slate-300">{t.sub}</p>
+        <p className="mt-4 max-w-2xl text-lg text-[var(--text)]">{t.sub}</p>
         <div className="mt-5 flex flex-wrap items-center gap-4">
-          <span className="text-4xl font-black text-white">{t.price}</span>
-          <span className="text-sm text-slate-400">{t.unit}</span>
+          <span className="text-4xl font-black text-[var(--heading)]">{t.price}</span>
+          <span className="text-sm text-[var(--muted)]">{t.unit}</span>
         </div>
         <div className="mt-6 flex flex-wrap gap-3">
           {t.slug === "learn-it" ? (
@@ -225,36 +225,36 @@ export default async function TierPage({
         {t.stats.map((s) => (
           <div key={s.label} className="card !p-5 text-center">
             <div className={`text-2xl font-black sm:text-3xl ${TONE[s.tone ?? "accent"]}`}>{s.value}</div>
-            <div className="mt-1 text-xs text-slate-400">{s.label}</div>
+            <div className="mt-1 text-xs text-[var(--muted)]">{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* THE MATH */}
       <div className={`card mt-10 border ${a.ring}`}>
-        <h2 className="text-xl font-bold text-white">{t.chartTitle}</h2>
-        <p className="mt-1 text-sm text-slate-400">{t.chartNote}</p>
+        <h2 className="text-xl font-bold text-[var(--heading)]">{t.chartTitle}</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">{t.chartNote}</p>
         <div className="mt-5">
           <Chart />
         </div>
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-[var(--quiet)]">
           Rented-stack figures use the same sourced vendor pricing as the calculator on the home page (checked July 2026); $250/mo is the midpoint of the typical $200–500/mo range. Items marked ≈ are typical market ranges and vary.
         </p>
       </div>
 
       {/* WHAT YOU GET */}
-      <h2 className="mt-14 text-2xl font-black text-white sm:text-3xl">What you get</h2>
+      <h2 className="mt-14 text-2xl font-black text-[var(--heading)] sm:text-3xl">What you get</h2>
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {t.features.map((f) => (
           <div key={f.title} className="card card-hover !p-5">
             <h3 className={`font-bold ${a.text}`}>{f.title}</h3>
-            <p className="mt-2 text-sm text-slate-400">{f.desc}</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{f.desc}</p>
           </div>
         ))}
       </div>
 
       {/* HOW IT WORKS */}
-      <h2 className="mt-14 text-2xl font-black text-white sm:text-3xl">How it works</h2>
+      <h2 className="mt-14 text-2xl font-black text-[var(--heading)] sm:text-3xl">How it works</h2>
       <ol className="mt-6 space-y-4">
         {t.steps.map((s, i) => (
           <li key={s.title} className="flex gap-4">
@@ -262,8 +262,8 @@ export default async function TierPage({
               {i + 1}
             </span>
             <div>
-              <h3 className="font-bold text-white">{s.title}</h3>
-              <p className="mt-0.5 text-sm text-slate-400">{s.desc}</p>
+              <h3 className="font-bold text-[var(--heading)]">{s.title}</h3>
+              <p className="mt-0.5 text-sm text-[var(--muted)]">{s.desc}</p>
             </div>
           </li>
         ))}
@@ -273,7 +273,7 @@ export default async function TierPage({
       <div className="mt-14 grid gap-6 md:grid-cols-2">
         <div className="card border-mint/30">
           <h2 className="text-lg font-bold text-mint">This is for you if</h2>
-          <ul className="mt-3 space-y-2.5 text-sm text-slate-300">
+          <ul className="mt-3 space-y-2.5 text-sm text-[var(--text)]">
             {t.forYou.map((x) => (
               <li key={x} className="flex gap-2.5">
                 <span className="text-mint">✓</span>
@@ -282,12 +282,12 @@ export default async function TierPage({
             ))}
           </ul>
         </div>
-        <div className="card border-white/10">
-          <h2 className="text-lg font-bold text-slate-300">It's not for you if</h2>
-          <ul className="mt-3 space-y-2.5 text-sm text-slate-400">
+        <div className="card border-[var(--line-strong)]">
+          <h2 className="text-lg font-bold text-[var(--text)]">It's not for you if</h2>
+          <ul className="mt-3 space-y-2.5 text-sm text-[var(--muted)]">
             {t.notForYou.map((x) => (
               <li key={x} className="flex gap-2.5">
-                <span className="text-slate-500">✕</span>
+                <span className="text-[var(--quiet)]">✕</span>
                 <span>{x}</span>
               </li>
             ))}
@@ -296,21 +296,21 @@ export default async function TierPage({
       </div>
 
       {/* FAQ */}
-      <h2 className="mt-14 text-2xl font-black text-white sm:text-3xl">Straight answers</h2>
+      <h2 className="mt-14 text-2xl font-black text-[var(--heading)] sm:text-3xl">Straight answers</h2>
       <div className="mt-6 space-y-3">
         {t.faq.map((f) => (
           <details key={f.q} className="card !p-0">
-            <summary className="cursor-pointer list-none p-5 font-semibold text-white">
+            <summary className="cursor-pointer list-none p-5 font-semibold text-[var(--heading)]">
               {f.q}
             </summary>
-            <p className="px-5 pb-5 text-sm text-slate-300">{f.a}</p>
+            <p className="px-5 pb-5 text-sm text-[var(--text)]">{f.a}</p>
           </details>
         ))}
       </div>
 
       {/* CLOSER */}
       <div className={`card mt-14 border text-center ${a.ring}`}>
-        <p className="text-xl font-bold text-white sm:text-2xl">{t.closing}</p>
+        <p className="text-xl font-bold text-[var(--heading)] sm:text-2xl">{t.closing}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           {t.slug === "learn-it" ? (
             <BuyButton label={t.cta} />
@@ -329,10 +329,10 @@ export default async function TierPage({
       <div className="mt-10 grid gap-4 sm:grid-cols-2">
         {others.map((o) => (
           <Link key={o.slug} href={`/pricing/${o.slug}`} className="card card-hover !p-5">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
               Compare: {o.name} · {o.price}
             </span>
-            <p className="mt-1 text-sm text-slate-300">{o.headline}</p>
+            <p className="mt-1 text-sm text-[var(--text)]">{o.headline}</p>
           </Link>
         ))}
       </div>
