@@ -32,11 +32,34 @@ the static OG image, and emits a `VideoObject` next to the `Article` JSON-LD so 
 indexed on its own. The articles index adds `· Watch {n}s` to the card meta line. Articles with
 no video are unchanged.
 
-Media is self hosted under `public/video/<slug>.*`. Vercel serves it with
-`content-type: video/mp4` and `accept-ranges: bytes`, so scrubbing works. No rented player,
-nothing a platform can pull down.
+## Where the files actually live
+
+Three copies, three jobs. Do not skip the archive step.
+
+**1. The original, in Google Drive. This is the master.**
+`My Drive / TheLeadFlowPro / Video Source Archive / YYYY-MM-DD-<slug>/`
+One folder per video, holding `source-original.mov`, the `web-*.mp4` that got published,
+`captions.vtt`, `poster-source.jpg`, `og-1200x630.jpg`, `transcript.txt`, and a `README.txt`
+with the live URL and the encode settings. Drive syncs it off the machine. If the laptop dies
+or a re-encode is needed later, everything is there.
+
+Do this first, because the file a video usually arrives as is a Photos export sitting in
+`/private/var/folders/.../TemporaryItems/`, and macOS deletes that folder without warning.
+That is exactly how the first one nearly got lost.
+
+**2. The web encode, in the git repo.** `public/video/<slug>.mp4`, `-poster.jpg`, `.vtt`.
+Committed to `RealRyanNichols/TheLeadFlowPro` and deployed to Vercel's CDN, so it is served
+from theleadflowpro.com with `content-type: video/mp4` and `accept-ranges: bytes`. That is the
+copy the public plays. No rented player, nothing a platform can pull down. Keep it near 10 MB
+so the repo stays sane.
+
+**3. Working files, on the Mac.** `~/rrn-transcribe/dcx/out/` holds the extracted audio, the
+sampled frames, and intermediate encodes. Pure scratch. Safe to delete once steps 1 and 2 are
+done.
 
 ## The video pipeline (there is no ffmpeg on this Mac)
+
+Archive the original to Drive before anything else. Then:
 
 No Homebrew, no ffmpeg. Do not try to install either. Everything below uses built-in macOS
 tools. Scripts live in `~/rrn-transcribe/dcx/`.
