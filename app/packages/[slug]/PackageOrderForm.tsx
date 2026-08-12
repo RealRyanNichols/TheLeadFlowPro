@@ -198,10 +198,10 @@ export default function PackageOrderForm({
 
   if (submitted) {
     return (
-      <div className="rounded-[20px] border border-emerald-400/30 bg-emerald-500/[0.06] p-9 text-center">
-        <CircleCheck className="mx-auto h-12 w-12 text-emerald-300" />
-        <h2 className="mt-4 text-3xl font-black text-white">Your order is in.</h2>
-        <p className="mx-auto mt-3 max-w-xl text-slate-300">
+      <div className="rounded-[20px] border border-[var(--green-line)] bg-emerald-500/[0.06] p-9 text-center">
+        <CircleCheck className="mx-auto h-12 w-12 text-[var(--green)]" />
+        <h2 className="mt-4 text-3xl font-black text-[var(--heading)]">Your order is in.</h2>
+        <p className="mx-auto mt-3 max-w-xl text-[var(--text)]">
           {payNotice ??
             `I have your ${packageName} request and how you want to move. I will reach out within one business day on the channel you chose.`}{" "}
           The guarantee stands: you do not pay for anything you do not like.
@@ -219,12 +219,12 @@ export default function PackageOrderForm({
   }
 
   return (
-    <div className="rounded-[20px] border border-line bg-white/[0.04] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] sm:p-9">
+    <div className="rounded-[20px] border border-line bg-[var(--fill-2)] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] sm:p-9">
       <span className="eyebrow">Start your {packageName}</span>
-      <h2 className="mt-4 text-3xl font-black tracking-tight text-white">
+      <h2 className="mt-4 text-3xl font-black tracking-tight text-[var(--heading)]">
         Tell me how you want to move.
       </h2>
-      <p className="mt-2 text-slate-400">
+      <p className="mt-2 text-[var(--muted)]">
         Pick your path and add your details. Card payments run on Stripe secure checkout,
         and every dollar you put down is credited in full toward your build.
       </p>
@@ -240,32 +240,32 @@ export default function PackageOrderForm({
               onClick={() => setIntent(opt.id)}
               className={`rounded-xl border p-4 text-left transition ${
                 on
-                  ? "border-sky-400/70 bg-sky-500/[0.08] shadow-[0_0_20px_rgba(56,189,248,0.15)]"
-                  : "border-white/10 bg-[#0c1220] hover:border-white/25"
+                  ? "border-[var(--accent-line)] bg-sky-500/[0.08] shadow-[0_8px_20px_rgba(18,64,232,0.12)]"
+                  : "border-[var(--line-strong)] bg-[var(--panel)] hover:border-[var(--line-strong)]"
               }`}
             >
               <span className="flex items-center justify-between gap-2">
-                <span className="text-[15px] font-bold text-white">{opt.label}</span>
+                <span className="text-[15px] font-bold text-[var(--heading)]">{opt.label}</span>
                 <span
                   className={`flex h-5 w-5 flex-none items-center justify-center rounded-full border-2 ${
-                    on ? "border-sky-400 bg-sky-400" : "border-white/25"
+                    on ? "border-sky-400 bg-sky-400" : "border-[var(--line-strong)]"
                   }`}
                 >
                   {on && <CircleCheck className="h-4 w-4 text-[#0b0f14]" strokeWidth={3} />}
                 </span>
               </span>
-              <span className="mt-1 block text-[12.5px] text-slate-400">{opt.desc}</span>
+              <span className="mt-1 block text-[12.5px] text-[var(--muted)]">{opt.desc}</span>
             </button>
           );
         })}
       </div>
 
       {intent === "down_payment" && (
-        <div className="mt-4 rounded-xl border border-sky-400/30 bg-sky-500/[0.06] p-5">
-          <p className="text-sm font-bold text-white">
+        <div className="mt-4 rounded-xl border border-[var(--accent-line)] bg-sky-500/[0.06] p-5">
+          <p className="text-sm font-bold text-[var(--heading)]">
             How much do you want to put down?
           </p>
-          <p className="mt-1 text-[12.5px] text-slate-400">
+          <p className="mt-1 text-[12.5px] text-[var(--muted)]">
             Your call. Every dollar is credited in full toward the {packageName} build.
             Minimum {fmt(DEPOSIT_MIN)}.
           </p>
@@ -282,8 +282,8 @@ export default function PackageOrderForm({
                   }}
                   className={`rounded-full border px-4 py-2 text-sm font-bold transition ${
                     on
-                      ? "border-sky-400 bg-sky-400/20 text-white shadow-[0_0_14px_rgba(56,189,248,0.3)]"
-                      : "border-white/15 bg-[#0c1220] text-slate-300 hover:border-white/35"
+                      ? "border-sky-400 bg-[var(--accent-tint)] text-[var(--heading)] shadow-[0_0_14px_rgba(56,189,248,0.3)]"
+                      : "border-[var(--line-strong)] bg-[var(--panel)] text-[var(--text)] hover:border-[var(--line-strong)]"
                   }`}
                 >
                   {fmt(v)}
@@ -291,7 +291,7 @@ export default function PackageOrderForm({
               );
             })}
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-bold text-slate-400">$</span>
+              <span className="text-sm font-bold text-[var(--muted)]">$</span>
               <input
                 type="number"
                 inputMode="numeric"
@@ -301,11 +301,11 @@ export default function PackageOrderForm({
                 placeholder="Custom"
                 value={customDeposit}
                 onChange={(e) => setCustomDeposit(e.target.value)}
-                className="w-28 rounded-lg border border-white/15 bg-[#0c1220] px-3 py-2 text-sm font-bold text-white placeholder:font-medium placeholder:text-slate-500"
+                className="w-28 rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] px-3 py-2 text-sm font-bold text-[var(--heading)] placeholder:font-medium placeholder:text-[var(--quiet)]"
               />
             </div>
           </div>
-          <p className="mt-3 flex items-center gap-2 text-[12.5px] font-semibold text-sky-200">
+          <p className="mt-3 flex items-center gap-2 text-[12.5px] font-semibold text-[var(--blue)]">
             <Lock className="h-3.5 w-3.5" />
             You will pay {fmt(activeDeposit)} on Stripe secure checkout after you send the
             order below.
@@ -314,12 +314,12 @@ export default function PackageOrderForm({
       )}
 
       {intent === "pay_full" && (
-        <div className="mt-4 rounded-xl border border-sky-400/30 bg-sky-500/[0.06] p-5">
-          <p className="flex items-center gap-2 text-sm font-bold text-white">
-            <Lock className="h-4 w-4 text-sky-300" />
+        <div className="mt-4 rounded-xl border border-[var(--accent-line)] bg-sky-500/[0.06] p-5">
+          <p className="flex items-center gap-2 text-sm font-bold text-[var(--heading)]">
+            <Lock className="h-4 w-4 text-[var(--blue)]" />
             Pay {fmt(basePrice)} now on Stripe secure checkout.
           </p>
-          <p className="mt-1 text-[12.5px] text-slate-400">
+          <p className="mt-1 text-[12.5px] text-[var(--muted)]">
             That covers the base scope. If the System Map scopes your build bigger, the
             difference is a separate approval. If it scopes smaller, the difference is
             credited or refunded. The guarantee applies to every phase.
@@ -328,8 +328,8 @@ export default function PackageOrderForm({
       )}
 
       {intent === "map_first" && (
-        <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl border border-sky-400/30 bg-sky-500/[0.06] p-4">
-          <p className="min-w-0 flex-1 text-sm text-slate-300">
+        <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl border border-[var(--accent-line)] bg-sky-500/[0.06] p-4">
+          <p className="min-w-0 flex-1 text-sm text-[var(--text)]">
             The System Map is the fastest yes. $497, credited in full toward this build.
           </p>
           <BuyButton

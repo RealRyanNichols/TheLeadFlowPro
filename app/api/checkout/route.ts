@@ -51,6 +51,25 @@ export async function POST(request: Request) {
       metadata.kind = "event";
       metadata.event_id = ev.id;
       if (registrationId) metadata.registration_id = registrationId;
+    } else if (body.kind === "build_deposit") {
+      // Down payment on a build that is not one of the three packages: the free
+      // build offer, a custom scope, or anything Ryan quoted by real hours.
+      // Without this, a free-build customer who loves their site has no way to
+      // put money down. Amount is customer-chosen and clamped server-side.
+      const requested = Math.round(Number(body.amount_usd));
+      if (!Number.isFinite(requested)) {
+        return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
+      }
+      const dollars = Math.max(250, Math.min(25000, requested));
+      kind = "build_deposit";
+      name = "Build down payment (credited in full toward your build)";
+      amount = dollars * 100;
+      cancelUrl = `${site}/deposit?cancelled=1`;
+      metadata.kind = kind;
+      metadata.deposit_usd = String(dollars);
+      if (typeof body.reference === "string" && body.reference.trim()) {
+        metadata.reference = body.reference.trim().slice(0, 120);
+      }
     } else if (body.kind === "package_deposit" || body.kind === "package_full") {
       // Build payments straight from the package sales pages. Deposit amount is
       // chosen by the customer but validated server-side; full payment charges

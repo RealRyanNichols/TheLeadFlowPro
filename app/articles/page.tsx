@@ -31,7 +31,7 @@ export default function ArticlesPage() {
                 src={a.ogImage}
                 alt=""
                 loading="lazy"
-                className="mb-4 aspect-[1200/630] w-full rounded-xl border border-white/10 object-cover"
+                className="mb-4 aspect-[1200/630] w-full rounded-xl border border-[var(--line-strong)] object-cover"
               />
               <span>
                 {new Date(a.publishedAt + "T00:00:00").toLocaleDateString("en-US", {

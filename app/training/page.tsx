@@ -15,17 +15,17 @@ export default async function TrainingPage() {
 
   return (
     <section className="mx-auto max-w-4xl px-4 py-12">
-      <h1 className="text-3xl font-black text-white">Own Your Platform Training</h1>
-      <p className="mt-2 text-slate-400">
+      <h1 className="text-3xl font-black text-[var(--heading)]">Own Your Platform Training</h1>
+      <p className="mt-2 text-[var(--muted)]">
         The full system: AI as your dev team, your code in GitHub, your site on
         Vercel, your data in Supabase, your designs in Figma. Work top to bottom.
       </p>
 
       {!hasTraining && (
-        <div className="card mt-6 flex flex-wrap items-center justify-between gap-4 border border-sky-400/40 shadow-glow-blue">
+        <div className="card mt-6 flex flex-wrap items-center justify-between gap-4 border border-[var(--accent-line)] shadow-[0_12px_32px_rgba(18,64,232,0.16)]">
           <div>
-            <p className="font-bold text-white">The first course is free. The full system is $497, once.</p>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="font-bold text-[var(--heading)]">The first course is free. The full system is $497, once.</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">
               Lifetime access, updated as the tools evolve. Compare that to one
               more month of renting.
             </p>
@@ -46,18 +46,18 @@ export default async function TrainingPage() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3">
-                <h2 className="font-bold text-white">{c.title}</h2>
+                <h2 className="font-bold text-[var(--heading)]">{c.title}</h2>
                 {c.is_free ? (
                   <span className="rounded-full bg-mint/20 px-2 py-0.5 text-xs font-bold text-mint">
                     FREE
                   </span>
                 ) : !hasTraining ? (
-                  <span className="rounded-full bg-line px-2 py-0.5 text-xs font-bold text-slate-400">
+                  <span className="rounded-full bg-line px-2 py-0.5 text-xs font-bold text-[var(--muted)]">
                     🔒 LEARN IT
                   </span>
                 ) : null}
               </div>
-              <p className="mt-1 text-sm text-slate-400">{c.description}</p>
+              <p className="mt-1 text-sm text-[var(--muted)]">{c.description}</p>
             </div>
           </Link>
         ))}

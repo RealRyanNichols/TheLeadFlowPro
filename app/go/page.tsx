@@ -12,18 +12,18 @@ export const metadata = {
 // Ad landing page: one message, one action. Built for Facebook and Google traffic.
 export default function GoPage() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-12">
+    <section className="mx-auto max-w-6xl px-4 pb-20 pt-[22px] sm:pt-8">
       <div className="grid items-start gap-10 lg:grid-cols-2">
         {/* LEFT: the pitch */}
         <div>
           <p className="mb-3 text-sm font-bold uppercase tracking-widest text-flow-400">
             For business owners tired of monthly fees
           </p>
-          <h1 className="text-4xl font-black leading-tight text-white sm:text-5xl">
+          <h1 className="text-4xl font-black leading-tight text-[var(--heading)] sm:text-5xl">
             What you pay Shopify and Wix every year could buy you a platform you{" "}
             <span className="text-flow-400">own forever.</span>
           </h1>
-          <ul className="mt-6 space-y-3 text-lg text-slate-300">
+          <ul className="mt-6 space-y-3 text-lg text-[var(--text)]">
             <li className="flex gap-3">
               <span className="text-mint">✓</span>
               Your website, funnel, and business dashboard. Built once. Yours for good.
@@ -41,11 +41,11 @@ export default function GoPage() {
               Nobody can raise your rent, hold your data, or shut you off.
             </li>
           </ul>
-          <div className="card mt-8 !bg-ink">
-            <p className="font-semibold text-white">
+          <div className="card mt-8 !bg-[var(--page)]">
+            <p className="font-semibold text-[var(--heading)]">
               This page runs on the exact system I build for clients.
             </p>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-[var(--muted)]">
               Real sites, real businesses, built and owned:{" "}
               <Link href="/portfolio" className="text-flow-400 underline">
                 see the work
@@ -57,10 +57,10 @@ export default function GoPage() {
 
         {/* RIGHT: the form */}
         <div className="card lg:sticky lg:top-24">
-          <h2 className="text-xl font-bold text-white">
+          <h2 className="text-xl font-bold text-[var(--heading)]">
             Book your call. Thirty minutes. Your next three moves.
           </h2>
-          <p className="mb-5 mt-1 text-sm text-slate-400">
+          <p className="mb-5 mt-1 text-sm text-[var(--muted)]">
             Tell me what you are paying now. I will show you what owning it looks
             like.
           </p>

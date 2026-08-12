@@ -65,12 +65,12 @@ export default function ToolsPage() {
             { icon: <Download className="h-5 w-5" />, title: "Free to download", body: "Save your numbers, scripts, code and QR codes to your own files." },
             { icon: <Code2 className="h-5 w-5" />, title: "Free to embed", body: "Put any tool on your own website with one line. I host it. It stays free." },
           ].map((p) => (
-            <div key={p.title} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-sky-400/30 bg-sky-400/10 text-sky-300">
+            <div key={p.title} className="rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--accent-line)] bg-[var(--accent-tint)] text-[var(--blue)]">
                 {p.icon}
               </span>
-              <h2 className="mt-3 text-base font-black text-white">{p.title}</h2>
-              <p className="mt-1 text-sm leading-relaxed text-slate-400">{p.body}</p>
+              <h2 className="mt-3 text-base font-black text-[var(--heading)]">{p.title}</h2>
+              <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">{p.body}</p>
             </div>
           ))}
         </div>
@@ -80,8 +80,8 @@ export default function ToolsPage() {
         </div>
 
         {/* categories explainer */}
-        <div className="mt-14 rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
-          <h2 className="text-2xl font-black tracking-tight text-white">
+        <div className="mt-14 rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-6 sm:p-8">
+          <h2 className="text-2xl font-black tracking-tight text-[var(--heading)]">
             What is in the toolbox
           </h2>
           <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -89,15 +89,15 @@ export default function ToolsPage() {
               const m = CATEGORY_META[c];
               const n = TOOLS.filter((t) => t.category === c).length;
               return (
-                <div key={c} className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <div key={c} className="rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] p-4">
                   <div className="flex items-center gap-2">
                     <span className="text-lg" aria-hidden="true">
                       {m.emoji}
                     </span>
-                    <span className="text-sm font-black text-white">{c}</span>
-                    <span className="ml-auto text-xs font-bold text-slate-500">{n}</span>
+                    <span className="text-sm font-black text-[var(--heading)]">{c}</span>
+                    <span className="ml-auto text-xs font-bold text-[var(--quiet)]">{n}</span>
                   </div>
-                  <p className="mt-2 text-xs leading-relaxed text-slate-400">{m.blurb}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{m.blurb}</p>
                 </div>
               );
             })}
@@ -105,11 +105,11 @@ export default function ToolsPage() {
         </div>
 
         {/* the offer */}
-        <div className="mt-8 rounded-2xl border border-sky-400/30 bg-sky-500/[0.06] p-7 text-center sm:p-9">
-          <h2 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
+        <div className="mt-8 rounded-2xl border border-[var(--accent-line)] bg-sky-500/[0.06] p-7 text-center sm:p-9">
+          <h2 className="text-2xl font-black tracking-tight text-[var(--heading)] sm:text-3xl">
             Why is all this free?
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl leading-relaxed text-slate-300">
+          <p className="mx-auto mt-3 max-w-2xl leading-relaxed text-[var(--text)]">
             Because this is a fraction of what a website should be doing for you.
             If a free calculator can show you where five figures a year is
             leaking, imagine what your actual site could do if it was built to
@@ -126,7 +126,7 @@ export default function ToolsPage() {
               Text Me a Tool Idea
             </a>
           </div>
-          <p className="mt-4 text-xs text-slate-500">
+          <p className="mt-4 text-xs text-[var(--quiet)]">
             New tools drop every month. If your business wishes one of these
             existed, tell me and I might build it.
           </p>

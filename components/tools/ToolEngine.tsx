@@ -20,16 +20,16 @@ import UnlockModal from "./UnlockModal";
 import ReviewLinkTool from "./ReviewLinkTool";
 
 const TONE_BG: Record<Tone, string> = {
-  good: "border-emerald-400/35 bg-emerald-400/10",
-  bad: "border-red-400/35 bg-red-500/10",
-  warn: "border-amber-400/35 bg-amber-400/10",
-  neutral: "border-white/12 bg-white/[0.05]",
+  good: "border-[var(--green-line)] bg-[var(--green-tint)]",
+  bad: "border-red-400/35 bg-[var(--danger-tint)]",
+  warn: "border-[var(--warn-line)] bg-[var(--warn-tint)]",
+  neutral: "border-[var(--line-strong)] bg-[var(--fill-2)]",
 };
 const TONE_TEXT: Record<Tone, string> = {
-  good: "text-emerald-300",
-  bad: "text-red-300",
-  warn: "text-amber-300",
-  neutral: "text-sky-200",
+  good: "text-[var(--green)]",
+  bad: "text-[var(--danger)]",
+  warn: "text-warn",
+  neutral: "text-[var(--blue)]",
 };
 const TONE_BAR: Record<Tone, string> = {
   good: "#2ed6a3",
@@ -205,7 +205,7 @@ export default function ToolEngine({
         {/* header: the detail page already says all this above the fold, so it
             only shows inside an iframe where there is no page around it */}
         {embedded && (
-        <div className="flex items-start gap-4 border-b border-white/10 p-5 sm:p-6">
+        <div className="flex items-start gap-4 border-b border-[var(--line-strong)] p-5 sm:p-6">
           <span
             className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-3xl"
             style={{ background: `${meta.from}22`, border: `1px solid ${meta.ring}` }}
@@ -221,11 +221,11 @@ export default function ToolEngine({
               >
                 {tool.category}
               </span>
-              <span className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-300">
+              <span className="rounded-full border border-[var(--green-line)] bg-[var(--green-tint)] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[var(--green)]">
                 Free
               </span>
             </div>
-            <h2 className="mt-1.5 text-xl font-black leading-tight text-white sm:text-2xl">
+            <h2 className="mt-1.5 text-xl font-black leading-tight text-[var(--heading)] sm:text-2xl">
               {tool.name}
             </h2>
             <p className="mt-0.5 text-sm font-bold" style={{ color: meta.text }}>
@@ -238,15 +238,15 @@ export default function ToolEngine({
         <div className={hasInputs ? "grid gap-0 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]" : ""}>
           {/* inputs */}
           {hasInputs && (
-            <div className="space-y-5 border-b border-white/10 p-5 sm:p-6 lg:border-b-0 lg:border-r">
+            <div className="space-y-5 border-b border-[var(--line-strong)] p-5 sm:p-6 lg:border-b-0 lg:border-r">
               <div className="flex items-center justify-between">
-                <h3 className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+                <h3 className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--muted)]">
                   {inputLabel}
                 </h3>
                 <button
                   type="button"
                   onClick={() => setValues(defaults(tool))}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-white"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--quiet)] hover:text-[var(--heading)]"
                 >
                   <RotateCcw className="h-3 w-3" />
                   Reset
@@ -260,7 +260,7 @@ export default function ToolEngine({
 
           {/* results */}
           <div className="space-y-4 p-5 sm:p-6">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--muted)]">
               {outputLabel}
             </h3>
 
@@ -269,9 +269,9 @@ export default function ToolEngine({
                 <div className={`text-[34px] font-black leading-none tracking-tight sm:text-[42px] ${TONE_TEXT[result.headline.tone || "neutral"]}`}>
                   {result.headline.value}
                 </div>
-                <div className="mt-2 text-sm font-bold text-white">{result.headline.label}</div>
+                <div className="mt-2 text-sm font-bold text-[var(--heading)]">{result.headline.label}</div>
                 {result.headline.sub && (
-                  <div className="mt-1 text-xs text-slate-400">{result.headline.sub}</div>
+                  <div className="mt-1 text-xs text-[var(--muted)]">{result.headline.sub}</div>
                 )}
               </div>
             )}
@@ -283,10 +283,10 @@ export default function ToolEngine({
                     <div className={`text-lg font-black leading-tight ${TONE_TEXT[s.tone || "neutral"]}`}>
                       {s.value}
                     </div>
-                    <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-slate-400">
+                    <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-[var(--muted)]">
                       {s.label}
                     </div>
-                    {s.sub && <div className="mt-0.5 text-[11px] text-slate-500">{s.sub}</div>}
+                    {s.sub && <div className="mt-0.5 text-[11px] text-[var(--quiet)]">{s.sub}</div>}
                   </div>
                 ))}
               </div>
@@ -300,35 +300,35 @@ export default function ToolEngine({
             )}
 
             {result.output && (
-              <div className="rounded-xl border border-white/12 bg-black/30 p-4">
+              <div className="rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h4 className="text-sm font-black text-white">{result.output.title}</h4>
+                  <h4 className="text-sm font-black text-[var(--heading)]">{result.output.title}</h4>
                   <button
                     type="button"
                     onClick={() => copy(result.output!.text, "output")}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.06] px-2.5 py-1.5 text-xs font-bold text-white hover:border-sky-400/50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line-strong)] bg-[var(--fill-2)] px-2.5 py-1.5 text-xs font-bold text-[var(--heading)] hover:border-[var(--accent-line)]"
                   >
-                    {copied === "output" ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copied === "output" ? <Check className="h-3.5 w-3.5 text-[var(--green)]" /> : <Copy className="h-3.5 w-3.5" />}
                     {copied === "output" ? "Copied" : "Copy"}
                   </button>
                 </div>
-                <pre className={`mt-3 max-h-[420px] overflow-auto whitespace-pre-wrap break-words rounded-lg bg-black/40 p-3 text-[12px] leading-relaxed text-slate-200 ${result.output.mono ? "font-mono text-sky-200" : ""}`}>
+                <pre className={`mt-3 max-h-[420px] overflow-auto whitespace-pre-wrap break-words rounded-lg bg-[var(--panel)] p-3 text-[12px] leading-relaxed text-[var(--text)] ${result.output.mono ? "font-mono text-[var(--blue)]" : ""}`}>
                   {result.output.text}
                 </pre>
               </div>
             )}
 
             {result.table && result.table.rows.length > 0 && (
-              <div className="rounded-xl border border-white/12 bg-white/[0.03] p-4">
+              <div className="rounded-xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-4">
                 {result.table.title && (
-                  <h4 className="text-sm font-black text-white">{result.table.title}</h4>
+                  <h4 className="text-sm font-black text-[var(--heading)]">{result.table.title}</h4>
                 )}
                 <div className="mt-3 overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="border-b border-white/10">
+                      <tr className="border-b border-[var(--line-strong)]">
                         {result.table.headers.map((h, i) => (
-                          <th key={i} className="pb-2 pr-3 font-black uppercase tracking-wide text-slate-400">
+                          <th key={i} className="pb-2 pr-3 font-black uppercase tracking-wide text-[var(--muted)]">
                             {h}
                           </th>
                         ))}
@@ -336,9 +336,9 @@ export default function ToolEngine({
                     </thead>
                     <tbody>
                       {result.table.rows.map((row, i) => (
-                        <tr key={i} className="border-b border-white/5 last:border-0">
+                        <tr key={i} className="border-b border-[var(--line-strong)] last:border-0">
                           {row.map((cell, j) => (
-                            <td key={j} className="py-2 pr-3 align-top text-slate-300">
+                            <td key={j} className="py-2 pr-3 align-top text-[var(--text)]">
                               <span className="break-words">{String(cell)}</span>
                             </td>
                           ))}
@@ -352,14 +352,14 @@ export default function ToolEngine({
 
             {result.verdict && (
               <div className={`rounded-xl border p-4 ${TONE_BG[result.verdict.tone]}`}>
-                <p className="text-sm font-semibold leading-relaxed text-white">
+                <p className="text-sm font-semibold leading-relaxed text-[var(--heading)]">
                   {result.verdict.text}
                 </p>
               </div>
             )}
 
             {result.note && (
-              <p className="text-xs leading-relaxed text-slate-500">{result.note}</p>
+              <p className="text-xs leading-relaxed text-[var(--quiet)]">{result.note}</p>
             )}
 
             <div className={`flex-wrap gap-2 pt-1 ${hasResult ? "flex" : "hidden"}`}>
@@ -424,8 +424,8 @@ function FieldInput({
     return (
       <label className="block">
         <div className="mb-1.5 flex items-baseline justify-between gap-3">
-          <span className="text-[13px] font-semibold text-slate-300">{field.label}</span>
-          <span className="shrink-0 text-sm font-black text-white">
+          <span className="text-[13px] font-semibold text-[var(--text)]">{field.label}</span>
+          <span className="shrink-0 text-sm font-black text-[var(--heading)]">
             {field.prefix}
             {v.toLocaleString("en-US")}
             {field.suffix}
@@ -444,7 +444,7 @@ function FieldInput({
           }}
           aria-label={field.label}
         />
-        {field.help && <p className="mt-1 text-[11px] leading-snug text-slate-500">{field.help}</p>}
+        {field.help && <p className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
       </label>
     );
   }
@@ -453,22 +453,22 @@ function FieldInput({
     const v = typeof value === "number" ? value : field.def;
     return (
       <label className="block">
-        <span className="mb-1.5 block text-[13px] font-semibold text-slate-300">{field.label}</span>
-        <div className="flex items-center rounded-xl border border-white/15 bg-black/25 focus-within:border-sky-400/60">
-          {field.type === "money" && <span className="pl-3.5 text-sm font-bold text-slate-400">$</span>}
+        <span className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">{field.label}</span>
+        <div className="flex items-center rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] focus-within:border-[var(--accent-line)]">
+          {field.type === "money" && <span className="pl-3.5 text-sm font-bold text-[var(--muted)]">$</span>}
           <input
             type="number"
             inputMode="decimal"
             value={Number.isFinite(v) ? v : ""}
             onChange={(e) => onChange(e.target.value === "" ? 0 : Number(e.target.value))}
-            className="w-full bg-transparent px-3 py-2.5 text-sm font-bold text-white outline-none"
+            className="w-full bg-transparent px-3 py-2.5 text-sm font-bold text-[var(--heading)] outline-none"
             aria-label={field.label}
           />
           {field.type === "number" && field.suffix && (
-            <span className="pr-3.5 text-sm font-bold text-slate-400">{field.suffix}</span>
+            <span className="pr-3.5 text-sm font-bold text-[var(--muted)]">{field.suffix}</span>
           )}
         </div>
-        {field.help && <p className="mt-1 text-[11px] leading-snug text-slate-500">{field.help}</p>}
+        {field.help && <p className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
       </label>
     );
   }
@@ -476,15 +476,15 @@ function FieldInput({
   if (field.type === "text") {
     return (
       <label className="block">
-        <span className="mb-1.5 block text-[13px] font-semibold text-slate-300">{field.label}</span>
+        <span className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">{field.label}</span>
         <input
           type="text"
           value={typeof value === "string" ? value : ""}
           placeholder={field.placeholder}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-xl border border-white/15 bg-black/25 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-sky-400/60 focus:outline-none"
+          className="w-full rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-3.5 py-2.5 text-sm text-[var(--heading)] placeholder:text-[var(--quiet)] focus:border-[var(--accent-line)] focus:outline-none"
         />
-        {field.help && <p className="mt-1 text-[11px] leading-snug text-slate-500">{field.help}</p>}
+        {field.help && <p className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
       </label>
     );
   }
@@ -492,15 +492,15 @@ function FieldInput({
   if (field.type === "textarea") {
     return (
       <label className="block">
-        <span className="mb-1.5 block text-[13px] font-semibold text-slate-300">{field.label}</span>
+        <span className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">{field.label}</span>
         <textarea
           rows={field.rows || 4}
           value={typeof value === "string" ? value : ""}
           placeholder={field.placeholder}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-xl border border-white/15 bg-black/25 px-3.5 py-2.5 text-sm leading-relaxed text-white placeholder:text-slate-600 focus:border-sky-400/60 focus:outline-none"
+          className="w-full rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-3.5 py-2.5 text-sm leading-relaxed text-[var(--heading)] placeholder:text-[var(--quiet)] focus:border-[var(--accent-line)] focus:outline-none"
         />
-        {field.help && <p className="mt-1 text-[11px] leading-snug text-slate-500">{field.help}</p>}
+        {field.help && <p className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
       </label>
     );
   }
@@ -508,11 +508,11 @@ function FieldInput({
   if (field.type === "select") {
     return (
       <label className="block">
-        <span className="mb-1.5 block text-[13px] font-semibold text-slate-300">{field.label}</span>
+        <span className="mb-1.5 block text-[13px] font-semibold text-[var(--text)]">{field.label}</span>
         <select
           value={typeof value === "string" ? value : field.def}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-xl border border-white/15 bg-[#132238] px-3.5 py-2.5 text-sm font-semibold text-white focus:border-sky-400/60 focus:outline-none"
+          className="w-full rounded-xl border border-[var(--line-strong)] bg-[#132238] px-3.5 py-2.5 text-sm font-semibold text-[var(--heading)] focus:border-[var(--accent-line)] focus:outline-none"
         >
           {field.options.map((o) => (
             <option key={o.value} value={o.value}>
@@ -520,7 +520,7 @@ function FieldInput({
             </option>
           ))}
         </select>
-        {field.help && <p className="mt-1 text-[11px] leading-snug text-slate-500">{field.help}</p>}
+        {field.help && <p className="mt-1 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
       </label>
     );
   }
@@ -529,7 +529,7 @@ function FieldInput({
   const picked = Array.isArray(value) ? value : [];
   return (
     <div>
-      <span className="mb-2 block text-[13px] font-semibold text-slate-300">{field.label}</span>
+      <span className="mb-2 block text-[13px] font-semibold text-[var(--text)]">{field.label}</span>
       <div className="grid max-h-[340px] gap-1.5 overflow-y-auto pr-1">
         {field.options.map((o) => {
           const on = picked.includes(o.value);
@@ -542,13 +542,13 @@ function FieldInput({
               }
               className={`flex items-start gap-2.5 rounded-lg border px-3 py-2 text-left text-[13px] leading-snug transition ${
                 on
-                  ? "border-sky-400/50 bg-sky-400/10 text-white"
-                  : "border-white/10 bg-white/[0.03] text-slate-400 hover:border-white/25"
+                  ? "border-[var(--accent-line)] bg-[var(--accent-tint)] text-[var(--heading)]"
+                  : "border-[var(--line-strong)] bg-[var(--fill-2)] text-[var(--muted)] hover:border-[var(--line-strong)]"
               }`}
             >
               <span
                 className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-                  on ? "border-sky-400 bg-sky-400 text-[#0e1a2e]" : "border-white/25"
+                  on ? "border-sky-400 bg-sky-400 text-[#0e1a2e]" : "border-[var(--line-strong)]"
                 }`}
               >
                 {on && <Check className="h-3 w-3" strokeWidth={3.5} />}
@@ -558,7 +558,7 @@ function FieldInput({
           );
         })}
       </div>
-      {field.help && <p className="mt-1.5 text-[11px] leading-snug text-slate-500">{field.help}</p>}
+      {field.help && <p className="mt-1.5 text-[11px] leading-snug text-[var(--quiet)]">{field.help}</p>}
     </div>
   );
 }
@@ -568,17 +568,17 @@ function FieldInput({
 function BarChart({ bars }: { bars: NonNullable<Result["bars"]> }) {
   const max = Math.max(...bars.items.map((b) => Math.abs(b.value)), 1);
   return (
-    <figure className="rounded-xl border border-white/12 bg-black/20 p-4">
-      {bars.title && <figcaption className="text-sm font-black text-white">{bars.title}</figcaption>}
-      {bars.caption && <p className="mt-0.5 text-[11px] text-slate-500">{bars.caption}</p>}
+    <figure className="rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] p-4">
+      {bars.title && <figcaption className="text-sm font-black text-[var(--heading)]">{bars.title}</figcaption>}
+      {bars.caption && <p className="mt-0.5 text-[11px] text-[var(--quiet)]">{bars.caption}</p>}
       <div className="mt-3 space-y-2">
         {bars.items.map((b, i) => (
           <div key={i}>
             <div className="mb-1 flex items-baseline justify-between gap-3 text-[11px]">
-              <span className="font-bold text-slate-400">{b.label}</span>
-              <span className="font-black text-white">{b.display}</span>
+              <span className="font-bold text-[var(--muted)]">{b.label}</span>
+              <span className="font-black text-[var(--heading)]">{b.display}</span>
             </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-white/[0.06]">
+            <div className="h-2.5 overflow-hidden rounded-full bg-[var(--fill-2)]">
               <div
                 className="h-full rounded-full transition-all duration-300"
                 style={{
@@ -598,9 +598,9 @@ function RampChart({ ramp }: { ramp: NonNullable<Result["ramp"]> }) {
   const max = Math.max(...ramp.points.map((p) => Math.abs(p.value)), 1);
   const color = TONE_BAR[ramp.tone || "bad"];
   return (
-    <figure className="rounded-xl border border-white/12 bg-black/20 p-4">
-      <figcaption className="text-sm font-black text-white">{ramp.title}</figcaption>
-      {ramp.caption && <p className="mt-0.5 text-[11px] text-slate-500">{ramp.caption}</p>}
+    <figure className="rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] p-4">
+      <figcaption className="text-sm font-black text-[var(--heading)]">{ramp.title}</figcaption>
+      {ramp.caption && <p className="mt-0.5 text-[11px] text-[var(--quiet)]">{ramp.caption}</p>}
       <div className="mt-3 flex h-28 items-end gap-1">
         {ramp.points.map((p, i) => (
           <div
@@ -615,7 +615,7 @@ function RampChart({ ramp }: { ramp: NonNullable<Result["ramp"]> }) {
           />
         ))}
       </div>
-      <div className="mt-1.5 flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500">
+      <div className="mt-1.5 flex justify-between text-[10px] font-bold uppercase tracking-wider text-[var(--quiet)]">
         <span>
           {ramp.points[0]?.label}: {ramp.points[0]?.display}
         </span>
@@ -636,18 +636,18 @@ function QrBlock({ data, caption, size = 400 }: { data: string; caption?: string
   // and still hand them the thing the code was going to encode.
   if (failed) {
     return (
-      <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-4">
-        <p className="text-sm font-bold text-amber-200">
+      <div className="rounded-xl border border-[var(--warn-line)] bg-[var(--warn-tint)] p-4">
+        <p className="text-sm font-bold text-warn">
           The QR image did not load. That is our code generator, not your
           browser. Try again in a minute.
         </p>
-        <p className="mt-2 break-all font-mono text-[11px] text-slate-300">{data}</p>
+        <p className="mt-2 break-all font-mono text-[11px] text-[var(--text)]">{data}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-white/12 bg-white p-5">
+    <div className="flex flex-col items-center gap-2 rounded-xl border border-[var(--line-strong)] bg-white p-5">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
@@ -657,10 +657,10 @@ function QrBlock({ data, caption, size = 400 }: { data: string; caption?: string
         onError={() => setFailed(true)}
         className="h-auto w-[260px] max-w-full"
       />
-      <span className="text-center text-xs font-bold text-slate-600">
+      <span className="text-center text-xs font-bold text-[var(--quiet)]">
         {caption || "Scan me"}
       </span>
-      <span className="text-center text-[11px] text-slate-500">
+      <span className="text-center text-[11px] text-[var(--quiet)]">
         Right-click or long-press to save. Saves at {px} x {px} pixels.
       </span>
     </div>
@@ -693,29 +693,29 @@ function EmbedRow({
     );
   }
   return (
-    <div className="mt-4 rounded-2xl border border-sky-400/30 bg-sky-500/[0.07] p-5">
-      <h4 className="text-sm font-black text-white">
+    <div className="mt-4 rounded-2xl border border-[var(--accent-line)] bg-sky-500/[0.07] p-5">
+      <h4 className="text-sm font-black text-[var(--heading)]">
         Paste this one line anywhere in your website&apos;s HTML.
       </h4>
-      <p className="mt-1 text-xs text-slate-400">
+      <p className="mt-1 text-xs text-[var(--muted)]">
         We host it, we maintain it, it costs you nothing, and it never expires.
         Works on WordPress, Wix, Squarespace, Shopify, GoDaddy, anywhere that
         takes an embed.
       </p>
       <div className="mt-3 flex flex-wrap items-start gap-2">
-        <code className="min-w-0 flex-1 break-all rounded-lg border border-white/10 bg-black/40 px-3 py-3 font-mono text-[11px] leading-relaxed text-sky-200">
+        <code className="min-w-0 flex-1 break-all rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] px-3 py-3 font-mono text-[11px] leading-relaxed text-[var(--blue)]">
           {snippet}
         </code>
         <button
           type="button"
           onClick={onCopy}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.06] px-3 py-2.5 text-sm font-bold text-white hover:border-sky-400/50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line-strong)] bg-[var(--fill-2)] px-3 py-2.5 text-sm font-bold text-[var(--heading)] hover:border-[var(--accent-line)]"
         >
-          {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+          {copied ? <Check className="h-4 w-4 text-[var(--green)]" /> : <Copy className="h-4 w-4" />}
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
-      <p className="mt-3 text-xs text-slate-400">
+      <p className="mt-3 text-xs text-[var(--muted)]">
         Need a hand getting it in? Text me: (903) 500-8898.
       </p>
     </div>

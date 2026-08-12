@@ -20,11 +20,11 @@ export default async function EventsPage() {
   );
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-20">
-      <h1 className="text-center text-4xl font-black text-white sm:text-5xl">
+    <section className="mx-auto max-w-4xl px-4 pb-24 pt-[22px] sm:pt-8">
+      <h1 className="text-center text-4xl font-black text-[var(--heading)] sm:text-5xl">
         Live events. <span className="text-flow-400">Real answers.</span>
       </h1>
-      <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-slate-300">
+      <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-[var(--text)]">
         Seminars and hands-on workshops in East Texas. Bring your laptop and your
         questions. Leave knowing exactly how to own your platform instead of
         renting it.
@@ -33,10 +33,10 @@ export default async function EventsPage() {
       <div className="mt-12 space-y-6">
         {upcoming.length === 0 && (
           <div className="card text-center">
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="text-xl font-bold text-[var(--heading)]">
               Next event dates coming soon
             </h2>
-            <p className="mt-2 text-slate-400">
+            <p className="mt-2 text-[var(--muted)]">
               Workshops are being scheduled now across East Texas. Book a call and
               I will make sure you hear about the next one first.
             </p>
@@ -51,10 +51,10 @@ export default async function EventsPage() {
       </div>
 
       <div className="card mt-12 text-center">
-        <h2 className="text-xl font-bold text-white">
+        <h2 className="text-xl font-bold text-[var(--heading)]">
           Want this taught at YOUR business?
         </h2>
-        <p className="mt-2 text-slate-400">
+        <p className="mt-2 text-[var(--muted)]">
           I come on site, train your team on the full stack, and we build your
           actual system together. Scoped per company.
         </p>

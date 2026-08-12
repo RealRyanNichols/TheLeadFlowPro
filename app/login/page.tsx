@@ -22,11 +22,11 @@ export default async function LoginPage() {
   }
 
   return (
-    <section className="mx-auto max-w-md px-4 py-20">
-      <h1 className="text-center text-3xl font-black text-white">
+    <section className="mx-auto max-w-md px-4 pb-24 pt-[22px] sm:pt-8">
+      <h1 className="text-center text-3xl font-black text-[var(--heading)]">
         The LeadFlow <span className="text-flow-400">Pro</span>
       </h1>
-      <p className="mt-2 text-center text-slate-400">
+      <p className="mt-2 text-center text-[var(--muted)]">
         Log in or create your account.
       </p>
       <div className="card mt-8">

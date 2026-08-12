@@ -12,24 +12,24 @@ export const metadata = {
 
 function Hood({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="mt-3 rounded-xl border border-sky-400/30 bg-sky-500/10 p-3 backdrop-blur">
-      <span className="text-[10px] font-black uppercase tracking-widest text-sky-300">
+    <div className="mt-3 rounded-xl border border-[var(--accent-line)] bg-[var(--accent-tint)] p-3">
+      <span className="text-[10px] font-black uppercase tracking-widest text-[var(--blue)]">
         ⚙ Under the hood: {label}
       </span>
-      <p className="mt-1 text-xs text-slate-300">{children}</p>
+      <p className="mt-1 text-xs text-[var(--text)]">{children}</p>
     </div>
   );
 }
 
 export default function DemoPage() {
   return (
-    <section className="mx-auto max-w-5xl px-4 py-12">
+    <section className="mx-auto max-w-5xl px-4 pb-20 pt-[22px] sm:pt-8">
       {/* FRAME */}
-      <div className="rounded-2xl border border-violet-400/40 bg-violet-500/10 p-4 text-center backdrop-blur">
-        <p className="text-sm font-bold uppercase tracking-widest text-violet-300">
+      <div className="rounded-2xl border border-violet-400/40 bg-violet-500/10 p-4 text-center">
+        <p className="text-sm font-bold uppercase tracking-widest text-[var(--violet)]">
           Demo build — sample client
         </p>
-        <p className="mt-1 text-sm text-slate-300">
+        <p className="mt-1 text-sm text-[var(--text)]">
           "Piney Woods Coffee Co." is a fictional Longview coffee shop. Everything
           below is the real architecture a LeadFlow Pro build ships with — the
           annotations show you what's working underneath.
@@ -37,31 +37,31 @@ export default function DemoPage() {
       </div>
 
       {/* ===== THE DEMO SITE ===== */}
-      <div className="mt-8 overflow-hidden rounded-3xl border border-white/10 bg-ink/60 shadow-glow-violet">
+      <div className="mt-8 overflow-hidden rounded-3xl border border-[var(--line-strong)] bg-[var(--page)]/60 shadow-glow-violet">
         {/* demo nav */}
-        <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-5 py-3 backdrop-blur">
-          <span className="font-black text-white">
-            Piney Woods <span className="text-amber-300">Coffee Co.</span>
+        <div className="flex items-center justify-between border-b border-[var(--line-strong)] bg-[var(--fill-2)] px-5 py-3">
+          <span className="font-black text-[var(--heading)]">
+            Piney Woods <span className="text-warn">Coffee Co.</span>
           </span>
-          <span className="rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 text-xs font-bold text-white">
+          <span className="rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 text-xs font-bold text-[var(--heading)]">
             Order Ahead
           </span>
         </div>
 
         {/* demo hero */}
         <div className="px-6 py-10 text-center">
-          <h1 className="text-3xl font-black text-white sm:text-4xl">
-            East Texas roasts. <span className="bg-gradient-to-r from-amber-300 to-orange-400 bg-clip-text text-transparent">Zero corporate coffee.</span>
+          <h1 className="text-3xl font-black text-[var(--heading)] sm:text-4xl">
+            East Texas roasts. <span className="bg-gradient-to-r from-amber-300 to-orange-400 text-[var(--blue)]">Zero corporate coffee.</span>
           </h1>
-          <p className="mx-auto mt-3 max-w-xl text-slate-300">
+          <p className="mx-auto mt-3 max-w-xl text-[var(--text)]">
             Small-batch roasting in Longview since day one. Join the Roast Club
             and get first pour on every new batch.
           </p>
           <div className="mt-5 flex justify-center gap-3">
-            <span className="cursor-default rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 font-semibold text-white shadow-[0_0_24px_rgba(251,146,60,0.35)]">
+            <span className="cursor-default rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 font-semibold text-[var(--heading)] shadow-[0_0_24px_rgba(251,146,60,0.35)]">
               Join the Roast Club
             </span>
-            <span className="cursor-default rounded-xl border border-white/15 bg-white/5 px-6 py-3 font-semibold text-slate-200">
+            <span className="cursor-default rounded-xl border border-[var(--line-strong)] bg-[var(--fill-2)] px-6 py-3 font-semibold text-[var(--text)]">
               This Week's Menu
             </span>
           </div>
@@ -74,16 +74,16 @@ export default function DemoPage() {
         </div>
 
         {/* demo offer strip */}
-        <div className="grid gap-4 border-y border-white/10 bg-white/[0.03] px-6 py-8 sm:grid-cols-3">
+        <div className="grid gap-4 border-y border-[var(--line-strong)] bg-[var(--fill-2)] px-6 py-8 sm:grid-cols-3">
           {[
             { name: "Roast Club", desc: "Monthly beans, member pricing, first pour on new batches.", tag: "SUBSCRIPTION" },
             { name: "Order Ahead", desc: "Skip the line. Your usual, ready when you walk in.", tag: "REPEAT SALES" },
             { name: "Events at the Shop", desc: "Cuppings, latte art nights, small-biz meetups.", tag: "COMMUNITY" },
           ].map((o) => (
             <div key={o.name} className="card !p-5">
-              <span className="text-[10px] font-black uppercase tracking-widest text-amber-300">{o.tag}</span>
-              <h3 className="mt-1 font-bold text-white">{o.name}</h3>
-              <p className="mt-1 text-sm text-slate-400">{o.desc}</p>
+              <span className="text-[10px] font-black uppercase tracking-widest text-warn">{o.tag}</span>
+              <h3 className="mt-1 font-bold text-[var(--heading)]">{o.name}</h3>
+              <p className="mt-1 text-sm text-[var(--muted)]">{o.desc}</p>
             </div>
           ))}
         </div>
@@ -91,8 +91,8 @@ export default function DemoPage() {
         {/* demo lead form */}
         <div className="grid gap-8 px-6 py-10 lg:grid-cols-2">
           <div>
-            <h2 className="text-2xl font-black text-white">Join the Roast Club</h2>
-            <p className="mt-2 text-sm text-slate-300">
+            <h2 className="text-2xl font-black text-[var(--heading)]">Join the Roast Club</h2>
+            <p className="mt-2 text-sm text-[var(--text)]">
               First batch alert goes out Friday. Members get 20% off their first
               bag.
             </p>
@@ -126,7 +126,7 @@ export default function DemoPage() {
                 Count Me In
               </span>
             </div>
-            <p className="mt-3 text-center text-xs text-slate-500">
+            <p className="mt-3 text-center text-xs text-[var(--quiet)]">
               Demo form. Your real one writes to YOUR database and triggers YOUR
               automations.
             </p>
@@ -135,62 +135,62 @@ export default function DemoPage() {
       </div>
 
       {/* ===== WHAT THE OWNER SEES ===== */}
-      <h2 className="mt-14 text-center text-2xl font-black text-white sm:text-3xl">
+      <h2 className="mt-14 text-center text-2xl font-black text-[var(--heading)] sm:text-3xl">
         And here's the part nobody else gives you: <span className="text-gradient">the back office</span>
       </h2>
-      <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-slate-400">
+      <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-[var(--muted)]">
         Every build includes an owner dashboard — leads, messages, analytics, and
         project tracking on your own domain. This is sample data from the demo shop.
       </p>
 
       <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { v: "1,284", l: "page views · 30 days", c: "text-white" },
-          { v: "312", l: "visitors", c: "text-sky-300" },
-          { v: "47", l: "Roast Club signups", c: "text-mint glow-mint" },
+          { v: "1,284", l: "page views · 30 days", c: "text-[var(--heading)]" },
+          { v: "312", l: "visitors", c: "text-[var(--blue)]" },
+          { v: "47", l: "Roast Club signups", c: "text-mint " },
           { v: "$0", l: "paid to Mailchimp", c: "text-mint" },
         ].map((s) => (
           <div key={s.l} className="card !p-4 text-center">
             <div className={`text-3xl font-black ${s.c}`}>{s.v}</div>
-            <div className="mt-1 text-xs uppercase tracking-wide text-slate-400">{s.l}</div>
+            <div className="mt-1 text-xs uppercase tracking-wide text-[var(--muted)]">{s.l}</div>
           </div>
         ))}
       </div>
 
       <div className="card mt-4">
-        <h3 className="font-bold text-white">Latest leads <span className="ml-2 rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-300">sample data</span></h3>
+        <h3 className="font-bold text-[var(--heading)]">Latest leads <span className="ml-2 rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--violet)]">sample data</span></h3>
         <div className="mt-3 space-y-2 text-sm">
           {[
             { n: "Katie B.", s: "facebook / roast-club ad", t: "2 min ago", status: "new" },
             { n: "Marcus T.", s: "google / order-ahead", t: "1 hr ago", status: "emailed" },
             { n: "Deb W.", s: "shared link", t: "3 hrs ago", status: "member" },
           ].map((l) => (
-            <div key={l.n} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-ink p-3">
+            <div key={l.n} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-[var(--page)] p-3">
               <div>
-                <span className="font-semibold text-white">{l.n}</span>
-                <span className="ml-2 text-xs text-slate-400">{l.s}</span>
+                <span className="font-semibold text-[var(--heading)]">{l.n}</span>
+                <span className="ml-2 text-xs text-[var(--muted)]">{l.s}</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs text-slate-500">{l.t}</span>
-                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${l.status === "new" ? "bg-sky-500/20 text-sky-300" : l.status === "emailed" ? "bg-amber-500/15 text-amber-300" : "bg-emerald-500/15 text-emerald-300"}`}>
+                <span className="text-xs text-[var(--quiet)]">{l.t}</span>
+                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${l.status === "new" ? "bg-[var(--accent-tint)] text-[var(--blue)]" : l.status === "emailed" ? "bg-[var(--warn-tint)] text-warn" : "bg-[var(--green-tint)] text-[var(--green)]"}`}>
                   {l.status}
                 </span>
               </div>
             </div>
           ))}
         </div>
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-[var(--quiet)]">
           Attribution flows in automatically from UTM-tagged ads — the owner sees
           exactly which ad every lead came from.
         </p>
       </div>
 
       {/* CTA */}
-      <div className="card mt-12 border border-sky-400/40 text-center shadow-glow-blue">
-        <h2 className="text-2xl font-black text-white">
+      <div className="card mt-12 border border-[var(--accent-line)] text-center shadow-[0_12px_32px_rgba(18,64,232,0.16)]">
+        <h2 className="text-2xl font-black text-[var(--heading)]">
           Want this with YOUR name on the door?
         </h2>
-        <p className="mx-auto mt-2 max-w-xl text-slate-300">
+        <p className="mx-auto mt-2 max-w-xl text-[var(--text)]">
           Coffee shop, dental office, law firm, gym, church, home services — the
           architecture is the same: your funnel, your data, your keys. Thirty
           minutes and you'll know your next three moves.

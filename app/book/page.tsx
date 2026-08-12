@@ -9,9 +9,9 @@ export const metadata = {
 
 export default function BookPage() {
   return (
-    <section className="mx-auto max-w-2xl px-4 py-16">
-      <h1 className="text-4xl font-black text-white">Book your call</h1>
-      <p className="mt-3 text-lg text-slate-300">
+    <section className="mx-auto max-w-2xl px-4 pb-24 pt-[22px] sm:pt-8">
+      <h1 className="text-4xl font-black text-[var(--heading)]">Book your call</h1>
+      <p className="mt-3 text-lg text-[var(--text)]">
         Tell me where your business is and what you are renting right now. I will
         come to the call with a plan: what to build, what it replaces, and what it
         saves you. Thirty minutes and you will know your next three moves.

@@ -31,14 +31,14 @@ export default function MallWalkVideo({ onStart }: { onStart?: () => void }) {
   return (
     <section className="mx-auto mt-12 w-[min(1000px,100%-40px)]">
       <div className="text-center">
-        <p className="text-xs font-black tracking-[0.2em] text-sky-300">
+        <p className="text-xs font-black tracking-[0.2em] text-[var(--blue)]">
           BEFORE YOU DECIDE, MEET ME
         </p>
-        <h2 className="mt-2 text-3xl font-extrabold leading-tight text-white sm:text-4xl">
+        <h2 className="mt-2 text-3xl font-extrabold leading-tight text-[var(--heading)] sm:text-4xl">
           I walked the Longview Mall and explained business
           <br className="hidden sm:block" /> the way people can actually see it.
         </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
+        <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
           No script. No studio. Just me talking to a business owner the same way I
           will talk to you. If you like how I think here, you will like what I
           build for you.
@@ -46,7 +46,7 @@ export default function MallWalkVideo({ onStart }: { onStart?: () => void }) {
       </div>
 
       <div className="mt-7 flex justify-center">
-        <div className="w-full max-w-[380px] overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl">
+        <div className="w-full max-w-[380px] overflow-hidden rounded-2xl border border-[var(--line-strong)] bg-black shadow-2xl">
           <div className="relative aspect-[9/16] w-full">
             {playing ? (
               <iframe
@@ -85,7 +85,7 @@ export default function MallWalkVideo({ onStart }: { onStart?: () => void }) {
                   <span className="block text-lg font-extrabold text-white drop-shadow">
                     Watch the mall walk
                   </span>
-                  <span className="mt-1 block text-xs font-semibold tracking-wide text-slate-300">
+                  <span className="mt-1 block text-xs font-semibold tracking-wide text-white/90">
                     8 min 39 sec · sound on
                   </span>
                 </span>
@@ -95,28 +95,28 @@ export default function MallWalkVideo({ onStart }: { onStart?: () => void }) {
         </div>
       </div>
 
-      <p className="mt-5 text-center text-sm text-slate-400">
+      <p className="mt-5 text-center text-sm text-[var(--muted)]">
         Watched it and you are in?{" "}
         <button
           type="button"
           onClick={onStart}
-          className="font-bold text-sky-300 underline"
+          className="font-bold text-[var(--blue)] underline"
         >
           Start your free build
         </button>{" "}
         or text me at{" "}
-        <a href="tel:+19035008898" className="font-bold text-sky-300 underline">
+        <a href="tel:+19035008898" className="font-bold text-[var(--blue)] underline">
           (903) 500-8898
         </a>
         .
       </p>
-      <p className="mt-2 text-center text-xs text-slate-500">
+      <p className="mt-2 text-center text-xs text-[var(--quiet)]">
         Trouble playing it here?{" "}
         <a
           href={FB_REEL_URL}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1 font-semibold text-slate-400 underline"
+          className="inline-flex items-center gap-1 font-semibold text-[var(--muted)] underline"
         >
           Watch it on Facebook
           <ExternalLink aria-hidden="true" className="h-3 w-3" />

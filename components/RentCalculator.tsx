@@ -160,8 +160,8 @@ export default function RentCalculator() {
   ) => (
     <div>
       <label className="flex items-baseline justify-between text-sm">
-        <span className="text-slate-400">{label}</span>
-        <span className="font-bold text-white">{display}</span>
+        <span className="text-[var(--muted)]">{label}</span>
+        <span className="font-bold text-[var(--heading)]">{display}</span>
       </label>
       <input
         type="range"
@@ -211,7 +211,7 @@ export default function RentCalculator() {
             onClick={() => { markTouched(); setUseEmail(!useEmail); }}
             aria-pressed={useEmail}
             className={`flex-1 rounded-lg border px-3 py-2.5 text-sm font-semibold transition ${
-              useEmail ? "border-sky-400 bg-sky-500/15 text-sky-300" : "border-line text-slate-400"
+              useEmail ? "border-sky-400 bg-[var(--accent-tint)] text-[var(--blue)]" : "border-line text-[var(--muted)]"
             }`}
           >
             Email marketing
@@ -220,7 +220,7 @@ export default function RentCalculator() {
             onClick={() => { markTouched(); setUseFunnels(!useFunnels); }}
             aria-pressed={useFunnels}
             className={`flex-1 rounded-lg border px-3 py-2.5 text-sm font-semibold transition ${
-              useFunnels ? "border-sky-400 bg-sky-500/15 text-sky-300" : "border-line text-slate-400"
+              useFunnels ? "border-sky-400 bg-[var(--accent-tint)] text-[var(--blue)]" : "border-line text-[var(--muted)]"
             }`}
           >
             Funnel builder
@@ -242,28 +242,28 @@ export default function RentCalculator() {
       </p>
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         {/* RENTED — color grades itself vs the owned side */}
-        <div className={`rounded-xl border bg-ink p-4 ${sevR.border} ${sevR.glow}`}>
+        <div className={`rounded-xl border bg-[var(--page)] p-4 ${sevR.border} ${sevR.glow}`}>
           <div className="flex items-baseline justify-between border-b border-line pb-2">
             <span className={`font-bold ${sevR.text}`}>RENTING</span>
             <span className={`text-xl font-black ${sevR.text}`}>${rentedTotal.toLocaleString()}/mo</span>
           </div>
           <ul className="mt-3 space-y-2.5 text-sm">
             {rented.length === 0 && (
-              <li className="text-slate-400">Pick your platform and tools above.</li>
+              <li className="text-[var(--muted)]">Pick your platform and tools above.</li>
             )}
             {rented.map((r) => (
               <li key={r.item} className="flex justify-between gap-3">
                 <span>
-                  <span className="font-semibold text-slate-200">{r.item}</span>
-                  <span className="block text-xs text-slate-400">{r.detail}{r.approx ? " (approx.)" : ""}</span>
+                  <span className="font-semibold text-[var(--text)]">{r.item}</span>
+                  <span className="block text-xs text-[var(--muted)]">{r.detail}{r.approx ? " (approx.)" : ""}</span>
                 </span>
-                <span className="font-bold text-slate-200">${r.price}</span>
+                <span className="font-bold text-[var(--text)]">${r.price}</span>
               </li>
             ))}
           </ul>
         </div>
         {/* OWNED — green whenever it beats renting, no matter what */}
-        <div className={`rounded-xl border bg-ink p-4 ${sevO.border} ${sevO.glow}`}>
+        <div className={`rounded-xl border bg-[var(--page)] p-4 ${sevO.border} ${sevO.glow}`}>
           <div className="flex items-baseline justify-between border-b border-line pb-2">
             <span className={`font-bold ${sevO.text}`}>OWNING (same usage)</span>
             <span className={`text-xl font-black ${sevO.text}`}>${ownedTotal.toLocaleString()}/mo</span>
@@ -272,10 +272,10 @@ export default function RentCalculator() {
             {owned.map((r) => (
               <li key={r.item} className="flex justify-between gap-3">
                 <span>
-                  <span className="font-semibold text-slate-200">{r.item}</span>
-                  <span className="block text-xs text-slate-400">{r.detail}</span>
+                  <span className="font-semibold text-[var(--text)]">{r.item}</span>
+                  <span className="block text-xs text-[var(--muted)]">{r.detail}</span>
                 </span>
-                <span className="font-bold text-slate-200">${r.price}</span>
+                <span className="font-bold text-[var(--text)]">${r.price}</span>
               </li>
             ))}
           </ul>
@@ -286,7 +286,7 @@ export default function RentCalculator() {
       <div className="mt-6 space-y-3">
         <div>
           <div className="flex items-baseline justify-between text-sm">
-            <span className="font-semibold text-slate-200">Renting <span className={`ml-1 text-xs font-bold uppercase ${sevR.text}`}>{sevR.label}</span></span>
+            <span className="font-semibold text-[var(--text)]">Renting <span className={`ml-1 text-xs font-bold uppercase ${sevR.text}`}>{sevR.label}</span></span>
             <span className={`font-black ${sevR.text}`}>${rentedTotal.toLocaleString()}/mo</span>
           </div>
           <div className="mt-1 h-5 overflow-hidden rounded bg-line/40">
@@ -295,7 +295,7 @@ export default function RentCalculator() {
         </div>
         <div>
           <div className="flex items-baseline justify-between text-sm">
-            <span className="font-semibold text-slate-200">Owning <span className={`ml-1 text-xs font-bold uppercase ${sevO.text}`}>{sevO.label}</span></span>
+            <span className="font-semibold text-[var(--text)]">Owning <span className={`ml-1 text-xs font-bold uppercase ${sevO.text}`}>{sevO.label}</span></span>
             <span className={`font-black ${sevO.text}`}>${ownedTotal.toLocaleString()}/mo</span>
           </div>
           <div className="mt-1 h-5 overflow-hidden rounded bg-line/40">
@@ -305,20 +305,20 @@ export default function RentCalculator() {
       </div>
 
       {/* 3-YEAR PUNCH */}
-      <div className="mt-6 grid gap-4 rounded-xl bg-ink p-5 text-center sm:grid-cols-2">
+      <div className="mt-6 grid gap-4 rounded-xl bg-[var(--page)] p-5 text-center sm:grid-cols-2">
         <div>
-          <div className="text-xs font-bold uppercase tracking-wide text-slate-400">
+          <div className="text-xs font-bold uppercase tracking-wide text-[var(--muted)]">
             3 years of renting
           </div>
           <div className={`mt-1 text-4xl font-black ${sevR.text}`} style={{ textShadow: `0 0 24px ${sevR.hex}73` }}>${threeYearRented.toLocaleString()}</div>
-          <div className="mt-1 text-xs text-slate-400">and you still own nothing</div>
+          <div className="mt-1 text-xs text-[var(--muted)]">and you still own nothing</div>
         </div>
         <div>
-          <div className="text-xs font-bold uppercase tracking-wide text-slate-400">
+          <div className="text-xs font-bold uppercase tracking-wide text-[var(--muted)]">
             Own it and keep
           </div>
-          <div className={`mt-1 text-4xl font-black ${kept > 0 ? "text-mint glow-mint" : "text-slate-300"}`}>${kept.toLocaleString()}</div>
-          <div className="mt-1 text-xs text-slate-400">plus the code, the leads, the data</div>
+          <div className={`mt-1 text-4xl font-black ${kept > 0 ? "text-mint " : "text-[var(--text)]"}`}>${kept.toLocaleString()}</div>
+          <div className="mt-1 text-xs text-[var(--muted)]">plus the code, the leads, the data</div>
         </div>
       </div>
 
@@ -336,62 +336,62 @@ export default function RentCalculator() {
       </div>
 
       {/* THE RECEIPTS — always on display. This is the proof, not the fine print. */}
-      <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl sm:p-6">
+      <div className="mt-8 rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-5 -xl sm:p-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h3 className="text-lg font-black tracking-wide text-white">
+          <h3 className="text-lg font-black tracking-wide text-[var(--heading)]">
             THE RECEIPTS
           </h3>
           <span className="text-xs font-semibold uppercase tracking-widest text-flow-400">
             {CHECKED}
           </span>
         </div>
-        <p className="mt-2 text-sm text-slate-300">
+        <p className="mt-2 text-sm text-[var(--text)]">
           Every number above comes straight from the vendors' own published
           pricing pages. Click any of them. Check me.
         </p>
         <ul className="mt-4 grid gap-x-8 gap-y-2.5 text-sm sm:grid-cols-2">
           <li className="flex justify-between gap-3">
-            <span><span className="font-bold text-white">Shopify</span> <span className="text-slate-400">Basic $39 · Grow $105 · Advanced $399/mo</span></span>
+            <span><span className="font-bold text-[var(--heading)]">Shopify</span> <span className="text-[var(--muted)]">Basic $39 · Grow $105 · Advanced $399/mo</span></span>
             <a className="shrink-0 font-semibold text-flow-400 underline" href="https://www.shopify.com/pricing" target="_blank" rel="noreferrer">source ↗</a>
           </li>
           <li className="flex justify-between gap-3">
-            <span><span className="font-bold text-white">Wix</span> <span className="text-slate-400">Core $36/mo month-to-month</span></span>
+            <span><span className="font-bold text-[var(--heading)]">Wix</span> <span className="text-[var(--muted)]">Core $36/mo month-to-month</span></span>
             <a className="shrink-0 font-semibold text-flow-400 underline" href="https://www.wix.com/plans" target="_blank" rel="noreferrer">source ↗</a>
           </li>
           <li className="flex justify-between gap-3">
-            <span><span className="font-bold text-white">Squarespace</span> <span className="text-slate-400">Core $33/mo month-to-month</span></span>
+            <span><span className="font-bold text-[var(--heading)]">Squarespace</span> <span className="text-[var(--muted)]">Core $33/mo month-to-month</span></span>
             <a className="shrink-0 font-semibold text-flow-400 underline" href="https://www.squarespace.com/pricing" target="_blank" rel="noreferrer">source ↗</a>
           </li>
           <li className="flex justify-between gap-3">
-            <span><span className="font-bold text-white">GoDaddy</span> <span className="text-slate-400">W+M Premium $24.99/mo</span></span>
+            <span><span className="font-bold text-[var(--heading)]">GoDaddy</span> <span className="text-[var(--muted)]">W+M Premium $24.99/mo</span></span>
             <a className="shrink-0 font-semibold text-flow-400 underline" href="https://www.godaddy.com/pricing" target="_blank" rel="noreferrer">source ↗</a>
           </li>
           <li className="flex justify-between gap-3">
-            <span><span className="font-bold text-white">WP Engine</span> <span className="text-slate-400">Startup $30 · Professional $55/mo</span></span>
+            <span><span className="font-bold text-[var(--heading)]">WP Engine</span> <span className="text-[var(--muted)]">Startup $30 · Professional $55/mo</span></span>
             <a className="shrink-0 font-semibold text-flow-400 underline" href="https://wpengine.com/plans/" target="_blank" rel="noreferrer">source ↗</a>
           </li>
           <li className="flex justify-between gap-3">
-            <span><span className="font-bold text-white">Mailchimp</span> <span className="text-slate-400">Standard $20 → $135/mo by list size</span></span>
+            <span><span className="font-bold text-[var(--heading)]">Mailchimp</span> <span className="text-[var(--muted)]">Standard $20 → $135/mo by list size</span></span>
             <a className="shrink-0 font-semibold text-flow-400 underline" href="https://mailchimp.com/pricing/marketing/" target="_blank" rel="noreferrer">source ↗</a>
           </li>
           <li className="flex justify-between gap-3">
-            <span><span className="font-bold text-white">ClickFunnels</span> <span className="text-slate-400">Launch $97 · Scale $197 · Optimize $297/mo</span></span>
+            <span><span className="font-bold text-[var(--heading)]">ClickFunnels</span> <span className="text-[var(--muted)]">Launch $97 · Scale $197 · Optimize $297/mo</span></span>
             <a className="shrink-0 font-semibold text-flow-400 underline" href="https://www.clickfunnels.com/pricing" target="_blank" rel="noreferrer">source ↗</a>
           </li>
           <li className="flex justify-between gap-3">
-            <span><span className="font-bold text-white">Vercel</span> <span className="text-slate-400">Hobby free · Pro $20/mo</span></span>
+            <span><span className="font-bold text-[var(--heading)]">Vercel</span> <span className="text-[var(--muted)]">Hobby free · Pro $20/mo</span></span>
             <a className="shrink-0 font-semibold text-flow-400 underline" href="https://vercel.com/pricing" target="_blank" rel="noreferrer">source ↗</a>
           </li>
           <li className="flex justify-between gap-3">
-            <span><span className="font-bold text-white">Supabase</span> <span className="text-slate-400">Free tier · Pro $25/mo (8GB DB, 100GB files)</span></span>
+            <span><span className="font-bold text-[var(--heading)]">Supabase</span> <span className="text-[var(--muted)]">Free tier · Pro $25/mo (8GB DB, 100GB files)</span></span>
             <a className="shrink-0 font-semibold text-flow-400 underline" href="https://supabase.com/pricing" target="_blank" rel="noreferrer">source ↗</a>
           </li>
           <li className="flex justify-between gap-3">
-            <span><span className="font-bold text-white">Resend</span> <span className="text-slate-400">3,000 emails free · $20 for 50k · $90 for 100k</span></span>
+            <span><span className="font-bold text-[var(--heading)]">Resend</span> <span className="text-[var(--muted)]">3,000 emails free · $20 for 50k · $90 for 100k</span></span>
             <a className="shrink-0 font-semibold text-flow-400 underline" href="https://resend.com/pricing" target="_blank" rel="noreferrer">source ↗</a>
           </li>
         </ul>
-        <p className="mt-4 text-sm text-slate-400">
+        <p className="mt-4 text-sm text-[var(--muted)]">
           Items marked approx. sit between published tiers or reflect typical
           add-on costs. Card processing fees hit BOTH stacks about the same
           (Stripe and Shopify Payments both run roughly 2.9% + 30¢), so they

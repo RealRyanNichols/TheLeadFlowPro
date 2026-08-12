@@ -55,7 +55,7 @@ export default function ContactForm() {
         <label className="label">Your message *</label>
         <textarea className="input" name="body" rows={5} required maxLength={3000} />
       </div>
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
       <button type="submit" disabled={busy} className="btn-primary w-full disabled:opacity-50">
         {busy ? "Sending..." : "Send Message"}
       </button>

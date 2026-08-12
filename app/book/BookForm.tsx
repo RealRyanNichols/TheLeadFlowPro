@@ -139,12 +139,12 @@ export default function BookForm() {
         </div>
       </div>
 
-      {error && <p className="text-sm font-medium text-red-400">{error}</p>}
+      {error && <p className="text-sm font-medium text-[var(--danger)]">{error}</p>}
 
       <button type="submit" disabled={submitting} className="btn-primary w-full disabled:opacity-50">
         {submitting ? "Sending..." : "Send It"}
       </button>
-      <p className="text-center text-xs text-slate-400">
+      <p className="text-center text-xs text-[var(--muted)]">
         No spam. No list-selling. I read every one of these myself.
       </p>
     </form>

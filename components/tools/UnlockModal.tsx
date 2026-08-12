@@ -81,36 +81,36 @@ export default function UnlockModal({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto bg-[var(--panel)] p-4 -sm sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-label="Unlock the free toolbox"
     >
-      <div className="relative my-auto w-full max-w-lg rounded-2xl border border-sky-400/30 bg-[#12213a] p-6 shadow-2xl sm:p-8">
+      <div className="relative my-auto w-full max-w-lg rounded-2xl border border-[var(--accent-line)] bg-[#12213a] p-6 shadow-2xl sm:p-8">
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white"
+          className="absolute right-4 top-4 rounded-lg p-1.5 text-[var(--muted)] hover:bg-[var(--fill-3)] hover:text-[var(--heading)]"
         >
           <X className="h-5 w-5" />
         </button>
 
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-sky-400/40 bg-sky-400/10 text-xl">
-            <Lock className="h-5 w-5 text-sky-300" />
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--accent-line)] bg-[var(--accent-tint)] text-xl">
+            <Lock className="h-5 w-5 text-[var(--blue)]" />
           </span>
           <div>
-            <h2 className="text-xl font-black leading-tight text-white">
+            <h2 className="text-xl font-black leading-tight text-[var(--heading)]">
               {reason === "download" ? "Save your results" : "Get the embed code"}
             </h2>
-            <p className="text-sm font-semibold text-sky-300">
+            <p className="text-sm font-semibold text-[var(--blue)]">
               One form. All {toolCount} tools. Forever.
             </p>
           </div>
         </div>
 
-        <p className="mt-4 text-sm leading-relaxed text-slate-300">
+        <p className="mt-4 text-sm leading-relaxed text-[var(--text)]">
           The tools stay free to use with no signup. Downloading your results and
           taking the embed code costs you one thing: tell me who you are. Do it
           once and every tool in the toolbox is unlocked on this browser from now
@@ -135,11 +135,11 @@ export default function UnlockModal({
             <input name="business_name" maxLength={200} autoComplete="organization" />
           </label>
 
-          <label className="flex items-start gap-2 text-xs leading-relaxed text-slate-400 sm:col-span-2">
+          <label className="flex items-start gap-2 text-xs leading-relaxed text-[var(--muted)] sm:col-span-2">
             <input type="checkbox" name="marketing_email_consent" defaultChecked className="mt-0.5" />
             <span>Email me when new free tools drop. Unsubscribe any time.</span>
           </label>
-          <label className="flex items-start gap-2 text-xs leading-relaxed text-slate-400 sm:col-span-2">
+          <label className="flex items-start gap-2 text-xs leading-relaxed text-[var(--muted)] sm:col-span-2">
             <input type="checkbox" name="sms_consent" className="mt-0.5" />
             <span>
               You can text me too. Message and data rates may apply, reply STOP to
@@ -148,7 +148,7 @@ export default function UnlockModal({
           </label>
 
           {error && (
-            <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs text-amber-200 sm:col-span-2">
+            <p className="rounded-lg border border-[var(--warn-line)] bg-[var(--warn-tint)] px-3 py-2 text-xs text-warn sm:col-span-2">
               {error}
             </p>
           )}
@@ -157,7 +157,7 @@ export default function UnlockModal({
             {sending ? "Unlocking..." : `Unlock All ${toolCount} Tools`}
             {!sending && <Check aria-hidden="true" className="h-4 w-4" />}
           </button>
-          <p className="text-center text-[11px] text-slate-500 sm:col-span-2">
+          <p className="text-center text-[11px] text-[var(--quiet)] sm:col-span-2">
             No spam, no reselling your info, no 40 emails a week. You will hear
             from a person.
           </p>

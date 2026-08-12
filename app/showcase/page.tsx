@@ -9,12 +9,12 @@ export const metadata = {
 
 export default function ShowcasePage() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-12">
+    <section className="mx-auto max-w-6xl px-4 pb-20 pt-[22px] sm:pt-8">
       <div className="text-center">
-        <h1 className="text-3xl font-black text-white sm:text-5xl">
+        <h1 className="text-3xl font-black text-[var(--heading)] sm:text-5xl">
           The <span className="text-gradient">Command Center</span>
         </h1>
-        <p className="mx-auto mt-3 max-w-2xl text-slate-300">
+        <p className="mx-auto mt-3 max-w-2xl text-[var(--text)]">
           This is the back office a LeadFlow Pro build ships with. Live traffic,
           instant lead response, full-funnel attribution, AI agents on shift
           around the clock. Simulated data — the architecture is real and it's

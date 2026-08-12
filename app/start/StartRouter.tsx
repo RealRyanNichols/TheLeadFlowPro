@@ -1568,17 +1568,17 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
 
             {/* WHERE YOU ARE vs WHERE THIS TAKES YOU */}
             <div className="mt-10 grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-stretch">
-              <div className="rounded-2xl border border-amber-400/25 bg-amber-500/[0.05] p-6">
-                <span className="text-xs font-black uppercase tracking-[0.18em] text-amber-300">
+              <div className="rounded-2xl border border-[var(--warn-line)] bg-amber-500/[0.05] p-6">
+                <span className="text-xs font-black uppercase tracking-[0.18em] text-warn">
                   Where you are today
                 </span>
-                <ul className="mt-4 space-y-3 text-sm text-slate-300">
+                <ul className="mt-4 space-y-3 text-sm text-[var(--text)]">
                   <li className="flex items-start gap-3">
-                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-400" />
+                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-warn" />
                     <span>Working from {presence.short}</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-400" />
+                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-warn" />
                     <span>
                       {answers.salesChannels.length > 1
                         ? `${answers.salesChannels.length} sales channels that do not talk to each other`
@@ -1586,39 +1586,39 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                     </span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-400" />
+                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-warn" />
                     <span>Running on {stagesText}</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-amber-400" />
+                    <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-warn" />
                     <span>Leads and follow-up depend on somebody remembering</span>
                   </li>
                 </ul>
               </div>
               <div className="flex items-center justify-center md:px-1">
                 <div className="flex h-11 w-11 rotate-90 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-600 shadow-[0_0_24px_rgba(56,189,248,0.45)] md:rotate-0">
-                  <ArrowRight className="h-5 w-5 text-white" strokeWidth={2.6} />
+                  <ArrowRight className="h-5 w-5 text-[var(--heading)]" strokeWidth={2.6} />
                 </div>
               </div>
-              <div className="rounded-2xl border border-emerald-400/25 bg-emerald-500/[0.05] p-6">
-                <span className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">
+              <div className="rounded-2xl border border-[var(--green-line)] bg-emerald-500/[0.05] p-6">
+                <span className="text-xs font-black uppercase tracking-[0.18em] text-[var(--green)]">
                   Where this takes you
                 </span>
-                <ul className="mt-4 space-y-3 text-sm text-slate-200">
+                <ul className="mt-4 space-y-3 text-sm text-[var(--text)]">
                   <li className="flex items-start gap-3">
-                    <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-emerald-400" />
+                    <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-[var(--green)]" />
                     <span>One owned platform behind every channel you already use</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-emerald-400" />
+                    <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-[var(--green)]" />
                     <span>Every lead captured, answered in seconds, and followed up automatically</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-emerald-400" />
+                    <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-[var(--green)]" />
                     <span>One pipeline showing what came in, what stalled, and what made money</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-emerald-400" />
+                    <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-[var(--green)]" />
                     <span>Your code, your data, your customer list. Nobody can take it</span>
                   </li>
                 </ul>
@@ -1626,10 +1626,10 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
             </div>
 
             {/* THE FLOW MAP */}
-            <div className="mt-6 rounded-2xl border border-line bg-white/[0.03] p-6 sm:p-8">
+            <div className="mt-6 rounded-2xl border border-line bg-[var(--fill-2)] p-6 sm:p-8">
               <div className="text-center">
                 <span className="eyebrow">Your money map</span>
-                <h2 className="mt-3 text-2xl font-black text-white sm:text-3xl">
+                <h2 className="mt-3 text-2xl font-black text-[var(--heading)] sm:text-3xl">
                   Every channel feeds one system you own.
                 </h2>
               </div>
@@ -1643,63 +1643,63 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                     return (
                       <div
                         key={c}
-                        className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0d1420] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(0,0,0,0.35)]"
+                        className="flex items-center gap-3 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(10,18,32,0.08)]"
                       >
                         <span
-                          className="flex h-9 w-9 flex-none items-center justify-center rounded-[10px] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
+                          className="flex h-9 w-9 flex-none items-center justify-center rounded-[10px] text-[var(--heading)] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
                           style={{ background: tilePair(i) }}
                         >
                           <Icon name={ch.icon} className="h-[18px] w-[18px]" />
                         </span>
-                        <span className="text-sm font-semibold text-white">{ch.short}</span>
+                        <span className="text-sm font-semibold text-[var(--heading)]">{ch.short}</span>
                       </div>
                     );
                   })}
                   {answers.salesChannels.length > 4 && (
-                    <span className="text-center text-xs font-bold text-slate-500">
+                    <span className="text-center text-xs font-bold text-[var(--quiet)]">
                       + {answers.salesChannels.length - 4} more channels
                     </span>
                   )}
                 </div>
                 <div className="flow-line-v md:hidden" />
                 <div className="flow-line hidden w-16 md:block" />
-                <div className="flex flex-col items-center justify-center gap-1.5 rounded-full border-2 border-sky-400/70 bg-[#0c1320] px-2 text-center shadow-[0_0_44px_rgba(56,189,248,0.3)]" style={{ width: 168, height: 168 }}>
+                <div className="flex flex-col items-center justify-center gap-1.5 rounded-full border-2 border-[var(--accent-line)] bg-[var(--panel)] px-2 text-center shadow-[0_10px_30px_rgba(18,64,232,0.14)]" style={{ width: 168, height: 168 }}>
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-r from-sky-400 to-blue-600 shadow-[0_4px_14px_rgba(56,189,248,0.5)]">
-                    <Zap className="h-5 w-5 text-white" strokeWidth={2.4} />
+                    <Zap className="h-5 w-5 text-[var(--heading)]" strokeWidth={2.4} />
                   </span>
-                  <span className="text-[13px] font-extrabold tracking-[0.08em] text-white">
+                  <span className="text-[13px] font-extrabold tracking-[0.08em] text-[var(--heading)]">
                     YOUR PLATFORM
                   </span>
-                  <span className="text-[11px] font-medium text-slate-400">Owned. Not rented.</span>
+                  <span className="text-[11px] font-medium text-[var(--muted)]">Owned. Not rented.</span>
                 </div>
                 <div className="flow-line-v md:hidden" />
                 <div className="flow-line hidden w-16 md:block" />
                 <div className="flex w-full max-w-xs flex-col gap-3 md:w-64">
-                  <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0d1420] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(0,0,0,0.35)]">
-                    <span className="flex h-9 w-9 flex-none items-center justify-center rounded-[10px] bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
+                  <div className="flex items-center gap-3 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(10,18,32,0.08)]">
+                    <span className="flex h-9 w-9 flex-none items-center justify-center rounded-[10px] bg-gradient-to-br from-emerald-400 to-emerald-600 text-[var(--heading)] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
                       <Inbox className="h-4 w-4" />
                     </span>
                     <span>
-                      <span className="block text-sm font-semibold text-white">One inbox and CRM</span>
-                      <span className="block text-[11.5px] text-slate-400">Every lead in your database</span>
+                      <span className="block text-sm font-semibold text-[var(--heading)]">One inbox and CRM</span>
+                      <span className="block text-[11.5px] text-[var(--muted)]">Every lead in your database</span>
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0d1420] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(0,0,0,0.35)]">
-                    <span className="flex h-9 w-9 flex-none items-center justify-center rounded-[10px] bg-gradient-to-br from-cyan-400 to-indigo-500 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
+                  <div className="flex items-center gap-3 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(10,18,32,0.08)]">
+                    <span className="flex h-9 w-9 flex-none items-center justify-center rounded-[10px] bg-gradient-to-br from-cyan-400 to-indigo-500 text-[var(--heading)] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
                       <Send className="h-4 w-4" />
                     </span>
                     <span>
-                      <span className="block text-sm font-semibold text-white">Automatic follow-up</span>
-                      <span className="block text-[11.5px] text-slate-400">Email and text until they answer</span>
+                      <span className="block text-sm font-semibold text-[var(--heading)]">Automatic follow-up</span>
+                      <span className="block text-[11.5px] text-[var(--muted)]">Email and text until they answer</span>
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0d1420] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(0,0,0,0.35)]">
-                    <span className="flex h-9 w-9 flex-none items-center justify-center rounded-[10px] bg-gradient-to-br from-violet-400 to-fuchsia-500 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
+                  <div className="flex items-center gap-3 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(10,18,32,0.08)]">
+                    <span className="flex h-9 w-9 flex-none items-center justify-center rounded-[10px] bg-gradient-to-br from-violet-400 to-fuchsia-500 text-[var(--heading)] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
                       <ChartColumn className="h-4 w-4" />
                     </span>
                     <span>
-                      <span className="block text-sm font-semibold text-white">Reporting you own</span>
-                      <span className="block text-[11.5px] text-slate-400">What made money, in plain sight</span>
+                      <span className="block text-sm font-semibold text-[var(--heading)]">Reporting you own</span>
+                      <span className="block text-[11.5px] text-[var(--muted)]">What made money, in plain sight</span>
                     </span>
                   </div>
                 </div>
@@ -1753,7 +1753,7 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                     <span>LeadFlow Core + Industry Pack</span>
                     <strong>One business. One connected system.</strong>
                   </div>
-                  <ShieldCheck aria-hidden="true" className="h-7 w-7 text-emerald-300" />
+                  <ShieldCheck aria-hidden="true" className="h-7 w-7 text-[var(--green)]" />
                 </div>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   {recommendedModules.map((id, i) => {
@@ -1762,23 +1762,23 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                     return (
                       <div
                         key={id}
-                        className="flex items-start gap-3 rounded-xl border border-white/10 bg-[#0c1220] p-3.5"
+                        className="flex items-start gap-3 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] p-3.5"
                       >
                         <span
-                          className="flex h-10 w-10 flex-none items-center justify-center rounded-[11px] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
+                          className="flex h-10 w-10 flex-none items-center justify-center rounded-[11px] text-[var(--heading)] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
                           style={{ background: tilePair(i) }}
                         >
                           <Icon name={m.icon} className="h-5 w-5" />
                         </span>
                         <span className="min-w-0">
-                          <span className="block text-[15px] font-bold leading-snug text-white">
+                          <span className="block text-[15px] font-bold leading-snug text-[var(--heading)]">
                             {m.label}
                           </span>
-                          <span className="mt-1 block text-[12.5px] leading-relaxed text-slate-400">
+                          <span className="mt-1 block text-[12.5px] leading-relaxed text-[var(--muted)]">
                             {meta?.why ?? m.description}
                           </span>
                           {meta?.proof && (
-                            <span className="mt-1.5 flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wide text-emerald-300/90">
+                            <span className="mt-1.5 flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wide text-[var(--green)]/90">
                               <CircleCheck className="h-3 w-3" />
                               Proven live on {meta.proof}
                             </span>
@@ -1853,7 +1853,7 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
 
             {submitted && (
               <div className="router-success" role="status">
-                <CircleCheck aria-hidden="true" className="h-10 w-10 text-emerald-300" />
+                <CircleCheck aria-hidden="true" className="h-10 w-10 text-[var(--green)]" />
                 <div>
                   <h2>Your system map request is in.</h2>
                   <p>

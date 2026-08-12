@@ -568,15 +568,15 @@ export default function AddOnsMenu() {
           Check the boxes you want, tell me how you want it built, and I will fully build
           it out. You do not pay a dime if you do not like it. Fair, right?
         </p>
-        <div className="mx-auto mt-8 flex max-w-2xl flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-slate-300">
+        <div className="mx-auto mt-8 flex max-w-2xl flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-[var(--text)]">
           <span className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-emerald-400" strokeWidth={3} /> Pick what you want
+            <Check className="h-4 w-4 text-[var(--green)]" strokeWidth={3} /> Pick what you want
           </span>
           <span className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-emerald-400" strokeWidth={3} /> Tell me how to build it
+            <Check className="h-4 w-4 text-[var(--green)]" strokeWidth={3} /> Tell me how to build it
           </span>
           <span className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-emerald-400" strokeWidth={3} /> No pay if you do not like it
+            <Check className="h-4 w-4 text-[var(--green)]" strokeWidth={3} /> No pay if you do not like it
           </span>
         </div>
       </section>
@@ -587,12 +587,12 @@ export default function AddOnsMenu() {
           <div key={cat.id} className="mt-14 first:mt-4">
             <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
               <div>
-                <h2 className="text-2xl font-extrabold tracking-tight text-white sm:text-[28px]">
+                <h2 className="text-2xl font-extrabold tracking-tight text-[var(--heading)] sm:text-[28px]">
                   {cat.title}
                 </h2>
-                <p className="mt-1 text-sm text-slate-400">{cat.blurb}</p>
+                <p className="mt-1 text-sm text-[var(--muted)]">{cat.blurb}</p>
               </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--quiet)]">
                 {cat.items.filter((i) => selected.has(i.id)).length} of {cat.items.length} selected
               </span>
             </div>
@@ -615,8 +615,8 @@ export default function AddOnsMenu() {
                     <span className="router-option-copy">
                       <strong>{item.name}</strong>
                       <span>{item.desc}</span>
-                      <span className="!mt-1 flex items-center gap-1.5 !text-[11px] font-bold uppercase tracking-wide !text-slate-500">
-                        <CircleCheck className="h-3 w-3 text-emerald-400/80" />
+                      <span className="!mt-1 flex items-center gap-1.5 !text-[11px] font-bold uppercase tracking-wide !text-[var(--quiet)]">
+                        <CircleCheck className="h-3 w-3 text-[var(--green)]/80" />
                         {item.proof}
                       </span>
                     </span>
@@ -634,12 +634,12 @@ export default function AddOnsMenu() {
       {/* ORDER FORM */}
       <section ref={formRef} className="mx-auto mt-20 w-[min(860px,100%-40px)] scroll-mt-24">
         {!submitted ? (
-          <div className="rounded-[20px] border border-line bg-white/[0.04] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] sm:p-9">
+          <div className="rounded-[20px] border border-line bg-[var(--fill-2)] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] sm:p-9">
             <span className="eyebrow">Your build list</span>
-            <h2 className="mt-4 text-3xl font-black tracking-tight text-white">
+            <h2 className="mt-4 text-3xl font-black tracking-tight text-[var(--heading)]">
               Tell me how you want it built.
             </h2>
-            <p className="mt-2 text-slate-400">
+            <p className="mt-2 text-[var(--muted)]">
               {selectedItems.length === 0
                 ? "Nothing checked yet. Pick anything above, or just describe what you want in your own words below."
                 : `${selectedItems.length} add-on${selectedItems.length === 1 ? "" : "s"} on your list. Add your details and send it. No payment now. No payment ever if you do not like the build.`}
@@ -650,7 +650,7 @@ export default function AddOnsMenu() {
                 {selectedItems.map((i) => (
                   <span
                     key={i.id}
-                    className="flex items-center gap-1.5 rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1.5 text-xs font-bold text-sky-200"
+                    className="flex items-center gap-1.5 rounded-full border border-[var(--accent-line)] bg-[var(--accent-tint)] px-3 py-1.5 text-xs font-bold text-[var(--blue)]"
                   >
                     <Check className="h-3 w-3" strokeWidth={3} />
                     {i.name}
@@ -745,10 +745,10 @@ export default function AddOnsMenu() {
             </form>
           </div>
         ) : (
-          <div className="rounded-[20px] border border-emerald-400/30 bg-emerald-500/[0.06] p-9 text-center">
-            <CircleCheck className="mx-auto h-12 w-12 text-emerald-300" />
-            <h2 className="mt-4 text-3xl font-black text-white">Your build list is in.</h2>
-            <p className="mx-auto mt-3 max-w-xl text-slate-300">
+          <div className="rounded-[20px] border border-[var(--green-line)] bg-emerald-500/[0.06] p-9 text-center">
+            <CircleCheck className="mx-auto h-12 w-12 text-[var(--green)]" />
+            <h2 className="mt-4 text-3xl font-black text-[var(--heading)]">Your build list is in.</h2>
+            <p className="mx-auto mt-3 max-w-xl text-[var(--text)]">
               I have your picks and your notes. I will reach out within one business day
               on the channel you chose, we scope it, and then I build it. You see the
               whole thing working before you pay anything.
@@ -768,10 +768,10 @@ export default function AddOnsMenu() {
       {/* GUARANTEE */}
       {!submitted && (
         <section className="mx-auto mt-16 w-[min(860px,100%-40px)] text-center">
-          <p className="text-lg font-bold text-white">
+          <p className="text-lg font-bold text-[var(--heading)]">
             This is not a quote request. It is an order.
           </p>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-slate-400">
+          <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
             You pick it. I build the whole thing on a platform you own: your code, your
             data, your customer list. You look at it working. If you do not like it, you
             do not pay a dime and we shake hands. If you love it, we go live.
@@ -781,13 +781,13 @@ export default function AddOnsMenu() {
 
       {/* STICKY ORDER BAR */}
       {!submitted && selected.size > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-[#0b1018]/90 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-[var(--panel)]/95">
           <div className="mx-auto flex w-[min(1060px,100%-32px)] items-center justify-between gap-4 py-3.5">
             <div className="flex items-center gap-3">
-              <span className="flex h-8 min-w-8 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-600 px-2 text-sm font-black text-white shadow-[0_2px_12px_rgba(56,189,248,0.5)]">
+              <span className="flex h-8 min-w-8 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-600 px-2 text-sm font-black text-[var(--heading)] shadow-[0_2px_12px_rgba(56,189,248,0.5)]">
                 {selected.size}
               </span>
-              <span className="hidden text-sm font-semibold text-white sm:block">
+              <span className="hidden text-sm font-semibold text-[var(--heading)] sm:block">
                 add-on{selected.size === 1 ? "" : "s"} on your build list
               </span>
             </div>
