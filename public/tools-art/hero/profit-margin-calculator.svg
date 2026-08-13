@@ -1,66 +1,116 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
   <defs>
     <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#f97316"/>
+      <stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#2563eb"/>
     </linearGradient>
-    <radialGradient id="w1"><stop offset="0" stop-color="#fbbf24" stop-opacity=".15"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
-    <radialGradient id="w2"><stop offset="0" stop-color="#f97316" stop-opacity=".09"/><stop offset="1" stop-color="#f97316" stop-opacity="0"/></radialGradient>
-    <clipPath id="barClip"><rect x="200" y="285" width="140" height="430" rx="16"/></clipPath>
+    <radialGradient id="w1"><stop offset="0" stop-color="#38bdf8" stop-opacity=".14"/><stop offset="1" stop-color="#38bdf8" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w2"><stop offset="0" stop-color="#2563eb" stop-opacity=".08"/><stop offset="1" stop-color="#2563eb" stop-opacity="0"/></radialGradient>
+    <clipPath id="barClip"><rect x="450" y="290" width="500" height="120" rx="16"/></clipPath>
+    <clipPath id="chipClip"><rect x="980" y="205" width="240" height="36" rx="9"/></clipPath>
   </defs>
 
   <rect width="1600" height="900" fill="#f7f9fc"/>
-  <ellipse cx="420" cy="620" rx="540" ry="420" fill="url(#w1)"/>
-  <ellipse cx="1220" cy="240" rx="620" ry="430" fill="url(#w2)"/>
-  <ellipse cx="1050" cy="800" rx="420" ry="240" fill="url(#w1)" opacity=".7"/>
+  <ellipse cx="540" cy="300" rx="640" ry="430" fill="url(#w1)"/>
+  <ellipse cx="1270" cy="660" rx="520" ry="350" fill="url(#w2)"/>
+  <ellipse cx="1360" cy="330" rx="420" ry="280" fill="url(#w1)" opacity=".65"/>
 
-  <!-- faint margin ring in the negative space -->
-  <circle cx="1320" cy="460" r="210" fill="none" stroke="url(#acc)" stroke-width="24" opacity=".1" stroke-dasharray="990 330" transform="rotate(-90 1320 460)" stroke-linecap="round"/>
+  <!-- ground shadows -->
+  <ellipse cx="700" cy="838" rx="370" ry="26" fill="#0e1a2e" opacity=".07"/>
+  <ellipse cx="1265" cy="848" rx="250" ry="20" fill="#0e1a2e" opacity=".06"/>
 
-  <!-- ground shadow -->
-  <ellipse cx="400" cy="826" rx="330" ry="26" fill="#0e1a2e" opacity=".07"/>
-
-  <!-- the paperwork -->
-  <g transform="rotate(-3 330 470)">
-    <rect x="130" y="140" width="400" height="660" rx="10" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
-    <path d="M466 140 L530 140 L530 204 Z" fill="#e8eef5" stroke="#d7e0ee" stroke-width="3" stroke-linejoin="round"/>
-    <rect x="175" y="190" width="170" height="18" rx="9" fill="#8299b8"/>
-    <rect x="175" y="222" width="110" height="12" rx="6" fill="#b9c6da"/>
-
-    <!-- sale price split: profit sliver / overhead / cost -->
-    <g clip-path="url(#barClip)">
-      <rect x="200" y="285" width="140" height="86" fill="url(#acc)"/>
-      <rect x="310" y="285" width="30" height="86" fill="#f97316" opacity=".35"/>
-      <rect x="200" y="375" width="140" height="158" fill="#8299b8"/>
-      <rect x="200" y="537" width="140" height="178" fill="#b9c6da"/>
-      <rect x="200" y="371" width="140" height="4" fill="#ffffff"/>
-      <rect x="200" y="533" width="140" height="4" fill="#ffffff"/>
-    </g>
-    <rect x="200" y="285" width="140" height="430" rx="16" fill="none" stroke="#d7e0ee" stroke-width="3"/>
-
-    <!-- bracket calling out the profit sliver -->
-    <path d="M364 288 h16 v82 h-16" fill="none" stroke="#0e1a2e" stroke-width="5" stroke-linecap="round"/>
-    <circle cx="414" cy="329" r="11" fill="url(#acc)"/>
-
-    <!-- side labels as quiet rules -->
-    <rect x="368" y="446" width="92" height="10" rx="5" fill="#b9c6da"/>
-    <rect x="368" y="614" width="108" height="10" rx="5" fill="#b9c6da"/>
-
-    <!-- ledger footer -->
-    <rect x="175" y="738" width="272" height="9" rx="4" fill="#d7e0ee"/>
-    <rect x="175" y="762" width="200" height="9" rx="4" fill="#b9c6da"/>
+  <!-- carbon copy behind the invoice -->
+  <g transform="rotate(3 700 470)">
+    <rect x="490" y="180" width="560" height="630" rx="14" fill="#e8eef5" stroke="#d7e0ee" stroke-width="3"/>
   </g>
 
-  <!-- coins and the sale tag at the paper's foot -->
-  <ellipse cx="600" cy="828" rx="180" ry="16" fill="#0e1a2e" opacity=".06"/>
-  <circle cx="560" cy="778" r="46" fill="url(#acc)"/>
-  <path d="M560 732 a46 46 0 0 1 46 46" fill="none" stroke="#f97316" stroke-width="9" opacity=".4"/>
-  <circle cx="560" cy="778" r="29" fill="none" stroke="#ffffff" stroke-width="5" opacity=".6"/>
-  <circle cx="644" cy="802" r="30" fill="#b9c6da"/>
-  <circle cx="644" cy="802" r="18" fill="none" stroke="#ffffff" stroke-width="4" opacity=".7"/>
+  <!-- the invoice -->
+  <g transform="rotate(-3.5 700 470)">
+    <rect x="400" y="130" width="600" height="680" rx="14" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <path d="M936 130 L1000 130 L1000 194 Z" fill="#e8eef5" stroke="#d7e0ee" stroke-width="3" stroke-linejoin="round"/>
+    <rect x="450" y="190" width="220" height="20" rx="10" fill="#8299b8"/>
+    <rect x="450" y="226" width="140" height="12" rx="6" fill="#b9c6da"/>
+    <rect x="760" y="192" width="130" height="34" rx="8" fill="#f7f9fc" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="780" y="204" width="90" height="10" rx="5" fill="#b9c6da"/>
 
-  <g transform="rotate(-8 780 786)">
-    <path d="M756 748 h104 a14 14 0 0 1 14 14 v44 a14 14 0 0 1 -14 14 h-104 l-42 -36 Z" fill="#ffffff" stroke="#d7e0ee" stroke-width="3" stroke-linejoin="round"/>
-    <circle cx="734" cy="784" r="9" fill="none" stroke="#8299b8" stroke-width="5"/>
-    <rect x="772" y="778" width="72" height="12" rx="6" fill="url(#acc)"/>
+    <!-- sale price split: cost / overhead / profit -->
+    <g clip-path="url(#barClip)">
+      <rect x="450" y="290" width="250" height="120" fill="#b9c6da"/>
+      <rect x="700" y="290" width="145" height="120" fill="#8299b8"/>
+      <rect x="845" y="290" width="105" height="120" fill="url(#acc)"/>
+      <rect x="925" y="290" width="25" height="120" fill="#2563eb" opacity=".35"/>
+      <rect x="697" y="290" width="6" height="120" fill="#ffffff"/>
+      <rect x="842" y="290" width="6" height="120" fill="#ffffff"/>
+    </g>
+    <rect x="450" y="290" width="500" height="120" rx="16" fill="none" stroke="#d7e0ee" stroke-width="3"/>
+
+    <!-- bracket calling out the profit sliver -->
+    <path d="M845 270 v-14 h105 v14" fill="none" stroke="#0e1a2e" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="897" cy="234" r="11" fill="url(#acc)"/>
+
+    <!-- legend swatches -->
+    <rect x="450" y="442" width="20" height="20" rx="6" fill="#b9c6da"/>
+    <rect x="482" y="447" width="92" height="10" rx="5" fill="#b9c6da"/>
+    <rect x="630" y="442" width="20" height="20" rx="6" fill="#8299b8"/>
+    <rect x="662" y="447" width="80" height="10" rx="5" fill="#b9c6da"/>
+    <rect x="800" y="442" width="20" height="20" rx="6" fill="url(#acc)"/>
+    <rect x="832" y="447" width="86" height="10" rx="5" fill="#b9c6da"/>
+
+    <!-- ledger line items with amounts -->
+    <rect x="450" y="512" width="250" height="12" rx="6" fill="#b9c6da"/>
+    <rect x="856" y="510" width="94" height="16" rx="8" fill="#d7e0ee"/>
+    <rect x="450" y="550" width="210" height="12" rx="6" fill="#b9c6da"/>
+    <rect x="856" y="548" width="94" height="16" rx="8" fill="#d7e0ee"/>
+    <rect x="450" y="588" width="264" height="12" rx="6" fill="#b9c6da"/>
+    <rect x="856" y="586" width="94" height="16" rx="8" fill="#d7e0ee"/>
+    <rect x="450" y="636" width="500" height="3" fill="#d7e0ee"/>
+
+    <!-- total row -->
+    <rect x="450" y="664" width="170" height="16" rx="8" fill="#8299b8"/>
+    <rect x="810" y="656" width="140" height="32" rx="16" fill="url(#acc)"/>
+    <rect x="836" y="668" width="88" height="8" rx="4" fill="#ffffff" opacity=".8"/>
+
+    <rect x="450" y="736" width="310" height="9" rx="4" fill="#d7e0ee"/>
+    <rect x="450" y="760" width="230" height="9" rx="4" fill="#d7e0ee"/>
+  </g>
+
+  <!-- margin summary chip clipped over the paper edge -->
+  <g transform="rotate(2 1100 248)">
+    <rect x="950" y="175" width="300" height="150" rx="16" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <g clip-path="url(#chipClip)">
+      <rect x="980" y="205" width="120" height="36" fill="#b9c6da"/>
+      <rect x="1100" y="205" width="68" height="36" fill="#8299b8"/>
+      <rect x="1168" y="205" width="52" height="36" fill="url(#acc)"/>
+      <rect x="1097" y="205" width="5" height="36" fill="#ffffff"/>
+      <rect x="1165" y="205" width="5" height="36" fill="#ffffff"/>
+    </g>
+    <rect x="980" y="205" width="240" height="36" rx="9" fill="none" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="980" y="270" width="150" height="10" rx="5" fill="#b9c6da"/>
+    <circle cx="1208" cy="275" r="10" fill="url(#acc)"/>
+  </g>
+
+  <!-- coins at the invoice's foot -->
+  <circle cx="1078" cy="806" r="26" fill="#b9c6da"/>
+  <circle cx="1078" cy="806" r="15" fill="none" stroke="#ffffff" stroke-width="4" opacity=".7"/>
+
+  <ellipse cx="1190" cy="794" rx="92" ry="26" fill="#8299b8"/>
+  <ellipse cx="1190" cy="780" rx="92" ry="26" fill="#b9c6da"/>
+  <ellipse cx="1190" cy="780" rx="58" ry="15" fill="none" stroke="#ffffff" stroke-width="4" opacity=".6"/>
+  <ellipse cx="1190" cy="750" rx="92" ry="26" fill="#8299b8"/>
+  <ellipse cx="1190" cy="736" rx="92" ry="26" fill="#b9c6da"/>
+  <ellipse cx="1190" cy="736" rx="58" ry="15" fill="none" stroke="#ffffff" stroke-width="4" opacity=".6"/>
+  <ellipse cx="1190" cy="706" rx="92" ry="26" fill="#2563eb"/>
+  <ellipse cx="1190" cy="692" rx="92" ry="26" fill="url(#acc)"/>
+  <ellipse cx="1190" cy="692" rx="58" ry="15" fill="none" stroke="#ffffff" stroke-width="5" opacity=".65"/>
+
+  <!-- standing coin -->
+  <circle cx="1360" cy="744" r="86" fill="url(#acc)"/>
+  <path d="M1274 744 A86 86 0 0 0 1360 830" fill="none" stroke="#2563eb" stroke-width="10" opacity=".45"/>
+  <circle cx="1360" cy="744" r="54" fill="none" stroke="#ffffff" stroke-width="5" opacity=".65"/>
+
+  <!-- price tag leaning on the coins -->
+  <g transform="rotate(-10 1300 818)">
+    <path d="M1252 776 h146 a16 16 0 0 1 16 16 v56 a16 16 0 0 1 -16 16 h-146 l-56 -44 Z" fill="#ffffff" stroke="#d7e0ee" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="1224" cy="820" r="10" fill="none" stroke="#8299b8" stroke-width="5"/>
+    <rect x="1272" y="812" width="104" height="14" rx="7" fill="url(#acc)"/>
   </g>
 </svg>
