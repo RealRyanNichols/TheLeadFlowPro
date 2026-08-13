@@ -11,14 +11,11 @@
   <ellipse cx="400" cy="720" rx="380" ry="260" fill="url(#w2)"/>
 
   <!-- forked lanes on the ground -->
-  <path d="M900 728 C 1020 712, 1140 702, 1240 698 L1580 688" fill="none" stroke="#d7e0ee" stroke-width="50" stroke-linecap="round"/>
-  <path d="M900 728 C 1020 712, 1140 702, 1240 698 L1580 688" fill="none" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
-  <path d="M910 750 C 1030 762, 1160 780, 1310 806" fill="none" stroke="#d7e0ee" stroke-width="50" stroke-linecap="round"/>
-  <path d="M910 750 C 1030 762, 1160 780, 1310 806" fill="none" stroke="#ffffff" stroke-width="42" stroke-linecap="round"/>
+  <path d="M886 706 C 1020 690, 1140 680, 1240 676 L1580 666 L1580 710 L1240 720 C 1160 724, 1100 728, 1052 734 C 1150 752, 1230 766, 1316 784 L1308 828 C 1180 800, 1030 774, 952 766 L874 752 Z" fill="#ffffff" stroke="#d7e0ee" stroke-width="2.5" stroke-linejoin="round"/>
   <!-- chevrons on the open lane -->
-  <path d="M1004 704 L1030 717 L1004 730 L1012 717 Z" fill="url(#acc)"/>
-  <path d="M1104 698 L1130 710 L1104 722 L1112 710 Z" fill="url(#acc)"/>
-  <path d="M1204 693 L1230 704 L1204 715 L1212 704 Z" fill="url(#acc)"/>
+  <path d="M1002 702 L1028 715 L1002 728 L1010 715 Z" fill="url(#acc)"/>
+  <path d="M1102 695 L1128 707 L1102 719 L1110 707 Z" fill="url(#acc)"/>
+  <path d="M1202 689 L1228 700 L1202 711 L1210 700 Z" fill="url(#acc)"/>
 
   <!-- rules file, left of center -->
   <ellipse cx="500" cy="706" rx="180" ry="16" fill="#0e1a2e" opacity=".06"/>

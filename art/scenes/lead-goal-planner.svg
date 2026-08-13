@@ -54,6 +54,7 @@
   <ellipse cx="970" cy="516" rx="160" ry="12" fill="#0e1a2e" opacity=".06"/>
   <rect x="800" y="355" width="340" height="150" rx="20" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
   <rect x="828" y="381" width="110" height="12" rx="6" fill="#0e1a2e" opacity=".7"/>
+  <rect x="1060" y="377" width="52" height="20" rx="10" fill="url(#acc)" opacity=".9"/>
   <use href="#doc" x="832" y="410"/>
   <use href="#doc" x="910" y="410"/>
   <use href="#doc" x="988" y="410"/>
@@ -62,6 +63,7 @@
   <ellipse cx="620" cy="676" rx="160" ry="12" fill="#0e1a2e" opacity=".06"/>
   <rect x="450" y="515" width="340" height="150" rx="20" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
   <rect x="478" y="541" width="110" height="12" rx="6" fill="#0e1a2e" opacity=".7"/>
+  <rect x="686" y="537" width="76" height="20" rx="10" fill="url(#acc)" opacity=".9"/>
   <g stroke="#8299b8" stroke-width="3" stroke-linejoin="round">
     <use href="#bub" x="476" y="574" fill="#fff"/>
     <use href="#bub" x="536" y="574" fill="url(#acc)" stroke="none"/>
@@ -74,6 +76,7 @@
   <ellipse cx="270" cy="836" rx="160" ry="12" fill="#0e1a2e" opacity=".06"/>
   <rect x="100" y="675" width="340" height="150" rx="20" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
   <rect x="128" y="701" width="110" height="12" rx="6" fill="#0e1a2e" opacity=".7"/>
+  <rect x="312" y="697" width="100" height="20" rx="10" fill="url(#acc)" opacity=".9"/>
   <use href="#per" x="128" y="738" fill="url(#acc)"/>
   <use href="#per" x="167" y="738" fill="#8299b8"/>
   <use href="#per" x="206" y="738" fill="#b9c6da"/>

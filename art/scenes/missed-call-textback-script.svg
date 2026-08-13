@@ -36,14 +36,12 @@
   <circle cx="800" cy="372" r="5" fill="#b9c6da"/>
 
   <!-- auto text-back bubble -->
-  <path d="M898 546 L936 582 L852 546 Z" fill="#0ea371"/>
+  <path d="M856 536 L918 582 L826 546 Z" fill="#0ea371"/>
   <rect x="690" y="400" width="250" height="150" rx="26" fill="url(#acc)"/>
   <rect x="690" y="532" width="250" height="18" rx="9" fill="#0ea371" opacity=".3"/>
   <rect x="716" y="432" width="192" height="14" rx="7" fill="#ffffff" opacity=".92"/>
   <rect x="716" y="460" width="160" height="14" rx="7" fill="#ffffff" opacity=".92"/>
   <rect x="716" y="488" width="112" height="14" rx="7" fill="#ffffff" opacity=".92"/>
-  <!-- delivered ticks -->
-  <path d="M868 572 L878 582 L896 562" fill="none" stroke="#0ea371" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
 
   <!-- lightning auto badge -->
   <circle cx="958" cy="392" r="42" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
