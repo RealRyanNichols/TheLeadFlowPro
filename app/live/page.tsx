@@ -5,6 +5,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import CtaLink from "@/components/site/CtaLink";
 import LiveDashboard, { type LivePayload } from "@/components/live/LiveDashboard";
+import DashboardRequestForm from "@/components/live/DashboardRequestForm";
 
 // The public proof page. Server-rendered shell (indexable copy, metadata,
 // structured data) around a client dashboard that reads ONLY the sanitized
@@ -234,9 +235,12 @@ export default async function LivePage() {
             what they clicked, where they left, which pages created leads, and what needs to be
             fixed next. Turn attention into conversations. Turn conversations into sales.
           </p>
+          <div className="mt-8">
+            <DashboardRequestForm />
+          </div>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <CtaLink href="/start" event="build_my_system" placement="live_closing" className="button-primary">
-              Build My System
+            <CtaLink href="/start" event="build_my_system" placement="live_closing" className="button-secondary">
+              Map My Whole Company First
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </CtaLink>
             <Link href="/book" className="button-secondary">
