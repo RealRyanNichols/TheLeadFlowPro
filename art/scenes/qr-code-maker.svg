@@ -13,7 +13,7 @@
   <ellipse cx="520" cy="780" rx="420" ry="220" fill="url(#w1)" opacity=".8"/>
 
   <!-- storefront awning hint -->
-  <g opacity=".45">
+  <g opacity=".35">
     <rect x="880" y="0" width="740" height="50" fill="#b9c6da"/>
     <circle cx="928" cy="50" r="46" fill="#b9c6da"/>
     <circle cx="1020" cy="50" r="46" fill="#8299b8"/>

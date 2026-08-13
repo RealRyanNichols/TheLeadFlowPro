@@ -98,5 +98,6 @@
     <circle cx="1010" cy="700" r="13" fill="#22d3ee"/>
     <circle cx="1086" cy="694" r="14" fill="#3b82f6"/>
     <circle cx="1162" cy="688" r="14" fill="#22d3ee"/>
+    <circle cx="1216" cy="682" r="15" fill="#3b82f6"/>
   </g>
 </svg>

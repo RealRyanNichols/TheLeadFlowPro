@@ -36,7 +36,7 @@
   <circle cx="800" cy="372" r="5" fill="#b9c6da"/>
 
   <!-- auto text-back bubble -->
-  <path d="M856 536 L918 582 L826 546 Z" fill="#0ea371"/>
+  <path d="M876 540 L906 570 L840 546 Z" fill="#0ea371"/>
   <rect x="690" y="400" width="250" height="150" rx="26" fill="url(#acc)"/>
   <rect x="690" y="532" width="250" height="18" rx="9" fill="#0ea371" opacity=".3"/>
   <rect x="716" y="432" width="192" height="14" rx="7" fill="#ffffff" opacity=".92"/>

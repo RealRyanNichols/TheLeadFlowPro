@@ -65,11 +65,11 @@
   </g>
 
   <!-- fingers wrapping the bottom edge, thumb up the side -->
+  <ellipse cx="1014" cy="783" rx="21" ry="14" fill="#0e1a2e" transform="rotate(24 1014 783)"/>
   <ellipse cx="1067" cy="773" rx="20" ry="13" fill="#0e1a2e" transform="rotate(-12 1067 773)"/>
   <ellipse cx="1122" cy="761" rx="20" ry="13" fill="#0e1a2e" transform="rotate(-12 1122 761)"/>
   <ellipse cx="1177" cy="749" rx="20" ry="13" fill="#0e1a2e" transform="rotate(-12 1177 749)"/>
   <ellipse cx="1226" cy="739" rx="20" ry="13" fill="#0e1a2e" transform="rotate(-12 1226 739)"/>
-  <ellipse cx="947" cy="700" rx="40" ry="17" fill="#0e1a2e" transform="rotate(78 947 700)"/>
 
   <!-- review flying off -->
   <use href="#st" transform="translate(1290,170) rotate(14)" fill="url(#g)"/>
