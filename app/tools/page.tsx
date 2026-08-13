@@ -96,13 +96,16 @@ export default function ToolsPage() {
     <main className="pb-24">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <section className="page-hero page-hero-centered">
+      <section className="page-hero page-hero-centered page-hero-compact">
         <span className="eyebrow">
           <Zap aria-hidden="true" className="h-3.5 w-3.5" />
           {TOOL_COUNT} free tools
         </span>
         <h1>Free tools built for real work and real life.</h1>
-        <p>
+        {/* Hidden on phones on purpose: the grid has to be visible without a
+            long scroll, and this paragraph pushed the first card two screens
+            down. The h1 carries the promise; the lede is for wide viewports. */}
+        <p className="hidden sm:block">
           Calculators, generators, planners, checkers and builders for business owners, professionals,
           families, students, public servants, creators and people trying to get something done. Use it
           here, save the result, put it on your website. No signup to use any of them.
@@ -110,7 +113,23 @@ export default function ToolsPage() {
       </section>
 
       <section className="mx-auto w-[min(1180px,100%-40px)]">
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="flex justify-center sm:mt-2">
+          <ToolFinder tools={index} />
+        </div>
+
+        {/* The directory reads its filters from the URL, which needs a Suspense
+            boundary. The fallback is the real card grid rather than a spinner,
+            so the catalogue is in the HTML for crawlers and for anyone whose
+            JavaScript has not arrived yet. */}
+        <div className="mt-8">
+          <Suspense fallback={<StaticGrid />}>
+            <ToolDirectory tools={index} collections={collections} />
+          </Suspense>
+        </div>
+
+        {/* Below the catalogue on purpose: the tools are the pitch, the
+            reassurance can wait until someone has seen them. */}
+        <div className="mt-14 grid gap-3 sm:grid-cols-3">
           {[
             { icon: <Zap className="h-5 w-5" />, title: "Free to use", body: "Every tool runs in your browser. No account, no trial, no credit card." },
             { icon: <Download className="h-5 w-5" />, title: "Free to save", body: "Download, copy or print your result. No email required for any of that." },
@@ -124,20 +143,6 @@ export default function ToolsPage() {
               <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">{p.body}</p>
             </div>
           ))}
-        </div>
-
-        <div className="mt-8 flex justify-center">
-          <ToolFinder tools={index} />
-        </div>
-
-        {/* The directory reads its filters from the URL, which needs a Suspense
-            boundary. The fallback is the real card grid rather than a spinner,
-            so the catalogue is in the HTML for crawlers and for anyone whose
-            JavaScript has not arrived yet. */}
-        <div className="mt-10">
-          <Suspense fallback={<StaticGrid />}>
-            <ToolDirectory tools={index} collections={collections} />
-          </Suspense>
         </div>
 
         <div className="mt-14 rounded-2xl border border-[var(--accent-line)] bg-[var(--accent-tint)] p-7 text-center sm:p-9">

@@ -329,14 +329,16 @@ export default function ToolDirectory({
           )}
         </div>
 
-        <p className="mt-2.5 text-center text-[13px] text-[var(--muted)]">
+        {/* Hidden on phones: the cards must clear the fold, and this line cost
+            two rows of it. The placeholder examples carry the same idea. */}
+        <p className="mt-2.5 hidden text-center text-[13px] text-[var(--muted)] sm:block">
           Search knows industries and job titles, not just tool names. A roofer, a loan officer and a
           practice manager all get different answers.
         </p>
       </div>
 
-      {/* domain rail */}
-      <div className="mt-7 flex flex-wrap justify-center gap-2">
+      {/* domain rail: one swipeable row on phones, centered wrap on wide */}
+      <div className="tool-domain-rail mt-4 flex gap-2 sm:mt-7 sm:flex-wrap sm:justify-center">
         {(Object.keys(DOMAINS) as Domain[])
           .map((id) => ({ id, count: tools.filter((t) => t.domain === id).length }))
           .filter((d) => d.count > 0)
