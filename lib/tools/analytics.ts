@@ -10,6 +10,24 @@
 // See docs/TOOLS_ANALYTICS.md.
 
 import { track as vercelTrack } from "@vercel/analytics";
+import { track as firstPartyTrack } from "@/lib/analytics/client";
+
+/**
+ * Tool events also land in the first-party analytics_events store so the
+ * admin dashboard and /live can report tool usage without a third party.
+ * Same privacy rule: slug + preset + coarse counts, never what somebody typed.
+ */
+const FIRST_PARTY_MAP: Partial<Record<ToolEvent, string>> = {
+  tool_card_opened: "tool_card_open",
+  tool_started: "tool_start",
+  tool_completed: "tool_complete",
+  tool_result_copied: "tool_action",
+  tool_result_downloaded: "download",
+  tool_result_printed: "tool_action",
+  tool_result_emailed: "tool_action",
+  embed_requested: "tool_action",
+  embed_code_copied: "tool_action",
+};
 
 export type ToolEvent =
   | "tools_directory_view"
@@ -72,6 +90,18 @@ export function trackTool(event: ToolEvent, props?: Props) {
   }
   try {
     window.gtag?.("event", event, payload);
+  } catch {
+    /* same */
+  }
+  try {
+    const firstPartyName = FIRST_PARTY_MAP[event];
+    if (firstPartyName) {
+      const slug = typeof payload.slug === "string" ? payload.slug : undefined;
+      firstPartyTrack(firstPartyName, {
+        toolSlug: slug,
+        label: event === firstPartyName ? undefined : event,
+      });
+    }
   } catch {
     /* same */
   }

@@ -27,8 +27,17 @@ export default function CtaLink({
     }
   }
 
+  // data-cta + data-cta-placement are read by the first-party click
+  // delegation in lib/analytics/client.ts, so cta_click lands in
+  // analytics_events without a second handler here.
   return (
-    <Link href={href} className={className} onClick={fire} data-cta={event}>
+    <Link
+      href={href}
+      className={className}
+      onClick={fire}
+      data-cta={event}
+      data-cta-placement={placement}
+    >
       {children}
     </Link>
   );

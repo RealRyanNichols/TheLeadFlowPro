@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, Suspense } from "react";
+import { pageView } from "@/lib/analytics/client";
 
 declare global {
   interface Window {
@@ -12,38 +13,14 @@ declare global {
   }
 }
 
-function getVisitorId(): string {
-  try {
-    let id = document.cookie.match(/lfp_vid=([^;]+)/)?.[1];
-    if (!id) {
-      id = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      document.cookie = `lfp_vid=${id}; path=/; max-age=31536000; SameSite=Lax`;
-    }
-    return id;
-  } catch {
-    return "unknown";
-  }
-}
-
 function PageViewTracker({ metaPixelId }: { metaPixelId: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // First-party analytics: log the view into YOUR database
-    fetch("/api/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        path: pathname,
-        referrer: document.referrer || null,
-        visitor_id: getVisitorId(),
-        utm_source: searchParams.get("utm_source"),
-        utm_medium: searchParams.get("utm_medium"),
-        utm_campaign: searchParams.get("utm_campaign"),
-      }),
-      keepalive: true,
-    }).catch(() => {});
+    // First-party analytics: the tracker batches page_view plus interaction
+    // events (clicks, scroll depth, forms, engagement) into /api/track.
+    pageView(pathname);
 
     // Meta Pixel SPA page views
     if (metaPixelId && window.fbq) {
