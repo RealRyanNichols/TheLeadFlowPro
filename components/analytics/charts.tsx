@@ -196,7 +196,7 @@ export function BarList({
   maxItems = 12,
   emptyLabel = "Collecting data",
 }: {
-  items: { label: string; value: number; hint?: string }[];
+  items: { label: string; value: number; hint?: string; href?: string }[];
   color: string;
   ink?: boolean;
   formatValue?: (v: number) => string;
@@ -212,27 +212,42 @@ export function BarList({
   const textDim = ink ? "text-[#a8b4c8]" : "text-[var(--muted)]";
   return (
     <ul className="space-y-2">
-      {shown.map((item, i) => (
-        <li key={`${item.label}-${i}`} title={item.hint}>
-          <div className="flex items-baseline justify-between gap-3 text-[13px]">
-            <span className={`truncate font-medium ${textMain}`}>{item.label}</span>
-            <span className={`shrink-0 font-bold tabular-nums ${textMain}`}>
-              {formatValue(item.value)}
-              {item.hint && <span className={`ml-1.5 font-normal ${textDim}`}>{item.hint}</span>}
-            </span>
-          </div>
-          <div
-            className="mt-1 h-1.5 w-full overflow-hidden rounded-full"
-            style={{ background: ink ? "rgba(244,246,250,0.08)" : "rgba(10,18,32,0.06)" }}
-            aria-hidden="true"
-          >
+      {shown.map((item, i) => {
+        const row = (
+          <>
+            <div className="flex items-baseline justify-between gap-3 text-[13px]">
+              <span className={`truncate font-medium ${textMain} ${item.href ? "underline-offset-2 group-hover/bar:underline" : ""}`}>
+                {item.label}
+              </span>
+              <span className={`shrink-0 font-bold tabular-nums ${textMain}`}>
+                {formatValue(item.value)}
+                {item.hint && <span className={`ml-1.5 font-normal ${textDim}`}>{item.hint}</span>}
+              </span>
+            </div>
             <div
-              className="h-full rounded-full"
-              style={{ width: `${Math.max(2, (item.value / max) * 100)}%`, background: color }}
-            />
-          </div>
-        </li>
-      ))}
+              className="mt-1 h-1.5 w-full overflow-hidden rounded-full"
+              style={{ background: ink ? "rgba(244,246,250,0.08)" : "rgba(10,18,32,0.06)" }}
+              aria-hidden="true"
+            >
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${Math.max(2, (item.value / max) * 100)}%`, background: color }}
+              />
+            </div>
+          </>
+        );
+        return (
+          <li key={`${item.label}-${i}`} title={item.hint}>
+            {item.href ? (
+              <a href={item.href} className="group/bar block rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5b87ff]">
+                {row}
+              </a>
+            ) : (
+              row
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

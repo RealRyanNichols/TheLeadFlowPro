@@ -227,9 +227,13 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
               label: p.path === "/" ? "Homepage" : publicPageLabel(p.path),
               value: p.views,
               hint: p.path,
+              href: p.path,
             }))}
             emptyLabel="Not enough page data yet — collecting"
           />
+          <p className="mt-3 text-[11px] text-[#7f8ca3]">
+            Every row is a real page — click one and you become part of the numbers.
+          </p>
         </section>
         <section className="lfp-ink p-5 sm:p-6" aria-label="Most used tools">
           <h3 className="mb-3 text-sm font-black uppercase tracking-wider text-[#a8b4c8]">
@@ -241,14 +245,15 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
             items={((series?.top_tools as Json[]) ?? []).map((t) => ({
               label: toolName(t.tool),
               value: t.uses,
+              href: `/tools/${t.tool}`,
             }))}
             emptyLabel="Tool usage tracking is new — numbers build from today"
           />
-          {m.top_tool_30d && (
-            <p className="mt-3 text-[11px] text-[#7f8ca3]">
-              Current leader: {toolName((m.top_tool_30d as Json).tool)}
-            </p>
-          )}
+          <p className="mt-3 text-[13px]">
+            <a href="/tools" className="font-bold text-[#5b87ff] hover:text-white">
+              Try the free tools yourself →
+            </a>
+          </p>
         </section>
       </div>
 
