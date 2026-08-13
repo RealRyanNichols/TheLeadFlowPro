@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import SettingsForm from "./SettingsForm";
+import AnalyticsSettingsForm from "./AnalyticsSettingsForm";
 
 export default async function AdminSettings() {
   const supabase = await createClient();
@@ -13,6 +14,7 @@ export default async function AdminSettings() {
         instantly — no code changes. Leave blank to keep a tracker off.
       </p>
       <SettingsForm initial={settings} />
+      <AnalyticsSettingsForm initial={settings} />
 
       <div className="card mt-8 text-sm text-[var(--muted)]">
         <h2 className="mb-2 font-bold text-[var(--heading)]">Where to find these</h2>

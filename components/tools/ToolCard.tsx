@@ -12,7 +12,12 @@ import { DOMAINS, TOOL_TYPES, type ToolIndexEntry } from "@/lib/tools";
 export default function ToolCard({ tool, priority = false }: { tool: ToolIndexEntry; priority?: boolean }) {
   const domain = DOMAINS[tool.domain];
   return (
-    <Link href={`/tools/${tool.slug}`} className="tool-card group" data-slug={tool.slug}>
+    <Link
+      href={`/tools/${tool.slug}`}
+      className="tool-card group"
+      data-slug={tool.slug}
+      data-track-tool={tool.slug}
+    >
       <span className="tool-card-art">
         <img
           src={tool.image.src}

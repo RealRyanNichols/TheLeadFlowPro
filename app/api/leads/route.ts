@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { INTEREST_LABELS, notifyNewLead } from "@/lib/leadNotify";
+import { recordServerEvent } from "@/lib/analytics/server";
 
 const ALLOWED_INTERESTS = Object.keys(INTEREST_LABELS);
 
@@ -88,6 +89,16 @@ export async function POST(request: Request) {
       console.error("Lead insert failed:", error.message);
       return NextResponse.json({ error: "Could not save. Try again." }, { status: 500 });
     }
+
+    // First-party conversion event: attribution only (UTM + anonymous
+    // visitor/session cookies), never the lead's identity.
+    await recordServerEvent(request, {
+      event_name: "lead_created",
+      label: lead.interest,
+      utm_source: lead.utm_source,
+      utm_medium: lead.utm_medium,
+      utm_campaign: lead.utm_campaign,
+    });
 
     // Alert Ryan, reply to the lead, text them back. Shared with the Meta
     // instant form pipeline so both doors behave the same.

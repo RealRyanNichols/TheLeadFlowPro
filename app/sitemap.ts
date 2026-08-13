@@ -23,6 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/tools",
     "/free-build",
     "/portfolio",
+    "/live",
     "/showcase",
     "/demo",
     "/events",

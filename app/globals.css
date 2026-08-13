@@ -492,3 +492,22 @@ html:has(.router-page){scroll-behavior:auto;overflow-anchor:none}
   .tool-card,.tool-card:hover,.tool-chip,.tool-check,.tool-preset{transition:none;transform:none}
   html{scroll-behavior:auto}
 }
+
+/* ------------------------- analytics dashboards --------------------------- */
+/* Status pulse for genuinely live counters. The dot stays visible with
+   animation removed under reduced motion — state never rides on motion. */
+.live-pulse-dot{display:inline-block;width:8px;height:8px;border-radius:9999px;background:var(--green);position:relative}
+.live-pulse-dot::after{content:"";position:absolute;inset:-4px;border-radius:9999px;border:2px solid var(--green);opacity:.5;animation:lfp-pulse 2s ease-out infinite}
+.lfp-ink .live-pulse-dot{background:#4ade80}
+.lfp-ink .live-pulse-dot::after{border-color:#4ade80}
+@keyframes lfp-pulse{0%{transform:scale(.6);opacity:.6}70%{transform:scale(1.4);opacity:0}100%{transform:scale(1.4);opacity:0}}
+
+/* The /live command center: deep-ink panels on the site's warm canvas. */
+.lfp-ink{background:var(--cb-ink,#0a1220);color:#f4f6fa;border:1px solid #ffffff1f;border-radius:18px;position:relative;overflow:hidden}
+.lfp-ink-grid{position:absolute;inset:0;pointer-events:none;opacity:.5;background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px);background-size:44px 44px}
+.lfp-ink-glow{position:absolute;pointer-events:none;width:420px;height:420px;border-radius:9999px;filter:blur(80px);opacity:.22}
+.lfp-num{font-variant-numeric:tabular-nums;transition:opacity .3s ease}
+@media (prefers-reduced-motion:reduce){
+  .live-pulse-dot::after{animation:none;opacity:.35}
+  .lfp-num{transition:none}
+}

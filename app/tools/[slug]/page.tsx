@@ -347,7 +347,12 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             you would own it instead of renting it for the rest of your life.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link href="/start" className="button-primary">
+            <Link
+              href="/start"
+              className="button-primary"
+              data-analytics="map_my_company"
+              data-cta-placement={`tool_${tool.slug}`}
+            >
               Map My Company
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
