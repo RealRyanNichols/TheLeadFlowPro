@@ -1,89 +1,113 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
   <defs>
     <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#2563eb"/>
+      <stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#d946ef"/>
     </linearGradient>
-    <radialGradient id="w1"><stop offset="0" stop-color="#38bdf8" stop-opacity=".13"/><stop offset="1" stop-color="#38bdf8" stop-opacity="0"/></radialGradient>
-    <radialGradient id="w2"><stop offset="0" stop-color="#2563eb" stop-opacity=".09"/><stop offset="1" stop-color="#2563eb" stop-opacity="0"/></radialGradient>
-    <clipPath id="winClip"><rect x="532" y="355" width="262" height="125"/></clipPath>
+    <radialGradient id="w1"><stop offset="0" stop-color="#a78bfa" stop-opacity=".14"/><stop offset="1" stop-color="#a78bfa" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w2"><stop offset="0" stop-color="#d946ef" stop-opacity=".07"/><stop offset="1" stop-color="#d946ef" stop-opacity="0"/></radialGradient>
+    <clipPath id="winClip"><rect x="560" y="394" width="320" height="170"/></clipPath>
+    <clipPath id="cellClip"><rect x="892" y="406" width="136" height="146" rx="14"/></clipPath>
   </defs>
 
   <rect width="1600" height="900" fill="#f7f9fc"/>
-  <ellipse cx="1230" cy="300" rx="540" ry="380" fill="url(#w1)"/>
-  <ellipse cx="380" cy="700" rx="460" ry="320" fill="url(#w2)"/>
-  <ellipse cx="1350" cy="740" rx="380" ry="240" fill="url(#w1)" opacity=".7"/>
+  <ellipse cx="1210" cy="270" rx="560" ry="380" fill="url(#w1)"/>
+  <ellipse cx="400" cy="700" rx="470" ry="320" fill="url(#w2)"/>
+  <ellipse cx="1370" cy="700" rx="360" ry="230" fill="url(#w1)" opacity=".7"/>
 
-  <circle cx="1270" cy="430" r="170" fill="none" stroke="#d7e0ee" stroke-width="3"/>
-
-  <!-- ground shadow -->
-  <ellipse cx="610" cy="806" rx="330" ry="26" fill="#0e1a2e" opacity=".07"/>
+  <!-- ground shadows -->
+  <ellipse cx="600" cy="830" rx="400" ry="26" fill="#0e1a2e" opacity=".07"/>
+  <ellipse cx="1270" cy="812" rx="180" ry="18" fill="#0e1a2e" opacity=".07"/>
 
   <!-- appointment calendar -->
-  <rect x="240" y="140" width="720" height="620" rx="24" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
-  <circle cx="430" cy="140" r="18" fill="#f7f9fc" stroke="#8299b8" stroke-width="6"/>
-  <circle cx="770" cy="140" r="18" fill="#f7f9fc" stroke="#8299b8" stroke-width="6"/>
-  <rect x="272" y="176" width="220" height="20" rx="10" fill="#b9c6da"/>
-  <circle cx="874" cy="186" r="7" fill="#b9c6da"/>
-  <circle cx="900" cy="186" r="7" fill="#b9c6da"/>
-  <circle cx="926" cy="186" r="7" fill="#b9c6da"/>
+  <rect x="200" y="130" width="880" height="640" rx="24" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <circle cx="400" cy="130" r="18" fill="#f7f9fc" stroke="#8299b8" stroke-width="6"/>
+  <circle cx="880" cy="130" r="18" fill="#f7f9fc" stroke="#8299b8" stroke-width="6"/>
+  <rect x="240" y="170" width="240" height="20" rx="10" fill="#b9c6da"/>
+  <circle cx="972" cy="180" r="7" fill="#b9c6da"/>
+  <circle cx="998" cy="180" r="7" fill="#b9c6da"/>
+  <circle cx="1024" cy="180" r="7" fill="#b9c6da"/>
 
   <!-- grid -->
-  <rect x="270" y="230" width="655" height="500" rx="12" fill="none" stroke="#d7e0ee" stroke-width="3"/>
-  <line x1="401" y1="230" x2="401" y2="730" stroke="#d7e0ee" stroke-width="3"/>
-  <line x1="532" y1="230" x2="532" y2="730" stroke="#d7e0ee" stroke-width="3"/>
-  <line x1="663" y1="230" x2="663" y2="730" stroke="#d7e0ee" stroke-width="3"/>
-  <line x1="794" y1="230" x2="794" y2="730" stroke="#d7e0ee" stroke-width="3"/>
-  <line x1="270" y1="355" x2="925" y2="355" stroke="#d7e0ee" stroke-width="3"/>
-  <line x1="270" y1="480" x2="925" y2="480" stroke="#d7e0ee" stroke-width="3"/>
-  <line x1="270" y1="605" x2="925" y2="605" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="240" y="224" width="800" height="510" rx="12" fill="none" stroke="#d7e0ee" stroke-width="3"/>
+  <line x1="400" y1="224" x2="400" y2="734" stroke="#d7e0ee" stroke-width="3"/>
+  <line x1="560" y1="224" x2="560" y2="734" stroke="#d7e0ee" stroke-width="3"/>
+  <line x1="720" y1="224" x2="720" y2="734" stroke="#d7e0ee" stroke-width="3"/>
+  <line x1="880" y1="224" x2="880" y2="734" stroke="#d7e0ee" stroke-width="3"/>
+  <line x1="240" y1="394" x2="1040" y2="394" stroke="#d7e0ee" stroke-width="3"/>
+  <line x1="240" y1="564" x2="1040" y2="564" stroke="#d7e0ee" stroke-width="3"/>
 
   <!-- quiet bookings -->
-  <circle cx="335" cy="292" r="9" fill="#b9c6da"/>
-  <circle cx="597" cy="292" r="9" fill="#b9c6da"/>
-  <circle cx="466" cy="542" r="9" fill="#b9c6da"/>
-  <circle cx="860" cy="542" r="9" fill="#b9c6da"/>
-  <circle cx="729" cy="667" r="9" fill="#b9c6da"/>
+  <rect x="262" y="262" width="116" height="26" rx="13" fill="#d7e0ee"/>
+  <circle cx="480" cy="300" r="9" fill="#b9c6da"/>
+  <circle cx="800" cy="300" r="9" fill="#b9c6da"/>
+  <circle cx="320" cy="650" r="9" fill="#b9c6da"/>
+  <circle cx="640" cy="650" r="9" fill="#b9c6da"/>
+  <circle cx="960" cy="650" r="9" fill="#b9c6da"/>
 
-  <!-- cancellation window before the appointment -->
-  <rect x="532" y="355" width="262" height="125" fill="url(#acc)" opacity=".13"/>
-  <g clip-path="url(#winClip)" stroke="#2563eb" stroke-width="5" opacity=".3">
-    <line x1="512" y1="500" x2="612" y2="335"/>
-    <line x1="546" y1="500" x2="646" y2="335"/>
-    <line x1="580" y1="500" x2="680" y2="335"/>
-    <line x1="614" y1="500" x2="714" y2="335"/>
-    <line x1="648" y1="500" x2="748" y2="335"/>
-    <line x1="682" y1="500" x2="782" y2="335"/>
-    <line x1="716" y1="500" x2="816" y2="335"/>
+  <!-- hatched cancellation window before the appointment -->
+  <rect x="560" y="394" width="320" height="170" fill="url(#acc)" opacity=".13"/>
+  <g clip-path="url(#winClip)" stroke="#d946ef" stroke-width="6" opacity=".32">
+    <line x1="540" y1="584" x2="640" y2="374"/>
+    <line x1="586" y1="584" x2="686" y2="374"/>
+    <line x1="632" y1="584" x2="732" y2="374"/>
+    <line x1="678" y1="584" x2="778" y2="374"/>
+    <line x1="724" y1="584" x2="824" y2="374"/>
+    <line x1="770" y1="584" x2="870" y2="374"/>
+    <line x1="816" y1="584" x2="916" y2="374"/>
+    <line x1="862" y1="584" x2="962" y2="374"/>
   </g>
+  <rect x="560" y="394" width="320" height="170" fill="none" stroke="#d946ef" stroke-width="4" stroke-dasharray="16 10" opacity=".5"/>
+
   <!-- the protected appointment -->
-  <rect x="806" y="367" width="107" height="101" rx="12" fill="url(#acc)"/>
-  <circle cx="859" cy="417" r="26" fill="none" stroke="#ffffff" stroke-width="7"/>
-  <circle cx="859" cy="417" r="6" fill="#ffffff"/>
+  <g clip-path="url(#cellClip)">
+    <rect x="892" y="406" width="136" height="146" fill="url(#acc)"/>
+    <rect x="892" y="522" width="136" height="30" fill="#d946ef" opacity=".3"/>
+  </g>
+  <circle cx="960" cy="470" r="30" fill="none" stroke="#ffffff" stroke-width="7"/>
+  <path d="M960 452 v18 h14" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- deadline clock pinned over the calendar's corner -->
+  <circle cx="1150" cy="228" r="84" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <path d="M1150 152 A76 76 0 0 1 1226 228" fill="none" stroke="url(#acc)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M1150 228 V168" fill="none" stroke="#0e1a2e" stroke-width="6" stroke-linecap="round"/>
+  <path d="M1150 228 L1196 252" fill="none" stroke="#0e1a2e" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="1150" cy="228" r="8" fill="#0e1a2e"/>
 
   <!-- the policy sheet -->
-  <g transform="translate(-48 0) rotate(-4 545 520)">
-    <rect x="360" y="250" width="370" height="540" rx="16" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <g transform="rotate(-4 560 530)">
+    <rect x="330" y="250" width="400" height="560" rx="16" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
     <path d="M690 250 L730 250 L730 290 Z" fill="#e8eef5" stroke="#d7e0ee" stroke-width="3" stroke-linejoin="round"/>
-    <rect x="400" y="298" width="180" height="20" rx="10" fill="#8299b8"/>
-    <rect x="400" y="350" width="280" height="12" rx="6" fill="#b9c6da"/>
-    <rect x="400" y="378" width="242" height="12" rx="6" fill="#b9c6da"/>
-    <rect x="400" y="406" width="264" height="12" rx="6" fill="#b9c6da"/>
+    <rect x="375" y="300" width="190" height="20" rx="10" fill="#8299b8"/>
+    <rect x="375" y="352" width="300" height="12" rx="6" fill="#b9c6da"/>
+    <rect x="375" y="380" width="258" height="12" rx="6" fill="#b9c6da"/>
+    <rect x="375" y="408" width="282" height="12" rx="6" fill="#b9c6da"/>
     <!-- highlighted cancellation clause -->
-    <rect x="400" y="452" width="292" height="100" rx="12" fill="#f7f9fc" stroke="#d7e0ee" stroke-width="3"/>
-    <rect x="400" y="452" width="10" height="100" rx="5" fill="url(#acc)"/>
-    <rect x="432" y="478" width="220" height="11" rx="5" fill="#8299b8"/>
-    <rect x="432" y="504" width="176" height="11" rx="5" fill="#b9c6da"/>
-    <rect x="400" y="588" width="272" height="12" rx="6" fill="#b9c6da"/>
-    <rect x="400" y="616" width="228" height="12" rx="6" fill="#b9c6da"/>
-    <rect x="400" y="644" width="252" height="12" rx="6" fill="#b9c6da"/>
+    <rect x="375" y="452" width="312" height="104" rx="12" fill="#f7f9fc" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="375" y="452" width="10" height="104" rx="5" fill="url(#acc)"/>
+    <rect x="407" y="478" width="232" height="11" rx="5" fill="#8299b8"/>
+    <rect x="407" y="504" width="184" height="11" rx="5" fill="#b9c6da"/>
+    <rect x="375" y="590" width="292" height="12" rx="6" fill="#b9c6da"/>
+    <rect x="375" y="618" width="248" height="12" rx="6" fill="#b9c6da"/>
+    <rect x="375" y="646" width="272" height="12" rx="6" fill="#b9c6da"/>
+    <!-- signature line -->
+    <path d="M380 736 c22 -30 44 6 66 -14 s44 -18 78 -2 s40 14 66 -8" fill="none" stroke="#0e1a2e" stroke-width="5" stroke-linecap="round"/>
+    <rect x="375" y="758" width="210" height="6" rx="3" fill="#d7e0ee"/>
   </g>
 
-  <!-- deposit stamp -->
-  <g transform="rotate(12 618 690)">
-    <circle cx="618" cy="690" r="76" fill="#ffffff" opacity=".9"/>
-    <circle cx="618" cy="690" r="76" fill="none" stroke="url(#acc)" stroke-width="9"/>
-    <circle cx="618" cy="690" r="57" fill="none" stroke="url(#acc)" stroke-width="4" stroke-dasharray="10 12"/>
-    <circle cx="618" cy="690" r="27" fill="url(#acc)"/>
-    <circle cx="618" cy="690" r="16" fill="none" stroke="#ffffff" stroke-width="4" opacity=".75"/>
+  <!-- stamp imprint on the sheet -->
+  <g transform="rotate(12 655 672)">
+    <circle cx="655" cy="672" r="74" fill="#ffffff" opacity=".9"/>
+    <circle cx="655" cy="672" r="74" fill="none" stroke="url(#acc)" stroke-width="9"/>
+    <circle cx="655" cy="672" r="56" fill="none" stroke="url(#acc)" stroke-width="4" stroke-dasharray="10 12"/>
+    <circle cx="655" cy="672" r="26" fill="url(#acc)"/>
+    <circle cx="655" cy="672" r="15" fill="none" stroke="#ffffff" stroke-width="4" opacity=".75"/>
   </g>
+
+  <!-- the rubber stamp, just lifted -->
+  <ellipse cx="1270" cy="492" rx="38" ry="34" fill="#0e1a2e"/>
+  <rect x="1254" y="516" width="32" height="130" rx="12" fill="#0e1a2e"/>
+  <rect x="1262" y="524" width="8" height="100" rx="4" fill="#8299b8" opacity=".5"/>
+  <path d="M1176 700 C1204 640 1336 640 1364 700 L1378 740 H1162 Z" fill="#0e1a2e"/>
+  <rect x="1156" y="740" width="228" height="54" rx="10" fill="url(#acc)"/>
+  <rect x="1156" y="776" width="228" height="18" rx="9" fill="#d946ef" opacity=".4"/>
 </svg>
