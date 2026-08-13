@@ -1,22 +1,108 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img">
-<defs>
-<clipPath id="c"><rect width="1600" height="900"/></clipPath>
-<radialGradient id="f" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#9A4A12" stop-opacity="0.30"/>
-<stop offset="55%" stop-color="#9A4A12" stop-opacity="0.11"/>
-<stop offset="100%" stop-color="#9A4A12" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="e" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#9A4A12" stop-opacity="0.16"/>
-<stop offset="100%" stop-color="#9A4A12" stop-opacity="0"/>
-</radialGradient>
-</defs>
-<g clip-path="url(#c)">
-<rect width="1600" height="900" fill="#F7F5F2"/>
-<g stroke="#0A1220" stroke-width="1" opacity="0.055"><line x1="74" y1="0" x2="74" y2="900"/><line x1="148" y1="0" x2="148" y2="900"/><line x1="222" y1="0" x2="222" y2="900"/><line x1="296" y1="0" x2="296" y2="900"/><line x1="370" y1="0" x2="370" y2="900"/><line x1="444" y1="0" x2="444" y2="900"/><line x1="518" y1="0" x2="518" y2="900"/><line x1="592" y1="0" x2="592" y2="900"/><line x1="666" y1="0" x2="666" y2="900"/><line x1="740" y1="0" x2="740" y2="900"/><line x1="814" y1="0" x2="814" y2="900"/><line x1="888" y1="0" x2="888" y2="900"/><line x1="962" y1="0" x2="962" y2="900"/><line x1="1036" y1="0" x2="1036" y2="900"/><line x1="1110" y1="0" x2="1110" y2="900"/><line x1="1184" y1="0" x2="1184" y2="900"/><line x1="1258" y1="0" x2="1258" y2="900"/><line x1="1332" y1="0" x2="1332" y2="900"/><line x1="1406" y1="0" x2="1406" y2="900"/><line x1="1480" y1="0" x2="1480" y2="900"/><line x1="1554" y1="0" x2="1554" y2="900"/><line x1="0" y1="74" x2="1600" y2="74"/><line x1="0" y1="148" x2="1600" y2="148"/><line x1="0" y1="222" x2="1600" y2="222"/><line x1="0" y1="296" x2="1600" y2="296"/><line x1="0" y1="370" x2="1600" y2="370"/><line x1="0" y1="444" x2="1600" y2="444"/><line x1="0" y1="518" x2="1600" y2="518"/><line x1="0" y1="592" x2="1600" y2="592"/><line x1="0" y1="666" x2="1600" y2="666"/><line x1="0" y1="740" x2="1600" y2="740"/><line x1="0" y1="814" x2="1600" y2="814"/><line x1="0" y1="888" x2="1600" y2="888"/></g>
-<circle cx="1376" cy="702" r="378" fill="url(#e)"/>
-<circle cx="514" cy="462" r="630" fill="url(#f)"/>
-<g stroke="#9A4A12" stroke-width="2.5" opacity="0.55" stroke-linecap="round"><line x1="234.55" y1="782.76" x2="234.55" y2="798.76"/><line x1="304.4125" y1="782.76" x2="304.4125" y2="791.76"/><line x1="374.275" y1="782.76" x2="374.275" y2="791.76"/><line x1="444.1375" y1="782.76" x2="444.1375" y2="791.76"/><line x1="514" y1="782.76" x2="514" y2="798.76"/><line x1="583.8625" y1="782.76" x2="583.8625" y2="791.76"/><line x1="653.7249999999999" y1="782.76" x2="653.7249999999999" y2="791.76"/><line x1="723.5875" y1="782.76" x2="723.5875" y2="791.76"/><line x1="793.45" y1="782.76" x2="793.45" y2="798.76"/><line x1="234.55" y1="782.76" x2="793.45" y2="782.76"/></g>
-<g transform="translate(271 219) scale(7.59375)"><path d="M14 6 L50 6 L50 58 L14 58 Z" fill="none" stroke="#0A1220" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="21" y="14" width="22" height="8" rx="2" fill="#9A4A12"/><rect x="21" y="28" width="22" height="6" rx="2" fill="#0A1220" opacity="0.18"/><rect x="21" y="38" width="22" height="6" rx="2" fill="#0A1220" opacity="0.18"/><path d="M21 50 L36 50" fill="none" stroke="#0A1220" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 4"/></g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <linearGradient id="etg-acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#d946ef"/>
+    </linearGradient>
+    <radialGradient id="etg-w1">
+      <stop offset="0" stop-color="#a78bfa" stop-opacity=".13"/>
+      <stop offset="1" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="etg-w2">
+      <stop offset="0" stop-color="#d946ef" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#d946ef" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="560" cy="260" r="460" fill="url(#etg-w1)"/>
+  <circle cx="1240" cy="620" r="480" fill="url(#etg-w2)"/>
+  <circle cx="1000" cy="110" r="240" fill="url(#etg-w1)" opacity=".5"/>
+
+  <ellipse cx="615" cy="812" rx="260" ry="18" fill="#0e1a2e" opacity=".07"/>
+
+  <!-- clause tabs peeking from the document edge (drawn first, doc covers their left half) -->
+  <g fill="url(#etg-acc)" stroke="#d946ef" stroke-width="3" stroke-opacity=".35">
+    <rect x="818" y="262" width="110" height="46" rx="12"/>
+    <rect x="818" y="384" width="88" height="46" rx="12"/>
+    <rect x="818" y="506" width="88" height="46" rx="12"/>
+    <rect x="818" y="628" width="88" height="46" rx="12"/>
+  </g>
+  <circle cx="892" cy="285" r="6" fill="#ffffff" opacity=".9"/>
+  <circle cx="874" cy="407" r="6" fill="#ffffff" opacity=".9"/>
+  <circle cx="874" cy="529" r="6" fill="#ffffff" opacity=".9"/>
+  <circle cx="874" cy="651" r="6" fill="#ffffff" opacity=".9"/>
+
+  <!-- estimate document with folded corner -->
+  <path d="M 414 120 H 758 L 830 192 V 766 Q 830 780 816 780 H 414 Q 400 780 400 766 V 134 Q 400 120 414 120 Z"
+        fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <path d="M 758 120 L 758 192 L 830 192 Z" fill="#d7e0ee" opacity=".55"/>
+
+  <!-- header -->
+  <rect x="444" y="168" width="210" height="22" rx="11" fill="#0e1a2e"/>
+  <rect x="444" y="204" width="150" height="12" rx="6" fill="#b9c6da"/>
+  <rect x="700" y="212" width="60" height="8" rx="4" fill="#d7e0ee"/>
+
+  <!-- clause 1: deposit -->
+  <line x1="432" y1="240" x2="798" y2="240" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="444" y="258" width="40" height="40" rx="10" fill="url(#etg-acc)"/>
+  <circle cx="464" cy="278" r="9" fill="none" stroke="#ffffff" stroke-width="3"/>
+  <circle cx="464" cy="278" r="3" fill="#ffffff"/>
+  <rect x="508" y="260" width="210" height="11" rx="5.5" fill="#0e1a2e" opacity=".8"/>
+  <rect x="508" y="282" width="270" height="8" rx="4" fill="#b9c6da"/>
+  <rect x="508" y="300" width="230" height="8" rx="4" fill="#b9c6da" opacity=".8"/>
+
+  <!-- clause 2: scope -->
+  <line x1="432" y1="362" x2="798" y2="362" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="444" y="380" width="40" height="40" rx="10" fill="url(#etg-acc)"/>
+  <rect x="455" y="391" width="18" height="4" rx="2" fill="#ffffff"/>
+  <rect x="455" y="398" width="18" height="4" rx="2" fill="#ffffff"/>
+  <rect x="455" y="405" width="12" height="4" rx="2" fill="#ffffff"/>
+  <rect x="508" y="382" width="190" height="11" rx="5.5" fill="#0e1a2e" opacity=".8"/>
+  <rect x="508" y="404" width="280" height="8" rx="4" fill="#b9c6da"/>
+  <rect x="508" y="422" width="210" height="8" rx="4" fill="#b9c6da" opacity=".8"/>
+
+  <!-- clause 3: validity -->
+  <line x1="432" y1="484" x2="798" y2="484" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="444" y="502" width="40" height="40" rx="10" fill="url(#etg-acc)"/>
+  <rect x="455" y="516" width="18" height="15" rx="2" fill="none" stroke="#ffffff" stroke-width="3"/>
+  <rect x="455" y="516" width="18" height="5" fill="#ffffff"/>
+  <rect x="508" y="504" width="230" height="11" rx="5.5" fill="#0e1a2e" opacity=".8"/>
+  <rect x="508" y="526" width="250" height="8" rx="4" fill="#b9c6da"/>
+  <rect x="508" y="544" width="270" height="8" rx="4" fill="#b9c6da" opacity=".8"/>
+
+  <!-- clause 4: change orders -->
+  <line x1="432" y1="606" x2="798" y2="606" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="444" y="624" width="40" height="40" rx="10" fill="url(#etg-acc)"/>
+  <rect x="454" y="636" width="12" height="4" rx="2" fill="#ffffff"/>
+  <polygon points="466,631 475,638 466,645" fill="#ffffff"/>
+  <rect x="462" y="648" width="12" height="4" rx="2" fill="#ffffff"/>
+  <polygon points="462,643 453,650 462,657" fill="#ffffff"/>
+  <rect x="508" y="626" width="180" height="11" rx="5.5" fill="#0e1a2e" opacity=".8"/>
+  <rect x="508" y="648" width="260" height="8" rx="4" fill="#b9c6da"/>
+
+  <!-- signature -->
+  <path d="M 452 734 C 462 706 474 706 482 728 C 490 748 502 700 516 716 C 528 730 538 712 560 722 C 578 730 592 718 604 724"
+        fill="none" stroke="#0e1a2e" stroke-width="3" stroke-linecap="round"/>
+  <line x1="444" y1="742" x2="650" y2="742" stroke="#b9c6da" stroke-width="3"/>
+  <rect x="686" y="726" width="70" height="8" rx="4" fill="#d7e0ee"/>
+  <line x1="686" y1="742" x2="780" y2="742" stroke="#b9c6da" stroke-width="3"/>
+
+  <!-- approval seal -->
+  <rect x="774" y="726" width="18" height="46" rx="6" transform="rotate(-14 783 749)" fill="#d946ef" opacity=".7"/>
+  <rect x="794" y="726" width="18" height="46" rx="6" transform="rotate(14 803 749)" fill="#d946ef" opacity=".7"/>
+  <circle cx="786" cy="702" r="38" fill="url(#etg-acc)"/>
+  <circle cx="786" cy="702" r="27" fill="none" stroke="#ffffff" stroke-width="3" opacity=".55"/>
+  <polyline points="770,702 781,714 802,688" fill="none" stroke="#ffffff" stroke-width="7"
+            stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- pen resting in the open space -->
+  <ellipse cx="1160" cy="694" rx="150" ry="12" fill="#0e1a2e" opacity=".06"/>
+  <g transform="translate(1160 540) rotate(142)">
+    <rect x="-160" y="-14" width="320" height="28" rx="14" fill="#0e1a2e"/>
+    <polygon points="160,-12 208,0 160,12" fill="#8299b8"/>
+    <line x1="204" y1="0" x2="178" y2="0" stroke="#0e1a2e" stroke-width="3"/>
+    <rect x="110" y="-14" width="12" height="28" fill="#8299b8"/>
+    <rect x="-150" y="-22" width="80" height="8" rx="4" fill="url(#etg-acc)"/>
+  </g>
 </svg>

@@ -1,22 +1,112 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img">
-<defs>
-<clipPath id="c"><rect width="1600" height="900"/></clipPath>
-<radialGradient id="f" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#0B5A33" stop-opacity="0.30"/>
-<stop offset="55%" stop-color="#0B5A33" stop-opacity="0.11"/>
-<stop offset="100%" stop-color="#0B5A33" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="e" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#0B5A33" stop-opacity="0.16"/>
-<stop offset="100%" stop-color="#0B5A33" stop-opacity="0"/>
-</radialGradient>
-</defs>
-<g clip-path="url(#c)">
-<rect width="1600" height="900" fill="#F7F5F2"/>
-<g stroke="#0A1220" stroke-width="1" opacity="0.055"><line x1="74" y1="0" x2="74" y2="900"/><line x1="148" y1="0" x2="148" y2="900"/><line x1="222" y1="0" x2="222" y2="900"/><line x1="296" y1="0" x2="296" y2="900"/><line x1="370" y1="0" x2="370" y2="900"/><line x1="444" y1="0" x2="444" y2="900"/><line x1="518" y1="0" x2="518" y2="900"/><line x1="592" y1="0" x2="592" y2="900"/><line x1="666" y1="0" x2="666" y2="900"/><line x1="740" y1="0" x2="740" y2="900"/><line x1="814" y1="0" x2="814" y2="900"/><line x1="888" y1="0" x2="888" y2="900"/><line x1="962" y1="0" x2="962" y2="900"/><line x1="1036" y1="0" x2="1036" y2="900"/><line x1="1110" y1="0" x2="1110" y2="900"/><line x1="1184" y1="0" x2="1184" y2="900"/><line x1="1258" y1="0" x2="1258" y2="900"/><line x1="1332" y1="0" x2="1332" y2="900"/><line x1="1406" y1="0" x2="1406" y2="900"/><line x1="1480" y1="0" x2="1480" y2="900"/><line x1="1554" y1="0" x2="1554" y2="900"/><line x1="0" y1="74" x2="1600" y2="74"/><line x1="0" y1="148" x2="1600" y2="148"/><line x1="0" y1="222" x2="1600" y2="222"/><line x1="0" y1="296" x2="1600" y2="296"/><line x1="0" y1="370" x2="1600" y2="370"/><line x1="0" y1="444" x2="1600" y2="444"/><line x1="0" y1="518" x2="1600" y2="518"/><line x1="0" y1="592" x2="1600" y2="592"/><line x1="0" y1="666" x2="1600" y2="666"/><line x1="0" y1="740" x2="1600" y2="740"/><line x1="0" y1="814" x2="1600" y2="814"/><line x1="0" y1="888" x2="1600" y2="888"/></g>
-<circle cx="224.00000000000003" cy="216" r="378" fill="url(#e)"/>
-<circle cx="1085" cy="449" r="576" fill="url(#f)"/>
-<g stroke="#0B5A33" stroke-width="2.5" opacity="0.55" stroke-linecap="round"><line x1="805.55" y1="769.76" x2="805.55" y2="785.76"/><line x1="875.4124999999999" y1="769.76" x2="875.4124999999999" y2="778.76"/><line x1="945.275" y1="769.76" x2="945.275" y2="778.76"/><line x1="1015.1374999999999" y1="769.76" x2="1015.1374999999999" y2="778.76"/><line x1="1085" y1="769.76" x2="1085" y2="785.76"/><line x1="1154.8625" y1="769.76" x2="1154.8625" y2="778.76"/><line x1="1224.725" y1="769.76" x2="1224.725" y2="778.76"/><line x1="1294.5874999999999" y1="769.76" x2="1294.5874999999999" y2="778.76"/><line x1="1364.4499999999998" y1="769.76" x2="1364.4499999999998" y2="785.76"/><line x1="805.55" y1="769.76" x2="1364.4499999999998" y2="769.76"/></g>
-<g transform="translate(842 206) scale(7.59375)"><rect x="14" y="6" width="36" height="52" rx="6" fill="none" stroke="#0A1220" stroke-width="3.2"/><rect x="20" y="13" width="24" height="10" rx="2.5" fill="#0B5A33" opacity="0.9"/><circle cx="23" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="23" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="23" cy="51" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="51" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="51" r="2.6" fill="#0B5A33" opacity="1"/></g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <linearGradient id="mcc-acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f87171"/>
+      <stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+    <linearGradient id="mcc-accv" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f87171"/>
+      <stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+    <radialGradient id="mcc-w1">
+      <stop offset="0" stop-color="#f87171" stop-opacity=".13"/>
+      <stop offset="1" stop-color="#f87171" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="mcc-w2">
+      <stop offset="0" stop-color="#ef4444" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#ef4444" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="1330" cy="330" r="440" fill="url(#mcc-w1)"/>
+  <circle cx="430" cy="600" r="480" fill="url(#mcc-w2)"/>
+  <circle cx="850" cy="120" r="260" fill="url(#mcc-w1)" opacity=".5"/>
+
+  <!-- wall / floor -->
+  <line x1="0" y1="716" x2="1600" y2="716" stroke="#d7e0ee" stroke-width="3"/>
+
+  <!-- wall clock -->
+  <circle cx="560" cy="150" r="68" fill="#ffffff" stroke="#d7e0ee" stroke-width="7"/>
+  <g stroke="#0e1a2e" stroke-width="3" stroke-linecap="round">
+    <line x1="560" y1="94" x2="560" y2="104"/>
+    <line x1="560" y1="196" x2="560" y2="206"/>
+    <line x1="504" y1="150" x2="514" y2="150"/>
+    <line x1="606" y1="150" x2="616" y2="150"/>
+  </g>
+  <g stroke="#0e1a2e" stroke-width="7" stroke-linecap="round">
+    <line x1="560" y1="150" x2="586" y2="165"/>
+    <line x1="560" y1="150" x2="560" y2="106"/>
+  </g>
+  <line x1="560" y1="150" x2="515" y2="176" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="560" cy="150" r="6" fill="#0e1a2e"/>
+
+  <!-- back-row attendees -->
+  <circle cx="285" cy="435" r="27" fill="#8299b8"/>
+  <rect x="233" y="467" width="104" height="76" rx="34" fill="#8299b8"/>
+  <circle cx="430" cy="418" r="27" fill="#0e1a2e"/>
+  <rect x="378" y="450" width="104" height="76" rx="34" fill="#0e1a2e"/>
+  <circle cx="575" cy="435" r="27" fill="#8299b8"/>
+  <rect x="523" y="467" width="104" height="76" rx="34" fill="#8299b8"/>
+
+  <!-- conference table -->
+  <ellipse cx="430" cy="626" rx="330" ry="88" fill="#d7e0ee"/>
+  <ellipse cx="430" cy="610" rx="330" ry="88" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <polygon points="400,706 460,706 478,788 382,788" fill="#8299b8"/>
+  <ellipse cx="430" cy="790" rx="95" ry="13" fill="#b9c6da"/>
+  <ellipse cx="430" cy="800" rx="310" ry="20" fill="#0e1a2e" opacity=".07"/>
+
+  <!-- papers and a mug on the table -->
+  <g transform="rotate(-8 385 607)">
+    <rect x="350" y="585" width="70" height="44" rx="6" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="362" y="597" width="42" height="5" rx="2.5" fill="#b9c6da"/>
+    <rect x="362" y="608" width="30" height="5" rx="2.5" fill="#b9c6da" opacity=".7"/>
+  </g>
+  <g transform="rotate(5 535 618)">
+    <rect x="500" y="596" width="70" height="44" rx="6" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="512" y="608" width="42" height="5" rx="2.5" fill="#b9c6da"/>
+    <rect x="512" y="619" width="30" height="5" rx="2.5" fill="#b9c6da" opacity=".7"/>
+  </g>
+  <circle cx="448" cy="572" r="13" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+
+  <!-- front-row attendees, backs to viewer -->
+  <circle cx="255" cy="650" r="34" fill="#0e1a2e"/>
+  <rect x="189" y="690" width="132" height="98" rx="40" fill="#0e1a2e"/>
+  <circle cx="610" cy="650" r="34" fill="#0e1a2e"/>
+  <rect x="544" y="690" width="132" height="98" rx="40" fill="#0e1a2e"/>
+  <ellipse cx="255" cy="794" rx="80" ry="11" fill="#0e1a2e" opacity=".06"/>
+  <ellipse cx="610" cy="794" rx="80" ry="11" fill="#0e1a2e" opacity=".06"/>
+
+  <!-- coins arcing up into the meter -->
+  <circle cx="905" cy="570" r="15" fill="url(#mcc-acc)"/>
+  <circle cx="905" cy="570" r="7.5" fill="none" stroke="#ffffff" stroke-width="3" opacity=".5"/>
+  <circle cx="1000" cy="480" r="13" fill="url(#mcc-acc)" opacity=".9"/>
+  <circle cx="1000" cy="480" r="6.5" fill="none" stroke="#ffffff" stroke-width="3" opacity=".4"/>
+  <circle cx="1088" cy="385" r="11.5" fill="url(#mcc-acc)" opacity=".8"/>
+  <circle cx="1168" cy="285" r="10" fill="url(#mcc-acc)" opacity=".7"/>
+  <circle cx="1238" cy="190" r="9" fill="url(#mcc-acc)" opacity=".6"/>
+  <circle cx="1296" cy="112" r="8" fill="url(#mcc-acc)" opacity=".55"/>
+
+  <!-- cost meter column, upper right -->
+  <ellipse cx="1330" cy="704" rx="120" ry="15" fill="#0e1a2e" opacity=".07"/>
+  <circle cx="1330" cy="74" r="12" fill="url(#mcc-acc)"/>
+  <circle cx="1330" cy="74" r="6" fill="none" stroke="#ffffff" stroke-width="3" opacity=".55"/>
+  <rect x="1256" y="120" width="148" height="560" rx="74" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="1300" y="112" width="60" height="10" rx="5" fill="#0e1a2e" opacity=".85"/>
+  <rect x="1284" y="148" width="92" height="504" rx="46" fill="#d7e0ee" opacity=".4"/>
+  <rect x="1284" y="268" width="92" height="384" rx="46" fill="url(#mcc-accv)"/>
+  <rect x="1288" y="272" width="16" height="376" rx="8" fill="#ef4444" opacity=".3"/>
+  <g stroke="#b9c6da" stroke-width="3">
+    <line x1="1224" y1="240" x2="1244" y2="240"/>
+    <line x1="1224" y1="300" x2="1244" y2="300"/>
+    <line x1="1224" y1="420" x2="1244" y2="420"/>
+    <line x1="1224" y1="480" x2="1244" y2="480"/>
+    <line x1="1224" y1="600" x2="1244" y2="600"/>
+  </g>
+  <g stroke="#0e1a2e" stroke-width="3">
+    <line x1="1206" y1="180" x2="1244" y2="180"/>
+    <line x1="1206" y1="360" x2="1244" y2="360"/>
+    <line x1="1206" y1="540" x2="1244" y2="540"/>
+  </g>
+  <polygon points="1256,268 1220,250 1220,286" fill="#0e1a2e"/>
 </svg>

@@ -1,22 +1,80 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img">
-<defs>
-<clipPath id="c"><rect width="1200" height="675"/></clipPath>
-<radialGradient id="f" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#0E6F96" stop-opacity="0.30"/>
-<stop offset="55%" stop-color="#0E6F96" stop-opacity="0.11"/>
-<stop offset="100%" stop-color="#0E6F96" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="e" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#0E6F96" stop-opacity="0.16"/>
-<stop offset="100%" stop-color="#0E6F96" stop-opacity="0"/>
-</radialGradient>
-</defs>
-<g clip-path="url(#c)">
-<rect width="1200" height="675" fill="#F7F5F2"/>
-<g stroke="#0A1220" stroke-width="1" opacity="0.055"><line x1="56" y1="0" x2="56" y2="675"/><line x1="112" y1="0" x2="112" y2="675"/><line x1="168" y1="0" x2="168" y2="675"/><line x1="224" y1="0" x2="224" y2="675"/><line x1="280" y1="0" x2="280" y2="675"/><line x1="336" y1="0" x2="336" y2="675"/><line x1="392" y1="0" x2="392" y2="675"/><line x1="448" y1="0" x2="448" y2="675"/><line x1="504" y1="0" x2="504" y2="675"/><line x1="560" y1="0" x2="560" y2="675"/><line x1="616" y1="0" x2="616" y2="675"/><line x1="672" y1="0" x2="672" y2="675"/><line x1="728" y1="0" x2="728" y2="675"/><line x1="784" y1="0" x2="784" y2="675"/><line x1="840" y1="0" x2="840" y2="675"/><line x1="896" y1="0" x2="896" y2="675"/><line x1="952" y1="0" x2="952" y2="675"/><line x1="1008" y1="0" x2="1008" y2="675"/><line x1="1064" y1="0" x2="1064" y2="675"/><line x1="1120" y1="0" x2="1120" y2="675"/><line x1="1176" y1="0" x2="1176" y2="675"/><line x1="0" y1="56" x2="1200" y2="56"/><line x1="0" y1="112" x2="1200" y2="112"/><line x1="0" y1="168" x2="1200" y2="168"/><line x1="0" y1="224" x2="1200" y2="224"/><line x1="0" y1="280" x2="1200" y2="280"/><line x1="0" y1="336" x2="1200" y2="336"/><line x1="0" y1="392" x2="1200" y2="392"/><line x1="0" y1="448" x2="1200" y2="448"/><line x1="0" y1="504" x2="1200" y2="504"/><line x1="0" y1="560" x2="1200" y2="560"/><line x1="0" y1="616" x2="1200" y2="616"/><line x1="0" y1="672" x2="1200" y2="672"/></g>
-<circle cx="1032" cy="526.5" r="283.5" fill="url(#e)"/>
-<circle cx="397" cy="345.5" r="405" fill="url(#f)"/>
-<g stroke="#0E6F96" stroke-width="2.5" opacity="0.55" stroke-linecap="round"><line x1="179.65" y1="594.98" x2="179.65" y2="610.98"/><line x1="233.9875" y1="594.98" x2="233.9875" y2="603.98"/><line x1="288.325" y1="594.98" x2="288.325" y2="603.98"/><line x1="342.6625" y1="594.98" x2="342.6625" y2="603.98"/><line x1="397" y1="594.98" x2="397" y2="610.98"/><line x1="451.3375" y1="594.98" x2="451.3375" y2="603.98"/><line x1="505.67499999999995" y1="594.98" x2="505.67499999999995" y2="603.98"/><line x1="560.0125" y1="594.98" x2="560.0125" y2="603.98"/><line x1="614.35" y1="594.98" x2="614.35" y2="610.98"/><line x1="179.65" y1="594.98" x2="614.35" y2="594.98"/></g>
-<g transform="translate(208 156.5) scale(5.90625)"><path d="M16 8 L38 8 L48 18 L48 56 L16 56 Z" fill="none" stroke="#0A1220" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M38 8 L38 18 L48 18" fill="none" stroke="#0A1220" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M23 30 L41 30 M23 38 L41 38 M23 46 L34 46" fill="none" stroke="#0A1220" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/><path d="M50 30 L53 38 L61 41 L53 44 L50 52 L47 44 L39 41 L47 38 Z" fill="#0E6F96"/></g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1200" height="675">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+    <radialGradient id="wa">
+      <stop offset="0" stop-color="#fbbf24" stop-opacity=".13"/>
+      <stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="wo">
+      <stop offset="0" stop-color="#f97316" stop-opacity=".09"/>
+      <stop offset="1" stop-color="#f97316" stop-opacity="0"/>
+    </radialGradient>
+    <g id="qm">
+      <path d="M -46,-38 C -46,-78 -16,-100 6,-100 C 36,-100 56,-78 56,-52 C 56,-28 38,-16 20,-4 C 8,4 0,16 0,32" fill="none" stroke-width="22" stroke-linecap="round"/>
+      <circle cy="74" r="13"/>
+    </g>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="1330" cy="150" r="340" fill="url(#wa)"/>
+  <circle cx="240" cy="810" r="330" fill="url(#wo)"/>
+
+  <!-- question bubbles -->
+  <g transform="rotate(-2 295 240)">
+    <path d="M 176,170 H 414 Q 440,170 440,196 V 284 Q 440,310 414,310 H 398 L 446,348 L 336,310 H 176 Q 150,310 150,284 V 196 Q 150,170 176,170 Z" fill="#ffffff" stroke="#d7e0ee" stroke-width="4" stroke-linejoin="round"/>
+    <g stroke="#8299b8" fill="#8299b8" transform="translate(293 244) scale(.6)">
+      <use href="#qm"/>
+    </g>
+  </g>
+  <g>
+    <path d="M 216,360 H 494 Q 520,360 520,386 V 504 Q 520,530 494,530 H 478 L 530,572 L 414,530 H 216 Q 190,530 190,504 V 386 Q 190,360 216,360 Z" fill="#ffffff" stroke="#d7e0ee" stroke-width="4" stroke-linejoin="round"/>
+    <g stroke="url(#acc)" fill="#f97316" transform="translate(353 452) scale(.78)">
+      <use href="#qm"/>
+    </g>
+  </g>
+  <g transform="rotate(2 290 655)">
+    <path d="M 166,580 H 414 Q 440,580 440,606 V 704 Q 440,730 414,730 H 396 L 444,768 L 334,730 H 166 Q 140,730 140,704 V 606 Q 140,580 166,580 Z" fill="#ffffff" stroke="#d7e0ee" stroke-width="4" stroke-linejoin="round"/>
+    <g stroke="#8299b8" fill="#8299b8" transform="translate(288 660) scale(.66)">
+      <use href="#qm"/>
+    </g>
+  </g>
+
+  <!-- transform flow -->
+  <g fill="none" stroke="#8299b8" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 592,398 L 634,438 L 592,478"/>
+    <path d="M 652,398 L 694,438 L 652,478" opacity=".5"/>
+  </g>
+
+  <!-- result page with structured answers -->
+  <ellipse cx="1095" cy="812" rx="340" ry="18" fill="#0e1a2e" opacity=".06"/>
+  <rect x="740" y="130" width="710" height="650" rx="26" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+  <!-- search bar -->
+  <rect x="786" y="178" width="400" height="64" rx="32" fill="#f7f9fc" stroke="#d7e0ee" stroke-width="3"/>
+  <circle cx="824" cy="208" r="13" fill="none" stroke="#0e1a2e" stroke-width="6"/>
+  <line x1="834" y1="219" x2="847" y2="232" stroke="#0e1a2e" stroke-width="6" stroke-linecap="round"/>
+  <rect x="870" y="201" width="150" height="14" rx="7" fill="#d7e0ee"/>
+
+  <!-- expanded answer card -->
+  <rect x="786" y="282" width="618" height="196" rx="18" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="786" y="282" width="14" height="196" rx="7" fill="url(#acc)"/>
+  <rect x="830" y="312" width="300" height="18" rx="9" fill="#0e1a2e" opacity=".7"/>
+  <path d="M 1342,334 L 1360,316 L 1378,334" fill="none" stroke="#8299b8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="830" y="362" width="520" height="12" rx="6" fill="#d7e0ee"/>
+  <rect x="830" y="390" width="484" height="12" rx="6" fill="#d7e0ee"/>
+  <rect x="830" y="418" width="502" height="12" rx="6" fill="#d7e0ee"/>
+  <rect x="830" y="446" width="318" height="12" rx="6" fill="#fbbf24" opacity=".55"/>
+
+  <!-- collapsed answer cards -->
+  <rect x="786" y="502" width="618" height="112" rx="18" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="786" y="502" width="14" height="112" rx="7" fill="url(#acc)"/>
+  <rect x="830" y="548" width="262" height="18" rx="9" fill="#8299b8" opacity=".8"/>
+  <path d="M 1342,548 L 1360,566 L 1378,548" fill="none" stroke="#8299b8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="786" y="638" width="618" height="112" rx="18" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="786" y="638" width="14" height="112" rx="7" fill="url(#acc)"/>
+  <rect x="830" y="684" width="322" height="18" rx="9" fill="#8299b8" opacity=".8"/>
+  <path d="M 1342,684 L 1360,702 L 1378,684" fill="none" stroke="#8299b8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

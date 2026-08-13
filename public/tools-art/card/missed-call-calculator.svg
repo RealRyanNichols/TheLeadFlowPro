@@ -1,22 +1,124 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img">
-<defs>
-<clipPath id="c"><rect width="1200" height="675"/></clipPath>
-<radialGradient id="f" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#1240E8" stop-opacity="0.30"/>
-<stop offset="55%" stop-color="#1240E8" stop-opacity="0.11"/>
-<stop offset="100%" stop-color="#1240E8" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="e" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#1240E8" stop-opacity="0.16"/>
-<stop offset="100%" stop-color="#1240E8" stop-opacity="0"/>
-</radialGradient>
-</defs>
-<g clip-path="url(#c)">
-<rect width="1200" height="675" fill="#F7F5F2"/>
-<g stroke="#0A1220" stroke-width="1" opacity="0.055"><line x1="56" y1="0" x2="56" y2="675"/><line x1="112" y1="0" x2="112" y2="675"/><line x1="168" y1="0" x2="168" y2="675"/><line x1="224" y1="0" x2="224" y2="675"/><line x1="280" y1="0" x2="280" y2="675"/><line x1="336" y1="0" x2="336" y2="675"/><line x1="392" y1="0" x2="392" y2="675"/><line x1="448" y1="0" x2="448" y2="675"/><line x1="504" y1="0" x2="504" y2="675"/><line x1="560" y1="0" x2="560" y2="675"/><line x1="616" y1="0" x2="616" y2="675"/><line x1="672" y1="0" x2="672" y2="675"/><line x1="728" y1="0" x2="728" y2="675"/><line x1="784" y1="0" x2="784" y2="675"/><line x1="840" y1="0" x2="840" y2="675"/><line x1="896" y1="0" x2="896" y2="675"/><line x1="952" y1="0" x2="952" y2="675"/><line x1="1008" y1="0" x2="1008" y2="675"/><line x1="1064" y1="0" x2="1064" y2="675"/><line x1="1120" y1="0" x2="1120" y2="675"/><line x1="1176" y1="0" x2="1176" y2="675"/><line x1="0" y1="56" x2="1200" y2="56"/><line x1="0" y1="112" x2="1200" y2="112"/><line x1="0" y1="168" x2="1200" y2="168"/><line x1="0" y1="224" x2="1200" y2="224"/><line x1="0" y1="280" x2="1200" y2="280"/><line x1="0" y1="336" x2="1200" y2="336"/><line x1="0" y1="392" x2="1200" y2="392"/><line x1="0" y1="448" x2="1200" y2="448"/><line x1="0" y1="504" x2="1200" y2="504"/><line x1="0" y1="560" x2="1200" y2="560"/><line x1="0" y1="616" x2="1200" y2="616"/><line x1="0" y1="672" x2="1200" y2="672"/></g>
-<circle cx="168.00000000000003" cy="526.5" r="283.5" fill="url(#e)"/>
-<circle cx="789" cy="333.5" r="411.75" fill="url(#f)"/>
-<g stroke="#1240E8" stroke-width="2.5" opacity="0.55" stroke-linecap="round"><line x1="571.65" y1="582.98" x2="571.65" y2="598.98"/><line x1="625.9875" y1="582.98" x2="625.9875" y2="591.98"/><line x1="680.3249999999999" y1="582.98" x2="680.3249999999999" y2="591.98"/><line x1="734.6624999999999" y1="582.98" x2="734.6624999999999" y2="591.98"/><line x1="789" y1="582.98" x2="789" y2="598.98"/><line x1="843.3375" y1="582.98" x2="843.3375" y2="591.98"/><line x1="897.675" y1="582.98" x2="897.675" y2="591.98"/><line x1="952.0125" y1="582.98" x2="952.0125" y2="591.98"/><line x1="1006.3499999999999" y1="582.98" x2="1006.3499999999999" y2="598.98"/><line x1="571.65" y1="582.98" x2="1006.3499999999999" y2="582.98"/></g>
-<g transform="translate(600 144.5) scale(5.90625)"><rect x="14" y="6" width="36" height="52" rx="6" fill="none" stroke="#0A1220" stroke-width="3.2"/><rect x="20" y="13" width="24" height="10" rx="2.5" fill="#1240E8" opacity="0.9"/><circle cx="23" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="23" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="23" cy="51" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="51" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="51" r="2.6" fill="#1240E8" opacity="1"/></g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1200" height="675">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <radialGradient id="w1"><stop offset="0" stop-color="#38bdf8" stop-opacity=".14"/><stop offset="1" stop-color="#38bdf8" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w2"><stop offset="0" stop-color="#2563eb" stop-opacity=".09"/><stop offset="1" stop-color="#2563eb" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <ellipse cx="1160" cy="450" rx="600" ry="430" fill="url(#w1)"/>
+  <ellipse cx="380" cy="760" rx="420" ry="270" fill="url(#w2)"/>
+
+  <!-- ground shadows -->
+  <ellipse cx="1080" cy="830" rx="290" ry="24" fill="#0e1a2e" opacity=".07"/>
+  <ellipse cx="330" cy="802" rx="180" ry="15" fill="#0e1a2e" opacity=".06"/>
+
+  <!-- owner busy on a job (left, small) -->
+  <g>
+    <!-- appliance unit being repaired -->
+    <rect x="392" y="668" width="120" height="128" rx="12" fill="#b9c6da"/>
+    <rect x="404" y="682" width="96" height="68" rx="8" fill="#ffffff"/>
+    <circle cx="452" cy="716" r="20" fill="none" stroke="#8299b8" stroke-width="3"/>
+    <circle cx="452" cy="716" r="4" fill="#8299b8"/>
+    <line x1="410" y1="696" x2="424" y2="696" stroke="#d7e0ee" stroke-width="3"/>
+    <line x1="480" y1="738" x2="494" y2="738" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="404" y="762" width="96" height="14" rx="7" fill="#8299b8"/>
+    <!-- toolbox -->
+    <rect x="148" y="754" width="86" height="44" rx="8" fill="#0e1a2e"/>
+    <path d="M169 754 v-8 a22 22 0 0 1 44 0 v8" fill="none" stroke="#0e1a2e" stroke-width="7"/>
+    <rect x="184" y="762" width="14" height="8" rx="3" fill="#f7f9fc"/>
+    <!-- kneeling worker -->
+    <g stroke="#0e1a2e" fill="none" stroke-linecap="round">
+      <path d="M264 636 L296 720" stroke-width="46"/>
+      <path d="M296 720 L352 742" stroke-width="34"/>
+      <path d="M352 742 L346 792" stroke-width="24"/>
+      <path d="M290 726 L252 788" stroke-width="24"/>
+      <path d="M272 650 L326 684 L382 698" stroke-width="21"/>
+    </g>
+    <circle cx="276" cy="592" r="27" fill="#0e1a2e"/>
+    <rect x="280" y="576" width="40" height="11" rx="5.5" fill="#0e1a2e"/>
+    <!-- wrench -->
+    <path d="M382 698 L404 705" stroke="#0e1a2e" stroke-width="8" stroke-linecap="round"/>
+    <path d="M401 693 a12 12 0 1 0 10 20" fill="none" stroke="#0e1a2e" stroke-width="6"/>
+  </g>
+
+  <!-- phone stacking missed calls (right two-thirds) -->
+  <g transform="rotate(3 1080 470)">
+    <rect x="892" y="268" width="9" height="54" rx="4.5" fill="#0e1a2e"/>
+    <rect x="892" y="336" width="9" height="54" rx="4.5" fill="#0e1a2e"/>
+    <rect x="1259" y="308" width="9" height="88" rx="4.5" fill="#0e1a2e"/>
+    <rect x="900" y="140" width="360" height="660" rx="52" fill="#0e1a2e"/>
+    <rect x="909" y="149" width="342" height="642" rx="45" fill="none" stroke="#8299b8" stroke-width="2" opacity=".45"/>
+    <rect x="918" y="158" width="324" height="624" rx="36" fill="#ffffff"/>
+    <rect x="1044" y="172" width="72" height="14" rx="7" fill="#0e1a2e"/>
+    <!-- screen header -->
+    <rect x="948" y="216" width="150" height="18" rx="9" fill="#8299b8"/>
+    <line x1="918" y1="258" x2="1242" y2="258" stroke="#d7e0ee" stroke-width="2"/>
+    <!-- call rows -->
+    <g>
+      <circle cx="962" cy="310" r="24" fill="#d7e0ee"/>
+      <circle cx="962" cy="303" r="9" fill="#8299b8"/><path d="M946 326 a16 16 0 0 1 32 0 z" fill="#8299b8"/>
+      <rect x="1000" y="292" width="130" height="14" rx="7" fill="#8299b8"/>
+      <rect x="1000" y="318" width="80" height="10" rx="5" fill="#b9c6da"/>
+      <circle cx="1210" cy="310" r="16" fill="url(#acc)"/>
+      <path d="M1216 304 L1204 316 M1204 308 v8 h8" stroke="#ffffff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="948" y1="352" x2="1242" y2="352" stroke="#d7e0ee" stroke-width="2"/>
+    </g>
+    <g>
+      <circle cx="962" cy="406" r="24" fill="#b9c6da"/>
+      <circle cx="962" cy="399" r="9" fill="#8299b8"/><path d="M946 422 a16 16 0 0 1 32 0 z" fill="#8299b8"/>
+      <rect x="1000" y="388" width="108" height="14" rx="7" fill="#8299b8"/>
+      <rect x="1000" y="414" width="92" height="10" rx="5" fill="#b9c6da"/>
+      <circle cx="1210" cy="406" r="16" fill="url(#acc)"/>
+      <path d="M1216 400 L1204 412 M1204 404 v8 h8" stroke="#ffffff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="948" y1="448" x2="1242" y2="448" stroke="#d7e0ee" stroke-width="2"/>
+    </g>
+    <g>
+      <circle cx="962" cy="502" r="24" fill="#d7e0ee"/>
+      <circle cx="962" cy="495" r="9" fill="#8299b8"/><path d="M946 518 a16 16 0 0 1 32 0 z" fill="#8299b8"/>
+      <rect x="1000" y="484" width="140" height="14" rx="7" fill="#8299b8"/>
+      <rect x="1000" y="510" width="72" height="10" rx="5" fill="#b9c6da"/>
+      <circle cx="1210" cy="502" r="16" fill="url(#acc)"/>
+      <path d="M1216 496 L1204 508 M1204 500 v8 h8" stroke="#ffffff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="948" y1="544" x2="1242" y2="544" stroke="#d7e0ee" stroke-width="2"/>
+    </g>
+    <g>
+      <circle cx="962" cy="598" r="24" fill="#b9c6da"/>
+      <circle cx="962" cy="591" r="9" fill="#8299b8"/><path d="M946 614 a16 16 0 0 1 32 0 z" fill="#8299b8"/>
+      <rect x="1000" y="580" width="118" height="14" rx="7" fill="#8299b8"/>
+      <rect x="1000" y="606" width="86" height="10" rx="5" fill="#b9c6da"/>
+      <circle cx="1210" cy="598" r="16" fill="url(#acc)"/>
+      <path d="M1216 592 L1204 604 M1204 596 v8 h8" stroke="#ffffff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="948" y1="640" x2="1242" y2="640" stroke="#d7e0ee" stroke-width="2"/>
+    </g>
+    <g>
+      <circle cx="962" cy="694" r="24" fill="#d7e0ee"/>
+      <circle cx="962" cy="687" r="9" fill="#8299b8"/><path d="M946 710 a16 16 0 0 1 32 0 z" fill="#8299b8"/>
+      <rect x="1000" y="676" width="126" height="14" rx="7" fill="#8299b8"/>
+      <rect x="1000" y="702" width="78" height="10" rx="5" fill="#b9c6da"/>
+      <circle cx="1210" cy="694" r="16" fill="url(#acc)"/>
+      <path d="M1216 688 L1204 700 M1204 692 v8 h8" stroke="#ffffff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <rect x="1040" y="758" width="80" height="6" rx="3" fill="#b9c6da"/>
+  </g>
+
+  <!-- notification pills popping off the phone -->
+  <g transform="rotate(-5 810 190)">
+    <rect x="700" y="158" width="220" height="64" rx="32" fill="#ffffff" stroke="#d7e0ee" stroke-width="2"/>
+    <circle cx="738" cy="190" r="18" fill="url(#acc)"/>
+    <path d="M745 183 L731 197 M731 188 v9 h9" stroke="#ffffff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="768" y="176" width="112" height="12" rx="6" fill="#8299b8"/>
+    <rect x="768" y="196" width="70" height="10" rx="5" fill="#b9c6da"/>
+  </g>
+  <g transform="rotate(4 840 290)">
+    <rect x="752" y="258" width="186" height="58" rx="29" fill="#ffffff" stroke="#d7e0ee" stroke-width="2"/>
+    <circle cx="786" cy="287" r="16" fill="url(#acc)"/>
+    <path d="M792 281 L780 293 M780 285 v8 h8" stroke="#ffffff" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="812" y="274" width="94" height="11" rx="5.5" fill="#8299b8"/>
+    <rect x="812" y="293" width="58" height="9" rx="4.5" fill="#b9c6da"/>
+  </g>
+  <!-- corner badge on the phone -->
+  <circle cx="1272" cy="152" r="26" fill="url(#acc)" stroke="#f7f9fc" stroke-width="5"/>
+  <path d="M1282 142 L1264 160 M1264 148 v12 h12" stroke="#ffffff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
