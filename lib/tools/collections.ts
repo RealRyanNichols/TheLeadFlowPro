@@ -10,10 +10,21 @@
 // MIN_TOOLS published tools and must carry its own intro, problems and FAQs.
 
 import { TOOLS } from "./index";
+import { TOOL_RELEVANCE, relevanceTier } from "./relevance";
 import type { Tool } from "./types";
 import type { Audience, Domain, Goal, Industry, ToolType } from "./taxonomy";
 
 export const MIN_TOOLS = 6;
+
+/**
+ * An industry collection must also have at least this many tools that are core
+ * or secondary for the work. A page held up entirely by the broadly useful
+ * pile is a filter pretending to be a collection.
+ */
+export const MIN_PROPER_TOOLS = 3;
+
+/** The broadly useful section shows this many; the rest live at /tools. */
+export const BROAD_SECTION_CAP = 12;
 
 export type CollectionFilter = {
   industries?: Industry[];
@@ -360,9 +371,151 @@ export function collectionTools(collection: Collection): Tool[] {
   return [...pinned, ...rest];
 }
 
+/* --------------------------------- sections -------------------------------- */
+
+// The generous `industries` list on a tool answers "could this ever help", and
+// counting it is how an industry page ends up claiming seventy tools. The
+// sections below are the honest reading: only core and secondary tools count
+// as the collection proper, and the broadly useful pile is shown as exactly
+// that, clearly labeled and never in the headline number.
+
+export type CollectionSection = {
+  id: "start-here" | "built-for-this" | "sales-follow-up" | "money-operations" | "web-presence" | "broadly-useful";
+  title: string;
+  tools: Tool[];
+};
+
+const SECTION_TITLES: Record<CollectionSection["id"], string> = {
+  "start-here": "Start here",
+  "built-for-this": "Built specifically for this work",
+  "sales-follow-up": "Sales and follow-up",
+  "money-operations": "Money and operations",
+  "web-presence": "Website and local presence",
+  "broadly-useful": "Broadly useful tools",
+};
+
+const SALES_GOALS: Goal[] = ["capture-leads", "improve-follow-up"];
+const MONEY_GOALS: Goal[] = ["make-money", "save-money", "price-a-service", "quote-a-job", "save-time"];
+const WEB_GOALS: Goal[] = ["check-a-website", "create-marketing", "share-information"];
+
+type Tier = ReturnType<typeof relevanceTier>;
+
+/** The strongest tier a tool earns across a collection's industries. */
+function bestTier(slug: string, industries: Industry[]): Tier {
+  let best: Tier = "none";
+  for (const industry of industries) {
+    const tier = relevanceTier(slug, industry);
+    if (tier === "core") return "core";
+    if (tier === "secondary") best = "secondary";
+    else if (tier === "broad" && best === "none") best = "broad";
+  }
+  return best;
+}
+
+/**
+ * The collection's tools split into the tools it may claim and the broadly
+ * useful rest. Goal, type and domain collections already match honestly, so
+ * everything they resolve is theirs to claim.
+ */
+function tierSplit(collection: Collection): { proper: Tool[]; broad: Tool[] } {
+  const all = collectionTools(collection);
+  const industries = collection.filter.industries || [];
+  if (collection.kind !== "industry" || industries.length === 0) {
+    return { proper: all, broad: [] };
+  }
+  const proper: Tool[] = [];
+  const broad: Tool[] = [];
+  for (const t of all) {
+    const tier = bestTier(t.slug, industries);
+    if (tier === "core" || tier === "secondary") proper.push(t);
+    else if (tier === "broad") broad.push(t);
+    // "none" tools are not shown at all. If nothing about a tool speaks to
+    // this work, listing it anywhere on the page is the old inflation back.
+  }
+  return { proper, broad };
+}
+
+/** Which of the three goal sections a non-core tool reads most at home in. */
+function goalSection(tool: Tool): "sales-follow-up" | "money-operations" | "web-presence" {
+  if (tool.goals.some((g) => SALES_GOALS.includes(g))) return "sales-follow-up";
+  if (tool.goals.some((g) => MONEY_GOALS.includes(g))) return "money-operations";
+  if (tool.goals.some((g) => WEB_GOALS.includes(g))) return "web-presence";
+  // None of the listed goals matched, so the domain decides.
+  if (tool.domain === "sales-marketing") return "sales-follow-up";
+  if (tool.domain === "websites-digital") return "web-presence";
+  return "money-operations";
+}
+
+const relevancePriority = (t: Tool) => TOOL_RELEVANCE[t.slug]?.collectionPriority ?? 0;
+
+/**
+ * The collection page, sectioned. Pinned openers first, then what was built
+ * for the work, then the strongly related tools grouped by what they do, then
+ * the broadly useful pile under its own honest label. Empty sections are
+ * omitted, so pages never render a heading over nothing.
+ */
+export function collectionSections(collection: Collection): CollectionSection[] {
+  const { proper, broad } = tierSplit(collection);
+  const industries = collection.filter.industries || [];
+  const isIndustry = collection.kind === "industry" && industries.length > 0;
+
+  // The pinned openers, but only the ones that earned a place in the count.
+  const startHere = (collection.filter.lead || [])
+    .map((slug) => proper.find((t) => t.slug === slug))
+    .filter((t): t is Tool => Boolean(t))
+    .slice(0, 4);
+
+  const rest = proper.filter((t) => !startHere.some((s) => s.slug === t.slug));
+  if (isIndustry) {
+    rest.sort(
+      (a, b) =>
+        relevancePriority(b) - relevancePriority(a) ||
+        b.popularity - a.popularity ||
+        a.name.localeCompare(b.name),
+    );
+  }
+
+  const grouped: Record<"built-for-this" | "sales-follow-up" | "money-operations" | "web-presence", Tool[]> = {
+    "built-for-this": [],
+    "sales-follow-up": [],
+    "money-operations": [],
+    "web-presence": [],
+  };
+  for (const t of rest) {
+    if (isIndustry && bestTier(t.slug, industries) === "core") grouped["built-for-this"].push(t);
+    else grouped[goalSection(t)].push(t);
+  }
+
+  const broadTools = [...broad]
+    .sort((a, b) => b.popularity - a.popularity || a.name.localeCompare(b.name))
+    .slice(0, BROAD_SECTION_CAP);
+
+  const sections: CollectionSection[] = [
+    { id: "start-here", title: SECTION_TITLES["start-here"], tools: startHere },
+    { id: "built-for-this", title: SECTION_TITLES["built-for-this"], tools: grouped["built-for-this"] },
+    { id: "sales-follow-up", title: SECTION_TITLES["sales-follow-up"], tools: grouped["sales-follow-up"] },
+    { id: "money-operations", title: SECTION_TITLES["money-operations"], tools: grouped["money-operations"] },
+    { id: "web-presence", title: SECTION_TITLES["web-presence"], tools: grouped["web-presence"] },
+    { id: "broadly-useful", title: SECTION_TITLES["broadly-useful"], tools: broadTools },
+  ];
+  return sections.filter((s) => s.tools.length > 0);
+}
+
+/**
+ * The number a page is allowed to claim. For an industry collection that is
+ * core and secondary tools only; the broadly useful pile helps every industry
+ * equally, so it counts for none of them. Other collection kinds keep their
+ * full count, which was honest already.
+ */
+export function collectionCount(collection: Collection): number {
+  return tierSplit(collection).proper.length;
+}
+
 /** Only collections with enough real tools behind them are routable or indexable. */
 export const PUBLISHED_COLLECTIONS = COLLECTIONS.filter(
-  (c) => collectionTools(c).length >= MIN_TOOLS,
+  (c) =>
+    collectionTools(c).length >= MIN_TOOLS &&
+    (c.kind !== "industry" || collectionCount(c) >= MIN_PROPER_TOOLS),
 );
 
 export function getCollection(slug: string): Collection | undefined {

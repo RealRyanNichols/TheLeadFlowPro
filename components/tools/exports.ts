@@ -7,46 +7,57 @@
 // an email is having the result sent to you, or being sent the embed code, and
 // that is because those genuinely need somewhere to send it.
 
-export function downloadBlob(filename: string, blob: Blob) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.rel = "noopener";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+// Each of these returns whether the save actually started, so the buttons can
+// show "Saved" honestly instead of flashing success over a silent failure.
+
+export function downloadBlob(filename: string, blob: Blob): boolean {
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-export function downloadText(filename: string, text: string, type = "text/plain") {
-  downloadBlob(filename, new Blob([text], { type: `${type};charset=utf-8` }));
+export function downloadText(filename: string, text: string, type = "text/plain"): boolean {
+  return downloadBlob(filename, new Blob([text], { type: `${type};charset=utf-8` }));
 }
 
 /** Excel opens CSV by guessing, so quote everything and keep the BOM. */
-export function downloadCsv(filename: string, headers: string[], rows: (string | number)[][]) {
+export function downloadCsv(filename: string, headers: string[], rows: (string | number)[][]): boolean {
   const esc = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
   const body = [headers.map(esc).join(","), ...rows.map((r) => r.map(esc).join(","))].join("\r\n");
-  downloadBlob(filename, new Blob([`﻿${body}`], { type: "text/csv;charset=utf-8" }));
+  return downloadBlob(filename, new Blob([`﻿${body}`], { type: "text/csv;charset=utf-8" }));
 }
 
-export function downloadSvg(filename: string, svg: string) {
-  downloadBlob(filename, new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+export function downloadSvg(filename: string, svg: string): boolean {
+  return downloadBlob(filename, new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
 }
 
-export function downloadCanvasPng(filename: string, canvas: HTMLCanvasElement) {
-  return new Promise<void>((resolve) => {
-    canvas.toBlob((blob) => {
-      if (blob) downloadBlob(filename, blob);
-      resolve();
-    }, "image/png");
+export function downloadCanvasPng(filename: string, canvas: HTMLCanvasElement): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    try {
+      canvas.toBlob((blob) => {
+        resolve(blob ? downloadBlob(filename, blob) : false);
+      }, "image/png");
+    } catch {
+      resolve(false);
+    }
   });
 }
 
 /** Calendar files need CRLF line endings or half the calendar apps reject them. */
-export function downloadIcs(filename: string, ics: string) {
+export function downloadIcs(filename: string, ics: string): boolean {
   const normalized = ics.replace(/\r?\n/g, "\r\n");
-  downloadBlob(filename, new Blob([normalized], { type: "text/calendar;charset=utf-8" }));
+  return downloadBlob(filename, new Blob([normalized], { type: "text/calendar;charset=utf-8" }));
 }
 
 export async function copyText(text: string): Promise<boolean> {

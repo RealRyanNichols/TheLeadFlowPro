@@ -15,9 +15,37 @@ import {
   ERROR_CORRECTION_LEVELS,
   QR_MAX_BYTES,
   type ErrorCorrection,
+  type QrModel,
 } from "@/lib/tools/qr";
 import { downloadSvg, downloadCanvasPng } from "./exports";
 import { trackTool } from "@/lib/tools/analytics";
+
+/**
+ * qrToCanvas snaps modules to whole pixels, which lands short of the requested
+ * size, and a "400 pixel" PNG that is really 388 gets rejected by print portals
+ * with exact dimension checks. Draw the snapped code centered on a canvas of
+ * exactly the requested size, padded in the light color, so the modules stay
+ * crisp and the file is the size the note promises.
+ */
+function qrToExactCanvas(model: QrModel, size: number): HTMLCanvasElement {
+  const inner = qrToCanvas(model, size);
+  if (inner.width === size) return inner;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return inner;
+  ctx.fillStyle = model.light;
+  ctx.fillRect(0, 0, size, size);
+  ctx.imageSmoothingEnabled = false;
+  if (inner.width > size) {
+    // Requested size is below one pixel per module. Scale down rather than crop.
+    ctx.drawImage(inner, 0, 0, size, size);
+  } else {
+    ctx.drawImage(inner, Math.floor((size - inner.width) / 2), Math.floor((size - inner.height) / 2));
+  }
+  return canvas;
+}
 
 const TONE_CLASS = {
   good: "border-[var(--green-line)] bg-[var(--green-tint)] text-[var(--green)]",
@@ -42,7 +70,8 @@ export default function QrBlock({
   const [quietZone, setQuietZone] = useState(4);
   const [dark, setDark] = useState("#0A1220");
   const [light, setLight] = useState("#FFFFFF");
-  const [saved, setSaved] = useState<string | null>(null);
+  const [saved, setSaved] = useState<{ key: string; ok: boolean } | null>(null);
+  const [announce, setAnnounce] = useState("");
 
   const tooLong = new TextEncoder().encode(data).length > QR_MAX_BYTES;
 
@@ -59,8 +88,9 @@ export default function QrBlock({
   const verdict = qrContrastVerdict(dark, light);
   const inverted = qrIsInverted(dark, light);
 
-  function flash(what: string) {
-    setSaved(what);
+  function flash(key: string, ok: boolean, message: string) {
+    setSaved({ key, ok });
+    setAnnounce(message);
     setTimeout(() => setSaved(null), 1600);
   }
 
@@ -152,37 +182,48 @@ export default function QrBlock({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
+        <div aria-live="polite" className="sr-only">{announce}</div>
         <button
           type="button"
           className="button-secondary"
           style={{ minHeight: 44 }}
           onClick={async () => {
-            await downloadCanvasPng(`${filename}.png`, qrToCanvas(model, size));
-            trackTool("tool_result_downloaded", { slug, format: "png" });
-            flash("png");
+            let ok = false;
+            try {
+              ok = await downloadCanvasPng(`${filename}.png`, qrToExactCanvas(model, size));
+            } catch {
+              ok = false;
+            }
+            if (ok) trackTool("tool_result_downloaded", { slug, format: "png" });
+            flash("png", ok, ok ? "PNG saved" : "Could not save the PNG");
           }}
         >
-          {saved === "png" ? <Check aria-hidden="true" className="h-4 w-4" /> : <Download aria-hidden="true" className="h-4 w-4" />}
-          {saved === "png" ? "Saved" : "Download PNG"}
+          {saved?.key === "png" && saved.ok ? <Check aria-hidden="true" className="h-4 w-4" /> : <Download aria-hidden="true" className="h-4 w-4" />}
+          {saved?.key === "png" ? (saved.ok ? "Saved" : "Could not save") : "Download PNG"}
         </button>
         <button
           type="button"
           className="button-secondary"
           style={{ minHeight: 44 }}
           onClick={() => {
-            downloadSvg(`${filename}.svg`, svg);
-            trackTool("tool_result_downloaded", { slug, format: "svg" });
-            flash("svg");
+            let ok = false;
+            try {
+              ok = downloadSvg(`${filename}.svg`, svg);
+            } catch {
+              ok = false;
+            }
+            if (ok) trackTool("tool_result_downloaded", { slug, format: "svg" });
+            flash("svg", ok, ok ? "SVG saved" : "Could not save the SVG");
           }}
         >
-          {saved === "svg" ? <Check aria-hidden="true" className="h-4 w-4" /> : <FileCode2 aria-hidden="true" className="h-4 w-4" />}
-          {saved === "svg" ? "Saved" : "Download SVG"}
+          {saved?.key === "svg" && saved.ok ? <Check aria-hidden="true" className="h-4 w-4" /> : <FileCode2 aria-hidden="true" className="h-4 w-4" />}
+          {saved?.key === "svg" ? (saved.ok ? "Saved" : "Could not save") : "Download SVG"}
         </button>
       </div>
 
       <p className="mt-3 text-[11px] leading-relaxed text-[var(--quiet)]">
-        PNG saves at {Math.floor(size / model.total) * model.total} pixels square. SVG is vector, so a sign
-        shop can print it at any size. Test the printed copy with two different phones before you order a run.
+        PNG saves at {size} x {size} pixels. SVG is vector, so a sign shop can print it at any size. Test
+        the printed copy with two different phones before you order a run.
       </p>
     </div>
   );

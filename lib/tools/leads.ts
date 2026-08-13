@@ -18,7 +18,7 @@ export const LEAD_TOOLS: ToolDef[] = [
     steps: [
       "Count the calls you miss in a normal week. Check your phone log, do not guess low.",
       "Enter what a customer is worth on the first job.",
-      "Add how many times a happy customer comes back.",
+      "Add how many repeat purchases a happy customer makes after the first job.",
       "Look at the yearly number, then go turn on missed-call text-back.",
     ],
     faqs: [
@@ -31,14 +31,16 @@ export const LEAD_TOOLS: ToolDef[] = [
       { id: "missed", label: "Calls you miss per week", type: "slider", min: 0, max: 60, step: 1, def: 5, help: "Check your call log. It is usually higher than you think." },
       { id: "closeRate", label: "How many of those callers would have bought", type: "slider", min: 5, max: 100, step: 5, def: 30, suffix: "%" },
       { id: "ticket", label: "Average first sale", type: "money", def: 250 },
-      { id: "repeats", label: "Times a customer comes back", type: "slider", min: 1, max: 20, step: 1, def: 2, suffix: "x" },
+      { id: "repeats", label: "Repeat purchases after the first job", type: "slider", min: 0, max: 19, step: 1, def: 1, help: "How many more times a typical happy customer buys from you. Zero means they only buy once." },
     ],
     run: (v) => {
       const missed = num(v, "missed");
       const rate = num(v, "closeRate") / 100;
       const ticket = num(v, "ticket");
-      const repeats = Math.max(1, num(v, "repeats"));
-      const weekly = missed * rate * ticket * repeats;
+      const repeats = Math.max(0, num(v, "repeats"));
+      // A customer is worth the first sale plus each repeat purchase.
+      const perCustomer = ticket * (1 + repeats);
+      const weekly = missed * rate * perCustomer;
       const monthly = (weekly * 52) / 12;
       const yearly = weekly * 52;
       const customersLost = missed * rate * 52;
@@ -54,7 +56,7 @@ export const LEAD_TOOLS: ToolDef[] = [
         ramp: rampMonths(monthly, "Watch it pile up, month by month", "Same missed calls, twelve months in a row."),
         verdict: {
           tone: "bad",
-          text: `Every missed call is worth about ${money2(rate * ticket * repeats)} to you. You are missing ${count(missed)} a week.`,
+          text: `Every missed call is worth about ${money2(rate * perCustomer)} to you, counting the first sale${repeats > 0 ? ` and ${count(repeats)} repeat purchase${repeats === 1 ? "" : "s"}` : ""}. You are missing ${count(missed)} a week.`,
         },
         note: "An instant text-back catches a large share of these. It is one of the cheapest things you can add to a business.",
       };

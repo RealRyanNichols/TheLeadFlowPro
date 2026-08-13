@@ -17,6 +17,8 @@ import {
   type Audience, type Domain, type Goal, type Industry, type ToolType,
   type SortKey, type ToolIndexEntry,
 } from "@/lib/tools";
+import type { RelevanceTier } from "@/lib/tools/search";
+import { relevanceTier } from "@/lib/tools/relevance";
 import ToolCard from "./ToolCard";
 import { readRecentTools } from "./useToolProfile";
 import { trackTool, trackSearch } from "@/lib/tools/analytics";
@@ -39,6 +41,33 @@ const LABELS: Record<Facet, (id: string) => string> = {
   type: (id) => TOOL_TYPES[id as ToolType]?.label ?? id,
 };
 
+/**
+ * The best strict tier a tool earns across the industry filters in play, read
+ * from the same relevance map search uses. This is what lets an industry
+ * filter without a typed query still separate built-for tools from the
+ * generically useful ones.
+ */
+function filterTier(slug: string, industries: Industry[]): RelevanceTier {
+  let best: RelevanceTier = "incidental";
+  for (const i of industries) {
+    const r = relevanceTier(slug, i);
+    if (r === "core") return "core";
+    if (r === "secondary") best = "strong";
+    else if (r === "broad" && best !== "strong") best = "broad";
+  }
+  return best;
+}
+
+/** What the grid actually shows, grouped honestly. */
+type Sections = {
+  /** Core and strong hits, or whatever the best available tier was. */
+  primary: ToolIndexEntry[];
+  /** Broad hits, shown under their own heading when primary has real matches. */
+  alsoUseful: ToolIndexEntry[];
+  /** True when both groups render, each under its own heading. */
+  split: boolean;
+};
+
 export default function ToolDirectory({
   tools,
   collections,
@@ -58,6 +87,23 @@ export default function ToolDirectory({
   const [recent, setRecent] = useState<ToolIndexEntry[]>([]);
   const searchRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  // The pending debounce timer, held so clearing the search can cancel it
+  // instead of racing it. Before this, clicking the clear button while a
+  // debounce was pending left ?q= in the URL: the button only reset local
+  // state and trusted the effect to notice, and the effect compared against a
+  // searchParams snapshot that had not caught up with the last replace() yet.
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Queries this component wrote to the URL that have not echoed back through
+  // useSearchParams yet. When ?q= changes, anything found here is our own
+  // write and must not be pulled into local state, or a stale echo would
+  // overwrite what the user is typing. Anything else is the browser's back or
+  // forward button, and local state follows it.
+  const pendingQ = useRef<string[]>([]);
+  // The last ?q= value this component observed. An unrelated params change,
+  // like toggling a filter mid-keystroke, re-fires the sync effect with the
+  // old query still in the URL; this ref is how that run knows nothing about
+  // q actually changed.
+  const lastQ = useRef(params.get("q") || "");
 
   const selected = useMemo(() => {
     const read = (f: Facet) => params.getAll(PARAM[f]).filter(Boolean);
@@ -87,16 +133,45 @@ export default function ToolDirectory({
   // The typed query is debounced into the URL so every keystroke does not become
   // a history entry or an analytics event.
   useEffect(() => {
-    const t = setTimeout(() => {
-      const current = params.get("q") || "";
-      if (current === query) return;
+    debounce.current = setTimeout(() => {
+      debounce.current = null;
+      const next = query.trim();
+      if ((params.get("q") || "") === next) return;
+      pendingQ.current.push(next);
       pushParams((p) => {
-        if (query.trim()) p.set("q", query.trim());
+        if (next) p.set("q", next);
         else p.delete("q");
       });
     }, 250);
-    return () => clearTimeout(t);
+    return () => {
+      if (debounce.current) { clearTimeout(debounce.current); debounce.current = null; }
+    };
   }, [query, params, pushParams]);
+
+  // Back and forward change ?q= underneath us; local state has to follow or
+  // the input and the grid keep showing a page the URL no longer describes.
+  // Our own writes are recognized via pendingQ and never pulled back in.
+  useEffect(() => {
+    const urlQ = params.get("q") || "";
+    const i = pendingQ.current.indexOf(urlQ);
+    if (i >= 0) {
+      // Our own write echoing back. Anything queued before it was superseded.
+      pendingQ.current.splice(0, i + 1);
+      lastQ.current = urlQ;
+      return;
+    }
+    if (urlQ === lastQ.current) return;
+    lastQ.current = urlQ;
+    setQuery(urlQ);
+  }, [params]);
+
+  /** Clears the query everywhere at once: timer, local state and the URL. */
+  const clearQuery = useCallback(() => {
+    if (debounce.current) { clearTimeout(debounce.current); debounce.current = null; }
+    setQuery("");
+    pendingQ.current.push("");
+    pushParams((p) => p.delete("q"));
+  }, [pushParams]);
 
   useEffect(() => {
     setRecent(
@@ -123,13 +198,17 @@ export default function ToolDirectory({
   }
 
   function clearAll() {
+    // Cancel any pending debounce first, or its replace() lands after this one
+    // and writes the just-cleared query straight back into the URL.
+    if (debounce.current) { clearTimeout(debounce.current); debounce.current = null; }
     setQuery("");
+    pendingQ.current.push("");
     router.replace(pathname, { scroll: false });
   }
 
   /* --------------------------------- results -------------------------------- */
 
-  const filtered = useMemo(() => {
+  const sections = useMemo<Sections>(() => {
     const base = tools.filter((t) => {
       if (selected.domain.length && !selected.domain.includes(t.domain)) return false;
       if (selected.type.length && !selected.type.includes(t.toolType)) return false;
@@ -139,20 +218,51 @@ export default function ToolDirectory({
       return true;
     });
 
-    if (!deferredQuery.trim()) return sortRegistry(base, sort);
+    const q = deferredQuery.trim();
 
-    const hits = searchTools(base, deferredQuery);
+    // Tier every candidate. A typed query gets its tiers from search; an
+    // industry filter without a query reads the relevance map directly.
+    let tiered: { tool: ToolIndexEntry; tier: RelevanceTier }[];
+    if (q) {
+      tiered = searchTools(base, q);
+    } else if (selected.industry.length) {
+      tiered = sortRegistry(base, sort).map((tool) => ({
+        tool,
+        tier: filterTier(tool.slug, selected.industry as Industry[]),
+      }));
+    } else {
+      return { primary: sortRegistry(base, sort), alsoUseful: [], split: false };
+    }
+
+    const pick = (...tiers: RelevanceTier[]) =>
+      tiered.filter((x) => tiers.includes(x.tier)).map((x) => x.tool);
+
+    let close = pick("core", "strong");
+    let broad = pick("broad");
     // A relevance ranking is the point of a search, so only an explicit sort
-    // choice is allowed to override it.
-    if (sort === "useful") return hits.map((h) => h.tool);
-    return sortRegistry(hits.map((h) => h.tool), sort);
+    // choice is allowed to override the order. The tier grouping stays either
+    // way; the sort reorders inside each group.
+    if (q && sort !== "useful") {
+      close = sortRegistry(close, sort);
+      broad = sortRegistry(broad, sort);
+    }
+
+    // Both real groups present: show them under separate headings. Incidental
+    // hits are dropped outright rather than padding the bottom of the grid.
+    if (close.length && broad.length) return { primary: close, alsoUseful: broad, split: true };
+    if (close.length) return { primary: close, alsoUseful: [], split: false };
+    if (broad.length) return { primary: broad, alsoUseful: [], split: false };
+    // Nothing but incidental hits. Showing them beats an empty page.
+    return { primary: pick("incidental"), alsoUseful: [], split: false };
   }, [tools, selected, deferredQuery, sort]);
+
+  const shownCount = sections.primary.length + sections.alsoUseful.length;
 
   useEffect(() => {
     if (!deferredQuery.trim()) return;
-    const t = setTimeout(() => trackSearch(deferredQuery, filtered.length), 600);
+    const t = setTimeout(() => trackSearch(deferredQuery, shownCount), 600);
     return () => clearTimeout(t);
-  }, [deferredQuery, filtered.length]);
+  }, [deferredQuery, shownCount]);
 
   const suggestions = useMemo(
     () => (suggestOpen && query.trim().length >= 2 ? suggestFor(tools, query, 7) : []),
@@ -197,7 +307,7 @@ export default function ToolDirectory({
           {query && (
             <button
               type="button"
-              onClick={() => { setQuery(""); searchRef.current?.focus(); }}
+              onClick={() => { clearQuery(); searchRef.current?.focus(); }}
               aria-label="Clear the search box"
               className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-[var(--quiet)] hover:bg-[var(--fill-2)] hover:text-[var(--heading)]"
             >
@@ -247,8 +357,17 @@ export default function ToolDirectory({
       {/* toolbar */}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-y border-[var(--line)] py-3">
         <p className="text-sm font-bold text-[var(--heading)]" role="status" aria-live="polite">
-          {filtered.length} {filtered.length === 1 ? "tool" : "tools"}
-          {hasFilters ? " match" : " in the library"}
+          {sections.split ? (
+            <>
+              {sections.primary.length} close {sections.primary.length === 1 ? "match" : "matches"} and{" "}
+              {sections.alsoUseful.length} broadly useful {sections.alsoUseful.length === 1 ? "tool" : "tools"}
+            </>
+          ) : (
+            <>
+              {shownCount} {shownCount === 1 ? "tool" : "tools"}
+              {hasFilters ? " match" : " in the library"}
+            </>
+          )}
         </p>
         <div className="tool-filter-bar">
           <button type="button" className="tool-chip" onClick={() => setDrawerOpen(true)} aria-haspopup="dialog">
@@ -333,12 +452,31 @@ export default function ToolDirectory({
 
       {/* grid */}
       <div ref={resultsRef} className="mt-8">
-        {filtered.length > 0 ? (
-          <div className="tool-grid">
-            {filtered.map((t, i) => (
-              <ToolCard key={t.slug} tool={t} priority={i < 3} />
-            ))}
-          </div>
+        {shownCount > 0 ? (
+          <>
+            {sections.split && (
+              <h2 className="mb-3 text-sm font-black uppercase tracking-wider text-[var(--muted)]">
+                Best matches
+              </h2>
+            )}
+            <div className="tool-grid">
+              {sections.primary.map((t, i) => (
+                <ToolCard key={t.slug} tool={t} priority={i < 3} />
+              ))}
+            </div>
+            {sections.split && (
+              <section className="mt-10 border-t border-[var(--line)] pt-7">
+                <h2 className="text-sm font-black uppercase tracking-wider text-[var(--muted)]">
+                  Also useful for any business
+                </h2>
+                <div className="tool-grid mt-3">
+                  {sections.alsoUseful.map((t) => (
+                    <ToolCard key={t.slug} tool={t} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         ) : (
           <EmptyState query={query} tools={tools} onPick={(q) => { setQuery(q); searchRef.current?.focus(); }} onClear={clearAll} />
         )}
@@ -351,7 +489,7 @@ export default function ToolDirectory({
           onToggle={toggleFacet}
           onClose={() => setDrawerOpen(false)}
           onClear={clearAll}
-          count={filtered.length}
+          count={shownCount}
         />
       )}
     </div>

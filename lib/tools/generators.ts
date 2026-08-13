@@ -29,7 +29,7 @@ export const GENERATOR_TOOLS: ToolDef[] = [
     payoff: "A code you save once and print forever.",
     steps: [
       "Paste the link you want the code to open.",
-      "Right-click or long-press the code and save the image.",
+      "Download the PNG for screens and office printing, or the SVG for a sign shop.",
       "Print it at least one inch across. Bigger for anything read from a distance.",
       "Scan it yourself before you print a thousand of them.",
     ],
@@ -42,7 +42,7 @@ export const GENERATOR_TOOLS: ToolDef[] = [
     fields: [
       { id: "url", label: "Link the code should open", type: "text", def: "", placeholder: "yourbusiness.com/book" },
       { id: "label", label: "Text under the code", type: "text", def: "", placeholder: "Scan to book" },
-      { id: "size", label: "Image size in pixels", type: "slider", min: 200, max: 1000, step: 20, def: 400 },
+      { id: "size", label: "Image size in pixels", type: "slider", min: 200, max: 1000, step: 20, def: 400, help: "The exact size of the PNG download. SVG scales to any size." },
     ],
     run: (v) => {
       const url = normUrl(str(v, "url"));

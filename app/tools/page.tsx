@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowRight, Download, Code2, Zap } from "lucide-react";
 import { TOOLS, TOOL_COUNT, toolIndex, sortTools } from "@/lib/tools";
-import { PUBLISHED_COLLECTIONS, collectionTools } from "@/lib/tools/collections";
+import { PUBLISHED_COLLECTIONS, collectionCount } from "@/lib/tools/collections";
 import ToolDirectory from "@/components/tools/ToolDirectory";
 import ToolFinder from "@/components/tools/ToolFinder";
 import ToolCard from "@/components/tools/ToolCard";
@@ -59,7 +59,7 @@ export default function ToolsPage() {
     slug: c.slug,
     short: c.short,
     hook: c.hook,
-    count: collectionTools(c).length,
+    count: collectionCount(c),
   }));
 
   const jsonLd = {

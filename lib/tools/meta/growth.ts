@@ -68,7 +68,7 @@ export const GROWTH_META: Record<string, ToolMeta> = {
     audiences: ["owners", "managers", "administrators"],
     keywords: ["review response", "reply to a review", "negative review reply", "reputation management", "apology", "thank you reply", "public response"],
     synonyms: ["how to respond to a bad review", "review reply generator"],
-    disclaimer: "general-estimate",
+    disclaimer: "draft-document",
     dataSensitivity: "none",
     popularity: 82,
     assumptions: ["Read it before you post it. A response that sounds like a form letter does more damage than silence."],

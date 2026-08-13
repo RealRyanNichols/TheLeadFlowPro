@@ -212,21 +212,30 @@ export const GROWTH_TOOLS: ToolDef[] = [
     ],
     run: (v) => {
       const type = str(v, "type", "good");
-      const biz = str(v, "business").trim() || "our team";
-      const name = str(v, "name").trim() || "there";
+      const biz = str(v, "business").trim();
+      const name = str(v, "name").trim();
       const topic = str(v, "topic").trim() || "the work we did";
       const phone = str(v, "phone").trim();
-      const owner = str(v, "owner").trim() || "the owner";
+      const owner = str(v, "owner").trim();
       const callLine = phone ? ` Call or text me directly at ${phone}` : " Reach out to me directly";
 
-      const text =
+      // The signature builds from whichever pieces exist. Nothing entered, no line.
+      const signature =
+        owner && biz ? `\n\n- ${owner}, ${biz}` : owner ? `\n\n- ${owner}` : biz ? `\n\n- The team at ${biz}` : "";
+
+      // Every opening has to read as a full sentence with or without a name.
+      const body =
         type === "good"
-          ? `${name}, thank you. Hearing that ${topic} went well is the whole reason we do this.\n\nWe appreciate you taking the time to write it out, and we appreciate the trust. If you ever need us again, you know where to find us.\n\n- ${owner}, ${biz}`
+          ? name
+            ? `${name}, thank you. Hearing that ${topic} went well is the whole reason we do this.\n\nWe appreciate you taking the time to write it out, and we appreciate the trust. If you ever need us again, you know where to find us.`
+            : `Thank you for taking the time to write this. Hearing that ${topic} went well is the whole reason we do this.\n\nWe appreciate the trust. If you ever need us again, you know where to find us.`
           : type === "mixed"
-            ? `${name}, thank you for the honest review. Three stars tells me we got the job done but did not give you the experience we want to be known for.\n\nI would like to hear what would have made it a five.${callLine} and I will make it right where I can.\n\n- ${owner}, ${biz}`
+            ? `${name ? `${name}, thank` : "Thank"} you for the honest review. Three stars tells me we got the job done but did not give you the experience we want to be known for.\n\nI would like to hear what would have made it a five.${callLine} and I will make it right where I can.`
             : type === "bad"
-              ? `${name}, I am sorry. That is not the standard we hold ourselves to, and I am not going to argue with you in a review box about it.\n\nI want to understand what happened with ${topic} and fix what can be fixed.${callLine}. I will pick up.\n\n- ${owner}, ${biz}`
-              : `${name}, thank you for the feedback. I take every review seriously, and I want to get this right.\n\nMy records show a different sequence of events than what is described here, so I would rather talk it through than go back and forth publicly.${callLine} and I will give you my full attention.\n\n- ${owner}, ${biz}`;
+              ? `${name ? `${name}, I` : "I"} am sorry. That is not the standard we hold ourselves to, and I am not going to argue with you in a review box about it.\n\nI want to understand what happened with ${topic} and fix what can be fixed.${callLine}. I will pick up.`
+              : `${name ? `${name}, thank` : "Thank"} you for the feedback. I take every review seriously, and I want to get this right.\n\nMy records show a different sequence of events than what is described here, so I would rather talk it through than go back and forth publicly.${callLine} and I will give you my full attention.`;
+
+      const text = `${body}${signature}`;
 
       return {
         output: {

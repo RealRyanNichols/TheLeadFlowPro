@@ -12,9 +12,10 @@ import {
   Copy, Check, Download, Code2, RotateCcw, Printer, Mail, Table2, CalendarPlus,
 } from "lucide-react";
 import {
-  type Tool, type Values, type Tone, type Result,
+  type Tool, type Values, type Tone, type Result, type Field,
   DISCLAIMERS, DOMAINS, SENSITIVITY_NOTE, getTool,
 } from "@/lib/tools";
+import { SHELLS } from "./shell";
 import { copyText, downloadText, downloadCsv, downloadIcs, printResult } from "./exports";
 import { rememberTool } from "./useToolProfile";
 import SendResultModal, { type SendReason } from "./SendResultModal";
@@ -47,17 +48,53 @@ function defaults(tool: Tool): Values {
   return v;
 }
 
+/**
+ * How a raw input reads in the plain-text report. On screen the field shows its
+ * unit next to the control; a copied "20" with the percent sign stripped is a
+ * different number, so the report has to carry the same units the screen does.
+ */
+function formatFieldValue(f: Field, raw: number | string | string[] | undefined): string {
+  if (f.type === "checks") {
+    const picked = Array.isArray(raw) ? raw : [];
+    return picked.map((v) => f.options.find((o) => o.value === v)?.label ?? v).join(", ");
+  }
+  if (f.type === "select") {
+    const v = typeof raw === "string" ? raw : f.def;
+    return f.options.find((o) => o.value === v)?.label ?? v;
+  }
+  if (f.type === "money") {
+    const n = typeof raw === "number" ? raw : Number(raw);
+    if (!Number.isFinite(n)) return "";
+    const decimals = Number.isInteger(n) ? 0 : 2;
+    return `$${n.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+  }
+  if (f.type === "slider" || f.type === "number") {
+    const n = typeof raw === "number" ? raw : Number(raw);
+    if (!Number.isFinite(n)) return "";
+    const prefix = f.type === "slider" ? f.prefix || "" : "";
+    return `${prefix}${n.toLocaleString("en-US")}${f.suffix || ""}`;
+  }
+  return typeof raw === "string" ? raw : "";
+}
+
 export default function ToolEngine({ slug, embedded = false }: { slug: string; embedded?: boolean }) {
   const tool = getTool(slug) as Tool;
   const [values, setValues] = useState<Values>(() => defaults(tool));
   const [preset, setPreset] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [saved, setSaved] = useState<{ key: string; ok: boolean } | null>(null);
+  const [announce, setAnnounce] = useState("");
   const [modal, setModal] = useState<null | SendReason>(null);
   const [showEmbed, setShowEmbed] = useState(false);
   const started = useRef(false);
 
   const domain = DOMAINS[tool.domain];
   const disclaimer = DISCLAIMERS[tool.disclaimer];
+  const shell = SHELLS[tool.toolType];
+  // "This is an estimate" belongs on math. A QR maker or a draft generator with
+  // the generic disclaimer shows only the data-privacy note instead. Tools that
+  // carry a real disclaimer (legal, financial, ...) keep it whatever their type.
+  const suppressEstimate = !shell.showEstimateBadge && tool.disclaimer === "general-estimate";
 
   const result: Result = useMemo(() => {
     try {
@@ -96,7 +133,14 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
     setPreset(null);
   }
 
-  const embedSnippet = `<iframe src="https://www.theleadflowpro.com/embed/${tool.slug}" width="100%" height="${tool.embedHeight || 820}" style="border:0;border-radius:16px;max-width:760px" title="${tool.name}, a free tool from The LeadFlow Pro" loading="lazy"></iframe>`;
+  // The height attribute is only the fallback while the page loads. The script
+  // listens for the height the embed reports and resizes the matching iframe,
+  // accepting messages from our origin only. The window guard keeps it working
+  // when somebody pastes two tools on one page.
+  const embedSnippet = [
+    `<iframe src="https://www.theleadflowpro.com/embed/${tool.slug}" data-leadflow-tool="${tool.slug}" width="100%" height="${tool.embedHeight || 820}" style="border:0;border-radius:16px;max-width:760px" title="${tool.name}, a free tool from The LeadFlow Pro" loading="lazy"></iframe>`,
+    `<script>if(!window.__leadflowEmbedResize){window.__leadflowEmbedResize=true;window.addEventListener("message",function(e){if(e.origin!=="https://www.theleadflowpro.com"||!e.data||e.data.type!=="leadflowpro:embed-height")return;var f=document.querySelector('iframe[data-leadflow-tool="'+e.data.slug+'"]');var h=Number(e.data.height);if(f&&h>0)f.style.height=h+"px";});}</script>`,
+  ].join("\n");
 
   async function copy(text: string, key: string) {
     const ok = await copyText(text);
@@ -105,6 +149,21 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
       trackTool(key === "embed" ? "embed_code_copied" : "tool_result_copied", { slug: tool.slug });
       setTimeout(() => setCopied(null), 1600);
     }
+  }
+
+  /** Runs a download and flips its button to Saved or Could not save for a beat. */
+  function download(key: string, format: string, okMessage: string, fn: () => boolean) {
+    let ok = false;
+    try {
+      ok = fn();
+    } catch {
+      ok = false;
+    }
+    setSaved({ key, ok });
+    setAnnounce(ok ? okMessage : "Could not save the file");
+    setTimeout(() => setSaved(null), 1600);
+    if (ok) trackTool("tool_result_downloaded", { slug: tool.slug, format });
+    return ok;
   }
 
   const activePreset = tool.presets?.find((p) => p.id === preset);
@@ -118,8 +177,7 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
     lines.push("");
     lines.push("WHAT YOU PUT IN");
     for (const f of tool.fields) {
-      const raw = values[f.id];
-      const shown = Array.isArray(raw) ? raw.join(", ") : String(raw);
+      const shown = formatFieldValue(f, values[f.id]);
       if (shown) lines.push(`  ${f.label}: ${shown}`);
     }
     lines.push("");
@@ -166,13 +224,17 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
       lines.push(`NOTE: ${result.note}`);
     }
     lines.push("");
-    lines.push(disclaimer.label.toUpperCase());
-    lines.push(`  ${disclaimer.body}`);
-    if (disclaimer.dateStamp) lines.push(`  Run on ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })}.`);
+    if (suppressEstimate) {
+      lines.push(`  ${SENSITIVITY_NOTE[tool.dataSensitivity]}`);
+    } else {
+      lines.push(disclaimer.label.toUpperCase());
+      lines.push(`  ${disclaimer.body}`);
+      if (disclaimer.dateStamp) lines.push(`  Run on ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })}.`);
+    }
     lines.push("");
     lines.push("Free tool from The LeadFlow Pro, theleadflowpro.com/tools");
     return lines.join("\n");
-  }, [tool, values, result, activePreset, disclaimer]);
+  }, [tool, values, result, activePreset, disclaimer, suppressEstimate]);
 
   if (!tool) return null;
 
@@ -204,8 +266,6 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
   }
 
   const hasInputs = tool.fields.length > 0;
-  const numeric = tool.fields.some((f) => f.type === "slider" || f.type === "money" || f.type === "number");
-  const inputLabel = numeric ? "Your numbers" : "Your details";
   const hasResult = Boolean(result.headline || result.output || result.qr || result.table || result.stats?.length);
   const assumptions = [...(tool.assumptions || []), ...(result.assumptions || [])];
 
@@ -232,7 +292,8 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
           <div className="border-b border-[var(--line)] p-5 sm:p-6">
             <h3 className="tool-engine-label">Start from your industry</h3>
             <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--muted)]">
-              These change the starting numbers, not the math. Adjust anything after you pick one.
+              Editable starting examples for your industry. They change the starting numbers, not the
+              math, and they are not industry statistics.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {tool.presets.map((p) => (
@@ -266,7 +327,7 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
           {hasInputs && (
             <div className="tool-engine-inputs space-y-5 p-5 sm:p-6">
               <div className="flex items-center justify-between gap-3">
-                <h3 className="tool-engine-label">{inputLabel}</h3>
+                <h3 className="tool-engine-label">{shell.inputsLabel}</h3>
                 <button
                   type="button"
                   onClick={reset}
@@ -283,7 +344,7 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
           )}
 
           <div className="space-y-4 p-5 sm:p-6">
-            <h3 className="tool-engine-label">What that means</h3>
+            <h3 className="tool-engine-label">{shell.resultLabel}</h3>
 
             {/* Screen readers get told the headline changed, without the whole panel being re-read. */}
             <div aria-live="polite" aria-atomic="true" className="sr-only">
@@ -401,20 +462,29 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
 
             {hasResult && (
               <div className="tool-no-print flex flex-wrap gap-2 pt-1">
-                <button
-                  type="button"
-                  className="button-primary"
-                  style={{ minHeight: 44 }}
-                  onClick={() => {
-                    if (result.output) downloadText(result.output.filename, result.output.text);
-                    else downloadText(`${tool.slug}-result.txt`, report);
-                    trackTool("tool_result_downloaded", { slug: tool.slug, format: "txt" });
-                    trackTool("tool_completed", { slug: tool.slug, preset: preset || undefined });
-                  }}
-                >
-                  <Download aria-hidden="true" className="h-4 w-4" />
-                  {result.output ? "Download the file" : "Download my result"}
-                </button>
+                {/* Downloads announce here so a screen reader hears the save land. */}
+                <div aria-live="polite" className="sr-only">{announce}</div>
+
+                {/* The QR block has its own PNG and SVG buttons, so a generic
+                    text download next to them only invites the wrong click. */}
+                {!result.qr && (
+                  <button
+                    type="button"
+                    className="button-primary"
+                    style={{ minHeight: 44 }}
+                    onClick={() => {
+                      const ok = download("main", "txt", "Result downloaded", () =>
+                        result.output
+                          ? downloadText(result.output.filename, result.output.text)
+                          : downloadText(`${tool.slug}-result.txt`, report),
+                      );
+                      if (ok) trackTool("tool_completed", { slug: tool.slug, preset: preset || undefined });
+                    }}
+                  >
+                    {saved?.key === "main" && saved.ok ? <Check aria-hidden="true" className="h-4 w-4" /> : <Download aria-hidden="true" className="h-4 w-4" />}
+                    {saved?.key === "main" ? (saved.ok ? "Saved" : "Could not save") : shell.downloadLabel}
+                  </button>
+                )}
 
                 <button type="button" className="button-secondary" style={{ minHeight: 44 }} onClick={() => copy(report, "report")}>
                   {copied === "report" ? <Check aria-hidden="true" className="h-4 w-4" /> : <Copy aria-hidden="true" className="h-4 w-4" />}
@@ -427,12 +497,13 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
                     className="button-secondary"
                     style={{ minHeight: 44 }}
                     onClick={() => {
-                      downloadCsv(result.csv!.filename, result.csv!.headers, result.csv!.rows);
-                      trackTool("tool_result_downloaded", { slug: tool.slug, format: "csv" });
+                      download("csv", "csv", "Spreadsheet downloaded", () =>
+                        downloadCsv(result.csv!.filename, result.csv!.headers, result.csv!.rows),
+                      );
                     }}
                   >
-                    <Table2 aria-hidden="true" className="h-4 w-4" />
-                    Download CSV
+                    {saved?.key === "csv" && saved.ok ? <Check aria-hidden="true" className="h-4 w-4" /> : <Table2 aria-hidden="true" className="h-4 w-4" />}
+                    {saved?.key === "csv" ? (saved.ok ? "Saved" : "Could not save") : "Download CSV"}
                   </button>
                 )}
 
@@ -442,12 +513,13 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
                     className="button-secondary"
                     style={{ minHeight: 44 }}
                     onClick={() => {
-                      downloadIcs(result.ics!.filename, result.ics!.text);
-                      trackTool("tool_result_downloaded", { slug: tool.slug, format: "ics" });
+                      download("ics", "ics", "Calendar file downloaded", () =>
+                        downloadIcs(result.ics!.filename, result.ics!.text),
+                      );
                     }}
                   >
-                    <CalendarPlus aria-hidden="true" className="h-4 w-4" />
-                    Add to calendar
+                    {saved?.key === "ics" && saved.ok ? <Check aria-hidden="true" className="h-4 w-4" /> : <CalendarPlus aria-hidden="true" className="h-4 w-4" />}
+                    {saved?.key === "ics" ? (saved.ok ? "Saved" : "Could not save") : "Add to calendar"}
                   </button>
                 )}
 
@@ -475,27 +547,29 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
         </div>
       </div>
 
-      <div className="tool-disclaimer mt-4">
-        <h3>{disclaimer.label}</h3>
-        <p>{disclaimer.body}</p>
-        {disclaimer.official && disclaimer.official.length > 0 && (
-          <p>
-            Official source:{" "}
-            {disclaimer.official.map((o, i) => (
-              <span key={o.url}>
-                {i > 0 ? ", " : ""}
-                <a href={o.url} target="_blank" rel="noopener noreferrer">{o.label}</a>
-              </span>
-            ))}
-          </p>
-        )}
-        {disclaimer.dateStamp && (
-          <p className="text-[12px]">
-            You ran this on {new Date().toLocaleDateString("en-US", { dateStyle: "long" })}. Rates and rules
-            change, so check the date before you rely on a saved copy.
-          </p>
-        )}
-      </div>
+      {!suppressEstimate && (
+        <div className="tool-disclaimer mt-4">
+          <h3>{disclaimer.label}</h3>
+          <p>{disclaimer.body}</p>
+          {disclaimer.official && disclaimer.official.length > 0 && (
+            <p>
+              Official source:{" "}
+              {disclaimer.official.map((o, i) => (
+                <span key={o.url}>
+                  {i > 0 ? ", " : ""}
+                  <a href={o.url} target="_blank" rel="noopener noreferrer">{o.label}</a>
+                </span>
+              ))}
+            </p>
+          )}
+          {disclaimer.dateStamp && (
+            <p className="text-[12px]">
+              You ran this on {new Date().toLocaleDateString("en-US", { dateStyle: "long" })}. Rates and rules
+              change, so check the date before you rely on a saved copy.
+            </p>
+          )}
+        </div>
+      )}
 
       {!embedded && (
         <EmbedBlock
@@ -767,10 +841,11 @@ function EmbedBlock({
   }
   return (
     <div className="tool-no-print mt-4 rounded-2xl border border-[var(--accent-line)] bg-[var(--accent-tint)] p-5">
-      <h3 className="text-sm font-black text-[var(--heading)]">Paste this one line into your website.</h3>
+      <h3 className="text-sm font-black text-[var(--heading)]">Paste this into your website.</h3>
       <p className="mt-1 text-xs leading-relaxed text-[var(--muted)]">
-        I host it and keep it working. It costs nothing and it does not expire. Works on WordPress, Wix,
-        Squarespace, Shopify, GoDaddy, Webflow, HubSpot, or a plain HTML page.
+        I host it and keep it working. It costs nothing and it does not expire. The second line lets the
+        frame size itself to the tool. Works on WordPress, Wix, Squarespace, Shopify, GoDaddy, Webflow,
+        HubSpot, or a plain HTML page.
       </p>
       <div className="mt-3 flex flex-wrap items-start gap-2">
         <code className="min-w-0 flex-1 break-all rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] px-3 py-3 font-mono text-[11px] leading-relaxed text-[var(--text)]">

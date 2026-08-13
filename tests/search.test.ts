@@ -39,6 +39,56 @@ describe("the mortgage failure, fixed", () => {
   });
 });
 
+describe("tiered relevance", () => {
+  // The flat-ranking failure: "mortgage" returned 61 tools within a point of
+  // each other, so a generic QR maker sat among the top suggestions. Tiers
+  // from lib/tools/relevance.ts now outrank score, and these lock that in.
+
+  test("every hit carries a tier", () => {
+    const tiers = new Set(["core", "strong", "broad", "incidental"]);
+    for (const h of searchTools(index, "mortgage")) {
+      assert.ok(tiers.has(h.tier), `${h.tool.slug} has tier "${h.tier}"`);
+    }
+  });
+
+  test("mortgage leads with core and strong tools", () => {
+    const hits = searchTools(index, "mortgage");
+    const best = hits.filter((h) => h.tier === "core" || h.tier === "strong");
+    assert.ok(best.length > 0, "mortgage should have core or strong hits");
+    for (const h of hits.slice(0, best.length)) {
+      assert.ok(
+        h.tier === "core" || h.tier === "strong",
+        `${h.tool.slug} (${h.tier}) ranked among the close matches`,
+      );
+    }
+  });
+
+  test("generic tools stay out of the mortgage top five", () => {
+    const top5 = searchTools(index, "mortgage").slice(0, 5).map((h) => h.tool.slug);
+    assert.ok(!top5.includes("qr-code-maker"), "the QR maker is not a mortgage tool");
+    assert.ok(!top5.includes("google-review-link"), "the review link is not a mortgage tool");
+  });
+
+  test("tier order is monotonic, so no broad hit outranks a core one", () => {
+    const rank = { core: 3, strong: 2, broad: 1, incidental: 0 } as const;
+    for (const q of ["mortgage", "roofer", "restaurant", "doctor"]) {
+      const hits = searchTools(index, q);
+      for (let i = 1; i < hits.length; i++) {
+        assert.ok(
+          rank[hits[i].tier] <= rank[hits[i - 1].tier],
+          `"${q}": ${hits[i - 1].tool.slug} (${hits[i - 1].tier}) ranked above ${hits[i].tool.slug} (${hits[i].tier})`,
+        );
+      }
+    }
+  });
+
+  test("an empty query still returns every tool, all tiered", () => {
+    const hits = searchTools(index, "");
+    assert.equal(hits.length, TOOLS.length);
+    for (const h of hits) assert.ok(h.tier, `${h.tool.slug} is missing a tier`);
+  });
+});
+
 describe("industry vocabulary", () => {
   test("doctor reaches practice operations tools, not clinical ones", () => {
     const hits = find("doctor");
