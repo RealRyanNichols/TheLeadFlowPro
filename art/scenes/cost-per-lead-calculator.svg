@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#34d399"/>
+      <stop offset="1" stop-color="#0ea371"/>
+    </linearGradient>
+    <radialGradient id="w1">
+      <stop offset="0" stop-color="#34d399" stop-opacity=".13"/>
+      <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w2">
+      <stop offset="0" stop-color="#0ea371" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#0ea371" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="280" cy="760" r="430" fill="url(#w1)"/>
+  <circle cx="330" cy="190" r="300" fill="url(#w2)"/>
+  <circle cx="1250" cy="700" r="360" fill="url(#w2)"/>
+
+  <!-- ground shadow -->
+  <ellipse cx="780" cy="806" rx="580" ry="26" fill="#0e1a2e" opacity=".07"/>
+
+  <!-- stepped funnel channel, narrowing left to right -->
+  <path d="M 150,294 Q 150,270 174,270 H 580 V 360 H 1020 V 430 H 1382 Q 1400,430 1400,448 V 592 Q 1400,610 1382,610 H 1020 V 680 H 580 V 770 H 174 Q 150,770 150,746 Z" fill="url(#acc)"/>
+  <!-- darker inner top edge -->
+  <path d="M 154,296 Q 154,274 174,274 H 576 V 356 H 1016 V 426 H 1378" fill="none" stroke="#0ea371" stroke-width="12" opacity=".45"/>
+
+  <!-- stage 1: ad budget coins and bills -->
+  <g>
+    <rect x="392" y="418" width="86" height="130" rx="10" fill="#ffffff" opacity=".28" transform="rotate(8 435 483)"/>
+    <rect x="330" y="560" width="86" height="130" rx="10" fill="#ffffff" opacity=".22" transform="rotate(-7 373 625)"/>
+    <circle cx="258" cy="428" r="46" fill="#ffffff" opacity=".95"/>
+    <circle cx="258" cy="428" r="32" fill="none" stroke="#0ea371" stroke-width="5" opacity=".55"/>
+    <circle cx="340" cy="518" r="40" fill="#ffffff" opacity=".9"/>
+    <circle cx="340" cy="518" r="27" fill="none" stroke="#0ea371" stroke-width="5" opacity=".5"/>
+    <circle cx="256" cy="606" r="37" fill="#ffffff" opacity=".88"/>
+    <circle cx="256" cy="606" r="24" fill="none" stroke="#0ea371" stroke-width="5" opacity=".5"/>
+  </g>
+
+  <!-- stage 2: leads -->
+  <g fill="#ffffff">
+    <g transform="translate(690 540)" opacity=".92">
+      <circle cy="-32" r="21"/>
+      <path d="M -36,30 C -36,4 -21,-9 0,-9 C 21,-9 36,4 36,30 Z"/>
+    </g>
+    <g transform="translate(800 566)" opacity=".78">
+      <circle cy="-32" r="21"/>
+      <path d="M -36,30 C -36,4 -21,-9 0,-9 C 21,-9 36,4 36,30 Z"/>
+    </g>
+    <g transform="translate(908 532)" opacity=".88">
+      <circle cy="-32" r="21"/>
+      <path d="M -36,30 C -36,4 -21,-9 0,-9 C 21,-9 36,4 36,30 Z"/>
+    </g>
+  </g>
+
+  <!-- stage 3: paying customers with check badges -->
+  <g>
+    <g transform="translate(1130 542)">
+      <circle cy="-27" r="18" fill="#ffffff"/>
+      <path d="M -31,26 C -31,4 -18,-7 0,-7 C 18,-7 31,4 31,26 Z" fill="#ffffff"/>
+      <circle cx="22" cy="-42" r="13" fill="#ffffff"/>
+      <path d="M 16,-42 L 21,-37 L 29,-47" fill="none" stroke="#0ea371" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(1262 548)">
+      <circle cy="-27" r="18" fill="#ffffff"/>
+      <path d="M -31,26 C -31,4 -18,-7 0,-7 C 18,-7 31,4 31,26 Z" fill="#ffffff"/>
+      <circle cx="22" cy="-42" r="13" fill="#ffffff"/>
+      <path d="M 16,-42 L 21,-37 L 29,-47" fill="none" stroke="#0ea371" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- drop-off at each narrowing step -->
+  <g fill="#0ea371">
+    <circle cx="602" cy="716" r="10" opacity=".55"/>
+    <circle cx="618" cy="764" r="8" opacity=".38"/>
+    <circle cx="631" cy="808" r="6" opacity=".22"/>
+    <circle cx="1040" cy="708" r="9" opacity=".5"/>
+    <circle cx="1054" cy="752" r="7" opacity=".34"/>
+    <circle cx="1066" cy="794" r="5" opacity=".2"/>
+  </g>
+
+  <!-- exit flow to the right -->
+  <g fill="none" stroke="#8299b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 1432,486 L 1466,520 L 1432,554"/>
+    <path d="M 1478,492 L 1506,520 L 1478,548" opacity=".55"/>
+  </g>
+</svg>

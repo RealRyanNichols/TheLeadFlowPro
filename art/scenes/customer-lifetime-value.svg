@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <radialGradient id="w1" gradientUnits="userSpaceOnUse" cx="1150" cy="320" r="620">
+      <stop offset="0" stop-color="#fbbf24" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w2" gradientUnits="userSpaceOnUse" cx="300" cy="720" r="480">
+      <stop offset="0" stop-color="#f97316" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#f97316" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+    <radialGradient id="sh" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#0e1a2e" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#0e1a2e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <rect width="1600" height="900" fill="url(#w1)"/>
+  <rect width="1600" height="900" fill="url(#w2)"/>
+
+  <!-- value rings radiating from the customer -->
+  <g fill="none" stroke="#fbbf24" stroke-linecap="round" stroke-dasharray="3 20">
+    <path d="M860,430 A270,270 0 0 1 1400,430" stroke-width="4" opacity="0.45"/>
+    <path d="M800,430 A330,330 0 0 1 1460,430" stroke-width="4" opacity="0.25"/>
+  </g>
+
+  <ellipse cx="1075" cy="716" rx="340" ry="28" fill="url(#sh)"/>
+  <line x1="840" y1="712" x2="1450" y2="712" stroke="#d7e0ee" stroke-width="3"/>
+
+  <!-- journey trail -->
+  <path d="M60,772 C150,760 170,716 240,706 C330,694 380,616 460,610 C540,604 610,668 690,660 C750,654 800,632 835,600"
+        fill="none" stroke="#b9c6da" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 22"/>
+
+  <!-- milestone: first sale -->
+  <circle cx="240" cy="706" r="52" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <g transform="translate(240,708) rotate(45)">
+    <rect x="-17" y="-17" width="34" height="34" rx="7" fill="#8299b8"/>
+    <circle cx="0" cy="-7" r="4.5" fill="#ffffff"/>
+  </g>
+  <rect x="222" y="636" width="36" height="11" rx="5" fill="url(#acc)"/>
+
+  <!-- milestone: repeat visits -->
+  <circle cx="460" cy="610" r="52" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <g transform="translate(460,610)" stroke="#8299b8" stroke-width="5" fill="none" stroke-linecap="round">
+    <path d="M-15,-5 A15,15 0 0 1 15,-5"/>
+    <path d="M15,5 A15,15 0 0 1 -15,5"/>
+  </g>
+  <path d="M15,-5 l8,-5 l-3,10 z" transform="translate(460,610)" fill="#8299b8"/>
+  <path d="M-15,5 l-8,5 l3,-10 z" transform="translate(460,610)" fill="#8299b8"/>
+  <rect x="442" y="540" width="36" height="11" rx="5" fill="url(#acc)"/>
+  <rect x="442" y="526" width="36" height="11" rx="5" fill="url(#acc)"/>
+
+  <!-- milestone: referral -->
+  <circle cx="690" cy="660" r="52" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <g transform="translate(690,660)">
+    <circle cx="-9" cy="-9" r="8.5" fill="#8299b8"/>
+    <path d="M-22,15 a13,11 0 0 1 26,0 z" fill="#8299b8"/>
+    <circle cx="11" cy="-3" r="7.5" fill="#0e1a2e"/>
+    <path d="M0,17 a11,10 0 0 1 22,0 z" fill="#0e1a2e"/>
+  </g>
+  <rect x="672" y="590" width="36" height="11" rx="5" fill="url(#acc)"/>
+  <rect x="672" y="576" width="36" height="11" rx="5" fill="url(#acc)"/>
+  <rect x="672" y="562" width="36" height="11" rx="5" fill="url(#acc)"/>
+
+  <!-- the customer -->
+  <rect x="1085" y="400" width="90" height="90" fill="#0e1a2e"/>
+  <circle cx="1130" cy="310" r="110" fill="#0e1a2e"/>
+  <path d="M950,710 L950,620 Q950,470 1130,470 Q1310,470 1310,620 L1310,710 Z" fill="#0e1a2e"/>
+  <path d="M1103,474 L1130,514 L1157,474 Z" fill="#ffffff"/>
+
+  <!-- accumulated value -->
+  <g>
+    <rect x="806" y="674" width="180" height="36" rx="18" fill="url(#acc)"/>
+    <rect x="812" y="698" width="168" height="8" rx="4" fill="#f97316" opacity="0.35"/>
+    <rect x="800" y="636" width="180" height="36" rx="18" fill="url(#acc)"/>
+    <rect x="806" y="660" width="168" height="8" rx="4" fill="#f97316" opacity="0.35"/>
+    <rect x="810" y="598" width="180" height="36" rx="18" fill="url(#acc)"/>
+    <rect x="816" y="622" width="168" height="8" rx="4" fill="#f97316" opacity="0.35"/>
+    <rect x="804" y="560" width="180" height="36" rx="18" fill="url(#acc)"/>
+    <rect x="810" y="584" width="168" height="8" rx="4" fill="#f97316" opacity="0.35"/>
+    <rect x="808" y="522" width="180" height="36" rx="18" fill="url(#acc)"/>
+    <ellipse cx="898" cy="524" rx="90" ry="17" fill="#fbbf24"/>
+    <ellipse cx="898" cy="524" rx="60" ry="10" fill="none" stroke="#f97316" stroke-width="3" opacity="0.4"/>
+  </g>
+  <circle cx="1022" cy="674" r="35" fill="url(#acc)"/>
+  <circle cx="1022" cy="674" r="22" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.6"/>
+</svg>

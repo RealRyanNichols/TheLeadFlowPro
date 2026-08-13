@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+    <radialGradient id="w1"><stop offset="0" stop-color="#22d3ee" stop-opacity=".13"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w2"><stop offset="0" stop-color="#3b82f6" stop-opacity=".1"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <ellipse cx="320" cy="220" rx="480" ry="330" fill="url(#w1)"/>
+  <ellipse cx="1280" cy="400" rx="500" ry="380" fill="url(#w2)"/>
+  <ellipse cx="800" cy="120" rx="420" ry="180" fill="url(#w1)" opacity=".7"/>
+
+  <!-- kitchen window -->
+  <rect x="150" y="100" width="330" height="290" rx="16" fill="#ffffff" opacity=".55" stroke="#d7e0ee" stroke-width="6"/>
+  <line x1="315" y1="106" x2="315" y2="384" stroke="#d7e0ee" stroke-width="4"/>
+  <line x1="156" y1="245" x2="474" y2="245" stroke="#d7e0ee" stroke-width="4"/>
+  <rect x="130" y="390" width="370" height="16" rx="8" fill="#e8eef5"/>
+
+  <!-- pendant lamp -->
+  <line x1="1000" y1="0" x2="1000" y2="140" stroke="#0e1a2e" stroke-width="5"/>
+  <path d="M940 150 a60 55 0 0 1 120 0 Z" fill="#0e1a2e"/>
+  <circle cx="1000" cy="160" r="9" fill="url(#acc)"/>
+  <ellipse cx="1000" cy="250" rx="100" ry="60" fill="url(#w1)"/>
+
+  <!-- table -->
+  <rect x="250" y="604" width="26" height="120" fill="#b9c6da"/>
+  <rect x="1330" y="604" width="26" height="120" fill="#b9c6da"/>
+  <rect x="150" y="604" width="1300" height="16" fill="#e8eef5"/>
+  <rect x="110" y="566" width="1380" height="38" rx="19" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+
+  <!-- shadows on the tabletop -->
+  <ellipse cx="720" cy="568" rx="430" ry="12" fill="#0e1a2e" opacity=".05"/>
+  <ellipse cx="1320" cy="566" rx="135" ry="11" fill="#0e1a2e" opacity=".07"/>
+
+  <!-- housing envelope -->
+  <rect x="326" y="226" width="250" height="20" rx="8" fill="#e8eef5" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="310" y="240" width="250" height="326" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <path d="M312 254 L435 364 L558 254" fill="none" stroke="#8299b8" stroke-width="4" stroke-linejoin="round"/>
+  <g fill="#0e1a2e">
+    <polygon points="435,408 383,456 487,456"/>
+    <rect x="396" y="456" width="78" height="58"/>
+    <rect x="424" y="482" width="22" height="32" fill="#ffffff"/>
+  </g>
+
+  <!-- grocery envelope -->
+  <rect x="614" y="256" width="250" height="20" rx="8" fill="#e8eef5" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="600" y="270" width="250" height="296" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <path d="M602 284 L725 384 L848 284" fill="none" stroke="#8299b8" stroke-width="4" stroke-linejoin="round"/>
+  <g fill="#0e1a2e">
+    <circle cx="725" cy="478" r="36"/>
+    <rect x="720" y="430" width="9" height="20" rx="4"/>
+    <ellipse cx="746" cy="438" rx="17" ry="9" transform="rotate(-28 746 438)"/>
+  </g>
+  <circle cx="712" cy="466" r="7" fill="#ffffff" opacity=".8"/>
+
+  <!-- utilities envelope -->
+  <rect x="902" y="288" width="240" height="20" rx="8" fill="#e8eef5" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="890" y="302" width="240" height="264" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <path d="M892 316 L1010 406 L1128 316" fill="none" stroke="#8299b8" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="1022,424 972,494 1002,494 988,538 1042,466 1010,466" fill="#0e1a2e"/>
+
+  <!-- savings jar -->
+  <rect x="1216" y="240" width="208" height="30" rx="12" fill="#8299b8"/>
+  <rect x="1288" y="234" width="64" height="9" rx="4" fill="#0e1a2e" opacity=".55"/>
+  <rect x="1200" y="268" width="240" height="298" rx="28" fill="#ffffff" opacity=".8" stroke="#d7e0ee" stroke-width="4"/>
+  <rect x="1230" y="528" width="180" height="22" rx="11" fill="url(#acc)"/>
+  <rect x="1230" y="500" width="180" height="22" rx="11" fill="#3b82f6" opacity=".8"/>
+  <rect x="1230" y="472" width="180" height="22" rx="11" fill="url(#acc)"/>
+  <rect x="1252" y="444" width="136" height="22" rx="11" fill="url(#acc)"/>
+  <path d="M1224 300 v210" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity=".8"/>
+  <!-- coin dropping in -->
+  <circle cx="1320" cy="196" r="30" fill="url(#acc)"/>
+  <circle cx="1320" cy="196" r="18" fill="none" stroke="#ffffff" stroke-width="4" opacity=".65"/>
+  <line x1="1320" y1="140" x2="1320" y2="122" stroke="#8299b8" stroke-width="5" stroke-linecap="round"/>
+  <line x1="1348" y1="152" x2="1360" y2="138" stroke="#8299b8" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- title band with category chips -->
+  <rect x="120" y="704" width="1360" height="140" rx="22" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <g>
+    <rect x="220" y="754" width="40" height="40" rx="12" fill="url(#acc)"/>
+    <rect x="284" y="768" width="150" height="14" rx="7" fill="#b9c6da"/>
+    <rect x="560" y="754" width="40" height="40" rx="12" fill="#8299b8"/>
+    <rect x="624" y="768" width="150" height="14" rx="7" fill="#b9c6da"/>
+    <rect x="900" y="754" width="40" height="40" rx="12" fill="#b9c6da"/>
+    <rect x="964" y="768" width="150" height="14" rx="7" fill="#b9c6da"/>
+    <rect x="1240" y="754" width="40" height="40" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="1304" y="768" width="150" height="14" rx="7" fill="#b9c6da"/>
+  </g>
+</svg>

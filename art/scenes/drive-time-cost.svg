@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f87171"/><stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+    <radialGradient id="wA"><stop offset="0" stop-color="#f87171" stop-opacity=".12"/><stop offset="1" stop-color="#f87171" stop-opacity="0"/></radialGradient>
+    <radialGradient id="wB"><stop offset="0" stop-color="#ef4444" stop-opacity=".09"/><stop offset="1" stop-color="#ef4444" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <ellipse cx="810" cy="520" rx="580" ry="310" fill="url(#wA)"/>
+  <ellipse cx="180" cy="560" rx="300" ry="220" fill="url(#wB)"/>
+  <ellipse cx="1440" cy="540" rx="280" ry="220" fill="url(#wB)"/>
+
+  <!-- route -->
+  <path d="M150,618 C280,486 400,742 600,672 L1010,610 C1130,592 1320,690 1450,598" fill="none" stroke="#8299b8" stroke-width="7" stroke-dasharray="24 18" stroke-linecap="round"/>
+
+  <!-- job A -->
+  <ellipse cx="152" cy="630" rx="105" ry="13" fill="#0e1a2e" opacity=".07"/>
+  <rect x="104" y="560" width="92" height="58" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <polygon points="92,560 150,514 208,560" fill="#0e1a2e"/>
+  <rect x="138" y="584" width="26" height="34" fill="#8299b8"/>
+  <path d="M150,500 C132,472 124,462 124,446 a26,26 0 1 1 52,0 c0,16 -8,26 -26,54 Z" fill="#f87171"/>
+  <path d="M150,500 C160,483 168,472 172,462 l-22,-8 Z" fill="#ef4444"/>
+  <circle cx="150" cy="446" r="11" fill="#ffffff"/>
+
+  <!-- job B -->
+  <ellipse cx="1450" cy="612" rx="95" ry="12" fill="#0e1a2e" opacity=".07"/>
+  <rect x="1408" y="546" width="84" height="52" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <polygon points="1396,546 1450,504 1504,546" fill="#0e1a2e"/>
+  <rect x="1438" y="568" width="24" height="30" fill="#8299b8"/>
+  <path d="M1450,492 C1432,464 1424,454 1424,438 a26,26 0 1 1 52,0 c0,16 -8,26 -26,54 Z" fill="#ffffff" stroke="#ef4444" stroke-width="5"/>
+  <circle cx="1450" cy="438" r="9" fill="#ef4444"/>
+
+  <!-- trailing hour markers -->
+  <circle cx="660" cy="540" r="46" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <path d="M660,502 a38,38 0 0 1 32,58" fill="none" stroke="#ef4444" stroke-width="5" stroke-linecap="round"/>
+  <line x1="660" y1="540" x2="660" y2="512" stroke="#0e1a2e" stroke-width="5" stroke-linecap="round"/>
+  <line x1="660" y1="540" x2="680" y2="552" stroke="#0e1a2e" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="660" cy="540" r="4" fill="#0e1a2e"/>
+  <circle cx="556" cy="462" r="36" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <path d="M556,432 a30,30 0 0 1 25,46" fill="none" stroke="#ef4444" stroke-width="5" stroke-linecap="round"/>
+  <line x1="556" y1="462" x2="556" y2="440" stroke="#0e1a2e" stroke-width="5" stroke-linecap="round"/>
+  <line x1="556" y1="462" x2="571" y2="471" stroke="#0e1a2e" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="556" cy="462" r="3.5" fill="#0e1a2e"/>
+  <circle cx="470" cy="398" r="27" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <line x1="470" y1="398" x2="470" y2="382" stroke="#0e1a2e" stroke-width="5" stroke-linecap="round"/>
+  <line x1="470" y1="398" x2="481" y2="405" stroke="#0e1a2e" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="470" cy="398" r="3" fill="#0e1a2e"/>
+
+  <!-- van -->
+  <ellipse cx="815" cy="656" rx="215" ry="20" fill="#0e1a2e" opacity=".08"/>
+  <g transform="translate(820,639) rotate(-8)">
+    <line x1="-196" y1="-96" x2="-240" y2="-96" stroke="#f87171" stroke-width="8" stroke-linecap="round"/>
+    <line x1="-186" y1="-64" x2="-220" y2="-64" stroke="#f87171" stroke-width="8" stroke-linecap="round"/>
+    <!-- ladder -->
+    <rect x="-124" y="-152" width="10" height="12" fill="#0e1a2e"/>
+    <rect x="24" y="-152" width="10" height="12" fill="#0e1a2e"/>
+    <line x1="-158" y1="-154" x2="70" y2="-154" stroke="#0e1a2e" stroke-width="5"/>
+    <line x1="-158" y1="-166" x2="70" y2="-166" stroke="#0e1a2e" stroke-width="5"/>
+    <line x1="-138" y1="-166" x2="-138" y2="-154" stroke="#0e1a2e" stroke-width="4"/>
+    <line x1="-104" y1="-166" x2="-104" y2="-154" stroke="#0e1a2e" stroke-width="4"/>
+    <line x1="-70" y1="-166" x2="-70" y2="-154" stroke="#0e1a2e" stroke-width="4"/>
+    <line x1="-36" y1="-166" x2="-36" y2="-154" stroke="#0e1a2e" stroke-width="4"/>
+    <line x1="-2" y1="-166" x2="-2" y2="-154" stroke="#0e1a2e" stroke-width="4"/>
+    <line x1="32" y1="-166" x2="32" y2="-154" stroke="#0e1a2e" stroke-width="4"/>
+    <!-- body -->
+    <path d="M-170,-40 V-126 Q-170,-140 -156,-140 H96 Q114,-140 124,-124 L156,-78 Q162,-68 178,-66 L188,-64 Q198,-62 198,-50 V-40 Q198,-30 188,-30 H-160 Q-170,-30 -170,-40 Z" fill="url(#g)"/>
+    <rect x="-166" y="-58" width="360" height="28" fill="#ef4444" opacity=".3"/>
+    <path d="M102,-130 Q96,-130 96,-124 V-92 Q96,-84 104,-84 H134 L104,-128 Q103,-130 102,-130 Z" fill="#ffffff"/>
+    <rect x="52" y="-130" width="38" height="46" rx="6" fill="#ffffff"/>
+    <line x1="44" y1="-136" x2="44" y2="-34" stroke="#ffffff" stroke-width="3" opacity=".45"/>
+    <rect x="24" y="-92" width="18" height="6" rx="3" fill="#ffffff" opacity=".75"/>
+    <rect x="188" y="-62" width="10" height="14" rx="4" fill="#ffffff"/>
+    <!-- wheels -->
+    <circle cx="-100" cy="-30" r="30" fill="#0e1a2e"/>
+    <circle cx="-100" cy="-30" r="12" fill="#ffffff"/>
+    <circle cx="-100" cy="-30" r="4" fill="#8299b8"/>
+    <circle cx="130" cy="-30" r="30" fill="#0e1a2e"/>
+    <circle cx="130" cy="-30" r="12" fill="#ffffff"/>
+    <circle cx="130" cy="-30" r="4" fill="#8299b8"/>
+  </g>
+</svg>

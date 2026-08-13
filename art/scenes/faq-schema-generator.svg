@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+    <radialGradient id="wa">
+      <stop offset="0" stop-color="#fbbf24" stop-opacity=".13"/>
+      <stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="wo">
+      <stop offset="0" stop-color="#f97316" stop-opacity=".09"/>
+      <stop offset="1" stop-color="#f97316" stop-opacity="0"/>
+    </radialGradient>
+    <g id="qm">
+      <path d="M -46,-38 C -46,-78 -16,-100 6,-100 C 36,-100 56,-78 56,-52 C 56,-28 38,-16 20,-4 C 8,4 0,16 0,32" fill="none" stroke-width="22" stroke-linecap="round"/>
+      <circle cy="74" r="13"/>
+    </g>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="1330" cy="150" r="340" fill="url(#wa)"/>
+  <circle cx="240" cy="810" r="330" fill="url(#wo)"/>
+
+  <!-- question bubbles -->
+  <g transform="rotate(-2 295 240)">
+    <path d="M 176,170 H 414 Q 440,170 440,196 V 284 Q 440,310 414,310 H 398 L 446,348 L 336,310 H 176 Q 150,310 150,284 V 196 Q 150,170 176,170 Z" fill="#ffffff" stroke="#d7e0ee" stroke-width="4" stroke-linejoin="round"/>
+    <g stroke="#8299b8" fill="#8299b8" transform="translate(293 244) scale(.6)">
+      <use href="#qm"/>
+    </g>
+  </g>
+  <g>
+    <path d="M 216,360 H 494 Q 520,360 520,386 V 504 Q 520,530 494,530 H 478 L 530,572 L 414,530 H 216 Q 190,530 190,504 V 386 Q 190,360 216,360 Z" fill="#ffffff" stroke="#d7e0ee" stroke-width="4" stroke-linejoin="round"/>
+    <g stroke="url(#acc)" fill="#f97316" transform="translate(353 452) scale(.78)">
+      <use href="#qm"/>
+    </g>
+  </g>
+  <g transform="rotate(2 290 655)">
+    <path d="M 166,580 H 414 Q 440,580 440,606 V 704 Q 440,730 414,730 H 396 L 444,768 L 334,730 H 166 Q 140,730 140,704 V 606 Q 140,580 166,580 Z" fill="#ffffff" stroke="#d7e0ee" stroke-width="4" stroke-linejoin="round"/>
+    <g stroke="#8299b8" fill="#8299b8" transform="translate(288 660) scale(.66)">
+      <use href="#qm"/>
+    </g>
+  </g>
+
+  <!-- transform flow -->
+  <g fill="none" stroke="#8299b8" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 592,398 L 634,438 L 592,478"/>
+    <path d="M 652,398 L 694,438 L 652,478" opacity=".5"/>
+  </g>
+
+  <!-- result page with structured answers -->
+  <ellipse cx="1095" cy="812" rx="340" ry="18" fill="#0e1a2e" opacity=".06"/>
+  <rect x="740" y="130" width="710" height="650" rx="26" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+  <!-- search bar -->
+  <rect x="786" y="178" width="400" height="64" rx="32" fill="#f7f9fc" stroke="#d7e0ee" stroke-width="3"/>
+  <circle cx="824" cy="208" r="13" fill="none" stroke="#0e1a2e" stroke-width="6"/>
+  <line x1="834" y1="219" x2="847" y2="232" stroke="#0e1a2e" stroke-width="6" stroke-linecap="round"/>
+  <rect x="870" y="201" width="150" height="14" rx="7" fill="#d7e0ee"/>
+
+  <!-- expanded answer card -->
+  <rect x="786" y="282" width="618" height="196" rx="18" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="786" y="282" width="14" height="196" rx="7" fill="url(#acc)"/>
+  <rect x="830" y="312" width="300" height="18" rx="9" fill="#0e1a2e" opacity=".7"/>
+  <path d="M 1342,334 L 1360,316 L 1378,334" fill="none" stroke="#8299b8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="830" y="362" width="520" height="12" rx="6" fill="#d7e0ee"/>
+  <rect x="830" y="390" width="484" height="12" rx="6" fill="#d7e0ee"/>
+  <rect x="830" y="418" width="502" height="12" rx="6" fill="#d7e0ee"/>
+  <rect x="830" y="446" width="318" height="12" rx="6" fill="#fbbf24" opacity=".55"/>
+
+  <!-- collapsed answer cards -->
+  <rect x="786" y="502" width="618" height="112" rx="18" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="786" y="502" width="14" height="112" rx="7" fill="url(#acc)"/>
+  <rect x="830" y="548" width="262" height="18" rx="9" fill="#8299b8" opacity=".8"/>
+  <path d="M 1342,548 L 1360,566 L 1378,548" fill="none" stroke="#8299b8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="786" y="638" width="618" height="112" rx="18" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="786" y="638" width="14" height="112" rx="7" fill="url(#acc)"/>
+  <rect x="830" y="684" width="322" height="18" rx="9" fill="#8299b8" opacity=".8"/>
+  <path d="M 1342,684 L 1360,702 L 1378,684" fill="none" stroke="#8299b8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

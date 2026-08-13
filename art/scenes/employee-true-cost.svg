@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#d946ef"/>
+    </linearGradient>
+    <radialGradient id="wv">
+      <stop offset="0" stop-color="#a78bfa" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="wf">
+      <stop offset="0" stop-color="#d946ef" stop-opacity=".09"/>
+      <stop offset="1" stop-color="#d946ef" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="190" cy="150" r="330" fill="url(#wv)"/>
+  <circle cx="1430" cy="740" r="350" fill="url(#wf)"/>
+
+  <!-- ground shadow -->
+  <ellipse cx="800" cy="858" rx="310" ry="20" fill="#0e1a2e" opacity=".06"/>
+
+  <!-- cost rings -->
+  <circle cx="800" cy="470" r="240" fill="none" stroke="#d7e0ee" stroke-width="4"/>
+  <circle cx="800" cy="470" r="290" fill="none" stroke="#b9c6da" stroke-width="4" stroke-dasharray="2 18" stroke-linecap="round"/>
+  <circle cx="800" cy="470" r="340" fill="none" stroke="#d7e0ee" stroke-width="4"/>
+
+  <!-- wage core -->
+  <circle cx="800" cy="470" r="178" fill="url(#acc)"/>
+  <circle cx="800" cy="470" r="170" fill="none" stroke="#d946ef" stroke-width="9" opacity=".35"/>
+
+  <!-- employee bust -->
+  <circle cx="800" cy="356" r="60" fill="#0e1a2e"/>
+  <path d="M 704,648 L 704,556 C 704,494 744,452 800,452 C 856,452 896,494 896,556 L 896,648 Z" fill="#0e1a2e"/>
+
+  <!-- satellite cost chips -->
+  <!-- taxes (percent) -->
+  <g transform="translate(537 347)">
+    <circle r="54" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+    <line x1="-18" y1="18" x2="18" y2="-18" stroke="#0e1a2e" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="-16" cy="-16" r="9" fill="none" stroke="#0e1a2e" stroke-width="7"/>
+    <circle cx="16" cy="16" r="9" fill="none" stroke="#0e1a2e" stroke-width="7"/>
+  </g>
+  <!-- benefits (heart) -->
+  <g transform="translate(1063 347)">
+    <circle r="54" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+    <path d="M 0,22 C -5,12 -26,1 -26,-11 C -26,-23 -15,-29 -6,-24 C -2,-22 0,-18 0,-15 C 0,-18 2,-22 6,-24 C 15,-29 26,-23 26,-11 C 26,1 5,12 0,22 Z" fill="none" stroke="#0e1a2e" stroke-width="7" stroke-linejoin="round"/>
+  </g>
+  <!-- equipment (laptop) -->
+  <g transform="translate(1079 665)">
+    <circle r="54" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+    <rect x="-20" y="-26" width="40" height="30" rx="4" fill="none" stroke="#0e1a2e" stroke-width="7"/>
+    <path d="M -34,18 L 34,18 L 26,7 L -26,7 Z" fill="#0e1a2e"/>
+  </g>
+  <!-- management time (clock) -->
+  <g transform="translate(521 665)">
+    <circle r="54" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+    <circle r="24" fill="none" stroke="#0e1a2e" stroke-width="7"/>
+    <path d="M 0,-10 V 2 L 10,8" fill="none" stroke="#0e1a2e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- payroll extras (banknote) -->
+  <g transform="translate(800 810)">
+    <circle r="54" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+    <rect x="-27" y="-17" width="54" height="34" rx="5" fill="none" stroke="#0e1a2e" stroke-width="6"/>
+    <circle r="8" fill="none" stroke="#0e1a2e" stroke-width="5"/>
+  </g>
+</svg>

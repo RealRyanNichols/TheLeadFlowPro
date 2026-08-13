@@ -8,7 +8,7 @@
 // Scenes in the same accent family share a palette, so some closeness is
 // expected — the threshold catches shared skeletons, not shared colors.
 
-import { readdirSync, existsSync } from "node:fs";
+import { readdirSync, existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "playwright";
 
@@ -42,7 +42,11 @@ const thumbs = await page.evaluate(async (files) => {
     out[slug] = Array.from(ctx.getImageData(0, 0, W, H).data);
   }
   return out;
-}, slugs.map((s) => [s, `file://${SCENES}/${s}.svg`]));
+}, slugs.map((s) => [
+  s,
+  // data: URI — Chromium refuses file:// subresources on about:blank pages.
+  `data:image/svg+xml;base64,${readFileSync(join(SCENES, `${s}.svg`)).toString("base64")}`,
+]));
 
 await browser.close();
 

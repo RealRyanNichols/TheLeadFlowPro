@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <radialGradient id="w1" gradientUnits="userSpaceOnUse" cx="1120" cy="420" r="620">
+      <stop offset="0" stop-color="#a78bfa" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w2" gradientUnits="userSpaceOnUse" cx="330" cy="740" r="460">
+      <stop offset="0" stop-color="#d946ef" stop-opacity="0.07"/>
+      <stop offset="1" stop-color="#d946ef" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#d946ef"/>
+    </linearGradient>
+    <radialGradient id="sh" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#0e1a2e" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#0e1a2e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <rect width="1600" height="900" fill="url(#w1)"/>
+  <rect width="1600" height="900" fill="url(#w2)"/>
+
+  <ellipse cx="490" cy="748" rx="160" ry="16" fill="url(#sh)"/>
+  <ellipse cx="1110" cy="762" rx="230" ry="18" fill="url(#sh)"/>
+
+  <!-- identical visitor streams -->
+  <g fill="#8299b8">
+    <circle cx="406" cy="150" r="9"/><circle cx="462" cy="150" r="9"/><circle cx="518" cy="150" r="9"/><circle cx="574" cy="150" r="9"/>
+    <circle cx="434" cy="186" r="9"/><circle cx="490" cy="186" r="9"/><circle cx="546" cy="186" r="9"/>
+    <circle cx="462" cy="222" r="9"/><circle cx="518" cy="222" r="9"/>
+    <circle cx="1026" cy="150" r="9"/><circle cx="1082" cy="150" r="9"/><circle cx="1138" cy="150" r="9"/><circle cx="1194" cy="150" r="9"/>
+    <circle cx="1054" cy="186" r="9"/><circle cx="1110" cy="186" r="9"/><circle cx="1166" cy="186" r="9"/>
+    <circle cx="1082" cy="222" r="9"/><circle cx="1138" cy="222" r="9"/>
+  </g>
+
+  <!-- before funnel -->
+  <g stroke="#d7e0ee" stroke-width="3" fill="#ffffff" stroke-linejoin="round">
+    <path d="M320,262 L660,262 L620,382 L360,382 Z"/>
+    <path d="M365,398 L615,398 L578,502 L402,502 Z"/>
+    <path d="M408,518 L572,518 L545,608 L435,608 Z"/>
+  </g>
+  <g stroke="#b9c6da" stroke-width="6" opacity="0.55" stroke-linecap="round">
+    <line x1="336" y1="274" x2="644" y2="274"/>
+    <line x1="379" y1="410" x2="601" y2="410"/>
+    <line x1="420" y1="530" x2="560" y2="530"/>
+  </g>
+  <circle cx="490" cy="650" r="10" fill="#8299b8"/>
+  <circle cx="490" cy="688" r="10" fill="#8299b8"/>
+  <rect x="420" y="722" width="140" height="18" rx="9" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+
+  <!-- after funnel -->
+  <g fill="url(#acc)">
+    <path d="M940,262 L1280,262 L1246,382 L974,382 Z"/>
+    <path d="M982,398 L1238,398 L1206,502 L1014,502 Z"/>
+    <path d="M1022,518 L1198,518 L1176,608 L1044,608 Z"/>
+  </g>
+  <g stroke="#d946ef" stroke-width="6" opacity="0.35" stroke-linecap="round">
+    <line x1="956" y1="274" x2="1264" y2="274"/>
+    <line x1="996" y1="410" x2="1224" y2="410"/>
+    <line x1="1034" y1="530" x2="1186" y2="530"/>
+  </g>
+  <g fill="url(#acc)">
+    <circle cx="1092" cy="648" r="10"/><circle cx="1128" cy="648" r="10"/>
+    <circle cx="1074" cy="684" r="10"/><circle cx="1110" cy="684" r="10"/><circle cx="1146" cy="684" r="10"/>
+    <circle cx="1110" cy="714" r="10"/>
+  </g>
+  <rect x="980" y="736" width="260" height="18" rx="9" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+
+  <!-- lift badge -->
+  <circle cx="1362" cy="300" r="46" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <line x1="1362" y1="324" x2="1362" y2="284" stroke="url(#acc)" stroke-width="9" stroke-linecap="round"/>
+  <path d="M1342,300 L1362,278 L1382,300" fill="none" stroke="url(#acc)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
