@@ -24,15 +24,13 @@
   <line x1="90" y1="812" x2="1000" y2="812" stroke="#d7e0ee" stroke-width="3"/>
   <ellipse cx="320" cy="634" rx="82" ry="10" fill="#0e1a2e" opacity=".05"/>
   <ellipse cx="580" cy="634" rx="82" ry="10" fill="#0e1a2e" opacity=".05"/>
-  <ellipse cx="870" cy="634" rx="82" ry="10" fill="#0e1a2e" opacity=".05"/>
   <ellipse cx="170" cy="814" rx="118" ry="13" fill="#0e1a2e" opacity=".07"/>
   <ellipse cx="450" cy="814" rx="118" ry="13" fill="#0e1a2e" opacity=".07"/>
-  <ellipse cx="680" cy="814" rx="118" ry="13" fill="#0e1a2e" opacity=".04"/>
+  <ellipse cx="740" cy="814" rx="118" ry="13" fill="#0e1a2e" opacity=".04"/>
 
   <!-- back row of seats (receding) -->
   <use href="#chair" transform="translate(320,630) scale(.72)" fill="#8299b8" stroke="#8299b8"/>
   <use href="#chair" transform="translate(580,630) scale(.72)" fill="#8299b8" stroke="#8299b8"/>
-  <use href="#chair" transform="translate(870,630) scale(.72)" fill="#8299b8" stroke="#8299b8"/>
   <!-- front row -->
   <use href="#chair" transform="translate(170,810)" fill="#0e1a2e" stroke="#0e1a2e"/>
   <use href="#chair" transform="translate(450,810)" fill="#0e1a2e" stroke="#0e1a2e"/>
