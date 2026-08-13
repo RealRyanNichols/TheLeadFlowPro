@@ -79,11 +79,11 @@
   </g>
 
   <!-- deposit stamp -->
-  <g transform="rotate(12 660 690)">
-    <circle cx="660" cy="690" r="76" fill="#ffffff" opacity=".9"/>
-    <circle cx="660" cy="690" r="76" fill="none" stroke="url(#acc)" stroke-width="9"/>
-    <circle cx="660" cy="690" r="57" fill="none" stroke="url(#acc)" stroke-width="4" stroke-dasharray="10 12"/>
-    <circle cx="660" cy="690" r="27" fill="url(#acc)"/>
-    <circle cx="660" cy="690" r="16" fill="none" stroke="#ffffff" stroke-width="4" opacity=".75"/>
+  <g transform="rotate(12 618 690)">
+    <circle cx="618" cy="690" r="76" fill="#ffffff" opacity=".9"/>
+    <circle cx="618" cy="690" r="76" fill="none" stroke="url(#acc)" stroke-width="9"/>
+    <circle cx="618" cy="690" r="57" fill="none" stroke="url(#acc)" stroke-width="4" stroke-dasharray="10 12"/>
+    <circle cx="618" cy="690" r="27" fill="url(#acc)"/>
+    <circle cx="618" cy="690" r="16" fill="none" stroke="#ffffff" stroke-width="4" opacity=".75"/>
   </g>
 </svg>

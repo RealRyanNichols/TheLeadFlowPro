@@ -16,15 +16,15 @@
   <ellipse cx="300" cy="822" rx="270" ry="18" fill="#0e1a2e" opacity=".06"/>
 
   <!-- arrival paths -->
-  <path d="M1520,220 Q1200,190 812,296" fill="none" stroke="#8299b8" stroke-width="4" stroke-dasharray="4 14" stroke-linecap="round"/>
-  <path d="M1560,480 Q1250,470 790,380" fill="none" stroke="#8299b8" stroke-width="4" stroke-dasharray="4 14" stroke-linecap="round"/>
-  <path d="M1480,740 Q1180,700 796,470" fill="none" stroke="#8299b8" stroke-width="4" stroke-dasharray="4 14" stroke-linecap="round"/>
-  <polygon points="812,296 842,282 838,306" fill="#8299b8"/>
-  <polygon points="790,380 820,372 812,394" fill="#8299b8"/>
-  <polygon points="796,470 826,468 814,490" fill="#8299b8"/>
+  <path d="M1520,220 Q1200,190 758,296" fill="none" stroke="#8299b8" stroke-width="4" stroke-dasharray="4 14" stroke-linecap="round"/>
+  <path d="M1560,480 Q1250,470 756,388" fill="none" stroke="#8299b8" stroke-width="4" stroke-dasharray="4 14" stroke-linecap="round"/>
+  <path d="M1480,740 Q1180,700 776,474" fill="none" stroke="#8299b8" stroke-width="4" stroke-dasharray="4 14" stroke-linecap="round"/>
+  <polygon points="732,302 760,285 761,309" fill="#8299b8"/>
+  <polygon points="730,384 757,376 754,400" fill="#8299b8"/>
+  <polygon points="753,461 781,464 770,486" fill="#8299b8"/>
 
   <!-- owner at desk -->
-  <circle cx="250" cy="430" r="44" fill="#0e1a2e"/>
+  <circle cx="250" cy="442" r="44" fill="#0e1a2e"/>
   <path d="M180,612 C182,540 200,490 250,480 C296,474 320,500 330,540 L340,612 Z" fill="#0e1a2e"/>
   <path d="M300,540 C330,560 352,578 372,592 L362,610 C330,600 298,582 286,566 Z" fill="#0e1a2e"/>
   <rect x="372" y="518" width="96" height="88" rx="6" fill="#0e1a2e"/>

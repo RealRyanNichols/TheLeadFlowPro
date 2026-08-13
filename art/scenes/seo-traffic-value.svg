@@ -81,22 +81,22 @@
   <rect x="214" y="530" width="100" height="9" rx="4" fill="#d7e0ee"/>
 
   <!-- visitor stream into the door -->
-  <path d="M480 300 C760 320 900 640 1210 646" fill="none" stroke="url(#awn)" stroke-width="30" opacity=".12" stroke-linecap="round"/>
+  <path d="M462 330 C540 520 560 660 700 692 C830 716 1000 706 1180 688" fill="none" stroke="url(#awn)" stroke-width="28" opacity=".11" stroke-linecap="round"/>
   <g>
-    <circle cx="500" cy="302" r="7" fill="#22d3ee"/>
-    <circle cx="560" cy="311" r="8" fill="#3b82f6"/>
-    <circle cx="620" cy="326" r="8" fill="#22d3ee"/>
-    <circle cx="678" cy="349" r="9" fill="#3b82f6"/>
-    <circle cx="730" cy="381" r="9" fill="#22d3ee"/>
-    <circle cx="775" cy="420" r="10" fill="#3b82f6"/>
-    <circle cx="815" cy="462" r="10" fill="#22d3ee"/>
-    <circle cx="851" cy="507" r="11" fill="#3b82f6"/>
-    <circle cx="886" cy="549" r="11" fill="#22d3ee"/>
-    <circle cx="926" cy="587" r="12" fill="#3b82f6"/>
-    <circle cx="971" cy="615" r="12" fill="#22d3ee"/>
-    <circle cx="1022" cy="634" r="13" fill="#3b82f6"/>
-    <circle cx="1077" cy="644" r="13" fill="#22d3ee"/>
-    <circle cx="1133" cy="648" r="14" fill="#3b82f6"/>
-    <circle cx="1190" cy="648" r="14" fill="#22d3ee"/>
+    <circle cx="470" cy="335" r="7" fill="#22d3ee"/>
+    <circle cx="500" cy="392" r="8" fill="#3b82f6"/>
+    <circle cx="526" cy="448" r="8" fill="#22d3ee"/>
+    <circle cx="550" cy="504" r="9" fill="#3b82f6"/>
+    <circle cx="576" cy="556" r="9" fill="#22d3ee"/>
+    <circle cx="606" cy="606" r="10" fill="#3b82f6"/>
+    <circle cx="640" cy="648" r="10" fill="#22d3ee"/>
+    <circle cx="682" cy="678" r="11" fill="#3b82f6"/>
+    <circle cx="730" cy="694" r="11" fill="#22d3ee"/>
+    <circle cx="792" cy="702" r="12" fill="#3b82f6"/>
+    <circle cx="862" cy="704" r="12" fill="#22d3ee"/>
+    <circle cx="936" cy="702" r="13" fill="#3b82f6"/>
+    <circle cx="1010" cy="700" r="13" fill="#22d3ee"/>
+    <circle cx="1086" cy="694" r="14" fill="#3b82f6"/>
+    <circle cx="1162" cy="688" r="14" fill="#22d3ee"/>
   </g>
 </svg>
