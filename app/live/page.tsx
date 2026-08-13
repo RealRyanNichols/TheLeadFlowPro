@@ -6,6 +6,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import CtaLink from "@/components/site/CtaLink";
 import LiveDashboard, { type LivePayload } from "@/components/live/LiveDashboard";
 import DashboardRequestForm from "@/components/live/DashboardRequestForm";
+import WebsiteGrader from "@/components/live/WebsiteGrader";
 
 // The public proof page. Server-rendered shell (indexable copy, metadata,
 // structured data) around a client dashboard that reads ONLY the sanitized
@@ -167,6 +168,30 @@ export default async function LivePage() {
         </p>
       </section>
 
+      {/* ---- website grader ---- */}
+      <section className="mx-auto mt-6 w-[min(1120px,100%-40px)]" aria-labelledby="grader-heading">
+        <div className="lfp-ink p-5 sm:p-8">
+          <div className="lfp-ink-grid" aria-hidden="true" />
+          <div className="lfp-ink-glow" style={{ background: "#35c6f4", top: -180, left: -140 }} aria-hidden="true" />
+          <div className="relative">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-[#5b87ff]">
+              The LeadFlow Radar
+            </p>
+            <h2 id="grader-heading" className="mt-2 font-display text-2xl font-black tracking-tight text-white sm:text-3xl">
+              How does your website compare?
+            </h2>
+            <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-[#c9d3e4]">
+              Plug in your address. We run the same checks Google runs — plus our own lead-capture
+              radar — and put your grades next to this site&apos;s and the average of every site
+              graded here. Three columns. Same ruler. No guessing.
+            </p>
+            <div className="mt-5">
+              <WebsiteGrader />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ---- what this can track ---- */}
       <section className="mx-auto mt-16 w-[min(1120px,100%-40px)]" aria-labelledby="track-heading">
         <h2 id="track-heading" className="font-display text-3xl font-black tracking-tight text-[var(--heading)] sm:text-4xl">
@@ -235,7 +260,7 @@ export default async function LivePage() {
             what they clicked, where they left, which pages created leads, and what needs to be
             fixed next. Turn attention into conversations. Turn conversations into sales.
           </p>
-          <div className="mt-8">
+          <div id="dashboard-request" className="mt-8 scroll-mt-24">
             <DashboardRequestForm />
           </div>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
