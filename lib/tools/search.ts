@@ -24,6 +24,7 @@ import {
   type Industry,
   type ToolType,
 } from "./taxonomy";
+import { relevanceTier } from "./relevance";
 /**
  * What search needs to know about a tool. The directory passes a plain
  * serializable index rather than the registry itself, because a Tool holds its
@@ -358,7 +359,23 @@ export function buildSearchText(t: {
 
 /* --------------------------------- scoring --------------------------------- */
 
-export type SearchHit<T extends Searchable = Searchable> = { tool: T; score: number };
+/**
+ * How honestly a hit belongs to what was searched. Score alone could not say
+ * this: a QR maker matching "mortgage" through its generous industry list
+ * scored within a point of the loan calculator, so the ranking looked flat and
+ * generic tools sat among the top suggestions. The tier is the strict reading
+ * from lib/tools/relevance.ts, and it always outranks score.
+ *
+ * - "core": built for an industry the query resolved to
+ * - "strong": strongly related to it, or a direct name/keyword match
+ * - "broad": useful to almost any business
+ * - "incidental": only reachable through the generous tagging
+ */
+export type RelevanceTier = "core" | "strong" | "broad" | "incidental";
+
+const TIER_RANK: Record<RelevanceTier, number> = { core: 3, strong: 2, broad: 1, incidental: 0 };
+
+export type SearchHit<T extends Searchable = Searchable> = { tool: T; score: number; tier: RelevanceTier };
 
 const W = {
   nameExact: 260,
@@ -390,9 +407,40 @@ function satisfies(tool: Searchable, f: Facets | undefined): boolean {
   return false;
 }
 
+/**
+ * Where the words landed, for tiering. 2 means the name, short name or a
+ * keyword matched (they typed roughly what the tool is called), 1 means only
+ * the tagline or body did, 0 means the tool matched purely through taxonomy.
+ */
+type TextStrength = 0 | 1 | 2;
+
+/**
+ * The tier for one hit. An industry query trusts the strict relevance map:
+ * built-for beats related-to beats useful-to-anyone, and a tool that only got
+ * in through its generous industry tagging is incidental. A direct text match
+ * on the words typed keeps at least "broad", because somebody who typed the
+ * tool's own name should not have it buried. A query with no industry has no
+ * strict map to consult, so text strength decides.
+ */
+function tierFor(tool: Searchable, industries: Industry[], text: TextStrength): RelevanceTier {
+  if (industries.length > 0) {
+    let best: RelevanceTier = "incidental";
+    for (const industry of industries) {
+      const r = relevanceTier(tool.slug, industry);
+      if (r === "core") return "core";
+      if (r === "secondary") best = "strong";
+      else if (r === "broad" && best !== "strong") best = "broad";
+    }
+    if (best === "incidental" && text > 0) return "broad";
+    return best;
+  }
+  return text === 2 ? "core" : text === 1 ? "strong" : "broad";
+}
+
 export function searchTools<T extends Searchable>(tools: T[], query: string): SearchHit<T>[] {
   const q = normalize(query);
-  if (!q) return tools.map((tool) => ({ tool, score: tool.popularity * W.popularity }));
+  // No query means nothing to demote, so the whole catalogue counts as core.
+  if (!q) return tools.map((tool) => ({ tool, score: tool.popularity * W.popularity, tier: "core" as const }));
 
   const { facets, words, stems, wordFacets } = resolveQuery(query);
   const hasFacets =
@@ -404,6 +452,7 @@ export function searchTools<T extends Searchable>(tools: T[], query: string): Se
   for (const tool of tools) {
     let score = 0;
     let matchedTerms = 0;
+    let text: TextStrength = 0;
 
     const name = normalize(tool.name);
     const short = normalize(tool.short || "");
@@ -413,30 +462,30 @@ export function searchTools<T extends Searchable>(tools: T[], query: string): Se
     );
     const nameWords = name.split(" ").map(stem);
 
-    if (name === q) score += W.nameExact;
-    else if (name.startsWith(q)) score += W.namePrefix;
-    else if (name.includes(q) && q.length > 3) score += W.nameWord;
+    if (name === q) { score += W.nameExact; text = 2; }
+    else if (name.startsWith(q)) { score += W.namePrefix; text = 2; }
+    else if (name.includes(q) && q.length > 3) { score += W.nameWord; text = 2; }
 
     for (let i = 0; i < words.length; i++) {
       const w = words[i];
       const s = stems[i];
       let termHit = false;
 
-      if (nameWords.includes(s) || name.includes(w)) { score += W.nameWord; termHit = true; }
-      else if (short.includes(w)) { score += W.shortWord; termHit = true; }
+      if (nameWords.includes(s) || name.includes(w)) { score += W.nameWord; termHit = true; text = 2; }
+      else if (short.includes(w)) { score += W.shortWord; termHit = true; text = 2; }
 
-      if (keywordSet.has(s)) { score += W.keyword; termHit = true; }
-      if (tagline.includes(w)) { score += W.tagline; termHit = true; }
-      if (!termHit && tool.searchText.includes(w)) { score += W.body; termHit = true; }
+      if (keywordSet.has(s)) { score += W.keyword; termHit = true; text = 2; }
+      if (tagline.includes(w)) { score += W.tagline; termHit = true; if (text < 1) text = 1; }
+      if (!termHit && tool.searchText.includes(w)) { score += W.body; termHit = true; if (text < 1) text = 1; }
 
       if (!termHit && w.length >= 5) {
         const budget = budgetFor(w);
         for (const nw of nameWords) {
-          if (editDistance(s, nw, budget) <= budget) { score += W.fuzzy; termHit = true; break; }
+          if (editDistance(s, nw, budget) <= budget) { score += W.fuzzy; termHit = true; text = 2; break; }
         }
         if (!termHit) {
           for (const kw of keywordSet) {
-            if (editDistance(s, kw, budget) <= budget) { score += W.fuzzy; termHit = true; break; }
+            if (editDistance(s, kw, budget) <= budget) { score += W.fuzzy; termHit = true; text = 2; break; }
           }
         }
       }
@@ -467,10 +516,17 @@ export function searchTools<T extends Searchable>(tools: T[], query: string): Se
     if (score <= 0) continue;
 
     score += tool.popularity * W.popularity;
-    hits.push({ tool, score });
+    hits.push({ tool, score, tier: tierFor(tool, facets.industries, text) });
   }
 
-  return hits.sort((a, b) => b.score - a.score || a.tool.name.localeCompare(b.tool.name));
+  // Tier before score. Score still orders tools inside a tier, and popularity
+  // stays where it was: a tiebreaker folded into the score, never more.
+  return hits.sort(
+    (a, b) =>
+      TIER_RANK[b.tier] - TIER_RANK[a.tier] ||
+      b.score - a.score ||
+      a.tool.name.localeCompare(b.tool.name),
+  );
 }
 
 /* ------------------------------- suggestions ------------------------------- */

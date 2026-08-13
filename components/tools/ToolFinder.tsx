@@ -13,6 +13,7 @@ import {
   GOALS, GOAL_IDS, INDUSTRIES, AUDIENCES,
   type Goal, type Industry, type Audience, type ToolIndexEntry,
 } from "@/lib/tools";
+import { relevanceTier } from "@/lib/tools/relevance";
 import { trackTool } from "@/lib/tools/analytics";
 
 /** The contexts worth offering. Anything narrower belongs in the filter drawer. */
@@ -45,15 +46,29 @@ export default function ToolFinder({ tools }: { tools: ToolIndexEntry[] }) {
       .map((t) => {
         let score = 0;
         if (t.goals.includes(goal)) score += 10;
-        if (ctx?.industries?.some((i) => t.industries.includes(i))) score += 8;
+        // The strict relevance map decides the industry points, not the
+        // generous tagging. Flat +8 for any industry overlap is what put a
+        // generic QR maker in front of a loan officer: nearly everything
+        // overlapped, so nothing stood out. Built-for beats related-to beats
+        // useful-to-anyone, and a core or secondary tool that matches the
+        // goal now always outranks a broadly useful one.
+        let fit: "core" | "secondary" | "broad" | "none" = "none";
+        for (const i of ctx?.industries || []) {
+          const r = relevanceTier(t.slug, i);
+          if (r === "core") { fit = "core"; break; }
+          if (r === "secondary") fit = "secondary";
+          else if (r === "broad" && fit === "none") fit = "broad";
+        }
+        score += fit === "core" ? 30 : fit === "secondary" ? 18 : fit === "broad" ? 4 : 0;
         if (ctx?.audiences?.some((a) => t.audiences.includes(a))) score += 4;
         // Popularity only breaks ties. It must not outrank actually fitting.
-        return { t, score: score + t.popularity / 100 };
+        return { t, fit, score: score + t.popularity / 100 };
       })
-      .filter((x) => x.score >= 8)
+      // The goal is the floor. A tool that fits the industry but not the job
+      // they picked is an answer to a question nobody asked.
+      .filter((x) => x.t.goals.includes(goal))
       .sort((a, b) => b.score - a.score)
-      .slice(0, 5)
-      .map((x) => x.t);
+      .slice(0, 5);
   }, [tools, goal, context]);
 
   if (!open) {
@@ -122,7 +137,7 @@ export default function ToolFinder({ tools }: { tools: ToolIndexEntry[] }) {
           </h3>
           {picks.length ? (
             <ul className="mt-3 grid gap-2">
-              {picks.map((t) => (
+              {picks.map(({ t, fit }) => (
                 <li key={t.slug}>
                   <Link
                     href={`/tools/${t.slug}`}
@@ -132,6 +147,9 @@ export default function ToolFinder({ tools }: { tools: ToolIndexEntry[] }) {
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-black text-[var(--heading)]">{t.name}</span>
                       <span className="block truncate text-xs text-[var(--muted)]">{t.tagline}</span>
+                      {fit === "broad" && (
+                        <span className="mt-0.5 block text-[11px] text-[var(--quiet)]">Works for any business</span>
+                      )}
                     </span>
                     <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0 text-[var(--blue)] transition group-hover:translate-x-0.5" />
                   </Link>

@@ -9,6 +9,7 @@ import {
   DOMAINS, TOOL_TYPES, INDUSTRIES, DISCLAIMERS, SENSITIVITY_NOTE,
 } from "@/lib/tools";
 import { collectionsForTool } from "@/lib/tools/collections";
+import { TOOL_VISUALS } from "@/lib/tools/visuals";
 import ToolEngine from "@/components/tools/ToolEngine";
 import ToolCard from "@/components/tools/ToolCard";
 import { SHELLS } from "@/components/tools/shell";
@@ -30,6 +31,10 @@ export async function generateMetadata({
   const tool = getTool(slug);
   if (!tool) return {};
   const url = `${BASE}/tools/${tool.slug}`;
+  const ogImage = TOOL_VISUALS[tool.slug]?.ogImage;
+  const images = ogImage
+    ? [{ url: `${BASE}${ogImage}`, width: 1200, height: 630, alt: `${tool.name} — a free tool from The LeadFlow Pro` }]
+    : undefined;
   return {
     title: tool.seoTitle || `${tool.name}: free ${TOOL_TYPES[tool.toolType].label.toLowerCase()}`,
     description:
@@ -42,8 +47,9 @@ export async function generateMetadata({
       url,
       siteName: "The LeadFlow Pro",
       type: "website",
+      images,
     },
-    twitter: { card: "summary_large_image" },
+    twitter: { card: "summary_large_image", images: images?.map((i) => i.url) },
   };
 }
 
