@@ -1,22 +1,89 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img">
-<defs>
-<clipPath id="c"><rect width="1200" height="675"/></clipPath>
-<radialGradient id="f" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#1240E8" stop-opacity="0.30"/>
-<stop offset="55%" stop-color="#1240E8" stop-opacity="0.11"/>
-<stop offset="100%" stop-color="#1240E8" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="e" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#1240E8" stop-opacity="0.16"/>
-<stop offset="100%" stop-color="#1240E8" stop-opacity="0"/>
-</radialGradient>
-</defs>
-<g clip-path="url(#c)">
-<rect width="1200" height="675" fill="#F7F5F2"/>
-<g stroke="#0A1220" stroke-width="1" opacity="0.055"><line x1="56" y1="0" x2="56" y2="675"/><line x1="112" y1="0" x2="112" y2="675"/><line x1="168" y1="0" x2="168" y2="675"/><line x1="224" y1="0" x2="224" y2="675"/><line x1="280" y1="0" x2="280" y2="675"/><line x1="336" y1="0" x2="336" y2="675"/><line x1="392" y1="0" x2="392" y2="675"/><line x1="448" y1="0" x2="448" y2="675"/><line x1="504" y1="0" x2="504" y2="675"/><line x1="560" y1="0" x2="560" y2="675"/><line x1="616" y1="0" x2="616" y2="675"/><line x1="672" y1="0" x2="672" y2="675"/><line x1="728" y1="0" x2="728" y2="675"/><line x1="784" y1="0" x2="784" y2="675"/><line x1="840" y1="0" x2="840" y2="675"/><line x1="896" y1="0" x2="896" y2="675"/><line x1="952" y1="0" x2="952" y2="675"/><line x1="1008" y1="0" x2="1008" y2="675"/><line x1="1064" y1="0" x2="1064" y2="675"/><line x1="1120" y1="0" x2="1120" y2="675"/><line x1="1176" y1="0" x2="1176" y2="675"/><line x1="0" y1="56" x2="1200" y2="56"/><line x1="0" y1="112" x2="1200" y2="112"/><line x1="0" y1="168" x2="1200" y2="168"/><line x1="0" y1="224" x2="1200" y2="224"/><line x1="0" y1="280" x2="1200" y2="280"/><line x1="0" y1="336" x2="1200" y2="336"/><line x1="0" y1="392" x2="1200" y2="392"/><line x1="0" y1="448" x2="1200" y2="448"/><line x1="0" y1="504" x2="1200" y2="504"/><line x1="0" y1="560" x2="1200" y2="560"/><line x1="0" y1="616" x2="1200" y2="616"/><line x1="0" y1="672" x2="1200" y2="672"/></g>
-<circle cx="168.00000000000003" cy="526.5" r="283.5" fill="url(#e)"/>
-<circle cx="798" cy="325.5" r="411.75" fill="url(#f)"/>
-<g stroke="#1240E8" stroke-width="2.5" opacity="0.55" stroke-linecap="round"><line x1="580.65" y1="574.98" x2="580.65" y2="590.98"/><line x1="634.9875" y1="574.98" x2="634.9875" y2="583.98"/><line x1="689.3249999999999" y1="574.98" x2="689.3249999999999" y2="583.98"/><line x1="743.6624999999999" y1="574.98" x2="743.6624999999999" y2="583.98"/><line x1="798" y1="574.98" x2="798" y2="590.98"/><line x1="852.3375" y1="574.98" x2="852.3375" y2="583.98"/><line x1="906.675" y1="574.98" x2="906.675" y2="583.98"/><line x1="961.0125" y1="574.98" x2="961.0125" y2="583.98"/><line x1="1015.3499999999999" y1="574.98" x2="1015.3499999999999" y2="590.98"/><line x1="580.65" y1="574.98" x2="1015.3499999999999" y2="574.98"/></g>
-<g transform="translate(609 136.5) scale(5.90625)"><rect x="14" y="6" width="36" height="52" rx="6" fill="none" stroke="#0A1220" stroke-width="3.2"/><rect x="20" y="13" width="24" height="10" rx="2.5" fill="#1240E8" opacity="0.9"/><circle cx="23" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="23" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="23" cy="51" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="51" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="51" r="2.6" fill="#1240E8" opacity="1"/></g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1200" height="675">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#34d399"/>
+      <stop offset="1" stop-color="#0ea371"/>
+    </linearGradient>
+    <radialGradient id="w1">
+      <stop offset="0" stop-color="#34d399" stop-opacity=".13"/>
+      <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w2">
+      <stop offset="0" stop-color="#0ea371" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#0ea371" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="280" cy="760" r="430" fill="url(#w1)"/>
+  <circle cx="330" cy="190" r="300" fill="url(#w2)"/>
+  <circle cx="1250" cy="700" r="360" fill="url(#w2)"/>
+
+  <!-- ground shadow -->
+  <ellipse cx="780" cy="806" rx="580" ry="26" fill="#0e1a2e" opacity=".07"/>
+
+  <!-- stepped funnel channel, narrowing left to right -->
+  <path d="M 150,294 Q 150,270 174,270 H 580 V 360 H 1020 V 430 H 1382 Q 1400,430 1400,448 V 592 Q 1400,610 1382,610 H 1020 V 680 H 580 V 770 H 174 Q 150,770 150,746 Z" fill="url(#acc)"/>
+  <!-- darker inner top edge -->
+  <path d="M 154,296 Q 154,274 174,274 H 576 V 356 H 1016 V 426 H 1378" fill="none" stroke="#0ea371" stroke-width="12" opacity=".45"/>
+
+  <!-- stage 1: ad budget coins and bills -->
+  <g>
+    <rect x="392" y="418" width="86" height="130" rx="10" fill="#ffffff" opacity=".28" transform="rotate(8 435 483)"/>
+    <rect x="330" y="560" width="86" height="130" rx="10" fill="#ffffff" opacity=".22" transform="rotate(-7 373 625)"/>
+    <circle cx="258" cy="428" r="46" fill="#ffffff" opacity=".95"/>
+    <circle cx="258" cy="428" r="32" fill="none" stroke="#0ea371" stroke-width="5" opacity=".55"/>
+    <circle cx="340" cy="518" r="40" fill="#ffffff" opacity=".9"/>
+    <circle cx="340" cy="518" r="27" fill="none" stroke="#0ea371" stroke-width="5" opacity=".5"/>
+    <circle cx="256" cy="606" r="37" fill="#ffffff" opacity=".88"/>
+    <circle cx="256" cy="606" r="24" fill="none" stroke="#0ea371" stroke-width="5" opacity=".5"/>
+  </g>
+
+  <!-- stage 2: leads -->
+  <g fill="#ffffff">
+    <g transform="translate(690 540)" opacity=".92">
+      <circle cy="-32" r="21"/>
+      <path d="M -36,30 C -36,4 -21,-9 0,-9 C 21,-9 36,4 36,30 Z"/>
+    </g>
+    <g transform="translate(800 566)" opacity=".78">
+      <circle cy="-32" r="21"/>
+      <path d="M -36,30 C -36,4 -21,-9 0,-9 C 21,-9 36,4 36,30 Z"/>
+    </g>
+    <g transform="translate(908 532)" opacity=".88">
+      <circle cy="-32" r="21"/>
+      <path d="M -36,30 C -36,4 -21,-9 0,-9 C 21,-9 36,4 36,30 Z"/>
+    </g>
+  </g>
+
+  <!-- stage 3: paying customers with check badges -->
+  <g>
+    <g transform="translate(1130 542)">
+      <circle cy="-27" r="18" fill="#ffffff"/>
+      <path d="M -31,26 C -31,4 -18,-7 0,-7 C 18,-7 31,4 31,26 Z" fill="#ffffff"/>
+      <circle cx="22" cy="-42" r="13" fill="#ffffff"/>
+      <path d="M 16,-42 L 21,-37 L 29,-47" fill="none" stroke="#0ea371" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(1262 548)">
+      <circle cy="-27" r="18" fill="#ffffff"/>
+      <path d="M -31,26 C -31,4 -18,-7 0,-7 C 18,-7 31,4 31,26 Z" fill="#ffffff"/>
+      <circle cx="22" cy="-42" r="13" fill="#ffffff"/>
+      <path d="M 16,-42 L 21,-37 L 29,-47" fill="none" stroke="#0ea371" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- drop-off at each narrowing step -->
+  <g fill="#0ea371">
+    <circle cx="602" cy="716" r="10" opacity=".55"/>
+    <circle cx="618" cy="764" r="8" opacity=".38"/>
+    <circle cx="631" cy="808" r="6" opacity=".22"/>
+    <circle cx="1040" cy="708" r="9" opacity=".5"/>
+    <circle cx="1054" cy="752" r="7" opacity=".34"/>
+    <circle cx="1066" cy="794" r="5" opacity=".2"/>
+  </g>
+
+  <!-- exit flow to the right -->
+  <g fill="none" stroke="#8299b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 1432,486 L 1466,520 L 1432,554"/>
+    <path d="M 1478,492 L 1506,520 L 1478,548" opacity=".55"/>
+  </g>
 </svg>

@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="mm-g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f87171"/><stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+    <linearGradient id="mm-gh" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f87171"/><stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+    <radialGradient id="mm-w1"><stop offset="0" stop-color="#f87171" stop-opacity=".11"/><stop offset="1" stop-color="#f87171" stop-opacity="0"/></radialGradient>
+    <radialGradient id="mm-w2"><stop offset="0" stop-color="#ef4444" stop-opacity=".09"/><stop offset="1" stop-color="#ef4444" stop-opacity="0"/></radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="240" cy="170" r="420" fill="url(#mm-w1)"/>
+  <circle cx="1400" cy="250" r="480" fill="url(#mm-w2)"/>
+  <circle cx="800" cy="820" r="400" fill="url(#mm-w1)"/>
+
+  <!-- panel ground shadows -->
+  <ellipse cx="435" cy="740" rx="290" ry="16" fill="#0e1a2e" opacity=".06"/>
+  <ellipse cx="1165" cy="740" rx="290" ry="16" fill="#0e1a2e" opacity=".06"/>
+
+  <!-- left panel: markup (cost + added markup) -->
+  <rect x="130" y="150" width="610" height="570" rx="24" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <line x1="180" y1="380" x2="690" y2="380" stroke="#d7e0ee" stroke-width="2.5" opacity=".6"/>
+  <line x1="180" y1="465" x2="690" y2="465" stroke="#d7e0ee" stroke-width="2.5" opacity=".6"/>
+  <line x1="180" y1="550" x2="690" y2="550" stroke="#d7e0ee" stroke-width="2.5" opacity=".6"/>
+  <line x1="180" y1="640" x2="690" y2="640" stroke="#b9c6da" stroke-width="3"/>
+  <!-- cost block -->
+  <rect x="330" y="430" width="180" height="210" rx="4" fill="#b9c6da"/>
+  <rect x="330" y="430" width="180" height="16" fill="#8299b8" opacity=".55"/>
+  <!-- markup block added on top -->
+  <rect x="330" y="305" width="180" height="125" rx="4" fill="url(#mm-g)"/>
+  <rect x="330" y="414" width="180" height="16" fill="#ef4444" opacity=".35"/>
+  <!-- plus joint -->
+  <circle cx="330" cy="430" r="18" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <path d="M322,430 h16 M330,422 v16" stroke="#0e1a2e" stroke-width="4" stroke-linecap="round"/>
+  <!-- bracket on markup only -->
+  <path d="M540,307 h16 v121 h-16" fill="none" stroke="#8299b8" stroke-width="4"/>
+  <!-- left price tag -->
+  <path d="M255,163 C258,185 262,200 268,214" fill="none" stroke="#b9c6da" stroke-width="2.5"/>
+  <circle cx="255" cy="161" r="5" fill="#8299b8"/>
+  <g transform="rotate(-16 268 246)">
+    <path d="M242,214 L268,246 L242,278 H180 A12,12 0 0 1 168,266 V226 A12,12 0 0 1 180,214 Z" fill="#ffffff" stroke="#d7e0ee" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="246" cy="246" r="7" fill="#f7f9fc" stroke="#b9c6da" stroke-width="3"/>
+    <rect x="186" y="240" width="40" height="10" rx="5" fill="#b9c6da"/>
+  </g>
+
+  <!-- right panel: margin (slice of the price) -->
+  <rect x="860" y="150" width="610" height="570" rx="24" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <line x1="910" y1="380" x2="1420" y2="380" stroke="#d7e0ee" stroke-width="2.5" opacity=".6"/>
+  <line x1="910" y1="465" x2="1420" y2="465" stroke="#d7e0ee" stroke-width="2.5" opacity=".6"/>
+  <line x1="910" y1="550" x2="1420" y2="550" stroke="#d7e0ee" stroke-width="2.5" opacity=".6"/>
+  <line x1="910" y1="640" x2="1420" y2="640" stroke="#b9c6da" stroke-width="3"/>
+  <!-- whole price bar -->
+  <rect x="1090" y="305" width="180" height="335" rx="4" fill="#d7e0ee"/>
+  <!-- margin slice -->
+  <path d="M1090,309 a4,4 0 0 1 4,-4 h172 a4,4 0 0 1 4,4 v106 h-180 z" fill="url(#mm-g)"/>
+  <rect x="1090" y="399" width="180" height="16" fill="#ef4444" opacity=".35"/>
+  <!-- cut line -->
+  <line x1="1068" y1="415" x2="1292" y2="415" stroke="#0e1a2e" stroke-width="3.5" stroke-dasharray="12 9" opacity=".38" stroke-linecap="round"/>
+  <!-- slice bracket (accent) and whole-bar bracket -->
+  <path d="M1084,307 h-14 v106 h14" fill="none" stroke="#ef4444" stroke-width="4" opacity=".8"/>
+  <path d="M1300,307 h16 v331 h-16" fill="none" stroke="#8299b8" stroke-width="4"/>
+  <!-- right price tag -->
+  <path d="M1352,163 C1349,185 1345,200 1339,214" fill="none" stroke="#b9c6da" stroke-width="2.5"/>
+  <circle cx="1352" cy="161" r="5" fill="#8299b8"/>
+  <g transform="rotate(16 1339 246)">
+    <path d="M1365,214 L1339,246 L1365,278 H1427 A12,12 0 0 0 1439,266 V226 A12,12 0 0 0 1427,214 Z" fill="#ffffff" stroke="#d7e0ee" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="1361" cy="246" r="7" fill="#f7f9fc" stroke="#b9c6da" stroke-width="3"/>
+    <rect x="1381" y="240" width="40" height="10" rx="5" fill="url(#mm-gh)"/>
+  </g>
+
+  <!-- shared job ticket over the center seam -->
+  <ellipse cx="800" cy="668" rx="130" ry="14" fill="#0e1a2e" opacity=".08"/>
+  <g transform="rotate(-5 800 500)">
+    <rect x="700" y="370" width="200" height="260" rx="16" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <circle cx="800" cy="398" r="9" fill="#f7f9fc" stroke="#b9c6da" stroke-width="4"/>
+    <rect x="740" y="432" width="120" height="16" rx="8" fill="url(#mm-gh)"/>
+    <rect x="735" y="470" width="130" height="10" rx="5" fill="#d7e0ee"/>
+    <circle cx="700" cy="510" r="12" fill="#f7f9fc" stroke="#d7e0ee" stroke-width="3"/>
+    <circle cx="900" cy="510" r="12" fill="#f7f9fc" stroke="#d7e0ee" stroke-width="3"/>
+    <line x1="722" y1="510" x2="878" y2="510" stroke="#d7e0ee" stroke-width="3" stroke-dasharray="10 8"/>
+    <rect x="735" y="540" width="95" height="10" rx="5" fill="#d7e0ee"/>
+    <rect x="735" y="566" width="110" height="10" rx="5" fill="#d7e0ee"/>
+    <rect x="735" y="592" width="70" height="10" rx="5" fill="#b9c6da"/>
+  </g>
+</svg>

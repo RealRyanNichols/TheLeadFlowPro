@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#0ea371"/>
+    </linearGradient>
+    <radialGradient id="w1"><stop offset="0" stop-color="#34d399" stop-opacity=".14"/><stop offset="1" stop-color="#34d399" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w2"><stop offset="0" stop-color="#0ea371" stop-opacity=".08"/><stop offset="1" stop-color="#0ea371" stop-opacity="0"/></radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <ellipse cx="1080" cy="330" rx="560" ry="400" fill="url(#w1)"/>
+  <ellipse cx="420" cy="620" rx="460" ry="340" fill="url(#w2)"/>
+  <ellipse cx="1440" cy="140" rx="340" ry="220" fill="url(#w1)" opacity=".8"/>
+
+  <!-- five star cue, restrained arc -->
+  <g fill="url(#acc)">
+    <g transform="translate(740 312) scale(.85)"><path d="M0 -24 5.64 -7.77 22.83 -7.42 9.13 2.97 14.11 19.42 0 9.6 -14.11 19.42 -9.13 2.97 -22.83 -7.42 -5.64 -7.77 Z"/></g>
+    <g transform="translate(830 264) scale(1)"><path d="M0 -24 5.64 -7.77 22.83 -7.42 9.13 2.97 14.11 19.42 0 9.6 -14.11 19.42 -9.13 2.97 -22.83 -7.42 -5.64 -7.77 Z"/></g>
+    <g transform="translate(926 240) scale(1.2)"><path d="M0 -24 5.64 -7.77 22.83 -7.42 9.13 2.97 14.11 19.42 0 9.6 -14.11 19.42 -9.13 2.97 -22.83 -7.42 -5.64 -7.77 Z"/></g>
+    <g transform="translate(1024 254) scale(1)"><path d="M0 -24 5.64 -7.77 22.83 -7.42 9.13 2.97 14.11 19.42 0 9.6 -14.11 19.42 -9.13 2.97 -22.83 -7.42 -5.64 -7.77 Z"/></g>
+    <g transform="translate(1108 296) scale(.85)"><path d="M0 -24 5.64 -7.77 22.83 -7.42 9.13 2.97 14.11 19.42 0 9.6 -14.11 19.42 -9.13 2.97 -22.83 -7.42 -5.64 -7.77 Z"/></g>
+  </g>
+
+  <!-- service counter -->
+  <rect x="620" y="628" width="1000" height="182" fill="#ffffff" opacity=".75" stroke="#d7e0ee" stroke-width="3"/>
+  <line x1="770" y1="640" x2="770" y2="798" stroke="#e3eaf5" stroke-width="3"/>
+  <line x1="940" y1="640" x2="940" y2="798" stroke="#e3eaf5" stroke-width="3"/>
+  <line x1="1110" y1="640" x2="1110" y2="798" stroke="#e3eaf5" stroke-width="3"/>
+  <line x1="1280" y1="640" x2="1280" y2="798" stroke="#e3eaf5" stroke-width="3"/>
+  <line x1="1450" y1="640" x2="1450" y2="798" stroke="#e3eaf5" stroke-width="3"/>
+  <rect x="592" y="596" width="1030" height="34" rx="15" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+
+  <!-- tent card shadow on the counter -->
+  <ellipse cx="980" cy="598" rx="150" ry="12" fill="#0e1a2e" opacity=".07"/>
+
+  <!-- review tent card: A-frame with a ridge fold -->
+  <polygon points="860,344 1082,344 1110,310 888,310" fill="#e8eef5" stroke="#d7e0ee" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="860" y="344" width="222" height="254" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="912" y="382" width="124" height="124" rx="12" fill="#ffffff" stroke="#8299b8" stroke-width="3"/>
+  <g fill="#0e1a2e">
+    <rect x="926" y="396" width="26" height="26" rx="4"/>
+    <rect x="996" y="396" width="26" height="26" rx="4"/>
+    <rect x="926" y="466" width="26" height="26" rx="4"/>
+    <rect x="966" y="410" width="12" height="12"/>
+    <rect x="986" y="438" width="12" height="12"/>
+    <rect x="962" y="458" width="12" height="12"/>
+    <rect x="1000" y="466" width="12" height="12"/>
+    <rect x="1016" y="440" width="12" height="12"/>
+  </g>
+  <rect x="924" y="532" width="100" height="10" rx="5" fill="#b9c6da"/>
+
+  <!-- scan beam from the phone down to the card -->
+  <polygon points="1068,470 1232,548 982,452" fill="url(#acc)" opacity=".18"/>
+
+  <!-- customer's phone, mid-scan -->
+  <g transform="translate(1240 104) rotate(26)">
+    <rect x="0" y="0" width="200" height="400" rx="32" fill="#0e1a2e"/>
+    <rect x="12" y="12" width="176" height="376" rx="24" fill="#ffffff"/>
+    <line x1="6" y1="60" x2="6" y2="340" stroke="#ffffff" stroke-width="4" opacity=".35"/>
+    <circle cx="100" cy="30" r="5" fill="#8299b8"/>
+    <!-- review page on screen -->
+    <circle cx="52" cy="86" r="22" fill="url(#acc)"/>
+    <rect x="86" y="70" width="76" height="12" rx="6" fill="#8299b8"/>
+    <rect x="86" y="92" width="52" height="9" rx="4" fill="#b9c6da"/>
+    <g fill="url(#acc)">
+      <g transform="translate(48 160) scale(.55)"><path d="M0 -24 5.64 -7.77 22.83 -7.42 9.13 2.97 14.11 19.42 0 9.6 -14.11 19.42 -9.13 2.97 -22.83 -7.42 -5.64 -7.77 Z"/></g>
+      <g transform="translate(83 160) scale(.55)"><path d="M0 -24 5.64 -7.77 22.83 -7.42 9.13 2.97 14.11 19.42 0 9.6 -14.11 19.42 -9.13 2.97 -22.83 -7.42 -5.64 -7.77 Z"/></g>
+      <g transform="translate(118 160) scale(.55)"><path d="M0 -24 5.64 -7.77 22.83 -7.42 9.13 2.97 14.11 19.42 0 9.6 -14.11 19.42 -9.13 2.97 -22.83 -7.42 -5.64 -7.77 Z"/></g>
+      <g transform="translate(153 160) scale(.55)"><path d="M0 -24 5.64 -7.77 22.83 -7.42 9.13 2.97 14.11 19.42 0 9.6 -14.11 19.42 -9.13 2.97 -22.83 -7.42 -5.64 -7.77 Z"/></g>
+    </g>
+    <rect x="30" y="200" width="140" height="10" rx="5" fill="#b9c6da"/>
+    <rect x="30" y="222" width="112" height="10" rx="5" fill="#b9c6da"/>
+    <rect x="30" y="270" width="140" height="44" rx="22" fill="url(#acc)"/>
+    <path d="M88 292 l10 10 l18 -18" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- espresso just served -->
+  <ellipse cx="1420" cy="592" rx="58" ry="9" fill="#0e1a2e" opacity=".06"/>
+  <path d="M1384 534 h72 l-9 52 h-54 Z" fill="#ffffff" stroke="#8299b8" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M1456 544 a19 17 0 1 1 -7 32" fill="none" stroke="#8299b8" stroke-width="4"/>
+  <ellipse cx="1420" cy="590" rx="52" ry="8" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+</svg>

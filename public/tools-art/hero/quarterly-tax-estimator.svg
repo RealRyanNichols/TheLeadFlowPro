@@ -1,22 +1,76 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img">
-<defs>
-<clipPath id="c"><rect width="1600" height="900"/></clipPath>
-<radialGradient id="f" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#0B5A33" stop-opacity="0.30"/>
-<stop offset="55%" stop-color="#0B5A33" stop-opacity="0.11"/>
-<stop offset="100%" stop-color="#0B5A33" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="e" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#0B5A33" stop-opacity="0.16"/>
-<stop offset="100%" stop-color="#0B5A33" stop-opacity="0"/>
-</radialGradient>
-</defs>
-<g clip-path="url(#c)">
-<rect width="1600" height="900" fill="#F7F5F2"/>
-<g stroke="#0A1220" stroke-width="1" opacity="0.055"><line x1="74" y1="0" x2="74" y2="900"/><line x1="148" y1="0" x2="148" y2="900"/><line x1="222" y1="0" x2="222" y2="900"/><line x1="296" y1="0" x2="296" y2="900"/><line x1="370" y1="0" x2="370" y2="900"/><line x1="444" y1="0" x2="444" y2="900"/><line x1="518" y1="0" x2="518" y2="900"/><line x1="592" y1="0" x2="592" y2="900"/><line x1="666" y1="0" x2="666" y2="900"/><line x1="740" y1="0" x2="740" y2="900"/><line x1="814" y1="0" x2="814" y2="900"/><line x1="888" y1="0" x2="888" y2="900"/><line x1="962" y1="0" x2="962" y2="900"/><line x1="1036" y1="0" x2="1036" y2="900"/><line x1="1110" y1="0" x2="1110" y2="900"/><line x1="1184" y1="0" x2="1184" y2="900"/><line x1="1258" y1="0" x2="1258" y2="900"/><line x1="1332" y1="0" x2="1332" y2="900"/><line x1="1406" y1="0" x2="1406" y2="900"/><line x1="1480" y1="0" x2="1480" y2="900"/><line x1="1554" y1="0" x2="1554" y2="900"/><line x1="0" y1="74" x2="1600" y2="74"/><line x1="0" y1="148" x2="1600" y2="148"/><line x1="0" y1="222" x2="1600" y2="222"/><line x1="0" y1="296" x2="1600" y2="296"/><line x1="0" y1="370" x2="1600" y2="370"/><line x1="0" y1="444" x2="1600" y2="444"/><line x1="0" y1="518" x2="1600" y2="518"/><line x1="0" y1="592" x2="1600" y2="592"/><line x1="0" y1="666" x2="1600" y2="666"/><line x1="0" y1="740" x2="1600" y2="740"/><line x1="0" y1="814" x2="1600" y2="814"/><line x1="0" y1="888" x2="1600" y2="888"/></g>
-<circle cx="224.00000000000003" cy="216" r="378" fill="url(#e)"/>
-<circle cx="1069" cy="455" r="576" fill="url(#f)"/>
-<g stroke="#0B5A33" stroke-width="2.5" opacity="0.55" stroke-linecap="round"><line x1="789.55" y1="775.76" x2="789.55" y2="791.76"/><line x1="859.4124999999999" y1="775.76" x2="859.4124999999999" y2="784.76"/><line x1="929.275" y1="775.76" x2="929.275" y2="784.76"/><line x1="999.1374999999999" y1="775.76" x2="999.1374999999999" y2="784.76"/><line x1="1069" y1="775.76" x2="1069" y2="791.76"/><line x1="1138.8625" y1="775.76" x2="1138.8625" y2="784.76"/><line x1="1208.725" y1="775.76" x2="1208.725" y2="784.76"/><line x1="1278.5874999999999" y1="775.76" x2="1278.5874999999999" y2="784.76"/><line x1="1348.4499999999998" y1="775.76" x2="1348.4499999999998" y2="791.76"/><line x1="789.55" y1="775.76" x2="1348.4499999999998" y2="775.76"/></g>
-<g transform="translate(826 212) scale(7.59375)"><path d="M10 44 L10 52 M54 44 L54 52 M10 48 L54 48" fill="none" stroke="#0A1220" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 12 L32 40" fill="none" stroke="#0B5A33" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="32" cy="42" r="4.5" fill="#0B5A33"/><path d="M18 26 A 18 18 0 0 1 46 26" fill="none" stroke="#0A1220" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 5" opacity="0.75"/></g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+    <radialGradient id="w1"><stop offset="0" stop-color="#fbbf24" stop-opacity=".14"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w2"><stop offset="0" stop-color="#f97316" stop-opacity=".1"/><stop offset="1" stop-color="#f97316" stop-opacity="0"/></radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <ellipse cx="360" cy="300" rx="520" ry="360" fill="url(#w1)"/>
+  <ellipse cx="1220" cy="380" rx="560" ry="420" fill="url(#w1)"/>
+  <ellipse cx="800" cy="120" rx="620" ry="260" fill="url(#w2)"/>
+
+  <!-- incoming deposits: banknote stack -->
+  <ellipse cx="370" cy="548" rx="240" ry="22" fill="#0e1a2e" opacity=".06"/>
+  <rect x="150" y="446" width="380" height="86" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="170" y="400" width="380" height="86" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="190" y="354" width="380" height="86" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <ellipse cx="380" cy="397" rx="48" ry="27" fill="url(#acc)"/>
+  <!-- the slice cut out of the deposit -->
+  <path d="M380 397 L380 370 A48 27 0 0 1 428 397 Z" fill="#ffffff"/>
+  <ellipse cx="380" cy="397" rx="48" ry="27" fill="none" stroke="#f97316" stroke-width="3" opacity=".35"/>
+  <rect x="212" y="376" width="26" height="9" rx="4" fill="#b9c6da"/>
+  <rect x="522" y="410" width="26" height="9" rx="4" fill="#b9c6da"/>
+
+  <!-- transfer arc -->
+  <path d="M470 350 C 700 140 1030 116 1222 238" fill="none" stroke="#8299b8" stroke-width="6" stroke-linecap="round" stroke-dasharray="1 26"/>
+
+  <!-- the slice in flight, then coins -->
+  <g transform="translate(580 268) rotate(32)">
+    <path d="M0 0 L0 -54 A54 30 0 0 1 54 0 Z" fill="url(#acc)"/>
+    <path d="M0 0 L0 -54" stroke="#f97316" stroke-width="4" opacity=".45"/>
+  </g>
+  <circle cx="779" cy="185" r="34" fill="url(#acc)"/>
+  <path d="M779 151 a34 34 0 0 1 34 34" fill="none" stroke="#f97316" stroke-width="7" opacity=".4"/>
+  <circle cx="779" cy="185" r="21" fill="none" stroke="#ffffff" stroke-width="4" opacity=".65"/>
+  <circle cx="1033" cy="171" r="30" fill="url(#acc)"/>
+  <circle cx="1033" cy="171" r="18" fill="none" stroke="#ffffff" stroke-width="4" opacity=".65"/>
+
+  <!-- tax savings jar -->
+  <ellipse cx="1225" cy="636" rx="190" ry="22" fill="#0e1a2e" opacity=".07"/>
+  <rect x="1100" y="300" width="250" height="326" rx="36" fill="#ffffff" opacity=".82" stroke="#d7e0ee" stroke-width="4"/>
+  <rect x="1128" y="500" width="194" height="26" rx="13" fill="url(#acc)"/>
+  <rect x="1128" y="534" width="194" height="26" rx="13" fill="#f97316" opacity=".8"/>
+  <rect x="1128" y="568" width="194" height="26" rx="13" fill="url(#acc)"/>
+  <rect x="1152" y="466" width="146" height="26" rx="13" fill="url(#acc)"/>
+  <path d="M1124 336 v170" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity=".8"/>
+  <!-- lid seated on the jar, slot up -->
+  <rect x="1108" y="272" width="234" height="38" rx="14" fill="#8299b8"/>
+  <rect x="1108" y="272" width="234" height="12" rx="6" fill="#b9c6da"/>
+  <rect x="1190" y="278" width="70" height="10" rx="5" fill="#0e1a2e" opacity=".55"/>
+  <!-- coin arriving at the slot -->
+  <circle cx="1222" cy="216" r="32" fill="url(#acc)"/>
+  <path d="M1222 184 a32 32 0 0 1 32 32" fill="none" stroke="#f97316" stroke-width="7" opacity=".4"/>
+  <circle cx="1222" cy="216" r="19" fill="none" stroke="#ffffff" stroke-width="4" opacity=".65"/>
+  <!-- quarterly pie label -->
+  <rect x="1158" y="364" width="134" height="88" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <circle cx="1225" cy="408" r="27" fill="#ffffff" stroke="#8299b8" stroke-width="4"/>
+  <path d="M1225 408 L1225 381 A27 27 0 0 1 1252 408 Z" fill="url(#acc)"/>
+
+  <!-- headline panel: the four quarters -->
+  <rect x="120" y="668" width="1360" height="164" rx="24" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <line x1="230" y1="750" x2="1370" y2="750" stroke="#d7e0ee" stroke-width="4"/>
+  <g>
+    <rect x="292" y="722" width="56" height="56" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="292" y="722" width="56" height="16" rx="8" fill="#b9c6da"/>
+    <rect x="612" y="722" width="56" height="56" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="612" y="722" width="56" height="16" rx="8" fill="#b9c6da"/>
+    <rect x="932" y="722" width="56" height="56" rx="12" fill="url(#acc)"/>
+    <rect x="932" y="722" width="56" height="16" rx="8" fill="#f97316" opacity=".6"/>
+    <circle cx="960" cy="758" r="8" fill="#ffffff"/>
+    <rect x="1252" y="722" width="56" height="56" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="1252" y="722" width="56" height="16" rx="8" fill="#b9c6da"/>
+  </g>
 </svg>

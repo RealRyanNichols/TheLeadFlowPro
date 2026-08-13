@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#d946ef"/>
+    </linearGradient>
+    <radialGradient id="wv">
+      <stop offset="0" stop-color="#a78bfa" stop-opacity=".11"/>
+      <stop offset="1" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="wf">
+      <stop offset="0" stop-color="#d946ef" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#d946ef" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="1280" cy="640" r="400" fill="url(#wv)"/>
+  <circle cx="300" cy="830" r="330" fill="url(#wf)"/>
+
+  <!-- ground shadow and baseline -->
+  <ellipse cx="840" cy="768" rx="620" ry="22" fill="#0e1a2e" opacity=".06"/>
+  <line x1="140" y1="740" x2="1470" y2="740" stroke="#b9c6da" stroke-width="4"/>
+
+  <!-- upfront acquisition cost block -->
+  <rect x="210" y="250" width="200" height="490" rx="16" fill="#0e1a2e"/>
+  <line x1="222" y1="378" x2="398" y2="378" stroke="#ffffff" stroke-width="3" opacity=".12"/>
+  <line x1="222" y1="502" x2="398" y2="502" stroke="#ffffff" stroke-width="3" opacity=".12"/>
+  <line x1="222" y1="626" x2="398" y2="626" stroke="#ffffff" stroke-width="3" opacity=".12"/>
+  <circle cx="310" cy="330" r="42" fill="none" stroke="#ffffff" stroke-width="6" opacity=".9"/>
+  <circle cx="310" cy="330" r="25" fill="none" stroke="#ffffff" stroke-width="4" opacity=".5"/>
+
+  <!-- flow chevrons -->
+  <g fill="none" stroke="#8299b8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 438,676 L 462,700 L 438,724"/>
+    <path d="M 474,676 L 498,700 L 474,724" opacity=".55"/>
+  </g>
+
+  <!-- monthly repayment steps -->
+  <g>
+    <path d="M 520,740 V 664 Q 520,650 534,650 H 636 Q 650,650 650,664 V 740 Z" fill="url(#acc)"/>
+    <rect x="528" y="658" width="114" height="8" rx="4" fill="#d946ef" opacity=".3"/>
+    <circle cx="585" cy="626" r="15" fill="#ffffff" stroke="#d946ef" stroke-width="5" opacity=".9"/>
+
+    <path d="M 674,740 V 584 Q 674,570 688,570 H 790 Q 804,570 804,584 V 740 Z" fill="url(#acc)"/>
+    <rect x="682" y="578" width="114" height="8" rx="4" fill="#d946ef" opacity=".3"/>
+    <circle cx="739" cy="546" r="15" fill="#ffffff" stroke="#d946ef" stroke-width="5" opacity=".9"/>
+
+    <path d="M 828,740 V 502 Q 828,488 842,488 H 944 Q 958,488 958,502 V 740 Z" fill="url(#acc)"/>
+    <rect x="836" y="496" width="114" height="8" rx="4" fill="#d946ef" opacity=".3"/>
+    <circle cx="893" cy="464" r="15" fill="#ffffff" stroke="#d946ef" stroke-width="5" opacity=".9"/>
+
+    <path d="M 982,740 V 418 Q 982,404 996,404 H 1098 Q 1112,404 1112,418 V 740 Z" fill="url(#acc)"/>
+    <rect x="990" y="412" width="114" height="8" rx="4" fill="#d946ef" opacity=".3"/>
+    <circle cx="1047" cy="380" r="15" fill="#ffffff" stroke="#d946ef" stroke-width="5" opacity=".9"/>
+
+    <path d="M 1136,740 V 334 Q 1136,320 1150,320 H 1252 Q 1266,320 1266,334 V 740 Z" fill="url(#acc)"/>
+    <rect x="1144" y="328" width="114" height="8" rx="4" fill="#d946ef" opacity=".3"/>
+    <circle cx="1201" cy="296" r="15" fill="#ffffff" stroke="#d946ef" stroke-width="5" opacity=".9"/>
+
+    <path d="M 1290,740 V 248 Q 1290,234 1304,234 H 1406 Q 1420,234 1420,248 V 740 Z" fill="url(#acc)"/>
+    <rect x="1298" y="242" width="114" height="8" rx="4" fill="#d946ef" opacity=".3"/>
+  </g>
+
+  <!-- payback level from top of the cost block -->
+  <line x1="210" y1="250" x2="1470" y2="250" stroke="#0e1a2e" stroke-width="5" stroke-dasharray="16 12" opacity=".35"/>
+
+  <!-- break-even tick where steps cross the level -->
+  <circle cx="1355" cy="250" r="38" fill="#ffffff" stroke="#d946ef" stroke-width="6"/>
+  <path d="M 1339,252 L 1351,264 L 1375,238" fill="none" stroke="#0e1a2e" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

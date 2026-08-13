@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <radialGradient id="w1" cx="450" cy="280" r="580" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#38bdf8" stop-opacity="0.13"/>
+      <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w2" cx="1330" cy="560" r="560" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563eb" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#2563eb" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <rect width="1600" height="900" fill="url(#w1)"/>
+  <rect width="1600" height="900" fill="url(#w2)"/>
+
+  <!-- search result preview -->
+  <ellipse cx="620" cy="540" rx="390" ry="18" fill="#0e1a2e" opacity="0.05"/>
+  <rect x="200" y="190" width="820" height="330" rx="22" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="240" y="226" width="44" height="44" rx="10" fill="url(#g)"/>
+  <rect x="300" y="234" width="140" height="12" rx="6" fill="#b9c6da"/>
+  <circle cx="460" cy="240" r="3.5" fill="#b9c6da"/>
+  <rect x="478" y="234" width="70" height="12" rx="6" fill="#d7e0ee"/>
+  <rect x="240" y="296" width="560" height="30" rx="15" fill="url(#g)"/>
+  <rect x="240" y="312" width="560" height="14" rx="7" fill="#2563eb" opacity="0.35"/>
+  <line x1="824" y1="288" x2="824" y2="340" stroke="#0e1a2e" stroke-width="5"/>
+  <line x1="814" y1="288" x2="834" y2="288" stroke="#0e1a2e" stroke-width="5" stroke-linecap="round"/>
+  <line x1="814" y1="340" x2="834" y2="340" stroke="#0e1a2e" stroke-width="5" stroke-linecap="round"/>
+  <rect x="240" y="360" width="700" height="16" rx="8" fill="#b9c6da"/>
+  <rect x="240" y="392" width="660" height="16" rx="8" fill="#b9c6da"/>
+  <rect x="240" y="424" width="390" height="16" rx="8" fill="#d7e0ee"/>
+
+  <!-- magnifier over the corner -->
+  <circle cx="1046" cy="214" r="62" fill="#ffffff" opacity="0.75" stroke="#8299b8" stroke-width="9"/>
+  <circle cx="1046" cy="214" r="47" fill="none" stroke="#d7e0ee" stroke-width="2.5"/>
+  <line x1="1091" y1="259" x2="1150" y2="320" stroke="#8299b8" stroke-width="14" stroke-linecap="round"/>
+
+  <!-- title length ruler -->
+  <rect x="240" y="592" width="760" height="18" rx="9" fill="#ffffff" stroke="#d7e0ee" stroke-width="2.5"/>
+  <g stroke="#b9c6da" stroke-width="3">
+    <line x1="335" y1="618" x2="335" y2="632"/>
+    <line x1="430" y1="618" x2="430" y2="632"/>
+    <line x1="525" y1="618" x2="525" y2="632"/>
+    <line x1="620" y1="618" x2="620" y2="632"/>
+    <line x1="715" y1="618" x2="715" y2="632"/>
+    <line x1="810" y1="618" x2="810" y2="632"/>
+    <line x1="905" y1="618" x2="905" y2="632"/>
+  </g>
+  <rect x="240" y="592" width="520" height="18" rx="9" fill="url(#g)"/>
+  <line x1="908" y1="578" x2="908" y2="640" stroke="#0e1a2e" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="908,578 908,558 936,568" fill="#0e1a2e"/>
+  <circle cx="1052" cy="601" r="22" fill="#ffffff" stroke="url(#g)" stroke-width="5"/>
+  <path d="M1042,601 L1049,609 L1064,592" fill="none" stroke="url(#g)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- description length ruler -->
+  <rect x="240" y="676" width="760" height="18" rx="9" fill="#ffffff" stroke="#d7e0ee" stroke-width="2.5"/>
+  <g stroke="#b9c6da" stroke-width="3">
+    <line x1="335" y1="702" x2="335" y2="716"/>
+    <line x1="430" y1="702" x2="430" y2="716"/>
+    <line x1="525" y1="702" x2="525" y2="716"/>
+    <line x1="620" y1="702" x2="620" y2="716"/>
+    <line x1="715" y1="702" x2="715" y2="716"/>
+    <line x1="810" y1="702" x2="810" y2="716"/>
+    <line x1="905" y1="702" x2="905" y2="716"/>
+  </g>
+  <rect x="240" y="676" width="608" height="18" rx="9" fill="url(#g)"/>
+  <line x1="956" y1="662" x2="956" y2="724" stroke="#0e1a2e" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="956,662 956,642 984,652" fill="#0e1a2e"/>
+</svg>

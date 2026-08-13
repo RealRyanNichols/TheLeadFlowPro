@@ -1,22 +1,88 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img">
-<defs>
-<clipPath id="c"><rect width="1200" height="675"/></clipPath>
-<radialGradient id="f" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#0B5A33" stop-opacity="0.30"/>
-<stop offset="55%" stop-color="#0B5A33" stop-opacity="0.11"/>
-<stop offset="100%" stop-color="#0B5A33" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="e" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#0B5A33" stop-opacity="0.16"/>
-<stop offset="100%" stop-color="#0B5A33" stop-opacity="0"/>
-</radialGradient>
-</defs>
-<g clip-path="url(#c)">
-<rect width="1200" height="675" fill="#F7F5F2"/>
-<g stroke="#0A1220" stroke-width="1" opacity="0.055"><line x1="56" y1="0" x2="56" y2="675"/><line x1="112" y1="0" x2="112" y2="675"/><line x1="168" y1="0" x2="168" y2="675"/><line x1="224" y1="0" x2="224" y2="675"/><line x1="280" y1="0" x2="280" y2="675"/><line x1="336" y1="0" x2="336" y2="675"/><line x1="392" y1="0" x2="392" y2="675"/><line x1="448" y1="0" x2="448" y2="675"/><line x1="504" y1="0" x2="504" y2="675"/><line x1="560" y1="0" x2="560" y2="675"/><line x1="616" y1="0" x2="616" y2="675"/><line x1="672" y1="0" x2="672" y2="675"/><line x1="728" y1="0" x2="728" y2="675"/><line x1="784" y1="0" x2="784" y2="675"/><line x1="840" y1="0" x2="840" y2="675"/><line x1="896" y1="0" x2="896" y2="675"/><line x1="952" y1="0" x2="952" y2="675"/><line x1="1008" y1="0" x2="1008" y2="675"/><line x1="1064" y1="0" x2="1064" y2="675"/><line x1="1120" y1="0" x2="1120" y2="675"/><line x1="1176" y1="0" x2="1176" y2="675"/><line x1="0" y1="56" x2="1200" y2="56"/><line x1="0" y1="112" x2="1200" y2="112"/><line x1="0" y1="168" x2="1200" y2="168"/><line x1="0" y1="224" x2="1200" y2="224"/><line x1="0" y1="280" x2="1200" y2="280"/><line x1="0" y1="336" x2="1200" y2="336"/><line x1="0" y1="392" x2="1200" y2="392"/><line x1="0" y1="448" x2="1200" y2="448"/><line x1="0" y1="504" x2="1200" y2="504"/><line x1="0" y1="560" x2="1200" y2="560"/><line x1="0" y1="616" x2="1200" y2="616"/><line x1="0" y1="672" x2="1200" y2="672"/></g>
-<circle cx="168.00000000000003" cy="162" r="283.5" fill="url(#e)"/>
-<circle cx="797" cy="349.5" r="425.25" fill="url(#f)"/>
-<g stroke="#0B5A33" stroke-width="2.5" opacity="0.55" stroke-linecap="round"><line x1="579.65" y1="598.98" x2="579.65" y2="614.98"/><line x1="633.9875" y1="598.98" x2="633.9875" y2="607.98"/><line x1="688.3249999999999" y1="598.98" x2="688.3249999999999" y2="607.98"/><line x1="742.6624999999999" y1="598.98" x2="742.6624999999999" y2="607.98"/><line x1="797" y1="598.98" x2="797" y2="614.98"/><line x1="851.3375" y1="598.98" x2="851.3375" y2="607.98"/><line x1="905.675" y1="598.98" x2="905.675" y2="607.98"/><line x1="960.0125" y1="598.98" x2="960.0125" y2="607.98"/><line x1="1014.3499999999999" y1="598.98" x2="1014.3499999999999" y2="614.98"/><line x1="579.65" y1="598.98" x2="1014.3499999999999" y2="598.98"/></g>
-<g transform="translate(608 160.5) scale(5.90625)"><rect x="14" y="6" width="36" height="52" rx="6" fill="none" stroke="#0A1220" stroke-width="3.2"/><rect x="20" y="13" width="24" height="10" rx="2.5" fill="#0B5A33" opacity="0.9"/><circle cx="23" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="23" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="23" cy="51" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="51" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="51" r="2.6" fill="#0B5A33" opacity="1"/></g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1200" height="675">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+    <radialGradient id="wa"><stop offset="0" stop-color="#22d3ee" stop-opacity=".14"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></radialGradient>
+    <radialGradient id="wb"><stop offset="0" stop-color="#3b82f6" stop-opacity=".10"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>
+    <path id="sliver" d="M0 0 L-24.5 -52.6 A58 58 0 0 0 -50.2 -29 Z"/>
+  </defs>
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="1100" cy="330" r="520" fill="url(#wa)"/>
+  <circle cx="380" cy="640" r="460" fill="url(#wb)"/>
+
+  <!-- payment terminal -->
+  <ellipse cx="1100" cy="792" rx="200" ry="17" fill="#0e1a2e" opacity=".07"/>
+  <rect x="950" y="340" width="300" height="430" rx="26" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="1040" y="352" width="120" height="8" rx="4" fill="#d7e0ee"/>
+  <rect x="985" y="375" width="230" height="130" rx="12" fill="url(#acc)"/>
+  <path d="M985 470 H1215 V493 Q1215 505 1203 505 H997 Q985 505 985 493 Z" fill="#3b82f6" opacity=".38"/>
+  <path d="M1002 388 L1052 388 L1022 418 L1002 418 Z" fill="#ffffff" opacity=".28"/>
+  <g fill="#eef3fa" stroke="#d7e0ee" stroke-width="2.5">
+    <rect x="990" y="545" width="62" height="44" rx="10"/>
+    <rect x="1068" y="545" width="62" height="44" rx="10"/>
+    <rect x="1146" y="545" width="62" height="44" rx="10"/>
+    <rect x="990" y="607" width="62" height="44" rx="10"/>
+    <rect x="1068" y="607" width="62" height="44" rx="10"/>
+    <rect x="1146" y="607" width="62" height="44" rx="10"/>
+    <rect x="990" y="669" width="62" height="44" rx="10"/>
+    <rect x="1068" y="669" width="62" height="44" rx="10"/>
+    <rect x="1146" y="669" width="62" height="44" rx="10"/>
+  </g>
+  <rect x="1068" y="731" width="62" height="20" rx="8" fill="#b9c6da"/>
+
+  <!-- card tapping, tilted -->
+  <g transform="translate(850,170) rotate(-16)">
+    <rect x="0" y="0" width="300" height="190" rx="20" fill="url(#acc)"/>
+    <path d="M0 156 H300 V170 Q300 190 280 190 H20 Q0 190 0 170 Z" fill="#0e1a2e" opacity=".16"/>
+    <rect x="34" y="66" width="46" height="36" rx="8" fill="#ffffff" opacity=".92"/>
+    <line x1="34" y1="84" x2="80" y2="84" stroke="#8299b8" stroke-width="2.5"/>
+    <line x1="50" y1="66" x2="50" y2="102" stroke="#8299b8" stroke-width="2.5"/>
+    <rect x="34" y="136" width="96" height="12" rx="6" fill="#ffffff" opacity=".6"/>
+    <rect x="146" y="136" width="66" height="12" rx="6" fill="#ffffff" opacity=".6"/>
+    <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity=".9">
+      <path d="M236 42 A26 26 0 0 1 236 78"/>
+      <path d="M250 30 A44 44 0 0 1 250 90"/>
+    </g>
+  </g>
+  <!-- tap waves between card and terminal -->
+  <g transform="translate(1120,332) rotate(115)" fill="none" stroke="#3b82f6" stroke-linecap="round">
+    <path d="M14 -12 A18 18 0 0 1 14 12" stroke-width="5" opacity=".8"/>
+    <path d="M26 -21 A33 33 0 0 1 26 21" stroke-width="5" opacity=".55"/>
+    <path d="M38 -30 A48 48 0 0 1 38 30" stroke-width="5" opacity=".32"/>
+  </g>
+
+  <!-- sale coin with a fee sliver shaved off -->
+  <ellipse cx="792" cy="702" rx="86" ry="12" fill="#0e1a2e" opacity=".07"/>
+  <circle cx="790" cy="610" r="58" fill="url(#acc)"/>
+  <circle cx="790" cy="610" r="40" fill="none" stroke="#ffffff" stroke-width="3" opacity=".5"/>
+  <path d="M790 610 L765.5 557.4 A58 58 0 0 0 739.8 581 Z" fill="#f7f9fc"/>
+  <path d="M790 610 L765.5 557.4 A58 58 0 0 0 739.8 581 Z" fill="none" stroke="#d7e0ee" stroke-width="2.5"/>
+
+  <!-- fee slivers drifting away, left -->
+  <use href="#sliver" transform="translate(722,542)" fill="#3b82f6" opacity=".9"/>
+  <use href="#sliver" transform="translate(640,478) scale(.72) rotate(-10)" fill="#3b82f6" opacity=".55"/>
+  <use href="#sliver" transform="translate(556,428) scale(.5) rotate(-20)" fill="#3b82f6" opacity=".3"/>
+  <g stroke="#3b82f6" stroke-width="3" stroke-linecap="round" opacity=".35">
+    <line x1="676" y1="528" x2="712" y2="552"/>
+    <line x1="592" y1="468" x2="624" y2="490"/>
+    <line x1="512" y1="422" x2="538" y2="440"/>
+  </g>
+
+  <!-- sales stream rolling in -->
+  <g fill="#ffffff" stroke="#8299b8" stroke-width="3">
+    <circle cx="330" cy="706" r="26"/>
+    <circle cx="470" cy="690" r="32"/>
+    <circle cx="622" cy="668" r="40"/>
+  </g>
+  <g fill="none" stroke="#d7e0ee" stroke-width="2.5">
+    <circle cx="330" cy="706" r="15"/>
+    <circle cx="470" cy="690" r="20"/>
+    <circle cx="622" cy="668" r="27"/>
+  </g>
+  <g stroke="#b9c6da" stroke-width="3" stroke-linecap="round" opacity=".8">
+    <line x1="268" y1="712" x2="292" y2="710"/>
+    <line x1="398" y1="696" x2="424" y2="694"/>
+    <line x1="540" y1="676" x2="568" y2="673"/>
+  </g>
 </svg>

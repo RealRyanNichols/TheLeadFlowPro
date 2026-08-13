@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+    <radialGradient id="wa"><stop offset="0" stop-color="#fbbf24" stop-opacity=".13"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
+    <radialGradient id="wb"><stop offset="0" stop-color="#f97316" stop-opacity=".09"/><stop offset="1" stop-color="#f97316" stop-opacity="0"/></radialGradient>
+    <rect id="cell" width="36" height="36" rx="8" fill="#ffffff" stroke="#d7e0ee" stroke-width="2"/>
+  </defs>
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="1160" cy="380" r="540" fill="url(#wa)"/>
+  <circle cx="360" cy="620" r="430" fill="url(#wb)"/>
+
+  <!-- phone calendar -->
+  <ellipse cx="1180" cy="840" rx="210" ry="18" fill="#0e1a2e" opacity=".07"/>
+  <g transform="rotate(4 1175 475)">
+    <rect x="990" y="130" width="370" height="690" rx="56" fill="#0e1a2e"/>
+    <rect x="1014" y="158" width="322" height="634" rx="34" fill="#ffffff"/>
+    <rect x="1044" y="196" width="140" height="16" rx="8" fill="#0e1a2e" opacity=".8"/>
+    <path d="M1272 198 L1262 206 L1272 214 Z" fill="#b9c6da"/>
+    <path d="M1298 198 L1308 206 L1298 214 Z" fill="#b9c6da"/>
+    <g fill="#b9c6da" opacity=".85">
+      <rect x="1032" y="242" width="24" height="8" rx="4"/>
+      <rect x="1076" y="242" width="24" height="8" rx="4"/>
+      <rect x="1120" y="242" width="24" height="8" rx="4"/>
+      <rect x="1164" y="242" width="24" height="8" rx="4"/>
+      <rect x="1208" y="242" width="24" height="8" rx="4"/>
+      <rect x="1252" y="242" width="24" height="8" rx="4"/>
+      <rect x="1296" y="242" width="24" height="8" rx="4"/>
+    </g>
+    <g>
+      <use href="#cell" x="1030" y="272"/><use href="#cell" x="1074" y="272"/><use href="#cell" x="1118" y="272"/><use href="#cell" x="1162" y="272"/><use href="#cell" x="1206" y="272"/><use href="#cell" x="1250" y="272"/><use href="#cell" x="1294" y="272"/>
+      <use href="#cell" x="1030" y="318"/><use href="#cell" x="1074" y="318"/><use href="#cell" x="1118" y="318"/><use href="#cell" x="1206" y="318"/><use href="#cell" x="1250" y="318"/><use href="#cell" x="1294" y="318"/>
+      <use href="#cell" x="1030" y="364"/><use href="#cell" x="1074" y="364"/><use href="#cell" x="1118" y="364"/><use href="#cell" x="1162" y="364"/><use href="#cell" x="1206" y="364"/><use href="#cell" x="1250" y="364"/><use href="#cell" x="1294" y="364"/>
+      <use href="#cell" x="1030" y="410"/><use href="#cell" x="1074" y="410"/><use href="#cell" x="1118" y="410"/><use href="#cell" x="1162" y="410"/><use href="#cell" x="1206" y="410"/><use href="#cell" x="1250" y="410"/><use href="#cell" x="1294" y="410"/>
+    </g>
+    <circle cx="1092" cy="345" r="3.5" fill="#b9c6da"/>
+    <circle cx="1268" cy="391" r="3.5" fill="#b9c6da"/>
+    <circle cx="1136" cy="437" r="3.5" fill="#b9c6da"/>
+    <!-- the tapped date -->
+    <rect x="1162" y="318" width="36" height="36" rx="8" fill="url(#acc)"/>
+    <circle cx="1180" cy="336" r="5" fill="#ffffff"/>
+    <rect x="1155" y="311" width="50" height="50" rx="12" fill="none" stroke="#f97316" stroke-width="2.5" opacity=".45"/>
+    <!-- agenda below -->
+    <line x1="1030" y1="480" x2="1320" y2="480" stroke="#d7e0ee" stroke-width="2.5"/>
+    <g fill="#f7f9fc" stroke="#d7e0ee" stroke-width="2.5">
+      <rect x="1032" y="500" width="288" height="50" rx="10"/>
+      <rect x="1032" y="566" width="288" height="50" rx="10"/>
+    </g>
+    <circle cx="1062" cy="525" r="12" fill="none" stroke="#b9c6da" stroke-width="2.5"/>
+    <rect x="1090" y="519" width="110" height="10" rx="5" fill="#b9c6da"/>
+    <circle cx="1062" cy="591" r="12" fill="none" stroke="#b9c6da" stroke-width="2.5"/>
+    <rect x="1090" y="585" width="90" height="10" rx="5" fill="#b9c6da"/>
+    <!-- landing slot -->
+    <rect x="1024" y="624" width="304" height="80" rx="16" fill="none" stroke="#f97316" stroke-width="2.5" opacity=".5"/>
+    <rect x="1014" y="614" width="324" height="100" rx="20" fill="none" stroke="#f97316" stroke-width="2.5" opacity=".22"/>
+    <rect x="1032" y="632" width="288" height="64" rx="12" fill="url(#acc)"/>
+    <path d="M1032 680 H1320 V684 Q1320 696 1308 696 H1044 Q1032 696 1032 684 Z" fill="#f97316" opacity=".4"/>
+    <circle cx="1064" cy="664" r="14" fill="none" stroke="#ffffff" stroke-width="3" opacity=".9"/>
+    <path d="M1064 656 V664 L1070 668" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+    <rect x="1094" y="648" width="120" height="12" rx="6" fill="#ffffff" opacity=".92"/>
+    <rect x="1094" y="670" width="80" height="9" rx="4.5" fill="#ffffff" opacity=".6"/>
+  </g>
+
+  <!-- flight path from tapped link to slot -->
+  <path d="M300 622 C420 380, 660 240, 1040 640" fill="none" stroke="#f97316" stroke-width="5" stroke-dasharray="1 17" stroke-linecap="round" opacity=".55"/>
+  <path d="M1043 646 L1013 622 L1041 612 Z" fill="#f97316" opacity=".7"/>
+
+  <!-- event card mid-flight -->
+  <g transform="translate(560,290) rotate(-8)">
+    <rect x="0" y="0" width="250" height="130" rx="16" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="10" y="10" width="10" height="110" rx="5" fill="url(#acc)"/>
+    <circle cx="56" cy="46" r="20" fill="none" stroke="url(#acc)" stroke-width="5"/>
+    <path d="M56 34 V46 L65 52" fill="none" stroke="#0e1a2e" stroke-width="4" stroke-linecap="round"/>
+    <rect x="90" y="32" width="120" height="13" rx="6.5" fill="#0e1a2e" opacity=".8"/>
+    <rect x="90" y="56" width="86" height="10" rx="5" fill="#8299b8"/>
+    <rect x="38" y="88" width="24" height="22" rx="4" fill="none" stroke="#8299b8" stroke-width="2.5"/>
+    <line x1="38" y1="96" x2="62" y2="96" stroke="#8299b8" stroke-width="2.5"/>
+    <rect x="74" y="92" width="110" height="10" rx="5" fill="#b9c6da"/>
+  </g>
+  <g stroke="#f97316" stroke-width="4" stroke-linecap="round" opacity=".45">
+    <line x1="468" y1="330" x2="512" y2="306"/>
+    <line x1="452" y1="376" x2="502" y2="348"/>
+  </g>
+
+  <!-- the link, tapped -->
+  <ellipse cx="272" cy="702" rx="130" ry="13" fill="#0e1a2e" opacity=".07"/>
+  <rect x="150" y="600" width="240" height="76" rx="38" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <g transform="rotate(-45 246 638)" fill="none" stroke="url(#acc)" stroke-width="7">
+    <rect x="200" y="626" width="54" height="26" rx="13"/>
+    <rect x="238" y="626" width="54" height="26" rx="13"/>
+  </g>
+  <circle cx="352" cy="672" r="12" fill="#0e1a2e" opacity=".85"/>
+  <circle cx="352" cy="672" r="27" fill="none" stroke="#f97316" stroke-width="3" opacity=".5"/>
+  <circle cx="352" cy="672" r="42" fill="none" stroke="#f97316" stroke-width="3" opacity=".25"/>
+</svg>

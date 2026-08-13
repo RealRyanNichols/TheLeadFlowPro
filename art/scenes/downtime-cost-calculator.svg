@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="dcc-acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34d399"/>
+      <stop offset="1" stop-color="#0ea371"/>
+    </linearGradient>
+    <radialGradient id="dcc-w1">
+      <stop offset="0" stop-color="#34d399" stop-opacity=".13"/>
+      <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="dcc-w2">
+      <stop offset="0" stop-color="#0ea371" stop-opacity=".09"/>
+      <stop offset="1" stop-color="#0ea371" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="1140" cy="300" r="460" fill="url(#dcc-w1)"/>
+  <circle cx="400" cy="620" r="500" fill="url(#dcc-w2)"/>
+  <circle cx="760" cy="120" r="260" fill="url(#dcc-w1)" opacity=".5"/>
+
+  <!-- tabletop -->
+  <line x1="0" y1="800" x2="1600" y2="800" stroke="#d7e0ee" stroke-width="3"/>
+  <ellipse cx="410" cy="806" rx="330" ry="18" fill="#0e1a2e" opacity=".07"/>
+  <ellipse cx="700" cy="812" rx="130" ry="12" fill="#0e1a2e" opacity=".06"/>
+
+  <!-- dotted link from dead screen to timer -->
+  <path d="M 700 340 Q 850 240 948 292" fill="none" stroke="#0e1a2e" stroke-width="5"
+        stroke-linecap="round" stroke-dasharray="1 18" opacity=".15"/>
+
+  <!-- dead monitor -->
+  <rect x="120" y="340" width="570" height="380" rx="20" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="148" y="368" width="514" height="306" rx="12" fill="#0e1a2e"/>
+  <polygon points="250,368 310,368 148,640 148,560" fill="#ffffff" opacity=".05"/>
+  <path d="M 310 500 Q 310 462 348 458 Q 356 424 396 424 Q 434 424 444 454
+           Q 482 452 486 488 Q 488 512 462 516 L 334 516 Q 312 514 310 500 Z"
+        fill="#b9c6da" opacity=".95"/>
+  <polyline points="398,424 386,452 410,470 390,492 404,516" fill="none"
+            stroke="#0e1a2e" stroke-width="7" stroke-linejoin="round"/>
+  <rect x="352" y="548" width="96" height="10" rx="5" fill="#8299b8"/>
+  <circle cx="470" cy="553" r="5" fill="#8299b8" opacity=".6"/>
+  <circle cx="492" cy="553" r="5" fill="#8299b8" opacity=".6"/>
+  <circle cx="405" cy="697" r="6" fill="#d7e0ee"/>
+  <polygon points="360,720 450,720 476,782 334,782" fill="#b9c6da"/>
+  <rect x="300" y="782" width="210" height="16" rx="8" fill="#8299b8"/>
+
+  <!-- dark payment terminal, leaning in front -->
+  <g transform="translate(596 455) rotate(4)">
+    <rect x="0" y="0" width="200" height="330" rx="22" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="24" y="26" width="152" height="96" rx="10" fill="#0e1a2e"/>
+    <rect x="76" y="66" width="48" height="10" rx="5" fill="#8299b8"/>
+    <g fill="#d7e0ee">
+      <circle cx="46" cy="156" r="12"/><circle cx="100" cy="156" r="12"/><circle cx="154" cy="156" r="12"/>
+      <circle cx="46" cy="200" r="12"/><circle cx="100" cy="200" r="12"/><circle cx="154" cy="200" r="12"/>
+      <circle cx="46" cy="244" r="12"/><circle cx="100" cy="244" r="12"/><circle cx="154" cy="244" r="12"/>
+    </g>
+    <rect x="36" y="296" width="128" height="9" rx="4.5" fill="#b9c6da"/>
+  </g>
+
+  <!-- cost timer, upper right -->
+  <rect x="1114" y="76" width="52" height="30" rx="8" fill="#0e1a2e"/>
+  <rect x="1126" y="102" width="28" height="22" fill="#0e1a2e"/>
+  <g transform="rotate(35 1140 300)"><rect x="1116" y="88" width="48" height="24" rx="8" fill="#8299b8"/></g>
+  <g transform="rotate(-35 1140 300)"><rect x="1116" y="88" width="48" height="24" rx="8" fill="#8299b8"/></g>
+  <circle cx="1140" cy="300" r="185" fill="#ffffff" stroke="#b9c6da" stroke-width="7"/>
+  <circle cx="1140" cy="300" r="152" fill="none" stroke="#d7e0ee" stroke-width="3"/>
+  <g stroke="#0e1a2e" stroke-width="7" stroke-linecap="round">
+    <line x1="1140" y1="148" x2="1140" y2="162"/>
+    <line x1="1278" y1="300" x2="1292" y2="300"/>
+    <line x1="1140" y1="438" x2="1140" y2="452"/>
+    <line x1="988" y1="300" x2="1002" y2="300"/>
+  </g>
+  <g stroke="#8299b8" stroke-width="3" stroke-linecap="round">
+    <line x1="1211.5" y1="176.2" x2="1216" y2="168.4"/>
+    <line x1="1263.8" y1="228.5" x2="1271.6" y2="224"/>
+    <line x1="1263.8" y1="371.5" x2="1271.6" y2="376"/>
+    <line x1="1211.5" y1="423.8" x2="1216" y2="431.6"/>
+    <line x1="1068.5" y1="423.8" x2="1064" y2="431.6"/>
+    <line x1="1016.2" y1="371.5" x2="1008.4" y2="376"/>
+    <line x1="1016.2" y1="228.5" x2="1008.4" y2="224"/>
+    <line x1="1068.5" y1="176.2" x2="1064" y2="168.4"/>
+  </g>
+  <path d="M 1140 178 A 122 122 0 1 1 1022 268" fill="none" stroke="url(#dcc-acc)"
+        stroke-width="18" stroke-linecap="round"/>
+  <line x1="1168" y1="307" x2="1043" y2="274" stroke="#0e1a2e" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="1140" cy="300" r="11" fill="#0e1a2e"/>
+  <circle cx="1140" cy="300" r="4" fill="#ffffff"/>
+
+  <!-- climbing tally -->
+  <line x1="1300" y1="660" x2="1560" y2="660" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="1318" y="580" width="44" height="80" rx="9" fill="url(#dcc-acc)"/>
+  <rect x="1380" y="530" width="44" height="130" rx="9" fill="url(#dcc-acc)"/>
+  <rect x="1442" y="470" width="44" height="190" rx="9" fill="url(#dcc-acc)"/>
+  <rect x="1504" y="400" width="44" height="260" rx="9" fill="url(#dcc-acc)"/>
+  <rect x="1320" y="580" width="9" height="80" rx="4" fill="#0ea371" opacity=".3"/>
+  <rect x="1382" y="530" width="9" height="130" rx="4" fill="#0ea371" opacity=".3"/>
+  <rect x="1444" y="470" width="9" height="190" rx="4" fill="#0ea371" opacity=".3"/>
+  <rect x="1506" y="400" width="9" height="260" rx="4" fill="#0ea371" opacity=".3"/>
+  <circle cx="1526" cy="368" r="7" fill="url(#dcc-acc)" opacity=".85"/>
+  <circle cx="1540" cy="336" r="5.5" fill="url(#dcc-acc)" opacity=".7"/>
+  <circle cx="1550" cy="308" r="4" fill="url(#dcc-acc)" opacity=".55"/>
+</svg>

@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f87171"/><stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+    <radialGradient id="w1"><stop offset="0" stop-color="#f87171" stop-opacity=".12"/><stop offset="1" stop-color="#f87171" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w2"><stop offset="0" stop-color="#ef4444" stop-opacity=".09"/><stop offset="1" stop-color="#ef4444" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="380" cy="210" r="480" fill="url(#w1)"/>
+  <circle cx="1290" cy="640" r="450" fill="url(#w2)"/>
+
+  <!-- table line and shadows -->
+  <line x1="260" y1="706" x2="1340" y2="706" stroke="#d7e0ee" stroke-width="3"/>
+  <ellipse cx="560" cy="708" rx="210" ry="14" fill="#0e1a2e" opacity=".07"/>
+  <ellipse cx="1060" cy="708" rx="190" ry="14" fill="#0e1a2e" opacity=".07"/>
+  <ellipse cx="760" cy="846" rx="270" ry="14" fill="#0e1a2e" opacity=".05"/>
+
+  <!-- offer letter -->
+  <path d="M390 200 H676 L740 264 V696 A10 10 0 0 1 730 706 H390 A10 10 0 0 1 380 696 V210 A10 10 0 0 1 390 200 Z" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <path d="M676 200 L740 264 H676 Z" fill="#d7e0ee"/>
+  <circle cx="430" cy="254" r="20" fill="url(#acc)"/>
+  <rect x="464" y="240" width="130" height="14" rx="7" fill="#8299b8"/>
+  <rect x="464" y="264" width="88" height="10" rx="5" fill="#d7e0ee"/>
+  <line x1="410" y1="300" x2="710" y2="300" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="410" y="326" width="300" height="10" rx="5" fill="#d7e0ee"/>
+  <rect x="410" y="356" width="280" height="10" rx="5" fill="#d7e0ee"/>
+  <rect x="410" y="386" width="300" height="10" rx="5" fill="#d7e0ee"/>
+  <rect x="410" y="416" width="240" height="10" rx="5" fill="#d7e0ee"/>
+  <!-- salary line highlighted -->
+  <rect x="410" y="446" width="210" height="36" rx="9" fill="url(#acc)"/>
+  <rect x="410" y="446" width="210" height="10" rx="5" fill="#ef4444" opacity=".33"/>
+  <rect x="424" y="458" width="110" height="12" rx="6" fill="#ffffff" opacity=".92"/>
+  <rect x="410" y="508" width="300" height="10" rx="5" fill="#d7e0ee"/>
+  <rect x="410" y="538" width="260" height="10" rx="5" fill="#d7e0ee"/>
+  <path d="M430 614 C450 589 465 629 485 604 C500 589 505 619 530 599" fill="none" stroke="#0e1a2e" stroke-width="4" stroke-linecap="round"/>
+  <line x1="420" y1="636" x2="600" y2="636" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="628" y="626" width="70" height="8" rx="4" fill="#d7e0ee"/>
+
+  <!-- punch time clock -->
+  <path d="M1022 302 A38 38 0 0 1 1098 302" fill="#b9c6da"/>
+  <rect x="900" y="300" width="320" height="400" rx="28" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <circle cx="1060" cy="420" r="95" fill="#f7f9fc" stroke="#8299b8" stroke-width="4"/>
+  <g stroke="#0e1a2e" stroke-width="4" stroke-linecap="round">
+    <line x1="1060" y1="332" x2="1060" y2="344"/>
+    <line x1="1148" y1="420" x2="1136" y2="420"/>
+    <line x1="1060" y1="508" x2="1060" y2="496"/>
+    <line x1="972" y1="420" x2="984" y2="420"/>
+  </g>
+  <g fill="#8299b8">
+    <circle cx="1132.7" cy="378" r="3"/><circle cx="1102" cy="347.3" r="3"/>
+    <circle cx="1018" cy="347.3" r="3"/><circle cx="987.3" cy="378" r="3"/>
+    <circle cx="987.3" cy="462" r="3"/><circle cx="1018" cy="492.7" r="3"/>
+    <circle cx="1102" cy="492.7" r="3"/><circle cx="1132.7" cy="462" r="3"/>
+  </g>
+  <line x1="1060" y1="420" x2="1028" y2="392" stroke="#0e1a2e" stroke-width="8" stroke-linecap="round"/>
+  <line x1="1060" y1="420" x2="1060" y2="344" stroke="#0e1a2e" stroke-width="6" stroke-linecap="round"/>
+  <line x1="1060" y1="420" x2="1104" y2="382" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="1060" cy="420" r="8" fill="#ef4444"/>
+  <!-- card slot with inserted card -->
+  <g transform="rotate(-5 1061 540)">
+    <rect x="1014" y="500" width="94" height="70" rx="6" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="1028" y="514" width="8" height="14" rx="2" fill="#0e1a2e"/>
+    <rect x="1046" y="514" width="8" height="14" rx="2" fill="#0e1a2e"/>
+    <rect x="1064" y="514" width="8" height="14" rx="2" fill="#0e1a2e"/>
+    <line x1="1028" y1="546" x2="1094" y2="546" stroke="#d7e0ee" stroke-width="3"/>
+  </g>
+  <rect x="984" y="562" width="152" height="18" rx="8" fill="#0e1a2e"/>
+  <rect x="960" y="618" width="200" height="12" rx="6" fill="#d7e0ee"/>
+
+  <!-- hours tally between -->
+  <g transform="rotate(-3 821 430)">
+    <rect x="736" y="340" width="170" height="180" rx="20" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <g stroke="#ef4444" stroke-width="7" stroke-linecap="round">
+      <line x1="768" y1="376" x2="768" y2="432"/>
+      <line x1="792" y1="376" x2="792" y2="432"/>
+      <line x1="816" y1="376" x2="816" y2="432"/>
+      <line x1="840" y1="376" x2="840" y2="432"/>
+      <line x1="756" y1="428" x2="852" y2="382"/>
+      <line x1="768" y1="456" x2="768" y2="500"/>
+      <line x1="792" y1="456" x2="792" y2="500"/>
+      <line x1="816" y1="456" x2="816" y2="500"/>
+    </g>
+  </g>
+
+  <!-- punch cards below -->
+  <g transform="rotate(-5 625 780)">
+    <rect x="520" y="725" width="210" height="110" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <g fill="#0e1a2e">
+      <rect x="548" y="748" width="9" height="17" rx="2"/><rect x="576" y="748" width="9" height="17" rx="2"/>
+      <rect x="604" y="748" width="9" height="17" rx="2"/><rect x="632" y="748" width="9" height="17" rx="2"/>
+      <rect x="660" y="748" width="9" height="17" rx="2"/>
+    </g>
+    <line x1="546" y1="790" x2="700" y2="790" stroke="#d7e0ee" stroke-width="3"/>
+    <line x1="546" y1="810" x2="668" y2="810" stroke="#d7e0ee" stroke-width="3"/>
+  </g>
+  <g transform="rotate(4 865 790)">
+    <rect x="760" y="735" width="210" height="110" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <g fill="#0e1a2e">
+      <rect x="788" y="762" width="9" height="17" rx="2"/><rect x="816" y="762" width="9" height="17" rx="2"/>
+      <rect x="844" y="762" width="9" height="17" rx="2"/>
+    </g>
+    <line x1="786" y1="804" x2="940" y2="804" stroke="#d7e0ee" stroke-width="3"/>
+    <line x1="786" y1="824" x2="908" y2="824" stroke="#d7e0ee" stroke-width="3"/>
+  </g>
+</svg>

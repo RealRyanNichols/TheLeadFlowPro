@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="ab-g" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#d946ef"/>
+    </linearGradient>
+    <radialGradient id="ab-w1"><stop offset="0" stop-color="#a78bfa" stop-opacity=".12"/><stop offset="1" stop-color="#a78bfa" stop-opacity="0"/></radialGradient>
+    <radialGradient id="ab-w2"><stop offset="0" stop-color="#d946ef" stop-opacity=".10"/><stop offset="1" stop-color="#d946ef" stop-opacity="0"/></radialGradient>
+    <radialGradient id="ab-w3"><stop offset="0" stop-color="#a78bfa" stop-opacity=".08"/><stop offset="1" stop-color="#a78bfa" stop-opacity="0"/></radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="260" cy="170" r="430" fill="url(#ab-w1)"/>
+  <circle cx="1400" cy="300" r="460" fill="url(#ab-w2)"/>
+  <circle cx="800" cy="800" r="420" fill="url(#ab-w3)"/>
+
+  <!-- calendar panel -->
+  <ellipse cx="800" cy="625" rx="520" ry="18" fill="#0e1a2e" opacity=".06"/>
+  <rect x="220" y="80" width="1160" height="520" rx="24" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <path d="M220,146 v-42 a24,24 0 0 1 24,-24 h1112 a24,24 0 0 1 24,24 v42 z" fill="#d7e0ee" opacity=".5"/>
+  <line x1="220" y1="146" x2="1380" y2="146" stroke="#d7e0ee" stroke-width="3"/>
+  <!-- binder rings -->
+  <circle cx="500" cy="80" r="15" fill="#ffffff" stroke="#8299b8" stroke-width="5"/>
+  <circle cx="1100" cy="80" r="15" fill="#ffffff" stroke="#8299b8" stroke-width="5"/>
+  <!-- weekday dots -->
+  <circle cx="337" cy="172" r="5" fill="#8299b8"/><circle cx="491" cy="172" r="5" fill="#8299b8"/>
+  <circle cx="646" cy="172" r="5" fill="#8299b8"/><circle cx="800" cy="172" r="5" fill="#8299b8"/>
+  <circle cx="954" cy="172" r="5" fill="#8299b8"/><circle cx="1109" cy="172" r="5" fill="#8299b8"/>
+  <circle cx="1263" cy="172" r="5" fill="#8299b8"/>
+  <!-- grid -->
+  <line x1="260" y1="326" x2="1340" y2="326" stroke="#d7e0ee" stroke-width="2.5"/>
+  <line x1="260" y1="452" x2="1340" y2="452" stroke="#d7e0ee" stroke-width="2.5"/>
+  <line x1="414" y1="200" x2="414" y2="578" stroke="#d7e0ee" stroke-width="2.5" opacity=".7"/>
+  <line x1="569" y1="200" x2="569" y2="578" stroke="#d7e0ee" stroke-width="2.5" opacity=".7"/>
+  <line x1="723" y1="200" x2="723" y2="578" stroke="#d7e0ee" stroke-width="2.5" opacity=".7"/>
+  <line x1="877" y1="200" x2="877" y2="578" stroke="#d7e0ee" stroke-width="2.5" opacity=".7"/>
+  <line x1="1031" y1="200" x2="1031" y2="578" stroke="#d7e0ee" stroke-width="2.5" opacity=".7"/>
+  <line x1="1186" y1="200" x2="1186" y2="578" stroke="#d7e0ee" stroke-width="2.5" opacity=".7"/>
+
+  <!-- quiet marks in open cells -->
+  <rect x="900" y="240" width="96" height="14" rx="7" fill="#d7e0ee"/>
+  <rect x="1210" y="240" width="76" height="14" rx="7" fill="#d7e0ee"/>
+  <rect x="1054" y="366" width="96" height="14" rx="7" fill="#d7e0ee"/>
+  <rect x="1210" y="392" width="56" height="14" rx="7" fill="#d7e0ee" opacity=".7"/>
+  <circle cx="1300" cy="373" r="6" fill="#d7e0ee"/>
+
+  <!-- phase 1: testing (short span) -->
+  <rect x="280" y="234" width="276" height="58" rx="29" fill="#a78bfa" opacity=".45" stroke="#a78bfa" stroke-width="2.5"/>
+  <circle cx="312" cy="263" r="18" fill="#ffffff"/>
+  <path d="M312,249 a14,14 0 0 0 0,28 z" fill="#a78bfa"/>
+  <circle cx="312" cy="263" r="14" fill="none" stroke="#0e1a2e" stroke-width="3.5"/>
+  <line x1="312" y1="249" x2="312" y2="277" stroke="#0e1a2e" stroke-width="3.5"/>
+  <!-- one budget coin -->
+  <circle cx="596" cy="266" r="17" fill="#d946ef" opacity=".35"/>
+  <circle cx="596" cy="263" r="17" fill="url(#ab-g)"/>
+  <circle cx="596" cy="263" r="10" fill="none" stroke="#ffffff" stroke-width="3" opacity=".75"/>
+
+  <!-- phase 2: learning (medium span) -->
+  <rect x="280" y="360" width="580" height="58" rx="29" fill="#a78bfa" opacity=".75"/>
+  <circle cx="312" cy="389" r="18" fill="#ffffff"/>
+  <path d="M301,396 l8,-10 l6,6 l10,-13" fill="none" stroke="#0e1a2e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- two budget coins -->
+  <circle cx="900" cy="392" r="17" fill="#d946ef" opacity=".35"/>
+  <circle cx="900" cy="389" r="17" fill="url(#ab-g)"/>
+  <circle cx="900" cy="389" r="10" fill="none" stroke="#ffffff" stroke-width="3" opacity=".75"/>
+  <circle cx="930" cy="392" r="17" fill="#d946ef" opacity=".35"/>
+  <circle cx="930" cy="389" r="17" fill="url(#ab-g)"/>
+  <circle cx="930" cy="389" r="10" fill="none" stroke="#ffffff" stroke-width="3" opacity=".75"/>
+
+  <!-- phase 3: scaling (long span) -->
+  <rect x="280" y="486" width="960" height="58" rx="29" fill="url(#ab-g)"/>
+  <rect x="280" y="524" width="960" height="20" rx="10" fill="#d946ef" opacity=".3"/>
+  <circle cx="312" cy="515" r="18" fill="#ffffff"/>
+  <path d="M303,524 l18,-18 M310,506 h11 v11" fill="none" stroke="#0e1a2e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- three budget coins -->
+  <circle cx="1278" cy="518" r="17" fill="#d946ef" opacity=".35"/>
+  <circle cx="1278" cy="515" r="17" fill="url(#ab-g)"/>
+  <circle cx="1278" cy="515" r="10" fill="none" stroke="#ffffff" stroke-width="3" opacity=".75"/>
+  <circle cx="1308" cy="518" r="17" fill="#d946ef" opacity=".35"/>
+  <circle cx="1308" cy="515" r="17" fill="url(#ab-g)"/>
+  <circle cx="1308" cy="515" r="10" fill="none" stroke="#ffffff" stroke-width="3" opacity=".75"/>
+  <circle cx="1338" cy="518" r="17" fill="#d946ef" opacity=".35"/>
+  <circle cx="1338" cy="515" r="17" fill="url(#ab-g)"/>
+  <circle cx="1338" cy="515" r="10" fill="none" stroke="#ffffff" stroke-width="3" opacity=".75"/>
+</svg>

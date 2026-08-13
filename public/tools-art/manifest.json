@@ -8,15 +8,15 @@
         "file": "/tools-art/card/missed-call-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3775,
-        "sha256": "a0fa041e73f38fa1"
+        "bytes": 7898,
+        "sha256": "cc5bfc96d59403ef"
       },
       "hero": {
         "file": "/tools-art/hero/missed-call-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3797,
-        "sha256": "62be74c2c9b885c3"
+        "bytes": 7898,
+        "sha256": "0105afcf2ee93de0"
       }
     },
     {
@@ -25,15 +25,15 @@
         "file": "/tools-art/card/lead-response-time.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3740,
-        "sha256": "44c96158f7b10a8d"
+        "bytes": 6261,
+        "sha256": "9239321efc970eb2"
       },
       "hero": {
         "file": "/tools-art/hero/lead-response-time.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3799,
-        "sha256": "ef783b9782aa5076"
+        "bytes": 6261,
+        "sha256": "7ee1bc7d4e80322d"
       }
     },
     {
@@ -42,15 +42,15 @@
         "file": "/tools-art/card/lead-value-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3787,
-        "sha256": "9e0454e72c96976e"
+        "bytes": 7262,
+        "sha256": "51b218137006d085"
       },
       "hero": {
         "file": "/tools-art/hero/lead-value-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3811,
-        "sha256": "aef962df6b9cc3f4"
+        "bytes": 7262,
+        "sha256": "16790c972223ec74"
       }
     },
     {
@@ -59,15 +59,15 @@
         "file": "/tools-art/card/cost-per-lead-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3775,
-        "sha256": "3b6dc388732cf33e"
+        "bytes": 4170,
+        "sha256": "70d78bb6eda9cc1f"
       },
       "hero": {
         "file": "/tools-art/hero/cost-per-lead-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3797,
-        "sha256": "ec3dc8d659352558"
+        "bytes": 4170,
+        "sha256": "5de9ee44a65de2bf"
       }
     },
     {
@@ -76,15 +76,15 @@
         "file": "/tools-art/card/no-show-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3785,
-        "sha256": "9479b6258208e4e0"
+        "bytes": 4803,
+        "sha256": "5f35fe1f0997123d"
       },
       "hero": {
         "file": "/tools-art/hero/no-show-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3797,
-        "sha256": "ef1dd7ec07b11eab"
+        "bytes": 4803,
+        "sha256": "e90f48bf370b6a2b"
       }
     },
     {
@@ -93,15 +93,15 @@
         "file": "/tools-art/card/quote-follow-up-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3741,
-        "sha256": "48d952b1e487304f"
+        "bytes": 4927,
+        "sha256": "9e40fce4d8c265f2"
       },
       "hero": {
         "file": "/tools-art/hero/quote-follow-up-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3799,
-        "sha256": "c636418afd9d7630"
+        "bytes": 4927,
+        "sha256": "dc1a2928dd8e17ca"
       }
     },
     {
@@ -110,15 +110,15 @@
         "file": "/tools-art/card/close-rate-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3770,
-        "sha256": "f1ee5f2985e0a819"
+        "bytes": 4000,
+        "sha256": "371e78e9fafa7ae2"
       },
       "hero": {
         "file": "/tools-art/hero/close-rate-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3797,
-        "sha256": "eeff819e2d64641a"
+        "bytes": 4000,
+        "sha256": "586e0b39e20cbea2"
       }
     },
     {
@@ -127,15 +127,15 @@
         "file": "/tools-art/card/lead-goal-planner.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3402,
-        "sha256": "400e97e2fd0ed15b"
+        "bytes": 4660,
+        "sha256": "9181e9b3db74f755"
       },
       "hero": {
         "file": "/tools-art/hero/lead-goal-planner.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3401,
-        "sha256": "f0bfbff6011c1e9b"
+        "bytes": 4660,
+        "sha256": "6cebe7306272a946"
       }
     },
     {
@@ -144,15 +144,15 @@
         "file": "/tools-art/card/capacity-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3685,
-        "sha256": "f967f612dd02d557"
+        "bytes": 5889,
+        "sha256": "8eadc5bfce7cd1d9"
       },
       "hero": {
         "file": "/tools-art/hero/capacity-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "c24323e1e5a917f9"
+        "bytes": 5889,
+        "sha256": "779bfff4138c0b12"
       }
     },
     {
@@ -161,15 +161,15 @@
         "file": "/tools-art/card/after-hours-lead-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3721,
-        "sha256": "6ec3a0a96eda7fc7"
+        "bytes": 6059,
+        "sha256": "b201b5b3cbb268c0"
       },
       "hero": {
         "file": "/tools-art/hero/after-hours-lead-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "f0f19b2eb31e5406"
+        "bytes": 6059,
+        "sha256": "690bb3dbc18e19c3"
       }
     },
     {
@@ -178,15 +178,15 @@
         "file": "/tools-art/card/hourly-rate-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3684,
-        "sha256": "4ff780ba47e7e59f"
+        "bytes": 5628,
+        "sha256": "50eb5b547e1bff58"
       },
       "hero": {
         "file": "/tools-art/hero/hourly-rate-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "a8b3fd0de8a1efaf"
+        "bytes": 5628,
+        "sha256": "f9f4d2b67ee263aa"
       }
     },
     {
@@ -195,15 +195,15 @@
         "file": "/tools-art/card/job-price-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3528,
-        "sha256": "08d27f502861bffa"
+        "bytes": 7053,
+        "sha256": "060f4b4d0c150dc1"
       },
       "hero": {
         "file": "/tools-art/hero/job-price-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3540,
-        "sha256": "a4069b4a505b3f69"
+        "bytes": 7053,
+        "sha256": "b7b3cb40e41a64c6"
       }
     },
     {
@@ -212,15 +212,15 @@
         "file": "/tools-art/card/profit-margin-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3770,
-        "sha256": "07988baff5bc830a"
+        "bytes": 3861,
+        "sha256": "8e1a99e8fee692b0"
       },
       "hero": {
         "file": "/tools-art/hero/profit-margin-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3797,
-        "sha256": "cee27e06bf82f18b"
+        "bytes": 3861,
+        "sha256": "f9d621de6a2fe6f1"
       }
     },
     {
@@ -229,15 +229,15 @@
         "file": "/tools-art/card/markup-vs-margin.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3413,
-        "sha256": "637598569ad09257"
+        "bytes": 5766,
+        "sha256": "5fcfd37f02e2c28e"
       },
       "hero": {
         "file": "/tools-art/hero/markup-vs-margin.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3434,
-        "sha256": "d8162fa1bd2b3cf8"
+        "bytes": 5766,
+        "sha256": "14e5f531da8a960f"
       }
     },
     {
@@ -246,15 +246,15 @@
         "file": "/tools-art/card/break-even-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3742,
-        "sha256": "6137cbee5d3eaef5"
+        "bytes": 4295,
+        "sha256": "55de6e7fc692ade6"
       },
       "hero": {
         "file": "/tools-art/hero/break-even-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3799,
-        "sha256": "0c234a46e3706228"
+        "bytes": 4295,
+        "sha256": "aca3bbc62b8eef1e"
       }
     },
     {
@@ -263,15 +263,15 @@
         "file": "/tools-art/card/price-increase-impact.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3772,
-        "sha256": "7aff414936e38a05"
+        "bytes": 4242,
+        "sha256": "9dbdae1702ddbfff"
       },
       "hero": {
         "file": "/tools-art/hero/price-increase-impact.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3797,
-        "sha256": "f79d6331ca778e57"
+        "bytes": 4242,
+        "sha256": "64a19f66518e1aba"
       }
     },
     {
@@ -280,15 +280,15 @@
         "file": "/tools-art/card/discount-damage-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3706,
-        "sha256": "f47a4bc65edfa409"
+        "bytes": 3991,
+        "sha256": "2a7fdd8c51b1a14b"
       },
       "hero": {
         "file": "/tools-art/hero/discount-damage-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "648079031649af34"
+        "bytes": 3991,
+        "sha256": "82fe82049bdfc3fc"
       }
     },
     {
@@ -297,15 +297,15 @@
         "file": "/tools-art/card/customer-lifetime-value.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3708,
-        "sha256": "5101d63ed63ba3be"
+        "bytes": 4837,
+        "sha256": "8e9634b2b96d4923"
       },
       "hero": {
         "file": "/tools-art/hero/customer-lifetime-value.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "fd58b77fecf85087"
+        "bytes": 4837,
+        "sha256": "6a6ff182afd5753f"
       }
     },
     {
@@ -314,15 +314,15 @@
         "file": "/tools-art/card/payment-plan-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3462,
-        "sha256": "6c7a14de4fc62ce2"
+        "bytes": 5116,
+        "sha256": "617da1bd22f798ba"
       },
       "hero": {
         "file": "/tools-art/hero/payment-plan-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3522,
-        "sha256": "c4aac83c82029697"
+        "bytes": 5116,
+        "sha256": "a5936de53f830fc2"
       }
     },
     {
@@ -331,15 +331,15 @@
         "file": "/tools-art/card/loan-payment-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3752,
-        "sha256": "64acef4724f49355"
+        "bytes": 4464,
+        "sha256": "79daf40b08699995"
       },
       "hero": {
         "file": "/tools-art/hero/loan-payment-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3799,
-        "sha256": "e4fc27ab12fd67fe"
+        "bytes": 4464,
+        "sha256": "a94ff12dfa87220a"
       }
     },
     {
@@ -348,15 +348,15 @@
         "file": "/tools-art/card/late-invoice-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3775,
-        "sha256": "0a4530571e7a4a29"
+        "bytes": 6132,
+        "sha256": "eb7a5011d1613c8d"
       },
       "hero": {
         "file": "/tools-art/hero/late-invoice-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3797,
-        "sha256": "bf722f3b886dba6a"
+        "bytes": 6132,
+        "sha256": "d46c7cb91291a286"
       }
     },
     {
@@ -365,15 +365,15 @@
         "file": "/tools-art/card/cash-runway-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3707,
-        "sha256": "82f42d11275b643c"
+        "bytes": 5718,
+        "sha256": "bb158e436d0a3c3e"
       },
       "hero": {
         "file": "/tools-art/hero/cash-runway-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "a13bfb4b3decd254"
+        "bytes": 5718,
+        "sha256": "b08174b80ac42f5f"
       }
     },
     {
@@ -382,15 +382,15 @@
         "file": "/tools-art/card/sales-tax-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3754,
-        "sha256": "74b4071342c99615"
+        "bytes": 4931,
+        "sha256": "ac0a5386da01b54f"
       },
       "hero": {
         "file": "/tools-art/hero/sales-tax-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3813,
-        "sha256": "60b02f00334b2bc0"
+        "bytes": 4931,
+        "sha256": "7762440d1343b1f6"
       }
     },
     {
@@ -399,15 +399,15 @@
         "file": "/tools-art/card/quarterly-tax-estimator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3513,
-        "sha256": "de587e882c612636"
+        "bytes": 5052,
+        "sha256": "487106b55c12c0df"
       },
       "hero": {
         "file": "/tools-art/hero/quarterly-tax-estimator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3540,
-        "sha256": "dc7766269183b8d7"
+        "bytes": 5052,
+        "sha256": "011da54ed9a812c3"
       }
     },
     {
@@ -416,15 +416,15 @@
         "file": "/tools-art/card/mileage-deduction-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3707,
-        "sha256": "f63a9195c0efbb8e"
+        "bytes": 5845,
+        "sha256": "5354cb84219c7555"
       },
       "hero": {
         "file": "/tools-art/hero/mileage-deduction-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "766af3c33d62ca4a"
+        "bytes": 5845,
+        "sha256": "e77992ae177dd2e2"
       }
     },
     {
@@ -433,15 +433,15 @@
         "file": "/tools-art/card/employee-true-cost.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3775,
-        "sha256": "c33e2009862de08c"
+        "bytes": 3386,
+        "sha256": "784f529f7fc0d9ed"
       },
       "hero": {
         "file": "/tools-art/hero/employee-true-cost.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3797,
-        "sha256": "eb1170a589994b86"
+        "bytes": 3386,
+        "sha256": "9adb146554ab890b"
       }
     },
     {
@@ -450,15 +450,15 @@
         "file": "/tools-art/card/hire-vs-automate.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3509,
-        "sha256": "938632f97b481454"
+        "bytes": 6295,
+        "sha256": "4825ea6677e28d86"
       },
       "hero": {
         "file": "/tools-art/hero/hire-vs-automate.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3532,
-        "sha256": "b8181fd34ce7613e"
+        "bytes": 6295,
+        "sha256": "bf47d1821a50a8e6"
       }
     },
     {
@@ -467,15 +467,15 @@
         "file": "/tools-art/card/overtime-cost-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3709,
-        "sha256": "a0f7b065875caf69"
+        "bytes": 5461,
+        "sha256": "37c3e26b5b3aec6b"
       },
       "hero": {
         "file": "/tools-art/hero/overtime-cost-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "5c94bac8fa9ae664"
+        "bytes": 5461,
+        "sha256": "4dd85d94357fe0d4"
       }
     },
     {
@@ -484,15 +484,15 @@
         "file": "/tools-art/card/rent-receipt.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3684,
-        "sha256": "3cb15e4379a7fe78"
+        "bytes": 4945,
+        "sha256": "23f8654e18f75f43"
       },
       "hero": {
         "file": "/tools-art/hero/rent-receipt.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "95f76a365486bd3a"
+        "bytes": 4945,
+        "sha256": "f655e9c4ce91081c"
       }
     },
     {
@@ -501,15 +501,15 @@
         "file": "/tools-art/card/credit-card-fee-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3773,
-        "sha256": "50da64a014d867f3"
+        "bytes": 4954,
+        "sha256": "888eab6597d73e2e"
       },
       "hero": {
         "file": "/tools-art/hero/credit-card-fee-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3797,
-        "sha256": "4399b8909575ad98"
+        "bytes": 4954,
+        "sha256": "b1b6a55b15ba37dc"
       }
     },
     {
@@ -518,15 +518,15 @@
         "file": "/tools-art/card/platform-fee-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3742,
-        "sha256": "cf6403fa7f93dbef"
+        "bytes": 4322,
+        "sha256": "df46f6f85c6854fc"
       },
       "hero": {
         "file": "/tools-art/hero/platform-fee-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3799,
-        "sha256": "5d6822c77295d70a"
+        "bytes": 4322,
+        "sha256": "8b72c9756a9fa827"
       }
     },
     {
@@ -535,15 +535,15 @@
         "file": "/tools-art/card/per-seat-cost-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3740,
-        "sha256": "dd225007b5bb7e16"
+        "bytes": 6465,
+        "sha256": "bfa1bc5c095e346b"
       },
       "hero": {
         "file": "/tools-art/hero/per-seat-cost-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3799,
-        "sha256": "85de6b9e61246b77"
+        "bytes": 6465,
+        "sha256": "d86db0372ea8b02b"
       }
     },
     {
@@ -552,15 +552,15 @@
         "file": "/tools-art/card/downtime-cost-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3737,
-        "sha256": "f3a5978303e4f12a"
+        "bytes": 5840,
+        "sha256": "37a7585c33b329da"
       },
       "hero": {
         "file": "/tools-art/hero/downtime-cost-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3799,
-        "sha256": "b6d0a236a5716f17"
+        "bytes": 5840,
+        "sha256": "639537c3f25c8b8c"
       }
     },
     {
@@ -569,15 +569,15 @@
         "file": "/tools-art/card/equipment-buy-vs-rent.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3474,
-        "sha256": "7b4214d6dd013df3"
+        "bytes": 5237,
+        "sha256": "528d6f255d3962a7"
       },
       "hero": {
         "file": "/tools-art/hero/equipment-buy-vs-rent.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3534,
-        "sha256": "54a41017676c381a"
+        "bytes": 5237,
+        "sha256": "61124bc3b6bc2e3b"
       }
     },
     {
@@ -586,15 +586,15 @@
         "file": "/tools-art/card/roas-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3773,
-        "sha256": "7d8e1c08fb5eda55"
+        "bytes": 4900,
+        "sha256": "c3fcb1a2c1c353d4"
       },
       "hero": {
         "file": "/tools-art/hero/roas-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3799,
-        "sha256": "5f4a479ab9122ff6"
+        "bytes": 4900,
+        "sha256": "17db022a36dc7cd1"
       }
     },
     {
@@ -603,15 +603,15 @@
         "file": "/tools-art/card/ad-budget-planner.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3404,
-        "sha256": "98be46cd48f65fb9"
+        "bytes": 5673,
+        "sha256": "19ea55e3a47ada44"
       },
       "hero": {
         "file": "/tools-art/hero/ad-budget-planner.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3401,
-        "sha256": "444b0b129d07fb31"
+        "bytes": 5673,
+        "sha256": "878e6e034ee8add8"
       }
     },
     {
@@ -620,15 +620,15 @@
         "file": "/tools-art/card/cac-payback-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3721,
-        "sha256": "33e0c3909f4a2bde"
+        "bytes": 3977,
+        "sha256": "347f292c65e73511"
       },
       "hero": {
         "file": "/tools-art/hero/cac-payback-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "c4e358fb63e32357"
+        "bytes": 3977,
+        "sha256": "119cd68a41449ef7"
       }
     },
     {
@@ -637,15 +637,15 @@
         "file": "/tools-art/card/ad-test-budget-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3455,
-        "sha256": "23521665c85c8ed1"
+        "bytes": 4410,
+        "sha256": "db9b8f2f79d29b29"
       },
       "hero": {
         "file": "/tools-art/hero/ad-test-budget-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3480,
-        "sha256": "5ec9566133813e17"
+        "bytes": 4410,
+        "sha256": "3f4749c701da8607"
       }
     },
     {
@@ -654,15 +654,15 @@
         "file": "/tools-art/card/commission-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3444,
-        "sha256": "0f3c40a18b4f395c"
+        "bytes": 3986,
+        "sha256": "6f7d1e658fcca91f"
       },
       "hero": {
         "file": "/tools-art/hero/commission-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3427,
-        "sha256": "4b9806906ca2551c"
+        "bytes": 3986,
+        "sha256": "7f92264fb6605f5f"
       }
     },
     {
@@ -671,15 +671,15 @@
         "file": "/tools-art/card/admin-time-audit.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3613,
-        "sha256": "a1348014c49e0c3e"
+        "bytes": 7205,
+        "sha256": "f30e862c556b04b4"
       },
       "hero": {
         "file": "/tools-art/hero/admin-time-audit.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3613,
-        "sha256": "3c8428c9dc23b176"
+        "bytes": 7205,
+        "sha256": "614d837f17b3eb52"
       }
     },
     {
@@ -688,15 +688,15 @@
         "file": "/tools-art/card/task-automation-savings.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3739,
-        "sha256": "d78cc3d33b4bb3ec"
+        "bytes": 4922,
+        "sha256": "8478ddcc1932730c"
       },
       "hero": {
         "file": "/tools-art/hero/task-automation-savings.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3799,
-        "sha256": "ba525d424d38e65e"
+        "bytes": 4922,
+        "sha256": "68c8e18ca780b422"
       }
     },
     {
@@ -705,15 +705,15 @@
         "file": "/tools-art/card/cost-per-mile-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3686,
-        "sha256": "15f33ad5c49e6086"
+        "bytes": 5159,
+        "sha256": "42abd5e356007e93"
       },
       "hero": {
         "file": "/tools-art/hero/cost-per-mile-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "35577c642df5807e"
+        "bytes": 5159,
+        "sha256": "beaa3dae631aa331"
       }
     },
     {
@@ -722,15 +722,15 @@
         "file": "/tools-art/card/drive-time-cost.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3770,
-        "sha256": "22886b5644586739"
+        "bytes": 6127,
+        "sha256": "2d4189e0865047c7"
       },
       "hero": {
         "file": "/tools-art/hero/drive-time-cost.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3797,
-        "sha256": "26cefc1c4df22b08"
+        "bytes": 6127,
+        "sha256": "e604f0f87f7f5ca6"
       }
     },
     {
@@ -739,15 +739,15 @@
         "file": "/tools-art/card/meeting-cost-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3737,
-        "sha256": "e229fa09736eb0eb"
+        "bytes": 5813,
+        "sha256": "655b5ab78eff7a12"
       },
       "hero": {
         "file": "/tools-art/hero/meeting-cost-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3799,
-        "sha256": "7d68bd10079e44db"
+        "bytes": 5813,
+        "sha256": "90ac1c571a27b9b8"
       }
     },
     {
@@ -756,15 +756,15 @@
         "file": "/tools-art/card/owner-hourly-worth.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3709,
-        "sha256": "f265230bf7ae6cff"
+        "bytes": 6134,
+        "sha256": "a39b16999b026d14"
       },
       "hero": {
         "file": "/tools-art/hero/owner-hourly-worth.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "2e4360f82442e9b7"
+        "bytes": 6134,
+        "sha256": "fe734f422c83ccc5"
       }
     },
     {
@@ -773,15 +773,15 @@
         "file": "/tools-art/card/google-review-link.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 4030,
-        "sha256": "617a9279595c79dd"
+        "bytes": 5751,
+        "sha256": "67e2f5afd062d211"
       },
       "hero": {
         "file": "/tools-art/hero/google-review-link.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 4037,
-        "sha256": "5f0cac616af78f60"
+        "bytes": 5751,
+        "sha256": "d8cd7e7382739344"
       }
     },
     {
@@ -790,15 +790,15 @@
         "file": "/tools-art/card/review-goal-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3470,
-        "sha256": "d72a5adb75fedfa1"
+        "bytes": 5015,
+        "sha256": "90c204462985e69c"
       },
       "hero": {
         "file": "/tools-art/hero/review-goal-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3480,
-        "sha256": "1ee9cd6ce7c0b3c7"
+        "bytes": 5015,
+        "sha256": "86d3c5925241624d"
       }
     },
     {
@@ -807,15 +807,15 @@
         "file": "/tools-art/card/bad-review-impact.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3685,
-        "sha256": "e8dabd11d694434b"
+        "bytes": 4208,
+        "sha256": "13055b2bc84a8295"
       },
       "hero": {
         "file": "/tools-art/hero/bad-review-impact.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "e29cd01a3ede4f4c"
+        "bytes": 4208,
+        "sha256": "ee7a5fa22ff59295"
       }
     },
     {
@@ -824,15 +824,15 @@
         "file": "/tools-art/card/review-response-writer.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3506,
-        "sha256": "d121ad682a5b81ad"
+        "bytes": 4209,
+        "sha256": "599ea78f7cfdfe2d"
       },
       "hero": {
         "file": "/tools-art/hero/review-response-writer.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3568,
-        "sha256": "0fd727284a7f54bd"
+        "bytes": 4209,
+        "sha256": "c7a8005aac9544ae"
       }
     },
     {
@@ -841,15 +841,15 @@
         "file": "/tools-art/card/website-speed-money.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3706,
-        "sha256": "fa31a8304fbe3abf"
+        "bytes": 5938,
+        "sha256": "f437c835881677c4"
       },
       "hero": {
         "file": "/tools-art/hero/website-speed-money.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "0f8c7a2f1686cfd2"
+        "bytes": 5938,
+        "sha256": "61e8daacf8ab0881"
       }
     },
     {
@@ -858,15 +858,15 @@
         "file": "/tools-art/card/conversion-lift-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3719,
-        "sha256": "3bc152555300b970"
+        "bytes": 3843,
+        "sha256": "53b7fdfa5d1b3a2f"
       },
       "hero": {
         "file": "/tools-art/hero/conversion-lift-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "7c6b8fba3d784ca0"
+        "bytes": 3843,
+        "sha256": "715be3ea73de82d0"
       }
     },
     {
@@ -875,15 +875,15 @@
         "file": "/tools-art/card/mobile-traffic-loss.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3772,
-        "sha256": "fb9c1f36adaacdfb"
+        "bytes": 4800,
+        "sha256": "db7fc5fa82100484"
       },
       "hero": {
         "file": "/tools-art/hero/mobile-traffic-loss.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3797,
-        "sha256": "b24c590b281a51e0"
+        "bytes": 4800,
+        "sha256": "c024b0b980e21995"
       }
     },
     {
@@ -892,15 +892,15 @@
         "file": "/tools-art/card/seo-traffic-value.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3742,
-        "sha256": "85203be5f5286fea"
+        "bytes": 5877,
+        "sha256": "4d15ea4458fb2dff"
       },
       "hero": {
         "file": "/tools-art/hero/seo-traffic-value.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3799,
-        "sha256": "a136a21cb7b44cbc"
+        "bytes": 5877,
+        "sha256": "f926aeb7aa9cae74"
       }
     },
     {
@@ -909,15 +909,15 @@
         "file": "/tools-art/card/website-grader.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3477,
-        "sha256": "c20d4f22dec30fe6"
+        "bytes": 6456,
+        "sha256": "1c33bdc516268595"
       },
       "hero": {
         "file": "/tools-art/hero/website-grader.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3534,
-        "sha256": "2862a3ba9234fdf3"
+        "bytes": 6456,
+        "sha256": "d1f90874d220dc34"
       }
     },
     {
@@ -926,15 +926,15 @@
         "file": "/tools-art/card/google-business-profile-scorecard.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3510,
-        "sha256": "5db52ff4927a7b4b"
+        "bytes": 7319,
+        "sha256": "a5924e3f374432e5"
       },
       "hero": {
         "file": "/tools-art/hero/google-business-profile-scorecard.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3532,
-        "sha256": "43857c0510382d63"
+        "bytes": 7319,
+        "sha256": "8bafd3eb4d4f5390"
       }
     },
     {
@@ -943,15 +943,15 @@
         "file": "/tools-art/card/form-friction-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3709,
-        "sha256": "718eabac9cdf4d37"
+        "bytes": 6377,
+        "sha256": "15e5c9ee56977ce5"
       },
       "hero": {
         "file": "/tools-art/hero/form-friction-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "4a70c0bd505e6dde"
+        "bytes": 6377,
+        "sha256": "c5b52321c66dfda3"
       }
     },
     {
@@ -960,15 +960,15 @@
         "file": "/tools-art/card/qr-code-maker.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 4085,
-        "sha256": "8a22a451c8ca4810"
+        "bytes": 5747,
+        "sha256": "379356505a5344d9"
       },
       "hero": {
         "file": "/tools-art/hero/qr-code-maker.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 4132,
-        "sha256": "b8b884e99e40e8f2"
+        "bytes": 5747,
+        "sha256": "be7897851a7dcbca"
       }
     },
     {
@@ -977,15 +977,15 @@
         "file": "/tools-art/card/wifi-qr-code.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 4072,
-        "sha256": "efd53e0efdc1fd6a"
+        "bytes": 7151,
+        "sha256": "17afe1f0e44a5302"
       },
       "hero": {
         "file": "/tools-art/hero/wifi-qr-code.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 4132,
-        "sha256": "1cb9ff6ec9b8bd21"
+        "bytes": 7151,
+        "sha256": "b126ca00c25b7b46"
       }
     },
     {
@@ -994,15 +994,15 @@
         "file": "/tools-art/card/digital-business-card.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 4054,
-        "sha256": "64b1738d6829f8c6"
+        "bytes": 4291,
+        "sha256": "54ff5fe61497309d"
       },
       "hero": {
         "file": "/tools-art/hero/digital-business-card.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 4037,
-        "sha256": "237d7c86c303cbab"
+        "bytes": 4291,
+        "sha256": "4adb5f814529ba72"
       }
     },
     {
@@ -1011,15 +1011,15 @@
         "file": "/tools-art/card/click-to-call-button.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3357,
-        "sha256": "3f263ace80711669"
+        "bytes": 3862,
+        "sha256": "4ec650b76189071f"
       },
       "hero": {
         "file": "/tools-art/hero/click-to-call-button.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3374,
-        "sha256": "144f41b48e7af006"
+        "bytes": 3862,
+        "sha256": "7900430ab72f6d48"
       }
     },
     {
@@ -1028,15 +1028,15 @@
         "file": "/tools-art/card/sms-link-generator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3455,
-        "sha256": "184b421953201653"
+        "bytes": 4336,
+        "sha256": "d4580da2187b6734"
       },
       "hero": {
         "file": "/tools-art/hero/sms-link-generator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3481,
-        "sha256": "5ee2b579a18f3d1e"
+        "bytes": 4336,
+        "sha256": "e63cbb129560c6c0"
       }
     },
     {
@@ -1045,15 +1045,15 @@
         "file": "/tools-art/card/utm-link-builder.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3389,
-        "sha256": "776f6b9306eaee44"
+        "bytes": 7207,
+        "sha256": "84e8a080086f75f8"
       },
       "hero": {
         "file": "/tools-art/hero/utm-link-builder.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3374,
-        "sha256": "e25d880d976589f1"
+        "bytes": 7207,
+        "sha256": "a1b4d4e27234b478"
       }
     },
     {
@@ -1062,15 +1062,15 @@
         "file": "/tools-art/card/email-signature-generator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3473,
-        "sha256": "6693dc33ae047b5d"
+        "bytes": 5550,
+        "sha256": "5361235ed9d01cee"
       },
       "hero": {
         "file": "/tools-art/hero/email-signature-generator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3473,
-        "sha256": "c1c489c15c78aa69"
+        "bytes": 5550,
+        "sha256": "efc2b63f27b26f7a"
       }
     },
     {
@@ -1079,15 +1079,15 @@
         "file": "/tools-art/card/missed-call-textback-script.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3511,
-        "sha256": "c30fd7a31dca0815"
+        "bytes": 3225,
+        "sha256": "c26359e3e0392061"
       },
       "hero": {
         "file": "/tools-art/hero/missed-call-textback-script.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3568,
-        "sha256": "93d44fe183a190a1"
+        "bytes": 3225,
+        "sha256": "b6b0d2e5f6fe0417"
       }
     },
     {
@@ -1096,15 +1096,15 @@
         "file": "/tools-art/card/review-request-script.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3490,
-        "sha256": "9801c40b052d45f9"
+        "bytes": 5200,
+        "sha256": "82645d66045add17"
       },
       "hero": {
         "file": "/tools-art/hero/review-request-script.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3473,
-        "sha256": "4ce371eadfffe8d7"
+        "bytes": 5200,
+        "sha256": "e29fa2c32725a66d"
       }
     },
     {
@@ -1113,15 +1113,15 @@
         "file": "/tools-art/card/estimate-terms-generator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3479,
-        "sha256": "878d059c81873575"
+        "bytes": 6153,
+        "sha256": "2f5ace88abd1892d"
       },
       "hero": {
         "file": "/tools-art/hero/estimate-terms-generator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3462,
-        "sha256": "c2d60a088b1f5acd"
+        "bytes": 6153,
+        "sha256": "993c766c49ac7912"
       }
     },
     {
@@ -1130,15 +1130,15 @@
         "file": "/tools-art/card/late-payment-language.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3467,
-        "sha256": "db59773646cbb89d"
+        "bytes": 6270,
+        "sha256": "6912ae836c3bfc23"
       },
       "hero": {
         "file": "/tools-art/hero/late-payment-language.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3462,
-        "sha256": "fcefadcbe0464f3f"
+        "bytes": 6270,
+        "sha256": "f2679bc290c808d7"
       }
     },
     {
@@ -1147,15 +1147,15 @@
         "file": "/tools-art/card/cancellation-policy-generator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3442,
-        "sha256": "a494170b9ca5cf96"
+        "bytes": 5155,
+        "sha256": "298ba158c7fa90ad"
       },
       "hero": {
         "file": "/tools-art/hero/cancellation-policy-generator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3462,
-        "sha256": "9bb73353eb50423e"
+        "bytes": 5155,
+        "sha256": "d9e9959958395fcf"
       }
     },
     {
@@ -1164,15 +1164,15 @@
         "file": "/tools-art/card/localbusiness-schema-generator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3556,
-        "sha256": "f8bf112c29b6ffcb"
+        "bytes": 6534,
+        "sha256": "5a16cb75448cf6b8"
       },
       "hero": {
         "file": "/tools-art/hero/localbusiness-schema-generator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3580,
-        "sha256": "13410f5fa253c293"
+        "bytes": 6534,
+        "sha256": "188edfcf322c682b"
       }
     },
     {
@@ -1181,15 +1181,15 @@
         "file": "/tools-art/card/faq-schema-generator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3475,
-        "sha256": "a1dbf64b3ca991d2"
+        "bytes": 4628,
+        "sha256": "f43ff58167237f0d"
       },
       "hero": {
         "file": "/tools-art/hero/faq-schema-generator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3473,
-        "sha256": "45ea1b36c8bf92de"
+        "bytes": 4628,
+        "sha256": "3063c7e47ec61182"
       }
     },
     {
@@ -1198,15 +1198,15 @@
         "file": "/tools-art/card/meta-title-description-writer.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3488,
-        "sha256": "1e0d66c2c305878d"
+        "bytes": 4145,
+        "sha256": "1ca5524c67334142"
       },
       "hero": {
         "file": "/tools-art/hero/meta-title-description-writer.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3473,
-        "sha256": "15b16d6ec92519f9"
+        "bytes": 4145,
+        "sha256": "23151757dbf43512"
       }
     },
     {
@@ -1215,15 +1215,15 @@
         "file": "/tools-art/card/ad-character-counter.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3429,
-        "sha256": "7a93d021d327d74a"
+        "bytes": 5100,
+        "sha256": "7d2590fe0f839adf"
       },
       "hero": {
         "file": "/tools-art/hero/ad-character-counter.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3446,
-        "sha256": "df226e3c88cba776"
+        "bytes": 5100,
+        "sha256": "7c52fa8f082ff504"
       }
     },
     {
@@ -1232,15 +1232,15 @@
         "file": "/tools-art/card/google-maps-link-generator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3391,
-        "sha256": "bbe832d9f6bc5e07"
+        "bytes": 5257,
+        "sha256": "d9b75ab6988a09e1"
       },
       "hero": {
         "file": "/tools-art/hero/google-maps-link-generator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3388,
-        "sha256": "02f5afc43155866e"
+        "bytes": 5257,
+        "sha256": "7da217e09656d3bf"
       }
     },
     {
@@ -1249,15 +1249,15 @@
         "file": "/tools-art/card/add-to-calendar-link.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3411,
-        "sha256": "731e60995555a324"
+        "bytes": 6816,
+        "sha256": "fd92b8292211a621"
       },
       "hero": {
         "file": "/tools-art/hero/add-to-calendar-link.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3469,
-        "sha256": "5926185f0652b2c4"
+        "bytes": 6816,
+        "sha256": "ae2c41171ef3c7b3"
       }
     },
     {
@@ -1266,15 +1266,15 @@
         "file": "/tools-art/card/voicemail-script-generator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3523,
-        "sha256": "15cff25861a96cbf"
+        "bytes": 4280,
+        "sha256": "6b5ae1d79a23918e"
       },
       "hero": {
         "file": "/tools-art/hero/voicemail-script-generator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3582,
-        "sha256": "c8efbf9afb01f17c"
+        "bytes": 4280,
+        "sha256": "7f171a237e8e677d"
       }
     },
     {
@@ -1283,15 +1283,15 @@
         "file": "/tools-art/card/job-post-writer.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3554,
-        "sha256": "f764c1874fa767f9"
+        "bytes": 5812,
+        "sha256": "b9af6671dd5e0c52"
       },
       "hero": {
         "file": "/tools-art/hero/job-post-writer.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3580,
-        "sha256": "b1dc65f9280a1e6d"
+        "bytes": 5812,
+        "sha256": "4633aee030a4f0cd"
       }
     },
     {
@@ -1300,15 +1300,15 @@
         "file": "/tools-art/card/google-post-writer.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3478,
-        "sha256": "3c86decc56e788be"
+        "bytes": 4910,
+        "sha256": "bfb0e017d1d97ad0"
       },
       "hero": {
         "file": "/tools-art/hero/google-post-writer.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3473,
-        "sha256": "4605bc2d46856828"
+        "bytes": 4910,
+        "sha256": "8afe78638a5d753d"
       }
     },
     {
@@ -1317,15 +1317,15 @@
         "file": "/tools-art/card/robots-txt-generator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3542,
-        "sha256": "9b6bfc53b1c5f0cc"
+        "bytes": 6258,
+        "sha256": "b6f5d561436fbd09"
       },
       "hero": {
         "file": "/tools-art/hero/robots-txt-generator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3568,
-        "sha256": "1c0ba1db502fa987"
+        "bytes": 6258,
+        "sha256": "6aa96d6351e7c841"
       }
     },
     {
@@ -1334,15 +1334,15 @@
         "file": "/tools-art/card/household-budget-planner.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3370,
-        "sha256": "cc9e61712e4ed039"
+        "bytes": 5546,
+        "sha256": "78e147eab344f9a6"
       },
       "hero": {
         "file": "/tools-art/hero/household-budget-planner.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3387,
-        "sha256": "ff578e9e70a2bfef"
+        "bytes": 5546,
+        "sha256": "2da5cfcbb85c7909"
       }
     },
     {
@@ -1351,15 +1351,15 @@
         "file": "/tools-art/card/grocery-unit-price-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3435,
-        "sha256": "a65c4aa2ffee3eaa"
+        "bytes": 5545,
+        "sha256": "557c459636679feb"
       },
       "hero": {
         "file": "/tools-art/hero/grocery-unit-price-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3420,
-        "sha256": "879752d930aa13d4"
+        "bytes": 5545,
+        "sha256": "4ed09ebea293fc57"
       }
     },
     {
@@ -1368,15 +1368,15 @@
         "file": "/tools-art/card/childcare-vs-work-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3721,
-        "sha256": "badec151a01a0fad"
+        "bytes": 5021,
+        "sha256": "faa4e00cce9431a1"
       },
       "hero": {
         "file": "/tools-art/hero/childcare-vs-work-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "a73f051ae2584dae"
+        "bytes": 5021,
+        "sha256": "a2967d10c5e39e4e"
       }
     },
     {
@@ -1385,15 +1385,15 @@
         "file": "/tools-art/card/subscription-audit.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3663,
-        "sha256": "d241f1b576c6cb33"
+        "bytes": 6953,
+        "sha256": "8ac3dd51c718c291"
       },
       "hero": {
         "file": "/tools-art/hero/subscription-audit.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3708,
-        "sha256": "07ca692fd753870a"
+        "bytes": 6953,
+        "sha256": "c0a4639592763e47"
       }
     },
     {
@@ -1402,15 +1402,15 @@
         "file": "/tools-art/card/emergency-fund-calculator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3699,
-        "sha256": "4e3a54001606e268"
+        "bytes": 5300,
+        "sha256": "89608cd1799b9ba1"
       },
       "hero": {
         "file": "/tools-art/hero/emergency-fund-calculator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3704,
-        "sha256": "687ab9c15e14848e"
+        "bytes": 5300,
+        "sha256": "825e30b20f8ad4c3"
       }
     },
     {
@@ -1419,15 +1419,15 @@
         "file": "/tools-art/card/debt-payoff-planner.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3404,
-        "sha256": "fe5ee6323c2f75dd"
+        "bytes": 4253,
+        "sha256": "faa8c0861a8e525a"
       },
       "hero": {
         "file": "/tools-art/hero/debt-payoff-planner.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3401,
-        "sha256": "05c13d571167fa64"
+        "bytes": 4253,
+        "sha256": "08f36ca2c23840b9"
       }
     },
     {
@@ -1436,15 +1436,15 @@
         "file": "/tools-art/card/rent-affordability-estimator.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3447,
-        "sha256": "77207934e19fd752"
+        "bytes": 5267,
+        "sha256": "afd215d93ea6de02"
       },
       "hero": {
         "file": "/tools-art/hero/rent-affordability-estimator.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3447,
-        "sha256": "afaf382c65d138a3"
+        "bytes": 5267,
+        "sha256": "8191b1bce99a8116"
       }
     },
     {
@@ -1453,15 +1453,15 @@
         "file": "/tools-art/card/salary-to-hourly-converter.svg",
         "width": 1200,
         "height": 675,
-        "bytes": 3458,
-        "sha256": "74a301f68d95084c"
+        "bytes": 6370,
+        "sha256": "dcf509ee891a423a"
       },
       "hero": {
         "file": "/tools-art/hero/salary-to-hourly-converter.svg",
         "width": 1600,
         "height": 900,
-        "bytes": 3515,
-        "sha256": "ca5618438526cc3a"
+        "bytes": 6370,
+        "sha256": "5b46cdb4b5f23056"
       }
     }
   ]

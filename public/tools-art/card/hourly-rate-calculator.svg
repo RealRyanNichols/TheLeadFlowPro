@@ -1,22 +1,105 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img">
-<defs>
-<clipPath id="c"><rect width="1200" height="675"/></clipPath>
-<radialGradient id="f" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#0B5A33" stop-opacity="0.30"/>
-<stop offset="55%" stop-color="#0B5A33" stop-opacity="0.11"/>
-<stop offset="100%" stop-color="#0B5A33" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="e" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#0B5A33" stop-opacity="0.16"/>
-<stop offset="100%" stop-color="#0B5A33" stop-opacity="0"/>
-</radialGradient>
-</defs>
-<g clip-path="url(#c)">
-<rect width="1200" height="675" fill="#F7F5F2"/>
-<g stroke="#0A1220" stroke-width="1" opacity="0.055"><line x1="56" y1="0" x2="56" y2="675"/><line x1="112" y1="0" x2="112" y2="675"/><line x1="168" y1="0" x2="168" y2="675"/><line x1="224" y1="0" x2="224" y2="675"/><line x1="280" y1="0" x2="280" y2="675"/><line x1="336" y1="0" x2="336" y2="675"/><line x1="392" y1="0" x2="392" y2="675"/><line x1="448" y1="0" x2="448" y2="675"/><line x1="504" y1="0" x2="504" y2="675"/><line x1="560" y1="0" x2="560" y2="675"/><line x1="616" y1="0" x2="616" y2="675"/><line x1="672" y1="0" x2="672" y2="675"/><line x1="728" y1="0" x2="728" y2="675"/><line x1="784" y1="0" x2="784" y2="675"/><line x1="840" y1="0" x2="840" y2="675"/><line x1="896" y1="0" x2="896" y2="675"/><line x1="952" y1="0" x2="952" y2="675"/><line x1="1008" y1="0" x2="1008" y2="675"/><line x1="1064" y1="0" x2="1064" y2="675"/><line x1="1120" y1="0" x2="1120" y2="675"/><line x1="1176" y1="0" x2="1176" y2="675"/><line x1="0" y1="56" x2="1200" y2="56"/><line x1="0" y1="112" x2="1200" y2="112"/><line x1="0" y1="168" x2="1200" y2="168"/><line x1="0" y1="224" x2="1200" y2="224"/><line x1="0" y1="280" x2="1200" y2="280"/><line x1="0" y1="336" x2="1200" y2="336"/><line x1="0" y1="392" x2="1200" y2="392"/><line x1="0" y1="448" x2="1200" y2="448"/><line x1="0" y1="504" x2="1200" y2="504"/><line x1="0" y1="560" x2="1200" y2="560"/><line x1="0" y1="616" x2="1200" y2="616"/><line x1="0" y1="672" x2="1200" y2="672"/></g>
-<circle cx="1032" cy="162" r="283.5" fill="url(#e)"/>
-<circle cx="407" cy="343.5" r="418.5" fill="url(#f)"/>
-<g stroke="#0B5A33" stroke-width="2.5" opacity="0.55" stroke-linecap="round"><line x1="189.65" y1="592.98" x2="189.65" y2="608.98"/><line x1="243.9875" y1="592.98" x2="243.9875" y2="601.98"/><line x1="298.325" y1="592.98" x2="298.325" y2="601.98"/><line x1="352.6625" y1="592.98" x2="352.6625" y2="601.98"/><line x1="407" y1="592.98" x2="407" y2="608.98"/><line x1="461.3375" y1="592.98" x2="461.3375" y2="601.98"/><line x1="515.675" y1="592.98" x2="515.675" y2="601.98"/><line x1="570.0125" y1="592.98" x2="570.0125" y2="601.98"/><line x1="624.35" y1="592.98" x2="624.35" y2="608.98"/><line x1="189.65" y1="592.98" x2="624.35" y2="592.98"/></g>
-<g transform="translate(218 154.5) scale(5.90625)"><rect x="14" y="6" width="36" height="52" rx="6" fill="none" stroke="#0A1220" stroke-width="3.2"/><rect x="20" y="13" width="24" height="10" rx="2.5" fill="#0B5A33" opacity="0.9"/><circle cx="23" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="23" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="23" cy="51" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="51" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="51" r="2.6" fill="#0B5A33" opacity="1"/></g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1200" height="675">
+  <defs>
+    <linearGradient id="hrc-acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+    <radialGradient id="hrc-w1">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity=".14"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="hrc-w2">
+      <stop offset="0" stop-color="#3b82f6" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#3b82f6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="350" cy="240" r="520" fill="url(#hrc-w1)"/>
+  <circle cx="1210" cy="620" r="560" fill="url(#hrc-w2)"/>
+  <circle cx="1000" cy="130" r="280" fill="url(#hrc-w1)" opacity=".5"/>
+
+  <!-- floor -->
+  <line x1="0" y1="726" x2="880" y2="726" stroke="#d7e0ee" stroke-width="3"/>
+  <ellipse cx="368" cy="730" rx="330" ry="22" fill="#0e1a2e" opacity=".07"/>
+
+  <!-- wall clock -->
+  <circle cx="296" cy="168" r="84" fill="#ffffff" stroke="#d7e0ee" stroke-width="7"/>
+  <circle cx="296" cy="168" r="68" fill="none" stroke="#d7e0ee" stroke-width="3"/>
+  <g stroke="#0e1a2e" stroke-width="7" stroke-linecap="round">
+    <line x1="296" y1="102" x2="296" y2="114"/>
+    <line x1="296" y1="222" x2="296" y2="234"/>
+    <line x1="230" y1="168" x2="242" y2="168"/>
+    <line x1="350" y1="168" x2="362" y2="168"/>
+    <line x1="296" y1="168" x2="263" y2="149"/>
+    <line x1="296" y1="168" x2="325" y2="118"/>
+  </g>
+  <circle cx="296" cy="168" r="8" fill="url(#hrc-acc)"/>
+  <circle cx="296" cy="168" r="3" fill="#ffffff"/>
+
+  <!-- chair -->
+  <rect x="150" y="380" width="14" height="165" rx="7" fill="#8299b8"/>
+  <rect x="158" y="538" width="148" height="16" rx="8" fill="#8299b8"/>
+  <rect x="222" y="554" width="12" height="156" fill="#8299b8"/>
+  <rect x="176" y="710" width="104" height="10" rx="5" fill="#8299b8"/>
+
+  <!-- owner, seated, one arm raised holding the balance -->
+  <circle cx="256" cy="316" r="42" fill="#0e1a2e"/>
+  <path d="M 210 552 L 208 420 Q 208 372 252 362 L 296 358 Q 306 356 314 362
+           L 444 269 Q 456 262 464 272 Q 472 282 462 292 L 330 388
+           Q 322 394 320 404 L 322 552 Z" fill="#0e1a2e"/>
+
+  <!-- hand balance: pivot ring, tilted beam, v-strings, accent pans -->
+  <circle cx="470" cy="278" r="11" fill="#f7f9fc" stroke="#0e1a2e" stroke-width="7"/>
+  <line x1="470" y1="289" x2="470" y2="310" stroke="#0e1a2e" stroke-width="7" stroke-linecap="round"/>
+  <line x1="339" y1="296" x2="601" y2="324" stroke="#0e1a2e" stroke-width="7" stroke-linecap="round"/>
+  <g stroke="#8299b8" stroke-width="3">
+    <line x1="339" y1="296" x2="289" y2="366"/>
+    <line x1="339" y1="296" x2="389" y2="366"/>
+    <line x1="601" y1="324" x2="547" y2="408"/>
+    <line x1="601" y1="324" x2="655" y2="408"/>
+  </g>
+  <!-- left pan: hours (clock chip) -->
+  <circle cx="339" cy="344" r="25" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <line x1="339" y1="344" x2="339" y2="329" stroke="#0e1a2e" stroke-width="3" stroke-linecap="round"/>
+  <line x1="339" y1="344" x2="350" y2="350" stroke="#0e1a2e" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 285 368 Q 339 414 393 368 Q 339 388 285 368 Z" fill="url(#hrc-acc)"/>
+  <path d="M 285 368 Q 339 388 393 368" fill="none" stroke="#3b82f6" stroke-width="3" opacity=".45"/>
+  <!-- right pan: expenses (coin stack), heavier so lower -->
+  <g fill="url(#hrc-acc)" stroke="#3b82f6" stroke-width="3" stroke-opacity=".22">
+    <ellipse cx="601" cy="398" rx="27" ry="9"/>
+    <ellipse cx="601" cy="385" rx="27" ry="9"/>
+    <ellipse cx="601" cy="372" rx="27" ry="9"/>
+  </g>
+  <ellipse cx="601" cy="372" rx="15" ry="4.5" fill="none" stroke="#ffffff" stroke-width="3" opacity=".55"/>
+  <path d="M 543 410 Q 601 460 659 410 Q 601 432 543 410 Z" fill="url(#hrc-acc)"/>
+  <path d="M 543 410 Q 601 432 659 410" fill="none" stroke="#3b82f6" stroke-width="3" opacity=".45"/>
+
+  <!-- expense slips on the desk -->
+  <g transform="rotate(6 160 540)">
+    <rect x="128" y="518" width="64" height="46" rx="6" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="140" y="532" width="40" height="6" rx="3" fill="#b9c6da"/>
+    <rect x="140" y="546" width="28" height="6" rx="3" fill="#b9c6da" opacity=".7"/>
+  </g>
+  <g transform="rotate(-8 215 548)">
+    <rect x="188" y="528" width="58" height="42" rx="6" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="198" y="540" width="36" height="6" rx="3" fill="#b9c6da"/>
+    <rect x="198" y="554" width="24" height="6" rx="3" fill="#b9c6da" opacity=".7"/>
+  </g>
+
+  <!-- invoice standing on the desk -->
+  <g transform="rotate(-4 540 512)">
+    <rect x="466" y="458" width="150" height="112" rx="8" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <path d="M 586 458 L 616 488 L 616 458 Z" fill="#d7e0ee" opacity=".6"/>
+    <rect x="482" y="478" width="66" height="9" rx="4.5" fill="#0e1a2e"/>
+    <rect x="482" y="498" width="100" height="7" rx="3.5" fill="#b9c6da"/>
+    <rect x="482" y="512" width="84" height="7" rx="3.5" fill="#b9c6da" opacity=".8"/>
+    <line x1="482" y1="532" x2="598" y2="532" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="554" y="542" width="44" height="14" rx="7" fill="url(#hrc-acc)"/>
+  </g>
+
+  <!-- desk -->
+  <rect x="112" y="590" width="14" height="130" fill="#0e1a2e"/>
+  <rect x="602" y="590" width="14" height="130" fill="#0e1a2e"/>
+  <rect x="84" y="570" width="560" height="20" rx="7" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
 </svg>

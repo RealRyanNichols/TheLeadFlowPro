@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<defs>
+<linearGradient id="acc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#0ea371"/></linearGradient>
+<linearGradient id="accH" gradientUnits="userSpaceOnUse" x1="460" y1="0" x2="1180" y2="0"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#0ea371"/></linearGradient>
+<radialGradient id="wA"><stop offset="0" stop-color="#34d399" stop-opacity=".13"/><stop offset="1" stop-color="#34d399" stop-opacity="0"/></radialGradient>
+<radialGradient id="wB"><stop offset="0" stop-color="#0ea371" stop-opacity=".08"/><stop offset="1" stop-color="#0ea371" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="1600" height="900" fill="#f7f9fc"/>
+<ellipse cx="880" cy="270" rx="520" ry="300" fill="url(#wA)"/>
+<ellipse cx="420" cy="740" rx="440" ry="260" fill="url(#wB)"/>
+<ellipse cx="1340" cy="640" rx="380" ry="300" fill="url(#wA)" opacity=".7"/>
+
+<!-- streams -->
+<path d="M575 460 C750 452 790 212 1128 212" fill="none" stroke="#b9c6da" stroke-width="56"/>
+<path d="M575 460 C770 460 900 460 1128 460" fill="none" stroke="#8299b8" stroke-width="40"/>
+<path d="M575 460 C750 468 790 708 1128 708" fill="none" stroke="url(#accH)" stroke-width="30"/>
+<path d="M462 460 H570" stroke="url(#accH)" stroke-width="72"/>
+<circle cx="578" cy="460" r="17" fill="#0e1a2e"/>
+<circle cx="830" cy="608" r="15" fill="url(#acc)" stroke="#f7f9fc" stroke-width="4"/>
+<circle cx="980" cy="678" r="12" fill="url(#acc)" stroke="#f7f9fc" stroke-width="4"/>
+
+<!-- the single sale -->
+<ellipse cx="335" cy="618" rx="165" ry="20" fill="#0e1a2e" opacity=".07"/>
+<circle cx="330" cy="460" r="132" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+<circle cx="330" cy="460" r="102" fill="none" stroke="#b9c6da" stroke-width="3"/>
+<circle cx="330" cy="460" r="58" fill="url(#acc)"/>
+<circle cx="330" cy="460" r="36" fill="none" stroke="#ffffff" stroke-width="4" opacity=".6"/>
+
+<!-- cost: supplies box -->
+<ellipse cx="1230" cy="304" rx="110" ry="12" fill="#0e1a2e" opacity=".05"/>
+<rect x="1128" y="134" width="205" height="156" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+<rect x="1216" y="134" width="28" height="156" fill="#d7e0ee"/>
+<line x1="1128" y1="190" x2="1333" y2="190" stroke="#d7e0ee" stroke-width="3"/>
+
+<!-- company: storefront -->
+<ellipse cx="1245" cy="546" rx="120" ry="12" fill="#0e1a2e" opacity=".05"/>
+<rect x="1132" y="398" width="225" height="134" rx="10" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+<rect x="1120" y="388" width="50" height="24" fill="#8299b8"/>
+<rect x="1170" y="388" width="50" height="24" fill="#d7e0ee"/>
+<rect x="1220" y="388" width="50" height="24" fill="#8299b8"/>
+<rect x="1270" y="388" width="50" height="24" fill="#d7e0ee"/>
+<rect x="1320" y="388" width="50" height="24" fill="#8299b8"/>
+<path d="M1120 412 a25 25 0 0 0 50 0 z M1220 412 a25 25 0 0 0 50 0 z M1320 412 a25 25 0 0 0 50 0 z" fill="#8299b8"/>
+<path d="M1170 412 a25 25 0 0 0 50 0 z M1270 412 a25 25 0 0 0 50 0 z" fill="#d7e0ee"/>
+<rect x="1155" y="462" width="50" height="40" rx="4" fill="#d7e0ee"/>
+<rect x="1225" y="462" width="46" height="70" rx="4" fill="#0e1a2e" opacity=".8"/>
+
+<!-- commission: coin stack -->
+<ellipse cx="1215" cy="786" rx="140" ry="14" fill="#0e1a2e" opacity=".06"/>
+<rect x="1122" y="740" width="158" height="32" rx="16" fill="url(#acc)"/>
+<rect x="1132" y="760" width="138" height="10" rx="5" fill="#0ea371" opacity=".4"/>
+<rect x="1136" y="706" width="158" height="32" rx="16" fill="url(#acc)"/>
+<rect x="1146" y="726" width="138" height="10" rx="5" fill="#0ea371" opacity=".4"/>
+<rect x="1126" y="672" width="158" height="32" rx="16" fill="url(#acc)"/>
+<rect x="1136" y="692" width="138" height="10" rx="5" fill="#0ea371" opacity=".4"/>
+<circle cx="1348" cy="736" r="36" fill="url(#acc)"/>
+<circle cx="1348" cy="736" r="22" fill="none" stroke="#ffffff" stroke-width="4" opacity=".6"/>
+</svg>

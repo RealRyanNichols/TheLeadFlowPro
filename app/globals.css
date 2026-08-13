@@ -33,7 +33,19 @@ body{background:var(--page);min-width:320px;color:var(--text);text-rendering:opt
 
 .site-frame{flex-direction:column;min-height:100vh;display:flex}
 .site-content{flex:1}
-.site-header{z-index:50;border-bottom:1px solid var(--line);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);background:var(--header-bg);position:sticky;top:0}
+/* The header is the one deliberately dark surface on the light site (Ryan,
+   Aug 13 2026: nav must not blend into the white page — "not too dark, not
+   too white" means dark chrome, light content). Ink bar, white lockup,
+   periwinkle Pro so the wordmark keeps its two-tone read on ink. */
+.site-header{z-index:50;border-bottom:1px solid #ffffff14;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);background:#0a1220f5;position:sticky;top:0}
+.site-header .brand-lockup{color:#fff}
+.site-header .brand-lockup span{color:#7c9aff}
+.site-header .desktop-nav{color:#b8c3d9}
+.site-header .desktop-nav>a:not(.header-cta):hover{color:#fff}
+.site-header .nav-free{color:#8fe3ff;font-weight:750}
+.site-header .nav-free:hover{color:#fff}
+.site-header .mobile-nav summary{border-color:#ffffff2e;background:#ffffff12;color:#fff}
+.mobile-nav-panel .nav-free{color:var(--cyan);font-weight:750}
 .site-header-inner{width:min(var(--max), calc(100% - 40px));justify-content:space-between;align-items:center;gap:24px;min-height:68px;margin:0 auto;display:flex}
 .brand-lockup{color:var(--heading);letter-spacing:-.04em;white-space:nowrap;align-items:baseline;font-size:18px;font-weight:850;display:inline-flex}
 .brand-lockup span{color:var(--blue);margin-left:2px}
@@ -118,6 +130,15 @@ body{background:var(--page);min-width:320px;color:var(--text);text-rendering:opt
 .section-note{color:var(--quiet);text-align:center;margin:25px 0 0;font-size:13px}
 .pricing-page{overflow:hidden}
 .page-hero{width:min(850px,100% - 40px);margin:0 auto;padding:32px 0 40px}
+/* Phones: chips scroll in one row instead of stacking five deep, so the first
+   tool card lands at or near the fold. */
+@media (max-width:639px){
+  .tool-domain-rail{scrollbar-width:none;flex-wrap:nowrap;justify-content:flex-start;margin-left:-14px;margin-right:-14px;padding:2px 14px;overflow-x:auto}
+  .tool-domain-rail::-webkit-scrollbar{display:none}
+  .tool-domain-rail .tool-chip{white-space:nowrap;flex-shrink:0}
+  .page-hero-compact{padding:16px 0 18px}
+  .page-hero-compact h1{font-size:clamp(30px,9.5vw,40px);margin-top:14px}
+}
 .page-hero-centered{text-align:center}
 .page-hero h1{color:var(--heading);letter-spacing:-.055em;margin:24px 0 0;font-size:clamp(42px,6vw,72px);font-weight:880;line-height:.98}
 .page-hero>p{max-width:720px;color:var(--muted);margin:22px auto 0;font-size:17px;line-height:1.68}

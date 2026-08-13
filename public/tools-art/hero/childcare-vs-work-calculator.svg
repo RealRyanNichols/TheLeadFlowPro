@@ -1,22 +1,95 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img">
-<defs>
-<clipPath id="c"><rect width="1600" height="900"/></clipPath>
-<radialGradient id="f" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#A02257" stop-opacity="0.30"/>
-<stop offset="55%" stop-color="#A02257" stop-opacity="0.11"/>
-<stop offset="100%" stop-color="#A02257" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="e" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#A02257" stop-opacity="0.16"/>
-<stop offset="100%" stop-color="#A02257" stop-opacity="0"/>
-</radialGradient>
-</defs>
-<g clip-path="url(#c)">
-<rect width="1600" height="900" fill="#F7F5F2"/>
-<g stroke="#0A1220" stroke-width="1" opacity="0.055"><line x1="74" y1="0" x2="74" y2="900"/><line x1="148" y1="0" x2="148" y2="900"/><line x1="222" y1="0" x2="222" y2="900"/><line x1="296" y1="0" x2="296" y2="900"/><line x1="370" y1="0" x2="370" y2="900"/><line x1="444" y1="0" x2="444" y2="900"/><line x1="518" y1="0" x2="518" y2="900"/><line x1="592" y1="0" x2="592" y2="900"/><line x1="666" y1="0" x2="666" y2="900"/><line x1="740" y1="0" x2="740" y2="900"/><line x1="814" y1="0" x2="814" y2="900"/><line x1="888" y1="0" x2="888" y2="900"/><line x1="962" y1="0" x2="962" y2="900"/><line x1="1036" y1="0" x2="1036" y2="900"/><line x1="1110" y1="0" x2="1110" y2="900"/><line x1="1184" y1="0" x2="1184" y2="900"/><line x1="1258" y1="0" x2="1258" y2="900"/><line x1="1332" y1="0" x2="1332" y2="900"/><line x1="1406" y1="0" x2="1406" y2="900"/><line x1="1480" y1="0" x2="1480" y2="900"/><line x1="1554" y1="0" x2="1554" y2="900"/><line x1="0" y1="74" x2="1600" y2="74"/><line x1="0" y1="148" x2="1600" y2="148"/><line x1="0" y1="222" x2="1600" y2="222"/><line x1="0" y1="296" x2="1600" y2="296"/><line x1="0" y1="370" x2="1600" y2="370"/><line x1="0" y1="444" x2="1600" y2="444"/><line x1="0" y1="518" x2="1600" y2="518"/><line x1="0" y1="592" x2="1600" y2="592"/><line x1="0" y1="666" x2="1600" y2="666"/><line x1="0" y1="740" x2="1600" y2="740"/><line x1="0" y1="814" x2="1600" y2="814"/><line x1="0" y1="888" x2="1600" y2="888"/></g>
-<circle cx="1376" cy="702" r="378" fill="url(#e)"/>
-<circle cx="513" cy="454" r="612" fill="url(#f)"/>
-<g stroke="#A02257" stroke-width="2.5" opacity="0.55" stroke-linecap="round"><line x1="233.55" y1="774.76" x2="233.55" y2="790.76"/><line x1="303.4125" y1="774.76" x2="303.4125" y2="783.76"/><line x1="373.275" y1="774.76" x2="373.275" y2="783.76"/><line x1="443.1375" y1="774.76" x2="443.1375" y2="783.76"/><line x1="513" y1="774.76" x2="513" y2="790.76"/><line x1="582.8625" y1="774.76" x2="582.8625" y2="783.76"/><line x1="652.7249999999999" y1="774.76" x2="652.7249999999999" y2="783.76"/><line x1="722.5875" y1="774.76" x2="722.5875" y2="783.76"/><line x1="792.45" y1="774.76" x2="792.45" y2="790.76"/><line x1="233.55" y1="774.76" x2="792.45" y2="774.76"/></g>
-<g transform="translate(270 211) scale(7.59375)"><rect x="14" y="6" width="36" height="52" rx="6" fill="none" stroke="#0A1220" stroke-width="3.2"/><rect x="20" y="13" width="24" height="10" rx="2.5" fill="#A02257" opacity="0.9"/><circle cx="23" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="33" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="23" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="42" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="23" cy="51" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="32" cy="51" r="2.6" fill="#0A1220" opacity="0.55"/><circle cx="41" cy="51" r="2.6" fill="#A02257" opacity="1"/></g>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f87171"/>
+      <stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+    <radialGradient id="wr">
+      <stop offset="0" stop-color="#f87171" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#f87171" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="wr2">
+      <stop offset="0" stop-color="#ef4444" stop-opacity=".07"/>
+      <stop offset="1" stop-color="#ef4444" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="270" cy="230" r="330" fill="url(#wr)"/>
+  <circle cx="1340" cy="200" r="300" fill="url(#wr2)"/>
+  <circle cx="800" cy="820" r="330" fill="url(#wr2)"/>
+
+  <!-- center seam -->
+  <line x1="800" y1="180" x2="800" y2="726" stroke="#8299b8" stroke-width="4" stroke-dasharray="14 12" opacity=".65"/>
+
+  <!-- ground -->
+  <line x1="90" y1="730" x2="1510" y2="730" stroke="#b9c6da" stroke-width="4"/>
+  <ellipse cx="390" cy="744" rx="260" ry="16" fill="#0e1a2e" opacity=".07"/>
+  <ellipse cx="1205" cy="744" rx="250" ry="16" fill="#0e1a2e" opacity=".07"/>
+  <ellipse cx="800" cy="740" rx="80" ry="10" fill="#0e1a2e" opacity=".08"/>
+
+  <!-- home: house -->
+  <g>
+    <rect x="170" y="400" width="440" height="330" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+    <rect x="520" y="288" width="46" height="76" fill="#0e1a2e"/>
+    <path d="M 130,412 L 390,255 L 650,412 Z" fill="#0e1a2e"/>
+    <rect x="222" y="470" width="120" height="112" rx="10" fill="#f7f9fc" stroke="#b9c6da" stroke-width="5"/>
+    <line x1="282" y1="476" x2="282" y2="576" stroke="#d7e0ee" stroke-width="3"/>
+    <line x1="228" y1="526" x2="336" y2="526" stroke="#d7e0ee" stroke-width="3"/>
+    <path d="M 478,730 V 574 Q 478,558 494,558 H 554 Q 570,558 570,574 V 730 Z" fill="#8299b8"/>
+    <circle cx="552" cy="648" r="6" fill="#ffffff"/>
+  </g>
+
+  <!-- childcare bill: receipt leaning on the house -->
+  <g transform="rotate(5 672 652)">
+    <path d="M 616,570 H 728 V 722 L 709,708 L 690,722 L 671,708 L 652,722 L 633,708 L 616,722 Z" fill="#ffffff" stroke="#d7e0ee" stroke-width="3" stroke-linejoin="round"/>
+    <rect x="634" y="594" width="76" height="9" rx="4" fill="#d7e0ee"/>
+    <rect x="634" y="616" width="58" height="9" rx="4" fill="#d7e0ee"/>
+    <rect x="634" y="638" width="68" height="9" rx="4" fill="#d7e0ee"/>
+    <circle cx="694" cy="676" r="12" fill="url(#acc)"/>
+  </g>
+
+  <!-- workplace: office building -->
+  <g>
+    <rect x="990" y="242" width="430" height="488" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+    <rect x="972" y="216" width="466" height="28" rx="9" fill="#8299b8"/>
+    <g fill="#b9c6da" opacity=".55">
+      <rect x="1030" y="290" width="70" height="56" rx="6"/>
+      <rect x="1170" y="290" width="70" height="56" rx="6"/>
+      <rect x="1310" y="290" width="70" height="56" rx="6"/>
+      <rect x="1030" y="380" width="70" height="56" rx="6"/>
+      <rect x="1170" y="380" width="70" height="56" rx="6"/>
+      <rect x="1310" y="380" width="70" height="56" rx="6"/>
+      <rect x="1030" y="470" width="70" height="56" rx="6"/>
+      <rect x="1170" y="470" width="70" height="56" rx="6"/>
+      <rect x="1310" y="470" width="70" height="56" rx="6"/>
+      <rect x="1030" y="560" width="70" height="56" rx="6"/>
+      <rect x="1310" y="560" width="70" height="56" rx="6"/>
+    </g>
+    <path d="M 1156,730 V 606 Q 1156,590 1172,590 H 1238 Q 1254,590 1254,606 V 730 Z" fill="#8299b8"/>
+  </g>
+
+  <!-- paycheck leaning at the office -->
+  <g transform="rotate(-5 975 672)">
+    <rect x="900" y="628" width="150" height="88" rx="10" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <circle cx="936" cy="672" r="18" fill="url(#acc)"/>
+    <rect x="966" y="654" width="62" height="9" rx="4" fill="#d7e0ee"/>
+    <rect x="966" y="676" width="46" height="9" rx="4" fill="#d7e0ee"/>
+  </g>
+
+  <!-- commute car -->
+  <g fill="#0e1a2e">
+    <path d="M 1452,714 Q 1452,676 1414,676 H 1404 L 1382,650 Q 1376,642 1364,642 H 1318 Q 1306,642 1300,650 L 1282,676 H 1272 Q 1240,676 1240,708 Q 1240,716 1248,716 H 1444 Q 1452,716 1452,714 Z"/>
+    <circle cx="1284" cy="714" r="17"/>
+    <circle cx="1410" cy="714" r="17"/>
+    <circle cx="1284" cy="714" r="6" fill="#ffffff"/>
+    <circle cx="1410" cy="714" r="6" fill="#ffffff"/>
+  </g>
+
+  <!-- child at the seam -->
+  <path d="M 0,22 C -6,12 -30,0 -30,-13 C -30,-27 -17,-33 -7,-27 C -2,-24 0,-20 0,-16 C 0,-20 2,-24 7,-27 C 17,-33 30,-27 30,-13 C 30,0 6,12 0,22 Z" transform="translate(800 412)" fill="url(#acc)"/>
+  <circle cx="800" cy="512" r="36" fill="#0e1a2e"/>
+  <path d="M 762,730 L 762,622 Q 762,556 800,556 Q 838,556 838,622 L 838,730 Z" fill="url(#acc)"/>
+  <path d="M 772,588 L 738,638" stroke="#ef4444" stroke-width="20" stroke-linecap="round"/>
+  <path d="M 828,588 L 862,638" stroke="#ef4444" stroke-width="20" stroke-linecap="round"/>
 </svg>

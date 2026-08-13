@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <radialGradient id="w1" cx="1130" cy="420" r="620" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#34d399" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="w2" cx="340" cy="680" r="540" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0ea371" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#0ea371" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34d399"/>
+      <stop offset="1" stop-color="#0ea371"/>
+    </linearGradient>
+    <path id="handset" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <rect width="1600" height="900" fill="url(#w1)"/>
+  <rect width="1600" height="900" fill="url(#w2)"/>
+
+  <!-- ground shadow -->
+  <ellipse cx="1130" cy="852" rx="250" ry="20" fill="#0e1a2e" opacity="0.07"/>
+
+  <!-- phone chassis and screen -->
+  <rect x="950" y="120" width="340" height="670" rx="52" fill="#0e1a2e"/>
+  <rect x="955" y="200" width="5" height="240" rx="2.5" fill="#ffffff" opacity="0.25"/>
+  <rect x="966" y="136" width="308" height="638" rx="38" fill="#ffffff"/>
+  <rect x="1085" y="148" width="70" height="12" rx="6" fill="#0e1a2e"/>
+
+  <!-- mobile business site -->
+  <line x1="978" y1="218" x2="1262" y2="218" stroke="#d7e0ee" stroke-width="2.5"/>
+  <circle cx="1000" cy="190" r="10" fill="url(#g)"/>
+  <rect x="1206" y="182" width="42" height="6" rx="3" fill="#8299b8"/>
+  <rect x="1206" y="194" width="42" height="6" rx="3" fill="#8299b8"/>
+  <rect x="992" y="246" width="256" height="140" rx="12" fill="#34d399" opacity="0.16"/>
+  <path d="M1010,386 L1080,314 L1122,354 L1168,302 L1238,386 Z" fill="#8299b8" opacity="0.8"/>
+  <circle cx="1212" cy="284" r="14" fill="#8299b8"/>
+  <rect x="992" y="414" width="210" height="16" rx="8" fill="#b9c6da"/>
+  <rect x="992" y="444" width="150" height="12" rx="6" fill="#d7e0ee"/>
+
+  <!-- the call button -->
+  <rect x="1004" y="506" width="232" height="76" rx="38" fill="url(#g)"/>
+  <rect x="1004" y="548" width="232" height="34" rx="17" fill="#0ea371" opacity="0.35"/>
+  <use href="#handset" transform="translate(1088,544) scale(2.3) translate(-12,-12)" fill="#ffffff"/>
+  <rect x="1004" y="620" width="180" height="12" rx="6" fill="#d7e0ee"/>
+  <rect x="1004" y="646" width="132" height="12" rx="6" fill="#d7e0ee" opacity="0.7"/>
+
+  <!-- ringing badge over the chassis edge -->
+  <circle cx="948" cy="196" r="50" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <use href="#handset" transform="translate(948,196) scale(2.0) translate(-12,-12)" fill="url(#g)"/>
+  <path d="M894,165 A62 62 0 0 0 894,227" fill="none" stroke="url(#g)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M872,158 A82 82 0 0 0 872,234" fill="none" stroke="url(#g)" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- tap ripples -->
+  <path d="M1148,510 A60 60 0 0 1 1256,520" fill="none" stroke="#34d399" stroke-width="5" stroke-linecap="round"/>
+  <path d="M1146,476 A84 84 0 0 1 1264,486" fill="none" stroke="#34d399" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- thumb entering from the bottom -->
+  <path d="M1206,900 C1188,808 1160,700 1142,616 C1130,566 1150,528 1188,528 C1226,528 1244,560 1234,606 C1272,668 1330,740 1368,796 C1398,840 1408,868 1412,900 Z" fill="#0e1a2e"/>
+  <ellipse cx="1190" cy="562" rx="15" ry="21" fill="#ffffff" opacity="0.18" transform="rotate(-14 1190 562)"/>
+</svg>

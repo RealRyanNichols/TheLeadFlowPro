@@ -1,22 +1,58 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
 <defs>
-<clipPath id="c"><rect width="1600" height="900"/></clipPath>
-<radialGradient id="f" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#1240E8" stop-opacity="0.30"/>
-<stop offset="55%" stop-color="#1240E8" stop-opacity="0.11"/>
-<stop offset="100%" stop-color="#1240E8" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="e" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#1240E8" stop-opacity="0.16"/>
-<stop offset="100%" stop-color="#1240E8" stop-opacity="0"/>
-</radialGradient>
+<linearGradient id="acc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#0ea371"/></linearGradient>
+<linearGradient id="accH" gradientUnits="userSpaceOnUse" x1="460" y1="0" x2="1180" y2="0"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#0ea371"/></linearGradient>
+<radialGradient id="wA"><stop offset="0" stop-color="#34d399" stop-opacity=".13"/><stop offset="1" stop-color="#34d399" stop-opacity="0"/></radialGradient>
+<radialGradient id="wB"><stop offset="0" stop-color="#0ea371" stop-opacity=".08"/><stop offset="1" stop-color="#0ea371" stop-opacity="0"/></radialGradient>
 </defs>
-<g clip-path="url(#c)">
-<rect width="1600" height="900" fill="#F7F5F2"/>
-<g stroke="#0A1220" stroke-width="1" opacity="0.055"><line x1="74" y1="0" x2="74" y2="900"/><line x1="148" y1="0" x2="148" y2="900"/><line x1="222" y1="0" x2="222" y2="900"/><line x1="296" y1="0" x2="296" y2="900"/><line x1="370" y1="0" x2="370" y2="900"/><line x1="444" y1="0" x2="444" y2="900"/><line x1="518" y1="0" x2="518" y2="900"/><line x1="592" y1="0" x2="592" y2="900"/><line x1="666" y1="0" x2="666" y2="900"/><line x1="740" y1="0" x2="740" y2="900"/><line x1="814" y1="0" x2="814" y2="900"/><line x1="888" y1="0" x2="888" y2="900"/><line x1="962" y1="0" x2="962" y2="900"/><line x1="1036" y1="0" x2="1036" y2="900"/><line x1="1110" y1="0" x2="1110" y2="900"/><line x1="1184" y1="0" x2="1184" y2="900"/><line x1="1258" y1="0" x2="1258" y2="900"/><line x1="1332" y1="0" x2="1332" y2="900"/><line x1="1406" y1="0" x2="1406" y2="900"/><line x1="1480" y1="0" x2="1480" y2="900"/><line x1="1554" y1="0" x2="1554" y2="900"/><line x1="0" y1="74" x2="1600" y2="74"/><line x1="0" y1="148" x2="1600" y2="148"/><line x1="0" y1="222" x2="1600" y2="222"/><line x1="0" y1="296" x2="1600" y2="296"/><line x1="0" y1="370" x2="1600" y2="370"/><line x1="0" y1="444" x2="1600" y2="444"/><line x1="0" y1="518" x2="1600" y2="518"/><line x1="0" y1="592" x2="1600" y2="592"/><line x1="0" y1="666" x2="1600" y2="666"/><line x1="0" y1="740" x2="1600" y2="740"/><line x1="0" y1="814" x2="1600" y2="814"/><line x1="0" y1="888" x2="1600" y2="888"/></g>
-<circle cx="1376" cy="702" r="378" fill="url(#e)"/>
-<circle cx="527" cy="437" r="630" fill="url(#f)"/>
-<g stroke="#1240E8" stroke-width="2.5" opacity="0.55" stroke-linecap="round"><line x1="247.55" y1="757.76" x2="247.55" y2="773.76"/><line x1="317.4125" y1="757.76" x2="317.4125" y2="766.76"/><line x1="387.275" y1="757.76" x2="387.275" y2="766.76"/><line x1="457.1375" y1="757.76" x2="457.1375" y2="766.76"/><line x1="527" y1="757.76" x2="527" y2="773.76"/><line x1="596.8625" y1="757.76" x2="596.8625" y2="766.76"/><line x1="666.7249999999999" y1="757.76" x2="666.7249999999999" y2="766.76"/><line x1="736.5875" y1="757.76" x2="736.5875" y2="766.76"/><line x1="806.45" y1="757.76" x2="806.45" y2="773.76"/><line x1="247.55" y1="757.76" x2="806.45" y2="757.76"/></g>
-<g transform="translate(284 194) scale(7.59375)"><path d="M8 12 L8 52 M56 12 L56 52 M8 12 L16 12 M8 52 L16 52 M56 12 L48 12 M56 52 L48 52" fill="none" stroke="#0A1220" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="18" y="16" width="28" height="12" rx="3" fill="#0A1220" opacity="0.85"/><rect x="18" y="32" width="28" height="12" rx="3" fill="#1240E8"/><path d="M22 50 L42 50" fill="none" stroke="#0A1220" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></g>
-</g>
+<rect width="1600" height="900" fill="#f7f9fc"/>
+<ellipse cx="880" cy="270" rx="520" ry="300" fill="url(#wA)"/>
+<ellipse cx="420" cy="740" rx="440" ry="260" fill="url(#wB)"/>
+<ellipse cx="1340" cy="640" rx="380" ry="300" fill="url(#wA)" opacity=".7"/>
+
+<!-- streams -->
+<path d="M575 460 C750 452 790 212 1128 212" fill="none" stroke="#b9c6da" stroke-width="56"/>
+<path d="M575 460 C770 460 900 460 1128 460" fill="none" stroke="#8299b8" stroke-width="40"/>
+<path d="M575 460 C750 468 790 708 1128 708" fill="none" stroke="url(#accH)" stroke-width="30"/>
+<path d="M462 460 H570" stroke="url(#accH)" stroke-width="72"/>
+<circle cx="578" cy="460" r="17" fill="#0e1a2e"/>
+<circle cx="830" cy="608" r="15" fill="url(#acc)" stroke="#f7f9fc" stroke-width="4"/>
+<circle cx="980" cy="678" r="12" fill="url(#acc)" stroke="#f7f9fc" stroke-width="4"/>
+
+<!-- the single sale -->
+<ellipse cx="335" cy="618" rx="165" ry="20" fill="#0e1a2e" opacity=".07"/>
+<circle cx="330" cy="460" r="132" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+<circle cx="330" cy="460" r="102" fill="none" stroke="#b9c6da" stroke-width="3"/>
+<circle cx="330" cy="460" r="58" fill="url(#acc)"/>
+<circle cx="330" cy="460" r="36" fill="none" stroke="#ffffff" stroke-width="4" opacity=".6"/>
+
+<!-- cost: supplies box -->
+<ellipse cx="1230" cy="304" rx="110" ry="12" fill="#0e1a2e" opacity=".05"/>
+<rect x="1128" y="134" width="205" height="156" rx="12" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+<rect x="1216" y="134" width="28" height="156" fill="#d7e0ee"/>
+<line x1="1128" y1="190" x2="1333" y2="190" stroke="#d7e0ee" stroke-width="3"/>
+
+<!-- company: storefront -->
+<ellipse cx="1245" cy="546" rx="120" ry="12" fill="#0e1a2e" opacity=".05"/>
+<rect x="1132" y="398" width="225" height="134" rx="10" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+<rect x="1120" y="388" width="50" height="24" fill="#8299b8"/>
+<rect x="1170" y="388" width="50" height="24" fill="#d7e0ee"/>
+<rect x="1220" y="388" width="50" height="24" fill="#8299b8"/>
+<rect x="1270" y="388" width="50" height="24" fill="#d7e0ee"/>
+<rect x="1320" y="388" width="50" height="24" fill="#8299b8"/>
+<path d="M1120 412 a25 25 0 0 0 50 0 z M1220 412 a25 25 0 0 0 50 0 z M1320 412 a25 25 0 0 0 50 0 z" fill="#8299b8"/>
+<path d="M1170 412 a25 25 0 0 0 50 0 z M1270 412 a25 25 0 0 0 50 0 z" fill="#d7e0ee"/>
+<rect x="1155" y="462" width="50" height="40" rx="4" fill="#d7e0ee"/>
+<rect x="1225" y="462" width="46" height="70" rx="4" fill="#0e1a2e" opacity=".8"/>
+
+<!-- commission: coin stack -->
+<ellipse cx="1215" cy="786" rx="140" ry="14" fill="#0e1a2e" opacity=".06"/>
+<rect x="1122" y="740" width="158" height="32" rx="16" fill="url(#acc)"/>
+<rect x="1132" y="760" width="138" height="10" rx="5" fill="#0ea371" opacity=".4"/>
+<rect x="1136" y="706" width="158" height="32" rx="16" fill="url(#acc)"/>
+<rect x="1146" y="726" width="138" height="10" rx="5" fill="#0ea371" opacity=".4"/>
+<rect x="1126" y="672" width="158" height="32" rx="16" fill="url(#acc)"/>
+<rect x="1136" y="692" width="138" height="10" rx="5" fill="#0ea371" opacity=".4"/>
+<circle cx="1348" cy="736" r="36" fill="url(#acc)"/>
+<circle cx="1348" cy="736" r="22" fill="none" stroke="#ffffff" stroke-width="4" opacity=".6"/>
 </svg>

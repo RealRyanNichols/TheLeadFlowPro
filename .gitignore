@@ -14,3 +14,4 @@ prisma/dev.db-journal
 coverage
 tsconfig.tsbuildinfo
 *.tsbuildinfo
+.art-review/

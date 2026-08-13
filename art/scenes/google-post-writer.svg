@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="gpw-acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34d399"/>
+      <stop offset="1" stop-color="#0ea371"/>
+    </linearGradient>
+    <radialGradient id="gpw-w1">
+      <stop offset="0" stop-color="#34d399" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gpw-w2">
+      <stop offset="0" stop-color="#0ea371" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#0ea371" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="700" cy="220" r="460" fill="url(#gpw-w1)"/>
+  <circle cx="1330" cy="560" r="420" fill="url(#gpw-w2)"/>
+  <circle cx="240" cy="720" r="300" fill="url(#gpw-w1)" opacity=".6"/>
+
+  <!-- monthly calendar behind -->
+  <ellipse cx="760" cy="692" rx="340" ry="16" fill="#0e1a2e" opacity=".05"/>
+  <rect x="330" y="110" width="810" height="560" rx="20" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+  <rect x="370" y="138" width="170" height="18" rx="9" fill="#0e1a2e"/>
+  <circle cx="1064" cy="148" r="7" fill="#b9c6da"/>
+  <circle cx="1100" cy="148" r="7" fill="#b9c6da"/>
+  <line x1="330" y1="190" x2="1140" y2="190" stroke="#d7e0ee" stroke-width="3"/>
+  <g stroke="#d7e0ee" stroke-width="3" opacity=".7">
+    <line x1="446" y1="190" x2="446" y2="670"/>
+    <line x1="562" y1="190" x2="562" y2="670"/>
+    <line x1="678" y1="190" x2="678" y2="670"/>
+    <line x1="794" y1="190" x2="794" y2="670"/>
+    <line x1="910" y1="190" x2="910" y2="670"/>
+    <line x1="1026" y1="190" x2="1026" y2="670"/>
+    <line x1="330" y1="310" x2="1140" y2="310"/>
+    <line x1="330" y1="430" x2="1140" y2="430"/>
+    <line x1="330" y1="550" x2="1140" y2="550"/>
+  </g>
+  <g fill="#b9c6da" opacity=".7">
+    <circle cx="348" cy="208" r="3.5"/><circle cx="464" cy="208" r="3.5"/><circle cx="580" cy="208" r="3.5"/>
+    <circle cx="696" cy="208" r="3.5"/><circle cx="812" cy="208" r="3.5"/><circle cx="928" cy="208" r="3.5"/>
+    <circle cx="1044" cy="208" r="3.5"/>
+  </g>
+  <!-- scheduled post chips -->
+  <rect x="798" y="196" width="108" height="108" rx="12" fill="none" stroke="#0ea371" stroke-width="3"/>
+  <g fill="url(#gpw-acc)">
+    <rect x="464" y="258" width="62" height="14" rx="7"/>
+    <rect x="812" y="258" width="62" height="14" rx="7"/>
+    <rect x="580" y="378" width="62" height="14" rx="7"/>
+    <rect x="1044" y="378" width="62" height="14" rx="7"/>
+    <rect x="696" y="498" width="62" height="14" rx="7"/>
+    <rect x="928" y="618" width="62" height="14" rx="7"/>
+  </g>
+  <g fill="#b9c6da">
+    <rect x="928" y="258" width="62" height="14" rx="7"/>
+    <rect x="1044" y="498" width="62" height="14" rx="7"/>
+    <rect x="812" y="618" width="62" height="14" rx="7"/>
+  </g>
+
+  <!-- composer card in front -->
+  <ellipse cx="480" cy="830" rx="300" ry="18" fill="#0e1a2e" opacity=".07"/>
+  <g transform="rotate(-3 480 550)">
+    <rect x="206" y="316" width="564" height="500" rx="24" fill="#0e1a2e" opacity=".05"/>
+    <rect x="198" y="302" width="564" height="500" rx="24" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <circle cx="258" cy="366" r="24" fill="url(#gpw-acc)"/>
+    <circle cx="258" cy="366" r="9" fill="#ffffff" opacity=".9"/>
+    <rect x="298" y="348" width="140" height="13" rx="6.5" fill="#0e1a2e"/>
+    <rect x="298" y="372" width="96" height="10" rx="5" fill="#b9c6da"/>
+    <!-- photo slot -->
+    <rect x="238" y="414" width="484" height="210" rx="16" fill="#d7e0ee" opacity=".45"/>
+    <rect x="238" y="414" width="484" height="210" rx="16" fill="none" stroke="#b9c6da" stroke-width="3" stroke-dasharray="14 12"/>
+    <polygon points="290,598 382,498 446,556 508,476 628,598" fill="#8299b8" opacity=".75"/>
+    <circle cx="640" cy="470" r="20" fill="url(#gpw-acc)"/>
+    <circle cx="640" cy="470" r="14" fill="none" stroke="#0ea371" stroke-width="3" opacity=".35"/>
+    <!-- caption bars -->
+    <rect x="238" y="652" width="430" height="12" rx="6" fill="#0e1a2e" opacity=".85"/>
+    <rect x="238" y="676" width="370" height="10" rx="5" fill="#b9c6da"/>
+    <rect x="238" y="698" width="290" height="10" rx="5" fill="#b9c6da" opacity=".8"/>
+    <!-- attach + publish -->
+    <rect x="238" y="730" width="48" height="44" rx="12" fill="none" stroke="#b9c6da" stroke-width="3"/>
+    <polygon points="246,766 258,748 266,756 274,742 282,766" fill="#b9c6da"/>
+    <circle cx="254" cy="742" r="4" fill="#b9c6da"/>
+    <rect x="560" y="728" width="162" height="48" rx="24" fill="url(#gpw-acc)"/>
+    <rect x="560" y="728" width="162" height="48" rx="24" fill="none" stroke="#0ea371" stroke-width="3" opacity=".35"/>
+    <polygon points="606,766 674,740 626,759" fill="#ffffff"/>
+    <polygon points="626,759 628,771 640,763" fill="#ffffff" opacity=".75"/>
+  </g>
+</svg>

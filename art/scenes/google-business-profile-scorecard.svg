@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="gbp-acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f87171"/>
+      <stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+    <radialGradient id="gbp-w1">
+      <stop offset="0" stop-color="#f87171" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#f87171" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gbp-w2">
+      <stop offset="0" stop-color="#ef4444" stop-opacity=".07"/>
+      <stop offset="1" stop-color="#ef4444" stop-opacity="0"/>
+    </radialGradient>
+    <polygon id="gbp-star" points="0,-13 3.2,-4.5 12.4,-4 5.2,1.7 7.6,10.5 0,5.5 -7.6,10.5 -5.2,1.7 -12.4,-4 -3.2,-4.5"/>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <circle cx="1060" cy="430" r="520" fill="url(#gbp-w1)"/>
+  <circle cx="260" cy="220" r="340" fill="url(#gbp-w2)"/>
+  <circle cx="1430" cy="780" r="300" fill="url(#gbp-w2)"/>
+
+  <!-- soft map under the phone -->
+  <g opacity=".85">
+    <g fill="none" stroke="#d7e0ee" stroke-width="16" stroke-linecap="round" opacity=".9">
+      <path d="M 660 880 Q 900 620 1080 470 T 1520 120"/>
+      <path d="M 640 310 L 1600 250"/>
+      <path d="M 700 640 L 1600 600"/>
+      <path d="M 940 60 L 900 880"/>
+      <path d="M 1300 60 L 1260 880"/>
+    </g>
+    <g fill="#ffffff" opacity=".75">
+      <rect x="1330" y="320" width="180" height="220" rx="16"/>
+      <rect x="1340" y="660" width="200" height="150" rx="16"/>
+      <rect x="680" y="360" width="190" height="200" rx="16"/>
+      <rect x="700" y="660" width="160" height="160" rx="16"/>
+      <rect x="990" y="60" width="240" height="170" rx="16"/>
+    </g>
+    <rect x="1340" y="100" width="200" height="130" rx="16" fill="#b9c6da" opacity=".3"/>
+    <circle cx="1390" cy="150" r="10" fill="#8299b8" opacity=".5"/>
+    <circle cx="1440" cy="180" r="10" fill="#8299b8" opacity=".5"/>
+    <circle cx="1490" cy="140" r="10" fill="#8299b8" opacity=".5"/>
+  </g>
+
+  <!-- neutral pin, far side -->
+  <path d="M 735 322 C 717 296 710 283 710 265 A 25 25 0 1 1 760 265 C 760 283 753 296 735 322 Z"
+        fill="#8299b8" opacity=".8"/>
+  <circle cx="735" cy="266" r="10" fill="#ffffff"/>
+
+  <!-- accent pin on the map -->
+  <ellipse cx="1395" cy="672" rx="42" ry="9" fill="#0e1a2e" opacity=".08"/>
+  <path d="M 1395 660 C 1360 610 1345 585 1345 550 A 50 50 0 1 1 1445 550 C 1445 585 1430 610 1395 660 Z"
+        fill="url(#gbp-acc)"/>
+  <path d="M 1435 512 A 50 50 0 0 1 1445 550 C 1445 585 1430 610 1395 660" fill="none"
+        stroke="#ef4444" stroke-width="7" opacity=".35"/>
+  <circle cx="1395" cy="552" r="20" fill="#ffffff"/>
+
+  <!-- phone -->
+  <ellipse cx="982" cy="818" rx="230" ry="20" fill="#0e1a2e" opacity=".08"/>
+  <rect x="810" y="115" width="344" height="674" rx="52" fill="#0e1a2e"/>
+  <rect x="1154" y="280" width="8" height="96" rx="4" fill="#0e1a2e"/>
+  <rect x="802" y="300" width="8" height="70" rx="4" fill="#0e1a2e"/>
+  <rect x="818" y="123" width="328" height="658" rx="44" fill="none" stroke="#ffffff" stroke-width="3" opacity=".12"/>
+  <rect x="828" y="133" width="308" height="638" rx="36" fill="#ffffff"/>
+  <circle cx="982" cy="158" r="7" fill="#0e1a2e" opacity=".85"/>
+
+  <!-- listing: map strip -->
+  <rect x="846" y="178" width="272" height="128" rx="14" fill="#f7f9fc" stroke="#d7e0ee" stroke-width="3"/>
+  <path d="M 852 242 L 1112 234" stroke="#d7e0ee" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M 962 184 L 950 300" stroke="#d7e0ee" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M 982 258 C 972 244 968 237 968 228 A 14 14 0 1 1 996 228 C 996 237 992 244 982 258 Z"
+        fill="url(#gbp-acc)"/>
+  <circle cx="982" cy="229" r="5.5" fill="#ffffff"/>
+
+  <!-- listing: name, category, stars -->
+  <rect x="852" y="330" width="190" height="20" rx="10" fill="#0e1a2e"/>
+  <rect x="852" y="362" width="120" height="12" rx="6" fill="#b9c6da"/>
+  <use href="#gbp-star" x="864" y="404" fill="url(#gbp-acc)"/>
+  <use href="#gbp-star" x="898" y="404" fill="url(#gbp-acc)"/>
+  <use href="#gbp-star" x="932" y="404" fill="url(#gbp-acc)"/>
+  <use href="#gbp-star" x="966" y="404" fill="url(#gbp-acc)"/>
+  <use href="#gbp-star" x="1000" y="404" fill="#d7e0ee"/>
+  <line x1="846" y1="436" x2="1118" y2="436" stroke="#d7e0ee" stroke-width="3"/>
+
+  <!-- listing: call / directions / hours buttons -->
+  <circle cx="886" cy="490" r="30" fill="url(#gbp-acc)"/>
+  <circle cx="982" cy="490" r="30" fill="url(#gbp-acc)"/>
+  <circle cx="1078" cy="490" r="30" fill="url(#gbp-acc)"/>
+  <circle cx="886" cy="490" r="26" fill="none" stroke="#ef4444" stroke-width="3" opacity=".35"/>
+  <circle cx="982" cy="490" r="26" fill="none" stroke="#ef4444" stroke-width="3" opacity=".35"/>
+  <circle cx="1078" cy="490" r="26" fill="none" stroke="#ef4444" stroke-width="3" opacity=".35"/>
+  <path d="M 875 493 A 15 15 0 0 1 889 479" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="874" cy="494" r="5" fill="#ffffff"/>
+  <circle cx="890" cy="478" r="5" fill="#ffffff"/>
+  <polyline points="974,496 974,486 986,486" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <polygon points="984,478 998,486 984,494" fill="#ffffff"/>
+  <circle cx="1078" cy="490" r="13" fill="none" stroke="#ffffff" stroke-width="3"/>
+  <line x1="1078" y1="490" x2="1078" y2="481" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <line x1="1078" y1="490" x2="1085" y2="493" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- listing: hours row -->
+  <line x1="846" y1="544" x2="1118" y2="544" stroke="#d7e0ee" stroke-width="3"/>
+  <circle cx="864" cy="574" r="11" fill="none" stroke="#8299b8" stroke-width="3"/>
+  <line x1="864" y1="574" x2="864" y2="567" stroke="#8299b8" stroke-width="3" stroke-linecap="round"/>
+  <line x1="864" y1="574" x2="870" y2="577" stroke="#8299b8" stroke-width="3" stroke-linecap="round"/>
+  <rect x="890" y="566" width="130" height="12" rx="6" fill="#b9c6da"/>
+  <circle cx="1100" cy="572" r="8" fill="url(#gbp-acc)"/>
+
+  <!-- listing: reviews -->
+  <line x1="846" y1="610" x2="1118" y2="610" stroke="#d7e0ee" stroke-width="3"/>
+  <circle cx="866" cy="646" r="17" fill="#b9c6da"/>
+  <rect x="896" y="632" width="110" height="10" rx="5" fill="#8299b8"/>
+  <rect x="896" y="652" width="180" height="9" rx="4.5" fill="#d7e0ee"/>
+  <use href="#gbp-star" transform="translate(902 678) scale(.5)" fill="url(#gbp-acc)"/>
+  <use href="#gbp-star" transform="translate(919 678) scale(.5)" fill="url(#gbp-acc)"/>
+  <use href="#gbp-star" transform="translate(936 678) scale(.5)" fill="url(#gbp-acc)"/>
+  <use href="#gbp-star" transform="translate(953 678) scale(.5)" fill="url(#gbp-acc)"/>
+  <use href="#gbp-star" transform="translate(970 678) scale(.5)" fill="url(#gbp-acc)"/>
+  <circle cx="866" cy="712" r="17" fill="#b9c6da"/>
+  <rect x="896" y="700" width="90" height="10" rx="5" fill="#8299b8"/>
+  <rect x="896" y="718" width="160" height="9" rx="4.5" fill="#d7e0ee"/>
+  <!-- score ring -->
+  <circle cx="1092" cy="730" r="19" fill="none" stroke="#d7e0ee" stroke-width="7"/>
+  <path d="M 1092 711 A 19 19 0 1 1 1073 730" fill="none" stroke="url(#gbp-acc)" stroke-width="7" stroke-linecap="round"/>
+</svg>
