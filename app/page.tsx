@@ -269,11 +269,104 @@ const LADDER = [
   },
 ];
 
+/* ---------------------------------------------------------- structured data -- */
+
+// The homepage carried no JSON-LD at all, which meant Google had no machine
+// readable statement of who this company is, where it operates, or which social
+// properties belong to it. Everything below is verifiable: the address and phone
+// match the Google Business Profile exactly, the legal name matches the footer,
+// and every sameAs URL was confirmed to resolve (see the social identity doc).
+// No revenue, rating, review, or outcome claim appears here, because none of it
+// is verifiable and fabricated review markup is a manual-action risk.
+const SITE = "https://www.theleadflowpro.com";
+
+const HOME_JSONLD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE}/#organization`,
+      name: "The LeadFlow Pro",
+      legalName: "Longview Training Center, LLC",
+      description:
+        "The Company Builder. We build the website, the system behind it, and the back office that runs it, in accounts the client controls.",
+      url: SITE,
+      logo: { "@type": "ImageObject", url: `${SITE}/icon-512.png`, width: 512, height: 512 },
+      image: `${SITE}/og/home.png`,
+      email: "hello@theleadflowpro.com",
+      telephone: "+1-903-500-8898",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "2800 Gilmer Rd Suite 106",
+        addressLocality: "Longview",
+        addressRegion: "TX",
+        postalCode: "75604",
+        addressCountry: "US",
+      },
+      founder: { "@type": "Person", name: "Ryan Nichols", url: `${SITE}/about` },
+      sameAs: [
+        "https://www.youtube.com/@TheLeadFlowProVids",
+        "https://www.facebook.com/profile.php?id=61586176300453",
+      ],
+    },
+    {
+      "@type": "ProfessionalService",
+      "@id": `${SITE}/#localbusiness`,
+      name: "The LeadFlow Pro",
+      parentOrganization: { "@id": `${SITE}/#organization` },
+      url: SITE,
+      telephone: "+1-903-500-8898",
+      email: "hello@theleadflowpro.com",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "2800 Gilmer Rd Suite 106",
+        addressLocality: "Longview",
+        addressRegion: "TX",
+        postalCode: "75604",
+        addressCountry: "US",
+      },
+      areaServed: [
+        { "@type": "City", name: "Longview" },
+        { "@type": "City", name: "Tyler" },
+        { "@type": "City", name: "Marshall" },
+        { "@type": "AdministrativeArea", name: "East Texas" },
+        { "@type": "Country", name: "United States" },
+      ],
+      knowsAbout: [
+        "Business websites",
+        "Customer relationship management",
+        "Lead capture and follow-up automation",
+        "Small business operations software",
+      ],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE}/#website`,
+      url: SITE,
+      name: "The LeadFlow Pro",
+      publisher: { "@id": `${SITE}/#organization` },
+      inLanguage: "en-US",
+    },
+    {
+      "@type": "WebPage",
+      "@id": `${SITE}/#webpage`,
+      url: SITE,
+      name: "The LeadFlow Pro | The Company Builder",
+      isPartOf: { "@id": `${SITE}/#website` },
+      about: { "@id": `${SITE}/#organization` },
+    },
+  ],
+};
+
 /* ------------------------------------------------------------------ page -- */
 
 export default function HomePage() {
   return (
     <main className="cb-page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(HOME_JSONLD) }}
+      />
       {/* 1 ------------------------------------------------------------ hero */}
       <section className="cb-hero">
         <div className="cb-shell">
