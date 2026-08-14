@@ -1,3 +1,5 @@
+import { TRADE_ARTICLES } from "./articles-trades";
+
 // Owned article library. Articles are plain markdown in the repo so they ship
 // with the site, rank under the site's own domain, and never live in a rented
 // CMS. Each article page embeds the Map My System CTA for lead generation.
@@ -15,6 +17,26 @@ export type ArticleVideo = {
   height: number;
 };
 
+// A free tool embedded inside an article, plus the teaching around it.
+//
+// The article answers the question the person typed into Google. The tool turns
+// the answer into their number. The form is how they ask for help once they have
+// seen it. Steps and questions also emit HowTo and FAQPage schema, which is what
+// puts these pages in the rich results for "how do I work out X".
+export type ArticleTool = {
+  slug: string; // a published slug from lib/tools
+  heading: string;
+  intro: string;
+  steps: { name: string; text: string }[]; // teach them how to run it
+  readIt: string[]; // teach them how to read the answer
+  formHeading: string;
+  formLead: string;
+  interest: string; // a key from INTEREST_LABELS, stamped on the lead
+  industry: string; // stamped on the lead so the trade is known on arrival
+};
+
+export type ArticleFaq = { q: string; a: string };
+
 export type Article = {
   slug: string;
   title: string;
@@ -23,7 +45,9 @@ export type Article = {
   readingMinutes: number;
   ogImage: string; // path under /public, 1200x630
   video?: ArticleVideo; // optional, plays inline at the top of the article
-  body: string; // markdown
+  tool?: ArticleTool; // optional, renders where {{TOOL}} appears in the body
+  faq?: ArticleFaq[]; // optional, renders at the end and emits FAQPage schema
+  body: string; // markdown. Put {{TOOL}} on its own line to place the tool.
 };
 
 export const ARTICLES: Article[] = [
@@ -669,6 +693,10 @@ If you want to see what that looks like for your specific business, map your sys
 `,
   },
 ];
+
+// Trade-specific tool articles live in their own module so this file stays about
+// the originals. They are the same Article shape and behave identically.
+ARTICLES.push(...TRADE_ARTICLES);
 
 export function getArticle(slug: string) {
   return ARTICLES.find((a) => a.slug === slug);

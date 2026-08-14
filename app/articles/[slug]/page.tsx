@@ -15,6 +15,7 @@ const ARTICLE_CHARTS: Record<string, React.ComponentType> = {
   "website-traffic-but-no-customers": FollowUpSpeedChart,
 };
 import { ArrowRight } from "lucide-react";
+import ArticleToolSection from "@/components/ArticleToolSection";
 import { ARTICLES, getArticle } from "@/lib/articles";
 
 export function generateStaticParams() {
@@ -87,7 +88,48 @@ export default async function ArticlePage({
         publisher: { "@type": "Organization", name: "The LeadFlow Pro" },
       }
     : null;
-  const jsonLd = videoLd ? [articleLd, videoLd] : articleLd;
+  // A tool article teaches a repeatable calculation, so it emits HowTo. That is
+  // what earns the step-by-step rich result for "how do I work out X".
+  const howToLd = article.tool
+    ? {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: article.tool.heading,
+        description: article.tool.intro,
+        tool: [{ "@type": "HowToTool", name: article.tool.slug }],
+        step: article.tool.steps.map((s, i) => ({
+          "@type": "HowToStep",
+          position: i + 1,
+          name: s.name,
+          text: s.text,
+          url: `${SITE}/articles/${article.slug}#tool`,
+        })),
+      }
+    : null;
+
+  const faqLd = article.faq?.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: article.faq.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      }
+    : null;
+
+  const graph = [articleLd, videoLd, howToLd, faqLd].filter(Boolean);
+  const jsonLd = graph.length === 1 ? graph[0] : graph;
+
+  // {{TOOL}} on its own line marks where the tool belongs inside the argument.
+  // Without a marker the tool goes after the body rather than disappearing.
+  const [bodyBefore, bodyAfter] = article.tool
+    ? (() => {
+        const parts = article.body.split(/^\s*\{\{TOOL\}\}\s*$/m);
+        return parts.length > 1 ? [parts[0], parts.slice(1).join("")] : [article.body, ""];
+      })()
+    : [article.body, ""];
 
   return (
     <main className="legal-page">
@@ -141,8 +183,36 @@ export default async function ArticlePage({
         />
       )}
       <div className="prose-lfp">
-        <ReactMarkdown>{article.body}</ReactMarkdown>
+        <ReactMarkdown>{bodyBefore}</ReactMarkdown>
       </div>
+      {article.tool ? (
+        <ArticleToolSection tool={article.tool} articleSlug={article.slug} />
+      ) : null}
+      {bodyAfter.trim() ? (
+        <div className="prose-lfp">
+          <ReactMarkdown>{bodyAfter}</ReactMarkdown>
+        </div>
+      ) : null}
+      {article.faq?.length ? (
+        <section className="not-prose mt-12">
+          <h2 className="text-[26px] font-extrabold leading-tight text-[var(--text)]">
+            Questions people actually ask
+          </h2>
+          <div className="mt-5 grid gap-3">
+            {article.faq.map((f) => (
+              <details
+                key={f.q}
+                className="rounded-xl border border-[var(--line)] bg-[var(--fill-1)] p-4"
+              >
+                <summary className="cursor-pointer text-[15px] font-semibold text-[var(--text)]">
+                  {f.q}
+                </summary>
+                <p className="mt-3 text-[14px] leading-relaxed text-[var(--quiet)]">{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      ) : null}
       {(() => {
         const Chart = ARTICLE_CHARTS[article.slug];
         return Chart ? (
