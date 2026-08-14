@@ -11,7 +11,7 @@ export const TRADE_ARTICLES_3: Article[] = [
     slug: "plumber-call-back-speed",
     title: "How fast does a plumber have to call back?",
     description:
-      "A homeowner with water on the floor calls until somebody answers, then stops. Work out what your current call-back time is costing you and what getting faster is worth.",
+      "A homeowner with water on the floor calls until somebody answers, then stops. Work out what your call-back time costs you and what getting faster is worth.",
     publishedAt: "2026-08-14",
     readingMinutes: 6,
     ogImage: "/og/articles/plumber-call-back-speed.jpg",
@@ -213,7 +213,7 @@ Knowing the number and dispatching to it is what separates a shop that grows cle
     slug: "painting-contractor-markup-vs-margin",
     title: "Markup and margin are not the same thing, and it is costing painters money",
     description:
-      "Adding fifty percent to your costs does not give you a fifty percent margin. Here is the difference, why it matters on every paint job, and a converter that does it for you.",
+      "Adding fifty percent to your costs does not give you a fifty percent margin. Here is the difference, why it matters on every paint job, and a converter for it.",
     publishedAt: "2026-08-14",
     readingMinutes: 6,
     ogImage: "/og/articles/painting-contractor-markup-vs-margin.jpg",
@@ -859,7 +859,7 @@ That is the whole diagnostic, and it is more useful than any report, because it 
     slug: "daycare-late-pickup-policy",
     title: "The late pickup and absence policy every daycare needs",
     description:
-      "Unclear policies cost daycares money and goodwill at the same time. Here is what a fair, enforceable late pickup and absence policy actually says, plus a generator that writes it.",
+      "Unclear policies cost daycares money and goodwill at the same time. Here is what a fair, enforceable late pickup policy says, plus a generator that writes it.",
     publishedAt: "2026-08-14",
     readingMinutes: 6,
     ogImage: "/og/articles/daycare-late-pickup-policy.jpg",

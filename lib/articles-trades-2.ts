@@ -11,7 +11,7 @@ export const TRADE_ARTICLES_2: Article[] = [
     slug: "pressure-washing-pricing",
     title: "How to price a pressure washing job",
     description:
-      "Per square foot, per hour, or per job? Here is how pressure washing pricing actually works, what to include before you quote, and a calculator that builds the number on your costs.",
+      "Per square foot, per hour, or per job? Here is how pressure washing pricing works, what to include before you quote, and a calculator built on your costs.",
     publishedAt: "2026-08-14",
     readingMinutes: 7,
     ogImage: "/og/articles/pressure-washing-pricing.jpg",
@@ -116,7 +116,7 @@ Write your terms down before you need them. Access, water, what happens if the s
     slug: "pest-control-customer-value",
     title: "What a pest control customer is actually worth",
     description:
-      "One treatment is a transaction. A quarterly account is an asset. Work out what a pest control customer is worth over their whole life with you, and what that means for what you can spend to get one.",
+      "One treatment is a transaction. A quarterly account is an asset. Work out what a pest control customer is worth for life, and what you can spend to win one.",
     publishedAt: "2026-08-14",
     readingMinutes: 6,
     ogImage: "/og/articles/pest-control-customer-value.jpg",
@@ -217,7 +217,7 @@ It is usually a bigger number than any new marketing channel would produce, and 
     slug: "tree-service-buy-or-rent-equipment",
     title: "Should a tree service buy or rent the chipper?",
     description:
-      "Big iron looks like growth and can quietly become the thing that owns you. Work out the real crossover point between renting and buying for a tree service, on your job volume.",
+      "Big iron looks like growth and can quietly become the thing that owns you. Work out the real crossover point between renting and buying, on your job volume.",
     publishedAt: "2026-08-14",
     readingMinutes: 7,
     ogImage: "/og/articles/tree-service-buy-or-rent-equipment.jpg",
@@ -629,7 +629,7 @@ Spend an hour with an accountant who has worked with mobile food. They will find
     slug: "mobile-detailing-drive-time",
     title: "What windshield time costs a mobile detailer",
     description:
-      "The drive between jobs is the biggest unpaid expense in mobile detailing. Put a real number on it, then decide whether your service radius is a strategy or an accident.",
+      "The drive between jobs is the biggest unpaid expense in mobile detailing. Put a number on it, then decide if your service radius is a strategy or an accident.",
     publishedAt: "2026-08-14",
     readingMinutes: 6,
     ogImage: "/og/articles/mobile-detailing-drive-time.jpg",
@@ -851,7 +851,7 @@ You already paid for the truck to go out. Ask for the job again.
     slug: "fencing-contractor-raise-prices",
     title: "What raising prices ten percent does to a fencing business",
     description:
-      "You do not need ten percent more customers to make ten percent more money. Here is what a price increase actually does to a fencing or deck business, and how many customers you can afford to lose.",
+      "You do not need ten percent more customers to make ten percent more money. Here is what a price increase does to a fencing business, and who you can lose.",
     publishedAt: "2026-08-14",
     readingMinutes: 6,
     ogImage: "/og/articles/fencing-contractor-raise-prices.jpg",
@@ -964,7 +964,7 @@ In that case the answer is usually response speed rather than price. Fencing cus
     slug: "wedding-photographer-after-hours-leads",
     title: "What after-hours inquiries cost a wedding photographer",
     description:
-      "Couples plan weddings at ten at night and on Sunday afternoons. Work out what the inquiries arriving outside your working hours are worth, and what answering them faster would do.",
+      "Couples plan weddings at ten at night and on Sunday afternoons. Work out what the inquiries arriving outside your working hours are worth to you.",
     publishedAt: "2026-08-14",
     readingMinutes: 6,
     ogImage: "/og/articles/wedding-photographer-after-hours-leads.jpg",

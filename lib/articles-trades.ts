@@ -16,7 +16,7 @@ export const TRADE_ARTICLES: Article[] = [
     slug: "lawn-care-hourly-rate",
     title: "What should a lawn care business charge per hour?",
     description:
-      "Your mowing rate is not your wage. Here is how to work out what a lawn care business has to charge per hour to actually pay itself, with a calculator that does the math on your numbers.",
+      "Your mowing rate is not your wage. Here is what a lawn care business has to charge per hour to actually pay itself, plus a calculator that runs your numbers.",
     publishedAt: "2026-08-12",
     readingMinutes: 7,
     ogImage: "/og/articles/lawn-care-hourly-rate.jpg",
@@ -121,7 +121,7 @@ If that sounds like your week, the [missed call math](/articles/missed-calls-cos
     slug: "hvac-missed-calls-cost",
     title: "What missed calls actually cost an HVAC company",
     description:
-      "Every call that goes to voicemail in July is somebody else's install. Here is how to put a real dollar number on the calls your HVAC company is missing, and the cheapest way to stop it.",
+      "Every call that goes to voicemail in July is somebody else's install. Put a real dollar number on the calls your HVAC company misses, and the cheapest fix.",
     publishedAt: "2026-08-12",
     readingMinutes: 6,
     ogImage: "/og/articles/hvac-missed-calls-cost.jpg",
@@ -228,7 +228,7 @@ Fix the phone first. Then spend on ads.
     slug: "dental-office-no-show-cost",
     title: "What no-shows cost a dental office, and how to cut them",
     description:
-      "An empty chair does not just lose one appointment. Here is how to price out what no-shows cost your practice a year, and the policy and reminder changes that actually reduce them.",
+      "An empty chair does not just lose one appointment. Price out what no-shows cost your practice a year, and the reminder changes that actually reduce them.",
     publishedAt: "2026-08-12",
     readingMinutes: 6,
     ogImage: "/og/articles/dental-office-no-show-cost.jpg",
@@ -331,7 +331,7 @@ Practices that tighten this up usually find the next leak is the phone during lu
     slug: "auto-shop-credit-card-fees",
     title: "Are card processing fees eating your auto shop?",
     description:
-      "Two and a half percent does not sound like much until you multiply it by a year of repair orders. Work out what your auto shop actually pays to take cards, and what your options are.",
+      "Two and a half percent does not sound like much until you multiply it by a year of repair orders. Work out what your auto shop really pays to take cards.",
     publishedAt: "2026-08-12",
     readingMinutes: 6,
     ogImage: "/og/articles/auto-shop-credit-card-fees.jpg",
@@ -430,7 +430,7 @@ Run your own number. Then go ask hard questions with it in your hand.
     slug: "restaurant-delivery-app-fees",
     title: "What delivery apps actually cost a restaurant",
     description:
-      "Thirty percent off the top changes which items are worth putting on the app at all. Work out what third-party delivery is really costing your restaurant per order and per year.",
+      "Thirty percent off the top changes which items belong on the app at all. Work out what third-party delivery really costs your restaurant, per order and per year.",
     publishedAt: "2026-08-12",
     readingMinutes: 6,
     ogImage: "/og/articles/restaurant-delivery-app-fees.jpg",
@@ -533,7 +533,7 @@ Delivery platforms are not villains and they are not free money. They are a paid
     slug: "contractor-unpaid-invoices",
     title: "What unpaid invoices are costing your contracting business",
     description:
-      "Money you earned six months ago and still have not collected is not revenue, it is a loan you made without meaning to. Work out what your outstanding invoices are actually costing you.",
+      "Money you earned six months ago and still have not collected is not revenue. It is a loan you made without meaning to. Work out what it is costing you.",
     publishedAt: "2026-08-12",
     readingMinutes: 7,
     ogImage: "/og/articles/contractor-unpaid-invoices.jpg",
@@ -644,7 +644,7 @@ I am not a lawyer and none of this is legal advice. Lien deadlines, deposit caps
     slug: "salon-google-reviews",
     title: "How a salon gets more Google reviews without begging",
     description:
-      "Stylists and barbers get told to ask for reviews and never told how. Here is the ask that works, the link that makes it one tap, and a target that is based on math instead of hope.",
+      "Stylists and barbers get told to ask for reviews and never told how. Here is the ask that works, the one-tap link, and a target based on math instead of hope.",
     publishedAt: "2026-08-12",
     readingMinutes: 6,
     ogImage: "/og/articles/salon-google-reviews.jpg",
@@ -975,7 +975,7 @@ That is a systems problem, not a trucking problem, and it has [the same shape as
     slug: "cleaning-business-hire-or-stay-solo",
     title: "Should a cleaning business hire, or stay solo?",
     description:
-      "An employee costs a lot more than their hourly wage. Work out the true cost of your first hire, what they have to bill to pay for themselves, and whether staying solo is actually the better business.",
+      "An employee costs a lot more than their hourly wage. Work out the true cost of your first hire, what they must bill to pay for themselves, and whether to wait.",
     publishedAt: "2026-08-12",
     readingMinutes: 7,
     ogImage: "/og/articles/cleaning-business-hire-or-stay-solo.jpg",
