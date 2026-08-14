@@ -1,4 +1,5 @@
 import { TRADE_ARTICLES } from "./articles-trades";
+import { TRADE_ARTICLES_2 } from "./articles-trades-2";
 
 // Owned article library. Articles are plain markdown in the repo so they ship
 // with the site, rank under the site's own domain, and never live in a rented
@@ -696,7 +697,7 @@ If you want to see what that looks like for your specific business, map your sys
 
 // Trade-specific tool articles live in their own module so this file stays about
 // the originals. They are the same Article shape and behave identically.
-ARTICLES.push(...TRADE_ARTICLES);
+ARTICLES.push(...TRADE_ARTICLES, ...TRADE_ARTICLES_2);
 
 export function getArticle(slug: string) {
   return ARTICLES.find((a) => a.slug === slug);
