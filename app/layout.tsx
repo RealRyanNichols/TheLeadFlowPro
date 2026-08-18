@@ -85,7 +85,6 @@ export default async function RootLayout({
         </div>
         <Analytics />
         <SpeedInsights />
-        <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async />
       </body>
     </html>
   );
