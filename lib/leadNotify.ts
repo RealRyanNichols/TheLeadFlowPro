@@ -53,9 +53,9 @@ export function shouldEnrollInLegacyEmailSeries(_lead: LegacySeriesCandidate) {
 // console.error where nobody saw it. Leads came in, Ryan heard nothing, and
 // the Resend dashboard showed zero sent. If you change this address, verify
 // the domain in Resend first.
-async function send(payload: object) {
+async function send(payload: object): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
-  if (!key) return;
+  if (!key) return false;
   try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -65,19 +65,25 @@ async function send(payload: object) {
       },
       body: JSON.stringify(payload),
     });
-    if (!r.ok) console.error("Resend send failed:", r.status, await r.text().catch(() => ""));
+    if (!r.ok) {
+      console.error("Resend send failed:", r.status, await r.text().catch(() => ""));
+      return false;
+    }
+    return true;
   } catch (e) {
     console.error("Resend send error:", e);
+    return false;
   }
 }
 
-export async function sendLeadEmails(lead: NotifiableLead) {
-  if (!process.env.RESEND_API_KEY) return;
-
-  const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
+// Internal-only alert for server-side events such as a verified Stripe
+// deposit. This deliberately does not contact the lead or enroll them in any
+// automation. Returning the provider result lets webhook callers ask Stripe
+// to retry when the internal alert could not be accepted.
+export async function sendInternalLeadAlert(lead: NotifiableLead) {
   const via = lead.source === "meta_lead_ad" ? " [FACEBOOK LEAD AD]" : "";
 
-  await send({
+  return send({
     from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
     reply_to: "hello@theleadflowpro.com",
     to: ["hello@theleadflowpro.com"],
@@ -98,6 +104,14 @@ export async function sendLeadEmails(lead: NotifiableLead) {
       `Manage: https://www.theleadflowpro.com/admin`,
     ].join("\n"),
   });
+}
+
+export async function sendLeadEmails(lead: NotifiableLead) {
+  if (!process.env.RESEND_API_KEY) return;
+
+  const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
+
+  await sendInternalLeadAlert(lead);
 
   await send({
     from: "Ryan Nichols <ryan@theleadflowpro.com>",
