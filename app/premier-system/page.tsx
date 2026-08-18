@@ -254,8 +254,9 @@ const JSON_LD = {
         "@type": "Offer",
         price: "1000",
         priceCurrency: "USD",
-        url: WEBSITE_LAUNCH_CHECKOUT,
-        description: "$500 to start and $500 after approval, before production launch.",
+        url: "https://www.theleadflowpro.com/packages/launch",
+        description:
+          "$500 to start and $500 after approval, before production launch. The initial deposit becomes non-refundable once intake begins, except where the written agreement or applicable law requires otherwise.",
       },
     },
     {
