@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import FinalCta from "@/components/site/system/FinalCta";
 import SiteHero from "@/components/site/system/SiteHero";
 import { ARTICLES } from "@/lib/articles";
+import { articleSocialImagePath } from "@/lib/articles-og";
 
 export const metadata: Metadata = {
   title: "Articles | The LeadFlow Pro",
@@ -51,7 +52,7 @@ export default function ArticlesPage() {
             <Link key={a.slug} href={`/articles/${a.slug}`} className="sv-index-card">
               <span className="sv-index-card__media">
                 <Image
-                  src={a.ogImage}
+                  src={articleSocialImagePath(a.slug)}
                   alt={a.title}
                   fill
                   sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1000px) 50vw, 33vw"

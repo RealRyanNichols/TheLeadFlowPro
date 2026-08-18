@@ -17,6 +17,7 @@ const ARTICLE_CHARTS: Record<string, React.ComponentType> = {
 };
 import ArticleToolSection from "@/components/ArticleToolSection";
 import { ARTICLES, getArticle } from "@/lib/articles";
+import { articleSocialImagePath } from "@/lib/articles-og";
 
 export function generateStaticParams() {
   return ARTICLES.map((a) => ({ slug: a.slug }));
@@ -30,6 +31,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const article = getArticle(slug);
   if (!article) return {};
+  const socialImage = articleSocialImagePath(article.slug);
   return {
     title: `${article.title} | The LeadFlow Pro`,
     description: article.description,
@@ -40,13 +42,27 @@ export async function generateMetadata({
       type: "article",
       publishedTime: article.publishedAt,
       url: `https://www.theleadflowpro.com/articles/${article.slug}`,
-      images: [{ url: article.ogImage, width: 1200, height: 630 }],
+      images: [
+        {
+          url: socialImage,
+          width: 1200,
+          height: 630,
+          alt: `${article.title}. Visual explainer from The LeadFlow Pro.`,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: article.title,
       description: article.description,
-      images: [article.ogImage],
+      images: [
+        {
+          url: socialImage,
+          width: 1200,
+          height: 630,
+          alt: `${article.title}. Visual explainer from The LeadFlow Pro.`,
+        },
+      ],
     },
   };
 }
@@ -61,6 +77,7 @@ export default async function ArticlePage({
   if (!article) notFound();
 
   const SITE = "https://www.theleadflowpro.com";
+  const socialImage = articleSocialImagePath(article.slug);
   const articleLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -70,6 +87,7 @@ export default async function ArticlePage({
     author: { "@type": "Person", name: "Ryan Nichols" },
     publisher: { "@type": "Organization", name: "The LeadFlow Pro" },
     mainEntityOfPage: `${SITE}/articles/${article.slug}`,
+    image: `${SITE}${socialImage}`,
   };
 
   // Video articles get their own VideoObject so the clip can be indexed on its own.
@@ -144,7 +162,7 @@ export default async function ArticlePage({
           title={article.title}
           body={article.description}
           media={{
-            src: article.video?.poster ?? article.ogImage,
+            src: socialImage,
             alt: article.title,
             width: 1200,
             height: 630,
