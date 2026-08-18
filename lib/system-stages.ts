@@ -316,7 +316,7 @@ export const STAGES: Stage[] = [
     proof: [
       { name: "TheLeadFlowPro.com", what: "This site's own back office: pipeline, per-lead workspace, notes, tasks, activity, two-way messaging, CSV export", url: "https://www.theleadflowpro.com" },
       { name: "Premier Dental Academy", what: "Student records, applications and payment plans in a database the school owns", url: "https://www.premierdentalacademyoflongview.com" },
-      { name: "RepWatchr", what: "16,783 official profiles and 59,054 sourced records. Proof this stack handles a real database, not a contact list", url: "https://repwatchr.com" },
+      { name: "RealRyanNichols.com", what: "A searchable archive of 1,568+ case profiles. Proof this stack handles a real database, not a contact list", url: "https://realryannichols.com" },
     ],
     tools: [
       "per-seat-cost-calculator",
@@ -548,7 +548,7 @@ export const STAGES: Stage[] = [
     ],
     proof: [
       { name: "TheLeadFlowPro.com", what: "Every visit logged to our own database with source, and every lead credited to the campaign that produced it", url: "https://www.theleadflowpro.com" },
-      { name: "RepWatchr", what: "59,054 sourced records with the source chain attached to each one. Same discipline, different subject", url: "https://repwatchr.com" },
+      { name: "RealRyanNichols.com", what: "A searchable archive of 1,568+ case profiles on owned infrastructure. The same source discipline supports the publishing system", url: "https://realryannichols.com" },
     ],
     tools: [
       "utm-link-builder",

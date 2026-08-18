@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import RentVsOwnChart from "@/components/charts/RentVsOwnChart";
 import FollowUpSpeedChart from "@/components/charts/FollowUpSpeedChart";
+import FinalCta from "@/components/site/system/FinalCta";
+import SiteHero from "@/components/site/system/SiteHero";
 
 // Proof charts matched to the articles they back up.
 const ARTICLE_CHARTS: Record<string, React.ComponentType> = {
@@ -14,7 +15,6 @@ const ARTICLE_CHARTS: Record<string, React.ComponentType> = {
   "missed-calls-cost-customers": FollowUpSpeedChart,
   "website-traffic-but-no-customers": FollowUpSpeedChart,
 };
-import { ArrowRight } from "lucide-react";
 import ArticleToolSection from "@/components/ArticleToolSection";
 import { ARTICLES, getArticle } from "@/lib/articles";
 
@@ -132,22 +132,36 @@ export default async function ArticlePage({
     : [article.body, ""];
 
   return (
-    <main className="legal-page">
+    <main className="cb-page">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <span className="eyebrow">
-        {new Date(article.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        })}{" "}
-        · {article.readingMinutes} min read · Ryan Nichols
-      </span>
-      <h1>{article.title}</h1>
-      {article.video ? (
-        <figure className="mt-8 flex flex-col items-center">
+      <div className="sv-article-hero">
+        <SiteHero
+          compact
+          eyebrow="Operator field note"
+          title={article.title}
+          body={article.description}
+          media={{
+            src: article.video?.poster ?? article.ogImage,
+            alt: article.title,
+            width: 1200,
+            height: 630,
+            kicker: article.video ? "Watch and read" : "See the problem",
+            caption: "One clear business question.",
+          }}
+          trustLine={`${new Date(article.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })} · ${article.readingMinutes} min read · Ryan Nichols`}
+        />
+      </div>
+
+      <article className="sv-article-shell">
+        {article.video ? (
+        <figure className="mb-12 flex flex-col items-center">
           <video
             controls
             playsInline
@@ -174,14 +188,7 @@ export default async function ArticlePage({
             {article.video.title} · {article.video.durationSeconds} seconds
           </figcaption>
         </figure>
-      ) : (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={article.ogImage}
-          alt={article.title}
-          className="mt-8 aspect-[1200/630] w-full rounded-2xl border border-[var(--line-strong)] object-cover shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
-        />
-      )}
+        ) : null}
       <div className="prose-lfp">
         <ReactMarkdown>{bodyBefore}</ReactMarkdown>
       </div>
@@ -221,26 +228,14 @@ export default async function ArticlePage({
           </div>
         ) : null;
       })()}
-      <div className="final-cta portfolio-cta">
-        <div>
-          <span className="eyebrow">Put this to work</span>
-          <h2>Map your system before you buy anything.</h2>
-          <p>
-            Answer a few questions about the problem, the home base, and the sales
-            channels. You see the diagnosis and the recommended build before we ever ask
-            who you are.
-          </p>
-        </div>
-        <div>
-          <Link className="button-primary" href="/start">
-            Map My System
-            <ArrowRight aria-hidden="true" className="h-4 w-4" />
-          </Link>
-          <Link className="button-secondary" href="/articles">
-            More Articles
-          </Link>
-        </div>
-      </div>
+      </article>
+      <FinalCta
+        eyebrow="Put this to work"
+        title="Map the system before you buy another disconnected tool."
+        body="See the diagnosis and the recommended first release before you send contact information."
+        primary={{ href: "/start", label: "Map My System" }}
+        secondary={{ href: "/articles", label: "More articles" }}
+      />
     </main>
   );
 }

@@ -9,8 +9,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import styles from "./product-studio.module.css";
-
-const CHECKOUT_URL = "https://book.stripe.com/cNi6oG52y1kockE5oq5AQ0a";
+import { WEBSITE_LAUNCH_CHECKOUT as CHECKOUT_URL } from "@/lib/offers";
 
 export const metadata: Metadata = {
   title: "Product Studio & Website Launch | The LeadFlow Pro",
@@ -45,11 +44,12 @@ const FLOW = ["Attention", "Lead capture", "Follow-up", "Booked call", "Sale"];
 
 const INCLUDED = [
   ["01", "Conversion map", "One goal, one buyer path and one measurable next action."],
-  ["02", "Five premium pages", "A focused public experience—not a stack of filler pages."],
+  ["02", "Five premium pages", "A focused public experience, not a stack of filler pages."],
   ["03", "Lead capture + routing", "Forms reach the right place with the context needed to follow up."],
   ["04", "Responsive production build", "Fast, accessible and deliberate from desktop to phone."],
   ["05", "Analytics + deployment", "Launch on production infrastructure with the core signals connected."],
   ["06", "Two revision rounds", "Two focused rounds against the approved scope before launch."],
+  ["07", "Three premium visual scenes", "A founding-rate visual pack that explains the offer, process, or system without a wall of copy."],
 ];
 
 const SERVICES = [
@@ -108,11 +108,11 @@ const WORK = [
     alt: "Premier Dental Academy of Longview enrollment website",
   },
   {
-    name: "RepWatchr",
-    type: "Research platform",
-    image: "/og/portfolio/repwatchr.jpg",
-    href: "https://repwatchr.com",
-    alt: "RepWatchr public records research platform",
+    name: "RealRyanNichols.com",
+    type: "Independent media system",
+    image: "/og/portfolio/realryannichols.jpg",
+    href: "https://realryannichols.com",
+    alt: "RealRyanNichols.com independent publishing and searchable archive platform",
   },
   {
     name: "Lone Star Total Wash",
@@ -190,7 +190,8 @@ export default function ProductStudioPage() {
               <p className={styles.heroNote}>
                 <ShieldCheck aria-hidden="true" />
                 $1,000 total · written scope · the second $500 is due after approval, before
-                launch
+                launch · the initial deposit becomes non-refundable once intake begins,
+                except where the written agreement or applicable law requires otherwise
               </p>
             </div>
 
@@ -224,6 +225,10 @@ export default function ProductStudioPage() {
                 Reserve the build
                 <ArrowUpRight aria-hidden="true" />
               </a>
+              <small>
+                Once intake begins, the $500 deposit is non-refundable, except where the
+                written agreement or applicable law requires otherwise.
+              </small>
             </aside>
           </div>
         </div>
@@ -305,7 +310,9 @@ export default function ProductStudioPage() {
               </a>
               <small>
                 Payment reserves the build and is applied to the $1,000 project total. Final
-                scope is confirmed in writing before production work begins.
+                scope is confirmed in writing before production work begins. Once intake
+                begins, the $500 deposit is non-refundable, except where the written
+                agreement or applicable law requires otherwise.
               </small>
             </div>
 
@@ -392,7 +399,7 @@ export default function ProductStudioPage() {
               <h2>Learn the systems. Own the operation.</h2>
               <p>
                 Practical training on ChatGPT setup, projects, plugins, content engines,
-                funnels and client delivery—organized as a growing operating library, not a
+                funnels and client delivery, organized as a growing operating library, not a
                 pile of disconnected videos.
               </p>
               <Link href="/training" className={styles.secondaryAction}>
@@ -434,7 +441,11 @@ export default function ProductStudioPage() {
                 Start Website Launch | $500
                 <ArrowUpRight aria-hidden="true" />
               </a>
-              <span>Secure checkout through Longview Training Center, LLC.</span>
+              <span>
+                Secure checkout through Longview Training Center, LLC. Once intake begins,
+                the $500 deposit is non-refundable, except where the written agreement or
+                applicable law requires otherwise.
+              </span>
             </div>
           </div>
         </div>

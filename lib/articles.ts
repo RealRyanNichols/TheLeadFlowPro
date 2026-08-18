@@ -125,11 +125,11 @@ I said in the video that I would tell you. Here it is.
 
 I am building owned systems for business owners while the tools are cheap and most people are still arguing about whether any of this is real.
 
-Three ways to work with me. They are the same three I would pick if I were sitting on your side of the table.
+There are three honest starting points. Pick the smallest one that solves the problem in front of you.
 
-1. **Learn It.** You want to run it yourself. I teach you the stack and the workflow. You keep all of it.
-2. **Build It With You.** We build it together, in your accounts, so you know how every piece works because you were there when it got built.
-3. **Done For You.** You do not want to touch it. I build it, wire it up, and hand you the keys. The accounts are still yours.
+1. **Website Launch.** Five focused pages, one lead path, a $1,000 fixed total, and a working approval checkpoint before the final $500 and production launch.
+2. **System Map.** A $497 paid diagnosis for a business with software, data, people, migrations, or dependencies that need to be understood before anyone quotes a larger build.
+3. **Larger connected system.** Lead Engine, Training Platform, Company OS, or Custom Platform work is scoped from the real modules and starts higher because it includes more than a public website.
 
 There is no version of this where I hold your platform hostage. That is the entire point.
 

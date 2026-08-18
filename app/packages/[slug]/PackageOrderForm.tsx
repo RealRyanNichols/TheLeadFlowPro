@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, CircleCheck, Lock } from "lucide-react";
 import BuyButton from "@/components/BuyButton";
+import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
 
 declare global {
   interface Window {
@@ -39,13 +40,9 @@ const INTENTS: Array<{ id: string; label: string; desc: string }> = [
   },
 ];
 
-const WEBSITE_LAUNCH_CHECKOUT =
-  "https://book.stripe.com/cNi6oG52y1kockE5oq5AQ0a";
-
 const BASE_PRICE: Record<string, number> = {
   "system-map": 497,
   launch: 1000,
-  "industry-os": 15000,
 };
 
 const DEPOSIT_PRESETS = [500, 1000, 2500, 5000];
@@ -64,7 +61,11 @@ export default function PackageOrderForm({
   interest: string;
   buyable: boolean;
 }) {
-  const [intent, setIntent] = useState<string>(buyable ? "pay_full" : "down_payment");
+  const isWebsiteLaunch = slug === "launch";
+  const isCompanyOS = slug === "industry-os" || slug === "company_os";
+  const [intent, setIntent] = useState<string>(
+    isCompanyOS ? "map_first" : buyable ? "pay_full" : "down_payment",
+  );
   const [deposit, setDeposit] = useState<number>(500);
   const [customDeposit, setCustomDeposit] = useState<string>("");
   const [sending, setSending] = useState(false);
@@ -74,7 +75,6 @@ export default function PackageOrderForm({
 
   const basePrice = BASE_PRICE[slug] ?? 0;
   const maxDeposit = Math.min(25000, basePrice);
-  const isWebsiteLaunch = slug === "launch";
   const parsedCustomDeposit = Math.round(Number(customDeposit));
   const activeDeposit = isWebsiteLaunch
     ? 500
@@ -85,9 +85,11 @@ export default function PackageOrderForm({
     Number.isFinite(activeDeposit) &&
     activeDeposit >= DEPOSIT_MIN &&
     activeDeposit <= maxDeposit;
-  const availableIntents = isWebsiteLaunch
-    ? INTENTS.filter((option) => option.id === "down_payment" || option.id === "questions")
-    : INTENTS;
+  const availableIntents = isCompanyOS
+    ? INTENTS.filter((option) => option.id === "map_first" || option.id === "questions")
+    : isWebsiteLaunch
+      ? INTENTS.filter((option) => option.id === "down_payment" || option.id === "questions")
+      : INTENTS;
   const paysNow = intent === "pay_full" || intent === "down_payment";
   const payAmount = intent === "pay_full" ? basePrice : activeDeposit;
 
@@ -105,6 +107,11 @@ export default function PackageOrderForm({
     const smsConsent = form.get("sms_consent") === "on";
     if (smsConsent && !phone) {
       setError("Add a mobile number before choosing call or text consent.");
+      setSending(false);
+      return;
+    }
+    if (isCompanyOS && (intent === "pay_full" || intent === "down_payment")) {
+      setError("Company OS requires a System Map before any build payment.");
       setSending(false);
       return;
     }
@@ -254,8 +261,10 @@ export default function PackageOrderForm({
       </h2>
       <p className="mt-2 text-[var(--muted)]">
         {isWebsiteLaunch
-          ? "The five-page Website Launch is $1,000: $500 to start and $500 after approval, before launch."
-          : "Pick your path and add your details. Card payments run on Stripe secure checkout, and every dollar you put down is credited in full toward your build."}
+          ? "The five-page Website Launch is $1,000: $500 to start and $500 after approval, before launch. Once intake begins, the deposit is non-refundable, except where the written agreement or applicable law requires otherwise."
+          : isCompanyOS
+            ? "Company OS begins with a $497 System Map so the scope, dependencies, and implementation plan are clear before any build payment."
+            : "Pick your path and add your details. Card payments run on Stripe secure checkout, and every dollar you put down is credited in full toward your build."}
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -296,7 +305,9 @@ export default function PackageOrderForm({
           </p>
           <p className="mt-1 text-[12.5px] text-[var(--muted)]">
             The remaining $500 is due after you approve the working site and before it
-            launches. After the order is saved, Stripe opens for the deposit.
+            launches. Once intake begins, the deposit is non-refundable, except where the
+            written agreement or applicable law requires otherwise. After the order is
+            saved, Stripe opens for the deposit.
           </p>
         </div>
       )}
@@ -377,7 +388,7 @@ export default function PackageOrderForm({
           </p>
           <BuyButton
             kind="system_map"
-            label="Buy the Map — $497"
+            label="Buy the Map | $497"
             className="button-primary !min-h-[42px]"
           />
         </div>
@@ -468,7 +479,9 @@ export default function PackageOrderForm({
           By submitting, you agree to our <Link href="/terms">Terms</Link> and acknowledge
           our <Link href="/privacy">Privacy Policy</Link>. Card payments are processed by
           Stripe on their secure checkout page. Deposits and payments follow the written
-          scope. Website Launch is $500 now and $500 after approval, before launch.
+          scope. Website Launch is $500 now and $500 after approval, before launch. Once
+          intake begins, the initial $500 is non-refundable, except where the written
+          agreement or applicable law requires otherwise.
         </p>
       </form>
     </div>

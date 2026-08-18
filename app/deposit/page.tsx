@@ -20,7 +20,7 @@ const POINTS = [
   {
     icon: Receipt,
     title: "Two simple payments",
-    body: "The first $500 reserves the build. The remaining $500 is due after approval and before launch.",
+    body: "The first $500 reserves the build and opens intake. Once intake begins, it is non-refundable, except where the written agreement or applicable law requires otherwise. The remaining $500 is due after approval and before launch.",
   },
   {
     icon: BadgeCheck,
@@ -42,7 +42,9 @@ export default function DepositPage() {
           <p className="cb-hero-lead">
             Your $500 deposit opens intake and starts the working site. Review it, request
             revisions inside the agreed scope, and pay the remaining $500 only after you
-            approve it and before it launches.
+            approve it and before it launches. Once intake begins, the deposit is
+            non-refundable, except where the written agreement or applicable law requires
+            otherwise.
           </p>
         </div>
       </section>

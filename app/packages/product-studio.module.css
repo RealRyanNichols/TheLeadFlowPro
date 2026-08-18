@@ -311,6 +311,14 @@
   width: 18px;
 }
 
+.launchBrief > small {
+  display: block;
+  margin-top: 0.8rem;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
 .flow {
   background: var(--studio-blue);
   color: var(--studio-white);

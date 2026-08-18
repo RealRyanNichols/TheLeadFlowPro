@@ -7,6 +7,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
+import styles from "./start-v2.module.css";
 import {
   Archive,
   ArrowLeft,
@@ -644,7 +646,7 @@ const MODULE_META: Record<string, { why: string; proof: string }> = {
   },
   archive_library: {
     why: "Records and resources people can actually search. Authority nobody can take down.",
-    proof: "RepWatchr",
+    proof: "RealRyanNichols",
   },
   email_automation: {
     why: "Every lead gets a reply in seconds and a follow-up until they answer. The money is in the follow-up.",
@@ -753,8 +755,8 @@ const PACKAGES = {
       "A conversion-led five-page public experience with lead capture, responsive production, core analytics, deployment, and two revision rounds.",
   },
   industry_os: {
-    name: "Industry OS",
-    price: "$15,000+",
+    name: "Company OS",
+    price: "$7,500+",
     description:
       "The public experience plus the portals, industry tools, courses, archives, calls, texts, and deeper workflows that make the vertical different.",
   },
@@ -765,9 +767,6 @@ const PACKAGES = {
       "A larger product, multi-location operation, custom data platform, advanced connector, or system with complex migration and permissions.",
   },
 } as const;
-
-const WEBSITE_LAUNCH_CHECKOUT =
-  "https://book.stripe.com/cNi6oG52y1kockE5oq5AQ0a";
 
 type PackageId = keyof typeof PACKAGES;
 
@@ -817,11 +816,11 @@ const stagesShort = (ids: string[]) =>
   ids.length ? listJoin(ids.map((id) => stageOf(id).short)) : "an unclear current stack";
 
 // Every business sells or generates leads somewhere, so the sales-channel
-// question is always asked — separately from the home-base question above it.
+// question is always asked separately from the home-base question above it.
 const STEPS = ["goal", "industry", "presence", "channels", "stage", "modules", "result"];
 
 // Per-option gradient icon tiles. Same brand family as The Work cards:
-// cyan, violet, emerald, amber, red, sky — cycled so no two neighbors match.
+// Cyan, violet, emerald, amber, red, and sky cycle so no two neighbors match.
 const TILE_PALETTE: Array<[string, string, string]> = [
   ["#38bdf8", "#2563eb", "#38bdf84d"],
   ["#a78bfa", "#d946ef", "#a78bfa4d"],
@@ -1314,7 +1313,7 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
   });
 
   return (
-    <div className="router-page">
+    <div className={`router-page ${styles.routerV2}`}>
       <header className="router-header">
         <Link href="/" className="brand-lockup" aria-label="The LeadFlow Pro home">
           The LeadFlow<span>Pro</span>
@@ -1891,13 +1890,13 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                   </h2>
                   <p>
                     {packageId === "launch"
-                      ? "Ryan has the business type, current setup, priorities, and launch path. Reserve the build with $500 when you are ready to open intake."
+                      ? "Ryan has the business type, current setup, priorities, and launch path. Reserve the build with $500 when you are ready to open intake. Once intake begins, the deposit is non-refundable, except where the written agreement or applicable law requires otherwise."
                       : "Ryan has the business type, the current setup, the priorities, and the build path. You will not have to repeat all of this on the first conversation."}
                   </p>
                   <div className="router-success-actions">
                     {packageId === "launch" ? (
                       <a href={WEBSITE_LAUNCH_CHECKOUT} className="button-primary">
-                        Reserve Website Launch — $500
+                        Reserve Website Launch | $500
                         <ArrowRight aria-hidden="true" className="h-4 w-4" />
                       </a>
                     ) : null}

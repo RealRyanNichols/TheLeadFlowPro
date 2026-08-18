@@ -7,7 +7,9 @@
 // production work begins.
 
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useRef, useState } from "react";
+import styles from "./add-ons.module.css";
 import {
   ArrowRight,
   Archive,
@@ -56,21 +58,6 @@ declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void;
   }
-}
-
-// Same brand palette cycle used on /start.
-const TILE_PALETTE: Array<[string, string, string]> = [
-  ["#38bdf8", "#2563eb", "#38bdf84d"],
-  ["#a78bfa", "#d946ef", "#a78bfa4d"],
-  ["#34d399", "#0ea371", "#34d3994d"],
-  ["#fbbf24", "#f97316", "#fbbf244d"],
-  ["#f87171", "#ef4444", "#f871714d"],
-  ["#22d3ee", "#3b82f6", "#22d3ee4d"],
-];
-
-function tileVars(i: number) {
-  const [a, b, g] = TILE_PALETTE[i % TILE_PALETTE.length];
-  return { "--ta": a, "--tb": b, "--tg": g } as React.CSSProperties;
 }
 
 type AddOn = {
@@ -383,7 +370,7 @@ const CATEGORIES: Category[] = [
         name: "Searchable archive or database",
         desc: "Thousands of records, profiles, or documents that visitors can search, filter, and share.",
         icon: Database,
-        proof: "Live on RepWatchr + RealRyanNichols",
+        proof: "Live on RealRyanNichols",
         moduleId: "archive_library",
       },
       {
@@ -407,7 +394,7 @@ const CATEGORIES: Category[] = [
         name: "Receipts and evidence walls",
         desc: "Documents, filings, screenshots, and records embedded right where the claim is made.",
         icon: Camera,
-        proof: "Live on RealRyanNichols + RepWatchr",
+        proof: "Live on RealRyanNichols + DonAndPatti.com",
         moduleId: "archive_library",
       },
     ],
@@ -454,7 +441,7 @@ const CATEGORIES: Category[] = [
         name: "Site wide smart search",
         desc: "One search box that finds every product, article, record, and page you have.",
         icon: Search,
-        proof: "Live on RepWatchr",
+        proof: "Live on RealRyanNichols",
         moduleId: "archive_library",
       },
       {
@@ -523,9 +510,9 @@ export default function AddOnsMenu() {
         phone: phone || null,
         website_url: form.get("website_url"),
         desired_modules: moduleIds,
-        interest: "done_for_you",
+        interest: "company_os",
         goals: [
-          `ADD-ON MENU ORDER (${names.length} item${names.length === 1 ? "" : "s"}): ${names.join("; ")}.`,
+          `ADD-ON SCOPE REQUEST (${names.length} item${names.length === 1 ? "" : "s"}): ${names.join("; ")}.`,
           notes ? `How they want it built: ${notes}` : "",
         ]
           .filter(Boolean)
@@ -559,46 +546,79 @@ export default function AddOnsMenu() {
   }
 
   return (
-    <main className="pb-32">
-      {/* HERO */}
-      <section className="page-hero page-hero-centered">
-        <span className="eyebrow">The Add-On Menu</span>
-        <h1>Choose the modules. Get a written scope.</h1>
-        <p>
-          Every item on this menu is a real system running live on a real site I built.
-          Check the boxes you want and describe the outcome. I turn that list into a clear
-          scope, timeline, and price before production work begins.
-        </p>
-        <div className="mx-auto mt-8 flex max-w-2xl flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-[var(--text)]">
-          <span className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-[var(--green)]" strokeWidth={3} /> Pick what you want
-          </span>
-          <span className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-[var(--green)]" strokeWidth={3} /> Tell me how to build it
-          </span>
-          <span className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-[var(--green)]" strokeWidth={3} /> Approve scope before work starts
-          </span>
+    <main className={styles.page}>
+      <section className={styles.hero}>
+        <div className={styles.heroInner}>
+          <figure className={styles.heroVisual}>
+            <Image
+              src="/images/offer-v2/premier-operating-system.webp"
+              alt="A connected operating system with website, customer records, payment, and delivery modules"
+              width={3840}
+              height={2160}
+              sizes="(max-width: 760px) calc(100vw - 32px), 54vw"
+              priority
+            />
+            <figcaption>
+              <span>Real modules. One connected company.</span>
+              <strong>Scope the next build.</strong>
+            </figcaption>
+          </figure>
+
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}>The Add-On Menu</p>
+            <h1>
+              Choose the capability.
+              <span>Get the scope before the build.</span>
+            </h1>
+            <p className={styles.heroLead}>
+              This is not a checkout. Select the proven modules your business needs, tell
+              me the outcome, and I will return a written scope, timeline, and price before
+              paid production begins.
+            </p>
+            <div className={styles.heroActions}>
+              <a href="#module-menu" className={styles.primaryButton}>
+                Build My Scope
+                <ArrowRight aria-hidden="true" />
+              </a>
+              <Link href="/pricing" className={styles.secondaryButton}>
+                See Current Offers
+              </Link>
+            </div>
+            <div className={styles.qualifier}>
+              <ShieldCheck aria-hidden="true" />
+              <p>
+                Website Launch is $1,000 total. Funnels, CRM, portals, courses,
+                automation, and every add-on below are scoped separately.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* MENU */}
-      <section className="mx-auto w-[min(1060px,100%-40px)]">
+      <section id="module-menu" className={styles.menuSection}>
+        <div className={styles.sectionIntro}>
+          <div>
+            <p className={styles.eyebrow}>Build list</p>
+            <h2>Start with the outcome. Select only what supports it.</h2>
+          </div>
+          <p>
+            Every module is based on a real system already running on a LeadFlow build.
+            Your selections create a scope request, not a purchase or authorization to work.
+          </p>
+        </div>
         {CATEGORIES.map((cat) => (
-          <div key={cat.id} className="mt-14 first:mt-4">
-            <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+          <div key={cat.id} className={styles.category}>
+            <div className={styles.categoryHead}>
               <div>
-                <h2 className="text-2xl font-extrabold tracking-tight text-[var(--heading)] sm:text-[28px]">
-                  {cat.title}
-                </h2>
-                <p className="mt-1 text-sm text-[var(--muted)]">{cat.blurb}</p>
+                <h3>{cat.title}</h3>
+                <p>{cat.blurb}</p>
               </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--quiet)]">
+              <span className={styles.selectedCount}>
                 {cat.items.filter((i) => selected.has(i.id)).length} of {cat.items.length} selected
               </span>
             </div>
-            <div className="grid gap-3.5 sm:grid-cols-2">
-              {cat.items.map((item, i) => {
+            <div className={styles.itemGrid}>
+              {cat.items.map((item) => {
                 const isOn = selected.has(item.id);
                 const Icon = item.icon;
                 return (
@@ -606,23 +626,22 @@ export default function AddOnsMenu() {
                     key={item.id}
                     type="button"
                     aria-pressed={isOn}
-                    style={tileVars(i)}
                     onClick={() => toggle(item.id)}
-                    className={`router-option router-option-multi !min-h-[104px] ${isOn ? "is-selected" : ""}`}
+                    className={`${styles.item} ${isOn ? styles.itemSelected : ""}`}
                   >
-                    <span className="router-option-icon">
-                      <Icon className="h-5 w-5" strokeWidth={1.8} />
+                    <span className={styles.itemIcon}>
+                      <Icon aria-hidden="true" strokeWidth={1.8} />
                     </span>
-                    <span className="router-option-copy">
+                    <span className={styles.itemCopy}>
                       <strong>{item.name}</strong>
                       <span>{item.desc}</span>
-                      <span className="!mt-1 flex items-center gap-1.5 !text-[11px] font-bold uppercase tracking-wide !text-[var(--quiet)]">
-                        <CircleCheck className="h-3 w-3 text-[var(--green)]/80" />
+                      <span className={styles.proofLine}>
+                        <CircleCheck aria-hidden="true" />
                         {item.proof}
                       </span>
                     </span>
-                    <span className="router-check" aria-hidden="true">
-                      {isOn ? <Check className="h-4 w-4" /> : null}
+                    <span className={styles.itemCheck} aria-hidden="true">
+                      {isOn ? <Check /> : null}
                     </span>
                   </button>
                 );
@@ -632,53 +651,49 @@ export default function AddOnsMenu() {
         ))}
       </section>
 
-      {/* ORDER FORM */}
-      <section ref={formRef} className="mx-auto mt-20 w-[min(860px,100%-40px)] scroll-mt-24">
+      <section ref={formRef} className={styles.formSection}>
         {!submitted ? (
-          <div className="rounded-[20px] border border-line bg-[var(--fill-2)] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] sm:p-9">
-            <span className="eyebrow">Your build list</span>
-            <h2 className="mt-4 text-3xl font-black tracking-tight text-[var(--heading)]">
+          <div className={styles.formCard}>
+            <p className={styles.eyebrow}>Your scope request</p>
+            <h2>
               Tell me how you want it built.
             </h2>
-            <p className="mt-2 text-[var(--muted)]">
+            <p className={styles.formIntro}>
               {selectedItems.length === 0
                 ? "Nothing checked yet. Pick anything above, or just describe what you want in your own words below."
                 : `${selectedItems.length} add-on${selectedItems.length === 1 ? "" : "s"} on your list. Add your details and send it for a written scope, timeline, and price.`}
             </p>
 
             {selectedItems.length > 0 && (
-              <div className="mt-5 flex flex-wrap gap-2">
+              <div className={styles.selectedPills} aria-label="Selected add-ons">
                 {selectedItems.map((i) => (
-                  <span
-                    key={i.id}
-                    className="flex items-center gap-1.5 rounded-full border border-[var(--accent-line)] bg-[var(--accent-tint)] px-3 py-1.5 text-xs font-bold text-[var(--blue)]"
-                  >
-                    <Check className="h-3 w-3" strokeWidth={3} />
+                  <span key={i.id}>
+                    <Check aria-hidden="true" strokeWidth={3} />
                     {i.name}
                   </span>
                 ))}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="mt-7">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="form-field">
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <div className={styles.formGrid}>
+                <label className={styles.field}>
                   <span>Your name *</span>
                   <input name="full_name" autoComplete="name" required maxLength={200} />
                 </label>
-                <label className="form-field">
+                <label className={styles.field}>
                   <span>Business name</span>
                   <input name="business_name" autoComplete="organization" maxLength={200} />
                 </label>
-                <label className="form-field">
+                <label className={styles.field}>
                   <span>Email *</span>
                   <input name="email" type="email" autoComplete="email" required maxLength={200} />
                 </label>
-                <label className="form-field">
+                <label className={styles.field}>
                   <span>Mobile phone</span>
                   <input name="phone" type="tel" autoComplete="tel" maxLength={50} />
                 </label>
-                <label className="form-field">
+                <label className={styles.field}>
                   <span>Website or main profile</span>
                   <input
                     name="website_url"
@@ -688,7 +703,7 @@ export default function AddOnsMenu() {
                     maxLength={300}
                   />
                 </label>
-                <label className="form-field">
+                <label className={styles.field}>
                   <span>Best way to reach you</span>
                   <select name="best_contact_method" defaultValue="email">
                     <option value="email">Email</option>
@@ -698,7 +713,7 @@ export default function AddOnsMenu() {
                   </select>
                 </label>
               </div>
-              <label className="form-field mt-4">
+              <label className={`${styles.field} ${styles.notesField}`}>
                 <span>How do you want it built?</span>
                 <textarea
                   name="notes"
@@ -707,7 +722,7 @@ export default function AddOnsMenu() {
                   placeholder="Your business, your customers, what it should look like, what it should feel like. Talk to me like we are at the counter."
                 />
               </label>
-              <div className="consent-list mt-4">
+              <div className={styles.consentList}>
                 <label>
                   <input type="checkbox" name="sms_consent" />
                   <span>
@@ -726,19 +741,19 @@ export default function AddOnsMenu() {
                 </label>
               </div>
               {error && (
-                <p className="form-error mt-3" role="alert">
+                <p className={styles.formError} role="alert">
                   {error}
                 </p>
               )}
               <button
                 type="submit"
-                className="button-primary mt-6 w-full sm:w-auto"
+                className={styles.submitButton}
                 disabled={sending}
               >
                 {sending ? "Sending Your Build List..." : "Send My Build List"}
                 {!sending && <ArrowRight aria-hidden="true" className="h-4 w-4" />}
               </button>
-              <p className="form-legal mt-4">
+              <p className={styles.formLegal}>
                 By submitting, you agree to our <Link href="/terms">Terms</Link> and
                 acknowledge our <Link href="/privacy">Privacy Policy</Link>. This form does
                 not charge you or authorize work. Selected modules are quoted separately.
@@ -746,19 +761,19 @@ export default function AddOnsMenu() {
             </form>
           </div>
         ) : (
-          <div className="rounded-[20px] border border-[var(--green-line)] bg-emerald-500/[0.06] p-9 text-center">
-            <CircleCheck className="mx-auto h-12 w-12 text-[var(--green)]" />
-            <h2 className="mt-4 text-3xl font-black text-[var(--heading)]">Your build list is in.</h2>
-            <p className="mx-auto mt-3 max-w-xl text-[var(--text)]">
+          <div className={styles.successCard}>
+            <CircleCheck aria-hidden="true" />
+            <h2>Your build list is in.</h2>
+            <p>
               I have your picks and your notes. I will reach out within one business day
               on the channel you chose to confirm the scope, timeline, and price before
               paid production work begins.
             </p>
-            <div className="mt-7 flex flex-wrap justify-center gap-3">
-              <Link href="/portfolio" className="button-secondary">
+            <div className={styles.successActions}>
+              <Link href="/portfolio" className={styles.secondaryButton}>
                 See the Live Work
               </Link>
-              <Link href="/start" className="button-secondary">
+              <Link href="/start" className={styles.secondaryButton}>
                 Map My Whole System
               </Link>
             </div>
@@ -766,13 +781,12 @@ export default function AddOnsMenu() {
         )}
       </section>
 
-      {/* SCOPING TERMS */}
       {!submitted && (
-        <section className="mx-auto mt-16 w-[min(860px,100%-40px)] text-center">
-          <p className="text-lg font-bold text-[var(--heading)]">
+        <section className={styles.scopeTerms}>
+          <p>
             This is a scope request, not a blank check.
           </p>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
+          <p>
             The five-page Website Launch is $1,000: $500 to start and $500 after approval,
             before launch. Funnels, CRM, tools, portals, courses, ads, automation, and other
             modules are scoped and priced separately before work begins.
@@ -780,20 +794,19 @@ export default function AddOnsMenu() {
         </section>
       )}
 
-      {/* STICKY ORDER BAR */}
       {!submitted && selected.size > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-[var(--panel)]/95">
-          <div className="mx-auto flex w-[min(1060px,100%-32px)] items-center justify-between gap-4 py-3.5">
-            <div className="flex items-center gap-3">
-              <span className="flex h-8 min-w-8 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-600 px-2 text-sm font-black text-[var(--heading)] shadow-[0_2px_12px_rgba(56,189,248,0.5)]">
+        <div className={styles.stickyBar}>
+          <div className={styles.stickyInner}>
+            <div className={styles.stickyCount}>
+              <span>
                 {selected.size}
               </span>
-              <span className="hidden text-sm font-semibold text-[var(--heading)] sm:block">
+              <strong>
                 add-on{selected.size === 1 ? "" : "s"} on your build list
-              </span>
+              </strong>
             </div>
-            <button type="button" className="button-primary !min-h-[42px]" onClick={scrollToForm}>
-              Order These
+            <button type="button" className={styles.stickyButton} onClick={scrollToForm}>
+              Review Scope Request
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </button>
           </div>

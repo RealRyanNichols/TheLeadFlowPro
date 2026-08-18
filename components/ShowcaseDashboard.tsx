@@ -2,17 +2,33 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import {
+  Bot,
+  CircleDollarSign,
+  MousePointerClick,
+  RadioTower,
+  Route,
+} from "lucide-react";
 
 /**
- * The Command Center — a live, simulated demo of the analytics + automation
+ * The Command Center is a live, simulated demo of the analytics and automation
  * back office a LeadFlow Pro build ships with. Clearly labeled demo data.
  */
 
 const CITIES = ["Longview, TX", "Tyler, TX", "Marshall, TX", "Kilgore, TX", "Gladewater, TX", "Shreveport, LA", "Dallas, TX", "Nacogdoches, TX"];
-const SOURCES = ["facebook / own-your-platform", "google / rent-receipt", "shared link", "direct", "facebook / demo-build"];
-const PAGES = ["/go", "/", "/pricing", "/demo", "/portfolio", "/pricing/done-for-you"];
+const SOURCES = ["facebook / premier-system", "google / website-launch", "shared link", "direct", "facebook / proof-video"];
+const PAGES = ["/premier-system", "/", "/pricing", "/tools", "/portfolio", "/live"];
 
-type Ev = { id: number; icon: string; text: string; tone: string; time: string };
+type EventKind = "view" | "click" | "lead" | "automation" | "sale";
+type Ev = { id: number; kind: EventKind; text: string; tone: string; time: string };
+
+const EVENT_ICONS = {
+  view: RadioTower,
+  click: MousePointerClick,
+  lead: Route,
+  automation: Bot,
+  sale: CircleDollarSign,
+} as const;
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -38,25 +54,25 @@ export default function ShowcaseDashboard() {
       if (roll < 0.5) {
         setViews((v) => v + 1);
         setVisitors((v) => Math.max(9, v + (Math.random() < 0.5 ? 1 : -1)));
-        ev = { id: idRef.current, icon: "👀", text: `Visitor from ${pick(CITIES)} viewing ${pick(PAGES)} · ${pick(SOURCES)}`, tone: "text-[var(--text)]", time: now };
+        ev = { id: idRef.current, kind: "view", text: `Visitor from ${pick(CITIES)} viewing ${pick(PAGES)} | ${pick(SOURCES)}`, tone: "text-[var(--text)]", time: now };
       } else if (roll < 0.68) {
-        ev = { id: idRef.current, icon: "🖱", text: `CTA click: "Book a Call" on ${pick(PAGES)}`, tone: "text-[var(--blue)]", time: now };
+        ev = { id: idRef.current, kind: "click", text: `CTA click: "See the Exact Scope" on ${pick(PAGES)}`, tone: "text-[var(--blue)]", time: now };
       } else if (roll < 0.82) {
         setLeads((l) => l + 1);
         setEmails((e) => e + 2);
-        ev = { id: idRef.current, icon: "⚡", text: `LEAD CAPTURED → saved to database → owner alerted → welcome email sent in 0.${4 + Math.floor(Math.random() * 5)}s`, tone: "text-mint font-semibold", time: now };
+        ev = { id: idRef.current, kind: "lead", text: "Lead captured | saved to owned database | owner alerted | response queued", tone: "text-mint font-semibold", time: now };
       } else if (roll < 0.93) {
-        ev = { id: idRef.current, icon: "🤖", text: pick([
+        ev = { id: idRef.current, kind: "automation", text: pick([
           "AI agent: follow-up email queued for lead with no call booked (24h rule)",
-          "AI agent: ad attribution matched — lead credited to facebook / own-your-platform",
+          "AI agent: ad attribution matched | lead credited to facebook / premier-system",
           "AI agent: weekly analytics digest compiled for owner",
-          "AI agent: abandoned form recovered — reminder scheduled",
+          "AI agent: incomplete form detected | reminder scheduled",
         ]), tone: "text-[var(--violet)]", time: now };
       } else {
-        ev = { id: idRef.current, icon: "💰", text: pick([
-          "Purchase: Learn It — $497",
-          "Call booked: Done For You scoping",
-          "Event seat reserved: Own Your Platform workshop",
+        ev = { id: idRef.current, kind: "sale", text: pick([
+          "Website Launch deposit received | $500",
+          "System Map purchased | $497",
+          "Call booked | Lead Engine scope",
         ]), tone: "text-mint font-black", time: now };
       }
       setFeed((f) => [ev, ...f].slice(0, 9));
@@ -107,7 +123,7 @@ export default function ShowcaseDashboard() {
           <span className="text-sm text-[var(--muted)]">Command Center · simulated demo data</span>
         </div>
         <span className="rounded-full border border-violet-400/40 bg-violet-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--violet)]">
-          This is what your build includes
+          Larger custom system example
         </span>
       </div>
 
@@ -132,7 +148,7 @@ export default function ShowcaseDashboard() {
         {/* TRAFFIC LINE */}
         <div className="card lg:col-span-3">
           <div className="flex items-baseline justify-between">
-            <h2 className="font-bold text-[var(--heading)]">Traffic — rolling live</h2>
+            <h2 className="font-bold text-[var(--heading)]">Traffic | rolling live</h2>
             <span className="text-xs text-[var(--quiet)]">last 24 intervals</span>
           </div>
           <svg viewBox="0 0 700 160" className="mt-4 w-full" role="img" aria-label="Live rolling traffic line chart">
@@ -158,15 +174,20 @@ export default function ShowcaseDashboard() {
           <h2 className="font-bold text-[var(--heading)]">Live activity</h2>
           <div className="mt-3 space-y-2 text-xs">
             {feed.length === 0 && <p className="text-[var(--quiet)]">Listening…</p>}
-            {feed.map((e) => (
-              <div key={e.id} className="flex gap-2 rounded-lg bg-[var(--page)] p-2.5" style={{ animation: "fadeIn 0.4s ease" }}>
-                <span>{e.icon}</span>
-                <div className="min-w-0 flex-1">
-                  <p className={e.tone}>{e.text}</p>
-                  <p className="mt-0.5 text-[10px] text-[var(--quiet)]">{e.time}</p>
+            {feed.map((e) => {
+              const EventIcon = EVENT_ICONS[e.kind];
+              return (
+                <div key={e.id} className="flex gap-2 rounded-lg bg-[var(--page)] p-2.5" style={{ animation: "fadeIn 0.4s ease" }}>
+                  <span className="showcase-event-icon" aria-hidden="true">
+                    <EventIcon />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className={e.tone}>{e.text}</p>
+                    <p className="mt-0.5 text-[10px] text-[var(--quiet)]">{e.time}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -174,7 +195,7 @@ export default function ShowcaseDashboard() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* FUNNEL */}
         <div className="card">
-          <h2 className="font-bold text-[var(--heading)]">The funnel — 30 days</h2>
+          <h2 className="font-bold text-[var(--heading)]">The funnel | 30 days</h2>
           <p className="mt-1 text-xs text-[var(--quiet)]">Every stage tracked automatically, attributed to its source.</p>
           <div className="mt-4 space-y-3">
             {funnel.map((f) => (
@@ -189,7 +210,7 @@ export default function ShowcaseDashboard() {
               </div>
             ))}
           </div>
-          <p className="mt-3 text-xs text-mint">2.7% visitor→call rate. Every lead answered in under a second, automatically.</p>
+          <p className="mt-3 text-xs text-mint">Simulated 2.7% visitor-to-call rate. Every stage remains visible to the owner.</p>
         </div>
 
         {/* SOURCES + AGENTS */}
@@ -213,11 +234,11 @@ export default function ShowcaseDashboard() {
         </div>
       </div>
 
-      {/* AI AGENTS */}
+      {/* AUTOMATIONS */}
       <div className="card border border-violet-400/30 shadow-glow-violet">
         <div className="flex items-center gap-2">
-          <h2 className="font-bold text-[var(--heading)]">AI agents on shift</h2>
-          <span className="rounded-full bg-mint/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-mint">24/7 · no sick days</span>
+          <h2 className="font-bold text-[var(--heading)]">Automations on shift</h2>
+          <span className="rounded-full bg-mint/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-mint">Simulated always-on workflows</span>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {agents.map((a) => (
@@ -238,20 +259,19 @@ export default function ShowcaseDashboard() {
       {/* CTA */}
       <div className="card border border-[var(--accent-line)] text-center shadow-[0_12px_32px_rgba(18,64,232,0.16)]">
         <h2 className="text-2xl font-black text-[var(--heading)] sm:text-3xl">
-          Your business, running like <span className="text-gradient">this</span>.
+          See the system behind the website.
         </h2>
         <p className="mx-auto mt-2 max-w-2xl text-[var(--text)]">
-          Traffic tracked. Leads answered in under a second. Every dollar
-          attributed to the ad that earned it. AI agents doing the plumbing while
-          you do the business. If your online life is chaos — this is the other
-          side.
+          This simulation shows what a larger connected build can make visible.
+          The $1,000 Website Launch is the focused public foundation, and deeper
+          CRM, automation, reporting, and portal modules are scoped separately.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link href="/book?utm_source=showcase&utm_medium=site&utm_campaign=command-center" className="btn-primary">
-            I Want This — Book a Call
+          <Link href="/premier-system" className="btn-primary">
+            See the Premier System
           </Link>
-          <Link href="/demo" className="btn-ghost">
-            See a Demo Build
+          <Link href="/live" className="btn-ghost">
+            Inspect Live Proof
           </Link>
         </div>
       </div>

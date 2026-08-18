@@ -46,12 +46,6 @@ const PROOF = [
     what: "A school running its own enrollment, payment plans, and training simulators",
   },
   {
-    name: "RepWatchr.com",
-    url: "https://repwatchr.com",
-    img: "/proof/repwatchr.jpg",
-    what: "A searchable database of public officials, votes, and money trails. Real software, not a brochure",
-  },
-  {
     name: "GideonHQ.com",
     url: "https://gideonhq.com",
     img: "/proof/gideon.jpg",

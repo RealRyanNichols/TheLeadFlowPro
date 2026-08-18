@@ -7,13 +7,18 @@
 import { sendLeadText } from "@/lib/quo";
 
 export const INTEREST_LABELS: Record<string, string> = {
-  learn: "Learn It (training)",
-  build_with_you: "Build It With You",
-  done_for_you: "Done For You",
+  learn: "Legacy training path",
+  build_with_you: "Legacy guided build path",
+  done_for_you: "Legacy full-service path",
   unsure: "Not sure yet",
   blueprint: "System Map",
+  system_map: "System Map",
   launch_system: "Website Launch",
-  industry_os: "Industry OS",
+  website_launch: "Website Launch",
+  lead_engine: "Lead Engine",
+  training_platform: "Training Platform",
+  company_os: "Company OS",
+  industry_os: "Company OS",
   custom_platform: "Custom Platform",
   operations: "Operations Partner",
 };
@@ -76,7 +81,7 @@ export async function sendLeadEmails(lead: NotifiableLead) {
     from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
     reply_to: "hello@theleadflowpro.com",
     to: ["hello@theleadflowpro.com"],
-    subject: `NEW LEAD${via}: ${lead.full_name}${lead.business_name ? ` (${lead.business_name})` : ""} — ${INTEREST_LABELS[lead.interest] ?? lead.interest}`,
+    subject: `NEW LEAD${via}: ${lead.full_name}${lead.business_name ? ` (${lead.business_name})` : ""} | ${INTEREST_LABELS[lead.interest] ?? lead.interest}`,
     text: [
       `Name: ${lead.full_name}`,
       `Business: ${lead.business_name || "-"}`,

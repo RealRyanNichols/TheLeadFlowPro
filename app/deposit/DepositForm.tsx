@@ -1,9 +1,7 @@
 "use client";
 
 import { ArrowRight, ShieldCheck } from "lucide-react";
-
-const WEBSITE_LAUNCH_CHECKOUT =
-  "https://book.stripe.com/cNi6oG52y1kockE5oq5AQ0a";
+import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
 
 export default function DepositForm() {
   function trackCheckout() {
@@ -41,7 +39,9 @@ export default function DepositForm() {
       <p className="cb-deposit-note">
         <ShieldCheck aria-hidden="true" className="h-4 w-4" />
         Secure checkout and receipt are handled by Stripe. The deposit is the first half
-        of the $1,000 Website Launch price.
+        of the $1,000 Website Launch price. Once intake begins, the $500 deposit is
+        non-refundable, except where the written agreement or applicable law requires
+        otherwise.
       </p>
     </div>
   );

@@ -1,9 +1,22 @@
+import Image from "next/image";
 import Link from "next/link";
+import {
+  ArrowRight,
+  BookOpenCheck,
+  Check,
+  LockKeyhole,
+  Network,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getTrainingAccess } from "@/lib/access";
-import BuyButton from "@/components/BuyButton";
+import SiteHero from "@/components/site/system/SiteHero";
+import styles from "./training.module.css";
 
-export const metadata = { title: "Training | The LeadFlow Pro" };
+export const metadata = {
+  title: "Training Library | The LeadFlow Pro",
+  description:
+    "Access The LeadFlow Pro training library, continue existing courses, and track lesson progress.",
+};
 
 export default async function TrainingPage() {
   const supabase = await createClient();
@@ -11,57 +24,135 @@ export default async function TrainingPage() {
     .from("courses")
     .select("*")
     .order("sort_order");
-  const { hasTraining } = await getTrainingAccess();
+  const { hasTraining, user } = await getTrainingAccess();
+  const firstOpenCourse = courses?.find((course) => course.is_free || hasTraining);
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-12">
-      <h1 className="text-3xl font-black text-[var(--heading)]">Own Your Platform Training</h1>
-      <p className="mt-2 text-[var(--muted)]">
-        The full system: AI as your dev team, your code in GitHub, your site on
-        Vercel, your data in Supabase, your designs in Figma. Work top to bottom.
-      </p>
+    <main className={`cb-page ${styles.page}`}>
+      <SiteHero
+        eyebrow="LeadFlow Operator Academy"
+        mutedTitle="The course is not the system."
+        title="Training should move the work forward."
+        body="Use the library to understand the owned stack, continue your existing courses, and keep every completed lesson recorded in one place."
+        media={{
+          src: "/images/visual-system/course-system-blueprint.webp",
+          alt: "A connected training platform blueprint linking enrollment, access, lessons, and progress",
+          width: 1254,
+          height: 1254,
+          kicker: "Owned learning system",
+          caption: "One path from enrollment to the next lesson",
+        }}
+        primary={
+          firstOpenCourse
+            ? {
+                href: `/training/${firstOpenCourse.slug}`,
+                label: hasTraining ? "Continue training" : "Open the free course",
+              }
+            : { href: "#course-library", label: "View the library" }
+        }
+        secondary={{ href: "/start?goal=delivery", label: "Plan a training platform" }}
+        trustLine="Existing access and lesson progress stay intact."
+      />
 
-      {!hasTraining && (
-        <div className="card mt-6 flex flex-wrap items-center justify-between gap-4 border border-[var(--accent-line)] shadow-[0_12px_32px_rgba(18,64,232,0.16)]">
-          <div>
-            <p className="font-bold text-[var(--heading)]">The first course is free. The full system is $497, once.</p>
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              Lifetime access, updated as the tools evolve. Compare that to one
-              more month of renting.
+      <section className={`cb-band ${styles.library}`} id="course-library" aria-labelledby="library-title">
+        <div className="cb-shell">
+          <div className={styles.sectionHead}>
+            <div>
+              <p className="cb-eyebrow">Course library</p>
+              <h2 className="cb-h2 cb-heading" id="library-title">
+                Learn the stack in a clear order.
+              </h2>
+            </div>
+            <p className="cb-lead">
+              Free courses remain open. Existing purchasers keep their full library access.
+              New standalone enrollment for the legacy library is closed.
             </p>
           </div>
-          <BuyButton label="Unlock Everything — $497" />
-        </div>
-      )}
 
-      <div className="mt-8 space-y-4">
-        {courses?.map((c, i) => (
-          <Link
-            key={c.id}
-            href={`/training/${c.slug}`}
-            className="card flex items-center gap-5 transition hover:border-flow-500"
-          >
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-flow-600/20 text-lg font-black text-flow-400">
-              {i + 1}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <h2 className="font-bold text-[var(--heading)]">{c.title}</h2>
-                {c.is_free ? (
-                  <span className="rounded-full bg-mint/20 px-2 py-0.5 text-xs font-bold text-mint">
-                    FREE
-                  </span>
-                ) : !hasTraining ? (
-                  <span className="rounded-full bg-line px-2 py-0.5 text-xs font-bold text-[var(--muted)]">
-                    🔒 LEARN IT
-                  </span>
-                ) : null}
+          {!hasTraining ? (
+            <aside className={styles.accessNotice} aria-label="Training access information">
+              <div className={styles.noticeIcon}>
+                <BookOpenCheck aria-hidden="true" />
               </div>
-              <p className="mt-1 text-sm text-[var(--muted)]">{c.description}</p>
+              <div className={styles.noticeCopy}>
+                <p className={styles.noticeKicker}>Existing members</p>
+                <h3>Your previous access is still yours.</h3>
+                <p>
+                  Log in with the email used for purchase to restore your courses and saved
+                  progress. Building a training platform for your own business is a separate
+                  service.
+                </p>
+              </div>
+              <div className={styles.noticeActions}>
+                {!user ? (
+                  <Link className="cb-btn cb-btn--primary" href="/login">
+                    Log in
+                    <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                  </Link>
+                ) : null}
+                <Link className="cb-btn cb-btn--ghost" href="/packages/system-map">
+                  Start with a System Map
+                </Link>
+              </div>
+            </aside>
+          ) : null}
+
+          <div className={styles.courseGrid}>
+            {courses?.map((course, index) => {
+              const locked = !course.is_free && !hasTraining;
+              return (
+                <article className={`${styles.courseCard}${locked ? ` ${styles.locked}` : ""}`} key={course.id}>
+                  <div className={styles.cardImage}>
+                    <Image
+                      src="/images/visual-system/course-system-blueprint.webp"
+                      alt=""
+                      width={1254}
+                      height={1254}
+                      sizes="(max-width: 760px) calc(100vw - 40px), 31vw"
+                    />
+                    <span className={styles.courseNumber}>Course {String(index + 1).padStart(2, "0")}</span>
+                  </div>
+                  <div className={styles.cardBody}>
+                    <div className={styles.cardStatus}>
+                      {course.is_free ? (
+                        <span>
+                          <Check aria-hidden="true" /> Free access
+                        </span>
+                      ) : locked ? (
+                        <span>
+                          <LockKeyhole aria-hidden="true" /> Existing members
+                        </span>
+                      ) : (
+                        <span>
+                          <BookOpenCheck aria-hidden="true" /> In your library
+                        </span>
+                      )}
+                    </div>
+                    <h3>{course.title}</h3>
+                    <p>{course.description}</p>
+                    <Link
+                      className={styles.cardLink}
+                      href={locked ? "/start?goal=delivery" : `/training/${course.slug}`}
+                      aria-label={locked ? `Plan a training platform, ${course.title} is not open for new enrollment` : `Open ${course.title}`}
+                    >
+                      {locked ? "Plan a training platform" : "Open course"}
+                      {locked ? <Network aria-hidden="true" /> : <ArrowRight aria-hidden="true" />}
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          {!courses?.length ? (
+            <div className={styles.emptyState}>
+              <BookOpenCheck aria-hidden="true" />
+              <h3>The next course is being prepared.</h3>
+              <p>Check back soon for the next published module.</p>
             </div>
-          </Link>
-        ))}
-      </div>
-    </section>
+          ) : null}
+        </div>
+      </section>
+    </main>
   );
 }

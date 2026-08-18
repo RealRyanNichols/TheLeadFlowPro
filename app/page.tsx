@@ -17,6 +17,7 @@ import {
 import CompanyLoop from "@/components/site/CompanyLoop";
 import CtaLink from "@/components/site/CtaLink";
 import { ARTICLES } from "@/lib/articles";
+import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
 import { TOOL_COUNT } from "@/lib/tools";
 
 // THE COMPANY BUILDER homepage.
@@ -113,23 +114,23 @@ const FEATURED = [
   {
     kind: "founder" as const,
     kindLabel: "Founder-built platform",
-    name: "RepWatchr",
-    what: "Proof this stack ships real software, not brochure pages.",
+    name: "RealRyanNichols.com",
+    what: "A publishing machine nobody else can switch off.",
     problem:
-      "Public voting records, campaign finance, and official profiles exist in a dozen incompatible places, which means nobody can actually check anything without days of work.",
+      "The audience and archive lived on platforms that could throttle reach, change the rules, or disconnect the owner from the people following the work.",
     built:
-      "A full software product: a searchable officials database across every level of government, voting records, campaign finance lookups, scorecards, a packet builder, and paid research tiers. Same stack we install for clients.",
+      "An independent media system with long-form publishing, a searchable archive of 1,568+ case profiles, intake forms, an AI assistant trained on the owner's writing, SMS alerts, and a store.",
     facts: [
-      { v: "16,783", l: "official profiles in the database" },
-      { v: "59,054", l: "sourced records behind them" },
-      { v: "Packet builder", l: "Scorecards and research tiers, not a contact form" },
+      { v: "1,568+", l: "case profiles in the searchable archive" },
+      { v: "AI assistant", l: "Trained on the owner's published writing" },
+      { v: "Owned list", l: "SMS alerts and intake on first-party infrastructure" },
     ],
     outcome:
-      "When an owner asks whether this goes past websites, this is the answer. It is a product with a database, a search layer, and paid tiers.",
-    stack: "Next.js, Supabase, Vercel. Ryan's own product",
-    href: "https://repwatchr.com",
-    shot: "/og/portfolio/repwatchr.jpg",
-    alt: "RepWatchr homepage over a photo of the US Capitol, showing the official profile and sourced record counts",
+      "When platforms throttled the story, the story already had its own domain, searchable archive, database, and direct path back to the audience.",
+    stack: "Next.js, Supabase, Vercel. Ryan's own site",
+    href: "https://realryannichols.com",
+    shot: "/og/portfolio/realryannichols.jpg",
+    alt: "RealRyanNichols.com homepage with the author profile and links into the searchable archive",
   },
   {
     kind: "client" as const,
@@ -188,12 +189,12 @@ const RECEIPTS = [
     body: "Wholesale and ecommerce: sourcing, pallets, inventory, fulfillment, and the sales process behind all of it. The pressure was payroll, not a sprint board.",
   },
   {
-    head: "Shipped 8 live systems across 6 industries.",
-    body: "Media, dental education, public-information software, commerce, legal services, local service, and nonprofit missions. Every one is publicly inspectable.",
+    head: "Shipped 7 live systems across multiple industries.",
+    body: "Media, dental education, commerce, legal services, local service, nonprofit missions, and the LeadFlow Pro system itself. Every one is publicly inspectable.",
   },
   {
     head: "Built real software, not brochure sites.",
-    body: "A public-records product with 16,783 profiles and 59,054 sourced records. A marketplace with auctions, offers, an AI listing builder, and a live fee engine.",
+    body: "A searchable media archive with 1,568+ case profiles. A marketplace with auctions, offers, an AI listing builder, and a live fee engine.",
   },
   {
     head: "Publishes on owned infrastructure, not rented reach.",
@@ -201,16 +202,13 @@ const RECEIPTS = [
   },
 ];
 
-const WEBSITE_LAUNCH_CHECKOUT =
-  "https://book.stripe.com/cNi6oG52y1kockE5oq5AQ0a";
-
 // The Product Studio entry offer: one clear scope, one clear price, and a
 // working approval checkpoint before the final payment and launch.
 const WEBSITE_LAUNCH = [
   {
     num: "01",
     title: "Reserve the build",
-    body: "A $500 deposit opens intake, locks the Website Launch scope, and starts the build.",
+    body: "A $500 deposit opens intake, locks the Website Launch scope, and starts the build. Once intake begins, the deposit is non-refundable, except where the written agreement or applicable law requires otherwise.",
   },
   {
     num: "02",
@@ -233,6 +231,7 @@ const LADDER = [
     body: "A conversion-led five-page public experience with a clear path from attention to the next conversation.",
     items: [
       "Conversion map and five premium pages",
+      "Three premium visual scenes at the founding rate",
       "Lead capture and routing",
       "Responsive build, analytics, and deployment",
       "Two revision rounds before launch",
@@ -256,15 +255,15 @@ const LADDER = [
     cta: "See the System Map",
   },
   {
-    kind: "Full operating system",
-    name: "Industry OS",
-    price: "$15,000+",
+    kind: "Connected company core",
+    name: "Company OS",
+    price: "$7,500+",
     lead: false,
-    body: "The connected core plus the portals, tools, records, training, and communications that make your business different.",
+    body: "The website, CRM, portal, analytics, and operating dashboard connected around the way the business actually works.",
     items: [
       "Everything in Website Launch",
       "Customer, member, student, or partner portals",
-      "Industry tools, courses, archives, calls, and texts",
+      "Company workflows, courses, archives, calls, and texts",
       "Deeper permissions, migration, and automation",
     ],
     href: "/packages/industry-os",
@@ -386,18 +385,24 @@ export default function HomePage() {
               </p>
               <div className="cb-actions">
                 <CtaLink
-                  href="/start"
-                  event="map_my_company"
+                  href={WEBSITE_LAUNCH_CHECKOUT}
+                  event="start_website_launch"
                   placement="home_hero"
                   className="cb-btn cb-btn--primary"
                 >
-                  Map My Company
+                  Start Website Launch | $500
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </CtaLink>
-                <Link className="cb-btn cb-btn--ghost" href="/portfolio">
-                  See the Live Systems
+                <Link className="cb-btn cb-btn--ghost" href="/premier-system">
+                  See the Premier System
                 </Link>
               </div>
+              <p className="mt-3 max-w-[64ch] text-sm leading-6 text-[#9aa8bf]">
+                $500 starts the five-page Website Launch. Once intake begins, the deposit
+                is non-refundable, except where the written agreement or applicable law
+                requires otherwise. CRM, automation, portals, and deeper systems are
+                scoped separately.
+              </p>
               <p className="cb-hero-own">
                 <ShieldCheck aria-hidden="true" className="h-5 w-5" />
                 Built by an operator. Installed in your accounts. Your business stays
@@ -744,7 +749,7 @@ export default function HomePage() {
 
           <div className="mt-14 flex justify-center">
             <Link className="cb-btn cb-btn--ghost" href="/portfolio">
-              See all 8 live systems
+              See all 7 live systems
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </div>
@@ -967,6 +972,12 @@ export default function HomePage() {
                   See Product Studio options
                 </Link>
               </div>
+              <p className="mt-3 max-w-[64ch] text-sm leading-6 text-[#9aa8bf]">
+                The $500 deposit becomes non-refundable once intake begins, except where
+                the written agreement or applicable law requires otherwise. It starts the
+                five-page Website Launch. CRM, automation, portals, and deeper systems are
+                scoped separately.
+              </p>
             </div>
             <ol className="cb-freebuild-steps">
               {WEBSITE_LAUNCH.map((s) => (

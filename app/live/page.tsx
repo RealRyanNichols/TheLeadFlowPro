@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Activity, MousePointerClick, Radar, Route, Search, Wrench, PhoneCall, Gauge, ShieldCheck } from "lucide-react";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
@@ -7,6 +8,7 @@ import CtaLink from "@/components/site/CtaLink";
 import LiveDashboard, { type LivePayload } from "@/components/live/LiveDashboard";
 import DashboardRequestForm from "@/components/live/DashboardRequestForm";
 import WebsiteGrader from "@/components/live/WebsiteGrader";
+import styles from "./live.module.css";
 
 // The public proof page. Server-rendered shell (indexable copy, metadata,
 // structured data) around a client dashboard that reads ONLY the sanitized
@@ -42,7 +44,7 @@ const TRACK_GRID = [
   {
     icon: Activity,
     title: "Every visit, sourced",
-    body: "Where people came from — Google, social, ads, referrals — and which sources produce action instead of just traffic.",
+    body: "Where people came from, including Google, social, ads, and referrals, plus which sources produce action instead of just traffic.",
   },
   {
     icon: MousePointerClick,
@@ -57,7 +59,7 @@ const TRACK_GRID = [
   {
     icon: Wrench,
     title: "Tools that earn their keep",
-    body: "Which free tools get used, finished, and turned into conversations — and which need fixing.",
+    body: "Which free tools get used, finished, and turned into conversations, plus which need fixing.",
   },
   {
     icon: Search,
@@ -67,12 +69,12 @@ const TRACK_GRID = [
   {
     icon: PhoneCall,
     title: "No missed revenue",
-    body: "Calls, texts, forms, and bookings all land in one CRM with follow-up — no missed calls, no missed texts, no missed revenue.",
+    body: "Calls, texts, forms, and bookings all land in one CRM with visible follow-up and a clear next action.",
   },
   {
     icon: Gauge,
     title: "Pages that need attention",
-    body: "Traffic with no conversions, high exits, slipping rankings — flagged automatically, fixed deliberately.",
+    body: "Traffic with no conversions, high exits, and slipping rankings are flagged automatically and fixed deliberately.",
   },
   {
     icon: ShieldCheck,
@@ -82,7 +84,7 @@ const TRACK_GRID = [
   {
     icon: Radar,
     title: "Owned, not rented",
-    body: "First-party data in the business's own database — not locked inside somebody else's analytics account.",
+    body: "First-party data stays in the business's own database, not locked inside somebody else's analytics account.",
   },
 ];
 
@@ -117,14 +119,14 @@ export default async function LivePage() {
   const { payload, showLeads, proof } = await getInitialData();
 
   return (
-    <main>
+    <main className={`cb-page ${styles.page}`}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebPage",
-            name: "The LeadFlow Pro Live — Real Traffic, Real Actions, Real Systems",
+            name: "The LeadFlow Pro Live | Real Traffic, Real Actions, Real Systems",
             url: "https://www.theleadflowpro.com/live",
             description:
               "A live, privacy-safe view of The LeadFlow Pro's own analytics system: traffic, actions, tools, funnel, and Google visibility.",
@@ -134,33 +136,60 @@ export default async function LivePage() {
       />
 
       {/* ---- hero ---- */}
-      <section className="mx-auto w-[min(1120px,100%-40px)] pt-12 sm:pt-16">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--blue)]">
-          The LeadFlow Pro Live
-        </p>
-        <h1 className="mt-3 max-w-3xl font-display text-4xl font-black leading-[1.05] tracking-tight text-[var(--heading)] sm:text-6xl">
-          Real Traffic. Real Actions. Real Systems.
-        </h1>
-        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-[var(--text)]">
-          Anybody can claim they know how to build websites, capture attention, and create lead
-          systems. This is the actual system working — on the business you are looking at right
-          now, with visitor privacy protected the whole way.
-        </p>
-        <div className="mt-7 flex flex-wrap gap-3">
-          <CtaLink href="/start" event="build_this_for_me" placement="live_hero" className="button-primary">
-            Build This for My Business
-            <ArrowRight aria-hidden="true" className="h-4 w-4" />
-          </CtaLink>
-          <Link href="/tools" className="button-secondary">
-            Explore the Tools
-          </Link>
+      <section className="cb-hero">
+        <div className="cb-shell cb-hero-layout">
+          <div className="cb-hero-copy">
+            <p className="cb-eyebrow">The LeadFlow Pro Live</p>
+            <h1 className="cb-h1">
+              Real traffic. Real actions.
+              <em>Real systems.</em>
+            </h1>
+            <p className="cb-hero-lead">
+              Anybody can claim they know how to build websites, capture attention, and
+              create lead systems. This is the actual system working on the business you are
+              looking at right now, with visitor privacy protected the whole way.
+            </p>
+            <div className="cb-actions">
+              <CtaLink
+                href="/start"
+                event="build_this_for_me"
+                placement="live_hero"
+                className="cb-btn cb-btn--primary"
+              >
+                Build This for My Business
+                <ArrowRight aria-hidden="true" />
+              </CtaLink>
+              <Link href="/tools" className="cb-btn cb-btn--ghost">
+                Explore the Tools
+              </Link>
+            </div>
+            <p className="cb-hero-own">
+              <ShieldCheck aria-hidden="true" />
+              Privacy-safe public aggregates. Detailed customer data stays private.
+            </p>
+          </div>
+
+          <figure className="cb-hero-visual">
+            <Image
+              src="/images/homepage-v2/proof-cockpit.webp"
+              alt="A dark measurement cockpit representing traffic, actions, tools, and revenue signals"
+              width={1920}
+              height={1080}
+              priority
+              sizes="(max-width: 900px) 100vw, 56vw"
+            />
+            <figcaption>
+              <span>Live proof system</span>
+              <strong>First-party signals. One owner view.</strong>
+            </figcaption>
+          </figure>
         </div>
       </section>
 
       {/* ---- live dashboard ---- */}
-      <section className="mx-auto mt-10 w-[min(1120px,100%-40px)]">
+      <section className={styles.dashboardSection}>
         <LiveDashboard initial={payload} showLeads={showLeads} />
-        <p className="mt-3 text-xs leading-relaxed text-[var(--quiet)]">
+        <p className={styles.dataNote}>
           Every number on this page is a real aggregate from The LeadFlow Pro&apos;s own first-party
           analytics. Nothing is simulated, estimated, or seeded. Public metrics never include
           identities, exact locations, IP addresses, or anything a visitor typed. Detailed
@@ -169,10 +198,8 @@ export default async function LivePage() {
       </section>
 
       {/* ---- website grader ---- */}
-      <section className="mx-auto mt-6 w-[min(1120px,100%-40px)]" aria-labelledby="grader-heading">
+      <section className={styles.graderSection} aria-labelledby="grader-heading">
         <div className="lfp-ink p-5 sm:p-8">
-          <div className="lfp-ink-grid" aria-hidden="true" />
-          <div className="lfp-ink-glow" style={{ background: "#35c6f4", top: -180, left: -140 }} aria-hidden="true" />
           <div className="relative">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-[#5b87ff]">
               The LeadFlow Radar
@@ -181,8 +208,8 @@ export default async function LivePage() {
               How does your website compare?
             </h2>
             <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-[#c9d3e4]">
-              Plug in your address. We run the same checks Google runs — plus our own lead-capture
-              radar — and put your grades next to this site&apos;s and the average of every site
+              Plug in your address. We run the same checks Google runs, plus our own lead-capture
+              radar, and put your grades next to this site&apos;s and the average of every site
               graded here. Three columns. Same ruler. No guessing.
             </p>
             <div className="mt-5">
@@ -193,14 +220,15 @@ export default async function LivePage() {
       </section>
 
       {/* ---- what this can track ---- */}
-      <section className="mx-auto mt-16 w-[min(1120px,100%-40px)]" aria-labelledby="track-heading">
-        <h2 id="track-heading" className="font-display text-3xl font-black tracking-tight text-[var(--heading)] sm:text-4xl">
+      <section className={`cb-band ${styles.trackSection}`} aria-labelledby="track-heading">
+        <div className="cb-shell">
+        <h2 id="track-heading" className="cb-h2">
           What this system can track for your business
         </h2>
-        <p className="mt-3 max-w-2xl leading-relaxed text-[var(--text)]">
+        <p className="cb-lead">
           The post gets attention. The system makes money. This page is the reporting layer of the
           same machine we install for clients: websites, lead capture, CRM, follow-up, and
-          analytics — connected, in accounts you own.
+          analytics, connected in accounts you own.
         </p>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {TRACK_GRID.map((item) => (
@@ -211,13 +239,13 @@ export default async function LivePage() {
             </div>
           ))}
         </div>
+        </div>
       </section>
 
       {/* ---- operator proof ---- */}
-      <section className="mx-auto mt-16 w-[min(1120px,100%-40px)]" aria-labelledby="operator-heading">
+      <section className={`cb-band cb-band--ink ${styles.operatorSection}`} aria-labelledby="operator-heading">
+        <div className="cb-shell">
         <div className="lfp-ink p-6 sm:p-10">
-          <div className="lfp-ink-grid" aria-hidden="true" />
-          <div className="lfp-ink-glow" style={{ background: "#35c6f4", bottom: -200, left: -140 }} aria-hidden="true" />
           <div className="relative">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-[#5b87ff]">Built by an operator</p>
             <h2 id="operator-heading" className="mt-3 max-w-2xl font-display text-3xl font-black tracking-tight text-white sm:text-4xl">
@@ -225,7 +253,7 @@ export default async function LivePage() {
             </h2>
             <p className="mt-4 max-w-2xl leading-relaxed text-[#c9d3e4]">
               Companies, offers, audiences, ecommerce operations, fulfillment, sales processes,
-              websites, and software — built under real pressure, with real money on the line.
+              websites, and software built under real pressure, with real money on the line.
               This dashboard is not a demo somebody designed for a portfolio. It is the reporting
               layer of a working business, and the same machine gets installed for clients.
             </p>
@@ -247,11 +275,13 @@ export default async function LivePage() {
             </div>
           </div>
         </div>
+        </div>
       </section>
 
       {/* ---- closing CTA ---- */}
-      <section className="mx-auto my-16 w-[min(1120px,100%-40px)]" aria-labelledby="closing-heading">
-        <div className="rounded-2xl border border-[var(--line-strong)] bg-[var(--panel)] p-7 text-center sm:p-12">
+      <section className={`cb-band ${styles.closingSection}`} aria-labelledby="closing-heading">
+        <div className="cb-shell">
+        <div className={styles.closingPanel}>
           <h2 id="closing-heading" className="font-display text-3xl font-black tracking-tight text-[var(--heading)] sm:text-4xl">
             This Is What Your Business Could See.
           </h2>
@@ -275,6 +305,7 @@ export default async function LivePage() {
           <p className="mt-6 text-xs text-[var(--quiet)]">
             No missed calls, no missed texts, no missed revenue.
           </p>
+        </div>
         </div>
       </section>
     </main>

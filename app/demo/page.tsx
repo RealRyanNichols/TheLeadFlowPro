@@ -1,212 +1,288 @@
+import Image from "next/image";
 import Link from "next/link";
+import {
+  ArrowRight,
+  BarChart3,
+  CalendarDays,
+  Coffee,
+  Database,
+  Settings2,
+  ShoppingBag,
+} from "lucide-react";
+import styles from "./demo.module.css";
 
 export const metadata = {
   title: "Demo Build: Piney Woods Coffee Co. | The LeadFlow Pro",
   description:
-    "A sample client build on the Own Your Platform stack — see the funnel, the tracking, the lead capture, and the back office a LeadFlow Pro build includes.",
+    "A sample client build on the Own Your Platform stack. See the funnel, tracking, lead capture, and back office a larger LeadFlow Pro system can include.",
   openGraph: { images: [{ url: "/og/demo.png", width: 1200, height: 630 }] },
 };
 
-// A fictional East Texas business used to show what a build looks like.
-// Every annotation explains the real machinery a client build ships with.
-
 function Hood({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="mt-3 rounded-xl border border-[var(--accent-line)] bg-[var(--accent-tint)] p-3">
-      <span className="text-[10px] font-black uppercase tracking-widest text-[var(--blue)]">
-        ⚙ Under the hood: {label}
-      </span>
-      <p className="mt-1 text-xs text-[var(--text)]">{children}</p>
-    </div>
+    <aside className={styles.hood}>
+      <div>
+        <Settings2 aria-hidden="true" />
+        <span>Under the hood · {label}</span>
+      </div>
+      <p>{children}</p>
+    </aside>
   );
 }
 
+const OFFERS = [
+  {
+    icon: Coffee,
+    name: "Roast Club",
+    description: "Monthly beans, member pricing, and first pour on new batches.",
+    tag: "Subscription",
+  },
+  {
+    icon: ShoppingBag,
+    name: "Order Ahead",
+    description: "Skip the line. Your usual, ready when you walk in.",
+    tag: "Repeat sales",
+  },
+  {
+    icon: CalendarDays,
+    name: "Events at the Shop",
+    description: "Cuppings, latte-art nights, and small-business meetups.",
+    tag: "Community",
+  },
+];
+
+const METRICS = [
+  ["1,284", "Page views · 30 days"],
+  ["312", "Visitors"],
+  ["47", "Roast Club signups"],
+  ["$0", "Paid to Mailchimp"],
+];
+
+const LEADS = [
+  ["Katie B.", "Facebook / roast-club ad", "2 min ago", "New"],
+  ["Marcus T.", "Google / order-ahead", "1 hr ago", "Emailed"],
+  ["Deb W.", "Shared link", "3 hrs ago", "Member"],
+];
+
 export default function DemoPage() {
   return (
-    <section className="mx-auto max-w-5xl px-4 pb-20 pt-[22px] sm:pt-8">
-      {/* FRAME */}
-      <div className="rounded-2xl border border-violet-400/40 bg-violet-500/10 p-4 text-center">
-        <p className="text-sm font-bold uppercase tracking-widest text-[var(--violet)]">
-          Demo build — sample client
-        </p>
-        <p className="mt-1 text-sm text-[var(--text)]">
-          "Piney Woods Coffee Co." is a fictional Longview coffee shop. Everything
-          below is the real architecture a LeadFlow Pro build ships with — the
-          annotations show you what's working underneath.
-        </p>
-      </div>
-
-      {/* ===== THE DEMO SITE ===== */}
-      <div className="mt-8 overflow-hidden rounded-3xl border border-[var(--line-strong)] bg-[var(--page)]/60 shadow-glow-violet">
-        {/* demo nav */}
-        <div className="flex items-center justify-between border-b border-[var(--line-strong)] bg-[var(--fill-2)] px-5 py-3">
-          <span className="font-black text-[var(--heading)]">
-            Piney Woods <span className="text-warn">Coffee Co.</span>
-          </span>
-          <span className="rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 text-xs font-bold text-[var(--heading)]">
-            Order Ahead
-          </span>
-        </div>
-
-        {/* demo hero */}
-        <div className="px-6 py-10 text-center">
-          <h1 className="text-3xl font-black text-[var(--heading)] sm:text-4xl">
-            East Texas roasts. <span className="bg-gradient-to-r from-amber-300 to-orange-400 text-[var(--blue)]">Zero corporate coffee.</span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-xl text-[var(--text)]">
-            Small-batch roasting in Longview since day one. Join the Roast Club
-            and get first pour on every new batch.
-          </p>
-          <div className="mt-5 flex justify-center gap-3">
-            <span className="cursor-default rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 font-semibold text-[var(--heading)] shadow-[0_0_24px_rgba(251,146,60,0.35)]">
-              Join the Roast Club
-            </span>
-            <span className="cursor-default rounded-xl border border-[var(--line-strong)] bg-[var(--fill-2)] px-6 py-3 font-semibold text-[var(--text)]">
-              This Week's Menu
-            </span>
-          </div>
-          <Hood label="the funnel">
-            One message, one action — built for Facebook and Google ad traffic.
-            Every visit is logged to the owner's own database with UTM source,
-            and the Meta Pixel and Google tag fire from day one so ads optimize
-            on real conversions.
-          </Hood>
-        </div>
-
-        {/* demo offer strip */}
-        <div className="grid gap-4 border-y border-[var(--line-strong)] bg-[var(--fill-2)] px-6 py-8 sm:grid-cols-3">
-          {[
-            { name: "Roast Club", desc: "Monthly beans, member pricing, first pour on new batches.", tag: "SUBSCRIPTION" },
-            { name: "Order Ahead", desc: "Skip the line. Your usual, ready when you walk in.", tag: "REPEAT SALES" },
-            { name: "Events at the Shop", desc: "Cuppings, latte art nights, small-biz meetups.", tag: "COMMUNITY" },
-          ].map((o) => (
-            <div key={o.name} className="card !p-5">
-              <span className="text-[10px] font-black uppercase tracking-widest text-warn">{o.tag}</span>
-              <h3 className="mt-1 font-bold text-[var(--heading)]">{o.name}</h3>
-              <p className="mt-1 text-sm text-[var(--muted)]">{o.desc}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* demo lead form */}
-        <div className="grid gap-8 px-6 py-10 lg:grid-cols-2">
-          <div>
-            <h2 className="text-2xl font-black text-[var(--heading)]">Join the Roast Club</h2>
-            <p className="mt-2 text-sm text-[var(--text)]">
-              First batch alert goes out Friday. Members get 20% off their first
-              bag.
+    <main className={`cb-page ${styles.page}`}>
+      <section className="cb-hero">
+        <div className="cb-shell cb-hero-layout">
+          <div className="cb-hero-copy">
+            <p className="cb-eyebrow">Sample client build</p>
+            <h1 className="cb-h1">
+              This is what a build looks like.
+              <em>Front door and back office.</em>
+            </h1>
+            <p className="cb-hero-lead">
+              Piney Woods Coffee Co. is fictional. The funnel, tracking, lead capture,
+              follow-up, and owner dashboard below show the real architecture a LeadFlow Pro
+              build can ship with.
             </p>
-            <Hood label="lead capture → instant follow-up">
-              A real build saves this form straight into the owner's OWN
-              database (not a vendor's), alerts the owner by email the second it
-              lands, and fires an instant welcome email to the customer in the
-              owner's voice. No Mailchimp bill. No AWeber bill.
-            </Hood>
-            <Hood label="the money math">
-              This entire site runs on $0–25/mo of infrastructure the owner
-              controls — replacing a $200–500/mo rented stack. Same sourced
-              pricing as the calculator on our home page.
-            </Hood>
-          </div>
-          <div className="card">
-            <div className="space-y-4 opacity-80">
-              <div>
-                <label className="label">Your name</label>
-                <input className="input" disabled placeholder="Demo form — inputs disabled" />
-              </div>
-              <div>
-                <label className="label">Email</label>
-                <input className="input" disabled placeholder="you@example.com" />
-              </div>
-              <div>
-                <label className="label">Usual order</label>
-                <input className="input" disabled placeholder="Oat milk latte, extra shot" />
-              </div>
-              <span className="btn-primary block w-full cursor-default text-center opacity-90">
-                Count Me In
-              </span>
+            <div className="cb-actions">
+              <a className="cb-btn cb-btn--primary" href="#sample-build">
+                Open the Sample Build
+                <ArrowRight aria-hidden="true" />
+              </a>
+              <Link className="cb-btn cb-btn--ghost" href="/portfolio">
+                Inspect Real Builds
+              </Link>
             </div>
-            <p className="mt-3 text-center text-xs text-[var(--quiet)]">
-              Demo form. Your real one writes to YOUR database and triggers YOUR
-              automations.
+            <p className="cb-hero-own">
+              <Database aria-hidden="true" />
+              Sample data is labeled. The system pattern is the proof.
             </p>
           </div>
+
+          <figure className="cb-hero-visual">
+            <Image
+              src="/images/homepage-v2/connected-company-hero.webp"
+              alt="A connected company system linking attention, follow-up, approval, and revenue"
+              width={1920}
+              height={1080}
+              priority
+              sizes="(max-width: 900px) 100vw, 56vw"
+            />
+            <figcaption>
+              <span>Demo architecture</span>
+              <strong>One customer path. Every layer connected.</strong>
+            </figcaption>
+          </figure>
         </div>
-      </div>
+      </section>
 
-      {/* ===== WHAT THE OWNER SEES ===== */}
-      <h2 className="mt-14 text-center text-2xl font-black text-[var(--heading)] sm:text-3xl">
-        And here's the part nobody else gives you: <span className="text-gradient">the back office</span>
-      </h2>
-      <p className="mx-auto mt-2 max-w-2xl text-center text-sm text-[var(--muted)]">
-        Every build includes an owner dashboard — leads, messages, analytics, and
-        project tracking on your own domain. This is sample data from the demo shop.
-      </p>
-
-      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {[
-          { v: "1,284", l: "page views · 30 days", c: "text-[var(--heading)]" },
-          { v: "312", l: "visitors", c: "text-[var(--blue)]" },
-          { v: "47", l: "Roast Club signups", c: "text-mint " },
-          { v: "$0", l: "paid to Mailchimp", c: "text-mint" },
-        ].map((s) => (
-          <div key={s.l} className="card !p-4 text-center">
-            <div className={`text-3xl font-black ${s.c}`}>{s.v}</div>
-            <div className="mt-1 text-xs uppercase tracking-wide text-[var(--muted)]">{s.l}</div>
+      <section id="sample-build" className="cb-band" tabIndex={-1}>
+        <div className="cb-shell">
+          <div className={styles.sampleNote}>
+            <strong>Fictional business. Real system pattern.</strong>
+            <p>
+              The coffee-shop name and numbers are sample data. The annotations explain the
+              machinery that sits behind a production build.
+            </p>
           </div>
-        ))}
-      </div>
 
-      <div className="card mt-4">
-        <h3 className="font-bold text-[var(--heading)]">Latest leads <span className="ml-2 rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--violet)]">sample data</span></h3>
-        <div className="mt-3 space-y-2 text-sm">
-          {[
-            { n: "Katie B.", s: "facebook / roast-club ad", t: "2 min ago", status: "new" },
-            { n: "Marcus T.", s: "google / order-ahead", t: "1 hr ago", status: "emailed" },
-            { n: "Deb W.", s: "shared link", t: "3 hrs ago", status: "member" },
-          ].map((l) => (
-            <div key={l.n} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-[var(--page)] p-3">
+          <div className={styles.siteFrame}>
+            <header className={styles.demoNav}>
               <div>
-                <span className="font-semibold text-[var(--heading)]">{l.n}</span>
-                <span className="ml-2 text-xs text-[var(--muted)]">{l.s}</span>
+                <Coffee aria-hidden="true" />
+                <strong>Piney Woods Coffee Co.</strong>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-[var(--quiet)]">{l.t}</span>
-                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${l.status === "new" ? "bg-[var(--accent-tint)] text-[var(--blue)]" : l.status === "emailed" ? "bg-[var(--warn-tint)] text-warn" : "bg-[var(--green-tint)] text-[var(--green)]"}`}>
-                  {l.status}
-                </span>
+              <span>Order Ahead</span>
+            </header>
+
+            <section className={styles.demoHero}>
+              <p className={styles.demoKicker}>Small-batch roasting · Longview, Texas</p>
+              <h2>East Texas roasts. Zero corporate coffee.</h2>
+              <p>
+                Join the Roast Club and get first pour on every new batch. One offer, one
+                clear action, and a reason to come back.
+              </p>
+              <div className={styles.demoActions}>
+                <span>Join the Roast Club</span>
+                <span>This Week&apos;s Menu</span>
+              </div>
+              <Hood label="the funnel">
+                One message and one action, built for Facebook and Google ad traffic. Every
+                visit is logged with its UTM source, while the Meta Pixel and Google tag can
+                optimize around real conversions.
+              </Hood>
+            </section>
+
+            <section className={styles.offerGrid} aria-label="Sample coffee shop offers">
+              {OFFERS.map((offer) => (
+                <article key={offer.name}>
+                  <offer.icon aria-hidden="true" />
+                  <span>{offer.tag}</span>
+                  <h3>{offer.name}</h3>
+                  <p>{offer.description}</p>
+                </article>
+              ))}
+            </section>
+
+            <section className={styles.captureGrid}>
+              <div>
+                <p className="cb-eyebrow">Lead capture</p>
+                <h2>Join the Roast Club</h2>
+                <p>
+                  First batch alert goes out Friday. Members get 20% off their first bag.
+                </p>
+                <Hood label="lead capture and instant follow-up">
+                  A real build saves the form into the owner&apos;s database, alerts the owner
+                  when it lands, and can send an immediate welcome email in the owner&apos;s
+                  voice. No separate Mailchimp or AWeber bill is required for that path.
+                </Hood>
+                <Hood label="the money math">
+                  This sample architecture runs on roughly $0–25 per month of infrastructure
+                  the owner controls, replacing a rented stack that can cost $200–500 per
+                  month. The sourced pricing is the same model shown on the home page.
+                </Hood>
+              </div>
+
+              <div className={styles.demoForm} aria-label="Disabled sample lead form">
+                <label>
+                  Your name
+                  <input disabled placeholder="Demo form | inputs disabled" />
+                </label>
+                <label>
+                  Email
+                  <input disabled placeholder="you@example.com" />
+                </label>
+                <label>
+                  Usual order
+                  <input disabled placeholder="Oat milk latte, extra shot" />
+                </label>
+                <span>Count Me In</span>
+                <p>
+                  Demo form. A real one writes to your database and triggers your automation.
+                </p>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section className="cb-band cb-band--ink">
+        <div className="cb-shell">
+          <div className={styles.officeHeading}>
+            <div>
+              <p className="cb-eyebrow">The owner view</p>
+              <h2 className="cb-h2">The part a basic website never gives you.</h2>
+            </div>
+            <p className="cb-lead">
+              Every build includes an owner dashboard for leads, messages, analytics, and
+              project tracking. The coffee-shop numbers shown here are sample data.
+            </p>
+          </div>
+
+          <div className={styles.metricGrid}>
+            {METRICS.map(([value, label]) => (
+              <div key={label}>
+                <strong>{value}</strong>
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.leadPanel}>
+            <header>
+              <div>
+                <BarChart3 aria-hidden="true" />
+                <strong>Latest leads</strong>
+              </div>
+              <span>Sample data</span>
+            </header>
+            <div className={styles.leadRows}>
+              {LEADS.map(([name, source, time, status]) => (
+                <div key={name}>
+                  <div>
+                    <strong>{name}</strong>
+                    <span>{source}</span>
+                  </div>
+                  <div>
+                    <time>{time}</time>
+                    <span>{status}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p>
+              Attribution flows in from UTM-tagged ads so the owner can see which source
+              created each lead.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className={`cb-band ${styles.finalSection}`}>
+        <div className="cb-shell">
+          <div className={styles.finalGrid}>
+            <div>
+              <p className="cb-eyebrow">Put your name on the door</p>
+              <h2 className="cb-h2">Your funnel. Your data. Your keys.</h2>
+            </div>
+            <div>
+              <p className="cb-lead">
+                Coffee shop, dental office, law firm, gym, church, or home service business:
+                the architecture starts with the same question. Where should attention go next?
+                Thirty minutes and you&apos;ll know your next three moves.
+              </p>
+              <div className="cb-actions">
+                <Link
+                  href="/book?utm_source=demo&utm_medium=site&utm_campaign=demo-build"
+                  className="cb-btn cb-btn--primary"
+                >
+                  Book a Call
+                  <ArrowRight aria-hidden="true" />
+                </Link>
+                <Link href="/showcase" className="cb-btn cb-btn--ghost">
+                  See the Live Command Center
+                </Link>
               </div>
             </div>
-          ))}
+          </div>
         </div>
-        <p className="mt-3 text-xs text-[var(--quiet)]">
-          Attribution flows in automatically from UTM-tagged ads — the owner sees
-          exactly which ad every lead came from.
-        </p>
-      </div>
-
-      {/* CTA */}
-      <div className="card mt-12 border border-[var(--accent-line)] text-center shadow-[0_12px_32px_rgba(18,64,232,0.16)]">
-        <h2 className="text-2xl font-black text-[var(--heading)]">
-          Want this with YOUR name on the door?
-        </h2>
-        <p className="mx-auto mt-2 max-w-xl text-[var(--text)]">
-          Coffee shop, dental office, law firm, gym, church, home services — the
-          architecture is the same: your funnel, your data, your keys. Thirty
-          minutes and you'll know your next three moves.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link href="/book?utm_source=demo&utm_medium=site&utm_campaign=demo-build" className="btn-primary">
-            Book a Call
-          </Link>
-          <Link href="/showcase" className="btn-ghost">
-            See the Live Command Center
-          </Link>
-          <Link href="/portfolio" className="btn-ghost">
-            Real Builds
-          </Link>
-        </div>
-      </div>
-    </section>
+      </section>
+    </main>
   );
 }

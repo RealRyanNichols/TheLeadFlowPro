@@ -1,4 +1,6 @@
 import ContactForm from "./ContactForm";
+import { Check } from "lucide-react";
+import SiteHero from "@/components/site/system/SiteHero";
 
 export const metadata = {
   title: "Contact | The LeadFlow Pro",
@@ -7,15 +9,47 @@ export const metadata = {
 
 export default function ContactPage() {
   return (
-    <section className="mx-auto max-w-2xl px-4 pb-24 pt-[22px] sm:pt-8">
-      <h1 className="text-4xl font-black text-[var(--heading)]">Send a message</h1>
-      <p className="mt-3 text-lg text-[var(--text)]">
-        Question about a build, an event, the training, or whether this fits your
-        business? Ask it straight. I read every message myself.
-      </p>
-      <div className="card mt-8">
-        <ContactForm />
-      </div>
-    </section>
+    <main className="cb-page">
+      <SiteHero
+        compact
+        eyebrow="Ask it straight"
+        mutedTitle="No ticket queue."
+        title="Send Ryan the real question."
+        body="Question about a Website Launch, a larger system, training, or whether the offer fits your business? Send the context. Ryan reads every message himself."
+        media={{
+          src: "/images/homepage-v2/connected-company-hero.webp",
+          alt: "A connected company operating system with multiple business signals feeding one core",
+          kicker: "One message",
+          caption: "Route the question to the right next move.",
+        }}
+        primary={{ href: "#contact-form", label: "Send the question" }}
+        secondary={{ href: "/packages", label: "See the offer first" }}
+        trustLine="No list selling. No fake urgency. A direct answer from the operator."
+      />
+
+      <section id="contact-form" className="cb-band sv-form-band scroll-mt-24">
+        <div className="cb-shell sv-form-grid">
+          <div className="sv-form-intro">
+            <p className="cb-eyebrow">Before you send it</p>
+            <h2 className="cb-h2">The useful context fits in three lines.</h2>
+            <ul className="sv-form-points">
+              {[
+                "What the business sells and who buys it",
+                "What is broken, slow, disconnected, or costing you time",
+                "What you want a customer or team member to do next",
+              ].map((point) => (
+                <li key={point}>
+                  <Check aria-hidden="true" className="h-5 w-5" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="sv-form-card">
+            <ContactForm />
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }

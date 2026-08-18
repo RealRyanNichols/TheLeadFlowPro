@@ -1,0 +1,106 @@
+.page {
+  overflow-x: clip;
+}
+
+.operatorVisual {
+  max-height: 650px;
+}
+
+.operatorVisual img {
+  width: 100%;
+  max-height: 650px;
+  object-fit: cover;
+  object-position: center 38%;
+}
+
+.heroFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  margin-top: 26px;
+  color: var(--cb-muted-ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.heroFacts span {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.heroFacts svg {
+  width: 16px;
+  color: var(--cb-cyan);
+}
+
+.eventHeading,
+.trainingGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
+  gap: 72px;
+  align-items: end;
+}
+
+.eventList {
+  display: grid;
+  gap: 18px;
+  margin-top: 52px;
+}
+
+.eventList :global(.card) {
+  padding: clamp(24px, 4vw, 38px);
+  border-color: var(--cb-hair);
+  border-radius: var(--cb-radius);
+  background: var(--cb-surface);
+  box-shadow: var(--cb-shadow);
+}
+
+.emptyState {
+  display: grid;
+  justify-items: start;
+  max-width: 840px;
+  padding: clamp(30px, 6vw, 58px);
+  border: 1px solid var(--cb-hair);
+  background: var(--cb-surface);
+  box-shadow: var(--cb-shadow);
+}
+
+.emptyState > svg {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 24px;
+  color: var(--cb-blue);
+}
+
+.emptyState h2 {
+  margin-top: 18px;
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: clamp(30px, 4vw, 48px);
+  font-weight: 850;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
+}
+
+.emptyState > p:not(:global(.cb-eyebrow)) {
+  max-width: 630px;
+  margin: 18px 0 0;
+  color: var(--cb-muted);
+  line-height: 1.7;
+}
+
+.emptyState > a {
+  margin-top: 26px;
+}
+
+.trainingGrid :global(.cb-btn) {
+  margin-top: 28px;
+}
+
+@media (max-width: 900px) {
+  .eventHeading,
+  .trainingGrid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}

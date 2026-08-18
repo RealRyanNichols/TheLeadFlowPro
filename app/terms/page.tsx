@@ -28,12 +28,14 @@ export default function TermsPage() {
       <h2>Prices, scope, and results</h2>
       <p>
         Website Launch is offered at a fixed $1,000 for its published five-page scope:
-        $500 to begin and $500 after approval, before launch. Work outside that scope,
-        larger modules, and custom-platform starting prices are not final quotes. Final
-        scope, price, timing, deliverables, responsibilities, ownership, support, and
-        payment terms are established in the applicable written agreement. We do not
-        guarantee traffic, leads, approvals, rankings, revenue, platform access,
-        marketplace performance, advertising results, or any particular business outcome.
+        $500 to begin and $500 after approval, before launch. Once intake begins, the
+        initial $500 deposit is non-refundable, except where the written agreement or
+        applicable law requires otherwise. Work outside that scope, larger modules, and
+        custom-platform starting prices are not final quotes. Final scope, price, timing,
+        deliverables, responsibilities, ownership, support, and payment terms are
+        established in the applicable written agreement. We do not guarantee traffic,
+        leads, approvals, rankings, revenue, platform access, marketplace performance,
+        advertising results, or any particular business outcome.
       </p>
       <h2>Marketplace and third-party platforms</h2>
       <p>

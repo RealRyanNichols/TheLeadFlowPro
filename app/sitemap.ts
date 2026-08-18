@@ -3,7 +3,6 @@ import { ARTICLES } from "@/lib/articles";
 import { TOOLS } from "@/lib/tools";
 import { PUBLISHED_COLLECTIONS } from "@/lib/tools/collections";
 import { STAGE_SLUGS } from "@/lib/system-stages";
-import { TIERS } from "@/lib/tiers";
 
 const BASE = "https://www.theleadflowpro.com";
 
@@ -24,6 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/tools",
     "/packages",
     "/portfolio",
+    "/premier-system",
     "/live",
     "/showcase",
     "/demo",
@@ -60,11 +60,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${BASE}/tools/collections/${c.slug}`,
       changeFrequency: "monthly" as const,
       priority: 0.7,
-    })),
-    ...Object.keys(TIERS).map((tier) => ({
-      url: `${BASE}/pricing/${tier}`,
-      changeFrequency: "monthly" as const,
-      priority: 0.8,
     })),
     ...PACKAGE_SLUGS.map((slug) => ({
       url: `${BASE}/packages/${slug}`,

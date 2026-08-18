@@ -2,13 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Boxes, Check, FileSearch, ShieldCheck, Store } from "lucide-react";
 import CtaLink from "@/components/site/CtaLink";
+import SiteHero from "@/components/site/system/SiteHero";
+import { OFFER_LADDER, WEBSITE_LAUNCH, WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
 
-// Packages: Website Launch, System Map, Industry OS, and Custom Platform.
-//
-// Learn It / Build It With You / Done For You at /pricing/[tier] are the three
-// public paths from the same Notion page and are LIVE in Stripe. They are a
-// different ladder, not a dead one, and still need a home in the new nav.
-// Tracked in docs/company-builder-redesign.md section 8.
+// Current offer ladder from the approved Revenue Pivot and Offer Ladder spec.
 
 export const metadata: Metadata = {
   title: "Packages | The LeadFlow Pro",
@@ -18,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Start with the right first release.",
     description:
-      "Website Launch, System Map, Industry OS, and Custom Platform. Clear entry points and written scope.",
+      "Website Launch, System Map, Lead Engine, Training Platform, Company OS, and Custom Platform. Clear entry points and written scope.",
     url: "https://www.theleadflowpro.com/pricing",
     siteName: "The LeadFlow Pro",
     images: [{ url: "/og/pricing.png", width: 1200, height: 630 }],
@@ -26,29 +23,23 @@ export const metadata: Metadata = {
   },
 };
 
+const canonicalOffer = (id: (typeof OFFER_LADDER)[number]["id"]) =>
+  OFFER_LADDER.find((offer) => offer.id === id)!;
+
 const LADDER = [
   {
     kind: "Fixed-scope foundation",
-    name: "Website Launch",
-    price: "$1,000",
+    ...canonicalOffer("website-launch"),
     lead: true,
-    body: "A conversion-led five-page public experience with one clear goal, lead capture, and a real approval checkpoint.",
-    items: [
-      "Conversion map and five premium pages",
-      "Lead capture and routing",
-      "Responsive production build, analytics, and deployment",
-      "Two revision rounds",
-      "$500 to start and $500 after approval, before launch",
-    ],
-    href: "/packages/launch",
+    body: WEBSITE_LAUNCH.summary,
+    items: [...WEBSITE_LAUNCH.included],
     cta: "See Website Launch",
   },
   {
     kind: "Deeper diagnostic",
-    name: "System Map",
-    price: "$497",
+    ...canonicalOffer("system-map"),
     lead: false,
-    body: "A working blueprint for a business that needs more than a five-page launch before anyone scopes software or automation.",
+    body: canonicalOffer("system-map").purpose,
     items: [
       "Full inventory of current software and workflows",
       "Customer path, data flow, ownership, and handoff map",
@@ -56,24 +47,59 @@ const LADDER = [
       "Recommended modules, phases, and dependencies",
       "An honest build range before production begins",
     ],
-    href: "/packages/system-map",
     cta: "Get the System Map",
   },
   {
-    kind: "Full operating system",
-    name: "Industry OS",
-    price: "$15,000+",
+    kind: "Connected sales system",
+    ...canonicalOffer("lead-engine"),
     lead: false,
-    body: "The connected core plus the vertical tools, records, portals, training, and communications that make your business different from the one down the street.",
+    body: canonicalOffer("lead-engine").purpose,
     items: [
-      "Everything required beyond Website Launch",
-      "Customer, member, student, partner, or vendor portals",
-      "Industry tools, courses, archives, calls, and texts",
-      "Deeper permissions, migration, and integrations",
-      "Automation and AI-ready connectors",
+      "Conversion website and focused funnel",
+      "CRM and one customer record",
+      "Lead routing and response automation",
+      "Source tracking and visible next actions",
     ],
-    href: "/packages/industry-os",
-    cta: "See the full system",
+    cta: "Map the Lead Engine",
+  },
+  {
+    kind: "Owned delivery system",
+    ...canonicalOffer("training-platform"),
+    lead: false,
+    body: canonicalOffer("training-platform").purpose,
+    items: [
+      "Public course catalog and member access",
+      "Course, module, and lesson structure",
+      "Enrollment and progress tracking",
+      "Admin tools for ongoing course updates",
+    ],
+    cta: "Map the Training Platform",
+  },
+  {
+    kind: "Connected company core",
+    ...canonicalOffer("company-os"),
+    lead: false,
+    body: canonicalOffer("company-os").purpose,
+    items: [
+      "Website, CRM, and client portal",
+      "Analytics and operating dashboard",
+      "Workflow and response automation",
+      "Accounts, data, and handoffs documented",
+    ],
+    cta: "Map the Company OS",
+  },
+  {
+    kind: "Purpose-built software",
+    ...canonicalOffer("custom-platform"),
+    lead: false,
+    body: canonicalOffer("custom-platform").purpose,
+    items: [
+      "Multi-role product and workflow design",
+      "Advanced integrations and permissions",
+      "Custom tools, records, and interfaces",
+      "Phased architecture after a System Map",
+    ],
+    cta: "Map the Custom Platform",
   },
 ];
 
@@ -142,41 +168,28 @@ const CHANNELS = [
 export default function PricingPage() {
   return (
     <main className="cb-page">
-      <section className="cb-hero">
-        <div className="cb-shell">
-          <p className="cb-eyebrow">Clear entry point. Honest scope.</p>
-          <h1 className="cb-h1">
-            <em>Start with the right first release.</em>
-            Map the complexity before you build it.
-          </h1>
-          <p className="cb-hero-lead">
-            A mortgage company, a dental academy, a fleet washing crew, and a multi-channel
-            seller should not get the same canned package. Website Launch is fixed at
-            $1,000. Larger systems are mapped before the build is quoted.
-          </p>
-          <div className="cb-actions">
-            <CtaLink
-              href="/start"
-              event="map_my_company"
-              placement="pricing_hero"
-              className="cb-btn cb-btn--primary"
-            >
-              Map My Company
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </CtaLink>
-            <Link className="cb-btn cb-btn--ghost" href="/portfolio">
-              See the Live Systems
-            </Link>
-          </div>
-        </div>
-      </section>
+      <SiteHero
+        eyebrow="Clear entry point. Honest scope."
+        mutedTitle="One fixed first move."
+        title="Bigger systems are priced by the work."
+        body="Website Launch is $1,000 total with a real approval checkpoint. CRM, funnels, portals, courses, automation, and custom software sit on a clear ladder instead of being hidden inside a vague website promise."
+        media={{
+          src: "/images/offer-v2/website-launch-approval-path.webp",
+          alt: "A secure website build moving through assembly, approval, final payment, and launch",
+          kicker: "$500 starts the build",
+          caption: "$500 after approval, before launch.",
+        }}
+        primary={{ href: WEBSITE_LAUNCH_CHECKOUT, label: "Start Website Launch | $500", external: true }}
+        secondary={{ href: "#offer-ladder", label: "Compare the full ladder" }}
+        trustLine="Written scope, two revision rounds, and no final launch before approval and payment. Once intake begins, the $500 deposit is non-refundable, except where the written agreement or applicable law requires otherwise."
+      />
 
-      <section className="cb-band">
+      <section id="offer-ladder" className="cb-band scroll-mt-24">
         <div className="cb-shell">
           <div className="cb-headrow">
             <div>
               <p className="cb-eyebrow">The ladder</p>
-              <h2 className="cb-h2 cb-heading">Three ways in. Pick the right first move.</h2>
+              <h2 className="cb-h2 cb-heading">Six clear levels. Pick the right first move.</h2>
             </div>
             <p className="cb-lead">
               Start with Website Launch when five focused pages solve the immediate problem.
@@ -220,13 +233,13 @@ export default function PricingPage() {
             <div>
               <p className="cb-eyebrow">
                 <Boxes aria-hidden="true" className="h-4 w-4" />
-                Larger than a package
+                Not sure which lane fits
               </p>
-              <h3>Custom Platform</h3>
+              <h3>Map the dependencies before you pick a package.</h3>
               <p>
-                Multi-location operations, software products, complex migrations, tenant
-                systems, advanced permissions, and deeper AI connectors are scoped from
-                $15,000+. A System Map comes first when the dependencies are complex.
+                If the project touches software, data, teams, portals, migrations, or several
+                vendors, use the guided map first. It shows the likely build path before you
+                send contact information.
               </p>
             </div>
             <Link className="cb-btn cb-btn--ghost" href="/start?goal=custom">

@@ -2,16 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  ArrowRight,
   BadgeCheck,
   CircleCheck,
   ShieldCheck,
 } from "lucide-react";
-import BuyButton from "@/components/BuyButton";
+import SiteHero from "@/components/site/system/SiteHero";
+import { WEBSITE_LAUNCH, WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
 import PackageOrderForm from "./PackageOrderForm";
-
-const WEBSITE_LAUNCH_CHECKOUT =
-  "https://book.stripe.com/cNi6oG52y1kockE5oq5AQ0a";
 
 // Full sales pages for each package. "See what is included" lands here, the
 // pitch is complete, and the visitor can buy, put money down, or send an
@@ -81,8 +78,8 @@ const PACKS: Record<string, Pack> = {
     slug: "launch",
     eyebrow: "Product Studio · fixed-price launch",
     name: "Website Launch",
-    price: "$1,000",
-    priceNote: "$500 deposit. $500 after approval, before launch.",
+    price: WEBSITE_LAUNCH.priceLabel,
+    priceNote: WEBSITE_LAUNCH.paymentLabel,
     headline: "A polished business website with a real approval checkpoint.",
     sub: "A conversion-led five-page public experience with lead capture, responsive production, core analytics, deployment, and two focused revision rounds. A $500 deposit starts the work; the remaining $500 is due after approval and before launch.",
     interest: "launch_system",
@@ -94,6 +91,7 @@ const PACKS: Record<string, Pack> = {
       { name: "Responsive production build", why: "Fast, accessible, and deliberate from desktop to phone." },
       { name: "Analytics and deployment", why: "Launch on production infrastructure with the core signals connected." },
       { name: "Two revision rounds", why: "Two focused rounds against the approved scope before launch." },
+      { name: "Three premium visual scenes", why: "A founding-rate visual pack that explains the offer, process, or system without a wall of copy." },
     ],
     phases: [
       { title: "Deposit and scope", body: "Pay the $500 deposit, then confirm the audience, goal, five pages, assets, and written scope." },
@@ -114,13 +112,13 @@ const PACKS: Record<string, Pack> = {
   },
   "industry-os": {
     slug: "industry-os",
-    eyebrow: "The full operating system",
-    name: "Industry OS",
-    price: "$15,000+",
+    eyebrow: "The connected company core",
+    name: "Company OS",
+    price: "$7,500+",
     priceNote: "Scoped from your System Map. Phased payments available.",
-    headline: "The system your competitors think only big companies can afford.",
-    sub: "Everything in Website Launch, plus the portals, industry tools, courses, archives, calls, and texts that make your vertical different. This is not a website. It is the operating system your business runs on.",
-    interest: "industry_os",
+    headline: "The website, CRM, portal, analytics, and operating dashboard in one owned system.",
+    sub: "Everything in Website Launch, plus the connected records, customer experience, reporting, and workflows the business needs to operate. Industry-specific tools, courses, archives, calls, and texts are scoped where they belong.",
+    interest: "company_os",
     buyable: false,
     included: [
       { name: "Everything in Website Launch", why: "The five-page public foundation, lead capture, analytics, deployment, and revision process." },
@@ -138,14 +136,14 @@ const PACKS: Record<string, Pack> = {
       { title: "Approval at every phase", body: "Each phase has a written scope, a working review point, and its own approved milestone." },
     ],
     proof: [
-      { name: "Premier Dental Academy", what: "A full Industry OS: enrollment, payment plans, simulators, career tools", url: "https://www.premierdentalacademyoflongview.com" },
-      { name: "RepWatchr", what: "A records platform with 16,783 profiles on the same stack", url: "https://repwatchr.com" },
+      { name: "Premier Dental Academy", what: "A full Company OS: enrollment, payment plans, simulators, career tools", url: "https://www.premierdentalacademyoflongview.com" },
+      { name: "RealRyanNichols.com", what: "A publishing system with a searchable archive of 1,568+ case profiles on the owned stack", url: "https://realryannichols.com" },
       { name: "GideonHQ", what: "A full marketplace platform. The ceiling is high", url: "https://gideonhq.com" },
     ],
     faq: [
       { q: "Is my business big enough for this?", a: "If your business has customers, records, and repeat work, an operating system pays for itself. The map tells us honestly if you only need Launch." },
       { q: "How long does it take?", a: "The core goes live in weeks. Vertical phases land on a schedule we set in the map, and you see everything on a live link as it builds." },
-      { q: "Can I start smaller and grow into it?", a: "Yes. Launch first, then add Industry OS phases as modules. Nothing gets thrown away because it is all one connected system." },
+      { q: "Can I start smaller and grow into it?", a: "Yes. Launch first, then add Company OS phases as modules. Nothing gets thrown away because it is all one connected system." },
     ],
   },
 };
@@ -163,7 +161,7 @@ export async function generateMetadata({
   const p = PACKS[slug];
   if (!p) return {};
   return {
-    title: `${p.name} — ${p.price} | The LeadFlow Pro`,
+    title: `${p.name} | ${p.price} | The LeadFlow Pro`,
     description: `${p.headline} ${p.priceNote}`,
   };
 }
@@ -177,57 +175,53 @@ export default async function PackagePage({
   const p = PACKS[slug];
   if (!p) notFound();
 
+  const heroMedia =
+    p.slug === "launch"
+      ? {
+          src: "/images/offer-v2/website-launch-approval-path.webp",
+          alt: "A secure website build moving through review, approval, and launch",
+          kicker: "$500 starts the build",
+          caption: "$500 after approval, before launch.",
+        }
+      : p.slug === "system-map"
+        ? {
+            src: "/images/homepage-v2/connected-company-hero.webp",
+            alt: "A connected business operating core with multiple mapped modules",
+            kicker: "Map before build",
+            caption: "Dependencies, ownership, and the first release.",
+          }
+        : {
+            src: "/images/offer-v2/premier-operating-system.webp",
+            alt: "A connected operating system with website, CRM, payment, portal, and course modules",
+            kicker: "The company behind the website",
+            caption: "One operating core. Connected modules.",
+          };
+
   return (
-    <main className="pb-24">
+    <main className="cb-page pb-24">
       {/* HERO */}
-      <section className="page-hero page-hero-centered">
-        <span className="eyebrow">{p.eyebrow}</span>
-        <h1>{p.headline}</h1>
-        <p>{p.sub}</p>
-        <div className="mt-8 flex flex-col items-center gap-2">
-          <div className="flex items-baseline gap-3">
-            <span className="text-2xl font-extrabold text-[var(--heading)]">{p.name}</span>
-            <span className="text-4xl font-black text-[var(--blue)]">{p.price}</span>
-          </div>
-          <span className="text-sm font-medium text-[var(--muted)]">{p.priceNote}</span>
-        </div>
-        <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-          {p.slug === "launch" ? (
-            <a
-              href={WEBSITE_LAUNCH_CHECKOUT}
-              className="button-primary"
-              data-analytics="cta-website-launch-package-hero"
-            >
-              Reserve Website Launch — $500
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </a>
-          ) : p.buyable ? (
-            <BuyButton
-              kind="system_map"
-              label="Buy the System Map — $497"
-              className="button-primary"
-            />
-          ) : (
-            <a href="#order" className="button-primary">
-              Start My {p.name}
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </a>
-          )}
-          <a href="#order" className="button-secondary">
-            {p.buyable ? "Ask a question first" : "Send an interest form"}
-          </a>
-        </div>
-        <p className="mt-5 text-sm font-semibold text-[var(--green)]">
-          {p.slug === "launch"
-            ? "You review working proof before the final launch payment. Website Launch is $500 to start and $500 after approval, before launch."
-            : p.slug === "system-map"
-              ? "The System Map is $497 paid once. It is yours to keep and is credited toward an approved larger build."
-              : "Industry OS begins with a written System Map and is paid through scoped milestones with working review points."}
-        </p>
-      </section>
+      <SiteHero
+        compact
+        eyebrow={p.eyebrow}
+        mutedTitle={`${p.name} · ${p.price}`}
+        title={p.headline}
+        body={`${p.sub} ${p.priceNote}`}
+        media={heroMedia}
+        primary={
+          p.slug === "launch"
+            ? { href: WEBSITE_LAUNCH_CHECKOUT, label: "Start Website Launch | $500", external: true }
+            : { href: "#order", label: p.buyable ? "Get the System Map | $497" : `Map the ${p.name}` }
+        }
+        secondary={{ href: "#included", label: "See exactly what is included" }}
+        trustLine={
+          p.slug === "launch"
+            ? "Review the working site before the final payment and production launch. Once intake begins, the $500 deposit is non-refundable, except where the written agreement or applicable law requires otherwise."
+            : "Written scope, visible dependencies, and working review points before the next approved phase."
+        }
+      />
 
       {/* WHAT YOU GET */}
-      <section className="mx-auto mt-4 w-[min(1000px,100%-40px)]">
+      <section id="included" className="mx-auto mt-14 w-[min(1000px,100%-40px)] scroll-mt-24">
         <div className="text-center">
           <span className="eyebrow">What you get</span>
           <h2 className="mt-4 text-3xl font-black text-[var(--heading)] sm:text-4xl">
@@ -332,7 +326,7 @@ export default async function PackagePage({
             ? "You review the work on a live preview, against a written scope, before the launch milestone. $500 starts the Website Launch and the remaining $500 is due after approval and before the site goes live."
             : p.slug === "system-map"
               ? "The paid working session produces a written blueprint: modules, dependencies, phases, and price range. You approve any larger engagement separately."
-              : "The System Map defines the written scope, phases, ownership, and milestone schedule. Each Industry OS phase has a working review point before the next approved milestone."}
+              : "The System Map defines the written scope, phases, ownership, and milestone schedule. Each Company OS phase has a working review point before the next approved milestone."}
         </p>
       </section>
 

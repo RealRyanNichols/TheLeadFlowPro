@@ -1,8 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpenCheck,
+  Check,
+  LockKeyhole,
+  Map,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getTrainingAccess } from "@/lib/access";
-import BuyButton from "@/components/BuyButton";
+import SiteHero from "@/components/site/system/SiteHero";
+import styles from "../training.module.css";
 
 export default async function CoursePage({
   params,
@@ -21,31 +30,62 @@ export default async function CoursePage({
   if (!course) notFound();
 
   if (!course.is_free) {
-    const { hasTraining } = await getTrainingAccess();
+    const { hasTraining, user } = await getTrainingAccess();
     if (!hasTraining) {
       return (
-        <section className="mx-auto max-w-3xl px-4 py-16">
-          <Link href="/training" className="text-sm text-flow-400 hover:underline">
-            ← All courses
-          </Link>
-          <div className="card mt-6 border border-[var(--accent-line)] text-center shadow-[0_12px_32px_rgba(18,64,232,0.16)]">
-            <h1 className="text-2xl font-black text-[var(--heading)]">{course.title}</h1>
-            <p className="mt-3 text-[var(--text)]">
-              This course is part of the full Own Your Platform training. One
-              payment, lifetime access, every course — and the capstone where
-              you build your own platform.
-            </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <BuyButton label="Unlock Everything — $497" />
-              <Link href="/pricing/learn-it" className="btn-ghost">
-                See What's Inside
-              </Link>
+        <main className={`cb-page ${styles.page}`}>
+          <SiteHero
+            eyebrow="Existing member library"
+            mutedTitle="This course is protected."
+            title="Your previous access still works."
+            body="New standalone enrollment for this legacy library is closed. Existing purchasers can log in with their purchase email and continue with saved progress."
+            media={{
+              src: "/images/visual-system/course-system-blueprint.webp",
+              alt: "A connected training platform blueprint with access, lessons, and progress",
+              width: 1254,
+              height: 1254,
+              kicker: "Protected course access",
+              caption: course.title,
+            }}
+            primary={
+              !user
+                ? { href: "/login", label: "Log in to continue" }
+                : { href: "/start?goal=delivery", label: "Plan a training platform" }
+            }
+            secondary={{ href: "/packages/system-map", label: "Start with a System Map" }}
+            trustLine="A new Training Platform engagement is separate from this course library."
+            compact
+          />
+
+          <section className={`cb-band ${styles.lockedBand}`} aria-labelledby="access-title">
+            <div className="cb-shell">
+              <div className={styles.lockedPanel}>
+                <LockKeyhole aria-hidden="true" />
+                <p className="cb-eyebrow">Course access</p>
+                <h2 id="access-title">{course.title}</h2>
+                <p>
+                  If this course is already in your account, log in to resume it. If you
+                  want a course platform built for your organization, map that system as a
+                  new project. The platform service does not include this legacy library.
+                </p>
+                <div className={styles.lockedActions}>
+                  {!user ? (
+                    <Link className="cb-btn cb-btn--primary" href="/login">
+                      Log in
+                      <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                    </Link>
+                  ) : null}
+                  <Link className="cb-btn cb-btn--ghost" href="/start?goal=delivery">
+                    Plan a Training Platform
+                  </Link>
+                  <Link className={styles.textLink} href="/packages/system-map">
+                    <Map aria-hidden="true" /> Start with a System Map
+                  </Link>
+                </div>
+              </div>
             </div>
-            <p className="mt-4 text-xs text-[var(--quiet)]">
-              Already purchased? Log in with the same email you bought with.
-            </p>
-          </div>
-        </section>
+          </section>
+        </main>
       );
     }
   }
@@ -60,48 +100,96 @@ export default async function CoursePage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: progress } = await supabase
-    .from("lesson_progress")
-    .select("lesson_id")
-    .eq("user_id", user!.id);
+  const progressResult = user
+    ? await supabase
+        .from("lesson_progress")
+        .select("lesson_id")
+        .eq("user_id", user.id)
+    : { data: [] as { lesson_id: string }[] };
 
-  const doneIds = new Set((progress ?? []).map((p) => p.lesson_id));
+  const doneIds = new Set((progressResult.data ?? []).map((item) => item.lesson_id));
+  const lessonCount = lessons?.length ?? 0;
+  const completedCount = lessons?.filter((lesson) => doneIds.has(lesson.id)).length ?? 0;
+  const firstIncomplete = lessons?.find((lesson) => !doneIds.has(lesson.id));
+  const continueLesson = firstIncomplete ?? lessons?.[0];
 
   return (
-    <section className="mx-auto max-w-3xl px-4 py-12">
-      <Link href="/training" className="text-sm text-flow-400 hover:underline">
-        ← All courses
-      </Link>
-      <h1 className="mt-3 text-3xl font-black text-[var(--heading)]">{course.title}</h1>
-      <p className="mt-2 text-[var(--muted)]">{course.description}</p>
+    <main className={`cb-page ${styles.page}`}>
+      <SiteHero
+        eyebrow="Operator Academy course"
+        mutedTitle="Learn it in sequence."
+        title={course.title}
+        body={course.description || "Move through each lesson and keep your progress in one owned training record."}
+        media={{
+          src: "/images/visual-system/course-system-blueprint.webp",
+          alt: "A connected training platform blueprint linking course access and lesson progress",
+          width: 1254,
+          height: 1254,
+          kicker: `${completedCount} of ${lessonCount} complete`,
+          caption: "Your next lesson stays connected",
+        }}
+        primary={
+          continueLesson
+            ? {
+                href: `/training/${course.slug}/${continueLesson.slug}`,
+                label: completedCount > 0 ? "Continue course" : "Start course",
+              }
+            : undefined
+        }
+        secondary={{ href: "/training", label: "All courses" }}
+        trustLine="Lesson completion is saved to your account."
+        compact
+      />
 
-      <div className="mt-8 space-y-3">
-        {(lessons ?? []).length === 0 && (
-          <div className="card text-center text-[var(--muted)]">
-            Lessons for this course are being recorded. The Start Here course is
-            live now.
-          </div>
-        )}
-        {lessons?.map((l, i) => (
-          <Link
-            key={l.id}
-            href={`/training/${course.slug}/${l.slug}`}
-            className="card flex items-center gap-4 transition hover:border-flow-500"
-          >
-            <span
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                doneIds.has(l.id) ? "bg-mint/20 text-mint" : "bg-line text-[var(--muted)]"
-              }`}
-            >
-              {doneIds.has(l.id) ? "✓" : i + 1}
-            </span>
-            <div>
-              <h2 className="font-bold text-[var(--heading)]">{l.title}</h2>
-              {l.summary && <p className="text-sm text-[var(--muted)]">{l.summary}</p>}
-            </div>
+      <section className={`cb-band ${styles.lessonBand}`} aria-labelledby="lesson-list-title">
+        <div className={styles.courseShell}>
+          <Link href="/training" className={styles.backLink}>
+            <ArrowLeft aria-hidden="true" /> All courses
           </Link>
-        ))}
-      </div>
-    </section>
+          <div className={styles.lessonHeading}>
+            <div>
+              <p className="cb-eyebrow">Course path</p>
+              <h2 id="lesson-list-title">Every lesson, in order.</h2>
+            </div>
+            <p>{completedCount} of {lessonCount} complete</p>
+          </div>
+
+          <ol className={styles.lessonList}>
+            {lessons?.map((lesson, index) => {
+              const isDone = doneIds.has(lesson.id);
+              return (
+                <li key={lesson.id}>
+                  <Link href={`/training/${course.slug}/${lesson.slug}`}>
+                    <span className={`${styles.lessonNumber}${isDone ? ` ${styles.lessonDone}` : ""}`}>
+                      {isDone ? (
+                        <>
+                          <Check aria-hidden="true" />
+                          <span className="sr-only">Completed</span>
+                        </>
+                      ) : (
+                        String(index + 1).padStart(2, "0")
+                      )}
+                    </span>
+                    <span className={styles.lessonCopy}>
+                      <strong>{lesson.title}</strong>
+                      {lesson.summary ? <span>{lesson.summary}</span> : null}
+                    </span>
+                    <ArrowRight aria-hidden="true" className={styles.lessonArrow} />
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
+
+          {!lessonCount ? (
+            <div className={styles.emptyState}>
+              <BookOpenCheck aria-hidden="true" />
+              <h3>Lessons are being prepared.</h3>
+              <p>The published lessons will appear here in sequence.</p>
+            </div>
+          ) : null}
+        </div>
+      </section>
+    </main>
   );
 }
