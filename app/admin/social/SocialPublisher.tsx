@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DEFAULT_SOCIAL_SLOTS,
   SOCIAL_CONTENT_PILLARS,
@@ -46,6 +46,18 @@ type Connection = {
   page_tasks: string[];
   last_verified_at: string | null;
   last_error: string | null;
+};
+
+type MetaConfiguration = {
+  app_id_configured: boolean;
+  app_secret_configured: boolean;
+  oauth_ready: boolean;
+  page_token_configured: boolean;
+  app_id_last_four: string | null;
+  redirect_uri: string;
+  scopes: string[];
+  page_id: string;
+  graph_version: string;
 };
 
 type Editor = {
@@ -135,6 +147,47 @@ export default function SocialPublisher({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [slotText, setSlotText] = useState(settings.daily_slots.join(", "));
+  const [metaConfig, setMetaConfig] = useState<MetaConfiguration | null>(null);
+  const [metaAppId, setMetaAppId] = useState("");
+  const [metaAppSecret, setMetaAppSecret] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/admin/social/meta/config", { cache: "no-store" })
+      .then(async (response) => ({ response, json: await response.json().catch(() => ({})) }))
+      .then(({ response, json }) => {
+        if (active && response.ok && json.configuration) setMetaConfig(json.configuration);
+      })
+      .catch(() => undefined);
+
+    const url = new URL(window.location.href);
+    const result = url.searchParams.get("meta");
+    const messages: Record<string, { kind: "notice" | "error"; text: string }> = {
+      connected: { kind: "notice", text: "Facebook publishing is connected to the LeadFlow Pro Page." },
+      limited: { kind: "error", text: "Meta connected, but it did not grant the required Page posting task. Reconnect and select LeadFlow Pro." },
+      denied: { kind: "error", text: "Facebook authorization was cancelled. Nothing was changed." },
+      state: { kind: "error", text: "That Facebook authorization expired or could not be verified. Start it again from this page." },
+      page_missing: { kind: "error", text: "Meta did not return the LeadFlow Pro Page. Reconnect and make sure that Page is selected." },
+      exchange: { kind: "error", text: "Meta could not finish the authorization. Check the app redirect URI, then try again." },
+      needs_config: { kind: "error", text: "Save the Meta App ID and App Secret before connecting Facebook." },
+      server_config: { kind: "error", text: "The secure Meta connection storage is not ready yet." },
+      sign_in: { kind: "error", text: "Sign in as a LeadFlow Pro admin, then start the Facebook connection again." },
+      missing_code: { kind: "error", text: "Meta did not return an authorization code. Start the connection again." },
+    };
+    if (result && messages[result]) {
+      const message = messages[result];
+      if (message.kind === "notice") setNotice(message.text);
+      else setError(message.text);
+      url.searchParams.delete("meta");
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const hasServerToken = metaConfig?.page_token_configured ?? tokenConfigured;
 
   const counts = useMemo(() => {
     const out: Record<string, number> = {};
@@ -282,6 +335,30 @@ export default function SocialPublisher({
     }
   }
 
+  async function saveMetaConfiguration(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy("meta-config");
+    setError(null);
+    setNotice(null);
+    try {
+      const response = await fetch("/api/admin/social/meta/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ app_id: metaAppId, app_secret: metaAppSecret }),
+      });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(json.error || "Could not save the Meta app setup.");
+      setMetaConfig(json.configuration);
+      setMetaAppId("");
+      setMetaAppSecret("");
+      setNotice("Meta app credentials are encrypted and ready. You can now connect Amanda's Facebook in this browser.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(null);
+    }
+  }
+
   async function saveSettings(e: React.FormEvent) {
     e.preventDefault();
     const slots = slotText
@@ -321,12 +398,18 @@ export default function SocialPublisher({
       </div>
 
       <section className="card">
+        {connection?.status !== "connected" && (
+          <div className="mb-5 rounded-xl border border-flow-400/30 bg-flow-400/5 p-4 text-sm text-[var(--text)]">
+            <strong className="text-[var(--heading)]">The broken Cloud Browser is no longer part of this setup.</strong>{" "}
+            Amanda connects through Facebook in her own normal browser, then Meta returns her to this admin page.
+          </div>
+        )}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <span
                 className={`h-2.5 w-2.5 rounded-full ${
-                  connection?.status === "connected" ? "bg-mint" : tokenConfigured ? "bg-warn" : "bg-[var(--danger)]"
+                  connection?.status === "connected" ? "bg-mint" : hasServerToken ? "bg-warn" : "bg-[var(--danger)]"
                 }`}
               />
               <h3 className="font-bold text-[var(--heading)]">
@@ -334,7 +417,7 @@ export default function SocialPublisher({
               </h3>
             </div>
             <p className="mt-1 text-xs text-[var(--muted)]">
-              Page ID {pageId} · {connection?.graph_version || "Graph API v26.0"} · token {tokenConfigured ? "stored server-side" : "not configured"}
+              Page ID {pageId} · {connection?.graph_version || "Graph API v26.0"} · publishing {connection?.status === "connected" ? "connected" : "not authorized yet"}
             </p>
             {connection?.last_verified_at && (
               <p className="mt-1 text-xs text-[var(--quiet)]">
@@ -346,11 +429,75 @@ export default function SocialPublisher({
           <button
             type="button"
             className="btn-ghost !px-4 !py-2 text-sm"
-            disabled={busy === "verify" || !tokenConfigured}
+            disabled={busy === "verify" || !hasServerToken}
             onClick={verifyConnection}
           >
-            {busy === "verify" ? "Checking Meta..." : "Verify Meta Connection"}
+            {busy === "verify" ? "Checking Meta..." : "Verify Existing Connection"}
           </button>
+        </div>
+
+        <div className="mt-6 border-t border-line pt-6">
+          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+            <div>
+              <h4 className="font-bold text-[var(--heading)]">Normal-browser publishing authorization</h4>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                Use the PDA Meta app or a LeadFlow Meta app. Add this exact URL under Facebook Login's valid OAuth redirect URIs.
+              </p>
+              <label className="label mt-4" htmlFor="meta-redirect-uri">Exact OAuth redirect URI</label>
+              <input
+                id="meta-redirect-uri"
+                className="input font-mono text-xs"
+                readOnly
+                value={metaConfig?.redirect_uri || "https://www.theleadflowpro.com/api/admin/social/meta/callback"}
+              />
+              <p className="mt-2 text-xs text-[var(--quiet)]">
+                Requested access: pages_show_list, pages_read_engagement, pages_manage_posts.
+              </p>
+            </div>
+
+            <form onSubmit={saveMetaConfiguration} className="space-y-3">
+              <div>
+                <label className="label" htmlFor="meta-app-id">Meta App ID</label>
+                <input
+                  id="meta-app-id"
+                  className="input"
+                  inputMode="numeric"
+                  value={metaAppId}
+                  onChange={(e) => setMetaAppId(e.target.value)}
+                  placeholder={metaConfig?.app_id_configured ? `Saved, ending ${metaConfig.app_id_last_four}` : "Numeric App ID"}
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="meta-app-secret">Meta App Secret</label>
+                <input
+                  id="meta-app-secret"
+                  className="input"
+                  type="password"
+                  autoComplete="off"
+                  value={metaAppSecret}
+                  onChange={(e) => setMetaAppSecret(e.target.value)}
+                  placeholder={metaConfig?.app_secret_configured ? "Saved securely. Leave blank to keep it." : "Paste once from Meta Developers"}
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="submit"
+                  className="btn-ghost !px-4 !py-2 text-sm"
+                  disabled={busy === "meta-config"}
+                >
+                  {busy === "meta-config" ? "Encrypting..." : "Save Meta App Setup"}
+                </button>
+                {metaConfig?.oauth_ready && (
+                  <a className="btn-primary !px-4 !py-2 text-sm" href="/api/admin/social/meta/start">
+                    Connect Amanda's Facebook
+                  </a>
+                )}
+              </div>
+              <p className="text-xs text-[var(--quiet)]">
+                App secrets and access tokens are encrypted server-side and are never shown back in the browser.
+              </p>
+            </form>
+          </div>
         </div>
       </section>
 
@@ -487,7 +634,7 @@ export default function SocialPublisher({
                 onChange={(e) => setEditor((v) => ({ ...v, scheduled_for: e.target.value }))}
               />
               <p className="mt-1 text-xs text-[var(--quiet)]">
-                Leave blank for publish now after approval. Meta requires schedules 10 minutes to 75 days ahead.
+                Leave blank for publish now after approval. Meta requires schedules 10 minutes to 30 days ahead.
               </p>
             </div>
             <div>

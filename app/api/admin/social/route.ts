@@ -1,11 +1,5 @@
 import { NextResponse } from "next/server";
 import {
-  createClient as createSupabaseClient,
-  type SupabaseClient,
-} from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/server";
-import { SUPABASE_URL } from "@/lib/config";
-import {
   cancelFacebookPost,
   inspectFacebookConnection,
   metaErrorDetails,
@@ -17,21 +11,19 @@ import {
   validDailySlots,
   validateSocialPostInput,
 } from "@/lib/social";
+import {
+  SOCIAL_PAGE_ID,
+  createSocialServiceClient,
+  getFacebookSourceToken,
+  getSocialCredentialStatus,
+  requireSocialAdmin,
+  type SocialAdminContext,
+  type SocialServiceClient,
+} from "@/lib/social-server";
 
 export const runtime = "nodejs";
 
-const PAGE_ID = process.env.META_PAGE_ID || "887023637835514";
 const REPO = "RealRyanNichols/TheLeadFlowPro";
-
-type AdminContext = {
-  user: { id: string; email?: string | null };
-  profile: { role?: string | null; full_name?: string | null };
-};
-
-// These tables are introduced by the matching SQL migration. The repository does
-// not keep generated Supabase types, so this server-only client stays intentionally
-// untyped at the database boundary and validates post input before every write.
-type ServiceClient = SupabaseClient<any>;
 
 type SocialPostRow = {
   id: string;
@@ -53,39 +45,19 @@ type SocialPostRow = {
   publish_attempts: number;
 };
 
-async function requireAdmin(): Promise<AdminContext | NextResponse> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, full_name")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "admin") {
-    return NextResponse.json({ error: "Admins only" }, { status: 403 });
-  }
-  return { user, profile };
-}
-
-function serviceClient(): ServiceClient | null {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) return null;
-  return createSupabaseClient(SUPABASE_URL, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  }) as ServiceClient;
-}
-
-async function loadState(sb: ServiceClient) {
-  const [{ data: posts }, { data: settings }, { data: connection }] = await Promise.all([
+async function loadState(sb: SocialServiceClient) {
+  const [{ data: posts }, { data: settings }, { data: connection }, credentialStatus] = await Promise.all([
     sb.from("social_posts").select("*").order("created_at", { ascending: false }).limit(200),
     sb.from("social_schedule_settings").select("*").eq("singleton", true).maybeSingle(),
-    sb.from("social_connections").select("*").eq("provider", "facebook").eq("page_id", PAGE_ID).maybeSingle(),
+    sb.from("social_connections").select("*").eq("provider", "facebook").eq("page_id", SOCIAL_PAGE_ID).maybeSingle(),
+    getSocialCredentialStatus(sb),
   ]);
-  return { posts: posts ?? [], settings: settings ?? null, connection: connection ?? null };
+  return {
+    posts: posts ?? [],
+    settings: settings ?? null,
+    connection: connection ?? null,
+    credential_status: credentialStatus,
+  };
 }
 
 function approvalPayload(post: SocialPostRow) {
@@ -100,7 +72,7 @@ function approvalPayload(post: SocialPostRow) {
 }
 
 async function ensureApproval(
-  sb: ServiceClient,
+  sb: SocialServiceClient,
   post: SocialPostRow,
 ) {
   if (post.approval_queue_id) {
@@ -137,7 +109,7 @@ async function ensureApproval(
 }
 
 async function attempt(
-  sb: ServiceClient,
+  sb: SocialServiceClient,
   values: {
     postId: string;
     action: "verify" | "schedule" | "publish" | "cancel";
@@ -164,9 +136,9 @@ async function attempt(
 }
 
 async function approveOne(
-  sb: ServiceClient,
+  sb: SocialServiceClient,
   postId: string,
-  admin: AdminContext,
+  admin: SocialAdminContext,
 ) {
   const { data } = await sb.from("social_posts").select("*").eq("id", postId).single();
   const post = data as SocialPostRow | null;
@@ -199,7 +171,7 @@ async function approveOne(
       .eq("id", post.id),
   ]);
 
-  const sourceToken = process.env.META_PAGE_ACCESS_TOKEN || "";
+  const sourceToken = await getFacebookSourceToken(sb);
   const action = post.scheduled_for ? "schedule" : "publish";
   await attempt(sb, {
     postId: post.id,
@@ -287,17 +259,17 @@ async function approveOne(
 }
 
 export async function GET() {
-  const admin = await requireAdmin();
+  const admin = await requireSocialAdmin();
   if (admin instanceof NextResponse) return admin;
-  const sb = serviceClient();
+  const sb = createSocialServiceClient();
   if (!sb) return NextResponse.json({ error: "Server database access is not configured." }, { status: 503 });
   return NextResponse.json(await loadState(sb));
 }
 
 export async function POST(request: Request) {
-  const admin = await requireAdmin();
+  const admin = await requireSocialAdmin();
   if (admin instanceof NextResponse) return admin;
-  const sb = serviceClient();
+  const sb = createSocialServiceClient();
   if (!sb) return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY is not configured." }, { status: 503 });
 
   const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
@@ -310,7 +282,7 @@ export async function POST(request: Request) {
       .from("social_posts")
       .insert({
         ...validation.value,
-        page_id: PAGE_ID,
+        page_id: SOCIAL_PAGE_ID,
         provider: "facebook",
         status: "draft",
         created_by: admin.user.id,
@@ -391,7 +363,7 @@ export async function POST(request: Request) {
       try {
         const result = await cancelFacebookPost({
           pageId: post.page_id,
-          sourceToken: process.env.META_PAGE_ACCESS_TOKEN || "",
+          sourceToken: await getFacebookSourceToken(sb),
           metaId,
         });
         await attempt(sb, {
@@ -438,8 +410,8 @@ export async function POST(request: Request) {
   if (action === "verify") {
     try {
       const health = await inspectFacebookConnection(
-        process.env.META_PAGE_ACCESS_TOKEN || "",
-        PAGE_ID,
+        await getFacebookSourceToken(sb),
+        SOCIAL_PAGE_ID,
       );
       const status = health.canPublish ? "connected" : "limited";
       const { data } = await sb
@@ -447,7 +419,7 @@ export async function POST(request: Request) {
         .upsert(
           {
             provider: "facebook",
-            page_id: PAGE_ID,
+            page_id: SOCIAL_PAGE_ID,
             page_name: health.pageName,
             graph_version: health.graphVersion,
             status,
@@ -470,7 +442,7 @@ export async function POST(request: Request) {
         .upsert(
           {
             provider: "facebook",
-            page_id: PAGE_ID,
+            page_id: SOCIAL_PAGE_ID,
             graph_version: process.env.META_GRAPH_VERSION || FACEBOOK_GRAPH_VERSION,
             status: "error",
             last_verified_at: new Date().toISOString(),

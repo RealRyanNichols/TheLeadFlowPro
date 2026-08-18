@@ -6,7 +6,17 @@ import {
   validateMetaSchedule,
   validateSocialPostInput,
 } from "../lib/social.ts";
-import { buildFacebookPublishRequest } from "../lib/meta-publishing.ts";
+import {
+  buildFacebookPublishRequest,
+  canPublishWithFacebookAccess,
+} from "../lib/meta-publishing.ts";
+import {
+  META_OAUTH_SCOPES,
+  buildMetaAuthorizationUrl,
+  hashOAuthState,
+  isMetaAppId,
+  isMetaAppSecret,
+} from "../lib/meta-oauth.ts";
 
 describe("LeadFlow social copy rules", () => {
   it("accepts a clean talk-to-text Facebook draft", () => {
@@ -59,11 +69,12 @@ describe("Meta scheduling window", () => {
     assert.deepEqual(validateMetaSchedule(null, now), { mode: "publish" });
   });
 
-  it("accepts schedules from 10 minutes through 75 days", () => {
+  it("accepts schedules from 10 minutes through 30 days", () => {
     const result = validateMetaSchedule("2026-08-18T12:10:00.000Z", now);
     assert.equal(result.mode, "schedule");
     assert.equal(result.error, undefined);
     assert.equal(result.unixTime, 1787055000);
+    assert.equal(validateMetaSchedule("2026-09-17T12:00:00.000Z", now).error, undefined);
   });
 
   it("rejects schedules outside Meta's window", () => {
@@ -72,9 +83,36 @@ describe("Meta scheduling window", () => {
       /at least 10 minutes/,
     );
     assert.match(
-      validateMetaSchedule("2026-11-02T12:00:01.000Z", now).error || "",
-      /up to 75 days/,
+      validateMetaSchedule("2026-09-17T12:00:01.000Z", now).error || "",
+      /up to 30 days/,
     );
+  });
+});
+
+describe("Meta normal-browser authorization", () => {
+  it("builds a state-bound permission request with an exact callback", () => {
+    const url = buildMetaAuthorizationUrl({
+      appId: "123456789012345",
+      state: "one-time-state",
+      redirectUri: "https://www.theleadflowpro.com/api/admin/social/meta/callback",
+    });
+    assert.equal(url.origin, "https://www.facebook.com");
+    assert.equal(url.searchParams.get("client_id"), "123456789012345");
+    assert.equal(url.searchParams.get("state"), "one-time-state");
+    assert.equal(url.searchParams.get("scope"), META_OAUTH_SCOPES.join(","));
+    assert.equal(
+      url.searchParams.get("redirect_uri"),
+      "https://www.theleadflowpro.com/api/admin/social/meta/callback",
+    );
+    assert.equal(url.searchParams.has("client_secret"), false);
+  });
+
+  it("validates app credentials and hashes OAuth state", () => {
+    assert.equal(isMetaAppId("123456789012345"), true);
+    assert.equal(isMetaAppId("not-an-app"), false);
+    assert.equal(isMetaAppSecret("0123456789abcdef0123456789abcdef"), true);
+    assert.equal(isMetaAppSecret("too short"), false);
+    assert.match(hashOAuthState("one-time-state"), /^[0-9a-f]{64}$/);
   });
 });
 
@@ -116,5 +154,11 @@ describe("Meta publish request construction", () => {
     assert.equal(validDailySlots(["07:15", "10:30", "19:45"]), true);
     assert.equal(validDailySlots(["25:00"]), false);
     assert.equal(validDailySlots([]), false);
+  });
+
+  it("recognizes Page publishing permission without creating a test post", () => {
+    assert.equal(canPublishWithFacebookAccess(["pages_manage_posts"], []), true);
+    assert.equal(canPublishWithFacebookAccess([], ["CREATE_CONTENT"]), true);
+    assert.equal(canPublishWithFacebookAccess(["pages_read_engagement"], ["ANALYZE"]), false);
   });
 });

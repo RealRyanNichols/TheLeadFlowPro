@@ -137,17 +137,17 @@ export function validateMetaSchedule(
   }
   const diff = scheduled.valueOf() - now.valueOf();
   const tenMinutes = 10 * 60 * 1000;
-  const seventyFiveDays = 75 * 24 * 60 * 60 * 1000;
+  const thirtyDays = 30 * 24 * 60 * 60 * 1000;
   if (diff < tenMinutes) {
     return {
       mode: "schedule",
       error: "Meta requires scheduled posts to be at least 10 minutes in the future.",
     };
   }
-  if (diff > seventyFiveDays) {
+  if (diff > thirtyDays) {
     return {
       mode: "schedule",
-      error: "Meta only accepts scheduled posts up to 75 days in advance.",
+      error: "Meta only accepts scheduled posts up to 30 days in advance.",
     };
   }
   return { mode: "schedule", unixTime: Math.floor(scheduled.valueOf() / 1000) };

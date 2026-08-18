@@ -67,6 +67,16 @@ export type MetaConnectionHealth = {
   sourceKind: "page_token" | "system_or_user_token";
 };
 
+export function canPublishWithFacebookAccess(
+  permissions: string[],
+  pageTasks: string[],
+) {
+  return (
+    permissions.includes("pages_manage_posts") ||
+    pageTasks.some((task) => ["CREATE_CONTENT", "MANAGE"].includes(task))
+  );
+}
+
 type MetaFetchResult<T> = { response: Response; body: T & MetaErrorBody };
 
 const graphVersion = process.env.META_GRAPH_VERSION || FACEBOOK_GRAPH_VERSION;
@@ -165,26 +175,42 @@ export async function inspectFacebookConnection(
     permissions = [];
   }
 
-  let pageTasks: string[] = [];
+  const pageTasks = new Set<string>();
   try {
     const result = await readGraph<{
       data?: { id?: string; tasks?: string[] }[];
     }>("me/accounts?fields=id,tasks&limit=100", sourceToken);
-    pageTasks = (result.data ?? []).find((item) => item.id === pageId)?.tasks ?? [];
+    for (const task of (result.data ?? []).find((item) => item.id === pageId)?.tasks ?? []) {
+      pageTasks.add(task);
+    }
   } catch {
-    pageTasks = [];
+    // System-user tokens can expose Page tasks on the Page node instead.
   }
 
-  const canPublish =
-    permissions.includes("pages_manage_posts") ||
-    pageTasks.some((task) => ["CREATE_CONTENT", "MANAGE"].includes(task));
+  for (const token of new Set([sourceToken, resolved.token])) {
+    try {
+      const result = await readGraph<{ id?: string; tasks?: string[] }>(
+        `${pageId}?fields=id,tasks`,
+        token,
+      );
+      if (result.id === pageId) {
+        for (const task of result.tasks ?? []) pageTasks.add(task);
+      }
+    } catch {
+      // Not every Page-token shape exposes tasks. Permission names can still
+      // confirm publishing access without making a test post.
+    }
+  }
+
+  const taskList = [...pageTasks];
+  const canPublish = canPublishWithFacebookAccess(permissions, taskList);
 
   return {
     pageId,
     pageName: page.name ?? null,
     graphVersion,
     permissions,
-    pageTasks,
+    pageTasks: taskList,
     canPublish,
     sourceKind: resolved.sourceKind,
   };
