@@ -7,7 +7,6 @@ import {
   Check,
   Database,
   ExternalLink,
-  Gift,
   KeyRound,
   Layers,
   LayoutDashboard,
@@ -17,6 +16,9 @@ import {
 } from "lucide-react";
 import CompanyLoop from "@/components/site/CompanyLoop";
 import CtaLink from "@/components/site/CtaLink";
+import { ARTICLES } from "@/lib/articles";
+import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
+import { TOOL_COUNT } from "@/lib/tools";
 
 // THE COMPANY BUILDER homepage.
 //
@@ -33,7 +35,7 @@ import CtaLink from "@/components/site/CtaLink";
 const PROOF = [
   { figure: "8", label: "live systems shipped and running right now" },
   { figure: "6", label: "industries represented, from local service to software" },
-  { figure: "78", label: "free working tools built and published" },
+  { figure: String(TOOL_COUNT), label: "free working tools built and published" },
   { figure: "4", label: "real software products running on the owned stack" },
   { figure: "100%", label: "built in accounts the client controls" },
 ];
@@ -112,23 +114,23 @@ const FEATURED = [
   {
     kind: "founder" as const,
     kindLabel: "Founder-built platform",
-    name: "RepWatchr",
-    what: "Proof this stack ships real software, not brochure pages.",
+    name: "RealRyanNichols.com",
+    what: "A publishing machine nobody else can switch off.",
     problem:
-      "Public voting records, campaign finance, and official profiles exist in a dozen incompatible places, which means nobody can actually check anything without days of work.",
+      "The audience and archive lived on platforms that could throttle reach, change the rules, or disconnect the owner from the people following the work.",
     built:
-      "A full software product: a searchable officials database across every level of government, voting records, campaign finance lookups, scorecards, a packet builder, and paid research tiers. Same stack we install for clients.",
+      "An independent media system with long-form publishing, a searchable archive of 1,568+ case profiles, intake forms, an AI assistant trained on the owner's writing, SMS alerts, and a store.",
     facts: [
-      { v: "16,783", l: "official profiles in the database" },
-      { v: "59,054", l: "sourced records behind them" },
-      { v: "Packet builder", l: "Scorecards and research tiers, not a contact form" },
+      { v: "1,568+", l: "case profiles in the searchable archive" },
+      { v: "AI assistant", l: "Trained on the owner's published writing" },
+      { v: "Owned list", l: "SMS alerts and intake on first-party infrastructure" },
     ],
     outcome:
-      "When an owner asks whether this goes past websites, this is the answer. It is a product with a database, a search layer, and paid tiers.",
-    stack: "Next.js, Supabase, Vercel. Ryan's own product",
-    href: "https://repwatchr.com",
-    shot: "/og/portfolio/repwatchr.jpg",
-    alt: "RepWatchr homepage over a photo of the US Capitol, showing the official profile and sourced record counts",
+      "When platforms throttled the story, the story already had its own domain, searchable archive, database, and direct path back to the audience.",
+    stack: "Next.js, Supabase, Vercel. Ryan's own site",
+    href: "https://realryannichols.com",
+    shot: "/og/portfolio/realryannichols.jpg",
+    alt: "RealRyanNichols.com homepage with the author profile and links into the searchable archive",
   },
   {
     kind: "client" as const,
@@ -187,81 +189,81 @@ const RECEIPTS = [
     body: "Wholesale and ecommerce: sourcing, pallets, inventory, fulfillment, and the sales process behind all of it. The pressure was payroll, not a sprint board.",
   },
   {
-    head: "Shipped 8 live systems across 6 industries.",
-    body: "Media, dental education, public-information software, commerce, legal services, local service, and nonprofit missions. Every one is publicly inspectable.",
+    head: "Shipped 7 live systems across multiple industries.",
+    body: "Media, dental education, commerce, legal services, local service, nonprofit missions, and the LeadFlow Pro system itself. Every one is publicly inspectable.",
   },
   {
     head: "Built real software, not brochure sites.",
-    body: "A public-records product with 16,783 profiles and 59,054 sourced records. A marketplace with auctions, offers, an AI listing builder, and a live fee engine.",
+    body: "A searchable media archive with 1,568+ case profiles. A marketplace with auctions, offers, an AI listing builder, and a live fee engine.",
   },
   {
     head: "Publishes on owned infrastructure, not rented reach.",
-    body: "78 free working tools and 13 articles, all served from domains and databases under his own control.",
+    body: `${TOOL_COUNT} free working tools and ${ARTICLES.length} articles, all served from domains and databases under his own control.`,
   },
 ];
 
-// The free build offer, stated the way it actually runs: the build happens
-// first, a down payment moves it forward. Matches /free-build and Notion
-// "1. Business Model, Offers and Money Path".
-const FREE_BUILD = [
+// The Product Studio entry offer: one clear scope, one clear price, and a
+// working approval checkpoint before the final payment and launch.
+const WEBSITE_LAUNCH = [
   {
     num: "01",
-    title: "Tell me about it",
-    body: "As little or as much as you want. Name, photos, videos, voice memos, old links. Dump it all on me.",
+    title: "Reserve the build",
+    body: "A $500 deposit opens intake, locks the Website Launch scope, and starts the build. Once intake begins, the deposit is non-refundable, except where the written agreement or applicable law requires otherwise.",
   },
   {
     num: "02",
-    title: "I build the whole thing",
-    body: "Real pages, real forms, real follow-up. Built like the live systems above, customized to you.",
+    title: "Review the working site",
+    body: "Click through the real pages, test the forms, and request revisions inside the agreed scope.",
   },
   {
     num: "03",
-    title: "You decide",
-    body: "Love it? A down payment moves it forward and we price it by real hours, never agency math. Do not want it? You pay nothing.",
+    title: "Approve and launch",
+    body: "The remaining $500 is due only after approval and before the site moves to its live domain.",
   },
 ];
 
 const LADDER = [
   {
-    kind: "Start here",
+    kind: "Fixed-scope foundation",
+    name: "Website Launch",
+    price: "$1,000",
+    lead: true,
+    body: "A conversion-led five-page public experience with a clear path from attention to the next conversation.",
+    items: [
+      "Conversion map and five premium pages",
+      "Three premium visual scenes at the founding rate",
+      "Lead capture and routing",
+      "Responsive build, analytics, and deployment",
+      "Two revision rounds before launch",
+    ],
+    href: "/packages/launch",
+    cta: "See the $1,000 launch",
+  },
+  {
+    kind: "Deeper diagnostic",
     name: "System Map",
     price: "$497",
-    lead: true,
-    body: "A working blueprint of your company before anyone sells you pages, software, or automation. Credited in full toward an approved build.",
+    lead: false,
+    body: "A working blueprint for a business that needs more than a five-page launch before anyone scopes software or automation.",
     items: [
       "Full inventory of what you run today",
       "Customer path and data flow, mapped",
       "Ownership and handoff audit",
-      "Recommended modules, phases, and honest price range",
+      "Recommended modules, phases, and price range",
     ],
     href: "/packages/system-map",
     cta: "See the System Map",
   },
   {
-    kind: "Connected core",
-    name: "LeadFlow Launch",
+    kind: "Connected company core",
+    name: "Company OS",
     price: "$7,500+",
     lead: false,
-    body: "The owned public site and operating core a serious business needs to capture, route, and work demand.",
+    body: "The website, CRM, portal, analytics, and operating dashboard connected around the way the business actually works.",
     items: [
-      "Public site or sales home base",
-      "Lead capture, CRM, admin workspace, reporting",
-      "Transactional email and practical automation",
-      "GitHub, Vercel, and Supabase in your accounts",
-    ],
-    href: "/packages/launch",
-    cta: "See the full build",
-  },
-  {
-    kind: "Full operating system",
-    name: "Industry OS",
-    price: "$15,000+",
-    lead: false,
-    body: "The connected core plus the portals, tools, records, training, and communications that make your business different.",
-    items: [
-      "Everything in LeadFlow Launch",
+      "Everything in Website Launch",
       "Customer, member, student, or partner portals",
-      "Industry tools, courses, archives, calls, and texts",
+      "Company workflows, courses, archives, calls, and texts",
       "Deeper permissions, migration, and automation",
     ],
     href: "/packages/industry-os",
@@ -370,54 +372,169 @@ export default function HomePage() {
       {/* 1 ------------------------------------------------------------ hero */}
       <section className="cb-hero">
         <div className="cb-shell">
-          <p className="cb-eyebrow">The Company Builder</p>
-          <h1 className="cb-h1">
-            <em>We don&rsquo;t just build your website.</em>
-            We build the company behind it.
-          </h1>
-          <p className="cb-hero-lead">
-            The LeadFlow Pro connects your website, CRM, calls, texts, email, payments,
-            portals, dashboards, automation, AI, and internal workflows into one business
-            system built in accounts you control.
-          </p>
-          <div className="cb-actions">
-            <CtaLink
-              href="/start"
-              event="map_my_company"
-              placement="home_hero"
-              className="cb-btn cb-btn--primary"
-            >
-              Map My Company
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </CtaLink>
-            <Link className="cb-btn cb-btn--ghost" href="/portfolio">
-              See the Live Systems
-            </Link>
-          </div>
-          <p className="cb-hero-own">
-            <ShieldCheck aria-hidden="true" className="h-5 w-5" />
-            Built by an operator. Installed in your accounts. Your business stays yours.
-          </p>
-
-          <CompanyLoop />
-        </div>
-      </section>
-
-      {/* 2 ----------------------------------------------------- proof strip */}
-      <section className="cb-proof" aria-label="Proof points">
-        <div className="cb-shell">
-          <div className="cb-proof-grid">
-            {PROOF.map((p) => (
-              <div key={p.label} className="cb-proof-item">
-                <strong>{p.figure}</strong>
-                <span>{p.label}</span>
+          <div className="cb-hero-layout">
+            <div className="cb-hero-copy">
+              <p className="cb-eyebrow">The Company Builder</p>
+              <h1 className="cb-h1">
+                <em>We don&rsquo;t just build your website.</em>
+                We build the company behind it.
+              </h1>
+              <p className="cb-hero-lead">
+                Your website, CRM, calls, texts, payments, automation, and reporting,
+                connected as one company system in accounts you control.
+              </p>
+              <div className="cb-actions">
+                <CtaLink
+                  href={WEBSITE_LAUNCH_CHECKOUT}
+                  event="start_website_launch"
+                  placement="home_hero"
+                  className="cb-btn cb-btn--primary"
+                >
+                  Start Website Launch | $500
+                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </CtaLink>
+                <Link className="cb-btn cb-btn--ghost" href="/premier-system">
+                  See the Premier System
+                </Link>
               </div>
-            ))}
+              <p className="mt-3 max-w-[64ch] text-sm leading-6 text-[#9aa8bf]">
+                $500 starts the five-page Website Launch. Once intake begins, the deposit
+                is non-refundable, except where the written agreement or applicable law
+                requires otherwise. CRM, automation, portals, and deeper systems are
+                scoped separately.
+              </p>
+              <p className="cb-hero-own">
+                <ShieldCheck aria-hidden="true" className="h-5 w-5" />
+                Built by an operator. Installed in your accounts. Your business stays
+                yours.
+              </p>
+            </div>
+
+            <figure className="cb-hero-visual">
+              <Image
+                src="/images/homepage-v2/connected-company-hero.webp"
+                alt="A premium connected company system with conversation, customer, automation, payment, and reporting stations"
+                width={1920}
+                height={1080}
+                priority
+                sizes="(max-width: 900px) 100vw, 58vw"
+              />
+              <figcaption>
+                <span>One connected company</span>
+                <strong>Every signal moves toward a sale.</strong>
+              </figcaption>
+            </figure>
           </div>
         </div>
       </section>
 
-      {/* 3 ------------------------------------- website builder vs us */}
+      {/* 2 ------------------------------------------ connected lead system */}
+      <section className="cb-band cb-band--visual" aria-labelledby="connected-system-title">
+        <div className="cb-shell">
+          <div className="cb-visual-intro">
+            <div>
+              <p className="cb-eyebrow">The connected lead system</p>
+              <h2 id="connected-system-title" className="cb-h2 cb-heading--wide">
+                Every signal becomes one customer story.
+              </h2>
+            </div>
+            <p className="cb-lead">
+              A call should not live in one app while a text, social message, and website
+              form live in three more. We connect the doors, preserve the history, and give
+              the next person one clear action.
+            </p>
+          </div>
+
+          <div className="cb-visual-ledger">
+            <article className="cb-visual-scene cb-visual-scene--record">
+              <div className="cb-visual-art">
+                <Image
+                  src="/images/visual-system/one-customer-one-record.webp"
+                  alt="Phone calls, text messages, social direct messages, and website forms flowing into one customer record"
+                  width={1254}
+                  height={1254}
+                  sizes="(max-width: 900px) 100vw, 58vw"
+                />
+              </div>
+              <div className="cb-visual-copy">
+                <span className="cb-visual-index">01</span>
+                <p className="cb-visual-kicker">Unify the signal</p>
+                <h3>One customer. One record.</h3>
+                <p>
+                  The conversation history follows the person, not the channel. Your team
+                  sees what happened, what matters, and what needs to happen next.
+                </p>
+                <ul className="cb-visual-points">
+                  <li>Calls, texts, DMs, and forms connected</li>
+                  <li>Source and consent preserved</li>
+                  <li>One accountable owner for the next move</li>
+                </ul>
+              </div>
+            </article>
+
+            <article className="cb-visual-scene cb-visual-scene--reverse cb-visual-scene--followup">
+              <div className="cb-visual-art">
+                <Image
+                  src="/images/visual-system/automate-the-reminder.webp"
+                  alt="Quote sent, follow up, and owner review shown as a connected workflow"
+                  width={1254}
+                  height={1254}
+                  sizes="(max-width: 900px) 100vw, 58vw"
+                />
+              </div>
+              <div className="cb-visual-copy">
+                <span className="cb-visual-index">02</span>
+                <p className="cb-visual-kicker">Run the follow up</p>
+                <h3>Automate the reminder. Keep the owner.</h3>
+                <p>
+                  Automation should keep promises, not make decisions nobody can explain.
+                  The system remembers the timing and brings the judgment call back to the
+                  owner.
+                </p>
+                <ul className="cb-visual-points">
+                  <li>Immediate acknowledgement</li>
+                  <li>Timed quote and appointment reminders</li>
+                  <li>Human review before the important move</li>
+                </ul>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* 3 ------------------------------------------- operating system proof */}
+      <section className="cb-band cb-band--operations" aria-label="Connected company operating system">
+        <div className="cb-shell">
+          <CompanyLoop />
+
+          <div className="cb-proof-cockpit" aria-label="Proof points">
+            <div className="cb-proof-cockpit__art">
+              <Image
+                src="/images/homepage-v2/proof-cockpit.webp"
+                alt="Five precision instruments representing shipped systems, industries, tools, products, and client ownership"
+                width={1920}
+                height={1080}
+                sizes="(max-width: 900px) 100vw, 52vw"
+              />
+              <span>Live build telemetry</span>
+            </div>
+            <div className="cb-proof-cockpit__ledger">
+              <p className="cb-eyebrow">Built, shipped, running</p>
+              <h2 className="cb-h2">Proof before promises.</h2>
+              <div className="cb-proof-grid">
+                {PROOF.map((p) => (
+                  <div key={p.label} className="cb-proof-item">
+                    <strong>{p.figure}</strong>
+                    <span>{p.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4 ------------------------------------- website builder vs us */}
       <section className="cb-band">
         <div className="cb-shell">
           <div className="cb-headrow">
@@ -476,7 +593,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4 ------------------------------------------------------- four parts */}
+      {/* 5 ------------------------------------------------------- four parts */}
       <section id="what-we-build" className="cb-band cb-band--tint" tabIndex={-1}>
         <div className="cb-shell">
           <div className="cb-headrow">
@@ -507,6 +624,52 @@ export default function HomePage() {
                 </ul>
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4b ------------------------------------------- source attribution */}
+      <section className="cb-band cb-band--attribution" aria-labelledby="trace-sale-title">
+        <div className="cb-shell">
+          <div className="cb-attribution-grid">
+            <div className="cb-attribution-art">
+              <Image
+                src="/images/visual-system/trace-the-sale.webp"
+                alt="A connected path from a social post to a click, website form, customer record, and sale"
+                width={1254}
+                height={1254}
+                sizes="(max-width: 900px) 100vw, 52vw"
+              />
+            </div>
+            <div className="cb-attribution-copy">
+              <p className="cb-eyebrow">First party attribution</p>
+              <h2 id="trace-sale-title" className="cb-h2 cb-heading--wide">
+                Can you trace the sale?
+              </h2>
+              <p className="cb-lead">
+                A dashboard full of views is not proof. The useful chain is the post, the
+                click, the form, the customer, and the sale. We build the path so the next
+                budget decision is based on evidence.
+              </p>
+              <dl className="cb-trace-ledger">
+                <div>
+                  <dt>Source</dt>
+                  <dd>The post, ad, search, referral, or page that created attention.</dd>
+                </div>
+                <div>
+                  <dt>Action</dt>
+                  <dd>The click, call, text, booking, form, or payment that followed.</dd>
+                </div>
+                <div>
+                  <dt>Outcome</dt>
+                  <dd>The customer record and closed result tied back to the beginning.</dd>
+                </div>
+              </dl>
+              <Link className="cb-btn cb-btn--primary" href="/live">
+                See the live proof system
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -586,7 +749,7 @@ export default function HomePage() {
 
           <div className="mt-14 flex justify-center">
             <Link className="cb-btn cb-btn--ghost" href="/portfolio">
-              See all 8 live systems
+              See all 7 live systems
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </div>
@@ -670,18 +833,61 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* 7b --------------------------------------------- operator academy */}
+      <section className="cb-band cb-band--academy" aria-labelledby="academy-title">
+        <div className="cb-shell">
+          <div className="cb-academy-grid">
+            <div className="cb-academy-copy">
+              <p className="cb-eyebrow">LeadFlow Operator Academy</p>
+              <h2 id="academy-title" className="cb-h2 cb-heading--wide">
+                The course is not the system.
+              </h2>
+              <p className="cb-lead">
+                A video library is content. A training platform connects interest,
+                application, payment, access, progress, resources, and the next lesson into
+                one owned experience.
+              </p>
+              <div className="cb-academy-proof">
+                <span>Public catalog</span>
+                <span>Member access</span>
+                <span>Progress tracking</span>
+                <span>Daily module publishing</span>
+              </div>
+              <div className="cb-actions">
+                <Link className="cb-btn cb-btn--primary" href="/training">
+                  Preview the training platform
+                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </Link>
+                <Link className="cb-btn cb-btn--ghost" href="/packages">
+                  See the platform packages
+                </Link>
+              </div>
+            </div>
+            <div className="cb-academy-art">
+              <Image
+                src="/images/visual-system/course-system-blueprint.webp"
+                alt="Blueprint showing interest, application, payment, and student portal as one connected training system"
+                width={1254}
+                height={1254}
+                sizes="(max-width: 900px) 100vw, 52vw"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 8 ---------------------------------------------------------- packages */}
       <section className="cb-band cb-band--tint">
         <div className="cb-shell">
           <div className="cb-headrow">
             <div>
               <p className="cb-eyebrow">Engagement</p>
-              <h2 className="cb-h2 cb-heading">Start with the map. Then price the real work.</h2>
+              <h2 className="cb-h2 cb-heading">Start with the right first release.</h2>
             </div>
             <p className="cb-lead">
               A mortgage company, a dental academy, and a fleet washing crew should not get
-              the same canned package. The entry point is fixed. Everything after it is
-              scoped from what the map finds.
+              the same canned package. Website Launch has a fixed scope and price. Larger
+              operating systems are mapped around what the business actually needs.
             </p>
           </div>
 
@@ -722,7 +928,7 @@ export default function HomePage() {
               <p>
                 Multi-location operations, software products, complex migrations, tenant
                 systems, advanced permissions, and deeper AI connectors are scoped from
-                $30,000+. The System Map still comes first.
+                $15,000+. A System Map comes first when the dependencies are complex.
               </p>
             </div>
             <Link className="cb-btn cb-btn--ghost" href="/start?goal=custom">
@@ -733,44 +939,48 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 8b ------------------------------------------------- the free build */}
-      {/* The lead magnet, and the lowest-friction way in. It sits directly
-          after the ladder on purpose: an owner who just read $7,500 needs to
-          see the zero-risk door before they bounce. */}
+      {/* 8b -------------------------------------------- Product Studio offer */}
+      {/* A fixed-scope, fixed-price way to begin after the package ladder. The
+          existing layout classes stay in place so this offer inherits the
+          established visual system without introducing a one-off section. */}
       <section className="cb-band cb-band--ink cb-freebuild">
         <div className="cb-shell">
           <div className="cb-freebuild-grid">
             <div>
               <p className="cb-eyebrow">
-                <Gift aria-hidden="true" className="h-4 w-4" />
-                The free build offer
+                <Layers aria-hidden="true" className="h-4 w-4" />
+                Product Studio · Website Launch
               </p>
               <h2 className="cb-h2 cb-heading">
-                Not ready to pay for a map? I&rsquo;ll build it first.
+                A working five-page Website Launch for $1,000.
               </h2>
               <p className="cb-lead">
-                Tell me about the business. I build the whole thing before you pay anything.
-                No card, no deposit, no contract. If you love it, a down payment moves it
-                forward and we agree on a fair price by real hours. If you don&rsquo;t, we
-                shake hands and part friends.
+                Pay $500 to reserve the build. Review the working site and request revisions
+                inside the agreed scope. The remaining $500 is due only after approval and
+                before launch. Your code, domain, accounts, and data stay under your control.
               </p>
               <div className="cb-actions">
-                <CtaLink
-                  href="/free-build"
-                  event="start_free_build"
-                  placement="home_freebuild"
+                <a
+                  href={WEBSITE_LAUNCH_CHECKOUT}
+                  data-analytics="cta-website-launch-home"
                   className="cb-btn cb-btn--primary"
                 >
-                  Start My Free Build
+                  Reserve My Website Launch | $500
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                </CtaLink>
-                <a className="cb-btn cb-btn--ghost" href="sms:+19035008898">
-                  Text me: (903) 500-8898
                 </a>
+                <Link className="cb-btn cb-btn--ghost" href="/packages">
+                  See Product Studio options
+                </Link>
               </div>
+              <p className="mt-3 max-w-[64ch] text-sm leading-6 text-[#9aa8bf]">
+                The $500 deposit becomes non-refundable once intake begins, except where
+                the written agreement or applicable law requires otherwise. It starts the
+                five-page Website Launch. CRM, automation, portals, and deeper systems are
+                scoped separately.
+              </p>
             </div>
             <ol className="cb-freebuild-steps">
-              {FREE_BUILD.map((s) => (
+              {WEBSITE_LAUNCH.map((s) => (
                 <li key={s.title}>
                   <span className="cb-freebuild-num">{s.num}</span>
                   <div>
@@ -807,7 +1017,7 @@ export default function HomePage() {
               Map My Company
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </CtaLink>
-            <Link className="cb-btn cb-btn--ghost" href="/pricing">
+            <Link className="cb-btn cb-btn--ghost" href="/packages">
               <Layers aria-hidden="true" className="h-4 w-4" />
               See the packages
             </Link>

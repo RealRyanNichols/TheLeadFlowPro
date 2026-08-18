@@ -1,16 +1,15 @@
 "use client";
 
-// The order form at the bottom of every package sales page. The visitor picks
-// how they want to move: pay in full, choose their own down payment and pay it
-// by card right now, start with the $497 map, or ask questions. Card entry
-// happens on Stripe's secure hosted checkout, never on this page. The order
-// lands in the CRM first either way, so nothing is lost if checkout is
-// abandoned.
+// The order form at the bottom of every package sales page. Website Launch has
+// a fixed $1,000 schedule: $500 to start and $500 after approval, before launch.
+// Other packages retain their existing purchase, deposit, map-first, and
+// question paths. The CRM capture still runs before any checkout handoff.
 
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, CircleCheck, Lock } from "lucide-react";
 import BuyButton from "@/components/BuyButton";
+import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
 
 declare global {
   interface Window {
@@ -22,7 +21,7 @@ const INTENTS: Array<{ id: string; label: string; desc: string }> = [
   {
     id: "pay_full",
     label: "I want to purchase in full",
-    desc: "Pay the base price by card right now. Guarantee still applies.",
+    desc: "Pay the base price by card right now under the written scope.",
   },
   {
     id: "down_payment",
@@ -43,8 +42,7 @@ const INTENTS: Array<{ id: string; label: string; desc: string }> = [
 
 const BASE_PRICE: Record<string, number> = {
   "system-map": 497,
-  launch: 7500,
-  "industry-os": 15000,
+  launch: 1000,
 };
 
 const DEPOSIT_PRESETS = [500, 1000, 2500, 5000];
@@ -63,8 +61,12 @@ export default function PackageOrderForm({
   interest: string;
   buyable: boolean;
 }) {
-  const [intent, setIntent] = useState<string>(buyable ? "pay_full" : "down_payment");
-  const [deposit, setDeposit] = useState<number>(1000);
+  const isWebsiteLaunch = slug === "launch";
+  const isCompanyOS = slug === "industry-os" || slug === "company_os";
+  const [intent, setIntent] = useState<string>(
+    isCompanyOS ? "map_first" : buyable ? "pay_full" : "down_payment",
+  );
+  const [deposit, setDeposit] = useState<number>(500);
   const [customDeposit, setCustomDeposit] = useState<string>("");
   const [sending, setSending] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -73,9 +75,21 @@ export default function PackageOrderForm({
 
   const basePrice = BASE_PRICE[slug] ?? 0;
   const maxDeposit = Math.min(25000, basePrice);
-  const activeDeposit = customDeposit
-    ? Math.max(DEPOSIT_MIN, Math.min(maxDeposit, Math.round(Number(customDeposit) || 0)))
-    : deposit;
+  const parsedCustomDeposit = Math.round(Number(customDeposit));
+  const activeDeposit = isWebsiteLaunch
+    ? 500
+    : customDeposit
+      ? parsedCustomDeposit
+      : deposit;
+  const depositIsValid =
+    Number.isFinite(activeDeposit) &&
+    activeDeposit >= DEPOSIT_MIN &&
+    activeDeposit <= maxDeposit;
+  const availableIntents = isCompanyOS
+    ? INTENTS.filter((option) => option.id === "map_first" || option.id === "questions")
+    : isWebsiteLaunch
+      ? INTENTS.filter((option) => option.id === "down_payment" || option.id === "questions")
+      : INTENTS;
   const paysNow = intent === "pay_full" || intent === "down_payment";
   const payAmount = intent === "pay_full" ? basePrice : activeDeposit;
 
@@ -96,6 +110,16 @@ export default function PackageOrderForm({
       setSending(false);
       return;
     }
+    if (isCompanyOS && (intent === "pay_full" || intent === "down_payment")) {
+      setError("Company OS requires a System Map before any build payment.");
+      setSending(false);
+      return;
+    }
+    if (intent === "down_payment" && !isWebsiteLaunch && !depositIsValid) {
+      setError(`Enter a deposit between ${fmt(DEPOSIT_MIN)} and ${fmt(maxDeposit)}.`);
+      setSending(false);
+      return;
+    }
     const intentLabel = INTENTS.find((i) => i.id === intent)?.label ?? intent;
     const notes = String(form.get("notes") ?? "").trim();
     const params = new URLSearchParams(window.location.search);
@@ -108,10 +132,12 @@ export default function PackageOrderForm({
 
     // 1) The order lands in the CRM first, so nothing is lost if checkout is
     //    abandoned on the Stripe page.
-    const res = await fetch("/api/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    let res: Response;
+    try {
+      res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
         full_name: form.get("full_name"),
         business_name: form.get("business_name"),
         email,
@@ -140,10 +166,15 @@ export default function PackageOrderForm({
           pay_now_usd: paysNow ? payAmount : null,
           owner_notes: notes || null,
           next_action:
-            "Package order from the sales page. If payment initiated, confirm in Stripe. Guarantee stands.",
+            "Package order from the sales page. If payment initiated, confirm it in Stripe and follow the written scope and milestone schedule.",
         },
-      }),
-    });
+        }),
+      });
+    } catch {
+      setError("Could not reach the project intake. Check the connection and try again.");
+      setSending(false);
+      return;
+    }
     if (!res.ok) {
       setError(
         (await res.json().catch(() => ({}) as { error?: string })).error ??
@@ -157,6 +188,10 @@ export default function PackageOrderForm({
     // 2) If they chose to pay now, hand off to Stripe's secure hosted checkout.
     if (paysNow) {
       window.fbq?.("track", "InitiateCheckout", { value: payAmount, currency: "USD" });
+      if (isWebsiteLaunch && intent === "down_payment") {
+        window.location.href = WEBSITE_LAUNCH_CHECKOUT;
+        return;
+      }
       try {
         const co = await fetch("/api/checkout", {
           method: "POST",
@@ -204,7 +239,7 @@ export default function PackageOrderForm({
         <p className="mx-auto mt-3 max-w-xl text-[var(--text)]">
           {payNotice ??
             `I have your ${packageName} request and how you want to move. I will reach out within one business day on the channel you chose.`}{" "}
-          The guarantee stands: you do not pay for anything you do not like.
+          The next step follows the written scope and payment schedule shown on this page.
         </p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <Link href="/portfolio" className="button-secondary">
@@ -225,12 +260,15 @@ export default function PackageOrderForm({
         Tell me how you want to move.
       </h2>
       <p className="mt-2 text-[var(--muted)]">
-        Pick your path and add your details. Card payments run on Stripe secure checkout,
-        and every dollar you put down is credited in full toward your build.
+        {isWebsiteLaunch
+          ? "The five-page Website Launch is $1,000: $500 to start and $500 after approval, before launch. Once intake begins, the deposit is non-refundable, except where the written agreement or applicable law requires otherwise."
+          : isCompanyOS
+            ? "Company OS begins with a $497 System Map so the scope, dependencies, and implementation plan are clear before any build payment."
+            : "Pick your path and add your details. Card payments run on Stripe secure checkout, and every dollar you put down is credited in full toward your build."}
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        {INTENTS.map((opt) => {
+        {availableIntents.map((opt) => {
           const on = intent === opt.id;
           return (
             <button
@@ -260,7 +298,21 @@ export default function PackageOrderForm({
         })}
       </div>
 
-      {intent === "down_payment" && (
+      {intent === "down_payment" && isWebsiteLaunch && (
+        <div className="mt-4 rounded-xl border border-[var(--accent-line)] bg-sky-500/[0.06] p-5">
+          <p className="text-sm font-bold text-[var(--heading)]">
+            $500 reserves your Website Launch.
+          </p>
+          <p className="mt-1 text-[12.5px] text-[var(--muted)]">
+            The remaining $500 is due after you approve the working site and before it
+            launches. Once intake begins, the deposit is non-refundable, except where the
+            written agreement or applicable law requires otherwise. After the order is
+            saved, Stripe opens for the deposit.
+          </p>
+        </div>
+      )}
+
+      {intent === "down_payment" && !isWebsiteLaunch && (
         <div className="mt-4 rounded-xl border border-[var(--accent-line)] bg-sky-500/[0.06] p-5">
           <p className="text-sm font-bold text-[var(--heading)]">
             How much do you want to put down?
@@ -294,6 +346,7 @@ export default function PackageOrderForm({
               <span className="text-sm font-bold text-[var(--muted)]">$</span>
               <input
                 type="number"
+                aria-label="Custom deposit amount in dollars"
                 inputMode="numeric"
                 min={DEPOSIT_MIN}
                 max={maxDeposit}
@@ -307,8 +360,9 @@ export default function PackageOrderForm({
           </div>
           <p className="mt-3 flex items-center gap-2 text-[12.5px] font-semibold text-[var(--blue)]">
             <Lock className="h-3.5 w-3.5" />
-            You will pay {fmt(activeDeposit)} on Stripe secure checkout after you send the
-            order below.
+            {depositIsValid
+              ? `You will pay ${fmt(activeDeposit)} on Stripe secure checkout after you send the order below.`
+              : `Enter a deposit between ${fmt(DEPOSIT_MIN)} and ${fmt(maxDeposit)}.`}
           </p>
         </div>
       )}
@@ -322,7 +376,7 @@ export default function PackageOrderForm({
           <p className="mt-1 text-[12.5px] text-[var(--muted)]">
             That covers the base scope. If the System Map scopes your build bigger, the
             difference is a separate approval. If it scopes smaller, the difference is
-            credited or refunded. The guarantee applies to every phase.
+            credited or refunded. Every phase follows its written scope and milestone.
           </p>
         </div>
       )}
@@ -334,7 +388,7 @@ export default function PackageOrderForm({
           </p>
           <BuyButton
             kind="system_map"
-            label="Buy the Map — $497"
+            label="Buy the Map | $497"
             className="button-primary !min-h-[42px]"
           />
         </div>
@@ -415,15 +469,19 @@ export default function PackageOrderForm({
               ? "Opening Secure Checkout..."
               : "Sending Your Order..."
             : paysNow
-              ? `Send Order + Pay ${fmt(payAmount)} Now`
+              ? Number.isFinite(payAmount)
+                ? `Send Order + Pay ${fmt(payAmount)} Now`
+                : "Enter a valid deposit amount"
               : `Send My ${packageName} Order`}
           {!sending && <ArrowRight aria-hidden="true" className="h-4 w-4" />}
         </button>
         <p className="form-legal mt-4">
           By submitting, you agree to our <Link href="/terms">Terms</Link> and acknowledge
           our <Link href="/privacy">Privacy Policy</Link>. Card payments are processed by
-          Stripe on their secure checkout page. Deposits and payments are credited in
-          full toward your build, and you do not pay for work you do not approve.
+          Stripe on their secure checkout page. Deposits and payments follow the written
+          scope. Website Launch is $500 now and $500 after approval, before launch. Once
+          intake begins, the initial $500 is non-refundable, except where the written
+          agreement or applicable law requires otherwise.
         </p>
       </form>
     </div>

@@ -24,13 +24,18 @@ type Lead = {
 
 const STATUSES = ["new", "contacted", "call_booked", "proposal", "won", "lost"];
 const INTEREST_LABELS: Record<string, string> = {
-  learn: "Learn It",
-  build_with_you: "Build With You",
-  done_for_you: "Done For You",
+  learn: "Legacy training path",
+  build_with_you: "Legacy guided build path",
+  done_for_you: "Legacy full-service path",
   unsure: "Unsure",
   blueprint: "System Map",
-  launch_system: "LeadFlow Launch",
-  industry_os: "Industry OS",
+  system_map: "System Map",
+  launch_system: "Website Launch",
+  website_launch: "Website Launch",
+  lead_engine: "Lead Engine",
+  training_platform: "Training Platform",
+  industry_os: "Company OS",
+  company_os: "Company OS",
   custom_platform: "Custom Platform",
   operations: "Operations Partner",
 };

@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, ShieldCheck } from "lucide-react";
 import CtaLink from "@/components/site/CtaLink";
+import { ARTICLES } from "@/lib/articles";
+import { TOOL_COUNT } from "@/lib/tools";
 
 // About Ryan. Operator proof, grounded in receipts, kept short on purpose. This
 // is not an autobiography: it exists to answer one question, which is whether
@@ -18,8 +20,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.theleadflowpro.com/about" },
   openGraph: {
     title: "I have already built what you are trying to build.",
-    description:
-      "The operator behind The LeadFlow Pro: 8 live systems across 6 industries, 78 published tools, and real software products.",
+    description: `The operator behind The LeadFlow Pro: 7 live systems across multiple industries, ${TOOL_COUNT} published tools, and real software products.`,
     url: "https://www.theleadflowpro.com/about",
     siteName: "The LeadFlow Pro",
     images: [{ url: "/og/home.png", width: 1200, height: 630 }],
@@ -51,9 +52,9 @@ const CHAPTERS = [
   {
     kicker: "Then the software",
     title: "He stopped renting the tools and built them.",
-    body: "Eight live systems across six industries: media platforms, a dental school's enrollment engine, a public-records product, a commerce marketplace, a legal services catalog, a nonprofit mission platform, and a local service business. Four of them are real software products on the owned stack, with databases, search, and paid tiers, not brochure pages.",
-    image: "/og/portfolio/repwatchr.jpg",
-    alt: "RepWatchr, a public officials records product built by Ryan Nichols, showing profile and record counts",
+    body: "Seven live systems across multiple industries: an independent media platform, a dental school's enrollment engine, a commerce marketplace, a legal services catalog, a nonprofit mission platform, a local service business, and The LeadFlow Pro itself. These are working systems with databases, search, intake, payments, and operational tools, not brochure pages.",
+    image: "/og/portfolio/theleadflowpro.jpg",
+    alt: "The LeadFlow Pro website and connected business system built by Ryan Nichols",
     w: 1200,
     h: 630,
     photo: false,
@@ -62,19 +63,19 @@ const CHAPTERS = [
 
 const RECEIPTS = [
   {
-    head: "8 live systems, 6 industries.",
+    head: "7 live systems across multiple industries.",
     body: "Every one is publicly inspectable. The portfolio links straight to them and labels which are client systems and which are Ryan's own products.",
   },
   {
-    head: "16,783 official profiles. 59,054 sourced records.",
-    body: "RepWatchr is a working software product on the same stack installed for clients. Searchable database, scorecards, packet builder, paid research tiers.",
+    head: "1,568+ case profiles in a searchable archive.",
+    body: "RealRyanNichols.com is a working publishing system on the owned stack, with a searchable database, intake, an AI assistant, SMS alerts, and a store.",
   },
   {
     head: "He has been on the buying side of premium work.",
     body: "Ryan has flown a specialist in first class, covered the room, the board and the food, and paid five figures for a two day shoot, because the content that came out of it paid for itself once it went to work. That is why he does not flinch at quoting a real number, and why he will tell you when something is not worth it.",
   },
   {
-    head: "78 free working tools. 13 owned articles.",
+    head: `${TOOL_COUNT} free working tools. ${ARTICLES.length} owned articles.`,
     body: "Calculators, assessments, and generators published on infrastructure he controls, not on a rented platform that can change the terms.",
   },
   {

@@ -1,19 +1,24 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
-import { enrollInEmailSeries } from "@/lib/leadNotify";
+import {
+  enrollInEmailSeries,
+  shouldEnrollInLegacyEmailSeries,
+} from "@/lib/leadNotify";
 
-// Daily enrollment sweep. Runs on Vercel Cron (vercel.json), 10am Central.
+// Daily legacy-series enrollment sweep. Runs on Vercel Cron (vercel.json),
+// 10am Central.
 //
 // The 4-step hardcoded email sequence that used to live here is GONE on
 // purpose (2026-08-12, Ryan's call). It overlapped the Resend "Free Build
 // 30-Day Email Series" and a lead would have gotten both. The Resend series
 // is the one follow-up sequence now.
 //
-// New leads are enrolled instantly by notifyNewLead() at capture time. This
-// cron is the safety net behind that: it sweeps every live lead from the
-// last 21 days and enrolls anyone the instant path missed - which includes
-// every lead captured during the Runs:0 window before enrollment existed.
+// Eligible non-paid leads are enrolled instantly by notifyNewLead() at capture
+// time. This cron is the safety net behind that: it sweeps recent live leads
+// and enrolls anyone the instant path missed. Paid Website Launch, package,
+// add-on, deposit, checkout, and other explicit product leads are excluded
+// before a claim row is written.
 //
 // Step 0 in lead_emails is the enrollment marker, not an email. The table
 // has UNIQUE (lead_id, step), so a lead can never be enrolled twice, even
@@ -32,12 +37,25 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: true, skipped: "missing SUPABASE_SERVICE_ROLE_KEY or RESEND_API_KEY" });
   }
 
+  // The Free Build 30-Day Email Series is retired. Keep the authenticated cron
+  // route alive so scheduled calls remain healthy, but emit no new enrollment
+  // events until replacement paid-ladder copy is approved.
+  if (!shouldEnrollInLegacyEmailSeries({ interest: "", goals: "", source: "cron" })) {
+    return NextResponse.json({
+      ok: true,
+      skipped: "legacy_free_build_series_retired",
+      enrolled: 0,
+    });
+  }
+
   const supabase = createSupabaseClient(SUPABASE_URL, serviceKey);
   const since = new Date(Date.now() - 21 * 86400e3).toISOString();
 
   const { data: leads } = await supabase
     .from("leads")
-    .select("id, created_at, full_name, email, status, is_test, email_unsubscribed_at")
+    .select(
+      "id, created_at, full_name, email, status, is_test, email_unsubscribed_at, interest, goals, source",
+    )
     .is("deleted_at", null)
     .is("email_unsubscribed_at", null) // never email someone who opted out
     .not("is_test", "is", true) // test rows are not people
@@ -51,8 +69,13 @@ export async function GET(request: Request) {
   const enrolledAlready = new Set((sentRows ?? []).map((r) => r.lead_id));
 
   let enrolled = 0;
+  let excludedPaid = 0;
   for (const lead of leads ?? []) {
     if (enrolledAlready.has(lead.id)) continue;
+    if (!shouldEnrollInLegacyEmailSeries(lead)) {
+      excludedPaid++;
+      continue;
+    }
 
     // Claim first (unique constraint = no dupes even on overlapping runs)
     const { error: claimErr } = await supabase
@@ -71,5 +94,10 @@ export async function GET(request: Request) {
     enrolled++;
   }
 
-  return NextResponse.json({ ok: true, checked: (leads ?? []).length, enrolled });
+  return NextResponse.json({
+    ok: true,
+    checked: (leads ?? []).length,
+    enrolled,
+    excluded_paid: excludedPaid,
+  });
 }

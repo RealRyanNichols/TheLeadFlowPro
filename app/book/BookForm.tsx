@@ -9,10 +9,24 @@ export default function BookForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const defaultInterest = ["learn", "build_with_you", "done_for_you"].includes(
-    params.get("interest") ?? ""
-  )
-    ? (params.get("interest") as string)
+  const requestedInterest = params.get("interest") ?? "";
+  const legacyInterest: Record<string, string> = {
+    learn: "system_map",
+    build_with_you: "website_launch",
+    done_for_you: "company_os",
+    industry_os: "company_os",
+  };
+  const supportedInterests = [
+    "website_launch",
+    "system_map",
+    "lead_engine",
+    "training_platform",
+    "company_os",
+    "custom_platform",
+  ];
+  const normalizedInterest = legacyInterest[requestedInterest] ?? requestedInterest;
+  const defaultInterest = supportedInterests.includes(normalizedInterest)
+    ? normalizedInterest
     : "unsure";
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -102,10 +116,13 @@ export default function BookForm() {
       <div>
         <label className="label" htmlFor="interest">Which path interests you?</label>
         <select className="input" id="interest" name="interest" defaultValue={defaultInterest}>
-          <option value="learn">Learn It: teach me the system</option>
-          <option value="build_with_you">Build It With You: build mine together</option>
-          <option value="done_for_you">Done For You: build it and hand me the keys</option>
-          <option value="unsure">Not sure yet, let's talk</option>
+          <option value="website_launch">Website Launch: five-page foundation</option>
+          <option value="system_map">System Map: map the dependencies first</option>
+          <option value="lead_engine">Lead Engine: website, funnel, CRM, and follow-up</option>
+          <option value="training_platform">Training Platform: owned courses and delivery</option>
+          <option value="company_os">Company OS: connected operating system</option>
+          <option value="custom_platform">Custom Platform: purpose-built software</option>
+          <option value="unsure">Not sure yet, help me choose</option>
         </select>
       </div>
 
@@ -139,7 +156,7 @@ export default function BookForm() {
         </div>
       </div>
 
-      {error && <p className="text-sm font-medium text-[var(--danger)]">{error}</p>}
+      {error && <p className="text-sm font-medium text-[var(--danger)]" role="alert">{error}</p>}
 
       <button type="submit" disabled={submitting} className="btn-primary w-full disabled:opacity-50">
         {submitting ? "Sending..." : "Send It"}

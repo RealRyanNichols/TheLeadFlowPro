@@ -38,6 +38,7 @@ function toolName(slug: string): string {
 export default function LiveDashboard({ initial, showLeads }: { initial: LivePayload; showLeads: boolean }) {
   const [payload, setPayload] = useState<LivePayload>(initial);
   const [stale, setStale] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const [, forceTick] = useState(0);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -57,6 +58,7 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
   }, []);
 
   useEffect(() => {
+    setHydrated(true);
     timer.current = setInterval(refresh, POLL_MS);
     const tick = setInterval(() => forceTick((n) => n + 1), 10_000); // re-render relative times
     return () => {
@@ -114,7 +116,8 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
           {stale ? "Reconnecting — showing last verified data" : "System live"}
         </span>
         <span className="text-[#a8b4c8]">
-          Data updated {relativeTime(payload.fetched_at)} · refreshes about every 30–45s
+          Data updated {hydrated ? relativeTime(payload.fetched_at) : "recently"} · refreshes
+          about every 30–45s
         </span>
       </div>
 
@@ -168,7 +171,7 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
                       <span className="flex-1 text-[#e7ecf5]">
                         {publicFeedSentence(item)}
                         <span className="ml-1.5 text-[11px] text-[#7f8ca3]">
-                          {relativeTime(item.at)}
+                          {hydrated ? relativeTime(item.at) : "recently"}
                           {item.device ? ` · ${item.device}` : ""}
                         </span>
                       </span>

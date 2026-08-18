@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
-import { ArrowRight, Download, Code2, Zap } from "lucide-react";
+import { Download, Code2, Zap } from "lucide-react";
 import { TOOLS, TOOL_COUNT, toolIndex, sortTools } from "@/lib/tools";
 import { PUBLISHED_COLLECTIONS, collectionCount } from "@/lib/tools/collections";
 import ToolDirectory from "@/components/tools/ToolDirectory";
 import ToolFinder from "@/components/tools/ToolFinder";
 import ToolCard from "@/components/tools/ToolCard";
+import FinalCta from "@/components/site/system/FinalCta";
+import SiteHero from "@/components/site/system/SiteHero";
 
 const BASE = "https://www.theleadflowpro.com";
 
@@ -93,26 +94,28 @@ export default function ToolsPage() {
   };
 
   return (
-    <main className="pb-24">
+    <main className="cb-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <section className="page-hero page-hero-centered page-hero-compact">
-        <span className="eyebrow">
-          <Zap aria-hidden="true" className="h-3.5 w-3.5" />
-          {TOOL_COUNT} free tools
-        </span>
-        <h1>Free tools built for real work and real life.</h1>
-        {/* Hidden on phones on purpose: the grid has to be visible without a
-            long scroll, and this paragraph pushed the first card two screens
-            down. The h1 carries the promise; the lede is for wide viewports. */}
-        <p className="hidden sm:block">
-          Calculators, generators, planners, checkers and builders for business owners, professionals,
-          families, students, public servants, creators and people trying to get something done. Use it
-          here, save the result, put it on your website. No signup to use any of them.
-        </p>
-      </section>
+      <SiteHero
+        compact
+        eyebrow={`${TOOL_COUNT} working tools`}
+        mutedTitle="Do not just explain the problem."
+        title="Let somebody use the answer."
+        body="Calculators, generators, planners, checkers, and builders that turn a question into a useful next move. No signup to run them, save the result, or place one on your own website."
+        media={{
+          src: "/images/homepage-v2/connected-company-hero.webp",
+          alt: "A connected operating core feeding useful business modules",
+          kicker: "Useful before the call",
+          caption: "A website should do real work.",
+        }}
+        primary={{ href: "#tool-library", label: `Open all ${TOOL_COUNT} tools` }}
+        secondary={{ href: "/premier-system", label: "See a full system" }}
+        trustLine="Free to use. Free to save. Free to embed."
+      />
 
-      <section className="mx-auto w-[min(1180px,100%-40px)]">
+      <section id="tool-library" className="cb-band sv-tools-band">
+        <div className="sv-tools-shell">
         <div className="flex justify-center sm:mt-2">
           <ToolFinder tools={index} />
         </div>
@@ -121,7 +124,7 @@ export default function ToolsPage() {
             boundary. The fallback is the real card grid rather than a spinner,
             so the catalogue is in the HTML for crawlers and for anyone whose
             JavaScript has not arrived yet. */}
-        <div className="mt-8">
+        <div className="sv-long-grid mt-8">
           <Suspense fallback={<StaticGrid />}>
             <ToolDirectory tools={index} collections={collections} />
           </Suspense>
@@ -145,31 +148,15 @@ export default function ToolsPage() {
           ))}
         </div>
 
-        <div className="mt-14 rounded-2xl border border-[var(--accent-line)] bg-[var(--accent-tint)] p-7 text-center sm:p-9">
-          <h2 className="text-2xl font-black tracking-tight text-[var(--heading)] sm:text-3xl">
-            Why is all this free?
-          </h2>
-          <p className="mx-auto mt-3 max-w-2xl leading-relaxed text-[var(--text)]">
-            Because this is a fraction of what a website should be doing for you. If a free calculator can
-            show you where five figures a year is leaking, think about what your actual site could do if it
-            was built to run your business instead of just sit there. Use every one of these and never talk
-            to me. That is fine. When you are ready to stop renting your platform, you will know who to call.
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link href="/start" className="button-primary">
-              Map My Company
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
-            <a href="sms:+19035008898" className="button-secondary">
-              Text me a tool idea
-            </a>
-          </div>
-          <p className="mt-4 text-xs text-[var(--quiet)]">
-            New tools go up every month. If your business wishes one of these existed, tell me and I might
-            build it next.
-          </p>
         </div>
       </section>
+      <FinalCta
+        eyebrow="Why is all this free?"
+        title="Because this is a fraction of what your website should be doing."
+        body="Use every tool and never talk to me. That is fine. When you are ready to turn the useful idea into an owned business system, the next move is already here."
+        primary={{ href: "/start", label: "Map My Company" }}
+        secondary={{ href: "/contact", label: "Send a tool idea" }}
+      />
     </main>
   );
 }

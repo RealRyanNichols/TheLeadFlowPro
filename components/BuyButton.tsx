@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function BuyButton({
-  kind = "learn_it",
-  label = "Start Learning — $497",
+  kind = "system_map",
+  label = "Start with a System Map | $497",
   className = "btn-primary",
 }: {
   kind?: string;
@@ -17,7 +17,13 @@ export default function BuyButton({
 
   async function buy() {
     setBusy(true);
-    if (window.fbq) window.fbq("track", "InitiateCheckout", { value: 497, currency: "USD" });
+    const checkoutValue = kind === "system_map" || kind === "learn_it" ? 497 : undefined;
+    if (window.fbq) {
+      window.fbq("track", "InitiateCheckout", {
+        ...(checkoutValue ? { value: checkoutValue } : {}),
+        currency: "USD",
+      });
+    }
     try {
       const r = await fetch("/api/checkout", {
         method: "POST",
@@ -25,8 +31,7 @@ export default function BuyButton({
         body: JSON.stringify({ kind }),
       });
       if (r.status === 501) {
-        // Checkout not configured yet — route to a call instead of a dead end.
-        router.push("/book?interest=learn");
+        router.push(kind === "learn_it" ? "/book?interest=learn" : "/book?interest=system_map");
         return;
       }
       const j = await r.json();
@@ -35,12 +40,12 @@ export default function BuyButton({
         return;
       }
     } catch { /* fall through */ }
-    router.push("/book?interest=learn");
+    router.push(kind === "learn_it" ? "/book?interest=learn" : "/book?interest=system_map");
   }
 
   return (
-    <button onClick={buy} disabled={busy} className={`${className} disabled:opacity-60`}>
-      {busy ? "Opening checkout…" : label}
+    <button type="button" onClick={buy} disabled={busy} className={`${className} disabled:opacity-60`}>
+      {busy ? "Opening checkout..." : label}
     </button>
   );
 }

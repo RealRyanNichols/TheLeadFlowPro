@@ -1,5 +1,9 @@
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, CalendarDays, Laptop, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import EventCard from "./EventCard";
+import styles from "./events.module.css";
 
 export const metadata = {
   title: "Events & Workshops | The LeadFlow Pro",
@@ -16,52 +20,117 @@ export default async function EventsPage() {
     .order("starts_at", { ascending: true });
 
   const upcoming = (events ?? []).filter(
-    (e) => !e.starts_at || new Date(e.starts_at) > new Date()
+    (event) => !event.starts_at || new Date(event.starts_at) > new Date(),
   );
 
   return (
-    <section className="mx-auto max-w-4xl px-4 pb-24 pt-[22px] sm:pt-8">
-      <h1 className="text-center text-4xl font-black text-[var(--heading)] sm:text-5xl">
-        Live events. <span className="text-flow-400">Real answers.</span>
-      </h1>
-      <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-[var(--text)]">
-        Seminars and hands-on workshops in East Texas. Bring your laptop and your
-        questions. Leave knowing exactly how to own your platform instead of
-        renting it.
-      </p>
-
-      <div className="mt-12 space-y-6">
-        {upcoming.length === 0 && (
-          <div className="card text-center">
-            <h2 className="text-xl font-bold text-[var(--heading)]">
-              Next event dates coming soon
-            </h2>
-            <p className="mt-2 text-[var(--muted)]">
-              Workshops are being scheduled now across East Texas. Book a call and
-              I will make sure you hear about the next one first.
+    <main className={`cb-page ${styles.page}`}>
+      <section className="cb-hero">
+        <div className="cb-shell cb-hero-layout">
+          <div className="cb-hero-copy">
+            <p className="cb-eyebrow">East Texas workshops</p>
+            <h1 className="cb-h1">
+              Live events.
+              <em>Real answers.</em>
+            </h1>
+            <p className="cb-hero-lead">
+              Bring your laptop and your questions. Leave knowing what to build, what to own,
+              and what your next move should be instead of renting another disconnected stack.
             </p>
-            <a href="/book" className="btn-primary mt-6">
-              Book a Call
-            </a>
+            <div className={styles.heroFacts}>
+              <span>
+                <MapPin aria-hidden="true" />
+                East Texas
+              </span>
+              <span>
+                <Laptop aria-hidden="true" />
+                Hands-on work
+              </span>
+            </div>
+            <div className="cb-actions">
+              <a className="cb-btn cb-btn--primary" href="#upcoming-events">
+                See Upcoming Events
+                <ArrowRight aria-hidden="true" />
+              </a>
+              <Link className="cb-btn cb-btn--ghost" href="/book?interest=training_platform">
+                Ask About Team Training
+              </Link>
+            </div>
           </div>
-        )}
-        {upcoming.map((e) => (
-          <EventCard key={e.id} event={e} />
-        ))}
-      </div>
 
-      <div className="card mt-12 text-center">
-        <h2 className="text-xl font-bold text-[var(--heading)]">
-          Want this taught at YOUR business?
-        </h2>
-        <p className="mt-2 text-[var(--muted)]">
-          I come on site, train your team on the full stack, and we build your
-          actual system together. Scoped per company.
-        </p>
-        <a href="/book?interest=done_for_you" className="btn-ghost mt-6">
-          Ask About On-Site Training
-        </a>
-      </div>
-    </section>
+          <figure className={`cb-hero-visual ${styles.operatorVisual}`}>
+            <Image
+              src="/images/ryan-meta-raybans-production-clean.jpg"
+              alt="Ryan Nichols wearing camera-enabled glasses"
+              width={768}
+              height={1024}
+              priority
+              sizes="(max-width: 900px) 100vw, 42vw"
+            />
+            <figcaption>
+              <span>Operator-led</span>
+              <strong>Bring the real business. Build the real next step.</strong>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section id="upcoming-events" className="cb-band" tabIndex={-1}>
+        <div className="cb-shell">
+          <div className={styles.eventHeading}>
+            <div>
+              <p className="cb-eyebrow">Upcoming schedule</p>
+              <h2 className="cb-h2">Reserve your place in the room.</h2>
+            </div>
+            <p className="cb-lead">
+              Published events appear here as dates are confirmed. Registration and payment
+              behavior stay attached to each event card.
+            </p>
+          </div>
+
+          <div className={styles.eventList}>
+            {upcoming.length === 0 && (
+              <div className={styles.emptyState}>
+                <CalendarDays aria-hidden="true" />
+                <p className="cb-eyebrow">Dates in progress</p>
+                <h2>Next event dates coming soon.</h2>
+                <p>
+                  Workshops are being scheduled across East Texas. Book a call and Ryan will
+                  make sure you hear about the next one first.
+                </p>
+                <Link href="/book" className="cb-btn cb-btn--primary">
+                  Book a Call
+                  <ArrowRight aria-hidden="true" />
+                </Link>
+              </div>
+            )}
+            {upcoming.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="cb-band cb-band--ink">
+        <div className="cb-shell">
+          <div className={styles.trainingGrid}>
+            <div>
+              <p className="cb-eyebrow">Bring the workshop to your company</p>
+              <h2 className="cb-h2">Train the team on the system you actually need.</h2>
+            </div>
+            <div>
+              <p className="cb-lead">
+                Ryan comes on site, trains your team on the full stack, and works through the
+                company&apos;s real system with you. On-site training is scoped per company.
+              </p>
+              <Link href="/book?interest=training_platform" className="cb-btn cb-btn--ghost">
+                Ask About On-Site Training
+                <ArrowRight aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }

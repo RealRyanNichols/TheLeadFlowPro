@@ -14,6 +14,9 @@
 //
 // The `tools` slugs are existing, live tool pages. Nothing here invents a tool.
 
+import { ARTICLES } from "./articles";
+import { TOOL_COUNT } from "./tools";
+
 export type StageSlug =
   | "attention"
   | "website"
@@ -101,7 +104,7 @@ export const STAGES: Stage[] = [
       { name: "First-party attribution", body: "Every visit tagged and stored in your database, so the channel report is yours and not a platform's marketing." },
     ],
     proof: [
-      { name: "TheLeadFlowPro.com", what: "78 free tools and 13 articles published on owned infrastructure, each one a door in from search", url: "https://www.theleadflowpro.com/tools" },
+      { name: "TheLeadFlowPro.com", what: `${TOOL_COUNT} free tools and ${ARTICLES.length} articles published on owned infrastructure, each one a door in from search`, url: "https://www.theleadflowpro.com/tools" },
       { name: "RealRyanNichols.com", what: "A publishing engine with a searchable archive of 1,568+ case profiles, built when platforms throttled the reach", url: "https://realryannichols.com" },
       { name: "Lone Star Total Wash", what: "A local service business that can now be found, priced, and booked without a phone call", url: "https://www.lonestartotalwash.com" },
     ],
@@ -313,7 +316,7 @@ export const STAGES: Stage[] = [
     proof: [
       { name: "TheLeadFlowPro.com", what: "This site's own back office: pipeline, per-lead workspace, notes, tasks, activity, two-way messaging, CSV export", url: "https://www.theleadflowpro.com" },
       { name: "Premier Dental Academy", what: "Student records, applications and payment plans in a database the school owns", url: "https://www.premierdentalacademyoflongview.com" },
-      { name: "RepWatchr", what: "16,783 official profiles and 59,054 sourced records. Proof this stack handles a real database, not a contact list", url: "https://repwatchr.com" },
+      { name: "RealRyanNichols.com", what: "A searchable archive of 1,568+ case profiles. Proof this stack handles a real database, not a contact list", url: "https://realryannichols.com" },
     ],
     tools: [
       "per-seat-cost-calculator",
@@ -545,7 +548,7 @@ export const STAGES: Stage[] = [
     ],
     proof: [
       { name: "TheLeadFlowPro.com", what: "Every visit logged to our own database with source, and every lead credited to the campaign that produced it", url: "https://www.theleadflowpro.com" },
-      { name: "RepWatchr", what: "59,054 sourced records with the source chain attached to each one. Same discipline, different subject", url: "https://repwatchr.com" },
+      { name: "RealRyanNichols.com", what: "A searchable archive of 1,568+ case profiles on owned infrastructure. The same source discipline supports the publishing system", url: "https://realryannichols.com" },
     ],
     tools: [
       "utm-link-builder",

@@ -1,0 +1,79 @@
+.page {
+  overflow-x: clip;
+}
+
+.dashboardSection,
+.graderSection {
+  width: min(1120px, calc(100% - 40px));
+  margin-inline: auto;
+}
+
+.dashboardSection {
+  margin-top: 46px;
+}
+
+.dataNote {
+  margin: 13px 0 0;
+  color: var(--cb-muted);
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.graderSection {
+  margin-top: 24px;
+}
+
+.graderSection > div,
+.operatorSection :global(.lfp-ink) {
+  border: 1px solid #ffffff1f;
+  border-radius: 22px;
+  background: var(--cb-ink);
+  box-shadow: 0 28px 72px #0a12202b;
+}
+
+.graderSection h2,
+.operatorSection h2 {
+  color: #ffffff;
+}
+
+.dashboardSection :global(.lfp-ink) h3 {
+  color: #a8b4c8;
+}
+
+.trackSection {
+  margin-top: 24px;
+}
+
+.trackSection :global(.card) {
+  border-color: var(--cb-hair);
+  background: var(--cb-surface);
+  box-shadow: var(--cb-shadow);
+}
+
+.operatorSection {
+  margin-top: 0;
+}
+
+.operatorSection :global(.lfp-ink) {
+  box-shadow: none;
+}
+
+.closingSection {
+  background: var(--cb-surface-2);
+}
+
+.closingPanel {
+  padding: clamp(32px, 6vw, 64px);
+  border: 1px solid var(--cb-hair);
+  border-radius: var(--cb-radius-lg);
+  text-align: center;
+  background: var(--cb-surface);
+  box-shadow: var(--cb-shadow-lift);
+}
+
+@media (max-width: 640px) {
+  .dashboardSection,
+  .graderSection {
+    width: min(100% - 28px, 1120px);
+  }
+}

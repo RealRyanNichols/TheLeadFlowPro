@@ -1,0 +1,519 @@
+.routerV2 {
+  --page: #040916;
+  --page-soft: #071329;
+  --panel: #0b162a;
+  --panel-strong: #101f38;
+  --line: rgba(153, 181, 235, 0.2);
+  --line-strong: rgba(145, 179, 244, 0.34);
+  --text: #eaf0fb;
+  --muted: #b2bfd3;
+  --quiet: #8f9db4;
+  --heading: #ffffff;
+  --blue: #5b87ff;
+  --blue-strong: #2f64f5;
+  --cyan: #61ddff;
+  --green: #70e6a7;
+  --violet: #9a7cff;
+  --fill-1: rgba(255, 255, 255, 0.075);
+  --fill-2: rgba(255, 255, 255, 0.052);
+  --fill-3: rgba(255, 255, 255, 0.1);
+  --fill-4: rgba(255, 255, 255, 0.18);
+  --on-accent: #ffffff;
+  --accent-tint: rgba(56, 143, 255, 0.12);
+  --accent-line: rgba(97, 221, 255, 0.36);
+  --surface-raised: #0b162a;
+  --menu-bg: #0b162a;
+  --green-tint: rgba(53, 211, 153, 0.1);
+  --green-line: rgba(112, 230, 167, 0.34);
+  --warn: #ffd17d;
+  --warn-tint: rgba(251, 191, 36, 0.09);
+  --warn-line: rgba(255, 209, 125, 0.34);
+  --danger: #ff9ca8;
+  --danger-tint: rgba(248, 113, 113, 0.1);
+  --danger-line: rgba(255, 156, 168, 0.34);
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  overflow: hidden;
+  color-scheme: dark;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 82% 8%, rgba(20, 88, 255, 0.22), transparent 34rem),
+    radial-gradient(circle at 8% 76%, rgba(0, 209, 255, 0.09), transparent 30rem),
+    linear-gradient(148deg, #050b19 0%, #071329 52%, #030712 100%);
+}
+
+.routerV2::before {
+  position: absolute;
+  z-index: -2;
+  top: 0;
+  right: -8rem;
+  width: min(66rem, 74vw);
+  aspect-ratio: 16 / 9;
+  background: url("/images/homepage-v2/connected-company-hero.webp") center / cover no-repeat;
+  opacity: 0.12;
+  -webkit-mask-image: linear-gradient(112deg, transparent 3%, #000 52%, transparent 96%);
+  mask-image: linear-gradient(112deg, transparent 3%, #000 52%, transparent 96%);
+  pointer-events: none;
+  content: "";
+}
+
+.routerV2::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  opacity: 0.42;
+  background-image:
+    linear-gradient(rgba(91, 135, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91, 135, 255, 0.08) 1px, transparent 1px);
+  background-size: 76px 76px;
+  -webkit-mask-image: radial-gradient(ellipse 92% 64% at 50% 0%, #000 8%, transparent 76%);
+  mask-image: radial-gradient(ellipse 92% 64% at 50% 0%, #000 8%, transparent 76%);
+  pointer-events: none;
+  content: "";
+}
+
+.routerV2 :global(:focus-visible) {
+  outline: 3px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+.routerV2 :global(.router-header),
+.routerV2 :global(.router-footer),
+.routerV2 :global(.router-main) {
+  position: relative;
+  z-index: 1;
+}
+
+.routerV2 :global(.router-header) {
+  width: min(1240px, calc(100% - 48px));
+  min-height: 78px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.routerV2 :global(.brand-lockup) {
+  color: #ffffff;
+  font-family: var(--font-archivo), Archivo, Inter, sans-serif;
+  font-size: 20px;
+}
+
+.routerV2 :global(.brand-lockup span) {
+  color: #7ca4ff;
+}
+
+.routerV2 :global(.router-exit) {
+  min-height: 44px;
+  color: #c5d1e4;
+  font-weight: 750;
+}
+
+.routerV2 :global(.router-exit:hover) {
+  color: #ffffff;
+}
+
+.routerV2 :global(.router-main) {
+  width: min(1120px, calc(100% - 40px));
+  padding-top: 32px;
+}
+
+.routerV2 :global(.router-progress) {
+  max-width: 820px;
+  margin-bottom: clamp(34px, 5vw, 56px);
+}
+
+.routerV2 :global(.router-progress-meta) {
+  color: #9eacc2;
+  letter-spacing: 0.13em;
+}
+
+.routerV2 :global(.router-progress-meta span:last-child) {
+  color: var(--cyan);
+}
+
+.routerV2 :global(.router-progress-track) {
+  height: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+
+.routerV2 :global(.router-progress-track span) {
+  background: linear-gradient(90deg, #255eff, #39c9ff 72%, #70e6a7);
+  box-shadow: 0 0 22px rgba(53, 198, 244, 0.56);
+}
+
+.routerV2 :global(.router-question-heading),
+.routerV2 :global(.result-heading) {
+  max-width: 880px;
+}
+
+.routerV2 :global(.eyebrow) {
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  color: var(--cyan);
+  background: transparent;
+  letter-spacing: 0.18em;
+}
+
+.routerV2 :global(.eyebrow)::before {
+  width: 26px;
+  height: 2px;
+  flex: none;
+  background: currentColor;
+  content: "";
+}
+
+.routerV2 :global(.router-question-heading h1),
+.routerV2 :global(.result-heading h1),
+.routerV2 :global(.result-contact-heading h2),
+.routerV2 :global(.result-package-card h2),
+.routerV2 :global(.router-success h2) {
+  color: #ffffff;
+  font-family: var(--font-archivo), Archivo, Inter, sans-serif;
+}
+
+.routerV2 :global(.router-question-heading h1),
+.routerV2 :global(.result-heading h1) {
+  max-width: 15ch;
+  margin-inline: auto;
+  font-size: clamp(40px, 5.3vw, 68px);
+  font-weight: 850;
+  line-height: 0.98;
+}
+
+.routerV2 :global(.router-question-heading > p),
+.routerV2 :global(.result-heading > p) {
+  max-width: 720px;
+  color: #b5c1d4;
+  font-size: 17px;
+  line-height: 1.62;
+}
+
+.routerV2 :global(.router-option) {
+  min-height: 126px;
+  overflow: hidden;
+  border-color: rgba(151, 180, 235, 0.22);
+  border-radius: 18px;
+  color: var(--text);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035)),
+    #071225;
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.22),
+    inset 0 1px rgba(255, 255, 255, 0.045);
+}
+
+.routerV2 :global(.router-option)::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(var(--ta, #38bdf8), var(--tb, #2563eb));
+  opacity: 0.7;
+  content: "";
+}
+
+.routerV2 :global(.router-option:hover) {
+  border-color: var(--ta, #61ddff);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--ta, #38bdf8) 12%, transparent), rgba(255, 255, 255, 0.05)),
+    #08162c;
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.3);
+}
+
+.routerV2 :global(.router-option.is-selected) {
+  border-color: var(--ta, #61ddff);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--ta, #38bdf8) 18%, transparent), rgba(255, 255, 255, 0.06)),
+    #08162c;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ta, #38bdf8) 36%, transparent);
+}
+
+.routerV2 :global(.router-option-icon) {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.routerV2 :global(.router-option-copy strong) {
+  color: #ffffff;
+  font-family: var(--font-archivo), Archivo, Inter, sans-serif;
+  font-size: 18px;
+}
+
+.routerV2 :global(.router-option-copy > span) {
+  color: #aebbd0;
+  font-size: 13.5px;
+}
+
+.routerV2 :global(.router-option-arrow),
+.routerV2 :global(.router-check) {
+  color: #9eb7e8;
+}
+
+.routerV2 :global(.router-check) {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.routerV2 :global(.router-reassurance),
+.routerV2 :global(.router-selection-count),
+.routerV2 :global(.router-back) {
+  color: #9daac0;
+}
+
+.routerV2 :global(.router-back) {
+  min-height: 44px;
+  padding-inline: 14px;
+  border-radius: 10px;
+}
+
+.routerV2 :global(.router-back:hover) {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.routerV2 :global(.router-wide-open) {
+  color: var(--cyan);
+}
+
+.routerV2 :global(.button-primary),
+.routerV2 :global(.button-secondary),
+.routerV2 :global(.button-quiet) {
+  min-height: 50px;
+  border-radius: 12px;
+}
+
+.routerV2 :global(.button-primary) {
+  border-color: rgba(124, 164, 255, 0.72);
+  background: linear-gradient(135deg, #1649e8, #2f67ff 58%, #147ac5);
+  box-shadow: 0 16px 34px rgba(18, 64, 232, 0.32);
+}
+
+.routerV2 :global(.button-primary:hover) {
+  background: linear-gradient(135deg, #123cc2, #2457df 58%, #0f659f);
+}
+
+.routerV2 :global(.button-secondary) {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #eef3fb;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.routerV2 :global(.button-secondary:hover) {
+  border-color: rgba(255, 255, 255, 0.64);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.routerV2 :global(.button-quiet) {
+  color: #aebbd0;
+}
+
+.routerV2 :global(.button-quiet:hover) {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.routerV2 :global(.result-system-card),
+.routerV2 :global(.result-package-card),
+.routerV2 :global(.result-contact-card),
+.routerV2 :global(.router-success),
+.routerV2 :global(.result-freedom-bar),
+.routerV2 :global(.result-channel-bar) {
+  border-color: rgba(151, 180, 235, 0.25);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035)),
+    #071225;
+  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.26);
+}
+
+.routerV2 :global(.result-system-topline),
+.routerV2 :global(.result-system-footer) {
+  border-color: rgba(255, 255, 255, 0.13);
+}
+
+.routerV2 :global(.result-system-footer) {
+  color: #dce6f6;
+  background: rgba(91, 135, 255, 0.1);
+}
+
+.routerV2 :global(.result-package-card .result-price) {
+  color: var(--cyan);
+}
+
+.routerV2 :global(.result-map-note) {
+  border-color: rgba(112, 230, 167, 0.28);
+  background: rgba(112, 230, 167, 0.08);
+}
+
+.routerV2 :global(.result-map-note strong) {
+  color: #8ff0b9;
+}
+
+.routerV2 :global(.result-fee-details li) {
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.routerV2 :global(.border-line) {
+  border-color: rgba(151, 180, 235, 0.25);
+}
+
+.routerV2 :global(.text-warn) {
+  color: var(--warn);
+}
+
+.routerV2 :global(.form-field) {
+  color: #b7c4d7;
+  font-size: 13px;
+}
+
+.routerV2 :global(.form-field input),
+.routerV2 :global(.form-field select),
+.routerV2 :global(.form-field textarea) {
+  border-color: rgba(145, 179, 244, 0.32);
+  color: #ffffff;
+  background: rgba(2, 8, 20, 0.72);
+}
+
+.routerV2 :global(.form-field input::placeholder),
+.routerV2 :global(.form-field textarea::placeholder) {
+  color: #7f8da4;
+}
+
+.routerV2 :global(.form-field input:focus),
+.routerV2 :global(.form-field select:focus),
+.routerV2 :global(.form-field textarea:focus) {
+  border-color: var(--cyan);
+  background: rgba(3, 12, 29, 0.92);
+  box-shadow: 0 0 0 3px rgba(97, 221, 255, 0.15);
+}
+
+.routerV2 :global(.consent-list) {
+  border-color: rgba(255, 255, 255, 0.13);
+}
+
+.routerV2 :global(.consent-list label),
+.routerV2 :global(.form-legal) {
+  color: #9daac0;
+}
+
+.routerV2 :global(.consent-list input) {
+  width: 20px;
+  height: 20px;
+  accent-color: #2f67ff;
+}
+
+.routerV2 :global(.form-error) {
+  border-color: rgba(255, 156, 168, 0.38);
+  color: #ffb2bc;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.routerV2 :global(.router-footer) {
+  width: min(1240px, calc(100% - 48px));
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #8593aa;
+}
+
+@media (max-width: 760px) {
+  .routerV2::before {
+    right: -12rem;
+    width: 46rem;
+    opacity: 0.1;
+  }
+
+  .routerV2 :global(.router-header),
+  .routerV2 :global(.router-footer),
+  .routerV2 :global(.router-main) {
+    width: min(100% - 28px, 1120px);
+  }
+
+  .routerV2 :global(.router-header) {
+    min-height: 66px;
+  }
+
+  .routerV2 :global(.brand-lockup) {
+    font-size: 17px;
+  }
+
+  .routerV2 :global(.router-exit) {
+    font-size: 12px;
+  }
+
+  .routerV2 :global(.router-exit)::before {
+    content: none;
+  }
+
+  .routerV2 :global(.router-main) {
+    padding-top: 20px;
+  }
+
+  .routerV2 :global(.router-question-heading h1),
+  .routerV2 :global(.result-heading h1) {
+    font-size: clamp(36px, 11.6vw, 50px);
+  }
+
+  .routerV2 :global(.router-question-heading > p),
+  .routerV2 :global(.result-heading > p) {
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .routerV2 :global(.router-option),
+  .routerV2 :global(.router-option-grid-large .router-option) {
+    min-height: 108px;
+    padding: 15px;
+  }
+
+  .routerV2 :global(.router-option-icon) {
+    width: 44px;
+    height: 44px;
+  }
+
+  .routerV2 :global(.router-option-copy strong) {
+    font-size: 16px;
+  }
+
+  .routerV2 :global(.router-option-copy > span) {
+    font-size: 12.5px;
+  }
+
+  .routerV2 :global(.router-progress-meta span:first-child) {
+    display: block;
+    max-width: 19ch;
+  }
+
+  .routerV2 :global(.router-progress-meta) {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 420px) {
+  .routerV2 :global(.router-option) {
+    align-items: flex-start;
+  }
+
+  .routerV2 :global(.router-option-copy) {
+    padding-right: 0;
+  }
+
+  .routerV2 :global(.router-option-arrow) {
+    display: none;
+  }
+
+  .routerV2 :global(.router-check) {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .routerV2 *,
+  .routerV2 *::before,
+  .routerV2 *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

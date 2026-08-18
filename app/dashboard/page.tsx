@@ -66,7 +66,12 @@ export default async function Dashboard() {
             Your projects, your progress, your platform.
           </p>
         </div>
-        <SignOutButton />
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Link href="/dashboard/build-room" className="btn-ghost inline-flex items-center justify-center">
+            Open Build Room
+          </Link>
+          <SignOutButton />
+        </div>
       </div>
 
       {(!projects || projects.length === 0) && (

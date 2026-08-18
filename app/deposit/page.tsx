@@ -3,14 +3,10 @@ import Link from "next/link";
 import { BadgeCheck, HandCoins, Receipt } from "lucide-react";
 import DepositForm from "./DepositForm";
 
-// The page Ryan sends when a free build lands and the owner says yes. Until
-// this existed the only way to put money down was to pick one of the three
-// packages, which does not fit a build that was quoted by real hours.
-
 export const metadata: Metadata = {
-  title: "Make a Down Payment | The LeadFlow Pro",
+  title: "Website Launch Deposit | The LeadFlow Pro",
   description:
-    "Put a down payment on your build. Credited in full toward the work. Card, Klarna, Afterpay or Affirm where available.",
+    "Reserve a five-page $1,000 Website Launch with a $500 deposit. The remaining $500 is due after approval and before launch.",
   alternates: { canonical: "https://www.theleadflowpro.com/deposit" },
   robots: { index: false, follow: true },
 };
@@ -18,18 +14,18 @@ export const metadata: Metadata = {
 const POINTS = [
   {
     icon: HandCoins,
-    title: "Credited in full",
-    body: "Every dollar comes off the price of the build. It is a down payment, not a fee.",
+    title: "One clear $1,000 price",
+    body: "The five-page Website Launch is $1,000 for the agreed scope: $500 to start and $500 after approval, before launch.",
   },
   {
     icon: Receipt,
-    title: "Priced by real hours",
-    body: "The number you were quoted came from the actual work, never agency math.",
+    title: "Two simple payments",
+    body: "The first $500 reserves the build and opens intake. Once intake begins, it is non-refundable, except where the written agreement or applicable law requires otherwise. The remaining $500 is due after approval and before launch.",
   },
   {
     icon: BadgeCheck,
-    title: "You already saw it",
-    body: "On the free build offer you look at the finished site first. Money only moves after that.",
+    title: "Working approval checkpoint",
+    body: "You review the working site and request revisions inside the agreed scope before the final payment.",
   },
 ];
 
@@ -38,15 +34,17 @@ export default function DepositPage() {
     <main className="cb-page">
       <section className="cb-hero">
         <div className="cb-shell">
-          <p className="cb-eyebrow">Down payment</p>
+          <p className="cb-eyebrow">Product Studio · Website Launch</p>
           <h1 className="cb-h1">
-            <em>You saw it. You want it.</em>
-            Let&rsquo;s get it moving.
+            <em>Reserve the build with $500.</em>
+            Pay the final $500 after approval.
           </h1>
           <p className="cb-hero-lead">
-            Put a down payment on your build. It is credited in full toward the price we
-            agreed on, and it is what moves the work from finished preview to your domain,
-            your accounts, and your data.
+            Your $500 deposit opens intake and starts the working site. Review it, request
+            revisions inside the agreed scope, and pay the remaining $500 only after you
+            approve it and before it launches. Once intake begins, the deposit is
+            non-refundable, except where the written agreement or applicable law requires
+            otherwise.
           </p>
         </div>
       </section>
@@ -56,7 +54,7 @@ export default function DepositPage() {
           <div className="cb-deposit-grid">
             <div>
               <p className="cb-eyebrow">How this works</p>
-              <h2 className="cb-h2 cb-heading">No surprises at the payment step.</h2>
+              <h2 className="cb-h2 cb-heading">A fixed price with a real approval point.</h2>
               <ul className="cb-receipts cb-receipts--standalone">
                 {POINTS.map((p) => (
                   <li key={p.title}>
@@ -68,9 +66,13 @@ export default function DepositPage() {
                 ))}
               </ul>
               <p className="cb-lead">
-                Not what you agreed on, or not sure yet?{" "}
+                Already have a different amount confirmed in writing?{" "}
+                <Link className="cb-textlink" href="/deposit/custom">
+                  Use the custom project deposit
+                </Link>
+                . Otherwise, want to ask a question first?{" "}
                 <Link className="cb-textlink" href="/contact">
-                  Send a message first
+                  Send a message
                 </Link>
               </p>
             </div>

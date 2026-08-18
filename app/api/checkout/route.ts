@@ -2,35 +2,45 @@ import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 
-// Stripe Checkout: Learn It ($497) + paid event seats. Activates when
+// Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
-// Without it, the UI falls back gracefully. No Stripe SDK — plain REST.
+// Without it, the UI falls back gracefully. No Stripe SDK, just plain REST.
 
 const PRODUCTS: Record<string, { name: string; amount: number }> = {
-  learn_it: { name: "Learn It — The LeadFlow Pro (lifetime access)", amount: 49700 },
   system_map: {
-    name: "System Map — The LeadFlow Pro (credited toward your build)",
+    name: "System Map | The LeadFlow Pro (credited toward your build)",
     amount: 49700,
   },
 };
 
 export async function POST(request: Request) {
+  const body = await request.json().catch(() => ({}));
+  const requestedPackage = String(body.package ?? "");
+  if (
+    (body.kind === "package_deposit" || body.kind === "package_full") &&
+    (requestedPackage === "industry-os" || requestedPackage === "company_os")
+  ) {
+    return NextResponse.json(
+      { error: "Company OS requires a System Map before checkout" },
+      { status: 400 },
+    );
+  }
+
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) return NextResponse.json({ error: "not_configured" }, { status: 501 });
 
   try {
-    const body = await request.json().catch(() => ({}));
     const email = typeof body.email === "string" ? body.email.slice(0, 200) : "";
     const site = "https://www.theleadflowpro.com";
 
     let kind: string;
     let name: string;
     let amount: number;
-    let cancelUrl = `${site}/pricing/learn-it?cancelled=1`;
+    let cancelUrl = `${site}/training?cancelled=1`;
     const metadata: Record<string, string> = {};
 
     if (body.kind === "event") {
-      // Paid event seat — price comes from the database, never the client.
+      // Paid event seat. Price comes from the database, never the client.
       const eventId = String(body.event_id ?? "");
       const registrationId = String(body.registration_id ?? "");
       if (!eventId) return NextResponse.json({ error: "event_id required" }, { status: 400 });
@@ -52,10 +62,8 @@ export async function POST(request: Request) {
       metadata.event_id = ev.id;
       if (registrationId) metadata.registration_id = registrationId;
     } else if (body.kind === "build_deposit") {
-      // Down payment on a build that is not one of the three packages: the free
-      // build offer, a custom scope, or anything Ryan quoted by real hours.
-      // Without this, a free-build customer who loves their site has no way to
-      // put money down. Amount is customer-chosen and clamped server-side.
+      // Down payment on a custom scope or anything Ryan quoted outside the
+      // package ladder. Amount is customer-chosen and clamped server-side.
       const requested = Math.round(Number(body.amount_usd));
       if (!Number.isFinite(requested)) {
         return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
@@ -64,7 +72,7 @@ export async function POST(request: Request) {
       kind = "build_deposit";
       name = "Build down payment (credited in full toward your build)";
       amount = dollars * 100;
-      cancelUrl = `${site}/deposit?cancelled=1`;
+      cancelUrl = `${site}/deposit/custom?cancelled=1`;
       metadata.kind = kind;
       metadata.deposit_usd = String(dollars);
       if (typeof body.reference === "string" && body.reference.trim()) {
@@ -76,33 +84,42 @@ export async function POST(request: Request) {
       // the base scope price. Everything is credited toward the final build.
       const PACKAGES: Record<string, { label: string; base: number }> = {
         "system-map": { label: "System Map", base: 49700 },
-        launch: { label: "LeadFlow Launch", base: 750000 },
-        "industry-os": { label: "Industry OS", base: 1500000 },
+        launch: { label: "Website Launch", base: 100000 },
       };
-      const pkg = PACKAGES[String(body.package ?? "")];
+      const packageId = requestedPackage;
+      const pkg = PACKAGES[packageId];
       if (!pkg) return NextResponse.json({ error: "Unknown package" }, { status: 400 });
       kind = body.kind;
       metadata.kind = kind;
-      metadata.package = String(body.package);
-      cancelUrl = `${site}/packages/${body.package}?cancelled=1`;
+      metadata.package = packageId;
+      cancelUrl = `${site}/packages/${packageId}?cancelled=1`;
       if (body.kind === "package_full") {
-        name = `${pkg.label} — pay in full (base scope, guarantee applies)`;
+        name = `${pkg.label} | pay in full (base scope)`;
         amount = pkg.base;
       } else {
-        // Whole dollars, clamped to sane bounds, never above the base price.
+        // Whole dollars, validated server-side and never above the base price.
         const requested = Math.round(Number(body.amount_usd));
         if (!Number.isFinite(requested)) {
           return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
         }
+        if (packageId === "launch" && requested !== 500) {
+          return NextResponse.json(
+            { error: "Website Launch deposit must be $500" },
+            { status: 400 },
+          );
+        }
         const min = 250;
         const max = Math.min(25000, pkg.base / 100);
         const dollars = Math.max(min, Math.min(max, requested));
-        name = `${pkg.label} — build down payment (credited in full)`;
+        name = `${pkg.label} | build down payment (credited in full)`;
         amount = dollars * 100;
         metadata.deposit_usd = String(dollars);
       }
     } else {
-      kind = PRODUCTS[body.kind] ? body.kind : "learn_it";
+      if (!PRODUCTS[body.kind]) {
+        return NextResponse.json({ error: "Unknown product" }, { status: 400 });
+      }
+      kind = body.kind;
       const product = PRODUCTS[kind];
       name = product.name;
       amount = product.amount;

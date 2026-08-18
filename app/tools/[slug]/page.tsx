@@ -2,17 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  ArrowLeft, ArrowRight, Check, Users, AlertTriangle, Target, Zap, Code2,
+  Users, AlertTriangle, Target, Zap, Code2,
 } from "lucide-react";
 import {
   TOOLS, TOOL_COUNT, getTool, relatedTools, toolIndex,
-  DOMAINS, TOOL_TYPES, INDUSTRIES, DISCLAIMERS, SENSITIVITY_NOTE,
+  DOMAINS, TOOL_TYPES,
 } from "@/lib/tools";
 import { collectionsForTool } from "@/lib/tools/collections";
 import { TOOL_VISUALS } from "@/lib/tools/visuals";
 import ToolEngine from "@/components/tools/ToolEngine";
 import ToolCard from "@/components/tools/ToolCard";
 import { SHELLS } from "@/components/tools/shell";
+import FinalCta from "@/components/site/system/FinalCta";
+import SiteHero from "@/components/site/system/SiteHero";
 
 const BASE = "https://www.theleadflowpro.com";
 
@@ -33,7 +35,7 @@ export async function generateMetadata({
   const url = `${BASE}/tools/${tool.slug}`;
   const ogImage = TOOL_VISUALS[tool.slug]?.ogImage;
   const images = ogImage
-    ? [{ url: `${BASE}${ogImage}`, width: 1200, height: 630, alt: `${tool.name} — a free tool from The LeadFlow Pro` }]
+    ? [{ url: `${BASE}${ogImage}`, width: 1200, height: 630, alt: `${tool.name} | A free tool from The LeadFlow Pro` }]
     : undefined;
   return {
     title: tool.seoTitle || `${tool.name}: free ${TOOL_TYPES[tool.toolType].label.toLowerCase()}`,
@@ -60,11 +62,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
 
   const domain = DOMAINS[tool.domain];
   const type = TOOL_TYPES[tool.toolType];
-  const disclaimer = DISCLAIMERS[tool.disclaimer];
   const shell = SHELLS[tool.toolType];
-  // The estimate disclaimer is for math. Non-math tools with the generic
-  // disclaimer show the data-privacy note instead, here and in the engine.
-  const suppressEstimate = !shell.showEstimateBadge && tool.disclaimer === "general-estimate";
   const related = toolIndex(relatedTools(tool, 4));
   const collections = collectionsForTool(tool).slice(0, 3);
   const url = `${BASE}/tools/${tool.slug}`;
@@ -120,72 +118,32 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   };
 
   return (
-    <main className="pb-24">
+    <main className="cb-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <section className="mx-auto w-[min(1040px,100%-40px)] pt-8">
-        <nav aria-label="Breadcrumb">
-          <Link
-            href="/tools"
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-[var(--muted)] hover:text-[var(--heading)]"
-          >
-            <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-            All {TOOL_COUNT} free tools
-          </Link>
-        </nav>
+      <SiteHero
+        compact
+        eyebrow={`${domain.label} · ${type.label} · Free`}
+        mutedTitle={tool.tagline}
+        title={tool.name}
+        body={tool.description}
+        media={{
+          src: tool.hero.src,
+          alt: tool.hero.alt,
+          width: tool.hero.width,
+          height: tool.hero.height,
+          kicker: "Working tool",
+          caption: "Use it before you book anything.",
+        }}
+        primary={{ href: "#tool", label: `${type.verb} it now` }}
+        secondary={{ href: "/tools", label: `All ${TOOL_COUNT} tools` }}
+        trustLine="Runs in your browser. Nothing to install. Save the result or embed it on your site."
+      />
 
-        <div className="mt-5 grid gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,340px)] sm:items-center">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className="rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-wider"
-                style={{ color: domain.ink, background: domain.tint, border: `1px solid ${domain.line}` }}
-              >
-                {domain.label}
-              </span>
-              <span className="tool-badge">{type.label}</span>
-              <span className="tool-badge tool-badge-free">Free, no signup</span>
-            </div>
-            <h1 className="mt-3 text-3xl font-black leading-[1.05] tracking-tight text-[var(--heading)] sm:text-[42px]">
-              {tool.name}
-            </h1>
-            <p className="mt-2 text-lg font-bold" style={{ color: domain.ink }}>
-              {tool.tagline}
-            </p>
-          </div>
-
-          <img
-            src={tool.hero.src}
-            alt={tool.hero.alt}
-            width={tool.hero.width}
-            height={tool.hero.height}
-            className="tool-hero-art"
-            fetchPriority="high"
-          />
+      <section id="tool" className="cb-band sv-tools-band scroll-mt-24">
+        <div className="cb-shell sv-workbench">
+          <ToolEngine slug={tool.slug} />
         </div>
-
-        <p className="mt-5 max-w-3xl text-[17px] leading-relaxed text-[var(--text)]">{tool.description}</p>
-
-        <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--muted)]">
-          {["Runs in your browser", "Nothing to install", "Download or print the result", "Free to embed on your site"].map((c) => (
-            <li key={c} className="inline-flex items-center gap-1.5">
-              <Check aria-hidden="true" className="h-4 w-4 text-[var(--green)]" />
-              {c}
-            </li>
-          ))}
-        </ul>
-
-        {tool.industries.length > 0 && (
-          <p className="mt-4 text-[13px] leading-relaxed text-[var(--quiet)]">
-            <span className="font-bold text-[var(--muted)]">Used by: </span>
-            {tool.industries.slice(0, 8).map((i) => INDUSTRIES[i].label).join(", ")}
-            {tool.industries.length > 8 ? ", and others" : ""}
-          </p>
-        )}
-      </section>
-
-      <section id="tool" className="mx-auto mt-9 w-[min(1040px,100%-40px)] scroll-mt-24">
-        <ToolEngine slug={tool.slug} />
       </section>
 
       <section className="mx-auto mt-14 w-[min(1040px,100%-40px)]">
@@ -336,35 +294,13 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         </div>
       </section>
 
-      <section className="mx-auto mt-14 w-[min(1040px,100%-40px)]">
-        <div className="rounded-2xl border border-[var(--line-strong)] bg-[var(--panel)] p-7 text-center sm:p-10">
-          <h2 className="text-2xl font-black tracking-tight text-[var(--heading)] sm:text-3xl">
-            This is one free tool. Imagine your whole website working like this.
-          </h2>
-          <p className="mx-auto mt-3 max-w-2xl leading-relaxed text-[var(--text)]">
-            Most business websites are a brochure that sits there. Yours could be catching leads at 9pm,
-            texting people back in five minutes, booking jobs, and telling you which ad actually worked. And
-            you would own it instead of renting it for the rest of your life.
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/start"
-              className="button-primary"
-              data-analytics="map_my_company"
-              data-cta-placement={`tool_${tool.slug}`}
-            >
-              Map My Company
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
-            <Link href="/tools" className="button-secondary">
-              Browse all {TOOL_COUNT} free tools
-            </Link>
-          </div>
-          <p className="mt-5 text-xs leading-relaxed text-[var(--quiet)]">
-            {suppressEstimate ? SENSITIVITY_NOTE[tool.dataSensitivity] : disclaimer.body}
-          </p>
-        </div>
-      </section>
+      <FinalCta
+        eyebrow="One useful tool is the proof"
+        title="Now imagine the whole website doing real work."
+        body="Map the pages, lead capture, follow-up, and reporting that should sit behind your offer. The result is a recommendation, not a guaranteed outcome."
+        primary={{ href: "/start", label: "Map My Company" }}
+        secondary={{ href: "/tools", label: `Browse all ${TOOL_COUNT} tools` }}
+      />
     </main>
   );
 }

@@ -5,18 +5,14 @@ import { usePathname } from "next/navigation";
 import { ArrowRight, Menu } from "lucide-react";
 
 // Primary navigation is ordered by buyer intent, not by sitemap. Add-Ons and
-// Free Tools live in the footer: their routes are unchanged, so no inbound link
-// breaks and no redirect is needed.
-//
-// Free Build leads. It is the lead magnet with the ad campaign behind it: the
-// build happens first and a down payment moves it forward. Lowest friction way
-// in, so it gets the first slot and its own accent.
+// Free Tools live in the footer. Product Studio now has a real index at
+// /packages; the retired route redirects there for old inbound links.
 const NAV_LINKS: Array<[string, string]> = [
   ["/#what-we-build", "What We Build"],
   ["/portfolio", "The Work"],
-  ["/live", "Live Proof"],
+  ["/premier-system", "Premier System"],
   ["/#how-it-works", "How It Works"],
-  ["/pricing", "Packages"],
+  ["/packages", "Packages"],
   ["/about", "About Ryan"],
   ["/articles", "Articles"],
 ];
@@ -31,17 +27,14 @@ export default function SiteHeader() {
           The LeadFlow<span>Pro</span>
         </Link>
         <nav className="desktop-nav" aria-label="Primary navigation">
-          <Link href="/free-build" className="nav-free">
-            Free Build
-          </Link>
           {NAV_LINKS.map(([href, label]) => (
             <Link key={href} href={href}>
               {label}
             </Link>
           ))}
           <Link href="/login">Log in</Link>
-          <Link href="/start" className="header-cta" data-analytics="cta-map-my-company-header">
-            Map My Company
+          <Link href="/packages/launch" className="header-cta" data-analytics="cta-start-project-header">
+            Website Launch | $500
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </nav>
@@ -50,17 +43,14 @@ export default function SiteHeader() {
             <Menu aria-hidden="true" className="h-5 w-5" />
           </summary>
           <div className="mobile-nav-panel">
-            <Link href="/free-build" className="nav-free">
-              Free Build
-            </Link>
             {NAV_LINKS.map(([href, label]) => (
               <Link key={href} href={href}>
                 {label}
               </Link>
             ))}
             <Link href="/login">Log in</Link>
-            <Link href="/start" className="header-cta" data-analytics="cta-map-my-company-mobile">
-              Map My Company
+            <Link href="/packages/launch" className="header-cta" data-analytics="cta-start-project-mobile">
+              Website Launch | $500
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </div>

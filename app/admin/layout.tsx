@@ -31,6 +31,12 @@ export default async function AdminLayout({
       <div className="mb-8 flex items-center gap-6 border-b border-line pb-4">
         <h1 className="text-2xl font-black text-[var(--heading)]">Back Office</h1>
         <nav className="flex flex-wrap gap-4 text-sm font-semibold">
+          <Link href="/admin/command-center" className="text-[var(--text)] hover:text-[var(--heading)]">
+            Command
+          </Link>
+          <Link href="/admin/content-engine" className="text-[var(--text)] hover:text-[var(--heading)]">
+            Content
+          </Link>
           <Link href="/admin" className="text-[var(--text)] hover:text-[var(--heading)]">
             Leads
           </Link>

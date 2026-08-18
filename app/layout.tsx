@@ -73,6 +73,9 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${archivo.variable} ${inter.variable}`}>
       <body>
+        <a className="cb-skip" href="#main-content">
+          Skip to content
+        </a>
         <TrackingScripts
           metaPixelId={settings.meta_pixel_id}
           googleAdsId={settings.google_ads_id}
@@ -80,7 +83,9 @@ export default async function RootLayout({
         />
         <div className="site-frame">
           <SiteHeader />
-          <div className="site-content">{children}</div>
+          <div className="site-content" id="main-content" tabIndex={-1}>
+            {children}
+          </div>
           <SiteFooter />
         </div>
         <Analytics />

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
+import { ArrowRight, AlertTriangle } from "lucide-react";
 import { TOOL_COUNT, toolIndex } from "@/lib/tools";
 import { PUBLISHED_COLLECTIONS, collectionCount, collectionSections, getCollection } from "@/lib/tools/collections";
 import ToolCard from "@/components/tools/ToolCard";
+import FinalCta from "@/components/site/system/FinalCta";
+import SiteHero from "@/components/site/system/SiteHero";
 
 const BASE = "https://www.theleadflowpro.com";
 
@@ -88,26 +90,28 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   };
 
   return (
-    <main className="pb-24">
+    <main className="cb-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <section className="mx-auto w-[min(1180px,100%-40px)] pt-8">
-        <nav aria-label="Breadcrumb">
-          <Link
-            href="/tools"
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-[var(--muted)] hover:text-[var(--heading)]"
-          >
-            <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-            All {TOOL_COUNT} free tools
-          </Link>
-        </nav>
+      <SiteHero
+        compact
+        eyebrow={`${count} tools for this work`}
+        mutedTitle={collection.hook}
+        title={collection.title}
+        body={collection.intro}
+        media={{
+          src: "/images/homepage-v2/proof-cockpit.webp",
+          alt: "A premium proof cockpit representing useful business measurements",
+          kicker: "Run the numbers",
+          caption: "See the leak before you fix it.",
+        }}
+        primary={{ href: "#collection-tools", label: `Open the ${count} tools` }}
+        secondary={{ href: "/tools", label: `All ${TOOL_COUNT} tools` }}
+        trustLine="Every tool is free to run without creating an account."
+      />
 
-        <h1 className="mt-5 max-w-3xl text-3xl font-black leading-[1.06] tracking-tight text-[var(--heading)] sm:text-[46px]">
-          {collection.title}
-        </h1>
-        <p className="mt-3 max-w-2xl text-lg font-bold text-[var(--blue)]">{collection.hook}</p>
-        <p className="mt-4 max-w-3xl text-[17px] leading-relaxed text-[var(--text)]">{collection.intro}</p>
-
+      <section className="cb-band sv-tools-band">
+        <div className="cb-shell">
         <div className="mt-7 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
             <h2 className="text-base font-black text-[var(--heading)]">Who this is for</h2>
@@ -128,9 +132,10 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
             </ul>
           </div>
         </div>
+        </div>
       </section>
 
-      <section className="mx-auto mt-10 w-[min(1180px,100%-40px)]">
+      <section id="collection-tools" className="mx-auto mt-10 w-[min(1180px,100%-40px)] scroll-mt-24">
         <h2 className="text-2xl font-black tracking-tight text-[var(--heading)]">
           {hasBroad
             ? `${count} tools built for this work, plus the broadly useful library.`
@@ -182,23 +187,13 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         </div>
       </section>
 
-      <section className="mx-auto mt-14 w-[min(1180px,100%-40px)]">
-        <div className="rounded-2xl border border-[var(--accent-line)] bg-[var(--accent-tint)] p-7 text-center sm:p-9">
-          <h2 className="text-2xl font-black tracking-tight text-[var(--heading)] sm:text-3xl">
-            The tools show you the leak. Fixing it is the other half.
-          </h2>
-          <p className="mx-auto mt-3 max-w-2xl leading-relaxed text-[var(--text)]">{collection.cta}</p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link href="/start" className="button-primary">
-              Map My Company
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
-            <Link href="/tools" className="button-secondary">
-              Browse all {TOOL_COUNT} free tools
-            </Link>
-          </div>
-        </div>
-      </section>
+      <FinalCta
+        eyebrow="The tools show the leak"
+        title="Fixing the connected system is the other half."
+        body={collection.cta}
+        primary={{ href: "/start", label: "Map My Company" }}
+        secondary={{ href: "/tools", label: `Browse all ${TOOL_COUNT} tools` }}
+      />
     </main>
   );
 }

@@ -1,0 +1,97 @@
+.page {
+  overflow-x: clip;
+}
+
+.commandSection {
+  min-height: 100vh;
+}
+
+.commandHeading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
+  gap: 72px;
+  align-items: end;
+}
+
+.demoBadge {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  max-width: 620px;
+  margin-top: 42px;
+  padding: 16px 18px;
+  border: 1px solid #35c6f438;
+  color: var(--cb-on-ink);
+  background: #35c6f40c;
+}
+
+.demoBadge svg {
+  width: 19px;
+  color: var(--cb-cyan);
+}
+
+.demoBadge > div {
+  display: grid;
+  gap: 3px;
+}
+
+.demoBadge strong {
+  font-size: 13px;
+}
+
+.demoBadge span {
+  color: var(--cb-muted-ink);
+  font-size: 10px;
+}
+
+.dashboard {
+  --page: #06101f;
+  --panel: #0b1930;
+  --fill-1: #0b1930;
+  --fill-2: #0e203b;
+  --fill-3: #ffffff12;
+  --line: #ffffff18;
+  --line-strong: #ffffff2b;
+  --heading: #ffffff;
+  --text: #d5deea;
+  --muted: #a8b4c8;
+  --quiet: #7f8ca3;
+  --blue: #5b87ff;
+  --violet: #a999ff;
+  --green: #4ade80;
+  margin-top: 28px;
+}
+
+.dashboard :global(.card) {
+  border-color: #ffffff1f;
+  background: #0b1930;
+  box-shadow: 0 18px 45px #0000002e;
+}
+
+.dashboard :global(h2),
+.dashboard :global(h3) {
+  color: #ffffff;
+}
+
+.dashboard :global(.showcase-event-icon) {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  place-items: center;
+  border: 1px solid #35c6f43d;
+  color: var(--cb-cyan);
+  background: #35c6f412;
+}
+
+.dashboard :global(.showcase-event-icon svg) {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 900px) {
+  .commandHeading {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}

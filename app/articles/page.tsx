@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import FinalCta from "@/components/site/system/FinalCta";
+import SiteHero from "@/components/site/system/SiteHero";
 import { ARTICLES } from "@/lib/articles";
 
 export const metadata: Metadata = {
@@ -13,60 +16,76 @@ export const metadata: Metadata = {
 export default function ArticlesPage() {
   const articles = [...ARTICLES].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
   return (
-    <main>
-      <section className="page-hero page-hero-centered">
-        <span className="eyebrow">Articles</span>
-        <h1>Straight answers about lead flow and ownership.</h1>
-        <p>
-          No filler. Each article covers one problem we actually fix: catching leads,
-          connecting channels, and building systems in accounts you control.
-        </p>
-      </section>
-      <section className="section-shell pricing-shell">
-        <div className="work-grid">
+    <main className="cb-page">
+      <SiteHero
+        compact
+        eyebrow={`${articles.length} operator field notes`}
+        mutedTitle="No filler."
+        title="One problem. One useful next move."
+        body="Practical breakdowns of missed leads, follow-up, websites, tools, pricing, and owned business systems. Every article is built to make the problem visible before it asks you to do anything."
+        media={{
+          src: "/images/homepage-v2/proof-cockpit.webp",
+          alt: "A premium operating cockpit representing measurable business proof",
+          kicker: "Receipts before claims",
+          caption: "See the leak. Trace the next move.",
+        }}
+        primary={{ href: "#latest", label: "Browse the field notes" }}
+        secondary={{ href: "/premier-system", label: "See the Premier proof" }}
+        trustLine="Real examples, useful tools, and no guaranteed outcome claims."
+      />
+
+      <section id="latest" className="cb-band sv-index-band">
+        <div className="cb-shell">
+          <div className="cb-headrow">
+            <div>
+              <p className="cb-eyebrow">Latest breakdowns</p>
+              <h2 className="cb-h2 cb-heading">Understand the system without reading a textbook.</h2>
+            </div>
+            <p className="cb-lead">
+              The picture creates the context. The article gives you the numbers, the tradeoffs,
+              and the move you can make next.
+            </p>
+          </div>
+          <div className="sv-index-grid sv-long-grid mt-12">
           {articles.map((a) => (
-            <Link key={a.slug} href={`/articles/${a.slug}`} className="work-card">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={a.ogImage}
-                alt=""
-                loading="lazy"
-                className="mb-4 aspect-[1200/630] w-full rounded-xl border border-[var(--line-strong)] object-cover"
-              />
-              <span>
-                {new Date(a.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}{" "}
-                · {a.readingMinutes} min read
-                {a.video ? ` · Watch ${a.video.durationSeconds}s` : ""}
+            <Link key={a.slug} href={`/articles/${a.slug}`} className="sv-index-card">
+              <span className="sv-index-card__media">
+                <Image
+                  src={a.ogImage}
+                  alt={a.title}
+                  fill
+                  sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1000px) 50vw, 33vw"
+                />
               </span>
-              <h2>{a.title}</h2>
-              <p>{a.description}</p>
-              <small>
-                Read the article <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
-              </small>
+              <span className="sv-index-card__body">
+                <span className="sv-index-card__meta">
+                  {new Date(a.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}{" "}
+                  · {a.readingMinutes} min
+                  {a.video ? ` · ${a.video.durationSeconds}s video` : ""}
+                </span>
+                <h2>{a.title}</h2>
+                <p>{a.description}</p>
+                <span className="sv-index-card__link">
+                  Read the breakdown <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </span>
+              </span>
             </Link>
           ))}
         </div>
-        <div className="final-cta portfolio-cta">
-          <div>
-            <span className="eyebrow">Reading is free. So is the map.</span>
-            <h2>See the system that fits your business.</h2>
-            <p>
-              The guided map asks about your problem, your home base, and your sales
-              channels, then shows the recommended build before asking who you are.
-            </p>
-          </div>
-          <div>
-            <Link className="button-primary" href="/start">
-              Map My System
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
-          </div>
         </div>
       </section>
+
+      <FinalCta
+        eyebrow="Reading is free. So is the first map."
+        title="See how the pieces should connect in your business."
+        body="Answer a few practical questions and see the recommended first release before you send contact information."
+        primary={{ href: "/start", label: "Map My System" }}
+        secondary={{ href: "/packages", label: "See the offer" }}
+      />
     </main>
   );
 }

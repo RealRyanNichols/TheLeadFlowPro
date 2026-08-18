@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ExternalLink, Lock } from "lucide-react";
 import CtaLink from "@/components/site/CtaLink";
+import { ARTICLES } from "@/lib/articles";
+import { TOOL_COUNT } from "@/lib/tools";
 
 // THE WORK.
 //
@@ -21,15 +23,15 @@ import CtaLink from "@/components/site/CtaLink";
 export const metadata: Metadata = {
   title: "The Work | The LeadFlow Pro",
   description:
-    "Eight live systems across six industries. Client builds and founder-built platforms, labeled honestly, every one of them running right now and open to inspection.",
+    "Seven live systems across multiple industries. Client builds and founder-built platforms, labeled honestly, every one of them running right now and open to inspection.",
   alternates: { canonical: "https://www.theleadflowpro.com/portfolio" },
   openGraph: {
-    title: "Eight live systems. Open them and check the work.",
+    title: "Seven live systems. Open them and check the work.",
     description:
       "Client systems and founder-built platforms from The LeadFlow Pro. Real screenshots, verified facts, live links.",
     url: "https://www.theleadflowpro.com/portfolio",
     siteName: "The LeadFlow Pro",
-    images: [{ url: "/og/portfolio/repwatchr.jpg", width: 1200, height: 630 }],
+    images: [{ url: "/og/portfolio/theleadflowpro.jpg", width: 1200, height: 630 }],
     type: "website",
   },
 };
@@ -133,30 +135,6 @@ const FOUNDER_PLATFORMS: Project[] = [
   {
     kind: "founder",
     kindLabel: "Founder-built platform",
-    name: "RepWatchr",
-    context: "Public information software. Ryan's own product",
-    what: "Proof this stack ships real software, not brochure pages.",
-    problem:
-      "Voting records, campaign finance, and official profiles are public but scattered across a dozen incompatible systems, so checking a single claim takes days.",
-    built:
-      "A full software product: a searchable officials database covering every level of government, voting records, campaign finance lookups, source chains, scorecards, an accountability packet builder, and paid research tiers.",
-    facts: [
-      { v: "16,783", l: "official profiles in the database" },
-      { v: "59,054", l: "sourced records behind those profiles" },
-      { v: "Packet builder", l: "Scorecards and paid research tiers, not a contact form" },
-    ],
-    flow: ["Public records ingested", "Source chain attached", "Official profile", "Scorecard", "Packet builder", "Research tier"],
-    outcome:
-      "When an owner asks whether this goes past websites, this is the answer: a product with a real database, a search layer, and paid tiers on the same stack installed for clients.",
-    ownership: "Next.js, Supabase, Vercel. Ryan's own product, built on the client stack.",
-    url: "https://repwatchr.com",
-    shot: "/og/portfolio/repwatchr.jpg",
-    alt: "RepWatchr homepage over a photograph of the US Capitol, showing official profile and sourced record counts",
-    goal: "industry_tools",
-  },
-  {
-    kind: "founder",
-    kindLabel: "Founder-built platform",
     name: "Gideon Commerce",
     context: "Marketplace platform. Ryan's own product",
     what: "A seller-first marketplace built around a flat 1% platform fee.",
@@ -236,11 +214,10 @@ const FOUNDER_PLATFORMS: Project[] = [
     what: "The proof you are standing on.",
     problem:
       "Every agency claims it can build a connected system. Almost none of them run one they can show you from the inside.",
-    built:
-      "Guided system mapping, lead capture with attribution and consent, an admin CRM with a per-lead workspace, client dashboards, a training portal, 78 free working tools, 13 owned articles, first-party analytics, and ad tracking.",
+    built: `Guided system mapping, lead capture with attribution and consent, an admin CRM with a per-lead workspace, client dashboards, a training portal, ${TOOL_COUNT} free working tools, ${ARTICLES.length} owned articles, first-party analytics, and ad tracking.`,
     facts: [
-      { v: "78", l: "free working tools built and published" },
-      { v: "13", l: "owned articles, in the repo and on the domain" },
+      { v: String(TOOL_COUNT), l: "free working tools built and published" },
+      { v: String(ARTICLES.length), l: "owned articles, in the repo and on the domain" },
       { v: "Own CRM", l: "Every lead lands with the full diagnostic attached" },
     ],
     flow: ["Visit tracked", "Guided system map", "Lead captured", "Admin CRM", "Follow-up", "First-party analytics"],
@@ -351,7 +328,7 @@ export default function PortfolioPage() {
         <div className="cb-shell">
           <p className="cb-eyebrow">Proof before promise</p>
           <h1 className="cb-h1">
-            <em>Eight live systems.</em>
+            <em>Seven live systems.</em>
             Open them and check the work.
           </h1>
           <p className="cb-hero-lead">
@@ -381,7 +358,7 @@ export default function PortfolioPage() {
         <div className="cb-shell">
           <div className="cb-proof-grid">
             <div className="cb-proof-item">
-              <strong>8</strong>
+              <strong>7</strong>
               <span>live systems, all publicly inspectable</span>
             </div>
             <div className="cb-proof-item">
@@ -389,7 +366,7 @@ export default function PortfolioPage() {
               <span>client systems built for other businesses</span>
             </div>
             <div className="cb-proof-item">
-              <strong>5</strong>
+              <strong>4</strong>
               <span>founder-built platforms, labeled as Ryan&rsquo;s own</span>
             </div>
             <div className="cb-proof-item">
@@ -397,7 +374,7 @@ export default function PortfolioPage() {
               <span>private client builds under confidentiality</span>
             </div>
             <div className="cb-proof-item">
-              <strong>6</strong>
+              <strong>Multiple</strong>
               <span>industries, from one truck to real software</span>
             </div>
           </div>

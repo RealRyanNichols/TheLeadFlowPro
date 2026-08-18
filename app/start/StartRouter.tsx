@@ -7,6 +7,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
+import styles from "./start-v2.module.css";
 import {
   Archive,
   ArrowLeft,
@@ -644,7 +646,7 @@ const MODULE_META: Record<string, { why: string; proof: string }> = {
   },
   archive_library: {
     why: "Records and resources people can actually search. Authority nobody can take down.",
-    proof: "RepWatchr",
+    proof: "RealRyanNichols",
   },
   email_automation: {
     why: "Every lead gets a reply in seconds and a follow-up until they answer. The money is in the follow-up.",
@@ -747,20 +749,20 @@ const GOAL_MODULE_ORDER: Record<string, string[]> = {
 
 const PACKAGES = {
   launch: {
-    name: "LeadFlow Launch",
-    price: "$7,500+",
+    name: "Website Launch",
+    price: "$1,000",
     description:
-      "The connected core for a business that needs the public site, lead capture, CRM, admin view, analytics, and response system working together.",
+      "A conversion-led five-page public experience with lead capture, responsive production, core analytics, deployment, and two revision rounds.",
   },
   industry_os: {
-    name: "Industry OS",
-    price: "$15,000+",
+    name: "Company OS",
+    price: "$7,500+",
     description:
-      "The connected core plus the portals, industry tools, courses, archives, calls, texts, and deeper workflows that make the vertical different.",
+      "The public experience plus the portals, industry tools, courses, archives, calls, texts, and deeper workflows that make the vertical different.",
   },
   custom_platform: {
     name: "Custom Platform",
-    price: "$30,000+",
+    price: "$15,000+",
     description:
       "A larger product, multi-location operation, custom data platform, advanced connector, or system with complex migration and permissions.",
   },
@@ -814,11 +816,11 @@ const stagesShort = (ids: string[]) =>
   ids.length ? listJoin(ids.map((id) => stageOf(id).short)) : "an unclear current stack";
 
 // Every business sells or generates leads somewhere, so the sales-channel
-// question is always asked — separately from the home-base question above it.
+// question is always asked separately from the home-base question above it.
 const STEPS = ["goal", "industry", "presence", "channels", "stage", "modules", "result"];
 
 // Per-option gradient icon tiles. Same brand family as The Work cards:
-// cyan, violet, emerald, amber, red, sky — cycled so no two neighbors match.
+// Cyan, violet, emerald, amber, red, and sky cycle so no two neighbors match.
 const TILE_PALETTE: Array<[string, string, string]> = [
   ["#38bdf8", "#2563eb", "#38bdf84d"],
   ["#a78bfa", "#d946ef", "#a78bfa4d"],
@@ -972,6 +974,7 @@ function ContactCard({
 }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isWebsiteLaunch = packageId === "launch";
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -1053,7 +1056,9 @@ function ContactCard({
             modules: recommendedModules,
             module_labels: moduleLabels,
           },
-          next_action: "Review the map, confirm scope on the $497 System Map, then phase the build.",
+          next_action: isWebsiteLaunch
+            ? "Review the Website Launch intake, confirm the five-page written scope, and connect the $500 deposit to the project."
+            : "Review the diagnostic, confirm scope on the $497 System Map, then phase the larger build.",
           owner_notes: ownerNotes || null,
         },
       }),
@@ -1075,10 +1080,15 @@ function ContactCard({
       <div className="result-contact-heading">
         <div>
           <span className="eyebrow">Now the handoff</span>
-          <h2>Send this map with your business attached.</h2>
+          <h2>
+            {isWebsiteLaunch
+              ? "Send the Website Launch details with your business attached."
+              : "Send this map with your business attached."}
+          </h2>
           <p>
-            You already did the thinking. This keeps the first conversation focused on the
-            build.
+            {isWebsiteLaunch
+              ? "You already did the thinking. This keeps intake focused on the five-page scope and launch goal."
+              : "You already did the thinking. This keeps the first conversation focused on the larger system."}
           </p>
         </div>
         <button type="button" className="button-quiet" onClick={onCancel}>
@@ -1114,7 +1124,8 @@ function ContactCard({
                 Choose the closest range
               </option>
               <option value="497_map">$497 system map only</option>
-              <option value="7500_15000">$7,500 to $15,000</option>
+              <option value="1000_5000">$1,000 to $5,000</option>
+              <option value="5000_15000">$5,000 to $15,000</option>
               <option value="15000_30000">$15,000 to $30,000</option>
               <option value="30000_50000">$30,000 to $50,000</option>
               <option value="50000_plus">$50,000+</option>
@@ -1142,7 +1153,13 @@ function ContactCard({
             </select>
           </Field>
         </div>
-        <Field label="Anything the map missed?">
+        <Field
+          label={
+            isWebsiteLaunch
+              ? "Anything the launch recommendation missed?"
+              : "Anything the map missed?"
+          }
+        >
           <textarea
             name="goals"
             rows={4}
@@ -1173,7 +1190,13 @@ function ContactCard({
           </p>
         )}
         <button type="submit" className="button-primary form-submit" disabled={sending}>
-          {sending ? "Sending Your Map..." : "Send My System Map Request"}
+          {sending
+            ? isWebsiteLaunch
+              ? "Sending Website Launch Details..."
+              : "Sending Your Map..."
+            : isWebsiteLaunch
+              ? "Send My Website Launch Details"
+              : "Send My System Map Request"}
           {!sending && <ArrowRight aria-hidden="true" className="h-4 w-4" />}
         </button>
         <p className="form-legal">
@@ -1290,7 +1313,7 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
   });
 
   return (
-    <div className="router-page">
+    <div className={`router-page ${styles.routerV2}`}>
       <header className="router-header">
         <Link href="/" className="brand-lockup" aria-label="The LeadFlow Pro home">
           The LeadFlow<span>Pro</span>
@@ -1799,10 +1822,15 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                 <p className="result-price">{pkg.price}</p>
                 <p>{pkg.description}</p>
                 <div className="result-map-note">
-                  <strong>Start with the $497 System Map.</strong>
+                  <strong>
+                    {packageId === "launch"
+                      ? "Start with the $500 Website Launch deposit."
+                      : "Start with the $497 System Map."}
+                  </strong>
                   <span>
-                    We confirm the scope, phases, ownership, and connections. If the build
-                    is approved, the map is credited to it.
+                    {packageId === "launch"
+                      ? "The deposit reserves the build and is applied to the $1,000 total. The remaining $500 is due after approval and before launch."
+                      : "We confirm the scope, phases, ownership, and connections. If the larger build is approved, the map is credited to it."}
                   </span>
                 </div>
               </aside>
@@ -1855,13 +1883,23 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
               <div className="router-success" role="status">
                 <CircleCheck aria-hidden="true" className="h-10 w-10 text-[var(--green)]" />
                 <div>
-                  <h2>Your system map request is in.</h2>
+                  <h2>
+                    {packageId === "launch"
+                      ? "Your Website Launch details are in."
+                      : "Your system map request is in."}
+                  </h2>
                   <p>
-                    Ryan has the business type, the current setup, the priorities, and the
-                    build path. You will not have to repeat all of this on the first
-                    conversation.
+                    {packageId === "launch"
+                      ? "Ryan has the business type, current setup, priorities, and launch path. Reserve the build with $500 when you are ready to open intake. Once intake begins, the deposit is non-refundable, except where the written agreement or applicable law requires otherwise."
+                      : "Ryan has the business type, the current setup, the priorities, and the build path. You will not have to repeat all of this on the first conversation."}
                   </p>
                   <div className="router-success-actions">
+                    {packageId === "launch" ? (
+                      <a href={WEBSITE_LAUNCH_CHECKOUT} className="button-primary">
+                        Reserve Website Launch | $500
+                        <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                      </a>
+                    ) : null}
                     <Link href="/portfolio" className="button-secondary">
                       See More Live Work
                     </Link>

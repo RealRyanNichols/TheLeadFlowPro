@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 // The footer is ink on every page, light or dark, so the site always lands on
 // the same anchor. Add-Ons and Free Tools live here now that the primary nav is
-// organised around buyer intent. Every route below is live and unchanged.
+// organised around buyer intent.
 const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
   {
     heading: "What we build",
@@ -19,6 +19,8 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
   {
     heading: "Proof",
     links: [
+      ["/premier-system", "Premier System"],
+      ["/live", "Live Proof"],
       ["/portfolio", "The Work"],
       ["/articles", "Articles"],
       ["/about", "About Ryan"],
@@ -27,9 +29,8 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
   {
     heading: "Work together",
     links: [
-      ["/free-build", "Free Build Offer"],
-      ["/pricing", "Packages"],
-      ["/deposit", "Make a Down Payment"],
+      ["/packages", "Packages"],
+      ["/packages/launch", "Website Launch | $1,000"],
       ["/start", "Map My Company"],
       ["/contact", "Contact"],
       ["/login", "Log in"],

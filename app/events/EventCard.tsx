@@ -124,7 +124,7 @@ export default function EventCard({ event }: { event: EventRow }) {
               disabled={paying}
               className="btn-primary mt-3 disabled:opacity-60"
             >
-              {paying ? "Opening checkout…" : `Pay $${Number(event.price_usd)} Now — Lock Your Seat`}
+              {paying ? "Opening checkout…" : `Pay $${Number(event.price_usd)} Now | Lock Your Seat`}
             </button>
           )}
           {Number(event.price_usd) > 0 && payUnavailable && (

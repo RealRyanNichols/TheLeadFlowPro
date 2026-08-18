@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <main className="legal-page">
-      <span className="eyebrow">Last updated August 7, 2026</span>
+      <span className="eyebrow">Last updated August 17, 2026</span>
       <h1>Terms of Use</h1>
       <p>
         These terms apply to this website operated by The LeadFlow Pro, a DBA of Longview
@@ -25,13 +25,17 @@ export default function TermsPage() {
         compliance advice. Vendor prices, platform rules, integrations, and features can
         change.
       </p>
-      <h2>Estimates and results</h2>
+      <h2>Prices, scope, and results</h2>
       <p>
-        Starting prices are not a final quote. Final scope, price, timing, deliverables,
-        responsibilities, ownership, support, and payment terms are established in the
-        applicable written agreement. We do not guarantee traffic, leads, approvals,
-        rankings, revenue, platform access, marketplace performance, advertising results,
-        or any particular business outcome.
+        Website Launch is offered at a fixed $1,000 for its published five-page scope:
+        $500 to begin and $500 after approval, before launch. Once intake begins, the
+        initial $500 deposit is non-refundable, except where the written agreement or
+        applicable law requires otherwise. Work outside that scope, larger modules, and
+        custom-platform starting prices are not final quotes. Final scope, price, timing,
+        deliverables, responsibilities, ownership, support, and payment terms are
+        established in the applicable written agreement. We do not guarantee traffic,
+        leads, approvals, rankings, revenue, platform access, marketplace performance,
+        advertising results, or any particular business outcome.
       </p>
       <h2>Marketplace and third-party platforms</h2>
       <p>
@@ -77,8 +81,8 @@ export default function TermsPage() {
         Questions can be sent to{" "}
         <a href="mailto:hello@theleadflowpro.com">hello@theleadflowpro.com</a>.
       </p>
-      <Link className="button-secondary" href="/start">
-        Return to the System Map
+      <Link className="button-secondary" href="/packages">
+        Return to Product Studio
       </Link>
     </main>
   );
