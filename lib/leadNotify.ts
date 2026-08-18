@@ -12,7 +12,7 @@ export const INTEREST_LABELS: Record<string, string> = {
   done_for_you: "Done For You",
   unsure: "Not sure yet",
   blueprint: "System Map",
-  launch_system: "LeadFlow Launch",
+  launch_system: "Website Launch",
   industry_os: "Industry OS",
   custom_platform: "Custom Platform",
   operations: "Operations Partner",
@@ -31,6 +31,16 @@ export type NotifiableLead = {
   source?: string | null;
   sms_consent?: boolean;
 };
+
+type LegacySeriesCandidate = Pick<NotifiableLead, "interest" | "goals" | "source">;
+
+// The free-build offer and its 30-day sequence were retired on August 17,
+// 2026. Keep the historical event sender below for old records and reporting,
+// but do not enroll any new lead until a paid-ladder nurture series is written
+// and explicitly approved.
+export function shouldEnrollInLegacyEmailSeries(_lead: LegacySeriesCandidate) {
+  return false;
+}
 
 // Sends from theleadflowpro.com, the only domain verified on the Resend
 // account. It used to send from realryannichols.com, which is not verified
@@ -111,7 +121,8 @@ export async function sendLeadEmails(lead: NotifiableLead) {
   });
 }
 
-// Puts the lead onto the "Free Build 30-Day Email Series" automation in Resend.
+// Sends the historical "free-build-lead" event that powers the legacy Resend
+// automation. Callers must first pass shouldEnrollInLegacyEmailSeries().
 //
 // This is NOT a normal email send. The automation is triggered by the Resend
 // Events API, not by adding a contact to an audience. It listens for the event
@@ -155,7 +166,7 @@ export async function textLeadBack(lead: NotifiableLead) {
   );
 }
 
-// Alert + reply + text + enroll in the 30-day series, in that order.
+// Alert + reply + text + eligible legacy-series enrollment, in that order.
 // Never throws: a broken provider must never stop a lead from being saved.
 export async function notifyNewLead(lead: NotifiableLead) {
   try {
@@ -169,7 +180,9 @@ export async function notifyNewLead(lead: NotifiableLead) {
     console.error("lead text step failed:", e);
   }
   try {
-    await enrollInEmailSeries(lead.email);
+    if (shouldEnrollInLegacyEmailSeries(lead)) {
+      await enrollInEmailSeries(lead.email);
+    }
   } catch (e) {
     console.error("lead series enroll step failed:", e);
   }

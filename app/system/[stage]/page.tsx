@@ -13,6 +13,9 @@ import { STAGES, STAGE_SLUGS, getStage } from "@/lib/system-stages";
 import { TOOLS } from "@/lib/tools";
 import CtaLink from "@/components/site/CtaLink";
 
+const WEBSITE_LAUNCH_CHECKOUT =
+  "https://book.stripe.com/cNi6oG52y1kockE5oq5AQ0a";
+
 // One full page per stage of the connected-company loop. The nodes on the
 // homepage diagram link here.
 //
@@ -121,9 +124,13 @@ export default async function StagePage({
               Map my company
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </CtaLink>
-            <Link className="cb-btn cb-btn--ghost" href="/free-build">
-              Get a free build first
-            </Link>
+            <a
+              className="cb-btn cb-btn--ghost"
+              href={WEBSITE_LAUNCH_CHECKOUT}
+              data-analytics={`cta-website-launch-stage-${stage.slug}`}
+            >
+              Start Website Launch — $500
+            </a>
           </div>
 
           {/* the loop, as a nav */}

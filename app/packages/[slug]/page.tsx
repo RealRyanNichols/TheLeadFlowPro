@@ -10,6 +10,9 @@ import {
 import BuyButton from "@/components/BuyButton";
 import PackageOrderForm from "./PackageOrderForm";
 
+const WEBSITE_LAUNCH_CHECKOUT =
+  "https://book.stripe.com/cNi6oG52y1kockE5oq5AQ0a";
+
 // Full sales pages for each package. "See what is included" lands here, the
 // pitch is complete, and the visitor can buy, put money down, or send an
 // interest form without ever needing Ryan to explain it later.
@@ -76,38 +79,37 @@ const PACKS: Record<string, Pack> = {
   },
   launch: {
     slug: "launch",
-    eyebrow: "The connected core",
-    name: "LeadFlow Launch",
-    price: "$7,500+",
-    priceNote: "Scoped from your System Map. Phased payments available.",
-    headline: "The owned core a serious business runs on.",
-    sub: "Your public site, lead capture, CRM, admin back office, automatic follow-up, and first party analytics. Built on accounts you control, connected so nothing falls through, and live before you pay a dime you are not happy with.",
+    eyebrow: "Product Studio · fixed-price launch",
+    name: "Website Launch",
+    price: "$1,000",
+    priceNote: "$500 deposit. $500 after approval, before launch.",
+    headline: "A polished business website with a real approval checkpoint.",
+    sub: "A conversion-led five-page public experience with lead capture, responsive production, core analytics, deployment, and two focused revision rounds. A $500 deposit starts the work; the remaining $500 is due after approval and before launch.",
     interest: "launch_system",
     buyable: false,
     included: [
-      { name: "Public site and sales home base", why: "Pages built to capture and convert, not just sit there looking pretty." },
-      { name: "Lead capture and guided intake", why: "Forms and guided flows that qualify people before you ever talk to them." },
-      { name: "CRM and pipeline", why: "Every inquiry gets a name, source, status, and next action. Nothing depends on memory." },
-      { name: "Admin back office", why: "One screen to review, assign, export, and act. Your whole operation in plain sight." },
-      { name: "Automatic email follow-up", why: "Every lead answered in seconds and followed up until they respond." },
-      { name: "First party analytics and ad tracking", why: "Your traffic and conversions in your own database, wired to your ad accounts." },
-      { name: "GitHub, Vercel, and Supabase in your accounts", why: "The code, the hosting, and the data belong to you from day one. Not to me. Not to a platform." },
+      { name: "Conversion map", why: "One goal, one buyer path, and one measurable next action." },
+      { name: "Five premium pages", why: "A focused public experience, not a stack of filler pages." },
+      { name: "Lead capture and routing", why: "Forms reach the right place with the context needed to follow up." },
+      { name: "Responsive production build", why: "Fast, accessible, and deliberate from desktop to phone." },
+      { name: "Analytics and deployment", why: "Launch on production infrastructure with the core signals connected." },
+      { name: "Two revision rounds", why: "Two focused rounds against the approved scope before launch." },
     ],
     phases: [
-      { title: "Map and scope", body: "The $497 System Map confirms modules, phases, and the exact price. It is credited to the build." },
-      { title: "The build", body: "I build the whole thing. You watch it come together on a live preview link, not a mockup." },
-      { title: "You approve, then you pay", body: "You click through the working system. If you do not like it, you do not pay. If you love it, we go live." },
-      { title: "Handoff and training", body: "Accounts in your name, training included, and me one text away." },
+      { title: "Deposit and scope", body: "Pay the $500 deposit, then confirm the audience, goal, five pages, assets, and written scope." },
+      { title: "The build", body: "The working five-page experience comes together on a reviewable preview." },
+      { title: "Approval checkpoint", body: "Click through the pages, test the forms, and use two revision rounds against the agreed direction." },
+      { title: "Final payment and launch", body: "After approval, pay the remaining $500. Then the site moves to the live domain and your accounts." },
     ],
     proof: [
-      { name: "TheLeadFlowPro.com", what: "This site is a LeadFlow Launch core, live", url: "/portfolio" },
-      { name: "RealRyanNichols.com", what: "Publishing, intake, store, and archive on the same core", url: "https://realryannichols.com" },
-      { name: "DonAndPatti.com", what: "Giving engine and member hub on the same core", url: "https://www.donandpatti.com" },
+      { name: "TheLeadFlowPro.com", what: "Website Launch proof and connected systems, live", url: "/portfolio" },
+      { name: "RealRyanNichols.com", what: "Publishing, intake, store, and archive on an owned stack", url: "https://realryannichols.com" },
+      { name: "DonAndPatti.com", what: "Giving engine and member hub on an owned stack", url: "https://www.donandpatti.com" },
     ],
     faq: [
-      { q: "Why is the price a range?", a: "Because businesses are not the same size. The System Map fixes the exact number before anything is built, and it does not move after that." },
-      { q: "What do I pay up front?", a: "The $497 map, which is credited. Build payments are phased and the final payment only happens after you approve the working system." },
-      { q: "What are the monthly costs after launch?", a: "The stack runs on accounts you own. Typical hosting and database costs are closer to a lunch than a lease. No platform rent." },
+      { q: "What does the Website Launch cost?", a: "The five-page Website Launch is $1,000: $500 to start and $500 after approval, before launch. Funnels, CRM, tools, portals, courses, ads, automation, and other modules are scoped separately." },
+      { q: "What do I pay up front?", a: "A $500 deposit reserves the build and opens intake. The remaining $500 is due after you approve the working site and before it launches." },
+      { q: "What are the monthly costs after launch?", a: "The stack runs on accounts you own. Hosting and database costs depend on usage and provider pricing; the exact services are documented before launch." },
     ],
   },
   "industry-os": {
@@ -117,11 +119,11 @@ const PACKS: Record<string, Pack> = {
     price: "$15,000+",
     priceNote: "Scoped from your System Map. Phased payments available.",
     headline: "The system your competitors think only big companies can afford.",
-    sub: "Everything in LeadFlow Launch, plus the portals, industry tools, courses, archives, calls, and texts that make your vertical different. This is not a website. It is the operating system your business runs on.",
+    sub: "Everything in Website Launch, plus the portals, industry tools, courses, archives, calls, and texts that make your vertical different. This is not a website. It is the operating system your business runs on.",
     interest: "industry_os",
     buyable: false,
     included: [
-      { name: "Everything in LeadFlow Launch", why: "The connected core comes standard: site, CRM, back office, follow-up, analytics." },
+      { name: "Everything in Website Launch", why: "The five-page public foundation, lead capture, analytics, deployment, and revision process." },
       { name: "Customer, member, or student portals", why: "People log in and get what they paid for without emailing you to ask." },
       { name: "Industry tools and calculators", why: "Estimators, applications, assessments, and simulators your market actually uses. The tools become your best salesperson." },
       { name: "Courses, training, and archives", why: "Your knowledge delivered as lessons and searchable records. Sellable, repeatable, defensible." },
@@ -133,7 +135,7 @@ const PACKS: Record<string, Pack> = {
       { title: "Map and scope", body: "The $497 System Map confirms the vertical pack, the phases, and the exact price. Credited to the build." },
       { title: "Core first, live early", body: "The connected core ships first so the business feels the difference in weeks, not months." },
       { title: "The vertical build", body: "Portals, tools, courses, and archives land phase by phase on the live system." },
-      { title: "You approve, then you pay", body: "Same guarantee at every phase. You do not pay for anything you do not like." },
+      { title: "Approval at every phase", body: "Each phase has a written scope, a working review point, and its own approved milestone." },
     ],
     proof: [
       { name: "Premier Dental Academy", what: "A full Industry OS: enrollment, payment plans, simulators, career tools", url: "https://www.premierdentalacademyoflongview.com" },
@@ -190,7 +192,16 @@ export default async function PackagePage({
           <span className="text-sm font-medium text-[var(--muted)]">{p.priceNote}</span>
         </div>
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-          {p.buyable ? (
+          {p.slug === "launch" ? (
+            <a
+              href={WEBSITE_LAUNCH_CHECKOUT}
+              className="button-primary"
+              data-analytics="cta-website-launch-package-hero"
+            >
+              Reserve Website Launch — $500
+              <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            </a>
+          ) : p.buyable ? (
             <BuyButton
               kind="system_map"
               label="Buy the System Map — $497"
@@ -207,8 +218,11 @@ export default async function PackagePage({
           </a>
         </div>
         <p className="mt-5 text-sm font-semibold text-[var(--green)]">
-          You see the whole thing working before final payment. If you do not like it, you
-          do not pay. Fair, right?
+          {p.slug === "launch"
+            ? "You review working proof before the final launch payment. Website Launch is $500 to start and $500 after approval, before launch."
+            : p.slug === "system-map"
+              ? "The System Map is $497 paid once. It is yours to keep and is credited toward an approved larger build."
+              : "Industry OS begins with a written System Map and is paid through scoped milestones with working review points."}
         </p>
       </section>
 
@@ -307,17 +321,18 @@ export default async function PackagePage({
         </div>
       </section>
 
-      {/* GUARANTEE */}
+      {/* APPROVAL CHECKPOINT */}
       <section className="mx-auto mt-16 w-[min(860px,100%-40px)] text-center">
         <ShieldCheck className="mx-auto h-10 w-10 text-[var(--blue)]" />
         <h2 className="mt-4 text-3xl font-black text-[var(--heading)]">
-          You choose what you want. I build it.
+          Working proof at every approval point.
         </h2>
         <p className="mx-auto mt-3 max-w-xl leading-relaxed text-[var(--muted)]">
-          You tell me how you want it built. I build the whole thing on a platform you
-          own: your code, your data, your customer list. You look at it working. If you do
-          not like it, you do not pay a dime and we shake hands. If you love it, we go
-          live.
+          {p.slug === "launch"
+            ? "You review the work on a live preview, against a written scope, before the launch milestone. $500 starts the Website Launch and the remaining $500 is due after approval and before the site goes live."
+            : p.slug === "system-map"
+              ? "The paid working session produces a written blueprint: modules, dependencies, phases, and price range. You approve any larger engagement separately."
+              : "The System Map defines the written scope, phases, ownership, and milestone schedule. Each Industry OS phase has a working review point before the next approved milestone."}
         </p>
       </section>
 

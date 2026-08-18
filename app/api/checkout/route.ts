@@ -52,10 +52,8 @@ export async function POST(request: Request) {
       metadata.event_id = ev.id;
       if (registrationId) metadata.registration_id = registrationId;
     } else if (body.kind === "build_deposit") {
-      // Down payment on a build that is not one of the three packages: the free
-      // build offer, a custom scope, or anything Ryan quoted by real hours.
-      // Without this, a free-build customer who loves their site has no way to
-      // put money down. Amount is customer-chosen and clamped server-side.
+      // Down payment on a custom scope or anything Ryan quoted outside the
+      // package ladder. Amount is customer-chosen and clamped server-side.
       const requested = Math.round(Number(body.amount_usd));
       if (!Number.isFinite(requested)) {
         return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
@@ -76,7 +74,7 @@ export async function POST(request: Request) {
       // the base scope price. Everything is credited toward the final build.
       const PACKAGES: Record<string, { label: string; base: number }> = {
         "system-map": { label: "System Map", base: 49700 },
-        launch: { label: "LeadFlow Launch", base: 750000 },
+        launch: { label: "Website Launch", base: 100000 },
         "industry-os": { label: "Industry OS", base: 1500000 },
       };
       const pkg = PACKAGES[String(body.package ?? "")];
@@ -86,13 +84,19 @@ export async function POST(request: Request) {
       metadata.package = String(body.package);
       cancelUrl = `${site}/packages/${body.package}?cancelled=1`;
       if (body.kind === "package_full") {
-        name = `${pkg.label} — pay in full (base scope, guarantee applies)`;
+        name = `${pkg.label} — pay in full (base scope)`;
         amount = pkg.base;
       } else {
-        // Whole dollars, clamped to sane bounds, never above the base price.
+        // Whole dollars, validated server-side and never above the base price.
         const requested = Math.round(Number(body.amount_usd));
         if (!Number.isFinite(requested)) {
           return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
+        }
+        if (String(body.package) === "launch" && requested !== 500) {
+          return NextResponse.json(
+            { error: "Website Launch deposit must be $500" },
+            { status: 400 },
+          );
         }
         const min = 250;
         const max = Math.min(25000, pkg.base / 100);

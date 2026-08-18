@@ -2,9 +2,9 @@
 
 // The Add-On Menu. Every item is a real system running live on one of Ryan's
 // properties. Visitors check what they want, then send the build list straight
-// into the CRM with the selections attached. No payment is taken here. The
-// offer is the guarantee: pick it, he builds it, you do not pay if you do not
-// like it.
+// into the CRM with the selections attached. The form is a scope request, not a
+// checkout: selected modules are priced and approved in writing before paid
+// production work begins.
 
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
@@ -541,7 +541,8 @@ export default function AddOnsMenu() {
           source: "add_ons_menu",
           add_ons: selectedItems.map((i) => ({ id: i.id, name: i.name })),
           owner_notes: notes || null,
-          next_action: "Review the order, scope it, build it. They do not pay if they do not like it.",
+          next_action:
+            "Review the selected modules, confirm scope, timeline, and price in writing, then schedule paid production work.",
         },
       }),
     });
@@ -562,11 +563,11 @@ export default function AddOnsMenu() {
       {/* HERO */}
       <section className="page-hero page-hero-centered">
         <span className="eyebrow">The Add-On Menu</span>
-        <h1>You choose what you want. I build it.</h1>
+        <h1>Choose the modules. Get a written scope.</h1>
         <p>
           Every item on this menu is a real system running live on a real site I built.
-          Check the boxes you want, tell me how you want it built, and I will fully build
-          it out. You do not pay a dime if you do not like it. Fair, right?
+          Check the boxes you want and describe the outcome. I turn that list into a clear
+          scope, timeline, and price before production work begins.
         </p>
         <div className="mx-auto mt-8 flex max-w-2xl flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-[var(--text)]">
           <span className="flex items-center gap-2">
@@ -576,7 +577,7 @@ export default function AddOnsMenu() {
             <Check className="h-4 w-4 text-[var(--green)]" strokeWidth={3} /> Tell me how to build it
           </span>
           <span className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-[var(--green)]" strokeWidth={3} /> No pay if you do not like it
+            <Check className="h-4 w-4 text-[var(--green)]" strokeWidth={3} /> Approve scope before work starts
           </span>
         </div>
       </section>
@@ -642,7 +643,7 @@ export default function AddOnsMenu() {
             <p className="mt-2 text-[var(--muted)]">
               {selectedItems.length === 0
                 ? "Nothing checked yet. Pick anything above, or just describe what you want in your own words below."
-                : `${selectedItems.length} add-on${selectedItems.length === 1 ? "" : "s"} on your list. Add your details and send it. No payment now. No payment ever if you do not like the build.`}
+                : `${selectedItems.length} add-on${selectedItems.length === 1 ? "" : "s"} on your list. Add your details and send it for a written scope, timeline, and price.`}
             </p>
 
             {selectedItems.length > 0 && (
@@ -739,8 +740,8 @@ export default function AddOnsMenu() {
               </button>
               <p className="form-legal mt-4">
                 By submitting, you agree to our <Link href="/terms">Terms</Link> and
-                acknowledge our <Link href="/privacy">Privacy Policy</Link>. No payment is
-                collected on this page. Ever.
+                acknowledge our <Link href="/privacy">Privacy Policy</Link>. This form does
+                not charge you or authorize work. Selected modules are quoted separately.
               </p>
             </form>
           </div>
@@ -750,8 +751,8 @@ export default function AddOnsMenu() {
             <h2 className="mt-4 text-3xl font-black text-[var(--heading)]">Your build list is in.</h2>
             <p className="mx-auto mt-3 max-w-xl text-[var(--text)]">
               I have your picks and your notes. I will reach out within one business day
-              on the channel you chose, we scope it, and then I build it. You see the
-              whole thing working before you pay anything.
+              on the channel you chose to confirm the scope, timeline, and price before
+              paid production work begins.
             </p>
             <div className="mt-7 flex flex-wrap justify-center gap-3">
               <Link href="/portfolio" className="button-secondary">
@@ -765,16 +766,16 @@ export default function AddOnsMenu() {
         )}
       </section>
 
-      {/* GUARANTEE */}
+      {/* SCOPING TERMS */}
       {!submitted && (
         <section className="mx-auto mt-16 w-[min(860px,100%-40px)] text-center">
           <p className="text-lg font-bold text-[var(--heading)]">
-            This is not a quote request. It is an order.
+            This is a scope request, not a blank check.
           </p>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
-            You pick it. I build the whole thing on a platform you own: your code, your
-            data, your customer list. You look at it working. If you do not like it, you
-            do not pay a dime and we shake hands. If you love it, we go live.
+            The five-page Website Launch is $1,000: $500 to start and $500 after approval,
+            before launch. Funnels, CRM, tools, portals, courses, ads, automation, and other
+            modules are scoped and priced separately before work begins.
           </p>
         </section>
       )}

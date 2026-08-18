@@ -4,7 +4,7 @@ import AddOnsMenu from "./AddOnsMenu";
 export const metadata: Metadata = {
   title: "The Add-On Menu | The LeadFlow Pro",
   description:
-    "Pick what you want. Tell me how to build it. I build the whole thing, and you do not pay a dime if you do not like it. Every item on this menu is running live on a real site.",
+    "Inspect proven modules and request a written scope. Website Launch is $1,000: $500 to start and $500 after approval, before launch. Other modules are priced separately.",
 };
 
 export default function AddOnsPage() {

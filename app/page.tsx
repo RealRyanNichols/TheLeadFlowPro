@@ -7,7 +7,6 @@ import {
   Check,
   Database,
   ExternalLink,
-  Gift,
   KeyRound,
   Layers,
   LayoutDashboard,
@@ -200,57 +199,59 @@ const RECEIPTS = [
   },
 ];
 
-// The free build offer, stated the way it actually runs: the build happens
-// first, a down payment moves it forward. Matches /free-build and Notion
-// "1. Business Model, Offers and Money Path".
-const FREE_BUILD = [
+const WEBSITE_LAUNCH_CHECKOUT =
+  "https://book.stripe.com/cNi6oG52y1kockE5oq5AQ0a";
+
+// The Product Studio entry offer: one clear scope, one clear price, and a
+// working approval checkpoint before the final payment and launch.
+const WEBSITE_LAUNCH = [
   {
     num: "01",
-    title: "Tell me about it",
-    body: "As little or as much as you want. Name, photos, videos, voice memos, old links. Dump it all on me.",
+    title: "Reserve the build",
+    body: "A $500 deposit opens intake, locks the Website Launch scope, and starts the build.",
   },
   {
     num: "02",
-    title: "I build the whole thing",
-    body: "Real pages, real forms, real follow-up. Built like the live systems above, customized to you.",
+    title: "Review the working site",
+    body: "Click through the real pages, test the forms, and request revisions inside the agreed scope.",
   },
   {
     num: "03",
-    title: "You decide",
-    body: "Love it? A down payment moves it forward and we price it by real hours, never agency math. Do not want it? You pay nothing.",
+    title: "Approve and launch",
+    body: "The remaining $500 is due only after approval and before the site moves to its live domain.",
   },
 ];
 
 const LADDER = [
   {
-    kind: "Start here",
+    kind: "Fixed-scope foundation",
+    name: "Website Launch",
+    price: "$1,000",
+    lead: true,
+    body: "A conversion-led five-page public experience with a clear path from attention to the next conversation.",
+    items: [
+      "Conversion map and five premium pages",
+      "Lead capture and routing",
+      "Responsive build, analytics, and deployment",
+      "Two revision rounds before launch",
+    ],
+    href: "/packages/launch",
+    cta: "See the $1,000 launch",
+  },
+  {
+    kind: "Deeper diagnostic",
     name: "System Map",
     price: "$497",
-    lead: true,
-    body: "A working blueprint of your company before anyone sells you pages, software, or automation. Credited in full toward an approved build.",
+    lead: false,
+    body: "A working blueprint for a business that needs more than a five-page launch before anyone scopes software or automation.",
     items: [
       "Full inventory of what you run today",
       "Customer path and data flow, mapped",
       "Ownership and handoff audit",
-      "Recommended modules, phases, and honest price range",
+      "Recommended modules, phases, and price range",
     ],
     href: "/packages/system-map",
     cta: "See the System Map",
-  },
-  {
-    kind: "Connected core",
-    name: "LeadFlow Launch",
-    price: "$7,500+",
-    lead: false,
-    body: "The owned public site and operating core a serious business needs to capture, route, and work demand.",
-    items: [
-      "Public site or sales home base",
-      "Lead capture, CRM, admin workspace, reporting",
-      "Transactional email and practical automation",
-      "GitHub, Vercel, and Supabase in your accounts",
-    ],
-    href: "/packages/launch",
-    cta: "See the full build",
   },
   {
     kind: "Full operating system",
@@ -259,7 +260,7 @@ const LADDER = [
     lead: false,
     body: "The connected core plus the portals, tools, records, training, and communications that make your business different.",
     items: [
-      "Everything in LeadFlow Launch",
+      "Everything in Website Launch",
       "Customer, member, student, or partner portals",
       "Industry tools, courses, archives, calls, and texts",
       "Deeper permissions, migration, and automation",
@@ -676,12 +677,12 @@ export default function HomePage() {
           <div className="cb-headrow">
             <div>
               <p className="cb-eyebrow">Engagement</p>
-              <h2 className="cb-h2 cb-heading">Start with the map. Then price the real work.</h2>
+              <h2 className="cb-h2 cb-heading">Start with the right first release.</h2>
             </div>
             <p className="cb-lead">
               A mortgage company, a dental academy, and a fleet washing crew should not get
-              the same canned package. The entry point is fixed. Everything after it is
-              scoped from what the map finds.
+              the same canned package. Website Launch has a fixed scope and price. Larger
+              operating systems are mapped around what the business actually needs.
             </p>
           </div>
 
@@ -722,7 +723,7 @@ export default function HomePage() {
               <p>
                 Multi-location operations, software products, complex migrations, tenant
                 systems, advanced permissions, and deeper AI connectors are scoped from
-                $30,000+. The System Map still comes first.
+                $15,000+. A System Map comes first when the dependencies are complex.
               </p>
             </div>
             <Link className="cb-btn cb-btn--ghost" href="/start?goal=custom">
@@ -733,44 +734,42 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 8b ------------------------------------------------- the free build */}
-      {/* The lead magnet, and the lowest-friction way in. It sits directly
-          after the ladder on purpose: an owner who just read $7,500 needs to
-          see the zero-risk door before they bounce. */}
+      {/* 8b -------------------------------------------- Product Studio offer */}
+      {/* A fixed-scope, fixed-price way to begin after the package ladder. The
+          existing layout classes stay in place so this offer inherits the
+          established visual system without introducing a one-off section. */}
       <section className="cb-band cb-band--ink cb-freebuild">
         <div className="cb-shell">
           <div className="cb-freebuild-grid">
             <div>
               <p className="cb-eyebrow">
-                <Gift aria-hidden="true" className="h-4 w-4" />
-                The free build offer
+                <Layers aria-hidden="true" className="h-4 w-4" />
+                Product Studio · Website Launch
               </p>
               <h2 className="cb-h2 cb-heading">
-                Not ready to pay for a map? I&rsquo;ll build it first.
+                A working five-page Website Launch for $1,000.
               </h2>
               <p className="cb-lead">
-                Tell me about the business. I build the whole thing before you pay anything.
-                No card, no deposit, no contract. If you love it, a down payment moves it
-                forward and we agree on a fair price by real hours. If you don&rsquo;t, we
-                shake hands and part friends.
+                Pay $500 to reserve the build. Review the working site and request revisions
+                inside the agreed scope. The remaining $500 is due only after approval and
+                before launch. Your code, domain, accounts, and data stay under your control.
               </p>
               <div className="cb-actions">
-                <CtaLink
-                  href="/free-build"
-                  event="start_free_build"
-                  placement="home_freebuild"
+                <a
+                  href={WEBSITE_LAUNCH_CHECKOUT}
+                  data-analytics="cta-website-launch-home"
                   className="cb-btn cb-btn--primary"
                 >
-                  Start My Free Build
+                  Reserve My Website Launch — $500
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                </CtaLink>
-                <a className="cb-btn cb-btn--ghost" href="sms:+19035008898">
-                  Text me: (903) 500-8898
                 </a>
+                <Link className="cb-btn cb-btn--ghost" href="/packages">
+                  See Product Studio options
+                </Link>
               </div>
             </div>
             <ol className="cb-freebuild-steps">
-              {FREE_BUILD.map((s) => (
+              {WEBSITE_LAUNCH.map((s) => (
                 <li key={s.title}>
                   <span className="cb-freebuild-num">{s.num}</span>
                   <div>
@@ -807,7 +806,7 @@ export default function HomePage() {
               Map My Company
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </CtaLink>
-            <Link className="cb-btn cb-btn--ghost" href="/pricing">
+            <Link className="cb-btn cb-btn--ghost" href="/packages">
               <Layers aria-hidden="true" className="h-4 w-4" />
               See the packages
             </Link>

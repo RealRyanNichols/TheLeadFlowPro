@@ -22,7 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/pricing",
     "/add-ons",
     "/tools",
-    "/free-build",
+    "/packages",
     "/portfolio",
     "/live",
     "/showcase",

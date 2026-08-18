@@ -3,8 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Boxes, Check, FileSearch, ShieldCheck, Store } from "lucide-react";
 import CtaLink from "@/components/site/CtaLink";
 
-// Packages: the build ladder. System Map, LeadFlow Launch, Industry OS, and
-// Custom Platform, matching Notion "1. Business Model, Offers and Money Path".
+// Packages: Website Launch, System Map, Industry OS, and Custom Platform.
 //
 // Learn It / Build It With You / Done For You at /pricing/[tier] are the three
 // public paths from the same Notion page and are LIVE in Stripe. They are a
@@ -14,12 +13,12 @@ import CtaLink from "@/components/site/CtaLink";
 export const metadata: Metadata = {
   title: "Packages | The LeadFlow Pro",
   description:
-    "Start with a $497 System Map, then build the connected LeadFlow core, a full Industry OS, or a larger custom platform. Scope is mapped before the build is quoted.",
+    "Start with a five-page Website Launch for $1,000, use a $497 System Map for deeper dependencies, or scope a larger operating system around the real work.",
   alternates: { canonical: "https://www.theleadflowpro.com/pricing" },
   openGraph: {
-    title: "Start with the map. Then price the real work.",
+    title: "Start with the right first release.",
     description:
-      "The System Map, LeadFlow Launch, Industry OS, and Custom Platform. Clear entry point, honest scope.",
+      "Website Launch, System Map, Industry OS, and Custom Platform. Clear entry points and written scope.",
     url: "https://www.theleadflowpro.com/pricing",
     siteName: "The LeadFlow Pro",
     images: [{ url: "/og/pricing.png", width: 1200, height: 630 }],
@@ -29,36 +28,36 @@ export const metadata: Metadata = {
 
 const LADDER = [
   {
-    kind: "Start here",
+    kind: "Fixed-scope foundation",
+    name: "Website Launch",
+    price: "$1,000",
+    lead: true,
+    body: "A conversion-led five-page public experience with one clear goal, lead capture, and a real approval checkpoint.",
+    items: [
+      "Conversion map and five premium pages",
+      "Lead capture and routing",
+      "Responsive production build, analytics, and deployment",
+      "Two revision rounds",
+      "$500 to start and $500 after approval, before launch",
+    ],
+    href: "/packages/launch",
+    cta: "See Website Launch",
+  },
+  {
+    kind: "Deeper diagnostic",
     name: "System Map",
     price: "$497",
-    lead: true,
-    body: "A working blueprint of your company before anybody starts selling you software, pages, or automation. Credited in full toward an approved build, and yours to keep either way.",
+    lead: false,
+    body: "A working blueprint for a business that needs more than a five-page launch before anyone scopes software or automation.",
     items: [
-      "Full inventory of your current website, marketplaces, software, and workflows",
+      "Full inventory of current software and workflows",
       "Customer path, data flow, ownership, and handoff map",
       "Ownership audit: what you own versus what you rent",
-      "Recommended modules, phases, dependencies, and an honest build range",
-      "Credited toward an approved LeadFlow build",
+      "Recommended modules, phases, and dependencies",
+      "An honest build range before production begins",
     ],
     href: "/packages/system-map",
     cta: "Get the System Map",
-  },
-  {
-    kind: "Connected core",
-    name: "LeadFlow Launch",
-    price: "$7,500+",
-    lead: false,
-    body: "The owned public site and operating core a serious business needs to capture, route, and actually work demand.",
-    items: [
-      "Public site or sales home base",
-      "Lead capture, CRM, admin workspace, and reporting",
-      "Transactional email and practical automation",
-      "First-party analytics and source attribution",
-      "GitHub, Vercel, and Supabase in accounts you control",
-    ],
-    href: "/packages/launch",
-    cta: "See the full build",
   },
   {
     kind: "Full operating system",
@@ -67,7 +66,7 @@ const LADDER = [
     lead: false,
     body: "The connected core plus the vertical tools, records, portals, training, and communications that make your business different from the one down the street.",
     items: [
-      "Everything in LeadFlow Launch",
+      "Everything required beyond Website Launch",
       "Customer, member, student, partner, or vendor portals",
       "Industry tools, courses, archives, calls, and texts",
       "Deeper permissions, migration, and integrations",
@@ -90,7 +89,7 @@ const WHY_DIFFERENT = [
   {
     num: "01",
     title: "Same door, different building",
-    body: "Two businesses can both start at LeadFlow Launch and need completely different work behind it. One has a clean brand and 40 customers in a spreadsheet. The other has eight years of records in three systems and a team that needs permissions. Same rung, different build.",
+    body: "Two businesses can both need an operating system and require completely different work. One has a clean brand and 40 customers in a spreadsheet. The other has eight years of records in three systems and a team that needs permissions. The System Map exposes that difference before anyone quotes the build.",
   },
   {
     num: "02",
@@ -147,13 +146,13 @@ export default function PricingPage() {
         <div className="cb-shell">
           <p className="cb-eyebrow">Clear entry point. Honest scope.</p>
           <h1 className="cb-h1">
-            <em>Start with the map.</em>
-            Then price the real work.
+            <em>Start with the right first release.</em>
+            Map the complexity before you build it.
           </h1>
           <p className="cb-hero-lead">
             A mortgage company, a dental academy, a fleet washing crew, and a multi-channel
-            seller should not get the same canned package. The entry point is fixed. The
-            complexity is mapped before the build is quoted.
+            seller should not get the same canned package. Website Launch is fixed at
+            $1,000. Larger systems are mapped before the build is quoted.
           </p>
           <div className="cb-actions">
             <CtaLink
@@ -177,11 +176,12 @@ export default function PricingPage() {
           <div className="cb-headrow">
             <div>
               <p className="cb-eyebrow">The ladder</p>
-              <h2 className="cb-h2 cb-heading">Three ways in. One of them comes first.</h2>
+              <h2 className="cb-h2 cb-heading">Three ways in. Pick the right first move.</h2>
             </div>
             <p className="cb-lead">
-              Every engagement starts with the map, because quoting a build before you know
-              what a company already runs is guessing with someone else&rsquo;s money.
+              Start with Website Launch when five focused pages solve the immediate problem.
+              Start with the System Map when software, data, teams, or migrations make the
+              dependencies more complex.
             </p>
           </div>
 
@@ -226,7 +226,7 @@ export default function PricingPage() {
               <p>
                 Multi-location operations, software products, complex migrations, tenant
                 systems, advanced permissions, and deeper AI connectors are scoped from
-                $30,000+. The System Map still comes first.
+                $15,000+. A System Map comes first when the dependencies are complex.
               </p>
             </div>
             <Link className="cb-btn cb-btn--ghost" href="/start?goal=custom">
@@ -346,8 +346,9 @@ export default function PricingPage() {
             I&rsquo;ll show you what to build.
           </h2>
           <p className="cb-lead">
-            The map is the first move for every engagement on this page. Start there and find
-            out what your company actually needs before you spend a real dollar on it.
+            Start with Website Launch when five focused pages solve the immediate problem.
+            Start with the System Map when software, data, team, or migration dependencies
+            make the build more complex.
           </p>
           <div className="cb-actions">
             <CtaLink

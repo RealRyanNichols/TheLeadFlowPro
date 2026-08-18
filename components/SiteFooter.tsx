@@ -5,7 +5,10 @@ import { usePathname } from "next/navigation";
 
 // The footer is ink on every page, light or dark, so the site always lands on
 // the same anchor. Add-Ons and Free Tools live here now that the primary nav is
-// organised around buyer intent. Every route below is live and unchanged.
+// organised around buyer intent.
+const WEBSITE_LAUNCH_CHECKOUT =
+  "https://book.stripe.com/cNi6oG52y1kockE5oq5AQ0a";
+
 const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
   {
     heading: "What we build",
@@ -27,9 +30,8 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
   {
     heading: "Work together",
     links: [
-      ["/free-build", "Free Build Offer"],
-      ["/pricing", "Packages"],
-      ["/deposit", "Make a Down Payment"],
+      ["/packages", "Packages"],
+      [WEBSITE_LAUNCH_CHECKOUT, "Reserve Website Launch — $500"],
       ["/start", "Map My Company"],
       ["/contact", "Contact"],
       ["/login", "Log in"],
@@ -61,7 +63,15 @@ export default function SiteFooter() {
               <h2>{col.heading}</h2>
               <nav aria-label={col.heading}>
                 {col.links.map(([href, label]) => (
-                  <Link key={href} href={href}>
+                  <Link
+                    key={href}
+                    href={href}
+                    data-analytics={
+                      href === WEBSITE_LAUNCH_CHECKOUT
+                        ? "cta-website-launch-footer"
+                        : undefined
+                    }
+                  >
                     {label}
                   </Link>
                 ))}
