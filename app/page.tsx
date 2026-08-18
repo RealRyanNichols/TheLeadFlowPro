@@ -373,113 +373,57 @@ export default function HomePage() {
       {/* 1 ------------------------------------------------------------ hero */}
       <section className="cb-hero">
         <div className="cb-shell">
-          <p className="cb-eyebrow">The Company Builder</p>
-          <h1 className="cb-h1">
-            <em>We don&rsquo;t just build your website.</em>
-            We build the company behind it.
-          </h1>
-          <p className="cb-hero-lead">
-            The LeadFlow Pro connects your website, CRM, calls, texts, email, payments,
-            portals, dashboards, automation, AI, and internal workflows into one business
-            system built in accounts you control.
-          </p>
-          <div className="cb-actions">
-            <CtaLink
-              href="/start"
-              event="map_my_company"
-              placement="home_hero"
-              className="cb-btn cb-btn--primary"
-            >
-              Map My Company
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </CtaLink>
-            <Link className="cb-btn cb-btn--ghost" href="/portfolio">
-              See the Live Systems
-            </Link>
-          </div>
-          <p className="cb-hero-own">
-            <ShieldCheck aria-hidden="true" className="h-5 w-5" />
-            Built by an operator. Installed in your accounts. Your business stays yours.
-          </p>
-
-          <CompanyLoop />
-        </div>
-      </section>
-
-      {/* 2 ----------------------------------------------------- proof strip */}
-      <section className="cb-proof" aria-label="Proof points">
-        <div className="cb-shell">
-          <div className="cb-proof-grid">
-            {PROOF.map((p) => (
-              <div key={p.label} className="cb-proof-item">
-                <strong>{p.figure}</strong>
-                <span>{p.label}</span>
+          <div className="cb-hero-layout">
+            <div className="cb-hero-copy">
+              <p className="cb-eyebrow">The Company Builder</p>
+              <h1 className="cb-h1">
+                <em>We don&rsquo;t just build your website.</em>
+                We build the company behind it.
+              </h1>
+              <p className="cb-hero-lead">
+                Your website, CRM, calls, texts, payments, automation, and reporting,
+                connected as one company system in accounts you control.
+              </p>
+              <div className="cb-actions">
+                <CtaLink
+                  href="/start"
+                  event="map_my_company"
+                  placement="home_hero"
+                  className="cb-btn cb-btn--primary"
+                >
+                  Map My Company
+                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </CtaLink>
+                <Link className="cb-btn cb-btn--ghost" href="/portfolio">
+                  See the Live Systems
+                </Link>
               </div>
-            ))}
+              <p className="cb-hero-own">
+                <ShieldCheck aria-hidden="true" className="h-5 w-5" />
+                Built by an operator. Installed in your accounts. Your business stays
+                yours.
+              </p>
+            </div>
+
+            <figure className="cb-hero-visual">
+              <Image
+                src="/images/homepage-v2/connected-company-hero.webp"
+                alt="A premium connected company system with conversation, customer, automation, payment, and reporting stations"
+                width={1920}
+                height={1080}
+                priority
+                sizes="(max-width: 900px) 100vw, 58vw"
+              />
+              <figcaption>
+                <span>One connected company</span>
+                <strong>Every signal moves toward a sale.</strong>
+              </figcaption>
+            </figure>
           </div>
         </div>
       </section>
 
-      {/* 3 ------------------------------------- website builder vs us */}
-      <section className="cb-band">
-        <div className="cb-shell">
-          <div className="cb-headrow">
-            <div>
-              <p className="cb-eyebrow">The difference</p>
-              <h2 className="cb-h2 cb-heading">
-                Your website should run your business. Not just sit there.
-              </h2>
-            </div>
-            <p className="cb-lead">
-              A website builder gives you pages. We build the connected company those pages
-              are supposed to power. Same front door. Completely different building behind
-              it.
-            </p>
-          </div>
-
-          <div className="cb-vs">
-            <div className="cb-vs-col cb-vs-col--them">
-              <span className="cb-vs-label">A website builder delivers</span>
-              <h3>Pages.</h3>
-              <ul className="cb-vs-list">
-                {WEBSITE_BUILDER.map((item) => (
-                  <li key={item}>
-                    <Minus aria-hidden="true" className="h-4 w-4" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <p className="cb-vs-foot">
-                Then the work of actually running the company starts, and none of it is
-                connected to the site you just paid for.
-              </p>
-            </div>
-
-            <div className="cb-vs-mid" aria-hidden="true">
-              <span>vs</span>
-            </div>
-
-            <div className="cb-vs-col cb-vs-col--us">
-              <span className="cb-vs-label">The Company Builder delivers</span>
-              <h3>The company.</h3>
-              <ul className="cb-vs-list">
-                {COMPANY_BUILDER.map((item) => (
-                  <li key={item}>
-                    <Check aria-hidden="true" className="h-4 w-4" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <p className="cb-vs-foot">
-                One system. One set of data. One place where a customer moves from stranger
-                to paid to delivered to measured.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3b ------------------------------------------ connected lead system */}
+      {/* 2 ------------------------------------------ connected lead system */}
       <section className="cb-band cb-band--visual" aria-labelledby="connected-system-title">
         <div className="cb-shell">
           <div className="cb-visual-intro">
@@ -553,7 +497,98 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4 ------------------------------------------------------- four parts */}
+      {/* 3 ------------------------------------------- operating system proof */}
+      <section className="cb-band cb-band--operations" aria-label="Connected company operating system">
+        <div className="cb-shell">
+          <CompanyLoop />
+
+          <div className="cb-proof-cockpit" aria-label="Proof points">
+            <div className="cb-proof-cockpit__art">
+              <Image
+                src="/images/homepage-v2/proof-cockpit.webp"
+                alt="Five precision instruments representing shipped systems, industries, tools, products, and client ownership"
+                width={1920}
+                height={1080}
+                sizes="(max-width: 900px) 100vw, 52vw"
+              />
+              <span>Live build telemetry</span>
+            </div>
+            <div className="cb-proof-cockpit__ledger">
+              <p className="cb-eyebrow">Built, shipped, running</p>
+              <h2 className="cb-h2">Proof before promises.</h2>
+              <div className="cb-proof-grid">
+                {PROOF.map((p) => (
+                  <div key={p.label} className="cb-proof-item">
+                    <strong>{p.figure}</strong>
+                    <span>{p.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4 ------------------------------------- website builder vs us */}
+      <section className="cb-band">
+        <div className="cb-shell">
+          <div className="cb-headrow">
+            <div>
+              <p className="cb-eyebrow">The difference</p>
+              <h2 className="cb-h2 cb-heading">
+                Your website should run your business. Not just sit there.
+              </h2>
+            </div>
+            <p className="cb-lead">
+              A website builder gives you pages. We build the connected company those pages
+              are supposed to power. Same front door. Completely different building behind
+              it.
+            </p>
+          </div>
+
+          <div className="cb-vs">
+            <div className="cb-vs-col cb-vs-col--them">
+              <span className="cb-vs-label">A website builder delivers</span>
+              <h3>Pages.</h3>
+              <ul className="cb-vs-list">
+                {WEBSITE_BUILDER.map((item) => (
+                  <li key={item}>
+                    <Minus aria-hidden="true" className="h-4 w-4" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="cb-vs-foot">
+                Then the work of actually running the company starts, and none of it is
+                connected to the site you just paid for.
+              </p>
+            </div>
+
+            <div className="cb-vs-mid" aria-hidden="true">
+              <span>vs</span>
+            </div>
+
+            <div className="cb-vs-col cb-vs-col--us">
+              <span className="cb-vs-label">The Company Builder delivers</span>
+              <h3>The company.</h3>
+              <ul className="cb-vs-list">
+                {COMPANY_BUILDER.map((item) => (
+                  <li key={item}>
+                    <Check aria-hidden="true" className="h-4 w-4" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="cb-vs-foot">
+                One system. One set of data. One place where a customer moves from stranger
+                to paid to delivered to measured.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5 ------------------------------------------------------- four parts */}
       <section id="what-we-build" className="cb-band cb-band--tint" tabIndex={-1}>
         <div className="cb-shell">
           <div className="cb-headrow">
