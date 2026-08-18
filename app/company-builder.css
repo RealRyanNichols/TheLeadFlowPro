@@ -2113,3 +2113,334 @@ body:has(.cb-page) .mobile-nav-panel > a:not(.header-cta):hover {
   color: var(--cb-on-ink);
   max-width: 68ch;
 }
+
+/* ------------------------------------------------ premium visual system --- */
+
+/* These bands carry the image language used across the LeadFlow content
+   engine into the public sales story. They are editorial scenes, not feature
+   cards: large art, a hard sequence number, and one business outcome. */
+.cb-band--visual {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 14%, #123fb44a 0, transparent 34%),
+    radial-gradient(circle at 88% 76%, #08c9ec24 0, transparent 30%),
+    linear-gradient(148deg, #050b19 0%, #071329 52%, #030712 100%);
+  color: var(--cb-muted-ink);
+}
+.cb-band--visual::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.36;
+  background-image:
+    linear-gradient(#5d8fff14 1px, transparent 1px),
+    linear-gradient(90deg, #5d8fff14 1px, transparent 1px);
+  background-size: 84px 84px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
+}
+.cb-band--visual .cb-shell {
+  position: relative;
+  z-index: 1;
+}
+.cb-visual-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.72fr);
+  gap: clamp(32px, 6vw, 92px);
+  align-items: end;
+  padding-bottom: clamp(42px, 6vw, 74px);
+  border-bottom: 1px solid #ffffff20;
+}
+.cb-band--visual .cb-h2,
+.cb-band--visual .cb-visual-copy h3 {
+  color: #f7f9ff;
+}
+.cb-band--visual .cb-lead,
+.cb-band--visual .cb-visual-copy > p {
+  color: #afbad0;
+}
+.cb-band--visual .cb-eyebrow {
+  color: #61ddff;
+}
+.cb-visual-ledger {
+  display: grid;
+  gap: 0;
+}
+.cb-visual-scene {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(300px, 0.78fr);
+  gap: clamp(34px, 6vw, 92px);
+  align-items: center;
+  padding: clamp(52px, 7vw, 94px) 0;
+  border-bottom: 1px solid #ffffff20;
+}
+.cb-visual-scene:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.cb-visual-scene--reverse .cb-visual-art {
+  order: 2;
+}
+.cb-visual-scene--reverse .cb-visual-copy {
+  order: 1;
+}
+.cb-visual-art,
+.cb-attribution-art,
+.cb-academy-art {
+  position: relative;
+  isolation: isolate;
+}
+.cb-visual-art::before,
+.cb-attribution-art::before,
+.cb-academy-art::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 7% 9%;
+  border-radius: 50%;
+  background: #1458ff;
+  filter: blur(70px);
+  opacity: 0.28;
+}
+.cb-visual-art img,
+.cb-attribution-art img,
+.cb-academy-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 30px;
+  border: 1px solid #6f9fff59;
+  box-shadow:
+    0 40px 90px #000b,
+    0 0 0 1px #ffffff08 inset,
+    0 0 70px #1359ff2e;
+}
+.cb-visual-scene--record .cb-visual-art {
+  transform: perspective(1400px) rotateY(2.6deg) rotateX(0.8deg);
+  transform-origin: center left;
+}
+.cb-visual-scene--followup .cb-visual-art {
+  transform: perspective(1400px) rotateY(-2.6deg) rotateX(0.8deg);
+  transform-origin: center right;
+}
+.cb-visual-copy {
+  position: relative;
+  padding-top: 76px;
+}
+.cb-visual-index {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: clamp(48px, 6vw, 82px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  color: transparent;
+  -webkit-text-stroke: 1px #6d9dff70;
+}
+.cb-visual-kicker {
+  margin: 0 0 10px;
+  font-size: 12px !important;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #61ddff !important;
+}
+.cb-visual-copy h3 {
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+}
+.cb-visual-copy > p {
+  margin: 22px 0 0;
+  font-size: 18px;
+  line-height: 1.62;
+}
+.cb-visual-points {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+}
+.cb-visual-points li {
+  position: relative;
+  padding: 13px 0 13px 24px;
+  border-top: 1px solid #ffffff1f;
+  color: #dce5f5;
+  font-size: 15px;
+}
+.cb-visual-points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 21px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #33d7ff;
+  box-shadow: 0 0 18px #33d7ff;
+}
+
+/* Attribution uses one large piece of proof art against the warm editorial
+   canvas. The ledger is intentionally ruled instead of card based. */
+.cb-band--attribution {
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, #e9edf6 1px, transparent 1px),
+    linear-gradient(#e9edf6 1px, transparent 1px),
+    linear-gradient(150deg, #f7f5f2 0%, #edf2fb 100%);
+  background-size: 72px 72px, 72px 72px, auto;
+}
+.cb-attribution-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.84fr);
+  gap: clamp(38px, 7vw, 108px);
+  align-items: center;
+}
+.cb-attribution-art::before {
+  background: #0d50ff;
+  opacity: 0.19;
+}
+.cb-attribution-art img {
+  border-color: #0b2ca84a;
+  box-shadow: 0 38px 90px #10244935, 0 0 0 1px #ffffff inset;
+  transform: perspective(1500px) rotateY(2deg);
+}
+.cb-attribution-copy .cb-btn {
+  margin-top: 34px;
+}
+.cb-trace-ledger {
+  margin: 36px 0 0;
+}
+.cb-trace-ledger > div {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 22px;
+  padding: 18px 0;
+  border-top: 1px solid #bdc8da;
+}
+.cb-trace-ledger dt {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-weight: 800;
+  color: var(--cb-blue-deep);
+}
+.cb-trace-ledger dd {
+  margin: 0;
+  color: var(--cb-body);
+  line-height: 1.5;
+}
+
+/* Academy is the darkest product band because it introduces a distinct owned
+   product while staying in the same cobalt and blueprint language. */
+.cb-band--academy {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 82% 30%, #0b63ff3d, transparent 36%),
+    linear-gradient(135deg, #071224 0%, #081a33 56%, #04101d 100%);
+}
+.cb-academy-grid {
+  display: grid;
+  grid-template-columns: minmax(340px, 0.82fr) minmax(0, 1.08fr);
+  gap: clamp(42px, 7vw, 108px);
+  align-items: center;
+}
+.cb-band--academy .cb-h2 {
+  color: #f7f9ff;
+}
+.cb-band--academy .cb-lead {
+  color: #afbad0;
+}
+.cb-band--academy .cb-eyebrow {
+  color: #61ddff;
+}
+.cb-academy-art::before {
+  background: #1670ff;
+  opacity: 0.3;
+}
+.cb-academy-art img {
+  border-color: #6f9fff59;
+  box-shadow: 0 40px 90px #000b, 0 0 72px #1a69ff38;
+  transform: perspective(1500px) rotateY(-2deg);
+}
+.cb-academy-proof {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 26px;
+  margin-top: 34px;
+  border-bottom: 1px solid #ffffff20;
+}
+.cb-academy-proof span {
+  padding: 14px 0;
+  border-top: 1px solid #ffffff20;
+  color: #e0e7f3;
+  font-size: 14px;
+  font-weight: 700;
+}
+.cb-band--academy .cb-actions {
+  margin-top: 34px;
+}
+.cb-band--academy .cb-btn--ghost {
+  color: var(--cb-on-ink);
+  border-color: #ffffff3d;
+  background: #ffffff08;
+}
+.cb-band--academy .cb-btn--ghost:hover {
+  border-color: #ffffffa6;
+  background: #ffffff12;
+}
+
+@media (max-width: 960px) {
+  .cb-visual-intro,
+  .cb-visual-scene,
+  .cb-attribution-grid,
+  .cb-academy-grid {
+    grid-template-columns: 1fr;
+  }
+  .cb-visual-intro {
+    align-items: start;
+  }
+  .cb-visual-scene {
+    gap: 36px;
+  }
+  .cb-visual-scene--reverse .cb-visual-art,
+  .cb-visual-scene--reverse .cb-visual-copy {
+    order: initial;
+  }
+  .cb-attribution-art,
+  .cb-academy-art {
+    max-width: 760px;
+    margin-inline: auto;
+  }
+  .cb-academy-copy {
+    order: 2;
+  }
+  .cb-academy-art {
+    order: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .cb-visual-art img,
+  .cb-attribution-art img,
+  .cb-academy-art img {
+    border-radius: 20px;
+  }
+  .cb-visual-scene--record .cb-visual-art,
+  .cb-visual-scene--followup .cb-visual-art,
+  .cb-attribution-art img,
+  .cb-academy-art img {
+    transform: none;
+  }
+  .cb-visual-copy {
+    padding-top: 62px;
+  }
+  .cb-trace-ledger > div {
+    grid-template-columns: 82px 1fr;
+    gap: 14px;
+  }
+  .cb-academy-proof {
+    grid-template-columns: 1fr;
+  }
+}

@@ -25,10 +25,10 @@ export const metadata: Metadata = {
     siteName: "The LeadFlow Pro",
     images: [
       {
-        url: "/images/product-studio/operator-system.webp",
-        width: 1600,
-        height: 1001,
-        alt: "The LeadFlow Pro operator working inside a connected business command center",
+        url: "/images/product-studio/connected-system-path.webp",
+        width: 1672,
+        height: 941,
+        alt: "A connected business path from attention through lead capture, customer record, follow up, and sale",
       },
     ],
     type: "website",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Not another website. A working business system.",
     description: "A $1,000 Website Launch with a clear two-payment schedule.",
-    images: ["/images/product-studio/operator-system.webp"],
+    images: ["/images/product-studio/connected-system-path.webp"],
   },
 };
 
@@ -154,8 +154,8 @@ export default function ProductStudioPage() {
       <section className={styles.hero}>
         <Image
           className={styles.heroImage}
-          src="/images/product-studio/operator-system.webp"
-          alt="The LeadFlow Pro operator working inside a connected business command center"
+          src="/images/product-studio/connected-system-path.webp"
+          alt="A connected business path from attention through lead capture, customer record, follow up, and sale"
           fill
           priority
           sizes="100vw"
@@ -170,7 +170,7 @@ export default function ProductStudioPage() {
                 <span>A working business system.</span>
               </h1>
               <p className={styles.heroLead}>
-                Strategy, design, funnels, automation and training infrastructure—built to
+                Strategy, design, funnels, automation and training infrastructure, built to
                 turn attention into a measurable next step.
               </p>
               <div className={styles.actions}>
@@ -300,7 +300,7 @@ export default function ProductStudioPage() {
                 href={CHECKOUT_URL}
                 data-analytics="cta-website-launch-packages-scope"
               >
-                Reserve Website Launch — $500
+                Reserve Website Launch | $500
                 <ArrowUpRight aria-hidden="true" />
               </a>
               <small>
@@ -431,7 +431,7 @@ export default function ProductStudioPage() {
                 href={CHECKOUT_URL}
                 data-analytics="cta-website-launch-packages-final"
               >
-                Start Website Launch — $500
+                Start Website Launch | $500
                 <ArrowUpRight aria-hidden="true" />
               </a>
               <span>Secure checkout through Longview Training Center, LLC.</span>

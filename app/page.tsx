@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import CompanyLoop from "@/components/site/CompanyLoop";
 import CtaLink from "@/components/site/CtaLink";
+import { ARTICLES } from "@/lib/articles";
+import { TOOL_COUNT } from "@/lib/tools";
 
 // THE COMPANY BUILDER homepage.
 //
@@ -32,7 +34,7 @@ import CtaLink from "@/components/site/CtaLink";
 const PROOF = [
   { figure: "8", label: "live systems shipped and running right now" },
   { figure: "6", label: "industries represented, from local service to software" },
-  { figure: "78", label: "free working tools built and published" },
+  { figure: String(TOOL_COUNT), label: "free working tools built and published" },
   { figure: "4", label: "real software products running on the owned stack" },
   { figure: "100%", label: "built in accounts the client controls" },
 ];
@@ -195,7 +197,7 @@ const RECEIPTS = [
   },
   {
     head: "Publishes on owned infrastructure, not rented reach.",
-    body: "78 free working tools and 13 articles, all served from domains and databases under his own control.",
+    body: `${TOOL_COUNT} free working tools and ${ARTICLES.length} articles, all served from domains and databases under his own control.`,
   },
 ];
 
@@ -477,6 +479,80 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* 3b ------------------------------------------ connected lead system */}
+      <section className="cb-band cb-band--visual" aria-labelledby="connected-system-title">
+        <div className="cb-shell">
+          <div className="cb-visual-intro">
+            <div>
+              <p className="cb-eyebrow">The connected lead system</p>
+              <h2 id="connected-system-title" className="cb-h2 cb-heading--wide">
+                Every signal becomes one customer story.
+              </h2>
+            </div>
+            <p className="cb-lead">
+              A call should not live in one app while a text, social message, and website
+              form live in three more. We connect the doors, preserve the history, and give
+              the next person one clear action.
+            </p>
+          </div>
+
+          <div className="cb-visual-ledger">
+            <article className="cb-visual-scene cb-visual-scene--record">
+              <div className="cb-visual-art">
+                <Image
+                  src="/images/visual-system/one-customer-one-record.webp"
+                  alt="Phone calls, text messages, social direct messages, and website forms flowing into one customer record"
+                  width={1254}
+                  height={1254}
+                  sizes="(max-width: 900px) 100vw, 58vw"
+                />
+              </div>
+              <div className="cb-visual-copy">
+                <span className="cb-visual-index">01</span>
+                <p className="cb-visual-kicker">Unify the signal</p>
+                <h3>One customer. One record.</h3>
+                <p>
+                  The conversation history follows the person, not the channel. Your team
+                  sees what happened, what matters, and what needs to happen next.
+                </p>
+                <ul className="cb-visual-points">
+                  <li>Calls, texts, DMs, and forms connected</li>
+                  <li>Source and consent preserved</li>
+                  <li>One accountable owner for the next move</li>
+                </ul>
+              </div>
+            </article>
+
+            <article className="cb-visual-scene cb-visual-scene--reverse cb-visual-scene--followup">
+              <div className="cb-visual-art">
+                <Image
+                  src="/images/visual-system/automate-the-reminder.webp"
+                  alt="Quote sent, follow up, and owner review shown as a connected workflow"
+                  width={1254}
+                  height={1254}
+                  sizes="(max-width: 900px) 100vw, 58vw"
+                />
+              </div>
+              <div className="cb-visual-copy">
+                <span className="cb-visual-index">02</span>
+                <p className="cb-visual-kicker">Run the follow up</p>
+                <h3>Automate the reminder. Keep the owner.</h3>
+                <p>
+                  Automation should keep promises, not make decisions nobody can explain.
+                  The system remembers the timing and brings the judgment call back to the
+                  owner.
+                </p>
+                <ul className="cb-visual-points">
+                  <li>Immediate acknowledgement</li>
+                  <li>Timed quote and appointment reminders</li>
+                  <li>Human review before the important move</li>
+                </ul>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {/* 4 ------------------------------------------------------- four parts */}
       <section id="what-we-build" className="cb-band cb-band--tint" tabIndex={-1}>
         <div className="cb-shell">
@@ -508,6 +584,52 @@ export default function HomePage() {
                 </ul>
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4b ------------------------------------------- source attribution */}
+      <section className="cb-band cb-band--attribution" aria-labelledby="trace-sale-title">
+        <div className="cb-shell">
+          <div className="cb-attribution-grid">
+            <div className="cb-attribution-art">
+              <Image
+                src="/images/visual-system/trace-the-sale.webp"
+                alt="A connected path from a social post to a click, website form, customer record, and sale"
+                width={1254}
+                height={1254}
+                sizes="(max-width: 900px) 100vw, 52vw"
+              />
+            </div>
+            <div className="cb-attribution-copy">
+              <p className="cb-eyebrow">First party attribution</p>
+              <h2 id="trace-sale-title" className="cb-h2 cb-heading--wide">
+                Can you trace the sale?
+              </h2>
+              <p className="cb-lead">
+                A dashboard full of views is not proof. The useful chain is the post, the
+                click, the form, the customer, and the sale. We build the path so the next
+                budget decision is based on evidence.
+              </p>
+              <dl className="cb-trace-ledger">
+                <div>
+                  <dt>Source</dt>
+                  <dd>The post, ad, search, referral, or page that created attention.</dd>
+                </div>
+                <div>
+                  <dt>Action</dt>
+                  <dd>The click, call, text, booking, form, or payment that followed.</dd>
+                </div>
+                <div>
+                  <dt>Outcome</dt>
+                  <dd>The customer record and closed result tied back to the beginning.</dd>
+                </div>
+              </dl>
+              <Link className="cb-btn cb-btn--primary" href="/live">
+                See the live proof system
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -671,6 +793,49 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* 7b --------------------------------------------- operator academy */}
+      <section className="cb-band cb-band--academy" aria-labelledby="academy-title">
+        <div className="cb-shell">
+          <div className="cb-academy-grid">
+            <div className="cb-academy-copy">
+              <p className="cb-eyebrow">LeadFlow Operator Academy</p>
+              <h2 id="academy-title" className="cb-h2 cb-heading--wide">
+                The course is not the system.
+              </h2>
+              <p className="cb-lead">
+                A video library is content. A training platform connects interest,
+                application, payment, access, progress, resources, and the next lesson into
+                one owned experience.
+              </p>
+              <div className="cb-academy-proof">
+                <span>Public catalog</span>
+                <span>Member access</span>
+                <span>Progress tracking</span>
+                <span>Daily module publishing</span>
+              </div>
+              <div className="cb-actions">
+                <Link className="cb-btn cb-btn--primary" href="/training">
+                  Preview the training platform
+                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </Link>
+                <Link className="cb-btn cb-btn--ghost" href="/packages">
+                  See the platform packages
+                </Link>
+              </div>
+            </div>
+            <div className="cb-academy-art">
+              <Image
+                src="/images/visual-system/course-system-blueprint.webp"
+                alt="Blueprint showing interest, application, payment, and student portal as one connected training system"
+                width={1254}
+                height={1254}
+                sizes="(max-width: 900px) 100vw, 52vw"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 8 ---------------------------------------------------------- packages */}
       <section className="cb-band cb-band--tint">
         <div className="cb-shell">
@@ -760,7 +925,7 @@ export default function HomePage() {
                   data-analytics="cta-website-launch-home"
                   className="cb-btn cb-btn--primary"
                 >
-                  Reserve My Website Launch — $500
+                  Reserve My Website Launch | $500
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </a>
                 <Link className="cb-btn cb-btn--ghost" href="/packages">

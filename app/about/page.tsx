@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, ShieldCheck } from "lucide-react";
 import CtaLink from "@/components/site/CtaLink";
+import { ARTICLES } from "@/lib/articles";
+import { TOOL_COUNT } from "@/lib/tools";
 
 // About Ryan. Operator proof, grounded in receipts, kept short on purpose. This
 // is not an autobiography: it exists to answer one question, which is whether
@@ -18,8 +20,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.theleadflowpro.com/about" },
   openGraph: {
     title: "I have already built what you are trying to build.",
-    description:
-      "The operator behind The LeadFlow Pro: 8 live systems across 6 industries, 78 published tools, and real software products.",
+    description: `The operator behind The LeadFlow Pro: 8 live systems across 6 industries, ${TOOL_COUNT} published tools, and real software products.`,
     url: "https://www.theleadflowpro.com/about",
     siteName: "The LeadFlow Pro",
     images: [{ url: "/og/home.png", width: 1200, height: 630 }],
@@ -74,7 +75,7 @@ const RECEIPTS = [
     body: "Ryan has flown a specialist in first class, covered the room, the board and the food, and paid five figures for a two day shoot, because the content that came out of it paid for itself once it went to work. That is why he does not flinch at quoting a real number, and why he will tell you when something is not worth it.",
   },
   {
-    head: "78 free working tools. 13 owned articles.",
+    head: `${TOOL_COUNT} free working tools. ${ARTICLES.length} owned articles.`,
     body: "Calculators, assessments, and generators published on infrastructure he controls, not on a rented platform that can change the terms.",
   },
   {
