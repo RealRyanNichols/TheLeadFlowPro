@@ -64,7 +64,7 @@ export default function ArticlesPage() {
             <Link key={a.slug} href={`/articles/${a.slug}`} className="sv-index-card sv-article-feature-card">
               <span className="sv-index-card__media">
                 <Image
-                  src={articlePremiumArtPath(a.slug) as string}
+                  src={articlePremiumArtPath(a.slug)}
                   alt={articlePremiumArtAlt(a.slug)}
                   fill
                   sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1000px) 50vw, 33vw"
@@ -101,7 +101,7 @@ export default function ArticlesPage() {
               <Link key={a.slug} href={`/articles/${a.slug}`} className="sv-index-card sv-article-feature-card">
                 <span className="sv-index-card__media">
                   <Image
-                    src={articlePremiumArtPath(a.slug) as string}
+                    src={articlePremiumArtPath(a.slug)}
                     alt={articlePremiumArtAlt(a.slug)}
                     fill
                     sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1000px) 50vw, 33vw"

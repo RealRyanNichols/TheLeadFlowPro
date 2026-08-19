@@ -19,10 +19,7 @@ export async function GET(
     return new Response("Article not found", { status: 404 });
   }
 
-  const backgroundUrl = new URL(
-    articlePremiumOgArtPath(article.slug) ?? article.ogImage,
-    request.url,
-  ).toString();
+  const backgroundUrl = new URL(articlePremiumOgArtPath(article.slug), request.url).toString();
 
   return new ImageResponse(articleOgCard({ article, backgroundUrl }), {
     ...ARTICLE_OG_SIZE,

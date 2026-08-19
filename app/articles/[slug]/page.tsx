@@ -161,7 +161,7 @@ export default async function ArticlePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {premiumArt ? <div className="sv-article-hero">
+      <div className="sv-article-hero">
         <SiteHero
           compact
           eyebrow="Operator field note"
@@ -173,7 +173,7 @@ export default async function ArticlePage({
             width: 1200,
             height: 630,
             kicker: article.video ? "Watch and read" : "Visual explainer",
-            caption: articleVisualHeadline(article.slug) ?? "One clear business question.",
+            caption: articleVisualHeadline(article.slug),
           }}
           trustLine={`${new Date(article.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
             month: "long",
@@ -181,22 +181,7 @@ export default async function ArticlePage({
             year: "numeric",
           })} · ${article.readingMinutes} min read · Ryan Nichols`}
         />
-      </div> : (
-        <section className="sv-article-text-hero">
-          <div className="cb-shell">
-            <p className="cb-eyebrow">Operator field note</p>
-            <h1>{article.title}</h1>
-            <p className="sv-article-text-hero__lead">{article.description}</p>
-            <p className="sv-article-text-hero__byline">
-              {new Date(article.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })} · {article.readingMinutes} min read · Ryan Nichols
-            </p>
-          </div>
-        </section>
-      )}
+      </div>
 
       <article className="sv-article-shell">
         {article.video ? (

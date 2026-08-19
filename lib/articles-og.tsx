@@ -259,19 +259,27 @@ function articleOgLayout(slug: string) {
 }
 
 export function articlePremiumArtPath(slug: string) {
-  return PREMIUM_ARTICLE_ART[slug] ?? null;
+  const path = PREMIUM_ARTICLE_ART[slug];
+  if (!path) throw new Error(`Missing article scene for ${slug}`);
+  return path;
 }
 
 export function articlePremiumOgArtPath(slug: string) {
-  return PREMIUM_ARTICLE_OG_ART[slug] ?? PREMIUM_ARTICLE_ART[slug] ?? null;
+  const path = PREMIUM_ARTICLE_OG_ART[slug] ?? PREMIUM_ARTICLE_ART[slug];
+  if (!path) throw new Error(`Missing article social scene for ${slug}`);
+  return path;
 }
 
 export function articleVisualHeadline(slug: string) {
-  return VISUAL_HEADLINES[slug] ?? null;
+  const headline = VISUAL_HEADLINES[slug];
+  if (!headline) throw new Error(`Missing article visual headline for ${slug}`);
+  return headline;
 }
 
 export function articlePremiumArtAlt(slug: string) {
-  return PREMIUM_ARTICLE_ALT[slug] ?? "A visual explainer from The LeadFlow Pro";
+  const alt = PREMIUM_ARTICLE_ALT[slug];
+  if (!alt) throw new Error(`Missing article scene description for ${slug}`);
+  return alt;
 }
 
 export function articleSocialImagePath(slug: string) {
@@ -306,24 +314,8 @@ type ArticleOgCardProps = {
 };
 
 export function articleOgCard({ article, backgroundUrl }: ArticleOgCardProps): ReactElement {
-  const premiumArt = articlePremiumArtPath(article.slug);
-
-  if (!premiumArt) {
-    return (
-      <div style={{ display: "flex", width: "100%", height: "100%", background: NAVY }}>
-        <img
-          src={backgroundUrl}
-          alt=""
-          width={ARTICLE_OG_SIZE.width}
-          height={ARTICLE_OG_SIZE.height}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      </div>
-    );
-  }
-
   const layout = articleOgLayout(article.slug);
-  const visualHeadline = articleVisualHeadline(article.slug) ?? article.title;
+  const visualHeadline = articleVisualHeadline(article.slug);
   const horizontal = layout.direction === "row" || layout.direction === "row-reverse";
   const panelStyle = horizontal
     ? { width: `${layout.panel}%`, height: "100%" }

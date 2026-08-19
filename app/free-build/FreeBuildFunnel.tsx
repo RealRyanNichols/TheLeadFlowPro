@@ -340,12 +340,12 @@ export default function FreeBuildFunnel() {
     <main className="pb-24">
       {/* HERO */}
       <section className="page-hero page-hero-centered">
-        <span className="inline-flex items-center gap-2.5 rounded-full border border-[var(--accent-line)] bg-[var(--accent-tint)] px-4 py-2">
+        <span className="inline-flex items-center gap-2.5 border-l-2 border-[var(--accent-line)] pl-3">
           <Hammer aria-hidden="true" className="h-3.5 w-3.5 text-[var(--blue)]" />
           <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--blue)]">
             The Free Build Offer
           </span>
-          <span className="rounded-full border border-[var(--green-line)] bg-[var(--green-tint)] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[var(--green)]">
+          <span className="border-l-2 border-[var(--green-line)] pl-2 text-[10px] font-black uppercase tracking-wider text-[var(--green)]">
             $0 up front
           </span>
         </span>
@@ -734,7 +734,7 @@ export default function FreeBuildFunnel() {
                   : "border-[var(--line-strong)] bg-[var(--fill-2)]"
               }`}
             >
-              <span className={`self-start rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${t.featured ? "border-[var(--accent-line)] bg-[var(--accent-tint)] text-[var(--blue)]" : "border-[var(--line-strong)] bg-[var(--fill-2)] text-[var(--text)]"}`}>
+              <span className={`self-start border-l-2 py-1 pl-3 text-[11px] font-bold uppercase tracking-wider ${t.featured ? "border-[var(--blue)] text-[var(--blue)]" : "border-[var(--line-strong)] text-[var(--text)]"}`}>
                 {t.tag}
               </span>
               <h3 className="mt-3 text-2xl font-black text-[var(--heading)]">{t.name}</h3>
