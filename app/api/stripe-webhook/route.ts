@@ -21,7 +21,8 @@ import {
 // Needs STRIPE_WEBHOOK_SECRET (from Stripe dashboard → Webhooks) and
 // SUPABASE_SERVICE_ROLE_KEY (Supabase → Settings → API) in Vercel env vars.
 // Endpoint to register in Stripe: https://www.theleadflowpro.com/api/stripe-webhook
-// Event to send: checkout.session.completed
+// Events to send: checkout.session.completed, invoice.finalized, invoice.sent,
+// invoice.paid, invoice.payment_failed, invoice.voided, and invoice.marked_uncollectible
 
 function verifySignature(payload: string, header: string, secret: string): boolean {
   try {
@@ -291,6 +292,28 @@ async function ensureWebsiteLaunchIntake(
   }
 }
 
+type StripeInvoiceWebhook = {
+  id?: unknown;
+  number?: unknown;
+  status?: unknown;
+  hosted_invoice_url?: unknown;
+  invoice_pdf?: unknown;
+  amount_due?: unknown;
+};
+
+const INVOICE_EVENT_STATUS: Record<string, string> = {
+  "invoice.finalized": "open",
+  "invoice.sent": "open",
+  "invoice.paid": "paid",
+  "invoice.payment_failed": "payment_failed",
+  "invoice.voided": "void",
+  "invoice.marked_uncollectible": "uncollectible",
+};
+
+function webhookString(value: unknown, max = 1000) {
+  return typeof value === "string" ? value.slice(0, max) : null;
+}
+
 export async function POST(request: Request) {
   const whSecret = process.env.STRIPE_WEBHOOK_SECRET;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -304,11 +327,46 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Bad signature" }, { status: 400 });
   }
 
-  let event: { type?: unknown; data?: { object?: StripeCheckoutSession } };
+  let event: {
+    type?: unknown;
+    data?: { object?: StripeCheckoutSession | StripeInvoiceWebhook };
+  };
   try {
     event = JSON.parse(payload);
   } catch {
     return NextResponse.json({ error: "Bad payload" }, { status: 400 });
+  }
+
+  if (typeof event.type === "string" && INVOICE_EVENT_STATUS[event.type]) {
+    try {
+      const invoice = (event.data?.object ?? {}) as StripeInvoiceWebhook;
+      const invoiceId = webhookString(invoice.id, 200);
+      if (!invoiceId) throw new Error("Stripe invoice event has no invoice ID");
+      const updates: Record<string, unknown> = {
+        status: INVOICE_EVENT_STATUS[event.type],
+        updated_at: new Date().toISOString(),
+      };
+      const number = webhookString(invoice.number, 100);
+      const hostedUrl = webhookString(invoice.hosted_invoice_url);
+      const pdf = webhookString(invoice.invoice_pdf);
+      if (number) updates.invoice_number = number;
+      if (hostedUrl) updates.hosted_invoice_url = hostedUrl;
+      if (pdf) updates.invoice_pdf = pdf;
+
+      const invoiceSupabase = createSupabaseClient(SUPABASE_URL, serviceKey);
+      const result = await invoiceSupabase
+        .from("sales_invoices")
+        .update(updates)
+        .eq("stripe_invoice_id", invoiceId);
+      if (result.error) throw new Error(`Invoice status sync failed: ${result.error.code}`);
+      return NextResponse.json({ received: true });
+    } catch (error) {
+      console.error(
+        "Stripe invoice webhook failed:",
+        error instanceof Error ? error.message : "unknown invoice error",
+      );
+      return NextResponse.json({ error: "Invoice processing failed" }, { status: 500 });
+    }
   }
 
   if (event.type !== "checkout.session.completed") {
@@ -316,7 +374,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const session = event.data?.object ?? {};
+    const session = (event.data?.object ?? {}) as StripeCheckoutSession;
     if (session.payment_status !== "paid") {
       return NextResponse.json({ received: true });
     }
