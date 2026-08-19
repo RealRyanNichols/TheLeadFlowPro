@@ -132,7 +132,7 @@ export default function SalesLeadWorkspace({
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/sales" className="text-sm font-semibold text-flow-400">← Pipeline</Link>
+        <Link href="/admin/sales" className="text-sm font-semibold text-flow-400">← Pipeline</Link>
         <div className="mt-3 flex flex-wrap items-end gap-4">
           <div className="min-w-0 flex-1">
             <h1 className="text-3xl font-black text-[var(--heading)]">{lead.full_name}</h1>
@@ -149,7 +149,7 @@ export default function SalesLeadWorkspace({
             <input className="input ml-2 !w-40 !py-1.5 text-sm" value={owner} onChange={(event) => setOwner(event.target.value)} onBlur={saveOwner} />
           </label>
           <Link
-            href={`/sales/invoices?lead=${lead.id}`}
+            href={`/admin/sales/invoices?lead=${lead.id}`}
             className="btn-primary !px-4 !py-2 text-sm"
           >
             Create invoice
