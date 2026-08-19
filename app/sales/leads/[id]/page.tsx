@@ -11,12 +11,13 @@ export default async function SalesLeadPage({ params }: { params: Promise<{ id: 
   const { data: lead } = await supabase.from("leads").select("*").eq("id", id).is("deleted_at", null).single();
   if (!lead) notFound();
 
-  const [{ data: notes }, { data: tasks }, { data: activity }, { data: emails }, { data: thread }] = await Promise.all([
+  const [{ data: notes }, { data: tasks }, { data: activity }, { data: emails }, { data: thread }, { data: projects }] = await Promise.all([
     supabase.from("lead_notes").select("*").eq("lead_id", id).order("created_at", { ascending: false }),
     supabase.from("lead_tasks").select("*").eq("lead_id", id).order("created_at", { ascending: false }),
     supabase.from("lead_activity").select("*").eq("lead_id", id).order("created_at", { ascending: false }),
     supabase.from("lead_emails").select("*").eq("lead_id", id).order("sent_at", { ascending: false }),
     supabase.from("lead_messages").select("*").eq("lead_id", id).order("created_at", { ascending: true }),
+    supabase.from("projects").select("id, name, status, target_launch, client_portal_invited_at, milestones(id, status), deliverables(id, title, status, visible_to_client, client_decision)").eq("lead_id", id).order("created_at", { ascending: false }),
   ]);
 
   return (
@@ -27,6 +28,7 @@ export default async function SalesLeadPage({ params }: { params: Promise<{ id: 
       initialActivity={activity ?? []}
       emails={emails ?? []}
       initialThread={thread ?? []}
+      projects={projects ?? []}
     />
   );
 }

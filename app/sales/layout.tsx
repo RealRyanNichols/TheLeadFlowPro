@@ -36,6 +36,12 @@ export default async function SalesLayout({ children }: { children: React.ReactN
             <Link href="/admin/sales" className="text-[var(--text)] hover:text-[var(--heading)]">
               Pipeline
             </Link>
+            <Link href="/admin/sales/follow-ups" className="text-[var(--text)] hover:text-[var(--heading)]">
+              Follow-ups
+            </Link>
+            <Link href="/admin/sales/delivery" className="text-[var(--text)] hover:text-[var(--heading)]">
+              Delivery Center
+            </Link>
             <Link href="/admin/sales/invoices" className="text-[var(--text)] hover:text-[var(--heading)]">
               Invoices
             </Link>
