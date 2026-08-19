@@ -37,8 +37,8 @@ export default function ToolCard({ tool, priority = false }: { tool: ToolIndexEn
       <span className="flex flex-1 flex-col p-4">
         <span className="flex flex-wrap items-center gap-1.5">
           <span
-            className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider"
-            style={{ color: domain.ink, background: domain.tint, border: `1px solid ${domain.line}` }}
+            className="border-l-2 py-0.5 pl-2 text-[10px] font-black uppercase tracking-wider"
+            style={{ color: domain.ink, borderColor: domain.line }}
           >
             {domain.label}
           </span>

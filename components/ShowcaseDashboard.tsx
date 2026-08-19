@@ -122,7 +122,7 @@ export default function ShowcaseDashboard() {
           <span className="font-black tracking-wide text-[var(--heading)]">LIVE</span>
           <span className="text-sm text-[var(--muted)]">Command Center · simulated demo data</span>
         </div>
-        <span className="rounded-full border border-violet-400/40 bg-violet-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--violet)]">
+        <span className="border-l-2 border-violet-400 pl-3 text-xs font-bold uppercase tracking-wider text-[var(--violet)]">
           Larger custom system example
         </span>
       </div>
@@ -238,7 +238,7 @@ export default function ShowcaseDashboard() {
       <div className="card border border-violet-400/30 shadow-glow-violet">
         <div className="flex items-center gap-2">
           <h2 className="font-bold text-[var(--heading)]">Automations on shift</h2>
-          <span className="rounded-full bg-mint/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-mint">Simulated always-on workflows</span>
+          <span className="border-l-2 border-mint pl-2 text-[10px] font-black uppercase tracking-wider text-mint">Simulated always-on workflows</span>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {agents.map((a) => (

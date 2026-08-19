@@ -1069,26 +1069,32 @@ body:has(.cb-page) .site-footer :focus-visible {
 .cb-case-kind {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  padding: 6px 11px;
-  border-radius: 999px;
-  border: 1px solid currentColor;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  line-height: 1.25;
+}
+.cb-case-kind::before {
+  content: "";
+  width: 28px;
+  height: 2px;
+  background: currentColor;
+  flex: none;
 }
 .cb-case-kind--client {
   color: var(--cb-blue-deep);
-  background: #1240e80f;
 }
 .cb-case-kind--founder {
-  color: #7a4a00;
-  background: #f59e0b17;
+  color: var(--cb-blue-deep);
 }
 .cb-case-kind--private {
   color: #4b5563;
-  background: #4b55620f;
 }
 
 .cb-case h3 {
@@ -1393,17 +1399,27 @@ body:has(.cb-page) .site-footer :focus-visible {
   position: relative;
 }
 .cb-rung-flag {
-  position: absolute;
-  top: -12px;
-  left: clamp(26px, 2.6vw, 36px);
-  background: var(--cb-blue);
-  color: #fff;
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  margin-bottom: 16px;
+  background: transparent;
+  color: var(--cb-cyan);
   font-size: 10.5px;
   font-weight: 800;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  padding: 6px 12px;
-  border-radius: 999px;
+  padding: 0;
+  border-radius: 0;
+}
+.cb-rung-flag::before {
+  content: "";
+  width: 24px;
+  height: 2px;
+  background: currentColor;
+  flex: none;
 }
 .cb-rung-kind {
   font-size: 11.5px;
@@ -1614,66 +1630,8 @@ body:has(.cb-page) .mobile-nav-panel > a.nav-free:hover {
 
 /* ------------------------------------------------------ header / footer --- */
 
-body:has(.cb-page) .site-header {
-  background: #f7f5f2f2;
-  border-bottom: 1px solid var(--cb-hair);
-}
-body:has(.cb-page) .site-header-inner {
-  width: min(var(--cb-shell), calc(100% - (var(--cb-gutter) * 2)));
-  min-height: 76px;
-}
-body:has(.cb-page) .site-header .brand-lockup {
-  color: var(--cb-ink);
-  font-family: var(--font-archivo), Archivo, sans-serif;
-  font-size: 19px;
-  font-weight: 800;
-  letter-spacing: -0.035em;
-}
-body:has(.cb-page) .site-header .brand-lockup span {
-  color: var(--cb-blue);
-}
-body:has(.cb-page) .desktop-nav {
-  color: var(--cb-body);
-  gap: 26px;
-  font-size: 14px;
-  font-weight: 650;
-}
-body:has(.cb-page) .desktop-nav > a:not(.header-cta):hover {
-  color: var(--cb-blue);
-}
-body:has(.cb-page) .header-cta {
-  background: var(--cb-blue);
-  box-shadow: none;
-  border-radius: 10px;
-  min-height: 44px;
-  font-size: 12.5px;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-body:has(.cb-page) .header-cta:hover {
-  background: var(--cb-blue-deep);
-  box-shadow: 0 10px 24px #1240e833;
-}
-body:has(.cb-page) .mobile-nav summary {
-  border-color: var(--cb-hair);
-  background: var(--cb-surface);
-  color: var(--cb-ink);
-}
-body:has(.cb-page) .mobile-nav-panel {
-  background: var(--cb-surface);
-  border-color: var(--cb-hair);
-  box-shadow: var(--cb-shadow-lift);
-  width: min(300px, 100vw - 32px);
-}
-body:has(.cb-page) .mobile-nav-panel > a:not(.header-cta) {
-  color: var(--cb-body);
-  font-size: 15px;
-}
-body:has(.cb-page) .mobile-nav-panel > a:not(.header-cta):hover {
-  color: var(--cb-blue);
-  background: var(--cb-surface-2);
-}
+/* Public navigation has one source of truth in globals.css. Company-builder
+   pages deliberately do not override its color, height, type, or CTA shape. */
 
 /* Footer stays ink on every page. It is the anchor of the whole site. */
 .cb-footer {
@@ -2265,7 +2223,7 @@ body:has(.cb-page) .mobile-nav-panel > a:not(.header-cta):hover {
   align-items: baseline;
   gap: 8px;
   padding: 9px 14px;
-  border-radius: 999px;
+  border-radius: 8px;
   border: 1px solid var(--cb-hair-ink);
   font-size: 13px;
   font-weight: 650;
@@ -3004,6 +2962,9 @@ body:has(.cb-page) .mobile-nav-panel > a:not(.header-cta):hover {
   column-gap: clamp(32px, 6vw, 76px);
   margin-top: clamp(30px, 4vw, 48px);
 }
+.sv-article-library-grid {
+  margin-top: clamp(30px, 4vw, 48px);
+}
 .sv-article-library-row {
   display: flex;
   min-width: 0;
@@ -3041,7 +3002,7 @@ body:has(.cb-page) .mobile-nav-panel > a:not(.header-cta):hover {
 
 .sv-article-text-hero {
   padding: clamp(78px, 11vw, 150px) 0 clamp(58px, 8vw, 104px);
-  background: var(--cb-night);
+  background: var(--cb-ink);
   color: white;
 }
 .sv-article-text-hero h1 {
@@ -3056,7 +3017,7 @@ body:has(.cb-page) .mobile-nav-panel > a:not(.header-cta):hover {
 .sv-article-text-hero__lead {
   max-width: 780px;
   margin-top: 30px;
-  color: var(--cb-night-muted);
+  color: var(--cb-muted-ink);
   font-size: clamp(18px, 2.1vw, 26px);
   line-height: 1.5;
 }

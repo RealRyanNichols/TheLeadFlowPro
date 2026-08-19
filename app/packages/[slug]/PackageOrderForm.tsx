@@ -332,7 +332,7 @@ export default function PackageOrderForm({
                     setDeposit(v);
                     setCustomDeposit("");
                   }}
-                  className={`rounded-full border px-4 py-2 text-sm font-bold transition ${
+                  className={`rounded-lg border px-4 py-2 text-sm font-bold transition ${
                     on
                       ? "border-sky-400 bg-[var(--accent-tint)] text-[var(--heading)] shadow-[0_0_14px_rgba(56,189,248,0.3)]"
                       : "border-[var(--line-strong)] bg-[var(--panel)] text-[var(--text)] hover:border-[var(--line-strong)]"

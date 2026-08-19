@@ -7,7 +7,55 @@ const NAVY = "#050D1B";
 const WHITE = "#F8FBFF";
 const MUTED = "#C3D0E0";
 
+const V4_ARTICLE_SLUGS = [
+  "data-centers-are-coming-to-texas",
+  "the-money-is-in-the-follow-up",
+  "marketplace-is-not-your-website",
+  "small-business-website-cost",
+  "website-builder-monthly-fees",
+  "does-my-business-need-a-crm",
+  "website-traffic-but-no-customers",
+  "missed-calls-cost-customers",
+  "facebook-page-is-not-a-website",
+  "own-your-email-list",
+  "east-texas-business-website-guide",
+  "cost-of-renting-business-software",
+  "ai-website-small-business-2026",
+  "lawn-care-hourly-rate",
+  "hvac-missed-calls-cost",
+  "dental-office-no-show-cost",
+  "auto-shop-credit-card-fees",
+  "restaurant-delivery-app-fees",
+  "contractor-unpaid-invoices",
+  "salon-google-reviews",
+  "roofing-cost-per-lead",
+  "trucking-cost-per-mile",
+  "cleaning-business-hire-or-stay-solo",
+  "med-spa-discount-damage",
+  "gym-break-even-members",
+  "food-truck-taxes-set-aside",
+  "mobile-detailing-drive-time",
+  "appliance-repair-unclosed-quotes",
+  "fencing-contractor-raise-prices",
+  "wedding-photographer-after-hours-leads",
+  "plumber-call-back-speed",
+  "electrician-job-capacity",
+  "painting-contractor-markup-vs-margin",
+  "barbershop-booth-rent-vs-commission",
+  "chiropractor-google-business-profile",
+  "towing-truck-downtime-cost",
+  "bakery-menu-margins",
+  "used-car-lot-slow-website",
+  "daycare-late-pickup-policy",
+  "real-estate-agent-seo-value",
+] as const;
+
+const V4_ARTICLE_ART = Object.fromEntries(
+  V4_ARTICLE_SLUGS.map((slug) => [slug, `/images/articles-v4/${slug}.jpg`]),
+) as Record<string, string>;
+
 const PREMIUM_ARTICLE_ART: Record<string, string> = {
+  ...V4_ARTICLE_ART,
   "pressure-washing-pricing":
     "/images/articles-v3/pressure-washing-pricing-scene.webp",
   "pest-control-customer-value":
@@ -26,18 +74,138 @@ const PREMIUM_ARTICLE_OG_ART: Record<string, string> = {
 };
 
 const VISUAL_HEADLINES: Record<string, string> = {
+  "data-centers-are-coming-to-texas": "Build for What Is Coming",
+  "the-money-is-in-the-follow-up": "Follow-Up Catches Demand",
+  "marketplace-is-not-your-website": "Own the Home Base",
+  "small-business-website-cost": "Know What You Are Buying",
+  "website-builder-monthly-fees": "Stop Renting the Foundation",
+  "does-my-business-need-a-crm": "One Place for Every Lead",
+  "website-traffic-but-no-customers": "Traffic Is Not Conversion",
+  "missed-calls-cost-customers": "Every Missed Call Leaks",
+  "facebook-page-is-not-a-website": "Own the Front Door",
+  "own-your-email-list": "The Audience Must Be Yours",
+  "east-texas-business-website-guide": "Answer the Buying Question",
+  "cost-of-renting-business-software": "Subscription Stacks Become Rent",
+  "ai-website-small-business-2026": "AI Still Needs a System",
+  "lawn-care-hourly-rate": "Price the Route, Not Hours",
+  "hvac-missed-calls-cost": "Capture the Emergency Call",
+  "dental-office-no-show-cost": "Reminders Protect the Chair",
+  "auto-shop-credit-card-fees": "Price the Payment Cost",
+  "restaurant-delivery-app-fees": "Know the Channel Margin",
+  "contractor-unpaid-invoices": "The Job Is Not Paid",
+  "salon-google-reviews": "Make the Review Ask Automatic",
+  "roofing-cost-per-lead": "Track Cost Through the Sale",
+  "trucking-cost-per-mile": "Every Mile Has a Cost",
+  "cleaning-business-hire-or-stay-solo": "Know Your Capacity Ceiling",
   "pressure-washing-pricing": "Price the Whole Job",
   "pest-control-customer-value": "Retention Creates Value",
   "tree-service-buy-or-rent-equipment": "Know the Crossover Point",
+  "med-spa-discount-damage": "Discounts Replace Full Margin",
+  "gym-break-even-members": "Know the Member Floor",
+  "food-truck-taxes-set-aside": "Set the Tax Money Aside",
+  "mobile-detailing-drive-time": "Drive Time Is Labor",
+  "appliance-repair-unclosed-quotes": "Unclosed Quotes Are Inventory",
+  "fencing-contractor-raise-prices": "Price Increases Need Math",
+  "wedding-photographer-after-hours-leads": "After-Hours Demand Still Counts",
+  "plumber-call-back-speed": "The Callback Clock Is Running",
+  "electrician-job-capacity": "Capacity Is a Scheduling Problem",
+  "painting-contractor-markup-vs-margin": "Markup Is Not Margin",
+  "barbershop-booth-rent-vs-commission": "Choose the Right Chair Model",
+  "chiropractor-google-business-profile": "Own the Local Search Signal",
+  "towing-truck-downtime-cost": "Downtime Owns the Truck",
+  "bakery-menu-margins": "Every Item Needs Margin",
+  "used-car-lot-slow-website": "Speed Keeps Buyers Moving",
+  "daycare-late-pickup-policy": "Policy Needs an Automatic Clock",
+  "real-estate-agent-seo-value": "Rankings Need Owned Follow-Up",
 };
 
 const PREMIUM_ARTICLE_ALT: Record<string, string> = {
+  "data-centers-are-coming-to-texas":
+    "An East Texas business district connected to new data-center infrastructure at dusk",
+  "the-money-is-in-the-follow-up":
+    "An inquiry signal moving through timed follow-up checkpoints into a completed handoff",
+  "marketplace-is-not-your-website":
+    "A crowded rented marketplace contrasted with one grounded and connected owned business property",
+  "small-business-website-cost":
+    "A polished small-business storefront supported by distinct website build and infrastructure layers",
+  "website-builder-monthly-fees":
+    "A website caught in recurring toll gates contrasted with a stable owned foundation",
+  "does-my-business-need-a-crm":
+    "Calls, messages, forms, and notes converging into one secure customer record",
+  "website-traffic-but-no-customers":
+    "Website traffic leaking before a customer action while one repaired path reaches its destination",
+  "missed-calls-cost-customers":
+    "Incoming call signals falling through an unattended line while one protected route captures the inquiry",
+  "facebook-page-is-not-a-website":
+    "An unstable rented social storefront contrasted with a grounded owned web property",
+  "own-your-email-list":
+    "Scattered audience signals moving into a secure business-owned contact vault",
+  "east-texas-business-website-guide":
+    "An East Texas storefront connected to a clear website buyer path from discovery to contact",
+  "cost-of-renting-business-software":
+    "A growing stack of recurring software meters drawing from a business operating core",
+  "ai-website-small-business-2026":
+    "An owned website and customer system connected to practical AI-assisted work paths",
+  "lawn-care-hourly-rate":
+    "A lawn-care route combining time, equipment, materials, and travel into one job price",
+  "hvac-missed-calls-cost":
+    "An urgent after-hours HVAC call routed into a protected response and customer record",
+  "dental-office-no-show-cost":
+    "A dental chair connected to a reminder sequence and a confirmed appointment arrival",
+  "auto-shop-credit-card-fees":
+    "An auto-repair payment moving through visible processing-cost layers",
+  "restaurant-delivery-app-fees":
+    "A restaurant order passing through channel tolls before reaching net margin",
+  "contractor-unpaid-invoices":
+    "A completed contractor job path stopped at an unpaid invoice checkpoint",
+  "salon-google-reviews":
+    "A completed salon service triggering an automatic review request and feedback loop",
+  "roofing-cost-per-lead":
+    "Roofing attention tracked through inquiry, inspection, quote, and sale checkpoints",
+  "trucking-cost-per-mile":
+    "A truck route passing fuel, maintenance, insurance, and ownership cost checkpoints",
+  "cleaning-business-hire-or-stay-solo":
+    "A cleaning operator capacity path splitting between a solo ceiling and a staffed route",
   "pressure-washing-pricing":
     "A pressure-washing wand crossing three illuminated pricing checkpoints on wet concrete",
   "pest-control-customer-value":
     "A home connected to seasonal pest-control service points and one long-term customer record",
   "tree-service-buy-or-rent-equipment":
     "A professional wood chipper above crossing ownership and rental cost lines",
+  "med-spa-discount-damage":
+    "A med-spa service margin draining as a discount replaces full-price appointments",
+  "gym-break-even-members":
+    "A gym overhead ring met by the member capacity needed to reach break-even",
+  "food-truck-taxes-set-aside":
+    "Food-truck payments splitting into operating cash and a protected tax reserve",
+  "mobile-detailing-drive-time":
+    "A mobile-detailing van crossing a route where travel time becomes a job cost",
+  "appliance-repair-unclosed-quotes":
+    "Appliance-repair quotes waiting in an organized follow-up sequence",
+  "fencing-contractor-raise-prices":
+    "Rising fencing material and labor costs meeting an adjusted price line",
+  "wedding-photographer-after-hours-leads":
+    "An after-hours photography inquiry entering a protected booking and follow-up path",
+  "plumber-call-back-speed":
+    "An urgent plumbing inquiry moving through a visible callback timing route",
+  "electrician-job-capacity":
+    "Electrical jobs arranged against limited crew time and scheduling capacity",
+  "painting-contractor-markup-vs-margin":
+    "A painting job showing the difference between its markup layer and retained margin",
+  "barbershop-booth-rent-vs-commission":
+    "A barbershop chair splitting between fixed booth rent and commission paths",
+  "chiropractor-google-business-profile":
+    "A local search beacon connecting a chiropractic office to its owned website path",
+  "towing-truck-downtime-cost":
+    "An immobilized tow truck while operating costs continue moving",
+  "bakery-menu-margins":
+    "Bakery menu items built from visible ingredient, labor, and margin layers",
+  "used-car-lot-slow-website":
+    "A vehicle shopper stalled by a slow website lane beside a clear fast path",
+  "daycare-late-pickup-policy":
+    "A daycare pickup clock activating a clear reminder and policy path after its threshold",
+  "real-estate-agent-seo-value":
+    "Local search visibility connecting a real-estate website to an owned follow-up system",
 };
 
 const CURATED_TAKEAWAYS: Record<string, string> = {
@@ -56,7 +224,7 @@ const CURATED_TAKEAWAYS: Record<string, string> = {
 
 const OG_LAYOUTS: Record<
   string,
-  { direction: "row" | "row-reverse" | "column-reverse"; panel: number; imagePosition: string }
+  { direction: "row" | "row-reverse" | "column" | "column-reverse"; panel: number; imagePosition: string }
 > = {
   "pressure-washing-pricing": {
     direction: "row",
@@ -75,12 +243,27 @@ const OG_LAYOUTS: Record<
   },
 };
 
+const OG_LAYOUT_VARIANTS = [
+  { direction: "row" as const, panel: 43, imagePosition: "68% 50%" },
+  { direction: "row-reverse" as const, panel: 46, imagePosition: "34% 50%" },
+  { direction: "column-reverse" as const, panel: 41, imagePosition: "50% 34%" },
+  { direction: "column" as const, panel: 40, imagePosition: "50% 68%" },
+  { direction: "row" as const, panel: 50, imagePosition: "72% 45%" },
+  { direction: "row-reverse" as const, panel: 40, imagePosition: "28% 56%" },
+];
+
+function articleOgLayout(slug: string) {
+  if (OG_LAYOUTS[slug]) return OG_LAYOUTS[slug];
+  const hash = [...slug].reduce((total, character) => total + character.charCodeAt(0), 0);
+  return OG_LAYOUT_VARIANTS[hash % OG_LAYOUT_VARIANTS.length];
+}
+
 export function articlePremiumArtPath(slug: string) {
   return PREMIUM_ARTICLE_ART[slug] ?? null;
 }
 
 export function articlePremiumOgArtPath(slug: string) {
-  return PREMIUM_ARTICLE_OG_ART[slug] ?? null;
+  return PREMIUM_ARTICLE_OG_ART[slug] ?? PREMIUM_ARTICLE_ART[slug] ?? null;
 }
 
 export function articleVisualHeadline(slug: string) {
@@ -139,9 +322,9 @@ export function articleOgCard({ article, backgroundUrl }: ArticleOgCardProps): R
     );
   }
 
-  const layout = OG_LAYOUTS[article.slug] ?? OG_LAYOUTS["pressure-washing-pricing"];
+  const layout = articleOgLayout(article.slug);
   const visualHeadline = articleVisualHeadline(article.slug) ?? article.title;
-  const horizontal = layout.direction !== "column-reverse";
+  const horizontal = layout.direction === "row" || layout.direction === "row-reverse";
   const panelStyle = horizontal
     ? { width: `${layout.panel}%`, height: "100%" }
     : { width: "100%", height: `${layout.panel}%` };

@@ -276,8 +276,8 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
           <div className="border-b border-[var(--line)] p-5 sm:p-6">
             <div className="flex flex-wrap items-center gap-2">
               <span
-                className="rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider"
-                style={{ color: domain.ink, background: domain.tint, border: `1px solid ${domain.line}` }}
+                className="border-l-2 py-0.5 pl-2.5 text-[10px] font-black uppercase tracking-wider"
+                style={{ color: domain.ink, borderColor: domain.line }}
               >
                 {domain.label}
               </span>

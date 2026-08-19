@@ -107,7 +107,7 @@ export default function EventCard({ event }: { event: EventRow }) {
             {event.city && `, ${event.city}`}
           </p>
         </div>
-        <span className="rounded-full bg-flow-600/20 px-4 py-1.5 text-sm font-black text-flow-400">
+        <span className="rounded-lg border border-flow-600/30 border-l-4 bg-flow-600/10 px-3 py-1.5 text-sm font-black text-flow-400">
           {Number(event.price_usd) > 0 ? `$${Number(event.price_usd)}` : "FREE"}
         </span>
       </div>

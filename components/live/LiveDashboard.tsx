@@ -111,9 +111,9 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
     <div className="space-y-6">
       {/* ---- status line ---- */}
       <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wider">
-        <span className="inline-flex items-center gap-2 rounded-full border border-[#146c3466] bg-[#146c3422] px-3 py-1.5 text-[#4ade80]">
+        <span className="inline-flex items-center gap-2 border-l-2 border-[#4ade80] pl-3 text-[#4ade80]">
           <span className="live-pulse-dot" aria-hidden="true" />
-          {stale ? "Reconnecting — showing last verified data" : "System live"}
+          {stale ? "Reconnecting. Showing last verified data." : "System live"}
         </span>
         <span className="text-[#a8b4c8]">
           Data updated {hydrated ? relativeTime(payload.fetched_at) : "recently"} · refreshes

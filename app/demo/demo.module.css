@@ -369,7 +369,7 @@
 .leadRows > div > div:last-child span {
   padding: 5px 8px;
   border: 1px solid #35c6f448;
-  border-radius: 999px;
+  border-radius: 6px;
   color: var(--cb-cyan);
   text-transform: uppercase;
 }

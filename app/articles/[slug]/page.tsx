@@ -21,6 +21,7 @@ import {
   articlePremiumArtAlt,
   articlePremiumArtPath,
   articleSocialImagePath,
+  articleVisualHeadline,
 } from "@/lib/articles-og";
 
 export function generateStaticParams() {
@@ -171,8 +172,8 @@ export default async function ArticlePage({
             alt: articlePremiumArtAlt(article.slug),
             width: 1200,
             height: 630,
-            kicker: article.video ? "Watch and read" : "See the problem",
-            caption: "One clear business question.",
+            kicker: article.video ? "Watch and read" : "Visual explainer",
+            caption: articleVisualHeadline(article.slug) ?? "One clear business question.",
           }}
           trustLine={`${new Date(article.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
             month: "long",

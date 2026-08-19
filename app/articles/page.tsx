@@ -18,10 +18,16 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.theleadflowpro.com/articles" },
 };
 
+const FEATURED_ARTICLE_SLUGS = new Set([
+  "pressure-washing-pricing",
+  "pest-control-customer-value",
+  "tree-service-buy-or-rent-equipment",
+]);
+
 export default function ArticlesPage() {
   const articles = [...ARTICLES].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-  const featuredArticles = articles.filter((article) => articlePremiumArtPath(article.slug));
-  const libraryArticles = articles.filter((article) => !articlePremiumArtPath(article.slug));
+  const featuredArticles = articles.filter((article) => FEATURED_ARTICLE_SLUGS.has(article.slug));
+  const libraryArticles = articles.filter((article) => !FEATURED_ARTICLE_SLUGS.has(article.slug));
   return (
     <main className="cb-page">
       <SiteHero
@@ -90,22 +96,35 @@ export default function ArticlesPage() {
             <p className="cb-eyebrow">Every field note</p>
             <h3>More practical breakdowns</h3>
           </div>
-          <div className="sv-article-library-list">
+          <div className="sv-index-grid sv-article-feature-grid sv-article-library-grid">
             {libraryArticles.map((a) => (
-              <Link key={a.slug} href={`/articles/${a.slug}`} className="sv-article-library-row">
-                <span className="sv-index-card__meta">
-                  {new Date(a.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}{" "}
-                  · {a.readingMinutes} min
-                  {a.video ? ` · ${a.video.durationSeconds}s video` : ""}
+              <Link key={a.slug} href={`/articles/${a.slug}`} className="sv-index-card sv-article-feature-card">
+                <span className="sv-index-card__media">
+                  <Image
+                    src={articlePremiumArtPath(a.slug) as string}
+                    alt={articlePremiumArtAlt(a.slug)}
+                    fill
+                    sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1000px) 50vw, 33vw"
+                  />
+                  <span className="sv-index-card__media-title">
+                    {articleVisualHeadline(a.slug)}
+                  </span>
                 </span>
-                <h2>{a.title}</h2>
-                <p>{a.description}</p>
-                <span className="sv-index-card__link">
-                  Read the breakdown <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                <span className="sv-index-card__body">
+                  <span className="sv-index-card__meta">
+                    {new Date(a.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}{" "}
+                    · {a.readingMinutes} min
+                    {a.video ? ` · ${a.video.durationSeconds}s video` : ""}
+                  </span>
+                  <h2>{a.title}</h2>
+                  <p>{a.description}</p>
+                  <span className="sv-index-card__link">
+                    Read the breakdown <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                  </span>
                 </span>
               </Link>
             ))}
