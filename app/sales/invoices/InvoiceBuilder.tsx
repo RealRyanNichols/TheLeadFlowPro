@@ -190,7 +190,7 @@ export default function InvoiceBuilder({
                 <textarea id="invoice-memo" className="input" rows={4} value={memo} onChange={(event) => setMemo(event.target.value)} maxLength={2000} />
               </div>
               <div className="rounded-lg bg-[var(--warn-tint)] p-3 text-xs text-warn">
-                Tax is not calculated automatically. Confirm any tax obligation with Ryan before adding it to a client scope.
+                Before the first live send, confirm the Stripe public business name and branding with Ryan. Tax is not calculated automatically; confirm any tax obligation with Ryan before adding it to a client scope.
               </div>
               <button type="button" onClick={review} className="btn-primary w-full">Review invoice</button>
             </div>
