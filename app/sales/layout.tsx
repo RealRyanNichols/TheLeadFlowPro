@@ -36,6 +36,9 @@ export default async function SalesLayout({ children }: { children: React.ReactN
             <Link href="/sales" className="text-[var(--text)] hover:text-[var(--heading)]">
               Pipeline
             </Link>
+            <Link href="/sales/invoices" className="text-[var(--text)] hover:text-[var(--heading)]">
+              Invoices
+            </Link>
             {profile.role === "admin" && (
               <Link href="/admin" className="text-[var(--text)] hover:text-[var(--heading)]">
                 Back Office
