@@ -11,7 +11,7 @@ export default async function SalesLayout({ children }: { children: React.ReactN
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login?next=/sales");
+  if (!user) redirect("/login?next=/admin/sales");
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -33,10 +33,10 @@ export default async function SalesLayout({ children }: { children: React.ReactN
             </p>
           </div>
           <nav className="flex items-center gap-3 text-sm font-semibold">
-            <Link href="/sales" className="text-[var(--text)] hover:text-[var(--heading)]">
+            <Link href="/admin/sales" className="text-[var(--text)] hover:text-[var(--heading)]">
               Pipeline
             </Link>
-            <Link href="/sales/invoices" className="text-[var(--text)] hover:text-[var(--heading)]">
+            <Link href="/admin/sales/invoices" className="text-[var(--text)] hover:text-[var(--heading)]">
               Invoices
             </Link>
             {profile.role === "admin" && (

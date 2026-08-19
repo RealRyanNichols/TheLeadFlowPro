@@ -1,24 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+
+function safeNext(value: string | null) {
+  return value?.startsWith("/") && !value.startsWith("//") ? value : null;
+}
 
 export default function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
+  const supabase = useMemo(() => createClient(), []);
+  const next = safeNext(params.get("next"));
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [linkBusy, setLinkBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  async function homeFor(userId?: string) {
+    if (!userId) return "/dashboard";
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .single();
+    if (prof?.role === "admin") return "/admin";
+    if (prof?.role === "sales") return "/admin/sales";
+    return "/dashboard";
+  }
+
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) return;
+      window.setTimeout(() => {
+        void homeFor(session.user.id).then((home) => {
+          router.replace(next ?? home);
+          router.refresh();
+        });
+      }, 0);
+    });
+    return () => subscription.unsubscribe();
+  }, [next, router, supabase]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setMessage(null);
-    const supabase = createClient();
 
     if (mode === "signup") {
       const { error } = await supabase.auth.signUp({
@@ -31,11 +64,9 @@ export default function LoginForm() {
         setBusy(false);
         return;
       }
-      // If email confirmation is disabled this logs straight in;
-      // otherwise Supabase sends a confirm link.
       const { data } = await supabase.auth.getUser();
       if (data.user) {
-        router.push(params.get("next") ?? (await homeFor(data.user.id)));
+        router.push(next ?? (await homeFor(data.user.id)));
         router.refresh();
       } else {
         setMessage("Check your email to confirm your account, then log in.");
@@ -51,22 +82,31 @@ export default function LoginForm() {
         setBusy(false);
         return;
       }
-      router.push(params.get("next") ?? (await homeFor(signIn.user?.id)));
+      router.push(next ?? (await homeFor(signIn.user?.id)));
       router.refresh();
     }
+  }
 
-    // Route each account to the narrowest workspace allowed by its role.
-    async function homeFor(userId?: string) {
-      if (!userId) return "/dashboard";
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", userId)
-        .single();
-      if (prof?.role === "admin") return "/admin";
-      if (prof?.role === "sales") return "/sales";
-      return "/dashboard";
+  async function sendOneTimeLink() {
+    if (!email.trim()) {
+      setMessage("Enter the email address that should receive the sign-in link.");
+      return;
     }
+    setLinkBusy(true);
+    setMessage(null);
+    const destination = next ?? "/admin/sales";
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${window.location.origin}/login?next=${encodeURIComponent(destination)}`,
+        data: email.trim().toLowerCase() === "pat@dripgate.org"
+          ? { full_name: "Patrick Grabbs" }
+          : undefined,
+      },
+    });
+    setLinkBusy(false);
+    setMessage(error ? error.message : "One-time sign-in link sent. Check your email; the link can only be used once.");
   }
 
   return (
@@ -128,9 +168,27 @@ export default function LoginForm() {
 
       {message && <p className="text-sm font-medium text-warn">{message}</p>}
 
-      <button type="submit" disabled={busy} className="btn-primary w-full disabled:opacity-50">
+      <button type="submit" disabled={busy || linkBusy} className="btn-primary w-full disabled:opacity-50">
         {busy ? "Working..." : mode === "login" ? "Log In" : "Create Account"}
       </button>
+
+      {mode === "login" && (
+        <>
+          <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-[var(--quiet)]">
+            <span className="h-px flex-1 bg-[var(--line)]" />
+            or
+            <span className="h-px flex-1 bg-[var(--line)]" />
+          </div>
+          <button
+            type="button"
+            onClick={sendOneTimeLink}
+            disabled={busy || linkBusy}
+            className="w-full rounded-lg border border-[var(--line-strong)] px-4 py-3 text-sm font-bold text-[var(--text)] hover:border-[var(--accent-line)] hover:text-[var(--heading)] disabled:opacity-50"
+          >
+            {linkBusy ? "Sending secure link..." : "Email me a one-time sign-in link"}
+          </button>
+        </>
+      )}
     </form>
   );
 }

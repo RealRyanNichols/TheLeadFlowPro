@@ -78,7 +78,7 @@ export default function SalesLeadsTable({ initialLeads }: { initialLeads: Lead[]
               ))}
             </select>
             <Link
-              href={`/sales/leads/${lead.id}`}
+              href={`/admin/sales/leads/${lead.id}`}
               onClick={(event) => event.stopPropagation()}
               className="rounded-lg border border-[var(--line-strong)] px-3 py-1.5 text-sm font-semibold text-[var(--text)] hover:border-[var(--accent-line)] hover:text-[var(--heading)]"
             >
