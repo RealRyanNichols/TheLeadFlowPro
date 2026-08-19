@@ -2957,8 +2957,31 @@ body:has(.cb-page) .mobile-nav-panel > a:not(.header-cta):hover {
 .sv-article-feature-card .sv-index-card__media {
   aspect-ratio: 1200 / 630;
 }
+.sv-article-feature-card .sv-index-card__media::after {
+  position: absolute;
+  inset: 38% 0 0;
+  z-index: 1;
+  background: linear-gradient(to bottom, transparent, rgba(5, 13, 27, 0.9));
+  content: "";
+  pointer-events: none;
+}
 .sv-article-feature-card .sv-index-card__media img {
   object-position: center;
+}
+.sv-index-card__media-title {
+  position: absolute;
+  right: 20px;
+  bottom: 18px;
+  left: 20px;
+  z-index: 2;
+  max-width: 18ch;
+  color: #fff;
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: clamp(21px, 2vw, 30px);
+  font-weight: 850;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  text-wrap: balance;
 }
 .sv-article-library-head {
   margin-top: clamp(54px, 8vw, 96px);

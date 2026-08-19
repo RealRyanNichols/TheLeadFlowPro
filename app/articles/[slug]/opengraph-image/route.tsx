@@ -3,7 +3,7 @@ import { getArticle } from "@/lib/articles";
 import {
   articleOgCard,
   ARTICLE_OG_SIZE,
-  articlePremiumArtPath,
+  articlePremiumOgArtPath,
 } from "@/lib/articles-og";
 
 export const revalidate = 86400;
@@ -20,7 +20,7 @@ export async function GET(
   }
 
   const backgroundUrl = new URL(
-    articlePremiumArtPath(article.slug) ?? article.ogImage,
+    articlePremiumOgArtPath(article.slug) ?? article.ogImage,
     request.url,
   ).toString();
 

@@ -16,6 +16,21 @@ const PREMIUM_ARTICLE_ART: Record<string, string> = {
     "/images/articles-v3/tree-service-buy-or-rent-equipment-scene.webp",
 };
 
+const PREMIUM_ARTICLE_OG_ART: Record<string, string> = {
+  "pressure-washing-pricing":
+    "/images/articles-v3/pressure-washing-pricing-scene-og.png",
+  "pest-control-customer-value":
+    "/images/articles-v3/pest-control-customer-value-scene-og.png",
+  "tree-service-buy-or-rent-equipment":
+    "/images/articles-v3/tree-service-buy-or-rent-equipment-scene-og.png",
+};
+
+const VISUAL_HEADLINES: Record<string, string> = {
+  "pressure-washing-pricing": "Price the Whole Job",
+  "pest-control-customer-value": "Retention Creates Value",
+  "tree-service-buy-or-rent-equipment": "Know the Crossover Point",
+};
+
 const PREMIUM_ARTICLE_ALT: Record<string, string> = {
   "pressure-washing-pricing":
     "A pressure-washing wand crossing three illuminated pricing checkpoints on wet concrete",
@@ -62,6 +77,14 @@ const OG_LAYOUTS: Record<
 
 export function articlePremiumArtPath(slug: string) {
   return PREMIUM_ARTICLE_ART[slug] ?? null;
+}
+
+export function articlePremiumOgArtPath(slug: string) {
+  return PREMIUM_ARTICLE_OG_ART[slug] ?? null;
+}
+
+export function articleVisualHeadline(slug: string) {
+  return VISUAL_HEADLINES[slug] ?? null;
 }
 
 export function articlePremiumArtAlt(slug: string) {
@@ -117,6 +140,7 @@ export function articleOgCard({ article, backgroundUrl }: ArticleOgCardProps): R
   }
 
   const layout = OG_LAYOUTS[article.slug] ?? OG_LAYOUTS["pressure-washing-pricing"];
+  const visualHeadline = articleVisualHeadline(article.slug) ?? article.title;
   const horizontal = layout.direction !== "column-reverse";
   const panelStyle = horizontal
     ? { width: `${layout.panel}%`, height: "100%" }
@@ -185,13 +209,13 @@ export function articleOgCard({ article, backgroundUrl }: ArticleOgCardProps): R
             style={{
               display: "flex",
               maxWidth: horizontal ? 465 : 1080,
-              fontSize: titleSize(article.title, horizontal),
+              fontSize: titleSize(visualHeadline, horizontal),
               fontWeight: 900,
               letterSpacing: "-0.045em",
               lineHeight: 0.98,
             }}
           >
-            {article.title}
+            {visualHeadline}
           </div>
           <div
             style={{

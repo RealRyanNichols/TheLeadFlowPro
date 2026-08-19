@@ -5,7 +5,11 @@ import { ArrowRight } from "lucide-react";
 import FinalCta from "@/components/site/system/FinalCta";
 import SiteHero from "@/components/site/system/SiteHero";
 import { ARTICLES } from "@/lib/articles";
-import { articlePremiumArtAlt, articlePremiumArtPath } from "@/lib/articles-og";
+import {
+  articlePremiumArtAlt,
+  articlePremiumArtPath,
+  articleVisualHeadline,
+} from "@/lib/articles-og";
 
 export const metadata: Metadata = {
   title: "Articles | The LeadFlow Pro",
@@ -59,6 +63,9 @@ export default function ArticlesPage() {
                   fill
                   sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1000px) 50vw, 33vw"
                 />
+                <span className="sv-index-card__media-title">
+                  {articleVisualHeadline(a.slug)}
+                </span>
               </span>
               <span className="sv-index-card__body">
                 <span className="sv-index-card__meta">
