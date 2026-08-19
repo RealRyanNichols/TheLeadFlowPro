@@ -55,7 +55,7 @@ export default function LoginForm() {
       router.refresh();
     }
 
-    // Admins land in the back office. Everyone else lands on their dashboard.
+    // Route each account to the narrowest workspace allowed by its role.
     async function homeFor(userId?: string) {
       if (!userId) return "/dashboard";
       const { data: prof } = await supabase
@@ -63,7 +63,9 @@ export default function LoginForm() {
         .select("role")
         .eq("id", userId)
         .single();
-      return prof?.role === "admin" ? "/admin" : "/dashboard";
+      if (prof?.role === "admin") return "/admin";
+      if (prof?.role === "sales") return "/sales";
+      return "/dashboard";
     }
   }
 
