@@ -30,6 +30,7 @@ export async function middleware(request: NextRequest) {
   const isProtected =
     path.startsWith("/dashboard") ||
     path.startsWith("/admin") ||
+    path.startsWith("/sales") ||
     path.startsWith("/training");
 
   if (isProtected && !user) {
@@ -43,5 +44,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*", "/training/:path*"],
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/sales/:path*", "/training/:path*"],
 };
