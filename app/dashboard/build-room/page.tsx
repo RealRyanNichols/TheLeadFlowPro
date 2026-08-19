@@ -13,6 +13,7 @@ import {
   Rocket,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import DeliverableReview, { type ReviewDeliverable } from "./DeliverableReview";
 
 export const metadata = { title: "Your Build Room | The LeadFlow Pro" };
 
@@ -25,15 +26,6 @@ type Milestone = {
   due_date: string | null;
 };
 
-type Deliverable = {
-  id: string;
-  title: string;
-  kind: string;
-  url: string | null;
-  notes: string | null;
-  created_at: string;
-};
-
 type Project = {
   id: string;
   name: string;
@@ -43,7 +35,7 @@ type Project = {
   live_url: string | null;
   repo_url: string | null;
   milestones: Milestone[] | null;
-  deliverables: Deliverable[] | null;
+  deliverables: ReviewDeliverable[] | null;
 };
 
 const STAGES = [
@@ -125,7 +117,7 @@ export default async function BuildRoom() {
                 <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">Your account is working. A project record has not been created for you yet, so this room stays at the starting line until there is real progress to show.</p>
                 <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
                   <Link href="/start" className="btn-primary inline-flex items-center justify-center gap-2">Map my company <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
-                  <Link href="/dashboard" className="btn-ghost inline-flex items-center justify-center gap-2"><MessageSquareText className="h-4 w-4" aria-hidden="true" /> Message Ryan</Link>
+                  <Link href="/dashboard" className="btn-ghost inline-flex items-center justify-center gap-2"><MessageSquareText className="h-4 w-4" aria-hidden="true" /> Message the team</Link>
                 </div>
               </div>
             </div>
@@ -148,7 +140,7 @@ export default async function BuildRoom() {
   }
 
   const milestones = [...(project.milestones ?? [])].sort((a, b) => a.sort_order - b.sort_order);
-  const deliverables = [...(project.deliverables ?? [])].sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const deliverables = [...(project.deliverables ?? [])].sort((a, b) => a.sort_order - b.sort_order || b.created_at.localeCompare(a.created_at));
   const doneCount = milestones.filter((item) => item.status === "done").length;
   const progress = milestones.length ? Math.round((doneCount / milestones.length) * 100) : 0;
   const activeMilestone = milestones.find((item) => item.status === "in_progress") || milestones.find((item) => item.status !== "done");
@@ -163,7 +155,7 @@ export default async function BuildRoom() {
           <h1 className="mt-1 text-3xl font-black tracking-tight text-[var(--heading)] sm:text-4xl">{project.name}</h1>
           {project.description && <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">{project.description}</p>}
         </div>
-        <Link href="/dashboard" className="btn-ghost inline-flex items-center justify-center gap-2"><MessageSquareText className="h-4 w-4" aria-hidden="true" /> Message Ryan</Link>
+        <Link href="/dashboard" className="btn-ghost inline-flex items-center justify-center gap-2"><MessageSquareText className="h-4 w-4" aria-hidden="true" /> Message the team</Link>
       </div>
 
       <div className="mt-8 rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-7">
@@ -186,7 +178,7 @@ export default async function BuildRoom() {
 
           <section className="rounded-2xl border border-[var(--line)] bg-white p-6 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
             <div className="flex items-center gap-2"><FileText className="h-5 w-5 text-[var(--blue)]" aria-hidden="true" /><h2 className="text-xl font-black text-[var(--heading)]">Files and deliverables</h2></div>
-            {deliverables.length ? <ul className="mt-5 divide-y divide-[var(--line)]">{deliverables.map((item) => <li key={item.id} className="flex items-center justify-between gap-4 py-4"><div className="min-w-0"><p className="truncate font-bold text-[var(--heading)]">{item.title}</p><p className="mt-1 text-xs uppercase tracking-wider text-[var(--muted)]">{item.kind}</p></div>{item.url ? <a href={item.url} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1 text-sm font-bold text-[var(--blue)] hover:underline">Open <ArrowRight className="h-4 w-4" aria-hidden="true" /></a> : <span className="text-xs font-bold text-[var(--quiet)]">In progress</span>}</li>)}</ul> : <p className="mt-5 text-sm text-[var(--muted)]">The first working file will appear here when it is ready.</p>}
+            <DeliverableReview initialDeliverables={deliverables} />
           </section>
         </div>
 
@@ -194,7 +186,7 @@ export default async function BuildRoom() {
           <section className="rounded-2xl border border-[var(--accent-line)] bg-[var(--accent-tint)] p-6">
             <p className="text-xs font-bold uppercase tracking-wider text-[var(--blue)]">Waiting on the build</p>
             <h2 className="mt-2 text-xl font-black text-[var(--heading)]">{activeMilestone?.title || "Next milestone is being prepared"}</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{activeMilestone?.description || "Ryan will update this room when the next review item or decision is ready."}</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{activeMilestone?.description || "The LeadFlow Pro team will update this room when the next review item or decision is ready."}</p>
             {activeMilestone?.due_date && <p className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[var(--heading)]"><CalendarDays className="h-4 w-4 text-[var(--blue)]" aria-hidden="true" /> Target {displayDate(activeMilestone.due_date)}</p>}
           </section>
           <section className="rounded-2xl border border-[var(--line)] bg-white p-6 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">

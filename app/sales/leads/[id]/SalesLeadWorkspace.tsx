@@ -27,6 +27,12 @@ type Lead = {
   status: string;
   notes: string | null;
   owner: string | null;
+  priority: string;
+  next_follow_up_at: string | null;
+  last_contacted_at: string | null;
+  expected_value_cents: number | null;
+  close_probability: number | null;
+  lost_reason: string | null;
   source: string | null;
   utm_source: string | null;
   utm_medium: string | null;
@@ -38,9 +44,18 @@ type Lead = {
 };
 
 type Note = { id: string; body: string; author: string | null; created_at: string };
-type Task = { id: string; title: string; due_date: string | null; completed_at: string | null; created_at: string };
+type Task = { id: string; title: string; due_date: string | null; completed_at: string | null; created_at: string; priority: string; assigned_to: string | null; task_type: string };
 type Activity = { id: string; kind: string; detail: string; created_at: string };
 type LeadEmail = { id: string; step: number; sent_at: string };
+type Project = {
+  id: string;
+  name: string;
+  status: string;
+  target_launch: string | null;
+  client_portal_invited_at: string | null;
+  milestones: { id: string; status: string }[];
+  deliverables: { id: string; title: string; status: string; visible_to_client: boolean; client_decision: string }[];
+};
 
 function pretty(value: string | null | undefined) {
   return value ? value.replace(/_/g, " ") : "Not answered";
@@ -57,6 +72,7 @@ export default function SalesLeadWorkspace({
   initialActivity,
   emails,
   initialThread,
+  projects,
 }: {
   lead: Lead;
   initialNotes: Note[];
@@ -64,14 +80,22 @@ export default function SalesLeadWorkspace({
   initialActivity: Activity[];
   emails: LeadEmail[];
   initialThread: LeadMsg[];
+  projects: Project[];
 }) {
   const [status, setStatus] = useState(lead.status);
   const [owner, setOwner] = useState(lead.owner ?? "Patrick Grabbs");
+  const [priority, setPriority] = useState(lead.priority ?? "normal");
+  const [nextFollowUp, setNextFollowUp] = useState(lead.next_follow_up_at?.slice(0, 10) ?? "");
+  const [expectedValue, setExpectedValue] = useState(lead.expected_value_cents ? String(lead.expected_value_cents / 100) : "");
+  const [closeProbability, setCloseProbability] = useState(lead.close_probability === null ? "" : String(lead.close_probability));
   const [notes, setNotes] = useState(initialNotes);
   const [tasks, setTasks] = useState(initialTasks);
   const [activity, setActivity] = useState(initialActivity);
   const [noteDraft, setNoteDraft] = useState("");
   const [taskDraft, setTaskDraft] = useState("");
+  const [taskDue, setTaskDue] = useState("");
+  const [taskPriority, setTaskPriority] = useState("normal");
+  const [taskType, setTaskType] = useState("call");
   const [error, setError] = useState("");
   const supabase = createClient();
 
@@ -98,6 +122,25 @@ export default function SalesLeadWorkspace({
     else await logActivity(`Owner set to ${owner.trim() || "unassigned"}`);
   }
 
+  async function saveCrmField(values: Record<string, unknown>, detail: string) {
+    setError("");
+    const { error: updateError } = await supabase.from("leads").update(values).eq("id", lead.id);
+    if (updateError) setError(updateError.message);
+    else await logActivity(detail);
+  }
+
+  async function logCall() {
+    const now = new Date().toISOString();
+    const values: Record<string, unknown> = { last_contacted_at: now };
+    if (status === "new") values.status = "contacted";
+    const { error: updateError } = await supabase.from("leads").update(values).eq("id", lead.id);
+    if (updateError) setError(updateError.message);
+    else {
+      if (status === "new") setStatus("contacted");
+      await logActivity(`Call logged by ${owner || "Sales Desk"}`);
+    }
+  }
+
   async function addNote(event: React.FormEvent) {
     event.preventDefault();
     const body = noteDraft.trim();
@@ -114,11 +157,24 @@ export default function SalesLeadWorkspace({
     event.preventDefault();
     const title = taskDraft.trim();
     if (!title) return;
-    const { data, error: insertError } = await supabase.from("lead_tasks").insert({ lead_id: lead.id, title }).select().single();
+    const { data, error: insertError } = await supabase.from("lead_tasks").insert({
+      lead_id: lead.id,
+      title,
+      due_date: taskDue || null,
+      priority: taskPriority,
+      task_type: taskType,
+      assigned_to: owner.trim() || "Sales Desk",
+    }).select().single();
     if (insertError) setError(insertError.message);
     else if (data) {
       setTasks((items) => [data as Task, ...items]);
+      if (taskDue) {
+        const nextFollowUpAt = new Date(`${taskDue}T09:00:00`).toISOString();
+        await supabase.from("leads").update({ next_follow_up_at: nextFollowUpAt }).eq("id", lead.id);
+        setNextFollowUp(taskDue);
+      }
       setTaskDraft("");
+      setTaskDue("");
     }
   }
 
@@ -126,7 +182,13 @@ export default function SalesLeadWorkspace({
     const completed_at = task.completed_at ? null : new Date().toISOString();
     const { data, error: updateError } = await supabase.from("lead_tasks").update({ completed_at }).eq("id", task.id).select().single();
     if (updateError) setError(updateError.message);
-    else if (data) setTasks((items) => items.map((item) => (item.id === task.id ? (data as Task) : item)));
+    else if (data) {
+      setTasks((items) => items.map((item) => (item.id === task.id ? (data as Task) : item)));
+      if (completed_at && !tasks.some((item) => item.id !== task.id && !item.completed_at)) {
+        await supabase.from("leads").update({ next_follow_up_at: null }).eq("id", lead.id);
+        setNextFollowUp("");
+      }
+    }
   }
 
   return (
@@ -159,6 +221,20 @@ export default function SalesLeadWorkspace({
 
       {error && <p className="rounded-lg border border-[var(--danger-line)] bg-[var(--danger-tint)] p-3 text-sm text-[var(--danger)]">{error}</p>}
 
+      <section className="card !p-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div><h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">Deal control</h2><p className="mt-1 text-sm text-[var(--text)]">Set the attention level, next action, working value, and closing confidence.</p></div>
+          <button type="button" onClick={logCall} className="btn-ghost !px-3 !py-2 text-xs">Log completed call</button>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <label><span className="label">Priority</span><select className="input text-sm" value={priority} onChange={(event) => { const next = event.target.value; setPriority(next); void saveCrmField({ priority: next }, `Priority set to ${next}`); }}><option value="hot">Hot</option><option value="high">High</option><option value="normal">Normal</option><option value="low">Low</option></select></label>
+          <label><span className="label">Next follow-up</span><input className="input text-sm" type="date" value={nextFollowUp} onChange={(event) => setNextFollowUp(event.target.value)} onBlur={() => saveCrmField({ next_follow_up_at: nextFollowUp ? new Date(`${nextFollowUp}T09:00:00`).toISOString() : null }, nextFollowUp ? `Next follow-up set for ${nextFollowUp}` : "Next follow-up cleared")} /></label>
+          <label><span className="label">Estimated value ($)</span><input className="input text-sm" type="number" min="0" step="100" value={expectedValue} onChange={(event) => setExpectedValue(event.target.value)} onBlur={() => saveCrmField({ expected_value_cents: expectedValue ? Math.round(Number(expectedValue) * 100) : null }, expectedValue ? `Deal value estimated at $${expectedValue}` : "Deal value cleared")} /></label>
+          <label><span className="label">Close confidence (%)</span><input className="input text-sm" type="number" min="0" max="100" step="5" value={closeProbability} onChange={(event) => setCloseProbability(event.target.value)} onBlur={() => saveCrmField({ close_probability: closeProbability ? Number(closeProbability) : null }, closeProbability ? `Close confidence set to ${closeProbability}%` : "Close confidence cleared")} /></label>
+        </div>
+        <p className="mt-3 text-xs text-[var(--quiet)]">Last logged contact: {lead.last_contacted_at ? fmt(lead.last_contacted_at) : "No completed call logged yet"}</p>
+      </section>
+
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
           <section className="card !p-4">
@@ -178,6 +254,11 @@ export default function SalesLeadWorkspace({
             <p className="mt-4 rounded-lg bg-[var(--page)] p-3 text-sm text-[var(--text)]">
               <span className="text-[var(--muted)]">What they want:</span> {lead.goals || "No open-text answer captured. See call notes below."}
             </p>
+          </section>
+
+          <section className="card !p-4">
+            <div className="flex items-center justify-between gap-3"><h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">Delivery record</h2><Link href="/admin/sales/delivery" className="text-xs font-bold text-flow-400">Open Delivery Center →</Link></div>
+            {projects.length ? <div className="mt-3 space-y-3">{projects.map((project) => { const done = project.milestones.filter((item) => item.status === "done").length; const total = project.milestones.length; return <div key={project.id} className="rounded-lg border border-line p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="font-bold text-[var(--heading)]">{project.name}</p><span className="rounded-full bg-[var(--fill-3)] px-2 py-1 text-[10px] font-bold uppercase text-[var(--text)]">{pretty(project.status)}</span></div><p className="mt-1 text-xs text-[var(--muted)]">{done}/{total} milestones · {project.deliverables.length} deliverables · {project.deliverables.filter((item) => item.visible_to_client).length} visible to client</p>{project.deliverables.some((item) => item.client_decision !== "pending") && <p className="mt-1 text-xs font-bold text-flow-400">Client review received</p>}</div>; })}</div> : <p className="mt-3 text-sm text-[var(--muted)]">No project has been started for this lead yet.</p>}
           </section>
 
           <section className="card !p-4">
@@ -229,15 +310,17 @@ export default function SalesLeadWorkspace({
 
           <section className="card !p-4">
             <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">Follow-ups</h2>
-            <form onSubmit={addTask} className="mt-3 flex gap-2">
-              <input className="input text-sm" value={taskDraft} onChange={(event) => setTaskDraft(event.target.value)} placeholder="Add a follow-up task" maxLength={300} />
-              <button type="submit" className="btn-primary !px-4 !py-2 text-sm">Add</button>
+            <form onSubmit={addTask} className="mt-3 grid gap-2 sm:grid-cols-2">
+              <input className="input text-sm sm:col-span-2" value={taskDraft} onChange={(event) => setTaskDraft(event.target.value)} placeholder="Second call: review scope and close" maxLength={300} />
+              <input className="input text-sm" type="date" value={taskDue} onChange={(event) => setTaskDue(event.target.value)} />
+              <div className="grid grid-cols-2 gap-2"><select className="input text-sm" value={taskType} onChange={(event) => setTaskType(event.target.value)}><option value="call">Call</option><option value="email">Email</option><option value="text">Text</option><option value="meeting">Meeting</option><option value="proposal">Proposal</option><option value="build">Build</option><option value="other">Other</option></select><select className="input text-sm" value={taskPriority} onChange={(event) => setTaskPriority(event.target.value)}><option value="normal">Normal</option><option value="high">High</option><option value="hot">Hot</option><option value="low">Low</option></select></div>
+              <button type="submit" className="btn-primary !px-4 !py-2 text-sm sm:col-span-2">Assign follow-up</button>
             </form>
             <ul className="mt-4 space-y-2">
               {tasks.map((task) => (
                 <li key={task.id} className="flex items-center gap-3 text-sm">
                   <input type="checkbox" checked={Boolean(task.completed_at)} onChange={() => toggleTask(task)} />
-                  <span className={task.completed_at ? "text-[var(--quiet)] line-through" : "text-[var(--text)]"}>{task.title}</span>
+                  <span className={task.completed_at ? "text-[var(--quiet)] line-through" : "text-[var(--text)]"}>{task.title}<span className="ml-2 text-xs text-[var(--quiet)]">{pretty(task.task_type || "call")}{task.due_date ? ` · ${new Date(`${task.due_date}T12:00:00`).toLocaleDateString()}` : ""}{task.priority && task.priority !== "normal" ? ` · ${task.priority}` : ""}</span></span>
                 </li>
               ))}
               {tasks.length === 0 && <li className="text-sm text-[var(--muted)]">No tasks yet.</li>}
