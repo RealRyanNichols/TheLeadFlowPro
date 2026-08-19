@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import FinalCta from "@/components/site/system/FinalCta";
 import SiteHero from "@/components/site/system/SiteHero";
 import { ARTICLES } from "@/lib/articles";
-import { articleSocialImagePath } from "@/lib/articles-og";
+import { articleSocialImagePath, articleVisualIdentity } from "@/lib/articles-og";
 
 export const metadata: Metadata = {
   title: "Articles | The LeadFlow Pro",
@@ -48,8 +49,15 @@ export default function ArticlesPage() {
             </p>
           </div>
           <div className="sv-index-grid sv-long-grid mt-12">
-          {articles.map((a) => (
-            <Link key={a.slug} href={`/articles/${a.slug}`} className="sv-index-card">
+          {articles.map((a) => {
+            const visual = articleVisualIdentity(a);
+            return (
+            <Link
+              key={a.slug}
+              href={`/articles/${a.slug}`}
+              className="sv-index-card sv-article-index-card"
+              style={{ "--article-accent": visual.accent } as CSSProperties}
+            >
               <span className="sv-index-card__media">
                 <Image
                   src={articleSocialImagePath(a.slug)}
@@ -59,14 +67,17 @@ export default function ArticlesPage() {
                 />
               </span>
               <span className="sv-index-card__body">
-                <span className="sv-index-card__meta">
-                  {new Date(a.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}{" "}
-                  · {a.readingMinutes} min
-                  {a.video ? ` · ${a.video.durationSeconds}s video` : ""}
+                <span className="sv-index-card__meta-row">
+                  <span className="sv-index-card__category">{visual.label}</span>
+                  <span className="sv-index-card__meta">
+                    {new Date(a.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}{" "}
+                    · {a.readingMinutes} min
+                    {a.video ? ` · ${a.video.durationSeconds}s video` : ""}
+                  </span>
                 </span>
                 <h2>{a.title}</h2>
                 <p>{a.description}</p>
@@ -75,7 +86,8 @@ export default function ArticlesPage() {
                 </span>
               </span>
             </Link>
-          ))}
+            );
+          })}
         </div>
         </div>
       </section>
