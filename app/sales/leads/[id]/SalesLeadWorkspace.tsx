@@ -148,6 +148,12 @@ export default function SalesLeadWorkspace({
             Owner
             <input className="input ml-2 !w-40 !py-1.5 text-sm" value={owner} onChange={(event) => setOwner(event.target.value)} onBlur={saveOwner} />
           </label>
+          <Link
+            href={`/sales/invoices?lead=${lead.id}`}
+            className="btn-primary !px-4 !py-2 text-sm"
+          >
+            Create invoice
+          </Link>
         </div>
       </div>
 
