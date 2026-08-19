@@ -40,7 +40,10 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
 
 export default function SiteFooter() {
   const pathname = usePathname();
-  if (pathname === "/start") return null;
+  const isWorkspace = ["/admin", "/sales", "/dashboard"].some(
+    (base) => pathname === base || pathname.startsWith(`${base}/`),
+  );
+  if (pathname === "/start" || isWorkspace) return null;
   return (
     <footer className="site-footer cb-footer">
       <div className="cb-shell">

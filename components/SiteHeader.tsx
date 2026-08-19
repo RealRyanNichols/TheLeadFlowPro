@@ -17,9 +17,15 @@ const NAV_LINKS: Array<[string, string]> = [
   ["/articles", "Articles"],
 ];
 
+function isWorkspacePath(pathname: string) {
+  return ["/admin", "/sales", "/dashboard"].some(
+    (base) => pathname === base || pathname.startsWith(`${base}/`),
+  );
+}
+
 export default function SiteHeader() {
   const pathname = usePathname();
-  if (pathname === "/start") return null;
+  if (pathname === "/start" || isWorkspacePath(pathname)) return null;
   return (
     <header className="site-header">
       <div className="site-header-inner">

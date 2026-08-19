@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import InternalTrafficMarker from "@/components/InternalTrafficMarker";
-import SignOutButton from "./SignOutButton";
+import SignOutButton from "@/components/SignOutButton";
 
 export const metadata = { title: "Sales Desk | The LeadFlow Pro" };
 
@@ -32,7 +32,7 @@ export default async function SalesLayout({ children }: { children: React.ReactN
               Lead pipeline, call context, follow-ups, and conversations
             </p>
           </div>
-          <nav className="flex items-center gap-3 text-sm font-semibold">
+          <nav className="flex flex-wrap items-center justify-end gap-3 text-sm font-semibold">
             <Link href="/admin/sales" className="text-[var(--text)] hover:text-[var(--heading)]">
               Pipeline
             </Link>
@@ -50,7 +50,7 @@ export default async function SalesLayout({ children }: { children: React.ReactN
                 Back Office
               </Link>
             )}
-            <SignOutButton />
+            <SignOutButton className="rounded-lg border border-[var(--line-strong)] px-3 py-1.5 text-xs font-bold text-[var(--text)] hover:border-[var(--accent-line)] hover:text-[var(--heading)]" />
           </nav>
         </div>
         {children}

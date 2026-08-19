@@ -147,6 +147,9 @@ export default function LoginForm() {
           className="input"
           id="email"
           type="email"
+          autoComplete="email"
+          autoCapitalize="none"
+          spellCheck={false}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -159,6 +162,7 @@ export default function LoginForm() {
           className="input"
           id="password"
           type="password"
+          autoComplete={mode === "login" ? "current-password" : "new-password"}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
