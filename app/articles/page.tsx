@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import FinalCta from "@/components/site/system/FinalCta";
 import SiteHero from "@/components/site/system/SiteHero";
 import { ARTICLES } from "@/lib/articles";
-import { articleSocialImagePath, articleVisualIdentity } from "@/lib/articles-og";
+import { articlePremiumArtAlt, articlePremiumArtPath } from "@/lib/articles-og";
 
 export const metadata: Metadata = {
   title: "Articles | The LeadFlow Pro",
@@ -17,6 +16,8 @@ export const metadata: Metadata = {
 
 export default function ArticlesPage() {
   const articles = [...ARTICLES].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  const featuredArticles = articles.filter((article) => articlePremiumArtPath(article.slug));
+  const libraryArticles = articles.filter((article) => !articlePremiumArtPath(article.slug));
   return (
     <main className="cb-page">
       <SiteHero
@@ -48,36 +49,25 @@ export default function ArticlesPage() {
               and the move you can make next.
             </p>
           </div>
-          <div className="sv-index-grid sv-long-grid mt-12">
-          {articles.map((a) => {
-            const visual = articleVisualIdentity(a);
-            return (
-            <Link
-              key={a.slug}
-              href={`/articles/${a.slug}`}
-              className="sv-index-card sv-article-index-card"
-              style={{ "--article-accent": visual.accent } as CSSProperties}
-            >
+          <div className="sv-index-grid sv-article-feature-grid mt-12">
+          {featuredArticles.map((a) => (
+            <Link key={a.slug} href={`/articles/${a.slug}`} className="sv-index-card sv-article-feature-card">
               <span className="sv-index-card__media">
                 <Image
-                  src={articleSocialImagePath(a.slug)}
-                  alt={a.title}
+                  src={articlePremiumArtPath(a.slug) as string}
+                  alt={articlePremiumArtAlt(a.slug)}
                   fill
                   sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1000px) 50vw, 33vw"
                 />
               </span>
               <span className="sv-index-card__body">
-                <span className="sv-index-card__meta-row">
-                  <span className="sv-index-card__category">{visual.label}</span>
-                  <span className="sv-index-card__meta">
-                    {new Date(a.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}{" "}
-                    · {a.readingMinutes} min
-                    {a.video ? ` · ${a.video.durationSeconds}s video` : ""}
-                  </span>
+                <span className="sv-index-card__meta">
+                  {new Date(a.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}{" "}
+                  · {a.readingMinutes} min
                 </span>
                 <h2>{a.title}</h2>
                 <p>{a.description}</p>
@@ -86,9 +76,33 @@ export default function ArticlesPage() {
                 </span>
               </span>
             </Link>
-            );
-          })}
-        </div>
+          ))}
+          </div>
+
+          <div className="sv-article-library-head">
+            <p className="cb-eyebrow">Every field note</p>
+            <h3>More practical breakdowns</h3>
+          </div>
+          <div className="sv-article-library-list">
+            {libraryArticles.map((a) => (
+              <Link key={a.slug} href={`/articles/${a.slug}`} className="sv-article-library-row">
+                <span className="sv-index-card__meta">
+                  {new Date(a.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}{" "}
+                  · {a.readingMinutes} min
+                  {a.video ? ` · ${a.video.durationSeconds}s video` : ""}
+                </span>
+                <h2>{a.title}</h2>
+                <p>{a.description}</p>
+                <span className="sv-index-card__link">
+                  Read the breakdown <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

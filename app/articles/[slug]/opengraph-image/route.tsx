@@ -1,6 +1,10 @@
 import { ImageResponse } from "next/og";
 import { getArticle } from "@/lib/articles";
-import { articleOgCard, ARTICLE_OG_SIZE } from "@/lib/articles-og";
+import {
+  articleOgCard,
+  ARTICLE_OG_SIZE,
+  articlePremiumArtPath,
+} from "@/lib/articles-og";
 
 export const revalidate = 86400;
 
@@ -15,7 +19,10 @@ export async function GET(
     return new Response("Article not found", { status: 404 });
   }
 
-  const backgroundUrl = new URL(article.ogImage, request.url).toString();
+  const backgroundUrl = new URL(
+    articlePremiumArtPath(article.slug) ?? article.ogImage,
+    request.url,
+  ).toString();
 
   return new ImageResponse(articleOgCard({ article, backgroundUrl }), {
     ...ARTICLE_OG_SIZE,

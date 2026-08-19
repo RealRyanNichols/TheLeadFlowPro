@@ -17,7 +17,11 @@ const ARTICLE_CHARTS: Record<string, React.ComponentType> = {
 };
 import ArticleToolSection from "@/components/ArticleToolSection";
 import { ARTICLES, getArticle } from "@/lib/articles";
-import { articleSocialImagePath } from "@/lib/articles-og";
+import {
+  articlePremiumArtAlt,
+  articlePremiumArtPath,
+  articleSocialImagePath,
+} from "@/lib/articles-og";
 
 export function generateStaticParams() {
   return ARTICLES.map((a) => ({ slug: a.slug }));
@@ -78,6 +82,7 @@ export default async function ArticlePage({
 
   const SITE = "https://www.theleadflowpro.com";
   const socialImage = articleSocialImagePath(article.slug);
+  const premiumArt = articlePremiumArtPath(article.slug);
   const articleLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -155,15 +160,15 @@ export default async function ArticlePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="sv-article-hero">
+      {premiumArt ? <div className="sv-article-hero">
         <SiteHero
           compact
           eyebrow="Operator field note"
           title={article.title}
           body={article.description}
           media={{
-            src: socialImage,
-            alt: article.title,
+            src: premiumArt,
+            alt: articlePremiumArtAlt(article.slug),
             width: 1200,
             height: 630,
             kicker: article.video ? "Watch and read" : "See the problem",
@@ -175,7 +180,22 @@ export default async function ArticlePage({
             year: "numeric",
           })} · ${article.readingMinutes} min read · Ryan Nichols`}
         />
-      </div>
+      </div> : (
+        <section className="sv-article-text-hero">
+          <div className="cb-shell">
+            <p className="cb-eyebrow">Operator field note</p>
+            <h1>{article.title}</h1>
+            <p className="sv-article-text-hero__lead">{article.description}</p>
+            <p className="sv-article-text-hero__byline">
+              {new Date(article.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })} · {article.readingMinutes} min read · Ryan Nichols
+            </p>
+          </div>
+        </section>
+      )}
 
       <article className="sv-article-shell">
         {article.video ? (
