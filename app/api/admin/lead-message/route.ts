@@ -57,7 +57,7 @@ async function sendEmail(to: string, name: string, body: string) {
 export async function POST(request: Request) {
   const supabase = await createClient();
 
-  // Admin only. RLS also guards lead_messages, but failing here gives a clear
+  // Admin or sales only. RLS also guards lead_messages, but failing here gives a clear
   // answer instead of a silent empty insert.
   const {
     data: { user },
@@ -68,8 +68,8 @@ export async function POST(request: Request) {
     .select("role, full_name")
     .eq("id", user.id)
     .single();
-  if (profile?.role !== "admin") {
-    return NextResponse.json({ error: "Admins only" }, { status: 403 });
+  if (profile?.role !== "admin" && profile?.role !== "sales") {
+    return NextResponse.json({ error: "Sales access required" }, { status: 403 });
   }
 
   const payload = await request.json().catch(() => ({}));
