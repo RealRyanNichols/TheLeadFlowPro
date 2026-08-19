@@ -8,7 +8,12 @@ export const metadata = {
   robots: { index: false, follow: true },
 };
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ logged_out?: string }>;
+}) {
+  const { logged_out: loggedOut } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -33,6 +38,11 @@ export default async function LoginPage() {
         Log in or create your account.
       </p>
       <div className="card mt-8">
+        {loggedOut === "1" && (
+          <p className="mb-4 rounded-lg border border-[var(--green-line)] bg-[var(--green-tint)] p-3 text-center text-sm font-semibold text-[var(--green)]">
+            You are signed out.
+          </p>
+        )}
         <Suspense>
           <LoginForm />
         </Suspense>
