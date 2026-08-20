@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
+import { priceOrder } from "@/lib/timeback";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
@@ -114,6 +115,32 @@ export async function POST(request: Request) {
         name = `${pkg.label} | build down payment (credited in full)`;
         amount = dollars * 100;
         metadata.deposit_usd = String(dollars);
+      }
+    } else if (body.kind === "timeback_order") {
+      // Time Back funnel (/go/time-back). The client sends selections, never
+      // prices. The total comes from lib/timeback.ts so nobody can edit a
+      // number in the browser and pay it.
+      const priced = priceOrder({
+        downsell: body.downsell === true,
+        days: Number(body.days) || undefined,
+        perDay: Number(body.per_day) || undefined,
+        emailSeries:
+          typeof body.email_series === "string" && body.email_series ? body.email_series : null,
+        extras: Array.isArray(body.extras) ? body.extras.map(String).slice(0, 10) : [],
+      });
+      if (!priced) return NextResponse.json({ error: "Invalid selection" }, { status: 400 });
+      kind = "timeback_order";
+      name = priced.lines.map((l) => l.label).join(" + ").slice(0, 250) || "Time Back order";
+      amount = priced.total * 100;
+      cancelUrl = `${site}/go/time-back?cancelled=1`;
+      metadata.kind = kind;
+      metadata.order = priced.lines
+        .map((l) => `${l.label} $${l.amount}`)
+        .join(" | ")
+        .slice(0, 480);
+      metadata.total_usd = String(priced.total);
+      if (Array.isArray(body.platforms)) {
+        metadata.platforms = body.platforms.map(String).join(",").slice(0, 100);
       }
     } else {
       if (!PRODUCTS[body.kind]) {
