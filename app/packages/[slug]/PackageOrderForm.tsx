@@ -25,8 +25,8 @@ const INTENTS: Array<{ id: string; label: string; desc: string }> = [
   },
   {
     id: "down_payment",
-    label: "I want to put a down payment on it",
-    desc: "Pick your amount, pay by card, reserve your build slot.",
+    label: "Skip the line with a down payment",
+    desc: "Put down $250 or more by card. You move to the front of the line, and every dollar credits toward the work.",
   },
   {
     id: "map_first",

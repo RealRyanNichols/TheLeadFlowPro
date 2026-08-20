@@ -63,12 +63,38 @@ async function pageToken(systemToken: string): Promise<string> {
 }
 
 type MetaField = { name?: string; values?: string[] };
+type MetaDisclaimerResponse = { checkbox_key?: string; is_checked?: string | boolean };
 type MetaLead = {
   id: string;
   created_time?: string;
   form_id?: string;
   field_data?: MetaField[];
+  custom_disclaimer_responses?: MetaDisclaimerResponse[];
 };
+
+// Which campaign a form belongs to, for attribution. Add new form ids here
+// when a new instant form is published (the id only exists after publish).
+const FORM_CAMPAIGNS: Record<string, string> = {
+  "1674448410325108": "mall-video-leadform",
+  "2311682272983064": "mall-video-leadform",
+};
+
+// The Time Back form asks for consent with two OPTIONAL checkboxes in the
+// custom disclaimer, in this order:
+//   1. call/text consent   2. 30-day marketing email consent
+// Meta returns them as custom_disclaimer_responses with generated keys, so we
+// order by key and read positionally. Unchecked or absent means NO. The old
+// free-build forms had no checkboxes, so their leads get no text and no
+// marketing email, which is exactly the playbook rule: a phone number alone
+// is not consent.
+function parseConsents(raw: MetaLead): { sms: boolean; marketing: boolean } {
+  const boxes = [...(raw.custom_disclaimer_responses ?? [])].sort((a, b) =>
+    String(a.checkbox_key ?? "").localeCompare(String(b.checkbox_key ?? "")),
+  );
+  const checked = (r?: MetaDisclaimerResponse) =>
+    r ? r.is_checked === true || r.is_checked === "1" || r.is_checked === "true" : false;
+  return { sms: checked(boxes[0]), marketing: checked(boxes[1]) };
+}
 
 // Meta names custom questions after the question text, slugged. Match loosely
 // so a wording tweak in the form does not silently drop the answer.
@@ -96,7 +122,8 @@ function mapLead(raw: MetaLead) {
 
   const industry = pick(fields, "kind_of_business", "what_kind_of_business");
   const platform = pick(fields, "have_online", "online_right_now");
-  const timeline = pick(fields, "how_soon", "want_this_built");
+  const timeline = pick(fields, "how_soon", "want_this_built", "want_this_moving");
+  const consents = parseConsents(raw);
 
   // Everything the lead actually told us, kept verbatim so the admin view and
   // the alert email show real answers instead of an empty row.
@@ -123,11 +150,11 @@ function mapLead(raw: MetaLead) {
       source: "meta_lead_ad",
       utm_source: "facebook",
       utm_medium: "paid",
-      utm_campaign: "mall-video-leadform",
-      // The form's own data-use notice tells them Ryan replies by text or
-      // email. That is the basis for the one reply text, nothing more.
-      sms_consent: !!phone,
-      marketing_email_consent: false,
+      utm_campaign: FORM_CAMPAIGNS[raw.form_id ?? ""] ?? "meta_lead_form",
+      // Consent comes ONLY from the form's own optional checkboxes. No
+      // checkbox checked means no text and no marketing email, full stop.
+      sms_consent: consents.sms && !!phone,
+      marketing_email_consent: consents.marketing,
       consent_at: new Date().toISOString(),
       external_id: `meta:${raw.id}`,
       diagnostic: { meta_lead_id: raw.id, form_id: raw.form_id ?? null, fields: Object.fromEntries(fields) },
@@ -158,7 +185,7 @@ async function logTokenDiagnostics(systemToken: string, readToken: string) {
 }
 
 async function fetchLead(leadgenId: string, token: string): Promise<MetaLead | null> {
-  const url = `${GRAPH}/${leadgenId}?fields=id,created_time,form_id,field_data&access_token=${encodeURIComponent(token)}`;
+  const url = `${GRAPH}/${leadgenId}?fields=id,created_time,form_id,field_data,custom_disclaimer_responses&access_token=${encodeURIComponent(token)}`;
   const r = await fetch(url);
   if (!r.ok) {
     console.error("Meta lead fetch failed:", leadgenId, r.status, await r.text().catch(() => ""));
@@ -282,7 +309,7 @@ export async function GET(request: Request) {
   let seen = 0;
   for (const formId of formIds) {
     const r = await fetch(
-      `${GRAPH}/${formId}/leads?fields=id,created_time,form_id,field_data&limit=100&access_token=${encodeURIComponent(readToken)}`,
+      `${GRAPH}/${formId}/leads?fields=id,created_time,form_id,field_data,custom_disclaimer_responses&limit=100&access_token=${encodeURIComponent(readToken)}`,
     );
     if (!r.ok) {
       console.error("Meta form poll failed:", formId, r.status, await r.text().catch(() => ""));
