@@ -151,6 +151,26 @@ export default function TimeBackFunnel() {
   }, [total]);
 
   useEffect(() => {
+    // Touch devices have no mouse to exit with. There, the same "about to
+    // leave" signal is a decisive scroll back up after getting deep into the
+    // page. Either path offers the starter exactly once.
+    if (window.matchMedia("(pointer: coarse)").matches) {
+      let deepest = 0;
+      function onScroll() {
+        if (downsellOffered.current || sending) return;
+        const y = window.scrollY;
+        if (y >= deepest) {
+          deepest = y;
+          return;
+        }
+        if (deepest > 900 && deepest - y > 400) {
+          downsellOffered.current = true;
+          setShowDownsell(true);
+        }
+      }
+      window.addEventListener("scroll", onScroll, { passive: true });
+      return () => window.removeEventListener("scroll", onScroll);
+    }
     function onLeave(e: MouseEvent) {
       if (e.clientY > 8 || downsellOffered.current || sending) return;
       downsellOffered.current = true;
@@ -316,7 +336,7 @@ export default function TimeBackFunnel() {
                 max={CONTENT_DAYS.length - 1}
                 step={1}
                 value={daysIdx}
-                style={{ accentColor: "#5b87ff", height: 28 }}
+                className="tb-range"
                 onChange={(e) => {
                   setDaysIdx(Number(e.target.value));
                   setDownsell(false);
@@ -342,7 +362,7 @@ export default function TimeBackFunnel() {
                 max={CONTENT_PER_DAY.length - 1}
                 step={1}
                 value={perDayIdx}
-                style={{ accentColor: "#5b87ff", height: 28 }}
+                className="tb-range"
                 onChange={(e) => {
                   setPerDayIdx(Number(e.target.value));
                   setDownsell(false);
@@ -609,7 +629,7 @@ export default function TimeBackFunnel() {
 
       {/* Sticky total bar — the buy button never leaves the screen */}
       {!payNotice ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--cb-hair-ink)] bg-[#0a1220f2] px-4 py-3 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--cb-hair-ink)] bg-[#0a1220f2] px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur">
           <div className="mx-auto flex w-full max-w-[1120px] items-center justify-between gap-3">
             <div className="leading-tight">
               <span className="block text-[11px] font-bold uppercase tracking-wide text-[#8b97ad]">
@@ -646,7 +666,7 @@ export default function TimeBackFunnel() {
           aria-modal="true"
           aria-label="Starter offer"
         >
-          <div className="w-full max-w-md rounded-[20px] border border-[#5b87ff59] bg-[var(--cb-ink-2)] p-7 shadow-[inset_0_1px_0_#ffffff1f,0_0_80px_#1240e866]">
+          <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-[20px] border border-[#5b87ff59] bg-[var(--cb-ink-2)] p-7 shadow-[inset_0_1px_0_#ffffff1f,0_0_80px_#1240e866]">
             <div className="flex items-start justify-between gap-4">
               <h3 className="text-xl font-extrabold text-[var(--cb-on-ink)]">
                 Not ready? Try {DOWNSELL.days} days for {fmt(DOWNSELL.price)}.

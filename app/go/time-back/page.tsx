@@ -144,6 +144,55 @@ export default function TimeBackPage() {
             linear-gradient(150deg, #5b87ffcc, #5b87ff40 45%, #1240e8b3) border-box;
           box-shadow: inset 0 1px 0 #ffffff1f, 0 0 24px #5b87ff33;
         }
+        /* Sliders: a 28px glowing thumb inside a 44px hit target (the
+           transparent border is part of the thumb, so fingers get the full
+           44px). drop-shadow follows the visible circle, not the hit box. */
+        .tb-range {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100%;
+          height: 44px;
+          margin: 0;
+          background: transparent;
+          cursor: pointer;
+        }
+        .tb-range::-webkit-slider-runnable-track {
+          height: 6px;
+          border-radius: 999px;
+          background: #ffffff1f;
+        }
+        .tb-range::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          box-sizing: border-box;
+          height: 44px;
+          width: 44px;
+          margin-top: -19px;
+          border: 8px solid transparent;
+          border-radius: 50%;
+          background: #5b87ff;
+          background-clip: padding-box;
+          filter: drop-shadow(0 0 9px #5b87ffb3);
+        }
+        .tb-range::-moz-range-track {
+          height: 6px;
+          border-radius: 999px;
+          background: #ffffff1f;
+        }
+        .tb-range::-moz-range-thumb {
+          box-sizing: border-box;
+          height: 44px;
+          width: 44px;
+          border: 8px solid transparent;
+          border-radius: 50%;
+          background: #5b87ff;
+          background-clip: padding-box;
+          filter: drop-shadow(0 0 9px #5b87ffb3);
+        }
+        .tb-range:focus-visible {
+          outline: 2px solid #35c6f4;
+          outline-offset: 4px;
+          border-radius: 12px;
+        }
         /* The site's global heading rules paint h1-h3 in ink, which is
            invisible on this dark funnel. Scoped override, spans keep their
            own accent colors. */
