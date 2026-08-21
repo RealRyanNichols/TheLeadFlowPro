@@ -27,6 +27,16 @@ const QUO_API = "https://api.openphone.com/v1/messages";
 export const LEADFLOW_FROM = "+19035008898";
 
 export async function sendLeadText(to: string, content: string): Promise<boolean> {
+  // Emergency compliance stop: outbound Quo SMS is disabled by default while
+  // delivery failures and consent/automation rules are audited. Lead capture,
+  // CRM storage, and internal email alerts continue normally. Re-enabling is
+  // deliberate: set QUO_OUTBOUND_SMS_DISABLED=false in the runtime environment.
+  const outboundDisabled = process.env.QUO_OUTBOUND_SMS_DISABLED !== "false";
+  if (outboundDisabled) {
+    console.warn("Quo outbound SMS blocked by emergency compliance stop");
+    return false;
+  }
+
   const key = process.env.QUO_API_KEY;
   const from = process.env.QUO_FROM_NUMBER || LEADFLOW_FROM;
   const userId = process.env.QUO_USER_ID; // Ryan's Quo user id (US...)
