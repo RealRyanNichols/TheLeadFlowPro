@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { ARTICLES } from "@/lib/articles";
+import { HOLD_THE_LINE_OFFERS } from "@/lib/offers";
 import { TOOLS } from "@/lib/tools";
 import { PUBLISHED_COLLECTIONS } from "@/lib/tools/collections";
 import { STAGE_SLUGS } from "@/lib/system-stages";
@@ -31,6 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/articles",
     "/book",
     "/contact",
+    "/hold-the-line",
     "/privacy",
     "/terms",
   ];
@@ -63,6 +65,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
     ...PACKAGE_SLUGS.map((slug) => ({
       url: `${BASE}/packages/${slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+    // The Hold The Line ladder. The playbook delivery page stays out on
+    // purpose: it is a paid product behind an unlisted, noindexed URL.
+    ...HOLD_THE_LINE_OFFERS.map((offer) => ({
+      url: `${BASE}/offers/${offer.slug}`,
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
