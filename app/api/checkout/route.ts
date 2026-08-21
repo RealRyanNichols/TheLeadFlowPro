@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
+import { priceOrder } from "@/lib/timeback";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
     let name: string;
     let amount: number;
     let cancelUrl = `${site}/training?cancelled=1`;
+    let successUrl: string | null = null;
     const metadata: Record<string, string> = {};
 
     if (body.kind === "event") {
@@ -115,6 +117,35 @@ export async function POST(request: Request) {
         amount = dollars * 100;
         metadata.deposit_usd = String(dollars);
       }
+    } else if (body.kind === "timeback_order") {
+      // Time Back funnel (/go/time-back). The client sends selections, never
+      // prices. The total comes from lib/timeback.ts so nobody can edit a
+      // number in the browser and pay it.
+      const priced = priceOrder({
+        downsell: body.downsell === true,
+        days: Number(body.days) || undefined,
+        perDay: Number(body.per_day) || undefined,
+        emailSeries:
+          typeof body.email_series === "string" && body.email_series ? body.email_series : null,
+        extras: Array.isArray(body.extras) ? body.extras.map(String).slice(0, 10) : [],
+      });
+      if (!priced) return NextResponse.json({ error: "Invalid selection" }, { status: 400 });
+      kind = "timeback_order";
+      name = priced.lines.map((l) => l.label).join(" + ").slice(0, 250) || "Time Back order";
+      amount = priced.total * 100;
+      cancelUrl = `${site}/go/time-back?cancelled=1`;
+      // Buyers land on the welcome flow, not the generic thank-you: it
+      // collects the business, the access grants, and the voice samples.
+      successUrl = `${site}/go/time-back/welcome?session_id={CHECKOUT_SESSION_ID}`;
+      metadata.kind = kind;
+      metadata.order = priced.lines
+        .map((l) => `${l.label} $${l.amount}`)
+        .join(" | ")
+        .slice(0, 480);
+      metadata.total_usd = String(priced.total);
+      if (Array.isArray(body.platforms)) {
+        metadata.platforms = body.platforms.map(String).join(",").slice(0, 100);
+      }
     } else {
       if (!PRODUCTS[body.kind]) {
         return NextResponse.json({ error: "Unknown product" }, { status: 400 });
@@ -133,7 +164,8 @@ export async function POST(request: Request) {
       "line_items[0][price_data][currency]": "usd",
       "line_items[0][price_data][unit_amount]": String(amount),
       "line_items[0][price_data][product_data][name]": name,
-      success_url: `${site}/thank-you?purchase=${kind}&session_id={CHECKOUT_SESSION_ID}`,
+      success_url:
+        successUrl ?? `${site}/thank-you?purchase=${kind}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl,
       allow_promotion_codes: "true",
     });

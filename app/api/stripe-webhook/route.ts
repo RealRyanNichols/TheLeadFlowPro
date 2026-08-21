@@ -292,6 +292,174 @@ async function ensureWebsiteLaunchIntake(
   }
 }
 
+// Time Back funnel orders (/go/time-back). The funnel saves the lead before
+// Stripe opens, so a paid session finds that lead by email, marks it won, and
+// stamps the Stripe order details onto its diagnostic for the admin view.
+async function ensureTimebackOrderPaid(
+  supabase: SupabaseClient,
+  session: StripeCheckoutSession,
+) {
+  const sessionId = typeof session.id === "string" ? session.id.slice(0, 200) : "";
+  const customer = websiteLaunchCustomer(session);
+  if (!sessionId || !customer.email) {
+    throw new Error("Paid Time Back checkout is missing its session ID or email");
+  }
+
+  const metadata = session.metadata ?? {};
+  const stripeStamp = {
+    session_id: sessionId,
+    paid_at: new Date().toISOString(),
+    amount_total_cents: Number.isFinite(Number(session.amount_total))
+      ? Number(session.amount_total)
+      : null,
+    order: typeof metadata.order === "string" ? metadata.order.slice(0, 480) : null,
+    total_usd: typeof metadata.total_usd === "string" ? metadata.total_usd.slice(0, 20) : null,
+    platforms: typeof metadata.platforms === "string" ? metadata.platforms.slice(0, 100) : null,
+  };
+  const externalId = `stripe_checkout:${sessionId}`;
+  const paidUsd = stripeStamp.amount_total_cents !== null
+    ? Math.round(stripeStamp.amount_total_cents / 100)
+    : null;
+  const orderSummary =
+    stripeStamp.order ?? (paidUsd !== null ? `Time Back order, $${paidUsd}` : "Time Back order");
+
+  const found = await supabase
+    .from("leads")
+    .select("id, full_name, business_name, phone, status, diagnostic, external_id")
+    .ilike("email", escapeIlike(customer.email))
+    .eq("diagnostic->>source", "time_back_funnel")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (found.error) throw new Error(`Time Back lead lookup failed: ${found.error.code}`);
+
+  let leadId: string;
+  let leadName = customer.fullName;
+  if (found.data) {
+    const lead = found.data;
+    leadId = lead.id;
+    leadName = lead.full_name || customer.fullName;
+    const diagnostic =
+      lead.diagnostic && typeof lead.diagnostic === "object" ? lead.diagnostic : {};
+    const updates: Record<string, unknown> = {
+      status: "won",
+      diagnostic: { ...diagnostic, paid: true, stripe: stripeStamp },
+    };
+    if (!lead.phone && customer.phone) updates.phone = customer.phone;
+    if (!lead.external_id) updates.external_id = externalId;
+    const updated = await supabase.from("leads").update(updates).eq("id", lead.id);
+    if (updated.error?.code === "23505") {
+      // Another event already claimed this checkout's external_id; keep the
+      // payment stamp and let the id stand where it landed first.
+      const retry = await supabase
+        .from("leads")
+        .update({ status: "won", diagnostic: { ...diagnostic, paid: true, stripe: stripeStamp } })
+        .eq("id", lead.id);
+      if (retry.error) throw new Error(`Time Back lead update failed: ${retry.error.code}`);
+    } else if (updated.error) {
+      throw new Error(`Time Back lead update failed: ${updated.error.code}`);
+    }
+  } else {
+    // Paid, but no funnel lead saved (network hiccup, or a different email
+    // at checkout). Create the lead so the order has a home in the CRM.
+    const inserted = await supabase
+      .from("leads")
+      .insert({
+        full_name: customer.fullName,
+        email: customer.email,
+        phone: customer.phone,
+        interest: "done_for_you",
+        goals: `TIME BACK FUNNEL ORDER, paid through Stripe. ${orderSummary}.`,
+        best_contact_method: customer.phone ? "text" : "email",
+        source: "stripe_checkout",
+        utm_source: "stripe",
+        utm_medium: "checkout",
+        utm_campaign: "time_back",
+        sms_consent: false,
+        marketing_email_consent: false,
+        status: "won",
+        external_id: externalId,
+        diagnostic: {
+          version: 2,
+          source: "time_back_funnel",
+          paid: true,
+          stripe: stripeStamp,
+          next_action:
+            "Paid Time Back order arrived without a matching funnel lead. Send the welcome intake link and the access invites.",
+        },
+      })
+      .select("id, full_name")
+      .single();
+    if (inserted.error?.code === "23505") {
+      const raced = await supabase
+        .from("leads")
+        .select("id, full_name")
+        .eq("external_id", externalId)
+        .is("deleted_at", null)
+        .single();
+      if (raced.error) throw new Error(`Time Back lead race recovery failed: ${raced.error.code}`);
+      leadId = raced.data.id;
+      leadName = raced.data.full_name || leadName;
+    } else if (inserted.error) {
+      throw new Error(`Time Back lead insert failed: ${inserted.error.code}`);
+    } else {
+      leadId = inserted.data.id;
+      leadName = inserted.data.full_name || leadName;
+    }
+  }
+
+  // The activity row is the idempotency marker for the internal alert, same
+  // contract as the Website Launch flow: alert first, marker after, so a
+  // provider failure keeps the Stripe event retryable. Missing RESEND config
+  // is not a failure; the payment is already recorded either way.
+  const activityDetail = `Time Back order paid through Stripe. ${orderSummary}. Stripe checkout: ${sessionId}.`;
+  const existingActivity = await supabase
+    .from("lead_activity")
+    .select("id")
+    .eq("lead_id", leadId)
+    .eq("kind", "system")
+    .eq("detail", activityDetail)
+    .limit(1)
+    .maybeSingle();
+  if (existingActivity.error) {
+    throw new Error(`Time Back activity lookup failed: ${existingActivity.error.code}`);
+  }
+  if (!existingActivity.data) {
+    const resendKey = process.env.RESEND_API_KEY;
+    if (resendKey) {
+      const r = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+          to: ["hello@theleadflowpro.com"],
+          subject: `💰 TIME BACK ORDER PAID: ${leadName} — ${customer.email}`,
+          text: [
+            orderSummary,
+            paidUsd !== null ? `Paid: $${paidUsd}` : "",
+            stripeStamp.platforms ? `Platforms: ${stripeStamp.platforms}` : "",
+            "",
+            "They were sent to the welcome intake. Next: the access invites.",
+            "Admin: https://www.theleadflowpro.com/admin/time-back",
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        }),
+      }).catch(() => null);
+      if (!r?.ok) throw new Error("Internal Time Back paid alert was not accepted");
+    }
+    const activityInsert = await supabase.from("lead_activity").insert({
+      lead_id: leadId,
+      kind: "system",
+      detail: activityDetail,
+    });
+    if (activityInsert.error) {
+      throw new Error(`Time Back activity insert failed: ${activityInsert.error.code}`);
+    }
+  }
+}
+
 type StripeInvoiceWebhook = {
   id?: unknown;
   number?: unknown;
@@ -421,6 +589,8 @@ export async function POST(request: Request) {
 
     if (websiteLaunch) {
       await ensureWebsiteLaunchIntake(supabase, session);
+    } else if (kind === "timeback_order") {
+      await ensureTimebackOrderPaid(supabase, session);
     } else if (kind === "event" && typeof session.metadata?.registration_id === "string") {
       // Paid seat: confirm the registration automatically.
       const registration = await supabase
