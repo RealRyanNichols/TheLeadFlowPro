@@ -82,7 +82,7 @@ export type HoldTheLineOffer = {
   mode: "payment" | "subscription";
   tagline: string;
   summary: string;
-  included: readonly string[];
+  included: readonly { title: string; detail: string }[];
   afterCheckout: string;
 };
 
@@ -97,13 +97,41 @@ export const HOLD_THE_LINE_OFFERS: readonly HoldTheLineOffer[] = [
     summary:
       "The doctrine, the sorting table, the full response library, the never-type list, and the 60-second pre-send check. Digital, instant.",
     included: [
-      "The ten-rule doctrine that keeps accounts alive",
-      "The sorting table: seven kinds of people in your comments and the answer each one gets",
-      "The four-part reply that wins the people reading instead of the person typing",
-      "The full response library for the situations that come up over and over",
-      "The never-type list. This alone is worth the price.",
-      "The 60-second check to run before you hit reply",
-      "What to actually do if you are already suspended or demonetized",
+      {
+        title: "The ten-rule doctrine",
+        detail:
+          "Sort before you swing. Write to the fifty people reading. Concede the true part first. The rules that keep accounts alive.",
+      },
+      {
+        title: "The sorting table",
+        detail:
+          "Seven kinds of people in your comments, what each one actually wants, and the answer each one gets.",
+      },
+      {
+        title: "The four-part reply",
+        detail:
+          "Concede, reframe, respect, close to the reader. The shape that wins the people reading instead of the person typing.",
+      },
+      {
+        title: "The full response library",
+        detail:
+          "The exact words for the situations that come up over and over. Adapt, do not paste blind. The shape is the product.",
+      },
+      {
+        title: "The never-type list",
+        detail:
+          "Eight lines that end accounts, spelled out. This alone is worth the price.",
+      },
+      {
+        title: "The 60-second pre-send check",
+        detail:
+          "Seven questions to run before anything goes out. Six of seven is a rewrite. All seven is a send.",
+      },
+      {
+        title: "The recovery chapter",
+        detail:
+          "What to actually do if you are already suspended, demonetized, or de-recommended, including the appeal that works.",
+      },
     ],
     afterCheckout:
       "Delivery is instant. The access link lands in your email as soon as the payment clears.",
@@ -118,10 +146,26 @@ export const HOLD_THE_LINE_OFFERS: readonly HoldTheLineOffer[] = [
     summary:
       "Send us the thread. Within 24 hours you get the read on what type it is, the exact reply to paste, and what to do if they come back.",
     included: [
-      "A straight read on who you are dealing with and what they actually want",
-      "The exact reply to paste, written for the people reading, not the person typing",
-      "What to do if they come back, so one comment never becomes a week",
-      "Turnaround within 24 hours of sending the thread",
+      {
+        title: "The read",
+        detail:
+          "A straight answer on who you are dealing with and what they actually want, in plain words.",
+      },
+      {
+        title: "The exact reply",
+        detail:
+          "Written for the people reading, not the person typing. You paste it and get back to work.",
+      },
+      {
+        title: "The comeback plan",
+        detail:
+          "What to do if they answer back, so one comment never becomes a week of your life.",
+      },
+      {
+        title: "24-hour turnaround",
+        detail:
+          "From the moment you send the thread, the link, and one line of context.",
+      },
     ],
     afterCheckout:
       "After payment you get an email asking for the thread, the link, and one line of context. The reply comes back within 24 hours.",
@@ -136,10 +180,25 @@ export const HOLD_THE_LINE_OFFERS: readonly HoldTheLineOffer[] = [
     summary:
       "60 minutes live. We figure out which of the five things actually happened, write the appeal together on the call, and map the off-platform backup. You leave with the appeal text and a one-page rebuild plan.",
     included: [
-      "60 minutes live, one on one",
-      "A straight read on which of the five things actually happened to the account",
-      "The appeal, written together on the call, not after it",
-      "A one-page rebuild plan and the off-platform backup, mapped",
+      {
+        title: "60 minutes live, one on one",
+        detail: "You, Ryan, and whatever the platform sent you. Do not clean it up first.",
+      },
+      {
+        title: "The straight read",
+        detail:
+          "Which of the five things actually happened to the account. People burn weeks appealing the wrong one.",
+      },
+      {
+        title: "The appeal, written together",
+        detail:
+          "On the call, not after it. Under 200 words, aimed at the reviewer with a queue of four hundred.",
+      },
+      {
+        title: "The rebuild plan",
+        detail:
+          "One page: the off-platform backup, mapped before we hang up, so this can never take you out again.",
+      },
     ],
     afterCheckout:
       "After payment you get an email to book the call. Bring the account and whatever the platform sent you.",
@@ -154,10 +213,23 @@ export const HOLD_THE_LINE_OFFERS: readonly HoldTheLineOffer[] = [
     summary:
       "We watch the page, sort what comes in, and hand you the reply. You approve and post.",
     included: [
-      "We watch the page so you do not have to",
-      "Every comment sorted: objection, critic, troll, or something worse",
-      "The reply, written and handed to you. You approve and post.",
-      "Cancel any time. No contract, no wind-down fee.",
+      {
+        title: "The watch",
+        detail: "We watch the page so you never have to open the comment section cold again.",
+      },
+      {
+        title: "The sort",
+        detail: "Every comment labeled: lead, objection, critic, troll, or something worse.",
+      },
+      {
+        title: "The reply, handed to you",
+        detail:
+          "Written in your voice. You approve and post. Nothing goes out under your name without your sign-off.",
+      },
+      {
+        title: "Cancel any time",
+        detail: "No contract, no wind-down fee. Reply to any email from Ryan and it stops.",
+      },
     ],
     afterCheckout:
       "After payment you get an email asking which pages to cover and how you want replies handed to you.",

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Check, ShieldCheck, X } from "lucide-react";
+import { ArrowRight, ShieldCheck, X } from "lucide-react";
+import HoldTheLineOfferCard from "@/components/HoldTheLineOfferCard";
 import OfferCheckoutForm from "@/components/OfferCheckoutForm";
 import { HOLD_THE_LINE_OFFERS, holdTheLineOffer } from "@/lib/offers";
 
@@ -193,17 +194,28 @@ export default async function OfferPage({
             </div>
             <p className="cb-lead">{offer.afterCheckout}</p>
           </div>
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2">
-            {offer.included.map((item) => (
+          <ol className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {offer.included.map((item, i) => (
               <li
-                key={item}
-                className="flex items-start gap-3 rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-5 text-[15px] leading-relaxed text-[var(--text)]"
+                key={item.title}
+                className="relative overflow-hidden rounded-3xl border border-[var(--line-strong)] bg-[var(--panel)] p-6 shadow-[0_18px_50px_#0a12200f]"
               >
-                <Check aria-hidden="true" className="mt-1 h-4 w-4 shrink-0" />
-                <span>{item}</span>
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-1 bg-[#0ea5e9]"
+                />
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#0ea5e91a] text-[15px] font-extrabold text-[#0284c7]">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3 className="mt-4 text-[17px] font-extrabold leading-snug text-[var(--heading)]">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-[14px] leading-relaxed text-[var(--quiet)]">
+                  {item.detail}
+                </p>
               </li>
             ))}
-          </ul>
+          </ol>
         </div>
       </section>
 
@@ -227,45 +239,66 @@ export default async function OfferPage({
               </p>
             </div>
             <div className="mt-8 grid gap-6 lg:grid-cols-2">
-              <div className="rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-6">
+              <div className="relative overflow-hidden rounded-3xl border border-[var(--line-strong)] bg-[var(--panel)] p-7 shadow-[0_18px_50px_#0a12200f]">
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-1 bg-[#0ea5e9]"
+                />
                 <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-[#0284c7]">
                   From the response library
                 </p>
-                <h3 className="mt-2 text-[17px] font-extrabold text-[var(--text)]">
+                <h3 className="mt-2 text-[17px] font-extrabold text-[var(--heading)]">
                   The &quot;I could do this myself for free&quot; objection
                 </h3>
-                <blockquote className="mt-4 border-l-2 border-[var(--line-strong)] pl-4 text-[15px] leading-relaxed text-[var(--quiet)]">
-                  <p>You&apos;re right. The tools are free. Every one of them.</p>
-                  <p className="mt-2">So is a table saw.</p>
-                  <p className="mt-2">
-                    The tools were never the product. What people pay for is the months
-                    somebody already spent finding out which ones break, which ones
-                    actually talk to each other, and what to do at 11pm when it stops
-                    working.
-                  </p>
-                  <p className="mt-2">
-                    If you can build it yourself, you should. Seriously. You&apos;ll save
-                    money and learn more than any course teaches.
-                  </p>
-                  <p className="mt-2">
-                    The guy running a shop 60 hours a week can&apos;t, and doesn&apos;t
-                    want to. That&apos;s who this is for.
-                  </p>
-                  <p className="mt-2">Appreciate the heads up.</p>
-                </blockquote>
-                <p className="mt-4 text-[13px] font-semibold text-[var(--quiet)]">
+                <div className="mt-5 rounded-2xl border border-[#0ea5e94d] bg-[#0ea5e90d] p-5">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0ea5e9] text-[15px] font-extrabold text-[#0a1220]">
+                      R
+                    </span>
+                    <span className="text-[14px] font-extrabold text-[var(--heading)]">
+                      Ryan
+                    </span>
+                    <span className="rounded-full bg-[#0ea5e91a] px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#0284c7]">
+                      Sorted · answered once
+                    </span>
+                  </div>
+                  <blockquote className="mt-3 text-[15px] leading-relaxed text-[var(--text)]">
+                    <p>You&apos;re right. The tools are free. Every one of them.</p>
+                    <p className="mt-2">So is a table saw.</p>
+                    <p className="mt-2">
+                      The tools were never the product. What people pay for is the months
+                      somebody already spent finding out which ones break, which ones
+                      actually talk to each other, and what to do at 11pm when it stops
+                      working.
+                    </p>
+                    <p className="mt-2">
+                      If you can build it yourself, you should. Seriously. You&apos;ll
+                      save money and learn more than any course teaches.
+                    </p>
+                    <p className="mt-2">
+                      The guy running a shop 60 hours a week can&apos;t, and doesn&apos;t
+                      want to. That&apos;s who this is for.
+                    </p>
+                    <p className="mt-2">Appreciate the heads up.</p>
+                  </blockquote>
+                </div>
+                <p className="mt-4 text-[13px] font-semibold leading-relaxed text-[var(--quiet)]">
                   Notice the shape: concede, reframe, respect, close to the reader. That
                   shape is the product. The book teaches it once and you keep it forever.
                 </p>
               </div>
-              <div className="rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-6">
-                <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-[#0284c7]">
+              <div className="relative flex flex-col overflow-hidden rounded-3xl border border-[var(--line-strong)] bg-[var(--panel)] p-7 shadow-[0_18px_50px_#0a12200f]">
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-1 bg-[var(--danger)]"
+                />
+                <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-[var(--danger)]">
                   From the never-type list
                 </p>
-                <h3 className="mt-2 text-[17px] font-extrabold text-[var(--text)]">
+                <h3 className="mt-2 text-[17px] font-extrabold text-[var(--heading)]">
                   Three of the lines that end accounts
                 </h3>
-                <ul className="mt-4 grid gap-3">
+                <ul className="mt-5 grid gap-3">
                   {[
                     "Anything about their family, their kids, or their spouse",
                     'Anything that can be read as physical: "say it to my face," "come see me"',
@@ -273,9 +306,12 @@ export default async function OfferPage({
                   ].map((item) => (
                     <li
                       key={item}
-                      className="flex items-start gap-3 text-[15px] leading-relaxed text-[var(--text)]"
+                      className="flex items-start gap-3 rounded-2xl border border-[var(--danger-line)] bg-[var(--danger-tint)] p-4 text-[15px] leading-relaxed text-[var(--text)]"
                     >
-                      <X aria-hidden="true" className="mt-1 h-4 w-4 shrink-0" />
+                      <X
+                        aria-hidden="true"
+                        className="mt-1 h-4 w-4 shrink-0 text-[var(--danger)]"
+                      />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -285,14 +321,16 @@ export default async function OfferPage({
                   through it before anything goes out. This list alone is worth the
                   price. It is the difference between a business page and a memory.
                 </p>
-                <Link
-                  className="cb-btn cb-btn--primary mt-5"
-                  href="/offers/hold-the-line-playbook#offer-title"
-                  data-analytics="cta-offer-playbook-inside"
-                >
-                  Get the other nine parts | $47
-                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                </Link>
+                <div className="mt-auto pt-5">
+                  <Link
+                    className="cb-btn cb-btn--primary"
+                    href="/offers/hold-the-line-playbook#offer-title"
+                    data-analytics="cta-offer-playbook-inside"
+                  >
+                    Get the other nine parts | $47
+                    <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -312,11 +350,48 @@ export default async function OfferPage({
               </h2>
             </div>
             <p className="cb-lead">
-              We teach defense and disciplined offense. We never research, profile, or
-              publish personal details about a private individual, and we never promise an
-              account comes back. We teach the method and we are honest about the odds. If
-              you want help going after a person, this is not it and we will not do it.
+              We teach defense and disciplined offense. These three rules are not fine
+              print. They are the product working as designed, because the fastest way to
+              lose a platform is to become the thing you are fighting.
             </p>
+          </div>
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            {[
+              {
+                title: "We never go after a person.",
+                detail:
+                  "No researching, profiling, or publishing personal details about a private individual. Not their employer, not their family, not their history. Not for you and not for us.",
+              },
+              {
+                title: "We never promise an account comes back.",
+                detail:
+                  "Nobody can promise that, and anybody who does is selling you hope. We teach the method and we tell you the truth about your odds.",
+              },
+              {
+                title: "We never do revenge.",
+                detail:
+                  "If you want somebody hurt instead of a problem handled, this is not it and we will not do it. Results, not retaliation.",
+              },
+            ].map((rule) => (
+              <article
+                key={rule.title}
+                className="relative overflow-hidden rounded-3xl border border-[var(--line-strong)] bg-[var(--panel)] p-6 shadow-[0_18px_50px_#0a12200f]"
+              >
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-1 bg-[var(--danger)]"
+                />
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--danger-tint)]">
+                  <X aria-hidden="true" className="h-5 w-5 text-[var(--danger)]" />
+                </span>
+                <h3 className="mt-4 text-[17px] font-extrabold leading-snug text-[var(--heading)]">
+                  {rule.title}
+                </h3>
+                <p className="mt-2 text-[14px] leading-relaxed text-[var(--quiet)]">
+                  {rule.detail}
+                </p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -336,30 +411,29 @@ export default async function OfferPage({
               and a number you own.
             </p>
           </div>
-          <div className="cb-ladder">
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {otherOffers.map((o) => (
-              <article key={o.slug} className="cb-rung">
-                <span className="cb-rung-kind">{o.priceLabel}</span>
-                <h3>{o.name}</h3>
-                <p>{o.summary}</p>
-                <Link className="cb-btn cb-btn--ghost" href={`/offers/${o.slug}`}>
-                  See {o.name}
-                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                </Link>
-              </article>
+              <HoldTheLineOfferCard
+                key={o.slug}
+                href={`/offers/${o.slug}`}
+                art={HERO_ART[o.slug].src}
+                artAlt={`${o.name}: ${HERO_ART[o.slug].strong}`}
+                price={o.priceLabel}
+                name={o.name}
+                summary={o.summary}
+                cta={`See ${o.name}`}
+              />
             ))}
-            <article className="cb-rung">
-              <span className="cb-rung-kind">$1,000, $500 down</span>
-              <h3>Own Your Voice Build</h3>
-              <p>
-                The existing Website Launch, sold to this audience. Domain, site, email
-                list, phone list. All in accounts with their name on them.
-              </p>
-              <Link className="cb-btn cb-btn--ghost" href="/packages/launch">
-                See the Website Launch
-                <ArrowRight aria-hidden="true" className="h-4 w-4" />
-              </Link>
-            </article>
+            <HoldTheLineOfferCard
+              href="/packages/launch"
+              art="/images/offer-v2/website-launch-approval-path.webp"
+              artAlt="The Website Launch approval path from intake through build, review, and launch"
+              price="$1,000, $500 down"
+              name="Own Your Voice Build"
+              summary="The existing Website Launch, sold to this audience. Domain, site, email list, phone list. All in accounts with their name on them."
+              cta="See the Website Launch"
+              flag="The permanent fix"
+            />
           </div>
           <div className="cb-actions mt-8">
             <Link className="cb-btn cb-btn--ghost" href="/hold-the-line">

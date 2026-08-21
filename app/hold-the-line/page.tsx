@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import HoldTheLineIntake from "./HoldTheLineIntake";
+import HoldTheLineOfferCard from "@/components/HoldTheLineOfferCard";
 import { HOLD_THE_LINE_OFFERS } from "@/lib/offers";
 
 // HOLD THE LINE. The second offer lane of The LeadFlow Pro.
@@ -192,22 +193,42 @@ export default function HoldTheLinePage() {
               terrible.
             </p>
           </div>
-          <div className="cb-ladder">
-            <article className="cb-rung">
-              <span className="cb-rung-kind">Option one</span>
-              <h3>Say nothing</h3>
-              <p>And look guilty.</p>
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            <article className="relative overflow-hidden rounded-3xl border border-[var(--line-strong)] bg-[var(--panel)] p-7 shadow-[0_18px_50px_#0a12200f]">
+              <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-[var(--line-strong)]" />
+              <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-[var(--quiet)]">
+                Option one
+              </p>
+              <h3 className="mt-3 text-[22px] font-extrabold leading-snug text-[var(--heading)]">
+                Say nothing
+              </h3>
+              <p className="mt-2 text-[16px] leading-relaxed text-[var(--quiet)]">
+                And look guilty.
+              </p>
             </article>
-            <article className="cb-rung">
-              <span className="cb-rung-kind">Option two</span>
-              <h3>Say what you actually think</h3>
-              <p>And lose the account.</p>
+            <article className="relative overflow-hidden rounded-3xl border border-[var(--danger-line)] bg-[var(--panel)] p-7 shadow-[0_18px_50px_#0a12200f]">
+              <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-[var(--danger)]" />
+              <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-[var(--danger)]">
+                Option two
+              </p>
+              <h3 className="mt-3 text-[22px] font-extrabold leading-snug text-[var(--heading)]">
+                Say what you actually think
+              </h3>
+              <p className="mt-2 text-[16px] leading-relaxed text-[var(--quiet)]">
+                And lose the account.
+              </p>
             </article>
-            <article className="cb-rung cb-rung--lead">
-              <span className="cb-rung-flag">The way through</span>
-              <span className="cb-rung-kind">Option three</span>
-              <h3>There is a third one</h3>
-              <p>It just takes training.</p>
+            <article className="relative overflow-hidden rounded-3xl border border-[#0ea5e9] bg-[var(--panel)] p-7 shadow-[0_18px_50px_#0ea5e922]">
+              <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-[#0ea5e9]" />
+              <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-[#0284c7]">
+                Option three · the way through
+              </p>
+              <h3 className="mt-3 text-[22px] font-extrabold leading-snug text-[var(--heading)]">
+                There is a third one
+              </h3>
+              <p className="mt-2 text-[16px] leading-relaxed text-[var(--quiet)]">
+                It just takes training.
+              </p>
             </article>
           </div>
         </div>
@@ -255,17 +276,25 @@ export default function HoldTheLinePage() {
               </h2>
             </div>
           </div>
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2">
-            {TEACHES.map((item) => (
+          <ol className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {TEACHES.map((item, i) => (
               <li
                 key={item}
-                className="flex items-start gap-3 rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-5 text-[15px] leading-relaxed text-[var(--text)]"
+                className="relative overflow-hidden rounded-3xl border border-[var(--line-strong)] bg-[var(--panel)] p-6 shadow-[0_18px_50px_#0a12200f]"
               >
-                <Check aria-hidden="true" className="mt-1 h-4 w-4 shrink-0" />
-                <span>{item}</span>
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-1 bg-[#0ea5e9]"
+                />
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#0ea5e91a] text-[15px] font-extrabold text-[#0284c7]">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <p className="mt-4 text-[15px] font-semibold leading-relaxed text-[var(--text)]">
+                  {item}
+                </p>
               </li>
             ))}
-          </ul>
+          </ol>
         </div>
       </section>
 
@@ -285,31 +314,29 @@ export default function HoldTheLinePage() {
               number you own.
             </p>
           </div>
-          <div className="cb-ladder">
-            <article className="cb-rung cb-rung--lead">
-              <span className="cb-rung-flag">Start here</span>
-              <span className="cb-rung-kind">{playbook.priceLabel} · instant</span>
-              <h3>{playbook.name}</h3>
-              <p>{playbook.summary}</p>
-              <Link
-                className="cb-btn cb-btn--primary"
-                href={`/offers/${playbook.slug}`}
-                data-analytics="cta-htl-ladder-playbook"
-              >
-                Get the Playbook
-                <ArrowRight aria-hidden="true" className="h-4 w-4" />
-              </Link>
-            </article>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+            <HoldTheLineOfferCard
+              href={`/offers/${playbook.slug}`}
+              art="/images/hold-the-line/playbook.jpg"
+              artAlt="Inside the playbook: the sorting table, the never-type list, and the pre-send check"
+              price={`${playbook.priceLabel} · instant`}
+              name={playbook.name}
+              summary={playbook.summary}
+              cta="Get the Playbook"
+              lead
+              flag="Start here"
+            />
             {serviceRungs.map((offer) => (
-              <article key={offer.slug} className="cb-rung">
-                <span className="cb-rung-kind">{offer.priceLabel}</span>
-                <h3>{offer.name}</h3>
-                <p>{offer.summary}</p>
-                <Link className="cb-btn cb-btn--ghost" href={`/offers/${offer.slug}`}>
-                  See {offer.name}
-                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                </Link>
-              </article>
+              <HoldTheLineOfferCard
+                key={offer.slug}
+                href={`/offers/${offer.slug}`}
+                art={`/images/hold-the-line/${offer.slug}.jpg`}
+                artAlt={`${offer.name}, mid-delivery`}
+                price={offer.priceLabel}
+                name={offer.name}
+                summary={offer.summary}
+                cta={`See ${offer.name}`}
+              />
             ))}
           </div>
           <div className="cb-custom mt-8">
@@ -349,33 +376,41 @@ export default function HoldTheLinePage() {
             </p>
           </div>
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-6">
-              <h3 className="text-[17px] font-extrabold text-[var(--text)]">
+            <div className="relative overflow-hidden rounded-3xl border border-[var(--line-strong)] bg-[var(--panel)] p-7 shadow-[0_18px_50px_#0a12200f]">
+              <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-[var(--green)]" />
+              <h3 className="text-[18px] font-extrabold text-[var(--heading)]">
                 This is for
               </h3>
-              <ul className="mt-4 grid gap-3">
+              <ul className="mt-5 grid gap-3">
                 {FOR_WHO.map((item) => (
                   <li
                     key={item}
-                    className="flex items-start gap-3 text-[15px] leading-relaxed text-[var(--text)]"
+                    className="flex items-start gap-3 rounded-2xl border border-[var(--green-line)] bg-[var(--green-tint)] p-4 text-[15px] leading-relaxed text-[var(--text)]"
                   >
-                    <Check aria-hidden="true" className="mt-1 h-4 w-4 shrink-0" />
+                    <Check
+                      aria-hidden="true"
+                      className="mt-1 h-4 w-4 shrink-0 text-[var(--green)]"
+                    />
                     <span>{item}</span>
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-6">
-              <h3 className="text-[17px] font-extrabold text-[var(--text)]">
+            <div className="relative overflow-hidden rounded-3xl border border-[var(--line-strong)] bg-[var(--panel)] p-7 shadow-[0_18px_50px_#0a12200f]">
+              <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-[var(--danger)]" />
+              <h3 className="text-[18px] font-extrabold text-[var(--heading)]">
                 This is not for
               </h3>
-              <ul className="mt-4 grid gap-3">
+              <ul className="mt-5 grid gap-3">
                 {NOT_FOR.map((item) => (
                   <li
                     key={item}
-                    className="flex items-start gap-3 text-[15px] leading-relaxed text-[var(--text)]"
+                    className="flex items-start gap-3 rounded-2xl border border-[var(--danger-line)] bg-[var(--danger-tint)] p-4 text-[15px] leading-relaxed text-[var(--text)]"
                   >
-                    <X aria-hidden="true" className="mt-1 h-4 w-4 shrink-0" />
+                    <X
+                      aria-hidden="true"
+                      className="mt-1 h-4 w-4 shrink-0 text-[var(--danger)]"
+                    />
                     <span>{item}</span>
                   </li>
                 ))}
