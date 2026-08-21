@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -156,6 +157,21 @@ export default function HoldTheLinePage() {
               We teach defense, not retaliation. We will not help anybody go after a person.
             </p>
           </div>
+
+          <figure className="cb-hero-visual">
+            <Image
+              src="/images/hold-the-line/landing.jpg"
+              alt="A hostile comment thread being sorted and answered with one calm reply while the account stays intact"
+              width={1672}
+              height={941}
+              priority
+              sizes="(max-width: 900px) 100vw, 56vw"
+            />
+            <figcaption>
+              <span>The skill, mid-use</span>
+              <strong>Sort them. Answer once. Keep the account.</strong>
+            </figcaption>
+          </figure>
         </div>
       </section>
 

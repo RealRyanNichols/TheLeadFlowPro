@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 
@@ -331,6 +332,21 @@ export default function PlaybookPage() {
               Bookmark this page. It is yours, and it does not expire.
             </p>
           </div>
+
+          <figure className="cb-hero-visual">
+            <Image
+              src="/images/hold-the-line/playbook.jpg"
+              alt="The playbook spread out: the sorting table, the never-type list, the response library, and the pre-send check"
+              width={1672}
+              height={941}
+              priority
+              sizes="(max-width: 900px) 100vw, 56vw"
+            />
+            <figcaption>
+              <span>Nine parts, one skill</span>
+              <strong>Sort them. Answer once. Keep the account.</strong>
+            </figcaption>
+          </figure>
         </div>
       </section>
 

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Check, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, ShieldCheck, X } from "lucide-react";
 import OfferCheckoutForm from "@/components/OfferCheckoutForm";
 import { HOLD_THE_LINE_OFFERS, holdTheLineOffer } from "@/lib/offers";
 
@@ -11,6 +12,33 @@ import { HOLD_THE_LINE_OFFERS, holdTheLineOffer } from "@/lib/offers";
 // Website Launch and keeps its own page at /packages/launch.
 
 const SITE = "https://www.theleadflowpro.com";
+
+// Hero art per offer: the product mid-use, rendered by
+// scripts/generate-hold-the-line-art.ts in the lane's steel-cyan language.
+// The figcaption pair follows the house hero pattern: a quiet label and one
+// claim the scene actually shows.
+const HERO_ART: Record<string, { src: string; span: string; strong: string }> = {
+  "hold-the-line-playbook": {
+    src: "/images/hold-the-line/playbook.jpg",
+    span: "Inside the playbook",
+    strong: "Sort them, answer once, keep the account.",
+  },
+  "comment-rescue": {
+    src: "/images/hold-the-line/comment-rescue.jpg",
+    span: "A rescue, start to finish",
+    strong: "The thread goes in. The exact reply comes back.",
+  },
+  "voice-recovery": {
+    src: "/images/hold-the-line/voice-recovery.jpg",
+    span: "The 60-minute session",
+    strong: "Find out what happened. Write the appeal together.",
+  },
+  "comment-cover": {
+    src: "/images/hold-the-line/comment-cover.jpg",
+    span: "Your page, covered",
+    strong: "Sorted for you. Nothing posts without your sign-off.",
+  },
+};
 
 export function generateStaticParams() {
   return HOLD_THE_LINE_OFFERS.map((offer) => ({ slug: offer.slug }));
@@ -64,6 +92,8 @@ export default async function OfferPage({
 
   const canonical = `${SITE}/offers/${offer.slug}`;
   const otherOffers = HOLD_THE_LINE_OFFERS.filter((o) => o.slug !== offer.slug);
+  const art = HERO_ART[offer.slug];
+  const isPlaybook = offer.slug === "hold-the-line-playbook";
 
   const JSON_LD = {
     "@context": "https://schema.org",
@@ -102,13 +132,26 @@ export default async function OfferPage({
       <section className="cb-hero" aria-labelledby="offer-title">
         <div className="cb-shell cb-hero-layout">
           <div className="cb-hero-copy">
-            <p className="cb-eyebrow">Hold The Line</p>
+            <p className="cb-eyebrow">
+              <ShieldCheck aria-hidden="true" className="h-4 w-4" />
+              Hold The Line · {offer.tagline}
+            </p>
             <h1 id="offer-title" className="cb-h1">
               {offer.name}
-              <em>{offer.tagline}</em>
             </h1>
             <p className="cb-hero-lead">{offer.summary}</p>
-            <p className="cb-rung-price">{offer.priceLabel}</p>
+            <p className="mt-5 flex flex-wrap items-baseline gap-3">
+              <strong className="text-4xl font-extrabold text-white">
+                {offer.priceLabel}
+              </strong>
+              <span className="text-sm font-bold uppercase tracking-[0.14em] text-[#7dd3fc]">
+                {offer.mode === "subscription"
+                  ? "Monthly · cancel any time"
+                  : offer.slug === "hold-the-line-playbook"
+                    ? "One time · instant delivery"
+                    : "One time"}
+              </span>
+            </p>
             <div className="mt-6 max-w-xl">
               <OfferCheckoutForm
                 slug={offer.slug}
@@ -116,7 +159,26 @@ export default async function OfferPage({
                 amountUsd={Math.round(offer.amountCents / 100)}
               />
             </div>
+            <p className="cb-hero-own">
+              <ShieldCheck aria-hidden="true" />
+              No outcome guarantees, and we never help anybody go after a person.
+            </p>
           </div>
+
+          <figure className="cb-hero-visual">
+            <Image
+              src={art.src}
+              alt={`${offer.name}: ${art.strong}`}
+              width={1672}
+              height={941}
+              priority
+              sizes="(max-width: 900px) 100vw, 56vw"
+            />
+            <figcaption>
+              <span>{art.span}</span>
+              <strong>{art.strong}</strong>
+            </figcaption>
+          </figure>
         </div>
       </section>
 
@@ -131,23 +193,111 @@ export default async function OfferPage({
             </div>
             <p className="cb-lead">{offer.afterCheckout}</p>
           </div>
-          <div className="cb-ladder">
-            <article className="cb-rung cb-rung--lead">
-              <span className="cb-rung-kind">{offer.priceLabel}</span>
-              <h3>{offer.name}</h3>
-              <p>{offer.tagline}</p>
-              <ul>
-                {offer.included.map((item) => (
-                  <li key={item}>
-                    <Check aria-hidden="true" className="h-4 w-4" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </article>
-          </div>
+          <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+            {offer.included.map((item) => (
+              <li
+                key={item}
+                className="flex items-start gap-3 rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-5 text-[15px] leading-relaxed text-[var(--text)]"
+              >
+                <Check aria-hidden="true" className="mt-1 h-4 w-4 shrink-0" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
+
+      {isPlaybook ? (
+        // Show, don't describe: one full reply from the response library and a
+        // slice of the never-type list, straight out of the product. The $47
+        // question answers itself when a page of the book is on the table.
+        <section className="cb-band" aria-labelledby="offer-inside-title">
+          <div className="cb-shell">
+            <div className="cb-headrow">
+              <div>
+                <p className="cb-eyebrow">Look inside</p>
+                <h2 id="offer-inside-title" className="cb-h2 cb-heading">
+                  A page from the book, free.
+                </h2>
+              </div>
+              <p className="cb-lead">
+                This is one of the replies in the library, word for word. There is one
+                for every situation that keeps business owners up at night, plus the
+                sorting table that tells you which one to reach for.
+              </p>
+            </div>
+            <div className="mt-8 grid gap-6 lg:grid-cols-2">
+              <div className="rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-6">
+                <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-[#0284c7]">
+                  From the response library
+                </p>
+                <h3 className="mt-2 text-[17px] font-extrabold text-[var(--text)]">
+                  The &quot;I could do this myself for free&quot; objection
+                </h3>
+                <blockquote className="mt-4 border-l-2 border-[var(--line-strong)] pl-4 text-[15px] leading-relaxed text-[var(--quiet)]">
+                  <p>You&apos;re right. The tools are free. Every one of them.</p>
+                  <p className="mt-2">So is a table saw.</p>
+                  <p className="mt-2">
+                    The tools were never the product. What people pay for is the months
+                    somebody already spent finding out which ones break, which ones
+                    actually talk to each other, and what to do at 11pm when it stops
+                    working.
+                  </p>
+                  <p className="mt-2">
+                    If you can build it yourself, you should. Seriously. You&apos;ll save
+                    money and learn more than any course teaches.
+                  </p>
+                  <p className="mt-2">
+                    The guy running a shop 60 hours a week can&apos;t, and doesn&apos;t
+                    want to. That&apos;s who this is for.
+                  </p>
+                  <p className="mt-2">Appreciate the heads up.</p>
+                </blockquote>
+                <p className="mt-4 text-[13px] font-semibold text-[var(--quiet)]">
+                  Notice the shape: concede, reframe, respect, close to the reader. That
+                  shape is the product. The book teaches it once and you keep it forever.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-6">
+                <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-[#0284c7]">
+                  From the never-type list
+                </p>
+                <h3 className="mt-2 text-[17px] font-extrabold text-[var(--text)]">
+                  Three of the lines that end accounts
+                </h3>
+                <ul className="mt-4 grid gap-3">
+                  {[
+                    "Anything about their family, their kids, or their spouse",
+                    'Anything that can be read as physical: "say it to my face," "come see me"',
+                    "Anything typed inside twenty minutes of the feeling",
+                  ].map((item) => (
+                    <li
+                      key={item}
+                      className="flex items-start gap-3 text-[15px] leading-relaxed text-[var(--text)]"
+                    >
+                      <X aria-hidden="true" className="mt-1 h-4 w-4 shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-[14px] leading-relaxed text-[var(--quiet)]">
+                  The full list has eight, and the 60-second pre-send check runs you
+                  through it before anything goes out. This list alone is worth the
+                  price. It is the difference between a business page and a memory.
+                </p>
+                <Link
+                  className="cb-btn cb-btn--primary mt-5"
+                  href="/offers/hold-the-line-playbook#offer-title"
+                  data-analytics="cta-offer-playbook-inside"
+                >
+                  Get the other nine parts | $47
+                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="cb-band" aria-labelledby="offer-line-title">
         <div className="cb-shell">

@@ -61,9 +61,14 @@ export default function OfferCheckoutForm({
     setBusy(false);
   }
 
+  // Lives on the dark hero, so the label and legal line carry their own
+  // light-on-ink colors instead of the light-background .label/.form-legal.
   return (
     <form onSubmit={onSubmit} className="offer-checkout">
-      <label className="label" htmlFor={`${slug}-email`}>
+      <label
+        className="text-[13px] font-bold uppercase tracking-[0.12em] text-white/75"
+        htmlFor={`${slug}-email`}
+      >
         Email for your receipt and delivery
       </label>
       <div className="mt-2 flex flex-col gap-3 sm:flex-row">
@@ -86,8 +91,10 @@ export default function OfferCheckoutForm({
           {busy ? "Opening checkout..." : (buttonLabel ?? `Buy now | ${priceLabel}`)}
         </button>
       </div>
-      {error ? <p className="form-error mt-3">{error}</p> : null}
-      <p className="form-legal mt-3">
+      {error ? (
+        <p className="mt-3 text-[13px] font-semibold text-[#fca5a5]">{error}</p>
+      ) : null}
+      <p className="mt-3 text-[13px] text-white/55">
         Secure checkout through Stripe. The receipt and next step arrive by email.
       </p>
     </form>
