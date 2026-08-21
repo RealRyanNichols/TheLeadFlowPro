@@ -77,6 +77,9 @@ type MetaLead = {
 const FORM_CAMPAIGNS: Record<string, string> = {
   "1674448410325108": "mall-video-leadform",
   "2311682272983064": "mall-video-leadform",
+  // LFP | Time Back Business Review | v1 — published 2026-08-20, the Time
+  // Back campaign's form. Also listed in META_LEAD_FORM_IDS in Vercel.
+  "2235052820606054": "time_back",
 };
 
 // The Time Back form asks for consent with two OPTIONAL checkboxes in the
