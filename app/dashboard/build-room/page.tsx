@@ -13,6 +13,7 @@ import {
   Rocket,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { signDeliverableFile } from "@/lib/deliverableFiles";
 import DeliverableReview, { type ReviewDeliverable } from "./DeliverableReview";
 
 export const metadata = { title: "Your Build Room | The LeadFlow Pro" };
@@ -140,7 +141,10 @@ export default async function BuildRoom() {
   }
 
   const milestones = [...(project.milestones ?? [])].sort((a, b) => a.sort_order - b.sort_order);
-  const deliverables = [...(project.deliverables ?? [])].sort((a, b) => a.sort_order - b.sort_order || b.created_at.localeCompare(a.created_at));
+  const sortedDeliverables = [...(project.deliverables ?? [])].sort((a, b) => a.sort_order - b.sort_order || b.created_at.localeCompare(a.created_at));
+  const deliverables = await Promise.all(
+    sortedDeliverables.map(async (item) => ({ ...item, file_url: await signDeliverableFile(item.file_path) })),
+  );
   const doneCount = milestones.filter((item) => item.status === "done").length;
   const progress = milestones.length ? Math.round((doneCount / milestones.length) * 100) : 0;
   const activeMilestone = milestones.find((item) => item.status === "in_progress") || milestones.find((item) => item.status !== "done");
