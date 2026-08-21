@@ -24,7 +24,10 @@ type Milestone = {
   completed_at: string | null;
 };
 
+type UploadState = { busy: boolean; viewUrl?: string | null; error?: string | null };
+
 type Deliverable = {
+  file_path?: string | null;
   id: string;
   project_id: string;
   title: string;
@@ -93,7 +96,34 @@ export default function DeliveryManager({
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [uploads, setUploads] = useState<Record<string, UploadState>>({});
   const supabase = useMemo(() => createClient(), []);
+
+  async function attachFile(project: Project, deliverable: Deliverable, file: File | null) {
+    if (!file) return;
+    setUploads((all) => ({ ...all, [deliverable.id]: { busy: true } }));
+    try {
+      const body = new FormData();
+      body.set("deliverable_id", deliverable.id);
+      body.set("file", file);
+      const response = await fetch("/api/sales/deliverable-file", { method: "POST", body });
+      const json = (await response.json().catch(() => ({}))) as {
+        error?: string; file_path?: string; signed_url?: string | null;
+      };
+      if (!response.ok || !json.file_path) {
+        setUploads((all) => ({ ...all, [deliverable.id]: { busy: false, error: json.error || "Upload failed" } }));
+        return;
+      }
+      replaceProject(project.id, (item) => ({
+        ...item,
+        deliverables: item.deliverables.map((candidate) =>
+          candidate.id === deliverable.id ? { ...candidate, file_path: json.file_path } : candidate),
+      }));
+      setUploads((all) => ({ ...all, [deliverable.id]: { busy: false, viewUrl: json.signed_url } }));
+    } catch {
+      setUploads((all) => ({ ...all, [deliverable.id]: { busy: false, error: "Upload failed" } }));
+    }
+  }
 
   const totals = useMemo(() => {
     const deliverables = projects.flatMap((project) => project.deliverables ?? []);
@@ -332,6 +362,12 @@ export default function DeliveryManager({
                         <div className="mt-3 flex flex-wrap items-center gap-3">
                           <select className="input !w-auto !py-1.5 text-xs" value={deliverable.status} onChange={(event) => updateDeliverable(project, deliverable, { status: event.target.value })}>{DELIVERY_STATUSES.map((status) => <option key={status} value={status}>{pretty(status)}</option>)}</select>
                           <label className="flex items-center gap-2 text-xs font-semibold text-[var(--text)]"><input type="checkbox" checked={deliverable.visible_to_client} onChange={(event) => updateDeliverable(project, deliverable, { visible_to_client: event.target.checked })} /> Visible in Build Room</label>
+                          <label className="cursor-pointer text-xs font-bold text-flow-400 hover:underline">
+                            {uploads[deliverable.id]?.busy ? "Uploading..." : deliverable.file_path ? "Replace file" : "+ Attach file"}
+                            <input type="file" className="hidden" disabled={uploads[deliverable.id]?.busy} onChange={(event) => { attachFile(project, deliverable, event.target.files?.[0] ?? null); event.target.value = ""; }} />
+                          </label>
+                          {deliverable.file_path && !uploads[deliverable.id]?.busy && (uploads[deliverable.id]?.viewUrl ? <a href={uploads[deliverable.id]!.viewUrl!} target="_blank" rel="noreferrer" className="text-xs font-bold text-mint">File attached · view ↗</a> : <span className="text-xs font-bold text-mint">File attached (client can download)</span>)}
+                          {uploads[deliverable.id]?.error && <span className="text-xs font-bold text-warn">{uploads[deliverable.id]!.error}</span>}
                           {deliverable.client_decision !== "pending" && <span className={`text-xs font-bold ${deliverable.client_decision === "approved" ? "text-mint" : "text-warn"}`}>Client: {pretty(deliverable.client_decision)}{deliverable.client_reviewed_at ? ` · ${date(deliverable.client_reviewed_at)}` : ""}</span>}
                         </div>
                         {deliverable.client_feedback && <p className="mt-3 rounded-lg border border-[var(--line)] bg-[var(--page)] p-3 text-sm"><span className="font-bold">Client feedback:</span> {deliverable.client_feedback}</p>}

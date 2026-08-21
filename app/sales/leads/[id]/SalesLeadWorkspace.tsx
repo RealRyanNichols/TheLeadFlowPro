@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import LeadThread, { type LeadMsg } from "@/app/admin/leads/[id]/LeadThread";
+import DictationButton from "@/components/DictationButton";
 
 const STAGES = ["new", "contacted", "call_booked", "proposal", "won", "lost"] as const;
 
@@ -298,7 +299,8 @@ export default function SalesLeadWorkspace({
           <section className="card !p-4">
             <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">Call notes and build links</h2>
             <form onSubmit={addNote} className="mt-3 flex gap-2">
-              <input className="input text-sm" value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} placeholder="Add a call note" maxLength={4000} />
+              <input className="input text-sm" value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} placeholder="Add a call note, or tap the mic and talk" maxLength={4000} />
+              <DictationButton onText={(spoken) => setNoteDraft((current) => (current ? `${current} ${spoken}` : spoken))} />
               <button type="submit" className="btn-primary !px-4 !py-2 text-sm">Add</button>
             </form>
             <ul className="mt-4 space-y-3">

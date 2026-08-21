@@ -20,6 +20,8 @@ export type ReviewDeliverable = {
   client_reviewed_at: string | null;
   created_at: string;
   sort_order: number;
+  file_path?: string | null;
+  file_url?: string | null;
 };
 
 function pretty(value: string) {
@@ -68,7 +70,10 @@ export default function DeliverableReview({ initialDeliverables }: { initialDeli
                 {item.description && <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{item.description}</p>}
                 {item.result_summary && <div className="mt-3 rounded-xl border border-[var(--accent-line)] bg-[var(--accent-tint)] p-3"><p className="text-[10px] font-bold uppercase tracking-wider text-[var(--blue)]">Result you can see now</p><p className="mt-1 text-sm leading-6 text-[var(--text)]">{item.result_summary}</p></div>}
               </div>
-              {item.url && <a href={item.url} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[var(--line-strong)] px-3 py-2 text-sm font-bold text-[var(--blue)] hover:border-[var(--accent-line)]">Open work <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>}
+              <div className="flex shrink-0 flex-col items-end gap-2">
+                {item.url && <a href={item.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-lg border border-[var(--line-strong)] px-3 py-2 text-sm font-bold text-[var(--blue)] hover:border-[var(--accent-line)]">Open work <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>}
+                {item.file_url && <a href={item.file_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-[var(--blue)] px-3 py-2 text-sm font-bold text-white hover:bg-[var(--blue-strong)]">Download file</a>}
+              </div>
             </div>
 
             {reviewable && (
