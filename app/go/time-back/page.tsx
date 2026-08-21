@@ -56,9 +56,13 @@ export default function TimeBackPage() {
           50% { opacity: 1; transform: scale(1); box-shadow: 0 0 12px #5b87ff99; }
         }
         .tb-dot { animation: tbPulse 2.6s ease-in-out infinite; }
+        /* The site's global heading rules paint h1-h3 in ink, which is
+           invisible on this dark funnel. Scoped override, spans keep their
+           own accent colors. */
+        .tb-dark h1, .tb-dark h2, .tb-dark h3 { color: #f4f6fa !important; }
       `}</style>
 
-      <div className="bg-[#0a1220]">
+      <div className="tb-dark bg-[#0a1220]">
         <section className="px-4 pb-10 pt-10 sm:pt-16">
           <div className="mx-auto grid w-full max-w-[1120px] items-center gap-8 lg:grid-cols-[1fr_420px]">
             <div>
