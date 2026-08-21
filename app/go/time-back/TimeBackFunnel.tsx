@@ -71,7 +71,7 @@ function useCountUp(target: number, ms = 450) {
 function cardCls(selected: boolean) {
   return `relative rounded-xl border p-4 text-left transition-colors cursor-pointer ${
     selected
-      ? "border-[var(--cb-blue-soft)] bg-[#5b87ff26] shadow-[0_0_24px_#5b87ff33]"
+      ? "tb-card-on"
       : "border-[var(--cb-hair-ink)] bg-[#ffffff08] hover:border-[#ffffff45]"
   }`;
 }
@@ -293,7 +293,7 @@ export default function TimeBackFunnel() {
   const inputCls =
     "w-full rounded-xl border border-[#ffffff2e] bg-[#ffffff0f] px-4 py-3 text-[15px] text-[var(--cb-on-ink)] placeholder:text-[#8b97ad] outline-none focus:border-[var(--cb-blue-soft)]";
   const panelCls =
-    "rounded-[26px] border border-[var(--cb-hair-ink)] bg-[var(--cb-ink-2)] p-6 sm:p-8 shadow-[0_0_60px_#1240e81f]";
+    "tb-panel-glass rounded-[26px] border border-[var(--cb-hair-ink)] bg-[var(--cb-ink-2)] p-6 sm:p-8";
 
   return (
     <div className="mx-auto grid w-full max-w-[1120px] gap-5 px-4 pb-32">
@@ -380,7 +380,7 @@ export default function TimeBackFunnel() {
               </span>
             </div>
           </div>
-          <div className="flex flex-col items-center justify-center rounded-[20px] border border-[#5b87ff59] bg-gradient-to-b from-[#16233d] to-[#0d1628] p-6 text-center shadow-[0_0_50px_#1240e83d]">
+          <div className="tb-grad-border tb-price-hero flex flex-col items-center justify-center rounded-[20px] p-6 text-center">
             <span className="text-xs font-extrabold uppercase tracking-[0.15em] text-[#8b97ad]">
               {downsell ? "Starter week" : `${totalPosts} posts, written + scheduled`}
             </span>
@@ -513,7 +513,7 @@ export default function TimeBackFunnel() {
         ].map(([title, body], i) => (
           <div
             key={title}
-            className="rounded-[20px] border border-[var(--cb-hair-ink)] bg-[#ffffff08] p-5"
+            className="rounded-[20px] border border-[var(--cb-hair-ink)] bg-[#ffffff08] p-5 shadow-[inset_0_1px_0_#ffffff10]"
           >
             <span className="text-2xl font-extrabold text-[var(--cb-cyan)]">{i + 1}</span>
             <h3 className="mt-1 text-sm font-extrabold text-[var(--cb-on-ink)]">{title}</h3>
@@ -646,7 +646,7 @@ export default function TimeBackFunnel() {
           aria-modal="true"
           aria-label="Starter offer"
         >
-          <div className="w-full max-w-md rounded-[20px] border border-[#5b87ff59] bg-[var(--cb-ink-2)] p-7 shadow-[0_0_80px_#1240e866]">
+          <div className="w-full max-w-md rounded-[20px] border border-[#5b87ff59] bg-[var(--cb-ink-2)] p-7 shadow-[inset_0_1px_0_#ffffff1f,0_0_80px_#1240e866]">
             <div className="flex items-start justify-between gap-4">
               <h3 className="text-xl font-extrabold text-[var(--cb-on-ink)]">
                 Not ready? Try {DOWNSELL.days} days for {fmt(DOWNSELL.price)}.

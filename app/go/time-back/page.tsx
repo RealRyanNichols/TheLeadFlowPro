@@ -26,10 +26,7 @@ const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
 function WeekStrip() {
   const lastDotDone = 6 * 0.32 + 2 * 0.11 + 0.5;
   return (
-    <div
-      data-tbr
-      className="rounded-[20px] border border-[#5b87ff59] bg-gradient-to-b from-[#16233d] to-[#0d1628] p-5 shadow-[0_0_60px_#1240e83d]"
-    >
+    <div data-tbr className="tb-grad-border tb-price-hero rounded-[20px] p-5">
       <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#35c6f4]">
         Your next 7 days, already done
       </p>
@@ -115,6 +112,37 @@ export default function TimeBackPage() {
           .tb-armed [data-tbr], .tb-armed [data-tbr-group] > * {
             opacity: 1; transform: none; transition: none;
           }
+        }
+        /* Depth: the hairline itself carries light. Two-layer background
+           draws a gradient border, an inset top edge gives the glass lip,
+           and the hero panel gets a faint light wash from above. */
+        .tb-grad-border {
+          border: 1px solid transparent;
+          background:
+            linear-gradient(180deg, #16233d, #0d1628) padding-box,
+            linear-gradient(165deg, #5b87ff8c, #ffffff24 40%, #1240e880) border-box;
+        }
+        .tb-price-hero {
+          position: relative;
+          overflow: hidden;
+          isolation: isolate;
+          box-shadow: inset 0 1px 0 #ffffff1f, 0 0 50px #1240e83d;
+        }
+        .tb-price-hero::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          z-index: -1;
+          background: radial-gradient(120% 60% at 50% 0%, #5b87ff2b, transparent 62%);
+          pointer-events: none;
+        }
+        .tb-panel-glass { box-shadow: inset 0 1px 0 #ffffff14, 0 0 60px #1240e81f; }
+        .tb-card-on {
+          border-color: transparent;
+          background:
+            linear-gradient(180deg, #1d2c50, #16233f) padding-box,
+            linear-gradient(150deg, #5b87ffcc, #5b87ff40 45%, #1240e8b3) border-box;
+          box-shadow: inset 0 1px 0 #ffffff1f, 0 0 24px #5b87ff33;
         }
         /* The site's global heading rules paint h1-h3 in ink, which is
            invisible on this dark funnel. Scoped override, spans keep their
