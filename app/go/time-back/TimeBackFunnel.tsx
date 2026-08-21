@@ -1,12 +1,12 @@
 "use client";
 
-// The Time Back funnel configurator. Two dials (days, posts per day), one
-// live price from lib/timeback.ts, add-ons, a one-time $97 downsell, then
-// CRM capture -> Stripe checkout. Prices are recomputed server-side in
-// /api/checkout, so this UI can never charge a number the catalog does not.
+// The Time Back funnel configurator, dark glass edition. Two dials, one live
+// price, add-ons sold on outcomes, a one-time $97 downsell, and a sticky
+// total bar so the buy button is never off screen. All logic mirrors
+// lib/timeback.ts and /api/checkout recomputes every total server-side.
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Check, CircleCheck, Lock, X } from "lucide-react";
+import { ArrowRight, Check, Lock, X } from "lucide-react";
 import {
   CONTENT_DAYS,
   CONTENT_PER_DAY,
@@ -29,6 +29,44 @@ function fmt(n: number) {
   return `$${n.toLocaleString("en-US")}`;
 }
 
+// One visual language for everything clickable: a bordered card that lights
+// up blue when selected and shows a check. Nothing decorative shares it.
+function cardCls(selected: boolean) {
+  return `relative rounded-xl border p-4 text-left transition-colors cursor-pointer ${
+    selected
+      ? "border-[var(--cb-blue-soft)] bg-[#5b87ff26] shadow-[0_0_24px_#5b87ff33]"
+      : "border-[var(--cb-hair-ink)] bg-[#ffffff08] hover:border-[#ffffff45]"
+  }`;
+}
+
+function CheckMark({ on }: { on: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full border ${
+        on
+          ? "border-[var(--cb-blue-soft)] bg-[var(--cb-blue-soft)] text-[#0a1220]"
+          : "border-[#ffffff45] bg-transparent"
+      }`}
+    >
+      {on ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : null}
+    </span>
+  );
+}
+
+function StepTag({ n, label }: { n: string; label: string }) {
+  return (
+    <p className="flex items-center gap-3">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--cb-blue)] text-sm font-extrabold text-white shadow-[0_0_18px_#1240e880]">
+        {n}
+      </span>
+      <span className="text-xs font-extrabold uppercase tracking-[0.2em] text-[var(--cb-cyan)]">
+        {label}
+      </span>
+    </p>
+  );
+}
+
 export default function TimeBackFunnel() {
   const [daysIdx, setDaysIdx] = useState(0);
   const [perDayIdx, setPerDayIdx] = useState(0);
@@ -46,6 +84,8 @@ export default function TimeBackFunnel() {
   const perDay = CONTENT_PER_DAY[perDayIdx];
   const contentPrice = priceContent(days, perDay) ?? 0;
   const totalPosts = days * perDay;
+  const perPost = contentPrice / totalPosts;
+  const entryRate = 297 / 21;
 
   const priced = useMemo(
     () =>
@@ -60,8 +100,6 @@ export default function TimeBackFunnel() {
   );
   const total = priced?.total ?? 0;
 
-  // One honest exit offer: if the cursor leaves the top of the page before
-  // they have started checkout, show the $97 starter once. Never again after.
   useEffect(() => {
     function onLeave(e: MouseEvent) {
       if (e.clientY > 8 || downsellOffered.current || sending) return;
@@ -104,13 +142,8 @@ export default function TimeBackFunnel() {
     }
     const params = new URLSearchParams(window.location.search);
     const notes = String(form.get("notes") ?? "").trim();
-    const chosenPlatforms = downsell
-      ? platforms
-      : platforms.length
-        ? platforms
-        : ["facebook"];
+    const chosenPlatforms = platforms.length ? platforms : ["facebook"];
 
-    // 1) CRM first. If Stripe is abandoned, the order still exists.
     let res: Response;
     try {
       res = await fetch("/api/leads", {
@@ -138,7 +171,7 @@ export default function TimeBackFunnel() {
           utm_medium: params.get("utm_medium"),
           utm_campaign: params.get("utm_campaign"),
           diagnostic: {
-            version: 1,
+            version: 2,
             source: "time_back_funnel",
             selection: {
               downsell,
@@ -170,7 +203,6 @@ export default function TimeBackFunnel() {
     window.fbq?.("track", "Lead");
     window.fbq?.("track", "InitiateCheckout", { value: priced.total, currency: "USD" });
 
-    // 2) Stripe hosted checkout, priced server-side from the same catalog.
     try {
       const co = await fetch("/api/checkout", {
         method: "POST",
@@ -208,26 +240,25 @@ export default function TimeBackFunnel() {
     setSending(false);
   }
 
-  const emailDiscounted = !downsell;
   const inputCls =
-    "w-full rounded-xl border border-[var(--line-strong)] bg-white px-4 py-3 text-[15px] text-[var(--text)] outline-none focus:border-[var(--blue)]";
-  const cardCls = "rounded-2xl border border-[var(--line-strong)] bg-white p-6";
+    "w-full rounded-xl border border-[#ffffff2e] bg-[#ffffff0f] px-4 py-3 text-[15px] text-[var(--cb-on-ink)] placeholder:text-[#8b97ad] outline-none focus:border-[var(--cb-blue-soft)]";
+  const panelCls =
+    "rounded-[26px] border border-[var(--cb-hair-ink)] bg-[var(--cb-ink-2)] p-6 sm:p-8 shadow-[0_0_60px_#1240e81f]";
 
   return (
-    <div className="mx-auto grid w-full max-w-[1120px] gap-6 px-4 pb-20">
+    <div className="mx-auto grid w-full max-w-[1120px] gap-5 px-4 pb-32">
       {/* Step 1 — the two dials */}
-      <section className={cardCls} id="tb-build">
-        <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[var(--blue)]">
-          Step 1 · Pick your workload
-        </p>
-        <h2 className="mt-2 text-2xl font-extrabold text-[var(--heading)]">
-          How much posting do you want off your plate?
+      <section className={panelCls} id="tb-build">
+        <StepTag n="1" label="Pick your workload" />
+        <h2 className="mt-4 text-2xl font-extrabold text-[var(--cb-on-ink)] sm:text-3xl">
+          How much posting comes off your plate?
         </h2>
-        <div className="mt-6 grid gap-8 md:grid-cols-[1fr_280px]">
-          <div className="grid gap-7">
-            <label className="grid gap-2">
-              <span className="text-sm font-bold text-[var(--text)]">
-                How many days? <span className="text-[var(--blue)]">{days} days</span>
+        <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_300px]">
+          <div className="grid gap-8">
+            <label className="grid gap-3">
+              <span className="flex items-baseline justify-between text-sm font-bold text-[var(--cb-on-ink)]">
+                <span>How many days?</span>
+                <span className="text-lg font-extrabold text-[var(--cb-cyan)]">{days} days</span>
               </span>
               <input
                 type="range"
@@ -235,21 +266,25 @@ export default function TimeBackFunnel() {
                 max={CONTENT_DAYS.length - 1}
                 step={1}
                 value={daysIdx}
+                style={{ accentColor: "#5b87ff", height: 28 }}
                 onChange={(e) => {
                   setDaysIdx(Number(e.target.value));
                   setDownsell(false);
                 }}
                 aria-label="Number of days"
               />
-              <span className="flex justify-between text-xs text-[var(--quiet)]">
+              <span className="flex justify-between text-xs font-bold text-[#8b97ad]">
                 {CONTENT_DAYS.map((d) => (
-                  <span key={d}>{d}</span>
+                  <span key={d} className={d === days ? "text-[var(--cb-cyan)]" : ""}>
+                    {d}
+                  </span>
                 ))}
               </span>
             </label>
-            <label className="grid gap-2">
-              <span className="text-sm font-bold text-[var(--text)]">
-                Posts per day? <span className="text-[var(--blue)]">{perDay} a day</span>
+            <label className="grid gap-3">
+              <span className="flex items-baseline justify-between text-sm font-bold text-[var(--cb-on-ink)]">
+                <span>Posts per day?</span>
+                <span className="text-lg font-extrabold text-[var(--cb-cyan)]">{perDay} a day</span>
               </span>
               <input
                 type="range"
@@ -257,21 +292,24 @@ export default function TimeBackFunnel() {
                 max={CONTENT_PER_DAY.length - 1}
                 step={1}
                 value={perDayIdx}
+                style={{ accentColor: "#5b87ff", height: 28 }}
                 onChange={(e) => {
                   setPerDayIdx(Number(e.target.value));
                   setDownsell(false);
                 }}
                 aria-label="Posts per day"
               />
-              <span className="flex justify-between text-xs text-[var(--quiet)]">
+              <span className="flex justify-between text-xs font-bold text-[#8b97ad]">
                 {CONTENT_PER_DAY.map((p) => (
-                  <span key={p}>{p}</span>
+                  <span key={p} className={p === perDay ? "text-[var(--cb-cyan)]" : ""}>
+                    {p}
+                  </span>
                 ))}
               </span>
             </label>
             <div className="grid gap-2">
-              <span className="text-sm font-bold text-[var(--text)]">Where do we post it?</span>
-              <div className="flex flex-wrap gap-2">
+              <span className="text-sm font-bold text-[var(--cb-on-ink)]">Where do we post it?</span>
+              <div className="grid grid-cols-3 gap-2">
                 {PLATFORMS.map((p) => {
                   const on = platforms.includes(p.id);
                   return (
@@ -279,107 +317,114 @@ export default function TimeBackFunnel() {
                       key={p.id}
                       type="button"
                       onClick={() => setPlatforms((cur) => toggle(cur, p.id))}
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold ${
-                        on
-                          ? "border-[var(--blue)] bg-[var(--accent-tint)] text-[var(--blue)]"
-                          : "border-[var(--line-strong)] text-[var(--muted)]"
-                      }`}
+                      className={`${cardCls(on)} px-3 py-3 pr-9 text-sm font-bold text-[var(--cb-on-ink)]`}
                     >
-                      {on ? <Check className="h-4 w-4" aria-hidden="true" /> : null}
                       {p.label}
+                      <CheckMark on={on} />
                     </button>
                   );
                 })}
               </div>
-              <span className="text-xs text-[var(--quiet)]">
-                Same price across platforms. We spread your posts where your customers are.
+              <span className="text-xs text-[#8b97ad]">
+                Same price across all three. We spread your posts where your customers are.
               </span>
             </div>
           </div>
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-[var(--accent-line)] bg-[var(--accent-tint)] p-6 text-center">
-            <span className="text-xs font-extrabold uppercase tracking-[0.15em] text-[var(--quiet)]">
-              {downsell ? "Starter" : `${totalPosts} posts, done and scheduled`}
+          <div className="flex flex-col items-center justify-center rounded-[20px] border border-[#5b87ff59] bg-gradient-to-b from-[#16233d] to-[#0d1628] p-6 text-center shadow-[0_0_50px_#1240e83d]">
+            <span className="text-xs font-extrabold uppercase tracking-[0.15em] text-[#8b97ad]">
+              {downsell ? "Starter week" : `${totalPosts} posts, written + scheduled`}
             </span>
-            <span className="mt-2 text-5xl font-extrabold text-[var(--heading)]">
+            <span className="mt-2 text-6xl font-extrabold tracking-tight text-white [text-shadow:0_0_30px_#5b87ff66]">
               {fmt(downsell ? DOWNSELL.price : contentPrice)}
             </span>
-            <span className="mt-2 text-sm text-[var(--muted)]">
+            <span className="mt-2 text-sm font-bold text-[var(--cb-cyan)]">
               {downsell
                 ? `${DOWNSELL.days} days x ${DOWNSELL.perDay} posts a day`
-                : `about ${fmt(Math.round(contentPrice / totalPosts))} per post, one-time`}
+                : `about ${fmt(Math.round(perPost))} per post, one-time`}
             </span>
-            {downsell ? (
+            {!downsell && perPost < entryRate - 0.5 ? (
+              <span className="mt-2 rounded-lg bg-[#146c3433] px-3 py-1 text-xs font-bold text-[#7ee2a1]">
+                Volume rate: {fmt(Math.round((entryRate - perPost) * totalPosts))} less than the
+                entry rate
+              </span>
+            ) : !downsell ? (
+              <span className="mt-2 text-xs text-[#8b97ad]">
+                Slide up. The per-post price drops.
+              </span>
+            ) : (
               <button
                 type="button"
-                className="mt-3 text-sm font-bold text-[var(--blue)] underline"
+                className="mt-3 text-sm font-bold text-[var(--cb-cyan)] underline"
                 onClick={() => setDownsell(false)}
               >
-                Switch back to the full packages
+                Back to full packages
               </button>
-            ) : null}
+            )}
           </div>
         </div>
       </section>
 
-      {/* Step 2 — automations */}
-      <section className={cardCls}>
-        <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[var(--blue)]">
-          Step 2 · Add the follow-up that closes
-        </p>
-        <h2 className="mt-2 text-2xl font-extrabold text-[var(--heading)]">
-          Want the follow-up automated too?
+      {/* Step 2 — sell the follow-up */}
+      <section className={panelCls}>
+        <StepTag n="2" label="Turn the attention into money" />
+        <h2 className="mt-4 text-2xl font-extrabold text-[var(--cb-on-ink)] sm:text-3xl">
+          Posts get you seen. Follow-up gets you paid.
         </h2>
-        <p className="mt-2 text-sm text-[var(--muted)]">
-          Posting gets attention. Follow-up turns it into money. Pick an email series length and
-          we write it, wire it, and turn it on inside your own account.
+        <p className="mt-2 max-w-2xl text-sm text-[#a8b4c8]">
+          Most businesses lose the lead AFTER the post works. These automations catch them. One
+          closed job usually covers everything on this page.
         </p>
-        {emailDiscounted ? (
-          <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-[var(--green-line)] bg-[var(--green-tint)] px-4 py-1.5 text-sm font-bold text-[var(--green)]">
-            <CircleCheck className="h-4 w-4" aria-hidden="true" />
-            First email series {Math.round(FIRST_EMAIL_DISCOUNT * 100)}% off with any content
-            package
+        {!downsell ? (
+          <p className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#146c3433] px-4 py-2 text-sm font-bold text-[#7ee2a1]">
+            <Check className="h-4 w-4" aria-hidden="true" />
+            Your first email series is {Math.round(FIRST_EMAIL_DISCOUNT * 100)}% off with any
+            content package
           </p>
         ) : null}
         <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          <button
-            type="button"
-            onClick={() => setEmailSeries(null)}
-            className={`rounded-xl border p-4 text-left text-sm font-bold ${
-              emailSeries === null
-                ? "border-[var(--blue)] bg-[var(--accent-tint)]"
-                : "border-[var(--line-strong)]"
-            }`}
-          >
-            No email series yet
-          </button>
           {EMAIL_SERIES.map((s) => {
-            const cut = emailDiscounted ? Math.round(s.price * (1 - FIRST_EMAIL_DISCOUNT)) : s.price;
+            const discounted = !downsell;
+            const cut = discounted
+              ? Math.round(s.price * (1 - FIRST_EMAIL_DISCOUNT))
+              : s.price;
             const on = emailSeries === s.id;
             return (
               <button
                 key={s.id}
                 type="button"
                 onClick={() => setEmailSeries(on ? null : s.id)}
-                className={`rounded-xl border p-4 text-left ${
-                  on ? "border-[var(--blue)] bg-[var(--accent-tint)]" : "border-[var(--line-strong)]"
-                }`}
+                className={`${cardCls(on)} pr-10`}
               >
-                <span className="block text-sm font-bold text-[var(--text)]">{s.label}</span>
-                <span className="mt-1 block text-sm text-[var(--muted)]">
-                  {emailDiscounted ? (
+                {s.id === "email_7" ? (
+                  <span className="absolute -top-2 left-3 rounded bg-[var(--cb-cyan)] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-[#0a1220]">
+                    Most added
+                  </span>
+                ) : null}
+                <span className="block text-sm font-extrabold text-[var(--cb-on-ink)]">
+                  {s.label}
+                </span>
+                <span className="mt-1 block text-xs text-[#a8b4c8]">
+                  A sales email a day for {s.days} days, written once, selling for months.
+                </span>
+                <span className="mt-2 block text-sm">
+                  {discounted ? (
                     <>
-                      <s className="text-[var(--quiet)]">{fmt(s.price)}</s>{" "}
-                      <b className="text-[var(--green)]">{fmt(cut)}</b>
+                      <s className="text-[#8b97ad]">{fmt(s.price)}</s>{" "}
+                      <b className="text-[#7ee2a1]">{fmt(cut)}</b>{" "}
+                      <span className="text-xs font-bold text-[#7ee2a1]">
+                        save {fmt(s.price - cut)}
+                      </span>
                     </>
                   ) : (
-                    <b>{fmt(s.price)}</b>
+                    <b className="text-[var(--cb-on-ink)]">{fmt(s.price)}</b>
                   )}
                 </span>
+                <CheckMark on={on} />
               </button>
             );
           })}
         </div>
-        <div className="mt-6 grid gap-2 sm:grid-cols-3">
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
           {EXTRAS.map((x) => {
             const on = extras.includes(x.id);
             return (
@@ -387,43 +432,71 @@ export default function TimeBackFunnel() {
                 key={x.id}
                 type="button"
                 onClick={() => setExtras((cur) => toggle(cur, x.id))}
-                className={`rounded-xl border p-4 text-left ${
-                  on ? "border-[var(--blue)] bg-[var(--accent-tint)]" : "border-[var(--line-strong)]"
-                }`}
+                className={`${cardCls(on)} pr-10`}
               >
-                <span className="block text-sm font-bold text-[var(--text)]">
-                  {x.label} · {fmt(x.price)}
+                <span className="block text-sm font-extrabold text-[var(--cb-on-ink)]">
+                  {x.label}
                 </span>
-                <span className="mt-1 block text-xs text-[var(--muted)]">{x.desc}</span>
+                <span className="mt-1 block text-xs text-[#a8b4c8]">{x.desc}</span>
+                <span className="mt-2 block text-sm font-extrabold text-[var(--cb-on-ink)]">
+                  {fmt(x.price)}
+                </span>
+                <CheckMark on={on} />
               </button>
             );
           })}
         </div>
       </section>
 
+      {/* What happens after you pay */}
+      <section className="grid gap-3 sm:grid-cols-3">
+        {[
+          ["Pay in 60 seconds", "Secure Stripe checkout. Card, Apple Pay, Google Pay."],
+          [
+            "Approve access, no passwords",
+            "You get official partner invites for your accounts. Click approve. We never see a password.",
+          ],
+          [
+            "It goes live within 5 business days",
+            "Posts written in your voice, scheduled on your calendar, automations switched on. You get a walkthrough.",
+          ],
+        ].map(([title, body], i) => (
+          <div
+            key={title}
+            className="rounded-[20px] border border-[var(--cb-hair-ink)] bg-[#ffffff08] p-5"
+          >
+            <span className="text-2xl font-extrabold text-[var(--cb-cyan)]">{i + 1}</span>
+            <h3 className="mt-1 text-sm font-extrabold text-[var(--cb-on-ink)]">{title}</h3>
+            <p className="mt-1 text-xs text-[#a8b4c8]">{body}</p>
+          </div>
+        ))}
+      </section>
+
       {/* Step 3 — order + checkout */}
-      <section className={cardCls} id="tb-checkout">
-        <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[var(--blue)]">
-          Step 3 · Lock it in
-        </p>
-        <h2 className="mt-2 text-2xl font-extrabold text-[var(--heading)]">Your order</h2>
+      <section className={panelCls} id="tb-checkout">
+        <StepTag n="3" label="Lock it in" />
+        <h2 className="mt-4 text-2xl font-extrabold text-[var(--cb-on-ink)] sm:text-3xl">
+          Your order
+        </h2>
         <ul className="mt-4 grid gap-2">
           {(priced?.lines ?? []).map((l) => (
             <li
               key={l.label}
-              className="flex items-baseline justify-between gap-4 border-b border-[var(--line)] pb-2 text-sm"
+              className="flex items-baseline justify-between gap-4 border-b border-[var(--cb-hair-ink)] pb-2 text-sm"
             >
-              <span className="text-[var(--muted)]">{l.label}</span>
-              <b className="text-[var(--text)]">{fmt(l.amount)}</b>
+              <span className="text-[#a8b4c8]">{l.label}</span>
+              <b className="text-[var(--cb-on-ink)]">{fmt(l.amount)}</b>
             </li>
           ))}
           <li className="flex items-baseline justify-between gap-4 pt-1 text-base">
-            <span className="font-bold text-[var(--text)]">Total, one-time</span>
-            <b className="text-2xl font-extrabold text-[var(--heading)]">{fmt(total)}</b>
+            <span className="font-bold text-[var(--cb-on-ink)]">Total, one-time</span>
+            <b className="text-3xl font-extrabold text-white [text-shadow:0_0_24px_#5b87ff66]">
+              {fmt(total)}
+            </b>
           </li>
         </ul>
         {payNotice ? (
-          <p className="mt-4 rounded-xl border border-[var(--green-line)] bg-[var(--green-tint)] p-4 text-sm font-bold text-[var(--green)]">
+          <p className="mt-4 rounded-xl bg-[#146c3433] p-4 text-sm font-bold text-[#7ee2a1]">
             {payNotice}
           </p>
         ) : (
@@ -431,13 +504,7 @@ export default function TimeBackFunnel() {
             <div className="grid gap-3 sm:grid-cols-2">
               <input name="full_name" required placeholder="Your name" className={inputCls} />
               <input name="business_name" placeholder="Business name" className={inputCls} />
-              <input
-                name="email"
-                type="email"
-                required
-                placeholder="Email"
-                className={inputCls}
-              />
+              <input name="email" type="email" required placeholder="Email" className={inputCls} />
               <input name="phone" type="tel" placeholder="Mobile number" className={inputCls} />
             </div>
             <textarea
@@ -446,34 +513,38 @@ export default function TimeBackFunnel() {
               placeholder="Anything we should know? (optional)"
               className={inputCls}
             />
-            <label className="flex items-start gap-2 text-sm text-[var(--muted)]">
-              <input type="checkbox" name="sms_consent" className="mt-1" />
+            <label className="flex items-start gap-2 text-sm text-[#a8b4c8]">
+              <input type="checkbox" name="sms_consent" className="mt-1 accent-[#5b87ff]" />
               <span>
                 You may call or text me about this order from (903) 500-8898. Reply STOP any time.
               </span>
             </label>
-            <label className="flex items-start gap-2 text-sm text-[var(--muted)]">
-              <input type="checkbox" name="marketing_email_consent" className="mt-1" />
+            <label className="flex items-start gap-2 text-sm text-[#a8b4c8]">
+              <input
+                type="checkbox"
+                name="marketing_email_consent"
+                className="mt-1 accent-[#5b87ff]"
+              />
               <span>Send me your marketing emails. Unsubscribe any time.</span>
             </label>
-            {error ? <p className="text-sm font-bold text-[var(--danger)]">{error}</p> : null}
+            {error ? <p className="text-sm font-bold text-[#ff8a8a]">{error}</p> : null}
             <button
               type="submit"
               disabled={sending || !priced}
-              className="btn-primary inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl px-6 text-base font-extrabold disabled:opacity-60"
+              className="inline-flex min-h-[56px] items-center justify-center gap-2 rounded-xl bg-[var(--cb-blue)] px-6 text-base font-extrabold text-white shadow-[0_0_36px_#1240e880] transition hover:bg-[var(--cb-blue-deep)] disabled:opacity-60"
             >
               <Lock className="h-4 w-4" aria-hidden="true" />
               {sending ? "Starting secure checkout..." : `Pay ${fmt(total)} and start`}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
-            <p className="text-xs text-[var(--quiet)]">
-              Secure card checkout by Stripe. Work happens in YOUR accounts, which you grant
-              through official partner access. We never ask for your passwords.
+            <p className="text-xs text-[#8b97ad]">
+              Secure card checkout by Stripe. Everything we build lives in YOUR accounts, granted
+              through official partner access. We never ask for a password.
             </p>
             {!downsell ? (
               <button
                 type="button"
-                className="justify-self-start text-sm font-bold text-[var(--quiet)] underline"
+                className="justify-self-start text-sm font-bold text-[#8b97ad] underline"
                 onClick={() => {
                   downsellOffered.current = true;
                   setShowDownsell(true);
@@ -486,40 +557,70 @@ export default function TimeBackFunnel() {
         )}
       </section>
 
+      {/* Sticky total bar — the buy button never leaves the screen */}
+      {!payNotice ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--cb-hair-ink)] bg-[#0a1220f2] px-4 py-3 backdrop-blur">
+          <div className="mx-auto flex w-full max-w-[1120px] items-center justify-between gap-3">
+            <div className="leading-tight">
+              <span className="block text-[11px] font-bold uppercase tracking-wide text-[#8b97ad]">
+                {downsell
+                  ? "Starter week"
+                  : `${days} days · ${perDay}/day · ${platforms.length || 1} platform${(platforms.length || 1) > 1 ? "s" : ""}`}
+              </span>
+              <span className="block text-xl font-extrabold text-white">{fmt(total)}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                document.getElementById("tb-checkout")?.scrollIntoView({ behavior: "smooth" })
+              }
+              className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-[var(--cb-blue)] px-5 text-sm font-extrabold text-white shadow-[0_0_28px_#1240e880]"
+            >
+              Start my build
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {/* The one-time downsell */}
       {showDownsell ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Starter offer"
         >
-          <div className="w-full max-w-md rounded-2xl border border-[var(--line-strong)] bg-white p-7">
+          <div className="w-full max-w-md rounded-[20px] border border-[#5b87ff59] bg-[var(--cb-ink-2)] p-7 shadow-[0_0_80px_#1240e866]">
             <div className="flex items-start justify-between gap-4">
-              <h3 className="text-xl font-extrabold text-[var(--heading)]">
+              <h3 className="text-xl font-extrabold text-[var(--cb-on-ink)]">
                 Not ready? Try {DOWNSELL.days} days for {fmt(DOWNSELL.price)}.
               </h3>
               <button
                 type="button"
                 aria-label="Close"
                 onClick={() => setShowDownsell(false)}
-                className="text-[var(--quiet)]"
+                className="text-[#8b97ad]"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
-            <p className="mt-3 text-sm text-[var(--muted)]">
+            <p className="mt-3 text-sm text-[#a8b4c8]">
               {DOWNSELL.label} Written in your voice, scheduled in your accounts. If it feels like
               a vacation, come back for the month.
             </p>
             <div className="mt-5 grid gap-2">
-              <button type="button" onClick={acceptDownsell} className="btn-primary min-h-[48px] rounded-xl px-5 font-extrabold">
+              <button
+                type="button"
+                onClick={acceptDownsell}
+                className="min-h-[48px] rounded-xl bg-[var(--cb-blue)] px-5 font-extrabold text-white shadow-[0_0_28px_#1240e880]"
+              >
                 Give me the {fmt(DOWNSELL.price)} starter
               </button>
               <button
                 type="button"
                 onClick={() => setShowDownsell(false)}
-                className="min-h-[44px] rounded-xl border border-[var(--line-strong)] px-5 text-sm font-bold text-[var(--muted)]"
+                className="min-h-[44px] rounded-xl border border-[var(--cb-hair-ink)] px-5 text-sm font-bold text-[#a8b4c8]"
               >
                 No thanks, keep the full packages
               </button>
