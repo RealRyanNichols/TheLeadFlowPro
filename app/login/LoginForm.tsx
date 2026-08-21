@@ -109,6 +109,24 @@ export default function LoginForm() {
     setMessage(error ? error.message : "One-time sign-in link sent. Check your email; the link can only be used once.");
   }
 
+  async function sendPasswordReset() {
+    if (!email.trim()) {
+      setMessage("Type your email above first, then tap Forgot password.");
+      return;
+    }
+    setLinkBusy(true);
+    setMessage(null);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/account/password`,
+    });
+    setLinkBusy(false);
+    setMessage(
+      error
+        ? error.message
+        : "Reset link sent. Open the email and set your new password yourself; nobody else ever types it.",
+    );
+  }
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="flex rounded-lg border border-line p-1 text-sm font-semibold">
@@ -157,7 +175,19 @@ export default function LoginForm() {
       </div>
 
       <div>
-        <label className="label" htmlFor="password">Password</label>
+        <div className="flex items-baseline justify-between">
+          <label className="label" htmlFor="password">Password</label>
+          {mode === "login" && (
+            <button
+              type="button"
+              onClick={sendPasswordReset}
+              disabled={busy || linkBusy}
+              className="text-xs font-bold text-[var(--blue)] hover:underline disabled:opacity-50"
+            >
+              Forgot password?
+            </button>
+          )}
+        </div>
         <input
           className="input"
           id="password"
