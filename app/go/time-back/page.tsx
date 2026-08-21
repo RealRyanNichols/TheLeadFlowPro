@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, CalendarCheck, KeyRound, ShieldCheck, Timer } from "lucide-react";
 import { WEEKLY_BUILD_SLOTS } from "@/lib/timeback";
 import TimeBackFunnel from "./TimeBackFunnel";
+import RevealObserver from "./Reveal";
 
 // The destination for the "Time Back" Facebook lead campaign. Mobile-first:
 // the first phone screen carries the promise, the price floor, and TWO
@@ -19,9 +20,16 @@ export const metadata: Metadata = {
 
 const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
 
+// Each day's column fills top to bottom, one day after the next, so the
+// strip reads as a calendar filling itself. The "Scheduled" stamp lands
+// only after the last dot.
 function WeekStrip() {
+  const lastDotDone = 6 * 0.32 + 2 * 0.11 + 0.5;
   return (
-    <div className="rounded-[20px] border border-[#5b87ff59] bg-gradient-to-b from-[#16233d] to-[#0d1628] p-5 shadow-[0_0_60px_#1240e83d]">
+    <div
+      data-tbr
+      className="rounded-[20px] border border-[#5b87ff59] bg-gradient-to-b from-[#16233d] to-[#0d1628] p-5 shadow-[0_0_60px_#1240e83d]"
+    >
       <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#35c6f4]">
         Your next 7 days, already done
       </p>
@@ -33,7 +41,7 @@ function WeekStrip() {
               <span
                 key={row}
                 className="tb-dot h-3.5 w-3.5 rounded-full bg-[#5b87ff]"
-                style={{ animationDelay: `${(col * 3 + row) * 0.12}s` }}
+                style={{ "--tb-delay": `${(col * 0.32 + row * 0.11).toFixed(2)}s` } as React.CSSProperties}
               />
             ))}
           </div>
@@ -41,7 +49,9 @@ function WeekStrip() {
       </div>
       <p className="mt-4 flex items-center justify-between text-xs font-bold text-[#a8b4c8]">
         <span>21 posts · your voice · your accounts</span>
-        <span className="text-[#7ee2a1]">Scheduled ✓</span>
+        <span className="tb-sched text-[#7ee2a1]" style={{ animationDelay: `${lastDotDone.toFixed(2)}s` }}>
+          Scheduled ✓
+        </span>
       </p>
     </div>
   );
@@ -51,16 +61,67 @@ export default function TimeBackPage() {
   return (
     <main className="cb-page">
       <style>{`
-        @keyframes tbPulse {
-          0%, 100% { opacity: .25; transform: scale(.8); box-shadow: 0 0 0 #5b87ff00; }
-          50% { opacity: 1; transform: scale(1); box-shadow: 0 0 12px #5b87ff99; }
+        /* Week strip: each dot fills once with a pop of glow, then settles
+           and breathes very gently. Column by column = day by day. */
+        @keyframes tbFill {
+          0% { opacity: .16; transform: scale(.5); box-shadow: 0 0 0 #5b87ff00; }
+          60% { opacity: 1; transform: scale(1.22); box-shadow: 0 0 14px #5b87ffb3; }
+          100% { opacity: 1; transform: scale(1); box-shadow: 0 0 6px #5b87ff59; }
         }
-        .tb-dot { animation: tbPulse 2.6s ease-in-out infinite; }
+        @keyframes tbBreathe {
+          0%, 100% { opacity: 1; }
+          50% { opacity: .78; }
+        }
+        .tb-dot {
+          opacity: .16;
+          transform: scale(.5);
+          animation:
+            tbFill .5s cubic-bezier(.34,1.4,.5,1) var(--tb-delay, 0s) forwards,
+            tbBreathe 5s ease-in-out calc(var(--tb-delay, 0s) + 3.2s) infinite;
+        }
+        @keyframes tbStamp {
+          0% { opacity: 0; transform: translateY(4px) scale(.9); }
+          100% { opacity: 1; transform: none; }
+        }
+        .tb-sched { opacity: 0; animation: tbStamp .45s ease forwards; }
+        /* Scroll entrances. Armed by Reveal.tsx only when JS runs and motion
+           is welcome; the longhand transition lists keep the stagger on
+           opacity/transform without delaying hover color changes. */
+        .tb-armed [data-tbr],
+        .tb-armed [data-tbr-group] > * {
+          opacity: 0;
+          transform: translateY(16px);
+          transition-property: opacity, transform, border-color, background-color, box-shadow;
+          transition-duration: .55s, .55s, .15s, .15s, .3s;
+          transition-timing-function: ease, cubic-bezier(.22,.61,.36,1), ease, ease, ease;
+        }
+        .tb-armed [data-tbr].tb-in,
+        .tb-armed [data-tbr-group].tb-in > * { opacity: 1; transform: none; }
+        .tb-armed [data-tbr-group].tb-in > :nth-child(2) { transition-delay: .07s, .07s, 0s, 0s, 0s; }
+        .tb-armed [data-tbr-group].tb-in > :nth-child(3) { transition-delay: .14s, .14s, 0s, 0s, 0s; }
+        .tb-armed [data-tbr-group].tb-in > :nth-child(4) { transition-delay: .21s, .21s, 0s, 0s, 0s; }
+        .tb-armed [data-tbr-group].tb-in > :nth-child(5) { transition-delay: .28s, .28s, 0s, 0s, 0s; }
+        .tb-armed [data-tbr-group].tb-in > :nth-child(n+6) { transition-delay: .35s, .35s, 0s, 0s, 0s; }
+        /* Sticky bar button: one soft swell of glow whenever the total moves. */
+        @keyframes tbBtnPulse {
+          0% { box-shadow: 0 0 28px #1240e880; }
+          45% { box-shadow: 0 0 52px #5b87ffcc; }
+          100% { box-shadow: 0 0 28px #1240e880; }
+        }
+        .tb-btn-pulse { animation: tbBtnPulse .8s ease; }
+        @media (prefers-reduced-motion: reduce) {
+          .tb-dot, .tb-sched, .tb-btn-pulse { animation: none; }
+          .tb-dot, .tb-sched { opacity: 1; transform: none; }
+          .tb-armed [data-tbr], .tb-armed [data-tbr-group] > * {
+            opacity: 1; transform: none; transition: none;
+          }
+        }
         /* The site's global heading rules paint h1-h3 in ink, which is
            invisible on this dark funnel. Scoped override, spans keep their
            own accent colors. */
         .tb-dark h1, .tb-dark h2, .tb-dark h3 { color: #f4f6fa !important; }
       `}</style>
+      <RevealObserver />
 
       <div className="tb-dark bg-[#0a1220]">
         <section className="px-4 pb-10 pt-10 sm:pt-16">
@@ -113,7 +174,7 @@ export default function TimeBackPage() {
             <em>No passwords. Ever.</em>
             The safe agency way to work in your accounts.
           </h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div data-tbr-group className="mt-8 grid gap-4 md:grid-cols-3">
             {[
               {
                 icon: KeyRound,

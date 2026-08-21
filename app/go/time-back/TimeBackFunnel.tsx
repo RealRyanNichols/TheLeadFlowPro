@@ -29,6 +29,43 @@ function fmt(n: number) {
   return `$${n.toLocaleString("en-US")}`;
 }
 
+function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+// Rolls a displayed dollar amount toward its target with requestAnimationFrame
+// so price changes read as a dial turning, not a number teleporting. Honors
+// prefers-reduced-motion by snapping straight to the target.
+function useCountUp(target: number, ms = 450) {
+  const [shown, setShown] = useState(target);
+  const shownRef = useRef(target);
+  useEffect(() => {
+    const from = shownRef.current;
+    if (from === target) return;
+    if (prefersReducedMotion()) {
+      shownRef.current = target;
+      setShown(target);
+      return;
+    }
+    const t0 = performance.now();
+    let raf = 0;
+    const step = (now: number) => {
+      const p = Math.min(1, (now - t0) / ms);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const value = Math.round(from + (target - from) * eased);
+      shownRef.current = value;
+      setShown(value);
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, ms]);
+  return shown;
+}
+
 // One visual language for everything clickable: a bordered card that lights
 // up blue when selected and shows a check. Nothing decorative shares it.
 function cardCls(selected: boolean) {
@@ -99,6 +136,19 @@ export default function TimeBackFunnel() {
     [downsell, days, perDay, emailSeries, extras],
   );
   const total = priced?.total ?? 0;
+
+  // Animated readouts: the hero price and the running total roll to their
+  // new value, and the sticky bar button swells with glow once per change.
+  const shownPanelPrice = useCountUp(downsell ? DOWNSELL.price : contentPrice);
+  const shownTotal = useCountUp(total);
+  const [pulseKey, setPulseKey] = useState(0);
+  const prevTotal = useRef(total);
+  useEffect(() => {
+    if (prevTotal.current === total) return;
+    prevTotal.current = total;
+    if (prefersReducedMotion()) return;
+    setPulseKey((k) => k + 1);
+  }, [total]);
 
   useEffect(() => {
     function onLeave(e: MouseEvent) {
@@ -248,7 +298,7 @@ export default function TimeBackFunnel() {
   return (
     <div className="mx-auto grid w-full max-w-[1120px] gap-5 px-4 pb-32">
       {/* Step 1 — the two dials */}
-      <section className={panelCls} id="tb-build">
+      <section className={panelCls} id="tb-build" data-tbr>
         <StepTag n="1" label="Pick your workload" />
         <h2 className="mt-4 text-2xl font-extrabold text-[var(--cb-on-ink)] sm:text-3xl">
           How much posting comes off your plate?
@@ -309,7 +359,7 @@ export default function TimeBackFunnel() {
             </label>
             <div className="grid gap-2">
               <span className="text-sm font-bold text-[var(--cb-on-ink)]">Where do we post it?</span>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2" data-tbr-group>
                 {PLATFORMS.map((p) => {
                   const on = platforms.includes(p.id);
                   return (
@@ -334,8 +384,8 @@ export default function TimeBackFunnel() {
             <span className="text-xs font-extrabold uppercase tracking-[0.15em] text-[#8b97ad]">
               {downsell ? "Starter week" : `${totalPosts} posts, written + scheduled`}
             </span>
-            <span className="mt-2 text-6xl font-extrabold tracking-tight text-white [text-shadow:0_0_30px_#5b87ff66]">
-              {fmt(downsell ? DOWNSELL.price : contentPrice)}
+            <span className="mt-2 text-6xl font-extrabold tracking-tight text-white [font-variant-numeric:tabular-nums] [text-shadow:0_0_30px_#5b87ff66]">
+              {fmt(shownPanelPrice)}
             </span>
             <span className="mt-2 text-sm font-bold text-[var(--cb-cyan)]">
               {downsell
@@ -365,7 +415,7 @@ export default function TimeBackFunnel() {
       </section>
 
       {/* Step 2 — sell the follow-up */}
-      <section className={panelCls}>
+      <section className={panelCls} data-tbr>
         <StepTag n="2" label="Turn the attention into money" />
         <h2 className="mt-4 text-2xl font-extrabold text-[var(--cb-on-ink)] sm:text-3xl">
           Posts get you seen. Follow-up gets you paid.
@@ -381,7 +431,7 @@ export default function TimeBackFunnel() {
             content package
           </p>
         ) : null}
-        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3" data-tbr-group>
           {EMAIL_SERIES.map((s) => {
             const discounted = !downsell;
             const cut = discounted
@@ -424,7 +474,7 @@ export default function TimeBackFunnel() {
             );
           })}
         </div>
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <div className="mt-4 grid gap-2 sm:grid-cols-3" data-tbr-group>
           {EXTRAS.map((x) => {
             const on = extras.includes(x.id);
             return (
@@ -449,7 +499,7 @@ export default function TimeBackFunnel() {
       </section>
 
       {/* What happens after you pay */}
-      <section className="grid gap-3 sm:grid-cols-3">
+      <section className="grid gap-3 sm:grid-cols-3" data-tbr-group>
         {[
           ["Pay in 60 seconds", "Secure Stripe checkout. Card, Apple Pay, Google Pay."],
           [
@@ -473,7 +523,7 @@ export default function TimeBackFunnel() {
       </section>
 
       {/* Step 3 — order + checkout */}
-      <section className={panelCls} id="tb-checkout">
+      <section className={panelCls} id="tb-checkout" data-tbr>
         <StepTag n="3" label="Lock it in" />
         <h2 className="mt-4 text-2xl font-extrabold text-[var(--cb-on-ink)] sm:text-3xl">
           Your order
@@ -490,8 +540,8 @@ export default function TimeBackFunnel() {
           ))}
           <li className="flex items-baseline justify-between gap-4 pt-1 text-base">
             <span className="font-bold text-[var(--cb-on-ink)]">Total, one-time</span>
-            <b className="text-3xl font-extrabold text-white [text-shadow:0_0_24px_#5b87ff66]">
-              {fmt(total)}
+            <b className="text-3xl font-extrabold text-white [font-variant-numeric:tabular-nums] [text-shadow:0_0_24px_#5b87ff66]">
+              {fmt(shownTotal)}
             </b>
           </li>
         </ul>
@@ -567,14 +617,19 @@ export default function TimeBackFunnel() {
                   ? "Starter week"
                   : `${days} days · ${perDay}/day · ${platforms.length || 1} platform${(platforms.length || 1) > 1 ? "s" : ""}`}
               </span>
-              <span className="block text-xl font-extrabold text-white">{fmt(total)}</span>
+              <span className="block text-xl font-extrabold text-white [font-variant-numeric:tabular-nums]">
+                {fmt(shownTotal)}
+              </span>
             </div>
             <button
+              key={pulseKey}
               type="button"
               onClick={() =>
                 document.getElementById("tb-checkout")?.scrollIntoView({ behavior: "smooth" })
               }
-              className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-[var(--cb-blue)] px-5 text-sm font-extrabold text-white shadow-[0_0_28px_#1240e880]"
+              className={`inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-[var(--cb-blue)] px-5 text-sm font-extrabold text-white shadow-[0_0_28px_#1240e880] ${
+                pulseKey > 0 ? "tb-btn-pulse" : ""
+              }`}
             >
               Start my build
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
