@@ -3,29 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Menu } from "lucide-react";
+import { NAV_LINKS, isChromeHiddenPath } from "@/lib/site-navigation";
 
-// Primary navigation is ordered by buyer intent, not by sitemap. Add-Ons and
-// Free Tools live in the footer. Product Studio now has a real index at
-// /packages; the retired route redirects there for old inbound links.
-const NAV_LINKS: Array<[string, string]> = [
-  ["/#what-we-build", "What We Build"],
-  ["/portfolio", "The Work"],
-  ["/premier-system", "Premier System"],
-  ["/#how-it-works", "How It Works"],
-  ["/packages", "Packages"],
-  ["/about", "About Ryan"],
-  ["/articles", "Articles"],
-];
-
-function isWorkspacePath(pathname: string) {
-  return ["/admin", "/sales", "/dashboard"].some(
-    (base) => pathname === base || pathname.startsWith(`${base}/`),
-  );
-}
+// The nav itself lives in lib/site-navigation.ts, one source of truth shared
+// with the footer. This component only renders it.
 
 export default function SiteHeader() {
   const pathname = usePathname();
-  if (pathname === "/start" || isWorkspacePath(pathname)) return null;
+  if (isChromeHiddenPath(pathname)) return null;
   return (
     <header className="site-header">
       <div className="site-header-inner">

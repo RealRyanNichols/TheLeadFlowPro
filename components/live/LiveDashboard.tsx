@@ -5,6 +5,7 @@
 // them). Every number shown is a real aggregate; anything below the privacy
 // threshold or without a connected source renders an honest empty state.
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   compactNumber,
@@ -253,9 +254,9 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
             emptyLabel="Tool usage tracking is new — numbers build from today"
           />
           <p className="mt-3 text-[13px]">
-            <a href="/tools" className="font-bold text-[#5b87ff] hover:text-white">
+            <Link href="/tools" className="font-bold text-[#5b87ff] hover:text-white">
               Try the free tools yourself →
-            </a>
+            </Link>
           </p>
         </section>
       </div>

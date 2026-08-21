@@ -91,6 +91,64 @@ export default async function ThankYou({
   const paidEvent = purchase === "event";
   const paidDeposit =
     purchase === "build_deposit" || purchase === "package_deposit" || purchase === "package_full";
+  const holdTheLine =
+    purchase === "hold-the-line-playbook" ||
+    purchase === "comment-rescue" ||
+    purchase === "voice-recovery" ||
+    purchase === "comment-cover";
+
+  if (holdTheLine) {
+    const playbook = purchase === "hold-the-line-playbook";
+    return (
+      <ConfirmationShell
+        icon={CircleCheckBig}
+        eyebrow="Hold The Line"
+        title="Payment received."
+        accent={playbook ? "Your playbook is on the way." : "Check your email."}
+        lead={
+          playbook ? (
+            <>
+              The access link is landing in your inbox right now, sent to the email you
+              used at checkout. Start with the sorting table, then read the never-type
+              list twice. If it has not arrived in a few minutes, check spam, then reply
+              to any email from Ryan and he will resend it.
+            </>
+          ) : (
+            <>
+              Your next step just went to the email you used at checkout: what to send,
+              and what happens when you do. Reply to that email and it lands with Ryan,
+              not a ticket queue.
+            </>
+          )
+        }
+        tracking={
+          <ConversionPing
+            googleAdsId={settings.google_ads_id}
+            conversionLabel={settings.google_ads_conversion_label}
+            purchase
+          />
+        }
+        actions={
+          <>
+            {playbook ? (
+              <Link href="/hold-the-line/playbook" className="cb-btn cb-btn--primary">
+                Open the Playbook
+                <ArrowRight aria-hidden="true" />
+              </Link>
+            ) : (
+              <Link href="/hold-the-line" className="cb-btn cb-btn--primary">
+                Back to Hold The Line
+                <ArrowRight aria-hidden="true" />
+              </Link>
+            )}
+            <Link href="/contact" className="cb-btn cb-btn--ghost">
+              Send Ryan a Message
+            </Link>
+          </>
+        }
+      />
+    );
+  }
 
   if (paidDeposit) {
     return (

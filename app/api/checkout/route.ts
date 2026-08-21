@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
+import { holdTheLineOffer } from "@/lib/offers";
 import { priceOrder } from "@/lib/timeback";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
     let kind: string;
     let name: string;
     let amount: number;
+    let mode: "payment" | "subscription" = "payment";
     let cancelUrl = `${site}/training?cancelled=1`;
     let successUrl: string | null = null;
     const metadata: Record<string, string> = {};
@@ -146,6 +148,20 @@ export async function POST(request: Request) {
       if (Array.isArray(body.platforms)) {
         metadata.platforms = body.platforms.map(String).join(",").slice(0, 100);
       }
+    } else if (body.kind === "hold_the_line_offer") {
+      // Hold The Line lane (/offers/[slug]). Price comes from lib/offers.ts,
+      // never the client. Comment Cover is the one monthly subscription in
+      // the ladder; everything else is a one-time charge. The session kind is
+      // the offer slug so the webhook can route fulfillment per offer.
+      const offer = holdTheLineOffer(String(body.offer ?? ""));
+      if (!offer) return NextResponse.json({ error: "Unknown offer" }, { status: 400 });
+      kind = offer.slug;
+      name = `${offer.name} | The LeadFlow Pro`;
+      amount = offer.amountCents;
+      mode = offer.mode;
+      cancelUrl = `${site}/offers/${offer.slug}?cancelled=1`;
+      metadata.kind = kind;
+      metadata.lane = "hold-the-line";
     } else {
       if (!PRODUCTS[body.kind]) {
         return NextResponse.json({ error: "Unknown product" }, { status: 400 });
@@ -159,7 +175,7 @@ export async function POST(request: Request) {
     }
 
     const params = new URLSearchParams({
-      mode: "payment",
+      mode,
       "line_items[0][quantity]": "1",
       "line_items[0][price_data][currency]": "usd",
       "line_items[0][price_data][unit_amount]": String(amount),
@@ -169,6 +185,9 @@ export async function POST(request: Request) {
       cancel_url: cancelUrl,
       allow_promotion_codes: "true",
     });
+    if (mode === "subscription") {
+      params.set("line_items[0][price_data][recurring][interval]", "month");
+    }
     for (const [k, v] of Object.entries(metadata)) params.set(`metadata[${k}]`, v);
     if (email) params.set("customer_email", email);
 

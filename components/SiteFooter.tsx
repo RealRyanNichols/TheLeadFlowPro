@@ -2,48 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { FOOTER_COLUMNS, isChromeHiddenPath } from "@/lib/site-navigation";
 
 // The footer is ink on every page, light or dark, so the site always lands on
 // the same anchor. Add-Ons and Free Tools live here now that the primary nav is
-// organised around buyer intent.
-const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
-  {
-    heading: "What we build",
-    links: [
-      ["/#what-we-build", "The four parts"],
-      ["/add-ons", "Add-On Menu"],
-      ["/tools", "Free Tools"],
-      ["/#how-it-works", "How it works"],
-    ],
-  },
-  {
-    heading: "Proof",
-    links: [
-      ["/premier-system", "Premier System"],
-      ["/live", "Live Proof"],
-      ["/portfolio", "The Work"],
-      ["/articles", "Articles"],
-      ["/about", "About Ryan"],
-    ],
-  },
-  {
-    heading: "Work together",
-    links: [
-      ["/packages", "Packages"],
-      ["/packages/launch", "Website Launch | $1,000"],
-      ["/start", "Map My Company"],
-      ["/contact", "Contact"],
-      ["/login", "Log in"],
-    ],
-  },
-];
+// organised around buyer intent. The columns themselves live in
+// lib/site-navigation.ts, one source of truth shared with the header.
 
 export default function SiteFooter() {
   const pathname = usePathname();
-  const isWorkspace = ["/admin", "/sales", "/dashboard"].some(
-    (base) => pathname === base || pathname.startsWith(`${base}/`),
-  );
-  if (pathname === "/start" || isWorkspace) return null;
+  if (isChromeHiddenPath(pathname)) return null;
   return (
     <footer className="site-footer cb-footer">
       <div className="cb-shell">
@@ -60,7 +28,7 @@ export default function SiteFooter() {
               hello@theleadflowpro.com
             </a>
           </div>
-          {COLUMNS.map((col) => (
+          {FOOTER_COLUMNS.map((col) => (
             <div key={col.heading} className="cb-footer-col">
               <h2>{col.heading}</h2>
               <nav aria-label={col.heading}>
