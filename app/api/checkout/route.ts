@@ -38,6 +38,7 @@ export async function POST(request: Request) {
     let name: string;
     let amount: number;
     let cancelUrl = `${site}/training?cancelled=1`;
+    let successUrl: string | null = null;
     const metadata: Record<string, string> = {};
 
     if (body.kind === "event") {
@@ -133,6 +134,9 @@ export async function POST(request: Request) {
       name = priced.lines.map((l) => l.label).join(" + ").slice(0, 250) || "Time Back order";
       amount = priced.total * 100;
       cancelUrl = `${site}/go/time-back?cancelled=1`;
+      // Buyers land on the welcome flow, not the generic thank-you: it
+      // collects the business, the access grants, and the voice samples.
+      successUrl = `${site}/go/time-back/welcome?session_id={CHECKOUT_SESSION_ID}`;
       metadata.kind = kind;
       metadata.order = priced.lines
         .map((l) => `${l.label} $${l.amount}`)
@@ -160,7 +164,8 @@ export async function POST(request: Request) {
       "line_items[0][price_data][currency]": "usd",
       "line_items[0][price_data][unit_amount]": String(amount),
       "line_items[0][price_data][product_data][name]": name,
-      success_url: `${site}/thank-you?purchase=${kind}&session_id={CHECKOUT_SESSION_ID}`,
+      success_url:
+        successUrl ?? `${site}/thank-you?purchase=${kind}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl,
       allow_promotion_codes: "true",
     });

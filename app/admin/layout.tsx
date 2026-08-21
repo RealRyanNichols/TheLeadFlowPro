@@ -41,6 +41,9 @@ export default async function AdminLayout({
           <Link href="/admin" className="text-[var(--text)] hover:text-[var(--heading)]">
             Leads
           </Link>
+          <Link href="/admin/time-back" className="text-[var(--text)] hover:text-[var(--heading)]">
+            Time Back
+          </Link>
           <Link href="/admin/projects" className="text-[var(--text)] hover:text-[var(--heading)]">
             Projects
           </Link>

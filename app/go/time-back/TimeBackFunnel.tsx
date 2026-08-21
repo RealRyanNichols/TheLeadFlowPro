@@ -29,12 +29,49 @@ function fmt(n: number) {
   return `$${n.toLocaleString("en-US")}`;
 }
 
+function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+// Rolls a displayed dollar amount toward its target with requestAnimationFrame
+// so price changes read as a dial turning, not a number teleporting. Honors
+// prefers-reduced-motion by snapping straight to the target.
+function useCountUp(target: number, ms = 450) {
+  const [shown, setShown] = useState(target);
+  const shownRef = useRef(target);
+  useEffect(() => {
+    const from = shownRef.current;
+    if (from === target) return;
+    if (prefersReducedMotion()) {
+      shownRef.current = target;
+      setShown(target);
+      return;
+    }
+    const t0 = performance.now();
+    let raf = 0;
+    const step = (now: number) => {
+      const p = Math.min(1, (now - t0) / ms);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const value = Math.round(from + (target - from) * eased);
+      shownRef.current = value;
+      setShown(value);
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, ms]);
+  return shown;
+}
+
 // One visual language for everything clickable: a bordered card that lights
 // up blue when selected and shows a check. Nothing decorative shares it.
 function cardCls(selected: boolean) {
   return `relative rounded-xl border p-4 text-left transition-colors cursor-pointer ${
     selected
-      ? "border-[var(--cb-blue-soft)] bg-[#5b87ff26] shadow-[0_0_24px_#5b87ff33]"
+      ? "tb-card-on"
       : "border-[var(--cb-hair-ink)] bg-[#ffffff08] hover:border-[#ffffff45]"
   }`;
 }
@@ -100,7 +137,40 @@ export default function TimeBackFunnel() {
   );
   const total = priced?.total ?? 0;
 
+  // Animated readouts: the hero price and the running total roll to their
+  // new value, and the sticky bar button swells with glow once per change.
+  const shownPanelPrice = useCountUp(downsell ? DOWNSELL.price : contentPrice);
+  const shownTotal = useCountUp(total);
+  const [pulseKey, setPulseKey] = useState(0);
+  const prevTotal = useRef(total);
   useEffect(() => {
+    if (prevTotal.current === total) return;
+    prevTotal.current = total;
+    if (prefersReducedMotion()) return;
+    setPulseKey((k) => k + 1);
+  }, [total]);
+
+  useEffect(() => {
+    // Touch devices have no mouse to exit with. There, the same "about to
+    // leave" signal is a decisive scroll back up after getting deep into the
+    // page. Either path offers the starter exactly once.
+    if (window.matchMedia("(pointer: coarse)").matches) {
+      let deepest = 0;
+      function onScroll() {
+        if (downsellOffered.current || sending) return;
+        const y = window.scrollY;
+        if (y >= deepest) {
+          deepest = y;
+          return;
+        }
+        if (deepest > 900 && deepest - y > 400) {
+          downsellOffered.current = true;
+          setShowDownsell(true);
+        }
+      }
+      window.addEventListener("scroll", onScroll, { passive: true });
+      return () => window.removeEventListener("scroll", onScroll);
+    }
     function onLeave(e: MouseEvent) {
       if (e.clientY > 8 || downsellOffered.current || sending) return;
       downsellOffered.current = true;
@@ -243,12 +313,12 @@ export default function TimeBackFunnel() {
   const inputCls =
     "w-full rounded-xl border border-[#ffffff2e] bg-[#ffffff0f] px-4 py-3 text-[15px] text-[var(--cb-on-ink)] placeholder:text-[#8b97ad] outline-none focus:border-[var(--cb-blue-soft)]";
   const panelCls =
-    "rounded-[26px] border border-[var(--cb-hair-ink)] bg-[var(--cb-ink-2)] p-6 sm:p-8 shadow-[0_0_60px_#1240e81f]";
+    "tb-panel-glass rounded-[26px] border border-[var(--cb-hair-ink)] bg-[var(--cb-ink-2)] p-6 sm:p-8";
 
   return (
     <div className="mx-auto grid w-full max-w-[1120px] gap-5 px-4 pb-32">
       {/* Step 1 — the two dials */}
-      <section className={panelCls} id="tb-build">
+      <section className={panelCls} id="tb-build" data-tbr>
         <StepTag n="1" label="Pick your workload" />
         <h2 className="mt-4 text-2xl font-extrabold text-[var(--cb-on-ink)] sm:text-3xl">
           How much posting comes off your plate?
@@ -266,7 +336,7 @@ export default function TimeBackFunnel() {
                 max={CONTENT_DAYS.length - 1}
                 step={1}
                 value={daysIdx}
-                style={{ accentColor: "#5b87ff", height: 28 }}
+                className="tb-range"
                 onChange={(e) => {
                   setDaysIdx(Number(e.target.value));
                   setDownsell(false);
@@ -292,7 +362,7 @@ export default function TimeBackFunnel() {
                 max={CONTENT_PER_DAY.length - 1}
                 step={1}
                 value={perDayIdx}
-                style={{ accentColor: "#5b87ff", height: 28 }}
+                className="tb-range"
                 onChange={(e) => {
                   setPerDayIdx(Number(e.target.value));
                   setDownsell(false);
@@ -309,7 +379,7 @@ export default function TimeBackFunnel() {
             </label>
             <div className="grid gap-2">
               <span className="text-sm font-bold text-[var(--cb-on-ink)]">Where do we post it?</span>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2" data-tbr-group>
                 {PLATFORMS.map((p) => {
                   const on = platforms.includes(p.id);
                   return (
@@ -330,12 +400,12 @@ export default function TimeBackFunnel() {
               </span>
             </div>
           </div>
-          <div className="flex flex-col items-center justify-center rounded-[20px] border border-[#5b87ff59] bg-gradient-to-b from-[#16233d] to-[#0d1628] p-6 text-center shadow-[0_0_50px_#1240e83d]">
+          <div className="tb-grad-border tb-price-hero flex flex-col items-center justify-center rounded-[20px] p-6 text-center">
             <span className="text-xs font-extrabold uppercase tracking-[0.15em] text-[#8b97ad]">
               {downsell ? "Starter week" : `${totalPosts} posts, written + scheduled`}
             </span>
-            <span className="mt-2 text-6xl font-extrabold tracking-tight text-white [text-shadow:0_0_30px_#5b87ff66]">
-              {fmt(downsell ? DOWNSELL.price : contentPrice)}
+            <span className="mt-2 text-6xl font-extrabold tracking-tight text-white [font-variant-numeric:tabular-nums] [text-shadow:0_0_30px_#5b87ff66]">
+              {fmt(shownPanelPrice)}
             </span>
             <span className="mt-2 text-sm font-bold text-[var(--cb-cyan)]">
               {downsell
@@ -365,7 +435,7 @@ export default function TimeBackFunnel() {
       </section>
 
       {/* Step 2 — sell the follow-up */}
-      <section className={panelCls}>
+      <section className={panelCls} data-tbr>
         <StepTag n="2" label="Turn the attention into money" />
         <h2 className="mt-4 text-2xl font-extrabold text-[var(--cb-on-ink)] sm:text-3xl">
           Posts get you seen. Follow-up gets you paid.
@@ -381,7 +451,7 @@ export default function TimeBackFunnel() {
             content package
           </p>
         ) : null}
-        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3" data-tbr-group>
           {EMAIL_SERIES.map((s) => {
             const discounted = !downsell;
             const cut = discounted
@@ -424,7 +494,7 @@ export default function TimeBackFunnel() {
             );
           })}
         </div>
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <div className="mt-4 grid gap-2 sm:grid-cols-3" data-tbr-group>
           {EXTRAS.map((x) => {
             const on = extras.includes(x.id);
             return (
@@ -449,7 +519,7 @@ export default function TimeBackFunnel() {
       </section>
 
       {/* What happens after you pay */}
-      <section className="grid gap-3 sm:grid-cols-3">
+      <section className="grid gap-3 sm:grid-cols-3" data-tbr-group>
         {[
           ["Pay in 60 seconds", "Secure Stripe checkout. Card, Apple Pay, Google Pay."],
           [
@@ -463,7 +533,7 @@ export default function TimeBackFunnel() {
         ].map(([title, body], i) => (
           <div
             key={title}
-            className="rounded-[20px] border border-[var(--cb-hair-ink)] bg-[#ffffff08] p-5"
+            className="rounded-[20px] border border-[var(--cb-hair-ink)] bg-[#ffffff08] p-5 shadow-[inset_0_1px_0_#ffffff10]"
           >
             <span className="text-2xl font-extrabold text-[var(--cb-cyan)]">{i + 1}</span>
             <h3 className="mt-1 text-sm font-extrabold text-[var(--cb-on-ink)]">{title}</h3>
@@ -473,7 +543,7 @@ export default function TimeBackFunnel() {
       </section>
 
       {/* Step 3 — order + checkout */}
-      <section className={panelCls} id="tb-checkout">
+      <section className={panelCls} id="tb-checkout" data-tbr>
         <StepTag n="3" label="Lock it in" />
         <h2 className="mt-4 text-2xl font-extrabold text-[var(--cb-on-ink)] sm:text-3xl">
           Your order
@@ -490,8 +560,8 @@ export default function TimeBackFunnel() {
           ))}
           <li className="flex items-baseline justify-between gap-4 pt-1 text-base">
             <span className="font-bold text-[var(--cb-on-ink)]">Total, one-time</span>
-            <b className="text-3xl font-extrabold text-white [text-shadow:0_0_24px_#5b87ff66]">
-              {fmt(total)}
+            <b className="text-3xl font-extrabold text-white [font-variant-numeric:tabular-nums] [text-shadow:0_0_24px_#5b87ff66]">
+              {fmt(shownTotal)}
             </b>
           </li>
         </ul>
@@ -559,7 +629,7 @@ export default function TimeBackFunnel() {
 
       {/* Sticky total bar — the buy button never leaves the screen */}
       {!payNotice ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--cb-hair-ink)] bg-[#0a1220f2] px-4 py-3 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--cb-hair-ink)] bg-[#0a1220f2] px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur">
           <div className="mx-auto flex w-full max-w-[1120px] items-center justify-between gap-3">
             <div className="leading-tight">
               <span className="block text-[11px] font-bold uppercase tracking-wide text-[#8b97ad]">
@@ -567,14 +637,19 @@ export default function TimeBackFunnel() {
                   ? "Starter week"
                   : `${days} days · ${perDay}/day · ${platforms.length || 1} platform${(platforms.length || 1) > 1 ? "s" : ""}`}
               </span>
-              <span className="block text-xl font-extrabold text-white">{fmt(total)}</span>
+              <span className="block text-xl font-extrabold text-white [font-variant-numeric:tabular-nums]">
+                {fmt(shownTotal)}
+              </span>
             </div>
             <button
+              key={pulseKey}
               type="button"
               onClick={() =>
                 document.getElementById("tb-checkout")?.scrollIntoView({ behavior: "smooth" })
               }
-              className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-[var(--cb-blue)] px-5 text-sm font-extrabold text-white shadow-[0_0_28px_#1240e880]"
+              className={`inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-[var(--cb-blue)] px-5 text-sm font-extrabold text-white shadow-[0_0_28px_#1240e880] ${
+                pulseKey > 0 ? "tb-btn-pulse" : ""
+              }`}
             >
               Start my build
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -591,7 +666,7 @@ export default function TimeBackFunnel() {
           aria-modal="true"
           aria-label="Starter offer"
         >
-          <div className="w-full max-w-md rounded-[20px] border border-[#5b87ff59] bg-[var(--cb-ink-2)] p-7 shadow-[0_0_80px_#1240e866]">
+          <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-[20px] border border-[#5b87ff59] bg-[var(--cb-ink-2)] p-7 shadow-[inset_0_1px_0_#ffffff1f,0_0_80px_#1240e866]">
             <div className="flex items-start justify-between gap-4">
               <h3 className="text-xl font-extrabold text-[var(--cb-on-ink)]">
                 Not ready? Try {DOWNSELL.days} days for {fmt(DOWNSELL.price)}.
