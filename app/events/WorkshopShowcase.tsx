@@ -45,10 +45,16 @@ export default function WorkshopShowcase({
   const price = event ? priceUsd(event) : 97;
   const capacity = event?.capacity ?? 10;
   const when = event ? formatEventWhen(event) : null;
-  const dateLine =
-    published && event?.date_confirmed && when?.iso
-      ? when.full
-      : "Date announced soon — founding class";
+  // A published event shows its working date the same way the funnel does.
+  // Hiding it here while the event card below prints it made the page argue
+  // with itself; naming it as "being finalized" is both honest and specific.
+  const dateLine = !published
+    ? "Date announced soon, founding class"
+    : when?.iso
+      ? event?.date_confirmed
+        ? when.full
+        : `${when.full} (date being finalized)`
+      : "Date being finalized";
   const funnelHref = `/events/${FOUNDING_SLUG}`;
   const soldOut = availability?.sold_out ?? false;
   const seatsRemaining = availability?.seats_remaining ?? capacity;
@@ -81,6 +87,9 @@ export default function WorkshopShowcase({
               <span>
                 {dateLine}
                 {!published && <em>Founding seats get the date first.</em>}
+                {published && !event?.date_confirmed && (
+                  <em>Paid seats transfer automatically if the date moves.</em>
+                )}
               </span>
             </p>
             <p>
