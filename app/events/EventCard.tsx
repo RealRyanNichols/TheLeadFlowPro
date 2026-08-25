@@ -15,7 +15,7 @@ type EventRow = {
   city: string | null;
   starts_at: string | null;
   duration_minutes: number | null;
-  price_usd: number;
+  price_usd: number | string;
   capacity: number | null;
   date_confirmed?: boolean | null;
 };

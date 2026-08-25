@@ -2,29 +2,58 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Laptop, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import {
+  EVENT_PUBLIC_FIELDS,
+  type EventAvailability,
+  type EventRow,
+} from "@/lib/events";
 import EventCard from "./EventCard";
+import WorkshopShowcase from "./WorkshopShowcase";
 import styles from "./events.module.css";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Events & Workshops | The LeadFlow Pro",
   description:
-    "Live seminars and hands-on workshops in East Texas: learn to build and own your business platform with AI. Plus on-site training for your team.",
+    "Hands-on AI workshops for East Texas business owners, live in Longview. Ten seats, ninety minutes, bring your laptop, build something real. Plus on-site training for your team.",
+  alternates: { canonical: "https://www.theleadflowpro.com/events" },
+  openGraph: {
+    title: "Events & Workshops | The LeadFlow Pro",
+    description:
+      "Hands-on AI workshops for East Texas business owners, live in Longview. Ten seats, ninety minutes, bring your laptop, build something real.",
+    url: "https://www.theleadflowpro.com/events",
+    siteName: "The LeadFlow Pro",
+    type: "website",
+    images: [{ url: "/og/events/chatgpt-for-business-owners-longview.jpg", width: 1200, height: 630 }],
+  },
 };
+
+const FOUNDING_SLUG = "chatgpt-for-business-owners-longview";
 
 export default async function EventsPage() {
   const supabase = await createClient();
   const { data: events } = await supabase
     .from("events")
-    .select("*")
+    .select(EVENT_PUBLIC_FIELDS)
     .eq("is_published", true)
     .order("starts_at", { ascending: true });
 
-  const upcoming = (events ?? []).filter(
+  const published = (events ?? []) as unknown as EventRow[];
+  const upcoming = published.filter(
     (event) => !event.starts_at || new Date(event.starts_at) > new Date(),
   );
+  const founding = published.find((event) => event.slug === FOUNDING_SLUG) ?? null;
+
+  let availability: EventAvailability | null = null;
+  if (founding) {
+    const { data } = await supabase.rpc("event_availability", { p_slug: founding.slug });
+    availability = ((Array.isArray(data) ? data[0] : data) as EventAvailability | null) ?? null;
+  }
 
   return (
     <main className={`cb-page ${styles.page}`}>
+      {/* -------------------------------------------------------------- hero --- */}
       <section className="cb-hero">
         <div className="cb-shell cb-hero-layout">
           <div className="cb-hero-copy">
@@ -40,21 +69,25 @@ export default async function EventsPage() {
             <div className={styles.heroFacts}>
               <span>
                 <MapPin aria-hidden="true" />
-                East Texas
+                Longview, Texas
               </span>
               <span>
                 <Laptop aria-hidden="true" />
                 Hands-on work
               </span>
+              <span>
+                <CalendarDays aria-hidden="true" />
+                Small rooms, real coaching
+              </span>
             </div>
             <div className="cb-actions">
-              <a className="cb-btn cb-btn--primary" href="#upcoming-events">
-                See Upcoming Events
+              <a className="cb-btn cb-btn--primary" href="#founding-workshop">
+                See the Founding Workshop
                 <ArrowRight aria-hidden="true" />
               </a>
-              <Link className="cb-btn cb-btn--ghost" href="/book?interest=training_platform">
-                Ask About Team Training
-              </Link>
+              <a className="cb-btn cb-btn--ghost" href="#upcoming-events">
+                Upcoming Dates
+              </a>
             </div>
           </div>
 
@@ -65,7 +98,7 @@ export default async function EventsPage() {
               width={1003}
               height={1568}
               priority
-              sizes="(max-width: 900px) 100vw, 42vw"
+              sizes="(max-width: 900px) 92vw, 460px"
             />
             <figcaption>
               <span>Ryan Nichols, instructor</span>
@@ -75,7 +108,11 @@ export default async function EventsPage() {
         </div>
       </section>
 
-      <section id="upcoming-events" className="cb-band" tabIndex={-1}>
+      {/* ------------------------------------------- founding workshop deep --- */}
+      <WorkshopShowcase event={founding} availability={availability} />
+
+      {/* --------------------------------------------------------- schedule --- */}
+      <section id="upcoming-events" className="cb-band cb-band--tint" tabIndex={-1}>
         <div className="cb-shell">
           <div className={styles.eventHeading}>
             <div>
@@ -83,8 +120,8 @@ export default async function EventsPage() {
               <h2 className="cb-h2">Reserve your place in the room.</h2>
             </div>
             <p className="cb-lead">
-              Published events appear here as dates are confirmed. Registration and payment
-              behavior stay attached to each event card.
+              Dates open here as they are confirmed. Ten paid seats per workshop, first come,
+              first served — a seat is confirmed only after payment.
             </p>
           </div>
 
@@ -92,14 +129,15 @@ export default async function EventsPage() {
             {upcoming.length === 0 && (
               <div className={styles.emptyState}>
                 <CalendarDays aria-hidden="true" />
-                <p className="cb-eyebrow">Dates in progress</p>
-                <h2>Next event dates coming soon.</h2>
+                <p className="cb-eyebrow">Founding date being finalized</p>
+                <h2>The founding class opens to this list first.</h2>
                 <p>
-                  Workshops are being scheduled across East Texas. Book a call and Ryan will
-                  make sure you hear about the next one first.
+                  The founding ChatGPT workshop above is being scheduled now. Book a call and
+                  Ryan will make sure you get first pick of the ten seats before the date is
+                  announced anywhere else.
                 </p>
-                <Link href="/book" className="cb-btn cb-btn--primary">
-                  Book a Call
+                <Link href="/book?interest=workshop_founding" className="cb-btn cb-btn--primary">
+                  Get First Pick of the Seats
                   <ArrowRight aria-hidden="true" />
                 </Link>
               </div>
@@ -111,7 +149,48 @@ export default async function EventsPage() {
         </div>
       </section>
 
+      {/* ---------------------------------------------------------- cadence --- */}
       <section className="cb-band cb-band--ink">
+        <div className="cb-shell">
+          <div className={styles.eventHeading}>
+            <div>
+              <p className="cb-eyebrow">Where this is going</p>
+              <h2 className="cb-h2">One founding class. Then a running calendar.</h2>
+            </div>
+            <p className="cb-lead">
+              The founding workshop sets the format. After it runs, workshops move to a
+              recurring Tuesday and Thursday rhythm — same room, same hands-on format,
+              different builds.
+            </p>
+          </div>
+          <div className={styles.cadenceGrid}>
+            <div className={styles.cadenceCard}>
+              <h3>1 · The founding class</h3>
+              <p>
+                Ten founding seats at the founding price. ChatGPT only, beginner-friendly, and
+                deep enough for real operators. This is the cheapest this room will ever be.
+              </p>
+            </div>
+            <div className={styles.cadenceCard}>
+              <h3>2 · The recurring workshops</h3>
+              <p>
+                Tuesday and Thursday sessions open after the founding class proves the format.
+                New builds, new hot seats, same ten-seat cap.
+              </p>
+            </div>
+            <div className={styles.cadenceCard}>
+              <h3>3 · The advanced room</h3>
+              <p>
+                A separate advanced workshop on Claude, Claude Code, and agent tooling comes
+                later, at a higher price, for owners ready to go past ChatGPT.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* --------------------------------------------------- team training --- */}
+      <section className="cb-band">
         <div className="cb-shell">
           <div className={styles.trainingGrid}>
             <div>
