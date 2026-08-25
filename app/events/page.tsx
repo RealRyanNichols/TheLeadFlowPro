@@ -34,8 +34,8 @@ export default async function EventsPage() {
               <em>Real answers.</em>
             </h1>
             <p className="cb-hero-lead">
-              Bring your laptop and your questions. Leave knowing what to build, what to own,
-              and what your next move should be instead of renting another disconnected stack.
+              Bring your laptop and your real business. Ryan will show you how to use AI to
+              build something useful, then help you identify the next move that matters.
             </p>
             <div className={styles.heroFacts}>
               <span>
@@ -60,16 +60,16 @@ export default async function EventsPage() {
 
           <figure className={`cb-hero-visual ${styles.operatorVisual}`}>
             <Image
-              src="/images/ryan-meta-raybans-production-clean.jpg"
-              alt="Ryan Nichols wearing camera-enabled glasses"
-              width={768}
-              height={1024}
+              src="/images/workshops/chatgpt-workshop-stop-watching-ai-4x5.webp"
+              alt="Hands-on ChatGPT workshop in Longview from The LeadFlow Pro"
+              width={1003}
+              height={1568}
               priority
               sizes="(max-width: 900px) 100vw, 42vw"
             />
             <figcaption>
-              <span>Operator-led</span>
-              <strong>Bring the real business. Build the real next step.</strong>
+              <span>Ryan Nichols, instructor</span>
+              <strong>Ten seats. Ninety minutes. Build something real.</strong>
             </figcaption>
           </figure>
         </div>
