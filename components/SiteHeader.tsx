@@ -13,6 +13,7 @@ const NAV_LINKS: Array<[string, string]> = [
   ["/premier-system", "Premier System"],
   ["/#how-it-works", "How It Works"],
   ["/packages", "Packages"],
+  ["/events", "Events"],
   ["/about", "About Ryan"],
   ["/articles", "Articles"],
 ];

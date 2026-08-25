@@ -51,7 +51,9 @@ body{background:var(--page);min-width:320px;color:var(--text);text-rendering:opt
 .brand-lockup span{color:var(--blue);margin-left:2px}
 .desktop-nav{color:var(--muted);align-items:center;gap:28px;font-size:14px;font-weight:650;display:flex}
 .desktop-nav>a{white-space:nowrap}
-@media (max-width:1240px){.desktop-nav{gap:18px}}
+/* The Events link (Aug 25 2026) made the full-size nav overflow at 1440. */
+@media (max-width:1500px){.desktop-nav{gap:20px}}
+@media (max-width:1240px){.desktop-nav{gap:16px}}
 @media (max-width:1120px){.desktop-nav{gap:14px;font-size:13px}}
 .desktop-nav>a:not(.header-cta){transition:color .16s}
 .desktop-nav>a:not(.header-cta):hover{color:var(--heading)}
