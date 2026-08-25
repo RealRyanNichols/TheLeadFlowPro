@@ -6,6 +6,7 @@ import {
 } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
 import { sendInternalLeadAlert } from "@/lib/leadNotify";
+import { formatEventWhen, STANDS_ALONE_DISCLOSURE } from "@/lib/events";
 import {
   isUnmappedWebsiteLaunchPaymentLinkCandidate,
   isWebsiteLaunchDeposit,
@@ -460,6 +461,172 @@ async function ensureTimebackOrderPaid(
   }
 }
 
+// Paid workshop seat. claim_event_seat() locks the event row, so two people
+// paying at the same instant cannot both take the last seat: the second one
+// lands as 'overbooked' and Ryan gets told to refund it rather than the money
+// disappearing into a full room.
+async function ensureEventSeatPaid(
+  supabase: SupabaseClient,
+  session: StripeCheckoutSession,
+) {
+  const registrationId =
+    typeof session.metadata?.registration_id === "string" ? session.metadata.registration_id : "";
+  if (!registrationId) {
+    // A paid event checkout with no registration attached cannot be matched to
+    // a seat. Non-2xx keeps it retryable and visible in the Stripe dashboard.
+    throw new Error("Paid event checkout has no registration_id");
+  }
+  const sessionId = typeof session.id === "string" ? session.id.slice(0, 200) : null;
+  const amountCents = Number.isFinite(Number(session.amount_total))
+    ? Number(session.amount_total)
+    : null;
+
+  const claim = await supabase.rpc("claim_event_seat", {
+    p_registration_id: registrationId,
+    p_stripe_session_id: sessionId,
+    p_amount_cents: amountCents,
+  });
+  if (claim.error) throw new Error(`Seat claim failed: ${claim.error.code ?? claim.error.message}`);
+  const claimed = Array.isArray(claim.data) ? claim.data[0] : claim.data;
+  const seatStatus = claimed?.seat_status ?? "paid";
+
+  const loaded = await supabase
+    .from("event_registrations")
+    .select(
+      "id, full_name, email, phone, business_name, bottleneck, access_token, seat_number, confirmation_sent_at, " +
+        "events(slug, title, starts_at, duration_minutes, timezone, venue, city, address_line, address_visibility, clinic_enabled, instructor_name)",
+    )
+    .eq("id", registrationId)
+    .single();
+  if (loaded.error) throw new Error(`Seat lookup failed: ${loaded.error.code}`);
+
+  const registration = loaded.data as unknown as {
+    full_name: string;
+    email: string;
+    business_name: string | null;
+    bottleneck: string | null;
+    access_token: string;
+    seat_number: number | null;
+    confirmation_sent_at: string | null;
+    events: EventForEmail | EventForEmail[] | null;
+  };
+  const event = Array.isArray(registration.events) ? registration.events[0] : registration.events;
+  if (!event) throw new Error("Paid seat has no event attached");
+
+  if (registration.confirmation_sent_at) return;
+
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    const when = formatEventWhen(event);
+    const confirmUrl = `https://www.theleadflowpro.com/events/${event.slug}/confirmed?t=${encodeURIComponent(
+      registration.access_token,
+    )}`;
+    const location = [
+      event.venue,
+      event.address_line, // paid attendees always get the street address
+      event.city,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const overbooked = seatStatus === "overbooked";
+    const internal = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+        to: ["hello@theleadflowpro.com"],
+        subject: overbooked
+          ? `⚠️ OVERBOOKED SEAT (refund needed): ${event.title} — ${registration.email}`
+          : `🎟️ PAID SEAT ${registration.seat_number ?? ""}: ${event.title} — ${registration.email}`,
+        text: [
+          overbooked
+            ? "This payment arrived after the room filled. Refund it or open another seat."
+            : `Seat ${registration.seat_number ?? "?"} is paid.`,
+          "",
+          `Name: ${registration.full_name}`,
+          `Email: ${registration.email}`,
+          registration.business_name ? `Business: ${registration.business_name}` : "",
+          registration.bottleneck ? `Bottleneck: ${registration.bottleneck}` : "Bottleneck: not submitted yet",
+          "",
+          "Admin: https://www.theleadflowpro.com/admin/events",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      }),
+    }).catch(() => null);
+    if (!internal?.ok) throw new Error("Internal paid-seat alert was not accepted");
+
+    const attendee = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "Ryan Nichols <hello@theleadflowpro.com>",
+        to: [registration.email],
+        reply_to: "hello@theleadflowpro.com",
+        subject: overbooked
+          ? `About your ${event.title} payment`
+          : `Your seat is confirmed — ${event.title}`,
+        text: overbooked
+          ? [
+              `${registration.full_name.split(" ")[0]},`,
+              "",
+              "Your payment came in just after the last seat was taken, so I am refunding it in full today.",
+              "You are first in line for the next date — reply to this email and I will hold you a seat.",
+              "",
+              "Sorry for the shuffle.",
+              "",
+              "Ryan Nichols",
+              "The LeadFlow Pro",
+            ].join("\n")
+          : [
+              `${registration.full_name.split(" ")[0]}, your seat is confirmed.`,
+              "",
+              event.title,
+              when.full,
+              "",
+              location,
+              "",
+              "Bring a laptop, charged, with a charger. A free ChatGPT account is enough.",
+              "",
+              event.clinic_enabled
+                ? "Before class, tell me the one bottleneck in your business you want looked at. Everyone who submits one gets a Next Move card, and two businesses get a live hot seat:"
+                : "Your registration details:",
+              confirmUrl,
+              "",
+              STANDS_ALONE_DISCLOSURE,
+              "",
+              "See you there.",
+              "",
+              "Ryan Nichols",
+              "The LeadFlow Pro | Longview, Texas",
+            ].join("\n"),
+      }),
+    }).catch(() => null);
+    if (!attendee?.ok) throw new Error("Attendee confirmation email was not accepted");
+  }
+
+  const marked = await supabase
+    .from("event_registrations")
+    .update({ confirmation_sent_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq("id", registrationId);
+  if (marked.error) throw new Error(`Confirmation marker failed: ${marked.error.code}`);
+}
+
+type EventForEmail = {
+  slug: string;
+  title: string;
+  starts_at: string | null;
+  duration_minutes: number | null;
+  timezone: string;
+  venue: string | null;
+  city: string | null;
+  address_line: string | null;
+  address_visibility: string;
+  clinic_enabled: boolean;
+  instructor_name: string;
+};
+
 type StripeInvoiceWebhook = {
   id?: unknown;
   number?: unknown;
@@ -591,15 +758,8 @@ export async function POST(request: Request) {
       await ensureWebsiteLaunchIntake(supabase, session);
     } else if (kind === "timeback_order") {
       await ensureTimebackOrderPaid(supabase, session);
-    } else if (kind === "event" && typeof session.metadata?.registration_id === "string") {
-      // Paid seat: confirm the registration automatically.
-      const registration = await supabase
-        .from("event_registrations")
-        .update({ status: "confirmed" })
-        .eq("id", session.metadata.registration_id);
-      if (registration.error) {
-        throw new Error(`Event registration update failed: ${registration.error.code}`);
-      }
+    } else if (kind === "event") {
+      await ensureEventSeatPaid(supabase, session);
     } else if (kind === "learn_it") {
       await sendPurchaseEmails(customer.email, kind);
     }

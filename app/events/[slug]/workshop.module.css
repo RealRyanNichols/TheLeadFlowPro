@@ -1,0 +1,478 @@
+/* Workshop funnel. Mobile-first: the first phone screen carries the promise,
+   the date, the price, the seat count, and one button. Everything below is a
+   stack of plain bands, sized in the same tokens as the rest of the site. */
+
+.page {
+  padding-bottom: 96px;
+}
+
+@media (max-width: 780px) {
+  /* Room for the sticky reserve bar. */
+  .page {
+    padding-bottom: 128px;
+  }
+}
+
+.draftBanner {
+  background: var(--warn-tint);
+  border-bottom: 1px solid var(--warn-line);
+  color: var(--warn);
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 750;
+  text-align: center;
+}
+
+.heroGrid {
+  display: grid;
+  gap: clamp(28px, 5vw, 56px);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .heroGrid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
+  }
+}
+
+.factList {
+  display: grid;
+  gap: 12px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.factList li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.factList svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-top: 2px;
+  color: var(--blue);
+}
+
+.factList em {
+  display: block;
+  font-style: normal;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ------------------------------------------------------------ price card --- */
+
+.priceCard {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: clamp(22px, 4vw, 30px);
+  box-shadow: 0 2px 4px #0a12200a, 0 26px 60px #0a122021;
+  position: sticky;
+  top: 96px;
+}
+
+@media (max-width: 899px) {
+  .priceCard {
+    position: static;
+  }
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.price {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--heading);
+}
+
+.priceUnit {
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--muted);
+}
+
+.priceNote {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--warn);
+  background: var(--warn-tint);
+  border: 1px solid var(--warn-line);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+/* ------------------------------------------------------------ seat meter --- */
+
+.seatMeter {
+  margin-top: 20px;
+}
+
+.seatDots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.seatDot {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-tint);
+}
+
+.seatDotTaken {
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+.seatLabel {
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.soldOut {
+  margin-top: 18px;
+  border: 1px solid var(--danger-line);
+  background: var(--danger-tint);
+  color: var(--danger);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.fineprint {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
+.fineprint li {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--quiet);
+}
+
+/* ---------------------------------------------------------------- agenda --- */
+
+.agenda {
+  display: grid;
+  gap: 0;
+  margin-top: 32px;
+  border-top: 1px solid var(--line);
+}
+
+.agendaRow {
+  display: grid;
+  gap: 4px 24px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+@media (min-width: 720px) {
+  .agendaRow {
+    grid-template-columns: 130px minmax(0, 1fr);
+  }
+}
+
+.agendaWindow {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blue);
+  white-space: nowrap;
+}
+
+.agendaTitle {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--heading);
+  letter-spacing: -0.01em;
+}
+
+.agendaDetail {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* ----------------------------------------------------------------- lists --- */
+
+.cardGrid {
+  display: grid;
+  gap: 18px;
+  margin-top: 32px;
+}
+
+@media (min-width: 720px) {
+  .cardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.miniCard {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 22px;
+}
+
+.miniCard h3 {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--heading);
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+}
+
+.miniCard p {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0;
+}
+
+.splitGrid {
+  display: grid;
+  gap: 18px;
+  margin-top: 32px;
+}
+
+@media (min-width: 780px) {
+  .splitGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.checkList,
+.crossList {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.checkList li,
+.crossList li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.checkList svg,
+.crossList svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 3px;
+}
+
+.checkList svg {
+  color: var(--green);
+}
+
+.crossList svg {
+  color: var(--quiet);
+}
+
+/* ------------------------------------------------------------------- faq --- */
+
+.faq {
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.faq details {
+  border-bottom: 1px solid var(--line);
+}
+
+.faq summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 18px 40px 18px 0;
+  font-size: 16px;
+  font-weight: 750;
+  color: var(--heading);
+  position: relative;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary::after {
+  content: "+";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--blue);
+}
+
+.faq details[open] summary::after {
+  content: "–";
+}
+
+.faq p {
+  margin: 0;
+  padding: 0 0 20px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 68ch;
+}
+
+/* --------------------------------------------------------------- sticky --- */
+
+.stickyBar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: none;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: #0a1220f2;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid #ffffff1f;
+}
+
+@media (max-width: 780px) {
+  .stickyBar {
+    display: flex;
+  }
+}
+
+.stickyCopy {
+  color: #f4f6fa;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.stickyCopy span {
+  display: block;
+  color: #a8b4c8;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.stickyBar a {
+  flex: none;
+}
+
+/* -------------------------------------------------------------- register --- */
+
+.registerPanel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: clamp(22px, 4vw, 32px);
+  box-shadow: var(--cb-shadow, 0 12px 32px #0a12200f);
+  max-width: 720px;
+}
+
+.formGrid {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+@media (min-width: 620px) {
+  .formGridTwo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.consentRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.consentRow input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  flex: none;
+  accent-color: var(--blue);
+}
+
+.formError {
+  border: 1px solid var(--danger-line);
+  background: var(--danger-tint);
+  color: var(--danger);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.formNote {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--quiet);
+}
+
+.paidStep {
+  border: 1px solid var(--green-line);
+  background: var(--green-tint);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.paidStep h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 850;
+  color: var(--heading);
+}
+
+.paidStep p {
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text);
+}
