@@ -30,6 +30,7 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
     heading: "Work together",
     links: [
       ["/packages", "Packages"],
+      ["/events", "Events & Workshops"],
       ["/packages/launch", "Website Launch | $1,000"],
       ["/start", "Map My Company"],
       ["/contact", "Contact"],

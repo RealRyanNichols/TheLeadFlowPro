@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 type EventRow = {
   id: string;
+  slug: string;
   title: string;
   description: string | null;
   venue: string | null;
@@ -165,9 +167,14 @@ export default function EventCard({ event }: { event: EventRow }) {
           </button>
         </form>
       ) : (
-        <button onClick={() => setOpen(true)} className="btn-primary mt-5">
-          Reserve a Seat
-        </button>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Link href={`/events/${event.slug}`} className="btn-primary">
+            See Workshop Details
+          </Link>
+          <button onClick={() => setOpen(true)} className="btn-ghost">
+            Quick Registration
+          </button>
+        </div>
       )}
     </div>
   );

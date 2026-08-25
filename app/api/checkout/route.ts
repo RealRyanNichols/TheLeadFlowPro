@@ -46,20 +46,31 @@ export async function POST(request: Request) {
       const eventId = String(body.event_id ?? "");
       const registrationId = String(body.registration_id ?? "");
       if (!eventId) return NextResponse.json({ error: "event_id required" }, { status: 400 });
-      const supabase = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      const supabase = createSupabaseClient(SUPABASE_URL, serviceKey || SUPABASE_ANON_KEY);
       const { data: ev } = await supabase
         .from("events")
-        .select("id, title, price_usd, is_published")
+        .select("id, slug, title, price_usd, capacity, is_published")
         .eq("id", eventId)
         .eq("is_published", true)
         .single();
       if (!ev || Number(ev.price_usd) <= 0) {
         return NextResponse.json({ error: "Event not available for online payment" }, { status: 400 });
       }
+      if (serviceKey && ev.capacity) {
+        const { count } = await supabase
+          .from("event_registrations")
+          .select("id", { count: "exact", head: true })
+          .eq("event_id", ev.id)
+          .eq("status", "confirmed");
+        if ((count ?? 0) >= Number(ev.capacity)) {
+          return NextResponse.json({ error: "This workshop is sold out." }, { status: 409 });
+        }
+      }
       kind = "event";
       name = `Seat: ${ev.title}`;
       amount = Math.round(Number(ev.price_usd) * 100);
-      cancelUrl = `${site}/events?cancelled=1`;
+      cancelUrl = `${site}/events/${ev.slug}?cancelled=1`;
       metadata.kind = "event";
       metadata.event_id = ev.id;
       if (registrationId) metadata.registration_id = registrationId;

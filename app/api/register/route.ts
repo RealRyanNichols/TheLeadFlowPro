@@ -10,7 +10,28 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: `Missing ${f}` }, { status: 400 });
       }
     }
-    const supabase = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabase = createSupabaseClient(SUPABASE_URL, serviceKey || SUPABASE_ANON_KEY);
+    const { data: event } = await supabase
+      .from("events")
+      .select("id, capacity, is_published")
+      .eq("id", body.event_id)
+      .eq("is_published", true)
+      .maybeSingle();
+    if (!event) {
+      return NextResponse.json({ error: "This workshop is not open for registration." }, { status: 404 });
+    }
+
+    if (serviceKey && event.capacity) {
+      const { count } = await supabase
+        .from("event_registrations")
+        .select("id", { count: "exact", head: true })
+        .eq("event_id", event.id)
+        .eq("status", "confirmed");
+      if ((count ?? 0) >= Number(event.capacity)) {
+        return NextResponse.json({ error: "This workshop is sold out." }, { status: 409 });
+      }
+    }
     // Generate the id here so we can hand it back without needing read access
     // (RLS keeps registrations admin-read-only).
     const regId = crypto.randomUUID();
@@ -18,7 +39,7 @@ export async function POST(request: Request) {
       id: regId,
       event_id: body.event_id,
       full_name: String(body.full_name).slice(0, 200),
-      email: String(body.email).slice(0, 200),
+      email: String(body.email).trim().toLowerCase().slice(0, 200),
       phone: body.phone ? String(body.phone).slice(0, 50) : null,
       business_name: body.business_name ? String(body.business_name).slice(0, 200) : null,
       notes: body.notes ? String(body.notes).slice(0, 1000) : null,
