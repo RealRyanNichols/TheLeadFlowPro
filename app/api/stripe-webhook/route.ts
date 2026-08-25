@@ -494,7 +494,7 @@ async function ensureEventSeatPaid(
     .from("event_registrations")
     .select(
       "id, full_name, email, phone, business_name, bottleneck, access_token, seat_number, confirmation_sent_at, " +
-        "events(slug, title, starts_at, duration_minutes, timezone, venue, city, address_line, address_visibility, clinic_enabled, instructor_name)",
+        "events(id, slug, title, starts_at, duration_minutes, timezone, venue, city, clinic_enabled, instructor_name)",
     )
     .eq("id", registrationId)
     .single();
@@ -521,11 +521,11 @@ async function ensureEventSeatPaid(
     const confirmUrl = `https://www.theleadflowpro.com/events/${event.slug}/confirmed?t=${encodeURIComponent(
       registration.access_token,
     )}`;
-    const location = [
-      event.venue,
-      event.address_line, // paid attendees always get the street address
-      event.city,
-    ]
+    // The exact address lives in private.workshop_event_details, never in the
+    // anon-readable events row. Paid attendees always get it.
+    const addr = await supabase.rpc("event_exact_address", { p_event_id: event.id });
+    const details = Array.isArray(addr.data) ? addr.data[0] : addr.data;
+    const location = [event.venue, details?.exact_address, event.city]
       .filter(Boolean)
       .join("\n");
 
@@ -614,6 +614,7 @@ async function ensureEventSeatPaid(
 }
 
 type EventForEmail = {
+  id: string;
   slug: string;
   title: string;
   starts_at: string | null;
@@ -621,8 +622,6 @@ type EventForEmail = {
   timezone: string;
   venue: string | null;
   city: string | null;
-  address_line: string | null;
-  address_visibility: string;
   clinic_enabled: boolean;
   instructor_name: string;
 };
