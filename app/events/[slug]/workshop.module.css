@@ -43,13 +43,14 @@
   list-style: none;
 }
 
+/* The cb-hero band is ink, so the fact list runs on the on-ink palette. */
 .factList li {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  color: var(--text);
+  color: var(--cb-on-ink, #f4f6fa);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 650;
   line-height: 1.45;
 }
 
@@ -58,14 +59,14 @@
   height: 20px;
   flex: none;
   margin-top: 2px;
-  color: var(--blue);
+  color: var(--cb-cyan, #35c6f4);
 }
 
 .factList em {
   display: block;
   font-style: normal;
   font-weight: 500;
-  color: var(--muted);
+  color: var(--cb-muted-ink, #a8b4c8);
   font-size: 14px;
 }
 

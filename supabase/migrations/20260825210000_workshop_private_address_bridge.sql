@@ -63,3 +63,4 @@ revoke all on function public.event_exact_address(uuid) from public;
 revoke all on function public.event_confirmed_details(text) from public;
 grant execute on function public.event_exact_address(uuid) to service_role;
 grant execute on function public.event_confirmed_details(text) to anon, authenticated;
+

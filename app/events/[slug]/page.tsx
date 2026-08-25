@@ -181,10 +181,16 @@ export default async function WorkshopPage({
               </li>
             </ul>
             <div className="cb-actions">
-              <a className="cb-btn cb-btn--primary" href="#reserve">
-                Reserve My Seat | ${price}
-                <ArrowRight aria-hidden="true" />
-              </a>
+              {soldOut ? (
+                <a className="cb-btn cb-btn--ghost" href="#reserve">
+                  Sold Out — Details Below
+                </a>
+              ) : (
+                <a className="cb-btn cb-btn--primary" href="#reserve">
+                  Reserve My Seat | ${price}
+                  <ArrowRight aria-hidden="true" />
+                </a>
+              )}
               <a className="cb-btn cb-btn--ghost" href="#agenda">
                 See the 90 Minutes
               </a>

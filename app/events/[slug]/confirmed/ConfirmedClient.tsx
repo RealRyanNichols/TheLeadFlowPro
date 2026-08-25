@@ -192,12 +192,14 @@ export default function ConfirmedClient({ slug }: { slug: string }) {
                 ) : (
                   <form onSubmit={saveBottleneck}>
                     <h3 style={{ marginTop: 0 }}>One question before class.</h3>
-                    <p className={styles.formNote} style={{ marginBottom: 12 }}>
+                    <p className={styles.formNote} style={{ marginBottom: 12 }} id="bottleneck-help">
                       What is the one bottleneck in your business right now? Every attendee who
                       answers gets a Next Move card in the AI Business Clinic, and two
                       businesses get a live hot seat.
                     </p>
                     <textarea
+                      aria-label="Your business bottleneck"
+                      aria-describedby="bottleneck-help"
                       className="input"
                       rows={3}
                       maxLength={1000}
