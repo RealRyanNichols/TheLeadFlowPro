@@ -5,6 +5,7 @@ import {
   enrollInEmailSeries,
   shouldEnrollInLegacyEmailSeries,
 } from "@/lib/leadNotify";
+import { runNurturePass } from "@/lib/nurture/sender";
 
 // Daily legacy-series enrollment sweep. Runs on Vercel Cron (vercel.json),
 // 10am Central.
@@ -37,6 +38,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: true, skipped: "missing SUPABASE_SERVICE_ROLE_KEY or RESEND_API_KEY" });
   }
 
+  const supabase = createSupabaseClient(SUPABASE_URL, serviceKey);
+
+  // The 30-day Meta lead nurture (steps 101-130 in lead_emails). Fully dark
+  // until NURTURE_SEQUENCE_ENABLED=true and NURTURE_LINK_SECRET are set —
+  // Ryan flips those only after approving the copy in lib/nurture/emails.ts.
+  const nurture = await runNurturePass(supabase, {
+    resendKey,
+    linkSecret: process.env.NURTURE_LINK_SECRET ?? "",
+  });
+
   // The Free Build 30-Day Email Series is retired. Keep the authenticated cron
   // route alive so scheduled calls remain healthy, but emit no new enrollment
   // events until replacement paid-ladder copy is approved.
@@ -45,10 +56,10 @@ export async function GET(request: Request) {
       ok: true,
       skipped: "legacy_free_build_series_retired",
       enrolled: 0,
+      nurture,
     });
   }
 
-  const supabase = createSupabaseClient(SUPABASE_URL, serviceKey);
   const since = new Date(Date.now() - 21 * 86400e3).toISOString();
 
   const { data: leads } = await supabase
@@ -99,5 +110,6 @@ export async function GET(request: Request) {
     checked: (leads ?? []).length,
     enrolled,
     excluded_paid: excludedPaid,
+    nurture,
   });
 }
