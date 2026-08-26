@@ -373,8 +373,7 @@ async function ensureTimebackOrderPaid(
 
   // The activity row is the idempotency marker for the internal alert, same
   // contract as the Website Launch flow: alert first, marker after, so a
-  // provider failure keeps the Stripe event retryable. Missing RESEND config
-  // is not a failure; the payment is already recorded either way.
+  // provider failure keeps the Stripe event retryable.
   const activityDetail = `Time Back order paid through Stripe. ${orderSummary}. Stripe checkout: ${sessionId}.`;
   const existingActivity = await supabase
     .from("lead_activity")
@@ -389,28 +388,33 @@ async function ensureTimebackOrderPaid(
   }
   if (!existingActivity.data) {
     const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
-      const r = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-          to: ["hello@theleadflowpro.com"],
-          subject: `💰 TIME BACK ORDER PAID: ${leadName} — ${customer.email}`,
-          text: [
-            orderSummary,
-            paidUsd !== null ? `Paid: $${paidUsd}` : "",
-            stripeStamp.platforms ? `Platforms: ${stripeStamp.platforms}` : "",
-            "",
-            "They were sent to the welcome intake. Next: the access invites.",
-            "Admin: https://www.theleadflowpro.com/admin/time-back",
-          ]
-            .filter(Boolean)
-            .join("\n"),
-        }),
-      }).catch(() => null);
-      if (!r?.ok) throw new Error("Internal Time Back paid alert was not accepted");
+    // No key means no alert. Writing the marker anyway would retire this
+    // payment as handled forever, so the alert could never fire again even
+    // after Resend was fixed. Throw instead and let Stripe retry it.
+    if (!resendKey) {
+      throw new Error("RESEND_API_KEY missing: Time Back paid alert not sent");
     }
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+        to: ["hello@theleadflowpro.com"],
+        subject: `💰 TIME BACK ORDER PAID: ${leadName} — ${customer.email}`,
+        text: [
+          orderSummary,
+          paidUsd !== null ? `Paid: $${paidUsd}` : "",
+          stripeStamp.platforms ? `Platforms: ${stripeStamp.platforms}` : "",
+          "",
+          "They were sent to the welcome intake. Next: the access invites.",
+          "Admin: https://www.theleadflowpro.com/admin/time-back",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      }),
+    }).catch(() => null);
+    if (!r?.ok) throw new Error("Internal Time Back paid alert was not accepted");
+
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
       kind: "system",
@@ -477,95 +481,102 @@ async function ensureEventSeatPaid(
   if (registration.confirmation_sent_at) return;
 
   const resendKey = process.env.RESEND_API_KEY;
-  if (resendKey) {
-    const when = formatEventWhen(event);
-    const confirmUrl = `https://www.theleadflowpro.com/events/${event.slug}/confirmed?t=${encodeURIComponent(
-      registration.access_token,
-    )}`;
-    // The exact address lives in private.workshop_event_details, never in the
-    // anon-readable events row. Paid attendees always get it.
-    const addr = await supabase.rpc("event_exact_address", { p_event_id: event.id });
-    const details = Array.isArray(addr.data) ? addr.data[0] : addr.data;
-    const location = [event.venue, details?.exact_address, event.city]
-      .filter(Boolean)
-      .join("\n");
-
-    const overbooked = seatStatus === "overbooked";
-    const internal = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-        to: ["hello@theleadflowpro.com"],
-        subject: overbooked
-          ? `⚠️ OVERBOOKED SEAT (refund needed): ${event.title} — ${registration.email}`
-          : `🎟️ PAID SEAT ${registration.seat_number ?? ""}: ${event.title} — ${registration.email}`,
-        text: [
-          overbooked
-            ? "This payment arrived after the room filled. Refund it or open another seat."
-            : `Seat ${registration.seat_number ?? "?"} is paid.`,
-          "",
-          `Name: ${registration.full_name}`,
-          `Email: ${registration.email}`,
-          registration.business_name ? `Business: ${registration.business_name}` : "",
-          registration.bottleneck ? `Bottleneck: ${registration.bottleneck}` : "Bottleneck: not submitted yet",
-          "",
-          "Admin: https://www.theleadflowpro.com/admin/events",
-        ]
-          .filter(Boolean)
-          .join("\n"),
-      }),
-    }).catch(() => null);
-    if (!internal?.ok) throw new Error("Internal paid-seat alert was not accepted");
-
-    const attendee = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: "Ryan Nichols <hello@theleadflowpro.com>",
-        to: [registration.email],
-        reply_to: "hello@theleadflowpro.com",
-        subject: overbooked
-          ? `About your ${event.title} payment`
-          : `Your seat is confirmed — ${event.title}`,
-        text: overbooked
-          ? [
-              `${registration.full_name.split(" ")[0]},`,
-              "",
-              "Your payment came in just after the last seat was taken, so I am refunding it in full today.",
-              "You are first in line for the next date — reply to this email and I will hold you a seat.",
-              "",
-              "Sorry for the shuffle.",
-              "",
-              "Ryan Nichols",
-              "The LeadFlow Pro",
-            ].join("\n")
-          : [
-              `${registration.full_name.split(" ")[0]}, your seat is confirmed.`,
-              "",
-              event.title,
-              when.full,
-              "",
-              location,
-              "",
-              "Bring a laptop, charged, with a charger. A free ChatGPT account is enough.",
-              "",
-              event.clinic_enabled
-                ? "Before class, tell me the one bottleneck in your business you want looked at. Everyone who submits one gets a Next Move card, and two businesses get a live hot seat:"
-                : "Your registration details:",
-              confirmUrl,
-              "",
-              STANDS_ALONE_DISCLOSURE,
-              "",
-              "See you there.",
-              "",
-              "Ryan Nichols",
-              "The LeadFlow Pro | Longview, Texas",
-            ].join("\n"),
-      }),
-    }).catch(() => null);
-    if (!attendee?.ok) throw new Error("Attendee confirmation email was not accepted");
+  // confirmation_sent_at is a one-way door: the early return above means a
+  // registration carrying it is never processed again, by retry or by replay.
+  // Stamping it without having sent anything therefore does not delay the
+  // attendee's confirmation, it cancels it, and with it the only message that
+  // carries the exact address. Refuse to reach that stamp with no way to send.
+  if (!resendKey) {
+    throw new Error("RESEND_API_KEY missing: paid seat confirmation not sent");
   }
+
+  const when = formatEventWhen(event);
+  const confirmUrl = `https://www.theleadflowpro.com/events/${event.slug}/confirmed?t=${encodeURIComponent(
+    registration.access_token,
+  )}`;
+  // The exact address lives in private.workshop_event_details, never in the
+  // anon-readable events row. Paid attendees always get it.
+  const addr = await supabase.rpc("event_exact_address", { p_event_id: event.id });
+  const details = Array.isArray(addr.data) ? addr.data[0] : addr.data;
+  const location = [event.venue, details?.exact_address, event.city]
+    .filter(Boolean)
+    .join("\n");
+
+  const overbooked = seatStatus === "overbooked";
+  const internal = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+      to: ["hello@theleadflowpro.com"],
+      subject: overbooked
+        ? `⚠️ OVERBOOKED SEAT (refund needed): ${event.title} — ${registration.email}`
+        : `🎟️ PAID SEAT ${registration.seat_number ?? ""}: ${event.title} — ${registration.email}`,
+      text: [
+        overbooked
+          ? "This payment arrived after the room filled. Refund it or open another seat."
+          : `Seat ${registration.seat_number ?? "?"} is paid.`,
+        "",
+        `Name: ${registration.full_name}`,
+        `Email: ${registration.email}`,
+        registration.business_name ? `Business: ${registration.business_name}` : "",
+        registration.bottleneck ? `Bottleneck: ${registration.bottleneck}` : "Bottleneck: not submitted yet",
+        "",
+        "Admin: https://www.theleadflowpro.com/admin/events",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    }),
+  }).catch(() => null);
+  if (!internal?.ok) throw new Error("Internal paid-seat alert was not accepted");
+
+  const attendee = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "Ryan Nichols <hello@theleadflowpro.com>",
+      to: [registration.email],
+      reply_to: "hello@theleadflowpro.com",
+      subject: overbooked
+        ? `About your ${event.title} payment`
+        : `Your seat is confirmed — ${event.title}`,
+      text: overbooked
+        ? [
+            `${registration.full_name.split(" ")[0]},`,
+            "",
+            "Your payment came in just after the last seat was taken, so I am refunding it in full today.",
+            "You are first in line for the next date — reply to this email and I will hold you a seat.",
+            "",
+            "Sorry for the shuffle.",
+            "",
+            "Ryan Nichols",
+            "The LeadFlow Pro",
+          ].join("\n")
+        : [
+            `${registration.full_name.split(" ")[0]}, your seat is confirmed.`,
+            "",
+            event.title,
+            when.full,
+            "",
+            location,
+            "",
+            "Bring a laptop, charged, with a charger. A free ChatGPT account is enough.",
+            "",
+            event.clinic_enabled
+              ? "Before class, tell me the one bottleneck in your business you want looked at. Everyone who submits one gets a Next Move card, and two businesses get a live hot seat:"
+              : "Your registration details:",
+            confirmUrl,
+            "",
+            STANDS_ALONE_DISCLOSURE,
+            "",
+            "See you there.",
+            "",
+            "Ryan Nichols",
+            "The LeadFlow Pro | Longview, Texas",
+          ].join("\n"),
+    }),
+  }).catch(() => null);
+  if (!attendee?.ok) throw new Error("Attendee confirmation email was not accepted");
 
   const marked = await supabase
     .from("event_registrations")
@@ -706,24 +717,29 @@ async function ensureLeadFollowUpPaid(
   }
   if (!existingActivity.data) {
     const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
-      const alert = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
-          to: ["hello@theleadflowpro.com"],
-          subject: `💰 FOLLOW-UP CAMPAIGN PAID: ${leadName} — ${customer.email}`,
-          text: [
-            `$${LEAD_FOLLOW_UP.priceUsd} Lead Follow-Up Campaign paid.`,
-            "",
-            "They were sent to the writing intake. The work task is created when that form comes back.",
-            "Admin: https://www.theleadflowpro.com/admin/leads",
-          ].join("\n"),
-        }),
-      }).catch(() => null);
-      if (!alert?.ok) throw new Error("Internal Lead Follow-Up alert was not accepted");
+    // No key means no alert. Writing the marker anyway would retire this
+    // payment as handled forever, so the alert could never fire again even
+    // after Resend was fixed. Throw instead and let Stripe retry it.
+    if (!resendKey) {
+      throw new Error("RESEND_API_KEY missing: Lead Follow-Up paid alert not sent");
     }
+    const alert = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
+        to: ["hello@theleadflowpro.com"],
+        subject: `💰 FOLLOW-UP CAMPAIGN PAID: ${leadName} — ${customer.email}`,
+        text: [
+          `$${LEAD_FOLLOW_UP.priceUsd} Lead Follow-Up Campaign paid.`,
+          "",
+          "They were sent to the writing intake. The work task is created when that form comes back.",
+          "Admin: https://www.theleadflowpro.com/admin/leads",
+        ].join("\n"),
+      }),
+    }).catch(() => null);
+    if (!alert?.ok) throw new Error("Internal Lead Follow-Up alert was not accepted");
+
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
       kind: "system",
