@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { WEBSITE_LAUNCH_NAV } from "@/lib/offers";
 
 // The footer is ink on every page, light or dark, so the site always lands on
 // the same anchor. Add-Ons and Free Tools live here now that the primary nav is
 // organised around buyer intent.
-const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
+const COLUMNS: Array<{
+  heading: string;
+  links: Array<[string, string]>;
+  /** Small print under the column. The one place the payment terms fit. */
+  note?: string;
+}> = [
   {
     heading: "What we build",
     links: [
@@ -32,11 +38,12 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
       ["/packages", "Packages"],
       ["/events", "Events & Workshops"],
       ["/go/lead-follow-up", "Follow-Up Campaign | $197"],
-      ["/packages/launch", "Website Launch | $1,000"],
+      [WEBSITE_LAUNCH_NAV.href, WEBSITE_LAUNCH_NAV.label],
       ["/start", "Map My Company"],
       ["/contact", "Contact"],
       ["/login", "Log in"],
     ],
+    note: `Website Launch: ${WEBSITE_LAUNCH_NAV.depositNote}.`,
   },
 ];
 
@@ -72,6 +79,7 @@ export default function SiteFooter() {
                   </Link>
                 ))}
               </nav>
+              {col.note ? <p className="cb-footer-note">{col.note}</p> : null}
             </div>
           ))}
         </div>

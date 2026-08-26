@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Menu } from "lucide-react";
+import { WEBSITE_LAUNCH_NAV } from "@/lib/offers";
 
 // Primary navigation is ordered by buyer intent, not by sitemap. Add-Ons and
 // Free Tools live in the footer. Product Studio now has a real index at
@@ -41,8 +42,8 @@ export default function SiteHeader() {
             </Link>
           ))}
           <Link href="/login">Log in</Link>
-          <Link href="/packages/launch" className="header-cta" data-analytics="cta-start-project-header">
-            Website Launch | $500
+          <Link href={WEBSITE_LAUNCH_NAV.href} className="header-cta" data-analytics="cta-start-project-header">
+            {WEBSITE_LAUNCH_NAV.label}
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </nav>
@@ -57,8 +58,8 @@ export default function SiteHeader() {
               </Link>
             ))}
             <Link href="/login">Log in</Link>
-            <Link href="/packages/launch" className="header-cta" data-analytics="cta-start-project-mobile">
-              Website Launch | $500
+            <Link href={WEBSITE_LAUNCH_NAV.href} className="header-cta" data-analytics="cta-start-project-mobile">
+              {WEBSITE_LAUNCH_NAV.label}
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </div>
