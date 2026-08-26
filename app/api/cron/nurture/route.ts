@@ -120,7 +120,10 @@ export async function GET(request: Request) {
 
   for (const lead of (leads ?? []) as EligibleLead[]) {
     if (sent >= MAX_SENDS_PER_RUN) break;
-    if (!lead.email || lead.email.endsWith("@no-email.facebook.lead")) continue;
+    // Sentinel addresses: Meta leads with no email, and text-in leads who
+    // never gave one. Mailing them is a guaranteed hard bounce against the
+    // sending domain, which hurts delivery for everybody else on the list.
+    if (!lead.email || lead.email.includes("@no-email.")) continue;
 
     const due = stepsDueBy(ageInDays(lead.created_at));
     if (!due.length) continue;

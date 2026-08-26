@@ -53,6 +53,31 @@
   font-size: 14px;
 }
 
+.textUs {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 22px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cb-on-ink, #f4f6fa);
+}
+
+.textUs svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 2px;
+  color: var(--cb-cyan, #35c6f4);
+}
+
+.textUs a {
+  color: var(--cb-cyan, #35c6f4);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .slots {
   margin: 22px 0 0;
   font-size: 13.5px;
