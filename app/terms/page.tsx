@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Terms of Use | The LeadFlow Pro",
   description: "Terms for using The LeadFlow Pro website and requesting services.",
+  alternates: { canonical: "https://www.theleadflowpro.com/terms" },
 };
 
 export default function TermsPage() {

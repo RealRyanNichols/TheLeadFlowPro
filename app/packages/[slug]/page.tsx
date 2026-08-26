@@ -163,6 +163,10 @@ export async function generateMetadata({
   return {
     title: `${p.name} | ${p.price} | The LeadFlow Pro`,
     description: `${p.headline} ${p.priceNote}`,
+    // All three of these are in app/sitemap.ts, and /packages/launch is where
+    // the header CTA sends every visitor. Without this they inherited the root
+    // layout's canonical and told Google they were the homepage.
+    alternates: { canonical: `https://www.theleadflowpro.com/packages/${p.slug}` },
   };
 }
 

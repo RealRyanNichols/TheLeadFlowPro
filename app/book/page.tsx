@@ -7,6 +7,7 @@ export const metadata = {
   title: "Book a Call | The LeadFlow Pro",
   description:
     "Thirty minutes. Your next three moves. Tell me about your business and what you are paying to rent your platform.",
+  alternates: { canonical: "https://www.theleadflowpro.com/book" },
 };
 
 export default function BookPage() {

@@ -5,6 +5,7 @@ import SiteHero from "@/components/site/system/SiteHero";
 export const metadata = {
   title: "Contact | The LeadFlow Pro",
   description: "Send a message. I read every one myself.",
+  alternates: { canonical: "https://www.theleadflowpro.com/contact" },
 };
 
 export default function ContactPage() {
