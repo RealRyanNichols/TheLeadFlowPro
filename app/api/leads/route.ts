@@ -102,7 +102,13 @@ export async function POST(request: Request) {
 
     // Alert Ryan, reply to the lead, text them back. Shared with the Meta
     // instant form pipeline so both doors behave the same.
-    await notifyNewLead(lead);
+    await notifyNewLead({
+      ...lead,
+      funnel:
+        diagnostic && typeof (diagnostic as { source?: unknown }).source === "string"
+          ? String((diagnostic as { source?: unknown }).source)
+          : null,
+    });
 
     return NextResponse.json({ ok: true });
   } catch {

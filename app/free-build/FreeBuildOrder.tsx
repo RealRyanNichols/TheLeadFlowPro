@@ -1,0 +1,283 @@
+"use client";
+
+// The Free Build order form.
+//
+// Contract, same as the Time Back and Lead Follow-Up funnels: the lead is
+// SAVED BEFORE Stripe opens. Somebody who bails at the card screen is still a
+// person Ryan can call. That matters more here than anywhere else on the site,
+// because this page is the destination for the cheapest cold traffic we buy.
+//
+// The price is never sent from this component. /api/checkout looks the amount
+// up in lib/freeBuild.ts from the tier id alone.
+//
+// If checkout is not configured, this does NOT show an error. It shows a
+// confirmation, because the lead is already saved and Ryan can send a payment
+// link by hand. A broken card screen must never look like a broken business.
+
+import { useState } from "react";
+import { ArrowRight, Check, Lock } from "lucide-react";
+import { FREE_BUILD, formatUsd, type FreeBuildTier } from "@/lib/freeBuild";
+import styles from "./free-build.module.css";
+
+declare global {
+  interface Window {
+    fbq?: (...args: unknown[]) => void;
+  }
+}
+
+export default function FreeBuildOrder() {
+  const [tier, setTier] = useState<FreeBuildTier>(FREE_BUILD.tiers[1]);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState<string | null>(null);
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSending(true);
+    setError(null);
+
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const phone = String(form.get("phone") ?? "").trim();
+    const business = String(form.get("business_name") ?? "").trim();
+    const doing = String(form.get("what_you_do") ?? "").trim();
+    const params = new URLSearchParams(window.location.search);
+
+    // 1. Save the lead. Always. Before anything else can fail.
+    let leadRes: Response;
+    try {
+      leadRes = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: form.get("full_name"),
+          business_name: business || null,
+          email,
+          phone: phone || null,
+          website_url: String(form.get("website_url") ?? "").trim() || null,
+          interest: "launch_system",
+          goals: [
+            `FREE BUILD ORDER: ${tier.name} (${formatUsd(tier.priceUsd)}).`,
+            doing ? `What they do: ${doing}` : "",
+          ]
+            .filter(Boolean)
+            .join(" "),
+          best_contact_method: phone ? "phone" : "email",
+          sms_consent: form.get("sms_consent") === "on" && Boolean(phone),
+          marketing_email_consent: form.get("marketing_email_consent") === "on",
+          utm_source: params.get("utm_source"),
+          utm_medium: params.get("utm_medium"),
+          utm_campaign: params.get("utm_campaign"),
+          diagnostic: {
+            version: 1,
+            source: "free_build_funnel",
+            offer: tier.id,
+            tier_name: tier.name,
+            price_usd: tier.priceUsd,
+            pages: tier.pages,
+            what_you_do: doing || null,
+            next_action:
+              "Free Build order. Confirm payment, book the 20 minute call, start the build clock.",
+          },
+        }),
+      });
+    } catch {
+      setError("Could not reach the form. Check your connection and try again.");
+      setSending(false);
+      return;
+    }
+
+    if (!leadRes.ok) {
+      const body = (await leadRes.json().catch(() => ({}))) as { error?: string };
+      setError(body.error ?? "That did not go through. Please try again.");
+      setSending(false);
+      return;
+    }
+
+    window.fbq?.("track", "Lead");
+    window.fbq?.("track", "InitiateCheckout", { value: tier.priceUsd, currency: "USD" });
+
+    // 2. Try to open Stripe. Amount comes from the server, not from here.
+    try {
+      const checkout = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: tier.id, email }),
+      });
+      if (checkout.ok) {
+        const body = (await checkout.json()) as { url?: string };
+        if (body.url) {
+          window.location.href = body.url;
+          return;
+        }
+      }
+    } catch {
+      // fall through to the saved-by-hand path below
+    }
+
+    setSaved(
+      `You are in. Ryan will call or email you within one business day to book the twenty minute ` +
+        `call and send a secure payment link for ${formatUsd(tier.priceUsd)}. Your build slot is ` +
+        `held until then.`,
+    );
+    setSending(false);
+  }
+
+  if (saved) {
+    return (
+      <div className={styles.notice} id="order">
+        <h3>Your free build request is in.</h3>
+        <p>{saved}</p>
+        <p className={styles.noticeSmall}>
+          Ryan Nichols &middot; The LeadFlow Pro &middot; Longview, Texas
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.orderWrap} id="order">
+      {/* ------------------------------------------------------- tier cards --- */}
+      <div className={styles.tierGrid} role="radiogroup" aria-label="Pick your engine">
+        {FREE_BUILD.tiers.map((t) => {
+          const active = t.id === tier.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => setTier(t)}
+              className={`${styles.tierCard} ${active ? styles.tierCardOn : ""}`}
+            >
+              {t.tag && <span className={styles.tierTag}>{t.tag}</span>}
+              <span className={styles.tierName}>{t.name}</span>
+              <span className={styles.tierPrice}>
+                {formatUsd(t.priceUsd)}
+                <em>one time</em>
+              </span>
+              <span className={styles.tierPages}>{t.pages}</span>
+              <span className={styles.tierEngine}>{t.engine}</span>
+              <ul className={styles.tierList}>
+                {t.includes.map((line) => (
+                  <li key={line}>
+                    <Check aria-hidden="true" />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+              <span className={styles.tierPick}>{active ? "Selected" : "Pick this one"}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ------------------------------------------------------------- form --- */}
+      <form onSubmit={submit} className={styles.form}>
+        <div className={styles.formHead}>
+          <h3>
+            {tier.name} &middot; {formatUsd(tier.priceUsd)}
+          </h3>
+          <p>{tier.pages}. Change your pick above any time before you submit.</p>
+        </div>
+
+        <div className={styles.formGrid}>
+          <div>
+            <label className="label" htmlFor="fb-name">
+              Your name *
+            </label>
+            <input className="input" id="fb-name" name="full_name" required maxLength={200} />
+          </div>
+          <div>
+            <label className="label" htmlFor="fb-business">
+              Business name *
+            </label>
+            <input
+              className="input"
+              id="fb-business"
+              name="business_name"
+              required
+              maxLength={200}
+            />
+          </div>
+        </div>
+
+        <div className={styles.formGrid}>
+          <div>
+            <label className="label" htmlFor="fb-email">
+              Email *
+            </label>
+            <input
+              className="input"
+              id="fb-email"
+              name="email"
+              type="email"
+              required
+              maxLength={200}
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="fb-phone">
+              Cell phone
+            </label>
+            <input className="input" id="fb-phone" name="phone" type="tel" maxLength={50} />
+          </div>
+        </div>
+
+        <div>
+          <label className="label" htmlFor="fb-site">
+            Current website or Facebook page
+          </label>
+          <input
+            className="input"
+            id="fb-site"
+            name="website_url"
+            maxLength={300}
+            placeholder="Leave it blank if you do not have one yet"
+          />
+        </div>
+
+        <div>
+          <label className="label" htmlFor="fb-doing">
+            What does your business do, in one sentence?
+          </label>
+          <input
+            className="input"
+            id="fb-doing"
+            name="what_you_do"
+            maxLength={300}
+            placeholder="Residential HVAC in Gregg and Harrison County"
+          />
+        </div>
+
+        <label className={styles.consentRow}>
+          <input type="checkbox" name="sms_consent" />
+          <span>
+            You may call or text me about this build at the number above. Message and data rates may
+            apply. Reply STOP any time.
+          </span>
+        </label>
+
+        <label className={styles.consentRow}>
+          <input type="checkbox" name="marketing_email_consent" defaultChecked />
+          <span>
+            Send me Ryan&rsquo;s business emails. Optional, and one click unsubscribes at any time.
+          </span>
+        </label>
+
+        {error && <p className={styles.formError}>{error}</p>}
+
+        <button type="submit" disabled={sending} className="cb-btn cb-btn--primary">
+          {sending ? "Sending..." : `Claim My Free Build | ${formatUsd(tier.priceUsd)}`}
+          <ArrowRight aria-hidden="true" />
+        </button>
+
+        <p className={styles.secureNote}>
+          <Lock aria-hidden="true" />
+          Card payments are processed by Stripe. The LeadFlow Pro never sees or stores your card
+          number, and never asks for a password to any of your accounts.
+        </p>
+      </form>
+    </div>
+  );
+}

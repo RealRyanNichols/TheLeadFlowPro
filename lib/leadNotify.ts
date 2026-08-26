@@ -35,6 +35,12 @@ export type NotifiableLead = {
   utm_source?: string | null;
   source?: string | null;
   sms_consent?: boolean;
+  /**
+   * diagnostic.source of the form the lead came through, when there was one.
+   * The welcome reply has to describe the thing they actually just asked for:
+   * a Free Build order and a Fix First diagnostic are not the same promise.
+   */
+  funnel?: string | null;
 };
 
 type LegacySeriesCandidate = Pick<NotifiableLead, "interest" | "goals" | "source">;
@@ -112,6 +118,39 @@ export async function sendLeadEmails(lead: NotifiableLead) {
   const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
 
   await sendInternalLeadAlert(lead);
+
+  // Free Build orders get their own reply. They just picked an engine and
+  // expect a call to book, not a diagnostic read.
+  if (lead.funnel === "free_build_funnel") {
+    await send({
+      from: "Ryan Nichols <ryan@theleadflowpro.com>",
+      to: [lead.email],
+      reply_to: "hello@theleadflowpro.com",
+      subject: `${first}, your free build is claimed.`,
+      text: [
+        `${first},`,
+        ``,
+        `Your free build request just landed with me. Not a ticket queue. Mine.`,
+        ``,
+        `Here is what happens next:`,
+        ``,
+        `1. I reach out within one business day to book twenty minutes. Usually a text first, from (903) 500-8898. Save that number, it is my direct line.`,
+        `2. On that call I get what you do, who you want calling you, and what you want them to do when they land. Twenty minutes, that is the whole thing.`,
+        `3. Your site is live within 10 business days of that call, or the engine you paid for costs you nothing and you keep the site anyway.`,
+        ``,
+        `Have ready if you can: a few real photos of real work, your logo if you have one. No passwords, ever. Access happens through approvals you click yourself.`,
+        ``,
+        `Every system I have already built and handed over is here, live and clickable:`,
+        `https://www.theleadflowpro.com/portfolio`,
+        ``,
+        `Talk soon,`,
+        `Ryan Nichols`,
+        `The LeadFlow Pro`,
+        `(903) 500-8898`,
+      ].join("\n"),
+    });
+    return;
+  }
 
   await send({
     from: "Ryan Nichols <ryan@theleadflowpro.com>",

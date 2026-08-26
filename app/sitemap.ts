@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // /admin, /dashboard, /login, /training, /thank-you, /go, /embed.
   const pages = [
     "",
+    "/free-build",
     "/start",
     "/about",
     "/pricing",
@@ -31,6 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/articles",
     "/book",
     "/contact",
+    "/go/lead-follow-up",
     "/privacy",
     "/terms",
   ];
