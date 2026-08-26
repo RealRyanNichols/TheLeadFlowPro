@@ -31,6 +31,7 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
     links: [
       ["/packages", "Packages"],
       ["/events", "Events & Workshops"],
+      ["/go/lead-follow-up", "Follow-Up Campaign | $197"],
       ["/packages/launch", "Website Launch | $1,000"],
       ["/start", "Map My Company"],
       ["/contact", "Contact"],
