@@ -112,6 +112,30 @@ export async function sendInternalLeadAlert(lead: NotifiableLead) {
   });
 }
 
+/**
+ * Internal alert for a door that is not a `leads` row.
+ *
+ * /api/contact writes to `messages` and /api/register writes to
+ * `event_registrations`, so neither has a lead to hand sendInternalLeadAlert().
+ * Both still need Ryan told, because before this existed a /contact submission
+ * was only visible to somebody who thought to open /admin/messages, and a
+ * workshop registration that abandoned checkout was visible nowhere at all.
+ *
+ * Returns whether the provider accepted it. Callers treat a false as
+ * unfortunate rather than fatal: the row is already saved, and refusing the
+ * submission because an email failed would lose the thing we are trying to
+ * protect.
+ */
+export async function sendInternalAlert(subject: string, lines: string[]): Promise<boolean> {
+  return send({
+    from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
+    reply_to: "hello@theleadflowpro.com",
+    to: ["hello@theleadflowpro.com"],
+    subject,
+    text: lines.join("\n"),
+  });
+}
+
 export async function sendLeadEmails(lead: NotifiableLead) {
   if (!process.env.RESEND_API_KEY) return;
 
