@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
-import { NURTURE_STEPS, stepsDueBy, type NurtureStep } from "@/lib/nurture";
+import { NURTURE_STEPS, inSendWindow, stepsDueBy, type NurtureStep } from "@/lib/nurture";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
 // The 30 day sequence sender. Runs once a day on Vercel Cron.
@@ -20,9 +20,13 @@ import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 //   - not deleted, not a test row
 //   - marketing_email_consent is true. They ticked the box. No box, no series.
 //   - email_unsubscribed_at is null
-//   - status is new or contacted. Somebody who already bought or already said
-//     no does not get sold to.
+//   - status is new or contacted. Somebody who already said no does not get
+//     sold to.
+//   - no paid row in purchases for their email. status is a field a human has
+//     to remember to flip; a paid purchases row is what actually happened.
 //   - created in the last 45 days
+//
+// WHEN IT SENDS: only between 8am and 6pm America/Chicago. See inSendWindow().
 
 export const maxDuration = 60;
 
@@ -78,6 +82,10 @@ export async function GET(request: Request) {
     });
   }
 
+  if (!inSendWindow()) {
+    return NextResponse.json({ ok: true, skipped: "outside 8am-6pm Central", sent: 0 });
+  }
+
   const supabase = createSupabaseClient(SUPABASE_URL, serviceKey);
   const since = new Date(Date.now() - LOOKBACK_DAYS * 86400e3).toISOString();
 
@@ -100,6 +108,33 @@ export async function GET(request: Request) {
   const ids = (leads ?? []).map((l) => l.id);
   if (!ids.length) return NextResponse.json({ ok: true, checked: 0, sent: 0 });
 
+  // Anybody who has already paid stops here. status = 'won' is the manual
+  // version of the same fact and a human has to remember to set it; a paid row
+  // in purchases is the thing that actually happened. Without this check a
+  // customer keeps getting "here is why you should buy" every morning for a
+  // month after they bought, which is the worst email a paying customer can
+  // receive. Matched by email because purchases has no lead_id.
+  const leadEmails = [
+    ...new Set(
+      (leads ?? [])
+        .map((l) => String(l.email ?? "").trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  ];
+  const { data: paidRows, error: paidError } = await supabase
+    .from("purchases")
+    .select("email")
+    .eq("status", "paid")
+    .in("email", leadEmails);
+  if (paidError) {
+    // Failing open here would email customers. Failing closed costs one day.
+    console.error("Nurture purchase check failed:", paidError.message);
+    return NextResponse.json({ error: "purchase check failed" }, { status: 500 });
+  }
+  const paidEmails = new Set(
+    (paidRows ?? []).map((r) => String(r.email ?? "").trim().toLowerCase()),
+  );
+
   // One read for the whole batch instead of a query per lead.
   const { data: sentRows } = await supabase
     .from("lead_emails")
@@ -116,6 +151,7 @@ export async function GET(request: Request) {
 
   let sent = 0;
   let failed = 0;
+  let stoppedForPurchase = 0;
   const errors: string[] = [];
 
   for (const lead of (leads ?? []) as EligibleLead[]) {
@@ -124,6 +160,10 @@ export async function GET(request: Request) {
     // never gave one. Mailing them is a guaranteed hard bounce against the
     // sending domain, which hurts delivery for everybody else on the list.
     if (!lead.email || lead.email.includes("@no-email.")) continue;
+    if (paidEmails.has(lead.email.trim().toLowerCase())) {
+      stoppedForPurchase++;
+      continue;
+    }
 
     const due = stepsDueBy(ageInDays(lead.created_at));
     if (!due.length) continue;
@@ -195,6 +235,7 @@ export async function GET(request: Request) {
     checked: (leads ?? []).length,
     sent,
     failed,
+    stopped_for_purchase: stoppedForPurchase,
     errors: errors.slice(0, 5),
   });
 }

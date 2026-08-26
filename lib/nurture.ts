@@ -579,6 +579,30 @@ Ryan`,
   },
 ];
 
+/**
+ * True between 8am and 6pm America/Chicago. The only window we send in.
+ *
+ * The cron is scheduled at 16:00 UTC, which is already inside the window in
+ * both halves of the year. This guard exists for the day somebody retimes the
+ * cron, or Vercel runs a backlogged invocation late: a daily business email
+ * landing at 2am reads as a machine that got loose, and it is the kind of
+ * mistake that gets a sending domain marked as spam rather than merely
+ * ignored. Central because that is where Ryan and the leads are.
+ */
+export function inSendWindow(now: Date = new Date()): boolean {
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Chicago",
+      hour: "numeric",
+      hour12: false,
+    }).format(now),
+  );
+  // Intl renders midnight as "24" in some ICU builds. Normalize it to 0 so an
+  // overnight run is never mistaken for 2pm.
+  const normalized = hour === 24 ? 0 : hour;
+  return normalized >= 8 && normalized < 18;
+}
+
 /** The step due for a lead this many days old, or null. Highest due wins. */
 export function stepDueOnDay(ageInDays: number): NurtureStep | null {
   let due: NurtureStep | null = null;

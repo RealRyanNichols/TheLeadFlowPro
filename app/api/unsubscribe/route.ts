@@ -17,11 +17,17 @@ async function unsubscribe(request: Request): Promise<{ ok: boolean; status: num
   const id = String(url.searchParams.get("id") ?? "");
   const token = String(url.searchParams.get("t") ?? "");
   const secret = unsubscribeSecret();
+  // The signing secret and the database key are two different things. They
+  // only coincide when UNSUBSCRIBE_SECRET is unset and unsubscribeSecret()
+  // falls back to the service role key. The moment UNSUBSCRIBE_SECRET is set,
+  // handing it to Supabase as a key makes every unsubscribe click fail while
+  // still returning a friendly confirmation page.
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
-  if (!id || !token || !secret) return { ok: false, status: 400 };
+  if (!id || !token || !secret || !serviceKey) return { ok: false, status: 400 };
   if (!verifyUnsubscribe(id, token, secret)) return { ok: false, status: 403 };
 
-  const supabase = createSupabaseClient(SUPABASE_URL, secret);
+  const supabase = createSupabaseClient(SUPABASE_URL, serviceKey);
   const now = new Date().toISOString();
 
   const { error } = await supabase
