@@ -80,23 +80,52 @@ const FORM_CAMPAIGNS: Record<string, string> = {
   // LFP | Time Back Business Review | v1 — published 2026-08-20, the Time
   // Back campaign's form. Also listed in META_LEAD_FORM_IDS in Vercel.
   "2235052820606054": "time_back",
+  // LFP | Fix First Form | v1 — published 2026-08-25, the picture lead ad
+  // campaign's form. Also add to META_LEAD_FORM_IDS in Vercel.
+  "1794058118689457": "fix_first",
 };
 
-// The Time Back form asks for consent with two OPTIONAL checkboxes in the
-// custom disclaimer, in this order:
-//   1. call/text consent   2. 30-day marketing email consent
-// Meta returns them as custom_disclaimer_responses with generated keys, so we
-// order by key and read positionally. Unchecked or absent means NO. The old
-// free-build forms had no checkboxes, so their leads get no text and no
-// marketing email, which is exactly the playbook rule: a phone number alone
-// is not consent.
+// Which optional consent checkbox is which, PER FORM.
+//
+// Meta returns custom disclaimer checkboxes with generated keys, so sorted
+// position is the only ordering available. That is fine when every form has
+// the same boxes in the same order, and silently wrong the moment one does
+// not. The Fix First form has exactly ONE box and it is the email opt-in;
+// reading position 0 as "sms" recorded a marketing opt-in as a texting
+// opt-in and left marketing false, so nobody who asked for the daily email
+// would have been enrolled in it.
+//
+// Add a row here whenever a new form is published. A form that is missing
+// falls back to the legacy two-box order.
+const FORM_CONSENT_LAYOUT: Record<string, ReadonlyArray<"sms" | "marketing">> = {
+  // Two boxes: call/text consent, then 30-day email consent.
+  "2235052820606054": ["sms", "marketing"],
+  // One box: the daily email series only. The form copy says in as many
+  // words "No automated marketing texts," so there is no SMS consent here.
+  "1794058118689457": ["marketing"],
+};
+const LEGACY_CONSENT_LAYOUT: ReadonlyArray<"sms" | "marketing"> = ["sms", "marketing"];
+
+// Reads the optional consent checkboxes using that form's layout above.
+// Forms with no checkboxes at all (the old free-build ones) get no text and
+// no marketing email, which is the playbook rule: a phone number alone is
+// not consent.
 function parseConsents(raw: MetaLead): { sms: boolean; marketing: boolean } {
   const boxes = [...(raw.custom_disclaimer_responses ?? [])].sort((a, b) =>
     String(a.checkbox_key ?? "").localeCompare(String(b.checkbox_key ?? "")),
   );
   const checked = (r?: MetaDisclaimerResponse) =>
     r ? r.is_checked === true || r.is_checked === "1" || r.is_checked === "true" : false;
-  return { sms: checked(boxes[0]), marketing: checked(boxes[1]) };
+
+  const layout =
+    (raw.form_id ? FORM_CONSENT_LAYOUT[raw.form_id] : undefined) ?? LEGACY_CONSENT_LAYOUT;
+
+  const out = { sms: false, marketing: false };
+  layout.forEach((kind, i) => {
+    if (checked(boxes[i])) out[kind] = true;
+  });
+  // Unchecked or absent means NO, always. A phone number alone is not consent.
+  return out;
 }
 
 // Meta names custom questions after the question text, slugged. Match loosely

@@ -1,0 +1,93 @@
+.frameCard {
+  border: 1px solid var(--cb-hair);
+  border-radius: var(--cb-radius-lg);
+  background: var(--cb-surface);
+  box-shadow: var(--cb-shadow);
+  overflow: hidden;
+}
+
+.frame {
+  display: block;
+  width: 100%;
+  height: 1000px;
+  border: 0;
+}
+
+/* Phones: most clients do this on a phone. Give the embed more room so there
+   is less scrolling inside a scrolling page, and keep the direct link visible
+   as the escape hatch. */
+@media (max-width: 640px) {
+  .frame {
+    height: 1180px;
+  }
+}
+
+.fallback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--cb-hair);
+  background: var(--cb-surface-2);
+  font-size: 0.95rem;
+}
+
+.steps {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-top: 28px;
+}
+
+.step {
+  padding: 20px 22px;
+  border: 1px solid var(--cb-hair);
+  border-radius: var(--cb-radius);
+  background: var(--cb-surface);
+}
+
+.stepIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--cb-blue);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.step strong {
+  display: block;
+  color: var(--cb-ink);
+  margin-bottom: 6px;
+}
+
+.step p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.promise {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.promise li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.promise svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--cb-blue);
+}

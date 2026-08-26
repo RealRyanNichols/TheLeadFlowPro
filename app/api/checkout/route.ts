@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { holdTheLineOffer } from "@/lib/offers";
 import { priceOrder } from "@/lib/timeback";
+import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
@@ -12,6 +13,12 @@ const PRODUCTS: Record<string, { name: string; amount: number }> = {
   system_map: {
     name: "System Map | The LeadFlow Pro (credited toward your build)",
     amount: 49700,
+  },
+  // Amount comes from lib/leadFollowUp.ts so the page and the charge can
+  // never drift apart. The funnel posts no price field at all.
+  [LEAD_FOLLOW_UP.id]: {
+    name: `${LEAD_FOLLOW_UP.name} | The LeadFlow Pro`,
+    amount: LEAD_FOLLOW_UP.priceCents,
   },
 };
 
@@ -44,27 +51,64 @@ export async function POST(request: Request) {
     const metadata: Record<string, string> = {};
 
     if (body.kind === "event") {
-      // Paid event seat. Price comes from the database, never the client.
-      const eventId = String(body.event_id ?? "");
-      const registrationId = String(body.registration_id ?? "");
-      if (!eventId) return NextResponse.json({ error: "event_id required" }, { status: 400 });
+      // Paid event seat. Price, publish state, and remaining capacity all come
+      // from the database. The browser only proves which registration it holds
+      // by sending back the token that registration handed it.
+      const token = typeof body.registration_token === "string" ? body.registration_token : "";
+      if (token.length < 24) {
+        return NextResponse.json({ error: "Register before checkout." }, { status: 400 });
+      }
       const supabase = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      const { data: lookup } = await supabase.rpc("event_registration_by_token", {
+        p_token: token,
+      });
+      const registration = Array.isArray(lookup) ? lookup[0] : lookup;
+      if (!registration?.registration_id) {
+        return NextResponse.json({ error: "Register before checkout." }, { status: 400 });
+      }
+      if (["paid", "attended", "no_show"].includes(registration.seat_status)) {
+        return NextResponse.json({ error: "This seat is already paid for." }, { status: 409 });
+      }
+      if (["cancelled", "refunded"].includes(registration.seat_status)) {
+        return NextResponse.json({ error: "This registration was cancelled." }, { status: 409 });
+      }
+
       const { data: ev } = await supabase
         .from("events")
-        .select("id, title, price_usd, is_published")
-        .eq("id", eventId)
+        .select("id, slug, title, price_usd, is_published")
+        .eq("slug", registration.event_slug)
         .eq("is_published", true)
         .single();
       if (!ev || Number(ev.price_usd) <= 0) {
-        return NextResponse.json({ error: "Event not available for online payment" }, { status: 400 });
+        return NextResponse.json(
+          { error: "Event not available for online payment" },
+          { status: 400 },
+        );
       }
+
+      // Capacity is checked again here, after registration, because the room
+      // can fill between the two steps.
+      const { data: seats } = await supabase.rpc("event_availability", { p_slug: ev.slug });
+      const availability = Array.isArray(seats) ? seats[0] : seats;
+      if (!availability?.registration_open) {
+        return NextResponse.json(
+          { error: "This workshop is sold out. Nothing was charged." },
+          { status: 409 },
+        );
+      }
+
       kind = "event";
       name = `Seat: ${ev.title}`;
       amount = Math.round(Number(ev.price_usd) * 100);
-      cancelUrl = `${site}/events?cancelled=1`;
+      cancelUrl = `${site}/events/${ev.slug}?cancelled=1`;
+      successUrl = `${site}/events/${ev.slug}/confirmed?t=${encodeURIComponent(
+        token,
+      )}&session_id={CHECKOUT_SESSION_ID}`;
       metadata.kind = "event";
       metadata.event_id = ev.id;
-      if (registrationId) metadata.registration_id = registrationId;
+      metadata.event_slug = ev.slug;
+      metadata.registration_id = registration.registration_id;
     } else if (body.kind === "build_deposit") {
       // Down payment on a custom scope or anything Ryan quoted outside the
       // package ladder. Amount is customer-chosen and clamped server-side.
@@ -172,6 +216,12 @@ export async function POST(request: Request) {
       amount = product.amount;
       metadata.kind = kind;
       if (kind === "system_map") cancelUrl = `${site}/packages/system-map?cancelled=1`;
+      if (kind === LEAD_FOLLOW_UP.id) {
+        // Buyers land on the writing intake, not the generic thank-you.
+        // Nothing gets written until that form comes back.
+        cancelUrl = `${site}/go/lead-follow-up?cancelled=1`;
+        successUrl = `${site}/go/lead-follow-up/intake?session_id={CHECKOUT_SESSION_ID}`;
+      }
     }
 
     const params = new URLSearchParams({

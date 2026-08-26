@@ -11,6 +11,8 @@ import {
   sendSeriesEvent,
 } from "@/lib/leadNotify";
 import { HOLD_THE_LINE_OFFERS, holdTheLineOffer } from "@/lib/offers";
+import { formatEventWhen, STANDS_ALONE_DISCLOSURE } from "@/lib/events";
+import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 import {
   isUnmappedWebsiteLaunchPaymentLinkCandidate,
   isWebsiteLaunchDeposit,
@@ -613,6 +615,319 @@ async function ensureTimebackOrderPaid(
   }
 }
 
+// Paid workshop seat. claim_event_seat() locks the event row, so two people
+// paying at the same instant cannot both take the last seat: the second one
+// lands as 'overbooked' and Ryan gets told to refund it rather than the money
+// disappearing into a full room.
+async function ensureEventSeatPaid(
+  supabase: SupabaseClient,
+  session: StripeCheckoutSession,
+) {
+  const registrationId =
+    typeof session.metadata?.registration_id === "string" ? session.metadata.registration_id : "";
+  if (!registrationId) {
+    // A paid event checkout with no registration attached cannot be matched to
+    // a seat. Non-2xx keeps it retryable and visible in the Stripe dashboard.
+    throw new Error("Paid event checkout has no registration_id");
+  }
+  const sessionId = typeof session.id === "string" ? session.id.slice(0, 200) : null;
+  const amountCents = Number.isFinite(Number(session.amount_total))
+    ? Number(session.amount_total)
+    : null;
+
+  const claim = await supabase.rpc("claim_event_seat", {
+    p_registration_id: registrationId,
+    p_stripe_session_id: sessionId,
+    p_amount_cents: amountCents,
+  });
+  if (claim.error) throw new Error(`Seat claim failed: ${claim.error.code ?? claim.error.message}`);
+  const claimed = Array.isArray(claim.data) ? claim.data[0] : claim.data;
+  const seatStatus = claimed?.seat_status ?? "paid";
+
+  const loaded = await supabase
+    .from("event_registrations")
+    .select(
+      "id, full_name, email, phone, business_name, bottleneck, access_token, seat_number, confirmation_sent_at, " +
+        "events(id, slug, title, starts_at, duration_minutes, timezone, venue, city, clinic_enabled, instructor_name)",
+    )
+    .eq("id", registrationId)
+    .single();
+  if (loaded.error) throw new Error(`Seat lookup failed: ${loaded.error.code}`);
+
+  const registration = loaded.data as unknown as {
+    full_name: string;
+    email: string;
+    business_name: string | null;
+    bottleneck: string | null;
+    access_token: string;
+    seat_number: number | null;
+    confirmation_sent_at: string | null;
+    events: EventForEmail | EventForEmail[] | null;
+  };
+  const event = Array.isArray(registration.events) ? registration.events[0] : registration.events;
+  if (!event) throw new Error("Paid seat has no event attached");
+
+  if (registration.confirmation_sent_at) return;
+
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    const when = formatEventWhen(event);
+    const confirmUrl = `https://www.theleadflowpro.com/events/${event.slug}/confirmed?t=${encodeURIComponent(
+      registration.access_token,
+    )}`;
+    // The exact address lives in private.workshop_event_details, never in the
+    // anon-readable events row. Paid attendees always get it.
+    const addr = await supabase.rpc("event_exact_address", { p_event_id: event.id });
+    const details = Array.isArray(addr.data) ? addr.data[0] : addr.data;
+    const location = [event.venue, details?.exact_address, event.city]
+      .filter(Boolean)
+      .join("\n");
+
+    const overbooked = seatStatus === "overbooked";
+    const internal = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+        to: ["hello@theleadflowpro.com"],
+        subject: overbooked
+          ? `⚠️ OVERBOOKED SEAT (refund needed): ${event.title} — ${registration.email}`
+          : `🎟️ PAID SEAT ${registration.seat_number ?? ""}: ${event.title} — ${registration.email}`,
+        text: [
+          overbooked
+            ? "This payment arrived after the room filled. Refund it or open another seat."
+            : `Seat ${registration.seat_number ?? "?"} is paid.`,
+          "",
+          `Name: ${registration.full_name}`,
+          `Email: ${registration.email}`,
+          registration.business_name ? `Business: ${registration.business_name}` : "",
+          registration.bottleneck ? `Bottleneck: ${registration.bottleneck}` : "Bottleneck: not submitted yet",
+          "",
+          "Admin: https://www.theleadflowpro.com/admin/events",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      }),
+    }).catch(() => null);
+    if (!internal?.ok) throw new Error("Internal paid-seat alert was not accepted");
+
+    const attendee = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "Ryan Nichols <hello@theleadflowpro.com>",
+        to: [registration.email],
+        reply_to: "hello@theleadflowpro.com",
+        subject: overbooked
+          ? `About your ${event.title} payment`
+          : `Your seat is confirmed — ${event.title}`,
+        text: overbooked
+          ? [
+              `${registration.full_name.split(" ")[0]},`,
+              "",
+              "Your payment came in just after the last seat was taken, so I am refunding it in full today.",
+              "You are first in line for the next date — reply to this email and I will hold you a seat.",
+              "",
+              "Sorry for the shuffle.",
+              "",
+              "Ryan Nichols",
+              "The LeadFlow Pro",
+            ].join("\n")
+          : [
+              `${registration.full_name.split(" ")[0]}, your seat is confirmed.`,
+              "",
+              event.title,
+              when.full,
+              "",
+              location,
+              "",
+              "Bring a laptop, charged, with a charger. A free ChatGPT account is enough.",
+              "",
+              event.clinic_enabled
+                ? "Before class, tell me the one bottleneck in your business you want looked at. Everyone who submits one gets a Next Move card, and two businesses get a live hot seat:"
+                : "Your registration details:",
+              confirmUrl,
+              "",
+              STANDS_ALONE_DISCLOSURE,
+              "",
+              "See you there.",
+              "",
+              "Ryan Nichols",
+              "The LeadFlow Pro | Longview, Texas",
+            ].join("\n"),
+      }),
+    }).catch(() => null);
+    if (!attendee?.ok) throw new Error("Attendee confirmation email was not accepted");
+  }
+
+  const marked = await supabase
+    .from("event_registrations")
+    .update({ confirmation_sent_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq("id", registrationId);
+  if (marked.error) throw new Error(`Confirmation marker failed: ${marked.error.code}`);
+}
+
+type EventForEmail = {
+  id: string;
+  slug: string;
+  title: string;
+  starts_at: string | null;
+  duration_minutes: number | null;
+  timezone: string;
+  venue: string | null;
+  city: string | null;
+  clinic_enabled: boolean;
+  instructor_name: string;
+};
+
+// Paid $197 Lead Follow-Up Campaign. The funnel already saved the lead before
+// Stripe opened, so this marks that row won and stamps the payment. The
+// writing itself waits on the intake form the buyer lands on next; that route
+// creates the work task.
+async function ensureLeadFollowUpPaid(
+  supabase: SupabaseClient,
+  session: StripeCheckoutSession,
+) {
+  const sessionId = typeof session.id === "string" ? session.id.slice(0, 200) : "";
+  const customer = websiteLaunchCustomer(session);
+  if (!sessionId || !customer.email) {
+    throw new Error("Paid Lead Follow-Up checkout is missing its session ID or email");
+  }
+
+  const externalId = `stripe_checkout:${sessionId}`;
+  const stripeStamp = {
+    session_id: sessionId,
+    paid_at: new Date().toISOString(),
+    amount_total_cents: Number.isFinite(Number(session.amount_total))
+      ? Number(session.amount_total)
+      : null,
+  };
+
+  const found = await supabase
+    .from("leads")
+    .select("id, full_name, phone, diagnostic, external_id")
+    .ilike("email", escapeIlike(customer.email))
+    .eq("diagnostic->>source", "lead_follow_up_funnel")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (found.error) throw new Error(`Lead Follow-Up lookup failed: ${found.error.code}`);
+
+  let leadId: string;
+  let leadName = customer.fullName;
+  if (found.data) {
+    leadId = found.data.id;
+    leadName = found.data.full_name || leadName;
+    const diagnostic =
+      found.data.diagnostic && typeof found.data.diagnostic === "object"
+        ? (found.data.diagnostic as Record<string, unknown>)
+        : {};
+    const updates: Record<string, unknown> = {
+      status: "won",
+      diagnostic: { ...diagnostic, paid: true, stripe: stripeStamp },
+    };
+    if (!found.data.phone && customer.phone) updates.phone = customer.phone;
+    if (!found.data.external_id) updates.external_id = externalId;
+    const updated = await supabase.from("leads").update(updates).eq("id", leadId);
+    if (updated.error && updated.error.code !== "23505") {
+      throw new Error(`Lead Follow-Up update failed: ${updated.error.code}`);
+    }
+  } else {
+    // Paid without a funnel row (different email at checkout, or a saved
+    // link). Create the lead so the order has a home in the CRM.
+    const inserted = await supabase
+      .from("leads")
+      .insert({
+        full_name: customer.fullName,
+        email: customer.email,
+        phone: customer.phone,
+        interest: "done_for_you",
+        goals: `LEAD FOLLOW-UP CAMPAIGN paid through Stripe ($${LEAD_FOLLOW_UP.priceUsd}). Waiting on the writing intake.`,
+        best_contact_method: "email",
+        source: "stripe_checkout",
+        utm_source: "stripe",
+        utm_medium: "checkout",
+        utm_campaign: "lead_follow_up",
+        sms_consent: false,
+        marketing_email_consent: false,
+        status: "won",
+        external_id: externalId,
+        diagnostic: {
+          version: 1,
+          source: "lead_follow_up_funnel",
+          offer: LEAD_FOLLOW_UP.id,
+          paid: true,
+          stripe: stripeStamp,
+          next_action: "Paid without a funnel row. Send the intake link if it does not arrive.",
+        },
+      })
+      .select("id, full_name")
+      .single();
+    if (inserted.error?.code === "23505") {
+      const raced = await supabase
+        .from("leads")
+        .select("id, full_name")
+        .eq("external_id", externalId)
+        .is("deleted_at", null)
+        .single();
+      if (raced.error) throw new Error(`Lead Follow-Up race recovery failed: ${raced.error.code}`);
+      leadId = raced.data.id;
+      leadName = raced.data.full_name || leadName;
+    } else if (inserted.error) {
+      throw new Error(`Lead Follow-Up insert failed: ${inserted.error.code}`);
+    } else {
+      leadId = inserted.data.id;
+      leadName = inserted.data.full_name || leadName;
+    }
+  }
+
+  // The activity row is the idempotency marker for the internal alert: alert
+  // first, marker after, so a provider failure keeps the Stripe event
+  // retryable. Same contract as the other paid flows in this file.
+  const activityDetail = `Lead Follow-Up Campaign paid through Stripe. Stripe checkout: ${sessionId}.`;
+  const existingActivity = await supabase
+    .from("lead_activity")
+    .select("id")
+    .eq("lead_id", leadId)
+    .eq("kind", "system")
+    .eq("detail", activityDetail)
+    .limit(1)
+    .maybeSingle();
+  if (existingActivity.error) {
+    throw new Error(`Lead Follow-Up activity lookup failed: ${existingActivity.error.code}`);
+  }
+  if (!existingActivity.data) {
+    const resendKey = process.env.RESEND_API_KEY;
+    if (resendKey) {
+      const alert = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
+          to: ["hello@theleadflowpro.com"],
+          subject: `💰 FOLLOW-UP CAMPAIGN PAID: ${leadName} — ${customer.email}`,
+          text: [
+            `$${LEAD_FOLLOW_UP.priceUsd} Lead Follow-Up Campaign paid.`,
+            "",
+            "They were sent to the writing intake. The work task is created when that form comes back.",
+            "Admin: https://www.theleadflowpro.com/admin/leads",
+          ].join("\n"),
+        }),
+      }).catch(() => null);
+      if (!alert?.ok) throw new Error("Internal Lead Follow-Up alert was not accepted");
+    }
+    const activityInsert = await supabase.from("lead_activity").insert({
+      lead_id: leadId,
+      kind: "system",
+      detail: activityDetail,
+    });
+    if (activityInsert.error) {
+      throw new Error(`Lead Follow-Up activity insert failed: ${activityInsert.error.code}`);
+    }
+  }
+}
+
 type StripeInvoiceWebhook = {
   id?: unknown;
   number?: unknown;
@@ -744,15 +1059,10 @@ export async function POST(request: Request) {
       await ensureWebsiteLaunchIntake(supabase, session);
     } else if (kind === "timeback_order") {
       await ensureTimebackOrderPaid(supabase, session);
-    } else if (kind === "event" && typeof session.metadata?.registration_id === "string") {
-      // Paid seat: confirm the registration automatically.
-      const registration = await supabase
-        .from("event_registrations")
-        .update({ status: "confirmed" })
-        .eq("id", session.metadata.registration_id);
-      if (registration.error) {
-        throw new Error(`Event registration update failed: ${registration.error.code}`);
-      }
+    } else if (kind === "event") {
+      await ensureEventSeatPaid(supabase, session);
+    } else if (kind === LEAD_FOLLOW_UP.id) {
+      await ensureLeadFollowUpPaid(supabase, session);
     } else if (kind === "learn_it") {
       await sendPurchaseEmails(customer.email, kind);
     } else if (HOLD_THE_LINE_OFFERS.some((offer) => offer.slug === kind)) {

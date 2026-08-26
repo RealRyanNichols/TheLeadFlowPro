@@ -12,6 +12,7 @@ export const NAV_LINKS: Array<[string, string]> = [
   ["/hold-the-line", "Hold The Line"],
   ["/#how-it-works", "How It Works"],
   ["/packages", "Packages"],
+  ["/events", "Events"],
   ["/about", "About Ryan"],
   ["/articles", "Articles"],
 ];
@@ -43,6 +44,8 @@ export const FOOTER_COLUMNS: Array<{
     heading: "Work together",
     links: [
       ["/packages", "Packages"],
+      ["/events", "Events & Workshops"],
+      ["/go/lead-follow-up", "Follow-Up Campaign | $197"],
       ["/packages/launch", "Website Launch | $1,000"],
       ["/hold-the-line", "Hold The Line"],
       ["/start", "Map My Company"],
