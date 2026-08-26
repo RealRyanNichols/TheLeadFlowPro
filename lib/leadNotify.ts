@@ -117,17 +117,17 @@ export async function sendLeadEmails(lead: NotifiableLead) {
     from: "Ryan Nichols <ryan@theleadflowpro.com>",
     to: [lead.email],
     reply_to: "hello@theleadflowpro.com",
-    subject: `Got it, ${first}. Your build request is in my hands.`,
+    subject: `Got it, ${first}. I am looking at what to fix first.`,
     text: [
       `${first},`,
       ``,
-      `Your request just landed in my system. Not a ticket queue. Mine. I read every one of these myself.`,
+      `Your answers just landed in my system. Not a ticket queue. Mine. I read every one of these myself.`,
       ``,
       `Here is what happens next:`,
       ``,
-      `1. I look at what you told me: your business, what you have online now, and how fast you want this.`,
+      `1. I look at what you told me: what you are running now, what it is costing you, and how fast you want it changed.`,
       `2. I reach out within one business day. Usually a text first, from (903) 500-8898. Save that number, it is my direct line.`,
-      `3. You leave that first conversation knowing your next three moves, whether you hire me or not.`,
+      `3. You leave that first conversation knowing the fastest thing to fix and your next three moves, whether you hire me or not.`,
       ``,
       `Want a head start? The live systems I have already built and handed over are here:`,
       `https://www.theleadflowpro.com/portfolio`,
@@ -181,7 +181,7 @@ export async function textLeadBack(lead: NotifiableLead) {
   const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
   await sendLeadText(
     lead.phone,
-    `${first}, this is Ryan with The LeadFlow Pro. Got your request and I am already looking at it. I will text or call you shortly. Save this number, it is my direct line. Reply STOP to opt out.`,
+    `${first}, this is Ryan with The LeadFlow Pro. Got your answers and I am already looking at what to fix first. I will text or call you shortly. Save this number, it is my direct line. Reply STOP to opt out.`,
   );
 }
 
