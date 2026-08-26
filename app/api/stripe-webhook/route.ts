@@ -5,7 +5,12 @@ import {
   type SupabaseClient,
 } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
-import { sendInternalLeadAlert } from "@/lib/leadNotify";
+import {
+  HOLD_THE_LINE_PURCHASE_EVENT,
+  sendInternalLeadAlert,
+  sendSeriesEvent,
+} from "@/lib/leadNotify";
+import { HOLD_THE_LINE_OFFERS, holdTheLineOffer } from "@/lib/offers";
 import { formatEventWhen, STANDS_ALONE_DISCLOSURE } from "@/lib/events";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 import {
@@ -92,6 +97,154 @@ async function sendPurchaseEmails(email: string, kind: string) {
       "The LeadFlow Pro | Own your platform.",
     ].join("\n"),
   });
+}
+
+// Hold The Line fulfillment. The Playbook is a digital delivery: the buyer
+// gets the access link by email the moment the payment clears, the same way
+// Learn It delivers training access above. The service rungs get the next-step
+// email their offer page promised. Copy rules for this lane: no em dashes, no
+// outcome guarantees, and never a word about researching a private person.
+const HOLD_THE_LINE_BUYER_EMAILS: Record<string, { subject: string; text: string }> = {
+  "hold-the-line-playbook": {
+    subject: "Your Hold The Line Playbook is ready.",
+    text: [
+      "It is yours now. Read it here:",
+      "",
+      "https://www.theleadflowpro.com/hold-the-line/playbook",
+      "",
+      "Keep the link. Start with the sorting table, then read the never-type list twice. The sorting table tells you who you are dealing with. The never-type list is the difference between a business page and a memory.",
+      "",
+      "One more thing. Buying the playbook takes you out of the email series. Nobody needs a sales pitch for the thing they already own.",
+      "",
+      "If something is live in your comments right now and you want a second set of eyes on it, Comment Rescue is the fast lane:",
+      "https://www.theleadflowpro.com/offers/comment-rescue",
+      "",
+      "Ryan Nichols",
+      "The LeadFlow Pro | Hold the line.",
+    ].join("\n"),
+  },
+  "comment-rescue": {
+    subject: "Got it. Send me the thread.",
+    text: [
+      "Your Comment Rescue is paid and in my hands. Here is what I need, all in a reply to this email:",
+      "",
+      "1. The link to the post or thread.",
+      "2. A screenshot of the comment and the thread around it, in case anything gets edited or deleted.",
+      "3. One line of context. Who is this to your business, as far as you know?",
+      "",
+      "Within 24 hours of your reply you get the read on what type you are dealing with, the exact reply to paste, and what to do if they come back.",
+      "",
+      "Until then, do not answer them. The thread is not going anywhere and neither am I.",
+      "",
+      "Ryan Nichols",
+      "The LeadFlow Pro | Hold the line.",
+    ].join("\n"),
+  },
+  "voice-recovery": {
+    subject: "Voice Recovery: let's get your session booked.",
+    text: [
+      "Your Voice Recovery Session is paid. Reply to this email with:",
+      "",
+      "1. Two or three times that work for a 60-minute call.",
+      "2. Which platform and what happened, in a sentence.",
+      "3. Whatever the platform sent you. Forward it or screenshot it. Do not clean it up.",
+      "",
+      "On the call we figure out what actually happened to the account, write the appeal together, and map where your voice lives if this ever happens again. You leave with the appeal text and a one-page rebuild plan.",
+      "",
+      "One thing I will say now so the call starts honest: nobody can promise an account comes back. I will tell you the truth about your odds.",
+      "",
+      "Ryan Nichols",
+      "The LeadFlow Pro | Hold the line.",
+    ].join("\n"),
+  },
+  "comment-cover": {
+    subject: "Comment Cover is on. Two questions.",
+    text: [
+      "Comment Cover is active. Reply to this email with:",
+      "",
+      "1. The pages you want watched. Links, not names.",
+      "2. How you want replies handed to you: text or email.",
+      "",
+      "From there we watch the page, sort what comes in, and hand you the reply. You approve and post. Nothing goes out under your name that you did not sign off on.",
+      "",
+      "Cancel any time by replying to any email from me.",
+      "",
+      "Ryan Nichols",
+      "The LeadFlow Pro | Hold the line.",
+    ].join("\n"),
+  },
+};
+
+async function sendHoldTheLinePurchaseEmails(email: string, kind: string) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+  const offer = holdTheLineOffer(kind);
+  const buyer = HOLD_THE_LINE_BUYER_EMAILS[kind];
+  const send = (payload: object) =>
+    fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+
+  await send({
+    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+    to: ["hello@theleadflowpro.com"],
+    subject: `💰 PURCHASE: ${offer?.name ?? kind} — ${email}`,
+    text: `New Hold The Line purchase.\n\nProduct: ${offer?.name ?? kind} (${offer?.priceLabel ?? ""})\nBuyer: ${email}\n\nAdmin: https://www.theleadflowpro.com/admin`,
+  });
+  if (buyer) {
+    await send({
+      from: "Ryan Nichols <hello@theleadflowpro.com>",
+      to: [email],
+      reply_to: "hello@theleadflowpro.com",
+      subject: buyer.subject,
+      text: buyer.text,
+    });
+  }
+}
+
+// Buyers must never keep getting the nurture that sells them the thing they
+// just bought. Three layers, from most to least authoritative:
+//   1. The purchases row written above: both enrollment paths check it.
+//   2. The hold-the-line-purchase event to Resend: the automation's exit rule
+//      listens for it and pulls the contact out of the running series.
+//   3. A step 0 claim on every matching lead row, so the cron sweep can never
+//      enroll this buyer later. UNIQUE (lead_id, step) makes it idempotent.
+async function excludeHoldTheLineBuyerFromNurture(
+  supabase: SupabaseClient,
+  email: string,
+) {
+  await sendSeriesEvent(HOLD_THE_LINE_PURCHASE_EVENT, email);
+
+  const { data: leads } = await supabase
+    .from("leads")
+    .select("id")
+    .ilike("email", escapeIlike(email))
+    .eq("interest", "hold_the_line")
+    .is("deleted_at", null);
+
+  const detail = "Bought the Hold The Line Playbook. Excluded from the nurture series.";
+  for (const lead of leads ?? []) {
+    await supabase.from("lead_emails").insert({ lead_id: lead.id, step: 0 });
+    const existing = await supabase
+      .from("lead_activity")
+      .select("id")
+      .eq("lead_id", lead.id)
+      .eq("kind", "system")
+      .eq("detail", detail)
+      .limit(1)
+      .maybeSingle();
+    if (!existing.data) {
+      await supabase.from("lead_activity").insert({
+        lead_id: lead.id,
+        // 'kind' has a CHECK constraint: stage_change | owner_change | note |
+        // task | system | message | delete. Anything else throws.
+        kind: "system",
+        detail,
+      });
+    }
+  }
 }
 
 type IntakeLead = {
@@ -912,6 +1065,11 @@ export async function POST(request: Request) {
       await ensureLeadFollowUpPaid(supabase, session);
     } else if (kind === "learn_it") {
       await sendPurchaseEmails(customer.email, kind);
+    } else if (HOLD_THE_LINE_OFFERS.some((offer) => offer.slug === kind)) {
+      await sendHoldTheLinePurchaseEmails(customer.email, kind);
+      if (kind === "hold-the-line-playbook") {
+        await excludeHoldTheLineBuyerFromNurture(supabase, customer.email);
+      }
     }
 
     return NextResponse.json({ received: true });

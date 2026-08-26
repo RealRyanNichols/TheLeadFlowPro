@@ -294,13 +294,27 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         </div>
       </section>
 
-      <FinalCta
-        eyebrow="One useful tool is the proof"
-        title="Now imagine the whole website doing real work."
-        body="Map the pages, lead capture, follow-up, and reporting that should sit behind your offer. The result is a recommendation, not a guaranteed outcome."
-        primary={{ href: "/start", label: "Map My Company" }}
-        secondary={{ href: "/tools", label: `Browse all ${TOOL_COUNT} tools` }}
-      />
+      {tool.category === "Reputation" ? (
+        // Reputation tools attract people who are dealing with a bad review or
+        // a hostile comment section right now. Hold The Line is the lane built
+        // for exactly that, so these pages funnel there instead of the
+        // generic mapping CTA.
+        <FinalCta
+          eyebrow="When it is more than one review"
+          title="Somebody in your comments costing you customers?"
+          body="Hold The Line teaches you to answer critics and trolls without losing the account, and what to actually do if you were already suspended or demonetized."
+          primary={{ href: "/hold-the-line", label: "See Hold The Line" }}
+          secondary={{ href: "/tools", label: `Browse all ${TOOL_COUNT} tools` }}
+        />
+      ) : (
+        <FinalCta
+          eyebrow="One useful tool is the proof"
+          title="Now imagine the whole website doing real work."
+          body="Map the pages, lead capture, follow-up, and reporting that should sit behind your offer. The result is a recommendation, not a guaranteed outcome."
+          primary={{ href: "/start", label: "Map My Company" }}
+          secondary={{ href: "/tools", label: `Browse all ${TOOL_COUNT} tools` }}
+        />
+      )}
     </main>
   );
 }

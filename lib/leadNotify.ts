@@ -21,6 +21,7 @@ export const INTEREST_LABELS: Record<string, string> = {
   industry_os: "Company OS",
   custom_platform: "Custom Platform",
   operations: "Operations Partner",
+  hold_the_line: "Hold The Line",
 };
 
 export type NotifiableLead = {
@@ -156,7 +157,19 @@ export async function sendLeadEmails(lead: NotifiableLead) {
 //   3. Is RESEND_API_KEY set in Vercel for the environment you deployed to?
 const SERIES_EVENT = "free-build-lead";
 
-export async function enrollInEmailSeries(email: string) {
+// Hold The Line lane events. The lead event triggers the 32-email nurture
+// automation in Resend; it is deliberately NOT free-build-lead, because
+// reusing that event would drop these leads into the 31-email Free Build
+// series. The purchase event exists so the automation can pull a buyer out
+// of the nurture: nothing reads worse than being sold something you already
+// bought. The automation's exit rule must listen for it by this exact name.
+export const HOLD_THE_LINE_SERIES_EVENT = "hold-the-line-lead";
+export const HOLD_THE_LINE_PURCHASE_EVENT = "hold-the-line-purchase";
+
+// Sends a named event to the Resend Events API. Automations are triggered by
+// these events, not by adding a contact to an audience; see the note above
+// enrollInEmailSeries for the history of that mistake.
+export async function sendSeriesEvent(event: string, email: string) {
   const key = process.env.RESEND_API_KEY;
   if (!key || !email) return;
   try {
@@ -166,7 +179,7 @@ export async function enrollInEmailSeries(email: string) {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ event: SERIES_EVENT, email }),
+      body: JSON.stringify({ event, email }),
     });
     if (!r.ok) {
       console.error("Resend series enroll failed:", r.status, await r.text().catch(() => ""));
@@ -174,6 +187,13 @@ export async function enrollInEmailSeries(email: string) {
   } catch (e) {
     console.error("Resend series enroll error:", e);
   }
+}
+
+// The default keeps the Free Build path byte-for-byte unchanged: every
+// existing caller still fires free-build-lead. New doors pass their own
+// series event instead of hardcoding another string here.
+export async function enrollInEmailSeries(email: string, seriesEvent: string = SERIES_EVENT) {
+  await sendSeriesEvent(seriesEvent, email);
 }
 
 export async function textLeadBack(lead: NotifiableLead) {
