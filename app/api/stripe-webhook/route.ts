@@ -7,6 +7,7 @@ import {
 import { SUPABASE_URL } from "@/lib/config";
 import { sendInternalLeadAlert } from "@/lib/leadNotify";
 import { formatEventWhen, STANDS_ALONE_DISCLOSURE } from "@/lib/events";
+import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 import {
   isUnmappedWebsiteLaunchPaymentLinkCandidate,
   isWebsiteLaunchDeposit,
@@ -626,6 +627,154 @@ type EventForEmail = {
   instructor_name: string;
 };
 
+// Paid $197 Lead Follow-Up Campaign. The funnel already saved the lead before
+// Stripe opened, so this marks that row won and stamps the payment. The
+// writing itself waits on the intake form the buyer lands on next; that route
+// creates the work task.
+async function ensureLeadFollowUpPaid(
+  supabase: SupabaseClient,
+  session: StripeCheckoutSession,
+) {
+  const sessionId = typeof session.id === "string" ? session.id.slice(0, 200) : "";
+  const customer = websiteLaunchCustomer(session);
+  if (!sessionId || !customer.email) {
+    throw new Error("Paid Lead Follow-Up checkout is missing its session ID or email");
+  }
+
+  const externalId = `stripe_checkout:${sessionId}`;
+  const stripeStamp = {
+    session_id: sessionId,
+    paid_at: new Date().toISOString(),
+    amount_total_cents: Number.isFinite(Number(session.amount_total))
+      ? Number(session.amount_total)
+      : null,
+  };
+
+  const found = await supabase
+    .from("leads")
+    .select("id, full_name, phone, diagnostic, external_id")
+    .ilike("email", escapeIlike(customer.email))
+    .eq("diagnostic->>source", "lead_follow_up_funnel")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (found.error) throw new Error(`Lead Follow-Up lookup failed: ${found.error.code}`);
+
+  let leadId: string;
+  let leadName = customer.fullName;
+  if (found.data) {
+    leadId = found.data.id;
+    leadName = found.data.full_name || leadName;
+    const diagnostic =
+      found.data.diagnostic && typeof found.data.diagnostic === "object"
+        ? (found.data.diagnostic as Record<string, unknown>)
+        : {};
+    const updates: Record<string, unknown> = {
+      status: "won",
+      diagnostic: { ...diagnostic, paid: true, stripe: stripeStamp },
+    };
+    if (!found.data.phone && customer.phone) updates.phone = customer.phone;
+    if (!found.data.external_id) updates.external_id = externalId;
+    const updated = await supabase.from("leads").update(updates).eq("id", leadId);
+    if (updated.error && updated.error.code !== "23505") {
+      throw new Error(`Lead Follow-Up update failed: ${updated.error.code}`);
+    }
+  } else {
+    // Paid without a funnel row (different email at checkout, or a saved
+    // link). Create the lead so the order has a home in the CRM.
+    const inserted = await supabase
+      .from("leads")
+      .insert({
+        full_name: customer.fullName,
+        email: customer.email,
+        phone: customer.phone,
+        interest: "done_for_you",
+        goals: `LEAD FOLLOW-UP CAMPAIGN paid through Stripe ($${LEAD_FOLLOW_UP.priceUsd}). Waiting on the writing intake.`,
+        best_contact_method: "email",
+        source: "stripe_checkout",
+        utm_source: "stripe",
+        utm_medium: "checkout",
+        utm_campaign: "lead_follow_up",
+        sms_consent: false,
+        marketing_email_consent: false,
+        status: "won",
+        external_id: externalId,
+        diagnostic: {
+          version: 1,
+          source: "lead_follow_up_funnel",
+          offer: LEAD_FOLLOW_UP.id,
+          paid: true,
+          stripe: stripeStamp,
+          next_action: "Paid without a funnel row. Send the intake link if it does not arrive.",
+        },
+      })
+      .select("id, full_name")
+      .single();
+    if (inserted.error?.code === "23505") {
+      const raced = await supabase
+        .from("leads")
+        .select("id, full_name")
+        .eq("external_id", externalId)
+        .is("deleted_at", null)
+        .single();
+      if (raced.error) throw new Error(`Lead Follow-Up race recovery failed: ${raced.error.code}`);
+      leadId = raced.data.id;
+      leadName = raced.data.full_name || leadName;
+    } else if (inserted.error) {
+      throw new Error(`Lead Follow-Up insert failed: ${inserted.error.code}`);
+    } else {
+      leadId = inserted.data.id;
+      leadName = inserted.data.full_name || leadName;
+    }
+  }
+
+  // The activity row is the idempotency marker for the internal alert: alert
+  // first, marker after, so a provider failure keeps the Stripe event
+  // retryable. Same contract as the other paid flows in this file.
+  const activityDetail = `Lead Follow-Up Campaign paid through Stripe. Stripe checkout: ${sessionId}.`;
+  const existingActivity = await supabase
+    .from("lead_activity")
+    .select("id")
+    .eq("lead_id", leadId)
+    .eq("kind", "system")
+    .eq("detail", activityDetail)
+    .limit(1)
+    .maybeSingle();
+  if (existingActivity.error) {
+    throw new Error(`Lead Follow-Up activity lookup failed: ${existingActivity.error.code}`);
+  }
+  if (!existingActivity.data) {
+    const resendKey = process.env.RESEND_API_KEY;
+    if (resendKey) {
+      const alert = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
+          to: ["hello@theleadflowpro.com"],
+          subject: `💰 FOLLOW-UP CAMPAIGN PAID: ${leadName} — ${customer.email}`,
+          text: [
+            `$${LEAD_FOLLOW_UP.priceUsd} Lead Follow-Up Campaign paid.`,
+            "",
+            "They were sent to the writing intake. The work task is created when that form comes back.",
+            "Admin: https://www.theleadflowpro.com/admin/leads",
+          ].join("\n"),
+        }),
+      }).catch(() => null);
+      if (!alert?.ok) throw new Error("Internal Lead Follow-Up alert was not accepted");
+    }
+    const activityInsert = await supabase.from("lead_activity").insert({
+      lead_id: leadId,
+      kind: "system",
+      detail: activityDetail,
+    });
+    if (activityInsert.error) {
+      throw new Error(`Lead Follow-Up activity insert failed: ${activityInsert.error.code}`);
+    }
+  }
+}
+
 type StripeInvoiceWebhook = {
   id?: unknown;
   number?: unknown;
@@ -759,6 +908,8 @@ export async function POST(request: Request) {
       await ensureTimebackOrderPaid(supabase, session);
     } else if (kind === "event") {
       await ensureEventSeatPaid(supabase, session);
+    } else if (kind === LEAD_FOLLOW_UP.id) {
+      await ensureLeadFollowUpPaid(supabase, session);
     } else if (kind === "learn_it") {
       await sendPurchaseEmails(customer.email, kind);
     }

@@ -1,0 +1,355 @@
+/* $197 Lead Follow-Up Campaign funnel. Mobile-first: the first phone screen
+   carries the promise, the price, and the order form. Same tokens as the rest
+   of the site. */
+
+.page {
+  padding-bottom: 72px;
+}
+
+.heroGrid {
+  display: grid;
+  gap: clamp(28px, 5vw, 56px);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .heroGrid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
+  }
+}
+
+.factList {
+  display: grid;
+  gap: 12px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The cb-hero band is ink, so this list runs on the on-ink palette. */
+.factList li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  color: var(--cb-on-ink, #f4f6fa);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.factList svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-top: 2px;
+  color: var(--cb-cyan, #35c6f4);
+}
+
+.factList em {
+  display: block;
+  font-style: normal;
+  font-weight: 500;
+  color: var(--cb-muted-ink, #a8b4c8);
+  font-size: 14px;
+}
+
+/* ----------------------------------------------------------- order panel --- */
+
+.orderPanel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: clamp(22px, 4vw, 30px);
+  box-shadow: 0 2px 4px #0a12200a, 0 26px 60px #0a122021;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.price {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--heading);
+}
+
+.priceUnit {
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--muted);
+}
+
+.priceNote {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.form {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.formGrid {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 620px) {
+  .formGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.consentRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.consentRow input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  flex: none;
+  accent-color: var(--blue);
+}
+
+.formError {
+  border: 1px solid var(--danger-line);
+  background: var(--danger-tint);
+  color: var(--danger);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 650;
+  margin: 0;
+}
+
+.secureNote {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--quiet);
+}
+
+.secureNote svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  margin-top: 2px;
+}
+
+.notice {
+  border: 1px solid var(--green-line);
+  background: var(--green-tint);
+  border-radius: 16px;
+  padding: 22px;
+}
+
+.notice h3 {
+  margin: 0 0 8px;
+  font-size: 19px;
+  font-weight: 850;
+  color: var(--heading);
+}
+
+.notice p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+/* ----------------------------------------------------------------- cards --- */
+
+.cardGrid {
+  display: grid;
+  gap: 18px;
+  margin-top: 32px;
+}
+
+@media (min-width: 720px) {
+  .cardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.miniCard {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 22px;
+}
+
+.miniCard h3 {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--heading);
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+}
+
+.miniCard p {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0;
+}
+
+.splitGrid {
+  display: grid;
+  gap: 18px;
+}
+
+@media (min-width: 780px) {
+  .splitGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.checkList,
+.crossList {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.checkList li,
+.crossList li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.checkList svg,
+.crossList svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 3px;
+}
+
+.checkList svg {
+  color: var(--green);
+}
+
+.crossList svg {
+  color: var(--quiet);
+}
+
+/* ----------------------------------------------------------------- steps --- */
+
+.steps {
+  display: grid;
+  gap: 18px;
+  margin-top: 32px;
+}
+
+@media (min-width: 900px) {
+  .steps {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.step {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.stepNum {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: var(--blue);
+}
+
+.step h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--heading);
+}
+
+.step p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------------- faq --- */
+
+.faq {
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.faq details {
+  border-bottom: 1px solid var(--line);
+}
+
+.faq summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 18px 40px 18px 0;
+  font-size: 16px;
+  font-weight: 750;
+  color: var(--heading);
+  position: relative;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary::after {
+  content: "+";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--blue);
+}
+
+.faq details[open] summary::after {
+  content: "–";
+}
+
+.faq p {
+  margin: 0;
+  padding: 0 0 20px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 68ch;
+}

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { priceOrder } from "@/lib/timeback";
+import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
@@ -11,6 +12,12 @@ const PRODUCTS: Record<string, { name: string; amount: number }> = {
   system_map: {
     name: "System Map | The LeadFlow Pro (credited toward your build)",
     amount: 49700,
+  },
+  // Amount comes from lib/leadFollowUp.ts so the page and the charge can
+  // never drift apart. The funnel posts no price field at all.
+  [LEAD_FOLLOW_UP.id]: {
+    name: `${LEAD_FOLLOW_UP.name} | The LeadFlow Pro`,
+    amount: LEAD_FOLLOW_UP.priceCents,
   },
 };
 
@@ -193,6 +200,12 @@ export async function POST(request: Request) {
       amount = product.amount;
       metadata.kind = kind;
       if (kind === "system_map") cancelUrl = `${site}/packages/system-map?cancelled=1`;
+      if (kind === LEAD_FOLLOW_UP.id) {
+        // Buyers land on the writing intake, not the generic thank-you.
+        // Nothing gets written until that form comes back.
+        cancelUrl = `${site}/go/lead-follow-up?cancelled=1`;
+        successUrl = `${site}/go/lead-follow-up/intake?session_id={CHECKOUT_SESSION_ID}`;
+      }
     }
 
     const params = new URLSearchParams({
