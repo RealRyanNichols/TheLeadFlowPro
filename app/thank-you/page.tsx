@@ -10,6 +10,7 @@ import {
   MessageSquareText,
 } from "lucide-react";
 import { getSettings } from "@/lib/settings";
+import { paidSession } from "@/lib/stripeSession";
 import ConversionPing from "@/components/ConversionPing";
 import styles from "./thank-you.module.css";
 
@@ -83,10 +84,15 @@ function ConfirmationShell({
 export default async function ThankYou({
   searchParams,
 }: {
-  searchParams: Promise<{ purchase?: string }>;
+  searchParams: Promise<{ purchase?: string; session_id?: string }>;
 }) {
-  const { purchase } = await searchParams;
+  const { purchase, session_id: sessionId } = await searchParams;
   const settings = await getSettings();
+  // What was actually collected, straight from Stripe. Null when there is no
+  // session to check or Stripe will not confirm it; the conversion events
+  // below then fire with no value rather than with an invented one.
+  const paid = await paidSession(sessionId);
+  const paidValue = paid?.amountUsd ?? null;
   const bought = purchase === "learn_it";
   const paidEvent = purchase === "event";
   const paidDeposit =
@@ -111,6 +117,7 @@ export default async function ThankYou({
             googleAdsId={settings.google_ads_id}
             conversionLabel={settings.google_ads_conversion_label}
             purchase
+            value={paidValue}
           />
         }
         actions={
@@ -175,6 +182,7 @@ export default async function ThankYou({
             googleAdsId={settings.google_ads_id}
             conversionLabel={settings.google_ads_conversion_label}
             purchase={bought}
+            value={paidValue}
           />
         }
         actions={
