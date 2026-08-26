@@ -17,12 +17,12 @@ export default function BuyButton({
 
   async function buy() {
     setBusy(true);
-    const checkoutValue = kind === "system_map" || kind === "learn_it" ? 497 : undefined;
+    // InitiateCheckout carries no value. The amount is decided server-side in
+    // /api/checkout and confirmed by Stripe on the way back out, and a number
+    // guessed in the browser here is exactly the kind of hardcoded constant
+    // that had every Purchase event reporting $497.
     if (window.fbq) {
-      window.fbq("track", "InitiateCheckout", {
-        ...(checkoutValue ? { value: checkoutValue } : {}),
-        currency: "USD",
-      });
+      window.fbq("track", "InitiateCheckout", { currency: "USD" });
     }
     try {
       const r = await fetch("/api/checkout", {
@@ -31,7 +31,7 @@ export default function BuyButton({
         body: JSON.stringify({ kind }),
       });
       if (r.status === 501) {
-        router.push(kind === "learn_it" ? "/book?interest=learn" : "/book?interest=system_map");
+        router.push("/book?interest=system_map");
         return;
       }
       const j = await r.json();
@@ -40,7 +40,7 @@ export default function BuyButton({
         return;
       }
     } catch { /* fall through */ }
-    router.push(kind === "learn_it" ? "/book?interest=learn" : "/book?interest=system_map");
+    router.push("/book?interest=system_map");
   }
 
   return (

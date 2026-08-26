@@ -93,10 +93,30 @@ export default async function ThankYou({
   // below then fire with no value rather than with an invented one.
   const paid = await paidSession(sessionId);
   const paidValue = paid?.amountUsd ?? null;
-  const bought = purchase === "learn_it";
-  const paidEvent = purchase === "event";
+
+  const requested = String(purchase ?? "");
+  // Every `kind` in /api/checkout that lands here instead of on its own
+  // welcome page. Kept next to the branches that render them so adding a
+  // product to the checkout without a confirmation here is visible.
+  const PAID_KINDS = new Set([
+    "system_map",
+    "build_deposit",
+    "package_deposit",
+    "package_full",
+    "event",
+  ]);
+  // A Stripe session that Stripe itself reports as paid is a purchase, whatever
+  // the query string calls it. That makes the next product added to checkout
+  // report correctly without anyone remembering to edit this file. The kind
+  // list is the fallback for when Stripe cannot be reached.
+  const isPurchase = paid !== null || PAID_KINDS.has(requested);
+
+  const paidEvent = requested === "event";
+  const paidSystemMap = requested === "system_map";
   const paidDeposit =
-    purchase === "build_deposit" || purchase === "package_deposit" || purchase === "package_full";
+    requested === "build_deposit" ||
+    requested === "package_deposit" ||
+    requested === "package_full";
 
   if (paidDeposit) {
     return (
@@ -148,6 +168,14 @@ export default async function ThankYou({
             questions. You&apos;ll leave knowing exactly how to own your platform.
           </>
         }
+        tracking={
+          <ConversionPing
+            googleAdsId={settings.google_ads_id}
+            conversionLabel={settings.google_ads_conversion_label}
+            purchase={isPurchase}
+            value={paidValue}
+          />
+        }
         actions={
           <>
             <Link href="/events" className="cb-btn cb-btn--primary">
@@ -163,36 +191,36 @@ export default async function ThankYou({
     );
   }
 
-  if (bought) {
+  if (paidSystemMap) {
     return (
       <ConfirmationShell
-        icon={GraduationCap}
-        eyebrow="Training access confirmed"
-        title="You’re in."
-        accent="Welcome to the owners’ side."
+        icon={CircleCheckBig}
+        eyebrow="System Map confirmed"
+        title="Payment received."
+        accent="The mapping starts."
         lead={
           <>
-            Payment received. Check your email for your getting-started note. Create your
-            login with the same email you purchased with and every course unlocks
-            automatically.
+            Your receipt is on the way by email. Ryan will reach out with the next step and
+            what he needs from you, usually the same day. What you paid is credited in full
+            toward your build if you go ahead with one.
           </>
         }
         tracking={
           <ConversionPing
             googleAdsId={settings.google_ads_id}
             conversionLabel={settings.google_ads_conversion_label}
-            purchase={bought}
+            purchase={isPurchase}
             value={paidValue}
           />
         }
         actions={
           <>
-            <Link href="/login" className="cb-btn cb-btn--primary">
-              Create Your Login
+            <Link href="/portfolio" className="cb-btn cb-btn--primary">
+              See What Gets Built
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/training" className="cb-btn cb-btn--ghost">
-              Go to Training
+            <Link href="/contact" className="cb-btn cb-btn--ghost">
+              Send Ryan a Message
             </Link>
           </>
         }
@@ -216,7 +244,8 @@ export default async function ThankYou({
         <ConversionPing
           googleAdsId={settings.google_ads_id}
           conversionLabel={settings.google_ads_conversion_label}
-          purchase={bought}
+          purchase={isPurchase}
+          value={paidValue}
         />
       }
       actions={

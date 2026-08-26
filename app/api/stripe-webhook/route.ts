@@ -54,47 +54,6 @@ function verifySignature(payload: string, header: string, secret: string): boole
   }
 }
 
-async function sendPurchaseEmails(email: string, kind: string) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return;
-  const send = (payload: object) =>
-    fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }).catch(() => {});
-
-  await send({
-    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-    to: ["hello@theleadflowpro.com"],
-    subject: `💰 PURCHASE: ${kind} — ${email}`,
-    text: `New purchase.\n\nProduct: ${kind}\nBuyer: ${email}\n\nAdmin: https://www.theleadflowpro.com/admin`,
-  });
-  await send({
-    from: "Ryan Nichols <hello@theleadflowpro.com>",
-    to: [email],
-    reply_to: "hello@theleadflowpro.com",
-    subject: "You're in. Here's your training.",
-    text: [
-      "Welcome to Own Your Platform.",
-      "",
-      "Your access is live. Here's how to get in:",
-      "",
-      `1. Create your login with THIS email address (${email}):`,
-      "   https://www.theleadflowpro.com/login",
-      "2. Head to the training area and start at the top:",
-      "   https://www.theleadflowpro.com/training",
-      "",
-      "Work the courses in order. By the capstone you'll have your own platform live on your own domain — code in your GitHub, data in your database, nobody's hand in your pocket every month.",
-      "",
-      "Stuck on anything? Reply to this email. I read every one.",
-      "",
-      "Ryan Nichols",
-      "The LeadFlow Pro | Own your platform.",
-    ].join("\n"),
-  });
-}
-
 type IntakeLead = {
   id: string;
   full_name: string;
@@ -1070,8 +1029,6 @@ export async function POST(request: Request) {
       await ensureLeadFollowUpPaid(supabase, session);
     } else if (findFreeBuildTier(kind)) {
       await ensureFreeBuildPaid(supabase, session, kind);
-    } else if (kind === "learn_it") {
-      await sendPurchaseEmails(customer.email, kind);
     }
 
     return NextResponse.json({ received: true });
