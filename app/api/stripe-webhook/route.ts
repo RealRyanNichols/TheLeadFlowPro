@@ -539,13 +539,13 @@ async function ensureEventSeatPaid(
       reply_to: "hello@theleadflowpro.com",
       subject: overbooked
         ? `About your ${event.title} payment`
-        : `Your seat is confirmed — ${event.title}`,
+        : `Your seat is confirmed: ${event.title}`,
       text: overbooked
         ? [
             `${registration.full_name.split(" ")[0]},`,
             "",
             "Your payment came in just after the last seat was taken, so I am refunding it in full today.",
-            "You are first in line for the next date — reply to this email and I will hold you a seat.",
+            "You are first in line for the next date. Reply to this email and I will hold you a seat.",
             "",
             "Sorry for the shuffle.",
             "",
