@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
+import { sendInternalAlert } from "@/lib/leadNotify";
 
 // Event registration. Everything that decides whether this person may register
 // — published state, closed registration, remaining capacity — is decided
@@ -9,6 +10,13 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 //
 // A registration is a lead, not a seat. The seat is claimed by the Stripe
 // webhook after payment clears.
+//
+// WHICH IS EXACTLY WHY THE ALERT BELOW MATTERS. Because the seat is what the
+// webhook announces, somebody who registered and then abandoned checkout used
+// to produce nothing at all: a row with status 'pending' that nobody was told
+// about and no screen surfaced. That person raised their hand for a paid
+// workshop and got no follow-up, which is the single most recoverable lead
+// this site produces. The alert is what makes them visible.
 
 const ERRORS: Record<string, { status: number; message: string }> = {
   event_not_available: { status: 404, message: "This event is not open for registration." },
@@ -73,11 +81,38 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Could not register. Try again." }, { status: 500 });
   }
 
+  const priceUsd = Number(row.price_usd ?? 0);
+  const paidSeat = priceUsd > 0;
+  try {
+    await sendInternalAlert(
+      `WORKSHOP REGISTRATION: ${fullName}${paidSeat ? " (checkout pending)" : ""}`,
+      [
+        paidSeat
+          ? `Registered for a $${priceUsd} seat. Nothing is paid yet. The seat is claimed only when Stripe clears, so if no payment alert follows this one, they dropped at checkout and are worth a message.`
+          : "Registered for a free seat.",
+        "",
+        `Name: ${fullName}`,
+        `Email: ${email}`,
+        `Phone: ${text(body.phone, 50) || "-"}`,
+        `Business: ${text(body.business_name, 200) || "-"}`,
+        `Bottleneck: ${text(body.bottleneck, 1000) || "not submitted yet"}`,
+        `Notes: ${text(body.notes, 1000) || "-"}`,
+        `Source: ${text(body.utm_source, 120) || "website"}`,
+        `Seats remaining: ${row.seats_remaining ?? "-"}`,
+        "",
+        "Admin: https://www.theleadflowpro.com/admin/events",
+      ],
+    );
+  } catch (e) {
+    // The registration is saved. Never fail it over the alert.
+    console.error("registration alert failed:", e);
+  }
+
   return NextResponse.json({
     ok: true,
     registration_id: row.registration_id,
     registration_token: row.access_token,
-    price_usd: Number(row.price_usd ?? 0),
+    price_usd: priceUsd,
     seats_remaining: row.seats_remaining,
   });
 }

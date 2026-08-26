@@ -31,15 +31,29 @@
 
 1. Go to https://dashboard.stripe.com/test/webhooks
 2. Click **Add endpoint**.
-3. **Endpoint URL:** `https://the-lead-flow-pro.vercel.app/api/webhooks/stripe`
+3. **Endpoint URL:** `https://the-lead-flow-pro.vercel.app/api/stripe-webhook`
    *(We'll swap this to www.theleadflowpro.com after DNS is live — see Task 4.)*
-4. **Events to send:** click **Select events** and pick:
+
+   > **The path is `/api/stripe-webhook`.** This step used to read
+   > `/api/webhooks/stripe`, which is not a route in this app and never has
+   > been. Stripe accepts any URL you type here without checking it, so an
+   > endpoint pointed at that path returns a 404 for every event and the
+   > dashboard shows a wall of failures nobody is watching. The money still
+   > reaches Stripe; the app never finds out. That means no purchase recorded,
+   > no alert to Ryan, no confirmation to the buyer. The route lives at
+   > `app/api/stripe-webhook/route.ts` and its own header comment carries the
+   > correct URL if you ever need to check.
+
+4. **Events to send:** click **Select events** and pick exactly these. They are
+   the ones `app/api/stripe-webhook/route.ts` actually handles; anything else
+   is accepted and ignored.
    - `checkout.session.completed`
-   - `customer.subscription.created`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-   - `invoice.payment_succeeded`
+   - `invoice.finalized`
+   - `invoice.sent`
+   - `invoice.paid`
    - `invoice.payment_failed`
+   - `invoice.voided`
+   - `invoice.marked_uncollectible`
 5. Click **Add endpoint**.
 6. On the endpoint page, find **Signing secret** → click **Reveal** → copy it (starts with `whsec_...`).
 7. Paste into Vercel env var `STRIPE_WEBHOOK_SECRET`, all three environments.
@@ -82,7 +96,7 @@
 
 4. Save. DNS propagation takes 10 minutes to 2 hours.
 5. Come back to Vercel → The LeadFlow Pro → Settings → Domains. Both `theleadflowpro.com` and `www.theleadflowpro.com` should show a green **Valid Configuration** within 2 hours.
-6. Once they're green, go back to Task 2's Stripe webhook and **update the endpoint URL** to `https://www.theleadflowpro.com/api/webhooks/stripe`.
+6. Once they're green, go back to Task 2's Stripe webhook and **update the endpoint URL** to `https://www.theleadflowpro.com/api/stripe-webhook`.
 
 **If still Invalid after 2 hours:** screenshot the GoDaddy DNS page + Vercel domain page and send to Ryan.
 

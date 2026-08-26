@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Privacy Policy | The LeadFlow Pro",
   description: "How The LeadFlow Pro collects, uses, and protects information.",
+  alternates: { canonical: "https://www.theleadflowpro.com/privacy" },
 };
 
 export default function PrivacyPage() {

@@ -16,6 +16,7 @@ export const metadata = {
   description:
     "A sample client build on the Own Your Platform stack. See the funnel, tracking, lead capture, and back office a larger LeadFlow Pro system can include.",
   openGraph: { images: [{ url: "/og/demo.png", width: 1200, height: 630 }] },
+  alternates: { canonical: "https://www.theleadflowpro.com/demo" },
 };
 
 function Hood({ label, children }: { label: string; children: React.ReactNode }) {

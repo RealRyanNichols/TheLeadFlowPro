@@ -64,6 +64,28 @@ export const WEBSITE_LAUNCH = {
   ],
 } as const;
 
+/**
+ * How the Website Launch is named in navigation, everywhere it is named.
+ *
+ * WHY THIS IS A CONSTANT: the header said "Website Launch | $500" and the
+ * footer said "Website Launch | $1,000". Same href, both rendered on every
+ * public page, so the site quoted two different prices for one button roughly
+ * a screen apart. A buyer who noticed had no way to tell which was real, and
+ * the cheaper one was on the CTA.
+ *
+ * The label is the total, because $1,000 is the price of the offer. The $500
+ * is a payment term, and a payment term shown as a price reads as the price
+ * until the buyer reaches checkout, which is the worst place to learn it. The
+ * term is small print: on the link that has room for it here, and in full on
+ * /packages/launch, which is where WEBSITE_LAUNCH.paymentLabel already spells
+ * out both halves and the refund condition.
+ */
+export const WEBSITE_LAUNCH_NAV = {
+  href: "/packages/launch",
+  label: `${WEBSITE_LAUNCH.name} | ${WEBSITE_LAUNCH.priceLabel}`,
+  depositNote: `$${WEBSITE_LAUNCH.deposit} to start, $${WEBSITE_LAUNCH.finalPayment} after approval`,
+} as const;
+
 export const OFFER_LADDER = [
   {
     id: "system-map",

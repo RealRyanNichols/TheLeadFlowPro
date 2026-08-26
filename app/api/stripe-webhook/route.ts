@@ -54,47 +54,6 @@ function verifySignature(payload: string, header: string, secret: string): boole
   }
 }
 
-async function sendPurchaseEmails(email: string, kind: string) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return;
-  const send = (payload: object) =>
-    fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }).catch(() => {});
-
-  await send({
-    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-    to: ["hello@theleadflowpro.com"],
-    subject: `💰 PURCHASE: ${kind} — ${email}`,
-    text: `New purchase.\n\nProduct: ${kind}\nBuyer: ${email}\n\nAdmin: https://www.theleadflowpro.com/admin`,
-  });
-  await send({
-    from: "Ryan Nichols <hello@theleadflowpro.com>",
-    to: [email],
-    reply_to: "hello@theleadflowpro.com",
-    subject: "You're in. Here's your training.",
-    text: [
-      "Welcome to Own Your Platform.",
-      "",
-      "Your access is live. Here's how to get in:",
-      "",
-      `1. Create your login with THIS email address (${email}):`,
-      "   https://www.theleadflowpro.com/login",
-      "2. Head to the training area and start at the top:",
-      "   https://www.theleadflowpro.com/training",
-      "",
-      "Work the courses in order. By the capstone you'll have your own platform live on your own domain — code in your GitHub, data in your database, nobody's hand in your pocket every month.",
-      "",
-      "Stuck on anything? Reply to this email. I read every one.",
-      "",
-      "Ryan Nichols",
-      "The LeadFlow Pro | Own your platform.",
-    ].join("\n"),
-  });
-}
-
 type IntakeLead = {
   id: string;
   full_name: string;
@@ -414,8 +373,7 @@ async function ensureTimebackOrderPaid(
 
   // The activity row is the idempotency marker for the internal alert, same
   // contract as the Website Launch flow: alert first, marker after, so a
-  // provider failure keeps the Stripe event retryable. Missing RESEND config
-  // is not a failure; the payment is already recorded either way.
+  // provider failure keeps the Stripe event retryable.
   const activityDetail = `Time Back order paid through Stripe. ${orderSummary}. Stripe checkout: ${sessionId}.`;
   const existingActivity = await supabase
     .from("lead_activity")
@@ -430,28 +388,33 @@ async function ensureTimebackOrderPaid(
   }
   if (!existingActivity.data) {
     const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
-      const r = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-          to: ["hello@theleadflowpro.com"],
-          subject: `💰 TIME BACK ORDER PAID: ${leadName} — ${customer.email}`,
-          text: [
-            orderSummary,
-            paidUsd !== null ? `Paid: $${paidUsd}` : "",
-            stripeStamp.platforms ? `Platforms: ${stripeStamp.platforms}` : "",
-            "",
-            "They were sent to the welcome intake. Next: the access invites.",
-            "Admin: https://www.theleadflowpro.com/admin/time-back",
-          ]
-            .filter(Boolean)
-            .join("\n"),
-        }),
-      }).catch(() => null);
-      if (!r?.ok) throw new Error("Internal Time Back paid alert was not accepted");
+    // No key means no alert. Writing the marker anyway would retire this
+    // payment as handled forever, so the alert could never fire again even
+    // after Resend was fixed. Throw instead and let Stripe retry it.
+    if (!resendKey) {
+      throw new Error("RESEND_API_KEY missing: Time Back paid alert not sent");
     }
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+        to: ["hello@theleadflowpro.com"],
+        subject: `💰 TIME BACK ORDER PAID: ${leadName} — ${customer.email}`,
+        text: [
+          orderSummary,
+          paidUsd !== null ? `Paid: $${paidUsd}` : "",
+          stripeStamp.platforms ? `Platforms: ${stripeStamp.platforms}` : "",
+          "",
+          "They were sent to the welcome intake. Next: the access invites.",
+          "Admin: https://www.theleadflowpro.com/admin/time-back",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      }),
+    }).catch(() => null);
+    if (!r?.ok) throw new Error("Internal Time Back paid alert was not accepted");
+
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
       kind: "system",
@@ -518,95 +481,102 @@ async function ensureEventSeatPaid(
   if (registration.confirmation_sent_at) return;
 
   const resendKey = process.env.RESEND_API_KEY;
-  if (resendKey) {
-    const when = formatEventWhen(event);
-    const confirmUrl = `https://www.theleadflowpro.com/events/${event.slug}/confirmed?t=${encodeURIComponent(
-      registration.access_token,
-    )}`;
-    // The exact address lives in private.workshop_event_details, never in the
-    // anon-readable events row. Paid attendees always get it.
-    const addr = await supabase.rpc("event_exact_address", { p_event_id: event.id });
-    const details = Array.isArray(addr.data) ? addr.data[0] : addr.data;
-    const location = [event.venue, details?.exact_address, event.city]
-      .filter(Boolean)
-      .join("\n");
-
-    const overbooked = seatStatus === "overbooked";
-    const internal = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-        to: ["hello@theleadflowpro.com"],
-        subject: overbooked
-          ? `⚠️ OVERBOOKED SEAT (refund needed): ${event.title} — ${registration.email}`
-          : `🎟️ PAID SEAT ${registration.seat_number ?? ""}: ${event.title} — ${registration.email}`,
-        text: [
-          overbooked
-            ? "This payment arrived after the room filled. Refund it or open another seat."
-            : `Seat ${registration.seat_number ?? "?"} is paid.`,
-          "",
-          `Name: ${registration.full_name}`,
-          `Email: ${registration.email}`,
-          registration.business_name ? `Business: ${registration.business_name}` : "",
-          registration.bottleneck ? `Bottleneck: ${registration.bottleneck}` : "Bottleneck: not submitted yet",
-          "",
-          "Admin: https://www.theleadflowpro.com/admin/events",
-        ]
-          .filter(Boolean)
-          .join("\n"),
-      }),
-    }).catch(() => null);
-    if (!internal?.ok) throw new Error("Internal paid-seat alert was not accepted");
-
-    const attendee = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: "Ryan Nichols <hello@theleadflowpro.com>",
-        to: [registration.email],
-        reply_to: "hello@theleadflowpro.com",
-        subject: overbooked
-          ? `About your ${event.title} payment`
-          : `Your seat is confirmed — ${event.title}`,
-        text: overbooked
-          ? [
-              `${registration.full_name.split(" ")[0]},`,
-              "",
-              "Your payment came in just after the last seat was taken, so I am refunding it in full today.",
-              "You are first in line for the next date — reply to this email and I will hold you a seat.",
-              "",
-              "Sorry for the shuffle.",
-              "",
-              "Ryan Nichols",
-              "The LeadFlow Pro",
-            ].join("\n")
-          : [
-              `${registration.full_name.split(" ")[0]}, your seat is confirmed.`,
-              "",
-              event.title,
-              when.full,
-              "",
-              location,
-              "",
-              "Bring a laptop, charged, with a charger. A free ChatGPT account is enough.",
-              "",
-              event.clinic_enabled
-                ? "Before class, tell me the one bottleneck in your business you want looked at. Everyone who submits one gets a Next Move card, and two businesses get a live hot seat:"
-                : "Your registration details:",
-              confirmUrl,
-              "",
-              STANDS_ALONE_DISCLOSURE,
-              "",
-              "See you there.",
-              "",
-              "Ryan Nichols",
-              "The LeadFlow Pro | Longview, Texas",
-            ].join("\n"),
-      }),
-    }).catch(() => null);
-    if (!attendee?.ok) throw new Error("Attendee confirmation email was not accepted");
+  // confirmation_sent_at is a one-way door: the early return above means a
+  // registration carrying it is never processed again, by retry or by replay.
+  // Stamping it without having sent anything therefore does not delay the
+  // attendee's confirmation, it cancels it, and with it the only message that
+  // carries the exact address. Refuse to reach that stamp with no way to send.
+  if (!resendKey) {
+    throw new Error("RESEND_API_KEY missing: paid seat confirmation not sent");
   }
+
+  const when = formatEventWhen(event);
+  const confirmUrl = `https://www.theleadflowpro.com/events/${event.slug}/confirmed?t=${encodeURIComponent(
+    registration.access_token,
+  )}`;
+  // The exact address lives in private.workshop_event_details, never in the
+  // anon-readable events row. Paid attendees always get it.
+  const addr = await supabase.rpc("event_exact_address", { p_event_id: event.id });
+  const details = Array.isArray(addr.data) ? addr.data[0] : addr.data;
+  const location = [event.venue, details?.exact_address, event.city]
+    .filter(Boolean)
+    .join("\n");
+
+  const overbooked = seatStatus === "overbooked";
+  const internal = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+      to: ["hello@theleadflowpro.com"],
+      subject: overbooked
+        ? `⚠️ OVERBOOKED SEAT (refund needed): ${event.title} — ${registration.email}`
+        : `🎟️ PAID SEAT ${registration.seat_number ?? ""}: ${event.title} — ${registration.email}`,
+      text: [
+        overbooked
+          ? "This payment arrived after the room filled. Refund it or open another seat."
+          : `Seat ${registration.seat_number ?? "?"} is paid.`,
+        "",
+        `Name: ${registration.full_name}`,
+        `Email: ${registration.email}`,
+        registration.business_name ? `Business: ${registration.business_name}` : "",
+        registration.bottleneck ? `Bottleneck: ${registration.bottleneck}` : "Bottleneck: not submitted yet",
+        "",
+        "Admin: https://www.theleadflowpro.com/admin/events",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    }),
+  }).catch(() => null);
+  if (!internal?.ok) throw new Error("Internal paid-seat alert was not accepted");
+
+  const attendee = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "Ryan Nichols <hello@theleadflowpro.com>",
+      to: [registration.email],
+      reply_to: "hello@theleadflowpro.com",
+      subject: overbooked
+        ? `About your ${event.title} payment`
+        : `Your seat is confirmed: ${event.title}`,
+      text: overbooked
+        ? [
+            `${registration.full_name.split(" ")[0]},`,
+            "",
+            "Your payment came in just after the last seat was taken, so I am refunding it in full today.",
+            "You are first in line for the next date. Reply to this email and I will hold you a seat.",
+            "",
+            "Sorry for the shuffle.",
+            "",
+            "Ryan Nichols",
+            "The LeadFlow Pro",
+          ].join("\n")
+        : [
+            `${registration.full_name.split(" ")[0]}, your seat is confirmed.`,
+            "",
+            event.title,
+            when.full,
+            "",
+            location,
+            "",
+            "Bring a laptop, charged, with a charger. A free ChatGPT account is enough.",
+            "",
+            event.clinic_enabled
+              ? "Before class, tell me the one bottleneck in your business you want looked at. Everyone who submits one gets a Next Move card, and two businesses get a live hot seat:"
+              : "Your registration details:",
+            confirmUrl,
+            "",
+            STANDS_ALONE_DISCLOSURE,
+            "",
+            "See you there.",
+            "",
+            "Ryan Nichols",
+            "The LeadFlow Pro | Longview, Texas",
+          ].join("\n"),
+    }),
+  }).catch(() => null);
+  if (!attendee?.ok) throw new Error("Attendee confirmation email was not accepted");
 
   const marked = await supabase
     .from("event_registrations")
@@ -747,24 +717,29 @@ async function ensureLeadFollowUpPaid(
   }
   if (!existingActivity.data) {
     const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
-      const alert = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
-          to: ["hello@theleadflowpro.com"],
-          subject: `💰 FOLLOW-UP CAMPAIGN PAID: ${leadName} — ${customer.email}`,
-          text: [
-            `$${LEAD_FOLLOW_UP.priceUsd} Lead Follow-Up Campaign paid.`,
-            "",
-            "They were sent to the writing intake. The work task is created when that form comes back.",
-            "Admin: https://www.theleadflowpro.com/admin/leads",
-          ].join("\n"),
-        }),
-      }).catch(() => null);
-      if (!alert?.ok) throw new Error("Internal Lead Follow-Up alert was not accepted");
+    // No key means no alert. Writing the marker anyway would retire this
+    // payment as handled forever, so the alert could never fire again even
+    // after Resend was fixed. Throw instead and let Stripe retry it.
+    if (!resendKey) {
+      throw new Error("RESEND_API_KEY missing: Lead Follow-Up paid alert not sent");
     }
+    const alert = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
+        to: ["hello@theleadflowpro.com"],
+        subject: `💰 FOLLOW-UP CAMPAIGN PAID: ${leadName} — ${customer.email}`,
+        text: [
+          `$${LEAD_FOLLOW_UP.priceUsd} Lead Follow-Up Campaign paid.`,
+          "",
+          "They were sent to the writing intake. The work task is created when that form comes back.",
+          "Admin: https://www.theleadflowpro.com/admin/leads",
+        ].join("\n"),
+      }),
+    }).catch(() => null);
+    if (!alert?.ok) throw new Error("Internal Lead Follow-Up alert was not accepted");
+
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
       kind: "system",
@@ -933,6 +908,354 @@ async function ensureFreeBuildPaid(
   }
 }
 
+// The paid kinds that write a purchases row and nothing else.
+//
+// WHY THIS EXISTS: the dispatch at the bottom of this file had branches for
+// the Website Launch deposit, timeback_order, event, lead_followup_campaign
+// and the Free Build tiers. It had none for `system_map`, `build_deposit`,
+// `package_full`, or a `package_deposit` that is not the $500 Website Launch
+// one. Those four are real money: $497, $250 to $25,000, $497 or $1,000, and
+// $250 to $497. Every one of them recorded a purchases row and stopped there.
+// Nobody was told. Ryan found out when he happened to open Stripe, the buyer
+// got a Stripe receipt and silence from us, no lead row was touched, and no
+// task existed to make anybody start the work.
+//
+// One handler covers all four because the shape is identical: find or create
+// the lead, mark it won, stamp the payment, tell Ryan, tell the buyer, open a
+// task. The per-kind differences are data, below, not four copies of this.
+
+type PaidOrderSpec = {
+  /** Human label for the thing that was bought. */
+  label: string;
+  /** leads.interest, which drives INTEREST_LABELS in the alert subject. */
+  interest: string;
+  /** utm_campaign stamped on a lead created from the payment alone. */
+  campaign: string;
+  /** The open task this payment creates for Ryan. */
+  taskTitle: string;
+  /** What Ryan has to do next, said once and used in both the alert and the lead. */
+  nextAction: string;
+  /** What the buyer is told happens next. One line per paragraph. */
+  buyerNextSteps: string[];
+};
+
+function paidOrderSpec(
+  kind: string,
+  session: StripeCheckoutSession,
+): PaidOrderSpec | null {
+  const packageId =
+    typeof session.metadata?.package === "string" ? session.metadata.package : "";
+
+  if (kind === "system_map") {
+    return {
+      label: "System Map",
+      interest: "system_map",
+      campaign: "system_map",
+      taskTitle: "Start the System Map",
+      nextAction: "Book the mapping call and start the System Map.",
+      buyerNextSteps: [
+        "1. I reach out within one business day to book the mapping call. Usually a text first, from (903) 500-8898. Save that number, it is my direct line.",
+        "2. On that call I go through what you are running now, where the work is getting stuck, and what it is costing you to leave it alone.",
+        "3. You get the map back in writing: what to fix, in what order, and what each piece involves. Yours to keep and act on, whether you hire me for the build or not.",
+        "",
+        "What you paid is credited in full toward your build if you go ahead with one.",
+      ],
+    };
+  }
+
+  if (kind === "build_deposit") {
+    return {
+      label: "Build down payment",
+      interest: "custom_platform",
+      campaign: "build_deposit",
+      taskTitle: "Start the build this down payment reserves",
+      nextAction: "Confirm the scope in writing, then start the build.",
+      buyerNextSteps: [
+        "1. I reach out within one business day to confirm the scope in writing before any work starts. Usually a text first, from (903) 500-8898.",
+        "2. Once the scope is agreed, the build starts and you get a preview link to review against it.",
+        "",
+        "Your down payment is credited in full toward the build.",
+      ],
+    };
+  }
+
+  if (kind === "package_full" || kind === "package_deposit") {
+    const isLaunch = packageId === "launch";
+    const label = isLaunch ? "Website Launch" : "System Map";
+    const paidInFull = kind === "package_full";
+    return {
+      label: paidInFull ? `${label}, paid in full` : `${label} down payment`,
+      interest: isLaunch ? "launch_system" : "system_map",
+      campaign: isLaunch ? "website_launch" : "system_map",
+      taskTitle: `Start the ${label} intake`,
+      nextAction: `Open intake for the ${label} scope.`,
+      buyerNextSteps: [
+        "1. I reach out within one business day to open intake. Usually a text first, from (903) 500-8898. Save that number, it is my direct line.",
+        "2. Intake confirms the scope in writing: what gets built, what is in it, and what I need from you.",
+        "3. The build starts against that agreed scope and you review it before anything goes live.",
+        paidInFull
+          ? ""
+          : "\nWhat you paid is credited in full toward the build.",
+      ].filter((line) => line !== ""),
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Find the lead this payment belongs to, or create one.
+ *
+ * These checkouts are not preceded by a funnel form the way the Free Build and
+ * Time Back orders are: somebody can buy a System Map straight off the package
+ * page and the only thing we know about them is what Stripe collected. So the
+ * lookup runs external_id, then email, then insert, which is the same ladder
+ * findWebsiteLaunchLead() walks.
+ */
+async function findOrCreatePaidOrderLead(
+  supabase: SupabaseClient,
+  session: StripeCheckoutSession,
+  spec: PaidOrderSpec,
+  summary: string,
+) {
+  const sessionId = typeof session.id === "string" ? session.id.slice(0, 200) : "";
+  const customer = websiteLaunchCustomer(session);
+  if (!sessionId || !customer.email) {
+    throw new Error(`Paid ${spec.label} checkout is missing its session ID or email`);
+  }
+
+  const externalId = `stripe_checkout:${sessionId}`;
+  const stripeStamp = {
+    session_id: sessionId,
+    paid_at: new Date().toISOString(),
+    amount_total_cents: Number.isFinite(Number(session.amount_total))
+      ? Number(session.amount_total)
+      : null,
+  };
+
+  const byCheckout = await supabase
+    .from("leads")
+    .select("id, full_name, phone, diagnostic, external_id")
+    .eq("external_id", externalId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (byCheckout.error) throw new Error(`${spec.label} lookup failed: ${byCheckout.error.code}`);
+
+  let found = byCheckout.data;
+  if (!found) {
+    const byEmail = await supabase
+      .from("leads")
+      .select("id, full_name, phone, diagnostic, external_id")
+      .ilike("email", escapeIlike(customer.email))
+      .is("deleted_at", null)
+      .eq("is_test", false)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (byEmail.error) throw new Error(`${spec.label} email lookup failed: ${byEmail.error.code}`);
+    found = byEmail.data;
+  }
+
+  let leadId: string;
+  let leadName = customer.fullName;
+  if (found) {
+    leadId = found.id;
+    leadName = found.full_name || leadName;
+    const diagnostic =
+      found.diagnostic && typeof found.diagnostic === "object"
+        ? (found.diagnostic as Record<string, unknown>)
+        : {};
+    const updates: Record<string, unknown> = {
+      status: "won",
+      interest: spec.interest,
+      diagnostic: { ...diagnostic, paid: true, offer: spec.label, stripe: stripeStamp },
+    };
+    if (!found.phone && customer.phone) updates.phone = customer.phone;
+    if (!found.external_id) updates.external_id = externalId;
+    const updated = await supabase.from("leads").update(updates).eq("id", leadId);
+    if (updated.error && updated.error.code !== "23505") {
+      throw new Error(`${spec.label} lead update failed: ${updated.error.code}`);
+    }
+  } else {
+    const inserted = await supabase
+      .from("leads")
+      .insert({
+        full_name: customer.fullName,
+        email: customer.email,
+        phone: customer.phone,
+        interest: spec.interest,
+        goals: `${summary} Paid through Stripe. ${spec.nextAction}`,
+        best_contact_method: "email",
+        source: stripePaymentLinkId(session) ? "stripe_payment_link" : "stripe_checkout",
+        utm_source: "stripe",
+        utm_medium: stripePaymentLinkId(session) ? "payment_link" : "checkout",
+        utm_campaign: spec.campaign,
+        // Paying for something is not consent to be marketed at. Neither box
+        // is ticked here, and the nurture cron reads both before it sends.
+        sms_consent: false,
+        marketing_email_consent: false,
+        status: "won",
+        external_id: externalId,
+        diagnostic: {
+          version: 1,
+          source: "stripe_paid_order",
+          offer: spec.label,
+          paid: true,
+          stripe: stripeStamp,
+          next_action: spec.nextAction,
+        },
+      })
+      .select("id, full_name")
+      .single();
+    if (inserted.error?.code === "23505") {
+      const raced = await supabase
+        .from("leads")
+        .select("id, full_name")
+        .eq("external_id", externalId)
+        .is("deleted_at", null)
+        .single();
+      if (raced.error) throw new Error(`${spec.label} race recovery failed: ${raced.error.code}`);
+      leadId = raced.data.id;
+      leadName = raced.data.full_name || leadName;
+    } else if (inserted.error) {
+      throw new Error(`${spec.label} lead insert failed: ${inserted.error.code}`);
+    } else {
+      leadId = inserted.data.id;
+      leadName = inserted.data.full_name || leadName;
+    }
+  }
+
+  return { leadId, leadName, customer, sessionId };
+}
+
+async function ensurePaidOrderHandled(
+  supabase: SupabaseClient,
+  session: StripeCheckoutSession,
+  kind: string,
+) {
+  const spec = paidOrderSpec(kind, session);
+  if (!spec) throw new Error(`No paid-order spec for kind: ${kind}`);
+
+  const cents = Number(session.amount_total);
+  const paidUsd = Number.isFinite(cents) ? Math.round(cents) / 100 : null;
+  const amountLabel = paidUsd === null ? "" : ` ($${paidUsd.toLocaleString("en-US")})`;
+  const summary = `${spec.label}${amountLabel}.`;
+
+  const { leadId, leadName, customer, sessionId } = await findOrCreatePaidOrderLead(
+    supabase,
+    session,
+    spec,
+    summary,
+  );
+
+  // The task is what actually makes the work start. Without it a paid order
+  // relies on somebody remembering it, which is how these four went unnoticed.
+  const openTask = await supabase
+    .from("lead_tasks")
+    .select("id")
+    .eq("lead_id", leadId)
+    .eq("title", spec.taskTitle)
+    .is("completed_at", null)
+    .limit(1)
+    .maybeSingle();
+  if (openTask.error) throw new Error(`${spec.label} task lookup failed: ${openTask.error.code}`);
+  if (!openTask.data) {
+    const taskInsert = await supabase.from("lead_tasks").insert({
+      lead_id: leadId,
+      title: spec.taskTitle,
+      due_date: new Date().toISOString().slice(0, 10),
+    });
+    if (taskInsert.error) throw new Error(`${spec.label} task insert failed: ${taskInsert.error.code}`);
+  }
+
+  // Same idempotency contract as every other paid flow in this file: send
+  // first, write the marker only once the provider accepted it, so a Resend
+  // outage leaves the Stripe event retryable instead of permanently silent.
+  const activityDetail = `${summary} Paid through Stripe. Stripe checkout: ${sessionId}.`;
+  const existingActivity = await supabase
+    .from("lead_activity")
+    .select("id")
+    .eq("lead_id", leadId)
+    .eq("kind", "system")
+    .eq("detail", activityDetail)
+    .limit(1)
+    .maybeSingle();
+  if (existingActivity.error) {
+    throw new Error(`${spec.label} activity lookup failed: ${existingActivity.error.code}`);
+  }
+  if (existingActivity.data) return;
+
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) {
+    // No marker is written. When Resend is configured, a Stripe retry or the
+    // next replay delivers the alert instead of it being lost for good.
+    throw new Error(`RESEND_API_KEY missing: ${spec.label} paid alert not sent`);
+  }
+
+  const alert = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
+      reply_to: "hello@theleadflowpro.com",
+      to: ["hello@theleadflowpro.com"],
+      subject: `PAID: ${spec.label}${amountLabel} - ${leadName}`,
+      text: [
+        summary,
+        `Name: ${leadName}`,
+        `Email: ${customer.email}`,
+        `Phone: ${customer.phone || "-"}`,
+        "",
+        `NEXT ACTION: ${spec.nextAction}`,
+        `A task is open on the lead: ${spec.taskTitle}`,
+        "",
+        `Stripe checkout: ${sessionId}`,
+        "Admin: https://www.theleadflowpro.com/admin/leads",
+      ].join("\n"),
+    }),
+  }).catch(() => null);
+  if (!alert?.ok) throw new Error(`Internal ${spec.label} paid alert was not accepted`);
+
+  const first = String(leadName || "").trim().split(" ")[0] || "there";
+  const buyer = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "Ryan Nichols <ryan@theleadflowpro.com>",
+      to: [customer.email],
+      reply_to: "hello@theleadflowpro.com",
+      subject: `${first}, your ${spec.label.toLowerCase()} is confirmed.`,
+      text: [
+        `${first},`,
+        "",
+        `Your payment came through and it landed with me. Not a ticket queue. Mine.`,
+        "",
+        "Here is what happens next:",
+        "",
+        ...spec.buyerNextSteps,
+        "",
+        "Every system I have already built and handed over is here, live and clickable:",
+        "https://www.theleadflowpro.com/portfolio",
+        "",
+        "Talk soon,",
+        "Ryan Nichols",
+        "The LeadFlow Pro",
+        "(903) 500-8898",
+      ].join("\n"),
+    }),
+  }).catch(() => null);
+  if (!buyer?.ok) throw new Error(`${spec.label} buyer confirmation was not accepted`);
+
+  const activityInsert = await supabase.from("lead_activity").insert({
+    lead_id: leadId,
+    kind: "system",
+    detail: activityDetail,
+  });
+  if (activityInsert.error) {
+    throw new Error(`${spec.label} activity insert failed: ${activityInsert.error.code}`);
+  }
+}
+
 type StripeInvoiceWebhook = {
   id?: unknown;
   number?: unknown;
@@ -1070,8 +1393,18 @@ export async function POST(request: Request) {
       await ensureLeadFollowUpPaid(supabase, session);
     } else if (findFreeBuildTier(kind)) {
       await ensureFreeBuildPaid(supabase, session, kind);
-    } else if (kind === "learn_it") {
-      await sendPurchaseEmails(customer.email, kind);
+    } else if (paidOrderSpec(kind, session)) {
+      // system_map, build_deposit, package_full, and any package_deposit that
+      // is not the $500 Website Launch one (that is caught by websiteLaunch
+      // above). Before this branch existed all four recorded a purchases row
+      // and told nobody.
+      await ensurePaidOrderHandled(supabase, session, kind);
+    } else {
+      // A paid checkout we do not recognize still has to be visible. Logging
+      // it is not much, but it beats the silence the four kinds above got.
+      console.error(
+        `Paid Stripe checkout with no handler: kind=${kind} session=${session.id}`,
+      );
     }
 
     return NextResponse.json({ received: true });

@@ -1686,6 +1686,16 @@ body:has(.cb-page) .mobile-nav-panel > a.nav-free:hover {
 .cb-footer-col a:hover {
   color: #fff;
 }
+/* Small print under a footer column: payment terms that belong near the price
+   but must not read as one of the links above them. */
+.cb-footer-note {
+  margin: 16px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--cb-muted-ink);
+  opacity: 0.75;
+  max-width: 30ch;
+}
 .cb-footer-bottom {
   color: var(--cb-muted-ink);
   display: flex;

@@ -9,6 +9,7 @@ export const metadata = {
   description:
     "A clearly labeled simulation of the analytics and automation back office a larger LeadFlow Pro system can include.",
   openGraph: { images: [{ url: "/og/showcase.png", width: 1200, height: 630 }] },
+  alternates: { canonical: "https://www.theleadflowpro.com/showcase" },
 };
 
 export default function ShowcasePage() {

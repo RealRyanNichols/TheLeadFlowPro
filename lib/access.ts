@@ -1,6 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
 
-// Training access: admins and Learn It purchasers (matched by login email via RLS).
+// Training access. Two ways in, and only two:
+//
+//   1. Admins.
+//   2. People who bought the retired Learn It library while it was for sale.
+//
+// TRAINING IS NOT A PRODUCT. /training says so in its own copy: "New
+// standalone enrollment for the legacy library is closed." Nothing in
+// /api/checkout sells a `learn_it` kind and the /pricing/learn-it sales page
+// permanently redirects away. So the purchases lookup below is not a live
+// paywall waiting on a buy button, it is a grandfather clause: it is the only
+// thing that keeps an existing customer's library open when they log back in.
+// Do not read it as dead code and delete it, and do not build a checkout
+// against it without deciding to sell training again first.
 export async function getTrainingAccess() {
   const supabase = await createClient();
   const {

@@ -38,7 +38,21 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-touch-icon.png",
   },
-  alternates: { canonical: "https://www.theleadflowpro.com" },
+  // NO CANONICAL HERE ON PURPOSE.
+  //
+  // This used to be `alternates: { canonical: "https://www.theleadflowpro.com" }`,
+  // and Next.js hands root-layout metadata down to every page that does not
+  // override it. So every page without its own canonical told Google it was
+  // the homepage. That is not a weak hint: a canonical is the page naming its
+  // own preferred URL, and pointing an indexable page at a different one asks
+  // Google to drop it from the index in favor of that URL. /packages/launch,
+  // the target of the header CTA, was doing exactly that, along with /book,
+  // /contact, /demo, /showcase, /privacy and /terms.
+  //
+  // Every page in app/sitemap.ts now declares its own. Leaving this absent
+  // means the next page added without one self-canonicalizes, which is the
+  // correct default, instead of quietly asking to be de-indexed. The homepage
+  // declares its canonical in app/page.tsx like everybody else.
   openGraph: {
     title: "We don't just build your website. We build the company behind it.",
     description:

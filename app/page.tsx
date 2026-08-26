@@ -20,6 +20,13 @@ import { ARTICLES } from "@/lib/articles";
 import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
 import { TOOL_COUNT } from "@/lib/tools";
 
+// The homepage declares its own canonical, same as every other indexable page.
+// It used to inherit one from the root layout, but that inheritance was also
+// telling every page without an override that it was the homepage.
+export const metadata = {
+  alternates: { canonical: "https://www.theleadflowpro.com" },
+};
+
 // THE COMPANY BUILDER homepage.
 //
 // Ordered by what a business owner has to believe, in order: the category, the

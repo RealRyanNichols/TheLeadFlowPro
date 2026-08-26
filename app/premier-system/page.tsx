@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
+import PremierSystemLeadForm from "./PremierSystemLeadForm";
 import styles from "./premier-system.module.css";
 
 const CANONICAL_URL = "https://www.theleadflowpro.com/premier-system";
@@ -306,6 +307,12 @@ export default function PremierSystemPage() {
                 </a>
                 <a className={styles.secondaryAction} href="#website-launch">
                   See Exactly What $1,000 Includes
+                </a>
+                {/* Ad traffic lands on this page. Somebody who is not paying
+                    today needs the form reachable from the first screen, not
+                    only after the whole page. */}
+                <a className={styles.secondaryAction} href="#talk-first">
+                  Ask A Question First
                 </a>
               </div>
               <p className={styles.heroNote}>
@@ -616,6 +623,31 @@ export default function PremierSystemPage() {
                 </details>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The other way off this page. Everything above it asks for $500
+          through a Stripe Payment Link, which is the only action /go traffic
+          had. Somebody who is interested but not ready to pay needs a door
+          too, or they leave without us ever knowing they were here. */}
+      <section className={styles.leadSection} id="talk-first" aria-labelledby="talk-first-title">
+        <div className={styles.shell}>
+          <div className={styles.leadGrid}>
+            <header>
+              <p className={styles.kicker}>Not ready to pay yet</p>
+              <h2 id="talk-first-title">Ask me first. That is free.</h2>
+              <p>
+                Tell me what you are running now and what you want it to do. I will tell you
+                the fastest thing to fix, whether that is me or not. No slides, no deck, and
+                nothing is charged for the conversation.
+              </p>
+              <p>
+                If you already know you want the build, the checkout above is faster and
+                nothing here replaces it.
+              </p>
+            </header>
+            <PremierSystemLeadForm />
           </div>
         </div>
       </section>
