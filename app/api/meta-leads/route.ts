@@ -106,6 +106,18 @@ const FORM_CONSENT_LAYOUT: Record<string, ReadonlyArray<"sms" | "marketing">> = 
 };
 const LEGACY_CONSENT_LAYOUT: ReadonlyArray<"sms" | "marketing"> = ["sms", "marketing"];
 
+// Fallback for a form that was published in Ads Manager but not yet added to
+// FORM_CONSENT_LAYOUT above. Reading a lone checkbox as position 0 of the
+// legacy order records an SMS opt-in nobody gave AND leaves marketing false,
+// so the person never gets the daily email they actually asked for. Every
+// single-box form on this account is the email opt-in, and the standing rule
+// is that no automated marketing texts go out at all, so infer by box count
+// and never infer "sms" from one box.
+function inferLayout(boxCount: number): ReadonlyArray<"sms" | "marketing"> {
+  if (boxCount === 1) return ["marketing"];
+  return LEGACY_CONSENT_LAYOUT;
+}
+
 // Reads the optional consent checkboxes using that form's layout above.
 // Forms with no checkboxes at all (the old free-build ones) get no text and
 // no marketing email, which is the playbook rule: a phone number alone is
@@ -118,7 +130,8 @@ function parseConsents(raw: MetaLead): { sms: boolean; marketing: boolean } {
     r ? r.is_checked === true || r.is_checked === "1" || r.is_checked === "true" : false;
 
   const layout =
-    (raw.form_id ? FORM_CONSENT_LAYOUT[raw.form_id] : undefined) ?? LEGACY_CONSENT_LAYOUT;
+    (raw.form_id ? FORM_CONSENT_LAYOUT[raw.form_id] : undefined) ??
+    inferLayout(boxes.length);
 
   const out = { sms: false, marketing: false };
   layout.forEach((kind, i) => {
@@ -153,7 +166,9 @@ function mapLead(raw: MetaLead) {
   const phone = pick(fields, "phone");
 
   const industry = pick(fields, "kind_of_business", "what_kind_of_business");
-  const platform = pick(fields, "have_online", "online_right_now");
+  // "website_right_now" catches the Free Build Volume form's "What do you have
+  // for a website right now?"; the other two catch the older Qualified forms.
+  const platform = pick(fields, "have_online", "online_right_now", "website_right_now");
   const timeline = pick(fields, "how_soon", "want_this_built", "want_this_moving");
   const consents = parseConsents(raw);
 
