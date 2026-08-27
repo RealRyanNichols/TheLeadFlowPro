@@ -216,7 +216,15 @@ async function logTokenDiagnostics(systemToken: string, readToken: string) {
   const probe = async (label: string, path: string, tok: string) => {
     try {
       const r = await fetch(`${GRAPH}/${path}${path.includes("?") ? "&" : "?"}access_token=${encodeURIComponent(tok)}`);
-      const body = await r.text().catch(() => "");
+      const raw = await r.text().catch(() => "");
+      // NEVER log a token. This diagnostic previously printed the response
+      // body verbatim, and one of the probes below asks for a Page's
+      // access_token field, so a live Page token (EAA..., ~200 chars) was
+      // landing in Vercel's logs every time the poll failed - which is the
+      // exact condition this diagnostic exists for, on a 5 minute cron.
+      const body = raw
+        .replace(/EAA[A-Za-z0-9]{20,}/g, "<token redacted>")
+        .replace(/"access_token"\s*:\s*"[^"]*"/g, '"access_token":"<redacted>"');
       console.error(`Meta diag ${label}: ${r.status} ${body.slice(0, 500)}`);
     } catch (e) {
       console.error(`Meta diag ${label} threw:`, e);
@@ -226,7 +234,10 @@ async function logTokenDiagnostics(systemToken: string, readToken: string) {
   console.error("Meta diag: page token exchange produced a different token =", readToken !== systemToken);
   await probe("me(system)", "me?fields=id,name", systemToken);
   await probe("permissions(system)", "me/permissions", systemToken);
-  await probe("page(system)", `${PAGE_ID}?fields=id,name,access_token`, systemToken);
+  // Deliberately does NOT request access_token. Whether the exchange produced
+  // a token is already answered by the line above; the token's value is never
+  // needed to diagnose anything and asking for it only puts it on the wire.
+  await probe("page(system)", `${PAGE_ID}?fields=id,name`, systemToken);
   await probe("me(read)", "me?fields=id,name", readToken);
   await probe("page-forms(read)", `${PAGE_ID}/leadgen_forms?fields=id,name&limit=5`, readToken);
 }

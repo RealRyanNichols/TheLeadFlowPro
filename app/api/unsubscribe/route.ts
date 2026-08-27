@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
-import { unsubscribeSecret, verifyUnsubscribe } from "@/lib/unsubscribe";
+import { verifyUnsubscribeAny } from "@/lib/unsubscribe";
 
 // One click unsubscribe. Reached two ways:
 //   GET  - the link at the bottom of every nurture email
@@ -16,12 +16,20 @@ async function unsubscribe(request: Request): Promise<{ ok: boolean; status: num
   const url = new URL(request.url);
   const id = String(url.searchParams.get("id") ?? "");
   const token = String(url.searchParams.get("t") ?? "");
-  const secret = unsubscribeSecret();
+  // The Supabase client needs the SERVICE ROLE KEY. It used to be handed the
+  // unsubscribe signing secret, which only ever worked by accident: while
+  // UNSUBSCRIBE_SECRET was unset, the signing secret fell back to the service
+  // role key and happened to be a valid Supabase credential. The day
+  // UNSUBSCRIBE_SECRET was actually set, every unsubscribe click started
+  // authenticating to Supabase with a random string, 401ing, and redirecting
+  // to /unsubscribed?e=1 without ever stamping the row. The person saw a
+  // confirmation-ish page and kept receiving the daily sequence.
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
-  if (!id || !token || !secret) return { ok: false, status: 400 };
-  if (!verifyUnsubscribe(id, token, secret)) return { ok: false, status: 403 };
+  if (!id || !token || !serviceKey) return { ok: false, status: 400 };
+  if (!verifyUnsubscribeAny(id, token)) return { ok: false, status: 403 };
 
-  const supabase = createSupabaseClient(SUPABASE_URL, secret);
+  const supabase = createSupabaseClient(SUPABASE_URL, serviceKey);
   const now = new Date().toISOString();
 
   const { error } = await supabase

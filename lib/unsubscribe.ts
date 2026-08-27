@@ -25,6 +25,32 @@ export function unsubscribeSecret(): string | null {
   );
 }
 
+/**
+ * Every secret a token might have been signed with, newest first.
+ *
+ * This exists because the signing key changed underneath links that were
+ * already sitting in people's inboxes. Before UNSUBSCRIBE_SECRET was set, the
+ * fallback above signed with the Supabase service role key; after it was set,
+ * new links sign with UNSUBSCRIBE_SECRET. Verifying against only the current
+ * secret would 403 every already-delivered link, so somebody who clicks
+ * unsubscribe on yesterday's email would be told no and keep getting mail.
+ *
+ * Verification accepts any of these. Signing always uses the first one.
+ */
+export function unsubscribeSecrets(): string[] {
+  const out: string[] = [];
+  const current = process.env.UNSUBSCRIBE_SECRET?.trim();
+  const legacy = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (current) out.push(current);
+  if (legacy && legacy !== current) out.push(legacy);
+  return out;
+}
+
+/** True if the token matches under ANY secret this deploy has ever signed with. */
+export function verifyUnsubscribeAny(leadId: string, token: string): boolean {
+  return unsubscribeSecrets().some((s) => verifyUnsubscribe(leadId, token, s));
+}
+
 export function signUnsubscribe(leadId: string, secret: string): string {
   return crypto.createHmac("sha256", secret).update(`unsub:${leadId}`).digest("hex").slice(0, 32);
 }

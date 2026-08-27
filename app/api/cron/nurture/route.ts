@@ -28,6 +28,9 @@ export const maxDuration = 60;
 
 const MAX_SENDS_PER_RUN = 200;
 const LOOKBACK_DAYS = 45;
+// Minimum gap between two emails to the SAME lead. 20 rather than 24 so a cron
+// that drifts a few minutes early does not skip a day.
+const MIN_HOURS_BETWEEN_SENDS = 20;
 
 type EligibleLead = {
   id: string;
@@ -59,8 +62,13 @@ function renderBody(step: NurtureStep, lead: EligibleLead, unsubUrl: string): st
 }
 
 export async function GET(request: Request) {
+  // Fail CLOSED. This used to be `if (cronSecret && ...)`, which meant that
+  // with CRON_SECRET unset the endpoint was open to anyone who guessed the URL
+  // and every hit advanced the whole list by one email. Refusing to run
+  // without the secret is the safe direction: a missed day is recoverable,
+  // thirty emails fired at somebody in an afternoon is not.
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
+  if (!cronSecret || request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -103,19 +111,26 @@ export async function GET(request: Request) {
   // One read for the whole batch instead of a query per lead.
   const { data: sentRows } = await supabase
     .from("lead_emails")
-    .select("lead_id, step")
+    .select("lead_id, step, created_at")
     .in("lead_id", ids)
     .gte("step", NURTURE_STEPS[0].step);
 
   const alreadySent = new Map<string, Set<number>>();
+  const lastSentAt = new Map<string, number>();
   for (const row of sentRows ?? []) {
     const set = alreadySent.get(row.lead_id) ?? new Set<number>();
     set.add(row.step);
     alreadySent.set(row.lead_id, set);
+
+    const at = row.created_at ? new Date(row.created_at).getTime() : NaN;
+    if (Number.isFinite(at)) {
+      lastSentAt.set(row.lead_id, Math.max(lastSentAt.get(row.lead_id) ?? 0, at));
+    }
   }
 
   let sent = 0;
   let failed = 0;
+  let throttled = 0;
   const errors: string[] = [];
 
   for (const lead of (leads ?? []) as EligibleLead[]) {
@@ -131,6 +146,20 @@ export async function GET(request: Request) {
     const done = alreadySent.get(lead.id) ?? new Set<number>();
     const next = due.find((s) => !done.has(s.step));
     if (!next) continue;
+
+    // One email per lead per DAY, enforced here rather than assumed from the
+    // cron schedule. "Once a day" used to be true only because vercel.json
+    // fires this once a day; any second invocation - a retry, a manual hit, a
+    // probe - immediately walked every lead to their next step. That is
+    // exactly what happened on 27 Aug 2026: steps 101 and 102 went to the same
+    // three people 1h46m apart. The claim row and UNIQUE(lead_id, step) stop
+    // the same step going twice; nothing stopped the NEXT step going too soon.
+    // This does.
+    const last = lastSentAt.get(lead.id);
+    if (last && Date.now() - last < MIN_HOURS_BETWEEN_SENDS * 3600_000) {
+      throttled++;
+      continue;
+    }
 
     // Claim first. UNIQUE (lead_id, step) makes this the lock.
     const claim = await supabase
@@ -195,6 +224,7 @@ export async function GET(request: Request) {
     checked: (leads ?? []).length,
     sent,
     failed,
+    throttled,
     errors: errors.slice(0, 5),
   });
 }
