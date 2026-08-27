@@ -329,7 +329,16 @@ async function ingest(raw: MetaLead): Promise<boolean> {
 
 function signatureOk(body: string, header: string | null): boolean {
   const secret = process.env.META_APP_SECRET;
-  if (!secret) return true; // not configured yet → do not lock Ryan out
+  // Fail CLOSED. This used to `return true` when the secret was missing, so
+  // that an unconfigured deploy would not drop leads. META_APP_SECRET is set
+  // now, and leaving the escape hatch in means the endpoint silently reopens
+  // to forged leads the moment that variable goes missing.
+  //
+  // Failing closed does not cost leads. Meta retries a non-200 for hours, and
+  // the GET backfill poll on this same route pulls leads straight from the
+  // Graph API every five minutes regardless of what the webhook did. There are
+  // two independent paths in; only this one is reachable by strangers.
+  if (!secret) return false;
   if (!header?.startsWith("sha256=")) return false;
   const expected = createHmac("sha256", secret).update(body).digest("hex");
   const got = header.slice(7);
