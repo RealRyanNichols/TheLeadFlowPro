@@ -80,14 +80,54 @@ function ConfirmationShell({
   );
 }
 
+/**
+ * Ask Stripe what was actually paid. Returns null when there is no session id,
+ * no Stripe key, the session is not paid, or Stripe is unreachable — and a
+ * null simply means the conversion falls back to its old behavior rather than
+ * the page breaking. A thank-you page must render even when Stripe is down.
+ */
+async function fetchPaidSession(
+  sessionId: string | undefined,
+): Promise<{ amountUsd: number; sessionId: string } | null> {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key || !sessionId || !sessionId.startsWith("cs_")) return null;
+  try {
+    const r = await fetch(
+      `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}`,
+      { headers: { Authorization: `Bearer ${key}` }, cache: "no-store" },
+    );
+    if (!r.ok) return null;
+    const j = (await r.json()) as { payment_status?: string; amount_total?: number };
+    if (j.payment_status !== "paid" || !Number.isFinite(Number(j.amount_total))) return null;
+    return { amountUsd: Number(j.amount_total) / 100, sessionId };
+  } catch {
+    return null;
+  }
+}
+
 export default async function ThankYou({
   searchParams,
 }: {
-  searchParams: Promise<{ purchase?: string }>;
+  searchParams: Promise<{ purchase?: string; session_id?: string }>;
 }) {
-  const { purchase } = await searchParams;
+  const { purchase, session_id: sessionId } = await searchParams;
   const settings = await getSettings();
-  const bought = purchase === "learn_it";
+
+  // THE REAL AMOUNT, not a constant.
+  //
+  // ConversionPing used to hardcode value: 497 for every purchase on this
+  // site, so a $500 deposit, a $1,000 full payment and a $25,000 custom
+  // deposit all reported to Meta and Google as a $497 sale. Both platforms
+  // were optimizing against a number that was true for nothing.
+  //
+  // Asking Stripe is the only way to be right for every kind, because deposit
+  // amounts are customer-chosen and no lookup table can know them. It also
+  // fixes the second bug: `bought` was `purchase === "learn_it"`, a kind
+  // nothing has produced since the training product was retired, so a real
+  // $497 System Map sale fired a Lead instead of a Purchase and was invisible
+  // as revenue. Now anything Stripe reports as paid counts as a purchase.
+  const paid = await fetchPaidSession(sessionId);
+  const bought = paid !== null || purchase === "learn_it";
   const paidEvent = purchase === "event";
   const paidDeposit =
     purchase === "build_deposit" || purchase === "package_deposit" || purchase === "package_full";
@@ -111,6 +151,8 @@ export default async function ThankYou({
             googleAdsId={settings.google_ads_id}
             conversionLabel={settings.google_ads_conversion_label}
             purchase
+            value={paid?.amountUsd}
+            dedupeKey={paid?.sessionId}
           />
         }
         actions={
@@ -175,6 +217,8 @@ export default async function ThankYou({
             googleAdsId={settings.google_ads_id}
             conversionLabel={settings.google_ads_conversion_label}
             purchase={bought}
+            value={paid?.amountUsd}
+            dedupeKey={paid?.sessionId}
           />
         }
         actions={
@@ -209,6 +253,8 @@ export default async function ThankYou({
           googleAdsId={settings.google_ads_id}
           conversionLabel={settings.google_ads_conversion_label}
           purchase={bought}
+          value={paid?.amountUsd}
+          dedupeKey={paid?.sessionId}
         />
       }
       actions={

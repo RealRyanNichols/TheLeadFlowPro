@@ -42,7 +42,7 @@ export default function SiteHeader() {
           ))}
           <Link href="/login">Log in</Link>
           <Link href="/packages/launch" className="header-cta" data-analytics="cta-start-project-header">
-            Website Launch | $500
+            Website Launch | $1,000
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </nav>
@@ -58,7 +58,7 @@ export default function SiteHeader() {
             ))}
             <Link href="/login">Log in</Link>
             <Link href="/packages/launch" className="header-cta" data-analytics="cta-start-project-mobile">
-              Website Launch | $500
+              Website Launch | $1,000
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </div>
