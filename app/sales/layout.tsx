@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import InternalTrafficMarker from "@/components/InternalTrafficMarker";
 import SignOutButton from "@/components/SignOutButton";
 
-export const metadata = { title: "Sales Desk | The LeadFlow Pro" };
+export const metadata = { title: "LeadFlow Pro Workspace" };
 
 export default async function SalesLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -27,9 +27,9 @@ export default async function SalesLayout({ children }: { children: React.ReactN
       <div className="mx-auto max-w-6xl px-4 pb-20 pt-[22px] sm:pt-8">
         <div className="mb-8 flex flex-wrap items-center gap-4 border-b border-line pb-4">
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-black text-[var(--heading)]">LeadFlow Pro Sales Desk</h1>
+            <h1 className="text-2xl font-black text-[var(--heading)]">LeadFlow Pro Workspace</h1>
             <p className="text-xs text-[var(--muted)]">
-              Lead pipeline, call context, follow-ups, and conversations
+              Build Workspace. Client funnels, deliverables, follow-ups, and delivery.
             </p>
           </div>
           <nav className="flex flex-wrap items-center justify-end gap-3 text-sm font-semibold">
