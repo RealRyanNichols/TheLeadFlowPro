@@ -16,7 +16,12 @@
 
 import { useState } from "react";
 import { ArrowRight, Check, Lock } from "lucide-react";
-import { FREE_BUILD, formatUsd, type FreeBuildTier } from "@/lib/freeBuild";
+import {
+  FREE_BUILD,
+  FREE_BUILD_OPTIONS,
+  formatUsd,
+  type FreeBuildTier,
+} from "@/lib/freeBuild";
 import styles from "./free-build.module.css";
 
 declare global {
@@ -27,6 +32,7 @@ declare global {
 
 export default function FreeBuildOrder() {
   const [tier, setTier] = useState<FreeBuildTier>(FREE_BUILD.tiers[1]);
+  const options = FREE_BUILD_OPTIONS;
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
@@ -95,6 +101,21 @@ export default function FreeBuildOrder() {
     }
 
     window.fbq?.("track", "Lead");
+
+    // The free-only tier never touches Stripe. There is nothing to charge, so
+    // firing InitiateCheckout would teach Meta to optimize for a checkout that
+    // does not exist.
+    if (tier.priceUsd === 0) {
+      setSaved(
+        "You are in. Ryan will call or email you within one business day to book the twenty " +
+          "minute call. Free build, no engine, and the trade is exactly what the page says: his " +
+          "credit in your footer, a copy of your leads, his pixel next to yours. All of it comes " +
+          "off the day you buy anything.",
+      );
+      setSending(false);
+      return;
+    }
+
     window.fbq?.("track", "InitiateCheckout", { value: tier.priceUsd, currency: "USD" });
 
     // 2. Try to open Stripe. Amount comes from the server, not from here.
@@ -139,7 +160,7 @@ export default function FreeBuildOrder() {
     <div className={styles.orderWrap} id="order">
       {/* ------------------------------------------------------- tier cards --- */}
       <div className={styles.tierGrid} role="radiogroup" aria-label="Pick your engine">
-        {FREE_BUILD.tiers.map((t) => {
+        {options.map((t) => {
           const active = t.id === tier.id;
           return (
             <button
@@ -153,8 +174,8 @@ export default function FreeBuildOrder() {
               {t.tag && <span className={styles.tierTag}>{t.tag}</span>}
               <span className={styles.tierName}>{t.name}</span>
               <span className={styles.tierPrice}>
-                {formatUsd(t.priceUsd)}
-                <em>one time</em>
+                {t.priceUsd === 0 ? "$0" : formatUsd(t.priceUsd)}
+                <em>{t.priceUsd === 0 ? "and here is the trade" : "one time"}</em>
               </span>
               <span className={styles.tierPages}>{t.pages}</span>
               <span className={styles.tierEngine}>{t.engine}</span>
@@ -268,7 +289,11 @@ export default function FreeBuildOrder() {
         {error && <p className={styles.formError}>{error}</p>}
 
         <button type="submit" disabled={sending} className="cb-btn cb-btn--primary">
-          {sending ? "Sending..." : `Claim My Free Build | ${formatUsd(tier.priceUsd)}`}
+          {sending
+            ? "Sending..."
+            : tier.priceUsd === 0
+              ? "Claim My Free Build | $0"
+              : `Claim My Free Build | ${formatUsd(tier.priceUsd)}`}
           <ArrowRight aria-hidden="true" />
         </button>
 

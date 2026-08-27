@@ -183,6 +183,58 @@ export default function FreeBuildPage() {
         </div>
       </section>
 
+      {/* --------------------------------------------------------- free only --- */}
+      <section id="free-only" className="cb-band cb-band--tint" tabIndex={-1}>
+        <div className="cb-shell">
+          <p className="cb-eyebrow">Or take the site and nothing else</p>
+          <h2 className="cb-h2">{FREE_BUILD.freeOnly.name}</h2>
+          <p className="cb-lead">{FREE_BUILD.freeOnly.line}</p>
+
+          <div className={styles.splitGrid}>
+            <div className={styles.miniCard}>
+              <h3>{FREE_BUILD.freeOnly.tradeTitle}</h3>
+              <p style={{ marginBottom: 14 }}>
+                Free is never actually free, anywhere, from anybody. The difference is whether they
+                tell you. Here is mine, in writing, before you decide.
+              </p>
+              <ul className={styles.checkList}>
+                {FREE_BUILD.freeOnly.trade.map((t) => (
+                  <li key={t.title}>
+                    <Check aria-hidden="true" />
+                    <span>
+                      <strong>{t.title}.</strong> {t.detail}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className={styles.miniCard}>
+              <h3>What you do not get</h3>
+              <ul className={styles.crossList}>
+                {FREE_BUILD.freeOnly.notIncluded.map((n) => (
+                  <li key={n}>
+                    <X aria-hidden="true" />
+                    {n}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className={styles.guarantee} style={{ marginTop: 22 }}>
+            <ShieldCheck aria-hidden="true" />
+            <p>{FREE_BUILD.freeOnly.removal}</p>
+          </div>
+
+          <div className="cb-actions" style={{ marginTop: 26 }}>
+            <a className="cb-btn cb-btn--ghost" href="#order">
+              {FREE_BUILD.freeOnly.cta}
+              <ArrowRight aria-hidden="true" />
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* ------------------------------------------------------------ build --- */}
       <section className="cb-band cb-band--tint">
         <div className="cb-shell">

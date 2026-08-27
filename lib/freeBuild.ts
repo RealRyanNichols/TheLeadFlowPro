@@ -25,7 +25,7 @@
 
 export type FreeBuildTier = {
   /** Checkout kind. Must match the keys wired in /api/checkout. */
-  id: "free_build_followup" | "free_build_content" | "free_build_launch";
+  id: "free_build_followup" | "free_build_content" | "free_build_launch" | "free_build_only";
   name: string;
   priceUsd: number;
   priceCents: number;
@@ -198,6 +198,58 @@ export const FREE_BUILD = {
     },
   ] as FreeBuildTier[],
 
+  // ------------------------------------------------------------ free only ---
+  // Ryan's call, 2026-08-27: some people just want the free website and nothing
+  // else. Fine. But there has to be a trade, and the trade has to be STATED.
+  //
+  // Ryan's first instinct was to embed tracking they cannot easily remove and
+  // quietly take the leads. We are not doing that, and the reason is business,
+  // not squeamishness: his entire pitch is "you do not own your Facebook page,
+  // they change the rules on a Tuesday and never tell you." The day one client
+  // opens the source and finds us harvesting their customers, that is the only
+  // story anyone ever tells about The LeadFlow Pro again. It hands every
+  // competitor the exact weapon.
+  //
+  // So the same value is captured out loud instead. Footer credit, shared lead
+  // copy, our pixel, all named on this page and in the agreement, and all of it
+  // comes off the moment they buy anything. This is the standard free-tier
+  // trade every website platform on earth runs, and saying it plainly is
+  // itself a sales asset for a man whose brand is receipts.
+  freeOnly: {
+    id: "free_build_only",
+    name: "Free Build, nothing else",
+    priceUsd: 0,
+    pages: "One page site, free",
+    engine: "No engine. Just the site.",
+    line: "You want the website and none of the rest. That is a real answer and I will still build it.",
+    tradeTitle: "What I get out of it, said out loud",
+    trade: [
+      {
+        title: "My name in your footer",
+        detail:
+          "A small \u201cBuilt by The LeadFlow Pro\u201d credit at the bottom, linking back to me. Every visitor you get sees it. That is the oldest trade on the internet and it is how the free tier of every website platform works.",
+      },
+      {
+        title: "A copy of your leads",
+        detail:
+          "When somebody fills in your form it goes to you first, every time, and a copy comes to me. Not instead of you. As well as you. You will know, because it is written here and it is in the agreement you sign.",
+      },
+      {
+        title: "My pixel next to yours",
+        detail:
+          "So I can see how the page performs and get better at building them. Your pixel goes on too, and yours is the one that owns your ad data.",
+      },
+    ],
+    removal:
+      "All three come off the day you buy anything, even the $197. That is not a threat, it is the deal: pay for an engine and the site is yours clean, with nothing of mine on it.",
+    notIncluded: [
+      "No posting, no follow-up, no review asks. The site sits there. That is what free means.",
+      "Updates are best effort and go behind paying clients, because they are paying.",
+      "One page, not two. The second page is part of the paid tiers.",
+    ],
+    cta: "Claim the free build only",
+  },
+
   steps: [
     {
       number: "01",
@@ -267,3 +319,25 @@ export function formatUsd(amount: number): string {
 export function findFreeBuildTier(id: string): FreeBuildTier | undefined {
   return FREE_BUILD.tiers.find((t) => t.id === id);
 }
+
+/**
+ * The four things a visitor can actually pick, in order: the three paid
+ * engines, then the free-only option last. Free is last on purpose. Somebody
+ * who reads the paid options first and then finds the free one has already
+ * seen what they are giving up; somebody who sees free first never reads
+ * further. `includes` for the free option is the TRADE, not features, because
+ * on that card the trade is the thing the buyer needs to weigh.
+ */
+export const FREE_BUILD_OPTIONS: FreeBuildTier[] = [
+  ...FREE_BUILD.tiers,
+  {
+    id: FREE_BUILD.freeOnly.id as FreeBuildTier["id"],
+    name: FREE_BUILD.freeOnly.name,
+    priceUsd: 0,
+    priceCents: 0,
+    engine: FREE_BUILD.freeOnly.engine,
+    pages: FREE_BUILD.freeOnly.pages,
+    tag: "",
+    includes: FREE_BUILD.freeOnly.trade.map((t) => `${t.title}: ${t.detail.split(".")[0]}.`),
+  },
+];
