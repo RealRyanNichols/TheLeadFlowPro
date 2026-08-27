@@ -51,6 +51,49 @@ export const FREE_BUILD = {
     "will actually see them. So I stopped charging for the site. Pick the engine you want running, " +
     "and the build comes with it.",
 
+  // THE ANCHOR. Ryan's note, 2026-08-27: people were reading "Free Build" and
+  // "$197" in the same breath and hearing a bait and switch. The fix is not a
+  // softer price, it is stating what the free part is worth BEFORE any number
+  // appears, and stating it with a figure they can go verify.
+  //
+  // We anchor to Ryan's OWN published price, not an invented market rate.
+  // /packages/launch sells this exact build for $1,000 today. A visitor can
+  // click through and check it in ten seconds. An invented "normally $2,000"
+  // is unverifiable and reads like every other fake discount on the internet;
+  // "this is the thing I sell for $1,000, on this same site, right now" cannot
+  // be argued with.
+  anchorUsd: 1000,
+  anchorLine: "The same build sells for $1,000 on this site. Go look, it is on the packages page.",
+
+  /** The three questions every visitor asks, in the order they ask them. */
+  whyFree: [
+    {
+      q: "So what is the free part actually worth?",
+      a:
+        "A one or two page site, built for a phone, with a form that reaches you, your pixel installed, " +
+        "and a domain in your name. I sell that exact build for $1,000 on the packages page of this " +
+        "same site. That is not a made up number to make a discount look big. It is my real price and " +
+        "you can go check it right now.",
+    },
+    {
+      q: "Then why would you give it away?",
+      a:
+        "Because a website on its own is a business card nobody asked for. It does not follow up, it " +
+        "does not post, it does not answer anybody at 9pm. I got tired of handing people a $1,000 site " +
+        "and watching it sit there doing nothing for two years. So now I give the site away and charge " +
+        "for the part that actually works. If the engine is no good, you paid $197 and you still keep " +
+        "a $1,000 website. That is the deal, and I am fine with it.",
+    },
+    {
+      q: "Where is the catch?",
+      a:
+        "Two places, and I would rather you read them here than find them later. One: the engine is not " +
+        "refundable once I start writing it. Two: you were going to buy a website anyway. I am betting " +
+        "that if I build it free and it is good, you keep working with me. That is the whole strategy. " +
+        "There is no monthly fee hiding behind it and nothing renews on you.",
+    },
+  ],
+
   /** Honest capacity. Not fake urgency: this is one person's real week. */
   weeklySlots: 4,
   slotsNote: "Four free builds a week. That is what one person can actually do properly.",

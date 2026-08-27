@@ -67,8 +67,11 @@ export default function FreeBuildPage() {
               <li>
                 <ShieldCheck aria-hidden="true" />
                 <span>
-                  The site costs nothing, at every tier
-                  <em>Not a trial, not a template you rent. Built for you and handed over.</em>
+                  A ${FREE_BUILD.anchorUsd.toLocaleString("en-US")} build, for nothing
+                  <em>
+                    Not a trial and not a template you rent. It is the same site I sell for $
+                    {FREE_BUILD.anchorUsd.toLocaleString("en-US")} on my packages page. Go check.
+                  </em>
                 </span>
               </li>
               <li>
@@ -88,12 +91,12 @@ export default function FreeBuildPage() {
             </ul>
 
             <div className="cb-actions">
-              <a className="cb-btn cb-btn--primary" href="#pick">
-                Pick My Engine
+              <a className="cb-btn cb-btn--primary" href="#why">
+                Show Me How This Works
                 <ArrowRight aria-hidden="true" />
               </a>
-              <a className="cb-btn cb-btn--ghost" href="#catch">
-                What Is The Catch
+              <a className="cb-btn cb-btn--ghost" href="#pick">
+                Skip Ahead To The Options
               </a>
             </div>
 
@@ -115,10 +118,14 @@ export default function FreeBuildPage() {
           <div className={styles.tradeCard}>
             <div className={styles.tradeRow}>
               <span className={styles.tradeLabel}>The website</span>
-              <span className={styles.tradeFree}>$0</span>
+              <span className={styles.tradeFree}>
+                <s>${FREE_BUILD.anchorUsd.toLocaleString("en-US")}</s> $0
+              </span>
             </div>
             <p className={styles.tradeNote}>
               Built for a phone, form that reaches you, your pixel installed, on a domain you own.
+              This is the build on my packages page at $
+              {FREE_BUILD.anchorUsd.toLocaleString("en-US")}. Same thing. No charge.
             </p>
             <div className={styles.tradeDivider} />
             <div className={styles.tradeRow}>
@@ -136,14 +143,41 @@ export default function FreeBuildPage() {
         </div>
       </section>
 
+      {/* -------------------------------------------------------------- why --- */}
+      {/* This section exists because "Free Build" next to "$197" was reading as
+          bait and switch. Nobody sees a price until they have read these three
+          answers. Ryan's call, and he is right: the value has to land before
+          the number does. */}
+      <section id="why" className="cb-band" tabIndex={-1}>
+        <div className="cb-shell">
+          <p className="cb-eyebrow">Before we talk about money</p>
+          <h2 className="cb-h2">You are right to be suspicious of the word free.</h2>
+          <p className="cb-lead">
+            So here are the three questions everybody asks, answered before I show you a single
+            price.
+          </p>
+          <div className={styles.whyGrid}>
+            {FREE_BUILD.whyFree.map((item, i) => (
+              <div key={item.q} className={styles.whyCard}>
+                <span className={styles.whyNum}>{String(i + 1).padStart(2, "0")}</span>
+                <h3>{item.q}</h3>
+                <p>{item.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ------------------------------------------------------------- pick --- */}
       <section id="pick" className="cb-band" tabIndex={-1}>
         <div className="cb-shell">
           <p className="cb-eyebrow">Pick your engine</p>
-          <h2 className="cb-h2">Three ways to start. The build is free in all three.</h2>
+          <h2 className="cb-h2">You were going to buy a website anyway.</h2>
           <p className="cb-lead">
-            The only difference is what runs behind the site once it is live, and how many pages I
-            build you to run it on. One payment. Nothing recurring, nothing to cancel.
+            So buy the engine instead and take the ${FREE_BUILD.anchorUsd.toLocaleString("en-US")}{" "}
+            site for nothing. Three ways to start. The build is free in all three, and the only
+            difference is what runs behind it once it is live. One payment. Nothing recurring,
+            nothing to cancel.
           </p>
           <FreeBuildOrder />
         </div>
