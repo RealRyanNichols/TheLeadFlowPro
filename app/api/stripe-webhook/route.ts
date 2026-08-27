@@ -57,12 +57,19 @@ function verifySignature(payload: string, header: string, secret: string): boole
 async function sendPurchaseEmails(email: string, kind: string) {
   const key = process.env.RESEND_API_KEY;
   if (!key) return;
-  const send = (payload: object) =>
-    fetch("https://api.resend.com/emails", {
+  // Throw on failure. This used to be `.catch(() => {})` with no r.ok check,
+  // so a 429 or 422 from Resend meant the buyer's access instructions silently
+  // vanished, the handler still returned {received:true}, and Stripe never
+  // retried. Every other paid path in this file throws for exactly that
+  // reason: a retried webhook is recoverable, a swallowed one is not.
+  const send = async (payload: object) => {
+    const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-    }).catch(() => {});
+    });
+    if (!r.ok) throw new Error(`Resend rejected purchase email: ${r.status}`);
+  };
 
   await send({
     from: "The LeadFlow Pro <hello@theleadflowpro.com>",
@@ -91,6 +98,86 @@ async function sendPurchaseEmails(email: string, kind: string) {
       "",
       "Ryan Nichols",
       "The LeadFlow Pro | Own your platform.",
+    ].join("\n"),
+  });
+}
+
+/**
+ * Catch-all for a paid kind that has no dedicated fulfilment branch.
+ *
+ * Before this existed, `system_map`, `package_full`, a `package_deposit` for
+ * anything other than the exact $500 Website Launch, and every `build_deposit`
+ * ($250 to $25,000) fell straight off the end of the dispatch. A purchases row
+ * was written and then nothing: no alert to hello@, no email to the buyer, no
+ * lead marked won. Somebody could pay $497 for a System Map or $25,000 as a
+ * custom deposit and the only evidence anywhere was Stripe's own receipt.
+ *
+ * This does not try to fulfil anything. It makes sure a human is told, with
+ * the real amount, and that the buyer gets an acknowledgement instead of
+ * silence. Throws on send failure so Stripe retries.
+ */
+async function notifyUnhandledPurchase(
+  email: string,
+  kind: string,
+  amountCents: number | null,
+  sessionId: string,
+) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+  const amount =
+    typeof amountCents === "number" && Number.isFinite(amountCents)
+      ? `$${(amountCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+      : "unknown amount";
+
+  const send = async (payload: object) => {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) throw new Error(`Resend rejected purchase email: ${r.status}`);
+  };
+
+  await send({
+    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+    to: ["hello@theleadflowpro.com"],
+    subject: `💰 PAID: ${kind} ${amount} — ${email}`,
+    text: [
+      "Somebody paid and there is no automated fulfilment for this product.",
+      "",
+      `Product: ${kind}`,
+      `Amount:  ${amount}`,
+      `Buyer:   ${email}`,
+      `Stripe:  ${sessionId}`,
+      "",
+      "Reach out to them today. They have been sent a short acknowledgement",
+      "telling them you will be in touch within one business day.",
+      "",
+      "Admin: https://www.theleadflowpro.com/admin",
+    ].join("\n"),
+  });
+
+  await send({
+    from: "Ryan Nichols <hello@theleadflowpro.com>",
+    to: [email],
+    reply_to: "hello@theleadflowpro.com",
+    subject: "Got your payment. Here is what happens next.",
+    text: [
+      "Thanks. Your payment came through and I have it.",
+      "",
+      `What you paid for: ${kind.replace(/_/g, " ")}`,
+      `Amount: ${amount}`,
+      "",
+      "I do this part by hand rather than firing you into a portal. I will",
+      "reach out within one business day to get started and tell you exactly",
+      "what I need from you.",
+      "",
+      "If you need me before then, just reply to this email or call.",
+      "",
+      "Ryan Nichols",
+      "The LeadFlow Pro",
+      "(903) 500-8898",
+      "Longview, Texas",
     ].join("\n"),
   });
 }
@@ -1072,6 +1159,17 @@ export async function POST(request: Request) {
       await ensureFreeBuildPaid(supabase, session, kind);
     } else if (kind === "learn_it") {
       await sendPurchaseEmails(customer.email, kind);
+    } else {
+      // Nothing above claimed this payment. Do NOT let it fall off the end in
+      // silence: system_map, package_full, a package_deposit that is not the
+      // exact $500 Website Launch, and every build_deposit used to land here
+      // and produce no alert and no buyer email at all.
+      await notifyUnhandledPurchase(
+        customer.email,
+        kind,
+        Number.isFinite(Number(session.amount_total)) ? Number(session.amount_total) : null,
+        session.id,
+      );
     }
 
     return NextResponse.json({ received: true });
