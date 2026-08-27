@@ -4,6 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+// Names attached on first magic-link signup so the workspace shows a person
+// rather than a blank profile. pat@theleadflowpro.com is the permanent company
+// identity; pat@dripgate.org is the temporary bridge and gets revoked once the
+// company login is verified.
+const KNOWN_OPERATORS: Record<string, string> = {
+  "pat@theleadflowpro.com": "Patrick Grabbs",
+  "pat@dripgate.org": "Patrick Grabbs",
+};
+
 function safeNext(value: string | null) {
   return value?.startsWith("/") && !value.startsWith("//") ? value : null;
 }
@@ -100,8 +109,8 @@ export default function LoginForm() {
       options: {
         shouldCreateUser: true,
         emailRedirectTo: `${window.location.origin}/login?next=${encodeURIComponent(destination)}`,
-        data: email.trim().toLowerCase() === "pat@dripgate.org"
-          ? { full_name: "Patrick Grabbs" }
+        data: KNOWN_OPERATORS[email.trim().toLowerCase()]
+          ? { full_name: KNOWN_OPERATORS[email.trim().toLowerCase()] }
           : undefined,
       },
     });
