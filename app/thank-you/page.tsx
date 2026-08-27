@@ -86,9 +86,9 @@ function ConfirmationShell({
  * null simply means the conversion falls back to its old behavior rather than
  * the page breaking. A thank-you page must render even when Stripe is down.
  */
-async function fetchPaidSession(
-  sessionId: string | undefined,
-): Promise<{ amountUsd: number; sessionId: string } | null> {
+type PaidSession = { amountUsd: number; sessionId: string };
+
+async function fetchPaidSession(sessionId: string | undefined): Promise<PaidSession | null> {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key || !sessionId || !sessionId.startsWith("cs_")) return null;
   try {
@@ -126,7 +126,9 @@ export default async function ThankYou({
   // nothing has produced since the training product was retired, so a real
   // $497 System Map sale fired a Lead instead of a Purchase and was invisible
   // as revenue. Now anything Stripe reports as paid counts as a purchase.
-  const paid = await fetchPaidSession(sessionId);
+  const paid: PaidSession | null = await fetchPaidSession(sessionId);
+  const paidAmountUsd: number | undefined = paid ? paid.amountUsd : undefined;
+  const paidSessionId: string | undefined = paid ? paid.sessionId : undefined;
   const bought = paid !== null || purchase === "learn_it";
   const paidEvent = purchase === "event";
   const paidDeposit =
@@ -151,8 +153,8 @@ export default async function ThankYou({
             googleAdsId={settings.google_ads_id}
             conversionLabel={settings.google_ads_conversion_label}
             purchase
-            value={paid?.amountUsd}
-            dedupeKey={paid?.sessionId}
+            value={paidAmountUsd}
+            dedupeKey={paidSessionId}
           />
         }
         actions={
@@ -217,8 +219,8 @@ export default async function ThankYou({
             googleAdsId={settings.google_ads_id}
             conversionLabel={settings.google_ads_conversion_label}
             purchase={bought}
-            value={paid?.amountUsd}
-            dedupeKey={paid?.sessionId}
+            value={paidAmountUsd}
+            dedupeKey={paidSessionId}
           />
         }
         actions={
@@ -253,8 +255,8 @@ export default async function ThankYou({
           googleAdsId={settings.google_ads_id}
           conversionLabel={settings.google_ads_conversion_label}
           purchase={bought}
-          value={paid?.amountUsd}
-          dedupeKey={paid?.sessionId}
+          value={paidAmountUsd}
+          dedupeKey={paidSessionId}
         />
       }
       actions={
