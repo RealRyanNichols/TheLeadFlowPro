@@ -83,6 +83,10 @@ const FORM_CAMPAIGNS: Record<string, string> = {
   // LFP | Fix First Form | v1 — published 2026-08-25, the picture lead ad
   // campaign's form. Also add to META_LEAD_FORM_IDS in Vercel.
   "1794058118689457": "fix_first",
+  // LFP | Free Build | Volume | v1 — published 2026-08-27. The More-volume
+  // form now on BOTH live video ads (Ad A | Mall Walk | Video, and
+  // Mall Video | Lead Form | v1). Listed in META_LEAD_FORM_IDS in Vercel.
+  "2043120369669082": "free_build_volume",
 };
 
 // Which optional consent checkbox is which, PER FORM.
@@ -103,6 +107,9 @@ const FORM_CONSENT_LAYOUT: Record<string, ReadonlyArray<"sms" | "marketing">> = 
   // One box: the daily email series only. The form copy says in as many
   // words "No automated marketing texts," so there is no SMS consent here.
   "1794058118689457": ["marketing"],
+  // Free Build Volume: one box, "Yes, send me the daily email." Its own text
+  // says "No automated marketing texts." Email opt-in only.
+  "2043120369669082": ["marketing"],
 };
 const LEGACY_CONSENT_LAYOUT: ReadonlyArray<"sms" | "marketing"> = ["sms", "marketing"];
 
