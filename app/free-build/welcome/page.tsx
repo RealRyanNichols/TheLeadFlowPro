@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarCheck, Camera, KeyRound, PhoneCall } from "lucide-react";
 import { FREE_BUILD, findFreeBuildTier, formatUsd } from "@/lib/freeBuild";
+import ConversionPing from "@/components/ConversionPing";
+import { getSettings } from "@/lib/settings";
 import styles from "../free-build.module.css";
 
 // Where a paid Free Build order lands. One job: get the twenty minute call on
@@ -17,13 +19,29 @@ export const metadata: Metadata = {
 export default async function FreeBuildWelcomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ tier?: string }>;
+  searchParams: Promise<{ tier?: string; session_id?: string }>;
 }) {
-  const { tier: tierId } = await searchParams;
+  const { tier: tierId, session_id: sessionId } = await searchParams;
   const tier = findFreeBuildTier(String(tierId ?? ""));
+  const settings = await getSettings();
 
   return (
     <main className={`cb-page ${styles.page}`}>
+      {/* The Purchase event, with the REAL amount for the tier that was
+          bought, not a hardcoded number. Deduped on the Stripe session id so
+          a buyer who refreshes this page does not fire a second Purchase and
+          inflate what the ad platforms optimize against. Fires only when the
+          tier is recognized: an unknown tier means we do not know the value,
+          and a Purchase with a wrong value is worse than no Purchase. */}
+      {tier && (
+        <ConversionPing
+          googleAdsId={settings.google_ads_id}
+          conversionLabel={settings.google_ads_conversion_label}
+          purchase
+          value={tier.priceUsd}
+          dedupeKey={sessionId ?? tier.id}
+        />
+      )}
       <section className="cb-hero">
         <div className="cb-shell">
           <p className="cb-eyebrow">Payment received</p>
