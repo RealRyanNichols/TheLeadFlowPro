@@ -277,9 +277,17 @@ async function claimExisting(
   if (real) or.push(`email.ilike.${real}`);
   if (digits) or.push(`phone.ilike.%${digits}`);
 
+  // Only a LIVE row counts as "already here". Without these filters a
+  // soft-deleted or test row matching the same email or phone swallowed the
+  // lead: claimExisting returned true, ingest returned false, no new row was
+  // created and no alert fired. A paid lead would land in a deleted record and
+  // be invisible. Deleting junk in the admin must never make a future real
+  // lead disappear.
   const { data } = await supabase
     .from("leads")
     .select("id, external_id")
+    .is("deleted_at", null)
+    .not("is_test", "is", true)
     .or(or.join(","))
     .limit(1);
 
