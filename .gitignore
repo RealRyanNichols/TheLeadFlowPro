@@ -15,4 +15,3 @@ coverage
 tsconfig.tsbuildinfo
 *.tsbuildinfo
 .art-review/
-set-meta-app-secret.sh
