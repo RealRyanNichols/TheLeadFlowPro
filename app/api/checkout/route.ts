@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { priceOrder } from "@/lib/timeback";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
+import { FREE_BUILD } from "@/lib/freeBuild";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
@@ -19,7 +20,18 @@ const PRODUCTS: Record<string, { name: string; amount: number }> = {
     name: `${LEAD_FOLLOW_UP.name} | The LeadFlow Pro`,
     amount: LEAD_FOLLOW_UP.priceCents,
   },
+  // The Free Build (/free-build). Three tiers, one price each, all read from
+  // lib/freeBuild.ts. The site itself is $0 at every tier: what is charged
+  // here is the engine that runs behind it.
+  ...Object.fromEntries(
+    FREE_BUILD.tiers.map((tier) => [
+      tier.id,
+      { name: `${tier.name} | The LeadFlow Pro`, amount: tier.priceCents },
+    ]),
+  ),
 };
+
+const FREE_BUILD_IDS = new Set<string>(FREE_BUILD.tiers.map((tier) => tier.id));
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
@@ -205,6 +217,14 @@ export async function POST(request: Request) {
         // Nothing gets written until that form comes back.
         cancelUrl = `${site}/go/lead-follow-up?cancelled=1`;
         successUrl = `${site}/go/lead-follow-up/intake?session_id={CHECKOUT_SESSION_ID}`;
+      }
+      if (FREE_BUILD_IDS.has(kind)) {
+        // Free Build buyers land on a page that books the twenty minute call
+        // and lists what to send. The build clock starts at that call, so the
+        // next action has to be on screen the second the card clears.
+        cancelUrl = `${site}/free-build?cancelled=1`;
+        successUrl = `${site}/free-build/welcome?tier=${encodeURIComponent(kind)}&session_id={CHECKOUT_SESSION_ID}`;
+        metadata.offer = "free_build";
       }
     }
 

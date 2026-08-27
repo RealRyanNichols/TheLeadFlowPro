@@ -26,6 +26,13 @@ const QUO_API = "https://api.openphone.com/v1/messages";
 // var must never silently move outbound lead texts onto another business line.
 export const LEADFLOW_FROM = "+19035008898";
 
+/** Digits to +1XXXXXXXXXX, or null when it cannot be a US mobile number. */
+export function toE164(raw: string): string | null {
+  const digits = String(raw ?? "").replace(/[^\d+]/g, "");
+  const e164 = digits.startsWith("+") ? digits : `+1${digits.replace(/^1/, "")}`;
+  return e164.length < 12 ? null : e164;
+}
+
 export async function sendLeadText(to: string, content: string): Promise<boolean> {
   // Emergency compliance stop: outbound Quo SMS is disabled by default while
   // delivery failures and consent/automation rules are audited. Lead capture,
@@ -41,9 +48,8 @@ export async function sendLeadText(to: string, content: string): Promise<boolean
   const from = process.env.QUO_FROM_NUMBER || LEADFLOW_FROM;
   const userId = process.env.QUO_USER_ID; // Ryan's Quo user id (US...)
   if (!key || !to) return false;
-  const digits = to.replace(/[^\d+]/g, "");
-  const e164 = digits.startsWith("+") ? digits : `+1${digits.replace(/^1/, "")}`;
-  if (e164.length < 12) return false;
+  const e164 = toE164(to);
+  if (!e164) return false;
 
   const body: Record<string, unknown> = { content, from, to: [e164] };
   // Omitted rather than sent empty: Quo rejects a blank userId outright, and
@@ -62,4 +68,80 @@ export async function sendLeadText(to: string, content: string): Promise<boolean
     console.error("Quo send error:", e);
     return false;
   }
+}
+
+// ---------------------------------------------------------------------------
+// INBOUND-TRIGGERED AUTO-REPLY
+// ---------------------------------------------------------------------------
+//
+// Ryan's rule, and it is a good one: nobody gets a text from us unless they
+// texted us first. No cold outbound, no "you filled in a form so now you get a
+// text." They start the conversation or there is no conversation.
+//
+// That is why this does NOT go through sendLeadText() and is NOT unblocked by
+// QUO_OUTBOUND_SMS_DISABLED. The August 21 emergency stop on application
+// originated outbound stays exactly where it is. This is a different thing
+// with a different switch: a reply to a message a human just sent to our
+// number, which is the one case where a text is invited by definition.
+//
+// It is off until QUO_INBOUND_AUTOREPLY_ENABLED is exactly "true".
+//
+// Everything that keeps this clean lives in the caller (/api/quo-inbound):
+// once per person ever, never after they send STOP, never on our own outbound
+// echo. Do not call this from anywhere else.
+export async function sendInboundAutoReply(to: string, content: string): Promise<boolean> {
+  if (process.env.QUO_INBOUND_AUTOREPLY_ENABLED !== "true") {
+    console.warn("Quo inbound auto-reply is switched off");
+    return false;
+  }
+
+  const key = process.env.QUO_API_KEY;
+  const from = process.env.QUO_FROM_NUMBER || LEADFLOW_FROM;
+  const userId = process.env.QUO_USER_ID;
+  if (!key || !to) return false;
+
+  const e164 = toE164(to);
+  if (!e164) return false;
+
+  const body: Record<string, unknown> = { content, from, to: [e164] };
+  if (userId) body.userId = userId;
+
+  try {
+    const r = await fetch(QUO_API, {
+      method: "POST",
+      headers: { Authorization: key, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) console.error("Quo auto-reply failed:", r.status, await r.text().catch(() => ""));
+    return r.ok;
+  } catch (e) {
+    console.error("Quo auto-reply error:", e);
+    return false;
+  }
+}
+
+/** The one message anybody who texts us first gets back. Once, ever. */
+export const INBOUND_AUTO_REPLY =
+  "This is Ryan with The LeadFlow Pro. Got your text and I will answer you " +
+  "myself. If it is after hours it will be first thing in the morning. " +
+  "(903) 500-8898 is my direct line, save it. Reply STOP to opt out.";
+
+/** Carrier standard opt-out words. Case and punctuation insensitive. */
+const STOP_WORDS = new Set([
+  "stop",
+  "stopall",
+  "unsubscribe",
+  "cancel",
+  "end",
+  "quit",
+  "optout",
+  "opt-out",
+  "remove",
+]);
+
+export function isStopMessage(text: string): boolean {
+  const cleaned = String(text ?? "")
+    .toLowerCase()
+    .replace(/[^a-z-]/g, "");
+  return STOP_WORDS.has(cleaned);
 }

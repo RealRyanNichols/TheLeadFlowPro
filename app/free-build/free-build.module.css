@@ -1,0 +1,616 @@
+/* The Free Build funnel. Mobile first: the first phone screen has to carry the
+   trade (site free, engine paid) and a button. Same tokens as the rest of the
+   site, so this page inherits any theme change automatically. */
+
+.page {
+  padding-bottom: 72px;
+}
+
+.heroGrid {
+  display: grid;
+  gap: clamp(28px, 5vw, 56px);
+  align-items: start;
+}
+
+@media (min-width: 940px) {
+  .heroGrid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  }
+}
+
+.factList {
+  display: grid;
+  gap: 12px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* cb-hero is an ink band, so this list uses the on-ink palette. */
+.factList li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  color: var(--cb-on-ink, #f4f6fa);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.factList svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-top: 2px;
+  color: var(--cb-cyan, #35c6f4);
+}
+
+.factList em {
+  display: block;
+  font-style: normal;
+  font-weight: 500;
+  color: var(--cb-muted-ink, #a8b4c8);
+  font-size: 14px;
+}
+
+.textUs {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 22px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cb-on-ink, #f4f6fa);
+}
+
+.textUs svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 2px;
+  color: var(--cb-cyan, #35c6f4);
+}
+
+.textUs a {
+  color: var(--cb-cyan, #35c6f4);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.slots {
+  margin: 22px 0 0;
+  font-size: 13.5px;
+  font-weight: 650;
+  line-height: 1.5;
+  color: var(--cb-muted-ink, #a8b4c8);
+}
+
+/* ------------------------------------------------------------ trade card --- */
+
+.tradeCard {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: clamp(22px, 4vw, 30px);
+  box-shadow: 0 2px 4px #0a12200a, 0 26px 60px #0a122021;
+}
+
+.tradeRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.tradeLabel {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--heading);
+}
+
+.tradeFree,
+.tradePaid {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.tradeFree {
+  font-size: 44px;
+  color: var(--green, #16a34a);
+}
+
+.tradePaid {
+  font-size: 30px;
+  color: var(--heading);
+}
+
+.tradeNote {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.tradeDivider {
+  height: 1px;
+  background: var(--line);
+  margin: 20px 0;
+}
+
+.tradeBtn {
+  width: 100%;
+  margin-top: 22px;
+  justify-content: center;
+}
+
+/* ------------------------------------------------------------ tier cards --- */
+
+.orderWrap {
+  margin-top: 32px;
+}
+
+.tierGrid {
+  display: grid;
+  gap: 18px;
+}
+
+@media (min-width: 900px) {
+  .tierGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.tierCard {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  padding: 24px 22px;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.tierCard:hover {
+  border-color: var(--blue);
+}
+
+.tierCard:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.tierCardOn {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 16%, transparent);
+}
+
+.tierTag {
+  position: absolute;
+  top: -11px;
+  left: 20px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+.tierName {
+  font-size: 15px;
+  font-weight: 850;
+  color: var(--heading);
+  letter-spacing: -0.01em;
+}
+
+.tierPrice {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--heading);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tierPrice em {
+  font-family: inherit;
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
+.tierPages {
+  display: inline-block;
+  width: fit-content;
+  background: var(--green-tint, #ecfdf3);
+  border: 1px solid var(--green-line, #b7e4c7);
+  color: var(--green, #16a34a);
+  border-radius: 999px;
+  padding: 4px 11px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.tierEngine {
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--text);
+  margin-top: 2px;
+}
+
+.tierList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.tierList li {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.tierList svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  margin-top: 3px;
+  color: var(--green, #16a34a);
+}
+
+.tierPick {
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 850;
+  color: var(--blue);
+}
+
+/* ------------------------------------------------------------------ form --- */
+
+.form {
+  display: grid;
+  gap: 16px;
+  margin-top: 30px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: clamp(22px, 4vw, 32px);
+  box-shadow: 0 2px 4px #0a12200a, 0 26px 60px #0a122021;
+}
+
+.formHead h3 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 850;
+  letter-spacing: -0.01em;
+  color: var(--heading);
+}
+
+.formHead p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.formGrid {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 620px) {
+  .formGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.consentRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.consentRow input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  flex: none;
+  accent-color: var(--blue);
+}
+
+.formError {
+  border: 1px solid var(--danger-line);
+  background: var(--danger-tint);
+  color: var(--danger);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 650;
+  margin: 0;
+}
+
+.secureNote {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--quiet);
+}
+
+.secureNote svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  margin-top: 2px;
+}
+
+.notice {
+  border: 1px solid var(--green-line);
+  background: var(--green-tint);
+  border-radius: 18px;
+  padding: clamp(24px, 4vw, 34px);
+  margin-top: 32px;
+}
+
+.notice h3 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--heading);
+}
+
+.notice p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  max-width: 62ch;
+}
+
+.noticeSmall {
+  margin-top: 14px !important;
+  font-size: 13px !important;
+  color: var(--muted) !important;
+  font-weight: 700;
+}
+
+/* ----------------------------------------------------------------- cards --- */
+
+.cardGrid {
+  display: grid;
+  gap: 18px;
+  margin-top: 32px;
+}
+
+@media (min-width: 720px) {
+  .cardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1080px) {
+  .cardGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.miniCard {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 22px;
+}
+
+.miniCard h3 {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--heading);
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+}
+
+.miniCard p {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0;
+}
+
+.splitGrid {
+  display: grid;
+  gap: 18px;
+  margin-top: 32px;
+}
+
+@media (min-width: 780px) {
+  .splitGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.checkList,
+.crossList {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.checkList li,
+.crossList li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.checkList svg,
+.crossList svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 3px;
+}
+
+.checkList svg {
+  color: var(--green);
+}
+
+.crossList svg {
+  color: var(--quiet);
+}
+
+/* ----------------------------------------------------------------- steps --- */
+
+.steps {
+  display: grid;
+  gap: 18px;
+  margin-top: 32px;
+}
+
+@media (min-width: 900px) {
+  .steps {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.step {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.stepNum {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: var(--blue);
+}
+
+.step h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--heading);
+}
+
+.step p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.guarantee {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-top: 26px;
+  border: 1px solid var(--green-line);
+  background: var(--green-tint);
+  border-radius: 16px;
+  padding: 20px 22px;
+}
+
+.guarantee svg {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  margin-top: 1px;
+  color: var(--green);
+}
+
+.guarantee p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.55;
+  color: var(--heading);
+  max-width: 66ch;
+}
+
+/* ------------------------------------------------------------------- faq --- */
+
+.faq {
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.faq details {
+  border-bottom: 1px solid var(--line);
+}
+
+.faq summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 18px 40px 18px 0;
+  font-size: 16px;
+  font-weight: 750;
+  color: var(--heading);
+  position: relative;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary::after {
+  content: "+";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--blue);
+}
+
+.faq details[open] summary::after {
+  content: "\2013";
+}
+
+.faq p {
+  margin: 0;
+  padding: 0 0 20px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 68ch;
+}

@@ -8,6 +8,7 @@ import { SUPABASE_URL } from "@/lib/config";
 import { sendInternalLeadAlert } from "@/lib/leadNotify";
 import { formatEventWhen, STANDS_ALONE_DISCLOSURE } from "@/lib/events";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
+import { findFreeBuildTier } from "@/lib/freeBuild";
 import {
   isUnmappedWebsiteLaunchPaymentLinkCandidate,
   isWebsiteLaunchDeposit,
@@ -775,6 +776,163 @@ async function ensureLeadFollowUpPaid(
   }
 }
 
+// Paid Free Build order (/free-build). The funnel already saved the lead
+// before Stripe opened, so this marks that row won, stamps the payment, and
+// tells Ryan to call. The build clock does not start until that call happens,
+// which is why the alert names it as the next action instead of the work.
+//
+// Same idempotency contract as the other paid flows in this file: alert first,
+// activity marker second, so a provider failure keeps the event retryable.
+async function ensureFreeBuildPaid(
+  supabase: SupabaseClient,
+  session: StripeCheckoutSession,
+  kind: string,
+) {
+  const tier = findFreeBuildTier(kind);
+  if (!tier) throw new Error(`Paid Free Build checkout has an unknown tier: ${kind}`);
+
+  const sessionId = typeof session.id === "string" ? session.id.slice(0, 200) : "";
+  const customer = websiteLaunchCustomer(session);
+  if (!sessionId || !customer.email) {
+    throw new Error("Paid Free Build checkout is missing its session ID or email");
+  }
+
+  const externalId = `stripe_checkout:${sessionId}`;
+  const stripeStamp = {
+    session_id: sessionId,
+    paid_at: new Date().toISOString(),
+    amount_total_cents: Number.isFinite(Number(session.amount_total))
+      ? Number(session.amount_total)
+      : null,
+  };
+
+  const found = await supabase
+    .from("leads")
+    .select("id, full_name, phone, diagnostic, external_id")
+    .ilike("email", escapeIlike(customer.email))
+    .eq("diagnostic->>source", "free_build_funnel")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (found.error) throw new Error(`Free Build lookup failed: ${found.error.code}`);
+
+  let leadId: string;
+  let leadName = customer.fullName;
+  if (found.data) {
+    leadId = found.data.id;
+    leadName = found.data.full_name || leadName;
+    const diagnostic =
+      found.data.diagnostic && typeof found.data.diagnostic === "object"
+        ? (found.data.diagnostic as Record<string, unknown>)
+        : {};
+    const updates: Record<string, unknown> = {
+      status: "won",
+      diagnostic: { ...diagnostic, paid: true, offer: tier.id, stripe: stripeStamp },
+    };
+    if (!found.data.phone && customer.phone) updates.phone = customer.phone;
+    if (!found.data.external_id) updates.external_id = externalId;
+    const updated = await supabase.from("leads").update(updates).eq("id", leadId);
+    if (updated.error && updated.error.code !== "23505") {
+      throw new Error(`Free Build update failed: ${updated.error.code}`);
+    }
+  } else {
+    const inserted = await supabase
+      .from("leads")
+      .insert({
+        full_name: customer.fullName,
+        email: customer.email,
+        phone: customer.phone,
+        interest: "launch_system",
+        goals: `FREE BUILD paid through Stripe: ${tier.name} ($${tier.priceUsd}). Waiting on the twenty minute call.`,
+        best_contact_method: "email",
+        source: "stripe_checkout",
+        utm_source: "stripe",
+        utm_medium: "checkout",
+        utm_campaign: "free_build",
+        sms_consent: false,
+        marketing_email_consent: false,
+        status: "won",
+        external_id: externalId,
+        diagnostic: {
+          version: 1,
+          source: "free_build_funnel",
+          offer: tier.id,
+          tier_name: tier.name,
+          price_usd: tier.priceUsd,
+          paid: true,
+          stripe: stripeStamp,
+          next_action: "Paid without a funnel row. Call them and book the twenty minute call.",
+        },
+      })
+      .select("id, full_name")
+      .single();
+    if (inserted.error?.code === "23505") {
+      const raced = await supabase
+        .from("leads")
+        .select("id, full_name")
+        .eq("external_id", externalId)
+        .is("deleted_at", null)
+        .single();
+      if (raced.error) throw new Error(`Free Build race recovery failed: ${raced.error.code}`);
+      leadId = raced.data.id;
+      leadName = raced.data.full_name || leadName;
+    } else if (inserted.error) {
+      throw new Error(`Free Build insert failed: ${inserted.error.code}`);
+    } else {
+      leadId = inserted.data.id;
+      leadName = inserted.data.full_name || leadName;
+    }
+  }
+
+  const activityDetail = `Free Build paid through Stripe: ${tier.name}. Stripe checkout: ${sessionId}.`;
+  const existingActivity = await supabase
+    .from("lead_activity")
+    .select("id")
+    .eq("lead_id", leadId)
+    .eq("kind", "system")
+    .eq("detail", activityDetail)
+    .limit(1)
+    .maybeSingle();
+  if (existingActivity.error) {
+    throw new Error(`Free Build activity lookup failed: ${existingActivity.error.code}`);
+  }
+  if (!existingActivity.data) {
+    const resendKey = process.env.RESEND_API_KEY;
+    if (resendKey) {
+      const alert = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
+          to: ["hello@theleadflowpro.com"],
+          subject: `FREE BUILD PAID: ${leadName} - ${tier.name} ($${tier.priceUsd})`,
+          text: [
+            `${tier.name} paid: $${tier.priceUsd}.`,
+            `Email: ${customer.email}`,
+            `Phone: ${customer.phone || "-"}`,
+            `Free build included: ${tier.pages}`,
+            "",
+            "NEXT ACTION: call them and book the twenty minute call. The 10 business day",
+            "delivery clock starts at that call, not at this payment.",
+            "",
+            "Admin: https://www.theleadflowpro.com/admin",
+          ].join("\n"),
+        }),
+      }).catch(() => null);
+      if (!alert?.ok) throw new Error("Internal Free Build alert was not accepted");
+    }
+    const activityInsert = await supabase.from("lead_activity").insert({
+      lead_id: leadId,
+      kind: "system",
+      detail: activityDetail,
+    });
+    if (activityInsert.error) {
+      throw new Error(`Free Build activity insert failed: ${activityInsert.error.code}`);
+    }
+  }
+}
+
 type StripeInvoiceWebhook = {
   id?: unknown;
   number?: unknown;
@@ -910,6 +1068,8 @@ export async function POST(request: Request) {
       await ensureEventSeatPaid(supabase, session);
     } else if (kind === LEAD_FOLLOW_UP.id) {
       await ensureLeadFollowUpPaid(supabase, session);
+    } else if (findFreeBuildTier(kind)) {
+      await ensureFreeBuildPaid(supabase, session, kind);
     } else if (kind === "learn_it") {
       await sendPurchaseEmails(customer.email, kind);
     }

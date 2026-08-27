@@ -8,6 +8,7 @@ import { ArrowRight, Menu } from "lucide-react";
 // Free Tools live in the footer. Product Studio now has a real index at
 // /packages; the retired route redirects there for old inbound links.
 const NAV_LINKS: Array<[string, string]> = [
+  ["/free-build", "Free Build"],
   ["/#what-we-build", "What We Build"],
   ["/portfolio", "The Work"],
   ["/premier-system", "Premier System"],
