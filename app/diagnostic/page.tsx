@@ -13,7 +13,21 @@ export const metadata: Metadata = {
       "Give us the business context behind the problem so we can map the right next move.",
     url: "https://www.theleadflowpro.com/diagnostic",
     siteName: "The LeadFlow Pro",
+    images: [
+      {
+        url: "/og/diagnostic.jpg",
+        width: 3840,
+        height: 2016,
+        alt: "The LeadFlow Pro Business Growth Diagnostic — Find the leaks. Map the next move.",
+      },
+    ],
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Business Growth Diagnostic | The LeadFlow Pro",
+    description: "Find the leaks. Map the next move.",
+    images: ["/og/diagnostic.jpg"],
   },
 };
 
