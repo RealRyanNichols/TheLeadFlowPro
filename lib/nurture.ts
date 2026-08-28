@@ -31,6 +31,34 @@
 
 export const NURTURE_CAMPAIGN = "free_build";
 
+/**
+ * The business diagnostic has its own consent snapshot, submission clock, and
+ * seven-day sequence. It must never fall into this general 30-day campaign.
+ *
+ * Keep this check tolerant of the two places attribution can live while old
+ * and new lead writers coexist: the top-level leads.source column and the
+ * structured leads.diagnostic payload.
+ */
+export const BUSINESS_DIAGNOSTIC_SOURCE = "business_growth_diagnostic";
+
+export type NurtureLeadAttribution = {
+  source?: unknown;
+  diagnostic?: unknown;
+};
+
+export function isBusinessDiagnosticLead(lead: NurtureLeadAttribution): boolean {
+  if (lead.source === BUSINESS_DIAGNOSTIC_SOURCE) return true;
+  if (!lead.diagnostic || typeof lead.diagnostic !== "object" || Array.isArray(lead.diagnostic)) {
+    return false;
+  }
+
+  const diagnostic = lead.diagnostic as Record<string, unknown>;
+  return (
+    diagnostic.source === BUSINESS_DIAGNOSTIC_SOURCE ||
+    diagnostic.campaign === BUSINESS_DIAGNOSTIC_SOURCE
+  );
+}
+
 /** Where every link in this sequence points, with attribution attached. */
 export function nurtureLink(day: number, path = "/free-build"): string {
   return (

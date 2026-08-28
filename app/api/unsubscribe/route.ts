@@ -3,14 +3,9 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
 import { verifyUnsubscribeAny } from "@/lib/unsubscribe";
 
-// One click unsubscribe. Reached two ways:
-//   GET  - the link at the bottom of every nurture email
-//   POST - Gmail and Apple Mail's own unsubscribe button, via the
-//          List-Unsubscribe-Post header the cron sets
-//
-// Both stamp leads.email_unsubscribed_at, which every sending path already
-// checks before it sends anything. No login, no confirmation step, no dark
-// pattern: the click is the unsubscribe.
+// One-click unsubscribe. POST is the only mutating method. A visible GET link
+// is routed to a confirmation page because email-security scanners routinely
+// visit every link in a message before the recipient sees it.
 
 async function unsubscribe(request: Request): Promise<{ ok: boolean; status: number }> {
   const url = new URL(request.url);
@@ -57,14 +52,26 @@ async function unsubscribe(request: Request): Promise<{ ok: boolean; status: num
 }
 
 export async function GET(request: Request) {
-  const result = await unsubscribe(request);
+  const url = new URL(request.url);
+  const id = String(url.searchParams.get("id") ?? "");
+  const token = String(url.searchParams.get("t") ?? "");
   const site = "https://www.theleadflowpro.com";
-  return NextResponse.redirect(result.ok ? `${site}/unsubscribed` : `${site}/unsubscribed?e=1`, {
-    status: 302,
-  });
+  if (!id || !token || !verifyUnsubscribeAny(id, token)) {
+    return NextResponse.redirect(`${site}/unsubscribed?e=1`, { status: 302 });
+  }
+  const confirm = new URL("/unsubscribe", site);
+  confirm.searchParams.set("id", id);
+  confirm.searchParams.set("t", token);
+  return NextResponse.redirect(confirm, { status: 302 });
 }
 
 export async function POST(request: Request) {
   const result = await unsubscribe(request);
+  if (request.headers.get("accept")?.includes("text/html")) {
+    const site = "https://www.theleadflowpro.com";
+    return NextResponse.redirect(result.ok ? `${site}/unsubscribed` : `${site}/unsubscribed?e=1`, {
+      status: 303,
+    });
+  }
   return NextResponse.json({ ok: result.ok }, { status: result.ok ? 200 : result.status });
 }

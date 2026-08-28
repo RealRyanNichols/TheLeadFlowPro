@@ -15,8 +15,14 @@ export default async function LeadWorkspacePage({
   const { data: lead } = await supabase.from("leads").select("*").eq("id", id).single();
   if (!lead) notFound();
 
-  const [{ data: notes }, { data: tasks }, { data: activity }, { data: emails }, { data: thread }] =
-    await Promise.all([
+  const [
+    { data: notes },
+    { data: tasks },
+    { data: activity },
+    { data: emails },
+    { data: thread },
+    { data: businessDiagnostic },
+  ] = await Promise.all([
       supabase
         .from("lead_notes")
         .select("*")
@@ -43,6 +49,15 @@ export default async function LeadWorkspacePage({
         .select("*")
         .eq("lead_id", id)
         .order("created_at", { ascending: true }),
+      // Select only the CRM-safe diagnostic fields. Resume credentials never
+      // leave the server or get serialized into the lead workspace.
+      supabase
+        .from("business_growth_diagnostics")
+        .select(
+          "status, form_version, answers, completeness_score, opportunity_score, tags, source_channel, submitted_at, updated_at",
+        )
+        .eq("lead_id", id)
+        .maybeSingle(),
     ]);
 
   return (
@@ -53,6 +68,7 @@ export default async function LeadWorkspacePage({
       initialActivity={activity ?? []}
       emails={emails ?? []}
       initialThread={thread ?? []}
+      businessDiagnostic={businessDiagnostic}
     />
   );
 }

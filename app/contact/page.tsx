@@ -23,7 +23,10 @@ export default function ContactPage() {
           caption: "Route the question to the right next move.",
         }}
         primary={{ href: "#contact-form", label: "Send the question" }}
-        secondary={{ href: "/packages", label: "See the offer first" }}
+        secondary={{
+          href: "/diagnostic?utm_source=website&utm_medium=contact_page&utm_campaign=business_diagnostic",
+          label: "Complete the full diagnostic",
+        }}
         trustLine="No list selling. No fake urgency. A direct answer from the operator."
       />
 

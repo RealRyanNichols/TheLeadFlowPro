@@ -79,7 +79,8 @@ export async function POST(request: Request) {
       utm_campaign: body.utm_campaign ? String(body.utm_campaign).slice(0, 100) : null,
       sms_consent: smsConsent && !!phone,
       marketing_email_consent: marketingEmailConsent,
-      consent_at: smsConsent || marketingEmailConsent ? new Date().toISOString() : null,
+      consent_at:
+        (smsConsent && !!phone) || marketingEmailConsent ? new Date().toISOString() : null,
       diagnostic,
     };
 

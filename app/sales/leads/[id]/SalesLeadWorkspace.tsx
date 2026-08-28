@@ -4,6 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import LeadThread, { type LeadMsg } from "@/app/admin/leads/[id]/LeadThread";
+import {
+  DiagnosticViewer,
+  type StoredBusinessDiagnostic,
+} from "@/app/admin/leads/[id]/LeadWorkspace";
 import DictationButton from "@/components/DictationButton";
 
 const STAGES = ["new", "contacted", "call_booked", "proposal", "won", "lost"] as const;
@@ -42,6 +46,7 @@ type Lead = {
   marketing_email_consent: boolean;
   email_unsubscribed_at: string | null;
   sms_unsubscribed_at: string | null;
+  diagnostic: Record<string, unknown> | null;
 };
 
 type Note = { id: string; body: string; author: string | null; created_at: string };
@@ -74,6 +79,7 @@ export default function SalesLeadWorkspace({
   emails,
   initialThread,
   projects,
+  businessDiagnostic,
 }: {
   lead: Lead;
   initialNotes: Note[];
@@ -82,6 +88,7 @@ export default function SalesLeadWorkspace({
   emails: LeadEmail[];
   initialThread: LeadMsg[];
   projects: Project[];
+  businessDiagnostic: StoredBusinessDiagnostic | null;
 }) {
   const [status, setStatus] = useState(lead.status);
   const [owner, setOwner] = useState(lead.owner ?? "Patrick Grabbs");
@@ -256,6 +263,11 @@ export default function SalesLeadWorkspace({
               <span className="text-[var(--muted)]">What they want:</span> {lead.goals || "No open-text answer captured. See call notes below."}
             </p>
           </section>
+
+          <DiagnosticViewer
+            diagnostic={lead.diagnostic}
+            businessDiagnostic={businessDiagnostic}
+          />
 
           <section className="card !p-4">
             <div className="flex items-center justify-between gap-3"><h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">Delivery record</h2><Link href="/admin/sales/delivery" className="text-xs font-bold text-flow-400">Open Delivery Center →</Link></div>

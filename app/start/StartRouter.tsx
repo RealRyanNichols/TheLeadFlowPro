@@ -1860,8 +1860,11 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                   Talk to Ryan About This Build
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </button>
-                <Link href="/add-ons" className="button-secondary">
-                  Hand-Pick From the Add-On Menu
+                <Link
+                  href="/diagnostic?utm_source=website&utm_medium=system_map&utm_campaign=business_diagnostic"
+                  className="button-secondary"
+                >
+                  Complete the Full Business Diagnostic
                 </Link>
                 <Link href="/portfolio" className="button-secondary">
                   See the Live Work

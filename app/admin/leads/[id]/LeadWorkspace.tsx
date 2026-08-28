@@ -3,6 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import {
+  BUSINESS_DIAGNOSTIC_SECTIONS,
+  diagnosticReadinessLabel,
+  fieldVisible,
+  type DiagnosticAnswers,
+  type DiagnosticField,
+} from "@/lib/businessDiagnostic";
 import LeadThread, { type LeadMsg } from "./LeadThread";
 import DeleteLead from "./DeleteLead";
 
@@ -115,11 +122,14 @@ function ConsentBadge({
 }
 
 type Diagnostic = {
+  source?: string;
   labels?: {
     goal?: string;
     industry?: string;
     presence?: string;
     sales_channels?: string[];
+    stages?: string[];
+    // Kept for older rows written before the guided intake used an array.
     stage?: string;
   };
   recommendation?: {
@@ -131,7 +141,360 @@ type Diagnostic = {
   owner_notes?: string | null;
 };
 
-function DiagnosticViewer({ diagnostic }: { diagnostic: Record<string, unknown> | null }) {
+type BusinessDiagnosticSummary = {
+  problem?: unknown;
+  desired_outcome?: unknown;
+  success_definition?: unknown;
+  help_categories?: unknown;
+  timeframe?: unknown;
+  decision_role?: unknown;
+  website_state?: unknown;
+  website_platform?: unknown;
+  website_issue_detail?: unknown;
+  facebook_page_status?: unknown;
+  youtube_status?: unknown;
+  crm_status?: unknown;
+  lead_response_time?: unknown;
+};
+
+export type StoredBusinessDiagnostic = {
+  status: string;
+  form_version: number;
+  answers: Record<string, unknown> | null;
+  completeness_score: number;
+  opportunity_score: number;
+  tags: string[];
+  source_channel: string | null;
+  submitted_at: string | null;
+  updated_at: string;
+};
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function displayValue(value: unknown): string {
+  if (Array.isArray(value)) {
+    const values = value
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => pretty(item));
+    return values.length ? values.join(", ") : "-";
+  }
+  if (typeof value === "string") return pretty(value);
+  if (typeof value === "number") return String(value);
+  return "-";
+}
+
+function displayText(value: unknown): string {
+  if (typeof value === "string") return value.trim() || "-";
+  return displayValue(value);
+}
+
+function displayScore(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? Math.round(value) : null;
+}
+
+function safeDiagnosticForDisplay(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(safeDiagnosticForDisplay);
+  if (!value || typeof value !== "object") return value;
+
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .filter(([key]) => {
+        const normalized = key.toLowerCase().replace(/[^a-z]/g, "");
+        return !normalized.includes("resume");
+      })
+      .map(([key, item]) => [key, safeDiagnosticForDisplay(item)]),
+  );
+}
+
+function BusinessGrowthDiagnosticViewer({ diagnostic }: { diagnostic: Record<string, unknown> }) {
+  const summary = asRecord(diagnostic.summary) as BusinessDiagnosticSummary;
+  const completeness = displayScore(diagnostic.completeness_score);
+  const opportunity = displayScore(diagnostic.opportunity_score);
+  const tags = Array.isArray(diagnostic.tags)
+    ? diagnostic.tags.filter((item): item is string => typeof item === "string").slice(0, 40)
+    : [];
+  const submittedAt =
+    typeof diagnostic.submitted_at === "string" ? diagnostic.submitted_at : null;
+
+  return (
+    <div className="card !p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
+            Business Growth Diagnostic
+          </h2>
+          <p className="mt-1 text-xs text-[var(--quiet)]">
+            {submittedAt ? `Submitted ${fmt(submittedAt)}` : "Saved business intake"}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2 text-xs font-bold">
+          <span className="rounded-full bg-[var(--fill-3)] px-3 py-1 text-[var(--text)]">
+            {displayValue(diagnostic.status)}
+          </span>
+          {completeness !== null && (
+            <span className="rounded-full bg-mint/15 px-3 py-1 text-mint">
+              {completeness}% complete
+            </span>
+          )}
+          {opportunity !== null && (
+            <span className="rounded-full bg-flow-400/15 px-3 py-1 text-flow-400">
+              Opportunity {opportunity}/100
+            </span>
+          )}
+        </div>
+      </div>
+
+      <p className="mt-3 text-sm font-bold text-[var(--heading)]">
+        {displayValue(diagnostic.readiness_label)}
+      </p>
+
+      <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+        <div className="rounded-lg bg-[var(--page)] p-3">
+          <dt className="text-[var(--muted)]">Top problem</dt>
+          <dd className="mt-1 whitespace-pre-wrap text-[var(--text)]">
+            {displayText(summary.problem)}
+          </dd>
+        </div>
+        <div className="rounded-lg bg-[var(--page)] p-3">
+          <dt className="text-[var(--muted)]">Desired outcome</dt>
+          <dd className="mt-1 whitespace-pre-wrap text-[var(--text)]">
+            {displayText(summary.desired_outcome)}
+          </dd>
+        </div>
+        {displayText(summary.success_definition) !== "-" && (
+          <div className="rounded-lg bg-[var(--page)] p-3 sm:col-span-2">
+            <dt className="text-[var(--muted)]">What success looks like</dt>
+            <dd className="mt-1 whitespace-pre-wrap text-[var(--text)]">
+              {displayText(summary.success_definition)}
+            </dd>
+          </div>
+        )}
+      </dl>
+
+      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+        <DiagnosticGroup
+          title="Business request"
+          rows={[
+            ["Help requested", summary.help_categories],
+            ["Timeframe", summary.timeframe],
+            ["Decision role", summary.decision_role],
+          ]}
+        />
+        <DiagnosticGroup
+          title="Website"
+          rows={[
+            ["State", summary.website_state],
+            ["Platform", summary.website_platform],
+            ["Issue", summary.website_issue_detail, "text"],
+          ]}
+        />
+        <DiagnosticGroup
+          title="Social presence"
+          rows={[
+            ["Facebook", summary.facebook_page_status],
+            ["YouTube", summary.youtube_status],
+          ]}
+        />
+        <DiagnosticGroup
+          title="Lead flow"
+          rows={[
+            ["Lead tracking", summary.crm_status],
+            ["Response time", summary.lead_response_time],
+          ]}
+        />
+      </div>
+
+      {tags.length > 0 && (
+        <div className="mt-4">
+          <p className="text-xs font-bold uppercase tracking-wide text-[var(--muted)]">Tags</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-[var(--fill-3)] px-2.5 py-1 text-xs text-[var(--text)]"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DiagnosticGroup({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: Array<[string, unknown, ("text" | "label")?]>;
+}) {
+  return (
+    <section className="rounded-lg border border-[var(--line)] p-3">
+      <h3 className="font-bold text-[var(--heading)]">{title}</h3>
+      <dl className="mt-2 space-y-2">
+        {rows.map(([label, value, format]) => (
+          <div key={label}>
+            <dt className="text-xs text-[var(--muted)]">{label}</dt>
+            <dd className="whitespace-pre-wrap text-[var(--text)]">
+              {format === "text" ? displayText(value) : displayValue(value)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+function hasStoredAnswer(value: unknown): boolean {
+  if (typeof value === "boolean") return true;
+  if (typeof value === "string") return value.trim().length > 0;
+  return Array.isArray(value) && value.length > 0;
+}
+
+function answerLabel(field: DiagnosticField, value: unknown): string {
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  const optionLabel = (item: string) =>
+    field.options?.find((option) => option.value === item)?.label ?? pretty(item);
+  if (Array.isArray(value)) {
+    return value
+      .filter((item): item is string => typeof item === "string")
+      .map(optionLabel)
+      .join(", ");
+  }
+  if (typeof value === "string") {
+    if (field.options?.length) return optionLabel(value);
+    return value;
+  }
+  return "-";
+}
+
+function FullBusinessDiagnosticViewer({ response }: { response: StoredBusinessDiagnostic }) {
+  const answers = asRecord(response.answers) as DiagnosticAnswers;
+  const answeredSections = BUSINESS_DIAGNOSTIC_SECTIONS.map((section) => ({
+    ...section,
+    fields: section.fields.filter(
+      (field) => fieldVisible(field, answers) && hasStoredAnswer(answers[field.id]),
+    ),
+  })).filter((section) => section.fields.length > 0);
+
+  return (
+    <div className="card !p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
+            Full questionnaire answers
+          </h2>
+          <p className="mt-1 text-xs text-[var(--quiet)]">
+            Form v{response.form_version} · {displayValue(response.source_channel)} · Updated{" "}
+            {fmt(response.updated_at)}
+          </p>
+        </div>
+        <span className="rounded-full bg-[var(--fill-3)] px-3 py-1 text-xs font-bold text-[var(--text)]">
+          {response.completeness_score}% complete
+        </span>
+      </div>
+
+      {answeredSections.length > 0 ? (
+        <div className="mt-4 space-y-2">
+          {answeredSections.map((section, index) => (
+            <details
+              key={section.id}
+              open={index === 0}
+              className="rounded-lg border border-[var(--line)] bg-[var(--page)]"
+            >
+              <summary className="cursor-pointer px-4 py-3 font-bold text-[var(--heading)]">
+                {section.title}{" "}
+                <span className="text-xs font-normal text-[var(--muted)]">
+                  ({section.fields.length} answered)
+                </span>
+              </summary>
+              <dl className="grid gap-4 border-t border-[var(--line)] px-4 py-4 text-sm sm:grid-cols-2">
+                {section.fields.map((field) => (
+                  <div
+                    key={field.id}
+                    className={field.type === "textarea" ? "sm:col-span-2" : undefined}
+                  >
+                    <dt className="text-xs text-[var(--muted)]">{field.label}</dt>
+                    <dd className="mt-1 break-words whitespace-pre-wrap text-[var(--text)]">
+                      {answerLabel(field, answers[field.id])}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </details>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-3 text-sm text-[var(--muted)]">No questionnaire answers are available.</p>
+      )}
+    </div>
+  );
+}
+
+export function DiagnosticViewer({
+  diagnostic,
+  businessDiagnostic,
+}: {
+  diagnostic: Record<string, unknown> | null;
+  businessDiagnostic?: StoredBusinessDiagnostic | null;
+}) {
+  const isBusinessDiagnostic =
+    diagnostic?.source === "business_growth_diagnostic" || Boolean(businessDiagnostic);
+
+  if (isBusinessDiagnostic) {
+    const storedAnswers = asRecord(businessDiagnostic?.answers);
+    const storedCompleteness = businessDiagnostic?.completeness_score;
+    const compactDiagnostic: Record<string, unknown> = {
+      ...(diagnostic ?? {}),
+      source: "business_growth_diagnostic",
+      summary:
+        diagnostic?.summary ??
+        {
+          problem: storedAnswers.primary_problem ?? storedAnswers.situation_summary,
+          desired_outcome: storedAnswers.desired_outcome,
+          success_definition: storedAnswers.success_definition,
+          help_categories: storedAnswers.help_categories,
+          timeframe: storedAnswers.timeframe,
+          decision_role: storedAnswers.decision_role,
+          website_state: storedAnswers.website_state,
+          website_platform: storedAnswers.website_platform,
+          website_issue_detail: storedAnswers.website_issue_detail,
+          facebook_page_status: storedAnswers.facebook_page_status,
+          youtube_status: storedAnswers.youtube_status,
+          crm_status: storedAnswers.crm_status,
+          lead_response_time: storedAnswers.lead_response_time,
+        },
+      readiness_label:
+        diagnostic?.readiness_label ??
+        (storedCompleteness === undefined
+          ? undefined
+          : diagnosticReadinessLabel(storedCompleteness)),
+      ...(businessDiagnostic
+        ? {
+            status: businessDiagnostic.status,
+            form_version: businessDiagnostic.form_version,
+            completeness_score: businessDiagnostic.completeness_score,
+            opportunity_score: businessDiagnostic.opportunity_score,
+            tags: businessDiagnostic.tags,
+            submitted_at: businessDiagnostic.submitted_at,
+          }
+        : {}),
+    };
+
+    return (
+      <div className="space-y-6">
+        <BusinessGrowthDiagnosticViewer diagnostic={compactDiagnostic} />
+        {businessDiagnostic && <FullBusinessDiagnosticViewer response={businessDiagnostic} />}
+      </div>
+    );
+  }
+
   if (!diagnostic) {
     return (
       <div className="card !p-4">
@@ -145,7 +508,9 @@ function DiagnosticViewer({ diagnostic }: { diagnostic: Record<string, unknown> 
       </div>
     );
   }
+
   const d = diagnostic as Diagnostic;
+  const stages = d.labels?.stages ?? (d.labels?.stage ? [d.labels.stage] : []);
   return (
     <div className="card !p-4">
       <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
@@ -167,7 +532,7 @@ function DiagnosticViewer({ diagnostic }: { diagnostic: Record<string, unknown> 
           </div>
           <div>
             <dt className="text-[var(--muted)]">Current setup</dt>
-            <dd className="text-[var(--text)]">{d.labels.stage ?? "-"}</dd>
+            <dd className="text-[var(--text)]">{stages.length ? stages.join(", ") : "-"}</dd>
           </div>
           {(d.labels.sales_channels ?? []).length > 0 && (
             <div className="sm:col-span-2">
@@ -199,7 +564,7 @@ function DiagnosticViewer({ diagnostic }: { diagnostic: Record<string, unknown> 
       <details className="mt-3">
         <summary className="cursor-pointer text-xs text-[var(--muted)]">Raw diagnostic JSON</summary>
         <pre className="mt-2 max-h-80 overflow-auto rounded-lg bg-[var(--page)] p-3 text-xs text-[var(--text)]">
-          {JSON.stringify(diagnostic, null, 2)}
+          {JSON.stringify(safeDiagnosticForDisplay(diagnostic), null, 2)}
         </pre>
       </details>
     </div>
@@ -213,6 +578,7 @@ export default function LeadWorkspace({
   initialActivity,
   emails,
   initialThread,
+  businessDiagnostic,
 }: {
   lead: Lead;
   initialNotes: Note[];
@@ -220,6 +586,7 @@ export default function LeadWorkspace({
   initialActivity: Activity[];
   emails: LeadEmail[];
   initialThread: LeadMsg[];
+  businessDiagnostic: StoredBusinessDiagnostic | null;
 }) {
   const [status, setStatusState] = useState(lead.status);
   const [owner, setOwnerState] = useState(lead.owner ?? "");
@@ -455,7 +822,10 @@ export default function LeadWorkspace({
             )}
           </div>
 
-          <DiagnosticViewer diagnostic={lead.diagnostic} />
+          <DiagnosticViewer
+            diagnostic={lead.diagnostic}
+            businessDiagnostic={businessDiagnostic}
+          />
 
           <div className="card !p-4">
             <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">

@@ -34,6 +34,10 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
       ["/go/lead-follow-up", "Follow-Up Campaign | $197"],
       ["/packages/launch", "Website Launch | $1,000"],
       ["/start", "Map My Company"],
+      [
+        "/diagnostic?utm_source=website&utm_medium=footer&utm_campaign=business_diagnostic",
+        "Business Growth Diagnostic",
+      ],
       ["/contact", "Contact"],
       ["/login", "Log in"],
     ],

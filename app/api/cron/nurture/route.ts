@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
-import { NURTURE_STEPS, stepsDueBy, type NurtureStep } from "@/lib/nurture";
+import {
+  isBusinessDiagnosticLead,
+  NURTURE_FIRST_STEP,
+  NURTURE_LAST_STEP,
+  stepsDueBy,
+  type NurtureStep,
+} from "@/lib/nurture";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
 // The 30 day sequence sender. Runs once a day on Vercel Cron.
@@ -37,6 +43,8 @@ type EligibleLead = {
   created_at: string;
   full_name: string | null;
   email: string | null;
+  source: string | null;
+  diagnostic: unknown;
 };
 
 function firstNameOf(fullName: string | null): string {
@@ -91,7 +99,7 @@ export async function GET(request: Request) {
 
   const { data: leads, error: leadsError } = await supabase
     .from("leads")
-    .select("id, created_at, full_name, email")
+    .select("id, created_at, full_name, email, source, diagnostic")
     .is("deleted_at", null)
     .is("email_unsubscribed_at", null)
     .not("is_test", "is", true)
@@ -105,15 +113,36 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "lead query failed" }, { status: 500 });
   }
 
-  const ids = (leads ?? []).map((l) => l.id);
-  if (!ids.length) return NextResponse.json({ ok: true, checked: 0, sent: 0 });
+  // Business diagnostic submissions have a separate seven-day campaign whose
+  // clock starts at business_growth_diagnostics.submitted_at. Never mix those
+  // leads into this created_at-based 30-day campaign, even when they also gave
+  // general marketing consent.
+  const eligibleLeads = ((leads ?? []) as EligibleLead[]).filter(
+    (lead) => !isBusinessDiagnosticLead(lead),
+  );
+  const excludedDiagnostic = (leads ?? []).length - eligibleLeads.length;
+  const ids = eligibleLeads.map((lead) => lead.id);
+  if (!ids.length) {
+    return NextResponse.json({
+      ok: true,
+      checked: 0,
+      excludedDiagnostic,
+      sent: 0,
+    });
+  }
 
   // One read for the whole batch instead of a query per lead.
-  const { data: sentRows } = await supabase
+  const { data: sentRows, error: sentRowsError } = await supabase
     .from("lead_emails")
-    .select("lead_id, step, created_at")
+    .select("lead_id, step, sent_at")
     .in("lead_id", ids)
-    .gte("step", NURTURE_STEPS[0].step);
+    .gte("step", NURTURE_FIRST_STEP)
+    .lte("step", NURTURE_LAST_STEP);
+
+  if (sentRowsError) {
+    console.error("Nurture send-history query failed:", sentRowsError.message);
+    return NextResponse.json({ error: "send history query failed" }, { status: 500 });
+  }
 
   const alreadySent = new Map<string, Set<number>>();
   const lastSentAt = new Map<string, number>();
@@ -122,7 +151,7 @@ export async function GET(request: Request) {
     set.add(row.step);
     alreadySent.set(row.lead_id, set);
 
-    const at = row.created_at ? new Date(row.created_at).getTime() : NaN;
+    const at = row.sent_at ? new Date(row.sent_at).getTime() : NaN;
     if (Number.isFinite(at)) {
       lastSentAt.set(row.lead_id, Math.max(lastSentAt.get(row.lead_id) ?? 0, at));
     }
@@ -133,7 +162,7 @@ export async function GET(request: Request) {
   let throttled = 0;
   const errors: string[] = [];
 
-  for (const lead of (leads ?? []) as EligibleLead[]) {
+  for (const lead of eligibleLeads) {
     if (sent >= MAX_SENDS_PER_RUN) break;
     // Sentinel addresses: Meta leads with no email, and text-in leads who
     // never gave one. Mailing them is a guaranteed hard bounce against the
@@ -165,7 +194,16 @@ export async function GET(request: Request) {
     const claim = await supabase
       .from("lead_emails")
       .insert({ lead_id: lead.id, step: next.step });
-    if (claim.error) continue; // already claimed by an overlapping run
+    if (claim.error) {
+      // 23505 is the expected loser in an overlapping run. Any other failure
+      // means the lock could not be acquired for an operational reason, so
+      // surface it instead of silently pretending there was nothing to send.
+      if (claim.error.code !== "23505") {
+        failed++;
+        errors.push(`step ${next.step} claim: ${claim.error.message}`);
+      }
+      continue;
+    }
 
     const unsubUrl = unsubscribeUrl(lead.id, secret);
     let ok = false;
@@ -221,7 +259,8 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     ok: true,
-    checked: (leads ?? []).length,
+    checked: eligibleLeads.length,
+    excludedDiagnostic,
     sent,
     failed,
     throttled,

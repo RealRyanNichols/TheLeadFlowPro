@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/free-build",
     "/start",
+    "/diagnostic",
     "/about",
     "/pricing",
     "/add-ons",
