@@ -24,11 +24,11 @@ import {
 import {
   DIAGNOSTIC_EMAIL_STEPS,
   verifyDiagnosticServerResumeToken,
-  sendDiagnosticInternalAlert,
   sendDiagnosticNurtureStep,
   sendDiagnosticReceiptEmail,
   sendDiagnosticResumeEmail,
 } from "@/lib/businessDiagnosticEmails";
+import { queueAndDeliverDiagnosticNotification } from "@/lib/diagnosticNotifications";
 import { SUPABASE_URL } from "@/lib/config";
 
 export const runtime = "nodejs";
@@ -895,6 +895,20 @@ export async function POST(request: Request) {
     const url = resumeUrl(token);
     let emailSent = false;
     let firstEmailSent = false;
+    const internalNotification = {
+      diagnosticId: persisted.row.id,
+      leadId: persisted.row.lead_id,
+      fullName: answerString(answers, "full_name"),
+      businessName: answerString(answers, "business_name"),
+      email: answerString(answers, "email"),
+      phone: answerString(answers, "phone") || null,
+      sourceChannel,
+      priority,
+      completenessScore: completeness,
+      opportunityScore: opportunity,
+      summary: diagnosticSummary(answers),
+      tags,
+    };
 
     if (persisted.isNewDiagnostic && persisted.row.status === "draft") {
       await supabase.from("lead_activity").insert({
@@ -902,6 +916,18 @@ export async function POST(request: Request) {
         kind: "system",
         detail: `Business Growth Diagnostic draft saved at ${completeness}% complete.`,
       });
+      try {
+        await queueAndDeliverDiagnosticNotification(
+          supabase,
+          "draft_saved",
+          internalNotification,
+        );
+      } catch (error) {
+        console.error(
+          "Diagnostic draft notification failed safely:",
+          error instanceof Error ? error.message : error,
+        );
+      }
     }
 
     if (action === "save" && persisted.row.status === "draft") {
@@ -916,19 +942,18 @@ export async function POST(request: Request) {
         detail: `Business Growth Diagnostic submitted at ${completeness}% complete. Priority: ${priority}.`,
       });
 
-      await sendDiagnosticInternalAlert({
-        leadId: persisted.row.lead_id,
-        fullName: answerString(answers, "full_name"),
-        businessName: answerString(answers, "business_name"),
-        email: answerString(answers, "email"),
-        phone: answerString(answers, "phone") || null,
-        sourceChannel,
-        priority,
-        completenessScore: completeness,
-        opportunityScore: opportunity,
-        summary: diagnosticSummary(answers),
-        tags,
-      });
+      try {
+        await queueAndDeliverDiagnosticNotification(
+          supabase,
+          "submitted",
+          internalNotification,
+        );
+      } catch (error) {
+        console.error(
+          "Diagnostic submission notification failed safely:",
+          error instanceof Error ? error.message : error,
+        );
+      }
 
       if (!persisted.newlyEnrolled) {
         emailSent = await sendDiagnosticReceiptEmail({

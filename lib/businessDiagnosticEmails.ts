@@ -274,9 +274,22 @@ type ResendPayload = {
   headers?: Record<string, string>;
 };
 
-async function sendResend(payload: ResendPayload): Promise<boolean> {
+export type ResendSendResult =
+  | { ok: true; providerMessageId: string | null }
+  | { ok: false; error: string };
+
+function cleanProviderError(value: unknown): string | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const message = (value as Record<string, unknown>).message;
+  return typeof message === "string" ? message.replace(/\s+/g, " ").trim().slice(0, 500) : null;
+}
+
+async function sendResendDetailed(
+  payload: ResendPayload,
+  idempotencyKey?: string,
+): Promise<ResendSendResult> {
   const key = process.env.RESEND_API_KEY?.trim();
-  if (!key) return false;
+  if (!key) return { ok: false, error: "RESEND_API_KEY is not configured" };
 
   try {
     const response = await fetch(RESEND_ENDPOINT, {
@@ -284,21 +297,37 @@ async function sendResend(payload: ResendPayload): Promise<boolean> {
       headers: {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
+        ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey.slice(0, 256) } : {}),
       },
       body: JSON.stringify(payload),
     });
-    if (!response.ok) {
-      console.error("Diagnostic email send failed:", response.status);
-      return false;
+    let result: unknown = null;
+    try {
+      result = await response.json();
+    } catch {
+      // A missing JSON body should not turn a successful provider response
+      // into a retry that could send a duplicate email.
     }
-    return true;
+    if (!response.ok) {
+      const detail = cleanProviderError(result);
+      const error = `Resend returned HTTP ${response.status}${detail ? `: ${detail}` : ""}`;
+      console.error("Diagnostic email send failed:", error);
+      return { ok: false, error };
+    }
+    const providerMessageId =
+      result && typeof result === "object" && !Array.isArray(result)
+        ? String((result as Record<string, unknown>).id ?? "").trim().slice(0, 200) || null
+        : null;
+    return { ok: true, providerMessageId };
   } catch (error) {
-    console.error(
-      "Diagnostic email send threw:",
-      error instanceof Error ? error.message : "unknown error",
-    );
-    return false;
+    const message = error instanceof Error ? error.message : "unknown error";
+    console.error("Diagnostic email send threw:", message);
+    return { ok: false, error: `Resend request failed: ${message}`.slice(0, 1000) };
   }
+}
+
+async function sendResend(payload: ResendPayload): Promise<boolean> {
+  return (await sendResendDetailed(payload)).ok;
 }
 
 export async function sendDiagnosticResumeEmail(input: {
@@ -355,7 +384,11 @@ The LeadFlow Pro
   });
 }
 
-export async function sendDiagnosticInternalAlert(input: {
+export type DiagnosticInternalAlertEvent = "draft_saved" | "submitted";
+
+export type DiagnosticInternalAlertInput = {
+  eventType: DiagnosticInternalAlertEvent;
+  idempotencyKey: string;
   leadId: string;
   fullName: string;
   businessName: string;
@@ -367,13 +400,34 @@ export async function sendDiagnosticInternalAlert(input: {
   opportunityScore: number;
   summary: string;
   tags: string[];
-}): Promise<boolean> {
-  return sendResend({
+};
+
+function internalRecipients(): string[] {
+  const configured = process.env.LEADFLOW_NOTIFY_EMAIL?.trim();
+  const recipients = configured
+    ? configured
+        .split(/[;,]/)
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .slice(0, 5)
+    : [];
+  return recipients.length ? recipients : [REPLY_TO];
+}
+
+export async function sendDiagnosticInternalAlert(
+  input: DiagnosticInternalAlertInput,
+): Promise<ResendSendResult> {
+  const isSubmission = input.eventType === "submitted";
+  const eventLabel = isSubmission ? "Final diagnostic submitted" : "Diagnostic draft saved";
+  return sendResendDetailed({
     from: INTERNAL_FROM,
     reply_to: input.email,
-    to: [REPLY_TO],
-    subject: `NEW BUSINESS DIAGNOSTIC: ${input.fullName} (${input.businessName})`,
+    to: internalRecipients(),
+    subject: isSubmission
+      ? `NEW BUSINESS DIAGNOSTIC: ${input.fullName} (${input.businessName})`
+      : `DIAGNOSTIC STARTED: ${input.fullName} (${input.businessName})`,
     text: [
+      `Event: ${eventLabel}`,
       `Name: ${input.fullName}`,
       `Business: ${input.businessName}`,
       `Email: ${input.email}`,
@@ -388,7 +442,7 @@ export async function sendDiagnosticInternalAlert(input: {
       "",
       `Open lead: ${ADMIN_URL}/${input.leadId}`,
     ].join("\n"),
-  });
+  }, input.idempotencyKey);
 }
 
 export type DiagnosticNurtureSendResult =

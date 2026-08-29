@@ -84,6 +84,17 @@ type Task = {
 };
 type Activity = { id: string; kind: string; detail: string; created_at: string };
 type LeadEmail = { id: string; step: number; sent_at: string };
+export type DiagnosticNotification = {
+  id: string;
+  event_type: "draft_saved" | "submitted";
+  status: "pending" | "sent" | "failed";
+  attempt_count: number;
+  next_attempt_at: string;
+  last_attempt_at: string | null;
+  sent_at: string | null;
+  last_error: string | null;
+  created_at: string;
+};
 
 function fmt(ts: string) {
   return new Date(ts).toLocaleString();
@@ -437,12 +448,64 @@ function FullBusinessDiagnosticViewer({ response }: { response: StoredBusinessDi
   );
 }
 
+function DiagnosticNotificationStatus({
+  notifications,
+}: {
+  notifications: DiagnosticNotification[];
+}) {
+  if (!notifications.length) return null;
+
+  return (
+    <div className="card !p-4">
+      <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
+        Owner notification delivery
+      </h2>
+      <ul className="mt-3 space-y-3">
+        {notifications.map((notification) => {
+          const label = notification.event_type === "submitted" ? "Final submission" : "Draft saved";
+          const badge =
+            notification.status === "sent"
+              ? "bg-mint/15 text-mint"
+              : notification.status === "failed"
+                ? "bg-warn/15 text-warn"
+                : "bg-flow-400/15 text-flow-400";
+          return (
+            <li key={notification.id} className="rounded-lg border border-[var(--line)] p-3 text-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-bold text-[var(--heading)]">{label}</span>
+                <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${badge}`}>
+                  {notification.status}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-[var(--muted)]">
+                Attempts: {notification.attempt_count}
+                {notification.sent_at
+                  ? ` · Delivered ${fmt(notification.sent_at)}`
+                  : notification.status === "pending"
+                    ? ` · Next retry ${fmt(notification.next_attempt_at)}`
+                    : " · Manual follow-up task created"}
+              </p>
+              {notification.last_error && notification.status !== "sent" && (
+                <p className="mt-2 break-words rounded bg-warn/10 p-2 text-xs text-warn">
+                  {notification.last_error}
+                </p>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 export function DiagnosticViewer({
   diagnostic,
   businessDiagnostic,
+  notifications = [],
 }: {
   diagnostic: Record<string, unknown> | null;
   businessDiagnostic?: StoredBusinessDiagnostic | null;
+  notifications?: DiagnosticNotification[];
 }) {
   const isBusinessDiagnostic =
     diagnostic?.source === "business_growth_diagnostic" || Boolean(businessDiagnostic);
@@ -491,6 +554,7 @@ export function DiagnosticViewer({
       <div className="space-y-6">
         <BusinessGrowthDiagnosticViewer diagnostic={compactDiagnostic} />
         {businessDiagnostic && <FullBusinessDiagnosticViewer response={businessDiagnostic} />}
+        <DiagnosticNotificationStatus notifications={notifications} />
       </div>
     );
   }
@@ -579,6 +643,7 @@ export default function LeadWorkspace({
   emails,
   initialThread,
   businessDiagnostic,
+  diagnosticNotifications,
 }: {
   lead: Lead;
   initialNotes: Note[];
@@ -587,6 +652,7 @@ export default function LeadWorkspace({
   emails: LeadEmail[];
   initialThread: LeadMsg[];
   businessDiagnostic: StoredBusinessDiagnostic | null;
+  diagnosticNotifications: DiagnosticNotification[];
 }) {
   const [status, setStatusState] = useState(lead.status);
   const [owner, setOwnerState] = useState(lead.owner ?? "");
@@ -825,6 +891,7 @@ export default function LeadWorkspace({
           <DiagnosticViewer
             diagnostic={lead.diagnostic}
             businessDiagnostic={businessDiagnostic}
+            notifications={diagnosticNotifications}
           />
 
           <div className="card !p-4">

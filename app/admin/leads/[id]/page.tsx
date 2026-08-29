@@ -22,6 +22,7 @@ export default async function LeadWorkspacePage({
     { data: emails },
     { data: thread },
     { data: businessDiagnostic },
+    { data: diagnosticNotifications },
   ] = await Promise.all([
       supabase
         .from("lead_notes")
@@ -58,6 +59,13 @@ export default async function LeadWorkspacePage({
         )
         .eq("lead_id", id)
         .maybeSingle(),
+      supabase
+        .from("diagnostic_notifications")
+        .select(
+          "id, event_type, status, attempt_count, next_attempt_at, last_attempt_at, sent_at, last_error, created_at",
+        )
+        .eq("lead_id", id)
+        .order("created_at", { ascending: true }),
     ]);
 
   return (
@@ -69,6 +77,7 @@ export default async function LeadWorkspacePage({
       emails={emails ?? []}
       initialThread={thread ?? []}
       businessDiagnostic={businessDiagnostic}
+      diagnosticNotifications={diagnosticNotifications ?? []}
     />
   );
 }
