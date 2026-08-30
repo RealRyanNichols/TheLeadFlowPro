@@ -32,6 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/events",
     "/articles",
     "/book",
+    "/operator-academy/content-engine",
     "/contact",
     "/go/lead-follow-up",
     "/privacy",

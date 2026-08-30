@@ -9,6 +9,7 @@ import { sendInternalLeadAlert } from "@/lib/leadNotify";
 import { formatEventWhen, STANDS_ALONE_DISCLOSURE } from "@/lib/events";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 import { findFreeBuildTier } from "@/lib/freeBuild";
+import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
 import {
   isUnmappedWebsiteLaunchPaymentLinkCandidate,
   isWebsiteLaunchDeposit,
@@ -98,6 +99,48 @@ async function sendPurchaseEmails(email: string, kind: string) {
       "",
       "Ryan Nichols",
       "The LeadFlow Pro | Own your platform.",
+    ].join("\n"),
+  });
+}
+
+async function sendContentEnginePurchaseEmails(email: string) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+  const send = async (payload: object) => {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error(`Resend rejected course email: ${response.status}`);
+  };
+
+  await send({
+    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+    to: ["hello@theleadflowpro.com"],
+    subject: `CONTENT ENGINE PURCHASE: ${email}`,
+    text: `Founding course access purchased.\nBuyer: ${email}\nCourse: ${CONTENT_ENGINE.title}`,
+  });
+  await send({
+    from: "Ryan Nichols <hello@theleadflowpro.com>",
+    to: [email],
+    reply_to: "hello@theleadflowpro.com",
+    subject: "Your Content Engine course access",
+    text: [
+      "You are in.",
+      "",
+      "Create your login with the exact email you used at checkout:",
+      "https://www.theleadflowpro.com/login?next=/training/content-engine",
+      "",
+      "Then open the course:",
+      "https://www.theleadflowpro.com/training/content-engine",
+      "",
+      "Founding access includes the written lessons, workbook assignments, lesson checks, and final assessment now. Recorded lessons are added as they are produced.",
+      "",
+      "No promises. Do the work, build the system, and keep what you create.",
+      "",
+      "Ryan Nichols",
+      "The LeadFlow Pro",
     ].join("\n"),
   });
 }
@@ -1159,6 +1202,8 @@ export async function POST(request: Request) {
       await ensureFreeBuildPaid(supabase, session, kind);
     } else if (kind === "learn_it") {
       await sendPurchaseEmails(customer.email, kind);
+    } else if (kind === CONTENT_ENGINE.purchaseKind) {
+      await sendContentEnginePurchaseEmails(customer.email);
     } else {
       // Nothing above claimed this payment. Do NOT let it fall off the end in
       // silence: system_map, package_full, a package_deposit that is not the

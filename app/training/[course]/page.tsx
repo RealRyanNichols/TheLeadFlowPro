@@ -5,11 +5,13 @@ import {
   ArrowRight,
   BookOpenCheck,
   Check,
+  GraduationCap,
   LockKeyhole,
   Map,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getTrainingAccess } from "@/lib/access";
+import { getCourseAccess } from "@/lib/access";
+import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
 import SiteHero from "@/components/site/system/SiteHero";
 import styles from "../training.module.css";
 
@@ -23,22 +25,26 @@ export default async function CoursePage({
 
   const { data: course } = await supabase
     .from("courses")
-    .select("*")
+    .select("id, slug, title, description, is_free")
     .eq("slug", courseSlug)
     .single();
 
   if (!course) notFound();
 
-  if (!course.is_free) {
-    const { hasTraining, user } = await getTrainingAccess();
-    if (!hasTraining) {
+  const access = await getCourseAccess(course);
+  if (!access.hasAccess) {
+      const isContentEngine = course.slug === CONTENT_ENGINE.slug;
       return (
         <main className={`cb-page ${styles.page}`}>
           <SiteHero
-            eyebrow="Existing member library"
-            mutedTitle="This course is protected."
-            title="Your previous access still works."
-            body="New standalone enrollment for this legacy library is closed. Existing purchasers can log in with their purchase email and continue with saved progress."
+            eyebrow={isContentEngine ? "Operator Academy 02" : "Existing member library"}
+            mutedTitle={isContentEngine ? "This course has its own access." : "This course is protected."}
+            title={isContentEngine ? CONTENT_ENGINE.shortTitle : "Your previous access still works."}
+            body={
+              isContentEngine
+                ? CONTENT_ENGINE.promise
+                : "New standalone enrollment for this legacy library is closed. Existing purchasers can log in with their purchase email and continue with saved progress."
+            }
             media={{
               src: "/images/visual-system/course-system-blueprint.webp",
               alt: "A connected training platform blueprint with access, lessons, and progress",
@@ -48,12 +54,22 @@ export default async function CoursePage({
               caption: course.title,
             }}
             primary={
-              !user
-                ? { href: "/login", label: "Log in to continue" }
-                : { href: "/start?goal=delivery", label: "Plan a training platform" }
+              isContentEngine
+                ? { href: "/operator-academy/content-engine", label: "View founding access" }
+                : !access.user
+                  ? { href: "/login", label: "Log in to continue" }
+                  : { href: "/start?goal=delivery", label: "Plan a training platform" }
             }
-            secondary={{ href: "/packages/system-map", label: "Start with a System Map" }}
-            trustLine="A new Training Platform engagement is separate from this course library."
+            secondary={
+              isContentEngine
+                ? { href: "/login?next=/training/content-engine", label: "Purchased already? Log in" }
+                : { href: "/packages/system-map", label: "Start with a System Map" }
+            }
+            trustLine={
+              isContentEngine
+                ? "Use the same email at checkout and login so the course unlocks correctly."
+                : "A new Training Platform engagement is separate from this course library."
+            }
             compact
           />
 
@@ -64,19 +80,22 @@ export default async function CoursePage({
                 <p className="cb-eyebrow">Course access</p>
                 <h2 id="access-title">{course.title}</h2>
                 <p>
-                  If this course is already in your account, log in to resume it. If you
-                  want a course platform built for your organization, map that system as a
-                  new project. The platform service does not include this legacy library.
+                  {isContentEngine
+                    ? CONTENT_ENGINE.accessDisclosure
+                    : "If this course is already in your account, log in to resume it. If you want a course platform built for your organization, map that system as a new project. The platform service does not include this legacy library."}
                 </p>
                 <div className={styles.lockedActions}>
-                  {!user ? (
+                  {!access.user ? (
                     <Link className="cb-btn cb-btn--primary" href="/login">
                       Log in
                       <ArrowRight aria-hidden="true" className="h-4 w-4" />
                     </Link>
                   ) : null}
-                  <Link className="cb-btn cb-btn--ghost" href="/start?goal=delivery">
-                    Plan a Training Platform
+                  <Link
+                    className="cb-btn cb-btn--ghost"
+                    href={isContentEngine ? "/operator-academy/content-engine" : "/start?goal=delivery"}
+                  >
+                    {isContentEngine ? "View course details" : "Plan a Training Platform"}
                   </Link>
                   <Link className={styles.textLink} href="/packages/system-map">
                     <Map aria-hidden="true" /> Start with a System Map
@@ -87,7 +106,6 @@ export default async function CoursePage({
           </section>
         </main>
       );
-    }
   }
 
   const { data: lessons } = await supabase
@@ -187,6 +205,29 @@ export default async function CoursePage({
               <h3>Lessons are being prepared.</h3>
               <p>The published lessons will appear here in sequence.</p>
             </div>
+          ) : null}
+
+          {course.slug === CONTENT_ENGINE.slug && lessonCount ? (
+            <aside className={styles.accessNotice} aria-label="Final assessment and credential">
+              <div className={styles.noticeIcon}>
+                <GraduationCap aria-hidden="true" />
+              </div>
+              <div className={styles.noticeCopy}>
+                <p className={styles.noticeKicker}>Completion path</p>
+                <h3>Finish the work, then prove the system.</h3>
+                <p>
+                  Complete every lesson and assignment, pass the lesson checks, then score
+                  at least 80 percent on the final assessment to request the private course
+                  completion credential.
+                </p>
+              </div>
+              <div className={styles.noticeActions}>
+                <Link className="cb-btn cb-btn--primary" href="/training/content-engine/final">
+                  Open final assessment
+                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </Link>
+              </div>
+            </aside>
           ) : null}
         </div>
       </section>

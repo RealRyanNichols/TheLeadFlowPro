@@ -8,7 +8,8 @@ import {
   Network,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getTrainingAccess } from "@/lib/access";
+import { canAccessCourse, getTrainingEntitlements } from "@/lib/access";
+import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
 import SiteHero from "@/components/site/system/SiteHero";
 import styles from "./training.module.css";
 
@@ -24,8 +25,12 @@ export default async function TrainingPage() {
     .from("courses")
     .select("*")
     .order("sort_order");
-  const { hasTraining, user } = await getTrainingAccess();
-  const firstOpenCourse = courses?.find((course) => course.is_free || hasTraining);
+  const entitlements = await getTrainingEntitlements();
+  const hasTraining =
+    entitlements.isAdmin || entitlements.purchaseKinds.size > 0;
+  const firstOpenCourse = courses?.find((course) =>
+    canAccessCourse(course, entitlements),
+  );
 
   return (
     <main className={`cb-page ${styles.page}`}>
@@ -84,7 +89,7 @@ export default async function TrainingPage() {
                 </p>
               </div>
               <div className={styles.noticeActions}>
-                {!user ? (
+                {!entitlements.user ? (
                   <Link className="cb-btn cb-btn--primary" href="/login">
                     Log in
                     <ArrowRight aria-hidden="true" className="h-4 w-4" />
@@ -99,7 +104,11 @@ export default async function TrainingPage() {
 
           <div className={styles.courseGrid}>
             {courses?.map((course, index) => {
-              const locked = !course.is_free && !hasTraining;
+              const locked = !canAccessCourse(course, entitlements);
+              const isContentEngine = course.slug === CONTENT_ENGINE.slug;
+              const lockedHref = isContentEngine
+                ? "/operator-academy/content-engine"
+                : "/start?goal=delivery";
               return (
                 <article className={`${styles.courseCard}${locked ? ` ${styles.locked}` : ""}`} key={course.id}>
                   <div className={styles.cardImage}>
@@ -132,11 +141,19 @@ export default async function TrainingPage() {
                     <p>{course.description}</p>
                     <Link
                       className={styles.cardLink}
-                      href={locked ? "/start?goal=delivery" : `/training/${course.slug}`}
-                      aria-label={locked ? `Plan a training platform, ${course.title} is not open for new enrollment` : `Open ${course.title}`}
+                      href={locked ? lockedHref : `/training/${course.slug}`}
+                      aria-label={locked ? `View access options for ${course.title}` : `Open ${course.title}`}
                     >
-                      {locked ? "Plan a training platform" : "Open course"}
-                      {locked ? <Network aria-hidden="true" /> : <ArrowRight aria-hidden="true" />}
+                      {locked
+                        ? isContentEngine
+                          ? "View course"
+                          : "Plan a training platform"
+                        : "Open course"}
+                      {locked && !isContentEngine ? (
+                        <Network aria-hidden="true" />
+                      ) : (
+                        <ArrowRight aria-hidden="true" />
+                      )}
                     </Link>
                   </div>
                 </article>

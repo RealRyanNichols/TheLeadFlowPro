@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import { signDeliverableFile } from "@/lib/deliverableFiles";
 import SignOutButton from "@/components/SignOutButton";
 import MessageThread, { type Msg } from "@/components/MessageThread";
+import { canAccessCourse, getTrainingEntitlements } from "@/lib/access";
 
 export const metadata = { title: "Command Center | The LeadFlow Pro" };
 
@@ -75,11 +76,22 @@ export default async function Dashboard() {
     .eq("thread_profile_id", user!.id)
     .order("created_at");
 
-  const { data: publishedLessons } = await supabase
-    .from("lessons")
-    .select("id, courses!inner(is_published)")
-    .eq("is_published", true)
-    .eq("courses.is_published", true);
+  const entitlements = await getTrainingEntitlements();
+  const { data: publishedCourses } = await supabase
+    .from("courses")
+    .select("id, slug, is_free")
+    .eq("is_published", true);
+  const accessibleCourseIds = (publishedCourses ?? [])
+    .filter((course) => canAccessCourse(course, entitlements))
+    .map((course) => course.id);
+  const publishedLessonsResult = accessibleCourseIds.length
+    ? await supabase
+        .from("lessons")
+        .select("id")
+        .eq("is_published", true)
+        .in("course_id", accessibleCourseIds)
+    : { data: [] as { id: string }[] };
+  const publishedLessons = publishedLessonsResult.data;
   const { data: progressRows } = await supabase
     .from("lesson_progress")
     .select("lesson_id")
