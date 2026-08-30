@@ -1,10 +1,11 @@
 "use client";
 
 import { ArrowRight, LockKeyhole } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useId, useState } from "react";
 import styles from "./page.module.css";
 
 export default function CheckoutForm() {
+  const inputId = useId();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -30,10 +31,10 @@ export default function CheckoutForm() {
 
   return (
     <form className={styles.checkoutForm} onSubmit={submit}>
-      <label htmlFor="course-email">Email for course access</label>
+      <label htmlFor={inputId}>Email for course access</label>
       <div className={styles.checkoutRow}>
         <input
-          id="course-email"
+          id={inputId}
           name="email"
           type="email"
           autoComplete="email"
@@ -43,8 +44,15 @@ export default function CheckoutForm() {
           placeholder="you@example.com"
         />
         <button type="submit" disabled={busy}>
-          {busy ? "Opening secure checkout..." : "Get founding access for $127"}
-          {!busy ? <ArrowRight aria-hidden="true" /> : null}
+          {busy ? (
+            "Opening secure checkout..."
+          ) : (
+            <>
+              <span>Get founding access</span>
+              <strong>$127</strong>
+              <ArrowRight aria-hidden="true" />
+            </>
+          )}
         </button>
       </div>
       <p className={styles.checkoutTrust}>

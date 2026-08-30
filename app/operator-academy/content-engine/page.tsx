@@ -6,19 +6,18 @@ import {
   BadgeCheck,
   BarChart3,
   Check,
-  CirclePlay,
   FileText,
   Layers3,
-  Play,
   Route,
   ShieldCheck,
-  Sparkles,
   Target,
   TrendingUp,
   Video,
   Zap,
 } from "lucide-react";
 import CheckoutForm from "./CheckoutForm";
+import MobilePurchaseBar from "./MobilePurchaseBar";
+import RevenueMath from "./RevenueMath";
 import styles from "./page.module.css";
 import {
   CONTENT_ENGINE,
@@ -76,15 +75,20 @@ export default function ContentEnginePage() {
         <div className={styles.heroOrb} />
         <div className={`${styles.shell} ${styles.heroShell}`}>
           <div className={styles.heroCopy}>
-            <div className={styles.heroBadge}>
-              <Sparkles aria-hidden="true" />
-              Operator Academy 02
-            </div>
+            <p className={styles.heroKicker}><span>02</span> Operator Academy</p>
             <h1>Stop making random videos.</h1>
             <p className={styles.heroAccent}>Build a content engine.</p>
             <p className={styles.lead}>{CONTENT_ENGINE.promise}</p>
+            <div className={styles.heroActions}>
+              <a className={styles.heroPurchase} href="#enroll">
+                <span>Get founding access</span>
+                <strong>$127</strong>
+                <ArrowRight aria-hidden="true" />
+              </a>
+              <a className={styles.heroMathLink} href="#content-math">See the money math <ArrowRight aria-hidden="true" /></a>
+            </div>
             <div className={styles.proofRow}>
-              <span><CirclePlay aria-hidden="true" /> 12 complete lessons</span>
+              <span><Video aria-hidden="true" /> 12 complete lessons</span>
               <span><FileText aria-hidden="true" /> Workbook and assignments</span>
               <span><BadgeCheck aria-hidden="true" /> Verified completion path</span>
             </div>
@@ -101,13 +105,13 @@ export default function ContentEnginePage() {
               <small>OPERATOR ACADEMY</small>
               <strong>THE<br />CONTENT<br />ENGINE</strong>
             </div>
-            <div className={styles.productRoute}>
-              <div><Video aria-hidden="true" /><span>CONTENT</span></div>
+            <nav className={styles.productRoute} aria-label="Learn what each Content Engine stage does">
+              <a href="#stage-content"><Video aria-hidden="true" /><span>CONTENT</span><small>What you say</small></a>
               <i />
-              <div><TrendingUp aria-hidden="true" /><span>ATTENTION</span></div>
+              <a href="#stage-attention"><TrendingUp aria-hidden="true" /><span>ATTENTION</span><small>Who sees it</small></a>
               <i />
-              <div><Target aria-hidden="true" /><span>ACTION</span></div>
-            </div>
+              <a href="#stage-action"><Target aria-hidden="true" /><span>ACTION</span><small>Where they go</small></a>
+            </nav>
             <div className={styles.productFooter}>
               <span>30 TOPICS</span><span>10 SCRIPTS</span><span>1 SYSTEM</span>
             </div>
@@ -128,6 +132,8 @@ export default function ContentEnginePage() {
         </div>
       </section>
 
+      <RevenueMath />
+
       <section className={styles.originSection}>
         <div className={styles.shell}>
           <div className={styles.originGrid}>
@@ -145,7 +151,7 @@ export default function ContentEnginePage() {
             </div>
             <div className={styles.originProof}>
               <div className={styles.recordingRing}>
-                <span><Play aria-hidden="true" /></span>
+                <div className={styles.recordingStatus}><i /><span>RECORDED RESULT</span></div>
                 <strong>8</strong>
                 <small>VIDEOS RECORDED<br />IN ONE SESSION</small>
               </div>
@@ -249,13 +255,15 @@ export default function ContentEnginePage() {
                 <li><Check aria-hidden="true" /> Workbook included</li>
                 <li><Check aria-hidden="true" /> Completion pathway included</li>
               </ul>
-              <a href="#enroll">Start the course <ArrowRight aria-hidden="true" /></a>
+              <a className={styles.pricePurchase} href="#enroll">
+                <span>Get founding access</span><strong>$127</strong><ArrowRight aria-hidden="true" />
+              </a>
             </aside>
           </div>
         </div>
       </section>
 
-      <section className={styles.curriculum}>
+      <section className={styles.curriculum} id="curriculum">
         <div className={styles.shell}>
           <div className={styles.sectionHead}>
             <p className={styles.eyebrow}>Inside the engine</p>
@@ -269,7 +277,7 @@ export default function ContentEnginePage() {
                 <h3>{module.title.replace(/^Module [^:]+:\s*/, "")}</h3>
                 <p>{module.result}</p>
                 <ul>
-                  {module.lessons.map((lesson) => <li key={lesson.code}><CirclePlay aria-hidden="true" />{lesson.title}</li>)}
+                  {module.lessons.map((lesson) => <li key={lesson.code}><Check aria-hidden="true" />{lesson.title}</li>)}
                 </ul>
               </article>
             ))}
@@ -325,6 +333,8 @@ export default function ContentEnginePage() {
           <Link href="/login?next=/training/content-engine">Already purchased? Log in to continue.</Link>
         </div>
       </section>
+
+      <MobilePurchaseBar />
     </main>
   );
 }
