@@ -14,6 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/start",
     "/diagnostic",
     "/operatoros",
+    "/proof-floor",
     "/about",
     "/pricing",
     "/add-ons",
