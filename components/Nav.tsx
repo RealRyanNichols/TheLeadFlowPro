@@ -36,6 +36,9 @@ export default async function Nav() {
           <Link href="/events" className="hidden text-[var(--text)] hover:text-[var(--heading)] md:block">
             Events
           </Link>
+          <Link href="/academy" className="hidden text-[var(--text)] hover:text-[var(--heading)] md:block">
+            Academy
+          </Link>
           <Link href="/training" className="hidden text-[var(--text)] hover:text-[var(--heading)] md:block">
             Training
           </Link>
@@ -70,6 +73,7 @@ export default async function Nav() {
                 ["/showcase", "Showcase"],
                 ["/demo", "Demo Build"],
                 ["/events", "Events"],
+                ["/academy", "Operator Academy"],
                 ["/training", "Training"],
                 ["/contact", "Contact"],
               ].map(([href, label]) => (

@@ -10,6 +10,8 @@ import { formatEventWhen, STANDS_ALONE_DISCLOSURE } from "@/lib/events";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 import { findFreeBuildTier } from "@/lib/freeBuild";
 import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
+import { CHATGPT_OPERATOR } from "@/lib/chatgptOperatorCourse";
+import { OPERATOR_ACADEMY } from "@/lib/operatorAcademyCatalog";
 import {
   isUnmappedWebsiteLaunchPaymentLinkCandidate,
   isWebsiteLaunchDeposit,
@@ -138,6 +140,47 @@ async function sendContentEnginePurchaseEmails(email: string) {
       "Founding access includes the written lessons, workbook assignments, lesson checks, and final assessment now. Recorded lessons are added as they are produced.",
       "",
       "No promises. Do the work, build the system, and keep what you create.",
+      "",
+      "Ryan Nichols",
+      "The LeadFlow Pro",
+    ].join("\n"),
+  });
+}
+
+async function sendAcademyPurchaseEmails(email: string, title: string, nextPath: string) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+  const send = async (payload: object) => {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error(`Resend rejected academy email: ${response.status}`);
+  };
+  await send({
+    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+    to: ["hello@theleadflowpro.com"],
+    subject: `OPERATOR ACADEMY PURCHASE: ${email}`,
+    text: `Paid training access purchased.\nBuyer: ${email}\nAccess: ${title}`,
+  });
+  await send({
+    from: "Ryan Nichols <hello@theleadflowpro.com>",
+    to: [email],
+    reply_to: "hello@theleadflowpro.com",
+    subject: `Your ${title} access`,
+    text: [
+      "You are in.",
+      "",
+      "Create your login with the exact email used at checkout:",
+      `https://www.theleadflowpro.com/login?next=${nextPath}`,
+      "",
+      "Then open your training library:",
+      "https://www.theleadflowpro.com/training",
+      "",
+      "Written lessons, practices, workbooks, lesson checks, finals, and capstones are included. Recorded lessons appear in their lesson slots as they are produced.",
+      "",
+      "Do the work and keep what you build.",
       "",
       "Ryan Nichols",
       "The LeadFlow Pro",
@@ -1204,6 +1247,10 @@ export async function POST(request: Request) {
       await sendPurchaseEmails(customer.email, kind);
     } else if (kind === CONTENT_ENGINE.purchaseKind) {
       await sendContentEnginePurchaseEmails(customer.email);
+    } else if (kind === CHATGPT_OPERATOR.purchaseKind) {
+      await sendAcademyPurchaseEmails(customer.email, CHATGPT_OPERATOR.shortTitle, "/training/chatgpt-operator");
+    } else if (kind === OPERATOR_ACADEMY.allAccessPurchaseKind) {
+      await sendAcademyPurchaseEmails(customer.email, OPERATOR_ACADEMY.title, "/training");
     } else {
       // Nothing above claimed this payment. Do NOT let it fall off the end in
       // silence: system_map, package_full, a package_deposit that is not the

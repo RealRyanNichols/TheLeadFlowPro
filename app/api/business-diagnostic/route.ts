@@ -363,7 +363,7 @@ function desiredModules(answers: DiagnosticAnswers): string[] {
   };
   const modules = new Set<string>();
   for (const need of answerList(answers, "help_categories")) {
-    for (const module of map[need] ?? []) modules.add(module);
+    for (const moduleId of map[need] ?? []) modules.add(moduleId);
   }
   return [...modules].slice(0, 20);
 }

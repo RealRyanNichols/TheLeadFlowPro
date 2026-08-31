@@ -10,6 +10,8 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { canAccessCourse, getTrainingEntitlements } from "@/lib/access";
 import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
+import { CHATGPT_OPERATOR } from "@/lib/chatgptOperatorCourse";
+import { academyCourse } from "@/lib/operatorAcademyCatalog";
 import SiteHero from "@/components/site/system/SiteHero";
 import styles from "./training.module.css";
 
@@ -106,9 +108,15 @@ export default async function TrainingPage() {
             {courses?.map((course, index) => {
               const locked = !canAccessCourse(course, entitlements);
               const isContentEngine = course.slug === CONTENT_ENGINE.slug;
+              const isChatGPTOperator = course.slug === CHATGPT_OPERATOR.slug;
+              const academy = academyCourse(course.slug);
               const lockedHref = isContentEngine
                 ? "/operator-academy/content-engine"
-                : "/start?goal=delivery";
+                : isChatGPTOperator
+                  ? "/chatgpt"
+                  : academy
+                    ? academy.isFree ? "/academy#free-access" : "/academy#pricing"
+                    : "/start?goal=delivery";
               return (
                 <article className={`${styles.courseCard}${locked ? ` ${styles.locked}` : ""}`} key={course.id}>
                   <div className={styles.cardImage}>
@@ -123,9 +131,13 @@ export default async function TrainingPage() {
                   </div>
                   <div className={styles.cardBody}>
                     <div className={styles.cardStatus}>
-                      {course.is_free ? (
+                      {course.is_free && !locked ? (
                         <span>
                           <Check aria-hidden="true" /> Free access
+                        </span>
+                      ) : course.is_free && locked ? (
+                        <span>
+                          <LockKeyhole aria-hidden="true" /> Free registration
                         </span>
                       ) : locked ? (
                         <span>
@@ -145,11 +157,11 @@ export default async function TrainingPage() {
                       aria-label={locked ? `View access options for ${course.title}` : `Open ${course.title}`}
                     >
                       {locked
-                        ? isContentEngine
+                        ? isContentEngine || isChatGPTOperator || academy
                           ? "View course"
                           : "Plan a training platform"
                         : "Open course"}
-                      {locked && !isContentEngine ? (
+                      {locked && !isContentEngine && !isChatGPTOperator && !academy ? (
                         <Network aria-hidden="true" />
                       ) : (
                         <ArrowRight aria-hidden="true" />

@@ -1,5 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
+import { CHATGPT_OPERATOR } from "@/lib/chatgptOperatorCourse";
+import { hasAcademyLeadAccess } from "@/lib/academyLeadAccess";
+import {
+  EXPANSION_COURSE_SLUGS,
+  LEAD_GATED_COURSE_SLUGS,
+  OPERATOR_ACADEMY,
+} from "@/lib/operatorAcademyCatalog";
 
 export type CourseAccessInput = {
   slug: string;
@@ -9,6 +16,7 @@ export type CourseAccessInput = {
 export type TrainingEntitlements = {
   user: { id: string; email?: string } | null;
   isAdmin: boolean;
+  hasLeadAccess: boolean;
   purchaseKinds: Set<string>;
 };
 
@@ -16,10 +24,20 @@ export function canAccessCourse(
   course: CourseAccessInput,
   entitlements: TrainingEntitlements,
 ) {
-  if (course.is_free || entitlements.isAdmin) return true;
+  if (entitlements.isAdmin) return true;
+  if (course.is_free) {
+    return !LEAD_GATED_COURSE_SLUGS.has(course.slug) || entitlements.hasLeadAccess;
+  }
+  if (entitlements.purchaseKinds.has(OPERATOR_ACADEMY.allAccessPurchaseKind)) {
+    return true;
+  }
   if (course.slug === CONTENT_ENGINE.slug) {
     return entitlements.purchaseKinds.has(CONTENT_ENGINE.purchaseKind);
   }
+  if (course.slug === CHATGPT_OPERATOR.slug) {
+    return entitlements.purchaseKinds.has(CHATGPT_OPERATOR.purchaseKind);
+  }
+  if (EXPANSION_COURSE_SLUGS.has(course.slug)) return false;
   return entitlements.purchaseKinds.has("learn_it");
 }
 
@@ -28,7 +46,8 @@ export async function getTrainingEntitlements(): Promise<TrainingEntitlements> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { user: null, isAdmin: false, purchaseKinds: new Set() };
+  const hasLeadAccess = await hasAcademyLeadAccess();
+  if (!user) return { user: null, isAdmin: false, hasLeadAccess, purchaseKinds: new Set() };
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -45,6 +64,7 @@ export async function getTrainingEntitlements(): Promise<TrainingEntitlements> {
   return {
     user: { id: user.id, email: user.email },
     isAdmin,
+    hasLeadAccess,
     purchaseKinds: new Set((purchases ?? []).map((purchase) => purchase.kind)),
   };
 }

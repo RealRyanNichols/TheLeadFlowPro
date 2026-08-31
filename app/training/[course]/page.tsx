@@ -12,6 +12,9 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { getCourseAccess } from "@/lib/access";
 import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
+import { CHATGPT_OPERATOR } from "@/lib/chatgptOperatorCourse";
+import { expansionCourse } from "@/lib/operatorAcademyCatalog";
+import { isAssessedCourseSlug } from "@/lib/trainingAssessments";
 import SiteHero from "@/components/site/system/SiteHero";
 import styles from "../training.module.css";
 
@@ -34,15 +37,23 @@ export default async function CoursePage({
   const access = await getCourseAccess(course);
   if (!access.hasAccess) {
       const isContentEngine = course.slug === CONTENT_ENGINE.slug;
+      const isChatGPTOperator = course.slug === CHATGPT_OPERATOR.slug;
+      const isStandaloneCourse = isContentEngine || isChatGPTOperator;
+      const standaloneCourse = isContentEngine ? CONTENT_ENGINE : CHATGPT_OPERATOR;
+      const expandedCourse = expansionCourse(course.slug);
+      const isAcademyCourse = isStandaloneCourse || !!expandedCourse;
+      const standaloneHref = isContentEngine ? "/operator-academy/content-engine" : isChatGPTOperator ? "/chatgpt" : "/academy";
       return (
         <main className={`cb-page ${styles.page}`}>
           <SiteHero
-            eyebrow={isContentEngine ? "Operator Academy 02" : "Existing member library"}
-            mutedTitle={isContentEngine ? "This course has its own access." : "This course is protected."}
-            title={isContentEngine ? CONTENT_ENGINE.shortTitle : "Your previous access still works."}
+            eyebrow={isAcademyCourse ? `Operator Academy ${(expandedCourse?.code ?? standaloneCourse.code).replace("OA", "")}` : "Existing member library"}
+            mutedTitle={isAcademyCourse ? "This course has protected access." : "This course is protected."}
+            title={isAcademyCourse ? expandedCourse?.shortTitle ?? standaloneCourse.shortTitle : "Your previous access still works."}
             body={
-              isContentEngine
-                ? CONTENT_ENGINE.promise
+              isStandaloneCourse
+                ? standaloneCourse.promise
+                : expandedCourse
+                  ? expandedCourse.description
                 : "New standalone enrollment for this legacy library is closed. Existing purchasers can log in with their purchase email and continue with saved progress."
             }
             media={{
@@ -54,19 +65,19 @@ export default async function CoursePage({
               caption: course.title,
             }}
             primary={
-              isContentEngine
-                ? { href: "/operator-academy/content-engine", label: "View founding access" }
+              isAcademyCourse
+                ? { href: standaloneHref, label: "View founding access" }
                 : !access.user
                   ? { href: "/login", label: "Log in to continue" }
                   : { href: "/start?goal=delivery", label: "Plan a training platform" }
             }
             secondary={
-              isContentEngine
-                ? { href: "/login?next=/training/content-engine", label: "Purchased already? Log in" }
+              isAcademyCourse
+                ? { href: `/login?next=/training/${course.slug}`, label: "Purchased already? Log in" }
                 : { href: "/packages/system-map", label: "Start with a System Map" }
             }
             trustLine={
-              isContentEngine
+              isAcademyCourse
                 ? "Use the same email at checkout and login so the course unlocks correctly."
                 : "A new Training Platform engagement is separate from this course library."
             }
@@ -80,8 +91,12 @@ export default async function CoursePage({
                 <p className="cb-eyebrow">Course access</p>
                 <h2 id="access-title">{course.title}</h2>
                 <p>
-                  {isContentEngine
-                    ? CONTENT_ENGINE.accessDisclosure
+                  {isStandaloneCourse
+                    ? standaloneCourse.accessDisclosure
+                    : expandedCourse
+                      ? expandedCourse.isFree
+                        ? "Enter your name, phone, and email on the academy page to unlock both free courses. Promotional email and SMS consent remain optional."
+                        : "This professional course is included in Operator Academy all-access. Log in with the email used at checkout to continue."
                     : "If this course is already in your account, log in to resume it. If you want a course platform built for your organization, map that system as a new project. The platform service does not include this legacy library."}
                 </p>
                 <div className={styles.lockedActions}>
@@ -93,9 +108,9 @@ export default async function CoursePage({
                   ) : null}
                   <Link
                     className="cb-btn cb-btn--ghost"
-                    href={isContentEngine ? "/operator-academy/content-engine" : "/start?goal=delivery"}
+                    href={isAcademyCourse ? standaloneHref : "/start?goal=delivery"}
                   >
-                    {isContentEngine ? "View course details" : "Plan a Training Platform"}
+                    {isAcademyCourse ? "View academy access" : "Plan a Training Platform"}
                   </Link>
                   <Link className={styles.textLink} href="/packages/system-map">
                     <Map aria-hidden="true" /> Start with a System Map
@@ -207,7 +222,7 @@ export default async function CoursePage({
             </div>
           ) : null}
 
-          {course.slug === CONTENT_ENGINE.slug && lessonCount ? (
+          {isAssessedCourseSlug(course.slug) && lessonCount ? (
             <aside className={styles.accessNotice} aria-label="Final assessment and credential">
               <div className={styles.noticeIcon}>
                 <GraduationCap aria-hidden="true" />
@@ -222,7 +237,7 @@ export default async function CoursePage({
                 </p>
               </div>
               <div className={styles.noticeActions}>
-                <Link className="cb-btn cb-btn--primary" href="/training/content-engine/final">
+                <Link className="cb-btn cb-btn--primary" href={`/training/${course.slug}/final`}>
                   Open final assessment
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </Link>

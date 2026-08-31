@@ -681,6 +681,11 @@
   box-shadow: var(--cb-shadow);
 }
 
+.videoPlaceholder { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; margin-bottom: 34px; padding: clamp(22px, 4vw, 34px); border: 1px dashed #8fa9c4; border-radius: var(--cb-radius-lg); background: linear-gradient(135deg, #eef5fc, #f7fbff); }
+.videoPlaceholder > svg { width: 46px; height: 46px; color: var(--cb-blue); }
+.videoPlaceholder h2 { margin: 6px 0; color: var(--cb-ink); font-family: var(--font-archivo), Archivo, sans-serif; font-size: clamp(24px, 3vw, 36px); letter-spacing: -.035em; }
+.videoPlaceholder p:last-child { margin: 0; color: var(--cb-muted); line-height: 1.6; }
+
 .lessonCheck h2,
 .assessmentHeader h1 {
   margin: 9px 0 0;
@@ -783,6 +788,21 @@
 .assessmentActions button:disabled { cursor: wait; opacity: .62; }
 .assessmentActions strong { color: var(--cb-ink); }
 .assessmentMessage { min-height: 20px; margin: 0; color: var(--cb-muted); font-size: 13px; }
+
+.deliverablePanel { margin-top: clamp(46px, 7vw, 76px); padding: clamp(24px, 4vw, 38px); border: 1px solid var(--cb-hair); border-radius: var(--cb-radius-lg); background: #f0f6ff; box-shadow: var(--cb-shadow); }
+.deliverablePanel h2 { margin: 9px 0; color: var(--cb-ink); font-family: var(--font-archivo), Archivo, sans-serif; font-size: clamp(28px, 4vw, 42px); letter-spacing: -.04em; }
+.deliverablePanel > p { color: var(--cb-muted); line-height: 1.62; }
+.submissionStatus { display: inline-flex; margin: 8px 0 18px; padding: 7px 11px; border-radius: 999px; background: #dce7f6; color: #234c7b; font-size: 12px; font-weight: 900; text-transform: capitalize; }
+.submissionStatus[data-status="approved"] { background: #dff6ec; color: #146b54; }
+.submissionStatus[data-status="revision-requested"] { background: #fff0dc; color: #8b5205; }
+.reviewNotes { margin: 0 0 18px; padding: 16px; border-left: 4px solid var(--cb-blue); background: white; }
+.reviewNotes p { margin-bottom: 0; color: var(--cb-muted); }
+.deliverableForm { display: grid; gap: 14px; }
+.deliverableForm label { display: grid; gap: 7px; color: var(--cb-ink); font-size: 13px; font-weight: 850; }
+.deliverableForm input, .deliverableForm textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--cb-hair); border-radius: 10px; background: white; font: inherit; }
+.deliverableForm button { justify-self: start; min-height: 50px; padding: 0 20px; border: 0; border-radius: 10px; background: var(--cb-blue); color: white; font: inherit; font-weight: 850; cursor: pointer; }
+.deliverableForm button:disabled { cursor: not-allowed; opacity: .65; }
+.deliverableForm > p { min-height: 20px; margin: 0; color: var(--cb-muted); font-size: 13px; }
 
 .credentialRequest { display: grid; gap: 10px; margin-top: 28px; }
 .credentialRequest label { color: var(--cb-ink); font-size: 13px; font-weight: 850; }

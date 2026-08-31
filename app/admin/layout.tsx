@@ -62,6 +62,9 @@ export default async function AdminLayout({
           <Link href="/admin/videos" className="text-[var(--text)] hover:text-[var(--heading)]">
             Videos
           </Link>
+          <Link href="/admin/training" className="text-[var(--text)] hover:text-[var(--heading)]">
+            Training
+          </Link>
           <Link href="/admin/social" className="text-[var(--text)] hover:text-[var(--heading)]">
             Social
           </Link>

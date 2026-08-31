@@ -11,11 +11,13 @@ export type PublicQuestion = {
 
 export default function AssessmentForm({
   kind,
+  courseSlug = "content-engine",
   lessonSlug,
   questions,
   initiallyPassed = false,
 }: {
   kind: "lesson" | "final";
+  courseSlug?: string;
   lessonSlug?: string;
   questions: readonly PublicQuestion[];
   initiallyPassed?: boolean;
@@ -43,7 +45,7 @@ export default function AssessmentForm({
       const response = await fetch("/api/training/assessments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind, lessonSlug, answers }),
+        body: JSON.stringify({ kind, courseSlug, lessonSlug, answers }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "The assessment could not be graded.");
@@ -86,7 +88,7 @@ export default function AssessmentForm({
       </div>
       <p aria-live="polite" className={styles.assessmentMessage}>{message}</p>
       {kind === "final" && result?.passed ? (
-        <Link className="cb-btn cb-btn--primary" href="/training/content-engine/credential">Request completion letter</Link>
+        <Link className="cb-btn cb-btn--primary" href={`/training/${courseSlug}/credential`}>Request completion letter</Link>
       ) : null}
     </form>
   );

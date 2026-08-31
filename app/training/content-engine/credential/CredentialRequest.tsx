@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import styles from "../../training.module.css";
 
-export default function CredentialRequest({ defaultName }: { defaultName: string }) {
+export default function CredentialRequest({ defaultName, courseSlug = "content-engine" }: { defaultName: string; courseSlug?: string }) {
   const [name, setName] = useState(defaultName);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -16,7 +16,7 @@ export default function CredentialRequest({ defaultName }: { defaultName: string
       const response = await fetch("/api/training/credential", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ learnerName: name }),
+        body: JSON.stringify({ learnerName: name, courseSlug }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "The completion letter could not be issued.");
