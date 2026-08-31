@@ -47,10 +47,11 @@ function nextBusinessDayAt3(now = new Date()) {
   return centralInstant(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, cursor.getUTCDate(), 15);
 }
 
-function todayAt3OrSoon(now = new Date()) {
+function todayAt3OrSoon(now = new Date(), replyTargetMinutes = 15) {
   const current = centralParts(now);
   const at3 = centralInstant(current.year, current.month, current.day, 15);
-  return at3.getTime() > now.getTime() + 10 * 60_000 ? at3 : new Date(now.getTime() + 10 * 60_000);
+  const soon = new Date(now.getTime() + Math.max(1, replyTargetMinutes) * 60_000);
+  return at3.getTime() > soon.getTime() ? at3 : soon;
 }
 
 function classify(response: string) {
@@ -84,7 +85,7 @@ function cleanProviderJson(text: string) {
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { supabase } = await requireOperatorAdmin();
+    const { user, supabase } = await requireOperatorAdmin();
     const { id } = await context.params;
     const body = (await request.json()) as { response?: unknown };
     const response = typeof body.response === "string" ? body.response.trim() : "";
@@ -97,11 +98,18 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       .single();
     if (prospectError || !prospect) return NextResponse.json({ error: "Prospect not found" }, { status: 404 });
 
+    const { data: settings } = await supabase
+      .from("operator_workspace_settings")
+      .select("reply_target_minutes")
+      .eq("workspace_id", prospect.workspace_id)
+      .maybeSingle();
+    const replyTargetMinutes = Number(settings?.reply_target_minutes || 15);
+
     let classification = classify(response);
     let reply = fallbackReply(classification, prospect.business_name, prospect.best_offer);
     let providerUsed = "deterministic";
 
-    if (classification !== "declined") {
+    if (classification !== "declined" && process.env.OPERATOROS_EXECUTION_ENABLED === "true") {
       const openai = providerConfiguration("openai");
       const anthropic = providerConfiguration("anthropic");
       const provider = openai.ready ? "openai" : anthropic.ready ? "anthropic" : null;
@@ -140,7 +148,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
 
     const now = new Date();
-    const dueAt = classification === "defer" ? nextBusinessDayAt3(now) : todayAt3OrSoon(now);
+    const dueAt = classification === "defer" ? nextBusinessDayAt3(now) : todayAt3OrSoon(now, replyTargetMinutes);
     const permissionState = classification === "interested" ? "granted" : classification === "declined" ? "declined" : prospect.permission_state;
     const prospectStatus = classification === "declined" ? "do_not_contact" : "responded";
 
@@ -157,6 +165,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         permission_state: permissionState,
         response_summary: response,
         last_contacted_at: now.toISOString(),
+        do_not_contact_reason: classification === "declined" ? response.slice(0, 2000) : null,
         next_action_at: classification === "declined" ? null : dueAt.toISOString(),
         next_action: classification === "declined" ? "No further outreach. Prospect declined." : "Review the response recommendation and approve, edit, or skip it.",
         updated_at: now.toISOString(),
@@ -164,8 +173,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       .eq("id", id);
     if (prospectUpdateError) return NextResponse.json({ error: "Prospect status could not be updated" }, { status: 500 });
 
+    let responseActionId: string | null = null;
     if (classification !== "declined") {
-      const { error: actionError } = await supabase.from("operator_outreach_actions").upsert(
+      const { data: actionData, error: actionError } = await supabase.from("operator_outreach_actions").upsert(
         {
           workspace_id: prospect.workspace_id,
           prospect_id: id,
@@ -181,9 +191,25 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
           updated_at: now.toISOString(),
         },
         { onConflict: "prospect_id,sequence_day,action_type" },
-      );
+      ).select("id").single();
       if (actionError) return NextResponse.json({ error: "Response recommendation could not be queued" }, { status: 500 });
+      responseActionId = actionData?.id || null;
     }
+
+    await supabase.from("operator_outreach_events").insert({
+      workspace_id: prospect.workspace_id,
+      prospect_id: id,
+      action_id: responseActionId,
+      event_type: classification === "declined" ? "reply_declined" : "reply_planned",
+      detail_json: {
+        classification,
+        provider: providerUsed,
+        due_at: classification === "declined" ? null : dueAt.toISOString(),
+        reply_target_minutes: replyTargetMinutes,
+        external_send_performed_by_operatoros: false,
+      },
+      created_by: user.id,
+    });
 
     return NextResponse.json({
       ok: true,
