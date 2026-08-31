@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Clock3, MessageSquareText, Send, Target, UsersRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { centralDate } from "@/lib/operatoros/growth";
+import ProspectResponsePlanner from "./ProspectResponsePlanner";
 
 export const metadata = { title: "Prospect Command | The LeadFlow Pro" };
 export const dynamic = "force-dynamic";
@@ -101,7 +102,7 @@ export default async function ProspectCommand() {
         <div>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--blue)]">OperatorOS · outbound</p>
           <h2 className="mt-1 text-3xl font-black tracking-tight text-[var(--heading)] sm:text-4xl">Prospect Command</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">The first Longview 50 are staged as an operating queue. Every message is a draft. Nothing here auto-sends, impersonates a business, or bypasses the human approval line.</p>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">The first Longview 50 are staged as an operating queue. Every message is a draft. Nothing here auto-sends, impersonates a business, or bypasses the human approval line. When somebody answers, paste the reply into their record and the next response and timing are planned here.</p>
         </div>
         <Link href="/admin/operator/growth" className="btn-primary inline-flex items-center justify-center gap-2">Open Goal Mode <ArrowRight className="h-4 w-4" /></Link>
       </div>
@@ -153,6 +154,7 @@ export default async function ProspectCommand() {
                     <p className="mt-2 text-xs text-[var(--muted)]">Due {shortWhen(action.due_at)} · {action.channel} · {action.human_approved ? "approved" : "needs human approval"}</p>
                     <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-[var(--text)]">{action.message_draft}</p>
                   </> : <p className="mt-3 text-sm text-[var(--muted)]">No queued outreach remains for this record.</p>}
+                  <ProspectResponsePlanner prospectId={prospect.id} />
                 </div>
               </article>
             );
