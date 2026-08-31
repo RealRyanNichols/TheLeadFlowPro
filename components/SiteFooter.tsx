@@ -20,6 +20,7 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
     heading: "Proof",
     links: [
       ["/premier-system", "Premier System"],
+      ["/proof-floor", "Proof Floor"],
       ["/live", "Live Proof"],
       ["/portfolio", "The Work"],
       ["/articles", "Articles"],

@@ -13,6 +13,8 @@ const WATCHED_TABLES = [
   "operator_approvals",
   "operator_prospects",
   "operator_outreach_actions",
+  "operator_outreach_events",
+  "operator_workspace_settings",
   "operator_client_missions",
   "operator_daily_episodes",
   "leads",
