@@ -16,9 +16,12 @@ security invoker
 set search_path = public, pg_temp
 as $$
 begin
-  if new.status = 'paid'
-     and (tg_op = 'INSERT' or old.status is distinct from 'paid' or new.paid_at is null) then
-    new.paid_at := coalesce(new.paid_at, now());
+  if new.status = 'paid' then
+    if tg_op = 'INSERT' then
+      new.paid_at := coalesce(new.paid_at, now());
+    elsif old.status is distinct from 'paid' or new.paid_at is null then
+      new.paid_at := coalesce(new.paid_at, now());
+    end if;
   end if;
   return new;
 end;
@@ -43,7 +46,7 @@ create table if not exists public.operator_manual_cash_events (
   payer_name text,
   memo text,
   external_reference text,
-  status text not null default 'verified' check (status in ('pending','verified','void')),
+  status text not null default 'pending' check (status in ('pending','verified','void')),
   verified_by uuid references public.profiles(id) on delete set null,
   verified_at timestamptz,
   voided_by uuid references public.profiles(id) on delete set null,
@@ -59,6 +62,10 @@ create table if not exists public.operator_manual_cash_events (
   check (
     (status = 'verified' and verified_at is not null)
     or status in ('pending','void')
+  ),
+  check (
+    status <> 'void'
+    or (voided_at is not null and void_reason is not null and char_length(btrim(void_reason)) >= 3)
   )
 );
 
@@ -151,25 +158,50 @@ where m.status = 'verified'
 revoke all on public.operator_verified_cash_entries from anon;
 grant select on public.operator_verified_cash_entries to authenticated, service_role;
 
+-- Global checkout/invoice rows currently belong to The LeadFlow Pro workspace.
+-- The trigger is SECURITY DEFINER so webhook writes and human-verified entries
+-- refresh the mission consistently without depending on the caller's table grants.
 create or replace function public.operator_refresh_cash_mission()
 returns trigger
 language plpgsql
-security invoker
+security definer
 set search_path = public, pg_temp
 as $$
 begin
   update public.operator_missions mission
   set
-    current_value = coalesce((
-      select sum(entry.amount_cents)::numeric / 100
-      from public.operator_verified_cash_entries entry
-      where entry.workspace_id = mission.workspace_id
-        and entry.received_at >= coalesce(mission.starts_at, '-infinity'::timestamptz)
-        and entry.received_at <= coalesce(mission.target_at, 'infinity'::timestamptz)
-    ), 0),
+    current_value = (
+      coalesce((
+        select sum(p.amount_cents)::numeric
+        from public.purchases p
+        where lower(coalesce(p.status,'')) in ('paid','complete','completed','succeeded')
+          and coalesce(p.amount_cents,0) > 0
+          and p.created_at >= coalesce(mission.starts_at, '-infinity'::timestamptz)
+          and p.created_at <= coalesce(mission.target_at, 'infinity'::timestamptz)
+      ), 0)
+      + coalesce((
+        select sum(i.subtotal_cents)::numeric
+        from public.sales_invoices i
+        where i.status = 'paid'
+          and coalesce(i.subtotal_cents,0) > 0
+          and coalesce(i.paid_at, i.updated_at, i.created_at) >= coalesce(mission.starts_at, '-infinity'::timestamptz)
+          and coalesce(i.paid_at, i.updated_at, i.created_at) <= coalesce(mission.target_at, 'infinity'::timestamptz)
+      ), 0)
+      + coalesce((
+        select sum(c.amount_cents)::numeric
+        from public.operator_manual_cash_events c
+        where c.workspace_id = mission.workspace_id
+          and c.status = 'verified'
+          and c.received_at >= coalesce(mission.starts_at, '-infinity'::timestamptz)
+          and c.received_at <= coalesce(mission.target_at, 'infinity'::timestamptz)
+      ), 0)
+    ) / 100,
     updated_at = now()
   where mission.status = 'active'
-    and mission.target_metric = 'cash_collected_usd';
+    and mission.target_metric = 'cash_collected_usd'
+    and mission.workspace_id = (
+      select w.id from public.operator_workspaces w where w.slug = 'the-leadflow-pro' limit 1
+    );
   return null;
 end;
 $$;
@@ -191,17 +223,39 @@ create trigger manual_cash_refresh_operator_cash
 after insert or update or delete on public.operator_manual_cash_events
 for each statement execute function public.operator_refresh_cash_mission();
 
--- Initialize active cash missions after installing the ledger.
+-- Initialize the active LeadFlow cash mission after installing the ledger.
 update public.operator_missions mission
-set current_value = coalesce((
-  select sum(entry.amount_cents)::numeric / 100
-  from public.operator_verified_cash_entries entry
-  where entry.workspace_id = mission.workspace_id
-    and entry.received_at >= coalesce(mission.starts_at, '-infinity'::timestamptz)
-    and entry.received_at <= coalesce(mission.target_at, 'infinity'::timestamptz)
-), 0), updated_at = now()
+set current_value = (
+  coalesce((
+    select sum(p.amount_cents)::numeric
+    from public.purchases p
+    where lower(coalesce(p.status,'')) in ('paid','complete','completed','succeeded')
+      and coalesce(p.amount_cents,0) > 0
+      and p.created_at >= coalesce(mission.starts_at, '-infinity'::timestamptz)
+      and p.created_at <= coalesce(mission.target_at, 'infinity'::timestamptz)
+  ), 0)
+  + coalesce((
+    select sum(i.subtotal_cents)::numeric
+    from public.sales_invoices i
+    where i.status = 'paid'
+      and coalesce(i.subtotal_cents,0) > 0
+      and coalesce(i.paid_at, i.updated_at, i.created_at) >= coalesce(mission.starts_at, '-infinity'::timestamptz)
+      and coalesce(i.paid_at, i.updated_at, i.created_at) <= coalesce(mission.target_at, 'infinity'::timestamptz)
+  ), 0)
+  + coalesce((
+    select sum(c.amount_cents)::numeric
+    from public.operator_manual_cash_events c
+    where c.workspace_id = mission.workspace_id
+      and c.status = 'verified'
+      and c.received_at >= coalesce(mission.starts_at, '-infinity'::timestamptz)
+      and c.received_at <= coalesce(mission.target_at, 'infinity'::timestamptz)
+  ), 0)
+) / 100, updated_at = now()
 where mission.status = 'active'
-  and mission.target_metric = 'cash_collected_usd';
+  and mission.target_metric = 'cash_collected_usd'
+  and mission.workspace_id = (
+    select w.id from public.operator_workspaces w where w.slug = 'the-leadflow-pro' limit 1
+  );
 
 do $$
 begin
