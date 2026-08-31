@@ -47,6 +47,7 @@ export default async function CoursePage({
       const standaloneCourse = isContentEngine ? CONTENT_ENGINE : CHATGPT_OPERATOR;
       const expandedCourse = expansionCourse(course.slug);
       const isAcademyCourse = isStandaloneCourse || !!expandedCourse;
+      const isFreeAcademyCourse = Boolean(expandedCourse?.isFree);
       const standaloneHref = isContentEngine ? "/operator-academy/content-engine" : isChatGPTOperator ? "/chatgpt" : "/academy";
       return (
         <main className={`cb-page ${styles.page}`}>
@@ -71,19 +72,24 @@ export default async function CoursePage({
             }}
             primary={
               isAcademyCourse
-                ? { href: standaloneHref, label: "View founding access" }
+                ? { href: standaloneHref, label: isFreeAcademyCourse ? "Unlock free access" : "View founding access" }
                 : !access.user
                   ? { href: "/login", label: "Log in to continue" }
                   : { href: "/start?goal=delivery", label: "Plan a training platform" }
             }
             secondary={
               isAcademyCourse
-                ? { href: `/login?next=/training/${course.slug}`, label: "Purchased already? Log in" }
+                ? {
+                    href: `/login?next=/training/${course.slug}`,
+                    label: isFreeAcademyCourse ? "Already unlocked? Log in to save progress" : "Purchased already? Log in",
+                  }
                 : { href: "/packages/system-map", label: "Start with a System Map" }
             }
             trustLine={
               isAcademyCourse
-                ? "Use the same email at checkout and login so the course unlocks correctly."
+                ? isFreeAcademyCourse
+                  ? "Name, phone, and email unlock both free courses. Promotional email and SMS consent are optional."
+                  : "Use the same email at checkout and login so the course unlocks correctly."
                 : "A new Training Platform engagement is separate from this course library."
             }
             compact
