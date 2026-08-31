@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { centralDate, money } from "@/lib/operatoros/growth";
 
-const PAID = new Set(["paid", "complete", "completed", "succeeded"]);
 const OPEN = new Set(["new", "contacted", "call_booked", "proposal", "proposal_sent"]);
 
 function inCentralDay(value: string | null, day: string) {
@@ -32,17 +31,18 @@ export async function GET(request: Request) {
     .single();
   if (workspaceError || !workspace) return NextResponse.json({ error: "OperatorOS workspace unavailable" }, { status: 500 });
 
-  const [analyticsResult, leadResult, taskResult, purchaseResult, runResult, approvalResult, postResult] = await Promise.all([
+  const [analyticsResult, leadResult, taskResult, cashResult, runResult, approvalResult, postResult, missionResult] = await Promise.all([
     supabase.from("analytics_events").select("event_name,visitor_id,created_at").eq("is_internal", false).gte("created_at", lookback).limit(5000),
     supabase.from("leads").select("id,status,expected_value_cents,created_at").is("deleted_at", null).eq("is_test", false).limit(1000),
     supabase.from("lead_tasks").select("completed_at,created_at").gte("created_at", lookback).limit(2000),
-    supabase.from("purchases").select("amount_cents,status,created_at").gte("created_at", lookback).limit(2000),
+    supabase.from("operator_verified_cash_entries").select("source_type,amount_cents,received_at").eq("workspace_id", workspace.id).gte("received_at", lookback).limit(2000),
     supabase.from("operator_runs").select("status,created_at,completed_at").eq("workspace_id", workspace.id).gte("created_at", lookback).limit(2000),
     supabase.from("operator_approvals").select("status,decided_at,created_at").eq("workspace_id", workspace.id).gte("created_at", lookback).limit(2000),
     supabase.from("social_posts").select("status,published_at,created_at").gte("created_at", lookback).limit(2000),
+    supabase.from("operator_missions").select("id,starts_at,target_at").eq("workspace_id", workspace.id).eq("status", "active").eq("target_metric", "cash_collected_usd").order("created_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
 
-  const firstError = [analyticsResult, leadResult, taskResult, purchaseResult, runResult, approvalResult, postResult]
+  const firstError = [analyticsResult, leadResult, taskResult, cashResult, runResult, approvalResult, postResult, missionResult]
     .map((result) => result.error)
     .find(Boolean);
   if (firstError) return NextResponse.json({ error: "Episode data unavailable" }, { status: 500 });
@@ -50,7 +50,7 @@ export async function GET(request: Request) {
   const analytics = analyticsResult.data ?? [];
   const leads = leadResult.data ?? [];
   const tasks = taskResult.data ?? [];
-  const purchases = purchaseResult.data ?? [];
+  const cashEntries = cashResult.data ?? [];
   const runs = runResult.data ?? [];
   const approvals = approvalResult.data ?? [];
   const posts = postResult.data ?? [];
@@ -62,8 +62,12 @@ export async function GET(request: Request) {
   const booked = leads.filter((lead) => lead.status === "call_booked" && inCentralDay(lead.created_at, episodeDate)).length;
   const proposals = leads.filter((lead) => ["proposal", "proposal_sent"].includes(lead.status) && inCentralDay(lead.created_at, episodeDate)).length;
   const wins = leads.filter((lead) => lead.status === "won" && inCentralDay(lead.created_at, episodeDate)).length;
-  const paid = purchases.filter((purchase) => PAID.has(String(purchase.status || "").toLowerCase()) && inCentralDay(purchase.created_at, episodeDate));
-  const cash = paid.reduce((sum, purchase) => sum + Math.max(0, Number(purchase.amount_cents || 0)) / 100, 0);
+  const todayCashEntries = cashEntries.filter((entry) => inCentralDay(entry.received_at, episodeDate));
+  const cash = todayCashEntries.reduce((sum, entry) => sum + Math.max(0, Number(entry.amount_cents || 0)) / 100, 0);
+  const cashSourceCounts = todayCashEntries.reduce<Record<string, number>>((counts, entry) => {
+    counts[entry.source_type] = (counts[entry.source_type] || 0) + 1;
+    return counts;
+  }, {});
   const followups = tasks.filter((task) => inCentralDay(task.completed_at, episodeDate)).length;
   const completedRuns = runs.filter((run) => run.status === "completed" && inCentralDay(run.completed_at || run.created_at, episodeDate)).length;
   const approvalsDecided = approvals.filter((approval) => approval.status !== "pending" && inCentralDay(approval.decided_at || approval.created_at, episodeDate)).length;
@@ -78,7 +82,7 @@ export async function GET(request: Request) {
   const fixes = completedRuns ? `${completedRuns} recorded AI/operator runs completed today.` : "No completed OperatorOS run was recorded today.";
   const approvalText = approvalsDecided ? `${approvalsDecided} human approval decisions were recorded.` : "No human approval decision was recorded today.";
   const tomorrowTarget = stillNew || unvalued
-    ? "Clear the new-lead queue, value the remaining open opportunities, work the prospect sequence, and keep the September cash target visible."
+    ? "Clear the new-lead queue, value the remaining open opportunities, work the prospect sequence, and keep the cash target visible."
     : "Keep the prospect sequence moving, present proposals, collect cash, and publish the proof of what actually happened.";
 
   const contentDraft = [
@@ -90,7 +94,7 @@ export async function GET(request: Request) {
     `${booked} calls were booked.`,
     `${proposals} proposals entered the recorded pipeline.`,
     `${wins} became recorded wins.`,
-    `${money(cash)} was recorded as paid checkout revenue.`,
+    `${money(cash)} entered the verified cash ledger across ${todayCashEntries.length} receipt record${todayCashEntries.length === 1 ? "" : "s"}.`,
     `${followups} follow-ups were completed.`,
     `${completedRuns} OperatorOS runs finished.`,
     "",
@@ -110,7 +114,9 @@ export async function GET(request: Request) {
     booked,
     proposals,
     wins,
-    cash_collected_usd: cash,
+    verified_cash_usd: cash,
+    verified_cash_receipts: todayCashEntries.length,
+    verified_cash_sources: cashSourceCounts,
     followups_completed: followups,
     operator_runs_completed: completedRuns,
     approvals_decided: approvalsDecided,
@@ -139,21 +145,26 @@ export async function GET(request: Request) {
   );
   if (upsertError) return NextResponse.json({ error: "Episode could not be saved" }, { status: 500 });
 
-  const missionStart = "2026-09-01T05:00:00.000Z";
-  const { data: allMissionPurchases } = await supabase
-    .from("purchases")
-    .select("amount_cents,status")
-    .gte("created_at", missionStart)
-    .limit(5000);
-  const missionCash = (allMissionPurchases ?? [])
-    .filter((purchase) => PAID.has(String(purchase.status || "").toLowerCase()))
-    .reduce((sum, purchase) => sum + Math.max(0, Number(purchase.amount_cents || 0)) / 100, 0);
-  await supabase
-    .from("operator_missions")
-    .update({ current_value: missionCash, updated_at: new Date().toISOString() })
-    .eq("workspace_id", workspace.id)
-    .eq("status", "active")
-    .eq("target_metric", "cash_collected_usd");
+  if (missionResult.data) {
+    const missionStart = missionResult.data.starts_at ? new Date(missionResult.data.starts_at).getTime() : -Infinity;
+    const missionEnd = missionResult.data.target_at ? new Date(missionResult.data.target_at).getTime() : Infinity;
+    const { data: missionCashEntries } = await supabase
+      .from("operator_verified_cash_entries")
+      .select("amount_cents,received_at")
+      .eq("workspace_id", workspace.id)
+      .gte("received_at", missionResult.data.starts_at || "1970-01-01T00:00:00.000Z")
+      .limit(5000);
+    const missionCash = (missionCashEntries ?? [])
+      .filter((entry) => {
+        const received = new Date(entry.received_at).getTime();
+        return received >= missionStart && received <= missionEnd;
+      })
+      .reduce((sum, entry) => sum + Math.max(0, Number(entry.amount_cents || 0)) / 100, 0);
+    await supabase
+      .from("operator_missions")
+      .update({ current_value: missionCash, updated_at: new Date().toISOString() })
+      .eq("id", missionResult.data.id);
+  }
 
   return NextResponse.json({ ok: true, episode_date: episodeDate, day_number: dayNumber(episodeDate), metrics });
 }
