@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     supabase.from("leads").select("id,status,expected_value_cents,created_at").is("deleted_at", null).eq("is_test", false).limit(1000),
     supabase.from("lead_tasks").select("completed_at,created_at").gte("created_at", lookback).limit(2000),
     supabase.from("purchases").select("amount_cents,status,created_at").gte("created_at", lookback).limit(2000),
-    supabase.from("operator_runs").select("status,created_at,finished_at").eq("workspace_id", workspace.id).gte("created_at", lookback).limit(2000),
+    supabase.from("operator_runs").select("status,created_at,completed_at").eq("workspace_id", workspace.id).gte("created_at", lookback).limit(2000),
     supabase.from("operator_approvals").select("status,decided_at,created_at").eq("workspace_id", workspace.id).gte("created_at", lookback).limit(2000),
     supabase.from("social_posts").select("status,published_at,created_at").gte("created_at", lookback).limit(2000),
   ]);
@@ -65,7 +65,7 @@ export async function GET(request: Request) {
   const paid = purchases.filter((purchase) => PAID.has(String(purchase.status || "").toLowerCase()) && inCentralDay(purchase.created_at, episodeDate));
   const cash = paid.reduce((sum, purchase) => sum + Math.max(0, Number(purchase.amount_cents || 0)) / 100, 0);
   const followups = tasks.filter((task) => inCentralDay(task.completed_at, episodeDate)).length;
-  const completedRuns = runs.filter((run) => run.status === "completed" && inCentralDay(run.finished_at || run.created_at, episodeDate)).length;
+  const completedRuns = runs.filter((run) => run.status === "completed" && inCentralDay(run.completed_at || run.created_at, episodeDate)).length;
   const approvalsDecided = approvals.filter((approval) => approval.status !== "pending" && inCentralDay(approval.decided_at || approval.created_at, episodeDate)).length;
   const contentShipped = posts.filter((post) => post.status === "published" && inCentralDay(post.published_at || post.created_at, episodeDate)).length;
   const openLeads = leads.filter((lead) => OPEN.has(lead.status));
@@ -78,28 +78,28 @@ export async function GET(request: Request) {
   const fixes = completedRuns ? `${completedRuns} recorded AI/operator runs completed today.` : "No completed OperatorOS run was recorded today.";
   const approvalText = approvalsDecided ? `${approvalsDecided} human approval decisions were recorded.` : "No human approval decision was recorded today.";
   const tomorrowTarget = stillNew || unvalued
-    ? `Clear the new-lead queue, value the remaining open opportunities, work the prospect sequence, and keep the September cash target visible.`
-    : `Keep the prospect sequence moving, present proposals, collect cash, and publish the proof of what actually happened.`;
+    ? "Clear the new-lead queue, value the remaining open opportunities, work the prospect sequence, and keep the September cash target visible."
+    : "Keep the prospect sequence moving, present proposals, collect cash, and publish the proof of what actually happened.";
 
   const contentDraft = [
     `Day ${dayNumber(episodeDate)} of building the LeadFlow Pro machine.`,
     "",
-    `${visitors} people came through the system.` ,
-    `${newLeads.length} raised their hand.` ,
-    `${qualified} were already moved into a qualified sales stage.` ,
-    `${booked} calls were booked.` ,
-    `${proposals} proposals entered the recorded pipeline.` ,
-    `${wins} became recorded wins.` ,
-    `${money(cash)} was recorded as paid checkout revenue.` ,
-    `${followups} follow-ups were completed.` ,
-    `${completedRuns} OperatorOS runs finished.` ,
+    `${visitors} people came through the system.`,
+    `${newLeads.length} raised their hand.`,
+    `${qualified} were already moved into a qualified sales stage.`,
+    `${booked} calls were booked.`,
+    `${proposals} proposals entered the recorded pipeline.`,
+    `${wins} became recorded wins.`,
+    `${money(cash)} was recorded as paid checkout revenue.`,
+    `${followups} follow-ups were completed.`,
+    `${completedRuns} OperatorOS runs finished.`,
     "",
     unvalued
       ? `${unvalued} open opportunities still need a dollar value. That is the next measurement gap we are closing.`
-      : `Every open opportunity has a recorded dollar value right now.`,
+      : "Every open opportunity has a recorded dollar value right now.",
     "",
-    `Build. Measure. Show. Attract. Capture. Sell. Build again.`,
-    `Watch what happens tomorrow.`,
+    "Build. Measure. Show. Attract. Capture. Sell. Build again.",
+    "Watch what happens tomorrow.",
   ].join("\n");
 
   const metrics = {
