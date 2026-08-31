@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Bot, CircleDollarSign, Eye, Rocket, Send, UsersRound } from "lucide-react";
+import { ArrowRight, Bot, CircleDollarSign, Eye, Rocket, Send, Target, UsersRound } from "lucide-react";
 import { createServiceClient } from "@/lib/supabase/service";
 import { LEADFLOW_GROWTH_LOOP, centralDate, money, number } from "@/lib/operatoros/growth";
 
@@ -32,49 +32,14 @@ export default async function ProofFloor() {
   const supabase = createServiceClient();
   const since365 = new Date(Date.now() - 365 * 86400_000).toISOString();
   const [analyticsResult, leadResult, taskResult, purchaseResult, runResult, socialResult, projectResult, approvalResult] = await Promise.all([
-    supabase
-      .from("analytics_events")
-      .select("event_name,visitor_id,created_at")
-      .eq("is_internal", false)
-      .gte("created_at", since365)
-      .order("created_at", { ascending: false })
-      .limit(20000),
-    supabase
-      .from("leads")
-      .select("status,created_at")
-      .is("deleted_at", null)
-      .eq("is_test", false)
-      .gte("created_at", since365)
-      .limit(10000),
-    supabase
-      .from("lead_tasks")
-      .select("completed_at,created_at")
-      .gte("created_at", since365)
-      .limit(10000),
-    supabase
-      .from("purchases")
-      .select("amount_cents,status,created_at")
-      .gte("created_at", since365)
-      .limit(10000),
-    supabase
-      .from("operator_runs")
-      .select("status,created_at,finished_at")
-      .gte("created_at", since365)
-      .limit(10000),
-    supabase
-      .from("social_posts")
-      .select("status,published_at,created_at")
-      .gte("created_at", since365)
-      .limit(10000),
-    supabase
-      .from("projects")
-      .select("status,milestones(status)")
-      .limit(1000),
-    supabase
-      .from("operator_approvals")
-      .select("status")
-      .eq("status", "pending")
-      .limit(1000),
+    supabase.from("analytics_events").select("event_name,visitor_id,created_at").eq("is_internal", false).gte("created_at", since365).order("created_at", { ascending: false }).limit(20000),
+    supabase.from("leads").select("status,created_at").is("deleted_at", null).eq("is_test", false).gte("created_at", since365).limit(10000),
+    supabase.from("lead_tasks").select("completed_at,created_at").gte("created_at", since365).limit(10000),
+    supabase.from("purchases").select("amount_cents,status,created_at").gte("created_at", since365).limit(10000),
+    supabase.from("operator_runs").select("status,created_at,finished_at").gte("created_at", since365).limit(10000),
+    supabase.from("social_posts").select("status,published_at,created_at").gte("created_at", since365).limit(10000),
+    supabase.from("projects").select("status,milestones(status)").limit(1000),
+    supabase.from("operator_approvals").select("status").eq("status", "pending").limit(1000),
   ]);
 
   const results = [analyticsResult, leadResult, taskResult, purchaseResult, runResult, socialResult, projectResult, approvalResult];
@@ -109,6 +74,16 @@ export default async function ProofFloor() {
 
   const today = rows[0];
   const openOpportunities = leads.filter((lead) => !["won", "lost"].includes(lead.status)).length;
+  const headlineCards = [
+    { label: "Visitors today", value: today.visitors, icon: Eye },
+    { label: "Page views today", value: today.pageViews, icon: Eye },
+    { label: "Leads today", value: today.leads, icon: UsersRound },
+    { label: "Follow-ups completed", value: today.followups, icon: Send },
+    { label: "Cash recorded today", value: money(today.cash), icon: CircleDollarSign },
+    { label: "AI runs completed", value: today.completedRuns, icon: Bot },
+    { label: "Active builds", value: activeBuilds, icon: Rocket },
+    { label: "Human approvals", value: approvals.length, icon: Target },
+  ];
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
@@ -138,19 +113,13 @@ export default async function ProofFloor() {
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
-          {[
-            ["Visitors today", today.visitors, Eye],
-            ["Page views today", today.pageViews, Eye],
-            ["Leads today", today.leads, UsersRound],
-            ["Follow-ups completed", today.followups, Send],
-            ["Cash recorded today", money(today.cash), CircleDollarSign],
-            ["AI runs completed", today.completedRuns, Bot],
-            ["Active builds", activeBuilds, Rocket],
-            ["Human approvals", approvals.length, Target],
-          ].map(([label, value, Icon]) => {
-            const C = Icon as typeof Eye;
-            return <section key={String(label)} className="rounded-2xl border border-white/10 bg-[#0d1a2d] p-4"><C className="h-5 w-5 text-[#50d4ff]" /><p className="mt-3 text-[10px] font-black uppercase tracking-wide text-[#8295b1]">{label}</p><p className="mt-1 text-2xl font-black">{String(value)}</p></section>;
-          })}
+          {headlineCards.map(({ label, value, icon: Icon }) => (
+            <section key={label} className="rounded-2xl border border-white/10 bg-[#0d1a2d] p-4">
+              <Icon className="h-5 w-5 text-[#50d4ff]" />
+              <p className="mt-3 text-[10px] font-black uppercase tracking-wide text-[#8295b1]">{label}</p>
+              <p className="mt-1 text-2xl font-black">{value}</p>
+            </section>
+          ))}
         </div>
 
         <section className="mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-[#0d1a2d]">
