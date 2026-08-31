@@ -36,15 +36,14 @@ export default async function ClientWarRoom() {
 
   const { data: profile } = await supabase.from("profiles").select("role,full_name").eq("id", user.id).single();
   const isAdmin = profile?.role === "admin";
-  let projectQuery = supabase
+  const baseProjectQuery = supabase
     .from("projects")
     .select("id,name,status,live_url,target_launch,milestones(id,title,status,sort_order)")
     .order("created_at", { ascending: false })
     .limit(1);
-  if (!isAdmin) projectQuery = projectQuery.eq("client_id", user.id);
-  const { data: projects, error: projectError } = await projectQuery;
-  if (projectError) throw new Error("Your War Room is temporarily unavailable.");
-  const project = projects?.[0];
+  const projectResult = isAdmin ? await baseProjectQuery : await baseProjectQuery.eq("client_id", user.id);
+  if (projectResult.error) throw new Error("Your War Room is temporarily unavailable.");
+  const project = projectResult.data?.[0];
 
   if (!project) {
     return (
@@ -73,6 +72,14 @@ export default async function ClientWarRoom() {
   const done = milestones.filter((milestone) => milestone.status === "done").length;
   const buildProgress = progress(done, milestones.length);
   const missionProgress = mission ? progress(Number(mission.current_value || 0), Number(mission.target_value || 0)) : 0;
+  const metricCards = [
+    { label: "Generated", value: mission?.leads_generated ?? 0, icon: Target },
+    { label: "Contacted", value: mission?.contacted ?? 0, icon: MessageSquareText },
+    { label: "Qualified", value: mission?.qualified_conversations ?? 0, icon: CheckCircle2 },
+    { label: "Appointments", value: mission?.appointments ?? 0, icon: Target },
+    { label: "Proposals", value: mission?.proposals ?? 0, icon: Gauge },
+    { label: "Response time", value: mission?.response_time_seconds ? `${Math.round(mission.response_time_seconds / 60)}m` : "—", icon: TimerReset },
+  ];
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-10">
@@ -90,14 +97,13 @@ export default async function ClientWarRoom() {
       </div>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-        {[
-          ["Generated", mission?.leads_generated ?? 0, Target],
-          ["Contacted", mission?.contacted ?? 0, MessageSquareText],
-          ["Qualified", mission?.qualified_conversations ?? 0, CheckCircle2],
-          ["Appointments", mission?.appointments ?? 0, Target],
-          ["Proposals", mission?.proposals ?? 0, Gauge],
-          ["Response time", mission?.response_time_seconds ? `${Math.round(mission.response_time_seconds / 60)}m` : "—", TimerReset],
-        ].map(([label, value, Icon]) => { const C = Icon as typeof Target; return <div key={String(label)} className="rounded-2xl border border-[var(--line)] bg-white p-4"><C className="h-5 w-5 text-[var(--blue)]" /><p className="mt-3 text-xs font-black uppercase tracking-wide text-[var(--muted)]">{label}</p><p className="mt-1 text-2xl font-black text-[var(--heading)]">{String(value)}</p></div>; })}
+        {metricCards.map(({ label, value, icon: Icon }) => (
+          <div key={label} className="rounded-2xl border border-[var(--line)] bg-white p-4">
+            <Icon className="h-5 w-5 text-[var(--blue)]" />
+            <p className="mt-3 text-xs font-black uppercase tracking-wide text-[var(--muted)]">{label}</p>
+            <p className="mt-1 text-2xl font-black text-[var(--heading)]">{value}</p>
+          </div>
+        ))}
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
