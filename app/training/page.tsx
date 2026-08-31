@@ -7,7 +7,7 @@ import {
   LockKeyhole,
   Network,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { canAccessCourse, getTrainingEntitlements } from "@/lib/access";
 import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
 import { CHATGPT_OPERATOR } from "@/lib/chatgptOperatorCourse";
@@ -21,11 +21,14 @@ export const metadata = {
     "Access The LeadFlow Pro training library, continue existing courses, and track lesson progress.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function TrainingPage() {
-  const supabase = await createClient();
-  const { data: courses } = await supabase
+  const service = createServiceClient();
+  const { data: courses } = await service
     .from("courses")
     .select("*")
+    .eq("is_published", true)
     .order("sort_order");
   const entitlements = await getTrainingEntitlements();
   const hasTraining =

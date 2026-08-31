@@ -10,6 +10,7 @@ import {
   Map,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { getCourseAccess } from "@/lib/access";
 import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
 import { CHATGPT_OPERATOR } from "@/lib/chatgptOperatorCourse";
@@ -18,6 +19,8 @@ import { isAssessedCourseSlug } from "@/lib/trainingAssessments";
 import SiteHero from "@/components/site/system/SiteHero";
 import styles from "../training.module.css";
 
+export const dynamic = "force-dynamic";
+
 export default async function CoursePage({
   params,
 }: {
@@ -25,11 +28,13 @@ export default async function CoursePage({
 }) {
   const { course: courseSlug } = await params;
   const supabase = await createClient();
+  const service = createServiceClient();
 
-  const { data: course } = await supabase
+  const { data: course } = await service
     .from("courses")
     .select("id, slug, title, description, is_free")
     .eq("slug", courseSlug)
+    .eq("is_published", true)
     .single();
 
   if (!course) notFound();
@@ -123,10 +128,11 @@ export default async function CoursePage({
       );
   }
 
-  const { data: lessons } = await supabase
+  const { data: lessons } = await service
     .from("lessons")
     .select("id, slug, title, summary, sort_order")
     .eq("course_id", course.id)
+    .eq("is_published", true)
     .order("sort_order");
 
   const {

@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpenCheck, PlayCircle } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { getCourseAccess } from "@/lib/access";
 import { isAssessedCourseSlug, lessonAssessmentQuestions } from "@/lib/trainingAssessments";
 import CompleteButton from "./CompleteButton";
@@ -14,6 +15,8 @@ import { academyLesson } from "@/lib/operatorAcademyCatalog";
 import { chatgptOperatorLesson } from "@/lib/chatgptOperatorCourse";
 import styles from "../../training.module.css";
 
+export const dynamic = "force-dynamic";
+
 export default async function LessonPage({
   params,
 }: {
@@ -21,22 +24,25 @@ export default async function LessonPage({
 }) {
   const { course: courseSlug, lesson: lessonSlug } = await params;
   const supabase = await createClient();
+  const service = createServiceClient();
 
-  const { data: course } = await supabase
+  const { data: course } = await service
     .from("courses")
     .select("id, slug, title, is_free")
     .eq("slug", courseSlug)
+    .eq("is_published", true)
     .single();
   if (!course) notFound();
 
   const access = await getCourseAccess(course);
   if (!access.hasAccess) redirect(`/training/${courseSlug}`);
 
-  const { data: lesson } = await supabase
+  const { data: lesson } = await service
     .from("lessons")
     .select("*")
     .eq("course_id", course.id)
     .eq("slug", lessonSlug)
+    .eq("is_published", true)
     .single();
   if (!lesson) notFound();
 
