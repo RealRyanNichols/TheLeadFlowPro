@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { OperatorAuthError, requireOperatorAdmin } from "@/lib/operatoros/auth";
+import { contactVerificationBlockers } from "@/lib/operatoros/outreach-readiness";
 
 const PRIORITIES = new Set(["A", "B", "C", "WARM"]);
 const STATUSES = new Set([
@@ -71,7 +72,24 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const contactRoute = optionalText(body.contactRoute, 1000);
     const ownerName = optionalText(body.ownerName, 120) || "Pat";
     const doNotContactReason = optionalText(body.doNotContactReason, 2000);
-    const hasContact = Boolean(contactEmail || contactPhone || contactName);
+    const verificationBlockers = contactVerificationBlockers({
+      status,
+      contact_name: contactName,
+      contact_title: contactTitle,
+      contact_email: contactEmail,
+      contact_phone: contactPhone,
+      contact_route: contactRoute,
+      contact_source: contactSource,
+      contact_verified_at: null,
+      compliance_review_required: false,
+    });
+    const contactVerified = body.verified === true && verificationBlockers.length === 0 && status !== "do_not_contact";
+    if (body.verified === true && verificationBlockers.length > 0) {
+      return NextResponse.json(
+        { error: verificationBlockers[0], blockers: verificationBlockers },
+        { status: 400 },
+      );
+    }
     const update: Record<string, unknown> = {
       contact_name: contactName,
       contact_title: contactTitle,
@@ -79,7 +97,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       contact_phone: contactPhone,
       contact_source: contactSource,
       contact_route: contactRoute,
-      contact_verified_at: body.verified === true && hasContact ? now : null,
+      contact_verified_at: contactVerified ? now : null,
       owner_name: ownerName,
       priority,
       status,
@@ -113,7 +131,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       detail_json: {
         priority,
         status,
-        contact_verified: body.verified === true && hasContact,
+        contact_verified: contactVerified,
         has_email: Boolean(contactEmail),
         has_phone: Boolean(contactPhone),
         owner_name: ownerName,

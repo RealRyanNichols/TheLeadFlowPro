@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import { OperatorAuthError, requireOperatorAdmin } from "@/lib/operatoros/auth";
+import {
+  outreachReadiness,
+  type OutreachChannel,
+  type OutreachProspectReadiness,
+  type OutreachWorkspaceReadiness,
+} from "@/lib/operatoros/outreach-readiness";
 
 const CHANNELS = new Set(["email", "dm", "phone", "text", "email_or_dm", "internal"]);
 const FINAL_ACTION_STATUSES = new Set(["sent", "skipped", "responded", "cancelled"]);
@@ -88,6 +94,40 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
     const nextDueAt = body.dueAt === undefined ? action.due_at : parseDueAt(body.dueAt);
     if (!nextDueAt) return NextResponse.json({ error: "A valid due time is required" }, { status: 400 });
+
+    if ((operation === "approve" || operation === "mark_sent") && nextChannel !== "internal") {
+      const [prospectResult, settingsResult] = await Promise.all([
+        supabase
+          .from("operator_prospects")
+          .select("status,contact_name,contact_title,contact_email,contact_phone,contact_route,contact_source,contact_verified_at,compliance_review_required")
+          .eq("id", action.prospect_id)
+          .single(),
+        supabase
+          .from("operator_workspace_settings")
+          .select("sender_name,sender_email,sender_phone,allowed_channels")
+          .eq("workspace_id", action.workspace_id)
+          .single(),
+      ]);
+
+      if (prospectResult.error || !prospectResult.data || settingsResult.error || !settingsResult.data) {
+        return NextResponse.json(
+          { error: "Outreach readiness could not be verified. Check the prospect and workspace settings." },
+          { status: 409 },
+        );
+      }
+
+      const readiness = outreachReadiness(
+        prospectResult.data as OutreachProspectReadiness,
+        settingsResult.data as OutreachWorkspaceReadiness,
+        nextChannel as OutreachChannel,
+      );
+      if (!readiness.ready) {
+        return NextResponse.json(
+          { error: readiness.blockers[0], blockers: readiness.blockers },
+          { status: 409 },
+        );
+      }
+    }
 
     const note = typeof body.note === "string" ? body.note.trim().slice(0, 2000) : "";
     const now = new Date().toISOString();
