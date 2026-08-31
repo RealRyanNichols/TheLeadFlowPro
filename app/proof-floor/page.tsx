@@ -5,11 +5,17 @@ import { LEADFLOW_GROWTH_LOOP, centralDate, money, number } from "@/lib/operator
 
 export const metadata = {
   title: "The Proof Floor | The LeadFlow Pro",
-  description: "A sanitized live scoreboard showing what The LeadFlow Pro is actually moving: attention, leads, follow-up, sales activity, builds, and AI work.",
+  description: "A sanitized live scoreboard showing what The LeadFlow Pro is actually moving: attention, leads, follow-up, verified cash, builds, and AI work.",
+  alternates: { canonical: "https://www.theleadflowpro.com/proof-floor" },
+  openGraph: {
+    title: "The Proof Floor | The LeadFlow Pro",
+    description: "Live, sanitized operating proof from The LeadFlow Pro.",
+    url: "https://www.theleadflowpro.com/proof-floor",
+    type: "website",
+  },
 };
 export const dynamic = "force-dynamic";
 
-const PAID = new Set(["paid", "complete", "completed", "succeeded"]);
 const WINDOWS = [
   { label: "Today", days: 1 },
   { label: "7 days", days: 7 },
@@ -31,25 +37,32 @@ function within(value: string | null, since: number, todayOnly = false) {
 export default async function ProofFloor() {
   const supabase = createServiceClient();
   const since365 = new Date(Date.now() - 365 * 86400_000).toISOString();
-  const [analyticsResult, leadResult, taskResult, purchaseResult, runResult, socialResult, projectResult, approvalResult] = await Promise.all([
+  const { data: workspace, error: workspaceError } = await supabase
+    .from("operator_workspaces")
+    .select("id")
+    .eq("slug", "the-leadflow-pro")
+    .single();
+  if (workspaceError || !workspace) throw new Error("The Proof Floor is temporarily unavailable.");
+
+  const [analyticsResult, leadResult, taskResult, cashResult, runResult, socialResult, projectResult, approvalResult] = await Promise.all([
     supabase.from("analytics_events").select("event_name,visitor_id,created_at").eq("is_internal", false).gte("created_at", since365).order("created_at", { ascending: false }).limit(20000),
     supabase.from("leads").select("status,created_at").is("deleted_at", null).eq("is_test", false).gte("created_at", since365).limit(10000),
     supabase.from("lead_tasks").select("completed_at,created_at").gte("created_at", since365).limit(10000),
-    supabase.from("purchases").select("amount_cents,status,created_at").gte("created_at", since365).limit(10000),
-    supabase.from("operator_runs").select("status,created_at,completed_at").gte("created_at", since365).limit(10000),
+    supabase.from("operator_verified_cash_entries").select("amount_cents,received_at").eq("workspace_id", workspace.id).gte("received_at", since365).limit(10000),
+    supabase.from("operator_runs").select("status,created_at,completed_at").eq("workspace_id", workspace.id).gte("created_at", since365).limit(10000),
     supabase.from("social_posts").select("status,published_at,created_at").gte("created_at", since365).limit(10000),
     supabase.from("projects").select("status,milestones(status)").limit(1000),
-    supabase.from("operator_approvals").select("status").eq("status", "pending").limit(1000),
+    supabase.from("operator_approvals").select("status").eq("workspace_id", workspace.id).eq("status", "pending").limit(1000),
   ]);
 
-  const results = [analyticsResult, leadResult, taskResult, purchaseResult, runResult, socialResult, projectResult, approvalResult];
+  const results = [analyticsResult, leadResult, taskResult, cashResult, runResult, socialResult, projectResult, approvalResult];
   const firstError = results.map((result) => result.error).find(Boolean);
   if (firstError) throw new Error("The Proof Floor is temporarily unavailable.");
 
   const analytics = analyticsResult.data ?? [];
   const leads = leadResult.data ?? [];
   const tasks = taskResult.data ?? [];
-  const purchases = purchaseResult.data ?? [];
+  const cashEntries = cashResult.data ?? [];
   const runs = runResult.data ?? [];
   const posts = socialResult.data ?? [];
   const projects = projectResult.data ?? [];
@@ -65,8 +78,9 @@ export default async function ProofFloor() {
     const visitors = new Set(pageViews.map((event) => event.visitor_id).filter(Boolean)).size;
     const windowLeads = leads.filter((lead) => within(lead.created_at, since, todayOnly));
     const followups = tasks.filter((task) => within(task.completed_at, since, todayOnly)).length;
-    const windowPurchases = purchases.filter((purchase) => PAID.has(String(purchase.status || "").toLowerCase()) && within(purchase.created_at, since, todayOnly));
-    const cash = windowPurchases.reduce((sum, purchase) => sum + Math.max(0, Number(purchase.amount_cents || 0)) / 100, 0);
+    const cash = cashEntries
+      .filter((entry) => within(entry.received_at, since, todayOnly))
+      .reduce((sum, entry) => sum + Math.max(0, Number(entry.amount_cents || 0)) / 100, 0);
     const completedRuns = runs.filter((run) => run.status === "completed" && within(run.completed_at || run.created_at, since, todayOnly)).length;
     const shipped = posts.filter((post) => post.status === "published" && within(post.published_at || post.created_at, since, todayOnly)).length;
     return { label: window.label, visitors, pageViews: pageViews.length, leads: windowLeads.length, followups, cash, completedRuns, shipped };
@@ -79,7 +93,7 @@ export default async function ProofFloor() {
     { label: "Page views today", value: today.pageViews, icon: Eye },
     { label: "Leads today", value: today.leads, icon: UsersRound },
     { label: "Follow-ups completed", value: today.followups, icon: Send },
-    { label: "Cash recorded today", value: money(today.cash), icon: CircleDollarSign },
+    { label: "Verified cash today", value: money(today.cash), icon: CircleDollarSign },
     { label: "AI runs completed", value: today.completedRuns, icon: Bot },
     { label: "Active builds", value: activeBuilds, icon: Rocket },
     { label: "Human approvals", value: approvals.length, icon: Target },
@@ -93,7 +107,7 @@ export default async function ProofFloor() {
           <div className="mt-3 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <div>
               <h1 className="text-4xl font-black tracking-tight sm:text-6xl">The LeadFlow Pro is running.</h1>
-              <p className="mt-4 max-w-3xl text-base leading-7 text-[#b8c5d9]">This is not a client list and it does not expose private records. It is the aggregate scoreboard: what moved, what shipped, and what the operating system recorded.</p>
+              <p className="mt-4 max-w-3xl text-base leading-7 text-[#b8c5d9]">This is not a client list and it does not expose private records. It is the aggregate scoreboard: what moved, what shipped, and what the operating system verified.</p>
             </div>
             <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-5 py-4">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-200">System status</p>
@@ -129,7 +143,7 @@ export default async function ProofFloor() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left text-sm">
-              <thead className="bg-[#12223a] text-[11px] uppercase tracking-wider text-[#8295b1]"><tr><th className="px-5 py-3">Window</th><th className="px-4 py-3">Visitors</th><th className="px-4 py-3">Views</th><th className="px-4 py-3">Leads</th><th className="px-4 py-3">Follow-ups</th><th className="px-4 py-3">Cash recorded</th><th className="px-4 py-3">AI runs</th><th className="px-4 py-3">Content shipped</th></tr></thead>
+              <thead className="bg-[#12223a] text-[11px] uppercase tracking-wider text-[#8295b1]"><tr><th className="px-5 py-3">Window</th><th className="px-4 py-3">Visitors</th><th className="px-4 py-3">Views</th><th className="px-4 py-3">Leads</th><th className="px-4 py-3">Follow-ups</th><th className="px-4 py-3">Verified cash</th><th className="px-4 py-3">AI runs</th><th className="px-4 py-3">Content shipped</th></tr></thead>
               <tbody className="divide-y divide-white/10">
                 {rows.map((row) => <tr key={row.label}><td className="px-5 py-4 font-black">{row.label}</td><td className="px-4 py-4">{number(row.visitors)}</td><td className="px-4 py-4">{number(row.pageViews)}</td><td className="px-4 py-4">{number(row.leads)}</td><td className="px-4 py-4">{number(row.followups)}</td><td className="px-4 py-4 font-black text-emerald-300">{money(row.cash)}</td><td className="px-4 py-4">{number(row.completedRuns)}</td><td className="px-4 py-4">{number(row.shipped)}</td></tr>)}
               </tbody>
@@ -152,7 +166,7 @@ export default async function ProofFloor() {
           </section>
         </div>
 
-        <p className="mt-6 text-center text-xs leading-5 text-[#7287a5]">Aggregate operating proof only. No private lead, client, project, message, or approval details are published on this page.</p>
+        <p className="mt-6 text-center text-xs leading-5 text-[#7287a5]">Aggregate operating proof only. Verified cash means paid Stripe checkout, paid Stripe invoice, or an offline payment confirmed by an admin. No private lead, client, project, message, payer, or approval details are published here.</p>
       </section>
     </main>
   );
