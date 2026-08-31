@@ -9,11 +9,14 @@ export const CONTENT_ENGINE = {
   regularPriceId: "price_1U9yS8BHH7tuNwAAE0YjnotO",
   foundingPriceCents: 12700,
   regularPriceCents: 19700,
+  coreLessonCount: 12,
+  assignmentCount: 12,
+  readyBackgroundCount: 98,
   integrationIdentifier: "content_engine_qnrztlkv",
   promise:
-    "Finish with one clear offer, thirty useful video topics, ten camera ready scripts, one recording setup you can repeat, and one owned path from every video to a page, form, or checkout.",
+    "I show you the same process I use to plan, script, record, edit, and post business videos. You finish with a clear offer, thirty video ideas, ten ready to read scripts, a recording setup you can repeat, and a simple way to send viewers to your website, form, or checkout.",
   accessDisclosure:
-    "Founding access includes the written lessons, workbook, assignments, lesson checks, and final assessment now. Recorded lessons are added as they are produced.",
+    "Founding access includes the twelve written lessons, workbook, twelve assignments, lesson checks, and final assessment now. The recorded lessons and buyer download library are added as they are produced and verified.",
   credentialDisclaimer:
     "This is a private LeadFlow Pro course completion credential issued by Longview Training Center LLC. It is not a degree, professional license, accreditation, state or federal certification, promise of employment, or guarantee of business results.",
 } as const;
@@ -21,7 +24,7 @@ export const CONTENT_ENGINE = {
 export const CONTENT_ENGINE_MODULES = [
   {
     title: "Module One: Give the Content a Job",
-    result: "Choose one honest outcome and one destination for the batch.",
+    result: "Explain what you sell in one clear sentence and decide where each viewer should go next.",
     lessons: [
       {
         code: "CE L01",
@@ -37,7 +40,7 @@ export const CONTENT_ENGINE_MODULES = [
   },
   {
     title: "Module Two: Build the Topic Bank",
-    result: "Turn real work into thirty different video angles.",
+    result: "Turn real customer questions, mistakes, and stories into thirty different video ideas.",
     lessons: [
       {
         code: "CE L03",
@@ -53,7 +56,7 @@ export const CONTENT_ENGINE_MODULES = [
   },
   {
     title: "Module Three: Write in a Human Voice",
-    result: "Create clear openings and use AI without losing the operator's voice.",
+    result: "Use ChatGPT to help write ten scripts that are clear, useful, and still sound like you.",
     lessons: [
       {
         code: "CE L05",
@@ -69,7 +72,7 @@ export const CONTENT_ENGINE_MODULES = [
   },
   {
     title: "Module Four: Record and Edit the Batch",
-    result: "Build one repeatable production setup and finish ten videos efficiently.",
+    result: "Load Teleprompter, record on your phone or computer, and make a clean CapCut edit.",
     lessons: [
       {
         code: "CE L07",
@@ -90,7 +93,7 @@ export const CONTENT_ENGINE_MODULES = [
   },
   {
     title: "Module Five: Own the Destination and Improve",
-    result: "Connect every video to an owned path, publish useful watch pages, and run the loop again.",
+    result: "Post the video, send viewers to a clear next step, measure what happened, and make the next ten better.",
     lessons: [
       {
         code: "CE L10",

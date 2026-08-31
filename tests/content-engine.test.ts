@@ -19,6 +19,12 @@ test("Content Engine founding access is lower than the regular price", () => {
   assert.ok(CONTENT_ENGINE.foundingPriceCents < CONTENT_ENGINE.regularPriceCents);
 });
 
+test("Content Engine sells only the background library that is already built", () => {
+  assert.equal(CONTENT_ENGINE.readyBackgroundCount, 98);
+  assert.equal(CONTENT_ENGINE.coreLessonCount, 12);
+  assert.equal(CONTENT_ENGINE.assignmentCount, 12);
+});
+
 test("Content Engine completion credential keeps the accreditation boundary", () => {
   assert.match(CONTENT_ENGINE.credentialDisclaimer, /not a degree/i);
   assert.match(CONTENT_ENGINE.credentialDisclaimer, /not.*accreditation/i);

@@ -25,3 +25,14 @@ test("Content Engine planning math fails closed on invalid inputs", () => {
 
   assert.deepEqual(result, { pageVisits: 0, buyers: 0, revenue: 0 });
 });
+
+test("Content Engine planning math will not treat more than 100 percent as possible", () => {
+  const result = estimateContentRevenue({
+    qualifiedViews: 100,
+    visitRatePercent: 250,
+    buyerRatePercent: 150,
+    orderValue: 10,
+  });
+
+  assert.deepEqual(result, { pageVisits: 100, buyers: 100, revenue: 1000 });
+});
