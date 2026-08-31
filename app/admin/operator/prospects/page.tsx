@@ -88,6 +88,12 @@ export default async function ProspectCommand() {
   const priorityA = prospects.filter((prospect) => prospect.priority === "A").length;
   const contacted = prospects.filter((prospect) => ["contacted", "responded", "qualified", "proposal", "won"].includes(prospect.status)).length;
   const replies = prospects.filter((prospect) => ["responded", "qualified", "proposal", "won"].includes(prospect.status)).length;
+  const overviewCards = [
+    { label: "Prospects loaded", value: prospects.length, note: "first Longview operating batch", icon: UsersRound },
+    { label: "Priority A", value: priorityA, note: "work these first", icon: Target },
+    { label: "Actions due", value: dueNow, note: "permission-first drafts", icon: Clock3 },
+    { label: "Replies recorded", value: replies, note: `${contacted} contacted`, icon: MessageSquareText },
+  ];
 
   return (
     <div className="space-y-7">
@@ -101,15 +107,14 @@ export default async function ProspectCommand() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          ["Prospects loaded", prospects.length, "first Longview operating batch", UsersRound],
-          ["Priority A", priorityA, "work these first", Target],
-          ["Actions due", dueNow, "permission-first drafts", Clock3],
-          ["Replies recorded", replies, `${contacted} contacted`, MessageSquareText],
-        ].map(([label, value, note, Icon]) => {
-          const C = Icon as typeof UsersRound;
-          return <section key={String(label)} className="rounded-2xl border border-[var(--line)] bg-white p-5"><C className="h-5 w-5 text-[var(--blue)]" /><p className="mt-3 text-xs font-black uppercase tracking-wide text-[var(--muted)]">{label}</p><p className="mt-1 text-3xl font-black text-[var(--heading)]">{String(value)}</p><p className="mt-1 text-xs text-[var(--muted)]">{String(note)}</p></section>;
-        })}
+        {overviewCards.map(({ label, value, note, icon: Icon }) => (
+          <section key={label} className="rounded-2xl border border-[var(--line)] bg-white p-5">
+            <Icon className="h-5 w-5 text-[var(--blue)]" />
+            <p className="mt-3 text-xs font-black uppercase tracking-wide text-[var(--muted)]">{label}</p>
+            <p className="mt-1 text-3xl font-black text-[var(--heading)]">{value}</p>
+            <p className="mt-1 text-xs text-[var(--muted)]">{note}</p>
+          </section>
+        ))}
       </div>
 
       <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
