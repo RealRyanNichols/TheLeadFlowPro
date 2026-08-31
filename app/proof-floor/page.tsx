@@ -36,7 +36,7 @@ export default async function ProofFloor() {
     supabase.from("leads").select("status,created_at").is("deleted_at", null).eq("is_test", false).gte("created_at", since365).limit(10000),
     supabase.from("lead_tasks").select("completed_at,created_at").gte("created_at", since365).limit(10000),
     supabase.from("purchases").select("amount_cents,status,created_at").gte("created_at", since365).limit(10000),
-    supabase.from("operator_runs").select("status,created_at,finished_at").gte("created_at", since365).limit(10000),
+    supabase.from("operator_runs").select("status,created_at,completed_at").gte("created_at", since365).limit(10000),
     supabase.from("social_posts").select("status,published_at,created_at").gte("created_at", since365).limit(10000),
     supabase.from("projects").select("status,milestones(status)").limit(1000),
     supabase.from("operator_approvals").select("status").eq("status", "pending").limit(1000),
@@ -67,7 +67,7 @@ export default async function ProofFloor() {
     const followups = tasks.filter((task) => within(task.completed_at, since, todayOnly)).length;
     const windowPurchases = purchases.filter((purchase) => PAID.has(String(purchase.status || "").toLowerCase()) && within(purchase.created_at, since, todayOnly));
     const cash = windowPurchases.reduce((sum, purchase) => sum + Math.max(0, Number(purchase.amount_cents || 0)) / 100, 0);
-    const completedRuns = runs.filter((run) => run.status === "completed" && within(run.finished_at || run.created_at, since, todayOnly)).length;
+    const completedRuns = runs.filter((run) => run.status === "completed" && within(run.completed_at || run.created_at, since, todayOnly)).length;
     const shipped = posts.filter((post) => post.status === "published" && within(post.published_at || post.created_at, since, todayOnly)).length;
     return { label: window.label, visitors, pageViews: pageViews.length, leads: windowLeads.length, followups, cash, completedRuns, shipped };
   });
