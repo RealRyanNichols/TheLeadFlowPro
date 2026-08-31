@@ -165,19 +165,24 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     if (prospectUpdateError) return NextResponse.json({ error: "Prospect status could not be updated" }, { status: 500 });
 
     if (classification !== "declined") {
-      const { error: actionError } = await supabase.from("operator_outreach_actions").insert({
-        workspace_id: prospect.workspace_id,
-        prospect_id: id,
-        channel: "email_or_dm",
-        action_type: "response_recommendation",
-        due_at: dueAt.toISOString(),
-        sequence_day: 60,
-        message_draft: reply,
-        status: "queued",
-        human_approved: false,
-        notes: `Generated after prospect reply. Planner: ${providerUsed}. Human approval required before sending.`,
-      });
-      if (actionError && actionError.code !== "23505") return NextResponse.json({ error: "Response recommendation could not be queued" }, { status: 500 });
+      const { error: actionError } = await supabase.from("operator_outreach_actions").upsert(
+        {
+          workspace_id: prospect.workspace_id,
+          prospect_id: id,
+          channel: "email_or_dm",
+          action_type: "response_recommendation",
+          due_at: dueAt.toISOString(),
+          sequence_day: 60,
+          message_draft: reply,
+          status: "queued",
+          human_approved: false,
+          sent_at: null,
+          notes: `Generated after prospect reply. Planner: ${providerUsed}. Human approval required before sending.`,
+          updated_at: now.toISOString(),
+        },
+        { onConflict: "prospect_id,sequence_day,action_type" },
+      );
+      if (actionError) return NextResponse.json({ error: "Response recommendation could not be queued" }, { status: 500 });
     }
 
     return NextResponse.json({
