@@ -4,16 +4,18 @@ import {
   CalendarDays,
   CircleDollarSign,
   Gauge,
+  Landmark,
   MessageSquareText,
+  ReceiptText,
   Send,
   Target,
   UsersRound,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
-  LEADFLOW_GROWTH_LOOP,
   DEFAULT_GROWTH_ASSUMPTIONS,
   DEFAULT_SEPTEMBER_OFFER_MIX,
+  LEADFLOW_GROWTH_LOOP,
   businessDaysInclusive,
   centralDate,
   clampDate,
@@ -47,12 +49,22 @@ type Mission = {
   target_at: string | null;
 };
 
-const PAID = new Set(["paid", "complete", "completed", "succeeded"]);
+type CashEntry = {
+  source_type: string;
+  amount_cents: number;
+  received_at: string;
+};
 
 function statTone(status: string) {
   if (status === "AHEAD" || status === "ON PACE") return "border-emerald-400/35 bg-emerald-400/10 text-emerald-200";
   if (status === "BEHIND") return "border-amber-400/35 bg-amber-400/10 text-amber-100";
   return "border-cyan-400/30 bg-cyan-400/10 text-cyan-100";
+}
+
+function cashSourceLabel(source: string) {
+  if (source === "checkout") return "checkout";
+  if (source === "invoice") return "invoice";
+  return source.replace("manual_", "");
 }
 
 export default async function GrowthGoalMode() {
@@ -78,6 +90,7 @@ export default async function GrowthGoalMode() {
   const mission = missionData as Mission | null;
   const startDate = mission?.starts_at ? centralDate(mission.starts_at) : "2026-09-01";
   const targetDate = mission?.target_at ? centralDate(mission.target_at) : "2026-09-30";
+  const startIso = mission?.starts_at ?? "2026-09-01T05:00:00.000Z";
   const targetUsd = Number(mission?.target_value || 75000);
   const controls = (mission?.control_json ?? {}) as MissionControl;
   const stretchUsd = Number(controls.stretch_target_value || 100000);
@@ -89,14 +102,14 @@ export default async function GrowthGoalMode() {
   const closeTarget = offerMix.reduce((sum, item) => sum + Number(item.closes || 0), 0);
   const funnel = funnelTargets(closeTarget, assumptions);
 
-  const startIso = mission?.starts_at ?? "2026-09-01T05:00:00.000Z";
-  const [purchaseResult, leadResult, prospectResult, outreachResult, episodeResult] = await Promise.all([
+  const [cashResult, leadResult, prospectResult, outreachResult, episodeResult] = await Promise.all([
     supabase
-      .from("purchases")
-      .select("amount_cents,status,created_at")
-      .gte("created_at", startIso)
-      .order("created_at", { ascending: false })
-      .limit(2000),
+      .from("operator_verified_cash_entries")
+      .select("source_type,amount_cents,received_at")
+      .eq("workspace_id", workspace.id)
+      .gte("received_at", startIso)
+      .order("received_at", { ascending: false })
+      .limit(5000),
     supabase
       .from("leads")
       .select("id,status,expected_value_cents,close_probability,priority,next_follow_up_at,created_at")
@@ -105,7 +118,7 @@ export default async function GrowthGoalMode() {
       .limit(1000),
     supabase
       .from("operator_prospects")
-      .select("id,status,priority,next_action_at")
+      .select("id,status,priority,next_action_at,contact_email,contact_phone,contact_verified_at")
       .eq("workspace_id", workspace.id)
       .limit(2000),
     supabase
@@ -121,20 +134,24 @@ export default async function GrowthGoalMode() {
       .limit(3),
   ]);
 
-  const firstError = [purchaseResult, leadResult, prospectResult, outreachResult, episodeResult]
+  const firstError = [cashResult, leadResult, prospectResult, outreachResult, episodeResult]
     .map((result) => result.error)
     .find(Boolean);
   if (firstError) throw new Error(`Goal Mode data is temporarily unavailable: ${firstError.message}`);
 
-  const purchases = purchaseResult.data ?? [];
+  const cashEntries = (cashResult.data ?? []) as CashEntry[];
   const leads = leadResult.data ?? [];
   const prospects = prospectResult.data ?? [];
   const outreach = outreachResult.data ?? [];
   const episodes = episodeResult.data ?? [];
 
-  const cashCollected = purchases
-    .filter((purchase) => PAID.has(String(purchase.status || "").toLowerCase()))
-    .reduce((sum, purchase) => sum + Math.max(0, Number(purchase.amount_cents || 0)) / 100, 0);
+  const targetEnd = mission?.target_at ? new Date(mission.target_at).getTime() : Infinity;
+  const cashCollected = cashEntries
+    .filter((entry) => new Date(entry.received_at).getTime() <= targetEnd)
+    .reduce((sum, entry) => sum + Math.max(0, Number(entry.amount_cents || 0)) / 100, 0);
+  const cashSources = new Map<string, number>();
+  cashEntries.forEach((entry) => cashSources.set(entry.source_type, (cashSources.get(entry.source_type) || 0) + Number(entry.amount_cents || 0) / 100));
+
   const gap = Math.max(0, targetUsd - cashCollected);
   const totalBusinessDays = businessDaysInclusive(startDate, targetDate);
   const today = centralDate();
@@ -161,37 +178,29 @@ export default async function GrowthGoalMode() {
 
   const prospectCounts = new Map<string, number>();
   prospects.forEach((prospect) => prospectCounts.set(prospect.status, (prospectCounts.get(prospect.status) || 0) + 1));
-  const contactsDone = ["contacted", "responded", "qualified", "proposal", "won"].reduce(
-    (sum, status) => sum + (prospectCounts.get(status) || 0),
-    0,
-  );
-  const repliesDone = ["responded", "qualified", "proposal", "won"].reduce(
-    (sum, status) => sum + (prospectCounts.get(status) || 0),
-    0,
-  );
-  const qualifiedDone = ["qualified", "proposal", "won"].reduce(
-    (sum, status) => sum + (prospectCounts.get(status) || 0),
-    0,
-  );
+  const contactsDone = ["contacted", "responded", "qualified", "proposal", "won"].reduce((sum, status) => sum + (prospectCounts.get(status) || 0), 0);
+  const repliesDone = ["responded", "qualified", "proposal", "won"].reduce((sum, status) => sum + (prospectCounts.get(status) || 0), 0);
+  const qualifiedDone = ["qualified", "proposal", "won"].reduce((sum, status) => sum + (prospectCounts.get(status) || 0), 0);
   const proposalsDone = (prospectCounts.get("proposal") || 0) + (prospectCounts.get("won") || 0);
   const closesDone = (prospectCounts.get("won") || 0) + warmWins;
+  const contactCoverage = prospects.filter((prospect) => prospect.contact_email || prospect.contact_phone).length;
+  const verifiedContacts = prospects.filter((prospect) => prospect.contact_verified_at).length;
 
   const todayActions = outreach.filter(
     (action) => action.due_at && centralDate(action.due_at) <= today && ["queued", "approved"].includes(action.status),
   ).length;
   const baselineDaily = {
     contacts: Math.ceil(funnel.contacts / Math.max(totalBusinessDays, 1)),
-    replies: Math.ceil(funnel.replies / Math.max(totalBusinessDays, 1)),
+    followups: Number(controls.daily_quotas?.followups || 20),
     qualified: Math.ceil(funnel.qualified / Math.max(totalBusinessDays, 1)),
     proposals: Math.ceil(funnel.proposals / Math.max(totalBusinessDays, 1)),
     closes: Math.ceil(funnel.closes / Math.max(totalBusinessDays, 1)),
-    followups: Number(controls.daily_quotas?.followups || 20),
     concepts: Number(controls.daily_quotas?.private_concepts || 2),
   };
 
   const scorecards = [
     { label: "September target", value: money(targetUsd), note: `${money(stretchUsd)} stretch`, icon: Target },
-    { label: "Recorded cash", value: money(cashCollected), note: `${pct(targetProgress)} of target`, icon: CircleDollarSign },
+    { label: "Verified cash", value: money(cashCollected), note: `${pct(targetProgress)} of target · ${cashEntries.length} receipts`, icon: CircleDollarSign },
     { label: "Gap to target", value: money(gap), note: `${money(requiredDaily)} needed per remaining business day`, icon: Gauge },
     { label: "Open CRM pipeline", value: money(openPipeline), note: `${valuedLeads.length}/${openLeads.length} open leads have a dollar value`, icon: UsersRound },
     { label: "Actions due", value: number(todayActions), note: "Permission-first drafts; nothing auto-sends", icon: Send },
@@ -205,9 +214,7 @@ export default async function GrowthGoalMode() {
           <div>
             <p className="text-xs font-black uppercase tracking-[0.24em] text-[#50d4ff]">Goal Mode · September 2026</p>
             <h2 className="mt-2 text-4xl font-black tracking-tight sm:text-5xl">{mission?.name || "$75K Cash Collected"}</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-[#b8c5d9]">
-              The scoreboard works backward from cash collected into the conversations, proposals, follow-up, and targeted outreach required to make the number possible. Assumptions are visible and should be replaced by observed conversion rates as the sample grows.
-            </p>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-[#b8c5d9]">The scoreboard works backward from verified money received into conversations, proposals, follow-up, and targeted outreach. Open invoices, expected value, and promises are not counted as cash.</p>
           </div>
           <div className={`rounded-2xl border px-5 py-4 ${statTone(paceStatus)}`}>
             <p className="text-[11px] font-black uppercase tracking-[0.18em]">Pace</p>
@@ -224,16 +231,13 @@ export default async function GrowthGoalMode() {
             </span>
           ))}
         </div>
-
-        <div className="mt-7 h-3 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full rounded-full bg-gradient-to-r from-[#1240e8] to-[#35c6f4]" style={{ width: `${Math.min(100, targetProgress * 100)}%` }} />
-        </div>
+        <div className="mt-7 h-3 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-[#1240e8] to-[#35c6f4]" style={{ width: `${Math.min(100, targetProgress * 100)}%` }} /></div>
       </section>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         {scorecards.map(({ label, value, note, icon: Icon }) => (
           <section key={label} className="rounded-2xl border border-[var(--line)] bg-white p-4 shadow-[0_10px_30px_rgba(10,18,32,0.04)]">
-            <Icon className="h-5 w-5 text-[var(--blue)]" aria-hidden="true" />
+            <Icon className="h-5 w-5 text-[var(--blue)]" />
             <p className="mt-3 text-[11px] font-black uppercase tracking-wide text-[var(--muted)]">{label}</p>
             <p className="mt-1 text-2xl font-black tracking-tight text-[var(--heading)]">{value}</p>
             <p className="mt-1 text-xs leading-5 text-[var(--muted)]">{note}</p>
@@ -241,32 +245,23 @@ export default async function GrowthGoalMode() {
         ))}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(360px,.8fr)]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,.85fr)]">
         <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Reverse-engineered funnel</p>
-              <h3 className="mt-1 text-2xl font-black text-[var(--heading)]">What the month requires</h3>
-            </div>
-            <span className="rounded-full bg-[var(--fill-2)] px-3 py-1.5 text-xs font-bold text-[var(--muted)]">17 closes in the working mix</span>
+            <div><p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Reverse-engineered funnel</p><h3 className="mt-1 text-2xl font-black text-[var(--heading)]">What the month requires</h3></div>
+            <span className="rounded-full bg-[var(--fill-2)] px-3 py-1.5 text-xs font-bold text-[var(--muted)]">{closeTarget} closes in the working mix</span>
           </div>
-
           <div className="mt-5 grid gap-3 sm:grid-cols-5">
             {[
               ["Targeted contacts", funnel.contacts, contactsDone],
               ["Positive replies", funnel.replies, repliesDone],
-              ["Qualified conversations", funnel.qualified, qualifiedDone],
+              ["Qualified", funnel.qualified, qualifiedDone],
               ["Proposals", funnel.proposals, proposalsDone],
               ["Closes", funnel.closes, closesDone],
             ].map(([label, target, actual]) => (
-              <div key={String(label)} className="rounded-xl border border-[var(--line)] bg-[var(--fill-2)] p-4">
-                <p className="text-xs font-bold text-[var(--muted)]">{label}</p>
-                <p className="mt-2 text-3xl font-black text-[var(--heading)]">{number(Number(target))}</p>
-                <p className="mt-1 text-xs text-[var(--muted)]">{number(Number(actual))} recorded so far</p>
-              </div>
+              <div key={String(label)} className="rounded-xl border border-[var(--line)] bg-[var(--fill-2)] p-4"><p className="text-xs font-bold text-[var(--muted)]">{label}</p><p className="mt-2 text-3xl font-black text-[var(--heading)]">{number(Number(target))}</p><p className="mt-1 text-xs text-[var(--muted)]">{number(Number(actual))} recorded</p></div>
             ))}
           </div>
-
           <div className="mt-5 rounded-xl border border-[var(--line)] p-4">
             <p className="text-sm font-black text-[var(--heading)]">Working conversion assumptions</p>
             <div className="mt-3 grid gap-2 text-sm sm:grid-cols-4">
@@ -275,7 +270,7 @@ export default async function GrowthGoalMode() {
               <p><span className="font-black">{pct(assumptions.qualified_to_proposal)}</span><br /><span className="text-[var(--muted)]">qualified → proposal</span></p>
               <p><span className="font-black">{pct(assumptions.proposal_to_close)}</span><br /><span className="text-[var(--muted)]">proposal → close</span></p>
             </div>
-            <p className="mt-3 text-xs leading-5 text-[var(--muted)]">These are planning assumptions, not historical claims. Goal Mode should replace them with LeadFlow Pro&apos;s actual measured rates once enough contacts have moved through the same stages.</p>
+            <p className="mt-3 text-xs leading-5 text-[var(--muted)]">These are planning assumptions, not historical claims. Replace them with measured rates once enough records have moved through the same stages.</p>
           </div>
         </section>
 
@@ -284,60 +279,36 @@ export default async function GrowthGoalMode() {
           <h3 className="mt-1 text-2xl font-black text-[var(--heading)]">The minimum useful day</h3>
           <div className="mt-5 space-y-3">
             {[
-              ["New targeted contacts", baselineDaily.contacts, "personalized, permission-first"],
-              ["Follow-ups", baselineDaily.followups, "warm + sequence queue"],
-              ["Qualified conversations", baselineDaily.qualified, "discovery with a measurable need"],
+              ["New targeted contacts", baselineDaily.contacts, "personalized and permission-first"],
+              ["Follow-ups", baselineDaily.followups, "warm plus sequence queue"],
+              ["Qualified conversations", baselineDaily.qualified, "measurable need and next step"],
               ["Proposals presented", baselineDaily.proposals, "not merely drafted"],
               ["Closes", baselineDaily.closes, "working daily pace"],
-              ["Private concepts", baselineDaily.concepts, "only for highest-value targets"],
-            ].map(([label, value, note]) => (
-              <div key={String(label)} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--line)] px-4 py-3">
-                <div><p className="font-black text-[var(--heading)]">{label}</p><p className="text-xs text-[var(--muted)]">{note}</p></div>
-                <span className="text-2xl font-black text-[var(--blue)]">{value}</span>
-              </div>
-            ))}
+              ["Private concepts", baselineDaily.concepts, "only highest-value targets"],
+            ].map(([label, value, note]) => <div key={String(label)} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--line)] px-4 py-3"><div><p className="font-black text-[var(--heading)]">{label}</p><p className="text-xs text-[var(--muted)]">{note}</p></div><span className="text-2xl font-black text-[var(--blue)]">{value}</span></div>)}
           </div>
-          <Link href="/admin/operator/prospects" className="mt-5 inline-flex items-center gap-2 font-black text-[var(--blue)] hover:underline">
-            Work today&apos;s prospect queue <ArrowRight className="h-4 w-4" />
-          </Link>
+          <div className="mt-5 grid gap-2 sm:grid-cols-2"><Link href="/admin/operator/action-center" className="inline-flex items-center gap-2 font-black text-[var(--blue)] hover:underline">Work the action queue <ArrowRight className="h-4 w-4" /></Link><Link href="/admin/operator/cash" className="inline-flex items-center gap-2 font-black text-[var(--blue)] hover:underline">Open verified cash <ReceiptText className="h-4 w-4" /></Link></div>
+          <p className="mt-4 text-xs leading-5 text-[var(--muted)]">Contact coverage: {contactCoverage}/{prospects.length}. Human verified: {verifiedContacts}. The queue cannot become reliable outbound until the decision-maker routes are loaded.</p>
         </section>
       </div>
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Offer mix</p>
-            <h3 className="mt-1 text-2xl font-black text-[var(--heading)]">Sell systems, use the site as the wedge</h3>
-          </div>
-          <CalendarDays className="h-6 w-6 text-[var(--blue)]" />
-        </div>
-        <div className="mt-5 overflow-x-auto">
-          <table className="w-full min-w-[680px] text-left text-sm">
-            <thead className="bg-[var(--fill-2)] text-xs uppercase tracking-wide text-[var(--muted)]"><tr><th className="px-4 py-3">Offer</th><th className="px-4 py-3">Setup</th><th className="px-4 py-3">Working closes</th><th className="px-4 py-3">Setup revenue</th></tr></thead>
-            <tbody className="divide-y divide-[var(--line)]">
-              {offerMix.map((item) => <tr key={item.name}><td className="px-4 py-3 font-black text-[var(--heading)]">{item.name}</td><td className="px-4 py-3">{money(item.setup)}</td><td className="px-4 py-3">{item.closes}</td><td className="px-4 py-3 font-black">{money(item.setup * item.closes)}</td></tr>)}
-            </tbody>
-            <tfoot><tr className="border-t-2 border-[var(--line-strong)]"><td className="px-4 py-3 font-black" colSpan={3}>Working mix total</td><td className="px-4 py-3 text-lg font-black text-[var(--blue)]">{money(offerMix.reduce((sum, item) => sum + item.setup * item.closes, 0))}</td></tr></tfoot>
-          </table>
-        </div>
-        <p className="mt-4 text-sm leading-6 text-[var(--muted)]">A free homepage concept earns attention. A qualified Free Launch Site can waive the site build fee when the client buys systems setup and an eligible monthly plan. Standalone sites remain a paid product. Custom funnels, integrations, archives, e-commerce, and company operating systems are separate scope.</p>
-      </section>
-
-      {episodes.length > 0 && (
-        <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Episode Engine</p>
-          <h3 className="mt-1 text-2xl font-black text-[var(--heading)]">The business becomes the content</h3>
-          <div className="mt-5 grid gap-4 lg:grid-cols-3">
-            {episodes.map((episode) => (
-              <article key={episode.episode_date} className="rounded-xl border border-[var(--line)] bg-[var(--fill-2)] p-4">
-                <p className="text-xs font-black uppercase tracking-wide text-[var(--muted)]">Day {episode.day_number} · {episode.episode_date}</p>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[var(--text)]">{episode.content_draft}</p>
-                <p className="mt-3 text-xs font-black uppercase text-[var(--blue)]">{episode.status}</p>
-              </article>
-            ))}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,.75fr)_minmax(0,1.25fr)]">
+        <section className="rounded-2xl border border-[var(--line)] bg-white p-5 sm:p-6">
+          <div className="flex items-center gap-2"><Landmark className="h-5 w-5 text-[var(--blue)]" /><h3 className="text-xl font-black text-[var(--heading)]">Verified cash sources</h3></div>
+          <div className="mt-4 space-y-3">
+            {[...cashSources.entries()].sort((a,b) => b[1]-a[1]).map(([source, total]) => <div key={source} className="flex items-center justify-between rounded-xl border border-[var(--line)] bg-[var(--fill-2)] px-4 py-3"><span className="font-black capitalize text-[var(--heading)]">{cashSourceLabel(source)}</span><span className="font-black text-emerald-700">{money(total)}</span></div>)}
+            {!cashSources.size && <p className="rounded-xl border border-dashed border-[var(--line-strong)] p-4 text-sm text-[var(--muted)]">No money-received record has entered the mission window yet.</p>}
           </div>
         </section>
-      )}
+
+        <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Offer mix</p><h3 className="mt-1 text-2xl font-black text-[var(--heading)]">Sell systems, use the site as the wedge</h3></div><CalendarDays className="h-6 w-6 text-[var(--blue)]" /></div>
+          <div className="mt-5 overflow-x-auto"><table className="w-full min-w-[640px] text-left text-sm"><thead className="bg-[var(--fill-2)] text-xs uppercase tracking-wide text-[var(--muted)]"><tr><th className="px-4 py-3">Offer</th><th className="px-4 py-3">Setup</th><th className="px-4 py-3">Working closes</th><th className="px-4 py-3">Setup revenue</th></tr></thead><tbody className="divide-y divide-[var(--line)]">{offerMix.map((item) => <tr key={item.name}><td className="px-4 py-3 font-black text-[var(--heading)]">{item.name}</td><td className="px-4 py-3">{money(item.setup)}</td><td className="px-4 py-3">{item.closes}</td><td className="px-4 py-3 font-black">{money(item.setup * item.closes)}</td></tr>)}</tbody><tfoot><tr className="border-t-2 border-[var(--line-strong)]"><td className="px-4 py-3 font-black" colSpan={3}>Working mix total</td><td className="px-4 py-3 text-lg font-black text-[var(--blue)]">{money(offerMix.reduce((sum, item) => sum + item.setup * item.closes, 0))}</td></tr></tfoot></table></div>
+          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">A free homepage concept earns attention. Systems setup, ongoing plans, custom integrations, archives, e-commerce, and full operating systems remain paid scope.</p>
+        </section>
+      </div>
+
+      {episodes.length > 0 && <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6"><p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Episode Engine</p><h3 className="mt-1 text-2xl font-black text-[var(--heading)]">The business becomes the content</h3><div className="mt-5 grid gap-4 lg:grid-cols-3">{episodes.map((episode) => <article key={episode.episode_date} className="rounded-xl border border-[var(--line)] bg-[var(--fill-2)] p-4"><p className="text-xs font-black uppercase tracking-wide text-[var(--muted)]">Day {episode.day_number} · {episode.episode_date}</p><p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[var(--text)]">{episode.content_draft}</p><p className="mt-3 text-xs font-black uppercase text-[var(--blue)]">{episode.status}</p></article>)}</div></section>}
     </div>
   );
 }
