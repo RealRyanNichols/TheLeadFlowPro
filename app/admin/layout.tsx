@@ -35,6 +35,9 @@ export default async function AdminLayout({
           <Link href="/admin/command-center" className="text-[var(--text)] hover:text-[var(--heading)]">
             Command
           </Link>
+          <Link href="/admin/operator" className="font-black text-[var(--blue)] hover:text-[var(--heading)]">
+            OperatorOS
+          </Link>
           <Link href="/admin/content-engine" className="text-[var(--text)] hover:text-[var(--heading)]">
             Content
           </Link>
