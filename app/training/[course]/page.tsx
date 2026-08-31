@@ -159,7 +159,7 @@ export default async function CoursePage({
           width: 1254,
           height: 1254,
           kicker: `${completedCount} of ${lessonCount} complete`,
-          caption: "Your next lesson stays connected",
+          caption: access.user ? "Your next lesson stays connected" : "Your free course access is active",
         }}
         primary={
           continueLesson
@@ -170,7 +170,9 @@ export default async function CoursePage({
             : undefined
         }
         secondary={{ href: "/training", label: "All courses" }}
-        trustLine="Lesson completion is saved to your account."
+        trustLine={access.user
+          ? "Lesson completion is saved to your account."
+          : "You can read the free course now. Create a free login when you want to save progress and quiz results."}
         compact
       />
 

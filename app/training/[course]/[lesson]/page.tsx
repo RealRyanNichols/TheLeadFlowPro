@@ -105,7 +105,9 @@ export default async function LessonPage({
             {lesson.summary ? <p>{lesson.summary}</p> : null}
             <div className={styles.lessonTrust}>
               <BookOpenCheck aria-hidden="true" />
-              Progress is saved to your training record.
+              {user
+                ? "Progress is saved to your training record."
+                : "Free lesson access is active. A login is only required to save progress and results."}
             </div>
           </div>
           <figure className={styles.lessonHeroImage}>
@@ -163,37 +165,58 @@ export default async function LessonPage({
 
           {isAssessedCourse && lessonQuestions ? (
             <>
-              <div className={styles.completePanel}>
-                <div>
-                  <p className="cb-eyebrow">Assignment record</p>
-                  <h2>Do the work before moving on.</h2>
-                  <p>Complete the assignment written in the lesson, then mark it here.</p>
+              {user ? (
+                <div className={styles.completePanel}>
+                  <div>
+                    <p className="cb-eyebrow">Assignment record</p>
+                    <h2>Do the work before moving on.</h2>
+                    <p>Complete the assignment written in the lesson, then mark it here.</p>
+                  </div>
+                  <AssignmentButton lessonId={lesson.id} initiallyDone={!!assignmentResult.data} />
                 </div>
-                <AssignmentButton lessonId={lesson.id} initiallyDone={!!assignmentResult.data} />
-              </div>
+              ) : (
+                <div className={styles.completePanel}>
+                  <div>
+                    <p className="cb-eyebrow">Optional training record</p>
+                    <h2>Keep reading now, or create a free login to save the work.</h2>
+                    <p>Your lead access already unlocked this lesson. A login adds saved assignments, graded checks, lesson progress, and the completion path.</p>
+                  </div>
+                  <Link className="cb-btn cb-btn--primary" href={`/login?next=/training/${course.slug}/${lesson.slug}`}>
+                    Create or open my login
+                  </Link>
+                </div>
+              )}
               <section className={styles.lessonCheck} aria-labelledby="lesson-check-title">
                 <p className="cb-eyebrow">Lesson check</p>
                 <h2 id="lesson-check-title">Make sure the lesson landed.</h2>
-                <p>Score at least 80 percent. Retakes are allowed and every result stays in your private training record.</p>
-                <AssessmentForm
-                  kind="lesson"
-                  courseSlug={course.slug}
-                  lessonSlug={lesson.slug}
-                  questions={lessonQuestions}
-                  initiallyPassed={!!quizResult.data}
-                />
+                {user ? (
+                  <>
+                    <p>Score at least 80 percent. Retakes are allowed and every result stays in your private training record.</p>
+                    <AssessmentForm
+                      kind="lesson"
+                      courseSlug={course.slug}
+                      lessonSlug={lesson.slug}
+                      questions={lessonQuestions}
+                      initiallyPassed={!!quizResult.data}
+                    />
+                  </>
+                ) : (
+                  <p>Create a free login above when you are ready to grade this check and save the result.</p>
+                )}
               </section>
             </>
           ) : null}
 
-          <div className={styles.completePanel}>
-            <div>
-              <p className="cb-eyebrow">Lesson progress</p>
-              <h2>Keep your course record current.</h2>
-              <p>Mark this lesson complete when you are ready to move on.</p>
+          {user ? (
+            <div className={styles.completePanel}>
+              <div>
+                <p className="cb-eyebrow">Lesson progress</p>
+                <h2>Keep your course record current.</h2>
+                <p>Mark this lesson complete when you are ready to move on.</p>
+              </div>
+              <CompleteButton lessonId={lesson.id} initiallyDone={!!doneResult.data} />
             </div>
-            <CompleteButton lessonId={lesson.id} initiallyDone={!!doneResult.data} />
-          </div>
+          ) : null}
         </div>
       </section>
     </main>
