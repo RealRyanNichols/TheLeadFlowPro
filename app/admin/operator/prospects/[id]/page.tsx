@@ -2,6 +2,12 @@ import Link from "next/link";
 import { ArrowLeft, CalendarClock, CircleAlert, Clock3, ExternalLink, History, ShieldCheck, Target } from "lucide-react";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {
+  outreachReadiness,
+  type OutreachChannel,
+  type OutreachProspectReadiness,
+  type OutreachWorkspaceReadiness,
+} from "@/lib/operatoros/outreach-readiness";
 import ProspectResponsePlanner from "../ProspectResponsePlanner";
 import ProspectActionControls from "./ProspectActionControls";
 import ProspectContactEditor from "./ProspectContactEditor";
@@ -30,7 +36,7 @@ export default async function ProspectRecord({ params }: { params: Promise<{ id:
   const [prospectResult, actionResult, eventResult] = await Promise.all([
     supabase
       .from("operator_prospects")
-      .select("id,business_name,website_url,industry,market,priority,qualification_signal,observed_gap,best_offer,contact_route,source,status,owner_name,permission_state,last_contacted_at,next_action_at,next_action,response_summary,compliance_review_required,contact_name,contact_title,contact_email,contact_phone,contact_source,contact_verified_at,last_outreach_channel,do_not_contact_reason")
+      .select("id,workspace_id,business_name,website_url,industry,market,priority,qualification_signal,observed_gap,best_offer,contact_route,source,status,owner_name,permission_state,last_contacted_at,next_action_at,next_action,response_summary,compliance_review_required,contact_name,contact_title,contact_email,contact_phone,contact_source,contact_verified_at,last_outreach_channel,do_not_contact_reason")
       .eq("id", id)
       .maybeSingle(),
     supabase
@@ -50,6 +56,12 @@ export default async function ProspectRecord({ params }: { params: Promise<{ id:
   if (actionResult.error || eventResult.error) throw new Error("Prospect record is temporarily unavailable.");
 
   const prospect = prospectResult.data;
+  const { data: workspaceSettings, error: settingsError } = await supabase
+    .from("operator_workspace_settings")
+    .select("sender_name,sender_email,sender_phone,allowed_channels")
+    .eq("workspace_id", prospect.workspace_id)
+    .single();
+  if (settingsError || !workspaceSettings) throw new Error("OperatorOS readiness settings are temporarily unavailable.");
   const actions = actionResult.data ?? [];
   const events = eventResult.data ?? [];
   const activeActions = actions.filter((action) => ["queued", "approved"].includes(action.status));
@@ -116,7 +128,15 @@ export default async function ProspectRecord({ params }: { params: Promise<{ id:
                       <div><p className="font-black text-[var(--heading)]">{action.action_type.replaceAll("_", " ")}</p><p className="mt-1 text-xs text-[var(--muted)]">Sequence {action.sequence_day} · due {when(action.due_at)}</p></div>
                       <span className={`rounded-full border px-2.5 py-1 text-xs font-black ${statusTone(action.status)}`}>{action.status}</span>
                     </div>
-                    <ProspectActionControls action={action} complianceRequired={prospect.compliance_review_required} />
+                    <ProspectActionControls
+                      action={action}
+                      complianceRequired={prospect.compliance_review_required}
+                      approvalBlockers={outreachReadiness(
+                        prospect as OutreachProspectReadiness,
+                        workspaceSettings as OutreachWorkspaceReadiness,
+                        action.channel as OutreachChannel,
+                      ).blockers}
+                    />
                   </article>
                 ))}
               </div>

@@ -24,9 +24,11 @@ function toLocalInput(value: string) {
 export default function ProspectActionControls({
   action,
   complianceRequired,
+  approvalBlockers,
 }: {
   action: Action;
   complianceRequired: boolean;
+  approvalBlockers: string[];
 }) {
   const router = useRouter();
   const [messageDraft, setMessageDraft] = useState(action.message_draft);
@@ -87,6 +89,15 @@ export default function ProspectActionControls({
       {complianceRequired && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold leading-5 text-amber-900">
           Compliance review required before approval. Confirm the claim, advertising, and professional-practice rules for this business before contact.
+        </div>
+      )}
+
+      {approvalBlockers.length > 0 && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs leading-5 text-red-900">
+          <p className="font-black">Approval blocked until readiness is complete.</p>
+          <ul className="mt-1 list-disc space-y-0.5 pl-4 font-semibold">
+            {approvalBlockers.map((blocker) => <li key={blocker}>{blocker}</li>)}
+          </ul>
         </div>
       )}
 
@@ -153,8 +164,9 @@ export default function ProspectActionControls({
             </button>
             <button
               type="button"
-              disabled={Boolean(busy)}
+              disabled={Boolean(busy) || approvalBlockers.length > 0}
               onClick={() => mutate("approve")}
+              title={approvalBlockers[0] || "Approve for a human-controlled send"}
               className="inline-flex min-h-[40px] items-center gap-2 rounded-lg bg-emerald-700 px-3 text-xs font-black text-white disabled:opacity-50"
             >
               {busy === "approve" ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
@@ -162,7 +174,7 @@ export default function ProspectActionControls({
             </button>
             <button
               type="button"
-              disabled={Boolean(busy) || !action.human_approved || action.status !== "approved"}
+              disabled={Boolean(busy) || approvalBlockers.length > 0 || !action.human_approved || action.status !== "approved"}
               onClick={() => mutate("mark_sent")}
               title={!action.human_approved ? "Approve the draft first" : "Record the message after a human sends it"}
               className="inline-flex min-h-[40px] items-center gap-2 rounded-lg bg-[var(--blue)] px-3 text-xs font-black text-white disabled:cursor-not-allowed disabled:opacity-40"
