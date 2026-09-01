@@ -3522,3 +3522,201 @@ body:has(.cb-page) .mobile-nav-panel > a.nav-free:hover {
     padding: 22px 18px;
   }
 }
+
+/* ------------------------------------------------ homepage dark continuity --
+
+   The original company-builder system uses `--cb-ink` both as dark text and as
+   the background for inverse sections. On the dark homepage that token becomes
+   light text, so the older inverse sections turned white while keeping white
+   headings. Keep the homepage's readable text tokens and give every inverse
+   surface an explicit navy treatment instead of overloading the text token. */
+
+body:has(.cb-page.cb-home-dark) {
+  background: #050b16;
+  color-scheme: dark;
+}
+
+.cb-home-dark .cb-band {
+  background-color: #050b16;
+}
+
+.cb-home-dark .cb-band--tint {
+  background:
+    radial-gradient(circle at 12% 18%, #1240e814, transparent 34%),
+    #081322;
+}
+
+.cb-home-dark .cb-band--ink {
+  background:
+    radial-gradient(circle at 84% 20%, #1240e81f, transparent 34%),
+    linear-gradient(145deg, #071120 0%, #050b16 100%);
+  color: #a8b4c8;
+}
+
+.cb-home-dark .cb-band--operations {
+  background:
+    linear-gradient(90deg, #2f6bff0d 1px, transparent 1px),
+    linear-gradient(#2f6bff0d 1px, transparent 1px),
+    radial-gradient(circle at 82% 12%, #1458ff2e 0, transparent 36%),
+    linear-gradient(145deg, #06101e 0%, #08172b 100%);
+  background-size: 72px 72px, 72px 72px, auto, auto;
+}
+
+.cb-home-dark .cb-band--operations .cb-loop-title strong,
+.cb-home-dark .cb-proof-cockpit .cb-h2 {
+  color: #f7fbff;
+}
+
+.cb-home-dark .cb-band--operations .cb-loop-title p {
+  color: #aebdd3;
+}
+
+.cb-home-dark .cb-loop-stages {
+  border-color: #4a6da458;
+  background: #081527e8;
+  box-shadow: 0 24px 70px #0005;
+}
+
+.cb-home-dark .cb-loop-stage {
+  border-color: #ffffff17;
+  background: #0a1728;
+}
+
+.cb-home-dark .cb-loop-stage:hover {
+  background: #102641;
+}
+
+.cb-home-dark .cb-loop-stage__index,
+.cb-home-dark .cb-loop-stage > svg {
+  color: var(--cb-cyan);
+}
+
+.cb-home-dark .cb-loop-stage__copy strong {
+  color: #f7fbff;
+}
+
+.cb-home-dark .cb-loop-stage__copy small {
+  color: #91a5c2;
+}
+
+.cb-home-dark .cb-vs-col--us,
+.cb-home-dark .cb-rung--lead {
+  background: linear-gradient(145deg, #0b1a30 0%, #071120 100%);
+  border-color: #4ad9ff42;
+}
+
+.cb-home-dark .cb-vs-col--them .cb-vs-list svg,
+.cb-home-dark .cb-vs-col--them .cb-vs-list li:nth-child(n + 4) {
+  color: #8fa4bf;
+}
+
+.cb-home-dark .cb-pillar,
+.cb-home-dark .cb-rung,
+.cb-home-dark .cb-custom {
+  border-color: #ffffff17;
+}
+
+.cb-home-dark .cb-pillar li {
+  border: 1px solid #ffffff0d;
+}
+
+.cb-home-dark .cb-band--attribution {
+  background:
+    linear-gradient(90deg, #2f6bff0d 1px, transparent 1px),
+    linear-gradient(#2f6bff0d 1px, transparent 1px),
+    radial-gradient(circle at 14% 34%, #1240e824, transparent 38%),
+    linear-gradient(150deg, #06101e 0%, #08172b 100%);
+  background-size: 72px 72px, 72px 72px, auto, auto;
+}
+
+.cb-home-dark .cb-attribution-art img {
+  border-color: #4a75d061;
+  box-shadow: 0 38px 90px #0008, 0 0 0 1px #ffffff12 inset;
+}
+
+.cb-home-dark .cb-trace-ledger > div {
+  border-color: #ffffff1a;
+}
+
+.cb-home-dark .cb-trace-ledger dt {
+  color: var(--cb-cyan);
+}
+
+.cb-home-dark .cb-trace-ledger dd {
+  color: #c2d0e4;
+}
+
+.cb-home-dark .cb-final {
+  background:
+    radial-gradient(circle at 78% 72%, #1240e82e, transparent 34%),
+    linear-gradient(145deg, #071529 0%, #050b16 100%);
+  color: #a8b4c8;
+}
+
+@media (max-width: 1100px) {
+  body:has(.cb-home-dark) .desktop-nav {
+    display: none;
+  }
+
+  body:has(.cb-home-dark) .mobile-nav {
+    display: block;
+  }
+
+  .cb-home-dark .cb-hero {
+    min-height: auto;
+  }
+
+  .cb-home-dark .cb-hero-layout,
+  .lfp-mission-grid,
+  .cb-home-dark .cb-band--operations .cb-loop-title {
+    grid-template-columns: 1fr;
+  }
+
+  .cb-home-dark .cb-hero-copy {
+    order: 0;
+  }
+
+  .cb-home-dark .cb-hero-visual {
+    order: 1;
+    max-width: none;
+    transform: none;
+  }
+
+  .cb-home-dark .lfp-founder-hero {
+    aspect-ratio: 16 / 10;
+    max-height: 620px;
+  }
+
+  .cb-home-dark .cb-ladder {
+    max-width: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .cb-home-dark .cb-loop-stages {
+    grid-template-columns: 1fr;
+  }
+
+  .cb-home-dark .cb-loop-stage:nth-child(n) {
+    min-height: 76px;
+    border-right: 0;
+    border-bottom: 1px solid #ffffff17;
+  }
+
+  .cb-home-dark .cb-loop-stage:last-child {
+    border-bottom: 0;
+  }
+
+  .cb-home-dark .cb-loop-stage__copy strong {
+    font-size: 13px;
+  }
+
+  .cb-home-dark .cb-loop-stage__copy small {
+    display: block;
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+}
