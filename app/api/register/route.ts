@@ -1,54 +1,55 @@
 import { NextResponse } from "next/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
+import {
+  createWorkshopServiceClient,
+  normalizeWorkshopError,
+} from "@/lib/eventCommerce";
+
+function text(value: unknown, max: number) {
+  return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    for (const f of ["event_id", "full_name", "email"]) {
-      if (!body[f] || typeof body[f] !== "string") {
-        return NextResponse.json({ error: `Missing ${f}` }, { status: 400 });
-      }
+    const body = await request.json().catch(() => ({}));
+    const eventId = text(body.event_id, 80);
+    const fullName = text(body.full_name, 200);
+    const email = text(body.email, 200).toLowerCase();
+    if (!eventId || !fullName || !email) {
+      return NextResponse.json({ error: "Name and email are required." }, { status: 400 });
     }
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const supabase = createSupabaseClient(SUPABASE_URL, serviceKey || SUPABASE_ANON_KEY);
-    const { data: event } = await supabase
-      .from("events")
-      .select("id, capacity, is_published")
-      .eq("id", body.event_id)
-      .eq("is_published", true)
-      .maybeSingle();
-    if (!event) {
-      return NextResponse.json({ error: "This workshop is not open for registration." }, { status: 404 });
+    if (body.website) {
+      return NextResponse.json({ ok: true }, { status: 200 });
     }
 
-    if (serviceKey && event.capacity) {
-      const { count } = await supabase
-        .from("event_registrations")
-        .select("id", { count: "exact", head: true })
-        .eq("event_id", event.id)
-        .eq("status", "confirmed");
-      if ((count ?? 0) >= Number(event.capacity)) {
-        return NextResponse.json({ error: "This workshop is sold out." }, { status: 409 });
-      }
-    }
-    // Generate the id here so we can hand it back without needing read access
-    // (RLS keeps registrations admin-read-only).
-    const regId = crypto.randomUUID();
-    const { error } = await supabase.from("event_registrations").insert({
-      id: regId,
-      event_id: body.event_id,
-      full_name: String(body.full_name).slice(0, 200),
-      email: String(body.email).trim().toLowerCase().slice(0, 200),
-      phone: body.phone ? String(body.phone).slice(0, 50) : null,
-      business_name: body.business_name ? String(body.business_name).slice(0, 200) : null,
-      notes: body.notes ? String(body.notes).slice(0, 1000) : null,
+    const supabase = createWorkshopServiceClient();
+    const { data, error } = await supabase.rpc("workshop_register_with_terms", {
+      p_event_id: eventId,
+      p_full_name: fullName,
+      p_email: email,
+      p_phone: text(body.phone, 50) || null,
+      p_business_name: text(body.business_name, 200) || null,
+      p_notes: text(body.notes, 1000) || null,
+      p_terms_acknowledged: body.terms_acknowledged === true,
     });
     if (error) {
-      return NextResponse.json({ error: "Could not register. Try again." }, { status: 500 });
+      const normalized = normalizeWorkshopError(error.message);
+      return NextResponse.json({ error: normalized.message }, { status: normalized.status });
     }
-    return NextResponse.json({ ok: true, registration_id: regId });
-  } catch {
+
+    const registration = Array.isArray(data) ? data[0] : data;
+    if (!registration?.registration_id) {
+      return NextResponse.json({ error: "Registration could not be created." }, { status: 500 });
+    }
+    return NextResponse.json({
+      ok: true,
+      registration_id: registration.registration_id,
+      registration_status: registration.registration_status,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("SUPABASE_SERVICE_ROLE_KEY")) {
+      return NextResponse.json({ error: "Registration is being connected." }, { status: 503 });
+    }
     return NextResponse.json({ error: "Bad request" }, { status: 400 });
   }
 }

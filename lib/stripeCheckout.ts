@@ -15,6 +15,7 @@ export type StripeCheckoutSession = {
     phone?: unknown;
   } | null;
   metadata?: Record<string, unknown> | null;
+  payment_intent?: unknown;
   payment_link?: unknown;
   payment_status?: unknown;
 };

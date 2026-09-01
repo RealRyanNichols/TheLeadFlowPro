@@ -10,53 +10,83 @@ import {
   Clock3,
   Laptop,
   MapPin,
+  Radar,
+  Route,
+  ShieldCheck,
   Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import {
+  createWorkshopServiceClient,
+  formatWorkshopDate,
+  type WorkshopEventRow,
+  type WorkshopPolicies,
+} from "@/lib/eventCommerce";
+import WorkshopSystemMap from "../WorkshopSystemMap";
 import WorkshopCheckout from "./WorkshopCheckout";
 import styles from "./workshop.module.css";
 
-type EventRow = {
-  id: string;
-  slug: string;
-  title: string;
-  description: string | null;
-  venue: string | null;
-  city: string | null;
-  starts_at: string | null;
-  duration_minutes: number | null;
-  price_usd: number;
-  capacity: number | null;
-};
+type EventRow = WorkshopEventRow;
 
 const PREVIEW_EVENT: EventRow = {
   id: "44a7f680-1693-48f2-9ba6-0555645878fc",
   slug: "east-texas-ai-operator-workshop",
-  title: "East Texas ChatGPT Operator Workshop",
+  title: "ChatGPT for Business Owners: Live in Longview",
   description: "A hands-on ChatGPT workshop for East Texas business owners.",
   venue: "The LeadFlow Pro at Premier Dental Academy of Longview",
   city: "Longview, Texas",
-  starts_at: null,
+  starts_at: "2026-09-10T23:30:00.000Z",
   duration_minutes: 90,
   price_usd: 97,
   capacity: 10,
+  is_published: false,
+  sales_status: "draft",
+  instructor_name: "Ryan Nichols",
 };
 
 async function getEvent(slug: string) {
   const supabase = await createClient();
   const { data } = await supabase
-    .from("events")
-    .select("id, slug, title, description, venue, city, starts_at, duration_minutes, price_usd, capacity")
+    .from("workshop_events")
+    .select("id, slug, title, description, venue, city, starts_at, duration_minutes, price_usd, capacity, is_published, sales_status, instructor_name")
     .eq("slug", slug)
     .eq("is_published", true)
+    .eq("sales_status", "open")
     .maybeSingle();
   if (data) return data as EventRow;
   const canPreviewDraft =
     process.env.WORKSHOP_PREVIEW === "1" ||
     process.env.VERCEL_ENV === "preview" ||
     process.env.NODE_ENV === "development";
-  if (canPreviewDraft && slug === PREVIEW_EVENT.slug) return PREVIEW_EVENT;
+  if (canPreviewDraft && slug === PREVIEW_EVENT.slug) {
+    try {
+      const service = createWorkshopServiceClient();
+      const { data: draft } = await service
+        .from("workshop_events")
+        .select("id, slug, title, description, venue, city, starts_at, duration_minutes, price_usd, capacity, is_published, sales_status, instructor_name")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (draft) return draft as EventRow;
+    } catch {
+      // Local and branch previews keep a safe visual fallback when server
+      // credentials have not been pulled.
+    }
+    return PREVIEW_EVENT;
+  }
   return null;
+}
+
+async function getPolicies(event: EventRow): Promise<WorkshopPolicies | null> {
+  if (!event.is_published || event.sales_status !== "open") return null;
+  try {
+    const service = createWorkshopServiceClient();
+    const { data, error } = await service.rpc("workshop_checkout_terms", { p_event_id: event.id });
+    if (error) return null;
+    const row = Array.isArray(data) ? data[0] : data;
+    return row ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -69,7 +99,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title: event.title,
       description: "Ten seats. Ninety minutes. Build something real with ChatGPT.",
-      images: [{ url: "/images/workshops/chatgpt-workshop-build-something-real-4x5.webp", width: 900, height: 1407 }],
+      images: [{ url: `/events/${event.slug}/opengraph-image`, width: 1200, height: 630 }],
     },
   };
 }
@@ -84,24 +114,14 @@ const AGENDA = [
   ["88–90", "Choose what happens next", "Leave with a do-it-yourself path and an optional way to get implementation help."],
 ];
 
-function formatDate(value: string | null) {
-  if (!value) return "Date being finalized";
-  return new Date(value).toLocaleString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "America/Chicago",
-  });
-}
-
 export default async function WorkshopPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const event = await getEvent(slug);
   if (!event) notFound();
 
-  const when = formatDate(event.starts_at);
+  const policies = await getPolicies(event);
+  const salesOpen = event.is_published && event.sales_status === "open" && Boolean(policies);
+  const when = formatWorkshopDate(event.starts_at);
   const place = [event.venue, event.city].filter(Boolean).join(" · ") || "Longview, Texas";
 
   return (
@@ -123,7 +143,7 @@ export default async function WorkshopPage({ params }: { params: Promise<{ slug:
             </div>
             <div className="cb-actions">
               <a href="#reserve" className="cb-btn cb-btn--primary" data-analytics="cta-workshop-hero">
-                Reserve My Seat | ${Number(event.price_usd)}
+                {salesOpen ? <>Reserve My Seat | {"$"}{Number(event.price_usd)}</> : <>September 10 Target | Sales Closed</>}
                 <ArrowRight aria-hidden="true" />
               </a>
               <a href="#agenda" className="cb-btn cb-btn--ghost">See the 90 Minutes</a>
@@ -132,10 +152,10 @@ export default async function WorkshopPage({ params }: { params: Promise<{ slug:
           </div>
           <Image
             className={styles.heroImage}
-            src="/images/workshops/chatgpt-workshop-stop-watching-ai-4x5.webp"
+            src="/images/workshops/chatgpt-workshop-stop-watching-ai-4x5-v2.webp"
             alt="Stop watching AI and start using it at the hands-on ChatGPT workshop"
-            width={1003}
-            height={1568}
+            width={1440}
+            height={1800}
             priority
             sizes="(max-width: 900px) 92vw, 40vw"
           />
@@ -151,6 +171,35 @@ export default async function WorkshopPage({ params }: { params: Promise<{ slug:
           <div className={styles.checkList}>
             {["Bring your laptop and your real business", "Build from a repeatable prompt framework", "See a business asset created live", "Leave with your first practical AI use case"].map((item) => (
               <p key={item}><Check aria-hidden="true" />{item}</p>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.systemBand}>
+        <div className="cb-shell">
+          <WorkshopSystemMap />
+        </div>
+      </section>
+
+      <section className="cb-band cb-band--tint">
+        <div className="cb-shell">
+          <div className="cb-headrow">
+            <div>
+              <p className="cb-eyebrow">The operator loop</p>
+              <h2 className="cb-h2">One framework. One useful build. One next move.</h2>
+            </div>
+            <p className="cb-lead">You do not need fifty tools. You need to know how to give ChatGPT a real job and keep the work inside the business.</p>
+          </div>
+          <div className={styles.operatorLoop}>
+            {[
+              ["01", "Brief", "Define the job, context, limits, and finished result."],
+              ["02", "Build", "Create one real asset while the business facts are in front of you."],
+              ["03", "Check", "Review the output for truth, voice, risk, and missing pieces."],
+              ["04", "Use", "Put the finished work into the page, offer, form, or follow-up path."],
+              ["05", "Measure", "Watch what happened and decide the next controlled improvement."],
+            ].map(([number, title, body]) => (
+              <article key={number}><span>{number}</span><h3>{title}</h3><p>{body}</p></article>
             ))}
           </div>
         </div>
@@ -177,13 +226,28 @@ export default async function WorkshopPage({ params }: { params: Promise<{ slug:
         </div>
       </section>
 
+      <section className={styles.progressBand}>
+        <div className={`cb-shell ${styles.progressGrid}`}>
+          <div>
+            <p className="cb-eyebrow">Progress without overload</p>
+            <h2 className="cb-h2">The class is the first controlled move.</h2>
+            <p className="cb-lead">The workshop gives you a working method and a useful first build. The seven-day review keeps the next step tied to what actually happened in your business.</p>
+          </div>
+          <div className={styles.progressSteps}>
+            <article><Route aria-hidden="true" /><span>Before class</span><strong>Submit one bottleneck</strong><p>Ryan prepares the room around real business needs.</p></article>
+            <article><Radar aria-hidden="true" /><span>During class</span><strong>Build and check</strong><p>Practice the operator loop with coaching and feedback.</p></article>
+            <article><ShieldCheck aria-hidden="true" /><span>After class</span><strong>Review the next move</strong><p>Use the Next Move card, report progress, and request help only if you want it.</p></article>
+          </div>
+        </div>
+      </section>
+
       <section className="cb-band cb-band--tint">
         <div className={`cb-shell ${styles.clinicGrid}`}>
           <Image
-            src="/images/workshops/chatgpt-workshop-first-use-case-4x5.webp"
+            src="/images/workshops/chatgpt-workshop-first-use-case-4x5-v2.webp"
             alt="A workshop map turning business problems into practical AI use cases"
-            width={1122}
-            height={1402}
+            width={1440}
+            height={1800}
             sizes="(max-width: 900px) 92vw, 42vw"
           />
           <div>
@@ -231,6 +295,9 @@ export default async function WorkshopPage({ params }: { params: Promise<{ slug:
               Ryan Nichols uses ChatGPT, Codex, GitHub, Vercel, Supabase, automation, and connected business systems to turn ideas into working assets. This class is taught by the person doing the work, not someone reading slides about it.
             </p>
             <p className={styles.standalone}>The workshop stands on its own. There is no obligation to buy anything else. Optional implementation help is available after class for businesses that want it.</p>
+            <p className={styles.partnerNote}>
+              Ryan teaches and coaches the room. Pat Grabbs handles qualification and implementation follow-up only when an attendee asks for help after class.
+            </p>
           </div>
         </div>
       </section>
@@ -248,7 +315,7 @@ export default async function WorkshopPage({ params }: { params: Promise<{ slug:
               <li><Check aria-hidden="true" />Optional founding-cohort clinic after class</li>
             </ul>
           </div>
-          <WorkshopCheckout event={event} />
+          <WorkshopCheckout event={event} policies={policies} salesOpen={salesOpen} />
         </div>
       </section>
 

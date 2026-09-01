@@ -1,181 +1,44 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
+import { ArrowRight, CalendarDays, Clock3, MapPin, Users } from "lucide-react";
+import { formatWorkshopDate } from "@/lib/eventCommerce";
 
 type EventRow = {
-  id: string;
   slug: string;
   title: string;
   description: string | null;
   venue: string | null;
   city: string | null;
   starts_at: string | null;
-  duration_minutes: number | null;
+  duration_minutes: number;
   price_usd: number;
-  capacity: number | null;
+  capacity: number;
 };
 
 export default function EventCard({ event }: { event: EventRow }) {
-  const [open, setOpen] = useState(false);
-  const [done, setDone] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [regId, setRegId] = useState<string | null>(null);
-  const [regEmail, setRegEmail] = useState<string>("");
-  const [payUnavailable, setPayUnavailable] = useState(false);
-  const [paying, setPaying] = useState(false);
-
-  async function register(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    const fd = new FormData(e.currentTarget);
-    const email = String(fd.get("email") ?? "");
-    const res = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        event_id: event.id,
-        full_name: fd.get("full_name"),
-        email,
-        phone: fd.get("phone"),
-        business_name: fd.get("business_name"),
-        notes: fd.get("notes"),
-      }),
-    });
-    if (res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setRegId(data.registration_id ?? null);
-      setRegEmail(email);
-      setDone(true);
-      if (window.fbq) window.fbq("track", "CompleteRegistration");
-    } else {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error ?? "Something went wrong.");
-    }
-    setBusy(false);
-  }
-
-  async function payNow() {
-    setPaying(true);
-    try {
-      const r = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          kind: "event",
-          event_id: event.id,
-          registration_id: regId,
-          email: regEmail,
-        }),
-      });
-      if (r.status === 501) {
-        setPayUnavailable(true);
-        return;
-      }
-      const j = await r.json();
-      if (j.url) {
-        window.location.href = j.url;
-        return;
-      }
-      setPayUnavailable(true);
-    } catch {
-      setPayUnavailable(true);
-    } finally {
-      setPaying(false);
-    }
-  }
-
-  const when = event.starts_at
-    ? new Date(event.starts_at).toLocaleString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        timeZone: "America/Chicago",
-      })
-    : "Date TBA";
-
   return (
-    <div className="card">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <article className="card">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-[var(--heading)]">{event.title}</h2>
-          <p className="mt-1 text-sm text-flow-400">
-            {when}
-            {event.venue && ` · ${event.venue}`}
-            {event.city && `, ${event.city}`}
-          </p>
+          <p className="text-xs font-black uppercase tracking-[.18em] text-flow-400">Live working session</p>
+          <h2 className="mt-2 text-2xl font-black text-[var(--heading)]">{event.title}</h2>
         </div>
-        <span className="rounded-lg border border-flow-600/30 border-l-4 bg-flow-600/10 px-3 py-1.5 text-sm font-black text-flow-400">
-          {Number(event.price_usd) > 0 ? `$${Number(event.price_usd)}` : "FREE"}
+        <span className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 px-4 py-2 text-xl font-black text-yellow-300">
+          {"$"}{Number(event.price_usd)}
         </span>
       </div>
-      {event.description && (
-        <p className="mt-3 text-sm text-[var(--text)]">{event.description}</p>
-      )}
-
-      {done ? (
-        <div className="mt-5 rounded-lg border border-mint bg-mint/10 p-4">
-          <p className="text-mint">You're in. Watch your email for details.</p>
-          {Number(event.price_usd) > 0 && !payUnavailable && (
-            <button
-              onClick={payNow}
-              disabled={paying}
-              className="btn-primary mt-3 disabled:opacity-60"
-            >
-              {paying ? "Opening checkout…" : `Pay $${Number(event.price_usd)} Now | Lock Your Seat`}
-            </button>
-          )}
-          {Number(event.price_usd) > 0 && payUnavailable && (
-            <p className="mt-2 text-sm text-[var(--text)]">
-              Payment is collected at the door or by invoice before the event.
-            </p>
-          )}
-        </div>
-      ) : open ? (
-        <form onSubmit={register} className="mt-5 space-y-4 border-t border-line pt-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="label">Your name *</label>
-              <input className="input" name="full_name" required maxLength={200} />
-            </div>
-            <div>
-              <label className="label">Email *</label>
-              <input className="input" name="email" type="email" required maxLength={200} />
-            </div>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="label">Phone</label>
-              <input className="input" name="phone" type="tel" maxLength={50} />
-            </div>
-            <div>
-              <label className="label">Business</label>
-              <input className="input" name="business_name" maxLength={200} />
-            </div>
-          </div>
-          <div>
-            <label className="label">What do you want to get out of it?</label>
-            <textarea className="input" name="notes" rows={2} maxLength={1000} />
-          </div>
-          {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-          <button type="submit" disabled={busy} className="btn-primary disabled:opacity-50">
-            {busy ? "Saving..." : "Reserve My Seat"}
-          </button>
-        </form>
-      ) : (
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Link href={`/events/${event.slug}`} className="btn-primary">
-            See Workshop Details
-          </Link>
-          <button onClick={() => setOpen(true)} className="btn-ghost">
-            Quick Registration
-          </button>
-        </div>
-      )}
-    </div>
+      {event.description && <p className="mt-4 max-w-3xl text-[var(--text)]">{event.description}</p>}
+      <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+        <span className="flex items-center gap-2"><CalendarDays size={18} />{formatWorkshopDate(event.starts_at)}</span>
+        <span className="flex items-center gap-2"><Clock3 size={18} />{event.duration_minutes} minutes</span>
+        <span className="flex items-center gap-2"><Users size={18} />{event.capacity} paid seats</span>
+        <span className="flex items-center gap-2"><MapPin size={18} />{event.city || "Longview, Texas"}</span>
+      </div>
+      <div className="mt-6">
+        <Link href={"/events/" + event.slug} className="btn-primary">
+          See the Workshop
+          <ArrowRight aria-hidden="true" />
+        </Link>
+      </div>
+    </article>
   );
 }

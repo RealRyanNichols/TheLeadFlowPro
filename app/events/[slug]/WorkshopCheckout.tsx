@@ -1,23 +1,33 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { ArrowRight, CheckCircle2, LockKeyhole } from "lucide-react";
+import { ArrowRight, CheckCircle2, LockKeyhole, ShieldCheck } from "lucide-react";
+import type { WorkshopPolicies } from "@/lib/eventCommerce";
 import styles from "./workshop.module.css";
 
 type Workshop = {
   id: string;
   title: string;
   price_usd: number;
-  capacity: number | null;
+  capacity: number;
 };
 
-export default function WorkshopCheckout({ event }: { event: Workshop }) {
+export default function WorkshopCheckout({
+  event,
+  policies,
+  salesOpen,
+}: {
+  event: Workshop;
+  policies: WorkshopPolicies | null;
+  salesOpen: boolean;
+}) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [registered, setRegistered] = useState(false);
 
   async function submit(eventForm: FormEvent<HTMLFormElement>) {
     eventForm.preventDefault();
+    if (!salesOpen || !policies) return;
     setBusy(true);
     setMessage(null);
 
@@ -33,6 +43,8 @@ export default function WorkshopCheckout({ event }: { event: Workshop }) {
         phone: form.get("phone"),
         business_name: form.get("business_name"),
         notes: form.get("notes"),
+        website: form.get("website"),
+        terms_acknowledged: form.get("terms_acknowledged") === "on",
       }),
     });
     const registrationBody = await registration.json().catch(() => ({}));
@@ -60,11 +72,7 @@ export default function WorkshopCheckout({ event }: { event: Workshop }) {
       return;
     }
 
-    setMessage(
-      checkoutBody.error === "not_configured"
-        ? "Your registration is saved. Online payment is being connected, and Ryan will follow up to complete your seat."
-        : checkoutBody.error ?? "Your registration is saved, but checkout did not open. Please try again.",
-    );
+    setMessage(checkoutBody.error ?? "Your registration is saved, but checkout did not open. Please try again.");
     setBusy(false);
   }
 
@@ -72,40 +80,64 @@ export default function WorkshopCheckout({ event }: { event: Workshop }) {
     <aside id="reserve" className={styles.checkoutCard} aria-labelledby="checkout-title">
       <p className={styles.checkoutKicker}>Founding workshop rate</p>
       <div className={styles.priceRow}>
-        <strong>${Number(event.price_usd)}</strong>
-        <span>per person</span>
+        <strong>{"$"}{Number(event.price_usd)}</strong>
+        <span>one paid seat</span>
       </div>
-      <h2 id="checkout-title">Reserve one of {event.capacity ?? 10} seats.</h2>
-      <p>Registration takes one minute. Your seat is locked when payment is complete.</p>
+      <h2 id="checkout-title">Reserve one of {event.capacity} seats.</h2>
+      <p>One short form. Stripe holds the seat for 30 minutes while payment is completed.</p>
 
-      <form onSubmit={submit} className={styles.checkoutForm}>
-        <label>
-          Your name
-          <input name="full_name" required maxLength={200} autoComplete="name" />
-        </label>
-        <label>
-          Email
-          <input name="email" type="email" required maxLength={200} autoComplete="email" />
-        </label>
-        <div className={styles.formPair}>
+      {salesOpen && policies ? (
+        <form onSubmit={submit} className={styles.checkoutForm}>
           <label>
-            Phone
-            <input name="phone" type="tel" maxLength={50} autoComplete="tel" />
+            Your name
+            <input name="full_name" required maxLength={200} autoComplete="name" />
           </label>
           <label>
-            Business
-            <input name="business_name" maxLength={200} autoComplete="organization" />
+            Email
+            <input name="email" type="email" required maxLength={200} autoComplete="email" inputMode="email" />
           </label>
+          <div className={styles.formPair}>
+            <label>
+              Phone
+              <input name="phone" type="tel" maxLength={50} autoComplete="tel" inputMode="tel" />
+            </label>
+            <label>
+              Business
+              <input name="business_name" maxLength={200} autoComplete="organization" />
+            </label>
+          </div>
+          <label>
+            What is the first business bottleneck you want AI to help with?
+            <textarea name="notes" rows={3} maxLength={1000} />
+          </label>
+          <label className={styles.honeypot} aria-hidden="true">
+            Website
+            <input name="website" tabIndex={-1} autoComplete="off" />
+          </label>
+          <details className={styles.terms}>
+            <summary>Read workshop policies</summary>
+            <div>
+              <strong>Recording</strong><p>{policies.recording_consent_text}</p>
+              <strong>Cancellation</strong><p>{policies.cancellation_policy}</p>
+              <strong>Seat transfer</strong><p>{policies.seat_transfer_policy}</p>
+            </div>
+          </details>
+          <label className={styles.termsCheck}>
+            <input name="terms_acknowledged" type="checkbox" required />
+            <span>I reviewed and accept the workshop policies shown above.</span>
+          </label>
+          <button type="submit" disabled={busy} className="cb-btn cb-btn--primary">
+            {busy ? "Holding your seat..." : <>Reserve My Seat | {"$"}{Number(event.price_usd)}</>}
+            {!busy && <ArrowRight aria-hidden="true" />}
+          </button>
+        </form>
+      ) : (
+        <div className={styles.salesGate}>
+          <ShieldCheck aria-hidden="true" />
+          <strong>September 10 is the target date.</strong>
+          <p>Ticket sales stay closed until Ryan confirms the date and buyer policies.</p>
         </div>
-        <label>
-          What do you want AI to help you do first?
-          <textarea name="notes" rows={3} maxLength={1000} />
-        </label>
-        <button type="submit" disabled={busy} className="cb-btn cb-btn--primary">
-          {busy ? "Opening secure checkout..." : `Reserve My Seat | $${Number(event.price_usd)}`}
-          {!busy && <ArrowRight aria-hidden="true" />}
-        </button>
-      </form>
+      )}
 
       {message && (
         <div className={registered ? styles.success : styles.error} role="status">
@@ -115,7 +147,7 @@ export default function WorkshopCheckout({ event }: { event: Workshop }) {
       )}
       <p className={styles.secureNote}>
         <LockKeyhole aria-hidden="true" />
-        Secure payment through Stripe. First come, first served.
+        Secure payment through Stripe. No automatic sales text messages.
       </p>
     </aside>
   );

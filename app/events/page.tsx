@@ -14,9 +14,10 @@ export const metadata = {
 export default async function EventsPage() {
   const supabase = await createClient();
   const { data: events } = await supabase
-    .from("events")
+    .from("workshop_events")
     .select("*")
     .eq("is_published", true)
+    .eq("sales_status", "open")
     .order("starts_at", { ascending: true });
 
   const upcoming = (events ?? []).filter(
@@ -60,10 +61,10 @@ export default async function EventsPage() {
 
           <figure className={`cb-hero-visual ${styles.operatorVisual}`}>
             <Image
-              src="/images/workshops/chatgpt-workshop-stop-watching-ai-4x5.webp"
+              src="/images/workshops/chatgpt-workshop-stop-watching-ai-4x5-v2.webp"
               alt="Hands-on ChatGPT workshop in Longview from The LeadFlow Pro"
-              width={1003}
-              height={1568}
+              width={1440}
+              height={1800}
               priority
               sizes="(max-width: 900px) 100vw, 42vw"
             />

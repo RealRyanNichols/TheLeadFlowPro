@@ -1,5 +1,7 @@
 # East Texas ChatGPT Workshop Launch Plan
 
+The full operating, curriculum, monitoring, funnel, creative, and launch system is documented in [`docs/ai-workshop-operating-system.md`](./ai-workshop-operating-system.md).
+
 ## Current working decisions
 
 - Instructor: Ryan Nichols

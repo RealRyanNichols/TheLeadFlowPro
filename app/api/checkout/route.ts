@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { priceOrder } from "@/lib/timeback";
+import {
+  createWorkshopServiceClient,
+  normalizeWorkshopError,
+} from "@/lib/eventCommerce";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
@@ -32,7 +36,7 @@ export async function POST(request: Request) {
 
   try {
     const email = typeof body.email === "string" ? body.email.slice(0, 200) : "";
-    const site = "https://www.theleadflowpro.com";
+    const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.theleadflowpro.com").replace(/\/$/, "");
 
     let kind: string;
     let name: string;
@@ -42,38 +46,53 @@ export async function POST(request: Request) {
     const metadata: Record<string, string> = {};
 
     if (body.kind === "event") {
-      // Paid event seat. Price comes from the database, never the client.
+      // Paid workshop seat. Registration and checkout are service-only. The
+      // database serializes seat holds on the event row so two buyers cannot
+      // claim the final seat at the same time.
       const eventId = String(body.event_id ?? "");
       const registrationId = String(body.registration_id ?? "");
-      if (!eventId) return NextResponse.json({ error: "event_id required" }, { status: 400 });
-      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      const supabase = createSupabaseClient(SUPABASE_URL, serviceKey || SUPABASE_ANON_KEY);
-      const { data: ev } = await supabase
-        .from("events")
-        .select("id, slug, title, price_usd, capacity, is_published")
+      const normalizedEmail = email.trim().toLowerCase();
+      if (!eventId || !registrationId || !normalizedEmail) {
+        return NextResponse.json({ error: "Registration details are required." }, { status: 400 });
+      }
+      const supabase = createWorkshopServiceClient();
+      const { data: ev, error: eventError } = await supabase
+        .from("workshop_events")
+        .select("id, slug, title, price_usd, capacity, is_published, sales_status, starts_at")
         .eq("id", eventId)
-        .eq("is_published", true)
-        .single();
-      if (!ev || Number(ev.price_usd) <= 0) {
-        return NextResponse.json({ error: "Event not available for online payment" }, { status: 400 });
+        .maybeSingle();
+      if (eventError || !ev || !ev.is_published || ev.sales_status !== "open") {
+        return NextResponse.json({ error: "Registration is not open yet." }, { status: 409 });
       }
-      if (serviceKey && ev.capacity) {
-        const { count } = await supabase
-          .from("event_registrations")
-          .select("id", { count: "exact", head: true })
-          .eq("event_id", ev.id)
-          .eq("status", "confirmed");
-        if ((count ?? 0) >= Number(ev.capacity)) {
-          return NextResponse.json({ error: "This workshop is sold out." }, { status: 409 });
-        }
+      const startsAt = ev.starts_at ? new Date(ev.starts_at) : null;
+      if (!startsAt || startsAt <= new Date() || Number(ev.price_usd) <= 0) {
+        return NextResponse.json({ error: "This workshop is not ready for checkout." }, { status: 409 });
       }
+      const { data: holdRows, error: holdError } = await supabase.rpc("workshop_hold_seat", {
+        p_event_id: ev.id,
+        p_registration_id: registrationId,
+        p_email: normalizedEmail,
+      });
+      if (holdError) {
+        const normalized = normalizeWorkshopError(holdError.message);
+        return NextResponse.json({ error: normalized.message }, { status: normalized.status });
+      }
+      const hold = Array.isArray(holdRows) ? holdRows[0] : holdRows;
+      if (!hold?.seat_hold_token || !hold?.seat_hold_expires_at) {
+        return NextResponse.json({ error: "A seat hold could not be created." }, { status: 500 });
+      }
+
       kind = "event";
       name = `Seat: ${ev.title}`;
       amount = Math.round(Number(ev.price_usd) * 100);
       cancelUrl = `${site}/events/${ev.slug}?cancelled=1`;
+      successUrl = `${site}/events/${ev.slug}/confirmed?session_id={CHECKOUT_SESSION_ID}`;
       metadata.kind = "event";
       metadata.event_id = ev.id;
-      if (registrationId) metadata.registration_id = registrationId;
+      metadata.registration_id = registrationId;
+      metadata.registration_email = normalizedEmail;
+      metadata.hold_token = hold.seat_hold_token;
+      metadata.workshop_schema = "v2";
     } else if (body.kind === "build_deposit") {
       // Down payment on a custom scope or anything Ryan quoted outside the
       // package ladder. Amount is customer-chosen and clamped server-side.
@@ -180,6 +199,10 @@ export async function POST(request: Request) {
       cancel_url: cancelUrl,
       allow_promotion_codes: "true",
     });
+    if (kind === "event") {
+      params.delete("allow_promotion_codes");
+      params.set("expires_at", String(Math.floor(Date.now() / 1000) + 30 * 60));
+    }
     for (const [k, v] of Object.entries(metadata)) params.set(`metadata[${k}]`, v);
     if (email) params.set("customer_email", email);
 
@@ -188,13 +211,48 @@ export async function POST(request: Request) {
       headers: {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/x-www-form-urlencoded",
+        ...(kind === "event" && metadata.hold_token
+          ? { "Idempotency-Key": `workshop-${metadata.registration_id}-${metadata.hold_token}`.slice(0, 255) }
+          : {}),
       },
       body: params.toString(),
     });
     const j = await r.json();
     if (!r.ok || !j.url) {
       console.error("Stripe session failed:", j?.error?.message);
+      if (kind === "event" && metadata.hold_token) {
+        const workshop = createWorkshopServiceClient();
+        await workshop.rpc("workshop_release_hold", {
+          p_event_id: metadata.event_id,
+          p_registration_id: metadata.registration_id,
+          p_hold_token: metadata.hold_token,
+          p_stripe_checkout_session_id: null,
+        });
+      }
       return NextResponse.json({ error: "Could not start checkout." }, { status: 502 });
+    }
+    if (kind === "event" && metadata.hold_token) {
+      const workshop = createWorkshopServiceClient();
+      const { error: attachError } = await workshop.rpc("workshop_attach_checkout", {
+        p_event_id: metadata.event_id,
+        p_registration_id: metadata.registration_id,
+        p_email: metadata.registration_email,
+        p_hold_token: metadata.hold_token,
+        p_stripe_checkout_session_id: j.id,
+      });
+      if (attachError) {
+        await fetch(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(j.id)}/expire`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${key}` },
+        }).catch(() => null);
+        await workshop.rpc("workshop_release_hold", {
+          p_event_id: metadata.event_id,
+          p_registration_id: metadata.registration_id,
+          p_hold_token: metadata.hold_token,
+          p_stripe_checkout_session_id: j.id,
+        });
+        return NextResponse.json({ error: "The seat hold could not be attached to checkout." }, { status: 409 });
+      }
     }
     return NextResponse.json({ url: j.url });
   } catch {

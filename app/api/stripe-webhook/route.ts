@@ -64,7 +64,7 @@ async function sendPurchaseEmails(email: string, kind: string) {
   await send({
     from: "The LeadFlow Pro <hello@theleadflowpro.com>",
     to: ["hello@theleadflowpro.com"],
-    subject: `💰 PURCHASE: ${kind} — ${email}`,
+    subject: `💰 PURCHASE: ${kind} | ${email}`,
     text: `New purchase.\n\nProduct: ${kind}\nBuyer: ${email}\n\nAdmin: https://www.theleadflowpro.com/admin`,
   });
   await send({
@@ -82,7 +82,7 @@ async function sendPurchaseEmails(email: string, kind: string) {
       "2. Head to the training area and start at the top:",
       "   https://www.theleadflowpro.com/training",
       "",
-      "Work the courses in order. By the capstone you'll have your own platform live on your own domain — code in your GitHub, data in your database, nobody's hand in your pocket every month.",
+      "Work the courses in order. By the capstone you'll have your own platform live on your own domain, with code in your GitHub and data in your database.",
       "",
       "Stuck on anything? Reply to this email. I read every one.",
       "",
@@ -434,7 +434,7 @@ async function ensureTimebackOrderPaid(
         body: JSON.stringify({
           from: "The LeadFlow Pro <hello@theleadflowpro.com>",
           to: ["hello@theleadflowpro.com"],
-          subject: `💰 TIME BACK ORDER PAID: ${leadName} — ${customer.email}`,
+          subject: `💰 TIME BACK ORDER PAID: ${leadName} | ${customer.email}`,
           text: [
             orderSummary,
             paidUsd !== null ? `Paid: $${paidUsd}` : "",
@@ -457,6 +457,243 @@ async function ensureTimebackOrderPaid(
     if (activityInsert.error) {
       throw new Error(`Time Back activity insert failed: ${activityInsert.error.code}`);
     }
+  }
+}
+
+function workshopMeta(session: StripeCheckoutSession) {
+  const metadata = session.metadata ?? {};
+  return {
+    eventId: webhookString(metadata.event_id, 80) ?? "",
+    registrationId: webhookString(metadata.registration_id, 80) ?? "",
+    email: (webhookString(metadata.registration_email, 200) ?? "").trim().toLowerCase(),
+    holdToken: webhookString(metadata.hold_token, 80) ?? "",
+  };
+}
+
+async function releaseExpiredWorkshopCheckout(
+  supabase: SupabaseClient,
+  session: StripeCheckoutSession,
+) {
+  const meta = workshopMeta(session);
+  const sessionId = webhookString(session.id, 200);
+  if (!meta.eventId || !meta.registrationId || !meta.holdToken || !sessionId) return;
+  const { error } = await supabase.rpc("workshop_release_hold", {
+    p_event_id: meta.eventId,
+    p_registration_id: meta.registrationId,
+    p_hold_token: meta.holdToken,
+    p_stripe_checkout_session_id: sessionId,
+  });
+  if (error) throw new Error(`Workshop hold release failed: ${error.message}`);
+}
+
+async function ensureWorkshopPaid(
+  supabase: SupabaseClient,
+  session: StripeCheckoutSession,
+) {
+  const meta = workshopMeta(session);
+  const sessionId = webhookString(session.id, 200);
+  const paymentIntent = webhookString(session.payment_intent, 200) ?? "";
+  const amountPaid = Number(session.amount_total);
+  if (
+    !meta.eventId ||
+    !meta.registrationId ||
+    !meta.email ||
+    !meta.holdToken ||
+    !sessionId ||
+    !Number.isInteger(amountPaid)
+  ) {
+    throw new Error("Paid workshop checkout is missing protected metadata");
+  }
+
+  const { data: confirmation, error: confirmError } = await supabase.rpc(
+    "workshop_confirm_paid",
+    {
+      p_event_id: meta.eventId,
+      p_registration_id: meta.registrationId,
+      p_email: meta.email,
+      p_hold_token: meta.holdToken,
+      p_stripe_checkout_session_id: sessionId,
+      p_stripe_payment_intent_id: paymentIntent,
+      p_amount_paid_cents: amountPaid,
+    },
+  );
+  if (confirmError) throw new Error(`Workshop payment confirmation failed: ${confirmError.message}`);
+  const result = Array.isArray(confirmation) ? confirmation[0] : confirmation;
+
+  const { data: registration, error: registrationError } = await supabase
+    .from("workshop_registrations")
+    .select("id, event_id, full_name, email, phone, business_name, notes, status, payment_status, confirmation_sent_at")
+    .eq("id", meta.registrationId)
+    .single();
+  if (registrationError || !registration) {
+    throw new Error(`Workshop registration lookup failed: ${registrationError?.code ?? "missing"}`);
+  }
+  const { data: workshop, error: workshopError } = await supabase
+    .from("workshop_events")
+    .select("id, slug, title, city, starts_at, duration_minutes, instructor_name")
+    .eq("id", meta.eventId)
+    .single();
+  if (workshopError || !workshop) {
+    throw new Error(`Workshop lookup failed: ${workshopError?.code ?? "missing"}`);
+  }
+
+  const externalId = `workshop_registration:${registration.id}`;
+  const { data: existingLead, error: existingLeadError } = await supabase
+    .from("leads")
+    .select("id")
+    .eq("external_id", externalId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (existingLeadError) throw new Error(`Workshop lead lookup failed: ${existingLeadError.code}`);
+
+  let leadId = existingLead?.id as string | undefined;
+  if (!leadId) {
+    const inserted = await supabase
+      .from("leads")
+      .insert({
+        full_name: registration.full_name,
+        email: registration.email,
+        phone: registration.phone,
+        business_name: registration.business_name,
+        interest: "operations",
+        goals: registration.notes || "Paid attendee for the East Texas ChatGPT Operator Workshop.",
+        budget_range: "$97 workshop attendee",
+        timeline: "Post-workshop implementation follow-up",
+        best_contact_method: registration.phone ? "phone" : "email",
+        source: "workshop",
+        utm_source: "workshop_checkout",
+        utm_medium: "paid_event",
+        utm_campaign: workshop.slug,
+        status: "new",
+        owner: "Pat Grabbs",
+        priority: "high",
+        sms_consent: false,
+        marketing_email_consent: false,
+        external_id: externalId,
+        diagnostic: {
+          version: 1,
+          source: "paid_workshop",
+          event_id: workshop.id,
+          registration_id: registration.id,
+          payment_status: result?.payment_status ?? registration.payment_status,
+          next_action: "Follow up after Ryan delivers the workshop and attendee asks for implementation help.",
+        },
+      })
+      .select("id")
+      .single();
+    if (inserted.error?.code === "23505") {
+      const raced = await supabase
+        .from("leads")
+        .select("id")
+        .eq("external_id", externalId)
+        .single();
+      if (raced.error) throw new Error(`Workshop lead race recovery failed: ${raced.error.code}`);
+      leadId = raced.data.id;
+    } else if (inserted.error) {
+      throw new Error(`Workshop lead insert failed: ${inserted.error.code}`);
+    } else {
+      leadId = inserted.data.id;
+    }
+  }
+
+  if (leadId) {
+    const taskTitle = "Post-workshop implementation follow-up";
+    const { data: openTask, error: taskLookupError } = await supabase
+      .from("lead_tasks")
+      .select("id")
+      .eq("lead_id", leadId)
+      .eq("title", taskTitle)
+      .is("completed_at", null)
+      .maybeSingle();
+    if (taskLookupError) throw new Error(`Workshop task lookup failed: ${taskLookupError.code}`);
+    if (!openTask) {
+      const eventDate = workshop.starts_at ? new Date(workshop.starts_at) : new Date();
+      eventDate.setUTCDate(eventDate.getUTCDate() + 1);
+      const task = await supabase.from("lead_tasks").insert({
+        lead_id: leadId,
+        title: taskTitle,
+        due_date: eventDate.toISOString().slice(0, 10),
+        priority: "high",
+        assigned_to: "Pat Grabbs",
+        task_type: "call",
+      });
+      if (task.error) throw new Error(`Workshop task insert failed: ${task.error.code}`);
+    }
+    const activityDetail = `Paid workshop seat confirmed. Registration ${registration.id}. Stripe checkout ${sessionId}.`;
+    const { data: activity } = await supabase
+      .from("lead_activity")
+      .select("id")
+      .eq("lead_id", leadId)
+      .eq("kind", "system")
+      .eq("detail", activityDetail)
+      .maybeSingle();
+    if (!activity) {
+      const insertedActivity = await supabase.from("lead_activity").insert({
+        lead_id: leadId,
+        kind: "system",
+        detail: activityDetail,
+      });
+      if (insertedActivity.error) {
+        throw new Error(`Workshop activity insert failed: ${insertedActivity.error.code}`);
+      }
+    }
+  }
+
+  if (registration.status !== "confirmed" || registration.payment_status !== "paid") return;
+  if (registration.confirmation_sent_at) return;
+  const { data: privateRows, error: privateError } = await supabase.rpc(
+    "workshop_confirmation_details",
+    { p_event_id: workshop.id },
+  );
+  if (privateError) throw new Error(`Workshop private details failed: ${privateError.message}`);
+  const privateDetails = Array.isArray(privateRows) ? privateRows[0] : privateRows;
+  if (!privateDetails?.exact_address) throw new Error("Workshop address is not configured");
+
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    const firstName = String(registration.full_name).trim().split(/\s+/)[0] || "there";
+    const when = workshop.starts_at
+      ? new Date(workshop.starts_at).toLocaleString("en-US", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone: "America/Chicago",
+        })
+      : "Date being finalized";
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "Ryan Nichols <hello@theleadflowpro.com>",
+        to: [registration.email],
+        reply_to: "hello@theleadflowpro.com",
+        subject: `Your seat is confirmed: ${workshop.title}`,
+        text: [
+          `${firstName}, your paid seat is confirmed.`,
+          "",
+          when,
+          privateDetails.exact_address,
+          privateDetails.arrival_notes || "",
+          "",
+          "Bring a charged laptop, your ChatGPT login, and one real business bottleneck.",
+          "You will receive a Next Move card and can stay for the optional founding AI Business Clinic.",
+          "",
+          `Your private preparation page: https://www.theleadflowpro.com/events/${workshop.slug}/confirmed?session_id=${sessionId}`,
+          "",
+          "Ryan Nichols",
+          "The LeadFlow Pro",
+        ].filter(Boolean).join("\n"),
+      }),
+    });
+    if (!emailResponse.ok) throw new Error("Workshop confirmation email was not accepted");
+    const marker = await supabase
+      .from("workshop_registrations")
+      .update({ confirmation_sent_at: new Date().toISOString() })
+      .eq("id", registration.id)
+      .is("confirmation_sent_at", null);
+    if (marker.error) throw new Error(`Workshop email marker failed: ${marker.error.code}`);
   }
 }
 
@@ -537,6 +774,23 @@ export async function POST(request: Request) {
     }
   }
 
+  if (event.type === "checkout.session.expired") {
+    try {
+      const expiredSession = (event.data?.object ?? {}) as StripeCheckoutSession;
+      if (safeStripeKind(expiredSession) === "event") {
+        const supabase = createSupabaseClient(SUPABASE_URL, serviceKey);
+        await releaseExpiredWorkshopCheckout(supabase, expiredSession);
+      }
+      return NextResponse.json({ received: true });
+    } catch (error) {
+      console.error(
+        "Stripe workshop expiration failed:",
+        error instanceof Error ? error.message : "unknown expiration error",
+      );
+      return NextResponse.json({ error: "Expiration processing failed" }, { status: 500 });
+    }
+  }
+
   if (event.type !== "checkout.session.completed") {
     return NextResponse.json({ received: true });
   }
@@ -591,14 +845,17 @@ export async function POST(request: Request) {
       await ensureWebsiteLaunchIntake(supabase, session);
     } else if (kind === "timeback_order") {
       await ensureTimebackOrderPaid(supabase, session);
+    } else if (kind === "event" && session.metadata?.workshop_schema === "v2") {
+      await ensureWorkshopPaid(supabase, session);
     } else if (kind === "event" && typeof session.metadata?.registration_id === "string") {
-      // Paid seat: confirm the registration automatically.
+      // Compatibility for a legacy checkout created before the workshop-v2
+      // cutover. Keep this until production has been verified on the new path.
       const registration = await supabase
         .from("event_registrations")
         .update({ status: "confirmed" })
         .eq("id", session.metadata.registration_id);
       if (registration.error) {
-        throw new Error(`Event registration update failed: ${registration.error.code}`);
+        throw new Error(`Legacy event registration update failed: ${registration.error.code}`);
       }
     } else if (kind === "learn_it") {
       await sendPurchaseEmails(customer.email, kind);
