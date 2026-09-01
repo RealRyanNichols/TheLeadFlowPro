@@ -3,6 +3,14 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { notifyNewLead } from "@/lib/leadNotify";
+import {
+  isAllowedLeadFlowAdId,
+  isRegisteredMetaForm,
+  LEADFLOW_META,
+  metaRuntimeIdentityIssues,
+  parseRegisteredFormIds,
+  registeredMetaForm,
+} from "@/lib/metaCampaignGuard";
 
 // Facebook/Instagram instant form leads → the same pipeline as the website
 // form. Before this existed, a lead ad submission stopped dead in Meta's Leads
@@ -25,8 +33,14 @@ import { notifyNewLead } from "@/lib/leadNotify";
 
 const GRAPH = "https://graph.facebook.com/v21.0";
 
-// The LeadFlow Pro Facebook Page.
-const PAGE_ID = process.env.META_PAGE_ID || "887023637835514";
+// The LeadFlow Pro Facebook Page. An environment override may be used only
+// when it is the exact same full ID; runtimeIdentityIssues fails closed on any
+// other value before a lead is fetched or stored.
+const PAGE_ID = process.env.META_PAGE_ID?.trim() || LEADFLOW_META.pageId;
+const RUNTIME_IDENTITY_ISSUES = metaRuntimeIdentityIssues({
+  pageId: PAGE_ID,
+  supabaseUrl: SUPABASE_URL,
+});
 
 // Reading a form's leads needs a PAGE access token. The token in
 // META_PAGE_ACCESS_TOKEN is a system user token, which is not the same thing:
@@ -38,6 +52,7 @@ const PAGE_ID = process.env.META_PAGE_ID || "887023637835514";
 // Cached for the life of the lambda. Page tokens derived from a non-expiring
 // system user token do not expire either, and a cold start just fetches again.
 let cachedPageToken: string | null = null;
+const cachedAdAccounts = new Map<string, string>();
 
 async function pageToken(systemToken: string): Promise<string> {
   if (cachedPageToken) return cachedPageToken;
@@ -68,55 +83,9 @@ type MetaLead = {
   id: string;
   created_time?: string;
   form_id?: string;
+  ad_id?: string;
   field_data?: MetaField[];
   custom_disclaimer_responses?: MetaDisclaimerResponse[];
-};
-
-// Which campaign a form belongs to, for attribution. Add new form ids here
-// when a new instant form is published (the id only exists after publish).
-const FORM_CAMPAIGNS: Record<string, string> = {
-  "1674448410325108": "mall-video-leadform",
-  "2311682272983064": "mall-video-leadform",
-  // LFP | Time Back Business Review | v1 — published 2026-08-20, the Time
-  // Back campaign's form. Also listed in META_LEAD_FORM_IDS in Vercel.
-  "2235052820606054": "time_back",
-  // LFP | Fix First Form | v1 — published 2026-08-25, the picture lead ad
-  // campaign's form. Also add to META_LEAD_FORM_IDS in Vercel.
-  "1794058118689457": "fix_first",
-  // LFP | Free Build | Volume | v1 — published 2026-08-27. The More-volume
-  // form now on BOTH live video ads (Ad A | Mall Walk | Video, and
-  // Mall Video | Lead Form | v1). Listed in META_LEAD_FORM_IDS in Vercel.
-  "2043120369669082": "free_build_volume",
-  // LFP | Free Website | Longview | v1 — created 2026-09-01 for the paused
-  // Longview +30-mile Free Website lead campaign. Add to META_LEAD_FORM_IDS
-  // in Vercel before the campaign is activated.
-  "2016689789051460": "free_website_longview_2026_09",
-};
-
-// Which optional consent checkbox is which, PER FORM.
-//
-// Meta returns custom disclaimer checkboxes with generated keys, so sorted
-// position is the only ordering available. That is fine when every form has
-// the same boxes in the same order, and silently wrong the moment one does
-// not. The Fix First form has exactly ONE box and it is the email opt-in;
-// reading position 0 as "sms" recorded a marketing opt-in as a texting
-// opt-in and left marketing false, so nobody who asked for the daily email
-// would have been enrolled in it.
-//
-// Add a row here whenever a new form is published. A form that is missing
-// falls back to the legacy two-box order.
-const FORM_CONSENT_LAYOUT: Record<string, ReadonlyArray<"sms" | "marketing">> = {
-  // Two boxes: call/text consent, then 30-day email consent.
-  "2235052820606054": ["sms", "marketing"],
-  // One box: the daily email series only. The form copy says in as many
-  // words "No automated marketing texts," so there is no SMS consent here.
-  "1794058118689457": ["marketing"],
-  // Free Build Volume: one box, "Yes, send me the daily email." Its own text
-  // says "No automated marketing texts." Email opt-in only.
-  "2043120369669082": ["marketing"],
-  // Free Website Longview: one optional 30-day business-email consent box.
-  // The form explicitly excludes automated marketing texts.
-  "2016689789051460": ["marketing"],
 };
 const LEGACY_CONSENT_LAYOUT: ReadonlyArray<"sms" | "marketing"> = ["sms", "marketing"];
 
@@ -144,7 +113,7 @@ function parseConsents(raw: MetaLead): { sms: boolean; marketing: boolean } {
     r ? r.is_checked === true || r.is_checked === "1" || r.is_checked === "true" : false;
 
   const layout =
-    (raw.form_id ? FORM_CONSENT_LAYOUT[raw.form_id] : undefined) ??
+    registeredMetaForm(raw.form_id)?.consentLayout ??
     inferLayout(boxes.length);
 
   const out = { sms: false, marketing: false };
@@ -207,7 +176,7 @@ function mapLead(raw: MetaLead) {
     product.includes("seo") ? "website_funnels" : null,
   ].filter((value, index, values): value is string => !!value && values.indexOf(value) === index);
   const consents = parseConsents(raw);
-  const campaign = FORM_CAMPAIGNS[raw.form_id ?? ""] ?? "meta_lead_form";
+  const campaign = registeredMetaForm(raw.form_id)?.campaign ?? "meta_lead_form";
   const isFreeWebsiteCampaign = campaign === "free_build_volume" || campaign.startsWith("free_website");
 
   // Everything the lead actually told us, kept verbatim so the admin view and
@@ -286,13 +255,57 @@ async function logTokenDiagnostics(systemToken: string, readToken: string) {
 }
 
 async function fetchLead(leadgenId: string, token: string): Promise<MetaLead | null> {
-  const url = `${GRAPH}/${leadgenId}?fields=id,created_time,form_id,field_data,custom_disclaimer_responses&access_token=${encodeURIComponent(token)}`;
+  const url = `${GRAPH}/${leadgenId}?fields=id,created_time,form_id,ad_id,field_data,custom_disclaimer_responses&access_token=${encodeURIComponent(token)}`;
   const r = await fetch(url);
   if (!r.ok) {
     console.error("Meta lead fetch failed:", leadgenId, r.status, await r.text().catch(() => ""));
     return null;
   }
   return (await r.json()) as MetaLead;
+}
+
+async function paidLeadBelongsToLeadFlow(raw: MetaLead, token: string): Promise<boolean> {
+  if (!isRegisteredMetaForm(raw.form_id)) {
+    console.error("Meta lead rejected: form is not in the LeadFlow registry", raw.form_id ?? "<missing>");
+    return false;
+  }
+
+  // Test-form and shared/open-form submissions can be untargeted and therefore
+  // have no ad_id. The exact LeadFlow Page + exact registered form are the
+  // ownership boundary for those submissions. Paid ad submissions must also
+  // prove that their ad belongs to the exact LeadFlow ad account. A compiled
+  // exact-ad allowlist is the primary proof because a Page token may have
+  // leads_retrieval without ads_read; the Graph lookup is a secondary path.
+  if (!raw.ad_id) return true;
+  if (isAllowedLeadFlowAdId(raw.ad_id)) return true;
+
+  try {
+    if (cachedAdAccounts.has(raw.ad_id)) {
+      const cached = cachedAdAccounts.get(raw.ad_id);
+      return cached === LEADFLOW_META.adAccountId;
+    }
+    const r = await fetch(
+      `${GRAPH}/${raw.ad_id}?fields=account_id&access_token=${encodeURIComponent(token)}`,
+    );
+    if (!r.ok) {
+      console.error("Meta lead rejected: ad account lookup failed", raw.ad_id, r.status);
+      return false;
+    }
+    const body = (await r.json()) as { account_id?: string };
+    if (body.account_id) cachedAdAccounts.set(raw.ad_id, body.account_id);
+    if (body.account_id !== LEADFLOW_META.adAccountId) {
+      console.error(
+        "Meta lead rejected: ad belongs to a foreign account",
+        raw.ad_id,
+        body.account_id ?? "<missing>",
+      );
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error("Meta lead rejected: ad account lookup threw", raw.ad_id, error);
+    return false;
+  }
 }
 
 // Someone can already be in the leads table without an external_id: recovered
@@ -345,7 +358,9 @@ async function claimExisting(
 
 // Insert if new, then alert. Returns true only when this call created the row,
 // so a webhook and a backfill poll racing on the same lead cannot double-text.
-async function ingest(raw: MetaLead): Promise<boolean> {
+async function ingest(raw: MetaLead, token: string): Promise<boolean> {
+  if (!(await paidLeadBelongsToLeadFlow(raw, token))) return false;
+
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const supabase = createSupabaseClient(SUPABASE_URL, serviceKey || SUPABASE_ANON_KEY);
   const { lead, external_id } = mapLead(raw);
@@ -392,13 +407,18 @@ function signatureOk(body: string, header: string | null): boolean {
 export async function GET(request: Request) {
   const url = new URL(request.url);
 
+  if (RUNTIME_IDENTITY_ISSUES.length) {
+    console.error("Meta lead route identity guard failed:", RUNTIME_IDENTITY_ISSUES.join("; "));
+    return NextResponse.json({ error: "LeadFlow runtime identity mismatch" }, { status: 503 });
+  }
+
   // 1. Meta's webhook handshake.
   const mode = url.searchParams.get("hub.mode");
   const challenge = url.searchParams.get("hub.challenge");
   const verify = url.searchParams.get("hub.verify_token");
   if (mode === "subscribe" && challenge) {
     const expected = process.env.META_VERIFY_TOKEN;
-    if (expected && verify !== expected) {
+    if (!expected || verify !== expected) {
       return new NextResponse("Forbidden", { status: 403 });
     }
     return new NextResponse(challenge, { status: 200 });
@@ -406,18 +426,31 @@ export async function GET(request: Request) {
 
   // 2. Backfill poll. Pulls recent leads per form and ingests anything new.
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
+  if (!cronSecret || request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const token = process.env.META_PAGE_ACCESS_TOKEN;
-  const formIds = (url.searchParams.get("form_ids") || process.env.META_LEAD_FORM_IDS || "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const requested = parseRegisteredFormIds(
+    url.searchParams.get("form_ids") || process.env.META_LEAD_FORM_IDS,
+  );
+  if (requested.unknown.length) {
+    console.error("Meta poll rejected unknown form IDs:", requested.unknown.join(","));
+    return NextResponse.json({ error: "Unknown Meta form ID" }, { status: 400 });
+  }
+  // The active v2 form is always polled even if a stale Vercel variable still
+  // lists only older forms. Environment-provided IDs remain supported, but
+  // only after the central registry admits them.
+  const formIds = [...new Set([...requested.ids, LEADFLOW_META.formId])];
 
-  if (!token || !formIds.length) {
-    return NextResponse.json({ ok: true, skipped: "missing META_PAGE_ACCESS_TOKEN or META_LEAD_FORM_IDS" });
+  // Lead persistence must not go dark when the email provider is temporarily
+  // unavailable. notifyNewLead() already treats notification failures as
+  // non-blocking; the database and Meta credentials are the ingestion gate.
+  if (!token || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json(
+      { error: "Missing LeadFlow Meta or database configuration" },
+      { status: 503 },
+    );
   }
 
   const readToken = await pageToken(token);
@@ -427,7 +460,7 @@ export async function GET(request: Request) {
   let seen = 0;
   for (const formId of formIds) {
     const r = await fetch(
-      `${GRAPH}/${formId}/leads?fields=id,created_time,form_id,field_data,custom_disclaimer_responses&limit=100&access_token=${encodeURIComponent(readToken)}`,
+      `${GRAPH}/${formId}/leads?fields=id,created_time,form_id,ad_id,field_data,custom_disclaimer_responses&limit=100&access_token=${encodeURIComponent(readToken)}`,
     );
     if (!r.ok) {
       console.error("Meta form poll failed:", formId, r.status, await r.text().catch(() => ""));
@@ -444,7 +477,7 @@ export async function GET(request: Request) {
     const { data } = (await r.json()) as { data?: MetaLead[] };
     for (const raw of data ?? []) {
       seen++;
-      if (await ingest(raw)) imported++;
+      if (await ingest(raw, token)) imported++;
     }
   }
 
@@ -454,14 +487,29 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const body = await request.text();
 
+  if (RUNTIME_IDENTITY_ISSUES.length) {
+    console.error("Meta lead webhook identity guard failed:", RUNTIME_IDENTITY_ISSUES.join("; "));
+    return NextResponse.json({ error: "LeadFlow runtime identity mismatch" }, { status: 503 });
+  }
+
   if (!signatureOk(body, request.headers.get("x-hub-signature-256"))) {
     return NextResponse.json({ error: "Bad signature" }, { status: 401 });
   }
 
   const token = process.env.META_PAGE_ACCESS_TOKEN;
-  if (!token) return NextResponse.json({ ok: true, skipped: "missing META_PAGE_ACCESS_TOKEN" });
+  if (!token || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json(
+      { error: "Missing LeadFlow Meta or database configuration" },
+      { status: 503 },
+    );
+  }
 
-  let payload: { entry?: { changes?: { field?: string; value?: { leadgen_id?: string } }[] }[] };
+  let payload: {
+    entry?: {
+      id?: string;
+      changes?: { field?: string; value?: { leadgen_id?: string } }[];
+    }[];
+  };
   try {
     payload = JSON.parse(body);
   } catch {
@@ -469,13 +517,18 @@ export async function POST(request: Request) {
   }
 
   let imported = 0;
+  const readToken = await pageToken(token);
   for (const entry of payload.entry ?? []) {
+    if (entry.id !== LEADFLOW_META.pageId) {
+      console.error("Meta webhook rejected foreign Page ID:", entry.id ?? "<missing>");
+      continue;
+    }
     for (const change of entry.changes ?? []) {
       if (change.field !== "leadgen") continue;
       const leadgenId = change.value?.leadgen_id;
       if (!leadgenId) continue;
-      const raw = await fetchLead(leadgenId, await pageToken(token));
-      if (raw && (await ingest(raw))) imported++;
+      const raw = await fetchLead(leadgenId, readToken);
+      if (raw && (await ingest(raw, token))) imported++;
     }
   }
 

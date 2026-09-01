@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -115,15 +116,13 @@ export default function FreeBuildPage() {
 
           <div className={styles.tradeCard}>
             <div className={styles.tradeRow}>
-              <span className={styles.tradeLabel}>Five-page build fee</span>
-              <span className={styles.tradeFree}>
-                <s>${FREE_BUILD.anchorUsd.toLocaleString("en-US")}</s> $0
-              </span>
+              <span className={styles.tradeLabel}>Your first five-page website</span>
+              <span className={styles.tradeFree}>$0 build fee</span>
             </div>
             <p className={styles.tradeNote}>
-              Application required. The same five-page foundation can still be purchased outright
-              for ${FREE_BUILD.anchorUsd.toLocaleString("en-US")} when a business does not want to
-              wait for a program opening.
+              Application required. Approved businesses own the website. Domain registration,
+              vendor software, ad spend, and any growth services are disclosed separately before
+              you approve them.
             </p>
             <div className={styles.tradeDivider} />
             <div className={styles.tradeRow}>
@@ -161,6 +160,114 @@ export default function FreeBuildPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------ proof --- */}
+      <section
+        id="proof"
+        className={`cb-band cb-band--tint ${styles.proofBand}`}
+        aria-labelledby="pda-proof-title"
+        tabIndex={-1}
+      >
+        <div className="cb-shell">
+          <p className="cb-eyebrow">Operating proof · September 1, 2026 snapshot</p>
+          <h2 id="pda-proof-title" className="cb-h2">
+            This is what it looks like when a business owns the numbers.
+          </h2>
+          <p className="cb-lead">
+            The Premier Dental Academy owner cockpit brings lead sources, enrollment, audience,
+            site traffic, and logged revenue into one place. It helps the owner see what needs
+            attention instead of guessing from disconnected apps.
+          </p>
+
+          <div className={styles.proofGrid}>
+            <figure className={styles.proofFigure}>
+              <div className={styles.proofImage}>
+                <Image
+                  src="/images/proof/pda-kpi-proof-2026-09-01.png"
+                  alt="Public-safe Premier Dental Academy KPI dashboard showing aggregate leads, enrolled students, email subscribers, pageviews, and logged revenue"
+                  width={1232}
+                  height={121}
+                  sizes="(max-width: 900px) 100vw, 58vw"
+                />
+              </div>
+              <div className={styles.proofImage}>
+                <Image
+                  src="/images/proof/pda-lead-source-proof-2026-09-01.png"
+                  alt="Premier Dental Academy 30-day lead chart and aggregate lead-source breakdown, including 43 Facebook lead-ad leads"
+                  width={1232}
+                  height={326}
+                  sizes="(max-width: 900px) 100vw, 58vw"
+                />
+              </div>
+              <figcaption>
+                Public-safe dashboard crops. Individual names, contact details, inbox links, and
+                private operating records are not shown.
+              </figcaption>
+            </figure>
+
+            <div className={styles.proofCopy}>
+              <dl className={styles.proofStats} aria-label="Premier Dental Academy KPI snapshot">
+                <div>
+                  <dt>Leads recorded · last 30 days</dt>
+                  <dd>261</dd>
+                </div>
+                <div>
+                  <dt>From Facebook lead ads · last 30 days</dt>
+                  <dd>43</dd>
+                </div>
+                <div>
+                  <dt>Enrolled students · current database</dt>
+                  <dd>47</dd>
+                </div>
+                <div>
+                  <dt>Email subscribers · current list</dt>
+                  <dd>853</dd>
+                </div>
+                <div>
+                  <dt>First-party pageviews · last 30 days</dt>
+                  <dd>3,211</dd>
+                </div>
+                <div>
+                  <dt>Revenue logged · Supabase snapshot</dt>
+                  <dd>$2,642*</dd>
+                </div>
+              </dl>
+
+              <div className={styles.proofTruth}>
+                <strong>Read the snapshot correctly.</strong>
+                <p>
+                  The 261 leads, 43 Facebook lead-ad leads, and 3,211 pageviews are 30-day
+                  figures. Enrollment and email-list figures are current totals. *The $2,642 is
+                  revenue logged in Supabase; Square remains the academy&apos;s payment source of
+                  truth.
+                </p>
+                <p>
+                  What LeadFlow built is the connected reporting and operating layer. These are
+                  academy-wide metrics—not a claim that LeadFlow, Meta ads, or one campaign caused
+                  every result. Premier Dental Academy and The LeadFlow Pro share common ownership;
+                  this is an operating example, not an independent client testimonial or a promise
+                  of your results.
+                </p>
+              </div>
+
+              <div className="cb-actions">
+                <a className="cb-btn cb-btn--primary" href="#pick">
+                  Apply For My Free Website
+                  <ArrowRight aria-hidden="true" />
+                </a>
+                <Link className="cb-btn cb-btn--ghost" href="/premier-system">
+                  See The Premier Build
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <p className={styles.proofSource}>
+            Source: Premier Dental Academy KPI Cockpit, Supabase-backed snapshot captured September
+            1, 2026 at 6:00 PM CT. Figures can change as business records update.
+          </p>
         </div>
       </section>
 
@@ -297,27 +404,6 @@ export default function FreeBuildPage() {
                 ))}
               </ul>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------- proof --- */}
-      <section className="cb-band">
-        <div className="cb-shell">
-          <p className="cb-eyebrow">This is not theory</p>
-          <h2 className="cb-h2">The same owned-system approach runs real businesses today.</h2>
-          <p className="cb-lead">
-            Premier Dental Academy of Longview demonstrates the larger model: public pages, forms,
-            first-party lead records, follow-up, analytics, and an operating dashboard connected in
-            accounts the business controls. Inspect the live systems and current proof directly.
-          </p>
-          <div className="cb-actions">
-            <Link className="cb-btn cb-btn--ghost" href="/portfolio">
-              See The Live Systems
-            </Link>
-            <Link className="cb-btn cb-btn--ghost" href="/premier-system">
-              See The Premier Build
-            </Link>
           </div>
         </div>
       </section>

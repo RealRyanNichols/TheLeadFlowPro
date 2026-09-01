@@ -665,11 +665,135 @@
   color: var(--muted);
 }
 
-/* Struck anchor price next to the $0 in the hero trade card. */
-.tradeFree s {
-  font-size: 24px;
-  font-weight: 800;
+/* ---------------------------------------------------------- KPI proof --- */
+
+.proofBand {
+  overflow: hidden;
+}
+
+.proofGrid {
+  display: grid;
+  gap: clamp(28px, 5vw, 56px);
+  align-items: start;
+  margin-top: 34px;
+}
+
+@media (min-width: 980px) {
+  .proofGrid {
+    grid-template-columns: minmax(0, 1.12fr) minmax(340px, 0.88fr);
+  }
+}
+
+.proofFigure {
+  margin: 0;
+}
+
+.proofImage {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: 0 2px 4px #0a12200a, 0 26px 60px #0a122021;
+}
+
+.proofImage img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.proofImage + .proofImage {
+  margin-top: 12px;
+}
+
+.proofFigure figcaption,
+.proofSource {
+  font-size: 12.5px;
+  line-height: 1.55;
   color: var(--quiet);
-  margin-right: 10px;
-  text-decoration-thickness: 2px;
+}
+
+.proofFigure figcaption {
+  margin-top: 10px;
+}
+
+.proofCopy {
+  display: grid;
+  gap: 22px;
+}
+
+.proofStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--line);
+}
+
+.proofStats div {
+  display: flex;
+  min-height: 104px;
+  flex-direction: column-reverse;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 18px;
+  background: var(--panel);
+}
+
+.proofStats dt {
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.proofStats dd {
+  margin: 0;
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: clamp(26px, 4vw, 36px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--heading);
+}
+
+.proofTruth {
+  border-left: 4px solid var(--blue);
+  padding: 2px 0 2px 16px;
+}
+
+.proofTruth strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: var(--heading);
+}
+
+.proofTruth p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.proofTruth p + p {
+  margin-top: 10px;
+}
+
+.proofSource {
+  max-width: 90ch;
+  margin: 22px 0 0;
+}
+
+@media (max-width: 520px) {
+  .proofStats {
+    grid-template-columns: 1fr;
+  }
+
+  .proofStats div {
+    min-height: 88px;
+  }
 }

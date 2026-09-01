@@ -1,12 +1,21 @@
 # Meta Lead Campaign: Own Your Website
 
-Status: activation authorized September 1, 2026; publish verification pending  
-Owner: The LeadFlow Pro  
-Market: Longview, Texas plus 30 miles  
-Test: $250 lifetime budget across five calendar days, equivalent to $50 per day  
-Objective: Leads  
-Conversion location: Meta Instant Form  
+Status: correct-account build pending; wrong-account campaign disabled; activation blocked until the end-to-end test passes
+Owner: The LeadFlow Pro
+Market: Longview, Texas plus 30 miles
+Test: $125 lifetime budget across five calendar days, equivalent to $25 per day
+Objective: Leads
+Conversion location: Meta Instant Form
 Website destination: `https://www.theleadflowpro.com/free-build`
+
+Exact account boundary:
+
+- Meta business portfolio: `1154478850201530`
+- LeadFlow ad account: `1637329904238602`
+- LeadFlow Page: `887023637835514`
+- LeadFlow pixel: `1012793881211964`
+- Explicitly forbidden wrong account: `1439074857790304`
+- Explicitly forbidden Premier Dental account: `924465906541446`
 
 ## The controlling offer
 
@@ -23,7 +32,7 @@ There is no required paid add-on. Domain registration, paid hosting after 90 day
 - Objective: Leads
 - Conversion: Instant Form
 - Performance goal: Maximize number of leads
-- Budget: $250 lifetime budget
+- Budget: $125 lifetime budget
 - Schedule: five full calendar days
 - Geography: people living in Longview, Texas plus 30 miles
 - Age: 25 to 65+
@@ -205,19 +214,44 @@ Headline: `I'LL BUILD THE WEBSITE — $0 BUILD FEE`
 
 Description: `East Texas businesses • You own it • Application required`
 
+### KPI proof ad
+
+Creative: `public/images/ads/leadflow-pda-kpi-proof-square.png`
+
+Primary text:
+
+> 📊 261 leads recorded in 30 days.
+>
+> 🎯 43 came through Facebook lead ads.
+>
+> 📈 3,211 first-party website pageviews.
+>
+> The bigger win: the owner can see where attention is coming from, what is turning into leads, and what needs action next in one operating cockpit.
+>
+> The LeadFlow Pro built the connected website, reporting, and operating layer behind this Premier Dental Academy snapshot. Premier Dental Academy and The LeadFlow Pro share common ownership. These are academy-wide snapshot metrics, not a claim that one ad or LeadFlow caused every result. Results vary.
+>
+> Want your first five-page website with a $0 build fee, plus a clear path for capture, follow-up, and reporting?
+>
+> 👇 Apply now.
+
+Headline: `Own Your Website. See Your Numbers.`
+
+Description: `$0 first five-page build fee. Application required.`
+
+CTA: `Apply Now`
+
 ## Meta draft record
 
 - Campaign: `LFP | Free Website | Longview 30mi | Lead Form | Sep 2026`
 - Ad set: `LFP | Longview +30mi | 5 Days | Instant Form`
-- Instant form currently selected: `LFP | Free Website | Longview | v1`
-- Current form ID: `2016689789051460`
-- Replacement prepared: `LFP | Free Website | Product + Budget | v2`
-- Replacement form ID: pending Meta creation confirmation
+- Required instant form: `LFP | Free Website | Product + Budget | v2`
+- Required form ID: `2292508494936036`
+- Previous v1 form retained for audit only: `2016689789051460`
 - Form attribution: `free_website_longview_2026_09`
-- Form status: v1 remains selected in the paused campaign draft until v2 is created and attached
-- Creative: Ryan warehouse square, `OWN YOUR WEBSITE — $0 BUILD FEE`
+- Form status: v2 is Active in the LeadFlow Page form library; the correct-account ad must attach this exact ID
+- Creative set: Ryan warehouse square, seven controlled color variants, and the verified Ryan mall/construction video
 - Meta AI image generation and creative alterations: not selected
-- Campaign, ad set, and ad delivery switches: activation authorized September 1, 2026; publish verification pending
+- Campaign, ad set, and ad delivery switches: keep off until this document's gate passes
 
 ## Offer Recommendation
 
@@ -331,7 +365,9 @@ real lead names, phone numbers, emails, passwords, or client dashboards on scree
 Before campaign activation, verify all of the following in one pass:
 
 - The site CTA and `/free-build` page are live and match the ad.
-- The Meta form ID is added to `FORM_CAMPAIGNS`, `FORM_CONSENT_LAYOUT`, and `META_LEAD_FORM_IDS`.
+- `npm run preflight:meta` passes using full IDs read back from the live editor. Last-four or account-name matching is forbidden.
+- The exact Meta form ID is in the central registry and the backfill poll.
+- Every newly published-but-paused LeadFlow ad ID is in the exact paid-ad allowlist before delivery is enabled, unless an actual ad-account lookup has already proved the production token can resolve `account_id=1637329904238602`.
 - A test lead reaches the lead table exactly once.
 - The owner alert and immediate applicant email arrive.
 - The consent snapshot is correct and no automated marketing text is sent.
@@ -339,6 +375,6 @@ Before campaign activation, verify all of the following in one pass:
 - The ad uses Ryan's real creative.
 - The campaign shows Leads and Instant Form, not Messaging.
 - Longview plus 30 miles is the only geography.
-- The lifetime budget is $250 and the end date is five days after launch.
-- Ryan explicitly authorized activation and the $250 five-day spend on September 1, 2026.
+- The lifetime budget is $125 and the end date is five days after launch.
+- Ryan explicitly authorized activation and the $125 five-day spend on September 1, 2026.
 - After publish, read back the campaign, ad set, form, budget, schedule, and delivery state; a successful publish alone is not proof of delivery.

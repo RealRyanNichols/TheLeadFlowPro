@@ -12,6 +12,7 @@
     "start": "next start",
     "art": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/generate-tool-art.ts",
     "og": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/generate-og-images.ts",
+    "preflight:meta": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/preflight-meta-campaign.ts",
     "validate:tools": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/validate-tools.ts",
     "validate:visuals": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/validate-visuals.ts",
     "test": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs --test tests/*.test.ts",
