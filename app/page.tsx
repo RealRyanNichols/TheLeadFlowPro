@@ -7,7 +7,6 @@ import {
   Check,
   Database,
   ExternalLink,
-  KeyRound,
   Layers,
   LayoutDashboard,
   Minus,
@@ -15,6 +14,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import CompanyLoop from "@/components/site/CompanyLoop";
+import CapabilityExplorer from "@/components/site/CapabilityExplorer";
 import CtaLink from "@/components/site/CtaLink";
 import { ARTICLES } from "@/lib/articles";
 import { FREE_BUILD } from "@/lib/freeBuild";
@@ -60,33 +60,6 @@ const COMPANY_BUILDER = [
   "Portals and dashboards for the work itself",
   "First-party analytics that name the source",
   "Code, data, domains, and accounts in your name",
-];
-
-const PILLARS = [
-  {
-    key: "Attract",
-    icon: Radio,
-    body: "Get found by people who are already looking, and give them a reason to stop.",
-    items: ["Positioning", "Offers", "Public website", "Landing pages", "Funnels", "Content", "SEO", "Ads"],
-  },
-  {
-    key: "Convert",
-    icon: Database,
-    body: "No missed calls. No missed texts. No missed revenue. Every inquiry lands somewhere and gets worked.",
-    items: ["Lead capture", "Lead scoring", "CRM", "Pipeline", "Calls", "Texts", "Email", "Booking", "Payments"],
-  },
-  {
-    key: "Operate",
-    icon: LayoutDashboard,
-    body: "The machinery behind the sale: where the work gets delivered, tracked, and reported.",
-    items: ["Customer portals", "Member and student areas", "Admin dashboards", "Team workflows", "Permissions", "Courses", "Archives", "Automation", "AI agents"],
-  },
-  {
-    key: "Own",
-    icon: KeyRound,
-    body: "If we disappeared tomorrow, everything keeps running and it is all still yours.",
-    items: ["Your code", "Your database", "Your domains", "Your vendor accounts", "Your analytics", "Your customer relationships", "Portability"],
-  },
 ];
 
 const FEATURED = [
@@ -649,27 +622,12 @@ export default function HomePage() {
               </h2>
             </div>
             <p className="cb-lead">
-              Not a software inventory. Four outcomes, in the order a customer moves through
-              them. You can start with one and add the rest when the business earns it.
+              Open any station. Click any capability. See what it means in plain English,
+              why it matters, what the market charges, and what an owned build could include.
             </p>
           </div>
 
-          <div className="cb-pillars">
-            {PILLARS.map((p) => (
-              <article key={p.key} className="cb-pillar">
-                <div className="cb-pillar-top">
-                  <h3>{p.key}</h3>
-                  <p.icon aria-hidden="true" className="h-6 w-6" />
-                </div>
-                <p>{p.body}</p>
-                <ul>
-                  {p.items.map((i) => (
-                    <li key={i}>{i}</li>
-                  ))}
-                </ul>
-              </article>
-            ))}
-          </div>
+          <CapabilityExplorer />
         </div>
       </section>
 
