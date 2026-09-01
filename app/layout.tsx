@@ -26,9 +26,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "The LeadFlow Pro | The Company Builder",
+  title: "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
   description:
-    "We don't just build your website. We build the company behind it. Website, CRM, calls, texts, email, payments, portals, dashboards, automation, and AI connected into one business system built in accounts you control.",
+    "The LeadFlow Pro turns attention into conversations, conversations into qualified leads, and qualified leads into customers with one connected business system.",
   metadataBase: new URL("https://www.theleadflowpro.com"),
   icons: {
     icon: [
@@ -40,9 +40,9 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: "https://www.theleadflowpro.com" },
   openGraph: {
-    title: "We don't just build your website. We build the company behind it.",
+    title: "More Attention. More Leads. More Revenue.",
     description:
-      "One connected business system: website, CRM, calls, texts, email, payments, portals, dashboards, and automation, installed in accounts you control.",
+      "Turn attention into conversations, conversations into qualified leads, and qualified leads into customers with The LeadFlow Pro.",
     url: "https://www.theleadflowpro.com",
     siteName: "The LeadFlow Pro",
     images: [{ url: "/og/home.png", width: 1200, height: 630 }],
@@ -50,8 +50,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "We don't just build your website. We build the company behind it.",
-    description: "The Company Builder. One connected business system you own.",
+    title: "More Attention. More Leads. More Revenue.",
+    description: "One connected system that turns attention into conversations and qualified leads.",
     images: ["/og/home.png"],
   },
 };

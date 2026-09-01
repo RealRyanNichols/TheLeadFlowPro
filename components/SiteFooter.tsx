@@ -60,8 +60,8 @@ export default function SiteFooter() {
               The LeadFlow<span>Pro</span>
             </Link>
             <p className="cb-footer-pitch">
-              The Company Builder. We build the website, the system behind it, and the
-              back office that runs it, in accounts you control.
+              More attention. More leads. More revenue. We connect the website, follow-up,
+              sales tools, and operating system in accounts you control.
             </p>
             <a href="mailto:hello@theleadflowpro.com" className="cb-textlink mt-6 inline-flex">
               hello@theleadflowpro.com

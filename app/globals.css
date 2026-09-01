@@ -14,6 +14,76 @@
 @keyframes ping{75%,to{opacity:0;transform:scale(2)}}
 
 /* ============================================================
+   MISSION CONTROL + EXECUTION UPDATE
+   Real data is assembled in server components; these classes only style and
+   filter the already-sanitized records passed to the client dashboard.
+   ============================================================ */
+.mc-dashboard{margin-top:24px;border:1px solid #ffffff1a;border-radius:30px;background:linear-gradient(145deg,#0d1a2d,#091525);padding:clamp(18px,3vw,34px);box-shadow:0 34px 110px #0000004d;overflow:hidden}
+.mc-dashboard-head{display:flex;align-items:flex-start;justify-content:space-between;gap:28px}
+.mc-kicker{margin:0;color:#50d4ff;font-size:11px;font-weight:900;letter-spacing:.22em;text-transform:uppercase}
+.mc-dashboard-head h2{margin:8px 0 0;color:#fff;font-size:clamp(30px,4vw,52px);font-weight:900;letter-spacing:-.04em;line-height:1}
+.mc-dashboard-head>div>p:last-child{max-width:760px;margin:14px 0 0;color:#9fb0c8;font-size:14px;line-height:1.65}
+.mc-live-badge{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 9px;min-width:168px;border:1px solid #34d3994d;border-radius:16px;background:#34d39914;color:#d1fae5;padding:13px 15px;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.mc-live-badge>span{grid-row:1/3;width:9px;height:9px;border-radius:999px;background:#34d399;box-shadow:0 0 0 5px #34d3991f,0 0 18px #34d399}
+.mc-live-badge small{color:#8fd7bd;font-size:9px;font-weight:700;letter-spacing:.02em;text-transform:none}
+.mc-window-row{scrollbar-width:none;display:flex;gap:7px;margin-top:26px;padding-bottom:2px;overflow-x:auto}
+.mc-window-row::-webkit-scrollbar{display:none}
+.mc-window-row button{flex:1;min-width:62px;border:1px solid #ffffff1a;border-radius:11px;background:#111f34;color:#93a7c3;padding:10px 12px;cursor:pointer;font-size:11px;font-weight:900;letter-spacing:.08em;transition:border-color .16s,background .16s,color .16s,transform .16s}
+.mc-window-row button:hover{border-color:#4ad9ff66;color:#fff;transform:translateY(-1px)}
+.mc-window-row button.is-active{border-color:#4ad9ff8c;background:linear-gradient(135deg,#1240e8,#0e7490);color:#fff;box-shadow:0 10px 26px #1240e84d}
+.mc-panel-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:18px}
+.mc-panel-tabs button{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px;min-height:62px;border:1px solid #ffffff17;border-radius:14px;background:#0a1728;color:#91a5c2;padding:12px 14px;text-align:left;cursor:pointer;font-size:12px;font-weight:850;line-height:1.25;transition:border-color .16s,background .16s,color .16s,transform .16s}
+.mc-panel-tabs button:hover{border-color:#4ad9ff59;color:#fff;transform:translateY(-1px)}
+.mc-panel-tabs button.is-active{border-color:#4ad9ff80;background:#102641;color:#fff;box-shadow:inset 3px 0 #4ad9ff}
+.mc-panel-tabs button svg:first-child{color:#4ad9ff}
+.mc-tab-arrow{color:#58718f;transition:transform .16s}
+.mc-panel-tabs button.is-active .mc-tab-arrow{color:#4ad9ff;transform:translateX(2px)}
+.mc-panel{margin-top:10px;border:1px solid #ffffff1a;border-radius:20px;background:#07111f;padding:clamp(18px,2.5vw,28px)}
+.mc-panel-title{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding-bottom:18px;border-bottom:1px solid #ffffff14}
+.mc-panel-title span{color:#4ad9ff;font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}
+.mc-panel-title h3{margin:4px 0 0;color:#fff;font-size:clamp(22px,2.4vw,30px);font-weight:900;letter-spacing:-.025em}
+.mc-panel-title>svg{color:#4ad9ff}
+.mc-metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}
+.mc-metric-grid--wide{grid-template-columns:repeat(4,minmax(0,1fr))}
+.mc-metric{min-height:118px;border:1px solid #ffffff14;border-radius:16px;background:linear-gradient(145deg,#0d1b2f,#0a1627);padding:17px}
+.mc-metric p{margin:0;color:#8196b3;font-size:10px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}
+.mc-metric strong{display:block;margin-top:8px;color:#fff;font-size:clamp(25px,3vw,38px);font-weight:900;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.mc-metric span{display:block;margin-top:9px;color:#8295b1;font-size:10px;line-height:1.45}
+.mc-current-note{margin:17px 0 0;border-left:3px solid #4ad9ff;background:#4ad9ff0d;color:#9fb0c8;padding:12px 14px;font-size:11px;line-height:1.55}
+.mc-panel-foot{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:18px;padding-top:18px;border-top:1px solid #ffffff14}
+.mc-panel-foot p{max-width:700px;margin:0;color:#7186a3;font-size:10px;line-height:1.55}
+.mc-panel-foot a{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;color:#4ad9ff;font-size:11px;font-weight:900}
+
+/* The private OperatorOS routes inherit the same premium dark system without
+   changing their Supabase queries, controls, auth, or approval gates. */
+.operator-dark{--page:#050b16;--panel:#0d1a2d;--panel-strong:#0f1e34;--panel-soft:#091525;--line:#ffffff1a;--line-strong:#ffffff2e;--text:#c2d0e4;--muted:#91a5c2;--quiet:#7186a3;--blue:#4ad9ff;--blue-strong:#18bde9;--fill-1:#0d1a2d;--fill-2:#ffffff0a;--fill-3:#ffffff12;--fill-4:#ffffff1a;--heading:#f7fbff;--accent-tint:#4ad9ff12;--accent-line:#4ad9ff4d;--surface-raised:#0d1a2d;--menu-bg:#0d1a2d;position:relative;margin-inline:-16px;padding:18px 16px 40px;border-radius:28px;background:radial-gradient(circle at 82% 0%,#1240e82b,transparent 28%),#050b16;color:var(--text)}
+.operator-dark .bg-white{background-color:#0d1a2d!important}
+.operator-dark .text-emerald-700{color:#6ee7b7!important}
+.operator-dark .text-amber-700,.operator-dark .text-amber-800{color:#fcd34d!important}
+.operator-dark .text-red-700{color:#fca5a5!important}
+.operator-dark .bg-emerald-100{background-color:#34d3991a!important}
+.operator-dark .bg-amber-100,.operator-dark .bg-amber-50{background-color:#f59e0b1a!important}
+.operator-dark .bg-red-100,.operator-dark .bg-red-50{background-color:#ef44441a!important}
+.operator-dashboard-nav{position:sticky;top:78px;z-index:20;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);background:#0d1a2de8!important}
+
+@media (max-width:900px){
+  .mc-dashboard-head{display:grid}
+  .mc-live-badge{width:fit-content}
+  .mc-panel-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mc-metric-grid--wide{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:640px){
+  .mc-dashboard{border-radius:22px;padding:16px}
+  .mc-panel-tabs{grid-template-columns:1fr}
+  .mc-panel-tabs button{min-height:52px}
+  .mc-metric-grid,.mc-metric-grid--wide{grid-template-columns:1fr 1fr}
+  .mc-metric{min-height:104px;padding:14px}
+  .mc-panel-foot{align-items:flex-start;flex-direction:column}
+  .operator-dark{border-radius:20px}
+  .operator-dashboard-nav{position:static}
+}
+
+/* ============================================================
    LIGHT IS THE DEFAULT (Aug 12 2026).
    The public site runs on the warm off-white canvas defined in
    company-builder.css. These legacy tokens are remapped to light so every page
@@ -319,7 +389,7 @@ html:has(.router-page){scroll-behavior:auto;overflow-anchor:none}
 .card-hover{transition:transform .16s,border-color .16s}
 .card-hover:hover{border-color:var(--blue);transform:translateY(-2px)}
 .label{color:var(--text);margin-bottom:7px;font-size:13px;font-weight:650;display:block}
-@media (max-width:1500px){.desktop-nav{display:none}.mobile-nav{display:block}}
+@media (max-width:980px){.desktop-nav{display:none}.mobile-nav{display:block}}
 @media (max-width:1020px){.hero-inner{grid-template-columns:1fr;gap:40px;min-height:auto;padding:32px 0 52px}.hero-copy{max-width:760px}.hero-system-card{width:min(700px,100%)}.feature-grid,.work-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.section-heading-wide{grid-template-columns:1fr;gap:0}.section-heading-wide>p{max-width:760px}.connector-section,.final-cta{grid-template-columns:1fr}.connector-pills,.final-cta>div:last-child{flex-flow:wrap}.result-layout{grid-template-columns:1fr}.pricing-grid{grid-template-columns:1fr;max-width:720px;margin:0 auto}.pricing-card,.pricing-description{min-height:0}}
 @media (max-width:760px){.site-header-inner,.site-footer-inner,.router-header,.router-footer,.section-shell,.hero-inner,.router-main,.legal-page,.compact-page{width:min(100% - 28px, var(--max))}.hero-inner{padding:24px 0 44px}.hero-copy h1{font-size:clamp(42px,13vw,60px)}.hero-copy>p{font-size:17px}.hero-actions,.result-next-actions{flex-direction:column;align-items:stretch}.hero-actions a,.result-next-actions>*{width:100%}.hero-system-grid,.proof-strip{grid-template-columns:1fr}.proof-strip span:not(:last-child){border-bottom:1px solid var(--line)}.section-shell{padding:48px 0}.pathfinder-grid,.feature-grid,.industry-grid,.layer-grid,.work-grid,.package-preview-grid,.router-option-grid,.form-grid,.result-module-grid{grid-template-columns:1fr}.page-hero{width:min(100% - 28px, var(--max));padding:22px 0 24px}.page-hero h1{font-size:clamp(40px,12vw,56px)}.custom-scope-card{grid-template-columns:1fr}.custom-scope-card>a{width:100%}.channel-pricing-grid{grid-template-columns:1fr}.result-channel-bar,.result-fee-details li{flex-direction:column}.pathfinder-card{min-height:245px}.pathfinder-footer,.section-heading-with-link,.result-freedom-bar,.result-contact-heading{flex-direction:column;align-items:flex-start}.layer-card{min-height:240px}.work-card{min-height:250px}.connector-section,.final-cta{margin-bottom:76px;padding:30px}.site-footer-inner{grid-template-columns:1fr}.site-footer nav{justify-content:flex-start}.router-header{min-height:66px}.router-exit{font-size:0}.router-exit:before{content:"Browse site";font-size:12px}.router-main{padding-top:20px}.router-progress{margin-bottom:34px}.router-progress-meta span:first-child{display:none}.router-progress-meta{justify-content:flex-end}.router-question-heading h1,.result-heading h1{font-size:clamp(38px,12vw,52px)}.router-option,.router-option-grid-large .router-option{min-height:122px}.router-actions{flex-direction:column-reverse;align-items:stretch}.router-build-button{width:100%}.result-freedom-bar button{white-space:normal}.result-system-footer,.router-footer{flex-direction:column;justify-content:center;align-items:flex-start}.router-footer{gap:5px;padding:16px 0}.result-contact-card,.router-success{padding:21px}.router-success{flex-direction:column}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

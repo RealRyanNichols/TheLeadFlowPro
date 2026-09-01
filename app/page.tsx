@@ -353,7 +353,9 @@ const HOME_JSONLD = {
       "@type": "WebPage",
       "@id": `${SITE}/#webpage`,
       url: SITE,
-      name: "The LeadFlow Pro | The Company Builder",
+      name: "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      description:
+        "Turn attention into conversations, conversations into qualified leads, and qualified leads into customers with one connected business system.",
       isPartOf: { "@id": `${SITE}/#website` },
       about: { "@id": `${SITE}/#organization` },
     },
@@ -364,7 +366,7 @@ const HOME_JSONLD = {
 
 export default function HomePage() {
   return (
-    <main className="cb-page">
+    <main className="cb-page cb-home-dark">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(HOME_JSONLD) }}
@@ -374,56 +376,101 @@ export default function HomePage() {
         <div className="cb-shell">
           <div className="cb-hero-layout">
             <div className="cb-hero-copy">
-              <p className="cb-eyebrow">The Company Builder</p>
+              <p className="cb-eyebrow">The LeadFlow Pro · East Texas</p>
               <h1 className="cb-h1">
-                <em>We don&rsquo;t just build your website.</em>
-                We build the company behind it.
+                <span>More attention.</span>
+                <span>More leads.</span>
+                <em>More revenue.</em>
               </h1>
               <p className="cb-hero-lead">
-                Your website, CRM, calls, texts, payments, automation, and reporting,
-                connected as one company system in accounts you control.
+                We help business owners, operators, and sales teams turn attention into
+                conversations, conversations into qualified leads, and qualified leads
+                into customers with a connected system built around the way they work.
               </p>
               <div className="cb-actions">
-                <CtaLink
-                  href={WEBSITE_LAUNCH_CHECKOUT}
-                  event="start_website_launch"
-                  placement="home_hero"
-                  className="cb-btn cb-btn--primary"
-                >
-                  Start Website Launch | $500
+                <Link className="cb-btn cb-btn--primary" href="/proof-floor">
+                  Open Mission Control
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                </CtaLink>
-                <Link className="cb-btn cb-btn--ghost" href="/premier-system">
-                  See the Premier System
+                </Link>
+                <Link className="cb-btn cb-btn--ghost" href="#results">
+                  See verified results
                 </Link>
               </div>
-              <p className="mt-3 max-w-[64ch] text-sm leading-6 text-[#9aa8bf]">
-                $500 starts the five-page Website Launch. Once intake begins, the deposit
-                is non-refundable, except where the written agreement or applicable law
-                requires otherwise. CRM, automation, portals, and deeper systems are
-                scoped separately.
-              </p>
-              <p className="cb-hero-own">
-                <ShieldCheck aria-hidden="true" className="h-5 w-5" />
-                Built by an operator. Installed in your accounts. Your business stays
-                yours.
-              </p>
+              <div className="lfp-hero-trust" aria-label="LeadFlow Pro operating principles">
+                <span><Radio aria-hidden="true" className="h-4 w-4" /> Real data only</span>
+                <span><ShieldCheck aria-hidden="true" className="h-4 w-4" /> Human approval gates</span>
+                <span><LayoutDashboard aria-hidden="true" className="h-4 w-4" /> Private + public views</span>
+              </div>
             </div>
 
-            <figure className="cb-hero-visual">
+            <figure className="cb-hero-visual lfp-founder-hero">
               <Image
-                src="/images/homepage-v2/connected-company-hero.webp"
-                alt="A premium connected company system with conversation, customer, automation, payment, and reporting stations"
-                width={1920}
-                height={1080}
+                src="/images/ryan-wholesale-universe-owner.jpg"
+                alt="Ryan Nichols standing above pallets in his wholesale warehouse beside a large American flag"
+                width={1800}
+                height={1350}
                 priority
                 sizes="(max-width: 900px) 100vw, 58vw"
               />
               <figcaption>
-                <span>One connected company</span>
-                <strong>Every signal moves toward a sale.</strong>
+                <span>Ryan Nichols · Founder &amp; Operator</span>
+                <strong>Built from real operating experience.</strong>
               </figcaption>
             </figure>
+          </div>
+        </div>
+      </section>
+
+      <section className="lfp-mission-strip" aria-labelledby="home-mission-control">
+        <div className="cb-shell lfp-mission-grid">
+          <div className="lfp-mission-copy">
+            <p className="cb-eyebrow">One operating floor</p>
+            <h2 id="home-mission-control" className="cb-h2">
+              Mission Control you can actually open.
+            </h2>
+            <p className="cb-lead">
+              The public view shows sanitized operating proof. The private view connects
+              leads, follow-ups, approvals, builds, outreach, cash records, and worker
+              status without exposing customer details.
+            </p>
+            <div className="cb-actions">
+              <Link className="cb-btn cb-btn--primary" href="/proof-floor#mission-control-title">
+                Open Execution Update
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+              <Link className="cb-btn cb-btn--ghost" href="/admin/operator">
+                Open private view
+              </Link>
+            </div>
+          </div>
+
+          <div className="lfp-mission-console" aria-label="Mission Control destinations">
+            <div className="lfp-console-topline">
+              <span><Radio aria-hidden="true" className="h-4 w-4" /> LeadFlow Mission Control</span>
+              <strong>REAL DATA ONLY</strong>
+            </div>
+            <div className="lfp-console-links">
+              <Link href="/proof-floor#mission-control-title">
+                <LayoutDashboard aria-hidden="true" className="h-5 w-5" />
+                <span><strong>Execution Update</strong><small>Time filters and verified statuses</small></span>
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+              <Link href="/admin/operator">
+                <Database aria-hidden="true" className="h-5 w-5" />
+                <span><strong>Private Mission Control</strong><small>CRM, workers, approvals, and builds</small></span>
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+              <Link href="/admin/operator/action-center">
+                <ShieldCheck aria-hidden="true" className="h-5 w-5" />
+                <span><strong>Human Action Center</strong><small>Nothing sends without a cleared gate</small></span>
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            </div>
+            <nav className="lfp-status-rail" aria-label="Execution Update views">
+              {["Completed", "Awaiting Approval", "Sent / Published / Activated", "Blocked", "Actual Metrics", "Next Actions"].map((label) => (
+                <Link key={label} href="/proof-floor#mission-control-title">{label}</Link>
+              ))}
+            </nav>
           </div>
         </div>
       </section>
@@ -675,7 +722,7 @@ export default function HomePage() {
       </section>
 
       {/* 5 -------------------------------------------------------- live work */}
-      <section className="cb-band">
+      <section id="results" className="cb-band" tabIndex={-1}>
         <div className="cb-shell">
           <div className="cb-headrow">
             <div>

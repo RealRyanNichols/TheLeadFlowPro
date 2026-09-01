@@ -1,7 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, Bot, CircleDollarSign, Eye, Rocket, Send, Target, UsersRound } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import ExecutionDashboard, {
+  type CurrentExecutionState,
+  type MissionWindow,
+} from "@/components/mission-control/ExecutionDashboard";
 import { createServiceClient } from "@/lib/supabase/service";
-import { LEADFLOW_GROWTH_LOOP, centralDate, money, number } from "@/lib/operatoros/growth";
+import { LEADFLOW_GROWTH_LOOP, centralDate } from "@/lib/operatoros/growth";
 
 export const metadata = {
   title: "The Proof Floor | The LeadFlow Pro",
@@ -17,15 +21,15 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 const WINDOWS = [
-  { label: "Today", days: 1 },
-  { label: "7 days", days: 7 },
-  { label: "14 days", days: 14 },
-  { label: "30 days", days: 30 },
-  { label: "2 months", days: 60 },
-  { label: "3 months", days: 90 },
-  { label: "6 months", days: 180 },
-  { label: "9 months", days: 270 },
-  { label: "12 months", days: 365 },
+  { key: "today", label: "Today", days: 1 },
+  { key: "7d", label: "7D", days: 7 },
+  { key: "14d", label: "14D", days: 14 },
+  { key: "30d", label: "30D", days: 30 },
+  { key: "60d", label: "60D", days: 60 },
+  { key: "90d", label: "90D", days: 90 },
+  { key: "4m", label: "4M", days: 120 },
+  { key: "6m", label: "6M", days: 180 },
+  { key: "12m", label: "12M", days: 365 },
 ] as const;
 
 function within(value: string | null, since: number, todayOnly = false) {
@@ -34,30 +38,55 @@ function within(value: string | null, since: number, todayOnly = false) {
   return new Date(value).getTime() >= since;
 }
 
+function ProofFloorUnavailable() {
+  return (
+    <main className="min-h-screen bg-[#07111f] px-4 py-16 text-white">
+      <section className="mx-auto max-w-4xl rounded-[30px] border border-amber-300/25 bg-[#0d1a2d] p-7 shadow-[0_30px_120px_rgba(0,0,0,.32)] sm:p-10">
+        <p className="text-xs font-black uppercase tracking-[0.22em] text-amber-200">Data connection unavailable</p>
+        <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">Mission Control is not showing unverified numbers.</h1>
+        <p className="mt-4 max-w-3xl text-base leading-7 text-[#b8c5d9]">
+          The connected production records could not be read in this environment. The dashboard stays blank instead of substituting sample metrics or treating missing data as zero.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/" className="rounded-xl bg-[#1240e8] px-5 py-3 text-sm font-black text-white">Return home</Link>
+          <Link href="/login?next=/admin/operator" className="rounded-xl border border-white/20 px-5 py-3 text-sm font-black text-white">Open private login</Link>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 export default async function ProofFloor() {
-  const supabase = createServiceClient();
+  let supabase: ReturnType<typeof createServiceClient>;
+  try {
+    supabase = createServiceClient();
+  } catch {
+    return <ProofFloorUnavailable />;
+  }
   const since365 = new Date(Date.now() - 365 * 86400_000).toISOString();
   const { data: workspace, error: workspaceError } = await supabase
     .from("operator_workspaces")
     .select("id")
     .eq("slug", "the-leadflow-pro")
     .single();
-  if (workspaceError || !workspace) throw new Error("The Proof Floor is temporarily unavailable.");
+  if (workspaceError || !workspace) return <ProofFloorUnavailable />;
 
-  const [analyticsResult, leadResult, taskResult, cashResult, runResult, socialResult, projectResult, approvalResult] = await Promise.all([
+  const [analyticsResult, leadResult, taskResult, cashResult, runResult, socialResult, projectResult, approvalResult, outreachResult, workerResult] = await Promise.all([
     supabase.from("analytics_events").select("event_name,visitor_id,created_at").eq("is_internal", false).gte("created_at", since365).order("created_at", { ascending: false }).limit(20000),
     supabase.from("leads").select("status,created_at").is("deleted_at", null).eq("is_test", false).gte("created_at", since365).limit(10000),
-    supabase.from("lead_tasks").select("completed_at,created_at").gte("created_at", since365).limit(10000),
+    supabase.from("lead_tasks").select("completed_at,created_at,due_date").limit(10000),
     supabase.from("operator_verified_cash_entries").select("amount_cents,received_at").eq("workspace_id", workspace.id).gte("received_at", since365).limit(10000),
     supabase.from("operator_runs").select("status,created_at,completed_at").eq("workspace_id", workspace.id).gte("created_at", since365).limit(10000),
     supabase.from("social_posts").select("status,published_at,created_at").gte("created_at", since365).limit(10000),
     supabase.from("projects").select("status,milestones(status)").limit(1000),
-    supabase.from("operator_approvals").select("status").eq("workspace_id", workspace.id).eq("status", "pending").limit(1000),
+    supabase.from("operator_approvals").select("status,created_at,decided_at").eq("workspace_id", workspace.id).limit(10000),
+    supabase.from("operator_outreach_actions").select("status,sent_at,created_at,due_at").eq("workspace_id", workspace.id).limit(10000),
+    supabase.from("operator_workers").select("status").eq("workspace_id", workspace.id).limit(1000),
   ]);
 
-  const results = [analyticsResult, leadResult, taskResult, cashResult, runResult, socialResult, projectResult, approvalResult];
+  const results = [analyticsResult, leadResult, taskResult, cashResult, runResult, socialResult, projectResult, approvalResult, outreachResult, workerResult];
   const firstError = results.map((result) => result.error).find(Boolean);
-  if (firstError) throw new Error("The Proof Floor is temporarily unavailable.");
+  if (firstError) return <ProofFloorUnavailable />;
 
   const analytics = analyticsResult.data ?? [];
   const leads = leadResult.data ?? [];
@@ -67,11 +96,13 @@ export default async function ProofFloor() {
   const posts = socialResult.data ?? [];
   const projects = projectResult.data ?? [];
   const approvals = approvalResult.data ?? [];
+  const outreach = outreachResult.data ?? [];
+  const workers = workerResult.data ?? [];
   const activeBuilds = projects.filter((project) => !["live", "support", "paused"].includes(project.status)).length;
   const milestones = projects.flatMap((project) => project.milestones ?? []);
   const milestonesDone = milestones.filter((milestone) => milestone.status === "done").length;
 
-  const rows = WINDOWS.map((window) => {
+  const rows: MissionWindow[] = WINDOWS.map((window) => {
     const since = Date.now() - window.days * 86400_000;
     const todayOnly = window.days === 1;
     const pageViews = analytics.filter((event) => event.event_name === "page_view" && within(event.created_at, since, todayOnly));
@@ -82,22 +113,41 @@ export default async function ProofFloor() {
       .filter((entry) => within(entry.received_at, since, todayOnly))
       .reduce((sum, entry) => sum + Math.max(0, Number(entry.amount_cents || 0)) / 100, 0);
     const completedRuns = runs.filter((run) => run.status === "completed" && within(run.completed_at || run.created_at, since, todayOnly)).length;
-    const shipped = posts.filter((post) => post.status === "published" && within(post.published_at || post.created_at, since, todayOnly)).length;
-    return { label: window.label, visitors, pageViews: pageViews.length, leads: windowLeads.length, followups, cash, completedRuns, shipped };
+    const publishedPosts = posts.filter((post) => post.status === "published" && within(post.published_at || post.created_at, since, todayOnly)).length;
+    const sentOutreach = outreach.filter((action) => action.status === "sent" && within(action.sent_at || action.created_at, since, todayOnly)).length;
+    const pendingApprovals = approvals.filter((approval) => approval.status === "pending" && within(approval.created_at, since, todayOnly)).length;
+    const blockedRuns = runs.filter((run) => run.status === "blocked" && within(run.completed_at || run.created_at, since, todayOnly)).length;
+    const failedRuns = runs.filter((run) => run.status === "failed" && within(run.completed_at || run.created_at, since, todayOnly)).length;
+    return {
+      key: window.key,
+      label: window.label,
+      metrics: {
+        visitors,
+        pageViews: pageViews.length,
+        leads: windowLeads.length,
+        followups,
+        verifiedCash: cash,
+        completedRuns,
+        publishedPosts,
+        sentOutreach,
+        pendingApprovals,
+        blockedRuns,
+        failedRuns,
+      },
+    };
   });
 
-  const today = rows[0];
   const openOpportunities = leads.filter((lead) => !["won", "lost"].includes(lead.status)).length;
-  const headlineCards = [
-    { label: "Visitors today", value: today.visitors, icon: Eye },
-    { label: "Page views today", value: today.pageViews, icon: Eye },
-    { label: "Leads today", value: today.leads, icon: UsersRound },
-    { label: "Follow-ups completed", value: today.followups, icon: Send },
-    { label: "Verified cash today", value: money(today.cash), icon: CircleDollarSign },
-    { label: "AI runs completed", value: today.completedRuns, icon: Bot },
-    { label: "Active builds", value: activeBuilds, icon: Rocket },
-    { label: "Human approvals", value: approvals.length, icon: Target },
-  ];
+  const openTasks = tasks.filter((task) => !task.completed_at);
+  const current: CurrentExecutionState = {
+    pendingApprovals: approvals.filter((approval) => approval.status === "pending").length,
+    openTasks: openTasks.length,
+    dueTasks: openTasks.filter((task) => task.due_date && task.due_date <= centralDate()).length,
+    queuedOutreach: outreach.filter((action) => ["queued", "approved"].includes(action.status)).length,
+    activeBuilds,
+    openOpportunities,
+    blockedWorkers: workers.filter((worker) => worker.status === "blocked").length,
+  };
 
   return (
     <main className="min-h-screen bg-[#07111f] text-white">
@@ -126,30 +176,7 @@ export default async function ProofFloor() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
-          {headlineCards.map(({ label, value, icon: Icon }) => (
-            <section key={label} className="rounded-2xl border border-white/10 bg-[#0d1a2d] p-4">
-              <Icon className="h-5 w-5 text-[#50d4ff]" />
-              <p className="mt-3 text-[10px] font-black uppercase tracking-wide text-[#8295b1]">{label}</p>
-              <p className="mt-1 text-2xl font-black">{value}</p>
-            </section>
-          ))}
-        </div>
-
-        <section className="mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-[#0d1a2d]">
-          <div className="border-b border-white/10 px-6 py-5">
-            <h2 className="text-2xl font-black">Operating scoreboard by window</h2>
-            <p className="mt-1 text-sm text-[#9fb0c8]">Today, 7 days, 14 days, 30 days, 2, 3, 6, 9, and 12 months from the same underlying business records.</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left text-sm">
-              <thead className="bg-[#12223a] text-[11px] uppercase tracking-wider text-[#8295b1]"><tr><th className="px-5 py-3">Window</th><th className="px-4 py-3">Visitors</th><th className="px-4 py-3">Views</th><th className="px-4 py-3">Leads</th><th className="px-4 py-3">Follow-ups</th><th className="px-4 py-3">Verified cash</th><th className="px-4 py-3">AI runs</th><th className="px-4 py-3">Content shipped</th></tr></thead>
-              <tbody className="divide-y divide-white/10">
-                {rows.map((row) => <tr key={row.label}><td className="px-5 py-4 font-black">{row.label}</td><td className="px-4 py-4">{number(row.visitors)}</td><td className="px-4 py-4">{number(row.pageViews)}</td><td className="px-4 py-4">{number(row.leads)}</td><td className="px-4 py-4">{number(row.followups)}</td><td className="px-4 py-4 font-black text-emerald-300">{money(row.cash)}</td><td className="px-4 py-4">{number(row.completedRuns)}</td><td className="px-4 py-4">{number(row.shipped)}</td></tr>)}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <ExecutionDashboard windows={rows} current={current} />
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <section className="rounded-[28px] border border-white/10 bg-[#0d1a2d] p-6">

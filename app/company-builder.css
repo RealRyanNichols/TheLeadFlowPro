@@ -45,6 +45,283 @@
   --cb-shadow-lift: 0 2px 4px #0a12200a, 0 26px 60px #0a122021;
 }
 
+/* Approved LeadFlow Pro homepage direction: premium navy/cobalt/cyan. The
+   override is scoped to the homepage so existing offer, intake, course, and
+   client routes keep their proven layouts and behavior. */
+.cb-home-dark {
+  --cb-canvas: #050b16;
+  --cb-surface: #0b1628;
+  --cb-surface-2: #071120;
+  --cb-ink: #f7fbff;
+  --cb-ink-2: #dbe9ff;
+  --cb-body: #c2d0e4;
+  --cb-muted: #91a5c2;
+  --cb-blue: #2f6bff;
+  --cb-blue-deep: #1c4fd7;
+  --cb-blue-soft: #7ba6ff;
+  --cb-cyan: #4ad9ff;
+  --cb-hair: #ffffff1a;
+  --cb-shadow: 0 1px 2px #0008, 0 18px 48px #0006;
+  --cb-shadow-lift: 0 28px 78px #0009;
+  background:
+    radial-gradient(circle at 82% 8%, #1240e82b, transparent 28%),
+    var(--cb-canvas);
+}
+
+body:has(.cb-home-dark) {
+  background: #050b16;
+  color-scheme: dark;
+}
+
+.cb-home-dark .cb-band--tint {
+  background: #081322;
+}
+
+.cb-home-dark .cb-pillar:hover,
+.cb-home-dark .cb-rung:hover {
+  background: #0e1c31;
+  border-color: #4ad9ff66;
+}
+
+.cb-home-dark .cb-case-kind--client,
+.cb-home-dark .cb-case-kind--founder,
+.cb-home-dark .cb-case-block dt,
+.cb-home-dark .cb-textlink {
+  color: var(--cb-cyan);
+}
+
+.cb-home-dark .cb-btn--ghost {
+  border-color: #ffffff59;
+  color: var(--cb-on-ink);
+}
+
+.cb-home-dark .cb-btn--ghost:hover {
+  background: #f7fbff;
+  color: #071120;
+  border-color: #f7fbff;
+}
+
+.cb-home-dark .cb-hero {
+  background:
+    radial-gradient(circle at 76% 22%, #1240e83b, transparent 31%),
+    linear-gradient(135deg, #050b16 0%, #071529 58%, #06101e 100%);
+  min-height: calc(100svh - 68px);
+  display: flex;
+  align-items: center;
+}
+
+.cb-home-dark .cb-hero .cb-h1 {
+  max-width: 11ch;
+  text-transform: uppercase;
+  font-size: clamp(48px, 6.4vw, 94px);
+  line-height: 0.88;
+}
+
+.cb-home-dark .cb-hero .cb-h1 span,
+.cb-home-dark .cb-hero .cb-h1 em {
+  display: block;
+  color: #fff;
+  font-style: normal;
+}
+
+.cb-home-dark .cb-hero .cb-h1 span:nth-child(2) {
+  color: #7ba6ff;
+}
+
+.cb-home-dark .cb-hero .cb-h1 em {
+  color: var(--cb-cyan);
+}
+
+.lfp-founder-hero {
+  aspect-ratio: 4 / 5;
+  max-height: 720px;
+}
+
+.lfp-founder-hero img {
+  height: 100%;
+  object-fit: cover;
+  object-position: 48% center;
+  filter: saturate(0.86) contrast(1.08) brightness(0.82);
+}
+
+.lfp-hero-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: 30px;
+  padding-top: 22px;
+  border-top: 1px solid #ffffff1f;
+  color: #aebdd3;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+
+.lfp-hero-trust span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.lfp-hero-trust svg {
+  color: var(--cb-cyan);
+}
+
+.lfp-mission-strip {
+  border-top: 1px solid #ffffff17;
+  border-bottom: 1px solid #ffffff17;
+  background:
+    linear-gradient(90deg, #1240e80d 1px, transparent 1px),
+    linear-gradient(#1240e80d 1px, transparent 1px),
+    #050b16;
+  background-size: 64px 64px;
+  padding: clamp(56px, 7vw, 96px) 0;
+}
+
+.lfp-mission-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(520px, 1.2fr);
+  gap: clamp(34px, 5vw, 76px);
+  align-items: center;
+}
+
+.lfp-mission-copy .cb-h2 {
+  max-width: 14ch;
+}
+
+.lfp-mission-copy .cb-btn--ghost {
+  border-color: #ffffff59;
+  color: #f7fbff;
+}
+
+.lfp-mission-console {
+  border: 1px solid #4ad9ff55;
+  border-radius: 26px;
+  background: linear-gradient(145deg, #0d1a2d, #081322);
+  padding: clamp(18px, 2.4vw, 28px);
+  box-shadow: 0 38px 100px #0009, 0 0 80px #1240e824;
+}
+
+.lfp-console-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #ffffff17;
+  color: #b7c6da;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.lfp-console-topline span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lfp-console-topline svg,
+.lfp-console-topline strong {
+  color: var(--cb-cyan);
+}
+
+.lfp-console-links {
+  display: grid;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.lfp-console-links > a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 13px;
+  border: 1px solid #ffffff14;
+  border-radius: 14px;
+  background: #0a1728;
+  padding: 14px;
+  color: #f7fbff;
+  transition: transform 0.16s, border-color 0.16s, background 0.16s;
+}
+
+.lfp-console-links > a:hover {
+  transform: translateY(-2px);
+  border-color: #4ad9ff66;
+  background: #102641;
+}
+
+.lfp-console-links > a > svg:first-child {
+  color: var(--cb-cyan);
+}
+
+.lfp-console-links span {
+  display: grid;
+  gap: 3px;
+}
+
+.lfp-console-links strong {
+  font-size: 14px;
+}
+
+.lfp-console-links small {
+  color: #8196b3;
+  font-size: 11px;
+}
+
+.lfp-status-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 15px;
+}
+
+.lfp-status-rail a {
+  border: 1px solid #ffffff17;
+  border-radius: 999px;
+  background: #ffffff08;
+  color: #8fa4bf;
+  padding: 7px 10px;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+}
+
+.lfp-status-rail a:hover {
+  border-color: #4ad9ff66;
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .cb-home-dark .cb-hero {
+    min-height: auto;
+  }
+
+  .lfp-founder-hero {
+    aspect-ratio: 16 / 10;
+    max-height: 520px;
+  }
+
+  .lfp-mission-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .cb-home-dark .cb-hero .cb-h1 {
+    font-size: clamp(42px, 13vw, 64px);
+  }
+
+  .lfp-founder-hero {
+    aspect-ratio: 4 / 3;
+  }
+
+  .lfp-founder-hero img {
+    object-position: 50% center;
+  }
+}
+
 /* ---------------------------------------------------------------- page ---- */
 
 body:has(.cb-page) {
@@ -1761,6 +2038,12 @@ body:has(.cb-page) .mobile-nav-panel > a.nav-free:hover {
     order: -1;
     max-width: 760px;
     transform: none;
+  }
+  .cb-home-dark .cb-hero-copy {
+    order: 0;
+  }
+  .cb-home-dark .cb-hero-visual {
+    order: 1;
   }
   .cb-band--operations .cb-loop-title,
   .cb-proof-cockpit {

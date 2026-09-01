@@ -2,21 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Menu } from "lucide-react";
+import { Activity, Menu } from "lucide-react";
 
-// Primary navigation is ordered by buyer intent, not by sitemap. Add-Ons and
-// Free Tools live in the footer. Product Studio now has a real index at
-// /packages; the retired route redirects there for old inbound links.
+// Public navigation mirrors the approved LeadFlow Pro redesign. Existing
+// offers, tools, events, training, and login routes remain available from the
+// page content and footer without crowding the primary brand bar.
 const NAV_LINKS: Array<[string, string]> = [
-  ["/free-build", "Free Build"],
-  ["/#what-we-build", "What We Build"],
-  ["/portfolio", "The Work"],
-  ["/premier-system", "Premier System"],
-  ["/#how-it-works", "How It Works"],
-  ["/packages", "Packages"],
-  ["/events", "Events"],
-  ["/about", "About Ryan"],
-  ["/articles", "Articles"],
+  ["/", "Home"],
+  ["/#what-we-build", "Services"],
+  ["/#results", "Results"],
+  ["/about", "About"],
+  ["/articles", "Blog"],
+  ["/contact", "Contact"],
 ];
 
 function isWorkspacePath(pathname: string) {
@@ -40,10 +37,9 @@ export default function SiteHeader() {
               {label}
             </Link>
           ))}
-          <Link href="/login">Log in</Link>
-          <Link href="/packages/launch" className="header-cta" data-analytics="cta-start-project-header">
-            Website Launch | $1,000
-            <ArrowRight aria-hidden="true" className="h-4 w-4" />
+          <Link href="/proof-floor" className="header-cta" data-analytics="cta-mission-control-header">
+            <Activity aria-hidden="true" className="h-4 w-4" />
+            Mission Control
           </Link>
         </nav>
         <details className="mobile-nav">
@@ -56,10 +52,9 @@ export default function SiteHeader() {
                 {label}
               </Link>
             ))}
-            <Link href="/login">Log in</Link>
-            <Link href="/packages/launch" className="header-cta" data-analytics="cta-start-project-mobile">
-              Website Launch | $1,000
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            <Link href="/proof-floor" className="header-cta" data-analytics="cta-mission-control-mobile">
+              <Activity aria-hidden="true" className="h-4 w-4" />
+              Mission Control
             </Link>
           </div>
         </details>
