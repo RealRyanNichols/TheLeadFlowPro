@@ -33,7 +33,7 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
       ["/packages", "Packages"],
       ["/events", "Events & Workshops"],
       ["/go/lead-follow-up", "Follow-Up Campaign | $197"],
-      ["/packages/launch", "Website Launch | $1,000"],
+      ["/free-build", "Free Website | $0 Build Fee"],
       ["/start", "Map My Company"],
       [
         "/diagnostic?utm_source=website&utm_medium=footer&utm_campaign=business_diagnostic",

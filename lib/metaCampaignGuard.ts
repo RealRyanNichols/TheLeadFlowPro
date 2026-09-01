@@ -31,7 +31,10 @@ export const LEADFLOW_META = {
   // new ad here after Meta creates it while the campaign is still paused, then
   // deploy this registry before delivery is enabled. The Graph account lookup
   // remains a secondary check for future ads when the system token has access.
-  allowedAdIds: ["120253128015470154"],
+  allowedAdIds: [
+    "120253128015470154", // Existing LeadFlow mall-video ad.
+    "120253551492760154", // Sep 1 Free Website v2 draft; keep off until creative QA.
+  ],
 } as const;
 
 /** Assets that must never be accepted by a LeadFlow campaign preflight. */
