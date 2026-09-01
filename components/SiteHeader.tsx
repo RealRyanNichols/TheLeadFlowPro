@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Menu } from "lucide-react";
+import { ArrowRight, Menu } from "lucide-react";
 
 // Public navigation mirrors the approved LeadFlow Pro redesign. Existing
 // offers, tools, events, training, and login routes remain available from the
@@ -12,6 +12,7 @@ const NAV_LINKS: Array<[string, string]> = [
   ["/#what-we-build", "Services"],
   ["/#results", "Results"],
   ["/about", "About"],
+  ["/businesses", "Business Archive"],
   ["/articles", "Blog"],
   ["/contact", "Contact"],
 ];
@@ -37,9 +38,9 @@ export default function SiteHeader() {
               {label}
             </Link>
           ))}
-          <Link href="/proof-floor" className="header-cta" data-analytics="cta-mission-control-header">
-            <Activity aria-hidden="true" className="h-4 w-4" />
-            Mission Control
+          <Link href="/free-build" className="header-cta" data-analytics="cta-free-website-header">
+            Free Website
+            <ArrowRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </nav>
         <details className="mobile-nav">
@@ -52,9 +53,9 @@ export default function SiteHeader() {
                 {label}
               </Link>
             ))}
-            <Link href="/proof-floor" className="header-cta" data-analytics="cta-mission-control-mobile">
-              <Activity aria-hidden="true" className="h-4 w-4" />
-              Mission Control
+            <Link href="/free-build" className="header-cta" data-analytics="cta-free-website-mobile">
+              Free Website
+              <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </div>
         </details>

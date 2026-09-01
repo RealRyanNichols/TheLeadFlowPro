@@ -13,22 +13,20 @@ import { FREE_BUILD } from "@/lib/freeBuild";
 import FreeBuildOrder from "./FreeBuildOrder";
 import styles from "./free-build.module.css";
 
-// The Free Build. Front door for cold paid traffic.
-//
-// The page has one job: make the trade obvious in the first phone screen.
-// Site free, engine paid, here are the three engines. Everything below the
-// fold exists to answer "what is the catch", because that is the only
-// question a free offer ever gets.
+// The Free Website Program. Destination for Meta Instant Form leads and the
+// homepage application CTA. The first phone screen answers the real question:
+// the five-page build fee is $0, paid growth services are optional, and the
+// client owns the website, accounts, tracking, and leads.
 
 export const metadata: Metadata = {
-  title: "The Free Build | The LeadFlow Pro",
+  title: "Free Five-Page Website | The LeadFlow Pro",
   description:
-    "I will build your site for free. You pay for the engine that makes it work: follow-up written, posts scheduled in your own accounts, leads landing in your inbox. From $197 one time. Longview, Texas.",
+    "Apply for a five-page business website with a $0 build fee. Own the site, lead route, analytics and accounts. Paid growth services are optional.",
   alternates: { canonical: "https://www.theleadflowpro.com/free-build" },
   openGraph: {
-    title: "I will build your site for free.",
+    title: "Own your website. Your first five-page build is $0.",
     description:
-      "You pay for the engine that makes it work. Follow-up written, posts scheduled in your own accounts, leads landing in your inbox. From $197 one time.",
+      "Application required. Up to five pages, mobile-first lead capture, search foundation and 90 days of scoped corrections. Paid growth services are optional.",
     url: "https://www.theleadflowpro.com/free-build",
     siteName: "The LeadFlow Pro",
     type: "website",
@@ -43,8 +41,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "I will build your site for free.",
-    description: "You pay for the engine that makes it work. From $197 one time.",
+    title: "Own your website. Your first five-page build is $0.",
+    description: "Application required. Paid growth services are optional and separately approved.",
     images: ["/og/free-build.jpg"],
   },
 };
@@ -56,7 +54,7 @@ export default function FreeBuildPage() {
       <section className="cb-hero">
         <div className={`cb-shell ${styles.heroGrid}`}>
           <div>
-            <p className="cb-eyebrow">The Free Build</p>
+            <p className="cb-eyebrow">The LeadFlow Pro Free Website Program</p>
             <h1 className="cb-h1">
               {FREE_BUILD.headline}
               <em>{FREE_BUILD.subhead}</em>
@@ -67,36 +65,36 @@ export default function FreeBuildPage() {
               <li>
                 <ShieldCheck aria-hidden="true" />
                 <span>
-                  A ${FREE_BUILD.anchorUsd.toLocaleString("en-US")} build, for nothing
+                  Up to five scoped pages with a $0 build fee
                   <em>
-                    Not a trial and not a template you rent. It is the same site I sell for $
-                    {FREE_BUILD.anchorUsd.toLocaleString("en-US")} on my packages page. Go check.
+                    Mobile-first, lead capture, analytics, search foundation, and a defined
+                    90-day correction window.
                   </em>
                 </span>
               </li>
               <li>
                 <Clock3 aria-hidden="true" />
                 <span>
-                  Live in {FREE_BUILD.guaranteeDays} business days
-                  <em>Or the engine you paid for costs you nothing and you keep the site.</em>
+                  Working-preview target: {FREE_BUILD.guaranteeDays} business days
+                  <em>The clock starts after the written scope, complete intake, and assets are in.</em>
                 </span>
               </li>
               <li>
                 <KeyRound aria-hidden="true" />
                 <span>
-                  You never hand over a password
-                  <em>Official partner access, task level, and you can revoke me in one click.</em>
+                  Your website, customer records, and tracking stay yours
+                  <em>No hidden lead copy, cross-client audience, or undisclosed LeadFlow pixel.</em>
                 </span>
               </li>
             </ul>
 
             <div className="cb-actions">
               <a className="cb-btn cb-btn--primary" href="#why">
-                Show Me How This Works
+                See What $0 Includes
                 <ArrowRight aria-hidden="true" />
               </a>
               <a className="cb-btn cb-btn--ghost" href="#pick">
-                Skip Ahead To The Options
+                Apply Now
               </a>
             </div>
 
@@ -117,26 +115,27 @@ export default function FreeBuildPage() {
 
           <div className={styles.tradeCard}>
             <div className={styles.tradeRow}>
-              <span className={styles.tradeLabel}>The website</span>
+              <span className={styles.tradeLabel}>Five-page build fee</span>
               <span className={styles.tradeFree}>
                 <s>${FREE_BUILD.anchorUsd.toLocaleString("en-US")}</s> $0
               </span>
             </div>
             <p className={styles.tradeNote}>
-              Built for a phone, form that reaches you, your pixel installed, on a domain you own.
-              This is the build on my packages page at $
-              {FREE_BUILD.anchorUsd.toLocaleString("en-US")}. Same thing. No charge.
+              Application required. The same five-page foundation can still be purchased outright
+              for ${FREE_BUILD.anchorUsd.toLocaleString("en-US")} when a business does not want to
+              wait for a program opening.
             </p>
             <div className={styles.tradeDivider} />
             <div className={styles.tradeRow}>
-              <span className={styles.tradeLabel}>The engine behind it</span>
-              <span className={styles.tradePaid}>from $197</span>
+              <span className={styles.tradeLabel}>Paid growth services</span>
+              <span className={styles.tradePaid}>optional</span>
             </div>
             <p className={styles.tradeNote}>
-              One time. Posting, follow-up, review asks. Pick one below. That is the whole deal.
+              Ads, follow-up, content, CRM, automation, SEO, video, and larger systems receive a
+              separate written price. Domain, hosting after 90 days, software, and ad spend are disclosed.
             </p>
             <a className={`cb-btn cb-btn--primary ${styles.tradeBtn}`} href="#pick">
-              See The Three Engines
+              Apply Or Add Growth Services
               <ArrowRight aria-hidden="true" />
             </a>
           </div>
@@ -144,13 +143,10 @@ export default function FreeBuildPage() {
       </section>
 
       {/* -------------------------------------------------------------- why --- */}
-      {/* This section exists because "Free Build" next to "$197" was reading as
-          bait and switch. Nobody sees a price until they have read these three
-          answers. Ryan's call, and he is right: the value has to land before
-          the number does. */}
+      {/* Answer the material conditions before any service price appears. */}
       <section id="why" className="cb-band" tabIndex={-1}>
         <div className="cb-shell">
-          <p className="cb-eyebrow">Before we talk about money</p>
+          <p className="cb-eyebrow">No hidden catch</p>
           <h2 className="cb-h2">You are right to be suspicious of the word free.</h2>
           <p className="cb-lead">
             So here are the three questions everybody asks, answered before I show you a single
@@ -171,13 +167,12 @@ export default function FreeBuildPage() {
       {/* ------------------------------------------------------------- pick --- */}
       <section id="pick" className="cb-band" tabIndex={-1}>
         <div className="cb-shell">
-          <p className="cb-eyebrow">Pick your engine</p>
-          <h2 className="cb-h2">You were going to buy a website anyway.</h2>
+          <p className="cb-eyebrow">Apply free or add a growth service</p>
+          <h2 className="cb-h2">Start with the website. Add only what the business needs.</h2>
           <p className="cb-lead">
-            So buy the engine instead and take the ${FREE_BUILD.anchorUsd.toLocaleString("en-US")}{" "}
-            site for nothing. Three ways to start. The build is free in all three, and the only
-            difference is what runs behind it once it is live. One payment. Nothing recurring,
-            nothing to cancel.
+            The $0 application is the first option below. The paid cards are optional fixed-scope
+            work products for owners who already know they want follow-up, content, or a 30-day
+            growth foundation. No ad spend or subscription is hidden inside these prices.
           </p>
           <FreeBuildOrder />
         </div>
@@ -186,7 +181,7 @@ export default function FreeBuildPage() {
       {/* --------------------------------------------------------- free only --- */}
       <section id="free-only" className="cb-band cb-band--tint" tabIndex={-1}>
         <div className="cb-shell">
-          <p className="cb-eyebrow">Or take the site and nothing else</p>
+          <p className="cb-eyebrow">The genuine $0 lane</p>
           <h2 className="cb-h2">{FREE_BUILD.freeOnly.name}</h2>
           <p className="cb-lead">{FREE_BUILD.freeOnly.line}</p>
 
@@ -194,8 +189,8 @@ export default function FreeBuildPage() {
             <div className={styles.miniCard}>
               <h3>{FREE_BUILD.freeOnly.tradeTitle}</h3>
               <p style={{ marginBottom: 14 }}>
-                Free is never actually free, anywhere, from anybody. The difference is whether they
-                tell you. Here is mine, in writing, before you decide.
+                There is no required purchase. The limits protect the build capacity and keep the
+                promise honest. Here is the applicant&apos;s part in writing.
               </p>
               <ul className={styles.checkList}>
                 {FREE_BUILD.freeOnly.trade.map((t) => (
@@ -209,7 +204,7 @@ export default function FreeBuildPage() {
               </ul>
             </div>
             <div className={styles.miniCard}>
-              <h3>What you do not get</h3>
+              <h3>What is not included</h3>
               <ul className={styles.crossList}>
                 {FREE_BUILD.freeOnly.notIncluded.map((n) => (
                   <li key={n}>
@@ -238,8 +233,8 @@ export default function FreeBuildPage() {
       {/* ------------------------------------------------------------ build --- */}
       <section className="cb-band cb-band--tint">
         <div className="cb-shell">
-          <p className="cb-eyebrow">In every free build</p>
-          <h2 className="cb-h2">What you get for nothing, at every tier.</h2>
+          <p className="cb-eyebrow">Inside the five-page foundation</p>
+          <h2 className="cb-h2">What the $0 build fee covers.</h2>
           <div className={styles.cardGrid}>
             {FREE_BUILD.buildIncludes.map((item) => (
               <div key={item.title} className={styles.miniCard}>
@@ -255,7 +250,7 @@ export default function FreeBuildPage() {
       <section className="cb-band">
         <div className="cb-shell">
           <p className="cb-eyebrow">How it runs</p>
-          <h2 className="cb-h2">Five steps, and I do four of them.</h2>
+          <h2 className="cb-h2">Five steps from application to owned website.</h2>
           <div className={styles.steps}>
             {FREE_BUILD.steps.map((step) => (
               <div key={step.number} className={styles.step}>
@@ -310,12 +305,11 @@ export default function FreeBuildPage() {
       <section className="cb-band">
         <div className="cb-shell">
           <p className="cb-eyebrow">This is not theory</p>
-          <h2 className="cb-h2">The same stack runs real businesses today.</h2>
+          <h2 className="cb-h2">The same owned-system approach runs real businesses today.</h2>
           <p className="cb-lead">
-            Premier Dental Academy of Longview runs on this exact setup: 455 first-party leads since
-            May 4, and July ads at a 4.45 percent click-through rate and 72 cents a click. Premier
-            Dental Academy of Longview and The LeadFlow Pro share common ownership, which is why I
-            can show you those numbers straight out of the account instead of describing them.
+            Premier Dental Academy of Longview demonstrates the larger model: public pages, forms,
+            first-party lead records, follow-up, analytics, and an operating dashboard connected in
+            accounts the business controls. Inspect the live systems and current proof directly.
           </p>
           <div className="cb-actions">
             <Link className="cb-btn cb-btn--ghost" href="/portfolio">
@@ -347,16 +341,16 @@ export default function FreeBuildPage() {
       {/* --------------------------------------------------------------- cta --- */}
       <section className="cb-band cb-band--ink">
         <div className="cb-shell">
-          <p className="cb-eyebrow">Own your platform</p>
-          <h2 className="cb-h2">Stop renting your whole operation.</h2>
+          <p className="cb-eyebrow">Own your website</p>
+          <h2 className="cb-h2">Start with the foundation. Build the engine when it makes sense.</h2>
           <p className="cb-lead">
-            Every month you pay a platform for a page you do not own, on an audience you do not
-            control, with leads you cannot export. The build is free. The engine is one payment.
-            Everything lands in accounts with your name on them.
+            Apply for the five-page website at $0. Keep the site, accounts, tracking, and customer
+            records under your control. If you want LeadFlow Pro to add ads, follow-up, CRM,
+            automation, content, video, SEO, or a larger system, approve that work separately.
           </p>
           <div className="cb-actions">
             <a className="cb-btn cb-btn--primary" href="#pick">
-              Pick My Engine
+              Apply For My Free Website
               <ArrowRight aria-hidden="true" />
             </a>
             <Link className="cb-btn cb-btn--ghost" href="/book">

@@ -81,17 +81,17 @@ export const NURTURE_STEPS: NurtureStep[] = [
   {
     step: 101,
     day: 1,
-    subject: "The whole offer, in two lines",
+    subject: "🏗️ The whole offer, in two lines",
     body: (first) => `${first},
 
 Here it is with nothing around it.
 
-I build your website for free.
-You pay for the engine that makes it work.
+If your business qualifies, I build the first five-page website with a $0 build fee.
+You own it.
 
-The site is $0 at every tier. What you pay for is what runs behind it. Posts going out in your accounts. Follow-up that answers people while they still care. Leads landing somewhere you will actually see them.
+Paid growth services are optional. Ads. Follow-up. Content. CRM. Automation. SEO. Video. A larger operating system.
 
-From $197, one time. Nothing monthly, nothing to cancel.
+Domain registration, paid hosting after the included 90 days, software, and ad spend are outside costs. Every one is disclosed before you approve it.
 
 ${nurtureLink(1)}`,
   },
@@ -101,15 +101,15 @@ ${nurtureLink(1)}`,
     subject: "What free means, and what it does not",
     body: (first) => `${first},
 
-Free means free. Not a trial that turns into $99 a month. Not a template you rent from me forever.
+Free means the five-page build fee is $0. Not a trial and not a template you rent from me forever.
 
 Built for you. Handed to you. On a domain in your name.
 
-What it is not: a twelve page site with a blog and a store. No logo design. If you need to buy a domain, that is yours to buy, twelve to twenty dollars a year.
+What it is not: unlimited pages, a store, a portal, a CRM, ad spend, paid software, or open-ended revisions.
 
-The catch is one sentence long. The engine is not free, and once I start writing it, it is not refundable.
+The catch is scope and capacity. Apply. Qualify. Give me the real business information and organized feedback. The first 90 days include up to two minor correction requests per month.
 
-That is the whole catch. I would rather you read it here than find it later.
+No add-on purchase is required. I would rather you read the limits here than find them later.
 
 ${nurtureLink(2)}`,
   },
@@ -170,16 +170,16 @@ ${nurtureLink(5)}`,
   {
     step: 106,
     day: 6,
-    subject: "$497, itemized. No mystery.",
+    subject: "💼 The optional $497 engine, itemized",
     body: (first) => `${first},
 
 The middle one, line by line.
 
-Free, at $0: a two page site built for a phone first. A form that emails you the second somebody fills it in. Your Meta pixel installed. Click to call and click for directions. On a domain in your name. Twelve months of small changes free.
+Free, at $0: up to five scoped pages built for a phone first. Lead capture. Search foundation. Analytics in your account. Ninety days of defined corrections. Code, domain, tracking, and leads under your control.
 
-Paid, $497 one time: 42 posts, three a day for fourteen days, written in your voice. Scheduled inside your own Facebook, Instagram and X accounts through official partner access, so you never hand me a password. Plus a walkthrough of what is scheduled and where to find it.
+Optional, $497 one time: fourteen days of business-specific content, a campaign calendar tied to the offer, one visual direction, and a publishing handoff inside client-controlled accounts.
 
-One payment. Nothing renews on you in six months.
+No ad spend. No subscription. Nothing renews without written approval.
 
 ${nurtureLink(6)}`,
   },
@@ -229,25 +229,23 @@ They cannot know that. Neither can I.
 
 I do not know your market, your prices, whether you answer your phone, or what you are like on it. Anyone who promises you a lead count is either guessing or lying, and both should worry you.
 
-What I will promise is the only thing that is actually inside my control: your site is live within ten business days of our call, or the engine you paid for costs you nothing and you keep the site anyway.
+What I will promise is the part inside my control: I tell you the real queue before accepting the application, put the five-page scope in writing, and target a working preview within ten business days after complete intake and assets.
 
-That is the whole guarantee. I would rather give you one I can keep.
+No promise of leads, sales, revenue, ad return, or a Google position. I would rather give you a delivery target I can keep.
 
 ${nurtureLink(9)}`,
   },
   {
     step: 110,
     day: 10,
-    subject: "Numbers out of a real account",
+    subject: "📊 Proof you can inspect",
     body: (first) => `${first},
 
-Not a case study. An account I can open.
+Premier Dental Academy of Longview runs on the larger version of this approach: public pages, forms, first-party lead records, follow-up, analytics, and an operating dashboard connected in accounts the business controls.
 
-Premier Dental Academy of Longview runs on this exact stack. 455 first party leads since May 4. July ads at a 4.45 percent click through rate and 72 cents a click.
+Premier Dental Academy and The LeadFlow Pro share common ownership. I tell you that up front because ownership is part of the source.
 
-Premier Dental Academy and The LeadFlow Pro share common ownership. I tell you that up front, because it is the reason I can pull those numbers straight out of the account instead of describing them at you.
-
-Everything else I have built and handed over is here, live and clickable, running on somebody else's domain:
+The live systems and current proof are here. Click them. Inspect them. Do not take my word for it:
 
 https://www.theleadflowpro.com/portfolio?utm_source=email&utm_medium=nurture&utm_campaign=${NURTURE_CAMPAIGN}&utm_content=day10`,
   },
@@ -261,7 +259,7 @@ Then bring it to the call and I will tell you straight which kind you have.
 
 Most sites I see look fine and are dead behind the glass. No form that reaches anybody. No pixel. Nothing following up. Pretty, and doing nothing.
 
-If yours is one of those, the free build becomes a second page you can point ads at, and the engine goes to work either way. Nothing gets torn down.
+If yours is one of those, the free build can become a focused replacement or campaign path inside the written five-page scope. Nothing gets torn down without approval.
 
 If yours is already working, I will tell you that too and we will talk about the engine only. I am not going to sell you a site you do not need.
 
@@ -347,13 +345,13 @@ ${nurtureLink(15, "/book")}`,
 
 Nobody explains this in plain English, so here it is.
 
-A pixel is a few lines of code on your website that tells Facebook, quietly, that a person visited. That is it. No names, no spying on your customers.
+A pixel is tracking code that records approved website activity for measurement and ad optimization. It does not hand you a visitor's name, but it still requires clear disclosure, a lawful configuration, and the client's account ownership.
 
 Why it matters: without it, when you run an ad, Facebook is guessing who might be interested. With it, Facebook can see which kind of person actually reads your page and go find more like them.
 
-Running ads with no pixel is paying for a search party and refusing to give them a description.
+Running ads with no verified conversion signal makes the platform optimize with less information.
 
-It takes me four minutes to install and it is free in every build I do.
+If Meta tracking belongs in the scope, it is installed in the client's account and tested there. It is never reused across clients.
 
 ${nurtureLink(16)}`,
   },
@@ -367,7 +365,7 @@ That is the one I hear most, and it is usually backwards.
 
 A big company can survive a missed call. It has four other people answering phones. You cannot. One missed call is a real percentage of your month.
 
-Small is exactly who this is for. That is why the entry is $197 and not $3,000, and why the site is free instead of the thing you save up for.
+Small is exactly who this is for. That is why the website application starts at $0 and the paid growth services stay separate.
 
 If you are one truck and a phone, you are not too small. You are the whole point.
 
@@ -389,7 +387,7 @@ Five. A one page cheat sheet of what goes out when, for whoever answers the phon
 
 Written for your business, handed to you, yours to keep and reuse forever.
 
-$197, and the website comes free with it.
+$197 for the follow-up pack. Optional. The website application stays available at $0 without it.
 
 ${nurtureLink(18)}`,
   },
@@ -446,16 +444,16 @@ ${nurtureLink(21)}`,
   {
     step: 122,
     day: 22,
-    subject: "Why $197 and not $3,000",
+    subject: "Why the first optional service is $197",
     body: (first) => `${first},
 
 Because $3,000 is where good work goes to die in a small business.
 
 You save for it. You put it off. You finally do it, once, and then it sits for two years because another three grand is not happening.
 
-$197 is a decision you can make on a Tuesday. It is also small enough that I have to be good, because nobody stays for a second thing they were not impressed by the first time.
+$197 is a fixed follow-up work product, not a retainer and not ad management. It is small enough to solve one leak without pretending to rebuild the whole company.
 
-The site being free is the same logic. I would rather be judged on the work than on the invoice.
+The site being free is the same logic. I would rather earn the bigger work by showing the work first.
 
 ${nurtureLink(22)}`,
   },
@@ -465,17 +463,17 @@ ${nurtureLink(22)}`,
     subject: "What I actually do in those ten days",
     body: (first) => `${first},
 
-Day one. Twenty minutes on the phone. What you do, who you want calling, what you want them to do when they land.
+Day one. Written scope and complete intake. What you do, who you want calling, the five pages, the offer, ownership, outside costs, and exclusions.
 
 Days two to five. I write and build. Your words, your photos, your offer. Not a template with your name dropped in.
 
 Day five or six. Draft in your hands. You look at it on your phone, same as your customers will.
 
-Days seven and eight. One round of changes. You mark what is wrong, I fix it.
+Days seven and eight. One consolidated launch review. You mark what is wrong inside the scope, I correct it.
 
-Days nine and ten. Live on your domain, form tested, pixel firing, engine switched on, and a walkthrough of what is running and where.
+Days nine and ten. Working-preview target. Form, links, mobile layout, analytics, search settings, and ownership path tested before launch.
 
-That is the whole ten days. No mystery, no black box.
+That is the target after the scope, intake, photos, and access approvals are complete. No mystery, no black box.
 
 ${nurtureLink(23)}`,
   },
@@ -511,7 +509,7 @@ Eight prompts. Rotate them and you have a month.
 
 You do not need to be clever online. You need to be visible and specific. Specific beats clever every single time.
 
-If you would rather not think about it at all, that is what the $497 buys. Forty two of them, written in your voice, scheduled in your accounts.
+If you want it built for you, the optional $497 content engine covers fourteen days of business-specific content, a campaign calendar, one visual direction, and a client-controlled publishing handoff.
 
 ${nurtureLink(25)}`,
   },
@@ -547,7 +545,7 @@ I ask what you do and who you want calling you. I ask what happens now when some
 
 If it is not me, I will say so and tell you what to do instead. That has happened plenty and I sleep fine.
 
-If it is me, we start the ten day clock right there on the call.
+If it is me, we write the five-page scope and start the working-preview target when the intake and assets are complete.
 
 ${nurtureLink(27, "/book")}`,
   },
@@ -559,7 +557,7 @@ ${nurtureLink(27, "/book")}`,
 
 Worth saying out loud.
 
-Not for you if you want twelve pages, a blog and a store. That is a different job and a bigger number.
+Not for you if you want unlimited pages, a store, a portal, a custom app, or an open-ended redesign inside the free scope. Those are separate jobs.
 
 Not for you if you want somebody to hand you a folder of drafts and disappear. I build it and switch it on, or I do not take it.
 
@@ -574,14 +572,14 @@ ${nurtureLink(28)}`,
   {
     step: 129,
     day: 29,
-    subject: "Four a week, and why",
+    subject: "Ten a month, and why",
     body: (first) => `${first},
 
-Four free builds a week. That is not a scarcity trick, it is arithmetic.
+Ten qualified free builds a month. That is not a scarcity trick, it is capacity.
 
-Each one is a call, a build, a revision round, a launch and a walkthrough, done by one person. Four is what fits in a week without the fifth one being worse than the first four.
+Each one is a written scope, intake, five-page build, launch review, deployment path, and 90-day correction window. Ten is the starting cap while the workflow is proven.
 
-When the week is full it rolls to Monday. Nobody gets bumped and nothing gets rushed.
+When the month is full, qualified applications move to the next opening. Nobody gets bumped and nothing gets rushed.
 
 If you have been circling this for a month, that is the only real reason to move now. Not a fake timer.
 
@@ -590,14 +588,14 @@ ${nurtureLink(29)}`,
   {
     step: 130,
     day: 30,
-    subject: "Last one from me",
+    subject: "🏁 Last one from me",
     body: (first) => `${first},
 
 Thirty days. This is the last email in this sequence and I am not going to keep pushing.
 
 If the timing is wrong, that is a real answer and I respect it. Keep my number: (903) 500-8898. Text it whenever, even a year from now, even if it is just a question you want a straight answer to. I will answer it either way.
 
-If the timing is right, the offer has not changed and it is not going to. I build the site for free. You pay for the engine. From $197, one payment, live in ten business days from our call.
+If the timing is right, the offer is simple. Apply for the first five-page website at a $0 build fee. No paid add-on is required. Paid growth services, outside vendor costs, and ad spend are disclosed and approved separately.
 
 ${nurtureLink(30)}
 

@@ -268,6 +268,81 @@ async function notifyUnhandledPurchase(
   });
 }
 
+async function notifyToolStudioPurchase(
+  email: string,
+  kind: string,
+  amountCents: number | null,
+  session: StripeCheckoutSession,
+) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+  const amount =
+    typeof amountCents === "number" && Number.isFinite(amountCents)
+      ? `$${(amountCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+      : "the Stripe total";
+  const order =
+    typeof session.metadata?.order === "string"
+      ? session.metadata.order.slice(0, 480)
+      : kind.replace(/_/g, " ");
+  const renewal =
+    typeof session.metadata?.renews_monthly_usd === "string"
+      ? session.metadata.renews_monthly_usd.slice(0, 40)
+      : "0";
+  const send = async (payload: object) => {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error(`Resend rejected Tool Studio email: ${response.status}`);
+  };
+
+  await send({
+    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+    to: ["hello@theleadflowpro.com"],
+    subject: `TOOL STUDIO PAID: ${amount} - ${email}`,
+    text: [
+      "A Tool Studio checkout completed.",
+      "",
+      `Buyer: ${email}`,
+      `Paid today: ${amount}`,
+      `Renews monthly: $${renewal}`,
+      `Order: ${order}`,
+      `Stripe session: ${typeof session.id === "string" ? session.id : "-"}`,
+      "",
+      "NEXT ACTION: match this payment to the Tool Studio lead, then lock the",
+      "written inputs, outputs, revisions, exclusions, and delivery date.",
+      "",
+      "Admin: https://www.theleadflowpro.com/admin",
+    ].join("\n"),
+  });
+
+  await send({
+    from: "Ryan Nichols <hello@theleadflowpro.com>",
+    to: [email],
+    reply_to: "hello@theleadflowpro.com",
+    subject: "Your Tool Studio order is in. Here is what happens next.",
+    text: [
+      "Your payment came through.",
+      "",
+      `Order: ${order}`,
+      `Paid today: ${amount}`,
+      renewal !== "0" ? `Monthly renewal: $${renewal}` : "No monthly menu selected.",
+      "",
+      "I will contact you within one business day. We will lock the written",
+      "scope before production: the tool's inputs, outputs, logic, lead route,",
+      "correction rounds, exclusions, and delivery target.",
+      "",
+      "Do not send passwords. I will use approved account invitations wherever",
+      "access is required.",
+      "",
+      "Ryan Nichols",
+      "The LeadFlow Pro",
+      "(903) 500-8898",
+    ].join("\n"),
+  });
+}
+
 type IntakeLead = {
   id: string;
   full_name: string;
@@ -1243,6 +1318,13 @@ export async function POST(request: Request) {
       await ensureLeadFollowUpPaid(supabase, session);
     } else if (findFreeBuildTier(kind)) {
       await ensureFreeBuildPaid(supabase, session, kind);
+    } else if (kind === "tool_studio_order" || kind === "tool_monthly_menu") {
+      await notifyToolStudioPurchase(
+        customer.email,
+        kind,
+        Number.isFinite(Number(session.amount_total)) ? Number(session.amount_total) : null,
+        session,
+      );
     } else if (kind === "learn_it") {
       await sendPurchaseEmails(customer.email, kind);
     } else if (kind === CONTENT_ENGINE.purchaseKind) {

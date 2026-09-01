@@ -31,8 +31,8 @@ declare global {
 }
 
 export default function FreeBuildOrder() {
-  const [tier, setTier] = useState<FreeBuildTier>(FREE_BUILD.tiers[1]);
   const options = FREE_BUILD_OPTIONS;
+  const [tier, setTier] = useState<FreeBuildTier>(options[0]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
@@ -47,6 +47,8 @@ export default function FreeBuildOrder() {
     const phone = String(form.get("phone") ?? "").trim();
     const business = String(form.get("business_name") ?? "").trim();
     const doing = String(form.get("what_you_do") ?? "").trim();
+    const topService = String(form.get("top_service") ?? "").trim();
+    const timeline = String(form.get("timeline") ?? "").trim();
     const params = new URLSearchParams(window.location.search);
 
     // 1. Save the lead. Always. Before anything else can fail.
@@ -61,29 +63,35 @@ export default function FreeBuildOrder() {
           email,
           phone: phone || null,
           website_url: String(form.get("website_url") ?? "").trim() || null,
-          interest: "launch_system",
+          interest: "free_website_program",
           goals: [
-            `FREE BUILD ORDER: ${tier.name} (${formatUsd(tier.priceUsd)}).`,
+            `FREE WEBSITE APPLICATION: ${tier.name} (${formatUsd(tier.priceUsd)}).`,
             doing ? `What they do: ${doing}` : "",
+            topService ? `Service they want more customers for: ${topService}` : "",
+            timeline ? `Preferred timeline: ${timeline}` : "",
           ]
             .filter(Boolean)
             .join(" "),
-          best_contact_method: phone ? "phone" : "email",
+          best_contact_method: "phone",
           sms_consent: form.get("sms_consent") === "on" && Boolean(phone),
           marketing_email_consent: form.get("marketing_email_consent") === "on",
           utm_source: params.get("utm_source"),
           utm_medium: params.get("utm_medium"),
           utm_campaign: params.get("utm_campaign"),
           diagnostic: {
-            version: 1,
+            version: 2,
             source: "free_build_funnel",
             offer: tier.id,
             tier_name: tier.name,
             price_usd: tier.priceUsd,
             pages: tier.pages,
             what_you_do: doing || null,
+            top_service: topService || null,
+            timeline: timeline || null,
             next_action:
-              "Free Build order. Confirm payment, book the 20 minute call, start the build clock.",
+              tier.priceUsd === 0
+                ? "Review Free Website Program fit, confirm the written five-page scope, and book the intake."
+                : "Review fit, confirm the optional paid work product, and book the intake before sending checkout.",
           },
         }),
       });
@@ -107,10 +115,9 @@ export default function FreeBuildOrder() {
     // does not exist.
     if (tier.priceUsd === 0) {
       setSaved(
-        "You are in. Ryan will call or email you within one business day to book the twenty " +
-          "minute call. Free build, no engine, and the trade is exactly what the page says: his " +
-          "credit in your footer, a copy of your leads, his pixel next to yours. All of it comes " +
-          "off the day you buy anything.",
+        "Your application is in. Ryan will call or email you within one business day to review " +
+          "fit and the written five-page scope. No paid add-on is required. Your customer records, " +
+          "analytics, domain, and website remain under your control.",
       );
       setSending(false);
       return;
@@ -175,7 +182,7 @@ export default function FreeBuildOrder() {
               <span className={styles.tierName}>{t.name}</span>
               <span className={styles.tierPrice}>
                 {t.priceUsd === 0 ? "$0" : formatUsd(t.priceUsd)}
-                <em>{t.priceUsd === 0 ? "and here is the trade" : "one time"}</em>
+                <em>{t.priceUsd === 0 ? "no required add-on" : "one time"}</em>
               </span>
               <span className={styles.tierPages}>{t.pages}</span>
               <span className={styles.tierEngine}>{t.engine}</span>
@@ -239,9 +246,9 @@ export default function FreeBuildOrder() {
           </div>
           <div>
             <label className="label" htmlFor="fb-phone">
-              Cell phone
+              Cell phone *
             </label>
-            <input className="input" id="fb-phone" name="phone" type="tel" maxLength={50} />
+            <input className="input" id="fb-phone" name="phone" type="tel" required maxLength={50} />
           </div>
         </div>
 
@@ -256,6 +263,33 @@ export default function FreeBuildOrder() {
             maxLength={300}
             placeholder="Leave it blank if you do not have one yet"
           />
+        </div>
+
+        <div>
+          <label className="label" htmlFor="fb-service">
+            What service do you want more customers for? *
+          </label>
+          <input
+            className="input"
+            id="fb-service"
+            name="top_service"
+            required
+            maxLength={300}
+            placeholder="Commercial roofing, dental implants, fleet washing..."
+          />
+        </div>
+
+        <div>
+          <label className="label" htmlFor="fb-timeline">
+            When do you want the website moving?
+          </label>
+          <select className="input" id="fb-timeline" name="timeline" defaultValue="">
+            <option value="">Choose one</option>
+            <option value="As soon as I qualify">As soon as I qualify</option>
+            <option value="Within 30 days">Within 30 days</option>
+            <option value="Within 90 days">Within 90 days</option>
+            <option value="I am researching">I am researching</option>
+          </select>
         </div>
 
         <div>
@@ -274,15 +308,16 @@ export default function FreeBuildOrder() {
         <label className={styles.consentRow}>
           <input type="checkbox" name="sms_consent" />
           <span>
-            You may call or text me about this build at the number above. Message and data rates may
-            apply. Reply STOP any time.
+            You may call or text me about this application at the number above. Message and data
+            rates may apply. Reply STOP any time.
           </span>
         </label>
 
         <label className={styles.consentRow}>
           <input type="checkbox" name="marketing_email_consent" defaultChecked />
           <span>
-            Send me Ryan&rsquo;s business emails. Optional, and one click unsubscribes at any time.
+            Send me Ryan&rsquo;s immediate confirmation and daily business emails for up to 30 days.
+            Optional, and one click unsubscribes at any time.
           </span>
         </label>
 
@@ -292,15 +327,16 @@ export default function FreeBuildOrder() {
           {sending
             ? "Sending..."
             : tier.priceUsd === 0
-              ? "Claim My Free Build | $0"
+              ? "Apply for My Free Website | $0"
               : `Claim My Free Build | ${formatUsd(tier.priceUsd)}`}
           <ArrowRight aria-hidden="true" />
         </button>
 
         <p className={styles.secureNote}>
           <Lock aria-hidden="true" />
-          Card payments are processed by Stripe. The LeadFlow Pro never sees or stores your card
-          number, and never asks for a password to any of your accounts.
+          {tier.priceUsd === 0
+            ? "No card is required for the free website application. The LeadFlow Pro never asks for a password to any of your accounts."
+            : "Card payments are processed by Stripe. The LeadFlow Pro never sees or stores your card number, and never asks for a password to any of your accounts."}
         </p>
       </form>
     </div>

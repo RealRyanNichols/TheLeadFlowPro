@@ -15,6 +15,7 @@ export const INTEREST_LABELS: Record<string, string> = {
   system_map: "System Map",
   launch_system: "Website Launch",
   website_launch: "Website Launch",
+  free_website_program: "Free Website Program",
   lead_engine: "Lead Engine",
   training_platform: "Training Platform",
   company_os: "Company OS",
@@ -45,10 +46,11 @@ export type NotifiableLead = {
 
 type LegacySeriesCandidate = Pick<NotifiableLead, "interest" | "goals" | "source">;
 
-// The free-build offer and its 30-day sequence were retired on August 17,
-// 2026. Keep the historical event sender below for old records and reporting,
-// but do not enroll any new lead until a paid-ladder nurture series is written
-// and explicitly approved.
+// The historical Resend Event automation is retired. The active Free Website
+// Program sequence lives in lib/nurture.ts and is sent by /api/cron/nurture,
+// using the lead's explicit marketing_email_consent snapshot. Never enroll a
+// lead in this legacy provider-side automation as well, or they would receive
+// two independent sequences.
 export function shouldEnrollInLegacyEmailSeries(_lead: LegacySeriesCandidate) {
   return false;
 }
@@ -119,29 +121,32 @@ export async function sendLeadEmails(lead: NotifiableLead) {
 
   await sendInternalLeadAlert(lead);
 
-  // Free Build orders get their own reply. They just picked an engine and
-  // expect a call to book, not a diagnostic read.
-  if (lead.funnel === "free_build_funnel") {
+  // Free Website Program applications get their own transactional reply.
+  // This confirms receipt; the separate 30-day series still requires the
+  // optional marketing-email checkbox.
+  if (lead.funnel === "free_build_funnel" || lead.interest === "free_website_program") {
     await send({
       from: "Ryan Nichols <ryan@theleadflowpro.com>",
       to: [lead.email],
       reply_to: "hello@theleadflowpro.com",
-      subject: `${first}, your free build is claimed.`,
+      subject: `${first}, your free website application is in.`,
       text: [
         `${first},`,
         ``,
-        `Your free build request just landed with me. Not a ticket queue. Mine.`,
+        `Your Free Website Program application just landed with me. Not a ticket queue. Mine.`,
         ``,
         `Here is what happens next:`,
         ``,
-        `1. I reach out within one business day to book twenty minutes. Usually a text first, from (903) 500-8898. Save that number, it is my direct line.`,
-        `2. On that call I get what you do, who you want calling you, and what you want them to do when they land. Twenty minutes, that is the whole thing.`,
-        `3. Your site is live within 10 business days of that call, or the engine you paid for costs you nothing and you keep the site anyway.`,
+        `1. I review the business, the current website or Facebook page, and the service you want more customers for.`,
+        `2. I reach out within one business day. Usually a text or call from (903) 500-8898. Save that number, it is my direct line.`,
+        `3. If the application fits the current capacity, we put the five pages, ownership, outside costs, corrections, and exclusions into a written scope before the build starts.`,
         ``,
-        `Have ready if you can: a few real photos of real work, your logo if you have one. No passwords, ever. Access happens through approvals you click yourself.`,
+        `The build fee is $0. No paid add-on is required. Domain registration, paid hosting after the included 90 days, software, advertising spend, and work outside the five-page scope are separate and disclosed before approval.`,
         ``,
-        `Every system I have already built and handed over is here, live and clickable:`,
-        `https://www.theleadflowpro.com/portfolio`,
+        `Have ready if you can: a few real photos of real work and your logo if you have one. No passwords, ever. Access happens through approvals you control.`,
+        ``,
+        `Review the exact program terms here:`,
+        `https://www.theleadflowpro.com/free-build`,
         ``,
         `Talk soon,`,
         `Ryan Nichols`,

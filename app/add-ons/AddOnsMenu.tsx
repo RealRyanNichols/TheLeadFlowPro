@@ -587,8 +587,9 @@ export default function AddOnsMenu() {
             <div className={styles.qualifier}>
               <ShieldCheck aria-hidden="true" />
               <p>
-                Website Launch is $1,000 total. Funnels, CRM, portals, courses,
-                automation, and every add-on below are scoped separately.
+                Approved first five-page websites have a $0 build fee. Funnels,
+                CRM, tools, portals, courses, ads, automation, and every add-on
+                below are optional and scoped separately.
               </p>
             </div>
           </div>
@@ -787,9 +788,10 @@ export default function AddOnsMenu() {
             This is a scope request, not a blank check.
           </p>
           <p>
-            The five-page Website Launch is $1,000: $500 to start and $500 after approval,
-            before launch. Funnels, CRM, tools, portals, courses, ads, automation, and other
-            modules are scoped and priced separately before work begins.
+            Approved first five-page websites have a $0 build fee through the Free Website
+            Program. Application, capacity, written scope, and outside-cost rules apply.
+            Funnels, CRM, tools, portals, courses, ads, automation, and other modules are
+            optional and priced separately before work begins.
           </p>
         </section>
       )}

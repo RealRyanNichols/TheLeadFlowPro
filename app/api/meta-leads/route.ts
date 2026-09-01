@@ -87,6 +87,10 @@ const FORM_CAMPAIGNS: Record<string, string> = {
   // form now on BOTH live video ads (Ad A | Mall Walk | Video, and
   // Mall Video | Lead Form | v1). Listed in META_LEAD_FORM_IDS in Vercel.
   "2043120369669082": "free_build_volume",
+  // LFP | Free Website | Longview | v1 — created 2026-09-01 for the paused
+  // Longview +30-mile Free Website lead campaign. Add to META_LEAD_FORM_IDS
+  // in Vercel before the campaign is activated.
+  "2016689789051460": "free_website_longview_2026_09",
 };
 
 // Which optional consent checkbox is which, PER FORM.
@@ -110,6 +114,9 @@ const FORM_CONSENT_LAYOUT: Record<string, ReadonlyArray<"sms" | "marketing">> = 
   // Free Build Volume: one box, "Yes, send me the daily email." Its own text
   // says "No automated marketing texts." Email opt-in only.
   "2043120369669082": ["marketing"],
+  // Free Website Longview: one optional 30-day business-email consent box.
+  // The form explicitly excludes automated marketing texts.
+  "2016689789051460": ["marketing"],
 };
 const LEGACY_CONSENT_LAYOUT: ReadonlyArray<"sms" | "marketing"> = ["sms", "marketing"];
 
@@ -177,7 +184,31 @@ function mapLead(raw: MetaLead) {
   // for a website right now?"; the other two catch the older Qualified forms.
   const platform = pick(fields, "have_online", "online_right_now", "website_right_now");
   const timeline = pick(fields, "how_soon", "want_this_built", "want_this_moving");
+  const productChoice = pick(
+    fields,
+    "want_us_to_build_first",
+    "want_built_first",
+    "build_first",
+  );
+  const budgetRange = pick(
+    fields,
+    "prepared_to_invest",
+    "traffic_and_follow_up",
+    "first_30_days",
+  );
+  const product = (productChoice ?? "").toLowerCase();
+  const desiredModules = [
+    product.includes("website") ? "website_funnels" : null,
+    product.includes("funnel") || product.includes("form") ? "website_funnels" : null,
+    product.includes("tool") || product.includes("calculator") ? "forms_tools" : null,
+    product.includes("crm") ? "crm_pipeline" : null,
+    product.includes("follow-up") || product.includes("automation") ? "email_automation" : null,
+    product.includes("archive") ? "archive_library" : null,
+    product.includes("seo") ? "website_funnels" : null,
+  ].filter((value, index, values): value is string => !!value && values.indexOf(value) === index);
   const consents = parseConsents(raw);
+  const campaign = FORM_CAMPAIGNS[raw.form_id ?? ""] ?? "meta_lead_form";
+  const isFreeWebsiteCampaign = campaign === "free_build_volume" || campaign.startsWith("free_website");
 
   // Everything the lead actually told us, kept verbatim so the admin view and
   // the alert email show real answers instead of an empty row.
@@ -195,23 +226,28 @@ function mapLead(raw: MetaLead) {
       website_url: null,
       current_platform: platform,
       industry,
-      desired_modules: [] as string[],
-      interest: "done_for_you",
+      desired_modules: desiredModules,
+      interest: isFreeWebsiteCampaign ? "free_website_program" : "done_for_you",
       goals: answers.length ? answers.join("\n") : null,
-      budget_range: null,
+      budget_range: budgetRange,
       timeline,
       best_contact_method: phone ? "text" : "email",
       source: "meta_lead_ad",
       utm_source: "facebook",
       utm_medium: "paid",
-      utm_campaign: FORM_CAMPAIGNS[raw.form_id ?? ""] ?? "meta_lead_form",
+      utm_campaign: campaign,
       // Consent comes ONLY from the form's own optional checkboxes. No
       // checkbox checked means no text and no marketing email, full stop.
       sms_consent: consents.sms && !!phone,
       marketing_email_consent: consents.marketing,
       consent_at: new Date().toISOString(),
       external_id: `meta:${raw.id}`,
-      diagnostic: { meta_lead_id: raw.id, form_id: raw.form_id ?? null, fields: Object.fromEntries(fields) },
+      diagnostic: {
+        source: isFreeWebsiteCampaign ? "free_build_funnel" : "meta_lead_form",
+        meta_lead_id: raw.id,
+        form_id: raw.form_id ?? null,
+        fields: Object.fromEntries(fields),
+      },
     },
   };
 }

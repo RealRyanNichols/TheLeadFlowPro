@@ -31,6 +31,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/operator-academy/content-engine",
     "/contact",
     "/go/lead-follow-up",
+    "/go/tools",
     "/privacy",
     "/terms",
   ];

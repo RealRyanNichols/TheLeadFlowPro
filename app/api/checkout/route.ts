@@ -4,6 +4,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { priceOrder } from "@/lib/timeback";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 import { FREE_BUILD } from "@/lib/freeBuild";
+import { priceToolStudio } from "@/lib/toolStudio";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
@@ -58,6 +59,12 @@ export async function POST(request: Request) {
     let amount: number;
     let cancelUrl = `${site}/training?cancelled=1`;
     let successUrl: string | null = null;
+    let checkoutMode: "payment" | "subscription" = "payment";
+    let checkoutLines: Array<{
+      name: string;
+      amount: number;
+      recurring: boolean;
+    }> | null = null;
     const metadata: Record<string, string> = {};
 
     if (body.kind === "event") {
@@ -173,6 +180,51 @@ export async function POST(request: Request) {
         amount = dollars * 100;
         metadata.deposit_usd = String(dollars);
       }
+    } else if (body.kind === "tool_studio") {
+      // Tool Studio prices are rebuilt here from IDs. The browser never sends
+      // a dollar amount. When monthly menu items are selected, Stripe Checkout
+      // creates a subscription; a one-time build can share the first invoice.
+      const priced = priceToolStudio({
+        buildId: typeof body.build_id === "string" ? body.build_id : null,
+        monthlyIds: Array.isArray(body.monthly_ids)
+          ? body.monthly_ids.map(String).slice(0, 10)
+          : [],
+      });
+      if (!priced) {
+        return NextResponse.json({ error: "Invalid Tool Studio selection" }, { status: 400 });
+      }
+      kind = priced.monthly.length ? "tool_monthly_menu" : "tool_studio_order";
+      name = priced.build?.name ?? priced.monthly.map((item) => item.name).join(" + ");
+      amount = priced.dueTodayUsd * 100;
+      checkoutMode = priced.monthly.length ? "subscription" : "payment";
+      checkoutLines = [
+        ...(priced.build
+          ? [{
+              name: `${priced.build.name} | The LeadFlow Pro`,
+              amount: priced.build.priceUsd * 100,
+              recurring: false,
+            }]
+          : []),
+        ...priced.monthly.map((item) => ({
+          name: `${item.name} | The LeadFlow Pro`,
+          amount: item.priceUsd * 100,
+          recurring: true,
+        })),
+      ];
+      cancelUrl = `${site}/go/tools?cancelled=1`;
+      successUrl = `${site}/go/tools/welcome?session_id={CHECKOUT_SESSION_ID}`;
+      metadata.kind = kind;
+      metadata.build_id = priced.build?.id ?? "none";
+      metadata.monthly_ids = priced.monthly.map((item) => item.id).join(",").slice(0, 400);
+      metadata.due_today_usd = String(priced.dueTodayUsd);
+      metadata.renews_monthly_usd = String(priced.renewsMonthlyUsd);
+      metadata.order = [
+        priced.build ? `${priced.build.name} $${priced.build.priceUsd}` : "",
+        ...priced.monthly.map((item) => `${item.name} $${item.priceUsd}/mo`),
+      ]
+        .filter(Boolean)
+        .join(" | ")
+        .slice(0, 480);
     } else if (body.kind === "timeback_order") {
       // Time Back funnel (/go/time-back). The client sends selections, never
       // prices. The total comes from lib/timeback.ts so nobody can edit a
@@ -229,17 +281,32 @@ export async function POST(request: Request) {
     }
 
     const params = new URLSearchParams({
-      mode: "payment",
-      "line_items[0][quantity]": "1",
-      "line_items[0][price_data][currency]": "usd",
-      "line_items[0][price_data][unit_amount]": String(amount),
-      "line_items[0][price_data][product_data][name]": name,
+      mode: checkoutMode,
       success_url:
         successUrl ?? `${site}/thank-you?purchase=${kind}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl,
       allow_promotion_codes: "true",
     });
+    const lines = checkoutLines ?? [{ name, amount, recurring: false }];
+    lines.forEach((line, index) => {
+      params.set(`line_items[${index}][quantity]`, "1");
+      params.set(`line_items[${index}][price_data][currency]`, "usd");
+      params.set(`line_items[${index}][price_data][unit_amount]`, String(line.amount));
+      params.set(`line_items[${index}][price_data][product_data][name]`, line.name);
+      if (line.recurring) {
+        params.set(`line_items[${index}][price_data][recurring][interval]`, "month");
+      }
+    });
     for (const [k, v] of Object.entries(metadata)) params.set(`metadata[${k}]`, v);
+    if (checkoutMode === "subscription") {
+      for (const [k, v] of Object.entries(metadata)) {
+        params.set(`subscription_data[metadata][${k}]`, v);
+      }
+      params.set(
+        "custom_text[submit][message]",
+        "Your selected monthly services renew on the same calendar date until canceled or changed. Submit menu changes at least three business days before renewal.",
+      );
+    }
     if (email) params.set("customer_email", email);
 
     const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {

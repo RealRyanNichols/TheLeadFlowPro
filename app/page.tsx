@@ -17,7 +17,7 @@ import {
 import CompanyLoop from "@/components/site/CompanyLoop";
 import CtaLink from "@/components/site/CtaLink";
 import { ARTICLES } from "@/lib/articles";
-import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
+import { FREE_BUILD } from "@/lib/freeBuild";
 import { TOOL_COUNT } from "@/lib/tools";
 
 // THE COMPANY BUILDER homepage.
@@ -202,42 +202,40 @@ const RECEIPTS = [
   },
 ];
 
-// The Product Studio entry offer: one clear scope, one clear price, and a
-// working approval checkpoint before the final payment and launch.
-const WEBSITE_LAUNCH = [
-  {
-    num: "01",
-    title: "Reserve the build",
-    body: "A $500 deposit opens intake, locks the Website Launch scope, and starts the build. Once intake begins, the deposit is non-refundable, except where the written agreement or applicable law requires otherwise.",
-  },
-  {
-    num: "02",
-    title: "Review the working site",
-    body: "Click through the real pages, test the forms, and request revisions inside the agreed scope.",
-  },
-  {
-    num: "03",
-    title: "Approve and launch",
-    body: "The remaining $500 is due only after approval and before the site moves to its live domain.",
-  },
-];
+const FREE_WEBSITE_STEPS = FREE_BUILD.steps.slice(0, 3);
 
 const LADDER = [
   {
-    kind: "Fixed-scope foundation",
+    kind: "Application-based foundation",
+    name: "Free Website Program",
+    price: "$0 build fee",
+    lead: true,
+    body: "One owned, mobile-first five-page website. The build fee is genuinely $0 for approved businesses; growth services stay optional.",
+    items: [
+      "Up to five scoped pages",
+      "Lead capture routed to your inbox or CRM",
+      "Search foundation, analytics, and launch setup",
+      "90 days of scoped corrections",
+      "Your code, accounts, data, and leads stay yours",
+    ],
+    href: "/free-build",
+    cta: "Apply for the free website",
+  },
+  {
+    kind: "Buy-it-outright option",
     name: "Website Launch",
     price: "$1,000",
-    lead: true,
-    body: "A conversion-led five-page public experience with a clear path from attention to the next conversation.",
+    lead: false,
+    body: "The same five-page foundation for businesses that want to purchase a build outright instead of applying for a program opening.",
     items: [
       "Conversion map and five premium pages",
-      "Three premium visual scenes at the founding rate",
       "Lead capture and routing",
       "Responsive build, analytics, and deployment",
       "Two revision rounds before launch",
+      "Clear ownership and handoff",
     ],
     href: "/packages/launch",
-    cta: "See the $1,000 launch",
+    cta: "See the buy-it-outright option",
   },
   {
     kind: "Deeper diagnostic",
@@ -261,7 +259,7 @@ const LADDER = [
     lead: false,
     body: "The website, CRM, portal, analytics, and operating dashboard connected around the way the business actually works.",
     items: [
-      "Everything in Website Launch",
+      "Everything in the website foundation",
       "Customer, member, student, or partner portals",
       "Company workflows, courses, archives, calls, and texts",
       "Deeper permissions, migration, and automation",
@@ -388,8 +386,8 @@ export default function HomePage() {
                 into customers with a connected system built around the way they work.
               </p>
               <div className="cb-actions">
-                <Link className="cb-btn cb-btn--primary" href="/proof-floor">
-                  Open Mission Control
+                <Link className="cb-btn cb-btn--primary" href="/free-build">
+                  Apply for My Free Website
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </Link>
                 <Link className="cb-btn cb-btn--ghost" href="#results">
@@ -986,52 +984,48 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 8b -------------------------------------------- Product Studio offer */}
-      {/* A fixed-scope, fixed-price way to begin after the package ladder. The
-          existing layout classes stay in place so this offer inherits the
-          established visual system without introducing a one-off section. */}
+      {/* 8b ------------------------------------------ Free Website Program */}
       <section className="cb-band cb-band--ink cb-freebuild">
         <div className="cb-shell">
           <div className="cb-freebuild-grid">
             <div>
               <p className="cb-eyebrow">
                 <Layers aria-hidden="true" className="h-4 w-4" />
-                Product Studio · Website Launch
+                The Free Website Program
               </p>
               <h2 className="cb-h2 cb-heading">
-                A working five-page Website Launch for $1,000.
+                Own your website. Your first five-page build is $0.
               </h2>
               <p className="cb-lead">
-                Pay $500 to reserve the build. Review the working site and request revisions
-                inside the agreed scope. The remaining $500 is due only after approval and
-                before launch. Your code, domain, accounts, and data stay under your control.
+                Apply for one of ten monthly openings. The build fee is genuinely free for
+                approved businesses, with no required add-on. Your code, domain, accounts,
+                analytics, customer records, and leads stay under your control.
               </p>
               <div className="cb-actions">
-                <a
-                  href={WEBSITE_LAUNCH_CHECKOUT}
-                  data-analytics="cta-website-launch-home"
+                <Link
+                  href="/free-build"
+                  data-analytics="cta-free-website-home"
                   className="cb-btn cb-btn--primary"
                 >
-                  Reserve My Website Launch | $500
+                  Apply for My Free Website
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                </a>
+                </Link>
                 <Link className="cb-btn cb-btn--ghost" href="/packages">
-                  See Product Studio options
+                  See optional growth services
                 </Link>
               </div>
               <p className="mt-3 max-w-[64ch] text-sm leading-6 text-[#9aa8bf]">
-                The $500 deposit becomes non-refundable once intake begins, except where
-                the written agreement or applicable law requires otherwise. It starts the
-                five-page Website Launch. CRM, automation, portals, and deeper systems are
-                scoped separately.
+                Domain registration, paid hosting after the included 90 days, ad spend,
+                software subscriptions, extra pages, CRM, automation, content, video, and
+                ongoing marketing are separate and quoted before you approve them.
               </p>
             </div>
             <ol className="cb-freebuild-steps">
-              {WEBSITE_LAUNCH.map((s) => (
-                <li key={s.title}>
-                  <span className="cb-freebuild-num">{s.num}</span>
+              {FREE_WEBSITE_STEPS.map((s) => (
+                <li key={s.name}>
+                  <span className="cb-freebuild-num">{s.number}</span>
                   <div>
-                    <strong>{s.title}</strong>
+                    <strong>{s.name}</strong>
                     <span>{s.body}</span>
                   </div>
                 </li>
@@ -1046,27 +1040,27 @@ export default function HomePage() {
         <div className="cb-shell">
           <p className="cb-eyebrow">Your next move</p>
           <h2 className="cb-h2">
-            <em>Show me the business.</em>
-            I&rsquo;ll show you what to build.
+            <em>Own your website.</em>
+            Then build the machine around it.
           </h2>
           <p className="cb-lead">
-            Answer a few questions about how your company actually runs and see the system
-            that fits before you hand over any contact information. No pitch deck, no
-            discovery call you have to sit through first.
+            Apply for the $0 five-page foundation. If you want ads, daily follow-up,
+            content, CRM, automation, video, or a complete operating system after that,
+            we scope it separately and you decide what comes next.
           </p>
           <div className="cb-actions">
             <CtaLink
-              href="/start"
-              event="map_my_company"
+              href="/free-build"
+              event="apply_free_website"
               placement="home_final"
               className="cb-btn cb-btn--primary"
             >
-              Map My Company
+              Apply for My Free Website
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </CtaLink>
-            <Link className="cb-btn cb-btn--ghost" href="/packages">
-              <Layers aria-hidden="true" className="h-4 w-4" />
-              See the packages
+            <Link className="cb-btn cb-btn--ghost" href="/proof-floor">
+              <LayoutDashboard aria-hidden="true" className="h-4 w-4" />
+              Open Mission Control
             </Link>
           </div>
         </div>

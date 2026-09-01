@@ -43,7 +43,18 @@ test("legacy and malformed diagnostic payloads stay eligible for general nurture
 test("the general nurture step range cannot overlap diagnostic steps 200 through 206", () => {
   assert.equal(NURTURE_FIRST_STEP, 101);
   assert.equal(NURTURE_LAST_STEP, 130);
+  assert.equal(NURTURE_STEPS.length, 30);
+  assert.deepEqual(NURTURE_STEPS.map((step) => step.day), Array.from({ length: 30 }, (_, i) => i + 1));
   assert.equal(NURTURE_STEPS.some((step) => step.step >= 200 && step.step <= 206), false);
+});
+
+test("the active sequence describes the free website without a required paid service", () => {
+  const copy = NURTURE_STEPS.map((step) => `${step.subject}\n${step.body("Ryan")}`).join("\n");
+
+  assert.match(copy, /five-page website with a \$0 build fee/i);
+  assert.match(copy, /No add-on purchase is required/i);
+  assert.match(copy, /domain registration/i);
+  assert.match(copy, /never reused across clients/i);
 });
 
 test("general nurture eligibility remains based on lead age", () => {
