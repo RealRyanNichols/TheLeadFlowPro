@@ -44,6 +44,17 @@ export type NotifiableLead = {
   funnel?: string | null;
 };
 
+export type LeadEmailNotificationType = "owner_alert" | "lead_welcome";
+
+export type LeadEmailSendResult =
+  | { ok: true; providerMessageId: string | null }
+  | { ok: false; error: string };
+
+// Keep the public lead POST responsive when Resend is slow. Outbox sends carry
+// a stable provider idempotency key, so an abort after Resend accepted the
+// request remains safe to retry with the same key.
+export const LEAD_EMAIL_PROVIDER_TIMEOUT_MS = 5_000;
+
 type LegacySeriesCandidate = Pick<NotifiableLead, "interest" | "goals" | "source">;
 
 // The historical Resend Event automation is retired. The active Free Website
@@ -61,37 +72,60 @@ export function shouldEnrollInLegacyEmailSeries(_lead: LegacySeriesCandidate) {
 // console.error where nobody saw it. Leads came in, Ryan heard nothing, and
 // the Resend dashboard showed zero sent. If you change this address, verify
 // the domain in Resend first.
-async function send(payload: object): Promise<boolean> {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return false;
+async function sendDetailed(
+  payload: object,
+  idempotencyKey?: string,
+): Promise<LeadEmailSendResult> {
+  const key = process.env.RESEND_API_KEY?.trim();
+  if (!key) return { ok: false, error: "RESEND_API_KEY is not configured" };
   try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
+        ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
       },
       body: JSON.stringify(payload),
+      ...(idempotencyKey
+        ? { signal: AbortSignal.timeout(LEAD_EMAIL_PROVIDER_TIMEOUT_MS) }
+        : {}),
     });
+    const raw = await r.text().catch(() => "");
     if (!r.ok) {
-      console.error("Resend send failed:", r.status, await r.text().catch(() => ""));
-      return false;
+      return {
+        ok: false,
+        error: `Resend returned HTTP ${r.status}${raw ? `: ${raw}` : ""}`.slice(0, 1000),
+      };
     }
-    return true;
+    let providerMessageId: string | null = null;
+    try {
+      const body = JSON.parse(raw) as { id?: unknown };
+      if (typeof body.id === "string") providerMessageId = body.id.slice(0, 200);
+    } catch {
+      // A 2xx response is accepted even if the optional provider id is absent.
+    }
+    return { ok: true, providerMessageId };
   } catch (e) {
-    console.error("Resend send error:", e);
-    return false;
+    return {
+      ok: false,
+      error: `Resend request failed: ${e instanceof Error ? e.message : "unknown error"}`.slice(
+        0,
+        1000,
+      ),
+    };
   }
 }
 
-// Internal-only alert for server-side events such as a verified Stripe
-// deposit. This deliberately does not contact the lead or enroll them in any
-// automation. Returning the provider result lets webhook callers ask Stripe
-// to retry when the internal alert could not be accepted.
-export async function sendInternalLeadAlert(lead: NotifiableLead) {
-  const via = lead.source === "meta_lead_ad" ? " [FACEBOOK LEAD AD]" : "";
+async function send(payload: object): Promise<boolean> {
+  const result = await sendDetailed(payload);
+  if (!result.ok) console.error("Resend send failed:", result.error);
+  return result.ok;
+}
 
-  return send({
+function ownerAlertPayload(lead: NotifiableLead) {
+  const via = lead.source === "meta_lead_ad" ? " [FACEBOOK LEAD AD]" : "";
+  return {
     from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
     reply_to: "hello@theleadflowpro.com",
     to: ["hello@theleadflowpro.com"],
@@ -111,21 +145,13 @@ export async function sendInternalLeadAlert(lead: NotifiableLead) {
       ``,
       `Manage: https://www.theleadflowpro.com/admin`,
     ].join("\n"),
-  });
+  };
 }
 
-export async function sendLeadEmails(lead: NotifiableLead) {
-  if (!process.env.RESEND_API_KEY) return;
-
+function leadWelcomePayload(lead: NotifiableLead) {
   const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
-
-  await sendInternalLeadAlert(lead);
-
-  // Free Website Program applications get their own transactional reply.
-  // This confirms receipt; the separate 30-day series still requires the
-  // optional marketing-email checkbox.
   if (lead.funnel === "free_build_funnel" || lead.interest === "free_website_program") {
-    await send({
+    return {
       from: "Ryan Nichols <ryan@theleadflowpro.com>",
       to: [lead.email],
       reply_to: "hello@theleadflowpro.com",
@@ -153,11 +179,10 @@ export async function sendLeadEmails(lead: NotifiableLead) {
         `The LeadFlow Pro`,
         `(903) 500-8898`,
       ].join("\n"),
-    });
-    return;
+    };
   }
 
-  await send({
+  return {
     from: "Ryan Nichols <ryan@theleadflowpro.com>",
     to: [lead.email],
     reply_to: "hello@theleadflowpro.com",
@@ -181,7 +206,32 @@ export async function sendLeadEmails(lead: NotifiableLead) {
       `The LeadFlow Pro`,
       `https://www.theleadflowpro.com`,
     ].join("\n"),
-  });
+  };
+}
+
+export async function sendLeadEmailNotification(
+  lead: NotifiableLead,
+  notificationType: LeadEmailNotificationType,
+  idempotencyKey: string,
+): Promise<LeadEmailSendResult> {
+  return sendDetailed(
+    notificationType === "owner_alert" ? ownerAlertPayload(lead) : leadWelcomePayload(lead),
+    idempotencyKey,
+  );
+}
+
+// Internal-only alert for server-side events such as a verified Stripe
+// deposit. This deliberately does not contact the lead or enroll them in any
+// automation. Returning the provider result lets webhook callers ask Stripe
+// to retry when the internal alert could not be accepted.
+export async function sendInternalLeadAlert(lead: NotifiableLead) {
+  return send(ownerAlertPayload(lead));
+}
+
+export async function sendLeadEmails(lead: NotifiableLead) {
+  if (!process.env.RESEND_API_KEY) return;
+  await sendInternalLeadAlert(lead);
+  await send(leadWelcomePayload(lead));
 }
 
 // Sends the historical "free-build-lead" event that powers the legacy Resend
@@ -229,6 +279,16 @@ export async function textLeadBack(lead: NotifiableLead) {
   );
 }
 
+// SMS remains an independent best-effort action. The durable outbox is email
+// only, so a failed text can never hold or duplicate the owner alert/welcome.
+export async function notifyNewLeadSms(lead: NotifiableLead) {
+  try {
+    if (lead.sms_consent && lead.phone) await textLeadBack(lead);
+  } catch (e) {
+    console.error("lead text step failed:", e);
+  }
+}
+
 // Alert + reply + text + eligible legacy-series enrollment, in that order.
 // Never throws: a broken provider must never stop a lead from being saved.
 export async function notifyNewLead(lead: NotifiableLead) {
@@ -237,11 +297,7 @@ export async function notifyNewLead(lead: NotifiableLead) {
   } catch (e) {
     console.error("lead email step failed:", e);
   }
-  try {
-    if (lead.sms_consent && lead.phone) await textLeadBack(lead);
-  } catch (e) {
-    console.error("lead text step failed:", e);
-  }
+  await notifyNewLeadSms(lead);
   try {
     if (shouldEnrollInLegacyEmailSeries(lead)) {
       await enrollInEmailSeries(lead.email);

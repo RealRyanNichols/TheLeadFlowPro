@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
-import { notifyNewLead } from "@/lib/leadNotify";
+import { notifyNewLeadSms } from "@/lib/leadNotify";
+import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotifications";
 import {
   isAllowedLeadFlowAdId,
   isRegisteredMetaForm,
@@ -213,6 +214,7 @@ function mapLead(raw: MetaLead) {
       external_id: `meta:${raw.id}`,
       diagnostic: {
         source: isFreeWebsiteCampaign ? "free_build_funnel" : "meta_lead_form",
+        notification_pipeline: "lead_intake_v1",
         meta_lead_id: raw.id,
         form_id: raw.form_id ?? null,
         fields: Object.fromEntries(fields),
@@ -356,8 +358,9 @@ async function claimExisting(
   return true;
 }
 
-// Insert if new, then alert. Returns true only when this call created the row,
-// so a webhook and a backfill poll racing on the same lead cannot double-text.
+// Insert if new, then attempt the transactional email jobs and optional text.
+// Returns true only when this call created the row, so a webhook and a
+// backfill poll racing on the same lead cannot double-contact the applicant.
 async function ingest(raw: MetaLead, token: string): Promise<boolean> {
   if (!(await paidLeadBelongsToLeadFlow(raw, token))) return false;
 
@@ -381,7 +384,20 @@ async function ingest(raw: MetaLead, token: string): Promise<boolean> {
   }
   if (!data) return false;
 
-  await notifyNewLead(lead);
+  // The lead insert trigger committed both email jobs with the lead. Attempt
+  // them immediately; a protected cron retries any provider failure without
+  // relying on Meta to redeliver an already-persisted lead.
+  try {
+    await deliverLeadEmailNotificationsForLead(supabase, data.id);
+  } catch (error) {
+    console.error(
+      "Immediate Meta lead email delivery failed; queued retry remains:",
+      error instanceof Error ? error.message : error,
+    );
+  }
+
+  // SMS is deliberately separate and remains best effort.
+  await notifyNewLeadSms(lead);
   return true;
 }
 
@@ -444,8 +460,8 @@ export async function GET(request: Request) {
   const formIds = [...new Set([...requested.ids, LEADFLOW_META.formId])];
 
   // Lead persistence must not go dark when the email provider is temporarily
-  // unavailable. notifyNewLead() already treats notification failures as
-  // non-blocking; the database and Meta credentials are the ingestion gate.
+  // unavailable. The transactional outbox keeps email failures retryable; the
+  // database and Meta credentials are the ingestion gate.
   if (!token || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return NextResponse.json(
       { error: "Missing LeadFlow Meta or database configuration" },

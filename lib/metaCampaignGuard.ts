@@ -199,9 +199,20 @@ export function metaRuntimeIdentityIssues(input: {
 }): string[] {
   const issues: string[] = [];
   exact("Runtime Page ID", input.pageId, LEADFLOW_META.pageId, issues);
+  issues.push(...leadFlowSupabaseRuntimeIssues(input.supabaseUrl));
+  return issues;
+}
+
+/** Fail closed before any LeadFlow-only job reads or writes a CRM database. */
+export function leadFlowSupabaseRuntimeIssues(supabaseUrl: string): string[] {
+  const issues: string[] = [];
   try {
-    const ref = new URL(input.supabaseUrl).hostname.split(".")[0] ?? "";
-    exact("Runtime Supabase project ref", ref, LEADFLOW_META.supabaseProjectRef, issues);
+    const url = new URL(supabaseUrl);
+    const expectedOrigin = `https://${LEADFLOW_META.supabaseProjectRef}.supabase.co`;
+    exact("Runtime Supabase origin", url.origin, expectedOrigin, issues);
+    if (url.username || url.password || url.pathname !== "/" || url.search || url.hash) {
+      issues.push("Runtime Supabase URL must be the bare approved project origin");
+    }
   } catch {
     issues.push("Runtime Supabase URL is invalid");
   }

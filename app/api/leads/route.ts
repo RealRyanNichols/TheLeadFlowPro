@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
-import { INTEREST_LABELS, notifyNewLead } from "@/lib/leadNotify";
+import { SUPABASE_URL } from "@/lib/config";
+import { INTEREST_LABELS, notifyNewLeadSms } from "@/lib/leadNotify";
+import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotifications";
+import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
 import { recordServerEvent } from "@/lib/analytics/server";
 
 const ALLOWED_INTERESTS = Object.keys(INTEREST_LABELS);
@@ -36,7 +39,36 @@ export async function POST(request: Request) {
       }
     }
 
-    const supabase = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const fullName = body.full_name.trim();
+    const email = body.email.trim();
+    if (!fullName || fullName.length > 200) {
+      return NextResponse.json({ error: "Enter a valid name" }, { status: 400 });
+    }
+    if (
+      email.length < 3 ||
+      email.length > 200 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
+      return NextResponse.json({ error: "Enter a valid email address" }, { status: 400 });
+    }
+
+    // The transactional email trigger accepts only service-role inserts. This
+    // keeps the outbox marker genuinely server-controlled instead of letting a
+    // direct anonymous Supabase insert enqueue arbitrary outbound email.
+    const runtimeIdentityIssues = leadFlowSupabaseRuntimeIssues(SUPABASE_URL);
+    if (runtimeIdentityIssues.length) {
+      console.error("Lead intake identity check failed:", runtimeIdentityIssues.join("; "));
+      return NextResponse.json({ error: "Lead intake identity check failed" }, { status: 503 });
+    }
+
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+    if (!serviceKey) {
+      console.error("Lead intake unavailable: SUPABASE_SERVICE_ROLE_KEY missing");
+      return NextResponse.json({ error: "Lead intake is not configured" }, { status: 503 });
+    }
+    const supabase = createSupabaseClient(SUPABASE_URL, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
     const desiredModules = Array.isArray(body.desired_modules)
       ? body.desired_modules
@@ -52,14 +84,20 @@ export async function POST(request: Request) {
       const raw = JSON.stringify(body.diagnostic);
       if (raw.length <= 16000) diagnostic = JSON.parse(raw);
     }
+    // Server-controlled outbox marker. The database trigger queues immediate
+    // emails only for the two lead-intake APIs, not every internal workflow
+    // that happens to create a CRM lead.
+    diagnostic = { ...(diagnostic ?? {}), notification_pipeline: "lead_intake_v1" };
 
     const smsConsent = body.sms_consent === true;
     const marketingEmailConsent = body.marketing_email_consent === true;
     const phone = body.phone ? String(body.phone).slice(0, 50) : null;
 
+    const leadId = randomUUID();
     const lead = {
-      full_name: String(body.full_name).slice(0, 200),
-      email: String(body.email).slice(0, 200),
+      id: leadId,
+      full_name: fullName,
+      email,
       phone,
       business_name: body.business_name ? String(body.business_name).slice(0, 200) : null,
       website_url: body.website_url ? String(body.website_url).slice(0, 300) : null,
@@ -101,15 +139,20 @@ export async function POST(request: Request) {
       utm_campaign: lead.utm_campaign,
     });
 
-    // Alert Ryan, reply to the lead, text them back. Shared with the Meta
-    // instant form pipeline so both doors behave the same.
-    await notifyNewLead({
-      ...lead,
-      funnel:
-        diagnostic && typeof (diagnostic as { source?: unknown }).source === "string"
-          ? String((diagnostic as { source?: unknown }).source)
-          : null,
-    });
+    // The database trigger committed the owner-alert and applicant-welcome
+    // outbox rows in the same transaction as this lead. Try them now for an
+    // immediate reply; a protected cron retries any provider failure.
+    try {
+      await deliverLeadEmailNotificationsForLead(supabase, leadId);
+    } catch (error) {
+      console.error(
+        "Immediate lead email delivery failed; queued retry remains:",
+        error instanceof Error ? error.message : error,
+      );
+    }
+
+    // SMS is intentionally outside the email outbox and remains best effort.
+    await notifyNewLeadSms(lead);
 
     return NextResponse.json({ ok: true });
   } catch {

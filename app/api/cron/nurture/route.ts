@@ -5,22 +5,31 @@ import {
   isBusinessDiagnosticLead,
   NURTURE_FIRST_STEP,
   NURTURE_LAST_STEP,
+  NURTURE_STEPS,
   stepsDueBy,
   type NurtureStep,
 } from "@/lib/nurture";
+import {
+  nurtureEmailIdempotencyKey,
+  nurtureRetryWindowExpired,
+  sendNurtureEmail,
+} from "@/lib/nurtureDelivery";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
-// The 30 day sequence sender. Runs once a day on Vercel Cron.
+// The 30 day sequence sender. Runs hourly so an uncertain provider response can
+// be retried inside Resend's 24-hour idempotency window.
 //
-// ONE EMAIL PER LEAD PER RUN. A lead that has been sitting for three weeks
-// with nothing sent does not get slammed with six emails at once. It gets the
-// oldest one it is owed today and the next one tomorrow. Slower, but it never
-// looks like a broken robot.
+// ONE SUCCESSFUL EMAIL PER LEAD PER 24 HOURS. A lead that has been sitting for
+// three weeks with nothing sent does not get slammed with six emails at once.
+// It gets the oldest one it is owed today and the next one tomorrow.
 //
 // IDEMPOTENCY: the claim row in lead_emails goes in BEFORE the send, and the
 // table has UNIQUE (lead_id, step). Two overlapping runs cannot both claim the
-// same step. If the send then fails, the claim is deleted so tomorrow retries
-// it. A missed email is recoverable. A duplicate is not.
+// same step. The row stays pending after any ambiguous response and every
+// retry uses one stable Resend key for the sequence + lead + step. Automated
+// retries stop at 23 hours, before Resend forgets the key. The claim is never
+// deleted on failure because replaying it outside that window could duplicate
+// an email the provider accepted while the response was lost.
 //
 // WHO IS ELIGIBLE (all must be true):
 //   - not deleted, not a test row
@@ -34,9 +43,8 @@ export const maxDuration = 60;
 
 const MAX_SENDS_PER_RUN = 200;
 const LOOKBACK_DAYS = 45;
-// Minimum gap between two emails to the SAME lead. 20 rather than 24 so a cron
-// that drifts a few minutes early does not skip a day.
-const MIN_HOURS_BETWEEN_SENDS = 20;
+const MIN_HOURS_BETWEEN_SENDS = 24;
+const MIN_RETRY_INTERVAL_MS = 30 * 60 * 1000;
 
 type EligibleLead = {
   id: string;
@@ -45,6 +53,17 @@ type EligibleLead = {
   email: string | null;
   source: string | null;
   diagnostic: unknown;
+};
+
+type NurtureDeliveryRow = {
+  id: string;
+  lead_id: string;
+  step: number;
+  sent_at: string;
+  delivery_status: "pending" | "sent" | "failed";
+  first_attempt_at: string | null;
+  last_attempt_at: string | null;
+  attempt_count: number;
 };
 
 function firstNameOf(fullName: string | null): string {
@@ -134,7 +153,9 @@ export async function GET(request: Request) {
   // One read for the whole batch instead of a query per lead.
   const { data: sentRows, error: sentRowsError } = await supabase
     .from("lead_emails")
-    .select("lead_id, step, sent_at")
+    .select(
+      "id, lead_id, step, sent_at, delivery_status, first_attempt_at, last_attempt_at, attempt_count",
+    )
     .in("lead_id", ids)
     .gte("step", NURTURE_FIRST_STEP)
     .lte("step", NURTURE_LAST_STEP);
@@ -146,7 +167,13 @@ export async function GET(request: Request) {
 
   const alreadySent = new Map<string, Set<number>>();
   const lastSentAt = new Map<string, number>();
-  for (const row of sentRows ?? []) {
+  const deliveryRowsByLead = new Map<string, NurtureDeliveryRow[]>();
+  for (const row of (sentRows ?? []) as NurtureDeliveryRow[]) {
+    const rows = deliveryRowsByLead.get(row.lead_id) ?? [];
+    rows.push(row);
+    deliveryRowsByLead.set(row.lead_id, rows);
+
+    if (row.delivery_status !== "sent") continue;
     const set = alreadySent.get(row.lead_id) ?? new Set<number>();
     set.add(row.step);
     alreadySent.set(row.lead_id, set);
@@ -160,6 +187,9 @@ export async function GET(request: Request) {
   let sent = 0;
   let failed = 0;
   let throttled = 0;
+  let retried = 0;
+  let retryDeferred = 0;
+  let blocked = 0;
   const errors: string[] = [];
 
   for (const lead of eligibleLeads) {
@@ -172,64 +202,156 @@ export async function GET(request: Request) {
     const due = stepsDueBy(ageInDays(lead.created_at));
     if (!due.length) continue;
 
-    const done = alreadySent.get(lead.id) ?? new Set<number>();
-    const next = due.find((s) => !done.has(s.step));
-    if (!next) continue;
-
-    // One email per lead per DAY, enforced here rather than assumed from the
-    // cron schedule. "Once a day" used to be true only because vercel.json
-    // fires this once a day; any second invocation - a retry, a manual hit, a
-    // probe - immediately walked every lead to their next step. That is
-    // exactly what happened on 27 Aug 2026: steps 101 and 102 went to the same
-    // three people 1h46m apart. The claim row and UNIQUE(lead_id, step) stop
-    // the same step going twice; nothing stopped the NEXT step going too soon.
-    // This does.
-    const last = lastSentAt.get(lead.id);
-    if (last && Date.now() - last < MIN_HOURS_BETWEEN_SENDS * 3600_000) {
-      throttled++;
+    const deliveryRows = deliveryRowsByLead.get(lead.id) ?? [];
+    const failedRow = deliveryRows.find((row) => row.delivery_status === "failed");
+    if (failedRow) {
+      blocked++;
       continue;
     }
 
-    // Claim first. UNIQUE (lead_id, step) makes this the lock.
-    const claim = await supabase
-      .from("lead_emails")
-      .insert({ lead_id: lead.id, step: next.step });
-    if (claim.error) {
-      // 23505 is the expected loser in an overlapping run. Any other failure
-      // means the lock could not be acquired for an operational reason, so
-      // surface it instead of silently pretending there was nothing to send.
-      if (claim.error.code !== "23505") {
+    const pendingRow = deliveryRows
+      .filter((row) => row.delivery_status === "pending")
+      .sort((a, b) => a.step - b.step)[0];
+    let next: NurtureStep | undefined;
+    let deliveryRow: NurtureDeliveryRow | null = null;
+
+    if (pendingRow) {
+      next = NURTURE_STEPS.find((step) => step.step === pendingRow.step);
+      if (!next || nurtureRetryWindowExpired(pendingRow.first_attempt_at)) {
+        const reason = next
+          ? "Automatic retry stopped before Resend's 24-hour idempotency key expired"
+          : `Pending nurture step ${pendingRow.step} is not in the active sequence`;
+        await supabase
+          .from("lead_emails")
+          .update({ delivery_status: "failed", last_error: reason })
+          .eq("id", pendingRow.id)
+          .eq("delivery_status", "pending");
         failed++;
-        errors.push(`step ${next.step} claim: ${claim.error.message}`);
+        blocked++;
+        errors.push(`step ${pendingRow.step}: ${reason}`);
+        continue;
       }
-      continue;
+
+      const lastAttemptMs = pendingRow.last_attempt_at
+        ? Date.parse(pendingRow.last_attempt_at)
+        : Number.NaN;
+      if (Number.isFinite(lastAttemptMs) && Date.now() - lastAttemptMs < MIN_RETRY_INTERVAL_MS) {
+        retryDeferred++;
+        continue;
+      }
+
+      const attemptAt = new Date().toISOString();
+      const retryClaim = await supabase
+        .from("lead_emails")
+        .update({
+          attempt_count: pendingRow.attempt_count + 1,
+          last_attempt_at: attemptAt,
+          last_error: null,
+        })
+        .eq("id", pendingRow.id)
+        .eq("delivery_status", "pending")
+        .eq("attempt_count", pendingRow.attempt_count)
+        .select(
+          "id, lead_id, step, sent_at, delivery_status, first_attempt_at, last_attempt_at, attempt_count",
+        )
+        .maybeSingle();
+      if (retryClaim.error) {
+        failed++;
+        errors.push(`step ${pendingRow.step} retry claim: ${retryClaim.error.message}`);
+        continue;
+      }
+      if (!retryClaim.data) {
+        retryDeferred++;
+        continue;
+      }
+      deliveryRow = retryClaim.data as NurtureDeliveryRow;
+      retried++;
+    } else {
+      const done = alreadySent.get(lead.id) ?? new Set<number>();
+      next = due.find((step) => !done.has(step.step));
+      if (!next) continue;
+
+      // One successful email per lead per 24 hours. The hourly cron is for
+      // retrying the SAME pending step, never for advancing the sequence.
+      const last = lastSentAt.get(lead.id);
+      if (last && Date.now() - last < MIN_HOURS_BETWEEN_SENDS * 3600_000) {
+        throttled++;
+        continue;
+      }
+
+      const attemptAt = new Date().toISOString();
+      const claim = await supabase
+        .from("lead_emails")
+        .insert({
+          lead_id: lead.id,
+          step: next.step,
+          delivery_status: "pending",
+          first_attempt_at: attemptAt,
+          last_attempt_at: attemptAt,
+          attempt_count: 1,
+        })
+        .select(
+          "id, lead_id, step, sent_at, delivery_status, first_attempt_at, last_attempt_at, attempt_count",
+        )
+        .single();
+      if (claim.error) {
+        // 23505 is the expected loser in an overlapping run. Any other failure
+        // means the lock could not be acquired for an operational reason.
+        if (claim.error.code !== "23505") {
+          failed++;
+          errors.push(`step ${next.step} claim: ${claim.error.message}`);
+        }
+        continue;
+      }
+      deliveryRow = claim.data as NurtureDeliveryRow;
     }
 
     const unsubUrl = unsubscribeUrl(lead.id, secret);
-    let ok = false;
-    try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: "Ryan Nichols <ryan@theleadflowpro.com>",
-          reply_to: "hello@theleadflowpro.com",
-          to: [lead.email],
-          subject: next.subject,
-          text: renderBody(next, lead, unsubUrl),
-          headers: {
-            "List-Unsubscribe": `<${unsubUrl}>`,
-            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-          },
-        }),
-      });
-      ok = response.ok;
-      if (!ok) errors.push(`step ${next.step}: ${response.status}`);
-    } catch (e) {
-      errors.push(`step ${next.step}: ${e instanceof Error ? e.message : "send error"}`);
-    }
+    const delivery = await sendNurtureEmail(
+      resendKey,
+      nurtureEmailIdempotencyKey(lead.id, next.step),
+      {
+        from: "Ryan Nichols <ryan@theleadflowpro.com>",
+        reply_to: "hello@theleadflowpro.com",
+        to: [lead.email],
+        subject: next.subject,
+        text: renderBody(next, lead, unsubUrl),
+        headers: {
+          "List-Unsubscribe": `<${unsubUrl}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+      },
+    );
 
-    if (ok) {
+    if (delivery.ok) {
+      const acceptedAt = new Date().toISOString();
+      const finalized = await supabase
+        .from("lead_emails")
+        .update({
+          delivery_status: "sent",
+          sent_at: acceptedAt,
+          last_attempt_at: acceptedAt,
+          provider_message_id: delivery.providerMessageId,
+          last_error: null,
+        })
+        .eq("id", deliveryRow.id)
+        .eq("delivery_status", "pending")
+        .select("id")
+        .maybeSingle();
+      if (finalized.error) {
+        // The provider accepted the request but the ledger is still pending.
+        // The next hourly retry uses the same key and cannot duplicate it.
+        failed++;
+        errors.push(`step ${next.step} finalize: ${finalized.error.message}`);
+        continue;
+      }
+      if (!finalized.data) {
+        // Another invocation finalized the same provider-keyed request first.
+        // It also owns the activity row and response counters.
+        retryDeferred++;
+        continue;
+      }
+
       sent++;
       await supabase
         .from("lead_activity")
@@ -243,17 +365,15 @@ export async function GET(request: Request) {
           () => undefined,
         );
     } else {
-      // Give the step back so tomorrow tries again.
+      // Retain the unique claim. The hourly cron can replay the identical key
+      // inside the safe window, but never after provider deduplication expires.
       failed++;
       await supabase
         .from("lead_emails")
-        .delete()
-        .eq("lead_id", lead.id)
-        .eq("step", next.step)
-        .then(
-          () => undefined,
-          () => undefined,
-        );
+        .update({ last_error: delivery.error, last_attempt_at: new Date().toISOString() })
+        .eq("id", deliveryRow.id)
+        .eq("delivery_status", "pending");
+      errors.push(`step ${next.step}: ${delivery.error}`);
     }
   }
 
@@ -264,6 +384,9 @@ export async function GET(request: Request) {
     sent,
     failed,
     throttled,
+    retried,
+    retry_deferred: retryDeferred,
+    blocked,
     errors: errors.slice(0, 5),
   });
 }

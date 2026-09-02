@@ -75,7 +75,7 @@ test("the registry rejects unknown forms while retaining the exact v2 form", () 
   });
 });
 
-test("runtime identity fails closed on a foreign Supabase project", () => {
+test("runtime identity requires the exact LeadFlow Supabase origin", () => {
   assert.deepEqual(
     metaRuntimeIdentityIssues({
       pageId: LEADFLOW_META.pageId,
@@ -88,6 +88,20 @@ test("runtime identity fails closed on a foreign Supabase project", () => {
       pageId: LEADFLOW_META.pageId,
       supabaseUrl: "https://premier-example.supabase.co",
     }).join("\n"),
-    /Runtime Supabase project ref/,
+    /Runtime Supabase origin/,
+  );
+  assert.match(
+    metaRuntimeIdentityIssues({
+      pageId: LEADFLOW_META.pageId,
+      supabaseUrl: `https://${LEADFLOW_META.supabaseProjectRef}.attacker.example`,
+    }).join("\n"),
+    /Runtime Supabase origin/,
+  );
+  assert.match(
+    metaRuntimeIdentityIssues({
+      pageId: LEADFLOW_META.pageId,
+      supabaseUrl: `https://${LEADFLOW_META.supabaseProjectRef}.supabase.co/foreign-path`,
+    }).join("\n"),
+    /bare approved project origin/,
   );
 });
