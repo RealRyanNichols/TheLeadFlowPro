@@ -18,13 +18,18 @@ export const LEADFLOW_META = {
   privacyUrl: "https://www.theleadflowpro.com/privacy",
   formName: "LFP | Free Website | Product + Budget | v2",
   formId: "2292508494936036",
+  campaignId: "120253551492770154",
+  adSetId: "120253551492780154",
+  crmDatasetId: "2550895935381476",
   campaignKey: "free_website_longview_2026_09",
   destinationUrl:
     "https://www.theleadflowpro.com/free-build?utm_source=facebook&utm_medium=paid&utm_campaign=free_website_longview_2026_09&utm_content=instant_form_thank_you",
   objective: "LEADS",
   conversionLocation: "INSTANT_FORM",
-  lifetimeBudgetCents: 12_500,
-  durationDays: 5,
+  performanceGoal: "MAXIMIZE_QUALIFIED_LEADS",
+  budgetType: "DAILY",
+  dailyBudgetCents: 2_500,
+  hasEndDate: false,
   location: "Longview, Texas",
   radiusMiles: 30,
   // Exact published LeadFlow ad IDs that may generate paid leads. Add every
@@ -91,6 +96,34 @@ export function isAllowedLeadFlowAdId(adId: string | null | undefined): boolean 
   return !!adId && (LEADFLOW_META.allowedAdIds as readonly string[]).includes(adId);
 }
 
+/**
+ * Meta's Lead Ads Testing Tool creates a lead without an ad_id. Keep that
+ * path explicit and one-lead-at-a-time instead of treating every missing ad
+ * id as if the registered form alone proved paid-campaign ownership.
+ */
+export function isAllowedMetaTestLeadId(
+  leadId: string | null | undefined,
+  configuredIds: string | null | undefined,
+): boolean {
+  if (!leadId) return false;
+  return String(configuredIds ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean)
+    .includes(leadId);
+}
+
+/** Only the exact LeadFlow pixel may ever be rendered into public HTML. */
+export function resolveLeadFlowMetaPixelId(
+  databasePixelId: string | null | undefined,
+  publicEnvironmentPixelId: string | null | undefined,
+): string {
+  const configured = [databasePixelId, publicEnvironmentPixelId]
+    .map((id) => String(id ?? "").trim())
+    .filter(Boolean);
+  return configured.includes(LEADFLOW_META.pixelId) ? LEADFLOW_META.pixelId : "";
+}
+
 export function parseRegisteredFormIds(value: string | null | undefined): {
   ids: string[];
   unknown: string[];
@@ -119,8 +152,13 @@ export type MetaCampaignPreflightInput = {
   privacyUrl: string;
   objective: string;
   conversionLocation: string;
-  lifetimeBudgetCents: number;
-  durationDays: number;
+  performanceGoal: string;
+  campaignId: string;
+  adSetId: string;
+  crmDatasetId: string;
+  budgetType: string;
+  dailyBudgetCents: number;
+  hasEndDate: boolean;
   location: string;
   radiusMiles: number;
 };
@@ -160,6 +198,9 @@ export function validateMetaCampaignPreflight(input: MetaCampaignPreflightInput)
   exact("Vercel project ID", input.vercelProjectId, LEADFLOW_META.vercelProjectId, issues);
   exact("Supabase project ref", input.supabaseProjectRef, LEADFLOW_META.supabaseProjectRef, issues);
   exact("Instant Form ID", input.formId, LEADFLOW_META.formId, issues);
+  exact("Campaign ID", input.campaignId, LEADFLOW_META.campaignId, issues);
+  exact("Ad set ID", input.adSetId, LEADFLOW_META.adSetId, issues);
+  exact("CRM dataset ID", input.crmDatasetId, LEADFLOW_META.crmDatasetId, issues);
   exact("Destination URL", input.destinationUrl, LEADFLOW_META.destinationUrl, issues);
   exact("Privacy URL", input.privacyUrl, LEADFLOW_META.privacyUrl, issues);
   exact("Objective", input.objective.toUpperCase(), LEADFLOW_META.objective, issues);
@@ -169,15 +210,22 @@ export function validateMetaCampaignPreflight(input: MetaCampaignPreflightInput)
     LEADFLOW_META.conversionLocation,
     issues,
   );
+  exact(
+    "Performance goal",
+    input.performanceGoal.toUpperCase().replace(/\s+/g, "_"),
+    LEADFLOW_META.performanceGoal,
+    issues,
+  );
+  exact("Budget type", input.budgetType.toUpperCase(), LEADFLOW_META.budgetType, issues);
   exact("Location", input.location, LEADFLOW_META.location, issues);
 
-  if (input.lifetimeBudgetCents !== LEADFLOW_META.lifetimeBudgetCents) {
+  if (input.dailyBudgetCents !== LEADFLOW_META.dailyBudgetCents) {
     issues.push(
-      `Lifetime budget must equal ${LEADFLOW_META.lifetimeBudgetCents} cents; received ${input.lifetimeBudgetCents}`,
+      `Daily budget must equal ${LEADFLOW_META.dailyBudgetCents} cents; received ${input.dailyBudgetCents}`,
     );
   }
-  if (input.durationDays !== LEADFLOW_META.durationDays) {
-    issues.push(`Duration must equal ${LEADFLOW_META.durationDays} days; received ${input.durationDays}`);
+  if (input.hasEndDate !== LEADFLOW_META.hasEndDate) {
+    issues.push("Campaign must be ongoing with no end date");
   }
   if (input.radiusMiles !== LEADFLOW_META.radiusMiles) {
     issues.push(`Radius must equal ${LEADFLOW_META.radiusMiles} miles; received ${input.radiusMiles}`);

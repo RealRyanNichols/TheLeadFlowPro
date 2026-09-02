@@ -7,6 +7,7 @@ import "./company-builder.css";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import TrackingScripts from "@/components/TrackingScripts";
+import { LEADFLOW_META, resolveLeadFlowMetaPixelId } from "@/lib/metaCampaignGuard";
 import { getSettings } from "@/lib/settings";
 
 // Self-hosted through next/font, which also removes the render-blocking Google
@@ -70,6 +71,15 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const settings = await getSettings();
+  const metaPixelId = resolveLeadFlowMetaPixelId(
+    settings.meta_pixel_id,
+    process.env.NEXT_PUBLIC_META_PIXEL_ID,
+  );
+  if (!metaPixelId) {
+    console.error(
+      `Meta Pixel disabled: runtime configuration must contain exact LeadFlow pixel ${LEADFLOW_META.pixelId}`,
+    );
+  }
   return (
     <html lang="en" className={`${archivo.variable} ${inter.variable}`}>
       <body>
@@ -77,7 +87,7 @@ export default async function RootLayout({
           Skip to content
         </a>
         <TrackingScripts
-          metaPixelId={settings.meta_pixel_id}
+          metaPixelId={metaPixelId}
           googleAdsId={settings.google_ads_id}
           ga4Id={settings.ga4_id}
         />

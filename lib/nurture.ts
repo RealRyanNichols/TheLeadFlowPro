@@ -29,6 +29,8 @@
 //     that gets marked as spam.
 //   - Every email ends with a working unsubscribe, added by the cron.
 
+import { LEADFLOW_META } from "@/lib/metaCampaignGuard";
+
 export const NURTURE_CAMPAIGN = "free_build";
 
 /**
@@ -45,6 +47,32 @@ export type NurtureLeadAttribution = {
   source?: unknown;
   diagnostic?: unknown;
 };
+
+export type FreeWebsiteNurtureCandidate = NurtureLeadAttribution & {
+  interest?: unknown;
+  marketing_email_consent?: unknown;
+};
+
+/**
+ * The free-build sequence is an offer-specific campaign, not a general list.
+ * Admit only the owned website funnel or the exact active Meta v2 form, and
+ * only when the lead explicitly accepted marketing email.
+ */
+export function isFreeWebsiteProgramNurtureLead(
+  lead: FreeWebsiteNurtureCandidate,
+): boolean {
+  if (lead.interest !== "free_website_program" || lead.marketing_email_consent !== true) {
+    return false;
+  }
+  if (!lead.diagnostic || typeof lead.diagnostic !== "object" || Array.isArray(lead.diagnostic)) {
+    return false;
+  }
+
+  const diagnostic = lead.diagnostic as Record<string, unknown>;
+  if (diagnostic.source !== "free_build_funnel") return false;
+  if (lead.source === "website") return true;
+  return lead.source === "meta_lead_ad" && diagnostic.form_id === LEADFLOW_META.formId;
+}
 
 export function isBusinessDiagnosticLead(lead: NurtureLeadAttribution): boolean {
   if (lead.source === BUSINESS_DIAGNOSTIC_SOURCE) return true;

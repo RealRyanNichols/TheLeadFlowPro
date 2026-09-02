@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import {
+  SOCIAL_PAGE_ID,
   createSocialServiceClient,
   getSocialCredentialStatus,
+  getSocialRuntimeIdentityIssues,
 } from "@/lib/social-server";
 import SocialPublisher from "./SocialPublisher";
 
@@ -9,8 +11,12 @@ export const metadata = { title: "Facebook Publisher | The LeadFlow Pro" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminSocialPublisher() {
+  const identityIssues = getSocialRuntimeIdentityIssues();
+  if (identityIssues.length) {
+    throw new Error("LeadFlow social identity check failed.");
+  }
   const supabase = await createClient();
-  const pageId = process.env.META_PAGE_ID || "887023637835514";
+  const pageId = SOCIAL_PAGE_ID;
   const service = createSocialServiceClient();
   const credentialStatus = service
     ? await getSocialCredentialStatus(service).catch(() => null)

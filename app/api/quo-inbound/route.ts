@@ -6,8 +6,10 @@ import {
   isStopMessage,
   sendInboundAutoReply,
   toE164,
+  verifyLeadFlowQuoInboundIdentity,
 } from "@/lib/quo";
 import { sendInternalLeadAlert } from "@/lib/leadNotify";
+import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
 
 // Inbound SMS from Quo. Three jobs, in this order:
 //
@@ -26,7 +28,12 @@ import { sendInternalLeadAlert } from "@/lib/leadNotify";
 // SETUP (one time, in the Quo dashboard):
 //   Webhooks -> new webhook -> event "message.received"
 //   URL: https://www.theleadflowpro.com/api/quo-inbound?secret=<QUO_WEBHOOK_SECRET>
-// Set QUO_WEBHOOK_SECRET in Vercel to any long random string.
+// Select only The LeadFlow Pro number as the webhook resource. Then set:
+//   QUO_WEBHOOK_SECRET: any long random string
+//   QUO_LEADFLOW_INBOUND_PHONE_NUMBER_ID: the verified PN... id for
+//     The LeadFlow Pro line (+1 903-500-8898)
+// Without the exact PN id, ingestion is disabled by default. The handler also
+// checks the payload's `to` number, so a shared-workspace/PDA event is ignored.
 //
 // Until that webhook is pointed here this route never fires, and nothing in
 // the thread breaks: outbound-by-hand and manual logging still work.
@@ -48,10 +55,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
 
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceKey) {
-    console.error("quo-inbound: SUPABASE_SERVICE_ROLE_KEY not set");
-    return NextResponse.json({ ok: false }, { status: 500 });
+  // The service-role key must never be read or used until the runtime is
+  // proven to be the exact LeadFlow Supabase project.
+  const runtimeIdentityIssues = leadFlowSupabaseRuntimeIssues(SUPABASE_URL);
+  if (runtimeIdentityIssues.length) {
+    console.error("quo-inbound: runtime identity rejected", runtimeIdentityIssues);
+    return NextResponse.json({ ok: false, disabled: true }, { status: 503 });
   }
 
   const payload = await request.json().catch(() => null);
@@ -59,13 +68,37 @@ export async function POST(request: Request) {
 
   // Quo wraps the message in data.object for message.* events.
   const obj = payload?.data?.object ?? payload?.data ?? payload;
+  const inboundIdentity = verifyLeadFlowQuoInboundIdentity({
+    eventType: payload?.type,
+    direction: obj?.direction,
+    phoneNumberId: obj?.phoneNumberId,
+    to: obj?.to,
+    allowedPhoneNumberId: process.env.QUO_LEADFLOW_INBOUND_PHONE_NUMBER_ID,
+  });
+  if (!inboundIdentity.ok) {
+    if (inboundIdentity.reason === "inbound_not_configured") {
+      console.error("quo-inbound: exact LeadFlow phone-number id is not configured");
+      // Acknowledge without ingesting so a safely disabled webhook does not
+      // create a provider retry storm. The original SMS remains in Quo.
+      return NextResponse.json({ ok: true, skipped: true, disabled: true });
+    }
+    // A shared Quo webhook can legitimately deliver another resource. Acknowledge
+    // it without touching LeadFlow CRM so Quo does not retry it indefinitely.
+    return NextResponse.json({ ok: true, skipped: true });
+  }
+
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) {
+    console.error("quo-inbound: SUPABASE_SERVICE_ROLE_KEY not set");
+    return NextResponse.json({ ok: false }, { status: 500 });
+  }
+
   const text = String(obj?.text ?? obj?.body ?? obj?.content ?? "").trim();
   const from = obj?.from?.phoneNumber ?? obj?.from ?? "";
   const providerId = obj?.id ? String(obj.id) : null;
-  const direction = String(obj?.direction ?? "incoming");
 
   // Ignore our own outbound echo, and anything with no usable content.
-  if (direction !== "incoming" || !text || !from) {
+  if (!text || !from) {
     return NextResponse.json({ ok: true, skipped: true });
   }
 

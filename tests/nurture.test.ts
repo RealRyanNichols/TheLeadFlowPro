@@ -3,11 +3,13 @@ import test from "node:test";
 import {
   BUSINESS_DIAGNOSTIC_SOURCE,
   isBusinessDiagnosticLead,
+  isFreeWebsiteProgramNurtureLead,
   NURTURE_FIRST_STEP,
   NURTURE_LAST_STEP,
   NURTURE_STEPS,
   stepsDueBy,
 } from "../lib/nurture";
+import { LEADFLOW_META } from "../lib/metaCampaignGuard";
 
 test("business diagnostic attribution is isolated from the general nurture campaign", () => {
   assert.equal(
@@ -36,6 +38,48 @@ test("legacy and malformed diagnostic payloads stay eligible for general nurture
   assert.equal(isBusinessDiagnosticLead({ source: "meta", diagnostic: [] }), false);
   assert.equal(
     isBusinessDiagnosticLead({ source: "website", diagnostic: { source: "free_build" } }),
+    false,
+  );
+});
+
+test("free-build nurture admits only explicit-consent website and exact Meta v2 leads", () => {
+  const base = {
+    interest: "free_website_program",
+    marketing_email_consent: true,
+    diagnostic: { source: "free_build_funnel" },
+  };
+  assert.equal(isFreeWebsiteProgramNurtureLead({ ...base, source: "website" }), true);
+  assert.equal(
+    isFreeWebsiteProgramNurtureLead({
+      ...base,
+      source: "meta_lead_ad",
+      diagnostic: { source: "free_build_funnel", form_id: LEADFLOW_META.formId },
+    }),
+    true,
+  );
+
+  assert.equal(
+    isFreeWebsiteProgramNurtureLead({
+      ...base,
+      marketing_email_consent: false,
+      source: "website",
+    }),
+    false,
+  );
+  assert.equal(
+    isFreeWebsiteProgramNurtureLead({ ...base, interest: "done_for_you", source: "website" }),
+    false,
+  );
+  assert.equal(
+    isFreeWebsiteProgramNurtureLead({
+      ...base,
+      source: "meta_lead_ad",
+      diagnostic: { source: "free_build_funnel", form_id: "legacy-or-foreign-form" },
+    }),
+    false,
+  );
+  assert.equal(
+    isFreeWebsiteProgramNurtureLead({ ...base, source: "website", diagnostic: null }),
     false,
   );
 });

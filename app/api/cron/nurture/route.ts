@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
 import {
   isBusinessDiagnosticLead,
+  isFreeWebsiteProgramNurtureLead,
   NURTURE_FIRST_STEP,
   NURTURE_LAST_STEP,
   NURTURE_STEPS,
@@ -14,6 +15,7 @@ import {
   nurtureRetryWindowExpired,
   sendNurtureEmail,
 } from "@/lib/nurtureDelivery";
+import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
 // The 30 day sequence sender. Runs hourly so an uncertain provider response can
@@ -52,6 +54,8 @@ type EligibleLead = {
   full_name: string | null;
   email: string | null;
   source: string | null;
+  interest: string | null;
+  marketing_email_consent: boolean | null;
   diagnostic: unknown;
 };
 
@@ -99,6 +103,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // This cron uses the service-role key and can contact every eligible lead.
+  // Refuse to even read that credential unless the configured database is the
+  // exact LeadFlow project origin, never a similarly named client project.
+  const runtimeIdentityIssues = leadFlowSupabaseRuntimeIssues(SUPABASE_URL);
+  if (runtimeIdentityIssues.length) {
+    console.error("Nurture identity check failed:", runtimeIdentityIssues.join("; "));
+    return NextResponse.json({ error: "Nurture identity check failed" }, { status: 503 });
+  }
+
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const resendKey = process.env.RESEND_API_KEY;
   const secret = unsubscribeSecret();
@@ -118,11 +131,14 @@ export async function GET(request: Request) {
 
   const { data: leads, error: leadsError } = await supabase
     .from("leads")
-    .select("id, created_at, full_name, email, source, diagnostic")
+    .select(
+      "id, created_at, full_name, email, source, interest, marketing_email_consent, diagnostic",
+    )
     .is("deleted_at", null)
     .is("email_unsubscribed_at", null)
     .not("is_test", "is", true)
     .eq("marketing_email_consent", true)
+    .eq("interest", "free_website_program")
     .in("status", ["new", "contacted"])
     .gte("created_at", since)
     .order("created_at", { ascending: true });
@@ -136,16 +152,19 @@ export async function GET(request: Request) {
   // clock starts at business_growth_diagnostics.submitted_at. Never mix those
   // leads into this created_at-based 30-day campaign, even when they also gave
   // general marketing consent.
-  const eligibleLeads = ((leads ?? []) as EligibleLead[]).filter(
+  const nonDiagnosticLeads = ((leads ?? []) as EligibleLead[]).filter(
     (lead) => !isBusinessDiagnosticLead(lead),
   );
-  const excludedDiagnostic = (leads ?? []).length - eligibleLeads.length;
+  const eligibleLeads = nonDiagnosticLeads.filter(isFreeWebsiteProgramNurtureLead);
+  const excludedDiagnostic = (leads ?? []).length - nonDiagnosticLeads.length;
+  const excludedWrongProgram = nonDiagnosticLeads.length - eligibleLeads.length;
   const ids = eligibleLeads.map((lead) => lead.id);
   if (!ids.length) {
     return NextResponse.json({
       ok: true,
       checked: 0,
       excludedDiagnostic,
+      excludedWrongProgram,
       sent: 0,
     });
   }
@@ -381,6 +400,7 @@ export async function GET(request: Request) {
     ok: true,
     checked: eligibleLeads.length,
     excludedDiagnostic,
+    excludedWrongProgram,
     sent,
     failed,
     throttled,

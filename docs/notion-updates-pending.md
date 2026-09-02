@@ -190,11 +190,17 @@ Shipped in PR #12.
   email. Consent cannot be bypassed from the browser. A rejected send is stored
   and marked undelivered rather than silently lost.
 - **`/api/quo-inbound`** files replies onto the matching lead, matched on the
-  trailing 10 digits, idempotent on `provider_id`, gated by `QUO_WEBHOOK_SECRET`.
+  trailing 10 digits and idempotent on `provider_id`. It is gated by the
+  webhook secret, the exact LeadFlow `PN...` resource id, the exact destination
+  number, and the exact LeadFlow Supabase origin. It stays disabled if the
+  verified Quo resource id is missing.
 
 **Action for Ryan, still outstanding:** point Quo's `message.received` webhook at
-`https://www.theleadflowpro.com/api/quo-inbound` and set `QUO_WEBHOOK_SECRET`.
-Until that is done, outbound SMS works and inbound replies do not thread.
+`https://www.theleadflowpro.com/api/quo-inbound`, select only the LeadFlow line,
+and set `QUO_WEBHOOK_SECRET` plus `QUO_LEADFLOW_INBOUND_PHONE_NUMBER_ID` to that
+line's verified `PN...` id. Until then, the message remains visible in Quo but
+inbound CRM ingestion is intentionally off. Application-originated outbound SMS
+and the one-time inbound auto-reply both remain off by default.
 
 **Also outstanding:** `/admin` sits behind auth, so this session could never see
 it rendered. It needs Ryan's eyes once before it is called done.

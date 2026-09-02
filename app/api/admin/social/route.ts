@@ -15,6 +15,8 @@ import {
   SOCIAL_PAGE_ID,
   createSocialServiceClient,
   getFacebookSourceToken,
+  getSocialPublishIdentityIssues,
+  getSocialRuntimeIdentityIssues,
   getSocialCredentialStatus,
   requireSocialAdmin,
   type SocialAdminContext,
@@ -27,6 +29,7 @@ const REPO = "RealRyanNichols/TheLeadFlowPro";
 
 type SocialPostRow = {
   id: string;
+  provider: string;
   page_id: string;
   status: string;
   message: string;
@@ -143,6 +146,17 @@ async function approveOne(
   const { data } = await sb.from("social_posts").select("*").eq("id", postId).single();
   const post = data as SocialPostRow | null;
   if (!post) return { id: postId, ok: false, error: "Post not found." };
+
+  // This check lives inside approval so old/stale rows cannot bypass the
+  // current runtime guard after an administrator selects them from the queue.
+  const identityIssues = getSocialPublishIdentityIssues(post);
+  if (identityIssues.length) {
+    return {
+      id: postId,
+      ok: false,
+      error: `LeadFlow social identity check failed. ${identityIssues.join(" ")}`,
+    };
+  }
   if (["scheduled", "published", "cancelled"].includes(post.status)) {
     return { id: postId, ok: false, error: `Post is already ${post.status}.` };
   }
@@ -183,7 +197,7 @@ async function approveOne(
 
   try {
     const result = await publishFacebookPost({
-      pageId: post.page_id,
+      pageId: SOCIAL_PAGE_ID,
       sourceToken,
       message: validation.value.message,
       mediaType: validation.value.media_type,
@@ -261,6 +275,13 @@ async function approveOne(
 export async function GET() {
   const admin = await requireSocialAdmin();
   if (admin instanceof NextResponse) return admin;
+  const identityIssues = getSocialRuntimeIdentityIssues();
+  if (identityIssues.length) {
+    return NextResponse.json(
+      { error: "LeadFlow social identity check failed.", issues: identityIssues },
+      { status: 503 },
+    );
+  }
   const sb = createSocialServiceClient();
   if (!sb) return NextResponse.json({ error: "Server database access is not configured." }, { status: 503 });
   return NextResponse.json(await loadState(sb));
@@ -269,6 +290,13 @@ export async function GET() {
 export async function POST(request: Request) {
   const admin = await requireSocialAdmin();
   if (admin instanceof NextResponse) return admin;
+  const identityIssues = getSocialRuntimeIdentityIssues();
+  if (identityIssues.length) {
+    return NextResponse.json(
+      { error: "LeadFlow social identity check failed.", issues: identityIssues },
+      { status: 503 },
+    );
+  }
   const sb = createSocialServiceClient();
   if (!sb) return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY is not configured." }, { status: 503 });
 
@@ -360,9 +388,19 @@ export async function POST(request: Request) {
 
     const metaId = post.meta_post_id || post.meta_object_id;
     if (post.status === "scheduled" && metaId) {
+      const postIdentityIssues = getSocialPublishIdentityIssues(post);
+      if (postIdentityIssues.length) {
+        return NextResponse.json(
+          {
+            error: "LeadFlow social identity check failed.",
+            issues: postIdentityIssues,
+          },
+          { status: 409 },
+        );
+      }
       try {
         const result = await cancelFacebookPost({
-          pageId: post.page_id,
+          pageId: SOCIAL_PAGE_ID,
           sourceToken: await getFacebookSourceToken(sb),
           metaId,
         });

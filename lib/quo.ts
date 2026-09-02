@@ -26,6 +26,96 @@ const QUO_API = "https://api.openphone.com/v1/messages";
 // var must never silently move outbound lead texts onto another business line.
 export const LEADFLOW_FROM = "+19035008898";
 
+/**
+ * Resolve the only Quo number this application is allowed to send from.
+ *
+ * The Quo workspace is shared with Premier Dental Academy. An environment
+ * override is therefore a constraint to verify, not a free-form destination.
+ * Missing keeps the compiled LeadFlow number; any different value fails
+ * closed instead of silently selecting another business line.
+ */
+export function leadFlowQuoFromNumber(
+  configured: string | null | undefined = process.env.QUO_FROM_NUMBER,
+): typeof LEADFLOW_FROM | null {
+  const candidate = String(configured ?? "").trim();
+  if (!candidate) return LEADFLOW_FROM;
+  return candidate === LEADFLOW_FROM ? LEADFLOW_FROM : null;
+}
+
+/**
+ * Pin an optional Quo sender attribution to a separately verified user id.
+ * If QUO_USER_ID is used, QUO_LEADFLOW_USER_ID must independently allow the
+ * same value. Leaving both blank safely falls back to the verified number's
+ * owner; a partial or mismatched configuration blocks the send.
+ */
+export function leadFlowQuoUserId(
+  configured: string | null | undefined = process.env.QUO_USER_ID,
+  allowed: string | null | undefined = process.env.QUO_LEADFLOW_USER_ID,
+): string | undefined | null {
+  const configuredId = String(configured ?? "").trim();
+  const allowedId = String(allowed ?? "").trim();
+  if (!configuredId && !allowedId) return undefined;
+  if (!configuredId || !allowedId || configuredId !== allowedId) return null;
+  return configuredId;
+}
+
+export type QuoInboundIdentityResult =
+  | { ok: true }
+  | {
+      ok: false;
+      reason:
+        | "inbound_not_configured"
+        | "not_message_received"
+        | "not_incoming"
+        | "unapproved_phone_number_id"
+        | "unapproved_destination";
+    };
+
+function inboundDestinationNumbers(value: unknown): string[] {
+  const values = Array.isArray(value) ? value : [value];
+  return values
+    .map((item) => {
+      if (typeof item === "string") return item.trim();
+      if (!item || typeof item !== "object") return "";
+      const record = item as Record<string, unknown>;
+      const nested = record.phoneNumber ?? record.number ?? record.formattedNumber;
+      return typeof nested === "string" ? nested.trim() : "";
+    })
+    .filter(Boolean);
+}
+
+/**
+ * Admit only message.received events for the exact LeadFlow Quo resource.
+ *
+ * Quo's app-webhook payloads use a string `to`; API webhook v4 uses an array.
+ * Both include `phoneNumberId`. The PN id is intentionally runtime-only
+ * because it must be copied from the verified LeadFlow number in Quo. With no
+ * verified id configured, inbound CRM ingestion stays disabled by default.
+ */
+export function verifyLeadFlowQuoInboundIdentity(input: {
+  eventType: unknown;
+  direction: unknown;
+  phoneNumberId: unknown;
+  to: unknown;
+  allowedPhoneNumberId: string | null | undefined;
+}): QuoInboundIdentityResult {
+  const allowedPhoneNumberId = String(input.allowedPhoneNumberId ?? "").trim();
+  if (!allowedPhoneNumberId) return { ok: false, reason: "inbound_not_configured" };
+  if (input.eventType !== "message.received") {
+    return { ok: false, reason: "not_message_received" };
+  }
+  if (input.direction !== "incoming") return { ok: false, reason: "not_incoming" };
+  if (String(input.phoneNumberId ?? "").trim() !== allowedPhoneNumberId) {
+    return { ok: false, reason: "unapproved_phone_number_id" };
+  }
+
+  const destinations = inboundDestinationNumbers(input.to);
+  if (destinations.length !== 1 || destinations[0] !== LEADFLOW_FROM) {
+    return { ok: false, reason: "unapproved_destination" };
+  }
+  return { ok: true };
+}
+
 /** Digits to +1XXXXXXXXXX, or null when it cannot be a US mobile number. */
 export function toE164(raw: string): string | null {
   const digits = String(raw ?? "").replace(/[^\d+]/g, "");
@@ -44,9 +134,19 @@ export async function sendLeadText(to: string, content: string): Promise<boolean
     return false;
   }
 
+  const from = leadFlowQuoFromNumber();
+  if (!from) {
+    console.error("Quo outbound SMS blocked: QUO_FROM_NUMBER is not the LeadFlow line");
+    return false;
+  }
+
+  const userId = leadFlowQuoUserId();
+  if (userId === null) {
+    console.error("Quo outbound SMS blocked: sender user id is not LeadFlow-allowlisted");
+    return false;
+  }
+
   const key = process.env.QUO_API_KEY;
-  const from = process.env.QUO_FROM_NUMBER || LEADFLOW_FROM;
-  const userId = process.env.QUO_USER_ID; // Ryan's Quo user id (US...)
   if (!key || !to) return false;
   const e164 = toE164(to);
   if (!e164) return false;
@@ -95,9 +195,19 @@ export async function sendInboundAutoReply(to: string, content: string): Promise
     return false;
   }
 
+  const from = leadFlowQuoFromNumber();
+  if (!from) {
+    console.error("Quo auto-reply blocked: QUO_FROM_NUMBER is not the LeadFlow line");
+    return false;
+  }
+
+  const userId = leadFlowQuoUserId();
+  if (userId === null) {
+    console.error("Quo auto-reply blocked: sender user id is not LeadFlow-allowlisted");
+    return false;
+  }
+
   const key = process.env.QUO_API_KEY;
-  const from = process.env.QUO_FROM_NUMBER || LEADFLOW_FROM;
-  const userId = process.env.QUO_USER_ID;
   if (!key || !to) return false;
 
   const e164 = toE164(to);

@@ -28,6 +28,13 @@ function requiredNumber(values: Map<string, string>, key: string): number {
   return value;
 }
 
+function requiredBoolean(values: Map<string, string>, key: string): boolean {
+  const raw = required(values, key).toLowerCase();
+  if (raw === "true") return true;
+  if (raw === "false") return false;
+  throw new Error(`--${key} must be true or false; received ${raw}`);
+}
+
 async function liveIssues(input: MetaCampaignPreflightInput): Promise<string[]> {
   const issues: string[] = [];
   for (const [label, url] of [
@@ -64,12 +71,17 @@ async function main() {
     vercelProjectId: required(values, "vercel-project-id"),
     supabaseProjectRef: required(values, "supabase-ref"),
     formId: required(values, "form-id"),
+    campaignId: required(values, "campaign-id"),
+    adSetId: required(values, "ad-set-id"),
+    crmDatasetId: required(values, "crm-dataset-id"),
     destinationUrl: required(values, "destination-url"),
     privacyUrl: required(values, "privacy-url"),
     objective: required(values, "objective"),
     conversionLocation: required(values, "conversion-location"),
-    lifetimeBudgetCents: requiredNumber(values, "lifetime-budget-cents"),
-    durationDays: requiredNumber(values, "duration-days"),
+    performanceGoal: required(values, "performance-goal"),
+    budgetType: required(values, "budget-type"),
+    dailyBudgetCents: requiredNumber(values, "daily-budget-cents"),
+    hasEndDate: requiredBoolean(values, "has-end-date"),
     location: required(values, "location"),
     radiusMiles: requiredNumber(values, "radius-miles"),
   };
@@ -89,9 +101,12 @@ async function main() {
   console.log(`Ad account: ${LEADFLOW_META.adAccountId}`);
   console.log(`Page: ${LEADFLOW_META.pageId}`);
   console.log(`Form: ${LEADFLOW_META.formId} (${LEADFLOW_META.formName})`);
+  console.log(`Campaign: ${LEADFLOW_META.campaignId}`);
+  console.log(`Ad set: ${LEADFLOW_META.adSetId}`);
+  console.log(`CRM dataset: ${LEADFLOW_META.crmDatasetId}`);
   console.log(`Destination: ${LEADFLOW_META.destinationUrl}`);
-  console.log(`Budget: $${(LEADFLOW_META.lifetimeBudgetCents / 100).toFixed(2)} lifetime`);
-  console.log(`Schedule: ${LEADFLOW_META.durationDays} days`);
+  console.log(`Budget: $${(LEADFLOW_META.dailyBudgetCents / 100).toFixed(2)} per day`);
+  console.log("Schedule: ongoing, no end date");
 }
 
 await main();

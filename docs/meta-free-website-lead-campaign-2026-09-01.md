@@ -3,7 +3,7 @@
 Status: correct-account build pending; wrong-account campaign disabled; activation blocked until the end-to-end test passes
 Owner: The LeadFlow Pro
 Market: Longview, Texas plus 30 miles
-Test: $125 lifetime budget across five calendar days, equivalent to $25 per day
+Budget: $25 daily, ongoing; day five is the first review checkpoint, not an end date
 Objective: Leads
 Conversion location: Meta Instant Form
 Website destination: `https://www.theleadflowpro.com/free-build`
@@ -14,6 +14,7 @@ Exact account boundary:
 - LeadFlow ad account: `1637329904238602`
 - LeadFlow Page: `887023637835514`
 - LeadFlow pixel: `1012793881211964`
+- LeadFlow CRM/CAPI dataset: `2550895935381476`
 - Explicitly forbidden wrong account: `1439074857790304`
 - Explicitly forbidden Premier Dental account: `924465906541446`
 
@@ -27,13 +28,14 @@ There is no required paid add-on. Domain registration, paid hosting after 90 day
 
 ## Campaign structure
 
-- Campaign name: `LFP | Free Website | Longview 30mi | Lead Form | Sep 2026`
+- Campaign name: `LFP | Free Website v2 | Longview +30 | $25 Daily | Ongoing | Sep 2026`
 - Buying type: Auction
 - Objective: Leads
 - Conversion: Instant Form
-- Performance goal: Maximize number of leads
-- Budget: $125 lifetime budget
-- Schedule: five full calendar days
+- Performance goal: Maximize qualified leads
+- Optimization dataset: The LeadFlow Pro CRM/CAPI dataset `2550895935381476`
+- Budget: $25 daily campaign budget
+- Schedule: ongoing with no end date; first performance review after five full days
 - Geography: people living in Longview, Texas plus 30 miles
 - Age: 25 to 65+
 - Placements: Advantage+ placements
@@ -242,8 +244,10 @@ CTA: `Apply Now`
 
 ## Meta draft record
 
-- Campaign: `LFP | Free Website | Longview 30mi | Lead Form | Sep 2026`
-- Ad set: `LFP | Longview +30mi | 5 Days | Instant Form`
+- Campaign: `LFP | Free Website v2 | Longview +30 | $25 Daily | Ongoing | Sep 2026`
+- Campaign ID: `120253551492770154`
+- Ad set: `LFP | Instant Form v2 | Longview +30 | Ongoing | $25 Campaign`
+- Ad set ID: `120253551492780154`
 - Required instant form: `LFP | Free Website | Product + Budget | v2`
 - Required form ID: `2292508494936036`
 - Previous v1 form retained for audit only: `2016689789051460`
@@ -375,6 +379,6 @@ Before campaign activation, verify all of the following in one pass:
 - The ad uses Ryan's real creative.
 - The campaign shows Leads and Instant Form, not Messaging.
 - Longview plus 30 miles is the only geography.
-- The lifetime budget is $125 and the end date is five days after launch.
-- Ryan explicitly authorized activation and the $125 five-day spend on September 1, 2026.
+- The campaign budget is $25 per day and the ad set has no end date. Meta may vary daily delivery while enforcing its weekly cap; the first review is after five full days.
+- Ryan explicitly authorized the ongoing $25 daily campaign on September 1, 2026; activation still requires the final action-time publish confirmation after every technical gate passes.
 - After publish, read back the campaign, ad set, form, budget, schedule, and delivery state; a successful publish alone is not proof of delivery.

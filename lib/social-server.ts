@@ -6,9 +6,15 @@ import {
   type SupabaseClient,
 } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
+import {
+  LEADFLOW_SOCIAL_PAGE_ID,
+  leadFlowSocialPublishIdentityIssues,
+  leadFlowSocialRuntimeIdentityIssues,
+} from "@/lib/social-identity";
 import { createClient } from "@/lib/supabase/server";
 
-export const SOCIAL_PAGE_ID = process.env.META_PAGE_ID || "887023637835514";
+/** LeadFlow's Facebook publisher is intentionally not configurable by Page. */
+export const SOCIAL_PAGE_ID = LEADFLOW_SOCIAL_PAGE_ID;
 
 export type SocialAdminContext = {
   user: { id: string; email?: string | null };
@@ -19,6 +25,11 @@ export type SocialAdminContext = {
 // only in trusted server routes after their public input has been validated.
 export type SocialServiceClient = SupabaseClient<any>;
 
+export type SocialPostIdentity = {
+  page_id: string;
+  provider: string;
+};
+
 export type SocialSecretName =
   | "meta_app_id"
   | "meta_app_secret"
@@ -26,6 +37,13 @@ export type SocialSecretName =
   | "facebook_user_access_token";
 
 export async function requireSocialAdmin(): Promise<SocialAdminContext | NextResponse> {
+  const identityIssues = getSocialRuntimeIdentityIssues();
+  if (identityIssues.length) {
+    return NextResponse.json(
+      { error: "LeadFlow social identity check failed.", issues: identityIssues },
+      { status: 503 },
+    );
+  }
   const supabase = await createClient();
   const {
     data: { user },
@@ -43,9 +61,31 @@ export async function requireSocialAdmin(): Promise<SocialAdminContext | NextRes
   return { user, profile };
 }
 
+function configuredSocialPageId() {
+  return process.env.META_PAGE_ID?.trim() || SOCIAL_PAGE_ID;
+}
+
+export function getSocialRuntimeIdentityIssues(): string[] {
+  return leadFlowSocialRuntimeIdentityIssues({
+    configuredPageId: configuredSocialPageId(),
+    supabaseUrl: SUPABASE_URL,
+  });
+}
+
+export function getSocialPublishIdentityIssues(
+  post: SocialPostIdentity,
+): string[] {
+  return leadFlowSocialPublishIdentityIssues({
+    configuredPageId: configuredSocialPageId(),
+    supabaseUrl: SUPABASE_URL,
+    postPageId: String(post.page_id ?? ""),
+    provider: String(post.provider ?? ""),
+  });
+}
+
 export function createSocialServiceClient(): SocialServiceClient | null {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) return null;
+  if (!key || getSocialRuntimeIdentityIssues().length) return null;
   return createSupabaseClient(SUPABASE_URL, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   }) as SocialServiceClient;

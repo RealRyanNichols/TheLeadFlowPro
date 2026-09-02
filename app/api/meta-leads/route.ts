@@ -6,6 +6,7 @@ import { notifyNewLeadSms } from "@/lib/leadNotify";
 import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotifications";
 import {
   isAllowedLeadFlowAdId,
+  isAllowedMetaTestLeadId,
   isRegisteredMetaForm,
   LEADFLOW_META,
   metaRuntimeIdentityIssues,
@@ -177,6 +178,8 @@ function mapLead(raw: MetaLead) {
     product.includes("seo") ? "website_funnels" : null,
   ].filter((value, index, values): value is string => !!value && values.indexOf(value) === index);
   const consents = parseConsents(raw);
+  const smsConsent = consents.sms && !!phone;
+  const marketingEmailConsent = consents.marketing;
   const campaign = registeredMetaForm(raw.form_id)?.campaign ?? "meta_lead_form";
   const isFreeWebsiteCampaign = campaign === "free_build_volume" || campaign.startsWith("free_website");
 
@@ -208,9 +211,9 @@ function mapLead(raw: MetaLead) {
       utm_campaign: campaign,
       // Consent comes ONLY from the form's own optional checkboxes. No
       // checkbox checked means no text and no marketing email, full stop.
-      sms_consent: consents.sms && !!phone,
-      marketing_email_consent: consents.marketing,
-      consent_at: new Date().toISOString(),
+      sms_consent: smsConsent,
+      marketing_email_consent: marketingEmailConsent,
+      consent_at: smsConsent || marketingEmailConsent ? new Date().toISOString() : null,
       external_id: `meta:${raw.id}`,
       diagnostic: {
         source: isFreeWebsiteCampaign ? "free_build_funnel" : "meta_lead_form",
@@ -272,13 +275,33 @@ async function paidLeadBelongsToLeadFlow(raw: MetaLead, token: string): Promise<
     return false;
   }
 
-  // Test-form and shared/open-form submissions can be untargeted and therefore
-  // have no ad_id. The exact LeadFlow Page + exact registered form are the
-  // ownership boundary for those submissions. Paid ad submissions must also
-  // prove that their ad belongs to the exact LeadFlow ad account. A compiled
-  // exact-ad allowlist is the primary proof because a Page token may have
-  // leads_retrieval without ads_read; the Graph lookup is a secondary path.
-  if (!raw.ad_id) return true;
+  // A registered form does not prove which campaign paid for a lead. The
+  // active v2 launch must carry an exact compiled ad id. The only missing-id
+  // exception is a one-lead allowlist for Meta's Lead Ads Testing Tool; it is
+  // deliberately explicit and must be cleared after each controlled test.
+  if (raw.form_id === LEADFLOW_META.formId) {
+    if (isAllowedLeadFlowAdId(raw.ad_id)) return true;
+    if (
+      !raw.ad_id &&
+      isAllowedMetaTestLeadId(raw.id, process.env.META_TEST_LEAD_IDS)
+    ) {
+      console.warn("Meta test lead accepted from explicit allowlist:", raw.id);
+      return true;
+    }
+    console.error(
+      "Meta v2 lead rejected: ad id is not in the exact LeadFlow launch allowlist",
+      raw.id,
+      raw.ad_id ?? "<missing>",
+    );
+    return false;
+  }
+
+  if (!raw.ad_id) {
+    console.error("Meta lead rejected: missing ad id", raw.id, raw.form_id ?? "<missing>");
+    return false;
+  }
+  // A compiled exact-ad allowlist is the primary proof because a Page token
+  // may have leads_retrieval without ads_read; the Graph lookup is secondary.
   if (isAllowedLeadFlowAdId(raw.ad_id)) return true;
 
   try {
