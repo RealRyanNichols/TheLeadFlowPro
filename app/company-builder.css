@@ -4621,3 +4621,465 @@ body:has(.cb-page.cb-home-dark) {
     order: 5;
   }
 }
+
+/* ----------------------------------------- visual capability walkthrough --
+
+   The selector is only the door. Every open module now earns its space with a
+   privacy-safe visual, a three-step path, a public proof link, and an indexed
+   stage guide. The production UI never renders private CRM records here. */
+
+.lfp-capability-instruction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #ffffff17;
+  background:
+    linear-gradient(90deg, transparent, #f5b84b14 48%, transparent),
+    #07111f;
+  color: #b8c6da;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.lfp-capability-instruction svg,
+.lfp-capability-instruction span {
+  color: #ffd58a;
+}
+
+.lfp-capability-instruction span {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.lfp-capability-stage > em {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  color: #ffd58a;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.lfp-capability-module-prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 0;
+  color: #b4c3d7;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.lfp-capability-module-prompt svg {
+  flex: none;
+  color: #f5b84b;
+  filter: drop-shadow(0 0 8px #f5b84b66);
+}
+
+.lfp-capability-visual {
+  margin: 30px 0 0;
+  overflow: hidden;
+  border: 1px solid #66a7d44f;
+  border-radius: 18px;
+  background: #050d19;
+  box-shadow: 0 24px 58px #0007, 0 0 28px #2f6bff16;
+}
+
+.lfp-capability-visual-media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 210px;
+  padding: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 80% 10%, #2f6bff33, transparent 44%),
+    linear-gradient(145deg, #08172a, #030914);
+}
+
+.lfp-capability-visual-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 68%, #030914d8 100%);
+}
+
+.lfp-capability-visual-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 12px;
+  filter: saturate(1.04) contrast(1.03);
+}
+
+.lfp-capability-visual-media > span {
+  position: absolute;
+  z-index: 1;
+  top: 16px;
+  left: 16px;
+  padding: 8px 10px;
+  border: 1px solid #4ad9ff66;
+  border-radius: 999px;
+  background: #04101dd9;
+  color: #7ce9ff;
+  font-size: 8.5px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  box-shadow: 0 0 18px #4ad9ff22;
+}
+
+.lfp-capability-visual figcaption {
+  padding: 22px;
+  border-top: 1px solid #ffffff12;
+  background:
+    linear-gradient(125deg, #4ad9ff0a, transparent 42%),
+    #081423;
+}
+
+.lfp-capability-visual-kicker {
+  margin: 0;
+  color: #f5b84b;
+  font-size: 8.5px;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+}
+
+.lfp-capability-visual h4 {
+  margin: 8px 0 0;
+  color: #fff;
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: clamp(21px, 2.2vw, 30px);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+
+.lfp-capability-visual figcaption > p:not(.lfp-capability-visual-kicker) {
+  margin: 10px 0 0;
+  color: #aebdd2;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.lfp-capability-visual ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lfp-capability-visual li {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  min-height: 72px;
+  align-content: center;
+  padding: 12px 30px 12px 12px;
+  border: 1px solid #ffffff17;
+  border-radius: 10px;
+  background: #050d19a8;
+}
+
+.lfp-capability-visual li > span {
+  color: #4ad9ff;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.lfp-capability-visual li > strong {
+  color: #e7eef8;
+  font-size: 10.5px;
+  line-height: 1.3;
+}
+
+.lfp-capability-visual li > svg {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  width: 14px;
+  color: #f5b84b;
+  transform: translateY(-50%);
+}
+
+.lfp-capability-visual-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.lfp-capability-visual-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid #4ad9ff55;
+  border-radius: 9px;
+  color: #bcefff;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: border-color 160ms, background 160ms, color 160ms, transform 160ms;
+}
+
+.lfp-capability-visual-actions a:first-child {
+  border-color: #f5b84b88;
+  background: linear-gradient(135deg, #f5b84b, #ffd58a);
+  color: #07111f;
+  box-shadow: 0 12px 28px #f5b84b1f;
+}
+
+.lfp-capability-visual-actions a:hover {
+  transform: translateY(-2px);
+  border-color: #7ce9ff;
+  background: #0e243b;
+  color: #fff;
+}
+
+.lfp-capability-visual-actions a:first-child:hover {
+  border-color: #ffe1aa;
+  background: linear-gradient(135deg, #ffd174, #ffe6b7);
+  color: #07111f;
+}
+
+/* -------------------------------------------- congruent offer comparison -- */
+
+.cb-home-dark .cb-rung {
+  align-items: stretch;
+  min-width: 0;
+  padding-top: 64px;
+  text-align: center;
+}
+
+.cb-home-dark .cb-rung-flag {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  z-index: 1;
+  align-self: center;
+  justify-content: center;
+  margin: 0;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.cb-home-dark .cb-rung-kind,
+.cb-home-dark .cb-rung h3,
+.cb-home-dark .cb-rung > p {
+  text-align: center;
+}
+
+.cb-home-dark .cb-rung-kind {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+}
+
+.cb-home-dark .cb-rung h3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  margin-top: 8px;
+}
+
+.cb-home-dark .cb-rung > p.cb-rung-price {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  margin-top: 2px;
+}
+
+.cb-home-dark .cb-rung > p:not(.cb-rung-price) {
+  min-height: 118px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.cb-home-dark .cb-rung ul {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.cb-home-dark .cb-rung li {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.cb-home-dark .cb-rung li svg {
+  flex: 0 0 16px;
+}
+
+.cb-home-dark .cb-rung > .cb-btn {
+  justify-content: center;
+  min-height: 52px;
+  text-align: center;
+}
+
+@media (min-width: 1241px) {
+  .cb-home-dark .cb-ladder {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1240px) {
+  .cb-home-dark .cb-ladder {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .lfp-capability-workbench,
+  .lfp-capability-menu,
+  .lfp-capability-detail {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .lfp-capability-detail {
+    overflow: hidden;
+  }
+
+  .lfp-capability-instruction {
+    align-items: flex-start;
+    padding: 14px 16px;
+    text-align: left;
+  }
+
+  .lfp-capability-stage {
+    min-height: 102px;
+  }
+
+  .lfp-capability-stage.is-active {
+    border-color: #f5b84b6e;
+    box-shadow: 0 0 26px #f5b84b1c inset, 0 0 20px #f5b84b12;
+  }
+
+  .lfp-capability-module-prompt {
+    margin-top: 16px;
+  }
+
+  .lfp-capability-module-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(245px, 84%);
+    gap: 10px;
+    margin-right: -18px;
+    padding: 2px 18px 12px 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: #f5b84b66 #07111f;
+  }
+
+  .lfp-capability-module {
+    min-height: 82px;
+    scroll-snap-align: start;
+  }
+
+  .lfp-capability-module.is-active {
+    box-shadow: 0 0 28px #f5b84b1f, 3px 0 0 #f5b84b inset;
+  }
+
+  .lfp-capability-visual {
+    margin-top: 24px;
+    border-radius: 14px;
+  }
+
+  .lfp-capability-visual-media {
+    min-height: 180px;
+    padding: 42px 12px 16px;
+  }
+
+  .lfp-capability-visual-media img {
+    max-height: 300px;
+  }
+
+  .lfp-capability-visual figcaption {
+    padding: 18px;
+  }
+
+  .lfp-capability-visual figcaption > p:not(.lfp-capability-visual-kicker),
+  .lfp-capability-definition p {
+    overflow-wrap: anywhere;
+  }
+
+  .lfp-capability-definition {
+    min-width: 0;
+  }
+
+  .lfp-capability-visual ol {
+    grid-template-columns: 1fr;
+  }
+
+  .lfp-capability-visual li {
+    min-height: 62px;
+  }
+
+  .lfp-capability-visual li > svg {
+    right: 12px;
+    transform: translateY(-50%) rotate(90deg);
+  }
+
+  .lfp-capability-visual-actions {
+    display: grid;
+  }
+
+  .lfp-capability-visual-actions a {
+    width: 100%;
+  }
+
+  .cb-home-dark .cb-ladder {
+    grid-template-columns: 1fr;
+    max-width: 560px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .cb-home-dark .cb-rung h3,
+  .cb-home-dark .cb-rung > p.cb-rung-price,
+  .cb-home-dark .cb-rung > p:not(.cb-rung-price) {
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lfp-capability-stage:first-child.is-active::after,
+  .lfp-capability-module:first-child.is-active {
+    animation: lfp-guided-glow 2.6s ease-in-out infinite;
+  }
+}
+
+@keyframes lfp-guided-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 #f5b84b00;
+  }
+  50% {
+    box-shadow: 0 0 26px #f5b84b2c;
+  }
+}

@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
-import { ArrowRight, Check, ExternalLink } from "lucide-react";
+import { ArrowRight, Check, ExternalLink, MousePointerClick, Sparkles } from "lucide-react";
 import { track } from "@/lib/analytics/client";
 
 type MarketExample = {
@@ -27,6 +28,20 @@ type Stage = {
   verb: string;
   body: string;
   capabilities: Capability[];
+};
+
+type CapabilityVisual = {
+  image: string;
+  width: number;
+  height: number;
+  alt: string;
+  eyebrow: string;
+  title: string;
+  body: string;
+  steps: [string, string, string];
+  proofHref: string;
+  proofLabel: string;
+  guideHref: string;
 };
 
 const WEBFLOW = "https://webflow.com/pricing";
@@ -360,6 +375,260 @@ const STAGES: Stage[] = [
   },
 ];
 
+const STAGE_VISUALS: Record<string, Omit<CapabilityVisual, "title" | "body">> = {
+  attract: {
+    image: "/images/homepage-v2/connected-company-hero.webp",
+    width: 1920,
+    height: 1080,
+    alt: "A connected company system routing attention into measurable customer actions",
+    eyebrow: "VISUAL WALKTHROUGH",
+    steps: ["Attention source", "Clear offer", "Measured action"],
+    proofHref: "/portfolio",
+    proofLabel: "Open real website examples",
+    guideHref: "/system/attention",
+  },
+  convert: {
+    image: "/images/visual-system/one-customer-one-record.webp",
+    width: 1254,
+    height: 1254,
+    alt: "Calls, texts, social messages, and website forms flowing into one customer record",
+    eyebrow: "SEE THE LEAD MOVE",
+    steps: ["Inquiry arrives", "One owned record", "Next action assigned"],
+    proofHref: "/premier-system",
+    proofLabel: "See the Premier system proof",
+    guideHref: "/system/crm",
+  },
+  operate: {
+    image: "/images/visual-system/course-system-blueprint.webp",
+    width: 1254,
+    height: 1254,
+    alt: "A connected customer delivery system with access, progress, and the next action",
+    eyebrow: "SEE THE WORK MOVE",
+    steps: ["Customer need", "Owned workflow", "Delivered result"],
+    proofHref: "/premier-system",
+    proofLabel: "See a live operating system",
+    guideHref: "/system/delivery",
+  },
+  own: {
+    image: "/images/homepage-v2/company-operating-loop.webp",
+    width: 1920,
+    height: 1080,
+    alt: "An owned company operating loop connecting the website, data, workflow, and reporting",
+    eyebrow: "SEE WHAT STAYS YOURS",
+    steps: ["Business account", "Connected asset", "Portable ownership"],
+    proofHref: "/portfolio",
+    proofLabel: "Inspect the owned builds",
+    guideHref: "/system/reporting",
+  },
+};
+
+const CAPABILITY_VISUALS: Record<string, Partial<CapabilityVisual>> = {
+  "public-website": {
+    image: "/og/portfolio/lonestar.jpg",
+    width: 1200,
+    height: 630,
+    alt: "Lone Star Total Wash website showing a real LeadFlow Pro client build",
+    eyebrow: "REAL CLIENT WEBSITE",
+    title: "A real front door, not another template.",
+    body: "Open a finished client website and see how the offer, proof, pricing, and next action work together on a phone or desktop.",
+    steps: ["Buyer lands", "Offer becomes clear", "Quote starts"],
+    proofHref: "https://www.lonestartotalwash.com",
+    proofLabel: "Open the live client website",
+    guideHref: "/system/website",
+  },
+  seo: {
+    image: "/images/articles-v4/east-texas-business-website-guide.jpg",
+    width: 1200,
+    height: 630,
+    alt: "A LeadFlow Pro search-focused business website guide",
+    title: "Build the page that answers the search.",
+    body: "Search visibility starts with a useful page, a clear service, a real location, strong internal links, and technical signals Google can understand.",
+    steps: ["Question searched", "Useful page found", "Action measured"],
+    proofHref: "/articles",
+    proofLabel: "See the indexed article library",
+    guideHref: "/system/attention",
+  },
+  "lead-capture": {
+    image: "/images/proof/pda-lead-source-proof-2026-09-01.png",
+    width: 1232,
+    height: 326,
+    alt: "Privacy-safe Premier Dental Academy charts showing new leads and their recorded sources",
+    eyebrow: "REAL OPERATING SNAPSHOT",
+    title: "Every source lands somewhere visible.",
+    body: "This privacy-safe Premier Dental Academy snapshot shows calls, Facebook leads, tools, applications, and texts recorded in one operating view. It is a September 1, 2026 snapshot, not a promise of future results.",
+    steps: ["Call, form, ad, or text", "Source recorded", "Lead ready to work"],
+    proofHref: "/premier-system",
+    proofLabel: "See the Premier build",
+    guideHref: "/system/lead-capture",
+  },
+  "lead-scoring": {
+    title: "Put the next best conversation first.",
+    body: "Fit, timing, source, and behavior become understandable signals. A person can see why a lead moved up the list and override the rule when judgment matters.",
+    steps: ["Fit + intent", "Explainable priority", "Human review"],
+    guideHref: "/system/crm",
+  },
+  crm: {
+    title: "One person. One history. One next move.",
+    body: "This is the same connected-record pattern used behind The LeadFlow Pro and Premier Dental Academy: the source, conversation, owner, stage, and next action stay together while private customer details stay protected.",
+    steps: ["Identity + source", "Complete timeline", "Owner + next task"],
+    proofHref: "/premier-system",
+    proofLabel: "See the Premier CRM system",
+    guideHref: "/system/crm",
+  },
+  pipeline: {
+    image: "/images/proof/pda-kpi-proof-2026-09-01.png",
+    width: 1240,
+    height: 121,
+    alt: "Privacy-safe Premier Dental Academy KPI cards from its owned operating dashboard",
+    eyebrow: "REAL DASHBOARD PROOF",
+    title: "See the work that is moving—and the work that is stuck.",
+    body: "A pipeline is the operating view between a new inquiry and a finished outcome. The proof image uses aggregate Academy data only; no student or lead record is exposed.",
+    steps: ["New", "Contacted + qualified", "Won, lost, or next action"],
+    proofHref: "/proof-floor",
+    proofLabel: "Open the public proof floor",
+    guideHref: "/system/crm",
+  },
+  calls: {
+    image: "/images/proof/pda-lead-source-proof-2026-09-01.png",
+    width: 1232,
+    height: 326,
+    alt: "Privacy-safe lead-source chart including calls recorded through Quo",
+    eyebrow: "CALLS CONNECTED TO THE RECORD",
+    title: "A call becomes part of the sale history.",
+    body: "Quo calls can be connected to the same source, customer record, owner, and follow-up queue as forms and texts. The chart is a real aggregate snapshot with private conversations removed.",
+    steps: ["Call received", "History attached", "Follow-up owned"],
+    proofHref: "/premier-system",
+    proofLabel: "See the connected-system proof",
+    guideHref: "/system/lead-capture",
+  },
+  texts: {
+    image: "/images/proof/pda-lead-source-proof-2026-09-01.png",
+    width: 1232,
+    height: 326,
+    alt: "Privacy-safe lead-source chart including SMS recorded through Quo",
+    eyebrow: "TEXTS CONNECTED TO THE RECORD",
+    title: "The text and the call share one history.",
+    body: "Permission-based Quo texting can live beside calls, forms, ownership, and the next task. The visual shows real aggregate source data without exposing a phone number or message.",
+    steps: ["Consent captured", "Reply recorded", "Next move assigned"],
+    proofHref: "/premier-system",
+    proofLabel: "See the connected-system proof",
+    guideHref: "/system/follow-up",
+  },
+  email: {
+    image: "/images/proof/pda-kpi-proof-2026-09-01.png",
+    width: 1240,
+    height: 121,
+    alt: "Privacy-safe Premier Dental Academy dashboard cards including its owned email-list total",
+    eyebrow: "OWNED AUDIENCE SNAPSHOT",
+    title: "Keep the list. Keep the history.",
+    body: "The Academy dashboard measures its owned email audience alongside leads and enrollment. The screenshot is aggregate proof only and does not expose any subscriber.",
+    steps: ["Permission", "Useful message", "Recorded response"],
+    guideHref: "/system/follow-up",
+  },
+  payments: {
+    image: "/images/visual-system/trace-the-sale.webp",
+    width: 1254,
+    height: 1254,
+    alt: "A payment traced back through the customer record to the source that created the sale",
+    eyebrow: "TRACE THE SALE",
+    title: "Payment should start the next workflow automatically.",
+    body: "The approved checkout, receipt, customer record, fulfillment task, and source can be connected without putting private card data inside the business application.",
+    steps: ["Approved checkout", "Payment recorded", "Delivery starts"],
+    proofHref: "/premier-system",
+    proofLabel: "See the enrollment and payment system",
+    guideHref: "/system/sale",
+  },
+  "customer-portals": {
+    title: "Give the customer one trusted place to return.",
+    body: "Premier connects interest, application, payment, student access, progress, and resources inside one owned experience instead of scattering the relationship across links.",
+    steps: ["Secure access", "Right information", "Clear next action"],
+    proofHref: "/premier-system",
+    proofLabel: "See the Premier portal system",
+    guideHref: "/system/delivery",
+  },
+  "member-student-areas": {
+    title: "Enrollment should open the right experience.",
+    body: "A member or student area connects access, lessons, progress, resources, and support to the person who actually enrolled.",
+    steps: ["Enrollment", "Access + progress", "Next lesson"],
+    proofHref: "/training",
+    proofLabel: "Preview the training platform",
+    guideHref: "/system/delivery",
+  },
+  "admin-dashboards": {
+    image: "/images/proof/pda-kpi-proof-2026-09-01.png",
+    width: 1240,
+    height: 121,
+    alt: "Privacy-safe KPI cards from the Premier Dental Academy owner dashboard",
+    eyebrow: "REAL OWNER DASHBOARD",
+    title: "The owner should know what needs attention today.",
+    body: "These real Academy KPI cards sit inside a private operator cockpit. The public proof keeps only aggregate values and removes names, contact details, messages, and admin controls.",
+    steps: ["Real records", "Useful exception", "Owner action"],
+    proofHref: "/proof-floor",
+    proofLabel: "Open the public proof floor",
+    guideHref: "/system/reporting",
+  },
+  courses: {
+    title: "A course becomes a working product.",
+    body: "The visual connects interest, payment, access, lessons, progress, and the next module instead of treating the course as a folder of videos.",
+    steps: ["Interest", "Enrollment + access", "Progress"],
+    proofHref: "/training",
+    proofLabel: "Preview the training platform",
+    guideHref: "/system/delivery",
+  },
+  archives: {
+    image: "/og/portfolio/realryannichols.jpg",
+    width: 1200,
+    height: 630,
+    alt: "RealRyanNichols.com searchable archive built on owned infrastructure",
+    eyebrow: "REAL SEARCHABLE ARCHIVE",
+    title: "Make years of work findable again.",
+    body: "RealRyanNichols.com shows how a large publishing archive can stay searchable, linked, and controlled on owned infrastructure.",
+    steps: ["Structured record", "Search + filter", "Reusable history"],
+    proofHref: "https://www.realryannichols.com",
+    proofLabel: "Open the live archive",
+    guideHref: "/system/delivery",
+  },
+  automation: {
+    image: "/images/visual-system/automate-the-reminder.webp",
+    width: 1254,
+    height: 1254,
+    alt: "A quote, timed follow-up, and human owner review connected in one workflow",
+    title: "Automate the reminder. Keep the judgment.",
+    body: "The system can remember timing, route routine work, and surface failures while a person keeps control of the consequential move.",
+    steps: ["Verified trigger", "Bounded action", "Human gate"],
+    proofHref: "/proof-floor",
+    proofLabel: "See the action and approval views",
+    guideHref: "/system/follow-up",
+  },
+  "your-analytics": {
+    image: "/images/proof/pda-lead-source-proof-2026-09-01.png",
+    width: 1232,
+    height: 326,
+    alt: "Privacy-safe first-party lead-source reporting from Premier Dental Academy",
+    eyebrow: "FIRST-PARTY REPORTING",
+    title: "Name the source before you increase the budget.",
+    body: "The Academy snapshot shows how calls, ads, tools, applications, and texts can be measured in a business-controlled reporting view.",
+    steps: ["Source", "Customer action", "Business outcome"],
+    proofHref: "/live",
+    proofLabel: "See the live proof system",
+    guideHref: "/system/reporting",
+  },
+};
+
+function getCapabilityVisual(stage: Stage, capability: Capability): CapabilityVisual {
+  const base = STAGE_VISUALS[stage.id];
+  const override = CAPABILITY_VISUALS[capability.id] ?? {};
+
+  return {
+    ...base,
+    ...override,
+    title: override.title ?? `${capability.name}, shown as a working system.`,
+    body:
+      override.body ??
+      `Follow ${capability.name.toLowerCase()} from the first signal to the owned record and the next accountable action.`,
+  };
+}
+
 function sendSignal(kind: "view" | "interest", stage: Stage, capability: Capability) {
   const event = kind === "interest" ? "capability_interest" : "capability_open";
   const pixelEvent = kind === "interest" ? "CapabilityInterest" : "CapabilityViewed";
@@ -375,8 +644,8 @@ function sendSignal(kind: "view" | "interest", stage: Stage, capability: Capabil
 }
 
 export default function CapabilityExplorer() {
-  const [stageId, setStageId] = useState("convert");
-  const [capabilityId, setCapabilityId] = useState("crm");
+  const [stageId, setStageId] = useState("attract");
+  const [capabilityId, setCapabilityId] = useState("positioning");
   const [interested, setInterested] = useState<Set<string>>(() => new Set());
   const detailRef = useRef<HTMLElement>(null);
 
@@ -388,6 +657,7 @@ export default function CapabilityExplorer() {
     () => stage.capabilities.find((item) => item.id === capabilityId) ?? stage.capabilities[0],
     [capabilityId, stage]
   );
+  const visual = useMemo(() => getCapabilityVisual(stage, capability), [capability, stage]);
 
   function chooseStage(next: Stage) {
     const first = next.capabilities[0];
@@ -411,6 +681,11 @@ export default function CapabilityExplorer() {
 
   return (
     <div className="lfp-capability-explorer">
+      <div className="lfp-capability-instruction" aria-hidden="true">
+        <Sparkles className="h-4 w-4" />
+        <span>START HERE</span>
+        Choose a station, then open a visual module.
+      </div>
       <div className="lfp-capability-rail" aria-label="Connected company stages">
         {STAGES.map((item) => {
           const active = item.id === stage.id;
@@ -425,6 +700,7 @@ export default function CapabilityExplorer() {
               <span>{item.number}</span>
               <strong>{item.name}</strong>
               <small>{item.verb}</small>
+              {active ? <em>Now viewing</em> : null}
             </button>
           );
         })}
@@ -439,6 +715,10 @@ export default function CapabilityExplorer() {
             </div>
             <p>{stage.body}</p>
           </div>
+          <p className="lfp-capability-module-prompt">
+            <MousePointerClick aria-hidden="true" className="h-4 w-4" />
+            Tap a module to see the visual, the real-world proof, and the next move.
+          </p>
           <div className="lfp-capability-module-grid" role="list" aria-label={`${stage.name} capabilities`}>
             {stage.capabilities.map((item, index) => {
               const active = item.id === capability.id;
@@ -473,6 +753,40 @@ export default function CapabilityExplorer() {
           </div>
           <h3 id="capability-detail-title">{capability.name}</h3>
           <p className="lfp-capability-definition">{capability.plain}</p>
+
+          <figure className="lfp-capability-visual">
+            <div className="lfp-capability-visual-media">
+              <Image
+                src={visual.image}
+                alt={visual.alt}
+                width={visual.width}
+                height={visual.height}
+                sizes="(max-width: 980px) 100vw, 52vw"
+              />
+              <span>{visual.eyebrow}</span>
+            </div>
+            <figcaption>
+              <p className="lfp-capability-visual-kicker">SEE IT. FOLLOW IT. OWN IT.</p>
+              <h4>{visual.title}</h4>
+              <p>{visual.body}</p>
+              <ol aria-label={`${capability.name} visual path`}>
+                {visual.steps.map((step, index) => (
+                  <li key={step}>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <strong>{step}</strong>
+                    {index < visual.steps.length - 1 ? <ArrowRight aria-hidden="true" /> : null}
+                  </li>
+                ))}
+              </ol>
+              <div className="lfp-capability-visual-actions">
+                <Link href={visual.proofHref}>
+                  {visual.proofLabel}
+                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </Link>
+                <Link href={visual.guideHref}>Read the indexed guide</Link>
+              </div>
+            </figcaption>
+          </figure>
 
           <div className="lfp-capability-explainer">
             <div>

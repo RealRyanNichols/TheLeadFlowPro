@@ -195,6 +195,21 @@ const LADDER = [
     cta: "Apply for the free website",
   },
   {
+    kind: "Deeper diagnostic",
+    name: "System Map",
+    price: "$497",
+    lead: false,
+    body: "A working blueprint for a business that needs more than a five-page launch before anyone scopes software or automation.",
+    items: [
+      "Full inventory of what you run today",
+      "Customer path and data flow, mapped",
+      "Ownership and handoff audit",
+      "Recommended modules, phases, and price range",
+    ],
+    href: "/packages/system-map",
+    cta: "See the System Map",
+  },
+  {
     kind: "Buy-it-outright option",
     name: "Website Launch",
     price: "$1,000",
@@ -209,21 +224,6 @@ const LADDER = [
     ],
     href: "/packages/launch",
     cta: "See the buy-it-outright option",
-  },
-  {
-    kind: "Deeper diagnostic",
-    name: "System Map",
-    price: "$497",
-    lead: false,
-    body: "A working blueprint for a business that needs more than a five-page launch before anyone scopes software or automation.",
-    items: [
-      "Full inventory of what you run today",
-      "Customer path and data flow, mapped",
-      "Ownership and handoff audit",
-      "Recommended modules, phases, and price range",
-    ],
-    href: "/packages/system-map",
-    cta: "See the System Map",
   },
   {
     kind: "Connected company core",
@@ -311,6 +311,19 @@ const HOME_JSONLD = {
         "Lead capture and follow-up automation",
         "Small business operations software",
       ],
+      hasOfferCatalog: {
+        "@type": "OfferCatalog",
+        name: "Website and connected business system offers",
+        itemListElement: LADDER.map((offer) => ({
+          "@type": "Offer",
+          url: `${SITE}${offer.href}`,
+          description: offer.body,
+          itemOffered: {
+            "@type": "Service",
+            name: offer.name,
+          },
+        })),
+      },
     },
     {
       "@type": "WebSite",
@@ -622,8 +635,9 @@ export default function HomePage() {
               </h2>
             </div>
             <p className="cb-lead">
-              Open any station. Click any capability. See what it means in plain English,
-              why it matters, what the market charges, and what an owned build could include.
+              Start with a station, then open any module. Every choice now shows a visual
+              walkthrough, a real system example, the plain-English meaning, current market
+              references, and a full indexed guide you can keep exploring.
             </p>
           </div>
 
