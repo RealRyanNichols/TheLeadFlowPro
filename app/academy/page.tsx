@@ -6,12 +6,20 @@ import {
   OPERATOR_ACADEMY_COURSES,
   formatAcademyPrice,
 } from "@/lib/operatorAcademyCatalog";
+import { academyItemListJsonLd } from "@/lib/courseSeo";
 import { AcademyCheckoutForm, AcademyFreeAccessForm } from "./AcademyActions";
 import styles from "./academy.module.css";
 
 export const metadata = {
-  title: "The LeadFlow Operator Academy",
+  title: "The LeadFlow Operator Academy | Ten courses, two free | The LeadFlow Pro",
   description: OPERATOR_ACADEMY.promise,
+  alternates: { canonical: "https://www.theleadflowpro.com/academy" },
+  openGraph: {
+    title: "The LeadFlow Operator Academy",
+    description: OPERATOR_ACADEMY.promise,
+    url: "https://www.theleadflowpro.com/academy",
+    type: "website",
+  },
 };
 
 export default function AcademyPage() {
@@ -19,6 +27,10 @@ export default function AcademyPage() {
   const paidCourses = OPERATOR_ACADEMY_COURSES.filter((course) => !course.isFree);
   return (
     <main className={styles.page}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(academyItemListJsonLd()) }}
+      />
       <section className={styles.hero}>
         <div className={styles.shell}>
           <div className={styles.heroCopy}>
