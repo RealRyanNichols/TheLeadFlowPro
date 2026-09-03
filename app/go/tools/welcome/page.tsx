@@ -2,10 +2,19 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Suspense } from "react";
 import BillingPortalButton from "./BillingPortalButton";
+import PurchasePing from "@/components/PurchasePing";
 
-export default function ToolStudioWelcomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function ToolStudioWelcomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ session_id?: string }>;
+}) {
+  const { session_id: sessionId } = await searchParams;
   return (
     <main className="min-h-screen bg-[#050b19] px-4 py-20 text-slate-200">
+      <PurchasePing sessionId={sessionId} />
       <div className="mx-auto max-w-3xl rounded-[28px] border border-emerald-400/30 bg-[#0b172b] p-7 sm:p-11">
         <CheckCircle2 className="h-12 w-12 text-emerald-400" aria-hidden="true" />
         <p className="mt-6 text-xs font-black uppercase tracking-[.2em] text-cyan-300">Payment received</p>

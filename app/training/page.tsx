@@ -16,9 +16,10 @@ import SiteHero from "@/components/site/system/SiteHero";
 import styles from "./training.module.css";
 
 export const metadata = {
-  title: "Training Library | The LeadFlow Pro",
+  title: "Training Library | The LeadFlow Operator Academy",
   description:
-    "Access The LeadFlow Pro training library, continue existing courses, and track lesson progress.",
+    "The LeadFlow Operator Academy library: ten courses on offers, lead capture, follow-up, websites, AI agents, local ads, dashboards, and the company operating system. Two are free.",
+  alternates: { canonical: "https://www.theleadflowpro.com/training" },
 };
 
 export const dynamic = "force-dynamic";

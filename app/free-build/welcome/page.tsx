@@ -57,10 +57,10 @@ export default async function FreeBuildWelcomePage({
             payment, so the sooner it is on the calendar the sooner you are live.
           </p>
           <div className="cb-actions">
-            <Link className="cb-btn cb-btn--primary" href="/book?src=free-build-welcome">
-              Book My Twenty Minutes
+            <a className="cb-btn cb-btn--primary" href="sms:+19035008898?&body=Hi%20Ryan%2C%20my%20Free%20Build%20is%20paid.%20When%20can%20we%20do%20our%20twenty%20minutes%3F">
+              Text Ryan to Set Up the Call
               <CalendarCheck aria-hidden="true" />
-            </Link>
+            </a>
             <a className="cb-btn cb-btn--ghost" href="tel:+19035008898">
               Or Call Me: (903) 500-8898
             </a>
@@ -117,10 +117,10 @@ export default async function FreeBuildWelcomePage({
             The receipt for this payment is in your email from Stripe.
           </p>
           <div className="cb-actions">
-            <Link className="cb-btn cb-btn--primary" href="/book?src=free-build-welcome">
-              Book My Twenty Minutes
+            <a className="cb-btn cb-btn--primary" href="sms:+19035008898?&body=Hi%20Ryan%2C%20my%20Free%20Build%20is%20paid.%20When%20can%20we%20do%20our%20twenty%20minutes%3F">
+              Text Ryan to Set Up the Call
               <CalendarCheck aria-hidden="true" />
-            </Link>
+            </a>
             <Link className="cb-btn cb-btn--ghost" href="/portfolio">
               See What I Have Built
             </Link>

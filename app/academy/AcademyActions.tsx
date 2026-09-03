@@ -12,6 +12,7 @@ export function AcademyFreeAccessForm() {
     setBusy(true);
     setMessage("");
     const form = new FormData(event.currentTarget);
+    const params = new URLSearchParams(window.location.search);
     try {
       const response = await fetch("/api/academy/free-access", {
         method: "POST",
@@ -22,10 +23,18 @@ export function AcademyFreeAccessForm() {
           phone: form.get("phone"),
           marketingEmailConsent: form.get("marketingEmailConsent") === "yes",
           smsConsent: form.get("smsConsent") === "yes",
+          utm_source: params.get("utm_source") || "website",
+          utm_medium: params.get("utm_medium") || "academy_free_access",
+          utm_campaign: params.get("utm_campaign") || "operator_academy",
         }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Access could not be created.");
+      try {
+        window.fbq?.("track", "Lead");
+      } catch {
+        // the pixel is optional; access never depends on it
+      }
       window.location.assign(data.redirectTo || "/training/offer-engine");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Access could not be created.");

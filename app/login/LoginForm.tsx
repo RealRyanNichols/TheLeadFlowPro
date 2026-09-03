@@ -22,7 +22,9 @@ export default function LoginForm() {
   const params = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
   const next = safeNext(params.get("next"));
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup">(
+    params.get("mode") === "signup" ? "signup" : "login",
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");

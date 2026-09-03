@@ -1,9 +1,18 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import PurchasePing from "@/components/PurchasePing";
 
-export default function ChatGPTCourseWelcomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function ChatGPTCourseWelcomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ session_id?: string }>;
+}) {
+  const { session_id: sessionId } = await searchParams;
   return (
     <main className="cb-page">
+      <PurchasePing sessionId={sessionId} />
       <section className="cb-band">
         <div className="cb-shell" style={{ maxWidth: 760, paddingTop: 96, paddingBottom: 96, textAlign: "center" }}>
           <CheckCircle2 aria-hidden="true" style={{ width: 48, height: 48, color: "#13735d", marginBottom: 18 }} />
@@ -11,7 +20,7 @@ export default function ChatGPTCourseWelcomePage() {
           <h1>Now connect your login to The ChatGPT Operator.</h1>
           <p>Use the exact email address from checkout. Your course access is attached to that email after Stripe confirms the payment.</p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginTop: 28 }}>
-            <Link className="cb-btn cb-btn--primary" href="/login?next=/training/chatgpt-operator">Create or open your login</Link>
+            <Link className="cb-btn cb-btn--primary" href="/login?mode=signup&next=/training/chatgpt-operator">Create or open your login</Link>
             <Link className="cb-btn cb-btn--ghost" href="/training/chatgpt-operator">Open the course</Link>
           </div>
           <p style={{ marginTop: 24, color: "#52627e", fontSize: 13 }}>If access has not appeared yet, wait one minute and refresh. The same instructions will be sent by email.</p>
