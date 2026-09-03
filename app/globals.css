@@ -108,6 +108,11 @@ body{background:var(--page);min-width:320px;color:var(--text);text-rendering:opt
    too white" means dark chrome, light content). Ink bar, white lockup,
    periwinkle Pro so the wordmark keeps its two-tone read on ink. */
 .site-header{z-index:50;border-bottom:1px solid #ffffff14;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);background:#0a1220f5;position:sticky;top:0}
+/* Nav links render ~21px of text; pad the hit area to 44px+ (WCAG 2.2 target
+   size) without moving the layout — the padding is cancelled by margins and
+   the 68px bar absorbs the height. */
+.site-header .desktop-nav>a:not(.header-cta){padding:12px 6px;margin:-12px -6px}
+.site-header .brand-lockup{padding:9px 0;margin:-9px 0}
 .site-header .brand-lockup{color:#fff}
 .site-header .brand-lockup span{color:#7c9aff}
 .site-header .desktop-nav{color:#b8c3d9}
@@ -211,6 +216,13 @@ body{background:var(--page);min-width:320px;color:var(--text);text-rendering:opt
   .tool-domain-rail .tool-chip{white-space:nowrap;flex-shrink:0}
   .page-hero-compact{padding:16px 0 18px}
   .page-hero-compact h1{font-size:clamp(30px,9.5vw,40px);margin-top:14px}
+  /* /tools on a phone: the library must be reachable without a long scroll
+     (search input within ~900px of the top). The hero stays; its media panel
+     is a desktop flourish that costs a full phone screen, so it is dropped
+     here — and only here, this page, phone widths. */
+  .sv-tools-page .sv-site-hero-media{display:none}
+  .sv-tools-page .cb-hero{padding-top:12px;padding-bottom:28px}
+  .sv-tools-page .cb-hero-layout{gap:0}
 }
 .page-hero-centered{text-align:center}
 .page-hero h1{color:var(--heading);letter-spacing:-.055em;margin:24px 0 0;font-size:clamp(42px,6vw,72px);font-weight:880;line-height:.98}
