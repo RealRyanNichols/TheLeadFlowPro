@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { ARTICLES } from "@/lib/articles";
 import { TOOLS } from "@/lib/tools";
+import { PRO_TOOLS } from "@/lib/tools/pro";
 import { PUBLISHED_COLLECTIONS } from "@/lib/tools/collections";
 import { STAGE_SLUGS } from "@/lib/system-stages";
 
@@ -19,6 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/pricing",
     "/add-ons",
     "/tools",
+    "/tools/pro",
     "/packages",
     "/portfolio",
     "/premier-system",
@@ -49,6 +51,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
     ...TOOLS.map((t) => ({
       url: `${BASE}/tools/${t.slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
+    ...PRO_TOOLS.map((t) => ({
+      url: `${BASE}/tools/pro/${t.slug}`,
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),

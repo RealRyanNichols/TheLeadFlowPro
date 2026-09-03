@@ -12,6 +12,7 @@ import { mkdirSync, readFileSync, writeFileSync, readdirSync, unlinkSync } from 
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { ALL_TOOLS } from "../lib/tools/index.ts";
+import { ALL_PRO_TOOLS } from "../lib/tools/pro/index.ts";
 import { ART_DIMS } from "../lib/tools/art.ts";
 
 const ROOT = process.cwd();
@@ -49,7 +50,7 @@ const manifest: Entry[] = [];
 let written = 0;
 let unchanged = 0;
 
-for (const tool of ALL_TOOLS) {
+for (const tool of [...ALL_TOOLS, ...ALL_PRO_TOOLS]) {
   let scene: string;
   try {
     scene = readFileSync(join(SCENE_DIR, `${tool.slug}.svg`), "utf8");

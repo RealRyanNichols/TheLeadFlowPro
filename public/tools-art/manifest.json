@@ -1,6 +1,6 @@
 {
   "generated": "npm run art",
-  "count": 86,
+  "count": 87,
   "tools": [
     {
       "slug": "missed-call-calculator",
@@ -1462,6 +1462,23 @@
         "height": 900,
         "bytes": 6370,
         "sha256": "5b46cdb4b5f23056"
+      }
+    },
+    {
+      "slug": "missed-call-text-back-kit",
+      "card": {
+        "file": "/tools-art/card/missed-call-text-back-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 9113,
+        "sha256": "85b8b6f3c2be6699"
+      },
+      "hero": {
+        "file": "/tools-art/hero/missed-call-text-back-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 9113,
+        "sha256": "56f50f6215aced6f"
       }
     }
   ]

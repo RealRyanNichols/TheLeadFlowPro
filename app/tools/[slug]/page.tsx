@@ -12,6 +12,7 @@ import { collectionsForTool } from "@/lib/tools/collections";
 import { TOOL_VISUALS } from "@/lib/tools/visuals";
 import ToolEngine from "@/components/tools/ToolEngine";
 import ToolCard from "@/components/tools/ToolCard";
+import ProUpsell from "@/components/tools/pro/ProUpsell";
 import { SHELLS } from "@/components/tools/shell";
 import FinalCta from "@/components/site/system/FinalCta";
 import SiteHero from "@/components/site/system/SiteHero";
@@ -143,6 +144,8 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
       <section id="tool" className="cb-band sv-tools-band scroll-mt-24">
         <div className="cb-shell sv-workbench">
           <ToolEngine slug={tool.slug} />
+          {/* Only renders when a kit actually continues this tool's job. */}
+          <ProUpsell freeSlug={tool.slug} />
         </div>
       </section>
 

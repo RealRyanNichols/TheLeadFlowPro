@@ -29,63 +29,153 @@ export type Category =
   | "Generators"
   | "Costs";
 
-export type Field =
-  | {
-      id: string;
-      label: string;
-      type: "slider";
-      min: number;
-      max: number;
-      step: number;
-      def: number;
-      prefix?: string;
-      suffix?: string;
-      help?: string;
-    }
-  | { id: string; label: string; type: "money"; def: number; help?: string }
-  | {
-      id: string;
-      label: string;
-      type: "number";
-      def: number;
-      suffix?: string;
-      help?: string;
-    }
-  | {
-      id: string;
-      label: string;
-      type: "text";
-      def: string;
-      placeholder?: string;
-      help?: string;
-    }
-  | {
-      id: string;
-      label: string;
-      type: "textarea";
-      def: string;
-      placeholder?: string;
-      rows?: number;
-      help?: string;
-    }
-  | {
-      id: string;
-      label: string;
-      type: "select";
-      def: string;
-      options: { value: string; label: string }[];
-      help?: string;
-    }
-  | {
-      id: string;
-      label: string;
-      type: "checks";
-      def: string[];
-      options: { value: string; label: string }[];
-      help?: string;
-    };
+/**
+ * Every field may name a `section`. Fields sharing a section render under one
+ * numbered step heading, which is how a pro kit becomes a guided walk instead
+ * of a wall of inputs. Free tools leave it off and render exactly as before.
+ */
+type Sectioned = { section?: string };
+
+export type Field = Sectioned &
+  (
+    | {
+        id: string;
+        label: string;
+        type: "slider";
+        min: number;
+        max: number;
+        step: number;
+        def: number;
+        prefix?: string;
+        suffix?: string;
+        help?: string;
+      }
+    | { id: string; label: string; type: "money"; def: number; help?: string }
+    | {
+        id: string;
+        label: string;
+        type: "number";
+        def: number;
+        suffix?: string;
+        help?: string;
+      }
+    | {
+        id: string;
+        label: string;
+        type: "text";
+        def: string;
+        placeholder?: string;
+        help?: string;
+      }
+    | {
+        id: string;
+        label: string;
+        type: "textarea";
+        def: string;
+        placeholder?: string;
+        rows?: number;
+        help?: string;
+      }
+    | {
+        id: string;
+        label: string;
+        type: "select";
+        def: string;
+        options: { value: string; label: string }[];
+        help?: string;
+      }
+    | {
+        id: string;
+        label: string;
+        type: "checks";
+        def: string[];
+        options: { value: string; label: string }[];
+        help?: string;
+      }
+  );
 
 export type Values = Record<string, number | string | string[]>;
+
+/* ------------------------------- brand kit -------------------------------- */
+
+/**
+ * The Brand Kit is set once in the browser and injected into every pro kit's
+ * run() under these ids. It never leaves the browser. Tools must produce a
+ * complete result when every one of these is empty.
+ */
+export const BRAND_FIELD_IDS = [
+  "brand_name",
+  "brand_phone",
+  "brand_email",
+  "brand_site",
+  "brand_city",
+  "brand_color",
+  "brand_logo",
+] as const;
+
+export type BrandFieldId = (typeof BRAND_FIELD_IDS)[number];
+
+export type BrandKit = Record<BrandFieldId, string>;
+
+export const EMPTY_BRAND_KIT: BrandKit = {
+  brand_name: "",
+  brand_phone: "",
+  brand_email: "",
+  brand_site: "",
+  brand_city: "",
+  brand_color: "",
+  brand_logo: "",
+};
+
+/** Read the brand kit out of a Values bag with safe fallbacks. */
+export const brandOf = (v: Values): BrandKit => {
+  const out = { ...EMPTY_BRAND_KIT };
+  for (const id of BRAND_FIELD_IDS) {
+    const raw = v[id];
+    if (typeof raw === "string") out[id] = raw.trim();
+  }
+  if (!/^#[0-9a-fA-F]{6}$/.test(out.brand_color)) out.brand_color = "";
+  return out;
+};
+
+/* ------------------------------- documents -------------------------------- */
+
+/**
+ * What a pro kit hands over. Every document is a string produced by run(), so
+ * the whole kit is generated in the browser from the buyer's own numbers.
+ *
+ * `print-html` is a complete HTML document; the engine opens it in a new tab
+ * where the buyer prints it or saves it as a PDF. The others download as files.
+ */
+export type DocumentFormat = "print-html" | "txt" | "md" | "csv" | "svg" | "json" | "ics";
+
+export type ToolDocument = {
+  id: string;
+  title: string;
+  /** One line on what is inside. Shown before purchase, so it sells the kit. */
+  blurb?: string;
+  filename: string;
+  format: DocumentFormat;
+  body: string;
+};
+
+/* ---------------------------------- pro ----------------------------------- */
+
+/**
+ * What makes a tool a paid kit. The price is the one number the checkout route
+ * trusts; the browser never sends a dollar amount.
+ */
+export type ProInfo = {
+  priceUsd: number;
+  /** One line under the price: the outcome, never a guarantee. */
+  promise: string;
+  /** What is in the box. Rendered as the kit list before and after purchase. */
+  kit: string[];
+  /** Free tool slugs this upgrades. Those pages show the upgrade card. */
+  upgradeFrom: string[];
+  /** What a visitor sees and can use before paying. */
+  freePreview: string;
+};
 
 export type Stat = { label: string; value: string; sub?: string; tone?: Tone };
 export type Bar = { label: string; value: number; display: string; tone?: Tone };
@@ -121,6 +211,11 @@ export type Result = {
   csv?: { filename: string; headers: string[]; rows: (string | number)[][] };
   /** Calendar tools return a .ics body here. */
   ics?: { filename: string; text: string };
+  /**
+   * Pro kits return their deliverables here. The engine lists them, downloads
+   * them, and prints the printable ones. Locked until the kit is unlocked.
+   */
+  documents?: ToolDocument[];
 };
 
 /* ---------------------------- industry presets ----------------------------- */
@@ -323,6 +418,8 @@ export type ToolDef = {
   /** Marks tools that render their own component instead of the engine. */
   custom?: "review-link";
   featured?: boolean;
+  /** Present only on paid kits. Free tools never carry it. */
+  pro?: ProInfo;
 } & Partial<ToolMeta>;
 
 /**
