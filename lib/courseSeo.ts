@@ -32,11 +32,24 @@ export function courseLessonTitles(course: CatalogCourse): string[] {
   return course.lessons.map((lesson) => lesson.title);
 }
 
+// What a buyer can actually pay today. The two standalone courses sell on
+// their own; every other paid course is sold only inside all-access, so its
+// offer is the all-access founding price. The catalog's individualPriceCents
+// is a list price with no checkout behind it and must not be published as an
+// offer.
 export function coursePriceCents(course: CatalogCourse): number | null {
   if (course.isFree) return 0;
   if (course.slug === CHATGPT_OPERATOR.slug) return CHATGPT_OPERATOR.foundingPriceCents;
   if (course.slug === CONTENT_ENGINE.slug) return CONTENT_ENGINE.foundingPriceCents;
-  return course.individualPriceCents ?? OPERATOR_ACADEMY.foundingPriceCents;
+  return OPERATOR_ACADEMY.foundingPriceCents;
+}
+
+export function courseOfferName(course: CatalogCourse): string {
+  if (course.isFree) return "Free with lead access";
+  if (course.slug === CHATGPT_OPERATOR.slug || course.slug === CONTENT_ENGINE.slug) {
+    return `${course.shortTitle}, founding price`;
+  }
+  return "Operator Academy all-access, founding price";
 }
 
 export function courseMetadata(slug: string): Metadata {
@@ -49,11 +62,12 @@ export function courseMetadata(slug: string): Metadata {
   }
   const lessonCount = courseLessonTitles(course).length;
   const priceCents = coursePriceCents(course);
+  const standalone = course.slug === CHATGPT_OPERATOR.slug || course.slug === CONTENT_ENGINE.slug;
   const priceLabel = course.isFree
     ? "Free with lead access"
-    : priceCents
+    : standalone && priceCents
       ? `$${Math.round(priceCents / 100)} founding price`
-      : "Included in all-access";
+      : `Included in Operator Academy all-access, $${Math.round((priceCents ?? 0) / 100)} founding price`;
   const title = `${course.shortTitle} | Operator Academy ${course.code.replace("OA", "")} | The LeadFlow Pro`;
   const description = `${course.description} ${lessonCount} lessons, ${course.level.toLowerCase()} level. ${priceLabel}. Written lessons, exact prompts, workbook, lesson checks, and a private completion record.`;
   return {
@@ -95,6 +109,7 @@ export function courseJsonLd(course: CatalogCourse) {
     offers: [
       {
         "@type": "Offer",
+        name: courseOfferName(course),
         category: course.isFree ? "Free" : "Paid",
         price: priceCents === null ? undefined : (priceCents / 100).toFixed(2),
         priceCurrency: "USD",
