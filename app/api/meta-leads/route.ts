@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
-import { notifyNewLeadSms } from "@/lib/leadNotify";
+import { notifyNewLeadSms, sendInternalLeadAlert } from "@/lib/leadNotify";
 import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotifications";
 import {
   isAllowedLeadFlowAdId,
@@ -349,6 +349,7 @@ async function claimExisting(
   external_id: string,
   email: string,
   phone: string | null,
+  lead?: { full_name?: string | null; business_name?: string | null; interest?: string; goals?: string | null; utm_source?: string | null },
 ): Promise<boolean> {
   const real = email && !email.endsWith("@no-email.facebook.lead") ? email : null;
   const digits = phone ? phone.replace(/\D/g, "").slice(-10) : null;
@@ -378,6 +379,42 @@ async function claimExisting(
   if (!hit.external_id) {
     await supabase.from("leads").update({ external_id }).eq("id", hit.id);
   }
+
+  // Quiet toward the person, loud toward Ryan. Someone who fills out a paid
+  // lead form a second time is raising their hand again, and that used to be
+  // absorbed with no alert and no trace. The activity row keyed on the Meta
+  // lead id is the idempotency marker, so a five-minute poll that sees the
+  // same submission again does not alert twice.
+  const detail = `Submitted a Facebook lead form again: ${external_id}.`.slice(0, 1000);
+  try {
+    const { data: seen } = await supabase
+      .from("lead_activity")
+      .select("id")
+      .eq("lead_id", hit.id)
+      .eq("detail", detail)
+      .limit(1);
+    if (!(seen as unknown[] | null)?.length) {
+      await sendInternalLeadAlert({
+        full_name: lead?.full_name || real || "Facebook lead",
+        email: real || `${digits ?? "unknown"}@no-email.facebook.lead`,
+        phone,
+        business_name: lead?.business_name ?? null,
+        interest: lead?.interest || "unsure",
+        goals: `REPEAT SUBMISSION. This person is already in the CRM (lead ${hit.id}) and just filled out a Facebook lead form again. ${lead?.goals || ""}`.trim(),
+        source: "meta_lead_ad",
+        utm_source: lead?.utm_source ?? "facebook",
+        sms_consent: false,
+      });
+      await supabase.from("lead_activity").insert({ lead_id: hit.id, kind: "system", detail });
+      await supabase
+        .from("leads")
+        .update({ status: "new" })
+        .eq("id", hit.id)
+        .in("status", ["lost"]);
+    }
+  } catch (e) {
+    console.error("meta repeat-lead alert failed:", e instanceof Error ? e.message : e);
+  }
   return true;
 }
 
@@ -391,7 +428,7 @@ async function ingest(raw: MetaLead, token: string): Promise<boolean> {
   const supabase = createSupabaseClient(SUPABASE_URL, serviceKey || SUPABASE_ANON_KEY);
   const { lead, external_id } = mapLead(raw);
 
-  if (await claimExisting(supabase, external_id, lead.email, lead.phone)) return false;
+  if (await claimExisting(supabase, external_id, lead.email, lead.phone, lead)) return false;
 
   const { data, error } = await supabase
     .from("leads")

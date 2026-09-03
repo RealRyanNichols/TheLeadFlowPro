@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import WelcomeFlow from "./WelcomeFlow";
+import PurchasePing from "@/components/PurchasePing";
 
 // The post-purchase page for Time Back orders. Stripe sends buyers here
 // after payment. One job: collect everything the build team needs to start,
@@ -13,9 +14,17 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function TimeBackWelcomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function TimeBackWelcomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ session_id?: string }>;
+}) {
+  const { session_id: sessionId } = await searchParams;
   return (
     <main className="cb-page">
+      <PurchasePing sessionId={sessionId} />
       <style>{`
         .tb-dark h1, .tb-dark h2, .tb-dark h3 { color: #f4f6fa !important; }
         .tb-grad-border {

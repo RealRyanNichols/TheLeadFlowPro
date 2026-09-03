@@ -25,7 +25,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Registration not found" }, { status: 404 });
   }
 
+  // The seat price rides along so the confirmation page can report the real
+  // purchase value instead of a constant. Public field, anon-readable.
+  let priceUsd: number | null = null;
+  if (row.event_slug) {
+    const { data: event } = await supabase
+      .from("events")
+      .select("price_usd")
+      .eq("slug", row.event_slug)
+      .maybeSingle();
+    const parsed = Number(event?.price_usd);
+    if (Number.isFinite(parsed) && parsed > 0) priceUsd = parsed;
+  }
+
   return NextResponse.json({
+    price_usd: priceUsd,
     first_name: row.first_name,
     event_slug: row.event_slug,
     event_title: row.event_title,

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, CircleCheckBig } from "lucide-react";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 import IntakeForm from "./IntakeForm";
+import PurchasePing from "@/components/PurchasePing";
 import styles from "../lead-follow-up.module.css";
 
 // Where a paid Lead Follow-Up Campaign buyer lands. The writing does not
@@ -24,6 +25,7 @@ export default async function LeadFollowUpIntakePage({
 
   return (
     <main className={`cb-page ${styles.page}`}>
+      <PurchasePing sessionId={sessionId} />
       <section className="cb-hero">
         <div className="cb-shell">
           <p className="cb-eyebrow">

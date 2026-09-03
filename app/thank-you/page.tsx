@@ -86,24 +86,7 @@ function ConfirmationShell({
  * null simply means the conversion falls back to its old behavior rather than
  * the page breaking. A thank-you page must render even when Stripe is down.
  */
-type PaidSession = { amountUsd: number; sessionId: string };
-
-async function fetchPaidSession(sessionId: string | undefined): Promise<PaidSession | null> {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key || !sessionId || !sessionId.startsWith("cs_")) return null;
-  try {
-    const r = await fetch(
-      `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}`,
-      { headers: { Authorization: `Bearer ${key}` }, cache: "no-store" },
-    );
-    if (!r.ok) return null;
-    const j = (await r.json()) as { payment_status?: string; amount_total?: number };
-    if (j.payment_status !== "paid" || !Number.isFinite(Number(j.amount_total))) return null;
-    return { amountUsd: Number(j.amount_total) / 100, sessionId };
-  } catch {
-    return null;
-  }
-}
+import { fetchPaidSession, type PaidSession } from "@/lib/stripeSession";
 
 export default async function ThankYou({
   searchParams,
@@ -193,6 +176,52 @@ export default async function ThankYou({
             </Link>
             <Link href="/training" className="cb-btn cb-btn--ghost">
               Get a Head Start · Free Course
+            </Link>
+          </>
+        }
+      />
+    );
+  }
+
+  // A paid System Map is a diagnostic engagement, not a course. The old page
+  // told a $497 buyer "Training access confirmed" and sent them to /login.
+  // The package page promises "a short intake so the call starts warm"; the
+  // Business Growth Diagnostic is that intake.
+  if (paid !== null && purchase === "system_map") {
+    return (
+      <ConfirmationShell
+        icon={CircleCheckBig}
+        eyebrow="System Map paid"
+        title="Your System Map is on the books."
+        accent="One intake and the call starts warm."
+        lead={
+          <>
+            Payment received. Ryan reaches out within one business day from (903) 500-8898 to
+            schedule your mapping call. Do the ten-minute Business Growth Diagnostic first if you
+            can. It is the exact intake he uses, and it means the call starts with your numbers
+            instead of small talk.
+          </>
+        }
+        tracking={
+          <ConversionPing
+            googleAdsId={settings.google_ads_id}
+            conversionLabel={settings.google_ads_conversion_label}
+            purchase
+            value={paidAmountUsd}
+            dedupeKey={paidSessionId}
+          />
+        }
+        actions={
+          <>
+            <Link
+              href="/diagnostic?utm_source=website&utm_medium=thank_you&utm_campaign=system_map_intake"
+              className="cb-btn cb-btn--primary"
+            >
+              Start the intake
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link href="/portfolio" className="cb-btn cb-btn--ghost">
+              See What Gets Built
             </Link>
           </>
         }

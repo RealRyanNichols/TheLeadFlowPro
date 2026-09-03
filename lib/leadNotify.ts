@@ -148,8 +148,166 @@ function ownerAlertPayload(lead: NotifiableLead) {
   };
 }
 
-function leadWelcomePayload(lead: NotifiableLead) {
+const FROM_RYAN = "Ryan Nichols <ryan@theleadflowpro.com>";
+const SIGNATURE = [
+  ``,
+  `Talk soon,`,
+  `Ryan Nichols`,
+  `The LeadFlow Pro`,
+  `(903) 500-8898`,
+];
+
+// Funnels that own their own transactional message. The outbox still queues a
+// welcome job for them (the trigger cannot tell funnels apart), so the send
+// path acknowledges the job without emailing the person twice.
+export const WELCOME_SUPPRESSED_FUNNELS = new Set(["tool_studio_monthly_change"]);
+
+export function welcomeSuppressed(lead: Pick<NotifiableLead, "funnel">) {
+  return !!lead.funnel && WELCOME_SUPPRESSED_FUNNELS.has(lead.funnel);
+}
+
+function funnelWelcome(lead: NotifiableLead, first: string) {
+  const base = { from: FROM_RYAN, to: [lead.email], reply_to: "hello@theleadflowpro.com" };
+  switch (lead.funnel) {
+    case "operator_academy_free_access":
+      return {
+        ...base,
+        subject: `${first}, your two free courses are open.`,
+        text: [
+          `${first},`,
+          ``,
+          `The Offer Engine and The Lead Capture System are unlocked for you. Sixteen lessons, the exact prompts I use, and the workbooks.`,
+          ``,
+          `Start here:`,
+          `https://www.theleadflowpro.com/training/offer-engine`,
+          `https://www.theleadflowpro.com/training/lead-capture-system`,
+          ``,
+          `Access lives in the browser you signed up on. If you want your progress and assignments saved, create a free login with this same email:`,
+          `https://www.theleadflowpro.com/login?mode=signup&next=/training/offer-engine`,
+          ``,
+          `Do the work in lesson one before you read lesson two. The assignment is the course.`,
+          ``,
+          `If you would rather have me build the system with you, reply to this email and tell me what you sell.`,
+          ...SIGNATURE,
+        ].join("\n"),
+      };
+    case "chatgpt_operator_free_access":
+      return {
+        ...base,
+        subject: `${first}, your free ChatGPT lesson is ready.`,
+        text: [
+          `${first},`,
+          ``,
+          `Your free starter lesson from The ChatGPT Operator is open right now:`,
+          `https://www.theleadflowpro.com/chatgpt/free`,
+          ``,
+          `Run the prompt on your own business, not a made-up one. That is the whole point.`,
+          ``,
+          `The full course is twelve lessons, four reviewed builds, and a capstone. Details and the founding price are on the course page when you are ready:`,
+          `https://www.theleadflowpro.com/chatgpt`,
+          ...SIGNATURE,
+        ].join("\n"),
+      };
+    case "tool_studio":
+      return {
+        ...base,
+        subject: `${first}, your Tool Studio request is in.`,
+        text: [
+          `${first},`,
+          ``,
+          `Your Tool Studio request landed with me. If you finished checkout, the Stripe receipt is your confirmation and I have the order on my desk.`,
+          ``,
+          `What happens next:`,
+          ``,
+          `1. I read what you want the tool to do and who it is for.`,
+          `2. I reach out within one business day from (903) 500-8898 with the blueprint questions.`,
+          `3. You approve the plan before anything gets built. No passwords, ever.`,
+          ``,
+          `If you did not finish checkout and want to, the page is here:`,
+          `https://www.theleadflowpro.com/go/tools`,
+          ...SIGNATURE,
+        ].join("\n"),
+      };
+    case "lead_follow_up_funnel":
+      return {
+        ...base,
+        subject: `${first}, your Follow-Up Campaign order is in.`,
+        text: [
+          `${first},`,
+          ``,
+          `Your Follow-Up Campaign order landed with me. I write the messages. You send them from your own accounts. Nothing goes out in your name from mine.`,
+          ``,
+          `What happens next:`,
+          ``,
+          `1. Finish the short intake on the page after checkout so I know your offer, your buyer, and how you talk.`,
+          `2. I write the first draft within five business days of the intake.`,
+          `3. You review, I revise, you start sending.`,
+          ``,
+          `If you did not finish checkout and want to, the page is here:`,
+          `https://www.theleadflowpro.com/go/lead-follow-up`,
+          ...SIGNATURE,
+        ].join("\n"),
+      };
+    case "time_back_funnel":
+      return {
+        ...base,
+        subject: `${first}, your Time Back order is in.`,
+        text: [
+          `${first},`,
+          ``,
+          `Your Time Back order landed with me. If you finished checkout, the Stripe receipt is your confirmation.`,
+          ``,
+          `What happens next:`,
+          ``,
+          `1. The welcome page after checkout collects your photos, your logo if you have one, and how you want to sound.`,
+          `2. I write and schedule the posts. Nothing publishes without your approval on the first batch.`,
+          `3. Posts go live within five business days of your onboarding landing.`,
+          ``,
+          `You never hand over a password. Access happens through approvals you control and can revoke.`,
+          ...SIGNATURE,
+        ].join("\n"),
+      };
+    case "package_page":
+      return {
+        ...base,
+        subject: `${first}, your order is in.`,
+        text: [
+          `${first},`,
+          ``,
+          `Your ${INTEREST_LABELS[lead.interest] ?? "package"} request landed with me. If you paid, the Stripe receipt is your confirmation.`,
+          ``,
+          `What happens next:`,
+          ``,
+          `1. I read what you told me about the business.`,
+          `2. I reach out within one business day from (903) 500-8898 to schedule the call.`,
+          `3. Want the call to start warm? Run the Business Growth Diagnostic first. It takes about ten minutes and it is the exact intake I use:`,
+          `https://www.theleadflowpro.com/diagnostic`,
+          ...SIGNATURE,
+        ].join("\n"),
+      };
+    case "free_tools":
+      return {
+        ...base,
+        subject: `${first}, your results are saved.`,
+        text: [
+          `${first},`,
+          ``,
+          `Your calculator result is saved and you can run it again any time. All 86 free tools are here, no login needed:`,
+          `https://www.theleadflowpro.com/tools`,
+          ``,
+          `If the number surprised you, that is usually the sign something in the business is worth fixing first. Reply to this email and tell me which tool you ran. I will tell you what I would do about it.`,
+          ...SIGNATURE,
+        ].join("\n"),
+      };
+    default:
+      return null;
+  }
+}
+
+export function leadWelcomePayload(lead: NotifiableLead) {
   const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
+  const funnelSpecific = funnelWelcome(lead, first);
+  if (funnelSpecific) return funnelSpecific;
   if (lead.funnel === "free_build_funnel" || lead.interest === "free_website_program") {
     return {
       from: "Ryan Nichols <ryan@theleadflowpro.com>",
@@ -195,7 +353,7 @@ function leadWelcomePayload(lead: NotifiableLead) {
       `Here is what happens next:`,
       ``,
       `1. I look at what you told me: what you are running now, what it is costing you, and how fast you want it changed.`,
-      `2. I reach out within one business day. Usually a text first, from (903) 500-8898. Save that number, it is my direct line.`,
+      `2. I reach out within one business day. Usually a text or call from (903) 500-8898. Save that number, it is my direct line.`,
       `3. You leave that first conversation knowing the fastest thing to fix and your next three moves, whether you hire me or not.`,
       ``,
       `Want a head start? The live systems I have already built and handed over are here:`,
@@ -214,6 +372,9 @@ export async function sendLeadEmailNotification(
   notificationType: LeadEmailNotificationType,
   idempotencyKey: string,
 ): Promise<LeadEmailSendResult> {
+  if (notificationType === "lead_welcome" && welcomeSuppressed(lead)) {
+    return { ok: true, providerMessageId: null };
+  }
   return sendDetailed(
     notificationType === "owner_alert" ? ownerAlertPayload(lead) : leadWelcomePayload(lead),
     idempotencyKey,
@@ -231,7 +392,7 @@ export async function sendInternalLeadAlert(lead: NotifiableLead) {
 export async function sendLeadEmails(lead: NotifiableLead) {
   if (!process.env.RESEND_API_KEY) return;
   await sendInternalLeadAlert(lead);
-  await send(leadWelcomePayload(lead));
+  if (!welcomeSuppressed(lead)) await send(leadWelcomePayload(lead));
 }
 
 // Sends the historical "free-build-lead" event that powers the legacy Resend

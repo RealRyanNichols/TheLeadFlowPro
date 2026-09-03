@@ -11,6 +11,7 @@ import styles from "../workshop.module.css";
 // a paid seat, and collects the business bottleneck for the clinic.
 
 type Confirmation = {
+  price_usd?: number | null;
   first_name: string;
   event_slug: string;
   event_title: string;
@@ -63,7 +64,8 @@ export default function ConfirmedClient({ slug }: { slug: string }) {
           }
           if (!already) {
             track("payment_complete", { label: data.event_slug });
-            if (window.fbq) window.fbq("track", "Purchase", { value: 97, currency: "USD" });
+            const value = Number(data.price_usd) > 0 ? Number(data.price_usd) : 97;
+            if (window.fbq) window.fbq("track", "Purchase", { value, currency: "USD" });
           }
         }
       })
