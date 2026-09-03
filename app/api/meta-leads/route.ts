@@ -220,6 +220,8 @@ function mapLead(raw: MetaLead) {
         notification_pipeline: "lead_intake_v1",
         meta_lead_id: raw.id,
         form_id: raw.form_id ?? null,
+        ad_id: raw.ad_id ?? null,
+        ad_attribution: raw.ad_id ? "ad_id_present" : "unverified_no_ad_id",
         fields: Object.fromEntries(fields),
       },
     },
@@ -275,34 +277,36 @@ async function paidLeadBelongsToLeadFlow(raw: MetaLead, token: string): Promise<
     return false;
   }
 
-  // A registered form does not prove which campaign paid for a lead. The
-  // active v2 launch must carry an exact compiled ad id. The only missing-id
-  // exception is a one-lead allowlist for Meta's Lead Ads Testing Tool; it is
-  // deliberately explicit and must be cleared after each controlled test.
-  if (raw.form_id === LEADFLOW_META.formId) {
-    if (isAllowedLeadFlowAdId(raw.ad_id)) return true;
-    if (
-      !raw.ad_id &&
-      isAllowedMetaTestLeadId(raw.id, process.env.META_TEST_LEAD_IDS)
-    ) {
-      console.warn("Meta test lead accepted from explicit allowlist:", raw.id);
-      return true;
-    }
-    console.error(
-      "Meta v2 lead rejected: ad id is not in the exact LeadFlow launch allowlist",
-      raw.id,
-      raw.ad_id ?? "<missing>",
-    );
-    return false;
-  }
-
-  if (!raw.ad_id) {
-    console.error("Meta lead rejected: missing ad id", raw.id, raw.form_id ?? "<missing>");
-    return false;
-  }
-  // A compiled exact-ad allowlist is the primary proof because a Page token
-  // may have leads_retrieval without ads_read; the Graph lookup is secondary.
+  // A registered form is a LeadFlow form: the registry is compiled from this
+  // Page's own forms and the webhook already rejects any other Page. What the
+  // form cannot prove is which campaign paid for the lead, and that is an
+  // attribution question, not an ownership one.
+  //
+  // MISSING ad_id IS THE NORMAL CASE, NOT A RED FLAG. The Page token this
+  // route reads with has leads_retrieval but not ads_read, so Meta omits
+  // ad_id from every lead it returns. Verified on 2026-09-03: all thirteen
+  // historical leads, every one of them bought by a running ad, came back
+  // with no ad_id, and from the Sep 1 deploy until this fix the route logged
+  // "missing ad id" 4,680 times in 26 hours and would have dropped any new
+  // paid lead on the floor. A lead on our own form with no ad id is kept and
+  // its attribution is marked unverified. Only a lead that names an ad we
+  // can prove belongs to someone else is refused.
   if (isAllowedLeadFlowAdId(raw.ad_id)) return true;
+  if (!raw.ad_id) {
+    if (isAllowedMetaTestLeadId(raw.id, process.env.META_TEST_LEAD_IDS)) {
+      console.warn("Meta test lead accepted from explicit allowlist:", raw.id);
+    } else {
+      console.warn(
+        "Meta lead accepted without ad id; attribution unverified",
+        raw.id,
+        raw.form_id ?? "<missing>",
+      );
+    }
+    return true;
+  }
+  // An ad id we did not compile into the allowlist is usually an ad Ryan
+  // created after the last deploy. Ask Meta whose account it belongs to; the
+  // compiled list stays the fast path and the Graph lookup is the fallback.
 
   try {
     if (cachedAdAccounts.has(raw.ad_id)) {
@@ -313,8 +317,10 @@ async function paidLeadBelongsToLeadFlow(raw: MetaLead, token: string): Promise<
       `${GRAPH}/${raw.ad_id}?fields=account_id&access_token=${encodeURIComponent(token)}`,
     );
     if (!r.ok) {
-      console.error("Meta lead rejected: ad account lookup failed", raw.ad_id, r.status);
-      return false;
+      // Not proof of anything. The form is ours; only a definitive foreign
+      // account answer may refuse the lead.
+      console.warn("Meta ad account lookup failed; lead kept, attribution unverified", raw.ad_id, r.status);
+      return true;
     }
     const body = (await r.json()) as { account_id?: string };
     if (body.account_id) cachedAdAccounts.set(raw.ad_id, body.account_id);
@@ -328,8 +334,8 @@ async function paidLeadBelongsToLeadFlow(raw: MetaLead, token: string): Promise<
     }
     return true;
   } catch (error) {
-    console.error("Meta lead rejected: ad account lookup threw", raw.ad_id, error);
-    return false;
+    console.warn("Meta ad account lookup threw; lead kept, attribution unverified", raw.ad_id, error);
+    return true;
   }
 }
 
@@ -422,11 +428,23 @@ async function claimExisting(
 // Returns true only when this call created the row, so a webhook and a
 // backfill poll racing on the same lead cannot double-contact the applicant.
 async function ingest(raw: MetaLead, token: string): Promise<boolean> {
-  if (!(await paidLeadBelongsToLeadFlow(raw, token))) return false;
-
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const supabase = createSupabaseClient(SUPABASE_URL, serviceKey || SUPABASE_ANON_KEY);
   const { lead, external_id } = mapLead(raw);
+
+  // The five-minute poll returns the same hundred leads every run. A lead
+  // that is already in the CRM needs no ownership check, no Graph lookup and
+  // no log line; before this check every historical lead was re-judged
+  // (and re-logged) 288 times a day.
+  const { data: known } = await supabase
+    .from("leads")
+    .select("id")
+    .eq("external_id", external_id)
+    .limit(1)
+    .maybeSingle();
+  if (known) return false;
+
+  if (!(await paidLeadBelongsToLeadFlow(raw, token))) return false;
 
   if (await claimExisting(supabase, external_id, lead.email, lead.phone, lead)) return false;
 
