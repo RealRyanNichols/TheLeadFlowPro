@@ -36,12 +36,12 @@
 }
 
 .demoBadge strong {
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .demoBadge span {
   color: var(--cb-muted-ink);
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .dashboard {

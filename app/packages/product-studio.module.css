@@ -93,7 +93,7 @@
   align-items: center;
   margin: 0;
   color: var(--studio-blue-soft);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.2em;
   line-height: 1;
@@ -154,7 +154,7 @@
   padding: 0 23px;
   border: 1px solid transparent;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
   transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
 }
@@ -199,7 +199,7 @@
   max-width: 690px;
   margin: 22px 0 0;
   color: #98a6b8;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
@@ -243,7 +243,7 @@
 
 .briefTopline {
   color: #9cabbd;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -264,7 +264,7 @@
 .briefPrice span,
 .briefPayments small {
   color: #91a0b4;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .briefPayments {
@@ -281,7 +281,7 @@
 
 .briefPayments > div > span {
   color: #9cabbd;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -303,7 +303,7 @@
   align-items: center;
   margin-top: 24px;
   color: var(--studio-white);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
 }
 
@@ -348,12 +348,12 @@
 
 .flow li span {
   color: #ffffff;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 800;
 }
 
 .flow li strong {
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.3;
 }
 
@@ -440,7 +440,7 @@
 
 .workCaption > span {
   color: var(--studio-blue);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -450,12 +450,12 @@
 }
 
 .workCaption strong {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .workCaption small {
   color: #5f6877;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .workCaption svg {
@@ -468,7 +468,7 @@
   align-items: center;
   margin-top: 30px;
   color: #0b49c8;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
 }
 
@@ -508,7 +508,7 @@
 
 .priceLockup span {
   color: #697384;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -528,7 +528,7 @@
   max-width: 450px;
   margin-top: 16px;
   color: #5f6877;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.65;
 }
 
@@ -552,7 +552,7 @@
 .scopeLedger li > span {
   padding-top: 4px;
   color: var(--studio-blue);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -569,7 +569,7 @@
   max-width: 610px;
   margin: 0;
   color: var(--studio-body);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.6;
 }
 
@@ -621,7 +621,7 @@
 
 .serviceRow > span {
   color: var(--studio-blue-soft);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -633,13 +633,13 @@
 .serviceRow > p {
   margin: 0;
   color: #aeb9c8;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.6;
 }
 
 .serviceRow > em {
   color: #9bbaff;
-  font-size: 12px;
+  font-size: 14px;
   font-style: normal;
   font-weight: 800;
   text-align: right;
@@ -652,7 +652,7 @@
   align-items: center;
   margin-top: 34px;
   color: #8f9daf;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .moduleFooter p {
@@ -706,7 +706,7 @@
   border-radius: 50%;
   color: #0b49c8;
   background: var(--studio-paper);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 900;
 }
 
@@ -719,7 +719,7 @@
 .process li p {
   margin: 14px 0 0;
   color: var(--studio-body);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.65;
 }
 
@@ -777,17 +777,17 @@
 
 .academyConsole span {
   color: var(--studio-blue-soft);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 800;
 }
 
 .academyConsole strong {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .academyConsole small {
   color: #8492a5;
-  font-size: 10px;
+  font-size: 13px;
   text-align: right;
 }
 
@@ -815,7 +815,7 @@
 .finalGrid > div:last-child > p {
   margin: 0;
   color: #ffffff;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.7;
 }
 
@@ -834,7 +834,7 @@
   display: block;
   margin-top: 13px;
   color: #ffffff;
-  font-size: 10px;
+  font-size: 13px;
   text-align: center;
 }
 
@@ -977,7 +977,7 @@
   }
 
   .serviceRow > em {
-    font-size: 10px;
+    font-size: 13px;
   }
 
   .moduleFooter {

@@ -19,7 +19,7 @@
 .eyebrow {
   margin: 0;
   color: var(--blue);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.16em;
   line-height: 1.4;
@@ -62,7 +62,7 @@
   align-items: center;
   gap: 8px;
   color: var(--quiet);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -92,13 +92,13 @@
 
 .safetyCard strong {
   color: var(--heading);
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .safetyCard p {
   margin: 8px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -135,7 +135,7 @@
 
 .progressSummary span {
   color: var(--quiet);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 750;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -166,7 +166,7 @@
 .progressSummary p {
   margin: 9px 0 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -212,7 +212,7 @@
   align-items: center;
   justify-content: center;
   color: var(--quiet);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -234,13 +234,13 @@
 }
 
 .sectionNav strong {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 750;
 }
 
 .sectionNav small {
   color: var(--quiet);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -253,7 +253,7 @@
   display: flex;
   gap: 9px;
   color: var(--quiet);
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -296,7 +296,7 @@
 .coreTag,
 .detailTag {
   color: var(--quiet);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -336,7 +336,7 @@
   max-width: 720px;
   margin: 14px 0 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.65;
 }
 
@@ -359,13 +359,13 @@
 
 .coreCompleteCallout strong {
   color: var(--heading);
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .coreCompleteCallout p {
   margin: 4px 0 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -391,7 +391,7 @@
   width: 100%;
   padding: 0;
   color: var(--heading);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 750;
   line-height: 1.45;
 }
@@ -399,7 +399,7 @@
 .required,
 .optional {
   margin-left: 7px;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -416,7 +416,7 @@
 .help {
   margin: 7px 0 0;
   color: var(--quiet);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -431,7 +431,7 @@
   color: var(--heading);
   background: var(--panel);
   font: inherit;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.5;
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
@@ -485,7 +485,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 650;
   line-height: 1.35;
   transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
@@ -557,7 +557,7 @@
   display: flex;
   align-items: flex-start;
   gap: 11px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 650;
   line-height: 1.55;
 }
@@ -585,7 +585,7 @@
 .errorText {
   margin: 8px 0 0;
   color: var(--danger);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -601,7 +601,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 650;
   line-height: 1.55;
 }
@@ -636,7 +636,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 750;
 }
 
@@ -669,7 +669,7 @@
   border-radius: 10px;
   padding: 0 16px;
   font: inherit;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 750;
   text-decoration: none;
   cursor: pointer;
@@ -763,7 +763,7 @@
   justify-items: center;
   gap: 18px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .loadingMark {
@@ -840,14 +840,14 @@
 
 .successScore strong {
   color: var(--heading);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .successNote {
   max-width: 620px;
   margin: 22px auto 0;
   color: var(--quiet);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -862,7 +862,7 @@
 .successContact {
   margin: 25px 0 0;
   color: var(--quiet);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -945,7 +945,7 @@
   }
 
   .heroCopy > p:not(.eyebrow) {
-    font-size: 15px;
+    font-size: 16px;
   }
 
   .heroTrust {

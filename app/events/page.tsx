@@ -121,7 +121,7 @@ export default async function EventsPage() {
             </div>
             <p className="cb-lead">
               Dates open here as they are confirmed. Ten paid seats per workshop, first come,
-              first served — a seat is confirmed only after payment.
+              first served. A seat is confirmed only after payment.
             </p>
           </div>
 
@@ -159,7 +159,7 @@ export default async function EventsPage() {
             </div>
             <p className="cb-lead">
               The founding workshop sets the format. After it runs, workshops move to a
-              recurring Tuesday and Thursday rhythm — same room, same hands-on format,
+              recurring Tuesday and Thursday rhythm: same room, same hands-on format,
               different builds.
             </p>
           </div>

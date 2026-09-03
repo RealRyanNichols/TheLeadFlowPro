@@ -32,7 +32,7 @@
   gap: 12px;
   align-items: flex-start;
   color: var(--cb-on-ink, #f4f6fa);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 650;
   line-height: 1.45;
 }
@@ -50,7 +50,7 @@
   font-style: normal;
   font-weight: 500;
   color: var(--cb-muted-ink, #a8b4c8);
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .textUs {
@@ -58,7 +58,7 @@
   gap: 10px;
   align-items: flex-start;
   margin: 22px 0 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--cb-on-ink, #f4f6fa);
 }
@@ -80,7 +80,7 @@
 
 .slots {
   margin: 22px 0 0;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 650;
   line-height: 1.5;
   color: var(--cb-muted-ink, #a8b4c8);
@@ -104,7 +104,7 @@
 }
 
 .tradeLabel {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--heading);
 }
@@ -129,7 +129,7 @@
 
 .tradeNote {
   margin: 8px 0 0;
-  font-size: 13.5px;
+  font-size: 15px;
   line-height: 1.55;
   color: var(--muted);
 }
@@ -200,7 +200,7 @@
   left: 20px;
   background: var(--blue);
   color: #fff;
-  font-size: 10.5px;
+  font-size: 13px;
   font-weight: 900;
   letter-spacing: 0.09em;
   padding: 5px 10px;
@@ -208,7 +208,7 @@
 }
 
 .tierName {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 850;
   color: var(--heading);
   letter-spacing: -0.01em;
@@ -229,7 +229,7 @@
 .tierPrice em {
   font-family: inherit;
   font-style: normal;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 750;
   letter-spacing: 0;
   color: var(--muted);
@@ -243,12 +243,12 @@
   color: var(--green, #16a34a);
   border-radius: 999px;
   padding: 4px 11px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
 }
 
 .tierEngine {
-  font-size: 14.5px;
+  font-size: 15.5px;
   font-weight: 700;
   line-height: 1.45;
   color: var(--text);
@@ -267,7 +267,7 @@
   display: flex;
   gap: 9px;
   align-items: flex-start;
-  font-size: 13.5px;
+  font-size: 15px;
   line-height: 1.45;
   color: var(--muted);
 }
@@ -282,7 +282,7 @@
 
 .tierPick {
   margin-top: 14px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 850;
   color: var(--blue);
 }
@@ -310,7 +310,7 @@
 
 .formHead p {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--muted);
 }
@@ -330,7 +330,7 @@
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  font-size: 13.5px;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--muted);
   cursor: pointer;
@@ -350,7 +350,7 @@
   color: var(--danger);
   border-radius: 12px;
   padding: 12px 14px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 650;
   margin: 0;
 }
@@ -360,7 +360,7 @@
   gap: 8px;
   align-items: flex-start;
   margin: 0;
-  font-size: 12.5px;
+  font-size: 14px;
   line-height: 1.5;
   color: var(--quiet);
 }
@@ -398,7 +398,7 @@
 
 .noticeSmall {
   margin-top: 14px !important;
-  font-size: 13px !important;
+  font-size: 15px !important;
   color: var(--muted) !important;
   font-weight: 700;
 }
@@ -439,7 +439,7 @@
 }
 
 .miniCard p {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.55;
   color: var(--muted);
   margin: 0;
@@ -471,7 +471,7 @@
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.5;
   color: var(--text);
 }
@@ -518,7 +518,7 @@
 
 .stepNum {
   font-family: var(--font-archivo), Archivo, sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 900;
   letter-spacing: 0.1em;
   color: var(--blue);
@@ -533,7 +533,7 @@
 
 .step p {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--muted);
 }
@@ -609,7 +609,7 @@
 .faq p {
   margin: 0;
   padding: 0 0 20px;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.6;
   color: var(--muted);
   max-width: 68ch;
@@ -643,7 +643,7 @@
 
 .whyNum {
   font-family: var(--font-archivo), Archivo, sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 900;
   letter-spacing: 0.1em;
   color: var(--blue);
@@ -660,7 +660,7 @@
 
 .whyCard p {
   margin: 0;
-  font-size: 14.5px;
+  font-size: 15.5px;
   line-height: 1.6;
   color: var(--muted);
 }
@@ -708,7 +708,7 @@
 
 .proofFigure figcaption,
 .proofSource {
-  font-size: 12.5px;
+  font-size: 14px;
   line-height: 1.55;
   color: var(--quiet);
 }
@@ -744,7 +744,7 @@
 }
 
 .proofStats dt {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 750;
   line-height: 1.4;
   color: var(--muted);
@@ -768,13 +768,13 @@
 .proofTruth strong {
   display: block;
   margin-bottom: 8px;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--heading);
 }
 
 .proofTruth p {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 15px;
   line-height: 1.6;
   color: var(--muted);
 }

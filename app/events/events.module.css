@@ -19,7 +19,7 @@
   gap: 22px;
   margin-top: 26px;
   color: var(--cb-muted-ink);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -135,7 +135,7 @@
   gap: 12px;
   align-items: flex-start;
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 650;
   color: var(--cb-ink);
   line-height: 1.45;
@@ -154,7 +154,7 @@
   font-style: normal;
   font-weight: 500;
   color: var(--cb-muted);
-  font-size: 13.5px;
+  font-size: 15px;
 }
 
 .showcaseCta {
@@ -168,7 +168,7 @@
 }
 
 .seatNote {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -248,7 +248,7 @@
 
 .cadenceCard p {
   color: var(--cb-muted-ink);
-  font-size: 14.5px;
+  font-size: 15.5px;
   line-height: 1.6;
   margin: 0;
 }

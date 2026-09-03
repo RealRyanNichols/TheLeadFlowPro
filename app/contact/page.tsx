@@ -1,5 +1,5 @@
 import ContactForm from "./ContactForm";
-import { Check } from "lucide-react";
+import { Check, Phone } from "lucide-react";
 import SiteHero from "@/components/site/system/SiteHero";
 
 export const metadata = {
@@ -23,10 +23,7 @@ export default function ContactPage() {
           caption: "Route the question to the right next move.",
         }}
         primary={{ href: "#contact-form", label: "Send the question" }}
-        secondary={{
-          href: "/diagnostic?utm_source=website&utm_medium=contact_page&utm_campaign=business_diagnostic",
-          label: "Complete the full diagnostic",
-        }}
+        secondary={{ href: "tel:+19035008898", label: "Call or text (903) 500-8898", external: true }}
         trustLine="No list selling. No fake urgency. A direct answer from the operator."
       />
 
@@ -47,6 +44,12 @@ export default function ContactPage() {
                 </li>
               ))}
             </ul>
+            <div className="cb-actions">
+              <a className="cb-btn cb-btn--primary" href="tel:+19035008898">
+                <Phone aria-hidden="true" className="h-4 w-4" />
+                Call or text (903) 500-8898
+              </a>
+            </div>
           </div>
           <div className="sv-form-card">
             <ContactForm />

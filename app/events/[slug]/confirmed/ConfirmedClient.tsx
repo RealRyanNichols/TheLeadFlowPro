@@ -157,7 +157,7 @@ export default function ConfirmedClient({ slug }: { slug: string }) {
                   </h3>
                   <p>
                     {confirmation.exact_address}
-                    {confirmation.arrival_notes ? ` — ${confirmation.arrival_notes}` : ""}
+                    {confirmation.arrival_notes ? ` · ${confirmation.arrival_notes}` : ""}
                   </p>
                 </div>
               )}
@@ -233,12 +233,12 @@ export default function ConfirmedClient({ slug }: { slug: string }) {
               <p className="cb-lead">
                 {confirmation.first_name}, the room filled while your checkout was open. Your
                 payment is being refunded in full, and you are first in line for the next date.
-                Watch your email — Ryan will follow up personally.
+                Watch your email. Ryan will follow up personally.
               </p>
             </>
           ) : (
             <>
-              <h1 className="cb-h2">Registration saved — payment is the last step.</h1>
+              <h1 className="cb-h2">Registration saved. Payment is the last step.</h1>
               <p className="cb-lead">
                 {confirmation.first_name}, your seat is not confirmed until payment clears. If
                 your checkout was interrupted, head back to the workshop page and pay to lock

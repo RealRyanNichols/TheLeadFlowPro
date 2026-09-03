@@ -120,7 +120,7 @@ export default async function WorkshopPage({
     <main className={`cb-page ${styles.page}`}>
       {!event.is_published && (
         <p className={styles.draftBanner}>
-          DRAFT — this event is not published. Only admins can see this page.
+          DRAFT: this event is not published. Only admins can see this page.
         </p>
       )}
 
@@ -177,13 +177,13 @@ export default async function WorkshopPage({
               </li>
               <li>
                 <Laptop aria-hidden="true" />
-                <span>Bring your laptop — this is a working session, not a lecture.</span>
+                <span>Bring your laptop. This is a working session, not a lecture.</span>
               </li>
             </ul>
             <div className="cb-actions">
               {soldOut ? (
                 <a className="cb-btn cb-btn--ghost" href="#reserve">
-                  Sold Out — Details Below
+                  Sold Out | Details Below
                 </a>
               ) : (
                 <a className="cb-btn cb-btn--primary" href="#reserve">

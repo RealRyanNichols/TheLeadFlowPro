@@ -16,13 +16,13 @@
 .sampleNote strong {
   color: var(--cb-blue);
   font-family: var(--font-archivo), Archivo, sans-serif;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .sampleNote p {
   margin: 0;
   color: var(--cb-muted);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.6;
 }
 
@@ -61,7 +61,7 @@
   border: 1px solid #ffffff2b;
   border-radius: 7px;
   color: #fff;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -75,7 +75,7 @@
 .demoKicker {
   margin: 0;
   color: var(--cb-blue);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 850;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -115,7 +115,7 @@
   padding: 0 20px;
   border: 1px solid var(--cb-hair);
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
 }
 
@@ -148,7 +148,7 @@
 }
 
 .hood span {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -157,7 +157,7 @@
 .hood p {
   margin: 8px 0 0;
   color: var(--cb-body);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -188,7 +188,7 @@
   display: block;
   margin-top: 34px;
   color: var(--cb-blue);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -203,7 +203,7 @@
 .offerGrid p {
   margin: 10px 0 0;
   color: var(--cb-muted);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.6;
 }
 
@@ -237,7 +237,7 @@
   display: grid;
   gap: 7px;
   color: var(--cb-body);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 750;
 }
 
@@ -254,7 +254,7 @@
 .demoForm p {
   margin: 0;
   color: var(--cb-muted);
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.55;
   text-align: center;
 }
@@ -296,7 +296,7 @@
   display: block;
   margin-top: 32px;
   color: var(--cb-muted-ink);
-  font-size: 10px;
+  font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -333,7 +333,7 @@
 
 .leadPanel > header > span {
   color: var(--cb-cyan);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -356,14 +356,14 @@
 
 .leadRows strong {
   color: #fff;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .leadRows span,
 .leadRows time,
 .leadPanel > p {
   color: var(--cb-muted-ink);
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .leadRows > div > div:last-child span {
@@ -431,7 +431,7 @@
   }
 
   .demoNav strong {
-    font-size: 13px;
+    font-size: 15px;
   }
 
   .demoHero {

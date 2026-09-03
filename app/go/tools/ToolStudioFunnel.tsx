@@ -396,7 +396,7 @@ export default function ToolStudioFunnel() {
             {error ? <p role="alert" className="rounded-xl bg-red-500/10 p-3 text-sm font-bold text-red-300">{error}</p> : null}
             {notice ? <p className="rounded-xl bg-cyan-300/10 p-3 text-sm font-bold text-cyan-100">{notice}</p> : null}
             <button disabled={sending} type="submit" className="inline-flex min-h-13 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-4 text-sm font-black uppercase tracking-wider text-white hover:bg-blue-500 disabled:cursor-wait disabled:opacity-60">
-              {sending ? "Saving Your Build..." : `Continue to Secure Checkout — ${money(priced?.dueTodayUsd ?? 0)}`}
+              {sending ? "Saving Your Build..." : `Continue to Secure Checkout | ${money(priced?.dueTodayUsd ?? 0)}`}
               {!sending ? <ArrowRight className="h-4 w-4" aria-hidden="true" /> : null}
             </button>
             <p className="flex items-start gap-2 text-xs leading-5 text-slate-500">
