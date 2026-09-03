@@ -13,6 +13,7 @@ import { GROWTH_TOOLS } from "./growth";
 import { GENERATOR_TOOLS } from "./generators";
 import { NEW_TOOLS } from "./new";
 import { TOOL_META } from "./meta";
+import { TOOL_SEO } from "./seo";
 import { buildSearchText } from "./search";
 import { toolArtAlt, ART_DIMS } from "./art";
 import { DOMAINS, INDUSTRIES, type Domain, type Industry } from "./taxonomy";
@@ -83,6 +84,10 @@ function resolveTool(def: ToolDef): Tool {
     dataSensitivity: meta.dataSensitivity || "none",
     popularity: meta.popularity ?? 50,
     status: meta.status || "published",
+    // Search titles and descriptions written per tool (lib/tools/seo.ts). A
+    // value declared on the definition or in the central meta map wins.
+    seoTitle: meta.seoTitle ?? TOOL_SEO[def.slug]?.seoTitle,
+    seoDescription: meta.seoDescription ?? TOOL_SEO[def.slug]?.seoDescription,
     image,
     hero,
     searchText: "",
