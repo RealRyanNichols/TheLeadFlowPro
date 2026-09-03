@@ -24,6 +24,8 @@ It is `security definer`, granted to `anon`, and returns aggregates only, so the
 
 - The LeadFlow Pro: `supabase/migrations/20260903021000_scoreboard_public_daily.sql`. Read through the service client.
 - Premier Dental Academy of Longview: applied 2026-09-03 to project `lmbsuwslsycukynzpzik` (migration name `scoreboard_public_daily`). Sources: `page_visits` (`pv:` rows are views, `click:` rows are clicks), `leads` (`quo_call` rows are calls, Meta lead ad rows are paid), `purchases` (completed or active).
+- RealRyanNichols.com: applied 2026-09-03 to project `rpchhzncxigczfojfdtc`. Sources: `page_views`, `page_events` (`click`), leads = `book_email_signups` + `notify_signups` + `poll_unlocks` + `chat_escalations` with contact (all unpaid: the site buys no ads), sales = paid `book_orders` + paid `orders` + `donations` not refunded. `showSales` is on for this board only: it is Ryan's own company and the book case study.
+- Lone Star Total Wash has a `leads` table but no page tracking yet, so it has no board. Installing first-party tracking there is the upsell.
 
 To add a business: write the same function against that project's tables, grant it to anon, then add an entry to `SCOREBOARD_BUSINESSES` in `lib/scoreboard.ts` with the project URL and publishable key. A site that is not on Supabase (Faretta on Wix, for example) has no feed yet; do not add it with made-up numbers.
 

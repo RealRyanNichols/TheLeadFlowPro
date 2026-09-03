@@ -73,6 +73,24 @@ export const SCOREBOARD_BUSINESSES: readonly ScoreboardBusiness[] = [
     showSales: false,
     runsOn: ["Website", "Free tools", "Blog", "Enrollment forms", "Calls and texts", "Ads"],
   },
+  {
+    slug: "realryannichols",
+    name: "RealRyanNichols.com",
+    shortName: "RealRyanNichols",
+    url: "https://www.realryannichols.com",
+    town: "Longview, Texas",
+    what: "An independent media site and publishing system: long-form articles, a searchable archive of 1,500 plus records, book sales, an AI assistant, and email and text signups. No ad spend. Every lead here is unpaid.",
+    built: "Built and run on the owned stack: Next.js on Vercel, Supabase, Stripe. The LeadFlow Pro sells the book through it, which is the case study.",
+    feed: {
+      kind: "supabase",
+      url: "https://rpchhzncxigczfojfdtc.supabase.co",
+      publishableKey: "sb_publishable_gCe1EEWAe4-5MkhmOpNbcg_raWHUDIa",
+    },
+    // Ryan's own company. The sales count (book orders, store orders, donations)
+    // is the point of the case study; it is a count, never dollars.
+    showSales: true,
+    runsOn: ["Website", "Articles", "Archive", "Book store", "AI assistant", "Email and text list"],
+  },
 ];
 
 export function scoreboardBusiness(slug: string) {

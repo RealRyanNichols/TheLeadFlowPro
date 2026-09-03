@@ -58,7 +58,13 @@ describe("scoreboard helpers", () => {
 
   it("never publishes money and never invents a feed", () => {
     for (const business of SCOREBOARD_BUSINESSES) {
-      assert.equal(business.showSales, false, `${business.slug} must not show sales until Ryan approves`);
+      // Only Ryan's own media company shows a sales count (its book case study).
+      // Every client board stays sales-off until Ryan approves it by name.
+      assert.equal(
+        business.showSales,
+        business.slug === "realryannichols",
+        `${business.slug} must not show sales until Ryan approves`,
+      );
       if (business.feed.kind === "supabase") {
         assert.match(business.feed.url, /^https:\/\/[a-z]+\.supabase\.co$/);
         assert.match(business.feed.publishableKey, /^sb_publishable_/);
