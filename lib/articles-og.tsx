@@ -56,6 +56,11 @@ const V4_ARTICLE_ART = Object.fromEntries(
 
 const PREMIUM_ARTICLE_ART: Record<string, string> = {
   ...V4_ARTICLE_ART,
+  // September 2026 field notes reuse existing repo art on purpose: the Premier
+  // piece shows the real client site, and the mobile piece shares the traffic
+  // leak scene its argument extends.
+  "free-tools-that-bring-customers": "/og/portfolio/premier-dental.jpg",
+  "website-text-too-small-on-mobile": "/og/portfolio/theleadflowpro.jpg",
   "pressure-washing-pricing":
     "/images/articles-v3/pressure-washing-pricing-scene.webp",
   "pest-control-customer-value":
@@ -74,6 +79,8 @@ const PREMIUM_ARTICLE_OG_ART: Record<string, string> = {
 };
 
 const VISUAL_HEADLINES: Record<string, string> = {
+  "free-tools-that-bring-customers": "Free Tools Fill the Funnel",
+  "website-text-too-small-on-mobile": "The Phone Is the Website",
   "data-centers-are-coming-to-texas": "Build for What Is Coming",
   "the-money-is-in-the-follow-up": "Follow-Up Catches Demand",
   "marketplace-is-not-your-website": "Own the Home Base",
@@ -120,6 +127,10 @@ const VISUAL_HEADLINES: Record<string, string> = {
 };
 
 const PREMIUM_ARTICLE_ALT: Record<string, string> = {
+  "free-tools-that-bring-customers":
+    "Premier Dental Academy of Longview homepage with the 12 week RDA program, free training tools, and enrollment paths",
+  "website-text-too-small-on-mobile":
+    "The LeadFlow Pro homepage, the site whose mobile text this article's fix shipped on",
   "data-centers-are-coming-to-texas":
     "An East Texas business district connected to new data-center infrastructure at dusk",
   "the-money-is-in-the-follow-up":
@@ -209,6 +220,10 @@ const PREMIUM_ARTICLE_ALT: Record<string, string> = {
 };
 
 const CURATED_TAKEAWAYS: Record<string, string> = {
+  "free-tools-that-bring-customers":
+    "Answer the question people search. The tool does the selling.",
+  "website-text-too-small-on-mobile":
+    "Your customers judge the phone version. Fix that one first.",
   "pressure-washing-pricing": "Labor. Materials. Margin. Price all three.",
   "pest-control-customer-value": "One treatment is a sale. Retention builds value.",
   "tree-service-buy-or-rent-equipment": "Buy only when real usage crosses rental cost.",

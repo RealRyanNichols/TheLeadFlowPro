@@ -6,7 +6,7 @@ type FinalCtaProps = {
   title: string;
   body: string;
   primary: { href: string; label: string; external?: boolean };
-  secondary?: { href: string; label: string };
+  secondary?: { href: string; label: string; external?: boolean };
 };
 
 export default function FinalCta({ eyebrow, title, body, primary, secondary }: FinalCtaProps) {
@@ -29,9 +29,15 @@ export default function FinalCta({ eyebrow, title, body, primary, secondary }: F
             </Link>
           )}
           {secondary ? (
-            <Link href={secondary.href} className="cb-btn cb-btn--ghost">
-              {secondary.label}
-            </Link>
+            secondary.external ? (
+              <a href={secondary.href} className="cb-btn cb-btn--ghost">
+                {secondary.label}
+              </a>
+            ) : (
+              <Link href={secondary.href} className="cb-btn cb-btn--ghost">
+                {secondary.label}
+              </Link>
+            )
           ) : null}
         </div>
       </div>

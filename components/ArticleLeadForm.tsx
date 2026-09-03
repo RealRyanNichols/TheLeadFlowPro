@@ -80,7 +80,7 @@ export default function ArticleLeadForm({
           <Check aria-hidden="true" className="h-5 w-5" />
           Got it. I read these myself.
         </p>
-        <p className="mt-2 text-[14px] text-[var(--quiet)]">
+        <p className="mt-2 text-[15px] text-[var(--quiet)]">
           You will hear back from me, not a bot. In the meantime every tool on this site stays
           free and nothing here is locked.
         </p>
@@ -94,7 +94,7 @@ export default function ArticleLeadForm({
       className="not-prose mt-8 rounded-2xl border border-[var(--line-strong)] bg-[var(--fill-2)] p-6"
     >
       <h3 className="text-[19px] font-extrabold text-[var(--text)]">{heading}</h3>
-      <p className="mt-2 text-[14px] leading-relaxed text-[var(--quiet)]">{lead}</p>
+      <p className="mt-2 text-[15px] leading-relaxed text-[var(--quiet)]">{lead}</p>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <div>
@@ -165,11 +165,11 @@ export default function ArticleLeadForm({
       </div>
 
       <div className="consent-list mt-5">
-        <label className="flex items-start gap-2.5 text-[13px] text-[var(--quiet)]">
+        <label className="flex items-start gap-2.5 text-[14px] text-[var(--quiet)]">
           <input type="checkbox" name="marketing_email_consent" className="mt-0.5 h-4 w-4" />
           <span>Email me occasional tips and new tools. Unsubscribe any time.</span>
         </label>
-        <label className="flex items-start gap-2.5 text-[13px] text-[var(--quiet)]">
+        <label className="flex items-start gap-2.5 text-[14px] text-[var(--quiet)]">
           <input type="checkbox" name="sms_consent" className="mt-0.5 h-4 w-4" />
           <span>You can text me at the number above. Reply STOP to end it.</span>
         </label>
