@@ -94,7 +94,7 @@ export default function ToolsPage() {
   };
 
   return (
-    <main className="cb-page">
+    <main className="cb-page sv-tools-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <SiteHero
