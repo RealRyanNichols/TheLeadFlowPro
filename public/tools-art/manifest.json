@@ -1,6 +1,6 @@
 {
   "generated": "npm run art",
-  "count": 89,
+  "count": 91,
   "tools": [
     {
       "slug": "missed-call-calculator",
@@ -1513,6 +1513,40 @@
         "height": 900,
         "bytes": 5119,
         "sha256": "1db61cb1a1f84002"
+      }
+    },
+    {
+      "slug": "job-estimate-kit",
+      "card": {
+        "file": "/tools-art/card/job-estimate-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 5685,
+        "sha256": "fa83e25a897e1ce1"
+      },
+      "hero": {
+        "file": "/tools-art/hero/job-estimate-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 5685,
+        "sha256": "68635db66830ad42"
+      }
+    },
+    {
+      "slug": "qr-sign-kit",
+      "card": {
+        "file": "/tools-art/card/qr-sign-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 8315,
+        "sha256": "69e0ebdf93fec2a2"
+      },
+      "hero": {
+        "file": "/tools-art/hero/qr-sign-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 8315,
+        "sha256": "ad5c501fc849fc5f"
       }
     }
   ]

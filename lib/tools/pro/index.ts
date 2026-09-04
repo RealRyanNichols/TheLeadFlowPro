@@ -24,10 +24,10 @@ export const PRO_BUNDLE = {
   id: "pro_bundle",
   kind: "pro_bundle",
   name: "Every Pro Kit",
-  priceUsd: 49,
+  priceUsd: 39,
   promise: "Every kit on this shelf, and every kit added after, unlocked on one key.",
   pitch:
-    "Buy two kits and the bundle has already paid for itself. One key, every kit, including the ones added later.",
+    "Any three kits bought alone cost more than the whole shelf. One key, every kit, including the ones added later.",
 } as const;
 
 /* -------------------------------- registry -------------------------------- */

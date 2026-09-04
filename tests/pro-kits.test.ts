@@ -545,3 +545,187 @@ describe("quote follow-up kit", () => {
     }
   });
 });
+
+/* -------------------------------- Job Estimate Kit -------------------------- */
+
+describe("job estimate kit", () => {
+  const SLUG = "job-estimate-kit";
+  const JOB = [
+    "Tear out | 380 | 850",
+    "Materials | 1450 | 1980",
+    "Labor | 1216 | 2400",
+  ].join("\n");
+
+  // Subtotal 850 + 1,980 + 2,400 = $5,230. Deposit at 35% = $1,830.50,
+  // balance $3,399.50.
+  test("the totals and the deposit split are exact", () => {
+    const r = run(SLUG, { lines: JOB, taxRate: 0, deposit: 35 });
+    assert.equal(r.headline?.value, "$5,230.00");
+    assert.match(r.headline?.sub ?? "", /\$1,830\.50 deposit/);
+    assert.match(r.headline?.sub ?? "", /\$3,399\.50/);
+  });
+
+  // Tax at 8.25% on 5,230 = 431.475 -> total 5,661.475, shown to the cent.
+  test("sales tax lands on the subtotal at the set rate", () => {
+    const r = run(SLUG, { lines: JOB, taxRate: 8.25 });
+    assert.equal(r.headline?.value, "$5,661.48");
+  });
+
+  // Costed: cost 3,046 against price 5,230 -> margin (5230-3046)/5230 = 41.76%.
+  test("overall margin is share of price on the costed lines", () => {
+    const r = run(SLUG, { lines: JOB });
+    const margin = (r.stats ?? []).find((s) => s.label.includes("Margin"));
+    assert.equal(margin?.value, "41.8%");
+  });
+
+  test("a line priced below cost turns the verdict red and names the sheet", () => {
+    const r = run(SLUG, { lines: "Disposal fees | 500 | 400\nLabor | 1000 | 2400" });
+    assert.equal(r.verdict?.tone, "bad");
+    const sheet = doc(r, "margin");
+    assert.match(sheet.body, /LOSING MONEY/);
+  });
+
+  test("a thin line is flagged against the owner's own floor", () => {
+    // 20 percent margin line with the floor at 25 gets flagged; at 15 it does not.
+    const line = "Trim work | 800 | 1000";
+    const flagged = doc(run(SLUG, { lines: line, marginFloor: 25 }), "margin");
+    assert.match(flagged.body, /THIN/);
+    const fine = doc(run(SLUG, { lines: line, marginFloor: 15 }), "margin");
+    assert.equal(fine.body.includes(">THIN<"), false);
+  });
+
+  test("a line without a cost still prices, and the sheet says so", () => {
+    const r = run(SLUG, { lines: "Mystery work | 900" });
+    assert.equal(r.headline?.value, "$900.00");
+    const sheet = doc(r, "margin");
+    assert.match(sheet.body, /no cost given/);
+  });
+
+  test("a line the parser cannot read is reported, never silently dropped", () => {
+    const sheet = doc(run(SLUG, { lines: "Good line | 100 | 200\ntotal nonsense with no price" }), "margin");
+    assert.match(sheet.body, /could not read/);
+    assert.match(sheet.body, /total nonsense with no price/);
+  });
+
+  test("dollar signs and commas in the numbers are forgiven", () => {
+    const r = run(SLUG, { lines: "Materials | $1,450 | $1,980.00" });
+    assert.equal(r.headline?.value, "$1,980.00");
+  });
+
+  test("the estimate paper carries the terms, the validity date and both signature lines", () => {
+    const est = doc(run(SLUG, { lines: JOB, estDate: "2026-09-08", validDays: 30, customer: "Dana Whitfield" }), "estimate");
+    assert.match(est.body, /October 8, 2026/, "valid until 30 days from the estimate date");
+    assert.match(est.body, /Accepted by Dana Whitfield/);
+    assert.match(est.body, /written change orders|quoted and approved in writing/);
+  });
+
+  test("options render as a separate priced section, never folded into the total", () => {
+    const r = run(SLUG, { lines: "Base | 100 | 1000", options: "Upgraded trim | 380" });
+    assert.equal(r.headline?.value, "$1,000.00", "the option price stays out of the total");
+    const est = doc(r, "estimate");
+    assert.match(est.body, /Options, priced separately/);
+    assert.match(est.body, /Upgraded trim/);
+  });
+
+  test("the deposit invoice is computed from the same numbers", () => {
+    const inv = doc(run(SLUG, { lines: JOB, deposit: 35 }), "invoice");
+    assert.match(inv.body, /\$1,830\.50/);
+    assert.match(inv.body, /\$3,399\.50/);
+  });
+
+  test("follow-ups land on business days and the expiry rides along", () => {
+    // Estimate dated Friday 2026-09-04: day 2 is Sunday -> Monday the 7th.
+    const cal = doc(run(SLUG, { lines: JOB, estDate: "2026-09-04", validDays: 30 }), "reminders");
+    assert.equal(cal.body.split("BEGIN:VEVENT").length - 1, 4, "three follow-ups plus the expiry");
+    assert.match(cal.body, /DTSTART:20260907T/);
+    assert.match(cal.body, /20261004/, "the expiry event is on the valid-until date");
+  });
+
+  test("an empty estimate number derives one from the date", () => {
+    const est = doc(run(SLUG, { lines: JOB, estDate: "2026-09-08", estNumber: "" }), "estimate");
+    assert.match(est.body, /EST-260908/);
+  });
+});
+
+/* ---------------------------------- QR Sign Kit ----------------------------- */
+
+describe("qr sign kit", () => {
+  const SLUG = "qr-sign-kit";
+
+  test("a call code encodes a tel URI from a formatted number", () => {
+    const order = doc(run(SLUG, { kind: "call", phone: "(903) 555-0142" }), "order");
+    assert.match(order.body, /tel:\+19035550142/);
+  });
+
+  test("a text code uses SMSTO with the prefilled message", () => {
+    const order = doc(run(SLUG, { kind: "text", phone: "903-555-0142", smsBody: "I need a quote" }), "order");
+    assert.match(order.body, /SMSTO:\+19035550142:I need a quote/);
+  });
+
+  test("a wifi code escapes the characters that break the format", () => {
+    const order = doc(run(SLUG, { kind: "wifi", ssid: "Shop;Guest", wifiPass: 'pa"ss:word', wifiSec: "WPA" }), "order");
+    assert.match(order.body, /WIFI:T:WPA;S:Shop\\;Guest;P:pa\\"ss\\:word;;/);
+  });
+
+  test("an open wifi network carries no password field", () => {
+    const order = doc(run(SLUG, { kind: "wifi", ssid: "CafeFree", wifiSec: "nopass" }), "order");
+    assert.match(order.body, /WIFI:T:nopass;S:CafeFree;;/);
+  });
+
+  test("a directions code builds the maps search URL", () => {
+    const order = doc(run(SLUG, { kind: "directions", address: "2800 Gilmer Rd, Longview TX" }), "order");
+    assert.match(order.body, /google\.com\/maps\/search\/\?api=1&query=2800%20Gilmer/);
+  });
+
+  test("a bare domain is upgraded to https", () => {
+    const order = doc(run(SLUG, { kind: "website", link: "kirbyplumbing.com/menu" }), "order");
+    assert.match(order.body, /https:\/\/kirbyplumbing\.com\/menu/);
+  });
+
+  test("missing details produce a sample warning, never a junk code", () => {
+    const pack = doc(run(SLUG, { kind: "call", phone: "" }), "pack");
+    assert.match(pack.body, /SAMPLE CODE/);
+    const order = doc(run(SLUG, { kind: "call", phone: "" }), "order");
+    assert.match(order.body, /NOT SET YET, do not print/);
+  });
+
+  test("the vector file is a real scalable QR", () => {
+    const svg = doc(run(SLUG, { kind: "website", link: "example.com" }), "vector");
+    assert.match(svg.body, /^<svg xmlns/);
+    assert.match(svg.body, /shape-rendering="crispEdges"/);
+  });
+
+  test("the contact card appears only once the brand kit has a name", () => {
+    const empty = run(SLUG, { kind: "website", link: "example.com" });
+    assert.equal((empty.documents ?? []).some((d) => d.id === "vcf"), false);
+    const named = run(SLUG, { kind: "website", link: "example.com" }, {
+      brand_name: "Kirby Plumbing",
+      brand_phone: "9035550142",
+      brand_email: "office@kirby.com",
+    });
+    const vcf = (named.documents ?? []).find((d) => d.id === "vcf");
+    assert.ok(vcf, "named brand kit produces the contact card");
+    assert.match(vcf!.body, /BEGIN:VCARD/);
+    assert.match(vcf!.body, /TEL;TYPE=WORK,VOICE:\+19035550142/);
+    assert.match(vcf!.body, /FN:Kirby Plumbing/);
+  });
+
+  test("every piece states an honest scan distance from the ten times rule", () => {
+    const r = run(SLUG, { kind: "website", link: "example.com" });
+    const rows = r.table?.rows ?? [];
+    const poster = rows.find((row) => String(row[0]).includes("poster"));
+    // 3.4 inches x 10 / 12 = 2.83 feet, rounded to 3.
+    assert.equal(poster?.[2], "3 ft");
+  });
+
+  test("an absurdly long link is clamped and still encodes a working code", () => {
+    // The field caps a link at 1,200 characters, which stays inside what a
+    // code can reliably carry, so the kit clamps and keeps working rather
+    // than refusing. The separate too-long refusal path guards the day that
+    // cap ever moves.
+    const r = run(SLUG, { kind: "website", link: `example.com/${"a".repeat(3000)}` });
+    assert.equal(r.headline?.label, "Your code, ready to print");
+    const svg = doc(r, "vector");
+    assert.match(svg.body, /^<svg xmlns/);
+  });
+});
