@@ -5,6 +5,8 @@ import { isWorkspaceHost, workspaceRedirect } from "@/lib/workspaceHost";
 
 const PUBLIC_SALES_PATH = "/admin/sales";
 const INTERNAL_SALES_PATH = "/sales";
+const WORKSHOP_SITE_URL =
+  "https://chatgpt-longview-september-17-2026.therealryannichols.chatgpt.site";
 
 function isPath(path: string, base: string) {
   return path === base || path.startsWith(`${base}/`);
@@ -31,6 +33,12 @@ export async function middleware(request: NextRequest) {
       url.pathname = destination;
       return NextResponse.redirect(url);
     }
+  }
+
+  // Keep the legacy event calendar in source while the public Events entry
+  // hands off to the standalone September 17 workshop funnel.
+  if (requestedPath === "/events") {
+    return NextResponse.redirect(WORKSHOP_SITE_URL);
   }
 
   // Keep the public-facing URL clearly inside the back office. This is not the

@@ -11,6 +11,7 @@ const NAV_LINKS: Array<[string, string]> = [
   ["/", "Home"],
   ["/services", "Services"],
   ["/results", "Results"],
+  ["https://chatgpt-longview-september-17-2026.therealryannichols.chatgpt.site", "Events"],
   ["/about", "About"],
   ["/articles", "Blog"],
   ["/contact", "Contact"],

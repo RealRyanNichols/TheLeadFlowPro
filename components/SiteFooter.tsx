@@ -35,7 +35,10 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
     heading: "Work together",
     links: [
       ["/packages", "Packages"],
-      ["/events", "Events & Workshops"],
+      [
+        "https://chatgpt-longview-september-17-2026.therealryannichols.chatgpt.site",
+        "Events & Workshops",
+      ],
       ["/go/lead-follow-up", "Follow-Up Campaign | $197"],
       ["/free-build", "Free Website | $0 Build Fee"],
       ["/start", "Map My Company"],
