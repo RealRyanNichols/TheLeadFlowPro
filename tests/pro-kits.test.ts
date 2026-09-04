@@ -375,3 +375,173 @@ describe("missed call text-back kit", () => {
     }
   });
 });
+
+/* ------------------------------ Google Review Kit --------------------------- */
+
+describe("google review kit", () => {
+  const SLUG = "google-review-kit";
+
+  // The same formula the free review goal calculator locks in:
+  // needed = ceil(total x (goal - current) / (5 - goal))
+  // 47 reviews at 4.3, target 4.8: ceil(47 x 0.5 / 0.2) = ceil(117.5) = 118.
+  test("reviews needed matches the free calculator it upgrades", () => {
+    const r = run(SLUG, { current: 4.3, total: 47, goal: 4.8 });
+    assert.equal(r.headline?.value, "118");
+  });
+
+  // 40 customers a week at a 25 percent yes rate is 10 expected reviews a
+  // week; 118 needed / 10 = 11.8, so about 12 weeks.
+  test("weeks to goal comes from volume and the yes rate", () => {
+    const r = run(SLUG, { current: 4.3, total: 47, goal: 4.8, weekly: 40, yesRate: 25 });
+    assert.match(r.headline?.sub ?? "", /about 12 weeks/);
+  });
+
+  test("already at the target flips to maintenance instead of asking for zero", () => {
+    const r = run(SLUG, { current: 4.9, total: 200, goal: 4.8 });
+    assert.equal(r.headline?.label, "Already at your target");
+    assert.equal(r.headline?.tone, "good");
+  });
+
+  // Projection after n five star reviews: (current x total + 5n) / (total + n).
+  // Week 12 at 10/week: (4.3 x 47 + 5 x 120) / 167 = 802.1 / 167 = 4.8030...
+  test("the projected rating is the weighted average, not a guess", () => {
+    const r = run(SLUG, { current: 4.3, total: 47, goal: 4.8, weekly: 40, yesRate: 25 });
+    const week12 = (r.stats ?? []).find((s) => s.label.includes("12 weeks"));
+    assert.equal(week12?.value, "4.80");
+  });
+
+  test("a place id becomes the one tap writereview link everywhere", () => {
+    const cal = doc(run(SLUG, { reviewLink: "ChIJAbCdEf1234567890gHiJ" }), "reminders");
+    const scripts = doc(run(SLUG, { reviewLink: "ChIJAbCdEf1234567890gHiJ" }), "scripts");
+    assert.match(scripts.body, /search\.google\.com\/local\/writereview\?placeid=ChIJAbCdEf1234567890gHiJ/);
+    assert.match(cal.body, /writereview/);
+  });
+
+  test("a pasted link is used as given", () => {
+    const scripts = doc(run(SLUG, { reviewLink: "https://g.page/r/AbCd123/review" }), "scripts");
+    assert.match(scripts.body, /https:\/\/g\.page\/r\/AbCd123\/review/);
+  });
+
+  test("no link means the signage says sample instead of encoding a guess", () => {
+    const signage = doc(run(SLUG), "signage");
+    assert.match(signage.body, /SAMPLE CODE/);
+    const withLink = doc(run(SLUG, { reviewLink: "ChIJAbCdEf1234567890gHiJ" }), "signage");
+    assert.equal(withLink.body.includes("SAMPLE CODE"), false);
+  });
+
+  test("the signage QR only takes the brand color when the contrast scans", () => {
+    // A pale yellow would not survive a scanner on white, so the code stays ink.
+    const pale = doc(run(SLUG, {}, { brand_color: "#ffee88" }), "qr");
+    assert.equal(pale.body.includes("#ffee88"), false);
+    // A deep green has real contrast and is allowed through.
+    const deep = doc(run(SLUG, {}, { brand_color: "#0b5a33" }), "qr");
+    assert.match(deep.body, /#0b5a33/);
+  });
+
+  test("the plan CSV holds twelve weeks with an actuals column", () => {
+    const plan = doc(run(SLUG), "plan");
+    const lines = plan.body.split("\r\n");
+    assert.equal(lines.length, 13);
+    assert.match(lines[0], /actual_new_reviews/);
+  });
+
+  test("the reminders carry a real script in every event", () => {
+    const cal = doc(run(SLUG, { startDate: "2026-09-11" }), "reminders");
+    assert.equal(cal.body.split("BEGIN:VEVENT").length - 1, 12);
+    assert.match(cal.body, /DESCRIPTION:/);
+  });
+
+  test("the playbook holds the no incentives rule whatever the inputs", () => {
+    const playbook = doc(run(SLUG, { yesRate: 60 }), "playbook");
+    assert.match(playbook.body, /Never pay, discount or gift for a review/);
+  });
+
+  test("all three voices reach the scripts file", () => {
+    const scripts = doc(run(SLUG), "scripts");
+    for (const voice of ["FRIENDLY VOICE", "DIRECT VOICE", "PROFESSIONAL VOICE"]) {
+      assert.match(scripts.body, new RegExp(voice));
+    }
+  });
+
+  test("zero existing reviews does not divide anything by zero", () => {
+    const r = run(SLUG, { total: 0, current: 1 });
+    assert.ok(r.headline);
+    for (const d of r.documents ?? []) {
+      assert.equal(/NaN|Infinity/.test(d.body), false, `${d.id} broke at zero reviews`);
+    }
+  });
+});
+
+/* ------------------------------ Quote Follow-Up Kit ------------------------- */
+
+describe("quote follow-up kit", () => {
+  const SLUG = "quote-follow-up-kit";
+
+  // 30 quotes a month, $3,200 each, 10 point lift:
+  // extra jobs = 30 x 0.10 = 3 a month; revenue = 3 x 3,200 = $9,600 a month,
+  // $115,200 a year; profit at 38 percent margin = $43,776 a year.
+  test("the money math matches the free unclosed quote calculator", () => {
+    const r = run(SLUG, { quotes: 30, value: 3200, closeNow: 28, lift: 10, margin: 38 });
+    assert.equal(r.headline?.value, "$115,200");
+    assert.match(r.headline?.sub ?? "", /\$43,776/);
+  });
+
+  // 30 x (1 - 0.28) = 21.6 quotes open a month.
+  test("open quotes come off the close rate", () => {
+    const r = run(SLUG, { quotes: 30, closeNow: 28 });
+    const open = (r.stats ?? []).find((s) => s.label.includes("going quiet"));
+    assert.equal(open?.value, "22");
+  });
+
+  test("all seven touches land on business days from the quote date", () => {
+    // 2026-09-04 is a Friday. Day 1 = Saturday the 5th, so it must roll to
+    // Monday the 7th; day 30 = Sunday October 4th, rolling to Monday the 5th.
+    const cal = doc(run(SLUG, { startDate: "2026-09-04" }), "reminders");
+    assert.equal(cal.body.split("BEGIN:VEVENT").length - 1, 7);
+    assert.match(cal.body, /DTSTART:20260907T/);
+    assert.match(cal.body, /DTSTART:20261005T/);
+    assert.equal(/DTSTART:2026090[56]T/.test(cal.body), false, "nothing lands on that weekend");
+  });
+
+  test("the two call touches carry scripts, not messages", () => {
+    const touches = doc(run(SLUG), "touches");
+    assert.equal((touches.body.match(/CALL SCRIPT/g) ?? []).length, 6, "two calls in three voices each");
+    assert.match(touches.body, /objection sheet/i);
+  });
+
+  test("the honest start window reaches the schedule call", () => {
+    const touches = doc(run(SLUG, { window: "the first week of October" }), "touches");
+    assert.match(touches.body, /the first week of October/);
+  });
+
+  test("customer side placeholders survive as visible brackets", () => {
+    const crm = doc(run(SLUG), "crm");
+    assert.match(crm.body, /\[First name\]/);
+    const playbook = doc(run(SLUG), "playbook");
+    assert.match(playbook.body, /Nothing goes out with a bracket still in it/);
+  });
+
+  test("the CRM sheet has one row per touch with subjects on the emails", () => {
+    const crm = doc(run(SLUG), "crm");
+    const lines = crm.body.split("\r\n");
+    assert.equal(lines.length, 8, "a header and seven touches");
+    const emails = lines.filter((l) => l.includes('"email"'));
+    assert.equal(emails.length, 2);
+    for (const line of emails) {
+      assert.match(line, /"[^"]+","email","[^"]/, "an email row carries a subject");
+    }
+  });
+
+  test("the objection sheet covers the discount trap honestly", () => {
+    const objections = doc(run(SLUG), "objections");
+    assert.match(objections.body, /Never cut the price on the spot/);
+    assert.equal((objections.body.match(/===/g) ?? []).length, 10, "five objections, framed");
+  });
+
+  test("all three voices reach the touches file", () => {
+    const touches = doc(run(SLUG), "touches");
+    for (const voice of ["FRIENDLY VOICE", "DIRECT VOICE", "PROFESSIONAL VOICE"]) {
+      assert.match(touches.body, new RegExp(voice));
+    }
+  });
+});

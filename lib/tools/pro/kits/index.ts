@@ -12,8 +12,10 @@
 import type { ToolVisual } from "../../types";
 import type { ProToolDef } from "../types";
 import * as missedCallTextBackKit from "./missed-call-text-back-kit";
+import * as googleReviewKit from "./google-review-kit";
+import * as quoteFollowUpKit from "./quote-follow-up-kit";
 
-const KITS = [missedCallTextBackKit];
+const KITS = [missedCallTextBackKit, googleReviewKit, quoteFollowUpKit];
 
 export const PRO_KIT_DEFS: ProToolDef[] = KITS.map((k) => k.KIT);
 

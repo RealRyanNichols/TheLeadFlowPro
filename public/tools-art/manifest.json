@@ -1,6 +1,6 @@
 {
   "generated": "npm run art",
-  "count": 87,
+  "count": 89,
   "tools": [
     {
       "slug": "missed-call-calculator",
@@ -1479,6 +1479,40 @@
         "height": 900,
         "bytes": 9113,
         "sha256": "56f50f6215aced6f"
+      }
+    },
+    {
+      "slug": "google-review-kit",
+      "card": {
+        "file": "/tools-art/card/google-review-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 7462,
+        "sha256": "1ab7f42509bd9231"
+      },
+      "hero": {
+        "file": "/tools-art/hero/google-review-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 7462,
+        "sha256": "3dc3334b3b608e80"
+      }
+    },
+    {
+      "slug": "quote-follow-up-kit",
+      "card": {
+        "file": "/tools-art/card/quote-follow-up-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 5119,
+        "sha256": "064371017d921e08"
+      },
+      "hero": {
+        "file": "/tools-art/hero/quote-follow-up-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 5119,
+        "sha256": "1db61cb1a1f84002"
       }
     }
   ]
