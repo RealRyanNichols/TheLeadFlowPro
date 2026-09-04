@@ -16,7 +16,7 @@ const EVENT: WorkshopEventRow = {
   description: null,
   venue: "The LeadFlow Pro at Premier Dental Academy of Longview",
   city: "Longview, Texas",
-  starts_at: "2026-09-10T23:30:00.000Z",
+  starts_at: "2026-09-17T23:30:00.000Z",
   duration_minutes: 90,
   price_usd: 97,
   capacity: 10,
@@ -113,6 +113,6 @@ describe("workshop attendee helpers", () => {
     const url = workshopCalendarUrl(EVENT);
     assert.ok(url);
     const dates = new URL(url).searchParams.get("dates");
-    assert.equal(dates, "20260910T233000Z/20260911T013000Z");
+    assert.equal(dates, "20260917T233000Z/20260918T013000Z");
   });
 });

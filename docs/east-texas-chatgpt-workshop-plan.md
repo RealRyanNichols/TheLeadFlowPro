@@ -8,8 +8,8 @@ The full operating, curriculum, monitoring, funnel, creative, and launch system 
 - Venue host: The LeadFlow Pro at Premier Dental Academy of Longview, owned by Amanda
 - Working venue address: 2800 Gilmer Road, Suite 106, Longview, Texas
 - Public focus: ChatGPT only for the first workshop
-- Working date: September 10, 2026, 6:30 to 8:00 PM Central
-- Date status: not final and not published
+- Event date: Thursday, September 17, 2026, 6:30 to 8:00 PM Central
+- Date status: confirmed by Ryan on September 4, 2026; event remains unpublished
 - Capacity: 10 paid seats
 - Founding ticket: $97
 - Core class: 90 minutes
@@ -135,7 +135,7 @@ Ask for an honest review only after the attendee has received the promised value
 
 ## Date handling
 
-The still ads contain no date, so they can run for September 10, September 17, or a recurring schedule. The workshop page reads its date, time, venue, price, and capacity from the event record. When the final date is approved, update the event record and publish it. No funnel rebuild is required.
+The still ads contain no date, so they can support the September 17 workshop or a recurring schedule. The workshop page reads its date, time, venue, price, and capacity from the event record. Publishing remains a separate approval. No funnel rebuild is required.
 
 ## Creative set
 
@@ -148,10 +148,9 @@ Create date-specific variants only after the date is final. Keep these evergreen
 ## Remaining approvals
 
 1. Final public event name
-2. Final date and time
-3. Whether the exact street address appears publicly or only after payment
-4. Whether the first 30-minute clinic is included or sold separately
-5. Cancellation and seat-transfer policy
-6. Recording-consent language
-7. Final Stripe checkout test
-8. Publish approval and ad-spend approval
+2. Whether the exact street address appears publicly or only after payment
+3. Whether the first 30-minute clinic is included or sold separately
+4. Cancellation and seat-transfer policy
+5. Recording-consent language
+6. Final Stripe checkout test
+7. Publish approval and ad-spend approval

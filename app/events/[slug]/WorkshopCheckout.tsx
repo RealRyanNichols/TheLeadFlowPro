@@ -134,8 +134,8 @@ export default function WorkshopCheckout({
       ) : (
         <div className={styles.salesGate}>
           <ShieldCheck aria-hidden="true" />
-          <strong>September 10 is the target date.</strong>
-          <p>Ticket sales stay closed until Ryan confirms the date and buyer policies.</p>
+          <strong>Thursday, September 17 is confirmed.</strong>
+          <p>Ticket sales stay closed until the buyer policies are final and Ryan approves the launch.</p>
         </div>
       )}
 

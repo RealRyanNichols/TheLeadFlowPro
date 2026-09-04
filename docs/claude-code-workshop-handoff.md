@@ -8,8 +8,8 @@ Read `AGENTS.md`, `docs/east-texas-chatgpt-workshop-plan.md`, `docs/ai-workshop-
 
 - Branch: `codex/chatgpt-workshop-funnel`
 - Route: `/events/east-texas-ai-operator-workshop`
-- Target date: September 10, 2026 at 6:30 PM Central
-- Date status: target only, not final
+- Event date: Thursday, September 17, 2026 at 6:30 PM Central
+- Date status: confirmed by Ryan on September 4, 2026; event remains unpublished
 - Price: $97
 - Capacity: 10 paid seats
 - Instructor: Ryan Nichols
@@ -47,4 +47,4 @@ Run `npm test`, `./node_modules/.bin/tsc --noEmit`, `npm run build`, and `git di
 
 ## Unresolved Ryan decisions
 
-The final date, public name, cancellation policy, refund policy, seat-transfer policy, recording consent, clinic inclusion, address treatment, Stripe test approval, publish approval, sales approval, production deployment, and ad launch remain approval-gated.
+The public name, cancellation policy, refund policy, seat-transfer policy, recording consent, clinic inclusion, address treatment, Stripe test approval, publish approval, sales approval, production deployment, and ad launch remain approval-gated.

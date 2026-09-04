@@ -12,8 +12,8 @@ The front-end promise is complete: bring a laptop and one real business bottlene
 | --- | --- |
 | Public title | ChatGPT for Business Owners: Live in Longview |
 | Internal title | East Texas ChatGPT Operator Workshop |
-| Target date | Thursday, September 10, 2026 at 6:30 PM Central |
-| Date status | Target only until Ryan confirms |
+| Event date | Thursday, September 17, 2026 at 6:30 PM Central |
+| Date status | Confirmed by Ryan on September 4, 2026; event remains unpublished |
 | Instructor | Ryan Nichols |
 | Sales and implementation follow-up | Pat Grabbs |
 | Venue stakeholder | Amanda, owner of Premier Dental Academy |

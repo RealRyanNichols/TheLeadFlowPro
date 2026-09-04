@@ -35,7 +35,7 @@ const PREVIEW_EVENT: EventRow = {
   description: "A hands-on ChatGPT workshop for East Texas business owners.",
   venue: "The LeadFlow Pro at Premier Dental Academy of Longview",
   city: "Longview, Texas",
-  starts_at: "2026-09-10T23:30:00.000Z",
+  starts_at: "2026-09-17T23:30:00.000Z",
   duration_minutes: 90,
   price_usd: 97,
   capacity: 10,
@@ -143,7 +143,7 @@ export default async function WorkshopPage({ params }: { params: Promise<{ slug:
             </div>
             <div className="cb-actions">
               <a href="#reserve" className="cb-btn cb-btn--primary" data-analytics="cta-workshop-hero">
-                {salesOpen ? <>Reserve My Seat | {"$"}{Number(event.price_usd)}</> : <>September 10 Target | Sales Closed</>}
+                {salesOpen ? <>Reserve My Seat | {"$"}{Number(event.price_usd)}</> : <>September 17 Confirmed | Sales Closed</>}
                 <ArrowRight aria-hidden="true" />
               </a>
               <a href="#agenda" className="cb-btn cb-btn--ghost">See the 90 Minutes</a>
