@@ -9,10 +9,9 @@ import { ArrowRight, Menu } from "lucide-react";
 // page content and footer without crowding the primary brand bar.
 const NAV_LINKS: Array<[string, string]> = [
   ["/", "Home"],
-  ["/#what-we-build", "Services"],
-  ["/#results", "Results"],
+  ["/services", "Services"],
+  ["/results", "Results"],
   ["/about", "About"],
-  ["/businesses", "Business Archive"],
   ["/articles", "Blog"],
   ["/contact", "Contact"],
 ];

@@ -110,7 +110,7 @@ const STAGES: Stage[] = [
         name: "Content",
         plain: "Useful articles, video, email, and posts that answer the questions buyers already have.",
         value: "Good content earns attention before the sales conversation and keeps working after it is published.",
-        build: "A repeatable research, production, approval, publishing, and measurement system—not a random post calendar.",
+        build: "A repeatable research, production, approval, publishing, and measurement system, not a random post calendar.",
         examples: [{ name: "HubSpot CRM", price: "Free tools are available; paid CRM tiers begin per seat.", href: HUBSPOT }],
       },
       {
@@ -481,7 +481,7 @@ const CAPABILITY_VISUALS: Record<string, Partial<CapabilityVisual>> = {
     height: 121,
     alt: "Privacy-safe Premier Dental Academy KPI cards from its owned operating dashboard",
     eyebrow: "REAL DASHBOARD PROOF",
-    title: "See the work that is moving—and the work that is stuck.",
+    title: "See the work that is moving, and the work that is stuck.",
     body: "A pipeline is the operating view between a new inquiry and a finished outcome. The proof image uses aggregate Academy data only; no student or lead record is exposed.",
     steps: ["New", "Contacted + qualified", "Won, lost, or next action"],
     proofHref: "/proof-floor",
@@ -816,7 +816,7 @@ export default function CapabilityExplorer() {
               ))}
             </div>
             <small>
-              Reference prices checked September 1, 2026. Vendors change plans and usage fees. We compare total cost, required features, ownership, portability, and integration before recommending a build—not a blanket promise that custom is cheaper for every business.
+              Reference prices checked September 1, 2026. Vendors change plans and usage fees. We compare total cost, required features, ownership, portability, and integration before recommending a build, not a blanket promise that custom is cheaper for every business.
             </small>
           </div>
 

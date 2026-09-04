@@ -1,3 +1,4 @@
+import { TOOL_COUNT } from "./tools";
 import { TRADE_ARTICLES } from "./articles-trades";
 import { TRADE_ARTICLES_2 } from "./articles-trades-2";
 import { TRADE_ARTICLES_3 } from "./articles-trades-3";
@@ -54,6 +55,244 @@ export type Article = {
 
 export const ARTICLES: Article[] = [
   {
+    slug: "free-tools-that-bring-customers",
+    title: "The dental school that gives its training away, and why its funnel stays full",
+    description:
+      "Premier Dental Academy of Longview puts free tools in front of strangers and lets Google do the introductions. Here is the whole play, step by step, so you can run it for your business.",
+    publishedAt: "2026-09-03",
+    readingMinutes: 8,
+    ogImage: "/og/portfolio/premier-dental.jpg",
+    tool: {
+      slug: "cost-per-lead-calculator",
+      heading: "First, find out what a lead costs you today",
+      intro:
+        "The free tool play only makes sense against your current numbers. Work out what you pay for a lead and a customer right now, so you know exactly what a page that produces them for content instead of cash is worth.",
+      steps: [
+        {
+          name: "Enter your monthly marketing spend",
+          text: "Ads, boosted posts, lead services, directories. Everything you pay to make the phone ring, in one number.",
+        },
+        {
+          name: "Count the leads it produced",
+          text: "Calls, forms, and messages from that spend last month. If you cannot separate them by source, that is a finding all by itself.",
+        },
+        {
+          name: "Count the ones that closed",
+          text: "Leads that became paying customers. Now you have your cost per lead and your cost per customer, side by side.",
+        },
+        {
+          name: "Add what a customer is worth",
+          text: "First job plus the repeat business. The tool shows your return on the spend, which is the bar any new play has to clear.",
+        },
+      ],
+      readIt: [
+        "Cost per customer is the number the free tool play attacks. A useful page ranks for years and produces leads without a per-click bill attached.",
+        "If your cost per lead is tiny and your close rate is high, protect what works. This play adds a channel. It does not replace one that pays.",
+        "Return on ad spend below break-even means stop scaling the ads and fix the system first. No channel survives a broken follow-up.",
+      ],
+      formHeading: "Want this play built for your business?",
+      formLead:
+        "Tell me what you sell and the question customers always ask you. I will tell you which free tool fits your business, where it should live, and what it costs to build. The same answer I gave the dental school.",
+      interest: "lead_engine",
+      industry: "General small business",
+    },
+    faq: [
+      {
+        q: "Does giving away free tools give away the business?",
+        a: "No, because the tool is not the product. A calculator that tells a student what tuition costs does not teach a single clinical skill. A quote calculator does not swing a hammer. The tool answers the question people have before they buy, which is exactly the moment you want them on your site instead of a competitor's.",
+      },
+      {
+        q: "How long does it take a tool page to rank on Google?",
+        a: "Months, not days, and nobody honest will promise you a position. What you control is the inputs: a page that genuinely answers a real question, clean structure Google can read, and patience. The compounding is the point. A ranked page keeps producing after the ad budget would have run dry.",
+      },
+      {
+        q: "What kind of tool should my business build?",
+        a: "Take the question every customer asks before they buy, usually about price, time, or whether they qualify, and turn the answer into something interactive: a calculator, a scorecard, a checklist. If you hear the same question three times a week, that is your tool.",
+      },
+      {
+        q: "Do I need to know how to code?",
+        a: "No. You need to know your customers' questions. The build is the buildable part, and it is exactly what I do. Every tool on this site and every tool on Premier's site came from the same system, and it is the same system I build for clients.",
+      },
+    ],
+    body: `
+There is a dental assistant school in Longview that hands its training tools to total strangers. Free practice software. A tuition calculator that shows the real cost before anyone asks for a name. Career tools. No paywall, no email gate on the front end.
+
+That is not charity. That is the funnel.
+
+I know because I built it.
+
+## The play, in one paragraph
+
+A person with a problem types a question into Google. Your site answers it with a page that does not just talk, it works: a calculator, a scorecard, a simulator. The person gets their answer, on your site, with their own numbers in it. Right under the tool is a form that says: want help with what you just saw? Google watches people find that page, use it, and stay. Pages like that earn rankings. Rankings bring the next stranger. The wheel turns without an ad bill.
+
+That is the whole thing. Everything else is execution.
+
+## What Premier actually runs
+
+[Premier Dental Academy of Longview](/premier-system) is a real school with a real enrollment problem to solve: how does a working adult in East Texas find, trust, and choose a 12-week dental assistant program?
+
+Here is what sits at the top of their funnel:
+
+- **Free training simulators.** Practice-management software a curious person can try before they ever apply. The person who spends twenty minutes practicing is not a cold lead anymore.
+- **An interactive tuition planner.** The scariest question, what does it cost, answered with a tool instead of a sales call. It shows payment plans, including buy now pay later, with the person's own choices in it.
+- **Applications and records the school owns.** Every inquiry lands in the school's own database with its source attached, so the school can see which door each student walked in through.
+
+The school's operating dashboard shows leads arriving from calls, Facebook, tools, applications, and texts, each one labeled. Not because labeling is fun. Because next month's budget decision needs to know which of those doors is worth widening.
+
+## Why the tool ranks when the brochure does not
+
+Google is in the business of answering questions. A services page that says we are the best in East Texas answers nothing. A page that computes what will dental assistant school cost me answers the exact question the person typed.
+
+Three things stack up for a working tool page:
+
+1. **It matches the search.** The page exists to answer one question one audience is actually asking. That focus is what ranking is made of.
+2. **It is structured so Google can read it.** These pages carry the schema that tells search engines here is the question, here are the steps, here are the answers. That is the plumbing behind the rich results you see for how-do-I questions.
+3. **People behave differently on it.** They stay. They type. They come back with their spouse. Every one of those signals says this page did its job.
+
+## Why the lead is better
+
+A lead from a tool already trusts you a little, because you already helped them. They did math on your site. They saw your name at the top of a page that treated them like an adult instead of a target.
+
+So the form under the tool does not need tricks. It says what it says on every tool page I build: here is what you just worked out, want a real person to look at it with you? The people who fill that out are the people who meant it.
+
+And because the lead lands in a database the business owns, with the source stamped on it, the follow-up starts the same minute. [The money is in the follow-up.](/articles/the-money-is-in-the-follow-up) It always was.
+
+## The receipts on this site
+
+I do not ask clients to run a play I will not run myself. This website carries ${TOOL_COUNT} free working tools and the articles around them, built on the exact system I am describing. The tool below is one of them. The form under it works the same way Premier's does. You are standing inside the example.
+
+{{TOOL}}
+
+## How to run this for your business
+
+You do not need 86 tools. You need one good one.
+
+1. **Find the question.** The one customers always ask before they buy. It is usually about price, time, or whether they qualify.
+2. **Turn the answer into a tool.** A calculator, a scorecard, a checklist that produces their number, not a generic one.
+3. **Put it on a site you own.** The rankings, the page, and every lead it produces should belong to your business, not a platform.
+4. **Put the ask under the tool.** A short form, an honest sentence, and follow-up that starts the same day.
+5. **Label the door.** Every lead records where it came from, so in ninety days you know exactly what the tool is earning.
+
+Then leave it alone and let it compound. That is the part ad spend can never do for you.
+
+## The bottom line
+
+The school gives away training tools and stays full. This site gives away ${TOOL_COUNT} of them and writes articles about it. The play is sitting right there, and in most trades in most towns, nobody is running it yet.
+
+Somebody in your market is going to build the page that answers your customers' favorite question. The only question is whose name is on it.
+`,
+  },
+  {
+    slug: "website-text-too-small-on-mobile",
+    title: "If they cannot read your website on a phone, you do not have a website",
+    description:
+      "A real person tried to read this site on her phone and could not. Here is what we found, what we fixed, and the two-minute test that tells you if your site has the same problem.",
+    publishedAt: "2026-09-03",
+    readingMinutes: 6,
+    ogImage: "/og/portfolio/theleadflowpro.jpg",
+    tool: {
+      slug: "mobile-traffic-loss",
+      heading: "Price your mobile leak",
+      intro:
+        "Most of your visitors are on a phone. If the site works worse there than on a desktop, that gap has a dollar figure. Work out yours.",
+      steps: [
+        {
+          name: "Enter your monthly visitors",
+          text: "From your analytics. If you have none, use a guess and treat the result as a floor. Then go get analytics, because flying blind is its own leak.",
+        },
+        {
+          name: "Set the share on phones",
+          text: "Your analytics knows this too. For most local businesses it is well past half, which is why the phone version of your site is the real version.",
+        },
+        {
+          name: "Enter both conversion rates",
+          text: "What share of desktop visitors contact you, and what share of phone visitors do. The gap between those two numbers is the leak this article is about.",
+        },
+        {
+          name: "Add what a customer is worth",
+          text: "Average value and your close rate, so the leak comes out in dollars instead of percentages.",
+        },
+      ],
+      readIt: [
+        "The yearly figure is what the phone gap costs at your traffic and prices. It is the budget for fixing it, computed from your own numbers.",
+        "If mobile matched desktop is the line to look at twice. That is not a fantasy number. It is what readable text, tappable buttons, and a short form buy back.",
+        "A small leak means your site passes the phone test. Congratulations, go check your follow-up instead.",
+      ],
+      formHeading: "Failed your own phone test?",
+      formLead:
+        "Send me your website address and I will look at it on a phone the way a customer does, then tell you plainly: fix the site you have, or start over with the free five-page build. One of those is the honest answer, and I will tell you which.",
+      interest: "free_website_program",
+      industry: "General small business",
+    },
+    faq: [
+      {
+        q: "What font size should a website use on mobile?",
+        a: "Sixteen pixels is the floor for body text, and that is not a style opinion. It is roughly the size phone browsers consider readable without zooming, and it is the size Apple and Google use as the baseline in their own guidance. Labels and buttons should not be far behind it.",
+      },
+      {
+        q: "How do I test my website on a phone properly?",
+        a: "Hand your phone to someone over fifty, in daylight, and ask them to find your price and contact you. Watch silently. The pinching, squinting, and mis-taps you see in the next two minutes are what every customer experiences and never mentions. They just leave.",
+      },
+      {
+        q: "Does Google punish sites that are hard to read on phones?",
+        a: "Google indexes the mobile version of your site as the primary one and its own documentation says readable text and usable tap targets matter for the mobile experience. But the honest reason to fix it is closer to home: the customer who cannot read your page does not file a complaint. They call your competitor.",
+      },
+      {
+        q: "Do I need a whole new website to fix this?",
+        a: "Not always. Sometimes it is raising the type, spacing the buttons, and shortening the form on the site you have. It becomes a rebuild when the site also fails the deeper tests: no clear next step, no lead capture, no follow-up behind it. The phone test tells you where to start, not always where to stop.",
+      },
+    ],
+    body: `
+This week somebody tried to read this website on her phone. She could not do it. The text on some of our fanciest sections was small enough to need a magnifying glass, and she said so.
+
+She was right. We measured it. Some labels were eight pixels tall. Eight. On a site that tells other businesses how to catch customers.
+
+So we fixed it. Four hundred and seventy-one text sizes raised in one pass, bigger buttons, brighter contrast, tested at phone width before it shipped. And then I wrote this, because if it happened to us, it is happening to you.
+
+## The phone is not the small version. It is the version.
+
+Pull up your analytics and look at the device split. For most local businesses, most visitors are on phones. The desktop site you approved on a big monitor in perfect lighting is the minority experience.
+
+Which means every decision you made while leaning into a 27-inch screen gets judged by a customer squinting at six inches of glass in a parking lot.
+
+## The two-minute test
+
+Do not audit your site. Hand your phone to someone and watch.
+
+1. Can they read the body text without pinching?
+2. Can they tell what you do from the first screen?
+3. Can they find the price, or at least the path to it?
+4. Can they tap the phone number with a thumb, first try?
+5. Can they finish your form in under a minute?
+
+Every failure on that list is quiet. No error message fires when a 62-year-old customer with reading glasses gives up on your quote form. The visit just ends, and your analytics files it under bounce.
+
+## What we actually changed, so you can steal the list
+
+- **A floor under the text.** Body text at sixteen pixels minimum. Labels close behind. If a word matters enough to print, it matters enough to read.
+- **Buttons built for thumbs.** Tap targets sized so a working hand hits them the first time, with space between them so it does not hit two.
+- **Contrast that survives daylight.** Light text on dark backgrounds looks sharp in a design review and vanishes on a phone in the sun. We brightened the dim text and lifted the dark-on-dark sections.
+- **One action per screen.** A phone screen is small. It gets one job: call, start, read. Not six competing buttons.
+- **Shorter forms.** Every extra field on a phone keyboard costs more than the same field on a desktop. [Count yours.](/articles/website-traffic-but-no-customers)
+
+None of that is decoration. Every line of it exists to stop a customer from leaving mid-sentence.
+
+## Put a price on it
+
+The leak is measurable, and your own numbers are sitting in your analytics.
+
+{{TOOL}}
+
+## The part that stings
+
+The person who cannot read your site does not know your labels are eight pixels. She does not know what a viewport is. She knows your business felt hard to deal with and the next one on the list felt easy.
+
+The record does not care how the site looked on your monitor. It cares what happened on her phone.
+
+We took the correction and shipped the fix the same day. Your move is the same one: run the test, price the leak, fix the floor. And if the site fails deeper than type size, the [free five-page build](/free-build) exists for exactly that.
+`,
+  },
+  {
     slug: "data-centers-are-coming-to-texas",
     title: "Data centers are coming to Texas. Here is what I am going to do about it.",
     description:
@@ -72,6 +311,58 @@ export const ARTICLES: Article[] = [
       width: 720,
       height: 1280,
     },
+    tool: {
+      slug: "task-automation-savings",
+      heading: "Find out if the robot pays for itself",
+      intro:
+        "Do not use AI because a video told you to, including mine. Pick one repetitive task in your business and run the payback math on automating it. That is how you use this stuff like an owner instead of a fan.",
+      steps: [
+        {
+          name: "Pick one task you do every week",
+          text: "Sending the quote follow-up. Posting the job photos. Chasing the invoice. Typing the same reply to the same question. One task, not your whole business.",
+        },
+        {
+          name: "Enter the minutes and how often",
+          text: "How long the task takes and how many times a week it happens. Count the version where you get interrupted, because that is the real one.",
+        },
+        {
+          name: "Put in what the time costs",
+          text: "Your hourly worth or the wage of whoever does it. Owner time is not free. It is the most expensive labor in the building.",
+        },
+        {
+          name: "Add what automating it would cost",
+          text: "A one-time setup cost and any monthly cost. If you do not have a quote, put in a placeholder and see what the task could justify.",
+        },
+      ],
+      readIt: [
+        "The payback line is the decision. Pays for itself in months: build it. Pays for itself in years: skip it and keep your money.",
+        "The hours-a-year number is the one that sneaks up on people. Small weekly tasks quietly eat work-weeks of your year.",
+        "Run it for three or four tasks and stack the results. That stack is your automation roadmap, in order, with receipts.",
+      ],
+      formHeading: "Want the roadmap built for your business?",
+      formLead:
+        "Send me the task you ran and the payback number. I will tell you what else in your week automates profitably, what should stay human, and what the build costs. Straight answer, no pressure.",
+      interest: "system_map",
+      industry: "East Texas small business",
+    },
+    faq: [
+      {
+        q: "Do I need to understand AI to use it in my business?",
+        a: "No more than you need to understand a transmission to drive a truck. You need to know what job you are hiring it for, what it costs, and how to check the work. The payback math above is the owner's version of understanding, and it is the only version that pays.",
+      },
+      {
+        q: "What should a small business automate first?",
+        a: "The task that scores best on three things: it happens constantly, it follows the same steps every time, and dropping it costs money. For most local businesses that is lead follow-up, missed-call responses, and review requests. Not the craft. Not the judgment calls.",
+      },
+      {
+        q: "Is it too late to get ahead of this?",
+        a: "In East Texas? No. The list of local businesses actually running these tools is short, which is the entire opening. The tools are cheap and public. The advantage goes to whoever learns to run them first, and around here that race has barely started.",
+      },
+      {
+        q: "How do I avoid AI becoming another monthly fee trap?",
+        a: "Same rule as everything else on this site: if AI is going to run part of your business, it should run inside accounts you own. Your site, your database, your customer list. An AI feature bolted onto a subscription that holds your data hostage is the same old rent with a new sticker.",
+      },
+    ],
     body: `
 I shot this on my porch. Forty-two seconds. No script, no studio, no agency.
 
@@ -106,6 +397,10 @@ That used to be an enterprise budget. Now it is a Tuesday.
 The tools got cheap. The advantage did not go to whoever has the biggest budget. It went to whoever learns to run them first.
 
 In East Texas, that list is short. That is the opening.
+
+Want proof instead of a pep talk? Run the math on one task from your own week.
+
+{{TOOL}}
 
 ## The trap I want you to see coming
 
@@ -168,6 +463,58 @@ Data centers aren't going anywhere. Will you use what they power to build someth
     publishedAt: "2026-08-08",
     readingMinutes: 6,
     ogImage: "/og/articles/the-money-is-in-the-follow-up.jpg",
+    tool: {
+      slug: "quote-follow-up-calculator",
+      heading: "See what your open quotes are worth",
+      intro:
+        "Do not take my word for the leak. Put your own numbers in and look at what the quotes sitting on your desk would pay if somebody simply followed up on them.",
+      steps: [
+        {
+          name: "Count the quotes you send in a month",
+          text: "Written quotes, texted prices, emailed estimates. If a number left your business and a customer was waiting on it, count it.",
+        },
+        {
+          name: "Enter your average quote value",
+          text: "Add up your last ten quotes and divide by ten. Do not use your dream job, use the normal one.",
+        },
+        {
+          name: "Be honest about your close rate",
+          text: "Out of ten quotes, how many turn into paid work today? Most owners guess high. Check the last month before you type it.",
+        },
+        {
+          name: "Set what follow-up would add",
+          text: "A conservative bump is fine. Even a few extra points of close rate is real money, and the tool shows you exactly how much.",
+        },
+      ],
+      readIt: [
+        "The yearly number is the size of the leak, not a promise. It is what the quotes you already wrote would pay if the follow-up happened every time.",
+        "If the number feels too big to believe, lower the inputs until it feels honest. It usually stays big. That is the point.",
+        "Compare the number against what a follow-up system costs to run. That comparison is the whole decision.",
+      ],
+      formHeading: "Want me to find the rest of the leak?",
+      formLead:
+        "Send me your number and where your quotes go after you hit send. I will tell you straight whether your leak is speed, tracking, or follow-up, and what the smallest fix looks like.",
+      interest: "lead_engine",
+      industry: "General small business",
+    },
+    faq: [
+      {
+        q: "How fast should a business respond to a new lead?",
+        a: "The honest answer is: while the person is still in the buying moment. Someone who fills out a form or sends a message is comparing options right then. An instant confirmation plus a human response the same day beats a perfect response two days later.",
+      },
+      {
+        q: "Does follow-up mean pestering people?",
+        a: "No. Follow-up means keeping the promise the quote made. A reminder a few days after a quote, a check-in a week later, and a clear way to say no thanks. Most customers read that as professional, not pushy. The pushy version is what happens when there is no system and someone panics at the end of the month.",
+      },
+      {
+        q: "Can I do follow-up without buying software?",
+        a: "Yes, at small volume. A spreadsheet with a date column and a daily ten-minute habit works until the volume or the team grows. The software version exists because the habit breaks the first busy week. The important part is the system, not the tool.",
+      },
+      {
+        q: "What should an automated reply actually say?",
+        a: "The truth. That the message arrived, that a real person will respond, and when. Do not fake a human. A fast honest robot beats a slow fake one, and it beats silence by a mile.",
+      },
+    ],
     body: `
 The post gets attention. The system makes money.
 
@@ -195,6 +542,12 @@ A connected system gives every inquiry the same treatment no matter where it cam
 
 That is the whole trick. Your leads stay yours, the response is fast, and nothing depends on someone remembering.
 
+## Run your own numbers
+
+Here is where this stops being an article and starts being your business.
+
+{{TOOL}}
+
 ## Where to start
 
 You do not need to buy software to find your leak. Map where inquiries come in, where they are supposed to go, and where the last ten actually went. If you want a second set of eyes, the guided system map below does exactly that, and it shows you the recommended fix before it ever asks for your contact information.
@@ -208,6 +561,58 @@ You do not need to buy software to find your leak. Map where inquiries come in, 
     publishedAt: "2026-08-08",
     readingMinutes: 7,
     ogImage: "/og/articles/marketplace-is-not-your-website.jpg",
+    tool: {
+      slug: "platform-fee-calculator",
+      heading: "See what the platform takes off your year",
+      intro:
+        "This is the audit from the last section, running. Put your real monthly numbers in and see the platform's cut for the year, the five-year total, and the piece repeat customers could bring direct.",
+      steps: [
+        {
+          name: "Enter your monthly revenue through the platform",
+          text: "One platform at a time. Run it once per channel if you sell on several. Use a normal month, not December.",
+        },
+        {
+          name: "Put in their real cut",
+          text: "Category fees, payment processing, and program fees together. Your seller statement has it. Do not use the headline rate from their pricing page.",
+        },
+        {
+          name: "Add listing, ad, and subscription fees",
+          text: "The fixed monthly costs you pay to be there at all: store subscriptions, promoted listings you run every month, listing fees.",
+        },
+        {
+          name: "Estimate your repeat share honestly",
+          text: "What portion of orders come from people who bought from you before? That is the share where the platform is charging you full freight to reach your own customers.",
+        },
+      ],
+      readIt: [
+        "The five-year total is the one to sit with. A fee that feels fine per order looks different as a truck-sized number.",
+        "The cut on repeat customers is your leverage. New buyers are worth the fee. People who already know you are the ones a home base can serve direct, where the platform rules allow it.",
+        "If the repeat number is small, your channel is doing exactly what a channel should. Keep it and revisit in a year.",
+      ],
+      formHeading: "Want the home base mapped around your channel?",
+      formLead:
+        "Send me your platform, your five-year number, and your repeat share. I will tell you what an owned home base should do first for your operation and what it costs, without touching the channel that works.",
+      interest: "system_map",
+      industry: "Marketplace and ecommerce sellers",
+    },
+    faq: [
+      {
+        q: "Should I stop selling on Amazon or eBay?",
+        a: "No. A working channel with real demand is worth the fees when the math works. The move is not leaving. It is building an owned home base next to the channel so the customer relationships, the data, and the follow-up belong to your business.",
+      },
+      {
+        q: "Can I contact my marketplace buyers directly?",
+        a: "Only within each platform's rules, and the rules differ. What you can always do is build direct relationships on your own property: your site, your email list built with permission, your packaging, your brand. Read the current policy for your platform before you act, because violations can cost the account.",
+      },
+      {
+        q: "What are typical marketplace fees?",
+        a: "They vary by platform, category, and program, and they change. That is exactly why this article will not quote you a blended percentage. Pull your own seller statements. Your effective rate, including ads and subscriptions, is knowable in an evening and it is the only rate that matters.",
+      },
+      {
+        q: "What should a seller's home base actually include?",
+        a: "One operating view of products, orders, and fees across channels, a direct storefront or catalog, an owned customer list with consent, and follow-up that the business controls. Not a clone of the marketplace. The jobs the marketplace will never do for you.",
+      },
+    ],
     body: `
 If most of your business happens on Amazon, eBay, Poshmark, Mercari, Whatnot, or Etsy, you have probably heard two kinds of advice. One says the marketplace is all you need. The other says burn it down and build a website. Both are wrong.
 
@@ -234,6 +639,8 @@ The marketplaces keep doing what they are good at. The home base holds what has 
 ## Audit the real numbers first
 
 Do not trust a blended fee percentage from a blog post, including this one. Pull your actual statements. Category fees, fulfillment, storage, advertising, and payment processing all land differently for every seller. The honest move is to audit the statements, then decide where an owned home base creates leverage and where the channel should keep running exactly as it is.
+
+{{TOOL}}
 `,
   },
   {
@@ -244,6 +651,54 @@ Do not trust a blended fee percentage from a blog post, including this one. Pull
     publishedAt: "2026-08-09",
     readingMinutes: 7,
     ogImage: "/og/articles/small-business-website-cost.jpg",
+    tool: {
+      slug: "website-grader",
+      heading: "Grade the website you already have",
+      intro:
+        "Before you spend a dollar on a new website, find out what the current one is worth. Pull your site up on your phone, answer honestly, and get a grade in about two minutes.",
+      steps: [
+        {
+          name: "Open your site on your phone, not your desktop",
+          text: "Your customers are on phones. Judge the site the way they meet it, on cell data, in daylight.",
+        },
+        {
+          name: "Check what is actually true",
+          text: "Tappable phone number, loads fast, says what you do in the first sentence, real photos, short form. Check only what a stranger would agree with, not what you meant to build.",
+        },
+        {
+          name: "Read the grade like a buyer would",
+          text: "Every unchecked box is a customer question your site does not answer. The grade tells you whether you need a fix, a rebuild, or nothing at all.",
+        },
+      ],
+      readIt: [
+        "A low grade does not always mean spend money. Half these boxes, like a tappable number and an honest first sentence, are afternoon fixes on any platform.",
+        "A high grade with no customers means your problem is not the website. Go check your follow-up and your phone before you pay for a redesign.",
+        "If the site fails the phone test and the form test, that is when a rebuild pays, because those two boxes are where inquiries actually come from.",
+      ],
+      formHeading: "Want a straight answer on what your site needs?",
+      formLead:
+        "Send me your grade and your website address. I will tell you which shape of build fits, what it should cost, and just as plainly if the site you have is fine.",
+      interest: "free_website_program",
+      industry: "General small business",
+    },
+    faq: [
+      {
+        q: "How much should a five-page small business website cost?",
+        a: "Templates you build yourself run tens of dollars a month plus your evenings. Freelancers and agencies commonly land between two and ten thousand dollars on rented platforms. An owned build has a fixed build cost and small infrastructure costs after. The LeadFlow Pro's buy-it-outright five-page build is $1,000, and approved businesses can apply for the same foundation at a $0 build fee.",
+      },
+      {
+        q: "Why is there such a huge range in website quotes?",
+        a: "Because the word website covers three different products: pages you rent, pages someone assembles for you on a rented platform, and a system you own. The quotes are not for the same thing. Ask who owns the accounts and what the monthly total is in year two, and the quotes sort themselves fast.",
+      },
+      {
+        q: "Is a free website ever actually free?",
+        a: "Ask what the catch is, always, including with us. Our version: the five-page build fee is genuinely $0 for approved businesses, you own the code and accounts, and growth services after that are optional and quoted before you approve them. Domains, and hosting after the included 90 days, are real costs and we say so up front.",
+      },
+      {
+        q: "What ongoing costs does any website have?",
+        a: "A domain renews yearly. Hosting is either bundled into a builder fee or paid directly on an owned stack, usually modestly. The costs that sneak up are the add-ons: email tools, booking apps, form upgrades, plugins. Whatever you build, total the monthly stack once a year on purpose.",
+      },
+    ],
     body: `
 Ask five people what a small business website costs and you will get five confident answers that have nothing to do with each other. Twelve dollars a month. Five hundred bucks. Five thousand. Fifty thousand. All of them are real prices. They are just prices for different things.
 
@@ -278,6 +733,10 @@ Building custom used to be the expensive option. That changed. Modern tools cut 
 
 You are not paying for pixels. You are paying for the system: the site, the lead capture, the follow-up, the database, all in accounts with your name on them. See [what those builds include](/pricing) if you want real ranges instead of a mystery quote.
 
+## Before you buy anything, grade what you have
+
+{{TOOL}}
+
 ## How to decide
 
 - If you are testing an idea and money is tight, use a builder. It is the right tool for that season.
@@ -295,6 +754,54 @@ The cheapest website is the one that catches the customers you are already payin
     publishedAt: "2026-08-09",
     readingMinutes: 6,
     ogImage: "/og/articles/website-builder-monthly-fees.jpg",
+    tool: {
+      slug: "rent-receipt",
+      heading: "Total your builder stack, right now",
+      intro:
+        "The builder fee never travels alone. Check off everything your business pays for each month and watch the real number assemble itself. Bring your card statement, not your memory.",
+      steps: [
+        {
+          name: "Open your last card statement",
+          text: "The advertised prices are wrong and your memory is generous. The statement has the real charges, including the annual ones you forgot.",
+        },
+        {
+          name: "Check every box that charges you",
+          text: "Builder plan, email tool, booking app, CRM seats, review widget, chat, forms, phone platform. If it hits the card monthly or yearly, it counts.",
+        },
+        {
+          name: "Adjust the amounts to your real prices",
+          text: "The tool starts with typical prices. Overwrite them with what you actually pay so the total is yours, not an estimate.",
+        },
+      ],
+      readIt: [
+        "The monthly total times twelve is your yearly rent. That is the number to hold up against what the stack actually produces.",
+        "Circle the lines that hold your data: the customer list, the bookings, the reviews. Those fees are not for features. They are for custody.",
+        "A modest total serving a business well is a fine trade. Keep it and stop feeling guilty. A big total with your leads scattered across five inboxes is the signal to consolidate.",
+      ],
+      formHeading: "Want to know what one owned system would replace?",
+      formLead:
+        "Send me your monthly total and the three tools you would miss most. I will map which lines an owned build replaces, which ones to keep, and what the crossover math looks like for your size.",
+      interest: "system_map",
+      industry: "General small business",
+    },
+    faq: [
+      {
+        q: "Is Wix or Squarespace bad for a small business?",
+        a: "No. For a new, unproven business that needs to be live this week, a builder is the right tool. The trade goes bad later, when the stack of add-ons grows, the template ceiling arrives, and the business depends on tools it can never own or leave cleanly.",
+      },
+      {
+        q: "Can I move my Wix or Squarespace site somewhere else later?",
+        a: "Not as a working website. You can usually export content like text, images, and some data, but the site itself, its design and functionality, stays on the platform. A move is a rebuild. That is the single most important thing to know before you invest years in one.",
+      },
+      {
+        q: "What is the real monthly cost of a builder site?",
+        a: "The plan fee plus everything around it: email marketing, booking, forms, review tools, plugins, apps, extra seats. Businesses I map are often paying several times the advertised plan price across the stack without ever deciding to. Add yours up with real statement numbers before judging the trade.",
+      },
+      {
+        q: "When should a business leave the builder?",
+        a: "When the monthly stack is large and load-bearing, when leads arrive from calls, texts, forms, and DMs that the builder cannot hold together, or when you keep buying plugins to punch through the template ceiling. At that point ownership usually beats convenience, and the move should start with a map, not a purchase.",
+      },
+    ],
     body: `
 I am not going to tell you Wix, Squarespace, and Shopify are evil. They are not. They are a trade, and trades should be understood before they are signed.
 
@@ -315,7 +822,9 @@ Ownership. Read the terms of any builder and you will find the same shape: you o
 
 The fee that starts small rarely stays small, because the builder is almost never alone. There is an email tool next to it. A booking app. A review widget. A form upgrade. Each one is a reasonable monthly number, and together they become a permanent line item that buys the business nothing it owns.
 
-Add up your own list honestly. Not the advertised prices, the actual charges on the card. That number, times twelve, is what renting costs per year. [The rent receipt article](/articles/cost-of-renting-business-software) walks through the full worksheet.
+Add up your own list honestly. Not the advertised prices, the actual charges on the card. That number, times twelve, is what renting costs per year. You can do it right here.
+
+{{TOOL}}
 
 ## When the trade makes sense
 
@@ -343,6 +852,58 @@ That is the point where ownership beats convenience, and it arrives earlier than
     publishedAt: "2026-08-09",
     readingMinutes: 6,
     ogImage: "/og/articles/does-my-business-need-a-crm.jpg",
+    tool: {
+      slug: "lead-value-calculator",
+      heading: "Work out what one lead is worth to you",
+      intro:
+        "Before you decide whether leads deserve a system, find out what one is worth. This is the number that makes the whole CRM question stop being abstract.",
+      steps: [
+        {
+          name: "Enter how many leads become customers",
+          text: "Out of ten inquiries, how many end up paying you? Use last month's real inquiries, not the good week you remember.",
+        },
+        {
+          name: "Put in the average first job",
+          text: "What a new customer spends the first time, on a normal job.",
+        },
+        {
+          name: "Add repeat jobs and referrals",
+          text: "A kept customer buys again and sends friends. This is where the real value hides, and it is exactly the value a dropped lead never produces.",
+        },
+        {
+          name: "Enter what you pay per lead now",
+          text: "Ad spend divided by leads, or zero if it is all referrals today. The tool shows you the ceiling of what a lead is worth against what you pay.",
+        },
+      ],
+      readIt: [
+        "Revenue per raw lead is the number to memorize. Every lead that dies in an unchecked inbox costs you that much, on average, every time.",
+        "The lifetime value line explains why follow-up beats more ads. Keeping one customer is worth several first jobs.",
+        "If a lead is worth real money, then the question is not whether you need a CRM. It is how many leads a month you can afford to keep dropping.",
+      ],
+      formHeading: "Not sure if your business is at the CRM point?",
+      formLead:
+        "Tell me your lead sources and who touches them, and send the number the tool gave you. I will tell you honestly whether you need a system yet or whether a spreadsheet is still fine.",
+      interest: "system_map",
+      industry: "General small business",
+    },
+    faq: [
+      {
+        q: "What does CRM stand for and what does it actually do?",
+        a: "Customer relationship management. In practice it is one list of every lead and customer, what happened last with each one, and what happens next, assigned to a person with a date. Everything else a CRM vendor shows you is decoration on those three lists.",
+      },
+      {
+        q: "When is a spreadsheet good enough?",
+        a: "When one person handles a handful of inquiries a month from one or two sources. The system fits in one head at that size. It stops being enough when leads come from several places, more than one person touches them, or the honest answer to who was never called back is nobody knows.",
+      },
+      {
+        q: "What should a small business CRM cost?",
+        a: "Rented CRMs commonly price per seat per month, and the total grows as your team does. An owned CRM built on your own database costs more once and then runs on modest infrastructure. Which shape wins depends on your size and growth, which is exactly what a system map works out before anyone buys anything.",
+      },
+      {
+        q: "Can I move my data out later if I pick the wrong one?",
+        a: "Ask that question before you sign, because the honest answer varies wildly. Look for a real export of contacts, history, and notes in a usable format. If leaving means losing the conversation history, the price is not the monthly fee. It is the exit.",
+      },
+    ],
     body: `
 CRM is one of those letters-words that software companies love and business owners quietly nod at. Customer relationship management. Fine. But what is it?
 
@@ -369,6 +930,10 @@ The breaking point is not company size. It is surface area. The business starts 
 
 If answering those requires opening five apps and asking two people, you do not have a memory problem. You have a systems gap. [The follow-up leak](/articles/the-money-is-in-the-follow-up) lives exactly here.
 
+## First, find out what a dropped lead costs you
+
+{{TOOL}}
+
 ## What to look for, and what to ignore
 
 Ignore the feature checklists. For a small business, a working CRM needs to do five things:
@@ -394,6 +959,54 @@ Do not buy a CRM because a blog told you to, including this one. Count your inqu
     publishedAt: "2026-08-09",
     readingMinutes: 6,
     ogImage: "/og/articles/website-traffic-but-no-customers.jpg",
+    tool: {
+      slug: "form-friction-calculator",
+      heading: "Count what your form is costing you",
+      intro:
+        "Leak three has a calculator. Every field on your contact form filters out real customers, and this shows the yearly price of the fields you did not need.",
+      steps: [
+        {
+          name: "Count the fields on your main form",
+          text: "Open your own contact or quote form and count every box, dropdown, and required checkbox a customer has to get through.",
+        },
+        {
+          name: "Estimate how many people reach the form",
+          text: "Your analytics knows visitors to the contact or quote page. If you have no analytics, that is its own finding. Use your best monthly guess.",
+        },
+        {
+          name: "Enter what a customer is worth and how often you close",
+          text: "Average job value and your honest close rate on inquiries. The tool turns abandoned forms into dollars with those two numbers.",
+        },
+      ],
+      readIt: [
+        "The number is what extra fields cost per year at your traffic and your prices. Fields are not free. Each one buys you information and costs you leads.",
+        "Compare the with-three-fields line to today. Name, phone or email, and what do you need. Almost every business can qualify from there in the follow-up conversation instead of the form.",
+        "If your form is already short and the leak is still there, move to leak one and leak four: the next step and the phone.",
+      ],
+      formHeading: "Want the leak found for you?",
+      formLead:
+        "Send me your website address and the number the tool gave you. I will walk your site the way a stranger would and tell you which of the five leaks is eating your traffic. Straight answer, no call required.",
+      interest: "free_website_program",
+      industry: "General small business",
+    },
+    faq: [
+      {
+        q: "How many fields should a contact form have?",
+        a: "As few as let you respond usefully. Name, one way to reach them, and what they need covers most service businesses. Every additional required field trades away inquiries for information you could have collected on the first call.",
+      },
+      {
+        q: "How do I find out where visitors give up?",
+        a: "Walk the path yourself on a phone: search, land, read, tap, submit, call. Time every step. Then check whether your analytics records form starts against form completions. The gap between those two numbers is your form leak, measured.",
+      },
+      {
+        q: "Is more traffic ever the answer?",
+        a: "Only after the path converts. Pouring more visitors into a leaking page rents you bigger numbers and the same silence. Fix the next step, the form, and the phone first. Then more traffic multiplies something that works.",
+      },
+      {
+        q: "Do I need to redesign the whole site to fix this?",
+        a: "Usually not. Shortening a form, making the phone number tappable, and putting one clear action on each page are small edits on any platform. A rebuild earns its cost when the site also needs to catch, record, and follow up on the leads, which is system work, not design work.",
+      },
+    ],
     body: `
 A website that gets visitors and produces no customers is not bad luck. It is a leak, and leaks can be found. Here are the five I find most often when I map a business, in the order I check them.
 
@@ -414,6 +1027,10 @@ Proof carries most of the trust load. Real photos, real reviews, real jobs. Stoc
 The form works. It sends an email. The email lands in an inbox that gets checked when someone remembers. By then the visitor has filled out two competitors' forms.
 
 Speed matters because the customer is still in the buying moment when they submit. An instant honest confirmation plus a fast human follow-up beats a beautiful website with a slow inbox every single time. This is [the follow-up problem](/articles/the-money-is-in-the-follow-up), and it eats more businesses than bad design ever will.
+
+And while we are on forms: count your fields.
+
+{{TOOL}}
 
 ## Leak four: the phone number is a dead end
 
@@ -436,6 +1053,58 @@ Walk the path yourself: search, land, read, submit, call. Time the response. Che
     publishedAt: "2026-08-09",
     readingMinutes: 5,
     ogImage: "/og/articles/missed-calls-cost-customers.jpg",
+    tool: {
+      slug: "missed-call-calculator",
+      heading: "Put a dollar figure on your missed calls",
+      intro:
+        "Open your phone log before you touch this. The tool only works if the inputs are real, and your call history already has the honest numbers in it.",
+      steps: [
+        {
+          name: "Count the calls you missed last week",
+          text: "Missed, declined, and sent to a voicemail nobody checks all count. Look at the actual log. Owners who guess always guess low.",
+        },
+        {
+          name: "Estimate how many of those callers were buyers",
+          text: "Not every missed call is a customer. Some are spam, some are vendors. Pick an honest share. Half is a common starting point for a service business.",
+        },
+        {
+          name: "Enter what a first sale is worth",
+          text: "The average ticket for a first job, not your biggest one.",
+        },
+        {
+          name: "Add the repeat business",
+          text: "A caught customer usually comes back. Put in how many more times a happy customer buys, because the missed call did not just lose one job.",
+        },
+      ],
+      readIt: [
+        "The yearly figure is what unanswered rings cost at your volume and your prices. It is your number, not an internet statistic.",
+        "The recovered-by-text-back line matters most. That is the share a simple automatic text catches without you answering a single extra call.",
+        "If the number is small, good: your phone is not your leak. Go check your quotes and your forms instead.",
+      ],
+      formHeading: "Want the phone leak fixed?",
+      formLead:
+        "Send me your number and how calls get answered today. I will tell you what a text-back setup looks like for your business and what it costs, straight, before any call.",
+      interest: "lead_engine",
+      industry: "Phone-first local business",
+    },
+    faq: [
+      {
+        q: "What is missed-call text-back?",
+        a: "When a call goes unanswered, the caller automatically gets a text within seconds: sorry we missed you, we are with a customer, what do you need? It holds the person in the moment instead of letting them dial the next name on the list. Most people will answer a text.",
+      },
+      {
+        q: "Do people really not leave voicemails anymore?",
+        a: "Check your own voicemail count against your missed call count. For most businesses the gap is enormous. People treat an unanswered ring as a no and move on, especially when they found you in a search next to four competitors.",
+      },
+      {
+        q: "Should the text pretend to be me?",
+        a: "No. Honest beats clever. Say it is an automatic message, say a real person will call back, and ask what they need. Customers do not mind automation. They mind being lied to.",
+      },
+      {
+        q: "Does this need a new phone number?",
+        a: "It needs a business line that can do texting, which can usually keep or forward your existing number. The bigger win is that calls and texts land in one shared inbox with the customer's history, instead of living on one person's cell.",
+      },
+    ],
     body: `
 Nobody calls a business to browse. People call when they are ready to act: the AC is out, the tooth hurts, the deadline is Friday, the water is coming through the ceiling. A caller is the most valuable visitor you will ever get, and they are the one you cannot ask to wait.
 
@@ -450,6 +1119,10 @@ Skip the scary internet statistics. Use yours:
 3. What is an average customer worth to you, not just on the first job but over a year or two?
 
 Multiply. Whatever that number is, that is the size of the hole, and you paid marketing money to dig it.
+
+Or skip the napkin math and let the calculator do it right here.
+
+{{TOOL}}
 
 ## Why answering everything yourself is not the fix
 
@@ -476,6 +1149,58 @@ This is one of the cheapest leaks in business to fix, which is what makes it pai
     publishedAt: "2026-08-09",
     readingMinutes: 6,
     ogImage: "/og/articles/facebook-page-is-not-a-website.jpg",
+    tool: {
+      slug: "seo-traffic-value",
+      heading: "Price the search traffic your page cannot reach",
+      intro:
+        "A Facebook page does not show up when somebody Googles your service in your town. This puts a dollar figure on what that search visibility is worth, using your own numbers.",
+      steps: [
+        {
+          name: "Estimate the searchers, or start with a guess",
+          text: "If you have a website with analytics, use your organic visitors. If you are social-only, put in a modest number like a hundred a month and treat the result as a floor.",
+        },
+        {
+          name: "Enter what a click would cost to buy",
+          text: "What businesses like yours pay per click on Google ads locally. If you do not know, a few dollars is a fair starting point for most local services.",
+        },
+        {
+          name: "Add your contact and close rates",
+          text: "Out of a hundred visitors, how many reach out, and how many of those buy. Honest guesses beat no numbers.",
+        },
+        {
+          name: "Enter your customer value",
+          text: "The first job plus the repeat business a kept customer brings.",
+        },
+      ],
+      readIt: [
+        "The monthly figure is what showing up in search would be worth at those rates, or what it would cost to rent the same visibility with ads forever.",
+        "Search traffic is high intent. These are people typing the problem into Google today, which is why it converts differently than a feed scroller.",
+        "The number only gets collected by a real website. A Facebook page does not rank for your service in your town, and that is the entire point of this article.",
+      ],
+      formHeading: "Social-only and thinking about a home base?",
+      formLead:
+        "Tell me your business, your town, and where your orders come from today. I will tell you what a search-visible home base would do first for you, and whether the free five-page build fits.",
+      interest: "free_website_program",
+      industry: "Social-first local business",
+    },
+    faq: [
+      {
+        q: "Do I really need a website if my Facebook page brings in business?",
+        a: "You need a second location for your business's existence, and a page cannot be it. Keep the page. It is a real channel. The website adds what the page cannot: showing up in Google searches, holding your customer list, and surviving an account lock or an algorithm change.",
+      },
+      {
+        q: "Why does my Facebook page not show up on Google?",
+        a: "Google can show a page in results, but it almost never ranks one for local service searches the way it ranks a real website with service pages, a location, and a Google Business Profile pointing at it. The people searching plumber near me are finding your competitors' websites, not anyone's Facebook page.",
+      },
+      {
+        q: "What happens to my followers if my account gets locked?",
+        a: "They stay on the platform, not with you. There is no way to take followers with you or contact them off-platform. That is why the home base plan always includes building an owned list, with permission, from the audience while you have their attention.",
+      },
+      {
+        q: "What is the smallest useful website for a social-first business?",
+        a: "A few pages that say what you do, where you do it, and how to buy or book, with every inquiry landing in one owned list. That is exactly the shape of the free five-page build, and for a social-only business it is the difference between renting your existence and owning it.",
+      },
+    ],
     body: `
 Plenty of real businesses run entirely on a Facebook page, an Instagram profile, or a TikTok account. The posts get engagement. The DMs bring orders. It works, and because it works, suggesting a website sounds like something a salesman would say.
 
@@ -494,6 +1219,10 @@ None of this makes the platform bad. It makes it rented.
 ## What renters cannot do
 
 There are basic business moves a page cannot make. You cannot pull a list of your customers off Facebook. You cannot follow up with the person who messaged you last month unless the platform surfaces them. You cannot show up when someone searches Google for the thing you sell in your town. And when someone asks for your website and the answer is a Facebook link, a slice of customers quietly decides you are not established enough for the big job.
+
+That Google search you are invisible to has a dollar value. Work it out.
+
+{{TOOL}}
 
 ## The home base next to the channel
 
@@ -518,6 +1247,58 @@ Do not build anything yet. First map where your business actually lives online, 
     publishedAt: "2026-08-09",
     readingMinutes: 6,
     ogImage: "/og/articles/own-your-email-list.jpg",
+    tool: {
+      slug: "customer-lifetime-value",
+      heading: "Work out what a kept customer is worth",
+      intro:
+        "The case for an owned list is the value of the customers it keeps. Run your numbers and see what one relationship is actually worth over the years, because that is what the list protects.",
+      steps: [
+        {
+          name: "Enter your average sale",
+          text: "A normal ticket, not your best one.",
+        },
+        {
+          name: "Put in purchases per year and years they stay",
+          text: "How often a regular buys, and how long a good customer stays with you. Look at your five longest customers if you are not sure.",
+        },
+        {
+          name: "Add your margin",
+          text: "Roughly what you keep after the direct costs of delivering the work.",
+        },
+        {
+          name: "Count the referrals",
+          text: "How many new customers one happy customer sends over their lifetime. Even a fraction counts. This is the compounding the algorithm never shows you.",
+        },
+      ],
+      readIt: [
+        "Lifetime profit per customer is the number that reframes everything. A follower is a maybe. A customer on your list is worth this much, and reaching them costs you nothing per send.",
+        "The afford-to-spend line tells you what acquiring one more customer is worth. Most owners are underspending on keeping and overspending on chasing.",
+        "Multiply the lifetime number by two hundred real subscribers. Now compare that to ten thousand followers you cannot reach. That is the whole argument.",
+      ],
+      formHeading: "Have customers but no list?",
+      formLead:
+        "Tell me how customers reach you today and what your lifetime number came out to. I will map the shortest honest path to an owned list for your business: where it lives, how it fills, and what to send.",
+      interest: "lead_engine",
+      industry: "General small business",
+    },
+    faq: [
+      {
+        q: "Is email marketing still worth it?",
+        a: "Owned reach is worth it, and email is its cheapest form. The list does not care about algorithm changes, account locks, or platform trends, and offers convert there because everyone on it raised a hand. The businesses saying email is dead are usually the ones sending nothing worth opening.",
+      },
+      {
+        q: "How do I start an email list from zero?",
+        a: "Invite every customer at the point of sale, put an honest unchecked checkbox on every form you already run, and offer something genuinely worth an address. Two hundred real locals who chose you beat ten thousand strangers. Slow is fine. Bought lists are spam with paperwork and they poison your sending reputation.",
+      },
+      {
+        q: "How often should a small business email its list?",
+        a: "As often as you have something a reasonable customer would be glad to get. For most local businesses that is monthly, plus seasonal reminders that match the trade and the occasional plain offer. The test is simple: would you be annoyed to receive it? Then do not send it.",
+      },
+      {
+        q: "Where should the list live?",
+        a: "In a database your business controls, synced to whatever sending tool you currently like. Tools change and per-contact pricing punishes growth. If the list itself is portable, you can switch senders on any Tuesday and the audience stays yours.",
+      },
+    ],
     body: `
 Ten thousand followers sounds like an audience. It is closer to an audition. Every post you make is a request to an algorithm to please show your work to the people who already said yes to you. Some days it says fine. Most days it shows a sliver.
 
@@ -532,6 +1313,10 @@ The difference shows up the day you need it:
 - You need revenue this month, not impressions: the list is where offers actually convert, because everyone on it raised their hand.
 
 Social finds strangers. Email keeps customers. A business needs both jobs done, and only one of them can be owned.
+
+Before you build the list, price the thing it protects.
+
+{{TOOL}}
 
 ## Build it with permission or do not build it
 
@@ -562,6 +1347,54 @@ An email list trapped in a rented tool with per-contact pricing is only half own
     publishedAt: "2026-08-09",
     readingMinutes: 7,
     ogImage: "/og/articles/east-texas-business-website-guide.jpg",
+    tool: {
+      slug: "google-business-profile-scorecard",
+      heading: "Score your Google Business Profile",
+      intro:
+        "For local search around here, this free listing often matters more than the website. Score yours in two minutes and see exactly which boxes your competitors have checked that you have not.",
+      steps: [
+        {
+          name: "Search your own business by name",
+          text: "Pull up your profile the way a customer sees it. If nothing comes up, your first box is unchecked: the profile is not claimed.",
+        },
+        {
+          name: "Check what is actually done",
+          text: "Claimed and verified, right categories, correct hours, real photos, services listed, reviews answered. Check only what a stranger would see is true today.",
+        },
+        {
+          name: "Read the score against your busiest competitor",
+          text: "Open their profile next to yours. The gaps you see are the checklist, in order.",
+        },
+      ],
+      readIt: [
+        "Every unchecked box is free visibility you are leaving to the shop across town. None of these boxes cost money. They cost an afternoon.",
+        "Photos and answered reviews carry more weight with real customers than the polish of your logo. East Texas buys from people.",
+        "A strong profile pointing at a weak website is a handshake with nothing behind it. The listing gets the click. The site has to catch it.",
+      ],
+      formHeading: "Want a local's eyes on the whole front door?",
+      formLead:
+        "Send me your business name and your score. I am up the road in Longview, and I will tell you what to fix on the listing, whether your website backs it up, and whether the free five-page build fits.",
+      interest: "free_website_program",
+      industry: "East Texas local business",
+    },
+    faq: [
+      {
+        q: "Is a Google Business Profile really free?",
+        a: "Completely. Claiming, verifying, photos, posts, services, and review responses cost nothing. Companies that cold-call East Texas businesses selling Google registration are selling you paperwork you can do yourself in an afternoon.",
+      },
+      {
+        q: "What matters more, the profile or the website?",
+        a: "For getting found locally, the profile often wins. For getting chosen and getting the inquiry caught, the website does the work. Google also reads them together: a real site with your services and towns strengthens the listing. You want both pulling the same direction.",
+      },
+      {
+        q: "How do I get more Google reviews without being weird about it?",
+        a: "Ask at the moment the customer is happiest, usually right when the job wraps, with a direct link that takes one tap. Answer every review like a human, including the bad ones. Steady and honest beats a burst of favors from cousins.",
+      },
+      {
+        q: "Who should own the website and domain when I pay someone to build it?",
+        a: "You. The domain registered in your account, the site and hosting in accounts with your business's name, and a straight answer about what happens if you stop paying. Any vendor who flinches at those questions, local or not, just told you everything.",
+      },
+    ],
     body: `
 I build business systems from Longview, and I talk to owners across East Texas: Longview, Tyler, Marshall, Kilgore, Gladewater, Hallsville, White Oak, and the towns between. The stories rhyme. Somebody paid for a website years ago. The guy who built it moved, or the agency keeps billing, or the login is lost, and nobody is sure what the site even does for the business anymore.
 
@@ -576,6 +1409,10 @@ Most local customers do not browse. They search: plumber near me, dentist Longvi
 - **Reviews with responses.** Steady honest reviews, answered like a human, beat a perfect logo every time.
 
 If a web quote does not mention your Google Business Profile at all, that tells you something.
+
+Score yours before you read another word.
+
+{{TOOL}}
 
 ## What a local business site has to do
 
@@ -612,26 +1449,66 @@ If you want a straight answer on what your business actually needs before anyone
     publishedAt: "2026-08-09",
     readingMinutes: 6,
     ogImage: "/og/articles/cost-of-renting-business-software.jpg",
+    tool: {
+      slug: "rent-receipt",
+      heading: "The Rent Receipt, live",
+      intro:
+        "This is the worksheet, working. Check off what your business pays for, correct the amounts to your real charges, and the receipt totals itself while you go.",
+      steps: [
+        {
+          name: "Get the card statement open first",
+          text: "Not your memory. The statement catches the tools you forgot you keep, the annual renewals, and the plan upgrade you approved eight months ago.",
+        },
+        {
+          name: "Check every line that applies",
+          text: "Builder, email marketing, booking, CRM seats, reviews, chat, forms, phone platform, listings services. Walk the whole list before you judge anything.",
+        },
+        {
+          name: "Fix the amounts to match your charges",
+          text: "The defaults are typical prices. Yours are the ones that matter. Overwrite them.",
+        },
+        {
+          name: "Look at the yearly total, not the monthly one",
+          text: "Monthly numbers are engineered to feel small. The yearly total is the honest one, and it is the one to compare against owning.",
+        },
+      ],
+      readIt: [
+        "This total is rent, not waste. Some of it is a fair trade. The receipt exists so the trade is a decision instead of a drift.",
+        "Mark which tools hold data you could not walk away with. Those lines cost more than their price.",
+        "Compare the yearly total against a one-time owned build. When rent passes the build cost every couple of years, ownership stops being the expensive option.",
+      ],
+      formHeading: "Sat back in your chair at the total?",
+      formLead:
+        "Send me the number and the list. I will tell you which lines an owned system replaces, which ones are worth keeping, and what the first move costs. No call needed for the answer.",
+      interest: "system_map",
+      industry: "General small business",
+    },
+    faq: [
+      {
+        q: "How much does the average small business spend on software subscriptions?",
+        a: "Published surveys vary too much to trust, and your number is the only one that matters. Businesses I map are frequently surprised to find hundreds a month across their stack, assembled one reasonable-sounding tool at a time. An hour with a bank statement gets you the real figure.",
+      },
+      {
+        q: "Which subscriptions should a business cut first?",
+        a: "Start with duplicates doing the same job, then tools you kept for one feature, then anything a system you own already handles. Do not start with the tool that holds hostage data. Export and migrate that data first, then cancel.",
+      },
+      {
+        q: "Does owning software really cost less than renting it?",
+        a: "Not always, and anyone who says always is selling something. Owning costs more up front and less per month, with costs that stay flat as you grow. Renting is cheap to start and grows with your contact list and your team. The receipt plus a build quote is the whole comparison, and for some businesses renting honestly wins.",
+      },
+      {
+        q: "What does owned actually mean here?",
+        a: "The code, database, domain, and accounts carry your business's name and you can leave any vendor, including us, without losing them. If cancelling a tool means losing the customer list or the site, you were renting, whatever the contract called it.",
+      },
+    ],
     body: `
 Nobody decides to spend serious money renting software. It accumulates. Each tool arrived on the day it solved a problem, each one costs less than lunch, and none of them ever leaves. The only way to see the real number is to add it up on purpose.
 
 ## The worksheet
 
-Open your card statement and walk the categories. Write real numbers, not advertised prices:
+Open your card statement and walk the categories with the live worksheet below. Write real numbers, not advertised prices. For a lot of established small businesses the yearly total lands somewhere between a used truck and a decent salary, and it buys the business nothing it owns.
 
-- Website builder or hosting plan
-- Domain and email hosting
-- Email marketing tool, priced per contact
-- Booking or scheduling app
-- CRM, priced per seat
-- Forms, surveys, or quiz tools
-- Review collection widget
-- Social scheduling tool
-- E-commerce platform fees and app store add-ons
-- Invoicing or payments software subscriptions
-- The plugins and upgrades attached to all of the above
-
-Total it. Multiply by twelve. For a lot of established small businesses that yearly number lands somewhere between a used truck and a decent salary, and it buys the business nothing it owns.
+{{TOOL}}
 
 ## Read the number honestly
 
@@ -658,6 +1535,54 @@ This is the rare business decision you can start with an hour and a bank stateme
     publishedAt: "2026-08-09",
     readingMinutes: 7,
     ogImage: "/og/articles/ai-website-small-business-2026.jpg",
+    tool: {
+      slug: "hire-vs-automate",
+      heading: "Hire a person or build the system?",
+      intro:
+        "This is the question AI actually changed the math on. Compare the three-year cost of the next hire against a system that does part of the same work, with your numbers.",
+      steps: [
+        {
+          name: "Enter the loaded cost of the hire",
+          text: "Wages plus taxes, insurance, and everything else. A loaded cost usually runs well above the wage itself. Include a yearly raise, because there will be one.",
+        },
+        {
+          name: "Put in what the system costs",
+          text: "A one-time build cost plus its monthly running cost. If you have a quote, use it. If not, use the build shapes on the pricing page as honest placeholders.",
+        },
+        {
+          name: "Be honest about the overlap",
+          text: "What share of the role's work can a system genuinely do: the answering, sorting, reminding, and drafting. Not the judgment, the craft, or the customer relationships. Guess low on purpose.",
+        },
+      ],
+      readIt: [
+        "The three-year lines are the comparison that matters. Year one flatters the hire because the build cost lands up front. The gap opens after.",
+        "If the overlap share is small, hire the person. A system does not carry a toolbox or calm down an angry customer. This tool exists to stop the wrong automation, too.",
+        "The best answer is often both: the system takes the repetitive slice so the person you do hire spends their hours on work that needs a human.",
+      ],
+      formHeading: "Weighing a hire against a build?",
+      formLead:
+        "Tell me the role you are trying to fill and what the tool showed you. I will tell you which slice of it a system can honestly take, what that build costs, and where you still need the human.",
+      interest: "system_map",
+      industry: "General small business",
+    },
+    faq: [
+      {
+        q: "Can AI really build a whole business website?",
+        a: "AI collapses the labor. A builder who knows what they are doing directs it, checks it, and wires it into a real system: site, database, follow-up, in accounts the business owns. What changed is the speed and therefore the price. What did not change is that somebody has to know what good looks like.",
+      },
+      {
+        q: "What should AI handle in a small business, day to day?",
+        a: "The boring slice: drafting follow-ups and quotes for a human to send, sorting and tagging inbound leads, and instant honest first replies that say when a real person will respond. Rule of thumb: AI drafts, humans send. Especially in a town where customers know your name.",
+      },
+      {
+        q: "Will AI replace my staff?",
+        a: "In a small business, the honest pattern is different: the system absorbs the repetitive work nobody was ever going to be hired for, or frees your existing people from it. The judgment calls, the craft, and the relationships stay human, because those are the business.",
+      },
+      {
+        q: "How do I avoid paying old prices for AI-speed work?",
+        a: "Ask what you own when the project ends and how long the build actually takes. A five-figure quote and a three-month timeline for a template reskin deserves hard questions in 2026. So does any AI feature sold as one more monthly fee on a platform you can never leave.",
+      },
+    ],
     body: `
 Every software company on earth has bolted the letters AI onto its pricing page, so I understand if your eyes glaze over. Underneath the marketing, something real did change, and it matters specifically to small business owners. Here is the honest version.
 
@@ -684,6 +1609,10 @@ Rule of thumb: AI drafts, humans send. Especially in a town where your customers
 It cannot know your trade, your prices, your standards, or your county. It cannot make the offer for you, answer for your reputation, or care whether the customer calls back. And it absolutely cannot fix a business that ignores its leads. An AI-built system pointed at [a follow-up leak](/articles/the-money-is-in-the-follow-up) just documents the leak faster.
 
 Anyone selling AI as a set-and-forget employee is selling you the same old magic beans with a new sticker.
+
+So run the honest version of the question instead.
+
+{{TOOL}}
 
 There is a bigger version of this question worth forty-two seconds of your time: [data centers are coming to Texas, and here is what I am going to do about it](/articles/data-centers-are-coming-to-texas).
 

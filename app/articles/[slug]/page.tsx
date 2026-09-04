@@ -235,10 +235,10 @@ export default async function ArticlePage({
                 key={f.q}
                 className="rounded-xl border border-[var(--line)] bg-[var(--fill-1)] p-4"
               >
-                <summary className="cursor-pointer text-[15px] font-semibold text-[var(--text)]">
+                <summary className="cursor-pointer text-[16px] font-semibold text-[var(--text)]">
                   {f.q}
                 </summary>
-                <p className="mt-3 text-[14px] leading-relaxed text-[var(--quiet)]">{f.a}</p>
+                <p className="mt-3 text-[15px] leading-relaxed text-[var(--quiet)]">{f.a}</p>
               </details>
             ))}
           </div>
@@ -255,10 +255,10 @@ export default async function ArticlePage({
       </article>
       <FinalCta
         eyebrow="Put this to work"
-        title="Map the system before you buy another disconnected tool."
-        body="See the diagnosis and the recommended first release before you send contact information."
-        primary={{ href: "/start", label: "Map My System" }}
-        secondary={{ href: "/articles", label: "More articles" }}
+        title="Get the website that catches these leads."
+        body="Start with the free five-page build, in accounts you own, or call and talk it through with the person who builds them."
+        primary={{ href: "/free-build", label: "Start My Free Website" }}
+        secondary={{ href: "tel:+19035008898", label: "Call or text (903) 500-8898", external: true }}
       />
     </main>
   );

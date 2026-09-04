@@ -245,7 +245,7 @@ export default function FreeBuildPage() {
                 </p>
                 <p>
                   What LeadFlow built is the connected reporting and operating layer. These are
-                  academy-wide metrics—not a claim that LeadFlow, Meta ads, or one campaign caused
+                  academy-wide metrics, not a claim that LeadFlow, Meta ads, or one campaign caused
                   every result. Premier Dental Academy and The LeadFlow Pro share common ownership;
                   this is an operating example, not an independent client testimonial or a promise
                   of your results.

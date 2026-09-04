@@ -35,7 +35,7 @@ const ROWS: Array<{ key: keyof Scores; label: string; lowerBetter?: boolean; uni
   { key: "seo", label: "SEO basics", help: "Google Lighthouse SEO checks." },
   { key: "accessibility", label: "Accessibility", help: "Google Lighthouse accessibility checks." },
   { key: "best_practices", label: "Best practices", help: "Google Lighthouse best-practices checks." },
-  { key: "lcp_s", label: "Load speed (LCP)", lowerBetter: true, unit: "s", help: "Largest Contentful Paint — how fast the main content shows. Lower is better; Google's bar for good is 2.5s." },
+  { key: "lcp_s", label: "Load speed (LCP)", lowerBetter: true, unit: "s", help: "Largest Contentful Paint: how fast the main content shows. Lower is better; Google's bar for good is 2.5s." },
   { key: "search_readiness", label: "Search readiness", help: "Our checks: title, description, canonical, sitemap, robots, structured data, share tags." },
   { key: "lead_readiness", label: "Lead capture", help: "Our checks: a working form, click-to-call or text, a real call to action, and measurement installed." },
 ];
@@ -105,13 +105,13 @@ export default function WebsiteGrader() {
       });
       const json = (await res.json()) as GradeResponse;
       if (!res.ok || json.error) {
-        setError(json.error ?? "Grading failed — try again in a minute.");
+        setError(json.error ?? "Grading failed. Try again in a minute.");
       } else {
         setResult(json);
         track("tool_complete", { toolSlug: "website-grader" });
       }
     } catch {
-      setError("Grading failed — try again in a minute.");
+      setError("Grading failed. Try again in a minute.");
     } finally {
       if (timerRef.current) clearInterval(timerRef.current);
       setBusy(false);
@@ -151,7 +151,7 @@ export default function WebsiteGrader() {
           <span className="live-pulse-dot" aria-hidden="true" />
           {elapsed < 6
             ? "Reaching your site and reading its HTML…"
-            : "Running Google Lighthouse on your site — this takes about half a minute…"}
+            : "Running Google Lighthouse on your site. This takes about half a minute…"}
           <span className="tabular-nums text-[#7f8ca3]">{elapsed}s</span>
         </p>
       )}
@@ -231,11 +231,11 @@ export default function WebsiteGrader() {
                 Your site is missing: {missing.join(", ")}.
               </p>
               <p className="mt-1 text-[13px] text-[#c9d3e4]">
-                Every one of those is a leak — attention arriving with nowhere to land. This is
+                Every one of those is a leak: attention arriving with nowhere to land. This is
                 exactly what the system fixes.
               </p>
               <a href="#dashboard-request" className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-[#5b87ff] hover:text-white">
-                Fix my grades — build my system
+                Fix my grades. Build my system
                 <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </a>
             </div>
@@ -243,7 +243,7 @@ export default function WebsiteGrader() {
 
           <p className="mt-4 text-[11px] leading-relaxed text-[#7f8ca3]">
             Scores: Google&apos;s public Lighthouse API (mobile) plus our own reality checks. The
-            average is the real average of sites graded on this page — not an invented industry
+            average is the real average of sites graded on this page, not an invented industry
             number. Nobody can see your Google rankings without your Search Console, so we
             don&apos;t pretend to. We store only the domain and its scores, nothing about you.
           </p>

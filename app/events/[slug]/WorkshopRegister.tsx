@@ -62,7 +62,7 @@ export default function WorkshopRegister({
       setPayFallback(true);
       return false;
     }
-    setError(data.error ?? "Checkout did not open. Your registration is saved — try again.");
+    setError(data.error ?? "Checkout did not open. Your registration is saved. Try again.");
     return false;
   }
 
@@ -150,7 +150,7 @@ export default function WorkshopRegister({
           ) : (
             <>
               <p>
-                Your seat is <strong>not</strong> confirmed yet — payment locks it. Ten seats,
+                Your seat is <strong>not</strong> confirmed yet. Payment locks it. Ten seats,
                 first come, first served.
               </p>
               <button

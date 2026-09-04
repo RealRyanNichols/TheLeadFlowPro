@@ -51,6 +51,21 @@ export default function FreeBuildOrder() {
     const timeline = String(form.get("timeline") ?? "").trim();
     const params = new URLSearchParams(window.location.search);
 
+    // The homepage qualifier forwards its yes/no answers as q_* params so the
+    // application saves them with the lead instead of losing them on the way.
+    const qualifierLabels: Record<string, string> = {
+      q_leads: "Getting enough leads",
+      q_money: "Making enough money",
+      q_social: "Social media doing its job",
+      q_website: "Website doing its job",
+    };
+    const qualifierAnswers = Object.entries(qualifierLabels)
+      .map(([key, label]) => {
+        const value = params.get(key);
+        return value === "yes" || value === "no" ? `${label}: ${value}` : null;
+      })
+      .filter((line): line is string => line !== null);
+
     // 1. Save the lead. Always. Before anything else can fail.
     let leadRes: Response;
     try {
@@ -69,6 +84,7 @@ export default function FreeBuildOrder() {
             doing ? `What they do: ${doing}` : "",
             topService ? `Service they want more customers for: ${topService}` : "",
             timeline ? `Preferred timeline: ${timeline}` : "",
+            qualifierAnswers.length ? `Qualifier answers: ${qualifierAnswers.join("; ")}.` : "",
           ]
             .filter(Boolean)
             .join(" "),
@@ -88,6 +104,7 @@ export default function FreeBuildOrder() {
             what_you_do: doing || null,
             top_service: topService || null,
             timeline: timeline || null,
+            qualifier_answers: qualifierAnswers.length ? qualifierAnswers : null,
             next_action:
               tier.priceUsd === 0
                 ? "Review Free Website Program fit, confirm the written five-page scope, and book the intake."

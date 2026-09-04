@@ -61,7 +61,7 @@ export default function WorkshopShowcase({
 
   const primaryCta = published ? (
     <Link className="cb-btn cb-btn--primary" href={funnelHref}>
-      {soldOut ? "Sold Out — See Details" : `Reserve My Seat | $${price}`}
+      {soldOut ? "Sold Out | See Details" : `Reserve My Seat | $${price}`}
       <ArrowRight aria-hidden="true" />
     </Link>
   ) : (
@@ -111,14 +111,14 @@ export default function WorkshopShowcase({
               <span>
                 {capacity} seats, first come first served
                 <em>
-                  ${price} founding ticket — a seat is confirmed only after payment, and this
+                  ${price} founding ticket. A seat is confirmed only after payment, and this
                   price goes up after the founding class.
                 </em>
               </span>
             </p>
             <p>
               <Laptop aria-hidden="true" />
-              <span>Bring your laptop — this is a working session, not a lecture.</span>
+              <span>Bring your laptop. This is a working session, not a lecture.</span>
             </p>
             <div className={local.showcaseCta}>
               {primaryCta}
@@ -146,7 +146,7 @@ export default function WorkshopShowcase({
 
         {/* ------------------------------------------------------ agenda --- */}
         <div className={local.showcaseBlock}>
-          <p className="cb-eyebrow">The 90-minute agenda — every minute has a job</p>
+          <p className="cb-eyebrow">The 90-minute agenda. Every minute has a job</p>
           <div className={styles.agenda}>
             {content.agenda.map((block) => (
               <div key={block.window} className={styles.agendaRow}>

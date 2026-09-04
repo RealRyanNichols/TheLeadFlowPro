@@ -139,7 +139,7 @@ async function sendContentEnginePurchaseEmails(email: string) {
       "You are in.",
       "",
       "Create your login with the exact email you used at checkout:",
-      "https://www.theleadflowpro.com/login?next=/training/content-engine",
+      "https://www.theleadflowpro.com/login?mode=signup&next=/training/content-engine",
       "",
       "Then open the course:",
       "https://www.theleadflowpro.com/training/content-engine",
@@ -180,7 +180,7 @@ async function sendAcademyPurchaseEmails(email: string, title: string, nextPath:
       "You are in.",
       "",
       "Create your login with the exact email used at checkout:",
-      `https://www.theleadflowpro.com/login?next=${nextPath}`,
+      `https://www.theleadflowpro.com/login?mode=signup&next=${nextPath}`,
       "",
       "Then open your training library:",
       "https://www.theleadflowpro.com/training",
@@ -209,6 +209,45 @@ async function sendAcademyPurchaseEmails(email: string, title: string, nextPath:
  * the real amount, and that the buyer gets an acknowledgement instead of
  * silence. Throws on send failure so Stripe retries.
  */
+// Plain acknowledgement to the person who just paid. Best effort by design:
+// the internal alert and the idempotency marker are the contract that keeps
+// a Stripe event retryable; a buyer email that fails must never block them,
+// and a retry that resends this note is a smaller sin than a buyer who paid
+// $500 and heard nothing from the business.
+async function sendBuyerAcknowledgement(
+  email: string,
+  subject: string,
+  lines: string[],
+): Promise<boolean> {
+  const key = process.env.RESEND_API_KEY?.trim();
+  if (!key || !email || !email.includes("@") || email.includes("@no-email.")) return false;
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "Ryan Nichols <ryan@theleadflowpro.com>",
+        reply_to: "hello@theleadflowpro.com",
+        to: [email],
+        subject,
+        text: [
+          ...lines,
+          "",
+          "Talk soon,",
+          "Ryan Nichols",
+          "The LeadFlow Pro",
+          "(903) 500-8898",
+        ].join("\n"),
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+    return r.ok;
+  } catch (e) {
+    console.error("buyer acknowledgement failed:", e instanceof Error ? e.message : e);
+    return false;
+  }
+}
+
 async function notifyUnhandledPurchase(
   email: string,
   kind: string,
@@ -613,6 +652,20 @@ async function ensureWebsiteLaunchIntake(
     });
     if (!accepted) throw new Error("Internal Website Launch alert was not accepted");
 
+    await sendBuyerAcknowledgement(customer.email, "Your Website Launch deposit is in.", [
+      `${(lead.full_name || customer.fullName || "").trim().split(" ")[0] || "Hey"},`,
+      "",
+      "Your $500 Website Launch deposit is paid and the build is on my board. Stripe's receipt is your record.",
+      "",
+      "What happens next:",
+      "",
+      "1. I reach out within one business day from (903) 500-8898 to start the intake: your offer, your buyer, your five pages.",
+      "2. We put the scope in writing before anything gets built. The remaining $500 is due only after you approve the build and before it goes live.",
+      "3. Have ready if you can: real photos of real work, your logo if you have one, and the domain you want. No passwords, ever.",
+      "",
+      "If you do not hear from me inside one business day, text that number. It is my direct line.",
+    ]);
+
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: lead.id,
       kind: "system",
@@ -781,6 +834,19 @@ async function ensureTimebackOrderPaid(
       }).catch(() => null);
       if (!r?.ok) throw new Error("Internal Time Back paid alert was not accepted");
     }
+    await sendBuyerAcknowledgement(customer.email, "Your Time Back order is paid.", [
+      `${String(leadName || "").trim().split(" ")[0] || "Hey"},`,
+      "",
+      `Your Time Back order is paid${paidUsd !== null ? ` ($${paidUsd})` : ""}. ${orderSummary}. Stripe's receipt is your record.`,
+      "",
+      "What happens next:",
+      "",
+      `1. Finish the welcome intake if you have not yet: https://www.theleadflowpro.com/go/time-back/welcome?session_id=${encodeURIComponent(sessionId)}`,
+      "2. Grant access the official way through the platform invites on that page. You never hand over a password, and you can revoke it in one click.",
+      "3. I write and schedule the posts. The first batch waits for your approval. Posts go live within five business days of your onboarding landing.",
+      "",
+      "Questions in the meantime: text (903) 500-8898.",
+    ]);
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
       kind: "system",
@@ -1094,6 +1160,19 @@ async function ensureLeadFollowUpPaid(
       }).catch(() => null);
       if (!alert?.ok) throw new Error("Internal Lead Follow-Up alert was not accepted");
     }
+    await sendBuyerAcknowledgement(customer.email, "Your Follow-Up Campaign is paid.", [
+      `${String(leadName || "").trim().split(" ")[0] || "Hey"},`,
+      "",
+      `Your $${LEAD_FOLLOW_UP.priceUsd} Lead Follow-Up Campaign is paid. Stripe's receipt is your record. I write the messages; you send them from your own accounts.`,
+      "",
+      "What happens next:",
+      "",
+      `1. Fill out the three-minute intake if you have not yet: https://www.theleadflowpro.com/go/lead-follow-up/intake?session_id=${encodeURIComponent(sessionId)}`,
+      `2. I write the first draft within ${LEAD_FOLLOW_UP.turnaroundDays} business days of receiving it.`,
+      "3. You review, I revise, you start sending.",
+      "",
+      "Nothing gets written until the intake comes back, so the campaign is built on your business instead of a template.",
+    ]);
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
       kind: "system",
@@ -1251,6 +1330,19 @@ async function ensureFreeBuildPaid(
       }).catch(() => null);
       if (!alert?.ok) throw new Error("Internal Free Build alert was not accepted");
     }
+    await sendBuyerAcknowledgement(customer.email, `Your ${tier.name} is paid. Here is what happens next.`, [
+      `${String(leadName || "").trim().split(" ")[0] || "Hey"},`,
+      "",
+      `${tier.name} is paid, $${tier.priceUsd} one time. The free build (${tier.pages}) and the engine behind it are both on my board. Stripe's receipt is your record.`,
+      "",
+      "What happens next:",
+      "",
+      "1. I text or call you within one business day from (903) 500-8898 to set up our twenty minute call. Want to skip the wait? Text that number now.",
+      "2. The ten business day delivery clock starts at that call and your photos landing, not at this payment.",
+      "3. Have ready: real photos of real work, your logo if you have one, and the domain you want on the front of it. No passwords, ever.",
+      "",
+      "Your domain, your hosting account, your pixel, your leads. If you fired me tomorrow you would keep every bit of it.",
+    ]);
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
       kind: "system",

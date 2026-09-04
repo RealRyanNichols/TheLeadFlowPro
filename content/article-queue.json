@@ -1,0 +1,103 @@
+{
+  "_readme": [
+    "The article drafting queue. One entry becomes one trade article in the",
+    "house pattern: question in the title, honest answer, embedded tool,",
+    "steps, FAQ, lead form. docs/article-drafting.md describes the pipeline.",
+    "npm run draft:article emits the next brief; --claim marks it drafted.",
+    "Statuses: queued -> drafted (brief issued) -> published (merged to main).",
+    "Add new entries at the end. Every tool slug must exist in lib/tools and",
+    "each tool may appear once, because its OG card becomes the article scene."
+  ],
+  "queue": [
+    {
+      "slug": "locksmith-after-hours-calls",
+      "trade": "Locksmiths",
+      "industry": "Locksmith services",
+      "tool": "after-hours-lead-calculator",
+      "searchQuestion": "How much business does a locksmith lose after hours?",
+      "workingTitle": "The locksmith's best calls come at the worst hours",
+      "status": "queued"
+    },
+    {
+      "slug": "insurance-agent-lead-response",
+      "trade": "Insurance agents",
+      "industry": "Insurance agencies",
+      "tool": "lead-response-time",
+      "searchQuestion": "How fast should an insurance agent respond to a lead?",
+      "workingTitle": "The quote you sent second never had a chance",
+      "status": "queued"
+    },
+    {
+      "slug": "handyman-job-pricing",
+      "trade": "Handymen",
+      "industry": "Handyman services",
+      "tool": "job-price-calculator",
+      "searchQuestion": "How should a handyman price a job?",
+      "workingTitle": "Stop pricing handyman jobs off the other guy's guess",
+      "status": "queued"
+    },
+    {
+      "slug": "pool-service-route-capacity",
+      "trade": "Pool service",
+      "industry": "Pool cleaning and service",
+      "tool": "capacity-calculator",
+      "searchQuestion": "How many pools can one service route actually handle?",
+      "workingTitle": "Your pool route has a ceiling. Find it before summer does.",
+      "status": "queued"
+    },
+    {
+      "slug": "junk-removal-cost-per-lead",
+      "trade": "Junk removal",
+      "industry": "Junk removal and hauling",
+      "tool": "cost-per-lead-calculator",
+      "searchQuestion": "What does a junk removal lead cost?",
+      "workingTitle": "What a junk removal job really costs before the truck rolls",
+      "status": "queued"
+    },
+    {
+      "slug": "tattoo-studio-no-shows",
+      "trade": "Tattoo studios",
+      "industry": "Tattoo and piercing studios",
+      "tool": "no-show-calculator",
+      "searchQuestion": "How much do no-shows cost a tattoo studio?",
+      "workingTitle": "The empty chair still costs full price",
+      "status": "queued"
+    },
+    {
+      "slug": "moving-company-cost-per-mile",
+      "trade": "Moving companies",
+      "industry": "Moving and hauling",
+      "tool": "cost-per-mile-calculator",
+      "searchQuestion": "What does it cost a moving company to run a mile?",
+      "workingTitle": "Price the miles or the miles will price you",
+      "status": "queued"
+    },
+    {
+      "slug": "hvac-maintenance-plans",
+      "trade": "HVAC",
+      "industry": "HVAC service",
+      "tool": "payment-plan-calculator",
+      "searchQuestion": "Should an HVAC company sell maintenance plans?",
+      "workingTitle": "The maintenance plan is the HVAC business's off-season paycheck",
+      "status": "queued"
+    },
+    {
+      "slug": "septic-service-drive-time",
+      "trade": "Septic services",
+      "industry": "Septic and wastewater services",
+      "tool": "drive-time-cost",
+      "searchQuestion": "How much does drive time cost a septic service?",
+      "workingTitle": "The windshield is eating your septic route",
+      "status": "queued"
+    },
+    {
+      "slug": "welding-shop-break-even",
+      "trade": "Welding and fabrication",
+      "industry": "Welding and fabrication shops",
+      "tool": "break-even-calculator",
+      "searchQuestion": "How much work does a welding shop need to break even?",
+      "workingTitle": "Know your shop's break-even before you quote another rush job",
+      "status": "queued"
+    }
+  ]
+}

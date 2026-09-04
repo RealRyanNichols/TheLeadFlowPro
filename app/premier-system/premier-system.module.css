@@ -44,7 +44,7 @@
   gap: 14px;
   margin: 0;
   color: #92b4ff;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 850;
   letter-spacing: 0.18em;
   line-height: 1.2;
@@ -128,7 +128,7 @@
   padding: 0 22px;
   border: 1px solid transparent;
   border-radius: 5px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 850;
   text-align: center;
   transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
@@ -169,7 +169,7 @@
 .heroNote {
   margin: 18px 0 0;
   color: #8f9db1;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -205,7 +205,7 @@
 
 .heroVisual figcaption span {
   color: var(--cyan);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -302,7 +302,7 @@
 .scopeLedger li > span {
   padding-top: 4px;
   color: var(--blue-deep);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 850;
 }
 
@@ -322,7 +322,7 @@
 .scopeLedger p {
   margin: 0;
   color: var(--body);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.58;
 }
 
@@ -345,13 +345,13 @@
 .truthNote p {
   margin: 0;
   color: var(--body);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
 .truthNote a {
   color: var(--blue-deep);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 850;
   white-space: nowrap;
 }
@@ -400,7 +400,7 @@
 .videoCaption {
   margin: 13px 0 0;
   color: #7f8da1;
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.6;
 }
 
@@ -417,7 +417,7 @@
   padding: 18px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.13);
   color: #8fa0b7;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -438,7 +438,7 @@
 
 .storyboard time {
   color: var(--cyan);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 850;
 }
 
@@ -449,13 +449,13 @@
 }
 
 .storyboard strong {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .storyboard p {
   margin: 0;
   color: #9eabbd;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.58;
 }
 
@@ -485,7 +485,7 @@
 
 .priceCard > span {
   color: var(--cyan);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -503,7 +503,7 @@
 .priceCard p {
   margin: 10px 0 0;
   color: #aeb8c7;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -542,7 +542,7 @@
   padding: 15px 18px;
   border-right: 1px solid rgba(255, 255, 255, 0.13);
   color: var(--white);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 850;
   letter-spacing: 0.08em;
   text-align: center;
@@ -582,7 +582,7 @@
 .bonusBlock header > p:last-child {
   margin: 21px 0 0;
   color: var(--body);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.7;
 }
 
@@ -605,7 +605,7 @@
 
 .scopeLedger p {
   max-width: 650px;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .bonusBlock {
@@ -640,7 +640,7 @@
 
 .bonusBlock li span {
   color: var(--cyan);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 850;
 }
 
@@ -654,7 +654,7 @@
 .bonusBlock li p {
   margin: 12px 0 0;
   color: #aeb9c9;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -681,7 +681,7 @@
 
 .milestones li > span {
   color: var(--blue-deep);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 850;
 }
 
@@ -695,7 +695,7 @@
 .milestones p {
   margin: 13px 0 0;
   color: var(--body);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -728,7 +728,7 @@
 
 .fitGrid article > span {
   color: var(--cyan);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -750,7 +750,7 @@
   padding: 15px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.13);
   color: #b7c1cf;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.6;
 }
 
@@ -779,7 +779,7 @@
   padding: 15px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.13);
   color: #aeb9c8;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.55;
 }
 
@@ -825,7 +825,7 @@
   max-width: 720px;
   margin: -8px 0 26px;
   color: var(--body);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.72;
 }
 
@@ -849,7 +849,7 @@
 .finalGrid > div:last-child > p {
   margin: 0;
   color: var(--white);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.7;
 }
 
@@ -870,7 +870,7 @@
   display: block;
   margin-top: 13px;
   color: #e2ebff;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.55;
   text-align: center;
 }
@@ -983,7 +983,7 @@
   }
 
   .heroLead {
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.55;
   }
 
@@ -1068,7 +1068,7 @@
 
   .approvalVisual figcaption span {
     padding: 12px 4px;
-    font-size: 8px;
+    font-size: 12px;
   }
 
   .scopeGrid,

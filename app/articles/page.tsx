@@ -19,9 +19,9 @@ export const metadata: Metadata = {
 };
 
 const FEATURED_ARTICLE_SLUGS = new Set([
+  "free-tools-that-bring-customers",
+  "website-text-too-small-on-mobile",
   "pressure-washing-pricing",
-  "pest-control-customer-value",
-  "tree-service-buy-or-rent-equipment",
 ]);
 
 export default function ArticlesPage() {
@@ -133,11 +133,11 @@ export default function ArticlesPage() {
       </section>
 
       <FinalCta
-        eyebrow="Reading is free. So is the first map."
-        title="See how the pieces should connect in your business."
-        body="Answer a few practical questions and see the recommended first release before you send contact information."
-        primary={{ href: "/start", label: "Map My System" }}
-        secondary={{ href: "/packages", label: "See the offer" }}
+        eyebrow="Reading is free. So is the first build."
+        title="Get the website that catches these leads."
+        body="Every article on this page points at the same fix: an owned website with capture and follow-up behind it. The first five-page build is free for approved businesses."
+        primary={{ href: "/free-build", label: "Start My Free Website" }}
+        secondary={{ href: "tel:+19035008898", label: "Call or text (903) 500-8898", external: true }}
       />
     </main>
   );

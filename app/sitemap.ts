@@ -4,6 +4,8 @@ import { TOOLS } from "@/lib/tools";
 import { PRO_TOOLS } from "@/lib/tools/pro";
 import { PUBLISHED_COLLECTIONS } from "@/lib/tools/collections";
 import { STAGE_SLUGS } from "@/lib/system-stages";
+import { OPERATOR_ACADEMY_COURSES } from "@/lib/operatorAcademyCatalog";
+import { SCOREBOARD_BUSINESSES } from "@/lib/scoreboard";
 
 const BASE = "https://www.theleadflowpro.com";
 const PACKAGE_SLUGS = ["system-map", "launch", "industry-os"];
@@ -31,6 +33,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/articles",
     "/book",
     "/operator-academy/content-engine",
+    "/academy",
+    "/training",
+    "/chatgpt",
+    "/scoreboard",
     "/contact",
     "/go/lead-follow-up",
     "/go/tools",
@@ -43,6 +49,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${BASE}${p}`,
       changeFrequency: "weekly" as const,
       priority: p === "" ? 1 : 0.7,
+    })),
+    ...OPERATOR_ACADEMY_COURSES.map((course) => ({
+      url: `${BASE}/training/${course.slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })),
+    ...SCOREBOARD_BUSINESSES.map((business) => ({
+      url: `${BASE}/scoreboard/${business.slug}`,
+      changeFrequency: "daily" as const,
+      priority: 0.7,
     })),
     ...STAGE_SLUGS.map((slug) => ({
       url: `${BASE}/system/${slug}`,

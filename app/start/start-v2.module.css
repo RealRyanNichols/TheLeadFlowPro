@@ -243,7 +243,7 @@
 
 .routerV2 :global(.router-option-copy > span) {
   color: #aebbd0;
-  font-size: 13.5px;
+  font-size: 15px;
 }
 
 .routerV2 :global(.router-option-arrow),
@@ -364,7 +364,7 @@
 
 .routerV2 :global(.form-field) {
   color: #b7c4d7;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .routerV2 :global(.form-field input),
@@ -437,7 +437,7 @@
   }
 
   .routerV2 :global(.router-exit) {
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .routerV2 :global(.router-exit)::before {
@@ -455,7 +455,7 @@
 
   .routerV2 :global(.router-question-heading > p),
   .routerV2 :global(.result-heading > p) {
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.55;
   }
 
@@ -475,7 +475,7 @@
   }
 
   .routerV2 :global(.router-option-copy > span) {
-    font-size: 12.5px;
+    font-size: 14px;
   }
 
   .routerV2 :global(.router-progress-meta span:first-child) {

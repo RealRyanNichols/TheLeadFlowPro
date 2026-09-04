@@ -62,8 +62,8 @@ export default function DashboardRequestForm() {
       <div className="mx-auto max-w-xl rounded-xl border border-[var(--green-line)] bg-[var(--green-tint)] p-6 text-center" role="status">
         <p className="font-bold text-[var(--green)]">Got it. Ryan will reach out.</p>
         <p className="mt-1.5 text-sm text-[var(--text)]">
-          Your request just became a lead in the same CRM this dashboard reports on —
-          watch the numbers above.
+          Your request just became a lead in the same CRM this dashboard reports on.
+          Watch the numbers above.
         </p>
       </div>
     );

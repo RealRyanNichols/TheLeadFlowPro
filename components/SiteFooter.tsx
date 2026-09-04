@@ -10,17 +10,20 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
   {
     heading: "What we build",
     links: [
-      ["/#what-we-build", "The four parts"],
+      ["/services", "Services"],
+      ["/services#what-we-build", "The four parts"],
       ["/add-ons", "Add-On Menu"],
       ["/tools", "Free Tools"],
       ["/tools/pro", "Pro Kits | $10 to $29"],
-      ["/#how-it-works", "How it works"],
+      ["/services#how-it-works", "How it works"],
     ],
   },
   {
     heading: "Proof",
     links: [
+      ["/results", "Results"],
       ["/premier-system", "Premier System"],
+      ["/scoreboard", "Scoreboard"],
       ["/proof-floor", "Proof Floor"],
       ["/live", "Live Proof"],
       ["/portfolio", "The Work"],

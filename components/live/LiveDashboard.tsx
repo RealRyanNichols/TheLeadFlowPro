@@ -181,7 +181,7 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
                 </ol>
               ) : (
                 <p className="rounded-lg border border-dashed border-white/15 p-4 text-[13px] text-[#a8b4c8]">
-                  Quiet right now. Real actions appear here after a short privacy delay — no
+                  Quiet right now. Real actions appear here after a short privacy delay. No
                   identities, no locations, ever.
                 </p>
               )}
@@ -212,7 +212,7 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
             ]}
           />
           <p className="mt-4 text-[11px] text-[#7f8ca3]">
-            Interaction tracking went live in August 2026, so action stages count from then — these
+            Interaction tracking went live in August 2026, so action stages count from then. These
             are measured events, not estimates.
           </p>
         </div>
@@ -233,10 +233,10 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
               hint: p.path,
               href: p.path,
             }))}
-            emptyLabel="Not enough page data yet — collecting"
+            emptyLabel="Not enough page data yet. Collecting"
           />
           <p className="mt-3 text-[11px] text-[#7f8ca3]">
-            Every row is a real page — click one and you become part of the numbers.
+            Every row is a real page. Click one and you become part of the numbers.
           </p>
         </section>
         <section className="lfp-ink p-5 sm:p-6" aria-label="Most used tools">
@@ -251,7 +251,7 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
               value: t.uses,
               href: `/tools/${t.tool}`,
             }))}
-            emptyLabel="Tool usage tracking is new — numbers build from today"
+            emptyLabel="Tool usage tracking is new. Numbers build from today"
           />
           <p className="mt-3 text-[13px]">
             <Link href="/tools" className="font-bold text-[#5b87ff] hover:text-white">
@@ -296,7 +296,7 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
           ) : (
             <p className="rounded-lg border border-dashed border-white/15 p-4 text-[13px] text-[#a8b4c8]">
               Search Console not connected yet. When Google&apos;s own data feed is wired in, real
-              impressions, clicks, and average position appear here — never estimates.
+              impressions, clicks, and average position appear here, never estimates.
             </p>
           )}
         </section>

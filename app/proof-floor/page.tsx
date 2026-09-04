@@ -189,7 +189,7 @@ export default async function ProofFloor() {
             <p className="text-xs font-black uppercase tracking-[0.18em] text-[#50d4ff]">Want this inside your business?</p>
             <h2 className="mt-2 text-3xl font-black">We build the machine, then let you watch it run.</h2>
             <p className="mt-3 text-sm leading-6 text-[#b8c5d9]">Start with the website or one repetitive job. Add lead capture, CRM, follow-up, AI workers, approvals, reporting, and the client war room as the business proves what it needs.</p>
-            <div className="mt-5 flex flex-wrap gap-3"><Link href="/diagnostic" className="rounded-xl bg-[#1240e8] px-5 py-3 text-sm font-black text-white">Run the Business Diagnostic</Link><Link href="/operatoros" className="rounded-xl border border-white/20 px-5 py-3 text-sm font-black text-white">See OperatorOS</Link></div>
+            <div className="mt-5 flex flex-wrap gap-3"><Link href="/diagnostic" className="rounded-xl bg-[#1240e8] px-5 py-3 text-sm font-black text-white">Run the Business Diagnostic</Link><Link href="/scoreboard" className="rounded-xl border border-white/20 px-5 py-3 text-sm font-black text-white">Per-business Scoreboards</Link><Link href="/operatoros" className="rounded-xl border border-white/20 px-5 py-3 text-sm font-black text-white">See OperatorOS</Link></div>
           </section>
         </div>
 

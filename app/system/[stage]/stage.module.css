@@ -83,7 +83,7 @@
   gap: 14px;
   margin: 0;
   color: var(--stage-cyan);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.16em;
   line-height: 1.15;
@@ -94,7 +94,7 @@
   display: block;
   margin-top: 5px;
   color: var(--stage-muted);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.09em;
 }
@@ -153,7 +153,7 @@
   max-width: 62ch;
   margin: 14px 0 0;
   color: var(--stage-muted);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
@@ -166,7 +166,7 @@
   padding: 0 22px;
   border: 1px solid transparent;
   border-radius: 12px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.055em;
   line-height: 1;
@@ -215,7 +215,7 @@
   padding-top: 22px;
   border-top: 1px solid var(--stage-line);
   color: var(--stage-muted);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 650;
 }
 
@@ -275,7 +275,7 @@
 
 .heroVisual figcaption span {
   color: var(--stage-cyan);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 850;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -285,7 +285,7 @@
   max-width: 24ch;
   color: #fff;
   font-family: var(--font-archivo), Archivo, sans-serif;
-  font-size: clamp(14px, 1.3vw, 19px);
+  font-size: clamp(16px, 1.3vw, 19px);
   line-height: 1.2;
   text-align: right;
 }
@@ -336,13 +336,13 @@
 .stageRail span {
   display: grid;
   gap: 4px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 750;
 }
 
 .stageRail small {
   color: var(--stage-muted);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.13em;
 }
@@ -378,7 +378,7 @@
   gap: 10px;
   margin: 0 0 18px;
   color: var(--stage-cyan);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -423,7 +423,7 @@
   padding: 22px 24px 22px 0;
   border-bottom: 1px solid var(--stage-line);
   color: #d6dfef;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.55;
 }
 
@@ -500,7 +500,7 @@
 .offerGrid p {
   margin: 8px 0 0;
   color: var(--stage-copy);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.62;
 }
 
@@ -539,7 +539,7 @@
   padding-bottom: 20px;
   border-bottom: 1px solid var(--stage-line);
   color: var(--stage-cyan);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 850;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -560,7 +560,7 @@
   padding: 18px 0;
   border-bottom: 1px solid var(--stage-line);
   color: #d8e1f0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.55;
 }
 
@@ -639,7 +639,7 @@
 
 .toolCopy small {
   color: var(--stage-cyan);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -654,7 +654,7 @@
 
 .toolCopy > span {
   color: var(--stage-copy);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.45;
 }
 
@@ -706,7 +706,7 @@
   max-width: 70ch;
   margin: 7px 0 0;
   color: var(--stage-copy);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.58;
 }
 
@@ -716,7 +716,7 @@
   gap: 8px;
   min-height: 44px;
   color: var(--stage-cyan);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;

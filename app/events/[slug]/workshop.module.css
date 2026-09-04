@@ -18,7 +18,7 @@
   border-bottom: 1px solid var(--warn-line);
   color: var(--warn);
   padding: 12px 20px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 750;
   text-align: center;
 }
@@ -49,7 +49,7 @@
   gap: 12px;
   align-items: flex-start;
   color: var(--cb-on-ink, #f4f6fa);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 650;
   line-height: 1.45;
 }
@@ -67,7 +67,7 @@
   font-style: normal;
   font-weight: 500;
   color: var(--cb-muted-ink, #a8b4c8);
-  font-size: 14px;
+  font-size: 15px;
 }
 
 /* ------------------------------------------------------------ price card --- */
@@ -104,14 +104,14 @@
 }
 
 .priceUnit {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 750;
   color: var(--muted);
 }
 
 .priceNote {
   margin-top: 10px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--warn);
   background: var(--warn-tint);
@@ -147,7 +147,7 @@
 }
 
 .seatLabel {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 750;
   color: var(--muted);
   text-transform: uppercase;
@@ -161,7 +161,7 @@
   color: var(--danger);
   border-radius: 12px;
   padding: 14px 16px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
 }
 
@@ -176,7 +176,7 @@
 }
 
 .fineprint li {
-  font-size: 12.5px;
+  font-size: 14px;
   line-height: 1.5;
   color: var(--quiet);
 }
@@ -204,7 +204,7 @@
 }
 
 .agendaWindow {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -220,7 +220,7 @@
 }
 
 .agendaDetail {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.55;
   color: var(--muted);
   margin-top: 4px;
@@ -256,7 +256,7 @@
 }
 
 .miniCard p {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.55;
   color: var(--muted);
   margin: 0;
@@ -288,7 +288,7 @@
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.5;
   color: var(--text);
 }
@@ -352,7 +352,7 @@
 .faq p {
   margin: 0;
   padding: 0 0 20px;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.6;
   color: var(--muted);
   max-width: 68ch;
@@ -385,7 +385,7 @@
 
 .stickyCopy {
   color: #f4f6fa;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.3;
 }
@@ -394,7 +394,7 @@
   display: block;
   color: #a8b4c8;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .stickyBar a {
@@ -428,7 +428,7 @@
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  font-size: 13.5px;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--muted);
 }
@@ -447,12 +447,12 @@
   color: var(--danger);
   border-radius: 12px;
   padding: 12px 14px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 650;
 }
 
 .formNote {
-  font-size: 12.5px;
+  font-size: 14px;
   line-height: 1.55;
   color: var(--quiet);
 }
@@ -473,7 +473,7 @@
 
 .paidStep p {
   margin: 0 0 14px;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.55;
   color: var(--text);
 }

@@ -16,3 +16,4 @@ tsconfig.tsbuildinfo
 *.tsbuildinfo
 .art-review/
 supabase/.temp/
+test-results/

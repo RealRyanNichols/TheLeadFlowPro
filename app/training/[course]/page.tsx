@@ -14,12 +14,22 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { getCourseAccess } from "@/lib/access";
 import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
 import { CHATGPT_OPERATOR } from "@/lib/chatgptOperatorCourse";
-import { expansionCourse } from "@/lib/operatorAcademyCatalog";
+import { academyCourse, expansionCourse } from "@/lib/operatorAcademyCatalog";
+import { courseJsonLd, courseMetadata } from "@/lib/courseSeo";
 import { isAssessedCourseSlug } from "@/lib/trainingAssessments";
 import SiteHero from "@/components/site/system/SiteHero";
 import styles from "../training.module.css";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ course: string }>;
+}) {
+  const { course: courseSlug } = await params;
+  return courseMetadata(courseSlug);
+}
 
 export default async function CoursePage({
   params,
@@ -39,6 +49,15 @@ export default async function CoursePage({
 
   if (!course) notFound();
 
+  const catalogCourse = academyCourse(course.slug);
+  const jsonLd = catalogCourse ? courseJsonLd(catalogCourse) : null;
+  const jsonLdScript = jsonLd ? (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  ) : null;
+
   const access = await getCourseAccess(course);
   if (!access.hasAccess) {
       const isContentEngine = course.slug === CONTENT_ENGINE.slug;
@@ -51,6 +70,7 @@ export default async function CoursePage({
       const standaloneHref = isContentEngine ? "/operator-academy/content-engine" : isChatGPTOperator ? "/chatgpt" : "/academy";
       return (
         <main className={`cb-page ${styles.page}`}>
+          {jsonLdScript}
           <SiteHero
             eyebrow={isAcademyCourse ? `Operator Academy ${(expandedCourse?.code ?? standaloneCourse.code).replace("OA", "")}` : "Existing member library"}
             mutedTitle={isAcademyCourse ? "This course has protected access." : "This course is protected."}
@@ -160,6 +180,7 @@ export default async function CoursePage({
 
   return (
     <main className={`cb-page ${styles.page}`}>
+      {jsonLdScript}
       <SiteHero
         eyebrow="Operator Academy course"
         mutedTitle="Learn it in sequence."
