@@ -188,8 +188,11 @@ describe("what a paid Stripe session actually bought", () => {
     assert.equal(kind, "pro_tool:missed-call-text-back-kit");
   });
 
-  test("the bundle maps to the bundle kind", () => {
-    const kind = proKindFromSession({ amount_total: 4900, metadata: { kind: "pro_bundle" } }, CATALOG);
+  test("the bundle maps to the bundle kind at the live bundle price", () => {
+    const kind = proKindFromSession(
+      { amount_total: PRO_BUNDLE.priceUsd * 100, metadata: { kind: "pro_bundle" } },
+      CATALOG,
+    );
     assert.equal(kind, PRO_BUNDLE.kind);
   });
 

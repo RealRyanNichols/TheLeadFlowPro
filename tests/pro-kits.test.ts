@@ -14,6 +14,7 @@ import { validateTools, formatProblems } from "../lib/tools/validate.ts";
 import { renderProTool } from "../lib/tools/pro/render.ts";
 import { getTool, type Values } from "../lib/tools/index.ts";
 import { csv, ics, resolveBrand, safeColor, safeLogo, safeUrl, esc, addDays, nextBusinessDay } from "../lib/tools/pro/docs.ts";
+import { signWhiteLabel, verifyWhiteLabel } from "../lib/proAccess.ts";
 import { EMPTY_BRAND_KIT } from "../lib/tools/types.ts";
 
 const ROOT = process.cwd();
@@ -906,5 +907,110 @@ describe("local seo schema kit", () => {
     const json = JSON.parse(doc(r, "graph").body);
     const name = json["@graph"][0].hasOfferCatalog.itemListElement[0].itemOffered.name;
     assert.equal(name, '<img onerror=x> Repair', "JSON carries it as data, where it is inert");
+  });
+});
+
+/* ---------------------------- White-Label Tool Embeds ----------------------- */
+
+describe("white-label tool embeds", () => {
+  const SLUG = "white-label-tool-embeds";
+  const BRAND = {
+    brand_name: "Kirby Plumbing",
+    brand_phone: "9035550142",
+    brand_color: "#0B5A33",
+  };
+
+  test("every embed code targets a real published tool with the brand payload", () => {
+    const snippets = doc(run(SLUG, { ctaLink: "kirby.com/contact" }, BRAND), "snippets");
+    assert.match(snippets.body, /\/embed\/missed-call-calculator\/b\?b=[A-Za-z0-9_-]+&wl=/);
+    const b64 = snippets.body.match(/\?b=([A-Za-z0-9_-]+)&wl=/)?.[1];
+    assert.ok(b64);
+    const payload = JSON.parse(Buffer.from(b64!, "base64url").toString("utf8"));
+    assert.equal(payload.n, "Kirby Plumbing");
+    assert.equal(payload.p, "19035550142");
+    assert.equal(payload.c, "#0B5A33");
+    assert.equal(payload.u, "https://kirby.com/contact");
+  });
+
+  test("run() emits placeholders, never real signatures", () => {
+    const snippets = doc(run(SLUG, {}, BRAND), "snippets");
+    assert.match(snippets.body, /wl=\{\{WL_SIGN:[A-Za-z0-9_-]+\}\}/, "the pure layer cannot sign");
+  });
+
+  test("the render layer signs only for an unlocked visitor", () => {
+    process.env.PRO_TOOLS_SECRET = "test-wl-secret";
+    try {
+      const unlocked = renderProTool(SLUG, { ctaLink: "kirby.com" }, BRAND, true);
+      const snippets = (unlocked!.documents ?? []).find((d) => d.id === "snippets");
+      assert.ok(snippets);
+      assert.equal(snippets!.body.includes("{{WL_SIGN:"), false, "placeholders are filled");
+      const m = snippets!.body.match(/\?b=([A-Za-z0-9_-]+)&wl=([A-Za-z0-9_-]{1,64})/);
+      assert.ok(m, "a signed URL exists");
+      const brand = verifyWhiteLabel(m![1], m![2], ["test-wl-secret"]);
+      assert.equal(brand?.n, "Kirby Plumbing", "the embed route would accept this exact URL");
+      const locked = renderProTool(SLUG, { ctaLink: "kirby.com" }, BRAND, false);
+      assert.equal(locked!.documents, null, "a locked visitor gets nothing signable");
+    } finally {
+      delete process.env.PRO_TOOLS_SECRET;
+    }
+  });
+
+  test("a tampered payload is rejected by the verifier", () => {
+    process.env.PRO_TOOLS_SECRET = "test-wl-secret";
+    try {
+      const unlocked = renderProTool(SLUG, {}, BRAND, true);
+      const snippets = (unlocked!.documents ?? []).find((d) => d.id === "snippets")!;
+      const m = snippets.body.match(/\?b=([A-Za-z0-9_-]+)&wl=([A-Za-z0-9_-]{1,64})/)!;
+      const stolen = JSON.parse(Buffer.from(m[1], "base64url").toString("utf8"));
+      stolen.n = "Somebody Else LLC";
+      const forged = Buffer.from(JSON.stringify(stolen), "utf8").toString("base64url");
+      assert.equal(verifyWhiteLabel(forged, m[2], ["test-wl-secret"]), null, "the signature covers the payload");
+    } finally {
+      delete process.env.PRO_TOOLS_SECRET;
+    }
+  });
+
+  test("the verifier revalidates every field even under a good signature", () => {
+    const hostile = Buffer.from(
+      JSON.stringify({ n: "X", c: 'red" onload="x', u: "javascript:alert(1)", t: "Click", p: "abc" }),
+      "utf8",
+    ).toString("base64url");
+    const sig = signWhiteLabel(hostile, "s3cret");
+    const brand = verifyWhiteLabel(hostile, sig, ["s3cret"]);
+    assert.ok(brand, "signed, so it verifies");
+    assert.equal(brand!.c, undefined, "a malformed color is dropped");
+    assert.equal(brand!.u, undefined, "a javascript: CTA is dropped");
+    assert.equal(brand!.t, undefined, "and its button text with it");
+    assert.equal(brand!.p, undefined, "a non-phone is dropped");
+  });
+
+  test("garbage inputs to the verifier fail closed", () => {
+    assert.equal(verifyWhiteLabel(undefined, "x", ["s"]), null);
+    assert.equal(verifyWhiteLabel("abc", undefined, ["s"]), null);
+    assert.equal(verifyWhiteLabel("not-base64!!", "sig", ["s"]), null);
+    assert.equal(verifyWhiteLabel("abc", "sig", []), null);
+    const noName = Buffer.from(JSON.stringify({ p: "9035550142" }), "utf8").toString("base64url");
+    assert.equal(verifyWhiteLabel(noName, signWhiteLabel(noName, "s"), ["s"]), null, "a brand without a name renders nothing");
+  });
+
+  test("the finished tools page is a complete document holding every pick", () => {
+    const page = doc(run(SLUG, { picks: ["missed-call-calculator", "job-price-calculator"] }, BRAND), "page");
+    assert.ok(page.body.startsWith("<!doctype html>"));
+    assert.equal((page.body.match(/<iframe/g) ?? []).length, 2);
+    assert.match(page.body, /#0B5A33/);
+    assert.equal((page.body.match(/addEventListener\("message"/g) ?? []).length, 1, "the resize script rides once");
+  });
+
+  test("zero tools selected still ships the guide and manifest, honestly", () => {
+    const r = run(SLUG, { picks: [] }, BRAND);
+    assert.equal(r.headline?.tone, "warn");
+    const ids = (r.documents ?? []).map((d) => d.id).sort();
+    assert.deepEqual(ids, ["guide", "manifest"]);
+  });
+
+  test("a hostile business name cannot break out of the tools page markup", () => {
+    const page = doc(run(SLUG, { picks: ["missed-call-calculator"] }, { brand_name: '<script>x</script>Kirby' }), "page");
+    assert.equal(page.body.includes("<script>x</script>"), false);
+    assert.match(page.body, /&lt;script&gt;/);
   });
 });

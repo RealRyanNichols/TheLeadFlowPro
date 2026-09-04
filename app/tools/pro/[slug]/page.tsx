@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AlertTriangle, ArrowRight, Check, KeyRound, Target, Users } from "lucide-react";
 import { DOMAINS, TOOL_TYPES, getTool, toolIndex, TOOL_COUNT } from "@/lib/tools";
-import { PRO_BUNDLE, PRO_TOOLS, getProTool, proToolIndex, sortProTools } from "@/lib/tools/pro";
+import { PRO_BUNDLE, PRO_TOOLS, PRO_TOOL_VISUALS, getProTool, proToolIndex, sortProTools } from "@/lib/tools/pro";
 import { hasProAccess } from "@/lib/proAccess";
 import { getProEntitlements } from "@/lib/proAccessServer";
 import ProToolEngine from "@/components/tools/pro/ProToolEngine";
@@ -30,6 +30,10 @@ export async function generateMetadata({
   const kit = getProTool(slug);
   if (!kit) return {};
   const url = `${BASE}/tools/pro/${kit.slug}`;
+  const ogImage = PRO_TOOL_VISUALS[kit.slug]?.ogImage;
+  const images = ogImage
+    ? [{ url: `${BASE}${ogImage}`, width: 1200, height: 630, alt: `${kit.name} | A Pro Kit from The LeadFlow Pro` }]
+    : undefined;
   return {
     title: kit.seoTitle || `${kit.name}: the whole system for $${kit.pro.priceUsd}`,
     description:
@@ -42,8 +46,9 @@ export async function generateMetadata({
       url,
       siteName: "The LeadFlow Pro",
       type: "website",
+      images,
     },
-    twitter: { card: "summary_large_image" },
+    twitter: { card: "summary_large_image", images: images?.map((i) => i.url) },
   };
 }
 

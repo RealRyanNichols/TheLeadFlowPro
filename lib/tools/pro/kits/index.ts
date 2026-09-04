@@ -18,6 +18,7 @@ import * as jobEstimateKit from "./job-estimate-kit";
 import * as qrSignKit from "./qr-sign-kit";
 import * as rateCardKit from "./rate-card-kit";
 import * as localSeoSchemaKit from "./local-seo-schema-kit";
+import * as whiteLabelToolEmbeds from "./white-label-tool-embeds";
 
 const KITS = [
   missedCallTextBackKit,
@@ -27,6 +28,7 @@ const KITS = [
   qrSignKit,
   rateCardKit,
   localSeoSchemaKit,
+  whiteLabelToolEmbeds,
 ];
 
 export const PRO_KIT_DEFS: ProToolDef[] = KITS.map((k) => k.KIT);

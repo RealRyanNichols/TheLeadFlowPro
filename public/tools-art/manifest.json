@@ -1,6 +1,6 @@
 {
   "generated": "npm run art",
-  "count": 93,
+  "count": 94,
   "tools": [
     {
       "slug": "missed-call-calculator",
@@ -1581,6 +1581,23 @@
         "height": 900,
         "bytes": 7022,
         "sha256": "0f4fc9e9dd546e81"
+      }
+    },
+    {
+      "slug": "white-label-tool-embeds",
+      "card": {
+        "file": "/tools-art/card/white-label-tool-embeds.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 6485,
+        "sha256": "af121882e06ac810"
+      },
+      "hero": {
+        "file": "/tools-art/hero/white-label-tool-embeds.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 6485,
+        "sha256": "687922829e257685"
       }
     }
   ]

@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+    <radialGradient id="w1"><stop offset="0" stop-color="#22d3ee" stop-opacity=".13"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w2"><stop offset="0" stop-color="#3b82f6" stop-opacity=".09"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <ellipse cx="1000" cy="400" rx="640" ry="440" fill="url(#w1)"/>
+  <ellipse cx="300" cy="700" rx="420" ry="280" fill="url(#w2)"/>
+
+  <!-- ground shadows -->
+  <ellipse cx="1010" cy="822" rx="400" ry="24" fill="#0e1a2e" opacity=".07"/>
+  <ellipse cx="300" cy="806" rx="220" ry="16" fill="#0e1a2e" opacity=".05"/>
+
+  <!-- ================= browser on their site, subject ======================= -->
+  <g transform="rotate(2 1020 460)">
+    <rect x="620" y="140" width="780" height="660" rx="24" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+    <rect x="620" y="140" width="780" height="66" rx="24" fill="#eef2f8"/>
+    <path d="M620 184 h780 v22 h-780 z" fill="#eef2f8"/>
+    <circle cx="660" cy="173" r="9" fill="#b9c6da"/>
+    <circle cx="688" cy="173" r="9" fill="#b9c6da"/>
+    <circle cx="716" cy="173" r="9" fill="#b9c6da"/>
+    <rect x="748" y="159" width="560" height="28" rx="14" fill="#ffffff" stroke="#d7e0ee" stroke-width="2.5"/>
+    <rect x="766" y="169" width="150" height="9" rx="4.5" fill="#d7e0ee"/>
+
+    <!-- their site header -->
+    <rect x="620" y="206" width="780" height="58" fill="#f6f8fb"/>
+    <rect x="656" y="222" width="140" height="16" rx="8" fill="#0e1a2e" opacity=".75"/>
+    <rect x="1180" y="222" width="60" height="14" rx="7" fill="#b9c6da"/>
+    <rect x="1260" y="222" width="60" height="14" rx="7" fill="#b9c6da"/>
+
+    <!-- the embedded calculator frame -->
+    <rect x="676" y="296" width="668" height="360" rx="18" fill="#fbfcfe" stroke="#d7e0ee" stroke-width="3"/>
+    <!-- inputs left -->
+    <rect x="708" y="330" width="150" height="10" rx="5" fill="#8299b8"/>
+    <rect x="708" y="352" width="260" height="12" rx="6" fill="#d7e0ee"/>
+    <circle cx="884" cy="358" r="11" fill="url(#acc)"/>
+    <rect x="708" y="392" width="120" height="10" rx="5" fill="#8299b8"/>
+    <rect x="708" y="414" width="260" height="12" rx="6" fill="#d7e0ee"/>
+    <circle cx="792" cy="420" r="11" fill="url(#acc)"/>
+    <rect x="708" y="454" width="170" height="10" rx="5" fill="#8299b8"/>
+    <rect x="708" y="476" width="260" height="12" rx="6" fill="#d7e0ee"/>
+    <circle cx="936" cy="482" r="11" fill="url(#acc)"/>
+    <!-- result right -->
+    <rect x="1012" y="330" width="300" height="150" rx="14" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="1046" y="360" width="180" height="26" rx="9" fill="url(#acc)"/>
+    <rect x="1046" y="402" width="230" height="10" rx="5" fill="#b9c6da"/>
+    <rect x="1046" y="424" width="200" height="10" rx="5" fill="#d7e0ee"/>
+    <!-- bars -->
+    <rect x="1012" y="506" width="300" height="120" rx="14" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="1040" y="592" width="40" height="22" fill="url(#acc)"/>
+    <rect x="1096" y="568" width="40" height="46" fill="url(#acc)" opacity=".8"/>
+    <rect x="1152" y="546" width="40" height="68" fill="url(#acc)" opacity=".65"/>
+    <rect x="1208" y="530" width="40" height="84" fill="url(#acc)" opacity=".5"/>
+
+    <!-- the old credit line, faded, being covered -->
+    <rect x="676" y="680" width="668" height="64" rx="14" fill="#eef2f8"/>
+    <rect x="880" y="704" width="260" height="12" rx="6" fill="#cbd6e5"/>
+  </g>
+
+  <!-- ============= the brand nameplate sliding in on rails ================== -->
+  <g>
+    <!-- guide rails -->
+    <line x1="150" y1="716" x2="700" y2="712" stroke="#8299b8" stroke-width="5" stroke-dasharray="2 20" stroke-linecap="round" opacity=".7"/>
+    <line x1="150" y1="770" x2="700" y2="766" stroke="#8299b8" stroke-width="5" stroke-dasharray="2 20" stroke-linecap="round" opacity=".7"/>
+    <!-- swap arrow -->
+    <path d="M560 660 l70 44" stroke="url(#acc)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M630 704 l-32 -4 M630 704 l-10 -30" stroke="url(#acc)" stroke-width="8" stroke-linecap="round"/>
+    <!-- the plate itself, mid-slide -->
+    <g transform="rotate(-2 400 740)">
+      <rect x="150" y="694" width="470" height="86" rx="16" fill="#0e1a2e"/>
+      <rect x="158" y="702" width="454" height="70" rx="11" fill="none" stroke="#8299b8" stroke-width="2" opacity=".5"/>
+      <rect x="182" y="718" width="40" height="40" rx="10" fill="url(#acc)"/>
+      <rect x="240" y="722" width="170" height="14" rx="7" fill="#ffffff"/>
+      <rect x="240" y="746" width="110" height="10" rx="5" fill="#8299b8"/>
+      <rect x="480" y="718" width="116" height="40" rx="11" fill="url(#acc)"/>
+      <rect x="498" y="733" width="80" height="10" rx="5" fill="#0e1a2e"/>
+    </g>
+  </g>
+
+  <!-- ================= queued tool cards, lower left ======================== -->
+  <g transform="rotate(-5 260 560)">
+    <rect x="150" y="470" width="200 " height="120" rx="14" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="150" y="470" width="200" height="34" rx="14" fill="#eef2f8"/>
+    <rect x="170" y="482" width="90" height="10" rx="5" fill="#8299b8"/>
+    <rect x="170" y="522" width="150" height="9" rx="4.5" fill="#d7e0ee"/>
+    <rect x="170" y="542" width="120" height="9" rx="4.5" fill="#d7e0ee"/>
+    <circle cx="322" cy="562" r="12" fill="url(#acc)"/>
+    <path d="M317 562 l4 4 l7 -8" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="rotate(4 350 630)">
+    <rect x="250" y="560" width="200" height="120" rx="14" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="250" y="560" width="200" height="34" rx="14" fill="#eef2f8"/>
+    <rect x="270" y="572" width="110" height="10" rx="5" fill="#8299b8"/>
+    <rect x="270" y="612" width="150" height="9" rx="4.5" fill="#d7e0ee"/>
+    <rect x="270" y="632" width="100" height="9" rx="4.5" fill="#d7e0ee"/>
+    <circle cx="422" cy="652" r="12" fill="url(#acc)"/>
+    <path d="M417 652 l4 4 l7 -8" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

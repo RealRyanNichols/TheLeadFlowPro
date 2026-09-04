@@ -1,4 +1,5 @@
 import type { Result, ToolDocument, Values } from "../types";
+import { fillWhiteLabelSignatures, proAccessSecrets } from "../../proAccess";
 import { documentPreview, getProTool, type ProTool } from "./index";
 
 // Running a kit, and deciding how much of the answer the caller has paid for.
@@ -135,11 +136,24 @@ export function renderProTool(
   const documents = result.documents ?? [];
   const { documents: _omit, ...preview } = result;
 
+  // Kits whose documents carry white-label placeholders get them signed here,
+  // and only on an unlocked render: run() is pure and holds no secrets, and a
+  // locked visitor never receives document bodies to begin with.
+  // includes() rather than the shared global regex: a g-flagged regex keeps
+  // lastIndex between .test() calls and silently skips every other document.
+  const signed = unlocked
+    ? documents.map((doc) =>
+        doc.body.includes("{{WL_SIGN:")
+          ? { ...doc, body: fillWhiteLabelSignatures(doc.body, proAccessSecrets()) }
+          : doc,
+      )
+    : documents;
+
   return {
     slug,
     unlocked,
     preview,
-    listing: documents.map(listingFor),
-    documents: unlocked ? documents : null,
+    listing: signed.map(listingFor),
+    documents: unlocked ? signed : null,
   };
 }

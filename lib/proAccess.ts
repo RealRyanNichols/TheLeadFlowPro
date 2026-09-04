@@ -215,3 +215,114 @@ export function proKindFromSession(
   }
   return null;
 }
+
+/* ------------------------------- white label ------------------------------- */
+
+/**
+ * White-label embeds. A buyer of the embeds kit gets iframe URLs whose brand
+ * payload is signed, so the public embed route can strip the LeadFlow credit
+ * line and render their brand bar instead, and nobody can mint that URL
+ * without having bought the kit.
+ *
+ * The payload is a base64url JSON object; the signature covers the payload
+ * byte for byte, so editing the brand (or pointing the CTA somewhere new)
+ * invalidates it. The whole thing lives in the URL, works on any site, and
+ * expires never, which is the promise the kit makes.
+ */
+
+export type WhiteLabelBrand = {
+  /** Business name shown in the bar. */
+  n: string;
+  /** Phone, digits only, rendered as a tel: link. */
+  p?: string;
+  /** Six digit hex accent for the bar. */
+  c?: string;
+  /** CTA button text. */
+  t?: string;
+  /** CTA link, http(s) only. */
+  u?: string;
+};
+
+export function encodeWhiteLabelBrand(brand: WhiteLabelBrand): string {
+  return Buffer.from(JSON.stringify(brand), "utf8").toString("base64url");
+}
+
+export function signWhiteLabel(payloadB64: string, secret: string): string {
+  return crypto
+    .createHmac("sha256", secret)
+    .update(`wl:${payloadB64}`)
+    .digest("base64url")
+    .slice(0, 32);
+}
+
+/**
+ * The brand if the payload is well formed AND the signature matches under any
+ * known secret. Every field is revalidated here because the payload rides in
+ * a public URL: a valid signature proves a buyer created it, not that the
+ * content is safe to render, so the same strict rules apply either way.
+ */
+export function verifyWhiteLabel(
+  payloadB64: string | undefined | null,
+  signature: string | undefined | null,
+  secrets: string[],
+): WhiteLabelBrand | null {
+  if (!payloadB64 || !signature) return null;
+  if (typeof payloadB64 !== "string" || payloadB64.length > 2000) return null;
+  if (typeof signature !== "string" || signature.length > 64) return null;
+
+  const sigBuffer = Buffer.from(signature);
+  const ok = secrets.some((s) => {
+    const expected = Buffer.from(signWhiteLabel(payloadB64, s));
+    return expected.length === sigBuffer.length && crypto.timingSafeEqual(expected, sigBuffer);
+  });
+  if (!ok) return null;
+
+  let parsed: WhiteLabelBrand;
+  try {
+    parsed = JSON.parse(Buffer.from(payloadB64, "base64url").toString("utf8"));
+  } catch {
+    return null;
+  }
+  if (!parsed || typeof parsed !== "object") return null;
+
+  const name = typeof parsed.n === "string" ? parsed.n.trim().slice(0, 80) : "";
+  if (!name) return null;
+
+  const digits = typeof parsed.p === "string" ? parsed.p.replace(/\D/g, "") : "";
+  const phone = digits.length >= 10 && digits.length <= 15 ? digits : undefined;
+
+  const color =
+    typeof parsed.c === "string" && /^#[0-9a-fA-F]{6}$/.test(parsed.c) ? parsed.c : undefined;
+
+  const ctaText = typeof parsed.t === "string" ? parsed.t.trim().slice(0, 48) : "";
+
+  let ctaUrl: string | undefined;
+  if (typeof parsed.u === "string" && parsed.u.trim()) {
+    try {
+      const url = new URL(parsed.u.trim());
+      if (url.protocol === "http:" || url.protocol === "https:") ctaUrl = url.toString().slice(0, 300);
+    } catch {
+      /* an unusable CTA link just drops the button */
+    }
+  }
+
+  return {
+    n: name,
+    ...(phone ? { p: phone } : {}),
+    ...(color ? { c: color } : {}),
+    ...(ctaText && ctaUrl ? { t: ctaText, u: ctaUrl } : {}),
+  };
+}
+
+/**
+ * The placeholder a kit's run() leaves where a signature belongs, since run()
+ * is pure and holds no secrets. The render layer fills these in, and only on
+ * an unlocked render, so a locked preview can never leak a signable string.
+ */
+export const WL_SIGN_PATTERN = /\{\{WL_SIGN:([A-Za-z0-9_-]{1,2000})\}\}/g;
+
+export function fillWhiteLabelSignatures(body: string, secrets: string[]): string {
+  return body.replace(WL_SIGN_PATTERN, (_, payload: string) =>
+    secrets.length ? signWhiteLabel(payload, secrets[0]) : "CONFIGURE-PRO-TOOLS-SECRET",
+  );
+}
