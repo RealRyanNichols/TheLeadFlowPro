@@ -79,7 +79,7 @@ export const SCOREBOARD_BUSINESSES: readonly ScoreboardBusiness[] = [
     shortName: "RealRyanNichols",
     url: "https://www.realryannichols.com",
     town: "Longview, Texas",
-    what: "An independent media site and publishing system: long-form articles, a searchable archive of 1,500 plus records, book sales, an AI assistant, and email and text signups. No ad spend. Every lead here is unpaid.",
+    what: "An independent media site and publishing system: long-form articles, searchable public records, book sales, an AI assistant, and email and text signups. Includes contact and signup records.",
     built: "Built and run on the owned stack: Next.js on Vercel, Supabase, Stripe. The LeadFlow Pro sells the book through it, which is the case study.",
     feed: {
       kind: "supabase",

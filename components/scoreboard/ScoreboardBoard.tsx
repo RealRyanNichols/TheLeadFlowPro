@@ -41,13 +41,13 @@ function LeadsChart({ series }: { series: ScoreboardDay[] }) {
     })
     .join(" ");
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Daily views as a line and daily leads as bars, paid and unpaid stacked">
+    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Daily page views as a line, with ad-attributed and other lead records stacked as bars. Views use a separate scale.">
       {[0.25, 0.5, 0.75, 1].map((tick) => {
         const y = pad.top + innerH - tick * innerH;
         return (
           <g key={tick}>
-            <line x1={pad.left} x2={width - pad.right} y1={y} y2={y} stroke="rgba(255,255,255,.08)" />
-            <text x={pad.left - 6} y={y + 4} fontSize="11" textAnchor="end" fill="#8fb3d9">
+            <line x1={pad.left} x2={width - pad.right} y1={y} y2={y} stroke="var(--chart-grid)" />
+            <text x={pad.left - 6} y={y + 4} fontSize="15" textAnchor="end" fill="var(--muted)">
               {Math.round(maxLeads * tick)}
             </text>
           </g>
@@ -61,24 +61,24 @@ function LeadsChart({ series }: { series: ScoreboardDay[] }) {
         return (
           <g key={row.day}>
             {row.unpaid_leads > 0 ? (
-              <rect x={x} y={base - unpaidH} width={barW} height={unpaidH} fill="#20d5c7" rx="2">
-                <title>{`${row.day}: ${row.unpaid_leads} unpaid`}</title>
+              <rect x={x} y={base - unpaidH} width={barW} height={unpaidH} fill="var(--chart-unpaid)" rx="2">
+                <title>{`${row.day}: ${row.unpaid_leads} other lead records`}</title>
               </rect>
             ) : null}
             {row.paid_leads > 0 ? (
-              <rect x={x} y={base - unpaidH - paidH} width={barW} height={paidH} fill="#ffb454" rx="2">
-                <title>{`${row.day}: ${row.paid_leads} paid`}</title>
+              <rect x={x} y={base - unpaidH - paidH} width={barW} height={paidH} fill="var(--chart-paid)" rx="2">
+                <title>{`${row.day}: ${row.paid_leads} ad-attributed lead records`}</title>
               </rect>
             ) : null}
             {index % Math.ceil(series.length / 10) === 0 ? (
-              <text x={x + barW / 2} y={height - 8} fontSize="11" textAnchor="middle" fill="#8fb3d9">
+              <text x={x + barW / 2} y={height - 8} fontSize="15" textAnchor="middle" fill="var(--muted)">
                 {dayLabel(row.day)}
               </text>
             ) : null}
           </g>
         );
       })}
-      <path d={viewsPath} fill="none" stroke="#7fc4ff" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" opacity="0.9" />
+      <path d={viewsPath} fill="none" stroke="var(--chart-views)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
     </svg>
   );
 }
@@ -116,44 +116,55 @@ export default function ScoreboardBoard({ windows, series, showSales, updatedLab
         <p className={styles.windowNote}>Central time. {updatedLabel}</p>
       </div>
 
-      <div className={styles.tiles}>
-        {headline.map((metric) => (
-          <div
-            key={metric.key}
-            className={`${styles.tile} ${metric.key === "paid_leads" ? styles.paid : metric.key === "unpaid_leads" ? styles.unpaid : ""}`}
-          >
-            <span>{metric.label}</span>
-            <strong>{formatCount(selected.totals[metric.key])}</strong>
-            <small>{selected.label === "Today" ? "so far today" : `last ${selected.days} days`}</small>
-          </div>
-        ))}
-      </div>
+      <section className={styles.metricGroup} aria-label="Activity and lead records">
+        <h2 className={styles.metricHeading}>Activity and lead records</h2>
+        <div className={styles.tiles}>
+          {headline.map((metric) => (
+            <div
+              key={metric.key}
+              className={`${styles.tile} ${metric.key === "paid_leads" ? styles.paid : metric.key === "unpaid_leads" ? styles.unpaid : ""}`}
+            >
+              <span>{metric.label}</span>
+              <strong>{formatCount(selected.totals[metric.key])}</strong>
+              <small>{selected.label === "Today" ? "so far today" : `last ${selected.days} days`}</small>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      <div className={styles.tilesSecondary}>
-        {secondary.map((metric) => (
-          <div key={metric.key} className={styles.tile}>
-            <span>{metric.label}</span>
-            <strong>{formatCount(selected.totals[metric.key])}</strong>
-            <small>{selected.label === "Today" ? "so far today" : `last ${selected.days} days`}</small>
-          </div>
-        ))}
-      </div>
+      <section className={styles.metricGroup} aria-label="Additional activity">
+        <h2 className={styles.metricHeading}>Additional activity</h2>
+        <div className={styles.tilesSecondary}>
+          {secondary.map((metric) => (
+            <div key={metric.key} className={styles.tile}>
+              <span>{metric.label}</span>
+              <strong>{formatCount(selected.totals[metric.key])}</strong>
+              <small>{selected.label === "Today" ? "so far today" : `last ${selected.days} days`}</small>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <div className={styles.chart}>
         <div className={styles.chartHead}>
           <div>
             <p>Last {series.length} days</p>
             <strong>
-              {formatCount(totalViews)} views, {formatCount(totalLeads)} leads
+              {formatCount(totalViews)} views, {formatCount(totalLeads)} lead records
             </strong>
           </div>
           <div className={styles.chartLegend}>
-            <span><i style={{ background: "#7fc4ff" }} />Views (own scale)</span>
-            <span><i style={{ background: "#ffb454" }} />Paid leads</span>
-            <span><i style={{ background: "#20d5c7" }} />Unpaid leads</span>
+            <span><i style={{ background: "var(--chart-views)" }} />Views (own scale)</span>
+            <span><i style={{ background: "var(--chart-paid)" }} />Ad-attributed leads</span>
+            <span><i style={{ background: "var(--chart-unpaid)" }} />Other lead records</span>
           </div>
         </div>
-        <LeadsChart series={series} />
+        <div className={styles.chartPlot} role="region" aria-label="Daily activity chart; scroll sideways on small screens" tabIndex={0}>
+          <LeadsChart series={series} />
+        </div>
+        <p className={styles.chartNote}>
+          Bars show lead records. The views line uses its own scale, so its height is not a lead count.
+        </p>
       </div>
     </div>
   );

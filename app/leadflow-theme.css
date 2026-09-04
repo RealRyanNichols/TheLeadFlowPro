@@ -1,26 +1,26 @@
 /* Shared workshop visual language. Existing public tools and account flows retain their structure. */
 :root {
-  --lf-bg: #0b0c16;
-  --lf-panel: #131420;
-  --lf-line: #ffffff24;
-  --lf-text: #f7f7fb;
-  --lf-muted: #b9b9cb;
+  --lf-bg: #f7f5f2;
+  --lf-panel: #ffffff;
+  --lf-line: #dedbe5;
+  --lf-text: #20212b;
+  --lf-muted: #625f6d;
   --lf-orange: #ff9e18;
-  --lf-violet: #5738ff;
+  --lf-violet: #5135e5;
   --cb-blue: #5135e5;
   --cb-blue-deep: #3c25b6;
-  --cb-blue-soft: #a69bff;
+  --cb-blue-soft: #5135e5;
   --cb-cyan: #5135e5;
-  --cb-canvas: #f7f8fc;
-  --cb-surface-2: #eef0f7;
+  --cb-canvas: #f7f5f2;
+  --cb-surface-2: #efede9;
   --blue: #5135e5;
   --blue-strong: #3c25b6;
-  --page: #f7f8fc;
-  --page-soft: #eef0f7;
+  --page: #f7f5f2;
+  --page-soft: #efede9;
 }
 .site-header {
-  background: #0c0d17f5;
-  border-bottom: 1px solid #ffffff26;
+  background: #fffffff5;
+  border-bottom: 1px solid #dedbe5;
 }
 .site-header-inner {
   max-width: 1240px;
@@ -29,7 +29,7 @@
   gap: 26px;
 }
 .site-header .brand-lockup {
-  color: #fff;
+  color: #20212b;
   gap: 12px;
   align-items: center;
   letter-spacing: 0.09em;
@@ -37,25 +37,25 @@
   font-weight: 850;
   line-height: 1.35;
 }
-.site-header .brand-mark {
+.site-header .brand-lockup .brand-mark {
   display: grid;
   place-items: center;
   width: 42px;
   height: 42px;
-  border: 1px solid #ffffff3b;
-  background: #21194b;
+  border: 1px solid #5135e5;
+  background: #5135e5;
   font-size: 17px;
   color: #fff;
   flex: none;
 }
-.site-header .brand-words {
+.site-header .brand-lockup .brand-words {
   display: block;
-  color: #fff;
+  color: #20212b;
   margin: 0;
 }
 .site-header .brand-words small {
   display: block;
-  color: #ada1ff;
+  color: #5135e5;
   font-size: 12px;
   letter-spacing: 0.2em;
   margin-top: 3px;
@@ -63,9 +63,18 @@
 .site-header .desktop-nav {
   gap: 22px;
   font-size: 14px;
+  color: #555362;
+}
+.site-header .desktop-nav > a:not(.header-cta):hover {
+  color: #5135e5;
+}
+.site-header .mobile-nav summary {
+  background: #ffffff;
+  border-color: #dedbe5;
+  color: #20212b;
 }
 .site-header .desktop-nav > a[aria-current="page"] {
-  color: #fff;
+  color: #5135e5;
   text-decoration: underline;
   text-decoration-color: var(--lf-orange);
   text-underline-offset: 9px;
@@ -85,37 +94,50 @@
   color: #11121b;
 }
 .site-header .mobile-nav-panel {
-  background: #131420;
-  border-color: #ffffff30;
+  background: #ffffff;
+  border-color: #dedbe5;
+  box-shadow: 0 16px 45px #28203d1a;
 }
 .site-header .mobile-nav-panel > a:not(.header-cta) {
-  color: #e4e2f0;
+  color: #555362;
 }
 .site-header .mobile-nav-panel > a[aria-current="page"] {
-  background: #5738ff26;
-  color: #fff;
+  background: #f1eefb;
+  color: #5135e5;
+}
+.site-header .mobile-nav-panel > a:not(.header-cta):hover {
+  background: #f1eefb;
+  color: #5135e5;
 }
 .site-footer.cb-footer {
-  background: #0b0c16;
-  color: #fff;
-  border-top: 1px solid #ffffff25;
+  background: #ffffff;
+  color: #20212b;
+  border-top: 1px solid #dedbe5;
+  --cb-muted-ink: #555362;
+  --cb-hair-ink: #dedbe5;
 }
 .cb-footer-col h2 {
-  color: #a69bff;
+  color: #5135e5;
 }
 .cb-footer .cb-footer-pitch,
 .cb-footer-col a,
 .cb-footer-bottom {
-  color: #b9b9cb;
+  color: #555362;
 }
 .cb-footer .brand-lockup {
-  color: #fff;
+  color: #20212b;
 }
 .cb-footer .brand-lockup span {
-  color: #ffaf39;
+  color: #5135e5;
 }
 .cb-footer .cb-textlink {
-  color: #ffaf39;
+  color: #5135e5;
+}
+.cb-footer nav a:hover,
+.cb-footer-bottom a:hover,
+.cb-footer .cb-textlink:hover {
+  color: #5135e5;
+  border-color: #5135e5;
 }
 .cb-btn--primary {
   background: var(--lf-orange);
@@ -160,7 +182,7 @@
   letter-spacing: 0;
 }
 .lf-announcement:hover {
-  background: #684dff;
+  background: #3c25b6;
 }
 .lf-hero {
   display: grid;
@@ -174,7 +196,7 @@
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.14em;
-  color: #b3a8ff;
+  color: #5135e5;
   text-transform: uppercase;
 }
 .lf-hero h1 {
@@ -187,10 +209,10 @@
 }
 .lf-home em {
   font-style: normal;
-  color: var(--lf-orange);
+  color: #5135e5;
 }
 .lf-intro {
-  color: #c9c8d6;
+  color: #555362;
   font-size: 19px;
   max-width: 560px;
   line-height: 1.75;
@@ -227,17 +249,17 @@
   align-items: center;
   gap: 10px;
   font-weight: 750;
-  color: #f2f0ff;
+  color: #5135e5;
 }
 .lf-text-link:hover {
-  color: var(--lf-orange);
+  color: #3c25b6;
 }
 .lf-hero-trust {
   margin-top: 28px;
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
-  color: #a9aabb;
+  color: #625f6d;
   font-size: 14px;
 }
 .lf-hero-trust span {
@@ -253,7 +275,7 @@
   position: relative;
   aspect-ratio: 1.1;
   overflow: hidden;
-  border: 1px solid #ffffff29;
+  border: 1px solid #dedbe5;
   border-radius: 5px 5px 0 0;
 }
 .lf-founder-photo img {
@@ -291,22 +313,22 @@
   display: flex;
   align-items: center;
   gap: 19px;
-  background: #1d1740;
+  background: #ffffff;
   padding: 23px 22px;
-  border: 1px solid #6551be;
+  border: 1px solid #dedbe5;
   border-top: 3px solid var(--lf-orange);
   border-radius: 0 0 5px 5px;
-  color: #fff;
+  color: #20212b;
 }
 .lf-workshop-ribbon > svg {
   margin-left: auto;
   flex: none;
-  color: #ffb443;
+  color: #5135e5;
 }
 .lf-workshop-ribbon > div > span {
   font-size: 12px;
   letter-spacing: 0.12em;
-  color: #b8abff;
+  color: #5135e5;
   font-weight: 800;
 }
 .lf-workshop-ribbon > div > strong {
@@ -316,11 +338,11 @@
 }
 .lf-workshop-ribbon p {
   margin: 5px 0 0;
-  color: #ccc7e4;
+  color: #555362;
   font-size: 14px;
 }
 .lf-date {
-  border-right: 1px solid #ffffff30;
+  border-right: 1px solid #dedbe5;
   padding-right: 20px;
 }
 .lf-date > strong {
@@ -328,14 +350,14 @@
   letter-spacing: -0.04em;
 }
 .lf-date > span {
-  color: #ffb443 !important;
+  color: #5135e5 !important;
 }
 .lf-section {
   padding-block: 78px;
 }
 .lf-section-raised {
-  background: #11121e;
-  border-block: 1px solid #ffffff13;
+  background: #efede9;
+  border-block: 1px solid #dedbe5;
 }
 .lf-section-heading {
   display: flex;
@@ -360,8 +382,8 @@
   font-size: 17px;
 }
 .lf-next-guide {
-  border: 1px solid #ffffff29;
-  background: #171824;
+  border: 1px solid #dedbe5;
+  background: #ffffff;
   padding: 30px;
   border-radius: 5px;
 }
@@ -372,7 +394,7 @@
   gap: 18px;
   font-size: 12px;
   letter-spacing: 0.12em;
-  color: #a69bff;
+  color: #5135e5;
   font-weight: 800;
 }
 .lf-guide-top button {
@@ -381,7 +403,7 @@
   gap: 8px;
   background: none;
   border: 0;
-  color: #d7d3ee;
+  color: #555362;
   font: inherit;
   font-size: 14px;
   letter-spacing: 0;
@@ -392,7 +414,7 @@
   font-size: 24px;
   letter-spacing: -0.03em;
   margin: 12px 0 24px;
-  color: #fff;
+  color: #20212b;
 }
 .lf-choice-grid {
   display: grid;
@@ -404,11 +426,11 @@
   display: flex;
   flex-direction: column;
   align-items: start;
-  background: #0e0f19;
-  border: 1px solid #ffffff25;
+  background: #ffffff;
+  border: 1px solid #dedbe5;
   padding: 24px;
   min-height: 220px;
-  color: #fff;
+  color: #20212b;
   font: inherit;
   border-radius: 4px;
   cursor: pointer;
@@ -417,11 +439,11 @@
     background 0.15s;
 }
 .lf-choice:hover {
-  background: #21193b;
-  border-color: #ad9dff;
+  background: #f1eefb;
+  border-color: #5135e5;
 }
 .lf-choice > svg {
-  color: var(--lf-orange);
+  color: #5135e5;
   width: 23px;
   height: 23px;
   margin-bottom: 15px;
@@ -431,7 +453,7 @@
   line-height: 1.3;
 }
 .lf-choice > span {
-  color: #bcbaca;
+  color: #555362;
   font-size: 15px;
   margin-block: 10px 18px;
 }
@@ -440,27 +462,27 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #ffb443;
+  color: #5135e5;
   font-size: 14px;
 }
 .lf-guide-note {
   font-size: 14px;
-  color: #a5a4b5;
+  color: #625f6d;
   margin: 20px 0 0;
 }
 .lf-scoreboard {
-  border: 1px solid #ffffff26;
-  border-top: 3px solid #735aff;
+  border: 1px solid #dedbe5;
+  border-top: 3px solid #5135e5;
   border-radius: 4px;
-  background: #10111c;
+  background: #ffffff;
 }
 .lf-board-heading {
   display: flex;
   justify-content: space-between;
   gap: 16px;
   padding: 18px 24px;
-  background: #19162e;
-  color: #bbaeef;
+  background: #f1eefb;
+  color: #5135e5;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -471,7 +493,7 @@
   gap: 10px;
 }
 .lf-board-heading svg {
-  color: #57dbab;
+  color: #18764f;
 }
 .lf-board-row {
   display: grid;
@@ -479,10 +501,10 @@
   align-items: center;
   gap: 20px;
   padding: 25px;
-  border-bottom: 1px solid #ffffff17;
+  border-bottom: 1px solid #dedbe5;
 }
 .lf-board-row:hover {
-  background: #ffffff05;
+  background: #f7f5fc;
 }
 .lf-board-row > div:not(:first-child) {
   text-align: right;
@@ -491,7 +513,7 @@
   display: block;
   font-size: 25px;
   font-variant-numeric: tabular-nums;
-  color: #f8f7fc;
+  color: #20212b;
   letter-spacing: -0.03em;
 }
 .lf-board-row > div:first-child strong {
@@ -500,15 +522,15 @@
 .lf-board-row span {
   display: block;
   font-size: 13px;
-  color: #a4a1b7;
+  color: #625f6d;
 }
 .lf-board-row > svg {
-  color: #ffb443;
+  color: #5135e5;
   margin-left: 5px;
 }
 .lf-scoreboard > p {
   padding: 16px 24px;
-  color: #a8a5ba;
+  color: #625f6d;
   font-size: 13px;
   margin: 0;
 }
@@ -520,20 +542,20 @@
 .lf-path-grid > article {
   display: flex;
   flex-direction: column;
-  border: 1px solid #ffffff24;
+  border: 1px solid #dedbe5;
   border-radius: 5px;
-  background: #171824;
+  background: #ffffff;
   padding: 29px;
 }
 .lf-path-number {
   font-size: 12px;
   letter-spacing: 0.15em;
-  color: #aca0ef;
+  color: #5135e5;
   font-weight: 800;
 }
 .lf-path-grid > article > svg {
   margin-block: 28px 20px;
-  color: #ffb443;
+  color: #5135e5;
   width: 28px;
   height: 28px;
 }
@@ -545,7 +567,7 @@
 }
 .lf-path-grid p {
   font-size: 16px;
-  color: #bdbbcd;
+  color: #555362;
   line-height: 1.75;
   margin: 18px 0 24px;
 }
@@ -554,21 +576,21 @@
   align-items: center;
   gap: 10px;
   font-weight: 750;
-  color: #ffb443;
+  color: #5135e5;
   margin-top: auto;
   font-size: 15px;
 }
 .lf-path-grid small {
   display: block;
   font-size: 13px;
-  color: #9996ad;
+  color: #625f6d;
   margin-top: 20px;
   line-height: 1.6;
 }
 .lf-path-grid small a {
   text-decoration: underline;
   text-underline-offset: 3px;
-  color: #c8c2e6;
+  color: #5135e5;
 }
 .lf-resource-grid {
   display: grid;
@@ -576,13 +598,13 @@
   gap: 24px;
 }
 .lf-resource-grid > a {
-  background: #151522;
-  border: 1px solid #ffffff24;
+  background: #ffffff;
+  border: 1px solid #dedbe5;
   border-radius: 5px;
   padding: 35px;
 }
 .lf-resource-grid > a:hover {
-  border-color: #8a75ee;
+  border-color: #5135e5;
 }
 .lf-resource-grid strong {
   font-size: 31px;
@@ -591,28 +613,28 @@
   display: block;
 }
 .lf-resource-grid p {
-  color: #b6b3c8;
+  color: #555362;
   max-width: 440px;
   margin: 18px 0 28px;
 }
 .lf-resource-grid .lf-text-link {
   font-size: 15px;
-  color: #ffb443;
+  color: #5135e5;
 }
 .lf-final {
   padding: 80px 0 90px;
   background:
-    radial-gradient(ellipse at 80% 110%, #5233f94d, transparent 60%), #161221;
-  border-top: 1px solid #5a418e;
+    radial-gradient(ellipse at 80% 110%, #5135e50d, transparent 60%), #f1eefb;
+  border-top: 1px solid #dedbe5;
 }
 .lf-final > div > p:not(.lf-eyebrow) {
   max-width: 540px;
-  color: #c2bfd0;
+  color: #555362;
   font-size: 18px;
   margin: 23px 0 0;
 }
 .lf-home :focus-visible {
-  outline: 3px solid #ffd090;
+  outline: 3px solid #5135e5;
   outline-offset: 5px;
 }
 @media (min-width: 1101px) {
@@ -746,29 +768,29 @@
   }
 }
 .lf-event-registration {
-  --text: #dedbe9;
-  --heading: #fff;
-  --muted: #aaa6be;
-  --panel: #181722;
-  --line: #ffffff25;
-  --line-strong: #ffffff35;
-  --fill-2: #ffffff08;
-  --page: #10101a;
-  --blue: #aa96ff;
-  --green: #82ddba;
-  --green-line: #82ddba35;
-  --green-tint: #82ddba0c;
-  --cb-ink: #fff;
-  --cb-body: #c7c2d7;
-  --cb-muted: #b5adc9;
-  --cb-canvas: #0b0c16;
-  --cb-surface: #181722;
-  --cb-hair: #ffffff25;
-  --cb-blue: #aa96ff;
-  --cb-cyan: #ffad37;
-  --cb-on-ink: #fff;
-  --cb-muted-ink: #bcb4d1;
-  color-scheme: dark;
+  --text: #20212b;
+  --heading: #20212b;
+  --muted: #555362;
+  --panel: #ffffff;
+  --line: #dedbe5;
+  --line-strong: #b6b0c4;
+  --fill-2: #efedf4;
+  --page: #f7f5f2;
+  --blue: #5135e5;
+  --green: #18764f;
+  --green-line: #a9d7bf;
+  --green-tint: #edf8f1;
+  --cb-ink: #20212b;
+  --cb-body: #555362;
+  --cb-muted: #625f6d;
+  --cb-canvas: #f7f5f2;
+  --cb-surface: #ffffff;
+  --cb-hair: #dedbe5;
+  --cb-blue: #5135e5;
+  --cb-cyan: #5135e5;
+  --cb-on-ink: #ffffff;
+  --cb-muted-ink: #625f6d;
+  color-scheme: light;
 }
 .lf-event-shell {
   padding-block: 36px 75px;
@@ -799,7 +821,7 @@
   gap: 14px;
 }
 .lf-event-facts svg {
-  color: #b5a4ff;
+  color: #5135e5;
   width: 20px;
   flex: none;
   margin-top: 3px;
@@ -810,11 +832,11 @@
 }
 .lf-event-facts span {
   font-size: 14px;
-  color: #b0aabd;
+  color: #625f6d;
   margin-top: 4px;
 }
 .lf-event-included {
-  border-block: 1px solid #ffffff24;
+  border-block: 1px solid #dedbe5;
   padding: 24px 0;
   margin: 28px 0;
 }
@@ -827,47 +849,47 @@
   align-items: start;
   gap: 9px;
   font-size: 15px;
-  color: #c6c0d5;
+  color: #555362;
   margin: 10px 0;
 }
 .lf-event-included svg {
-  color: #ffa82c;
+  color: #5135e5;
   flex: none;
   margin-top: 4px;
 }
 .lf-event-included p:last-child {
   margin-top: 21px;
-  color: #a69fb5;
+  color: #625f6d;
 }
 .lf-event-policy {
-  border-bottom: 1px solid #ffffff24;
+  border-bottom: 1px solid #dedbe5;
   padding-block: 17px;
 }
 .lf-event-policy summary {
   cursor: pointer;
   font-size: 16px;
   font-weight: 750;
-  color: #e7e1f3;
+  color: #20212b;
   min-height: 30px;
 }
 .lf-event-policy p {
   font-size: 14px;
-  color: #aaa3bb;
+  color: #555362;
 }
 .lf-event-policy a {
-  color: #c8b9ff;
+  color: #5135e5;
   text-decoration: underline;
 }
 .lf-ticket-panel {
-  background: #15131f;
-  border: 1px solid #ffffff29;
+  background: #ffffff;
+  border: 1px solid #dedbe5;
   border-top: 3px solid #ffab32;
   border-radius: 5px;
   padding: 28px;
   scroll-margin-top: 110px;
 }
 .lf-ticket-panel > p {
-  color: #b5aec4;
+  color: #555362;
   font-size: 16px;
 }
 .lf-ticket-price {
@@ -875,13 +897,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  border-bottom: 1px solid #ffffff24;
+  border-bottom: 1px solid #dedbe5;
   padding-bottom: 23px;
   margin-bottom: 22px;
 }
 .lf-ticket-price h2 {
   font-size: 60px;
-  color: #ffab32;
+  color: #20212b;
   line-height: 1;
   margin: 0;
   letter-spacing: -0.05em;
@@ -893,23 +915,27 @@
 .lf-ticket-price > span {
   text-align: right;
   font-size: 14px;
-  color: #b6adc7;
+  color: #625f6d;
 }
 .lf-ticket-panel .input {
-  background: #0c0b13;
-  color: #fff;
-  border: 1px solid #ffffff36;
+  background: #ffffff;
+  color: #20212b;
+  border: 1px solid #b6b0c4;
 }
 .lf-ticket-panel .input:focus {
-  border-color: #a992ff;
-  outline: 2px solid #a992ff55;
+  border-color: #5135e5;
+  outline: 2px solid #5135e533;
+}
+.lf-ticket-panel .input::placeholder {
+  color: #625f6d;
+  opacity: 1;
 }
 .lf-ticket-panel .cb-btn--primary {
   color: #101119;
   background: #ffab32;
 }
 .lf-ticket-panel .label {
-  color: #e2dbee;
+  color: #20212b;
 }
 .lf-ticket-panel form {
   border: 0 !important;
@@ -924,18 +950,18 @@
   background: transparent;
 }
 .lf-event-registration .cb-h2 {
-  color: #fff;
+  color: #20212b;
 }
 .lf-event-registration .cb-lead {
-  color: #c6bfd4;
+  color: #555362;
 }
 .lf-event-registration .cb-btn--ghost {
-  color: #d8cee7;
-  border-color: #ffffff35;
+  color: #5135e5;
+  border-color: #b6b0c4;
 }
 .lf-event-registration .cb-btn--ghost:hover {
-  color: #fff;
-  background: #2b203f;
+  color: #3c25b6;
+  background: #f1eefb;
 }
 @media (max-width: 900px) {
   .lf-event-grid {
