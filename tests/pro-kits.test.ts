@@ -729,3 +729,182 @@ describe("qr sign kit", () => {
     assert.match(svg.body, /^<svg xmlns/);
   });
 });
+
+/* --------------------------------- Rate Card Kit ---------------------------- */
+
+describe("rate card kit", () => {
+  const SLUG = "rate-card-kit";
+
+  // Take home 90,000 at a 25 percent set aside grosses to 120,000; plus
+  // 24,000 overhead is 144,000. Hours: 48 weeks x 50 x 60 percent = 1,440
+  // billable. 144,000 / 1,440 = exactly $100.00 an hour.
+  test("the required rate matches the free hourly rate calculator", () => {
+    const r = run(SLUG, { take: 90000, overhead: 24000, weeks: 48, hours: 50, billable: 60, tax: 25, current: 75 });
+    assert.equal(r.headline?.value, "$100.00");
+    // The gap is $25 across 1,440 hours: $36,000 a year left behind.
+    assert.match(r.headline?.sub ?? "", /\$36,000 a year left behind/);
+  });
+
+  test("a service is priced from the rate with materials marked up, rounded to fives", () => {
+    // 4 hours x $100 + 780 x 1.15 = 400 + 897 = 1,297, rounding to $1,295.
+    const csvDoc = doc(
+      run(SLUG, {
+        take: 90000, overhead: 24000, weeks: 48, hours: 50, billable: 60, tax: 25,
+        services: "Water heater replacement | 4 | 780", matMarkup: 15,
+      }),
+      "services",
+    );
+    assert.match(csvDoc.body, /"Water heater replacement","4","780",".*","1295"/);
+  });
+
+  // At a 33.33 percent increase, revenue holds up to 1 - 1/1.3333 = 25 percent
+  // customer loss.
+  test("the loss tolerance is the honest revenue arithmetic", () => {
+    const r = run(SLUG, { take: 90000, overhead: 24000, weeks: 48, hours: 50, billable: 60, tax: 25, current: 75 });
+    const tolerance = (r.stats ?? []).find((s) => s.label.includes("loss"));
+    assert.equal(tolerance?.value, "25.0%");
+  });
+
+  test("a rate already high enough flips the kit to a check, not a push", () => {
+    const r = run(SLUG, { take: 90000, overhead: 24000, weeks: 48, hours: 50, billable: 60, tax: 25, current: 120 });
+    assert.equal(r.headline?.tone, "good");
+    const sheet = doc(run(SLUG, { current: 120, take: 90000, overhead: 24000, weeks: 48, hours: 50, billable: 60, tax: 25 }), "worksheet");
+    assert.match(sheet.body, /a check, not a push/);
+  });
+
+  test("the customer card shows prices and none of the derivation", () => {
+    const card = doc(run(SLUG, { services: "Service call | 1.5" }), "ratecard");
+    assert.equal(card.body.includes("take home"), false);
+    assert.equal(card.body.includes("overhead"), false);
+    assert.match(card.body, /Service call/);
+  });
+
+  test("the rollout dates count back from the effective date on business days", () => {
+    // Effective Sunday 2026-11-01: the 60 day notice lands Wednesday
+    // September 2, the 30 day notice Friday October 2.
+    const cal = doc(run(SLUG, { effectiveDate: "2026-11-01" }), "rollout");
+    assert.equal(cal.body.split("BEGIN:VEVENT").length - 1, 4);
+    assert.match(cal.body, /DTSTART:20260902T/);
+    assert.match(cal.body, /DTSTART:20261002T/);
+    assert.match(cal.body, /DTSTART;?[A-Z=]*:?20261101/);
+  });
+
+  test("the letters honor already quoted work in every form", () => {
+    const letters = doc(run(SLUG), "letters");
+    assert.equal((letters.body.match(/quoted/gi) ?? []).length >= 3, true);
+    assert.match(letters.body, /never invent a discount on the spot/);
+  });
+
+  test("an unreadable service line is reported on the worksheet", () => {
+    const sheet = doc(run(SLUG, { services: "Good service | 2\njust words" }), "worksheet");
+    assert.match(sheet.body, /could not read/);
+    assert.match(sheet.body, /just words/);
+  });
+});
+
+/* ------------------------------ Local SEO Schema Kit ------------------------ */
+
+describe("local seo schema kit", () => {
+  const SLUG = "local-seo-schema-kit";
+  const BRAND = {
+    brand_name: "Kirby Plumbing",
+    brand_phone: "9035550142",
+    brand_site: "kirbyplumbing.com",
+    brand_city: "Longview, Texas",
+  };
+  const FULL = {
+    bizType: "Plumber",
+    street: "2800 Gilmer Rd",
+    state: "TX",
+    zip: "75604",
+    areas: "Longview, Marshall, Kilgore",
+    hours: "Mo-Fr 08:00-17:00; Sa 09:00-12:00",
+    services: "Water heater replacement | Same week with haul away\nDrain cleaning | Camera inspection included",
+    faqs: "Do you charge for estimates? | No, estimates are free in our service area.",
+  };
+
+  test("the site-wide graph is valid JSON-LD carrying the business", () => {
+    const block = doc(run(SLUG, FULL, BRAND), "sitewide");
+    const json = JSON.parse(block.body.replace(/<\/?script[^>]*>/g, ""));
+    const business = json["@graph"][0];
+    assert.equal(business["@type"], "Plumber");
+    assert.equal(business.name, "Kirby Plumbing");
+    assert.equal(business.telephone, "+19035550142");
+    assert.equal(business.address.addressLocality, "Longview");
+    assert.equal(business.areaServed.length, 3);
+    assert.equal(business.hasOfferCatalog.itemListElement.length, 2);
+  });
+
+  test("hours parse into real OpeningHoursSpecification ranges", () => {
+    const block = doc(run(SLUG, FULL, BRAND), "graph");
+    const json = JSON.parse(block.body);
+    const spec = json["@graph"][0].openingHoursSpecification;
+    assert.equal(spec.length, 2);
+    assert.deepEqual(spec[0].dayOfWeek, ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]);
+    assert.equal(spec[1].opens, "09:00");
+  });
+
+  test("nothing empty ever reaches the markup", () => {
+    const block = doc(run(SLUG, { bizType: "LocalBusiness", street: "123 Main St" }, { brand_name: "Test Co" }), "graph");
+    assert.equal(block.body.includes('""'), false);
+    assert.equal(block.body.includes("undefined"), false);
+    const json = JSON.parse(block.body);
+    assert.equal("telephone" in json["@graph"][0], false, "an unset phone is omitted, not empty");
+  });
+
+  test("the kit never fabricates review or rating markup", () => {
+    for (const d of run(SLUG, FULL, BRAND).documents ?? []) {
+      assert.equal(/aggregateRating|reviewRating|"review"/i.test(d.body), false, `${d.id} invents reputation data`);
+    }
+  });
+
+  test("meta titles stay inside sixty characters and carry the city", () => {
+    const plan = doc(run(SLUG, FULL, BRAND), "pageplan");
+    const rows = plan.body.split("\r\n").slice(1);
+    assert.equal(rows.length, 2);
+    for (const row of rows) {
+      const cells = row.split('","');
+      const chars = Number(cells[4]);
+      assert.ok(chars <= 60, `title runs ${chars} characters`);
+    }
+    assert.match(plan.body, /Water heater replacement in Longview/);
+  });
+
+  test("the faq block only exists when questions were given", () => {
+    const withFaq = run(SLUG, FULL, BRAND);
+    assert.ok((withFaq.documents ?? []).some((d) => d.id === "faqblock"));
+    const without = run(SLUG, { ...FULL, faqs: "" }, BRAND);
+    assert.equal((without.documents ?? []).some((d) => d.id === "faqblock"), false);
+  });
+
+  test("the sitemap stub lists the home page and every planned page", () => {
+    const stubs = doc(run(SLUG, FULL, BRAND), "stubs");
+    assert.match(stubs.body, /https:\/\/kirbyplumbing\.com\/<\/loc>/);
+    assert.match(stubs.body, /\/water-heater-replacement<\/loc>/);
+    assert.match(stubs.body, /Sitemap: https:\/\/kirbyplumbing\.com\/sitemap\.xml/);
+  });
+
+  test("the business profile description respects its 750 character limit", () => {
+    const gbp = doc(run(SLUG, FULL, BRAND), "gbp");
+    const m = gbp.body.match(/\((\d+) of 750 characters\)/);
+    assert.ok(m && Number(m[1]) <= 750);
+  });
+
+  test("the readiness score is honest about what is missing", () => {
+    const bare = run(SLUG, {});
+    assert.match(bare.headline?.value ?? "", /of 7/);
+    assert.equal(bare.headline?.tone, "warn");
+    const full = run(SLUG, FULL, BRAND);
+    assert.equal(full.headline?.value, "7 of 7");
+    assert.equal(full.headline?.tone, "good");
+  });
+
+  test("markup in a service name is escaped in html docs and clean in json", () => {
+    const r = run(SLUG, { ...FULL, services: '<img onerror=x> Repair | fixes "things"' }, BRAND);
+    const guide = doc(r, "guide");
+    assert.equal(guide.body.includes("<img onerror"), false);
+    const json = JSON.parse(doc(r, "graph").body);
+    const name = json["@graph"][0].hasOfferCatalog.itemListElement[0].itemOffered.name;
+    assert.equal(name, '<img onerror=x> Repair', "JSON carries it as data, where it is inert");
+  });
+});

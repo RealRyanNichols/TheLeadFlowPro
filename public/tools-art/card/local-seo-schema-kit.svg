@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1200" height="675">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f87171"/><stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+    <radialGradient id="w1"><stop offset="0" stop-color="#f87171" stop-opacity=".12"/><stop offset="1" stop-color="#f87171" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w2"><stop offset="0" stop-color="#ef4444" stop-opacity=".08"/><stop offset="1" stop-color="#ef4444" stop-opacity="0"/></radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <ellipse cx="440" cy="480" rx="520" ry="400" fill="url(#w1)"/>
+  <ellipse cx="1220" cy="360" rx="460" ry="340" fill="url(#w2)"/>
+
+  <!-- ================== street grid, left, under the pin ==================== -->
+  <g>
+    <ellipse cx="420" cy="762" rx="330" ry="26" fill="#0e1a2e" opacity=".06"/>
+    <g transform="rotate(-4 420 560)">
+      <rect x="150" y="380" width="540" height="370" rx="20" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+      <!-- streets -->
+      <g stroke="#e6ecf5" stroke-width="12">
+        <line x1="150" y1="470" x2="690" y2="470"/>
+        <line x1="150" y1="580" x2="690" y2="580"/>
+        <line x1="150" y1="672" x2="690" y2="672"/>
+        <line x1="280" y1="380" x2="280" y2="750"/>
+        <line x1="440" y1="380" x2="440" y2="750"/>
+        <line x1="580" y1="380" x2="580" y2="750"/>
+      </g>
+      <!-- one highlighted route -->
+      <path d="M188 750 L188 580 L440 580 L440 470 L580 470" fill="none" stroke="url(#acc)" stroke-width="9" stroke-linecap="round" opacity=".7"/>
+      <!-- blocks -->
+      <g fill="#eef2f8">
+        <rect x="300" y="400" width="120" height="52" rx="8"/>
+        <rect x="460" y="490" width="100" height="70" rx="8"/>
+        <rect x="170" y="600" width="90" height="52" rx="8"/>
+        <rect x="600" y="600" width="70" height="52" rx="8"/>
+      </g>
+      <!-- service area ring -->
+      <circle cx="510" cy="470" r="118" fill="none" stroke="#f87171" stroke-width="4" stroke-dasharray="10 12" opacity=".65"/>
+    </g>
+    <!-- the pin -->
+    <g>
+      <ellipse cx="510" cy="472" rx="34" ry="10" fill="#0e1a2e" opacity=".18"/>
+      <path d="M510 268 C 445 268, 402 315, 402 372 C 402 436, 480 448, 510 470 C 540 448, 618 436, 618 372 C 618 315, 575 268, 510 268 Z" fill="url(#acc)"/>
+      <circle cx="510" cy="360" r="46" fill="#ffffff"/>
+      <!-- storefront glyph inside the pin -->
+      <rect x="486" y="352" width="48" height="32" rx="4" fill="#0e1a2e"/>
+      <path d="M482 352 l8 -16 h40 l8 16 z" fill="#ef4444"/>
+      <rect x="500" y="362" width="12" height="22" rx="2" fill="#ffffff"/>
+      <rect x="518" y="362" width="10" height="10" rx="2" fill="#ffffff"/>
+    </g>
+  </g>
+
+  <!-- ============== wires from the pin into the browser head ================ -->
+  <g fill="none" stroke-linecap="round">
+    <path d="M624 372 C 760 330, 820 300, 940 286" stroke="url(#acc)" stroke-width="7"/>
+    <path d="M618 412 C 780 400, 860 360, 948 330" stroke="#8299b8" stroke-width="6" stroke-dasharray="2 20"/>
+    <path d="M600 448 C 790 470, 880 420, 952 376" stroke="#8299b8" stroke-width="6" stroke-dasharray="2 20"/>
+  </g>
+  <!-- block chips riding the wires -->
+  <g>
+    <rect x="760" y="304" width="84" height="30" rx="9" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="774" y="315" width="56" height="8" rx="4" fill="url(#acc)"/>
+    <rect x="792" y="404" width="72" height="28" rx="9" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="804" y="414" width="48" height="8" rx="4" fill="#8299b8"/>
+  </g>
+
+  <!-- ==================== the browser page, right =========================== -->
+  <g transform="rotate(2 1180 460)">
+    <ellipse cx="1180" cy="796" rx="290" ry="20" fill="#0e1a2e" opacity=".06"/>
+    <rect x="940" y="200" width="500" height="580" rx="22" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+    <!-- browser chrome -->
+    <rect x="940" y="200" width="500" height="64" rx="22" fill="#eef2f8"/>
+    <path d="M940 242 h500 v22 h-500 z" fill="#eef2f8"/>
+    <circle cx="978" cy="232" r="9" fill="#b9c6da"/>
+    <circle cx="1006" cy="232" r="9" fill="#b9c6da"/>
+    <circle cx="1034" cy="232" r="9" fill="#b9c6da"/>
+    <rect x="1064" y="218" width="330" height="28" rx="14" fill="#ffffff" stroke="#d7e0ee" stroke-width="2.5"/>
+    <rect x="1082" y="228" width="180" height="9" rx="4.5" fill="#d7e0ee"/>
+
+    <!-- the head zone where the graph lands -->
+    <rect x="972" y="292" width="436" height="150" rx="14" fill="#0e1a2e"/>
+    <rect x="994" y="314" width="66" height="10" rx="5" fill="#f87171"/>
+    <rect x="1070" y="314" width="180" height="10" rx="5" fill="#8299b8"/>
+    <rect x="1010" y="336" width="240" height="10" rx="5" fill="#ffffff" opacity=".55"/>
+    <rect x="1010" y="358" width="300" height="10" rx="5" fill="#ffffff" opacity=".4"/>
+    <rect x="1010" y="380" width="210" height="10" rx="5" fill="#ffffff" opacity=".4"/>
+    <rect x="994" y="404" width="66" height="10" rx="5" fill="#f87171"/>
+    <!-- plug socket on the head zone edge, where the main wire lands -->
+    <circle cx="948" cy="290" r="17" fill="url(#acc)"/>
+    <circle cx="948" cy="290" r="7" fill="#ffffff"/>
+
+    <!-- visible page below -->
+    <rect x="972" y="470" width="280" height="16" rx="8" fill="#0e1a2e" opacity=".75"/>
+    <rect x="972" y="500" width="404" height="9" rx="4.5" fill="#d7e0ee"/>
+    <rect x="972" y="520" width="360" height="9" rx="4.5" fill="#d7e0ee"/>
+    <!-- rich result: stars and site line -->
+    <rect x="972" y="556" width="436" height="88" rx="12" fill="#fdf6f0" stroke="#f2ddc8" stroke-width="2.5"/>
+    <g transform="translate(996 588)">
+      <path transform="scale(.5)" d="M0 -20 L5.9 -6.2 L20 -6.2 L8.6 2.4 L12.9 16 L0 8 L-12.9 16 L-8.6 2.4 L-20 -6.2 L-5.9 -6.2 Z" fill="#e2a33c"/>
+      <path transform="translate(26 0) scale(.5)" d="M0 -20 L5.9 -6.2 L20 -6.2 L8.6 2.4 L12.9 16 L0 8 L-12.9 16 L-8.6 2.4 L-20 -6.2 L-5.9 -6.2 Z" fill="#e2a33c"/>
+      <path transform="translate(52 0) scale(.5)" d="M0 -20 L5.9 -6.2 L20 -6.2 L8.6 2.4 L12.9 16 L0 8 L-12.9 16 L-8.6 2.4 L-20 -6.2 L-5.9 -6.2 Z" fill="#e2a33c"/>
+      <path transform="translate(78 0) scale(.5)" d="M0 -20 L5.9 -6.2 L20 -6.2 L8.6 2.4 L12.9 16 L0 8 L-12.9 16 L-8.6 2.4 L-20 -6.2 L-5.9 -6.2 Z" fill="#e2a33c"/>
+      <path transform="translate(104 0) scale(.5)" d="M0 -20 L5.9 -6.2 L20 -6.2 L8.6 2.4 L12.9 16 L0 8 L-12.9 16 L-8.6 2.4 L-20 -6.2 L-5.9 -6.2 Z" fill="#e2a33c" opacity=".35"/>
+    </g>
+    <rect x="1128" y="580" width="150" height="9" rx="4.5" fill="#8299b8"/>
+    <rect x="996" y="612" width="300" height="9" rx="4.5" fill="#b9c6da"/>
+    <!-- magnifier -->
+    <g transform="rotate(-18 1372 700)">
+      <circle cx="1360" cy="686" r="42" fill="none" stroke="#0e1a2e" stroke-width="10"/>
+      <line x1="1390" y1="716" x2="1424" y2="752" stroke="#0e1a2e" stroke-width="14" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

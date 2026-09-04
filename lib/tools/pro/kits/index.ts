@@ -16,8 +16,18 @@ import * as googleReviewKit from "./google-review-kit";
 import * as quoteFollowUpKit from "./quote-follow-up-kit";
 import * as jobEstimateKit from "./job-estimate-kit";
 import * as qrSignKit from "./qr-sign-kit";
+import * as rateCardKit from "./rate-card-kit";
+import * as localSeoSchemaKit from "./local-seo-schema-kit";
 
-const KITS = [missedCallTextBackKit, googleReviewKit, quoteFollowUpKit, jobEstimateKit, qrSignKit];
+const KITS = [
+  missedCallTextBackKit,
+  googleReviewKit,
+  quoteFollowUpKit,
+  jobEstimateKit,
+  qrSignKit,
+  rateCardKit,
+  localSeoSchemaKit,
+];
 
 export const PRO_KIT_DEFS: ProToolDef[] = KITS.map((k) => k.KIT);
 

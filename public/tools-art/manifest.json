@@ -1,6 +1,6 @@
 {
   "generated": "npm run art",
-  "count": 91,
+  "count": 93,
   "tools": [
     {
       "slug": "missed-call-calculator",
@@ -1547,6 +1547,40 @@
         "height": 900,
         "bytes": 8315,
         "sha256": "ad5c501fc849fc5f"
+      }
+    },
+    {
+      "slug": "rate-card-kit",
+      "card": {
+        "file": "/tools-art/card/rate-card-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 5143,
+        "sha256": "bd742bd098f82cc6"
+      },
+      "hero": {
+        "file": "/tools-art/hero/rate-card-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 5143,
+        "sha256": "3b1c0973d4d78f74"
+      }
+    },
+    {
+      "slug": "local-seo-schema-kit",
+      "card": {
+        "file": "/tools-art/card/local-seo-schema-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 7022,
+        "sha256": "bb928a1991ed7a25"
+      },
+      "hero": {
+        "file": "/tools-art/hero/local-seo-schema-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 7022,
+        "sha256": "0f4fc9e9dd546e81"
       }
     }
   ]
