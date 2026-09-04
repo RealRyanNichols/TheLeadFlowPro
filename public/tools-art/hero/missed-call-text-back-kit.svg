@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="accSide" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#1e40af"/>
+    </linearGradient>
+    <radialGradient id="w1"><stop offset="0" stop-color="#38bdf8" stop-opacity=".15"/><stop offset="1" stop-color="#38bdf8" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w2"><stop offset="0" stop-color="#2563eb" stop-opacity=".10"/><stop offset="1" stop-color="#2563eb" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w3"><stop offset="0" stop-color="#38bdf8" stop-opacity=".08"/><stop offset="1" stop-color="#38bdf8" stop-opacity="0"/></radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <ellipse cx="1120" cy="420" rx="620" ry="450" fill="url(#w1)"/>
+  <ellipse cx="330" cy="700" rx="430" ry="300" fill="url(#w2)"/>
+  <ellipse cx="760" cy="250" rx="330" ry="210" fill="url(#w3)"/>
+
+  <!-- ground shadows -->
+  <ellipse cx="1108" cy="836" rx="252" ry="22" fill="#0e1a2e" opacity=".07"/>
+  <ellipse cx="316" cy="742" rx="132" ry="14" fill="#0e1a2e" opacity=".06"/>
+
+  <!-- ================= caller's phone, small, left, call ended ================ -->
+  <g transform="rotate(-7 316 560)">
+    <rect x="238" y="392" width="156" height="304" rx="26" fill="#0e1a2e"/>
+    <rect x="245" y="399" width="142" height="290" rx="20" fill="none" stroke="#8299b8" stroke-width="1.6" opacity=".4"/>
+    <rect x="252" y="406" width="128" height="276" rx="15" fill="#ffffff"/>
+    <rect x="298" y="414" width="36" height="7" rx="3.5" fill="#0e1a2e"/>
+
+    <!-- ended call row -->
+    <circle cx="286" cy="470" r="15" fill="#f1f5fa" stroke="#d7e0ee" stroke-width="1.6"/>
+    <path d="M279 470 a7 7 0 0 1 14 0" fill="none" stroke="#b9c6da" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M279 470 l14 0" stroke="#b9c6da" stroke-width="2.6" stroke-linecap="round"/>
+    <rect x="310" y="462" width="56" height="7" rx="3.5" fill="#b9c6da"/>
+    <rect x="310" y="475" width="36" height="6" rx="3" fill="#d7e0ee"/>
+    <line x1="252" y1="498" x2="380" y2="498" stroke="#eef2f8" stroke-width="1.6"/>
+
+    <!-- the reply arriving, in accent -->
+    <rect x="266" y="516" width="98" height="34" rx="12" fill="url(#acc)"/>
+    <path d="M272 550 l0 12 l14 -12 z" fill="#2563eb"/>
+    <rect x="278" y="526" width="60" height="5" rx="2.5" fill="#ffffff" opacity=".92"/>
+    <rect x="278" y="536" width="44" height="5" rx="2.5" fill="#ffffff" opacity=".62"/>
+
+    <rect x="266" y="576" width="80" height="28" rx="11" fill="#eef2f8"/>
+    <rect x="278" y="586" width="46" height="5" rx="2.5" fill="#b9c6da"/>
+
+    <rect x="266" y="620" width="92" height="28" rx="11" fill="#eef2f8"/>
+    <rect x="278" y="630" width="58" height="5" rx="2.5" fill="#b9c6da"/>
+  </g>
+
+  <!-- ============ the reply arc, from the shop phone to the caller ============ -->
+  <path d="M905 566 C 760 668, 560 640, 424 574"
+        fill="none" stroke="url(#accSide)" stroke-width="7" stroke-linecap="round" stroke-dasharray="2 26" opacity=".55"/>
+  <path d="M905 566 C 800 636, 660 646, 540 606"
+        fill="none" stroke="url(#acc)" stroke-width="9" stroke-linecap="round" opacity=".85"/>
+  <circle cx="540" cy="606" r="13" fill="url(#acc)"/>
+  <circle cx="540" cy="606" r="24" fill="none" stroke="#38bdf8" stroke-width="3" opacity=".38"/>
+
+  <!-- =================== the shop phone, large, right of center =============== -->
+  <g transform="rotate(3 1100 470)">
+    <!-- side buttons -->
+    <rect x="906" y="286" width="10" height="58" rx="5" fill="#0e1a2e"/>
+    <rect x="906" y="358" width="10" height="58" rx="5" fill="#0e1a2e"/>
+    <rect x="1288" y="322" width="10" height="94" rx="5" fill="#0e1a2e"/>
+
+    <!-- chassis, screen inset, reflection -->
+    <rect x="914" y="150" width="378" height="682" rx="54" fill="#0e1a2e"/>
+    <rect x="924" y="160" width="358" height="662" rx="46" fill="none" stroke="#8299b8" stroke-width="2" opacity=".42"/>
+    <rect x="934" y="170" width="338" height="642" rx="38" fill="#ffffff"/>
+    <path d="M934 208 L1272 170 L1272 214 L934 252 Z" fill="#ffffff" opacity=".0"/>
+    <rect x="1064" y="184" width="78" height="14" rx="7" fill="#0e1a2e"/>
+
+    <!-- header bar -->
+    <rect x="966" y="232" width="150" height="16" rx="8" fill="#0e1a2e" opacity=".82"/>
+    <rect x="966" y="258" width="96" height="10" rx="5" fill="#b9c6da"/>
+    <line x1="934" y1="290" x2="1272" y2="290" stroke="#eef2f8" stroke-width="2"/>
+
+    <!-- missed call banner -->
+    <rect x="962" y="310" width="282" height="60" rx="14" fill="#fdf1f1" stroke="#f0d3d3" stroke-width="2"/>
+    <circle cx="998" cy="340" r="17" fill="#ffffff" stroke="#e6b9b9" stroke-width="2"/>
+    <path d="M990 340 a8 8 0 0 1 16 0" fill="none" stroke="#c0605f" stroke-width="3" stroke-linecap="round"/>
+    <path d="M990 340 l16 0" stroke="#c0605f" stroke-width="3" stroke-linecap="round"/>
+    <rect x="1026" y="329" width="112" height="8" rx="4" fill="#c0605f" opacity=".62"/>
+    <rect x="1026" y="345" width="72" height="7" rx="3.5" fill="#d9a8a8"/>
+
+    <!-- the automatic reply going out: the subject of the picture -->
+    <rect x="1000" y="400" width="244" height="118" rx="20" fill="url(#acc)"/>
+    <path d="M1232 518 l0 20 l-24 -20 z" fill="#2563eb"/>
+    <rect x="1022" y="424" width="196" height="9" rx="4.5" fill="#ffffff" opacity=".95"/>
+    <rect x="1022" y="444" width="176" height="9" rx="4.5" fill="#ffffff" opacity=".8"/>
+    <rect x="1022" y="464" width="200" height="9" rx="4.5" fill="#ffffff" opacity=".66"/>
+    <rect x="1022" y="484" width="122" height="9" rx="4.5" fill="#ffffff" opacity=".5"/>
+
+    <!-- sending tick -->
+    <path d="M1160 546 l14 14 l26 -30" fill="none" stroke="#2563eb" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="1000" y="540" width="140" height="9" rx="4.5" fill="#d7e0ee"/>
+
+    <!-- queued follow ups, quieter -->
+    <rect x="1000" y="588" width="196" height="52" rx="16" fill="#f1f5fa" stroke="#e2e9f3" stroke-width="2"/>
+    <rect x="1020" y="606" width="128" height="8" rx="4" fill="#b9c6da"/>
+    <rect x="1020" y="622" width="86" height="7" rx="3.5" fill="#d7e0ee"/>
+
+    <rect x="1000" y="656" width="164" height="52" rx="16" fill="#f6f9fc" stroke="#eaf0f7" stroke-width="2"/>
+    <rect x="1020" y="674" width="104" height="8" rx="4" fill="#cbd6e5"/>
+    <rect x="1020" y="690" width="64" height="7" rx="3.5" fill="#e2e9f3"/>
+
+    <!-- compose bar -->
+    <rect x="962" y="742" width="282" height="42" rx="21" fill="#ffffff" stroke="#d7e0ee" stroke-width="2"/>
+    <rect x="984" y="759" width="120" height="8" rx="4" fill="#d7e0ee"/>
+    <circle cx="1216" cy="763" r="16" fill="url(#acc)"/>
+    <path d="M1209 763 l14 0 M1217 757 l6 6 l-6 6" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- ============== the response clock, upper left, the promise ============== -->
+  <g>
+    <circle cx="470" cy="248" r="86" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <circle cx="470" cy="248" r="86" fill="none" stroke="url(#acc)" stroke-width="10"
+            stroke-linecap="round" stroke-dasharray="128 412" transform="rotate(-90 470 248)"/>
+    <circle cx="470" cy="248" r="66" fill="none" stroke="#eef2f8" stroke-width="2"/>
+    <line x1="470" y1="248" x2="470" y2="200" stroke="#0e1a2e" stroke-width="7" stroke-linecap="round"/>
+    <line x1="470" y1="248" x2="506" y2="266" stroke="#2563eb" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="470" cy="248" r="7" fill="#0e1a2e"/>
+    <line x1="470" y1="176" x2="470" y2="186" stroke="#b9c6da" stroke-width="4" stroke-linecap="round"/>
+    <line x1="542" y1="248" x2="532" y2="248" stroke="#b9c6da" stroke-width="4" stroke-linecap="round"/>
+    <line x1="470" y1="320" x2="470" y2="310" stroke="#b9c6da" stroke-width="4" stroke-linecap="round"/>
+    <line x1="398" y1="248" x2="408" y2="248" stroke="#b9c6da" stroke-width="4" stroke-linecap="round"/>
+  </g>
+
+  <!-- ============ the printed kit, small, foreground left of the phone ======== -->
+  <g transform="rotate(-4 726 762)">
+    <rect x="640" y="686" width="172" height="128" rx="8" fill="#ffffff" stroke="#d7e0ee" stroke-width="3"/>
+    <rect x="640" y="686" width="172" height="26" rx="8" fill="url(#acc)"/>
+    <path d="M640 706 h172 v6 h-172 z" fill="url(#acc)"/>
+    <rect x="660" y="730" width="112" height="8" rx="4" fill="#0e1a2e" opacity=".72"/>
+    <rect x="660" y="748" width="132" height="6" rx="3" fill="#d7e0ee"/>
+    <rect x="660" y="762" width="96" height="6" rx="3" fill="#d7e0ee"/>
+    <rect x="660" y="776" width="120" height="6" rx="3" fill="#d7e0ee"/>
+    <rect x="660" y="790" width="72" height="6" rx="3" fill="#e2e9f3"/>
+    <!-- second sheet peeking behind -->
+    <path d="M812 700 l22 10 l0 118 l-22 -10 z" fill="#f1f5fa" stroke="#e2e9f3" stroke-width="2"/>
+  </g>
+</svg>

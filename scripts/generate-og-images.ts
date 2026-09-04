@@ -16,6 +16,7 @@ import { mkdirSync, writeFileSync, readdirSync, unlinkSync, statSync, existsSync
 import { join } from "node:path";
 import { chromium } from "playwright";
 import { ALL_TOOLS } from "../lib/tools/index.ts";
+import { ALL_PRO_TOOLS, PRO_TOOL_VISUALS } from "../lib/tools/pro/index.ts";
 import { TOOL_VISUALS } from "../lib/tools/visuals.ts";
 
 const ROOT = process.cwd();
@@ -168,8 +169,8 @@ const wanted = new Set<string>();
 let written = 0;
 let biggest = 0;
 
-for (const tool of ALL_TOOLS) {
-  const v = TOOL_VISUALS[tool.slug];
+for (const tool of [...ALL_TOOLS, ...ALL_PRO_TOOLS]) {
+  const v = TOOL_VISUALS[tool.slug] ?? PRO_TOOL_VISUALS[tool.slug];
   if (!v) throw new Error(`no visual entry for ${tool.slug}`);
   const html = pageHtml(scene({ name: tool.name, hook: v.ogHook, accent: v.colorAccent, layout: v.ogLayout }));
   await page.setContent(html, { waitUntil: "load" });

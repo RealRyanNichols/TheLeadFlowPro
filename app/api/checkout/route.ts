@@ -5,6 +5,7 @@ import { priceOrder } from "@/lib/timeback";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 import { FREE_BUILD } from "@/lib/freeBuild";
 import { priceToolStudio } from "@/lib/toolStudio";
+import { PRO_BUNDLE, getProTool } from "@/lib/tools/pro";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
@@ -225,6 +226,30 @@ export async function POST(request: Request) {
         .filter(Boolean)
         .join(" | ")
         .slice(0, 480);
+    } else if (body.kind === "pro_tool" || body.kind === "pro_bundle") {
+      // Pro kits. The browser sends a slug, never a price: the amount comes
+      // from the kit registry here, so a edited request cannot buy the $29
+      // kit for $10. Success lands on the claim route, which verifies the
+      // session with Stripe and writes the access cookie before redirecting
+      // into the unlocked kit.
+      if (body.kind === "pro_bundle") {
+        kind = PRO_BUNDLE.kind;
+        name = `${PRO_BUNDLE.name} | The LeadFlow Pro`;
+        amount = PRO_BUNDLE.priceUsd * 100;
+        cancelUrl = `${site}/tools/pro?cancelled=1`;
+        metadata.kind = PRO_BUNDLE.kind;
+      } else {
+        const slug = typeof body.pro_slug === "string" ? body.pro_slug : "";
+        const kit = getProTool(slug);
+        if (!kit) return NextResponse.json({ error: "Unknown kit" }, { status: 400 });
+        kind = "pro_tool";
+        name = `${kit.name} | The LeadFlow Pro`;
+        amount = kit.pro.priceUsd * 100;
+        cancelUrl = `${site}/tools/pro/${kit.slug}?cancelled=1`;
+        metadata.kind = "pro_tool";
+        metadata.pro_slug = kit.slug;
+      }
+      successUrl = `${site}/api/pro/claim?session_id={CHECKOUT_SESSION_ID}`;
     } else if (body.kind === "timeback_order") {
       // Time Back funnel (/go/time-back). The client sends selections, never
       // prices. The total comes from lib/timeback.ts so nobody can edit a

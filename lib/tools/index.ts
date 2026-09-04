@@ -49,7 +49,12 @@ const REQUIRED_META = [
   "popularity",
 ] as const;
 
-function resolveTool(def: ToolDef): Tool {
+/**
+ * Turns an authored definition into what the app consumes. Exported so the pro
+ * kit registry (lib/tools/pro) resolves its tools through the exact same path
+ * and cannot drift from the free library.
+ */
+export function resolveTool(def: ToolDef): Tool {
   // Inline metadata on the definition wins over the central map, so a new tool
   // can declare everything in one place while the original 78 stay in meta.ts.
   const central = TOOL_META[def.slug];

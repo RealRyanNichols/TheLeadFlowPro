@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#0ea371"/>
+    </linearGradient>
+    <radialGradient id="w1"><stop offset="0" stop-color="#34d399" stop-opacity=".14"/><stop offset="1" stop-color="#34d399" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w2"><stop offset="0" stop-color="#0ea371" stop-opacity=".09"/><stop offset="1" stop-color="#0ea371" stop-opacity="0"/></radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <ellipse cx="1030" cy="430" rx="640" ry="440" fill="url(#w1)"/>
+  <ellipse cx="290" cy="690" rx="400" ry="270" fill="url(#w2)"/>
+
+  <!-- ground shadows -->
+  <ellipse cx="1010" cy="812" rx="420" ry="24" fill="#0e1a2e" opacity=".07"/>
+  <ellipse cx="286" cy="748" rx="170" ry="15" fill="#0e1a2e" opacity=".06"/>
+
+  <!-- ================== the quote sheet entering, left ======================= -->
+  <g transform="rotate(-6 300 520)">
+    <rect x="150" y="300" width="280" height="380" rx="14" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+    <rect x="150" y="300" width="280" height="56" rx="14" fill="#0e1a2e"/>
+    <path d="M150 340 h280 v16 h-280 z" fill="#0e1a2e"/>
+    <rect x="182" y="384" width="150" height="13" rx="6.5" fill="#0e1a2e" opacity=".75"/>
+    <rect x="182" y="416" width="216" height="9" rx="4.5" fill="#d7e0ee"/>
+    <rect x="182" y="438" width="190" height="9" rx="4.5" fill="#d7e0ee"/>
+    <rect x="182" y="460" width="206" height="9" rx="4.5" fill="#d7e0ee"/>
+    <line x1="182" y1="496" x2="398" y2="496" stroke="#eef2f8" stroke-width="3"/>
+    <rect x="182" y="516" width="96" height="9" rx="4.5" fill="#b9c6da"/>
+    <rect x="316" y="510" width="82" height="22" rx="6" fill="url(#acc)"/>
+    <rect x="182" y="548" width="118" height="9" rx="4.5" fill="#b9c6da"/>
+    <rect x="182" y="600" width="140" height="34" rx="10" fill="none" stroke="#b9c6da" stroke-width="3"/>
+    <rect x="196" y="614" width="80" height="7" rx="3.5" fill="#b9c6da"/>
+  </g>
+
+  <!-- ==================== the calendar, subject, right ======================= -->
+  <g transform="rotate(2 1030 470)">
+    <rect x="620" y="180" width="820" height="580" rx="24" fill="#ffffff" stroke="#d7e0ee" stroke-width="4"/>
+    <rect x="620" y="180" width="820" height="86" rx="24" fill="#0e1a2e"/>
+    <path d="M620 236 h820 v30 h-820 z" fill="#0e1a2e"/>
+    <!-- binding rings -->
+    <circle cx="780" cy="180" r="16" fill="#f7f9fc" stroke="#8299b8" stroke-width="5"/>
+    <circle cx="1280" cy="180" r="16" fill="#f7f9fc" stroke="#8299b8" stroke-width="5"/>
+    <rect x="668" y="212" width="170" height="16" rx="8" fill="#ffffff" opacity=".85"/>
+    <!-- grid: 6 cols x 5 rows -->
+    <g stroke="#e6ecf5" stroke-width="2.5">
+      <line x1="620" y1="360" x2="1440" y2="360"/>
+      <line x1="620" y1="460" x2="1440" y2="460"/>
+      <line x1="620" y1="560" x2="1440" y2="560"/>
+      <line x1="620" y1="660" x2="1440" y2="660"/>
+      <line x1="757" y1="266" x2="757" y2="760"/>
+      <line x1="894" y1="266" x2="894" y2="760"/>
+      <line x1="1031" y1="266" x2="1031" y2="760"/>
+      <line x1="1168" y1="266" x2="1168" y2="760"/>
+      <line x1="1305" y1="266" x2="1305" y2="760"/>
+    </g>
+    <!-- day number ticks -->
+    <g fill="#d7e0ee">
+      <rect x="636" y="282" width="26" height="8" rx="4"/>
+      <rect x="773" y="282" width="26" height="8" rx="4"/>
+      <rect x="910" y="282" width="26" height="8" rx="4"/>
+      <rect x="1047" y="282" width="26" height="8" rx="4"/>
+      <rect x="1184" y="282" width="26" height="8" rx="4"/>
+      <rect x="1321" y="282" width="26" height="8" rx="4"/>
+    </g>
+
+    <!-- the follow-up path across the month -->
+    <path d="M700 330 C 850 350, 940 400, 960 420 C 1030 480, 1120 470, 1230 520 C 1330 566, 1330 630, 1372 700"
+          fill="none" stroke="url(#acc)" stroke-width="8" stroke-linecap="round" stroke-dasharray="3 26" opacity=".85"/>
+
+    <!-- touch pins along the path -->
+    <g>
+      <circle cx="700" cy="330" r="22" fill="url(#acc)"/>
+      <path d="M691 330 h18 M700 321 v18" stroke="#ffffff" stroke-width="0" />
+      <rect x="692" y="326" width="16" height="8" rx="3" fill="#ffffff"/>
+      <circle cx="960" cy="420" r="26" fill="url(#acc)"/>
+      <path d="M950 428 a14 14 0 0 1 8 -22 l4 6 -5 5 a20 20 0 0 0 8 8 l5 -5 6 4 a14 14 0 0 1 -26 4 z" fill="#ffffff"/>
+      <circle cx="1230" cy="520" r="24" fill="url(#acc)"/>
+      <rect x="1218" y="512" width="24" height="16" rx="3" fill="#ffffff"/>
+      <path d="M1218 512 l12 9 l12 -9" fill="none" stroke="#0ea371" stroke-width="2.5"/>
+      <circle cx="1372" cy="700" r="30" fill="#0e1a2e"/>
+      <path d="M1358 700 l10 10 l18 -20" fill="none" stroke="#34d399" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- connection from quote to calendar -->
+  <path d="M430 430 C 510 400, 550 380, 636 342" fill="none" stroke="#8299b8" stroke-width="6" stroke-linecap="round" stroke-dasharray="2 22" opacity=".7"/>
+</svg>

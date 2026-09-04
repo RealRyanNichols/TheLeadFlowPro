@@ -1,6 +1,6 @@
 {
   "generated": "npm run art",
-  "count": 86,
+  "count": 94,
   "tools": [
     {
       "slug": "missed-call-calculator",
@@ -1462,6 +1462,142 @@
         "height": 900,
         "bytes": 6370,
         "sha256": "5b46cdb4b5f23056"
+      }
+    },
+    {
+      "slug": "missed-call-text-back-kit",
+      "card": {
+        "file": "/tools-art/card/missed-call-text-back-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 9113,
+        "sha256": "85b8b6f3c2be6699"
+      },
+      "hero": {
+        "file": "/tools-art/hero/missed-call-text-back-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 9113,
+        "sha256": "56f50f6215aced6f"
+      }
+    },
+    {
+      "slug": "google-review-kit",
+      "card": {
+        "file": "/tools-art/card/google-review-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 7462,
+        "sha256": "1ab7f42509bd9231"
+      },
+      "hero": {
+        "file": "/tools-art/hero/google-review-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 7462,
+        "sha256": "3dc3334b3b608e80"
+      }
+    },
+    {
+      "slug": "quote-follow-up-kit",
+      "card": {
+        "file": "/tools-art/card/quote-follow-up-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 5119,
+        "sha256": "064371017d921e08"
+      },
+      "hero": {
+        "file": "/tools-art/hero/quote-follow-up-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 5119,
+        "sha256": "1db61cb1a1f84002"
+      }
+    },
+    {
+      "slug": "job-estimate-kit",
+      "card": {
+        "file": "/tools-art/card/job-estimate-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 5685,
+        "sha256": "fa83e25a897e1ce1"
+      },
+      "hero": {
+        "file": "/tools-art/hero/job-estimate-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 5685,
+        "sha256": "68635db66830ad42"
+      }
+    },
+    {
+      "slug": "qr-sign-kit",
+      "card": {
+        "file": "/tools-art/card/qr-sign-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 8315,
+        "sha256": "69e0ebdf93fec2a2"
+      },
+      "hero": {
+        "file": "/tools-art/hero/qr-sign-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 8315,
+        "sha256": "ad5c501fc849fc5f"
+      }
+    },
+    {
+      "slug": "rate-card-kit",
+      "card": {
+        "file": "/tools-art/card/rate-card-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 5143,
+        "sha256": "bd742bd098f82cc6"
+      },
+      "hero": {
+        "file": "/tools-art/hero/rate-card-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 5143,
+        "sha256": "3b1c0973d4d78f74"
+      }
+    },
+    {
+      "slug": "local-seo-schema-kit",
+      "card": {
+        "file": "/tools-art/card/local-seo-schema-kit.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 7022,
+        "sha256": "bb928a1991ed7a25"
+      },
+      "hero": {
+        "file": "/tools-art/hero/local-seo-schema-kit.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 7022,
+        "sha256": "0f4fc9e9dd546e81"
+      }
+    },
+    {
+      "slug": "white-label-tool-embeds",
+      "card": {
+        "file": "/tools-art/card/white-label-tool-embeds.svg",
+        "width": 1200,
+        "height": 675,
+        "bytes": 6485,
+        "sha256": "af121882e06ac810"
+      },
+      "hero": {
+        "file": "/tools-art/hero/white-label-tool-embeds.svg",
+        "width": 1600,
+        "height": 900,
+        "bytes": 6485,
+        "sha256": "687922829e257685"
       }
     }
   ]

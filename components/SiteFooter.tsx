@@ -14,6 +14,7 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
       ["/services#what-we-build", "The four parts"],
       ["/add-ons", "Add-On Menu"],
       ["/tools", "Free Tools"],
+      ["/tools/pro", "Pro Kits | $10 to $29"],
       ["/services#how-it-works", "How it works"],
     ],
   },

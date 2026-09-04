@@ -11,10 +11,18 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 import { ALL_TOOLS, TOOLS } from "../lib/tools/index.ts";
+import { ALL_PRO_TOOLS, PRO_TOOLS } from "../lib/tools/pro/index.ts";
 import { validateTools, formatProblems, type Problem } from "../lib/tools/validate.ts";
+import { validateProTools } from "../lib/tools/pro/validate.ts";
 
 const ROOT = process.cwd();
-const problems: Problem[] = validateTools(ALL_TOOLS);
+
+// Pro kits go through the same registry rules as the free library, then
+// through the extra rules that apply once somebody is paying for the result.
+const problems: Problem[] = [
+  ...validateTools([...ALL_TOOLS, ...ALL_PRO_TOOLS]),
+  ...validateProTools(ALL_PRO_TOOLS),
+];
 
 /* ------------------------------ artwork checks ----------------------------- */
 
@@ -22,7 +30,7 @@ const MIN_BYTES = 250;
 const MAX_BYTES = 120_000;
 const hashes = new Map<string, string[]>();
 
-for (const tool of TOOLS) {
+for (const tool of [...TOOLS, ...PRO_TOOLS]) {
   for (const [label, img] of [["card", tool.image], ["hero", tool.hero]] as const) {
     const rel = img.src.replace(/^\//, "");
     const abs = join(ROOT, "public", rel);
@@ -97,7 +105,7 @@ for (const [, slugs] of hashes) {
 
 /* --------------------------------- report ---------------------------------- */
 
-const counts = ALL_TOOLS.reduce<Record<string, number>>((acc, t) => {
+const counts = [...ALL_TOOLS, ...ALL_PRO_TOOLS].reduce<Record<string, number>>((acc, t) => {
   acc[t.status] = (acc[t.status] || 0) + 1;
   return acc;
 }, {});
@@ -110,7 +118,7 @@ if (problems.length) {
 }
 
 console.log(
-  `tool registry OK: ${TOOLS.length} published (${Object.entries(counts)
+  `tool registry OK: ${TOOLS.length} free published, ${PRO_TOOLS.length} pro kit(s) (${Object.entries(counts)
     .map(([k, v]) => `${k}: ${v}`)
     .join(", ")})`,
 );

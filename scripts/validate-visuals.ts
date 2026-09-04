@@ -12,6 +12,7 @@
 import { statSync } from "node:fs";
 import { join } from "node:path";
 import { ALL_TOOLS } from "../lib/tools/index.ts";
+import { ALL_PRO_TOOLS, PRO_TOOL_VISUALS } from "../lib/tools/pro/index.ts";
 import { TOOL_VISUALS, OG_LAYOUTS } from "../lib/tools/visuals.ts";
 
 const PUBLIC = join(process.cwd(), "public");
@@ -52,9 +53,34 @@ for (let accent = 1; accent <= 6; accent++) {
   if (n < 8 || n > 20) errors.push(`accent ${accent} used ${n} times, expected 8 to 20`);
 }
 
+// Pro kits carry the same per-entry requirements, but not the balance quotas:
+// the free library is large enough for every layout family to earn its keep,
+// and a shelf of eight kits is not. Each kit still needs a complete brief and
+// every asset it names on disk.
+const proSlugs = new Set(ALL_PRO_TOOLS.map((t) => t.slug));
+for (const tool of ALL_PRO_TOOLS) {
+  if (!PRO_TOOL_VISUALS[tool.slug]) errors.push(`no visuals entry for pro kit "${tool.slug}"`);
+}
+for (const [slug, v] of Object.entries(PRO_TOOL_VISUALS)) {
+  if (!proSlugs.has(slug)) errors.push(`pro visuals entry "${slug}" points at no pro kit`);
+  if (!OG_LAYOUTS.includes(v.ogLayout)) errors.push(`${slug}: unknown OG layout "${v.ogLayout}"`);
+  if (v.colorAccent < 1 || v.colorAccent > 6) errors.push(`${slug}: accent must be 1 to 6`);
+  if (!v.ogHook?.trim()) errors.push(`${slug}: ogHook is empty`);
+  if (!v.visualConcept?.trim()) errors.push(`${slug}: visualConcept is empty`);
+  for (const rel of [v.cardImage, v.heroImage]) {
+    try {
+      if (statSync(join(PUBLIC, rel)).size === 0) errors.push(`${slug}: asset is empty: ${rel}`);
+    } catch {
+      errors.push(`${slug}: asset file missing: ${rel}`);
+    }
+  }
+}
+
 if (errors.length) {
   console.error(`visuals: ${errors.length} problem(s)`);
   for (const e of errors) console.error(`  - ${e}`);
   process.exit(1);
 }
-console.log(`visuals: ${Object.keys(TOOL_VISUALS).length} entries valid, all assets present`);
+console.log(
+  `visuals: ${Object.keys(TOOL_VISUALS).length} free entries and ${Object.keys(PRO_TOOL_VISUALS).length} pro entries valid, all assets present`,
+);
