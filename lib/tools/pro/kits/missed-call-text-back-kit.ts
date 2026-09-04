@@ -150,7 +150,10 @@ function messageFor(
   const sig = who ? ` ${who}` : "";
   const signOff = who ? `\n\n${who}, ${biz}` : `\n\n${biz}`;
   const linkLine = link ? `\n\nOr grab a time here: ${link}` : "";
-  const within = promise >= 60 ? `${Math.round(promise / 60)} hour${promise >= 120 ? "s" : ""}` : `${promise} minutes`;
+  // Pluralized on the rounded hours, not the raw minutes: 90 minutes rounds
+  // to 2 hours and must not read "inside 2 hour" in a customer text.
+  const promiseHours = Math.round(promise / 60);
+  const within = promise >= 60 ? `${promiseHours} hour${promiseHours === 1 ? "" : "s"}` : `${promise} minutes`;
 
   const T = <A, B, C>(f: A, d: B, p: C) => (tone === "friendly" ? f : tone === "direct" ? d : p);
 

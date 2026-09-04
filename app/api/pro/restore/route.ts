@@ -13,9 +13,8 @@ import {
   proKindSlug,
   signProAccess,
   verifyLicenseKey,
-  verifyProAccess,
 } from "@/lib/proAccess";
-import { proAccessCookieOptions } from "@/lib/proAccessServer";
+import { proAccessCookieOptions, readProAccessCookie } from "@/lib/proAccessServer";
 import { PRO_BUNDLE, allProKinds, getProTool } from "@/lib/tools/pro";
 
 // Restore access on another device.
@@ -29,6 +28,32 @@ import { PRO_BUNDLE, allProKinds, getProTool } from "@/lib/tools/pro";
 //                      which emails have bought something.
 
 const SITE = "https://www.theleadflowpro.com";
+
+// The re-send path is unauthenticated by design (that is the point of losing
+// a key), which makes it an email cannon without a throttle: anyone could
+// loop it against a buyer's address and fire branded mail from our domain.
+// This is a best-effort in-memory limiter; serverless instances are
+// ephemeral, so it bounds bursts per instance rather than being airtight,
+// which is the right cost for a $19 product. Key checks are pure HMAC math
+// and are not throttled.
+const RESEND_WINDOW_MS = 60 * 60 * 1000;
+const RESEND_MAX_PER_WINDOW = 3;
+const resendLog = new Map<string, number[]>();
+
+function resendAllowed(key: string, now = Date.now()): boolean {
+  const past = (resendLog.get(key) ?? []).filter((t) => now - t < RESEND_WINDOW_MS);
+  if (past.length >= RESEND_MAX_PER_WINDOW) {
+    resendLog.set(key, past);
+    return false;
+  }
+  past.push(now);
+  resendLog.set(key, past);
+  if (resendLog.size > 5000) {
+    // Drop the oldest entries rather than growing without bound.
+    for (const k of [...resendLog.keys()].slice(0, 1000)) resendLog.delete(k);
+  }
+  return true;
+}
 
 function kitName(kind: string): string {
   if (kind === PRO_BUNDLE.kind) return PRO_BUNDLE.name;
@@ -68,10 +93,7 @@ export async function POST(request: Request) {
         { status: 403 },
       );
     }
-    const existing = verifyProAccess(
-      request.headers.get("cookie")?.match(new RegExp(`(?:^|;\\s*)${PRO_ACCESS_COOKIE}=([^;]+)`))?.[1],
-      secrets,
-    );
+    const existing = await readProAccessCookie();
     const token = signProAccess(mergeProAccess(existing, email, granted), secrets[0]);
     const res = NextResponse.json({
       ok: true,
@@ -84,6 +106,14 @@ export async function POST(request: Request) {
   }
 
   // Re-send the keys. Needs the purchase rows and a mail provider.
+  const requesterIp =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim().slice(0, 64) || "unknown";
+  if (!resendAllowed(`e:${email}`) || !resendAllowed(`ip:${requesterIp}`)) {
+    // The same shape as success on purpose: a limiter that answers
+    // differently would confirm which addresses have purchases.
+    return NextResponse.json({ ok: true, sent: true });
+  }
+
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   const resendKey = process.env.RESEND_API_KEY?.trim();
   if (!serviceKey || !resendKey) {

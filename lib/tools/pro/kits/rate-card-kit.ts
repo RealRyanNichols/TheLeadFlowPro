@@ -116,9 +116,17 @@ function run(v: Values): Result {
   const breakEvenChurn = increasePct > 0 ? increasePct / (1 + increasePct) : 0;
   const revenueChange = increasePct > 0 ? (1 + increasePct) * (1 - churn) - 1 : 0;
 
+  // Shape AND range checked, like every other kit's date field: "2026-13-05"
+  // matches the ISO shape and would otherwise print "undefined 5, 2026" onto
+  // the customer letter.
   const effectiveRaw = str(v, "effectiveDate").trim();
   const today = new Date().toISOString().slice(0, 10);
-  const effective = ISO.test(effectiveRaw) ? effectiveRaw : addDays(today, 60);
+  const validDate = (raw: string) => {
+    if (!ISO.test(raw)) return false;
+    const [y, m, d] = raw.split("-").map(Number);
+    return y >= 1970 && y <= 2999 && m >= 1 && m <= 12 && d >= 1 && d <= 31;
+  };
+  const effective = validDate(effectiveRaw) ? effectiveRaw : addDays(today, 60);
   const notice60 = nextBusinessDay(addDays(effective, -60));
   const notice30 = nextBusinessDay(addDays(effective, -30));
   const checkIn = nextBusinessDay(addDays(effective, 30));

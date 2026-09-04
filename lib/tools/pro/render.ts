@@ -103,8 +103,14 @@ export function withBrand(values: Values, brand: Record<string, unknown> | undef
   ]) {
     const raw = brand?.[id];
     if (typeof raw !== "string") continue;
-    // The logo is a data URL and needs room; everything else is a short line.
-    out[id] = raw.slice(0, id === "brand_logo" ? 400_000 : 300);
+    if (id === "brand_logo") {
+      // Never truncate a data URL: a sliced prefix is still valid base64 and
+      // would render as a broken image on every printed page. Over the limit
+      // means no logo, which every kit degrades through gracefully.
+      if (raw.length <= 400_000) out[id] = raw;
+    } else {
+      out[id] = raw.slice(0, 300);
+    }
   }
   return out;
 }

@@ -172,6 +172,7 @@ export default async function ProToolPage({ params }: { params: Promise<{ slug: 
             slug={kit.slug}
             name={kit.name}
             priceUsd={kit.pro.priceUsd}
+            bundlePriceUsd={PRO_BUNDLE.priceUsd}
             fields={kit.fields}
             kit={kit.pro.kit}
             promise={kit.pro.promise}

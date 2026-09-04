@@ -99,9 +99,17 @@ export function readLogoFile(file: File): Promise<string> {
           return;
         }
         ctx.drawImage(img, 0, 0, w, h);
-        // PNG keeps a transparent background, which is what a logo needs.
+        // PNG keeps a transparent background, which is what a logo needs. The
+        // JPEG fallback is size-checked too: an over-limit result must reject
+        // here, because the server drops oversized logos rather than truncating
+        // a data URL into a broken image on every printed page.
         const out = canvas.toDataURL("image/png");
-        resolve(out.length <= 400_000 ? out : canvas.toDataURL("image/jpeg", 0.85));
+        if (out.length <= 400_000) {
+          resolve(out);
+          return;
+        }
+        const jpeg = canvas.toDataURL("image/jpeg", 0.85);
+        resolve(jpeg.length <= 400_000 ? jpeg : "");
       };
       img.src = dataUrl;
     };

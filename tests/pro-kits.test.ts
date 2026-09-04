@@ -1014,3 +1014,78 @@ describe("white-label tool embeds", () => {
     assert.match(page.body, /&lt;script&gt;/);
   });
 });
+
+/* ------------------------- fixes from the adversarial review ---------------- */
+
+describe("review findings stay fixed", () => {
+  test("zero existing reviews needs one review, never zero", () => {
+    const r = run("google-review-kit", { total: 0, current: 1, goal: 4.8 });
+    assert.equal(r.headline?.value, "1");
+  });
+
+  test("a costed line priced at zero is flagged as losing money", () => {
+    const r = run("job-estimate-kit", { lines: "Haul away, included | 140 | 0\nLabor | 100 | 400" });
+    const sheet = doc(r, "margin");
+    assert.match(sheet.body, /LOSING MONEY/);
+    assert.equal(r.verdict?.tone, "bad");
+  });
+
+  test("an out of range effective date falls back instead of printing undefined", () => {
+    const letters = doc(run("rate-card-kit", { effectiveDate: "2026-13-05" }), "letters");
+    assert.equal(letters.body.includes("undefined"), false);
+  });
+
+  test("ninety minutes reads as 2 hours, plural", () => {
+    const messages = doc(run("missed-call-text-back-kit", { promise: 90, tone: "direct" }), "messages");
+    assert.match(messages.body, /inside 2 hours/);
+    assert.equal(messages.body.includes("2 hour "), false);
+  });
+
+  test("a closing script tag inside an answer cannot break the schema block", () => {
+    const block = doc(
+      run("local-seo-schema-kit", {
+        faqs: "Is it safe? | Yes.</script><script>alert(1)</script> Very safe.",
+        services: "Repair | good",
+      }, { brand_name: "Test Co", brand_site: "test.com", brand_city: "Longview" }),
+      "faqblock",
+    );
+    assert.equal(block.body.includes("</script><script>alert(1)"), false, "the payload is escaped");
+    // Escaping "<" alone is enough: a closing tag cannot form without a literal "<".
+    assert.match(block.body, /\\u003c\/script>/);
+    assert.equal(block.body.indexOf("</script"), block.body.lastIndexOf("</script"), "only the real closing tag survives");
+    // And the escaped JSON still parses back to the original text.
+    const inner = block.body.replace(/^<script[^>]*>\n/, "").replace(/\n<\/script>$/, "");
+    const parsed = JSON.parse(inner);
+    assert.match(parsed.mainEntity[0].acceptedAnswer.text, /<\/script>/);
+  });
+
+  test("meta titles are flagged when over sixty characters, never truncated", () => {
+    const r = run("local-seo-schema-kit", {
+      services: "Water heater replacement and tankless conversion service | good",
+    }, { brand_name: "Kirby Plumbing and Drain Specialists", brand_city: "Longview" });
+    const over = (r.stats ?? []).find((s) => s.label.includes("over 60"));
+    assert.equal(over?.value, "1");
+    assert.equal(over?.tone, "warn");
+    const plan = doc(r, "pageplan");
+    assert.match(plan.body, /Water heater replacement and tankless conversion service in Longview/);
+  });
+
+  test("calendar UIDs are unique across two kits sharing dates", () => {
+    const a = ics([{ date: "2026-09-08", title: "A" }], "Kirby missed calls");
+    const b = ics([{ date: "2026-09-08", title: "B" }], "Kirby quote follow-up");
+    const uid = (s: string) => s.match(/UID:([^\r]+)/)?.[1];
+    assert.notEqual(uid(a), uid(b));
+  });
+
+  test("an oversized logo is dropped whole, never truncated into the render", () => {
+    const rendered = renderProTool(
+      "missed-call-text-back-kit",
+      {},
+      { brand_logo: `data:image/png;base64,${"A".repeat(500_000)}` },
+      true,
+    );
+    for (const d of rendered!.documents ?? []) {
+      assert.equal(d.body.includes("data:image/png"), false, `${d.id} carries a truncated logo`);
+    }
+  });
+});

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { PRO_ACCESS_COOKIE, mergeProAccess, proAccessSecrets, proKindFromSession, proKindSlug, signProAccess, verifyProAccess } from "@/lib/proAccess";
-import { proAccessCookieOptions } from "@/lib/proAccessServer";
+import { PRO_ACCESS_COOKIE, mergeProAccess, proAccessSecrets, proKindFromSession, proKindSlug, signProAccess } from "@/lib/proAccess";
+import { proAccessCookieOptions, readProAccessCookie } from "@/lib/proAccessServer";
 import { PRO_BUNDLE, proCatalog } from "@/lib/tools/pro";
 
 // Where Stripe sends the buyer the second the card clears.
@@ -58,10 +58,7 @@ export async function GET(request: Request) {
   if (!kind) return redirect("/tools/pro/unlock?claim=notfound");
 
   const email = (session.customer_details?.email || session.customer_email || "").toString();
-  const existing = verifyProAccess(
-    request.headers.get("cookie")?.match(new RegExp(`(?:^|;\\s*)${PRO_ACCESS_COOKIE}=([^;]+)`))?.[1],
-    secrets,
-  );
+  const existing = await readProAccessCookie();
   const token = signProAccess(mergeProAccess(existing, email, [kind]), secrets[0]);
 
   const slug = proKindSlug(kind);

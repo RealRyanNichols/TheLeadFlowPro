@@ -429,10 +429,17 @@ export function ics(events: CalendarEvent[], calendarName: string): string {
     fold(`X-WR-CALNAME:${clean(calendarName)}`),
   ];
 
+  // The calendar name participates in every UID. Without it, two kits whose
+  // calendars share a date and an array position collide, and RFC 5545
+  // clients treat the second import as an update that silently replaces the
+  // first event.
+  const calSlug =
+    calendarName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "kit";
+
   events.forEach((event, index) => {
     const day = event.date.replace(/-/g, "");
     lines.push("BEGIN:VEVENT");
-    lines.push(`UID:lfp-${day}-${index}@theleadflowpro.com`);
+    lines.push(fold(`UID:lfp-${calSlug}-${day}-${index}@theleadflowpro.com`));
     lines.push(`DTSTAMP:${stamp}`);
     if (event.time) {
       const start = `${day}T${event.time.replace(":", "")}00`;

@@ -47,11 +47,6 @@ export function getProTool(slug: string): ProTool | undefined {
   return BY_SLUG.get(slug);
 }
 
-/** A free tool or a pro kit by slug. The engine looks tools up this way. */
-export function getAnyTool(slug: string): Tool | undefined {
-  return getTool(slug) ?? getProTool(slug);
-}
-
 export function isProSlug(slug: string): boolean {
   return BY_SLUG.has(slug);
 }
@@ -80,14 +75,6 @@ export function proCatalog(): { slug: string; name: string; priceUsd: number }[]
 /** The kits that name this free tool as the thing they upgrade. */
 export function proUpgradesFor(freeSlug: string): ProTool[] {
   return PRO_TOOLS.filter((t) => t.pro.upgradeFrom.includes(freeSlug));
-}
-
-/** Kits that share an industry with the given list, most popular first. */
-export function proToolsForIndustries(industries: readonly string[], n = 4): ProTool[] {
-  const wanted = new Set(industries);
-  return PRO_TOOLS.filter((t) => t.industries.some((i) => wanted.has(i)))
-    .sort((a, b) => b.popularity - a.popularity)
-    .slice(0, n);
 }
 
 /* ------------------------------ client index ------------------------------ */
@@ -150,7 +137,3 @@ export function documentPreview(doc: ToolDocument, chars = 220): string {
 export function sortProTools(list: ProTool[] = PRO_TOOLS): ProTool[] {
   return [...list].sort((a, b) => b.popularity - a.popularity || a.name.localeCompare(b.name));
 }
-
-export type { ProToolDef as KitDef };
-export type ProCatalogEntry = ReturnType<typeof proCatalog>[number];
-export const PRO_KIT_DEFINITIONS: ProToolDef[] = PRO_KIT_DEFS;

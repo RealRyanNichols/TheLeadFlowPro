@@ -227,7 +227,14 @@ function run(v: Values): Result {
   // The same formula the free review goal calculator uses, with the same
   // stated assumption: every new review is five stars.
   const alreadyThere = current >= goal;
-  const needed = alreadyThere ? 0 : Math.max(0, Math.ceil((total * (goal - current)) / (5 - goal)));
+  // With zero existing reviews the formula degenerates to zero needed, which
+  // is nonsense: the first five star review sets the average at 5. One is the
+  // honest floor whenever the target has not been met.
+  const needed = alreadyThere
+    ? 0
+    : total === 0
+      ? 1
+      : Math.max(1, Math.ceil((total * (goal - current)) / (5 - goal)));
   const weeklyYes = weekly * yesRate;
   const weeksToGoal = needed > 0 && weeklyYes > 0 ? Math.ceil(needed / weeklyYes) : 0;
 

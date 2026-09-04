@@ -154,7 +154,6 @@ function run(v: Values): Result {
     telephone: brand.phoneHref || undefined,
     email: brand.email || undefined,
     priceRange,
-    image: brand.logo ? undefined : undefined,
     address:
       street || city || state || zip
         ? {
@@ -206,8 +205,11 @@ function run(v: Values): Result {
     ],
   });
 
+  // "<" is escaped to \u003c inside the JSON (the same trick Next.js uses),
+  // because a service or answer containing "</script>" would otherwise
+  // terminate the script element early when pasted into the buyer's page.
   const scriptTag = (json: unknown) =>
-    `<script type="application/ld+json">\n${JSON.stringify(json, null, 2)}\n</script>`;
+    `<script type="application/ld+json">\n${JSON.stringify(json, null, 2).replace(/</g, "\\u003c")}\n</script>`;
 
   const faqGraph = faqs.length
     ? prune({
@@ -223,8 +225,11 @@ function run(v: Values): Result {
 
   /* ------------------------------- page plan ------------------------------- */
 
+  // Titles are NOT truncated: the promise on the page is that over-length
+  // titles are flagged so the owner shortens the words, not mangled mid-word
+  // by a tool. The character columns and the over-60 stat do the flagging.
   const clamp = (s: string, max: number) => (s.length <= max ? s : `${s.slice(0, max - 1).trimEnd()}`);
-  const titleFor = (service: string) => clamp(city ? `${service} in ${city} | ${brand.name}` : `${service} | ${brand.name}`, 60);
+  const titleFor = (service: string) => (city ? `${service} in ${city} | ${brand.name}` : `${service} | ${brand.name}`);
   const descFor = (s: ServiceEntry) =>
     clamp(
       `${s.blurb || `${s.name} from ${brand.name}`}${city ? ` Serving ${city}${areas.length ? " and " + areas.filter((a) => a !== city).slice(0, 3).join(", ") : ""}.` : ""} Call ${brand.phone || "us"} for a straight answer.`,

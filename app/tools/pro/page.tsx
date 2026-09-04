@@ -101,7 +101,7 @@ export default async function ProShelfPage() {
               {
                 icon: <ShieldCheck className="h-5 w-5" />,
                 title: "Your brand, not ours",
-                body: "Set your business name, phone, city, color and logo once. Every kit on this shelf uses it. Nothing you type is uploaded or stored on our servers.",
+                body: "Set your business name, phone, city, color and logo once. Every kit on this shelf uses it. It is saved on your device, sent only to build your documents, and never stored on our servers.",
               },
               {
                 icon: <RefreshCw className="h-5 w-5" />,

@@ -56,12 +56,12 @@ export function parseEstimateLines(text: string): { lines: EstimateLine[]; bad: 
       const price = moneyIn(parts[parts.length - 1]);
       const description = parts.slice(0, -2).join(" | ").slice(0, 200);
       if (description && price !== null) {
-        lines.push({
-          description,
-          cost,
-          price,
-          margin: cost !== null && price > 0 ? (price - cost) / price : null,
-        });
+        // A costed line priced at zero is the clearest money-loser there is,
+        // and share-of-price math cannot express it, so it is pinned to -1 to
+        // guarantee the LOSING flag instead of an innocent "unknown".
+        const margin =
+          cost === null ? null : price > 0 ? (price - cost) / price : cost > 0 ? -1 : null;
+        lines.push({ description, cost, price, margin });
         continue;
       }
     } else if (parts.length === 2) {

@@ -55,8 +55,8 @@ export default function BrandKitPanel({
         <div>
           <h3>Your brand kit</h3>
           <p>
-            Fill this in once. Every kit on this site uses it, and it stays in this browser.
-            Nothing here is uploaded.
+            Fill this in once. Every kit on this site uses it. It is saved on this device only,
+            sent solely to build your documents, and never stored on our servers.
           </p>
         </div>
         {kit.brand_name.trim() ? (

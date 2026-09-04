@@ -104,6 +104,7 @@ export default function ProToolEngine({
   slug,
   name,
   priceUsd,
+  bundlePriceUsd,
   fields,
   kit,
   promise,
@@ -112,6 +113,9 @@ export default function ProToolEngine({
   slug: string;
   name: string;
   priceUsd: number;
+  /** Passed from the server page so the client bundle never imports the kit
+   * registry just to print one number, and so a reprice cannot go stale here. */
+  bundlePriceUsd: number;
   fields: Field[];
   kit: string[];
   promise: string;
@@ -180,13 +184,19 @@ export default function ProToolEngine({
     [slug],
   );
 
-  function openDocument(doc: { title: string; body: string }) {
-    const win = window.open("", "_blank", "noopener");
+  function openDocument(doc: { title: string; filename?: string; body: string }) {
+    // No "noopener" feature here: per spec that makes window.open return null
+    // in every browser, which would silently kill the print flow for every
+    // printable document. The window holds our own generated content, and the
+    // opener link is severed by hand right after it opens.
+    const win = window.open("", "_blank");
     if (!win) {
-      // Popup blocked. Fall back to a download so the buyer still gets it.
-      downloadBlob(`${doc.title}.html`, new Blob([doc.body], { type: "text/html;charset=utf-8" }));
+      // Genuinely popup blocked. Fall back to a download so the buyer still
+      // gets the document, under its real filename.
+      downloadBlob(doc.filename || `${doc.title}.html`, new Blob([doc.body], { type: "text/html;charset=utf-8" }));
       return;
     }
+    win.opener = null;
     win.document.open();
     win.document.write(doc.body);
     win.document.close();
@@ -533,8 +543,8 @@ export default function ProToolEngine({
             </p>
             <p className="pro-buy-alt">
               Want them all?{" "}
-              <Link href="/tools/pro#bundle">Every kit is $49 together</Link>. Already bought this one?{" "}
-              <Link href="/tools/pro/unlock">Restore your access</Link>.
+              <Link href="/tools/pro#bundle">Every kit is ${bundlePriceUsd} together</Link>. Already bought this
+              one? <Link href="/tools/pro/unlock">Restore your access</Link>.
             </p>
           </div>
         ) : (
