@@ -78,7 +78,7 @@ export default async function BusinessScoreboardPage({
                 <a href={business.url} target="_blank" rel="noopener noreferrer">
                   Visit the site <ExternalLink aria-hidden="true" />
                 </a>
-                <a href="#legend">What is an unpaid lead? <ArrowRight aria-hidden="true" /></a>
+                <a href="#legend">What do the numbers mean? <ArrowRight aria-hidden="true" /></a>
               </div>
             </div>
             <div className={styles.liveBadge}>
@@ -111,10 +111,10 @@ export default async function BusinessScoreboardPage({
             </div>
           )}
           <p className={styles.boardFoot}>
-            Days are counted in Central time. Views exclude our own traffic and known bots. A lead is a real
-            person who left a name and a way to reach them, or called the business line. Paid means the lead
-            came from an ad the business paid for. No names, contact details, or dollar figures are published
-            here, ever.
+            Days are counted in Central time. Views are tracked page loads after the feed&apos;s filters.
+            Lead records can include forms, calls, and manually entered contacts; they are not necessarily
+            unique people or completed purchases. Ad-attributed means the record has an advertising source
+            or paid campaign tag. No names, contact details, or dollar figures are published here.
           </p>
         </div>
       </section>
@@ -179,10 +179,10 @@ export default async function BusinessScoreboardPage({
           </div>
           <div className={styles.callout}>
             <p>
-              <strong>Why unpaid leads are the number to watch.</strong> A paid lead costs money every single
-              time. An unpaid lead came from something the business owns and keeps: an article that ranks, a
-              free tool people share, a Google listing, a form on a page that loads fast. Build enough of
-              those and the board keeps moving on the days the ad budget is off.
+              <strong>Know what the board is counting.</strong> A lead record is not a paying customer.
+              Ad-attributed leads have an advertising source or campaign tag. Other records may come from
+              organic traffic, referrals, direct contact, manual entries, or an unknown source. We show
+              the recorded counts so you can ask better questions about the work behind them.
             </p>
             <Link href="/free-build">Build the owned side <ArrowRight aria-hidden="true" /></Link>
           </div>

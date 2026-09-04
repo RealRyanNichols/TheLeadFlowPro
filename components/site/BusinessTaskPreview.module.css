@@ -1,0 +1,689 @@
+.section {
+  --ink: #252438;
+  --muted: #625d70;
+  --violet: #5135e5;
+  color: var(--ink);
+  width: min(1160px, calc(100% - 48px));
+  margin: clamp(48px, 7vw, 92px) auto;
+  font-size: 16px;
+  line-height: 1.6;
+  scroll-margin-top: 110px;
+}
+
+.section *,
+.section *::before,
+.section *::after {
+  box-sizing: border-box;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.heading {
+  max-width: 760px;
+  margin-bottom: 28px;
+}
+.eyebrow,
+.smallLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.eyebrow {
+  color: var(--violet);
+  margin-bottom: 12px;
+}
+.heading h2 {
+  color: var(--ink);
+  font-size: clamp(30px, 3.8vw, 46px);
+  line-height: 1.15;
+  letter-spacing: -0.045em;
+  margin: 0;
+  font-weight: 750;
+  text-wrap: balance;
+}
+.heading > p {
+  color: var(--muted);
+  font-size: 18px;
+  margin: 16px 0 0;
+  max-width: 630px;
+}
+.switcher {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.taskButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  border: 1px solid #d6cec1;
+  border-radius: 16px;
+  padding: 16px;
+  min-height: 82px;
+  background: #f3efe8;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.taskButton:hover {
+  background: #ece5f6;
+  border-color: #b6a8e0;
+}
+.taskButton[aria-pressed="true"] {
+  background: #e9e2f7;
+  border-color: #9b87de;
+  box-shadow:
+    inset 0 0 0 1px #9b87de,
+    0 3px 0 #ddd3ef;
+}
+.taskButton strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+.taskHint {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+.taskIcon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #e6dfd5;
+  color: #6b606c;
+}
+.taskButton[aria-pressed="true"] .taskIcon {
+  background: var(--violet);
+  color: #fff;
+}
+.selectionMark {
+  width: 19px;
+  height: 19px;
+  margin-left: auto;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid #b7afa4;
+  color: transparent;
+}
+.taskButton[aria-pressed="true"] .selectionMark {
+  background: var(--violet);
+  border-color: var(--violet);
+  color: #fff;
+}
+.taskButton:focus-visible,
+.primaryLink:focus-visible,
+.learning a:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 4px;
+}
+.preview {
+  border: 1px solid #d6cec1;
+  border-radius: 25px;
+  overflow: hidden;
+  background: linear-gradient(120deg, #f3efe8 35%, #ece6f3);
+  box-shadow: 0 18px 45px -35px #70617f;
+}
+.previewTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 26px;
+  border-bottom: 1px solid #dbd3c9;
+  background: #ece6dc;
+}
+.steps {
+  display: flex;
+  list-style: none;
+  gap: 24px;
+  padding: 0;
+  margin: 0;
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #635b6a;
+  font-size: 12px;
+  font-weight: 650;
+}
+.steps li > span {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border: 1px solid #bfb5c8;
+  border-radius: 50%;
+  font-size: 11px;
+  color: #544362;
+  background: #f3efe8;
+}
+.exampleTag {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  color: #5c477a;
+  background: #e4d9f1;
+  border-radius: 7px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 750;
+}
+.story {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: clamp(24px, 4vw, 52px);
+  padding: 32px;
+  animation: appear 0.2s ease-out;
+}
+.before {
+  min-width: 0;
+  align-self: center;
+}
+.smallLabel {
+  color: #74617e;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+}
+.before h3 {
+  color: var(--ink);
+  font-size: clamp(23px, 2.6vw, 31px);
+  font-weight: 750;
+  line-height: 1.22;
+  letter-spacing: -0.035em;
+  margin: 12px 0 22px;
+  text-wrap: balance;
+}
+.beforeNote {
+  border-left: 3px solid #d6b392;
+  padding: 2px 0 2px 17px;
+}
+.beforeNote > strong {
+  display: block;
+  color: #514655;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 650;
+}
+.beforeNote p {
+  margin: 7px 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.questions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.questions > span {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid #ddc7b1;
+  background: #f7e4cd;
+  border-radius: 6px;
+  color: #775842;
+  font-size: 11px;
+}
+.direction {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #6a55ac;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 22px;
+}
+.after {
+  min-width: 0;
+  border-radius: 19px;
+  border: 1px solid #d4c9e6;
+  background: #e9e2f7;
+  box-shadow: 0 9px 22px -17px #75688c;
+  overflow: hidden;
+}
+.afterHeading {
+  padding: 18px 20px 14px;
+}
+.afterHeading h4 {
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+  margin: 4px 0 0;
+  font-weight: 750;
+}
+.message,
+.website,
+.checklist {
+  margin: 0 12px;
+  border: 1px solid #ded4cd;
+  border-radius: 12px;
+  background: #faf5eb;
+  color: #443c4f;
+  overflow: hidden;
+}
+.message,
+.checklist {
+  padding: 20px;
+}
+.outputLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #71657e;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.message p {
+  font-size: 15px;
+  line-height: 1.8;
+  margin: 0 0 12px;
+}
+.reviewNote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #52644e;
+  margin-top: 18px;
+}
+.reviewNote > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #789175;
+}
+.checks {
+  list-style: none;
+  padding: 15px 20px 18px;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 15px;
+}
+.checks li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #615176;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.checks svg {
+  color: #627d5c;
+  flex-shrink: 0;
+}
+.websiteTop {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  background: #efe4d5;
+  border-bottom: 1px solid #e2d5c6;
+}
+.websiteTop > span:not(:last-child) {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #b4a99a;
+}
+.websiteTop > span:last-child {
+  margin-left: 7px;
+  font-size: 10px;
+  color: #756958;
+}
+.websiteBody {
+  padding: 20px;
+}
+.location {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #64715e;
+}
+.websiteBody .websiteHeadline {
+  color: #383c36;
+  font-size: 25px;
+  line-height: 1.15;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  margin: 12px 0;
+}
+.websiteBody > p {
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 0;
+  color: #686252;
+}
+.sampleAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 6px;
+  padding: 8px 11px;
+  margin-top: 15px;
+  background: #d9e3cf;
+  color: #465840;
+  font-size: 11px;
+  font-weight: 750;
+}
+.checklist ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-bottom: 1px solid #e5dbce;
+  padding: 13px 0;
+}
+.checklist li:last-child {
+  border: 0;
+  padding-bottom: 0;
+}
+.checklist li > div {
+  min-width: 0;
+}
+.checklist strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 750;
+}
+.checklist li > div > span {
+  display: block;
+  color: #766b77;
+  font-size: 11px;
+  margin-top: 3px;
+  line-height: 1.5;
+}
+.checkbox {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  border: 1.5px solid #9b8ca8;
+  border-radius: 4px;
+  margin-top: 2px;
+}
+.firstTag {
+  margin-left: auto;
+  padding: 2px 6px;
+  font-size: 10px;
+  color: #71604a;
+  background: #f2dfc1;
+  border-radius: 5px;
+}
+.nextStep {
+  border-top: 1px solid #d9cfe2;
+  padding: 22px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: #e8e0ee;
+}
+.nextStep > div {
+  max-width: 520px;
+  min-width: 0;
+}
+.nextStep p {
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+.nextStep > div > span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+.primaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 18px;
+  min-height: 48px;
+  border-radius: 10px;
+  background: var(--violet);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 750;
+  text-decoration: none;
+  text-align: center;
+  box-shadow: 0 4px 0 #d0c3ed;
+  flex-shrink: 0;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+.primaryLink:hover {
+  background: #4426d3;
+  transform: translateY(-1px);
+}
+.primaryLink svg {
+  flex-shrink: 0;
+}
+.learning {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 13px;
+  flex-wrap: wrap;
+  padding: 22px 16px 0;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+.learning > span,
+.learning a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.learning > span > svg {
+  color: #817093;
+  flex-shrink: 0;
+}
+.learning a {
+  color: var(--violet);
+  font-weight: 750;
+  text-underline-offset: 4px;
+  border-radius: 3px;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0.6;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 880px) {
+  .taskButton {
+    padding: 13px;
+    gap: 9px;
+  }
+  .taskHint {
+    font-size: 11px;
+  }
+  .selectionMark {
+    display: none;
+  }
+  .steps {
+    gap: 14px;
+  }
+  .story {
+    padding: 24px;
+    gap: 24px;
+  }
+  .nextStep {
+    padding: 20px 24px;
+  }
+  .primaryLink {
+    max-width: 260px;
+  }
+}
+
+@media (max-width: 640px) {
+  .section {
+    width: calc(100% - 32px);
+    margin: 44px auto;
+  }
+  .heading {
+    margin-bottom: 22px;
+  }
+  .heading > p {
+    font-size: 16px;
+  }
+  .switcher {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .taskButton {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    min-height: 94px;
+    border-radius: 12px;
+    padding: 11px 5px;
+    gap: 7px;
+  }
+  .taskButton strong {
+    font-size: 12px;
+  }
+  .taskIcon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+  }
+  .taskIcon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .taskHint {
+    display: none;
+  }
+  .preview {
+    border-radius: 19px;
+  }
+  .previewTop {
+    align-items: flex-start;
+    padding: 15px 16px;
+    gap: 10px;
+  }
+  .steps {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+  .steps li {
+    font-size: 10px;
+    gap: 5px;
+  }
+  .steps li > span {
+    width: 17px;
+    height: 17px;
+    font-size: 9px;
+  }
+  .exampleTag {
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+  .story {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 22px 16px;
+    gap: 22px;
+  }
+  .before h3 {
+    font-size: 25px;
+    margin-bottom: 17px;
+  }
+  .direction {
+    margin-top: 17px;
+  }
+  .direction svg {
+    transform: rotate(90deg);
+  }
+  .afterHeading {
+    padding: 17px 16px 13px;
+  }
+  .message,
+  .checklist {
+    padding: 16px;
+  }
+  .message p {
+    font-size: 14px;
+  }
+  .checks {
+    padding: 13px 16px 16px;
+    gap: 7px;
+  }
+  .nextStep {
+    padding: 20px 16px 22px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .primaryLink {
+    max-width: none;
+    width: 100%;
+    padding: 14px;
+    font-size: 13px;
+  }
+  .learning {
+    padding: 18px 4px 0;
+    gap: 5px 13px;
+    font-size: 12px;
+  }
+  .learning a {
+    min-height: 42px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story {
+    animation: none;
+  }
+  .taskButton,
+  .primaryLink {
+    transition: none;
+  }
+  .primaryLink:hover {
+    transform: none;
+  }
+}

@@ -63,7 +63,7 @@ export const metadata: Metadata = {
 // light everywhere. globals.css already declares color-scheme:light on :root;
 // these are the document-level defaults that were still contradicting it.
 export const viewport = {
-  themeColor: "#f7f5f2",
+  themeColor: "#f3efe8",
   colorScheme: "light" as const,
 };
 

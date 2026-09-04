@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import NextStepGuide from "@/components/site/NextStepGuide";
 import HomeScoreboard from "@/components/site/HomeScoreboard";
+import BusinessTaskPreview from "@/components/site/BusinessTaskPreview";
 import { LADDER } from "@/lib/siteContent";
 import { TOOL_COUNT } from "@/lib/tools";
 
@@ -153,8 +154,8 @@ export default function HomePage() {
             <Link className="lf-button" href="#qualify">
               Find my next step <ArrowRight size={19} aria-hidden="true" />
             </Link>
-            <Link className="lf-text-link" href="/scoreboard">
-              See the scoreboard <ArrowUpRight size={18} aria-hidden="true" />
+            <Link className="lf-text-link" href="#see-it-work">
+              See how this helps <ArrowUpRight size={18} aria-hidden="true" />
             </Link>
           </div>
           <div className="lf-hero-trust">
@@ -197,6 +198,7 @@ export default function HomePage() {
           </a>
         </div>
       </section>
+      <BusinessTaskPreview />
       <section className="lf-section lf-section-raised" id="qualify">
         <div className="lf-shell">
           <div className="lf-section-heading">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Activity, Eye, PhoneCall, Users } from "lucide-react";
+import { ArrowRight, Eye, PhoneCall, Users } from "lucide-react";
 import {
   SCOREBOARD_BUSINESSES,
   SCOREBOARD_METRICS,
@@ -14,6 +14,27 @@ export const revalidate = 900;
 const TITLE = "Scoreboard | Real views, clicks and leads per business | The LeadFlow Pro";
 const DESCRIPTION =
   "One live scoreboard per business we run or built: views, clicks, leads, paid leads and unpaid leads, rolling daily. Real numbers from each business's own records, no estimates.";
+
+const BUSINESS_STORIES: Record<string, { initials: string; tone: string; purpose: string; detail: string }> = {
+  "the-leadflow-pro": {
+    initials: "LF",
+    tone: "lavenderCard",
+    purpose: "Give a visitor a useful next step.",
+    detail: "Free tools, practical lessons, and clear offers connect the website to the work behind it.",
+  },
+  "premier-dental-academy-of-longview": {
+    initials: "PD",
+    tone: "sageCard",
+    purpose: "Help future students find their way.",
+    detail: "Study tools, course information, and enrollment forms put the next step within reach.",
+  },
+  realryannichols: {
+    initials: "RN",
+    tone: "peachCard",
+    purpose: "Give readers a place to go deeper.",
+    detail: "Articles and searchable public records sit alongside contact and signup forms.",
+  },
+};
 
 export const metadata = {
   title: TITLE,
@@ -42,64 +63,92 @@ export default async function ScoreboardIndexPage() {
           <div className={styles.heroRow}>
             <div>
               <p className={styles.eyebrow}>The Scoreboard</p>
-              <h1>What the businesses we build are actually doing. Every day.</h1>
+              <h1>Real businesses.<br /><em>Work you can follow.</em></h1>
               <p className={styles.lead}>
-                Views, clicks, and recorded leads, with advertising attribution. One board per business, straight from that
-                business&apos;s own records. No estimates, no samples, no dressing it up. When a number is
-                low, it shows low. That is the point.
+                See what happens after a site goes live: people arrive, take action, and become
+                recorded inquiries. Open a business to follow the work.
               </p>
-              <div className={styles.heroActions}>
-                <a href="#boards">See the boards <ArrowRight aria-hidden="true" /></a>
-                <a href="#legend">What do the numbers mean? <Activity aria-hidden="true" /></a>
-              </div>
+              <p className={styles.heroNote}>Activity and contact records, not unique customers or revenue.</p>
             </div>
             <div className={styles.liveBadge}>
               <p>Data source</p>
               <strong>Each business&apos;s own database</strong>
               <small>Aggregate counts only. Refreshes every 15 minutes.</small>
+              <span className={styles.sourceNote}>Real records. Room to improve.</span>
             </div>
           </div>
+          <nav className={styles.pageJourney} aria-label="Explore the scoreboard">
+            <a href="#boards"><span>01</span> See the work <ArrowRight aria-hidden="true" /></a>
+            <a href="#legend"><span>02</span> Understand the numbers <ArrowRight aria-hidden="true" /></a>
+            <a href="#your-business"><span>03</span> Your business next <ArrowRight aria-hidden="true" /></a>
+          </nav>
         </div>
       </section>
 
       <section className={styles.boards} id="boards" aria-label="Business scoreboards">
         <div className={styles.shell}>
+          <div className={styles.sectionIntro}>
+            <div>
+              <p className={styles.eyebrow}>01 / See the work</p>
+              <h2>Different businesses.<br />A useful next step.</h2>
+            </div>
+            <p>Start with the last 30 days. Open a board to see the daily activity and what each number counts.</p>
+          </div>
           <div className={styles.boardGrid}>
             {results.map(({ business, result }) => {
               const totals = result.ok ? summarizeWindow(result.days, 30) : null;
+              const story = BUSINESS_STORIES[business.slug] ?? {
+                initials: business.shortName.slice(0, 2).toUpperCase(),
+                tone: "lavenderCard",
+                purpose: "Follow the work behind the website.",
+                detail: business.what,
+              };
               return (
-                <Link key={business.slug} href={`/scoreboard/${business.slug}`} className={styles.boardCard}>
-                  <p className={styles.cardMeta}>{business.town}</p>
-                  <h2>{business.name}</h2>
-                  <p>{business.what}</p>
+                <Link key={business.slug} href={`/scoreboard/${business.slug}`} className={`${styles.boardCard} ${styles[story.tone]}`}>
+                  <div className={styles.cardIdentity}>
+                    <span className={styles.monogram} aria-hidden="true">{story.initials}</span>
+                    <div>
+                      <p className={styles.cardMeta}>{business.town}</p>
+                      <h3>{business.name}</h3>
+                    </div>
+                  </div>
+                  <div className={styles.cardStory}>
+                    <strong>{story.purpose}</strong>
+                    <p>{story.detail}</p>
+                  </div>
+                  <p className={styles.cardPeriod}>The last 30 days</p>
                   <div className={styles.cardStats}>
                     <div>
-                      <span><Eye aria-hidden="true" size={12} /> Views, 30 days</span>
+                      <span><Eye aria-hidden="true" size={15} /> Page views</span>
                       {totals ? <strong>{formatCount(totals.views)}</strong> : <strong className={styles.unavailable}>Unavailable</strong>}
                     </div>
                     <div>
-                      <span><Users aria-hidden="true" size={12} /> Leads, 30 days</span>
+                      <span><Users aria-hidden="true" size={15} /> Lead records</span>
                       {totals ? <strong>{formatCount(totals.leads)}</strong> : <strong className={styles.unavailable}>Unavailable</strong>}
                     </div>
                     <div>
-                      <span><PhoneCall aria-hidden="true" size={12} /> Other lead records</span>
+                      <span><PhoneCall aria-hidden="true" size={15} /> Other lead records</span>
                       {totals ? <strong>{formatCount(totals.unpaid_leads)}</strong> : <strong className={styles.unavailable}>Unavailable</strong>}
                     </div>
                   </div>
                   <div className={styles.cardFoot}>
-                    <span>Open the board</span>
+                    <span>Follow this business</span>
                     <ArrowRight aria-hidden="true" />
                   </div>
                 </Link>
               );
             })}
           </div>
+          <p className={styles.recordNote}>
+            A lead record can be an inquiry, signup, call, or manually entered contact. Other lead records
+            have no paid-ad attribution. These counts do not establish unique customers or completed sales.
+          </p>
         </div>
       </section>
 
       <section className={styles.legend} id="legend" aria-labelledby="legend-title">
         <div className={styles.shell}>
-          <p className={styles.eyebrow}>Read the board</p>
+          <p className={styles.eyebrow}>02 / Understand the numbers</p>
           <h2 id="legend-title">What each number means, and what moves it.</h2>
           <div className={styles.legendGrid}>
             {SCOREBOARD_METRICS.filter((metric) => metric.key !== "sales").map((metric) => (
@@ -127,18 +176,17 @@ export default async function ScoreboardIndexPage() {
         </div>
       </section>
 
-      <section className={styles.cta}>
+      <section className={styles.cta} id="your-business">
         <div className={styles.shell}>
-          <p className={styles.eyebrow}>Your business</p>
-          <h2>Want a board like this with your name on it?</h2>
+          <p className={styles.eyebrow}>03 / Your business next</p>
+          <h2>Your business has a next step, too.</h2>
           <p>
-            Every build we do ships with first-party tracking in your own database, so your board is
-            yours, not a screenshot of someone else&apos;s dashboard. Start with the free website or map the
-            whole company first.
+            Start with the part that needs help: getting found, capturing inquiries, or following up.
+            Tell us what is happening now and find the next step that fits your business.
           </p>
           <div>
-            <Link href="/free-build">Apply for the free website <ArrowRight aria-hidden="true" /></Link>
-            <Link href="/start">Map my company <ArrowRight aria-hidden="true" /></Link>
+            <Link href="/start">Find my next step <ArrowRight aria-hidden="true" /></Link>
+            <Link href="/free-build">Explore the free website program <ArrowRight aria-hidden="true" /></Link>
           </div>
         </div>
       </section>
