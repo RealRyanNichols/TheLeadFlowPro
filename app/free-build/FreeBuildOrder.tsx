@@ -1,18 +1,8 @@
 "use client";
 
-// The Free Build order form.
-//
-// Contract, same as the Time Back and Lead Follow-Up funnels: the lead is
-// SAVED BEFORE Stripe opens. Somebody who bails at the card screen is still a
-// person Ryan can call. That matters more here than anywhere else on the site,
-// because this page is the destination for the cheapest cold traffic we buy.
-//
-// The price is never sent from this component. /api/checkout looks the amount
-// up in lib/freeBuild.ts from the tier id alone.
-//
-// If checkout is not configured, this does NOT show an error. It shows a
-// confirmation, because the lead is already saved and Ryan can send a payment
-// link by hand. A broken card screen must never look like a broken business.
+// Free Website Program application. Paid add-ons are recorded as requests,
+// then reviewed with the website fit and written scope. Payment happens through
+// a separate approved checkout; this form never reserves a build or takes money.
 
 import { useState } from "react";
 import { ArrowRight, Check, Lock } from "lucide-react";
@@ -119,58 +109,34 @@ export default function FreeBuildOrder() {
     }
 
     if (!leadRes.ok) {
-      const body = (await leadRes.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? "That did not go through. Please try again.");
-      setSending(false);
-      return;
-    }
-
-    window.fbq?.("track", "Lead");
-
-    // The free-only tier never touches Stripe. There is nothing to charge, so
-    // firing InitiateCheckout would teach Meta to optimize for a checkout that
-    // does not exist.
-    if (tier.priceUsd === 0) {
-      setSaved(
-        "Your application is in. Ryan will call or email you within one business day to review " +
-          "fit and the written five-page scope. No paid add-on is required. Your customer records, " +
-          "analytics, domain, and website remain under your control.",
+      const body = await leadRes.json().catch(() => ({}));
+      setError(
+        typeof body?.error === "string"
+          ? body.error
+          : "That did not go through. Please try again.",
       );
       setSending(false);
       return;
     }
 
-    window.fbq?.("track", "InitiateCheckout", { value: tier.priceUsd, currency: "USD" });
-
-    // 2. Try to open Stripe. Amount comes from the server, not from here.
+    // Measurement is optional. A tracking failure cannot undo a saved request.
     try {
-      const checkout = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind: tier.id, email }),
-      });
-      if (checkout.ok) {
-        const body = (await checkout.json()) as { url?: string };
-        if (body.url) {
-          window.location.href = body.url;
-          return;
-        }
-      }
+      window.fbq?.("track", "Lead");
     } catch {
-      // fall through to the saved-by-hand path below
+      // Keep the successful application state even if a third-party tag fails.
     }
 
     setSaved(
-      `You are in. Ryan will call or email you within one business day to book the twenty minute ` +
-        `call and send a secure payment link for ${formatUsd(tier.priceUsd)}. Your build slot is ` +
-        `held until then.`,
+      tier.priceUsd === 0
+        ? "Your application is saved for review. Ryan will call or email you within one business day to review fit, capacity, and the written five-page scope. No paid add-on is required."
+        : `Your website application and ${formatUsd(tier.priceUsd)} add-on request are saved for review. Ryan will call or email you within one business day to confirm fit, capacity, and the written scope. If approved, you can accept the paid add-on through a separate secure checkout. This request does not charge you or reserve a build slot.`,
     );
     setSending(false);
   }
 
   if (saved) {
     return (
-      <div className={styles.notice} id="order">
+      <div className={styles.notice} id="order" role="status" aria-live="polite">
         <h3>Your free build request is in.</h3>
         <p>{saved}</p>
         <p className={styles.noticeSmall}>
@@ -218,12 +184,12 @@ export default function FreeBuildOrder() {
       </div>
 
       {/* ------------------------------------------------------------- form --- */}
-      <form onSubmit={submit} className={styles.form}>
+      <form onSubmit={submit} className={styles.form} aria-busy={sending}>
         <div className={styles.formHead}>
           <h3>
             {tier.name} &middot; {formatUsd(tier.priceUsd)}
           </h3>
-          <p>{tier.pages}. Change your pick above any time before you submit.</p>
+          <p>{tier.pages}. Choose an optional add-on for review, or apply for the website by itself. No payment is taken by this form.</p>
         </div>
 
         <div className={styles.formGrid}>
@@ -331,21 +297,23 @@ export default function FreeBuildOrder() {
         </label>
 
         <label className={styles.consentRow}>
-          <input type="checkbox" name="marketing_email_consent" defaultChecked />
+          <input type="checkbox" name="marketing_email_consent" />
           <span>
-            Send me Ryan&rsquo;s immediate confirmation and daily business emails for up to 30 days.
+            Send me Ryan&rsquo;s daily practical business emails for up to 30 days.
             Optional, and one click unsubscribes at any time.
           </span>
         </label>
 
-        {error && <p className={styles.formError}>{error}</p>}
+        <p className={styles.noticeSmall}>Application confirmation and replies about this request are separate from optional marketing emails.</p>
+
+        {error && <p className={styles.formError} role="alert">{error}</p>}
 
         <button type="submit" disabled={sending} className="cb-btn cb-btn--primary">
           {sending
             ? "Sending..."
             : tier.priceUsd === 0
               ? "Apply for My Free Website | $0"
-              : `Claim My Free Build | ${formatUsd(tier.priceUsd)}`}
+              : `Request Website + Add-On | ${formatUsd(tier.priceUsd)}`}
           <ArrowRight aria-hidden="true" />
         </button>
 
@@ -353,7 +321,7 @@ export default function FreeBuildOrder() {
           <Lock aria-hidden="true" />
           {tier.priceUsd === 0
             ? "No card is required for the free website application. The LeadFlow Pro never asks for a password to any of your accounts."
-            : "Card payments are processed by Stripe. The LeadFlow Pro never sees or stores your card number, and never asks for a password to any of your accounts."}
+            : "This is an application and scope request. Any paid add-on is confirmed in writing before a separate Stripe checkout."}
         </p>
       </form>
     </div>

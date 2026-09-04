@@ -1,5 +1,4 @@
 import { TOOL_COUNT } from "@/lib/tools";
-import { ARTICLES } from "@/lib/articles";
 
 // Shared marketing content for the public pages. The homepage, /services, and
 // /results all draw from here so the numbers and case studies stay identical
@@ -147,7 +146,7 @@ export const RECEIPTS = [
   },
   {
     head: "Publishes on owned infrastructure, not rented reach.",
-    body: `${TOOL_COUNT} free working tools and ${ARTICLES.length} articles, all served from domains and databases under his own control.`,
+    body: `${TOOL_COUNT} free working tools and an owned article library, all served from domains and databases under his own control.`,
   },
 ];
 

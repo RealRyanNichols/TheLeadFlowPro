@@ -9,12 +9,12 @@ import { ArrowRight, Menu } from "lucide-react";
 // page content and footer without crowding the primary brand bar.
 const NAV_LINKS: Array<[string, string]> = [
   ["/", "Home"],
-  ["/services", "Services"],
-  ["/results", "Results"],
-  ["https://chatgpt-longview-september-17-2026.therealryannichols.chatgpt.site", "Events"],
-  ["/about", "About"],
-  ["/articles", "Blog"],
-  ["/contact", "Contact"],
+  ["/services", "Build my business"],
+  ["/operator-academy", "Learn"],
+  ["https://workshop.theleadflowpro.com/", "Events"],
+  ["/scoreboard", "Scoreboard"],
+  ["/tools", "Tools"],
+  ["/articles", "Articles"],
 ];
 
 function isWorkspacePath(pathname: string) {
@@ -29,17 +29,39 @@ export default function SiteHeader() {
   return (
     <header className="site-header">
       <div className="site-header-inner">
-        <Link href="/" className="brand-lockup" aria-label="The LeadFlow Pro home">
-          The LeadFlow<span>Pro</span>
+        <Link
+          href="/"
+          className="brand-lockup"
+          aria-label="The LeadFlow Pro home"
+        >
+          <span className="brand-mark" aria-hidden="true">
+            LF
+          </span>
+          <span className="brand-words">
+            THE LEAD FLOW<small>PRO / YOUR NEXT MOVE</small>
+          </span>
         </Link>
         <nav className="desktop-nav" aria-label="Primary navigation">
           {NAV_LINKS.map(([href, label]) => (
-            <Link key={href} href={href}>
+            <Link
+              key={href}
+              href={href}
+              aria-current={
+                pathname === href ||
+                (href !== "/" && pathname.startsWith(`${href}/`))
+                  ? "page"
+                  : undefined
+              }
+            >
               {label}
             </Link>
           ))}
-          <Link href="/free-build" className="header-cta" data-analytics="cta-free-website-header">
-            Free Website
+          <Link
+            href="/#qualify"
+            className="header-cta"
+            data-analytics="cta-free-website-header"
+          >
+            Find my next step
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </nav>
@@ -49,12 +71,25 @@ export default function SiteHeader() {
           </summary>
           <div className="mobile-nav-panel">
             {NAV_LINKS.map(([href, label]) => (
-              <Link key={href} href={href}>
+              <Link
+                key={href}
+                href={href}
+                aria-current={
+                  pathname === href ||
+                  (href !== "/" && pathname.startsWith(`${href}/`))
+                    ? "page"
+                    : undefined
+                }
+              >
                 {label}
               </Link>
             ))}
-            <Link href="/free-build" className="header-cta" data-analytics="cta-free-website-mobile">
-              Free Website
+            <Link
+              href="/#qualify"
+              className="header-cta"
+              data-analytics="cta-free-website-mobile"
+            >
+              Find my next step
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </div>

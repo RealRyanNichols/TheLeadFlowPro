@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ExternalLink, Lock } from "lucide-react";
 import CtaLink from "@/components/site/CtaLink";
-import { ARTICLES } from "@/lib/articles";
 import { TOOL_COUNT } from "@/lib/tools";
 
 // THE WORK.
@@ -214,10 +213,10 @@ const FOUNDER_PLATFORMS: Project[] = [
     what: "The proof you are standing on.",
     problem:
       "Every agency claims it can build a connected system. Almost none of them run one they can show you from the inside.",
-    built: `Guided system mapping, lead capture with attribution and consent, an admin CRM with a per-lead workspace, client dashboards, a training portal, ${TOOL_COUNT} free working tools, ${ARTICLES.length} owned articles, first-party analytics, and ad tracking.`,
+    built: `Guided system mapping, lead capture with attribution and consent, an admin CRM with a per-lead workspace, client dashboards, a training portal, ${TOOL_COUNT} free working tools, an owned article library, first-party analytics, and ad tracking.`,
     facts: [
       { v: String(TOOL_COUNT), l: "free working tools built and published" },
-      { v: String(ARTICLES.length), l: "owned articles, in the repo and on the domain" },
+      { v: "Owned", l: "article library, in the repo and on the domain" },
       { v: "Own CRM", l: "Every lead lands with the full diagnostic attached" },
     ],
     flow: ["Visit tracked", "Guided system map", "Lead captured", "Admin CRM", "Follow-up", "First-party analytics"],

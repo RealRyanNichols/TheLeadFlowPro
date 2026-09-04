@@ -55,6 +55,9 @@ const V4_ARTICLE_ART = Object.fromEntries(
 ) as Record<string, string>;
 
 const PREMIUM_ARTICLE_ART: Record<string, string> = {
+  "one-useful-business-task-with-ai": "/images/articles-v4/ai-website-small-business-2026.jpg",
+  "give-every-inquiry-an-owner-and-next-step": "/images/articles-v4/does-my-business-need-a-crm.jpg",
+  "bring-one-real-task-to-your-business-workshop": "/og/events/chatgpt-for-business-owners-longview.jpg",
   ...V4_ARTICLE_ART,
   // September 2026 field notes reuse existing repo art on purpose: the Premier
   // piece shows the real client site, and the mobile piece shares the traffic
@@ -79,6 +82,9 @@ const PREMIUM_ARTICLE_OG_ART: Record<string, string> = {
 };
 
 const VISUAL_HEADLINES: Record<string, string> = {
+  "one-useful-business-task-with-ai": "One Task. One Useful Result.",
+  "give-every-inquiry-an-owner-and-next-step": "Every Inquiry Has a Next Step",
+  "bring-one-real-task-to-your-business-workshop": "Bring a Task. Learn the Process.",
   "free-tools-that-bring-customers": "Free Tools Fill the Funnel",
   "website-text-too-small-on-mobile": "The Phone Is the Website",
   "data-centers-are-coming-to-texas": "Build for What Is Coming",
@@ -127,6 +133,9 @@ const VISUAL_HEADLINES: Record<string, string> = {
 };
 
 const PREMIUM_ARTICLE_ALT: Record<string, string> = {
+  "one-useful-business-task-with-ai": "An existing LeadFlow illustration showing an owned website and customer system connected to practical AI work",
+  "give-every-inquiry-an-owner-and-next-step": "An existing LeadFlow illustration of calls, messages, forms, and notes converging into one customer record",
+  "bring-one-real-task-to-your-business-workshop": "LeadFlow workshop graphic showing a small Longview class, a laptop, business steps, and the published 97 dollar price",
   "free-tools-that-bring-customers":
     "Premier Dental Academy of Longview homepage with the 12 week RDA program, free training tools, and enrollment paths",
   "website-text-too-small-on-mobile":

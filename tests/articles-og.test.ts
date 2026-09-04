@@ -41,7 +41,14 @@ async function articleOgData() {
   };
 }
 
-test("every article has one distinct 1200 by 630 editorial scene", async () => {
+// These two follow-on field notes intentionally reuse their subject's existing
+// illustration. Keep the exception explicit; arbitrary duplicate art still fails.
+const INTENTIONAL_SCENE_REUSE: Record<string, string> = {
+  "one-useful-business-task-with-ai": "ai-website-small-business-2026",
+  "give-every-inquiry-an-owner-and-next-step": "does-my-business-need-a-crm",
+};
+
+test("every article has a 1200 by 630 editorial scene with deliberate reuse documented", async () => {
   const data = await articleOgData();
   const hashes = new Map<string, string>();
 
@@ -56,8 +63,12 @@ test("every article has one distinct 1200 by 630 editorial scene", async () => {
     assert.equal(metadata.height, 630, `${article.slug} scene must be 630 pixels tall`);
 
     const hash = createHash("sha256").update(file).digest("hex");
-    assert.equal(hashes.has(hash), false, `${article.slug} repeats ${hashes.get(hash)}`);
-    hashes.set(hash, article.slug);
+    const previousSlug = hashes.get(hash);
+    if (previousSlug) {
+      assert.equal(INTENTIONAL_SCENE_REUSE[article.slug], previousSlug, `${article.slug} unexpectedly repeats ${previousSlug}`);
+    } else {
+      hashes.set(hash, article.slug);
+    }
   }
 });
 

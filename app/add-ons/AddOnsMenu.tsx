@@ -500,49 +500,62 @@ export default function AddOnsMenu() {
     const notes = String(form.get("notes") ?? "").trim();
     const params = new URLSearchParams(window.location.search);
 
-    const res = await fetch("/api/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        full_name: form.get("full_name"),
-        business_name: form.get("business_name"),
-        email: form.get("email"),
-        phone: phone || null,
-        website_url: form.get("website_url"),
-        desired_modules: moduleIds,
-        interest: "company_os",
-        goals: [
-          `ADD-ON SCOPE REQUEST (${names.length} item${names.length === 1 ? "" : "s"}): ${names.join("; ")}.`,
-          notes ? `How they want it built: ${notes}` : "",
-        ]
-          .filter(Boolean)
-          .join(" "),
-        best_contact_method: form.get("best_contact_method"),
-        sms_consent: smsConsent,
-        marketing_email_consent: form.get("marketing_email_consent") === "on",
-        utm_source: params.get("utm_source"),
-        utm_medium: params.get("utm_medium"),
-        utm_campaign: params.get("utm_campaign"),
-        diagnostic: {
-          version: 2,
-          source: "add_ons_menu",
-          add_ons: selectedItems.map((i) => ({ id: i.id, name: i.name })),
-          owner_notes: notes || null,
-          next_action:
-            "Review the selected modules, confirm scope, timeline, and price in writing, then schedule paid production work.",
-        },
-      }),
-    });
-    if (!res.ok) {
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: form.get("full_name"),
+          business_name: form.get("business_name"),
+          email: form.get("email"),
+          phone: phone || null,
+          website_url: form.get("website_url"),
+          desired_modules: moduleIds,
+          interest: "company_os",
+          goals: [
+            `ADD-ON SCOPE REQUEST (${names.length} item${names.length === 1 ? "" : "s"}): ${names.join("; ")}.`,
+            notes ? `How they want it built: ${notes}` : "",
+          ]
+            .filter(Boolean)
+            .join(" "),
+          best_contact_method: form.get("best_contact_method"),
+          sms_consent: smsConsent,
+          marketing_email_consent: form.get("marketing_email_consent") === "on",
+          utm_source: params.get("utm_source"),
+          utm_medium: params.get("utm_medium"),
+          utm_campaign: params.get("utm_campaign"),
+          diagnostic: {
+            version: 2,
+            source: "add_ons_menu",
+            add_ons: selectedItems.map((i) => ({ id: i.id, name: i.name })),
+            owner_notes: notes || null,
+            next_action:
+              "Review the selected modules, confirm scope, timeline, and price in writing, then schedule paid production work.",
+          },
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(
+          typeof body?.error === "string"
+            ? body.error
+            : "The request did not go through. Please try again.",
+        );
+        return;
+      }
+      setSubmitted(true);
+      try {
+        window.fbq?.("track", "Lead");
+      } catch {
+        // The request is saved even when optional analytics is unavailable.
+      }
+    } catch {
       setError(
-        (await res.json().catch(() => ({}) as { error?: string })).error ??
-          "The request did not go through. Please try again.",
+        "Could not reach the form. Your picks and notes are still here. Check your connection and try again.",
       );
+    } finally {
       setSending(false);
-      return;
     }
-    window.fbq?.("track", "Lead");
-    setSubmitted(true);
   }
 
   return (
@@ -676,7 +689,7 @@ export default function AddOnsMenu() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className={styles.form}>
+            <form onSubmit={handleSubmit} className={styles.form} aria-busy={sending}>
               <div className={styles.formGrid}>
                 <label className={styles.field}>
                   <span>Your name *</span>
@@ -762,7 +775,7 @@ export default function AddOnsMenu() {
             </form>
           </div>
         ) : (
-          <div className={styles.successCard}>
+          <div className={styles.successCard} role="status" aria-live="polite">
             <CircleCheck aria-hidden="true" />
             <h2>Your build list is in.</h2>
             <p>

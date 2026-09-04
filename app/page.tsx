@@ -1,26 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, MapPin, Phone, Radio, ShieldCheck, Wrench } from "lucide-react";
-import LeadQualifier from "@/components/site/LeadQualifier";
-import CtaLink from "@/components/site/CtaLink";
-import { LADDER, PHONE_DISPLAY, PHONE_TEL, PROOF } from "@/lib/siteContent";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  CalendarDays,
+  BookOpen,
+  Wrench,
+  ShieldCheck,
+} from "lucide-react";
+import NextStepGuide from "@/components/site/NextStepGuide";
+import HomeScoreboard from "@/components/site/HomeScoreboard";
+import { LADDER } from "@/lib/siteContent";
+import { TOOL_COUNT } from "@/lib/tools";
 
-// THE COMPANY BUILDER homepage, cut down to one job: qualify the visitor and
-// point them at the free website. The deep material moved to its own pages:
-// what gets built lives at /services, the shipped proof lives at /results.
-// The old in-page anchors (#what-we-build, #results) stay on the teaser
-// sections below so links to them still land somewhere that makes sense.
-//
-// Every number on this page traces to the repository or to a live property.
-// Nothing here claims revenue, leads, conversion rates, or ROI, because none
-// of that is verifiable.
+export const revalidate = 900;
 
-/* ---------------------------------------------------------- structured data -- */
-
-// The address and phone match the Google Business Profile exactly, the legal
-// name matches the footer, and every sameAs URL was confirmed to resolve. No
-// revenue, rating, review, or outcome claim appears here, because none of it
-// is verifiable and fabricated review markup is a manual-action risk.
 const SITE = "https://www.theleadflowpro.com";
 
 const HOME_JSONLD = {
@@ -34,7 +28,12 @@ const HOME_JSONLD = {
       description:
         "The Company Builder. We build the website, the system behind it, and the back office that runs it, in accounts the client controls.",
       url: SITE,
-      logo: { "@type": "ImageObject", url: `${SITE}/icon-512.png`, width: 512, height: 512 },
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE}/icon-512.png`,
+        width: 512,
+        height: 512,
+      },
       image: `${SITE}/og/home.png`,
       email: "hello@theleadflowpro.com",
       telephone: "+1-903-500-8898",
@@ -46,7 +45,11 @@ const HOME_JSONLD = {
         postalCode: "75604",
         addressCountry: "US",
       },
-      founder: { "@type": "Person", name: "Ryan Nichols", url: `${SITE}/about` },
+      founder: {
+        "@type": "Person",
+        name: "Ryan Nichols",
+        url: `${SITE}/about`,
+      },
       sameAs: [
         "https://www.youtube.com/@TheLeadFlowProVids",
         "https://www.facebook.com/profile.php?id=61586176300453",
@@ -116,184 +119,250 @@ const HOME_JSONLD = {
   ],
 };
 
-/* ------------------------------------------------------------------ page -- */
-
 export default function HomePage() {
   return (
-    <main className="cb-page cb-home-dark">
+    <main className="lf-home">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(HOME_JSONLD) }}
       />
-      {/* 1 ------------------------------------------------------------ hero */}
-      <section className="cb-hero">
-        <div className="cb-shell">
-          <div className="cb-hero-layout">
-            <div className="cb-hero-copy">
-              <p className="cb-eyebrow">The LeadFlow Pro · East Texas</p>
-              <h1 className="cb-h1">
-                <span>More attention.</span>
-                <span>More leads.</span>
-                <em>More revenue.</em>
-              </h1>
-              <p className="cb-hero-lead">
-                We build the website, the lead capture, and the follow-up behind it, in
-                accounts you own. Answer four questions and find out if your first
-                five-page website is free.
-              </p>
-              <div className="cb-actions">
-                <Link className="cb-btn cb-btn--primary" href="#qualify">
-                  See If You Qualify
-                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                </Link>
-                <a className="cb-btn cb-btn--ghost" href={PHONE_TEL}>
-                  <Phone aria-hidden="true" className="h-4 w-4" />
-                  Call or text {PHONE_DISPLAY}
-                </a>
-              </div>
-              <div className="lfp-hero-trust" aria-label="LeadFlow Pro operating facts">
-                <span><Radio aria-hidden="true" className="h-4 w-4" /> 8 live systems you can open</span>
-                <span><ShieldCheck aria-hidden="true" className="h-4 w-4" /> Built in accounts you own</span>
-                <span><MapPin aria-hidden="true" className="h-4 w-4" /> Longview, Texas</span>
-              </div>
+      <a
+        className="lf-announcement"
+        href="https://workshop.theleadflowpro.com/"
+      >
+        LIVE IN LONGVIEW · SEPTEMBER 17{" "}
+        <span>One evening. One useful business workflow.</span>
+        <ArrowRight size={17} aria-hidden="true" />
+      </a>
+      <section className="lf-hero lf-shell">
+        <div className="lf-hero-copy">
+          <p className="lf-eyebrow">THE LEAD FLOW PRO / EAST TEXAS & BEYOND</p>
+          <h1>
+            More customers.
+            <br />
+            Less busywork.
+            <br />
+            <em>It’s not too late.</em>
+          </h1>
+          <p className="lf-intro">
+            You don’t need to understand every new tool. You need a better way
+            to get customers, follow up, and get work done. We’ll build it with
+            you—or show you how.
+          </p>
+          <div className="lf-actions">
+            <Link className="lf-button" href="#qualify">
+              Find my next step <ArrowRight size={19} aria-hidden="true" />
+            </Link>
+            <Link className="lf-text-link" href="/scoreboard">
+              See the scoreboard <ArrowUpRight size={18} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="lf-hero-trust">
+            <span>
+              <ShieldCheck size={16} aria-hidden="true" /> Your business. Your
+              accounts.
+            </span>
+            <span>Beginners welcome.</span>
+          </div>
+        </div>
+        <div className="lf-hero-feature">
+          <figure className="lf-founder-photo">
+            <Image
+              src="/images/ryan-wholesale-universe-owner.jpg"
+              alt="Ryan Nichols in the warehouse of the wholesale business he built"
+              width={1800}
+              height={1350}
+              priority
+              sizes="(max-width: 800px) 100vw, 48vw"
+            />
+            <figcaption>
+              <span>RYAN NICHOLS / FOUNDER</span>
+              <strong>Built from doing the work.</strong>
+            </figcaption>
+          </figure>
+          <a
+            className="lf-workshop-ribbon"
+            href="https://workshop.theleadflowpro.com/"
+          >
+            <div className="lf-date">
+              <span>SEP</span>
+              <strong>17</strong>
             </div>
-
-            <figure className="cb-hero-visual lfp-founder-hero">
-              <Image
-                src="/images/ryan-wholesale-universe-owner.jpg"
-                alt="Ryan Nichols standing above pallets in his wholesale warehouse beside a large American flag"
-                width={1800}
-                height={1350}
-                priority
-                sizes="(max-width: 900px) 100vw, 58vw"
-              />
-              <figcaption>
-                <span>Ryan Nichols · Founder &amp; Operator</span>
-                <strong>Built from real operating experience.</strong>
-              </figcaption>
-            </figure>
-          </div>
-        </div>
-      </section>
-
-      {/* 2 ------------------------------------------------------- qualifier */}
-      <section id="qualify" className="cb-band cb-band--tint scroll-mt-20" tabIndex={-1}>
-        <div className="cb-shell">
-          <div className="text-center">
-            <p className="cb-eyebrow justify-center">Sixty seconds</p>
-            <h2 className="cb-h2 mx-auto max-w-[18ch]">Answer four questions.</h2>
-            <p className="cb-lead mx-auto">
-              If even one answer is no, you qualify for the Free Website Program. Zero
-              dollars down for approved businesses.
-            </p>
-          </div>
-          <LeadQualifier />
-        </div>
-      </section>
-
-      {/* 3 -------------------------------------------------- services teaser */}
-      <section id="what-we-build" className="cb-band" tabIndex={-1}>
-        <div className="cb-shell">
-          <div className="cb-headrow">
             <div>
-              <p className="cb-eyebrow">What we build</p>
-              <h2 className="cb-h2 cb-heading">
-                The website and the system behind it.
+              <span>THE NEXT WORKSHOP</span>
+              <strong>Stop guessing at ChatGPT.</strong>
+              <p>Longview · $97 founding seat</p>
+            </div>
+            <ArrowUpRight aria-hidden="true" />
+          </a>
+        </div>
+      </section>
+      <section className="lf-section lf-section-raised" id="qualify">
+        <div className="lf-shell">
+          <div className="lf-section-heading">
+            <div>
+              <p className="lf-eyebrow">LET’S MAKE THIS SIMPLE</p>
+              <h2>
+                You have a business to run.
+                <br />
+                <em>Start with what you need.</em>
               </h2>
             </div>
-            <p className="cb-lead">
-              For business owners who want a website that produces customers, not one that
-              just sits there.
+            <p>
+              More leads? More time? A skill you can use? You belong here. Two
+              choices will point you in the right direction.
             </p>
           </div>
-          <ul className="lfp-teaser-points">
-            <li>
-              <Wrench aria-hidden="true" className="h-5 w-5" />
-              <span>
-                <strong>The website.</strong> Five pages that say what you do, what it
-                costs, and what to do next.
-              </span>
-            </li>
-            <li>
-              <Radio aria-hidden="true" className="h-5 w-5" />
-              <span>
-                <strong>The leads.</strong> Every call, text, form, and message lands in one
-                place, with follow-up that runs on time.
-              </span>
-            </li>
-            <li>
-              <ShieldCheck aria-hidden="true" className="h-5 w-5" />
-              <span>
-                <strong>The ownership.</strong> Code, domain, data, and customer list stay
-                in your accounts, not ours.
-              </span>
-            </li>
-          </ul>
-          <div className="cb-actions">
-            <Link className="cb-btn cb-btn--primary" href="/services">
-              See the services
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
-          </div>
+          <NextStepGuide />
         </div>
       </section>
-
-      {/* 4 --------------------------------------------------- results teaser */}
-      <section id="results" className="cb-band cb-band--ink" tabIndex={-1}>
-        <div className="cb-shell">
-          <div className="cb-headrow">
-            <div>
-              <p className="cb-eyebrow">Built, shipped, running</p>
-              <h2 className="cb-h2 cb-heading">Proof before promises.</h2>
-            </div>
-            <p className="cb-lead">
-              Every system is live and publicly inspectable right now. Open the work and
-              check it yourself.
-            </p>
+      <section className="lf-section lf-shell" id="results">
+        <div className="lf-section-heading">
+          <div>
+            <p className="lf-eyebrow">WE ALL WIN WHEN WE ALL WIN</p>
+            <h2>
+              The work should
+              <br />
+              <em>show up on the board.</em>
+            </h2>
           </div>
-          <div className="cb-proof-grid">
-            {PROOF.map((p) => (
-              <div key={p.label} className="cb-proof-item">
-                <strong>{p.figure}</strong>
-                <span>{p.label}</span>
-              </div>
-            ))}
-          </div>
-          <div className="cb-actions">
-            <Link className="cb-btn cb-btn--primary" href="/results">
-              See the results
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 5 --------------------------------------------------------- final CTA */}
-      <section className="cb-final">
-        <div className="cb-shell">
-          <p className="cb-eyebrow">Your next move</p>
-          <h2 className="cb-h2">
-            <em>Own your website.</em>
-            Start with the free build.
-          </h2>
-          <p className="cb-lead">
-            Apply for the $0 five-page foundation, or call and talk to the person who
-            builds it. Either way, the next step takes about a minute.
+          <p>
+            Follow our progress and the businesses running on systems we’ve
+            built. Real records. Clear definitions. Room to improve.
           </p>
-          <div className="cb-actions">
-            <CtaLink
-              href="/free-build"
-              event="apply_free_website"
-              placement="home_final"
-              className="cb-btn cb-btn--primary"
-            >
-              Start My Free Website
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </CtaLink>
-            <a className="cb-btn cb-btn--ghost" href={PHONE_TEL}>
-              <Phone aria-hidden="true" className="h-4 w-4" />
-              Call or text {PHONE_DISPLAY}
-            </a>
+        </div>
+        <HomeScoreboard />
+        <div className="lf-actions">
+          <Link className="lf-text-link" href="/scoreboard">
+            Explore every business’s scoreboard{" "}
+            <ArrowRight size={18} aria-hidden="true" />
+          </Link>
+          <Link className="lf-text-link" href="/results">
+            See the work behind the numbers{" "}
+            <ArrowRight size={18} aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
+      <section className="lf-section lf-section-raised" id="what-we-build">
+        <div className="lf-shell">
+          <div className="lf-section-heading">
+            <div>
+              <p className="lf-eyebrow">THREE WAYS TO MOVE FORWARD</p>
+              <h2>
+                Learn it. Build it.
+                <br />
+                <em>Put it to work.</em>
+              </h2>
+            </div>
+            <p>
+              Start where you are. Your age, experience, or last attempt does
+              not decide what you can do next.
+            </p>
+          </div>
+          <div className="lf-path-grid">
+            <article>
+              <span className="lf-path-number">01 / BUILD</span>
+              <Wrench aria-hidden="true" />
+              <h3>A website that gives people a next step.</h3>
+              <p>
+                Clear pages, an inquiry form, and the follow-up behind it. Apply
+                for a five-page website with a $0 build fee.
+              </p>
+              <Link href="/free-build">
+                Check the free website program{" "}
+                <ArrowRight size={18} aria-hidden="true" />
+              </Link>
+              <small>
+                For approved businesses. Hosting and optional services are
+                explained before you commit.
+              </small>
+            </article>
+            <article>
+              <span className="lf-path-number">02 / LEARN</span>
+              <BookOpen aria-hidden="true" />
+              <h3>A useful skill you can learn at your pace.</h3>
+              <p>
+                Written lessons, worked examples, and practical exercises. Start
+                free, then choose the course that solves your next problem.
+              </p>
+              <Link href="/operator-academy">
+                Explore the courses <ArrowRight size={18} aria-hidden="true" />
+              </Link>
+              <small>
+                Prefer to try it first?{" "}
+                <Link href="/chatgpt/free">Open the free starter lesson.</Link>
+              </small>
+            </article>
+            <article>
+              <span className="lf-path-number">03 / DO</span>
+              <CalendarDays aria-hidden="true" />
+              <h3>One evening. Your laptop. Real help.</h3>
+              <p>
+                Bring a follow-up, content, or admin task to the September 17
+                workshop. Build a process you can repeat the next day.
+              </p>
+              <Link href="https://workshop.theleadflowpro.com/">
+                See the Longview workshop{" "}
+                <ArrowRight size={18} aria-hidden="true" />
+              </Link>
+              <small>6:30–8:00 PM Central · $97 · 10 paid seats</small>
+            </article>
+          </div>
+        </div>
+      </section>
+      <section className="lf-section lf-shell">
+        <div className="lf-resource-grid">
+          <Link href="/tools">
+            <span className="lf-eyebrow">YOUR TOOLBOX</span>
+            <strong>
+              {TOOL_COUNT} free tools.
+              <br />
+              Find one that helps today.
+            </strong>
+            <p>
+              Work out a price, spot a missed opportunity, or plan your next
+              move.
+            </p>
+            <span className="lf-text-link">
+              Open the tools <ArrowRight aria-hidden="true" />
+            </span>
+          </Link>
+          <Link href="/articles">
+            <span className="lf-eyebrow">PLAIN-ENGLISH GUIDES</span>
+            <strong>
+              Read it.
+              <br />
+              Try it in your business.
+            </strong>
+            <p>
+              Practical answers with steps you can use. No wall of technical
+              jargon.
+            </p>
+            <span className="lf-text-link">
+              Read the articles <ArrowRight aria-hidden="true" />
+            </span>
+          </Link>
+        </div>
+      </section>
+      <section className="lf-final">
+        <div className="lf-shell">
+          <p className="lf-eyebrow">YOUNG. OLDER. SOMEWHERE IN BETWEEN.</p>
+          <h2>
+            You’re not behind.
+            <br />
+            <em>You just need a next step.</em>
+          </h2>
+          <p>
+            We’ll explain it in plain English and start with one thing that
+            matters to you.
+          </p>
+          <div className="lf-actions">
+            <Link className="lf-button" href="#qualify">
+              Find my next step <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link className="lf-text-link" href="/contact">
+              Talk with Ryan <ArrowRight aria-hidden="true" />
+            </Link>
           </div>
         </div>
       </section>

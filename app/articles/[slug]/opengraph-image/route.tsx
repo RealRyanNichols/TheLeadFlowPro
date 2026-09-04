@@ -6,7 +6,7 @@ import {
   articlePremiumOgArtPath,
 } from "@/lib/articles-og";
 
-export const revalidate = 86400;
+export const dynamic = "force-dynamic";
 
 export async function GET(
   request: Request,
@@ -16,7 +16,13 @@ export async function GET(
   const article = getArticle(slug);
 
   if (!article) {
-    return new Response("Article not found", { status: 404 });
+    return new Response("Article not found", {
+      status: 404,
+      headers: {
+        "Cache-Control": "no-store",
+        "X-Robots-Tag": "noindex, nofollow",
+      },
+    });
   }
 
   const backgroundUrl = new URL(articlePremiumOgArtPath(article.slug), request.url).toString();
@@ -24,7 +30,7 @@ export async function GET(
   return new ImageResponse(articleOgCard({ article, backgroundUrl }), {
     ...ARTICLE_OG_SIZE,
     headers: {
-      "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800",
+      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=3600",
     },
   });
 }

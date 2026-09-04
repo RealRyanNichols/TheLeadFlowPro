@@ -16,7 +16,7 @@ const ARTICLE_CHARTS: Record<string, React.ComponentType> = {
   "website-traffic-but-no-customers": FollowUpSpeedChart,
 };
 import ArticleToolSection from "@/components/ArticleToolSection";
-import { ARTICLES, getArticle } from "@/lib/articles";
+import { getArticle } from "@/lib/articles";
 import {
   articlePremiumArtAlt,
   articlePremiumArtPath,
@@ -24,8 +24,13 @@ import {
   articleVisualHeadline,
 } from "@/lib/articles-og";
 
+// Availability is checked for every request, including URLs that returned a
+// 404 before midnight. Future slugs are never statically rendered at build time.
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
+
 export function generateStaticParams() {
-  return ARTICLES.map((a) => ({ slug: a.slug }));
+  return [];
 }
 
 export async function generateMetadata({
@@ -35,7 +40,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const article = getArticle(slug);
-  if (!article) return {};
+  if (!article) {
+    return {
+      title: "Article not available | The LeadFlow Pro",
+      robots: { index: false, follow: false },
+    };
+  }
   const socialImage = articleSocialImagePath(article.slug);
   return {
     title: `${article.title} | The LeadFlow Pro`,

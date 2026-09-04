@@ -2,6 +2,8 @@ import { TOOL_COUNT } from "./tools";
 import { TRADE_ARTICLES } from "./articles-trades";
 import { TRADE_ARTICLES_2 } from "./articles-trades-2";
 import { TRADE_ARTICLES_3 } from "./articles-trades-3";
+import { SEPTEMBER_LAUNCH_ARTICLES } from "./articles-september-launch";
+import { isArticlePublished, publishedArticles } from "./article-publication";
 
 // Owned article library. Articles are plain markdown in the repo so they ship
 // with the site, rank under the site's own domain, and never live in a rented
@@ -56,7 +58,7 @@ export type Article = {
 export const ARTICLES: Article[] = [
   {
     slug: "free-tools-that-bring-customers",
-    title: "The dental school that gives its training away, and why its funnel stays full",
+    title: "How a dental school uses free training tools to start conversations",
     description:
       "Premier Dental Academy of Longview puts free tools in front of strangers and lets Google do the introductions. Here is the whole play, step by step, so you can run it for your business.",
     publishedAt: "2026-09-03",
@@ -177,7 +179,7 @@ Then leave it alone and let it compound. That is the part ad spend can never do 
 
 ## The bottom line
 
-The school gives away training tools and stays full. This site gives away ${TOOL_COUNT} of them and writes articles about it. The play is sitting right there, and in most trades in most towns, nobody is running it yet.
+The school gives away training tools to help prospective students try the work. This site gives away ${TOOL_COUNT} of them and writes articles about it. The play is sitting right there, and in most trades in most towns, nobody is running it yet.
 
 Somebody in your market is going to build the page that answers your customers' favorite question. The only question is whose name is on it.
 `,
@@ -1627,8 +1629,21 @@ If you want to see what that looks like for your specific business, map your sys
 
 // Trade-specific tool articles live in their own module so this file stays about
 // the originals. They are the same Article shape and behave identically.
-ARTICLES.push(...TRADE_ARTICLES, ...TRADE_ARTICLES_2, ...TRADE_ARTICLES_3);
+ARTICLES.push(...TRADE_ARTICLES, ...TRADE_ARTICLES_2, ...TRADE_ARTICLES_3, ...SEPTEMBER_LAUNCH_ARTICLES);
 
-export function getArticle(slug: string) {
-  return ARTICLES.find((a) => a.slug === slug);
+// Keep ARTICLES as the complete authored catalog for build tools and duplicate
+// checks. Public callers use these functions so future dates remain hidden.
+export function getPublishedArticles(now = new Date()): Article[] {
+  return publishedArticles(ARTICLES, now);
+}
+
+export function getArticle(slug: string, now = new Date()): Article | undefined {
+  return ARTICLES.find((article) => article.slug === slug && isArticlePublished(article, now));
+}
+
+export function getRelatedArticles(slug: string, limit = 3, now = new Date()): Article[] {
+  return getPublishedArticles(now)
+    .filter((article) => article.slug !== slug)
+    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+    .slice(0, Math.max(0, Math.floor(limit)));
 }

@@ -2,6 +2,8 @@
 // and both dashboards. Pure functions only — everything here is unit-tested
 // in tests/analytics.test.ts.
 
+import { isPublicAnalyticsUrl, safeAnalyticsPath, safeAnalyticsReferrer } from "./privacy";
+
 /** Canonical first-party event names. Only these are accepted server-side. */
 export const EVENT_NAMES = [
   "page_view",
@@ -117,10 +119,12 @@ export function validateEvent(raw: unknown): IncomingEvent | null {
     return s ? s.slice(0, max) : undefined;
   };
 
-  let path = str(e.path, 300) ?? "/";
+  // Inspect the full original URL before truncating or removing credentials.
+  // Older open browser tabs must not be able to submit private page events.
+  let path = typeof e.path === "string" ? e.path.trim() || "/" : "/";
   if (!path.startsWith("/")) path = "/";
-  // Query strings can carry emails and tokens; keep the pathname only.
-  path = path.split("?")[0].split("#")[0] || "/";
+  if (path.startsWith("//") || !isPublicAnalyticsUrl(path)) return null;
+  path = (safeAnalyticsPath(path) ?? "/").slice(0, 300);
   if (/(email|token|password|secret|credit|ssn)/i.test(path)) return null;
 
   const visitorType = str(e.visitor_type, 12);
@@ -135,7 +139,7 @@ export function validateEvent(raw: unknown): IncomingEvent | null {
     label: str(e.label, 120),
     target_host: str(e.target_host, 120)?.toLowerCase(),
     tool_slug: str(e.tool_slug, 80),
-    referrer: str(e.referrer, 500),
+    referrer: typeof e.referrer === "string" ? safeAnalyticsReferrer(e.referrer)?.slice(0, 500) : undefined,
     utm_source: str(e.utm_source, 100),
     utm_medium: str(e.utm_medium, 100),
     utm_campaign: str(e.utm_campaign, 100),

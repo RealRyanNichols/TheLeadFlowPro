@@ -46,12 +46,12 @@ test("internal diagnostic alerts use the configured inbox and idempotency header
   const previousKey = process.env.RESEND_API_KEY;
   const previousInbox = process.env.LEADFLOW_NOTIFY_EMAIL;
   const previousFetch = globalThis.fetch;
-  let captured: { url: string; init: RequestInit } | null = null;
+  const calls: Array<{ url: string; init: RequestInit }> = [];
   process.env.RESEND_API_KEY = "re_test_key";
   process.env.LEADFLOW_NOTIFY_EMAIL =
     "ops@theleadflowpro.com; hello@theleadflowpro.com";
   globalThis.fetch = async (input, init) => {
-    captured = { url: String(input), init: init ?? {} };
+    calls.push({ url: String(input), init: init ?? {} });
     return new Response(JSON.stringify({ id: "email_provider_123" }), {
       status: 200,
       headers: { "content-type": "application/json" },
@@ -61,6 +61,7 @@ test("internal diagnostic alerts use the configured inbox and idempotency header
   try {
     const result = await sendDiagnosticInternalAlert(ALERT_INPUT);
     assert.deepEqual(result, { ok: true, providerMessageId: "email_provider_123" });
+    const captured = calls[0];
     assert.ok(captured);
     assert.equal(captured.url, "https://api.resend.com/emails");
     const headers = new Headers(captured.init.headers);

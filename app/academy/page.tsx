@@ -35,13 +35,13 @@ export default function AcademyPage() {
         <div className={styles.shell}>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>The LeadFlow Operator Academy</p>
-            <h1>Stop collecting tips. Build the operating system.</h1>
+            <h1>You can learn this. Start with one useful task.</h1>
             <p className={styles.lead}>{OPERATOR_ACADEMY.promise}</p>
             <div className={styles.heroActions}>
               <a href="#free-access">Start with two free courses <ArrowRight aria-hidden="true" /></a>
               <a href="#pricing">See all-access <BookOpenCheck aria-hidden="true" /></a>
             </div>
-            <p className={styles.trust}>Ten courses. Sixty-four new lessons, plus the twelve-lesson ChatGPT and Content Engine programs. Practice, checks, finals, capstones, and private completion records.</p>
+            <p className={styles.trust}>Ten courses. Eighty-eight written lessons. Read at your own pace, try the examples, and use the downloadable workbooks to build something useful. No technical background required to start.</p>
           </div>
           <figure className={styles.heroMedia}>
             <Image src="/images/academy/operator-academy-hero.png" alt="A focused business operator reviewing a workflow beside a laptop and workbook" width={1672} height={941} priority />
@@ -54,12 +54,12 @@ export default function AcademyPage() {
         <div className={styles.shell}>
           <div className={styles.sectionHead}>
             <div><p className={styles.eyebrow}>Ten-course path</p><h2>Learn in the order the business gets built.</h2></div>
-            <p>Every course creates an asset that becomes an input to the next course. Watching is not completion. The work, checks, final, and capstone are the proof.</p>
+            <p>Every course creates an asset that becomes an input to the next course. Read the lesson, do the task, then check your work. Your progress stays in your private training record.</p>
           </div>
           <div className={styles.courseGrid}>
             {OPERATOR_ACADEMY_COURSES.map((course) => (
               <article key={course.slug} className={styles.courseCard}>
-                <div className={styles.cardTop}><span>{course.code}</span><span className={course.isFree ? styles.free : styles.paid}>{course.isFree ? "Free with lead access" : "Paid"}</span></div>
+                <div className={styles.cardTop}><span>{course.code}</span><span className={course.isFree ? styles.free : styles.paid}>{course.isFree ? "Free with signup" : "Paid"}</span></div>
                 <p className={styles.level}>{course.level}</p>
                 <h3>{course.shortTitle}</h3>
                 <p>{course.description}</p>
@@ -95,7 +95,7 @@ export default function AcademyPage() {
             <div>
               <p className={styles.eyebrow}>Founding all-access</p>
               <h2>Build the full system.</h2>
-              <p>One payment unlocks all ten academy courses, including the two standalone courses and every expanded professional and expert course.</p>
+              <p>One payment unlocks all ten self-guided written courses, their workbooks, lesson checks, and completion paths. Start with the skill your business needs today.</p>
               <ul>
                 {paidCourses.map((course) => <li key={course.slug}><Check aria-hidden="true" />{course.shortTitle}</li>)}
               </ul>
@@ -116,7 +116,7 @@ export default function AcademyPage() {
         <div className={styles.shell}>
           <div className={styles.sectionHead}><div><p className={styles.eyebrow}>The course standard</p><h2>Every course is built for action.</h2></div></div>
           <div className={styles.standardGrid}>
-            {["Written lesson and real example", "Exact prompt or operator template", "Recording script and visual direction", "Practice task and downloadable workbook", "Objective lesson check at 80 percent", "Final assessment and capstone", "Submission and review for major builds", "Private progress and completion record"].map((item) => <div key={item}><BookOpenCheck aria-hidden="true" /><span>{item}</span></div>)}
+            {["Written lesson and real example", "Exact prompt or operator template", "Step-by-step written instruction", "Practice task and downloadable workbook", "Objective lesson check at 80 percent", "Final assessment and capstone", "Submission and review for major builds", "Private progress and completion record"].map((item) => <div key={item}><BookOpenCheck aria-hidden="true" /><span>{item}</span></div>)}
           </div>
           <p className={styles.finalLink}>Already enrolled? <Link href="/login?next=/training">Log in and continue training <ArrowRight aria-hidden="true" /></Link></p>
         </div>

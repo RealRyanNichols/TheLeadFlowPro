@@ -1,11 +1,13 @@
 import type { MetadataRoute } from "next";
-import { ARTICLES } from "@/lib/articles";
+import { getPublishedArticles } from "@/lib/articles";
 import { TOOLS } from "@/lib/tools";
 import { PRO_TOOLS } from "@/lib/tools/pro";
 import { PUBLISHED_COLLECTIONS } from "@/lib/tools/collections";
 import { STAGE_SLUGS } from "@/lib/system-stages";
 import { OPERATOR_ACADEMY_COURSES } from "@/lib/operatorAcademyCatalog";
 import { SCOREBOARD_BUSINESSES } from "@/lib/scoreboard";
+
+export const dynamic = "force-dynamic";
 
 const BASE = "https://www.theleadflowpro.com";
 const PACKAGE_SLUGS = ["system-map", "launch", "industry-os"];
@@ -85,7 +87,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
-    ...ARTICLES.map((a) => ({
+    ...getPublishedArticles().map((a) => ({
       url: `${BASE}/articles/${a.slug}`,
       lastModified: a.publishedAt,
       changeFrequency: "monthly" as const,

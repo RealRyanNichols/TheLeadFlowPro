@@ -78,3 +78,12 @@ describe("scoreboard helpers", () => {
     }
   });
 });
+
+// Missing or malformed values must not become invented zeroes on a public board.
+it("rejects incomplete, negative and duplicate aggregate rows", () => {
+  const good = { ...rows[0] };
+  assert.deepEqual(normalizeDays([{ day: "2026-09-01", views: 10 }]), []);
+  assert.deepEqual(normalizeDays([{ ...good, leads: -1 }]), []);
+  assert.deepEqual(normalizeDays([{ ...good, leads: null }]), []);
+  assert.equal(normalizeDays([good, good]).length, 1);
+});

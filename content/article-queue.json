@@ -4,7 +4,9 @@
     "house pattern: question in the title, honest answer, embedded tool,",
     "steps, FAQ, lead form. docs/article-drafting.md describes the pipeline.",
     "npm run draft:article emits the next brief; --claim marks it drafted.",
-    "Statuses: queued -> drafted (brief issued) -> published (merged to main).",
+    "Statuses: queued -> drafted -> scheduled (authored and dated) -> published.",
+    "Scheduled is not deployment proof; published requires a verified live URL.",
+    "Record deployment and live checks in content/article-publications/.",
     "Add new entries at the end. Every tool slug must exist in lib/tools and",
     "each tool may appear once, because its OG card becomes the article scene."
   ],

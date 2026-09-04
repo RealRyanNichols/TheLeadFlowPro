@@ -11,11 +11,11 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
     heading: "What we build",
     links: [
       ["/services", "Services"],
-      ["/services#what-we-build", "The four parts"],
+      ["/operator-academy", "Courses & learning"],
       ["/add-ons", "Add-On Menu"],
       ["/tools", "Free Tools"],
       ["/tools/pro", "Pro Kits | $10 to $29"],
-      ["/services#how-it-works", "How it works"],
+      ["/chatgpt/free", "Free starter lesson"],
     ],
   },
   {
@@ -36,7 +36,7 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
     links: [
       ["/packages", "Packages"],
       [
-        "https://chatgpt-longview-september-17-2026.therealryannichols.chatgpt.site",
+        "https://workshop.theleadflowpro.com/",
         "Events & Workshops",
       ],
       ["/go/lead-follow-up", "Follow-Up Campaign | $197"],

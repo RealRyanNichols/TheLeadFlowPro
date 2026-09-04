@@ -16,7 +16,7 @@ export const CONTENT_ENGINE = {
   promise:
     "I show you the same process I use to plan, script, record, edit, and post business videos. You finish with a clear offer, thirty video ideas, ten ready to read scripts, a recording setup you can repeat, and a simple way to send viewers to your website, form, or checkout.",
   accessDisclosure:
-    "Founding access includes the twelve written lessons, workbook, twelve assignments, lesson checks, and final assessment now. The recorded lessons and buyer download library are added as they are produced and verified.",
+    "This is a self-guided written course. Access includes twelve lessons, the downloadable workbook, twelve assignments, lesson checks, and the final assessment. Use the lessons to plan and produce your own videos. Course videos and a downloadable background pack are not part of the current delivery.",
   credentialDisclaimer:
     "This is a private LeadFlow Pro course completion credential issued by Longview Training Center LLC. It is not a degree, professional license, accreditation, state or federal certification, promise of employment, or guarantee of business results.",
 } as const;

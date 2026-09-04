@@ -14,7 +14,7 @@ import {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const token = url.searchParams.get("t") ?? "";
-  if (token.length < 24) {
+  if (!/^[a-f0-9]{48}$/.test(token)) {
     return NextResponse.json({ error: "Missing token" }, { status: 400 });
   }
 
@@ -23,6 +23,10 @@ export async function GET(request: Request) {
   const row = Array.isArray(data) ? data[0] : data;
   if (!row?.registration_id) {
     return NextResponse.json({ error: "Registration not found" }, { status: 404 });
+  }
+
+  if (!["paid", "attended"].includes(row.seat_status)) {
+    return NextResponse.json({ error: "A paid seat is required for the attendee calendar." }, { status: 403, headers: { "Cache-Control": "no-store" } });
   }
 
   const { data: eventData } = await supabase
@@ -53,7 +57,8 @@ export async function GET(request: Request) {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
       "Content-Disposition": `attachment; filename="${event.slug}.ics"`,
-      "Cache-Control": "no-store",
+      "Cache-Control": "private, no-store",
+      "Referrer-Policy": "no-referrer",
     },
   });
 }

@@ -9,13 +9,12 @@
 // admin/back-office routes never tracked.
 
 import type { IncomingEvent } from "./shared";
+import { isPublicAnalyticsUrl, safeAnalyticsPath, safeAnalyticsReferrer } from "./privacy";
 
 const FLUSH_MS = 4000;
 const MAX_BATCH = 20;
 const SESSION_IDLE_MS = 30 * 60 * 1000;
 
-/** Back-office and account surfaces produce no analytics events at all. */
-const UNTRACKED = /^\/(admin|dashboard|login|training|api)(\/|$)/;
 
 type TrackOpts = {
   label?: string;
@@ -29,6 +28,7 @@ let queue: IncomingEvent[] = [];
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let started = false;
 let currentPath = "/";
+let pageActive = false;
 let engagedSent = false;
 let sessionPageviews = 0;
 let visibleSince: number | null = null;
@@ -139,7 +139,7 @@ function captureUtm() {
 
 function shouldTrack(): boolean {
   if (typeof window === "undefined") return false;
-  if (UNTRACKED.test(window.location.pathname)) return false;
+  if (!isPublicAnalyticsUrl(window.location.href)) return false;
   if ((navigator as { webdriver?: boolean }).webdriver) return false;
   return true;
 }
@@ -153,12 +153,12 @@ function baseEvent(name: string, opts: TrackOpts = {}): IncomingEvent {
   return {
     client_id: uuid(),
     event_name: name,
-    path: opts.path ?? currentPath,
+    path: safeAnalyticsPath(opts.path ?? currentPath) ?? "/",
     page_title: document.title?.slice(0, 200) || undefined,
     label: opts.label,
     target_host: opts.targetHost,
     tool_slug: opts.toolSlug,
-    referrer: document.referrer || undefined,
+    referrer: safeAnalyticsReferrer(document.referrer),
     utm_source: sessionUtm.utm_source,
     utm_medium: sessionUtm.utm_medium,
     utm_campaign: sessionUtm.utm_campaign,
@@ -190,7 +190,18 @@ function send(body: string, useBeacon: boolean) {
   }
 }
 
+function suspendTracking() {
+  queue = [];
+  if (flushTimer) clearTimeout(flushTimer);
+  flushTimer = null;
+  visibleSince = null;
+  engagementMs = 0;
+  currentPath = "/";
+  pageActive = false;
+}
+
 function flush(useBeacon = false) {
+  if (!shouldTrack()) { suspendTracking(); return; }
   if (flushTimer) {
     clearTimeout(flushTimer);
     flushTimer = null;
@@ -214,7 +225,7 @@ function enqueue(event: IncomingEvent) {
 
 /** Public API: record one event. Safe to call anywhere on the client. */
 export function track(name: string, opts: TrackOpts = {}) {
-  if (!shouldTrack()) return;
+  if (!shouldTrack() || (opts.path && !isPublicAnalyticsUrl(opts.path))) return;
   try {
     enqueue(baseEvent(name, opts));
   } catch {
@@ -249,6 +260,7 @@ function accumulateEngagement() {
 }
 
 function checkEngagedByTime() {
+  if (!shouldTrack()) { suspendTracking(); return; }
   if (engagedSent) return;
   const total = engagementMs + (visibleSince != null ? Date.now() - visibleSince : 0);
   if (total >= 10_000) {
@@ -258,6 +270,7 @@ function checkEngagedByTime() {
 }
 
 function sendPageEngagement(path: string, useBeacon: boolean) {
+  if (!shouldTrack() || !isPublicAnalyticsUrl(path)) { suspendTracking(); return; }
   accumulateEngagement();
   const seconds = Math.round(engagementMs / 1000);
   engagementMs = 0;
@@ -274,14 +287,15 @@ function sendPageEngagement(path: string, useBeacon: boolean) {
 const TOOL_PATH_RE = /^\/(?:tools|embed)\/(?!collections)([a-z0-9-]+)\/?$/;
 
 export function pageView(pathname: string) {
-  if (!shouldTrack()) return;
+  if (!shouldTrack() || !isPublicAnalyticsUrl(pathname)) { suspendTracking(); return; }
   try {
     const previousPath = currentPath;
-    const hadView = started && sessionPageviews > 0;
+    const hadView = started && pageActive && sessionPageviews > 0;
     if (hadView && previousPath !== pathname) {
       sendPageEngagement(previousPath, false);
     }
-    currentPath = pathname.split("?")[0] || "/";
+    currentPath = safeAnalyticsPath(pathname) ?? "/";
+    pageActive = true;
     ensureStarted();
 
     const { isNew } = getSessionId();
@@ -456,6 +470,7 @@ function observeForms() {
   if (!("IntersectionObserver" in window)) return;
   const io = new IntersectionObserver(
     (entries) => {
+      if (!shouldTrack()) return;
       for (const entry of entries) {
         if (entry.isIntersecting) {
           const form = entry.target as HTMLFormElement;
@@ -470,6 +485,7 @@ function observeForms() {
     { threshold: 0.4 }
   );
   const scan = () => {
+    if (!shouldTrack()) return;
     document.querySelectorAll("form").forEach((f) => {
       if (!formViews.has(f as HTMLFormElement)) io.observe(f);
     });
@@ -484,6 +500,7 @@ function observeForms() {
  * signal that the thank-you calendar actually produced a booking. */
 function onMessage(e: MessageEvent) {
   try {
+    if (!shouldTrack()) return;
     if (!/https:\/\/([a-z0-9-]+\.)?calendly\.com$/.test(e.origin)) return;
     const kind = (e.data as { event?: string })?.event;
     if (!kind || typeof kind !== "string") return;
@@ -502,6 +519,7 @@ function onMessage(e: MessageEvent) {
 
 function onVisibility() {
   try {
+    if (!shouldTrack()) { suspendTracking(); return; }
     if (document.visibilityState === "hidden") {
       accumulateEngagement();
       sendPageEngagement(currentPath, true);

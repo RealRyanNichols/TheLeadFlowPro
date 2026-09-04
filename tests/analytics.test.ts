@@ -60,6 +60,21 @@ describe("validateEvent", () => {
     assert.equal(e!.visitor_type, undefined);
   });
 
+  it("rejects legacy client private routes and credentials before stripping or truncating", () => {
+    for (const path of [
+      "/events/workshop/confirmed", "/events/workshop/%63onfirmed?t=secret",
+      "/admin/leads", "/training/course/lesson", "/pricing?token=secret",
+      `/pricing?campaign=${"x".repeat(400)}&session_id=secret`, "/#access_token=secret",
+    ]) assert.equal(validateEvent({ event_name: "page_view", path, page_title: "Private attendee" }), null, path);
+  });
+
+  it("sanitizes legacy referrers at the server boundary", () => {
+    const event = { event_name: "page_view", path: "/pricing" };
+    assert.equal(validateEvent({ ...event, referrer: "https://search.example/results?q=private#fragment" })!.referrer, "https://search.example/results");
+    assert.equal(validateEvent({ ...event, referrer: "https://www.theleadflowpro.com/events/workshop/confirmed?t=secret" })!.referrer, undefined);
+    assert.equal(validateEvent({ ...event, referrer: "https://user:password@example.test/" })!.referrer, undefined);
+  });
+
   it("keeps only well-formed client ids", () => {
     const good = validateEvent({
       event_name: "page_view",

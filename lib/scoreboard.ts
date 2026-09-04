@@ -140,7 +140,7 @@ export const SCOREBOARD_METRICS: Array<{
     key: "views",
     label: "Views",
     headline: true,
-    what: "A page loaded by a real person. Our own traffic and known bots are filtered out.",
+    what: "Tracked page loads after the feed’s internal-traffic filters. Repeat page loads count again; analytics cannot identify every bot.",
     move: { label: "Articles and a blog that get found", href: "/add-ons" },
   },
   {
@@ -154,42 +154,42 @@ export const SCOREBOARD_METRICS: Array<{
     key: "leads",
     label: "Leads",
     headline: true,
-    what: "A real person left a name and a way to reach them, or called the business line. Paid plus unpaid.",
+    what: "Non-test contact records logged by the business. These may include forms, calls, and manually entered contacts. Records are not necessarily unique people or completed purchases.",
     move: { label: "A website built to capture leads", href: "/free-build" },
   },
   {
     key: "paid_leads",
-    label: "Paid leads",
+    label: "Ad-attributed leads",
     headline: true,
-    what: "Came from an ad the business paid for. Stops the day the ad budget stops.",
+    what: "Records with an advertising source or paid campaign tag. This means advertising attribution, not that the contact bought something.",
     move: { label: "Local ads run with guardrails", href: "/diagnostic" },
   },
   {
     key: "unpaid_leads",
-    label: "Unpaid leads",
+    label: "Other lead records",
     headline: true,
-    what: "Came from something the business owns: an article, a free tool, the Google listing, a referral, a form on the site, a call to the published number. Costs nothing per lead. Keeps coming.",
+    what: "Records without paid-ad attribution. This includes organic, referral, direct, manual, and unknown sources; it does not prove zero acquisition cost.",
     move: { label: "Owned attention: articles, tools, indexing", href: "/add-ons" },
   },
   {
     key: "visitors",
-    label: "Visitors",
+    label: "Daily visitors, summed",
     headline: false,
-    what: "Distinct people behind the views, as best a first-party tracker can tell without cookies from ad networks.",
+    what: "Each day’s distinct tracked visitors, added across the selected window. A returning visitor can count on multiple days; this is not a unique-person total for the whole window.",
     move: { label: "Get indexed and found", href: "/add-ons" },
   },
   {
     key: "calls",
     label: "Calls",
     headline: false,
-    what: "An inbound call to the business line that was logged as a lead. Real phone, real person.",
+    what: "Call records included in the business’s lead feed. Repeat callers may appear more than once.",
     move: { label: "A business line that logs every call", href: "/add-ons" },
   },
   {
     key: "forms",
     label: "Form leads",
     headline: false,
-    what: "A form on the site. Not an ad form, not a call.",
+    what: "Tracked website form submissions. This is an activity count, not necessarily unique contacts.",
     move: { label: "Forms that route to the right person", href: "/go/lead-follow-up" },
   },
   {
@@ -215,9 +215,11 @@ export function emptyTotals(): ScoreboardTotals {
   };
 }
 
-function toNumber(value: unknown) {
-  const n = typeof value === "string" ? Number(value) : Number(value ?? 0);
-  return Number.isFinite(n) ? n : 0;
+function toNumber(value: unknown): number | null {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (typeof value === "string" && !value.trim()) return null;
+  const n = Number(value);
+  return Number.isSafeInteger(n) && n >= 0 ? n : null;
 }
 
 export function normalizeDays(rows: unknown): ScoreboardDay[] {
@@ -228,18 +230,10 @@ export function normalizeDays(rows: unknown): ScoreboardDay[] {
     const r = row as Record<string, unknown>;
     const day = typeof r.day === "string" ? r.day.slice(0, 10) : "";
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) continue;
-    out.push({
-      day,
-      views: toNumber(r.views),
-      visitors: toNumber(r.visitors),
-      clicks: toNumber(r.clicks),
-      leads: toNumber(r.leads),
-      paid_leads: toNumber(r.paid_leads),
-      unpaid_leads: toNumber(r.unpaid_leads),
-      calls: toNumber(r.calls),
-      forms: toNumber(r.forms),
-      sales: toNumber(r.sales),
-    });
+    const values = METRIC_KEYS.map(key => toNumber(r[key]));
+    if (values.some(value => value === null)) continue;
+    if (out.some(existing => existing.day === day)) continue;
+    out.push({ day, ...Object.fromEntries(METRIC_KEYS.map((key, index) => [key, values[index]])) } as ScoreboardDay);
   }
   return out.sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
 }

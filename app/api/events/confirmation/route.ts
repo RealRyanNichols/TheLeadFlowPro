@@ -2,44 +2,63 @@ import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 
-// Confirmation lookup for /events/[slug]/confirmed. The token IS the
-// credential: it was generated server-side at registration and only ever
-// handed to the registrant (in the checkout redirect and the confirmation
-// email). event_confirmed_details() releases the street address only for a
-// paid seat.
-
+// A token identifies one registration. Paid access always comes from the
+// server's seat record, never the redirect's session_id or a browser flag.
 export async function GET(request: Request) {
+  const headers = { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" };
+  const reply = (body: object, status = 200) => NextResponse.json(body, { status, headers });
   const token = new URL(request.url).searchParams.get("t") ?? "";
-  if (token.length < 24) {
-    return NextResponse.json({ error: "Missing token" }, { status: 400 });
-  }
+  if (!/^[a-f0-9]{48}$/.test(token)) return reply({ error: "Missing or invalid registration token" }, 400);
 
   const supabase = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const { data, error } = await supabase.rpc("event_confirmed_details", { p_token: token });
-  if (error) {
-    console.error("event_confirmed_details failed:", error.message);
-    return NextResponse.json({ error: "Lookup failed" }, { status: 500 });
-  }
+  if (error) return reply({ error: "Registration lookup failed. Please try again." }, 503);
   const row = Array.isArray(data) ? data[0] : data;
-  if (!row?.registration_id) {
-    return NextResponse.json({ error: "Registration not found" }, { status: 404 });
+  if (!row?.registration_id) return reply({ error: "Registration not found" }, 404);
+
+  let amountPaidCents: number | null = null;
+  let confirmationSent = false;
+  let paymentState = ["paid", "attended", "no_show"].includes(row.seat_status) ? "paid" : "unpaid";
+  if (row.seat_status === "overbooked") paymentState = "review";
+  if (["cancelled", "transferred", "refunded"].includes(row.seat_status)) paymentState = row.seat_status;
+
+  // Optional enrichment does not change the seat's access state. If Stripe is
+  // still processing, tell the buyer to wait instead of inviting a second pay.
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (serviceKey) {
+    const admin = createSupabaseClient(SUPABASE_URL, serviceKey);
+    const saved = await admin.from("event_registrations")
+      .select("amount_paid_cents,confirmation_sent_at,stripe_session_id")
+      .eq("id", row.registration_id).eq("access_token", token).maybeSingle();
+    if (!saved.error && saved.data) {
+      amountPaidCents = typeof saved.data.amount_paid_cents === "number" ? saved.data.amount_paid_cents : null;
+      confirmationSent = Boolean(saved.data.confirmation_sent_at);
+      if (row.seat_status === "pending" && saved.data.stripe_session_id && process.env.STRIPE_SECRET_KEY) {
+        try {
+          const response = await fetch(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(saved.data.stripe_session_id)}?expand%5B%5D=payment_intent`, {
+            headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` }, cache: "no-store",
+          });
+          const session = response.ok ? await response.json() : null;
+          if (session?.metadata?.registration_id === row.registration_id && session?.metadata?.kind === "event") {
+            const intentStatus = typeof session.payment_intent === "object" ? session.payment_intent?.status : null;
+            if (session.payment_status === "paid") paymentState = "confirming";
+            else if (session.status === "complete" && ["requires_payment_method", "canceled"].includes(intentStatus)) paymentState = "failed";
+            else if (session.status === "complete") paymentState = "processing";
+          }
+        } catch {
+          // The DB is authoritative. The same checkout endpoint also prevents
+          // duplicate payments if payment-provider status is unavailable.
+        }
+      }
+    }
   }
 
-  // The seat price rides along so the confirmation page can report the real
-  // purchase value instead of a constant. Public field, anon-readable.
-  let priceUsd: number | null = null;
-  if (row.event_slug) {
-    const { data: event } = await supabase
-      .from("events")
-      .select("price_usd")
-      .eq("slug", row.event_slug)
-      .maybeSingle();
-    const parsed = Number(event?.price_usd);
-    if (Number.isFinite(parsed) && parsed > 0) priceUsd = parsed;
-  }
-
-  return NextResponse.json({
-    price_usd: priceUsd,
+  return reply({
+    price_usd: amountPaidCents === null ? null : amountPaidCents / 100,
+    amount_paid_cents: amountPaidCents,
+    confirmation_sent: confirmationSent,
+    payment_state: paymentState,
+    can_retry_payment: row.seat_status === "pending" && ["unpaid", "failed"].includes(paymentState),
     first_name: row.first_name,
     event_slug: row.event_slug,
     event_title: row.event_title,

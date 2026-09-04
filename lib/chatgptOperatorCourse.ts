@@ -16,7 +16,7 @@ export const CHATGPT_OPERATOR = {
   promise:
     "Go from random questions to repeatable business work. Build useful images, posts, emails, research, landing pages, client assets, and a complete capstone system with ChatGPT.",
   accessDisclosure:
-    "Founding access includes all twelve written lessons, the prompt library, lesson checks, four reviewed deliverables, the final assessment, and every recorded lesson as it is added.",
+    "This is a self-guided written course. Access includes twelve lessons, worked examples, the downloadable workbook, prompts, lesson checks, four practical submissions for review, and the final assessment. Read a lesson, do the task, and save your work at your own pace.",
   credentialDisclaimer:
     "This is a private LeadFlow Pro course completion credential issued by Longview Training Center LLC. It is not a degree, professional license, accreditation, state or federal certification, promise of employment, or guarantee of business results.",
 } as const;

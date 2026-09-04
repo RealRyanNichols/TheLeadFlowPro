@@ -1,39 +1,31 @@
-// Server-side feed access for the Scoreboard. Kept apart from lib/scoreboard.ts so the
-// pure helpers stay importable by tests and client components.
+// Read only the explicitly public aggregate RPC. Neither the homepage nor a
+// public scoreboard needs a service key or access to individual contact rows.
 import "server-only";
-import { createServiceClient } from "@/lib/supabase/service";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { normalizeDays, type ScoreboardBusiness, type ScoreboardDay } from "@/lib/scoreboard";
 
 export type ScoreboardFetchResult =
   | { ok: true; days: ScoreboardDay[]; fetchedAt: string }
   | { ok: false; reason: string };
 
-export async function fetchScoreboardDays(
-  business: ScoreboardBusiness,
-  daysBack = 90,
-): Promise<ScoreboardFetchResult> {
+export async function fetchScoreboardDays(business: ScoreboardBusiness, daysBack = 90): Promise<ScoreboardFetchResult> {
   try {
-    if (business.feed.kind === "local") {
-      const service = createServiceClient();
-      const { data, error } = await service.rpc("scoreboard_public_daily", { days_back: daysBack });
-      if (error) return { ok: false, reason: error.message };
-      return { ok: true, days: normalizeDays(data), fetchedAt: new Date().toISOString() };
-    }
-    const response = await fetch(`${business.feed.url}/rest/v1/rpc/scoreboard_public_daily`, {
+    const url = business.feed.kind === "local" ? SUPABASE_URL : business.feed.url;
+    const key = business.feed.kind === "local" ? SUPABASE_ANON_KEY : business.feed.publishableKey;
+    const response = await fetch(`${url}/rest/v1/rpc/scoreboard_public_daily`, {
       method: "POST",
-      headers: {
-        apikey: business.feed.publishableKey,
-        Authorization: `Bearer ${business.feed.publishableKey}`,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({ days_back: daysBack }),
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "content-type": "application/json" },
+      body: JSON.stringify({ days_back: Math.min(400, Math.max(1, Math.trunc(daysBack))) }),
+      signal: AbortSignal.timeout(8000),
       next: { revalidate: 900 },
     });
     if (!response.ok) return { ok: false, reason: `feed responded ${response.status}` };
-    const data = await response.json();
-    return { ok: true, days: normalizeDays(data), fetchedAt: new Date().toISOString() };
-  } catch (error) {
-    return { ok: false, reason: error instanceof Error ? error.message : "feed unreachable" };
+    const raw = await response.json();
+    if (!Array.isArray(raw) || raw.length === 0) return { ok: false, reason: "No aggregate records returned" };
+    const days = normalizeDays(raw);
+    if (days.length !== raw.length) return { ok: false, reason: "Incomplete aggregate records" };
+    return { ok: true, days, fetchedAt: new Date().toISOString() };
+  } catch {
+    return { ok: false, reason: "feed unreachable" };
   }
 }
-

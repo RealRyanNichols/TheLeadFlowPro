@@ -1,6 +1,6 @@
 // The drafting queue stays honest or the drafting session inherits a broken
 // brief. Every entry must point at a real tool with an existing 1200x630 OG
-// card, use a slug no published article has, and use each tool only once,
+// card, keep queue state consistent with the authored catalog, and use each tool only once,
 // because the tool's card becomes the article's scene and article scenes must
 // be distinct.
 
@@ -10,20 +10,16 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 import { ARTICLES } from "../lib/articles.ts";
+import {
+  ARTICLE_QUEUE_STATUSES,
+  articleQueueCatalogIssues,
+  nextArticlePublicationDate,
+  type ArticleQueueEntry,
+} from "../lib/article-queue.ts";
 import { getTool } from "../lib/tools/index.ts";
 import { TOOL_VISUALS } from "../lib/tools/visuals.ts";
 
-type QueueEntry = {
-  slug: string;
-  trade: string;
-  industry: string;
-  tool: string;
-  searchQuestion: string;
-  workingTitle: string;
-  status: string;
-};
-
-async function loadQueue(): Promise<QueueEntry[]> {
+async function loadQueue(): Promise<ArticleQueueEntry[]> {
   const raw = await readFile(path.join(process.cwd(), "content", "article-queue.json"), "utf8");
   return JSON.parse(raw).queue;
 }
@@ -36,27 +32,51 @@ test("every queue entry is complete and carries a valid status", async () => {
       assert.ok(entry[field]?.trim(), `${entry.slug || "(no slug)"} is missing ${field}`);
     }
     assert.ok(
-      ["queued", "drafted", "published"].includes(entry.status),
+      ARTICLE_QUEUE_STATUSES.includes(entry.status),
       `${entry.slug} has unknown status "${entry.status}"`,
     );
   }
 });
 
-test("queue slugs are unique and free of collisions with published articles", async () => {
+test("queue slugs are unique and their status matches the authored catalog", async () => {
   const queue = await loadQueue();
   const seen = new Set<string>();
-  const published = new Set(ARTICLES.map((article) => article.slug));
   for (const entry of queue) {
     assert.equal(seen.has(entry.slug), false, `duplicate queue slug ${entry.slug}`);
     seen.add(entry.slug);
-    if (entry.status !== "published") {
-      assert.equal(
-        published.has(entry.slug),
-        false,
-        `queue entry ${entry.slug} collides with a published article but is not marked published`,
-      );
-    }
+    assert.deepEqual(articleQueueCatalogIssues(entry, ARTICLES), [], entry.slug);
   }
+});
+
+test("authored articles accept scheduled status without exposing future articles as published", () => {
+  const articles = [{ slug: "next-task", publishedAt: "2026-09-05" }];
+  const before = new Date("2026-09-05T04:59:59.999Z");
+  const midnight = new Date("2026-09-05T05:00:00.000Z");
+  for (const status of ["queued", "drafted"] as const) {
+    assert.ok(articleQueueCatalogIssues({ slug: "next-task", status }, articles, before).length);
+    assert.deepEqual(articleQueueCatalogIssues({ slug: "unwritten", status }, articles, before), []);
+  }
+  assert.deepEqual(articleQueueCatalogIssues({ slug: "next-task", status: "scheduled" }, articles, before), []);
+  // A due article stays scheduled until its live publication is verified.
+  assert.deepEqual(articleQueueCatalogIssues({ slug: "next-task", status: "scheduled" }, articles, midnight), []);
+  assert.ok(articleQueueCatalogIssues({ slug: "next-task", status: "published" }, articles, before).length);
+  assert.deepEqual(articleQueueCatalogIssues({ slug: "next-task", status: "published" }, articles, midnight), []);
+  for (const status of ["scheduled", "published"] as const) {
+    assert.ok(articleQueueCatalogIssues({ slug: "unwritten", status }, articles, midnight).length);
+    assert.ok(articleQueueCatalogIssues({ slug: "next-task", status }, [{ slug: "next-task", publishedAt: "2026-02-30" }], midnight).length);
+  }
+  assert.ok(articleQueueCatalogIssues({ slug: "next-task", status: "unknown" as ArticleQueueEntry["status"] }, articles, midnight).length);
+});
+
+test("brief dates fill the first uncovered Central day without mutating the catalog", () => {
+  const before = new Date("2026-09-05T04:59:59.999Z");
+  assert.equal(nextArticlePublicationDate([], before), "2026-09-04");
+  const articles = [{ publishedAt: "2026-09-04" }, { publishedAt: "2026-09-06" }];
+  assert.equal(nextArticlePublicationDate(articles, before), "2026-09-05");
+  assert.deepEqual(articles, [{ publishedAt: "2026-09-04" }, { publishedAt: "2026-09-06" }]);
+  assert.equal(nextArticlePublicationDate([{ publishedAt: "2026-12-31" }], new Date("2027-01-01T05:59:59Z")), "2027-01-01");
+  assert.equal(nextArticlePublicationDate([{ publishedAt: "2026-11-01" }], new Date("2026-11-01T06:59:59Z")), "2026-11-02");
+  assert.equal(nextArticlePublicationDate([{ publishedAt: "2026-11-01" }], new Date("2026-11-01T07:00:00Z")), "2026-11-02");
 });
 
 test("every queue entry points at a real tool, used once, with 1200x630 art", async () => {

@@ -49,7 +49,7 @@ const DELIVERABLES = [
   "A repeatable Teleprompter, phone, or QuickTime setup",
   "A simple CapCut editing and caption checklist",
   "A posting process for your website and social media",
-  "Ninety eight verified 4K presenter backgrounds",
+  "A downloadable workbook with planning and review checklists",
   "Twelve assignments, lesson checks, and a final assessment",
   "A private completion certificate and letter after verified completion",
 ];
@@ -131,8 +131,8 @@ export default function ContentEnginePage() {
               <a className={styles.heroMathLink} href="#content-math">See a simple ten video example <ArrowRight aria-hidden="true" /></a>
             </div>
             <div className={styles.proofRow}>
-              <span><Video aria-hidden="true" /> 12 step by step lessons</span>
-              <span><MonitorPlay aria-hidden="true" /> 98 verified 4K backgrounds</span>
+              <span><FileText aria-hidden="true" /> 12 written lessons</span>
+              <span><MonitorPlay aria-hidden="true" /> Learn at your own pace</span>
               <span><FileText aria-hidden="true" /> Workbook and 12 assignments</span>
               <span><BadgeCheck aria-hidden="true" /> Verified completion path</span>
             </div>
@@ -157,7 +157,7 @@ export default function ContentEnginePage() {
               <a href="#stage-action"><Target aria-hidden="true" /><span>CUSTOMER</span><small>Where they go</small></a>
             </nav>
             <div className={styles.productFooter}>
-              <span>30 VIDEO IDEAS</span><span>10 SCRIPTS</span><span>98 4K BACKGROUNDS</span>
+              <span>30 VIDEO IDEAS</span><span>10 SCRIPTS</span><span>PRINTABLE WORKBOOK</span>
             </div>
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function ContentEnginePage() {
         <div className={styles.shell}>
           <div><strong>30</strong><span>video ideas built around what you sell</span></div>
           <div><strong>10</strong><span>scripts ready to read out loud</span></div>
-          <div><strong>98</strong><span>ready to use 4K backgrounds</span></div>
+          <div><strong>12</strong><span>assignments to put the lessons to work</span></div>
           <div><strong>1</strong><span>routine from ChatGPT to customer</span></div>
         </div>
       </section>
@@ -269,24 +269,24 @@ export default function ContentEnginePage() {
               <p className={styles.eyebrow}>Teach it on screen</p>
               <h2>Use a 4K teaching background. Or keep the video raw. You decide.</h2>
               <p>
-                The course library now contains ninety eight verified 3840 by 2160 backgrounds.
-                Use them in QuickTime or another recording app when the visual helps the lesson.
-                If the message is stronger with no background and a simple edit, do that instead.
+                These examples show how a teaching background can give your words room to breathe.
+                The written lessons and workbook help you plan the shot and keep the message clear.
+                Use a background only when it helps your viewer understand the point.
               </p>
               <ul>
-                <li><Check aria-hidden="true" /> 24 clean lesson backgrounds</li>
-                <li><Check aria-hidden="true" /> 24 cinematic lesson backgrounds</li>
-                <li><Check aria-hidden="true" /> 50 business video layouts with left and right presenter space</li>
+                <li><Check aria-hidden="true" /> Keep the teaching point easy to read</li>
+                <li><Check aria-hidden="true" /> Leave space for your face and captions</li>
+                <li><Check aria-hidden="true" /> Choose a layout that fits what you are explaining</li>
                 <li><Check aria-hidden="true" /> Charts, comparisons, checklists, timelines, and process maps</li>
               </ul>
             </div>
           </div>
           <div className={styles.backgroundGalleryHead}>
             <div>
-              <p className={styles.eyebrow}>Actual course backgrounds</p>
+              <p className={styles.eyebrow}>Teaching examples</p>
               <h3>Point to the lesson while you teach it.</h3>
             </div>
-            <p>Every layout includes presenter space on the left and on the right. These are six of the ninety eight finished 4K files.</p>
+            <p>Six examples from our production workspace. These are visual previews; the current learner download is the printable workbook.</p>
           </div>
           <div className={styles.backgroundGallery}>
             {BACKGROUND_PREVIEWS.map((background, index) => (
@@ -324,9 +324,9 @@ export default function ContentEnginePage() {
               <span>One payment</span>
               <small>Regular price will be {formatCoursePrice(CONTENT_ENGINE.regularPriceCents)} after the founding revision.</small>
               <ul>
-                <li><Check aria-hidden="true" /> Immediate course access</li>
+                <li><Check aria-hidden="true" /> Twelve self-guided written lessons</li>
                 <li><Check aria-hidden="true" /> Workbook and 12 assignments</li>
-                <li><Check aria-hidden="true" /> 98 verified 4K backgrounds</li>
+                <li><Check aria-hidden="true" /> Printable workbook</li>
                 <li><Check aria-hidden="true" /> Completion pathway included</li>
               </ul>
               <a className={styles.pricePurchase} href="#enroll">

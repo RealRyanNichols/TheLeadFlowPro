@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Archivo, Inter } from "next/font/google";
 import "./globals.css";
 import "./company-builder.css";
+import "./leadflow-theme.css";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import TrackingScripts from "@/components/TrackingScripts";
+import PublicAnalytics from "@/components/PublicAnalytics";
 import { LEADFLOW_META, resolveLeadFlowMetaPixelId } from "@/lib/metaCampaignGuard";
 import { getSettings } from "@/lib/settings";
 
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
 // light everywhere. globals.css already declares color-scheme:light on :root;
 // these are the document-level defaults that were still contradicting it.
 export const viewport = {
-  themeColor: "#f7f5f2",
+  themeColor: "#0b0c16",
   colorScheme: "light" as const,
 };
 
@@ -98,8 +98,7 @@ export default async function RootLayout({
           </div>
           <SiteFooter />
         </div>
-        <Analytics />
-        <SpeedInsights />
+        <PublicAnalytics />
       </body>
     </html>
   );

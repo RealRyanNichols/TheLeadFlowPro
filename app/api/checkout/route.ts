@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { priceOrder } from "@/lib/timeback";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 import { FREE_BUILD } from "@/lib/freeBuild";
 import { priceToolStudio } from "@/lib/toolStudio";
 import { PRO_BUNDLE, getProTool } from "@/lib/tools/pro";
+import { startEventCheckout } from "@/lib/eventCheckoutServer";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
@@ -48,6 +47,11 @@ export async function POST(request: Request) {
     );
   }
 
+  if (body.kind === "event") {
+    const result = await startEventCheckout(body.registration_token);
+    return NextResponse.json(result.body, { status: result.status, headers: { "Cache-Control": "no-store" } });
+  }
+
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) return NextResponse.json({ error: "not_configured" }, { status: 501 });
 
@@ -68,66 +72,7 @@ export async function POST(request: Request) {
     }> | null = null;
     const metadata: Record<string, string> = {};
 
-    if (body.kind === "event") {
-      // Paid event seat. Price, publish state, and remaining capacity all come
-      // from the database. The browser only proves which registration it holds
-      // by sending back the token that registration handed it.
-      const token = typeof body.registration_token === "string" ? body.registration_token : "";
-      if (token.length < 24) {
-        return NextResponse.json({ error: "Register before checkout." }, { status: 400 });
-      }
-      const supabase = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-      const { data: lookup } = await supabase.rpc("event_registration_by_token", {
-        p_token: token,
-      });
-      const registration = Array.isArray(lookup) ? lookup[0] : lookup;
-      if (!registration?.registration_id) {
-        return NextResponse.json({ error: "Register before checkout." }, { status: 400 });
-      }
-      if (["paid", "attended", "no_show"].includes(registration.seat_status)) {
-        return NextResponse.json({ error: "This seat is already paid for." }, { status: 409 });
-      }
-      if (["cancelled", "refunded"].includes(registration.seat_status)) {
-        return NextResponse.json({ error: "This registration was cancelled." }, { status: 409 });
-      }
-
-      const { data: ev } = await supabase
-        .from("events")
-        .select("id, slug, title, price_usd, is_published")
-        .eq("slug", registration.event_slug)
-        .eq("is_published", true)
-        .single();
-      if (!ev || Number(ev.price_usd) <= 0) {
-        return NextResponse.json(
-          { error: "Event not available for online payment" },
-          { status: 400 },
-        );
-      }
-
-      // Capacity is checked again here, after registration, because the room
-      // can fill between the two steps.
-      const { data: seats } = await supabase.rpc("event_availability", { p_slug: ev.slug });
-      const availability = Array.isArray(seats) ? seats[0] : seats;
-      if (!availability?.registration_open) {
-        return NextResponse.json(
-          { error: "This workshop is sold out. Nothing was charged." },
-          { status: 409 },
-        );
-      }
-
-      kind = "event";
-      name = `Seat: ${ev.title}`;
-      amount = Math.round(Number(ev.price_usd) * 100);
-      cancelUrl = `${site}/events/${ev.slug}?cancelled=1`;
-      successUrl = `${site}/events/${ev.slug}/confirmed?t=${encodeURIComponent(
-        token,
-      )}&session_id={CHECKOUT_SESSION_ID}`;
-      metadata.kind = "event";
-      metadata.event_id = ev.id;
-      metadata.event_slug = ev.slug;
-      metadata.registration_id = registration.registration_id;
-    } else if (body.kind === "build_deposit") {
+    if (body.kind === "build_deposit") {
       // Down payment on a custom scope or anything Ryan quoted outside the
       // package ladder. Amount is customer-chosen and clamped server-side.
       const requested = Math.round(Number(body.amount_usd));

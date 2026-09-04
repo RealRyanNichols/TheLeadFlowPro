@@ -6,7 +6,8 @@ import {
 } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
 import { sendInternalLeadAlert } from "@/lib/leadNotify";
-import { formatEventWhen, STANDS_ALONE_DISCLOSURE } from "@/lib/events";
+import { isCheckoutPaymentEvent } from "@/lib/eventPayments";
+import { ensureEventSeatPaid } from "@/lib/eventSeatFulfillment";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 import { findFreeBuildTier } from "@/lib/freeBuild";
 import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
@@ -34,7 +35,8 @@ import { PRO_BUNDLE, getProTool, proCatalog } from "@/lib/tools/pro";
 // Needs STRIPE_WEBHOOK_SECRET (from Stripe dashboard → Webhooks) and
 // SUPABASE_SERVICE_ROLE_KEY (Supabase → Settings → API) in Vercel env vars.
 // Endpoint to register in Stripe: https://www.theleadflowpro.com/api/stripe-webhook
-// Events to send: checkout.session.completed, invoice.finalized, invoice.sent,
+// Events to send: checkout.session.completed, checkout.session.async_payment_succeeded,
+// invoice.finalized, invoice.sent,
 // invoice.paid, invoice.payment_failed, invoice.voided, and invoice.marked_uncollectible
 
 function verifySignature(payload: string, header: string, secret: string): boolean {
@@ -858,171 +860,6 @@ async function ensureTimebackOrderPaid(
   }
 }
 
-// Paid workshop seat. claim_event_seat() locks the event row, so two people
-// paying at the same instant cannot both take the last seat: the second one
-// lands as 'overbooked' and Ryan gets told to refund it rather than the money
-// disappearing into a full room.
-async function ensureEventSeatPaid(
-  supabase: SupabaseClient,
-  session: StripeCheckoutSession,
-) {
-  const registrationId =
-    typeof session.metadata?.registration_id === "string" ? session.metadata.registration_id : "";
-  if (!registrationId) {
-    // A paid event checkout with no registration attached cannot be matched to
-    // a seat. Non-2xx keeps it retryable and visible in the Stripe dashboard.
-    throw new Error("Paid event checkout has no registration_id");
-  }
-  const sessionId = typeof session.id === "string" ? session.id.slice(0, 200) : null;
-  const amountCents = Number.isFinite(Number(session.amount_total))
-    ? Number(session.amount_total)
-    : null;
-
-  const claim = await supabase.rpc("claim_event_seat", {
-    p_registration_id: registrationId,
-    p_stripe_session_id: sessionId,
-    p_amount_cents: amountCents,
-  });
-  if (claim.error) throw new Error(`Seat claim failed: ${claim.error.code ?? claim.error.message}`);
-  const claimed = Array.isArray(claim.data) ? claim.data[0] : claim.data;
-  const seatStatus = claimed?.seat_status ?? "paid";
-
-  const loaded = await supabase
-    .from("event_registrations")
-    .select(
-      "id, full_name, email, phone, business_name, bottleneck, access_token, seat_number, confirmation_sent_at, " +
-        "events(id, slug, title, starts_at, duration_minutes, timezone, venue, city, clinic_enabled, instructor_name)",
-    )
-    .eq("id", registrationId)
-    .single();
-  if (loaded.error) throw new Error(`Seat lookup failed: ${loaded.error.code}`);
-
-  const registration = loaded.data as unknown as {
-    full_name: string;
-    email: string;
-    business_name: string | null;
-    bottleneck: string | null;
-    access_token: string;
-    seat_number: number | null;
-    confirmation_sent_at: string | null;
-    events: EventForEmail | EventForEmail[] | null;
-  };
-  const event = Array.isArray(registration.events) ? registration.events[0] : registration.events;
-  if (!event) throw new Error("Paid seat has no event attached");
-
-  if (registration.confirmation_sent_at) return;
-
-  const resendKey = process.env.RESEND_API_KEY;
-  if (resendKey) {
-    const when = formatEventWhen(event);
-    const confirmUrl = `https://www.theleadflowpro.com/events/${event.slug}/confirmed?t=${encodeURIComponent(
-      registration.access_token,
-    )}`;
-    // The exact address lives in private.workshop_event_details, never in the
-    // anon-readable events row. Paid attendees always get it.
-    const addr = await supabase.rpc("event_exact_address", { p_event_id: event.id });
-    const details = Array.isArray(addr.data) ? addr.data[0] : addr.data;
-    const location = [event.venue, details?.exact_address, event.city]
-      .filter(Boolean)
-      .join("\n");
-
-    const overbooked = seatStatus === "overbooked";
-    const internal = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-        to: ["hello@theleadflowpro.com"],
-        subject: overbooked
-          ? `⚠️ OVERBOOKED SEAT (refund needed): ${event.title} — ${registration.email}`
-          : `🎟️ PAID SEAT ${registration.seat_number ?? ""}: ${event.title} — ${registration.email}`,
-        text: [
-          overbooked
-            ? "This payment arrived after the room filled. Refund it or open another seat."
-            : `Seat ${registration.seat_number ?? "?"} is paid.`,
-          "",
-          `Name: ${registration.full_name}`,
-          `Email: ${registration.email}`,
-          registration.business_name ? `Business: ${registration.business_name}` : "",
-          registration.bottleneck ? `Bottleneck: ${registration.bottleneck}` : "Bottleneck: not submitted yet",
-          "",
-          "Admin: https://www.theleadflowpro.com/admin/events",
-        ]
-          .filter(Boolean)
-          .join("\n"),
-      }),
-    }).catch(() => null);
-    if (!internal?.ok) throw new Error("Internal paid-seat alert was not accepted");
-
-    const attendee = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: "Ryan Nichols <hello@theleadflowpro.com>",
-        to: [registration.email],
-        reply_to: "hello@theleadflowpro.com",
-        subject: overbooked
-          ? `About your ${event.title} payment`
-          : `Your seat is confirmed — ${event.title}`,
-        text: overbooked
-          ? [
-              `${registration.full_name.split(" ")[0]},`,
-              "",
-              "Your payment came in just after the last seat was taken, so I am refunding it in full today.",
-              "You are first in line for the next date — reply to this email and I will hold you a seat.",
-              "",
-              "Sorry for the shuffle.",
-              "",
-              "Ryan Nichols",
-              "The LeadFlow Pro",
-            ].join("\n")
-          : [
-              `${registration.full_name.split(" ")[0]}, your seat is confirmed.`,
-              "",
-              event.title,
-              when.full,
-              "",
-              location,
-              "",
-              "Bring a laptop, charged, with a charger. A free ChatGPT account is enough.",
-              "",
-              event.clinic_enabled
-                ? "Before class, tell me the one bottleneck in your business you want looked at. Everyone who submits one gets a Next Move card, and two businesses get a live hot seat:"
-                : "Your registration details:",
-              confirmUrl,
-              "",
-              STANDS_ALONE_DISCLOSURE,
-              "",
-              "See you there.",
-              "",
-              "Ryan Nichols",
-              "The LeadFlow Pro | Longview, Texas",
-            ].join("\n"),
-      }),
-    }).catch(() => null);
-    if (!attendee?.ok) throw new Error("Attendee confirmation email was not accepted");
-  }
-
-  const marked = await supabase
-    .from("event_registrations")
-    .update({ confirmation_sent_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-    .eq("id", registrationId);
-  if (marked.error) throw new Error(`Confirmation marker failed: ${marked.error.code}`);
-}
-
-type EventForEmail = {
-  id: string;
-  slug: string;
-  title: string;
-  starts_at: string | null;
-  duration_minutes: number | null;
-  timezone: string;
-  venue: string | null;
-  city: string | null;
-  clinic_enabled: boolean;
-  instructor_name: string;
-};
-
 // Paid $197 Lead Follow-Up Campaign. The funnel already saved the lead before
 // Stripe opened, so this marks that row won and stamps the payment. The
 // writing itself waits on the intake form the buyer lands on next; that route
@@ -1431,7 +1268,7 @@ export async function POST(request: Request) {
     }
   }
 
-  if (event.type !== "checkout.session.completed") {
+  if (!isCheckoutPaymentEvent(event.type)) {
     return NextResponse.json({ received: true });
   }
 
@@ -1459,7 +1296,9 @@ export async function POST(request: Request) {
     const websiteLaunch = isWebsiteLaunchDeposit(session, configuredPaymentLinkId);
     const customer = websiteLaunchCustomer(session);
     if (!customer.email) {
-      if (websiteLaunch) throw new Error("Paid Website Launch checkout has no email");
+      if (websiteLaunch || session.metadata?.kind === "event") {
+        throw new Error("Paid checkout is missing its customer email");
+      }
       return NextResponse.json({ received: true });
     }
 

@@ -4,12 +4,14 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import FinalCta from "@/components/site/system/FinalCta";
 import SiteHero from "@/components/site/system/SiteHero";
-import { ARTICLES } from "@/lib/articles";
+import { getPublishedArticles } from "@/lib/articles";
 import {
   articlePremiumArtAlt,
   articlePremiumArtPath,
   articleVisualHeadline,
 } from "@/lib/articles-og";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Articles | The LeadFlow Pro",
@@ -19,13 +21,13 @@ export const metadata: Metadata = {
 };
 
 const FEATURED_ARTICLE_SLUGS = new Set([
-  "free-tools-that-bring-customers",
-  "website-text-too-small-on-mobile",
-  "pressure-washing-pricing",
+  "one-useful-business-task-with-ai",
+  "give-every-inquiry-an-owner-and-next-step",
+  "bring-one-real-task-to-your-business-workshop",
 ]);
 
 export default function ArticlesPage() {
-  const articles = [...ARTICLES].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  const articles = getPublishedArticles().sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
   const featuredArticles = articles.filter((article) => FEATURED_ARTICLE_SLUGS.has(article.slug));
   const libraryArticles = articles.filter((article) => !FEATURED_ARTICLE_SLUGS.has(article.slug));
   return (

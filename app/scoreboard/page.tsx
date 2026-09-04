@@ -44,13 +44,13 @@ export default async function ScoreboardIndexPage() {
               <p className={styles.eyebrow}>The Scoreboard</p>
               <h1>What the businesses we build are actually doing. Every day.</h1>
               <p className={styles.lead}>
-                Views, clicks, leads, paid leads, unpaid leads. One board per business, straight from that
+                Views, clicks, and recorded leads, with advertising attribution. One board per business, straight from that
                 business&apos;s own records. No estimates, no samples, no dressing it up. When a number is
                 low, it shows low. That is the point.
               </p>
               <div className={styles.heroActions}>
                 <a href="#boards">See the boards <ArrowRight aria-hidden="true" /></a>
-                <a href="#legend">What is an unpaid lead? <Activity aria-hidden="true" /></a>
+                <a href="#legend">What do the numbers mean? <Activity aria-hidden="true" /></a>
               </div>
             </div>
             <div className={styles.liveBadge}>
@@ -82,7 +82,7 @@ export default async function ScoreboardIndexPage() {
                       {totals ? <strong>{formatCount(totals.leads)}</strong> : <strong className={styles.unavailable}>Unavailable</strong>}
                     </div>
                     <div>
-                      <span><PhoneCall aria-hidden="true" size={12} /> Unpaid leads</span>
+                      <span><PhoneCall aria-hidden="true" size={12} /> Other lead records</span>
                       {totals ? <strong>{formatCount(totals.unpaid_leads)}</strong> : <strong className={styles.unavailable}>Unavailable</strong>}
                     </div>
                   </div>
@@ -117,10 +117,10 @@ export default async function ScoreboardIndexPage() {
           </div>
           <div className={styles.callout}>
             <p>
-              <strong>Why unpaid leads are the number to watch.</strong> A paid lead costs money every single
-              time. An unpaid lead came from something the business owns and keeps: an article that ranks, a
-              free tool people share, a Google listing, a form on a page that loads fast. Build enough of
-              those and the board keeps moving on the days the ad budget is off.
+              <strong>Know what the board is counting.</strong> A lead record is not a paying customer.
+              Ad-attributed leads have an advertising source or campaign tag. Other records may come from
+              organic traffic, referrals, direct contact, manual entries, or an unknown source. We show
+              the recorded counts so you can ask better questions about the work behind them.
             </p>
             <Link href="/free-build">Build the owned side <ArrowRight aria-hidden="true" /></Link>
           </div>

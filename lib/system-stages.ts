@@ -14,7 +14,6 @@
 //
 // The `tools` slugs are existing, live tool pages. Nothing here invents a tool.
 
-import { ARTICLES } from "./articles";
 import { TOOL_COUNT } from "./tools";
 
 export type StageSlug =
@@ -104,7 +103,7 @@ export const STAGES: Stage[] = [
       { name: "First-party attribution", body: "Every visit tagged and stored in your database, so the channel report is yours and not a platform's marketing." },
     ],
     proof: [
-      { name: "TheLeadFlowPro.com", what: `${TOOL_COUNT} free tools and ${ARTICLES.length} articles published on owned infrastructure, each one a door in from search`, url: "https://www.theleadflowpro.com/tools" },
+      { name: "TheLeadFlowPro.com", what: `${TOOL_COUNT} free tools and an article library published on owned infrastructure, with useful pages for people searching for answers`, url: "https://www.theleadflowpro.com/tools" },
       { name: "RealRyanNichols.com", what: "A publishing engine with a searchable archive of 1,568+ case profiles, built when platforms throttled the reach", url: "https://realryannichols.com" },
       { name: "Lone Star Total Wash", what: "A local service business that can now be found, priced, and booked without a phone call", url: "https://www.lonestartotalwash.com" },
     ],

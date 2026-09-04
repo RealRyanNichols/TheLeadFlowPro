@@ -11,7 +11,8 @@ import CompleteButton from "./CompleteButton";
 import AssignmentButton from "../../content-engine/AssignmentButton";
 import AssessmentForm from "../../content-engine/AssessmentForm";
 import DeliverableSubmissionForm from "./DeliverableSubmissionForm";
-import { academyLesson } from "@/lib/operatorAcademyCatalog";
+import { academyLesson, academyCourse } from "@/lib/operatorAcademyCatalog";
+import { learnerLessonMarkdown } from "@/lib/academyLessonPresentation";
 import { chatgptOperatorLesson } from "@/lib/chatgptOperatorCourse";
 import styles from "../../training.module.css";
 
@@ -98,6 +99,11 @@ export default async function LessonPage({
         .maybeSingle()
     : { data: null };
 
+  const academy = academyCourse(course.slug);
+  const learnerContent = academy
+    ? learnerLessonMarkdown(lesson.content)
+    : lesson.content ?? "";
+
   return (
     <main className={`cb-page ${styles.page}`}>
       <section className={styles.lessonHero}>
@@ -145,18 +151,31 @@ export default async function LessonPage({
             </div>
           ) : isAssessedCourse ? (
             <div className={styles.videoPlaceholder}>
-              <PlayCircle aria-hidden="true" />
+              <BookOpenCheck aria-hidden="true" />
               <div>
-                <p className="cb-eyebrow">Lesson video slot</p>
-                <h2>Recording script ready.</h2>
-                <p>The complete lesson is available below now. Ryan&apos;s recorded screen lesson will appear in this player when the approved video URL is added.</p>
+                <p className="cb-eyebrow">Self-guided lesson</p>
+                <h2>Read it. Try it. Check your work.</h2>
+                <p>Follow the written lesson below, complete the assignment, and use the lesson check when you are ready.</p>
               </div>
             </div>
           ) : null}
 
           <article className={`prose-lfp ${styles.lessonArticle}`}>
-            <ReactMarkdown>{lesson.content ?? ""}</ReactMarkdown>
+            <ReactMarkdown>{learnerContent}</ReactMarkdown>
           </article>
+
+          {academy ? (
+            <section className={styles.completePanel} aria-label="Course workbook">
+              <div>
+                <p className="cb-eyebrow">Keep your work</p>
+                <h2>Your course workbook.</h2>
+                <p>Use the PDF alongside the lessons to record your decisions, practice, and next steps.</p>
+              </div>
+              <a className="cb-btn cb-btn--primary" href={`/downloads/operator-academy/${academy.slug}-workbook.pdf`}>
+                Open {academy.shortTitle} workbook (PDF)
+              </a>
+            </section>
+          ) : null}
 
           {lessonBlueprint?.deliverable && user ? (
             <DeliverableSubmissionForm

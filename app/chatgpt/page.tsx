@@ -62,7 +62,7 @@ export default function ChatGPTCoursePage() {
                 <a href="#enroll" className={styles.secondaryAction}>See the full course</a>
               </div>
               <div className={styles.proofRow}>
-                <span><BookOpenCheck aria-hidden="true" /> 12 practical lessons</span>
+                <span><BookOpenCheck aria-hidden="true" /> 12 written lessons</span>
                 <span><FileCheck2 aria-hidden="true" /> 4 reviewed builds</span>
                 <span><BadgeCheck aria-hidden="true" /> Quizzes and capstone</span>
               </div>
@@ -102,12 +102,12 @@ export default function ChatGPTCoursePage() {
           <div className={styles.freeGrid}>
             <div>
               <p className={styles.eyebrow}>Start tonight</p>
-              <h2>Build a working landing page while people watch.</h2>
-              <p>Get the exact screen-recording plan, the exact prompt, the review checklist, and the follow-up prompt. This is the free lesson. No payment required.</p>
+              <h2>Build your first landing-page draft.</h2>
+              <p>Follow a short written lesson with a copyable prompt, a fictional practice business, and a checklist to review the result. Start with what you know. No payment required.</p>
               <ul>
-                <li><CirclePlay aria-hidden="true" /> A three-to-five-minute public build</li>
-                <li><MonitorPlay aria-hidden="true" /> A result viewers can see inside ChatGPT</li>
-                <li><FileCheck2 aria-hidden="true" /> A reusable prompt they can try themselves</li>
+                <li><CirclePlay aria-hidden="true" /> A simple task you can work through at your own pace</li>
+                <li><MonitorPlay aria-hidden="true" /> A page draft you can preview and improve</li>
+                <li><FileCheck2 aria-hidden="true" /> A reusable prompt you can adapt after practicing</li>
               </ul>
             </div>
             <FreeAccessForm />
@@ -119,7 +119,7 @@ export default function ChatGPTCoursePage() {
         <div className={styles.shell}>
           <div className={styles.sectionHead}>
             <div><p className={styles.eyebrow}>The course path</p><h2>Four levels. Every level ends with proof.</h2></div>
-            <p>Watching is not completion. You build, submit, revise when needed, and show that you can use the process without somebody doing it for you.</p>
+            <p>Read, build, and check your result. Submit the practical work for review, then revise it when needed.</p>
           </div>
           <div className={styles.levelGrid}>
             {CHATGPT_OPERATOR_LEVELS.map((level) => (
@@ -142,7 +142,7 @@ export default function ChatGPTCoursePage() {
           <div className={styles.gradingGrid}>
             <div>
               <p className={styles.eyebrow}>How completion works</p>
-              <h2>You do not pass because the video played.</h2>
+              <h2>Show what you can do.</h2>
               <p>You pass when the lesson checks are complete, the four practical builds are approved, and the final assessment reaches the required score.</p>
             </div>
             <div className={styles.scoreCard}>
@@ -174,7 +174,7 @@ export default function ChatGPTCoursePage() {
               <span className={styles.foundingBadge}>FOUNDING PRICE</span>
               <p className={styles.wasPrice}>Regular price {formatChatGPTCoursePrice(CHATGPT_OPERATOR.regularPriceCents)}</p>
               <div className={styles.price}>{formatChatGPTCoursePrice(CHATGPT_OPERATOR.foundingPriceCents)}<small>one time</small></div>
-              <p>Founding buyers keep access as the recorded lesson library is completed and added.</p>
+              <p>Start now with the full written course and workbook. Move through the lessons at your own pace.</p>
               <PaidCheckoutForm />
               <div className={styles.trustStack}>
                 <span><LockKeyhole aria-hidden="true" /> Paid lessons stay behind your login</span>

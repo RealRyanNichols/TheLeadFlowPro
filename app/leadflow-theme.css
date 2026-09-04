@@ -1,0 +1,951 @@
+/* Shared workshop visual language. Existing public tools and account flows retain their structure. */
+:root {
+  --lf-bg: #0b0c16;
+  --lf-panel: #131420;
+  --lf-line: #ffffff24;
+  --lf-text: #f7f7fb;
+  --lf-muted: #b9b9cb;
+  --lf-orange: #ff9e18;
+  --lf-violet: #5738ff;
+  --cb-blue: #5135e5;
+  --cb-blue-deep: #3c25b6;
+  --cb-blue-soft: #a69bff;
+  --cb-cyan: #5135e5;
+  --cb-canvas: #f7f8fc;
+  --cb-surface-2: #eef0f7;
+  --blue: #5135e5;
+  --blue-strong: #3c25b6;
+  --page: #f7f8fc;
+  --page-soft: #eef0f7;
+}
+.site-header {
+  background: #0c0d17f5;
+  border-bottom: 1px solid #ffffff26;
+}
+.site-header-inner {
+  max-width: 1240px;
+  width: calc(100% - 48px);
+  min-height: 82px;
+  gap: 26px;
+}
+.site-header .brand-lockup {
+  color: #fff;
+  gap: 12px;
+  align-items: center;
+  letter-spacing: 0.09em;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.35;
+}
+.site-header .brand-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #ffffff3b;
+  background: #21194b;
+  font-size: 17px;
+  color: #fff;
+  flex: none;
+}
+.site-header .brand-words {
+  display: block;
+  color: #fff;
+  margin: 0;
+}
+.site-header .brand-words small {
+  display: block;
+  color: #ada1ff;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  margin-top: 3px;
+}
+.site-header .desktop-nav {
+  gap: 22px;
+  font-size: 14px;
+}
+.site-header .desktop-nav > a[aria-current="page"] {
+  color: #fff;
+  text-decoration: underline;
+  text-decoration-color: var(--lf-orange);
+  text-underline-offset: 9px;
+}
+.site-header .header-cta,
+.mobile-nav-panel .header-cta {
+  background: var(--lf-orange);
+  color: #11121b;
+  border-radius: 4px;
+  border: 1px solid #ffc86a;
+  box-shadow: 0 5px 22px #ff9e181a;
+  white-space: nowrap;
+  font-weight: 800;
+}
+.site-header .header-cta:hover {
+  background: #ffb443;
+  color: #11121b;
+}
+.site-header .mobile-nav-panel {
+  background: #131420;
+  border-color: #ffffff30;
+}
+.site-header .mobile-nav-panel > a:not(.header-cta) {
+  color: #e4e2f0;
+}
+.site-header .mobile-nav-panel > a[aria-current="page"] {
+  background: #5738ff26;
+  color: #fff;
+}
+.site-footer.cb-footer {
+  background: #0b0c16;
+  color: #fff;
+  border-top: 1px solid #ffffff25;
+}
+.cb-footer-col h2 {
+  color: #a69bff;
+}
+.cb-footer .cb-footer-pitch,
+.cb-footer-col a,
+.cb-footer-bottom {
+  color: #b9b9cb;
+}
+.cb-footer .brand-lockup {
+  color: #fff;
+}
+.cb-footer .brand-lockup span {
+  color: #ffaf39;
+}
+.cb-footer .cb-textlink {
+  color: #ffaf39;
+}
+.cb-btn--primary {
+  background: var(--lf-orange);
+  border-color: var(--lf-orange);
+  color: #11121b;
+}
+.cb-btn--primary:hover {
+  background: #ffb443;
+  border-color: #ffb443;
+  color: #11121b;
+}
+.cb-h1 em {
+  color: #5135e5;
+}
+.lf-home {
+  background: var(--lf-bg);
+  color: var(--lf-text);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.lf-home * {
+  box-sizing: border-box;
+}
+.lf-shell {
+  width: min(1240px, calc(100% - 64px));
+  margin-inline: auto;
+}
+.lf-announcement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 11px 24px;
+  background: var(--lf-violet);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #fff;
+}
+.lf-announcement span {
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.lf-announcement:hover {
+  background: #684dff;
+}
+.lf-hero {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 54px;
+  padding-block: 70px 76px;
+}
+.lf-eyebrow {
+  margin: 0 0 18px !important;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #b3a8ff;
+  text-transform: uppercase;
+}
+.lf-hero h1 {
+  font-family: var(--font-archivo), var(--font-inter), sans-serif;
+  font-size: clamp(44px, 4.9vw, 73px);
+  font-weight: 900;
+  line-height: 1.03;
+  letter-spacing: -0.055em;
+  margin: 0 0 26px;
+}
+.lf-home em {
+  font-style: normal;
+  color: var(--lf-orange);
+}
+.lf-intro {
+  color: #c9c8d6;
+  font-size: 19px;
+  max-width: 560px;
+  line-height: 1.75;
+  margin: 0;
+}
+.lf-actions {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+}
+.lf-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: var(--lf-orange);
+  color: #101119;
+  font-weight: 850;
+  padding: 15px 22px;
+  min-height: 54px;
+  border: 1px solid #ffc66c;
+  border-radius: 4px;
+  text-decoration: none;
+  box-shadow: 0 6px 30px #ff9e181a;
+}
+.lf-button:hover {
+  background: #ffb443;
+  transform: translateY(-1px);
+}
+.lf-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 750;
+  color: #f2f0ff;
+}
+.lf-text-link:hover {
+  color: var(--lf-orange);
+}
+.lf-hero-trust {
+  margin-top: 28px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  color: #a9aabb;
+  font-size: 14px;
+}
+.lf-hero-trust span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.lf-hero-feature {
+  min-width: 0;
+}
+.lf-founder-photo {
+  margin: 0;
+  position: relative;
+  aspect-ratio: 1.1;
+  overflow: hidden;
+  border: 1px solid #ffffff29;
+  border-radius: 5px 5px 0 0;
+}
+.lf-founder-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 57% 50%;
+}
+.lf-founder-photo:after {
+  content: "";
+  position: absolute;
+  inset: 50% 0 0;
+  background: linear-gradient(transparent, #0b0c16f5);
+}
+.lf-founder-photo figcaption {
+  position: absolute;
+  z-index: 1;
+  bottom: 25px;
+  left: 26px;
+  right: 20px;
+}
+.lf-founder-photo figcaption span {
+  display: block;
+  color: #d6d1ed;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  font-weight: 750;
+}
+.lf-founder-photo figcaption strong {
+  display: block;
+  font-size: 24px;
+  color: #fff;
+}
+.lf-workshop-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 19px;
+  background: #1d1740;
+  padding: 23px 22px;
+  border: 1px solid #6551be;
+  border-top: 3px solid var(--lf-orange);
+  border-radius: 0 0 5px 5px;
+  color: #fff;
+}
+.lf-workshop-ribbon > svg {
+  margin-left: auto;
+  flex: none;
+  color: #ffb443;
+}
+.lf-workshop-ribbon > div > span {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: #b8abff;
+  font-weight: 800;
+}
+.lf-workshop-ribbon > div > strong {
+  display: block;
+  font-size: 19px;
+  line-height: 1.25;
+}
+.lf-workshop-ribbon p {
+  margin: 5px 0 0;
+  color: #ccc7e4;
+  font-size: 14px;
+}
+.lf-date {
+  border-right: 1px solid #ffffff30;
+  padding-right: 20px;
+}
+.lf-date > strong {
+  font-size: 42px !important;
+  letter-spacing: -0.04em;
+}
+.lf-date > span {
+  color: #ffb443 !important;
+}
+.lf-section {
+  padding-block: 78px;
+}
+.lf-section-raised {
+  background: #11121e;
+  border-block: 1px solid #ffffff13;
+}
+.lf-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 44px;
+  margin-bottom: 36px;
+}
+.lf-section-heading h2,
+.lf-final h2 {
+  font-family: var(--font-archivo), sans-serif;
+  font-size: clamp(32px, 3.8vw, 50px);
+  font-weight: 850;
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+  margin: 0;
+}
+.lf-section-heading > p {
+  max-width: 380px;
+  color: var(--lf-muted);
+  margin: 0;
+  font-size: 17px;
+}
+.lf-next-guide {
+  border: 1px solid #ffffff29;
+  background: #171824;
+  padding: 30px;
+  border-radius: 5px;
+}
+.lf-guide-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: #a69bff;
+  font-weight: 800;
+}
+.lf-guide-top button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 0;
+  color: #d7d3ee;
+  font: inherit;
+  font-size: 14px;
+  letter-spacing: 0;
+  cursor: pointer;
+  min-height: 38px;
+}
+.lf-next-guide h3 {
+  font-size: 24px;
+  letter-spacing: -0.03em;
+  margin: 12px 0 24px;
+  color: #fff;
+}
+.lf-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.lf-choice {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  background: #0e0f19;
+  border: 1px solid #ffffff25;
+  padding: 24px;
+  min-height: 220px;
+  color: #fff;
+  font: inherit;
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.lf-choice:hover {
+  background: #21193b;
+  border-color: #ad9dff;
+}
+.lf-choice > svg {
+  color: var(--lf-orange);
+  width: 23px;
+  height: 23px;
+  margin-bottom: 15px;
+}
+.lf-choice strong {
+  font-size: 19px;
+  line-height: 1.3;
+}
+.lf-choice > span {
+  color: #bcbaca;
+  font-size: 15px;
+  margin-block: 10px 18px;
+}
+.lf-choice b {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffb443;
+  font-size: 14px;
+}
+.lf-guide-note {
+  font-size: 14px;
+  color: #a5a4b5;
+  margin: 20px 0 0;
+}
+.lf-scoreboard {
+  border: 1px solid #ffffff26;
+  border-top: 3px solid #735aff;
+  border-radius: 4px;
+  background: #10111c;
+}
+.lf-board-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  background: #19162e;
+  color: #bbaeef;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+.lf-board-heading > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lf-board-heading svg {
+  color: #57dbab;
+}
+.lf-board-row {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 20px;
+  align-items: center;
+  gap: 20px;
+  padding: 25px;
+  border-bottom: 1px solid #ffffff17;
+}
+.lf-board-row:hover {
+  background: #ffffff05;
+}
+.lf-board-row > div:not(:first-child) {
+  text-align: right;
+}
+.lf-board-row strong {
+  display: block;
+  font-size: 25px;
+  font-variant-numeric: tabular-nums;
+  color: #f8f7fc;
+  letter-spacing: -0.03em;
+}
+.lf-board-row > div:first-child strong {
+  font-size: 18px;
+}
+.lf-board-row span {
+  display: block;
+  font-size: 13px;
+  color: #a4a1b7;
+}
+.lf-board-row > svg {
+  color: #ffb443;
+  margin-left: 5px;
+}
+.lf-scoreboard > p {
+  padding: 16px 24px;
+  color: #a8a5ba;
+  font-size: 13px;
+  margin: 0;
+}
+.lf-path-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+.lf-path-grid > article {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ffffff24;
+  border-radius: 5px;
+  background: #171824;
+  padding: 29px;
+}
+.lf-path-number {
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  color: #aca0ef;
+  font-weight: 800;
+}
+.lf-path-grid > article > svg {
+  margin-block: 28px 20px;
+  color: #ffb443;
+  width: 28px;
+  height: 28px;
+}
+.lf-path-grid h3 {
+  font-size: 25px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+.lf-path-grid p {
+  font-size: 16px;
+  color: #bdbbcd;
+  line-height: 1.75;
+  margin: 18px 0 24px;
+}
+.lf-path-grid > article > a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 750;
+  color: #ffb443;
+  margin-top: auto;
+  font-size: 15px;
+}
+.lf-path-grid small {
+  display: block;
+  font-size: 13px;
+  color: #9996ad;
+  margin-top: 20px;
+  line-height: 1.6;
+}
+.lf-path-grid small a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: #c8c2e6;
+}
+.lf-resource-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.lf-resource-grid > a {
+  background: #151522;
+  border: 1px solid #ffffff24;
+  border-radius: 5px;
+  padding: 35px;
+}
+.lf-resource-grid > a:hover {
+  border-color: #8a75ee;
+}
+.lf-resource-grid strong {
+  font-size: 31px;
+  letter-spacing: -0.035em;
+  line-height: 1.18;
+  display: block;
+}
+.lf-resource-grid p {
+  color: #b6b3c8;
+  max-width: 440px;
+  margin: 18px 0 28px;
+}
+.lf-resource-grid .lf-text-link {
+  font-size: 15px;
+  color: #ffb443;
+}
+.lf-final {
+  padding: 80px 0 90px;
+  background:
+    radial-gradient(ellipse at 80% 110%, #5233f94d, transparent 60%), #161221;
+  border-top: 1px solid #5a418e;
+}
+.lf-final > div > p:not(.lf-eyebrow) {
+  max-width: 540px;
+  color: #c2bfd0;
+  font-size: 18px;
+  margin: 23px 0 0;
+}
+.lf-home :focus-visible {
+  outline: 3px solid #ffd090;
+  outline-offset: 5px;
+}
+@media (min-width: 1101px) {
+  body:has(.lf-home) .desktop-nav {
+    display: flex;
+  }
+  body:has(.lf-home) .mobile-nav {
+    display: none;
+  }
+}
+@media (max-width: 1100px) {
+  .site-header .desktop-nav {
+    display: none;
+  }
+  .site-header .mobile-nav {
+    display: block;
+  }
+  .lf-hero {
+    gap: 30px;
+  }
+  .lf-path-grid {
+    gap: 14px;
+  }
+  .lf-path-grid > article {
+    padding: 22px;
+  }
+  .lf-choice {
+    padding: 20px;
+  }
+  .lf-section-heading {
+    gap: 25px;
+  }
+}
+@media (max-width: 800px) {
+  .lf-shell {
+    width: calc(100% - 40px);
+  }
+  .lf-hero {
+    grid-template-columns: 1fr;
+    padding-block: 45px;
+    gap: 35px;
+  }
+  .lf-hero-copy {
+    max-width: 620px;
+  }
+  .lf-hero h1 {
+    font-size: clamp(44px, 8vw, 66px);
+  }
+  .lf-founder-photo {
+    aspect-ratio: 1.6;
+  }
+  .lf-section {
+    padding-block: 52px;
+  }
+  .lf-section-heading {
+    display: block;
+  }
+  .lf-section-heading > p {
+    margin-top: 20px;
+    max-width: 560px;
+  }
+  .lf-choice-grid,
+  .lf-path-grid {
+    grid-template-columns: 1fr;
+  }
+  .lf-choice {
+    min-height: 175px;
+  }
+  .lf-choice > span {
+    max-width: 470px;
+  }
+  .lf-next-guide {
+    padding: 22px;
+  }
+  .lf-resource-grid {
+    grid-template-columns: 1fr;
+  }
+  .lf-announcement {
+    font-size: 12px;
+    gap: 12px;
+  }
+  .lf-announcement span {
+    display: none;
+  }
+  .lf-final {
+    padding-block: 56px;
+  }
+  .lf-path-grid > article {
+    padding: 26px;
+  }
+  .lf-path-grid > article > svg {
+    margin-block: 20px 15px;
+  }
+  .lf-path-grid p {
+    max-width: 520px;
+  }
+  .lf-board-row {
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 12px;
+    padding: 20px 16px;
+  }
+  .lf-board-row > svg {
+    display: none;
+  }
+  .lf-board-row > div:first-child strong {
+    font-size: 16px;
+  }
+  .lf-board-heading {
+    padding: 16px;
+    font-size: 11px;
+  }
+  .lf-board-row span {
+    font-size: 12px;
+  }
+  .lf-board-row strong {
+    font-size: 23px;
+  }
+  .lf-scoreboard > p {
+    padding: 15px 16px;
+  }
+  .site-header-inner {
+    width: calc(100% - 40px);
+    min-height: 72px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lf-home * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+.lf-event-registration {
+  --text: #dedbe9;
+  --heading: #fff;
+  --muted: #aaa6be;
+  --panel: #181722;
+  --line: #ffffff25;
+  --line-strong: #ffffff35;
+  --fill-2: #ffffff08;
+  --page: #10101a;
+  --blue: #aa96ff;
+  --green: #82ddba;
+  --green-line: #82ddba35;
+  --green-tint: #82ddba0c;
+  --cb-ink: #fff;
+  --cb-body: #c7c2d7;
+  --cb-muted: #b5adc9;
+  --cb-canvas: #0b0c16;
+  --cb-surface: #181722;
+  --cb-hair: #ffffff25;
+  --cb-blue: #aa96ff;
+  --cb-cyan: #ffad37;
+  --cb-on-ink: #fff;
+  --cb-muted-ink: #bcb4d1;
+  color-scheme: dark;
+}
+.lf-event-shell {
+  padding-block: 36px 75px;
+}
+.lf-event-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: start;
+  gap: 60px;
+  margin-top: 40px;
+}
+.lf-event-grid h1 {
+  font-size: clamp(36px, 4vw, 53px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  margin: 0 0 22px;
+}
+.lf-event-facts {
+  display: grid;
+  gap: 21px;
+  padding: 0;
+  margin: 30px 0;
+  list-style: none;
+}
+.lf-event-facts li {
+  display: flex;
+  align-items: start;
+  gap: 14px;
+}
+.lf-event-facts svg {
+  color: #b5a4ff;
+  width: 20px;
+  flex: none;
+  margin-top: 3px;
+}
+.lf-event-facts span,
+.lf-event-facts strong {
+  display: block;
+}
+.lf-event-facts span {
+  font-size: 14px;
+  color: #b0aabd;
+  margin-top: 4px;
+}
+.lf-event-included {
+  border-block: 1px solid #ffffff24;
+  padding: 24px 0;
+  margin: 28px 0;
+}
+.lf-event-included h2 {
+  font-size: 22px;
+  margin: 0 0 16px;
+}
+.lf-event-included p {
+  display: flex;
+  align-items: start;
+  gap: 9px;
+  font-size: 15px;
+  color: #c6c0d5;
+  margin: 10px 0;
+}
+.lf-event-included svg {
+  color: #ffa82c;
+  flex: none;
+  margin-top: 4px;
+}
+.lf-event-included p:last-child {
+  margin-top: 21px;
+  color: #a69fb5;
+}
+.lf-event-policy {
+  border-bottom: 1px solid #ffffff24;
+  padding-block: 17px;
+}
+.lf-event-policy summary {
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 750;
+  color: #e7e1f3;
+  min-height: 30px;
+}
+.lf-event-policy p {
+  font-size: 14px;
+  color: #aaa3bb;
+}
+.lf-event-policy a {
+  color: #c8b9ff;
+  text-decoration: underline;
+}
+.lf-ticket-panel {
+  background: #15131f;
+  border: 1px solid #ffffff29;
+  border-top: 3px solid #ffab32;
+  border-radius: 5px;
+  padding: 28px;
+  scroll-margin-top: 110px;
+}
+.lf-ticket-panel > p {
+  color: #b5aec4;
+  font-size: 16px;
+}
+.lf-ticket-price {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid #ffffff24;
+  padding-bottom: 23px;
+  margin-bottom: 22px;
+}
+.lf-ticket-price h2 {
+  font-size: 60px;
+  color: #ffab32;
+  line-height: 1;
+  margin: 0;
+  letter-spacing: -0.05em;
+}
+.lf-ticket-price .lf-eyebrow {
+  font-size: 11px;
+  margin-bottom: 12px !important;
+}
+.lf-ticket-price > span {
+  text-align: right;
+  font-size: 14px;
+  color: #b6adc7;
+}
+.lf-ticket-panel .input {
+  background: #0c0b13;
+  color: #fff;
+  border: 1px solid #ffffff36;
+}
+.lf-ticket-panel .input:focus {
+  border-color: #a992ff;
+  outline: 2px solid #a992ff55;
+}
+.lf-ticket-panel .cb-btn--primary {
+  color: #101119;
+  background: #ffab32;
+}
+.lf-ticket-panel .label {
+  color: #e2dbee;
+}
+.lf-ticket-panel form {
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.lf-ticket-panel .lf-button {
+  margin-top: 20px;
+}
+.lf-event-registration .cb-band {
+  background: transparent;
+}
+.lf-event-registration .cb-h2 {
+  color: #fff;
+}
+.lf-event-registration .cb-lead {
+  color: #c6bfd4;
+}
+.lf-event-registration .cb-btn--ghost {
+  color: #d8cee7;
+  border-color: #ffffff35;
+}
+.lf-event-registration .cb-btn--ghost:hover {
+  color: #fff;
+  background: #2b203f;
+}
+@media (max-width: 900px) {
+  .lf-event-grid {
+    grid-template-columns: 1fr;
+    gap: 35px;
+  }
+  .lf-ticket-panel {
+    padding: 23px;
+  }
+  .lf-event-shell {
+    padding-top: 26px;
+  }
+}

@@ -4,6 +4,7 @@
 //      npm run draft:article -- --claim (also write drafts/<slug>-brief.md and
 //                                        mark the queue entry "drafted")
 //      npm run draft:article -- --slug junk-removal-cost-per-lead
+//      npm run draft:article -- --date 2026-09-07
 //
 // This is the deterministic half of the drafting pipeline described in
 // docs/article-drafting.md. It picks the next queued entry from
@@ -12,28 +13,16 @@
 // emits a complete brief: metadata, voice rules, a paste-ready Article
 // skeleton, the articles-og.tsx entries, and the ship checklist.
 //
-// The prose itself is written by a person or a Claude session working from the
-// brief. Nothing here publishes anything: publishing is a pull request Ryan
-// approves, always.
+// This command does not publish. The authorized daily workflow completes the
+// article, checks and deploys it, then verifies its dated release separately.
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { ARTICLES } from "../lib/articles.ts";
+import { centralPublicationDate, isPublicationDate } from "../lib/article-publication.ts";
+import { nextArticlePublicationDate, type ArticleQueue } from "../lib/article-queue.ts";
 import { getTool } from "../lib/tools/index.ts";
 import { TOOL_VISUALS } from "../lib/tools/visuals.ts";
-
-type QueueEntry = {
-  slug: string;
-  trade: string;
-  industry: string;
-  tool: string;
-  searchQuestion: string;
-  workingTitle: string;
-  status: "queued" | "drafted" | "published";
-  draftedAt?: string;
-};
-
-type Queue = { _readme: string[]; queue: QueueEntry[] };
 
 const ROOT = process.cwd();
 const QUEUE_PATH = join(ROOT, "content", "article-queue.json");
@@ -42,8 +31,18 @@ const args = process.argv.slice(2);
 const claim = args.includes("--claim");
 const slugFlag = args.indexOf("--slug");
 const wantedSlug = slugFlag >= 0 ? args[slugFlag + 1] : null;
+const dateFlag = args.indexOf("--date");
+const wantedDate = dateFlag >= 0 ? args[dateFlag + 1] : null;
+if ((slugFlag >= 0 && (!wantedSlug || wantedSlug.startsWith("--")))
+  || (dateFlag >= 0 && (!wantedDate || wantedDate.startsWith("--")))) {
+  console.error("Pass a value after --slug and a YYYY-MM-DD value after --date.");
+  process.exit(1);
+}
 
-const queue: Queue = JSON.parse(readFileSync(QUEUE_PATH, "utf8"));
+const queue: ArticleQueue = JSON.parse(readFileSync(QUEUE_PATH, "utf8"));
+const now = new Date();
+const today = centralPublicationDate(now);
+const publicationDate = wantedDate ?? nextArticlePublicationDate(ARTICLES, now);
 
 const entry = wantedSlug
   ? queue.queue.find((item) => item.slug === wantedSlug)
@@ -61,8 +60,18 @@ if (!entry) {
 // ---------------------------------------------------------------- validate --
 
 const problems: string[] = [];
+if (entry.status !== "queued" && entry.status !== "drafted") {
+  problems.push(`entry is already ${entry.status}; do not reset an authored article to drafted`);
+}
 if (ARTICLES.some((article) => article.slug === entry.slug)) {
   problems.push(`article slug "${entry.slug}" already exists in lib/articles`);
+}
+if (!isPublicationDate(publicationDate)) {
+  problems.push("publication date must be a real YYYY-MM-DD calendar date");
+} else if (publicationDate < today) {
+  problems.push("do not backdate a new article before today in America/Chicago");
+} else if (ARTICLES.some((article) => article.publishedAt === publicationDate)) {
+  problems.push(`an article is already authored for ${publicationDate}; verify it instead of duplicating the day`);
 }
 const tool = getTool(entry.tool);
 if (!tool) problems.push(`tool "${entry.tool}" is not a published tool slug`);
@@ -76,7 +85,6 @@ if (problems.length || !tool || !visuals) {
   process.exit(1);
 }
 
-const today = new Date().toISOString().slice(0, 10);
 const artPath = visuals.ogImage; // /og/tools/<tool>.jpg, always 1200x630
 
 const fieldLines = tool.fields
@@ -102,6 +110,7 @@ draft so the article and the tool tell one story.
 - Search question it must win: ${entry.searchQuestion}
 - Trade: ${entry.trade}
 - Slug: ${entry.slug}
+- Intended publication date: ${publicationDate} (America/Chicago)
 - Tool to embed: ${entry.tool} (${tool.name})
 - Article scene (already exists, 1200x630): ${artPath}
 ${toolReused ? `- Note: "${entry.tool}" is also embedded by /articles/${toolReused.slug}. Fine for a different trade, but do not copy that article's framing.` : "- This tool is not embedded by any existing article."}
@@ -121,6 +130,10 @@ business in this trade (${entry.trade}) and is reading on a phone at night.
 - Do not oversell the tool. It gives a floor or a leak size, not a promise.
 - Internal links where they are honest: the follow-up article, the missed
   calls article, /pricing, /free-build. Two or three, not ten.
+- Welcome all ages and experience levels. Give the reader one useful task,
+  a worked example, and a copyable prompt, checklist, or working tool.
+- Verify changing product claims against current primary official sources.
+  Link the sources near their claims and record when they were checked.
 
 ## The tool's own copy (ground the draft in this)
 
@@ -145,7 +158,7 @@ ${toolFaqs || "(none)"}
   slug: "${entry.slug}",
   title: "TODO final title, the trade named in it",
   description: "TODO 140 to 160 characters, honest, includes the calculator",
-  publishedAt: "${today}",
+  publishedAt: "${publicationDate}",
   readingMinutes: 7,
   ogImage: "${artPath}",
   tool: {
@@ -205,19 +218,25 @@ TODO close with the systems angle and one internal link.
 
 ## Ship checklist
 
-1. Article added, {{TOOL}} on its own line, no em dashes anywhere in it.
-2. All three articles-og.tsx entries added.
-3. npm test passes (it checks the scene exists, is 1200x630, is distinct,
-   and that the headline and alt entries are present).
-4. npm run build:only passes.
-5. Screenshot the article at 390px width and confirm the tool and form render.
-6. Push a branch named claude/article-draft-${entry.slug}, open a DRAFT pull
-   request, and stop. Ryan approves and merges. Never push this to main.
-7. In the PR description: the working title vs final title, the search
-   question, and a note that Ryan can swap the tool-card scene for a ChatGPT
-   scene at /images/articles-v4/${entry.slug}.jpg later if he wants richer art.
-8. Update content/article-queue.json: this entry's status becomes "drafted"
-   (the --claim flag already did this if you used it).
+1. Finish the article and source checks. No TODOs, invented claims, or private
+   notes may remain. Put {{TOOL}} on its own line and use its actual inputs.
+2. Add the complete article and all three articles-og.tsx entries. Add
+   "${entry.slug}": "${publicationDate}" to lib/articles-schedule.ts.
+3. Mark the queue entry scheduled once the article is in the catalog with its
+   date. This records intent, not successful deployment or live publication.
+4. Run npm test and npm run build. Both must pass. Review the diff and check
+   the article at 390px width, including the tool, form, and source links.
+5. Publish the checked commit through the established production workflow
+   under Ryan's authorization for daily articles. Preserve unrelated work.
+   Verify the exact deployment is READY; a draft PR alone is not completion.
+6. Record real evidence in content/article-publications/${publicationDate}-${entry.slug}.json,
+   following docs/article-drafting.md. Leave unverified fields absent.
+7. Before the intended date, verify 404 and noindex for the detail/OG URLs and
+   no entry in the public index or sitemap. After the date arrives, verify
+   the live article body, 200 response, canonical metadata, and public listing.
+8. Mark published only after live verification and update the same receipt.
+   Save receipt/status changes with the next content commit; do not claim a
+   brief, build, commit, or READY deployment alone is a published article.
 `;
 
 // ----------------------------------------------------------------- output --

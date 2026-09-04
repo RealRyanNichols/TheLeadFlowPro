@@ -50,18 +50,23 @@ export default function ServicesPage() {
           <h1 className="cb-h1">We build the website and the system behind it.</h1>
           <p className="cb-lead">
             Websites, lead capture, follow-up, CRM, payments, portals, and analytics,
-            connected and installed in accounts you control. Start with the free five-page
+            connected and installed in accounts you control. Apply for the $0 five-page
             website, then add only what your business actually needs.
           </p>
           <div className="cb-actions">
             <Link className="cb-btn cb-btn--primary" href="/free-build">
-              Start My Free Website
+              Apply for the $0 website
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
             <a className="cb-btn cb-btn--ghost" href={PHONE_TEL}>
               Call or text {PHONE_DISPLAY}
             </a>
           </div>
+          <p className="cb-lead">
+            The free program is reviewed for fit and capacity. Prefer to buy outright?
+            {" "}<Link href="/packages">Website Launch is $1,000</Link>, with $500 to start,
+            without waiting for a free-program opening. Both paths begin with a written scope.
+          </p>
           <div className="cb-subhero-who" aria-label="Who this is for">
             <span>
               <Users aria-hidden="true" className="h-4 w-4" /> For business owners, operators,
@@ -328,7 +333,7 @@ export default function ServicesPage() {
                 <span>Public catalog</span>
                 <span>Member access</span>
                 <span>Progress tracking</span>
-                <span>Daily module publishing</span>
+                <span>Lesson publishing controls</span>
               </div>
               <div className="cb-actions">
                 <Link className="cb-btn cb-btn--primary" href="/training">
@@ -439,7 +444,7 @@ export default function ServicesPage() {
                   data-analytics="cta-free-website-services"
                   className="cb-btn cb-btn--primary"
                 >
-                  Start My Free Website
+                  Apply for the $0 website
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </Link>
                 <Link className="cb-btn cb-btn--ghost" href="/packages">
@@ -487,7 +492,7 @@ export default function ServicesPage() {
               placement="services_final"
               className="cb-btn cb-btn--primary"
             >
-              Start My Free Website
+              Apply for the $0 website
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </CtaLink>
             <a className="cb-btn cb-btn--ghost" href={PHONE_TEL}>

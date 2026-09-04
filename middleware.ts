@@ -2,11 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { isWorkspaceHost, workspaceRedirect } from "@/lib/workspaceHost";
+import { ARTICLE_PUBLICATION_DATES } from "@/lib/articles-schedule";
+import { isUnpublishedArticlePath } from "@/lib/article-publication";
 
 const PUBLIC_SALES_PATH = "/admin/sales";
 const INTERNAL_SALES_PATH = "/sales";
 const WORKSHOP_SITE_URL =
-  "https://chatgpt-longview-september-17-2026.therealryannichols.chatgpt.site";
+  "https://workshop.theleadflowpro.com/";
 
 function isPath(path: string, base: string) {
   return path === base || path.startsWith(`${base}/`);
@@ -33,6 +35,22 @@ export async function middleware(request: NextRequest) {
       url.pathname = destination;
       return NextResponse.redirect(url);
     }
+  }
+
+  // A future article must return 404 before any Next.js stream or CDN cache.
+  // Use the small date manifest here; do not load article bodies in middleware.
+  if (isUnpublishedArticlePath(requestedPath, ARTICLE_PUBLICATION_DATES)) {
+    return new NextResponse(
+      '<!doctype html><html lang="en"><head><meta name="robots" content="noindex,nofollow"><title>Article not available</title></head><body><main><h1>Article not available</h1><p><a href="/articles">Browse published articles</a></p></main></body></html>',
+      {
+        status: 404,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "no-store",
+          "X-Robots-Tag": "noindex, nofollow",
+        },
+      },
+    );
   }
 
   // Keep the legacy event calendar in source while the public Events entry

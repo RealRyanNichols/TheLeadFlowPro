@@ -1,86 +1,151 @@
-# The article drafting pipeline
+# The daily article publishing workflow
 
-How new articles get drafted on a schedule and published only after Ryan
-approves them. Built September 2026, after the blog went three weeks without a
-post while everything else on the site kept moving.
+Ryan has authorized one complete, useful LeadFlow article each day. Finish the
+writing, validate it, deploy it through the existing production workflow, and
+verify its release. An extra draft approval is not required for this authorized
+workflow. A brief, draft PR, commit, or successful build is not a live article.
+This authorization does not extend to email, social posting, or paid services.
 
-## The play every article runs
+## What a finished article gives the reader
 
-One trade, one question that trade types into Google, one honest answer, one
-free tool embedded in the article that turns the answer into the reader's own
-number, a lead form directly under the tool, and a FAQ. The tool steps emit
-HowTo schema and the FAQ emits FAQPage schema, which is what earns the rich
-results. This is the same play Premier Dental Academy runs with its free
-training tools, and the same play every existing article on this site runs.
+Solve one real business problem in plain English. Give the reader a worked
+example and something they can use: a copyable prompt, checklist, template, or
+an existing working tool. Welcome all ages and experience levels. Lead with the
+result, keep the next step simple, and use short paragraphs.
 
-## The pieces
+The trade queue follows one practical question, an honest answer, a working
+tool, steps using the tool's real inputs, and relevant questions and answers.
+Other articles can teach a task without a calculator. Use existing article
+components. Structured data must match visible content; it does not guarantee
+search placement or rich results.
 
-1. **The queue: `content/article-queue.json`.** Ordered list of upcoming
-   articles: slug, trade, tool, the search question to win, a working title.
-   Statuses move queued -> drafted -> published. Anyone can add entries; the
-   test suite checks every entry points at a real tool, a free slug, and
-   art that exists at 1200x630.
+Verify changing product claims against current primary official sources. Link
+the source beside its claim and record when it was checked. Use no invented
+statistics, revenue, customer results, capabilities, case studies, private
+notes, or guarantees. No hype or em dashes. Keep public copy in LeadFlow's voice.
 
-2. **The brief generator: `npm run draft:article`.** Deterministic. Picks the
-   next queued entry, pulls the real copy and input fields out of the tool's
-   definition, and emits a complete brief: voice rules, a paste-ready Article
-   skeleton, the three `lib/articles-og.tsx` entries, and the ship checklist.
-   `-- --claim` writes the brief to `drafts/<slug>-brief.md` and marks the
-   queue entry drafted. `-- --slug <slug>` targets a specific entry.
+## Queue and brief
 
-3. **The writer.** A person or a Claude session takes the brief and writes the
-   draft: the article body in Ryan's voice, the tool steps against the tool's
-   real inputs, the trade-specific FAQ. The brief is grounding; the writing is
-   the craft.
+`content/article-queue.json` is the ordered trade queue. Its shared types and
+catalog checks live in `lib/article-queue.ts`.
 
-4. **The approval gate: a draft pull request.** The writer pushes a branch
-   named `claude/article-draft-<slug>` and opens a DRAFT pull request. CI runs
-   the same tests as always (distinct 1200x630 scene, headline, alt, schema
-   inputs). Ryan reads it, edits it or asks for changes, and merging to main
-   is publishing. Nothing auto-publishes. Ever.
+| Status | Meaning |
+| --- | --- |
+| `queued` | A topic is available; no article with this slug is in the authored catalog. |
+| `drafted` | A brief or draft is in progress outside the authored catalog. |
+| `scheduled` | The complete article is in the authored catalog with a valid publication date. Deployment and live verification are recorded separately. |
+| `published` | The Central date has arrived and the production article has been independently verified live. |
 
-## Art
+A scheduled entry may stay scheduled after its date until the live check is
+complete. Never infer publication from a clock, queue label, merge, or READY
+deployment alone. Existing historical articles need not be added to this queue.
 
-Each article needs one distinct 1200x630 scene and the test suite enforces it.
-The queue defaults every article to its embedded tool's OG card
-(`/og/tools/<tool>.jpg`), which already exists, is already 1200x630, and is
-distinct as long as each tool appears in the queue once. Ryan can replace any
-of them later with a richer ChatGPT scene dropped at
-`/images/articles-v4/<slug>.jpg` plus a one-line change in
-`lib/articles-og.tsx`. Nobody generates images in this pipeline.
+`npm run draft:article` prints a brief without changing files. It chooses the
+next queued topic and the first uncovered calendar date on or after today in
+America/Chicago. `npm run draft:article -- --claim` saves
+`drafts/<slug>-brief.md` and marks the entry drafted. Use `--slug <slug>` to
+resume a queued or drafted entry, and `--date YYYY-MM-DD` to choose an uncovered
+date. Invalid dates, backdating, occupied dates, authored slugs, and attempts to
+reset scheduled or published entries are rejected.
 
-## The schedule
+The brief pulls real tool labels and copy. It still contains TODOs and is not
+publishable. Finish the prose and replace every placeholder before adding the
+article to the catalog. Check existing branches and drafts before claiming a
+topic; the brief command is not a distributed lock for concurrent writers.
 
-A weekly Claude Code Routine fires a fresh session that runs the whole loop:
-pull main, run the brief generator with `--claim`, write the draft, validate,
-push the branch, open the draft PR, and stop. Ryan gets the PR to approve.
+## The daily run
 
-If the Routine is ever missing (it can be recreated from any Claude session),
-the same job can be scheduled anywhere that can run a Claude session, using
-this prompt verbatim:
+The automation must be created through the app's supported automation tool.
+This document does not create a schedule or prove a job is running. No Vercel
+article-generation cron is currently configured.
 
-> Work in the RealRyanNichols/TheLeadFlowPro repo. Read
-> docs/article-drafting.md and follow it exactly. Pull the latest main, run
-> `npm run draft:article -- --claim`, and write the article the brief
-> describes: Ryan's voice, no em dashes, no hype words, no invented numbers,
-> the tool steps written against the tool's real inputs, a trade-specific FAQ.
-> Add the three lib/articles-og.tsx entries the brief lists. Install
-> dependencies with `NODE_ENV=development npm install --include=dev --no-audit
-> --no-fund` if needed. Run `npm test` and `npm run build:only`; both must
-> pass. Commit the brief, the queue change, and the article together, push the
-> branch claude/article-draft-<slug>, and open a DRAFT pull request titled
-> "Article draft: <final title>" describing the search question and the tool.
-> Do not push to main. Do not merge. Stop after the draft PR exists.
+1. Determine today in America/Chicago. Verify today's expected production
+   article and update its existing receipt. If it is missing or broken, fix
+   that gap first. Reconcile the authored catalog, date manifest, queue, and
+   existing work to prevent duplicate topics, slugs, and dates.
+2. Keep the next two days covered by checked, deployed articles. Complete at
+   most one new article per run for the first uncovered date. Prefer finishing
+   an existing draft over starting another. Report a gap if one run cannot
+   restore the buffer; do not publish filler or silently backdate content.
+3. Work from the latest production source in the task's authorized checkout.
+   Preserve other active changes. Complete the article, source review, image
+   mappings, date manifest, and queue state in one coherent content change.
+4. Run the checks below, review the diff, and deploy through the established
+   production path under the daily publishing authorization. Verify the exact
+   commit and deployment, then verify either its future-date protection or
+   its live public article. Save the real evidence in its receipt.
+5. Reconcile the next release on the next daily run. A failed source check,
+   broken build, or ambiguous deployment is a failed run, not a published
+   article. Report the exact issue and recovery step. Do not weaken the checks
+   to meet a publishing count.
 
-## Voice rules, condensed
+The local automation needs its host to run. An already deployed article is
+released by the site's request-time date checks, so the host does not need to
+be awake at midnight for that article to appear.
 
-No em dashes. No hype words. No guaranteed outcomes or invented statistics.
-Short lines, direct questions, first person. The tool gives a floor or a leak
-size, never a promise. Two or three honest internal links. The reader is an
-owner on a phone at night; every section has to earn the next thumb-scroll.
+## Dates and public routes
 
-## Adding to the queue
+`ARTICLES` is the complete authored catalog, including future articles. Public
+code must use `getPublishedArticles`, `getArticle`, or `getRelatedArticles`.
+The helpers compute today in America/Chicago on each call. Do not capture
+"today" once at module load or replace this with UTC date comparison.
 
-Append to `content/article-queue.json`. Pick a trade plus a question, then the
-tool that answers it (each tool once across the queue, because its OG card
-becomes the article's scene). Run `npm test` to confirm the entry is valid.
+Every new article's `publishedAt` must also appear in
+`lib/articles-schedule.ts`. Its parity test protects the lightweight middleware
+manifest. Before the intended date, the article detail and OG routes must return
+404 with noindex and the article must be absent from the public index, related
+articles, and sitemap. On or after that date, verify its body, canonical URL,
+metadata, public listing, and sitemap. Keep the existing runtime date gates.
+
+A scheduled page intentionally cannot be previewed through its public route
+before its date. Use the existing local components and deterministic date tests
+for pre-release review; never remove or weaken production gates to take a
+screenshot. Complete the live mobile review once the article is available.
+
+## Art and checks
+
+Use a relevant existing 1200 by 630 image with an accurate headline and alt
+text. The trade queue normally uses the embedded tool's OG card. Check the
+actual image so an old event date or unrelated offer is not reused. The visual
+tests require distinct scenes except for explicitly reviewed, relevant reuse
+already listed in the tests. Do not add broad exceptions or generate paid art
+just to meet the schedule.
+
+Add the article body to an appropriate article module and import it into
+`lib/articles.ts`. Add the three mappings in `lib/articles-og.tsx` and the date
+in `lib/articles-schedule.ts`. Set its queue entry to scheduled when the full
+article is in the catalog. That status permits pre-deployment checks; the
+receipt distinguishes intended release, deployed release, and verified live
+publication.
+
+Run `npm test` and `npm run build`. The full build includes the tool and visual
+validators. Run the repository's configured lint/type checks and review any new
+failure. Inspect the diff for unintended code, credentials, and private data.
+Check the article at mobile width, working tool/form behavior, source links,
+readable prompts, and its call to action. Do not promote a build that failed.
+
+Use the canonical workshop link only while the current event is relevant and
+available: https://workshop.theleadflowpro.com/. Verify its actual details before
+including dates, price, or availability. Do not leave an expired event as the
+default call to action.
+
+## Durable publication receipts
+
+Use `content/article-publications/YYYY-MM-DD-<slug>.json`, with the article's
+Central publication date in the filename. Follow
+`content/article-publications/README.md`. Create a receipt only when real source
+or release evidence exists. Never create a fake successful deployment or live
+check to make a test pass.
+
+Record the source checks and the exact content commit. After deployment, add the
+actual deployment ID, URL, READY status, and verification time. For a future
+date, add the observed 404/noindex and exclusion checks. After the date arrives,
+add the actual live URL, response, body, metadata, index, and sitemap checks.
+Only then move the queue entry to published.
+
+Preserve earlier source/deployment evidence when updating a receipt. If a check
+fails, record the observed result and issue instead of success. Keep unknown or
+unverified fields absent. Do not store access tokens, private notes, recipients,
+or personal data. Save receipt and status updates with the next ordinary content
+commit; the receipt's content commit remains the commit that was actually
+verified, not the later receipt-only change.

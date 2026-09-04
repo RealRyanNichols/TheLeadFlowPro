@@ -37,21 +37,36 @@ export default function ContactForm() {
     const message = String(fd.get("body") ?? "");
     const body = extras.length ? `${message}\n\n---\n${extras.join("\n")}` : message;
 
-    const res = await fetch("/api/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        visitor_name: fd.get("visitor_name"),
-        visitor_email: fd.get("visitor_email"),
-        body,
-      }),
-    });
-    if (res.ok) {
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          visitor_name: fd.get("visitor_name"),
+          visitor_email: fd.get("visitor_email"),
+          body,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(
+          typeof data?.error === "string"
+            ? data.error
+            : "Your message could not be sent. Please try again.",
+        );
+        return;
+      }
       setDone(true);
-      if (window.fbq) window.fbq("track", "Contact");
-    } else {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error ?? "Something went wrong.");
+      try {
+        window.fbq?.("track", "Contact");
+      } catch {
+        // Optional analytics must not change the saved-message result.
+      }
+    } catch {
+      setError(
+        "Could not reach the form. Your message is still here. Check your connection and try again.",
+      );
+    } finally {
       setBusy(false);
     }
   }
@@ -65,7 +80,7 @@ export default function ContactForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4" aria-busy={busy}>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="label" htmlFor="contact-name">Your name *</label>

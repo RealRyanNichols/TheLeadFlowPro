@@ -169,10 +169,10 @@ export default function PricingPage() {
   return (
     <main className="cb-page">
       <SiteHero
-        eyebrow="Clear entry point. Honest scope."
-        mutedTitle="One fixed first move."
+        eyebrow="Two ways to start. Honest scope."
+        mutedTitle="Choose your first move."
         title="Bigger systems are priced by the work."
-        body="Website Launch is $1,000 total with a real approval checkpoint. CRM, funnels, portals, courses, automation, and custom software sit on a clear ladder instead of being hidden inside a vague website promise."
+        body="Apply for the $0 five-page website, subject to fit and capacity, or buy Website Launch outright for $1,000 without waiting for a program opening. The paid option is $500 to start and $500 after approval, before launch. Larger systems are scoped separately."
         media={{
           src: "/images/offer-v2/website-launch-approval-path.webp",
           alt: "A secure website build moving through assembly, approval, final payment, and launch",
@@ -180,7 +180,7 @@ export default function PricingPage() {
           caption: "$500 after approval, before launch.",
         }}
         primary={{ href: WEBSITE_LAUNCH_CHECKOUT, label: "Start Website Launch | $500", external: true }}
-        secondary={{ href: "#offer-ladder", label: "Compare the full ladder" }}
+        secondary={{ href: "/free-build", label: "Apply for the $0 website" }}
         trustLine="Written scope, two revision rounds, and no final launch before approval and payment. Once intake begins, the $500 deposit is non-refundable, except where the written agreement or applicable law requires otherwise."
       />
 

@@ -8,6 +8,7 @@ import ConfirmedClient from "./ConfirmedClient";
 
 export const metadata: Metadata = {
   title: "Registration | The LeadFlow Pro",
+  referrer: "no-referrer",
   robots: { index: false, follow: false },
 };
 

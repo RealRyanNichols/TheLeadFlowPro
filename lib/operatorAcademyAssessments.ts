@@ -29,7 +29,7 @@ export function expansionLessonQuestions(
     3,
   );
 
-  return [
+  const questions: AcademyAssessmentQuestion[] = [
     {
       question: `What is the primary outcome of ${current.title}?`,
       options: [current.outcome, ...otherLessons.map((item) => item.outcome)],
@@ -57,6 +57,17 @@ export function expansionLessonQuestions(
       explanation: current.assignment,
     },
   ];
+
+  // Keep option order identical in server rendering and grading. Never use
+  // random order here: a later request must grade the options the learner saw.
+  return questions.map((question, questionIndex) => {
+    const offset = (lessonIndex + questionIndex) % question.options.length;
+    return {
+      ...question,
+      options: rotate(question.options, offset, question.options.length),
+      answer_index: (question.answer_index - offset + question.options.length) % question.options.length,
+    };
+  });
 }
 
 export function expansionFinalQuestions(

@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, ShieldCheck } from "lucide-react";
 import CtaLink from "@/components/site/CtaLink";
-import { ARTICLES } from "@/lib/articles";
 import { TOOL_COUNT } from "@/lib/tools";
 
 // About Ryan. Operator proof, grounded in receipts, kept short on purpose. This
@@ -75,7 +74,7 @@ const RECEIPTS = [
     body: "Ryan has flown a specialist in first class, covered the room, the board and the food, and paid five figures for a two day shoot, because the content that came out of it paid for itself once it went to work. That is why he does not flinch at quoting a real number, and why he will tell you when something is not worth it.",
   },
   {
-    head: `${TOOL_COUNT} free working tools. ${ARTICLES.length} owned articles.`,
+    head: `${TOOL_COUNT} free working tools and an owned article library.`,
     body: "Calculators, assessments, and generators published on infrastructure he controls, not on a rented platform that can change the terms.",
   },
   {
