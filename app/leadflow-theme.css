@@ -64,6 +64,25 @@
   color: #20212b;
   margin: 0;
 }
+.site-header .brand-lockup .brand-mark-logo {
+  position: relative;
+  overflow: hidden;
+  width: 52px;
+  height: 52px;
+  border: 1px solid #ddd8d2;
+  background: #fff;
+  box-shadow: 0 3px 10px #23437e12;
+}
+.site-header .brand-mark-logo img {
+  width: 130%;
+  max-width: none;
+  height: 130%;
+  object-fit: cover;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 .site-header .brand-words small {
   display: block;
   color: #5135e5;
@@ -867,6 +886,12 @@
   }
 }
 @media (max-width: 560px) {
+  .site-header-inner { gap: 12px; }
+  .site-header .brand-lockup { min-width: 0; gap: 9px; font-size: 12px; letter-spacing: .055em; }
+  .site-header .brand-lockup .brand-words { min-width: 0; }
+  .site-header .brand-words small { font-size: 9px; letter-spacing: .09em; }
+  .site-header .brand-lockup .brand-mark-logo { width: 44px; height: 44px; }
+  .site-header .mobile-nav { flex: none; }
   .lf-board-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px 24px;

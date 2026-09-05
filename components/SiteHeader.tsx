@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Menu } from "lucide-react";
 
@@ -34,8 +35,8 @@ export default function SiteHeader() {
           className="brand-lockup"
           aria-label="The LeadFlow Pro home"
         >
-          <span className="brand-mark" aria-hidden="true">
-            LF
+          <span className="brand-mark brand-mark-logo" aria-hidden="true">
+            <Image src="/images/brand/leadflow-logo.png" alt="" width={96} height={96} sizes="64px" priority />
           </span>
           <span className="brand-words">
             THE LEAD FLOW<small>PRO / YOUR NEXT MOVE</small>
