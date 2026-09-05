@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "contentCommit": "64d41e8a319213bcc8877609efe3efb1736ba91f",
+  "deployment": {
+    "id": "dpl_4VtaDfJCktnTCNCYn2onLz8NScse",
+    "url": "https://the-lead-flow-8jo3tz6m1-realryannichols.vercel.app",
+    "status": "READY",
+    "verifiedAt": "2026-09-05T11:19:19Z"
+  },
+  "slug": "give-every-inquiry-an-owner-and-next-step",
+  "publicationDate": "2026-09-05",
+  "sourceChecks": [
+    {
+      "url": "https://academy.openai.com/public/clubs/work-users-ynjqu/resources/prompting",
+      "checkedAt": "2026-09-05T11:18:45.816744+00:00",
+      "claim": "OpenAI Academy recommends providing helpful context and describing the desired output. These support the article's anonymous reply-drafting exercise; the exercise is identified as LeadFlow's own template.",
+      "httpStatus": 200
+    },
+    {
+      "url": "https://workshop.theleadflowpro.com/",
+      "checkedAt": "2026-09-05T11:18:44.236463+00:00",
+      "claim": "The current workshop is September 17, 2026, 6:30–8:00 PM Central in Longview, Texas, at $97 per attendee. The public page links to the existing registration page.",
+      "httpStatus": 200
+    },
+    {
+      "url": "https://www.theleadflowpro.com/events/chatgpt-for-business-owners-longview",
+      "checkedAt": "2026-09-05T11:19:13.127363Z",
+      "claim": "Registration displays the confirmed September 17 date, 10 available seats, $97 price, and Continue to Payment. This was a read-only page check; no registration or payment was submitted.",
+      "httpStatus": 200
+    },
+    {
+      "url": "https://www.theleadflowpro.com/api/events/availability?slug=chatgpt-for-business-owners-longview",
+      "checkedAt": "2026-09-05T11:19:12.547500Z",
+      "claim": "The live availability endpoint reports registration_open=true, payment_ready=true, seats_remaining=10, capacity=10, price_usd=97, and starts_at=2026-09-17T23:30:00+00:00. These are the endpoint's observed readiness and inventory values, not proof of a completed payment.",
+      "httpStatus": 200
+    }
+  ],
+  "liveCheck": {
+    "checkedAt": "2026-09-05T11:18:44.084806+00:00",
+    "url": "https://www.theleadflowpro.com/articles/give-every-inquiry-an-owner-and-next-step",
+    "httpStatus": 200,
+    "bodyVerified": true,
+    "canonicalVerified": true,
+    "indexPresent": true,
+    "sitemapPresent": true,
+    "bodyChecks": {
+      "Give every inquiry an owner and a next step": true,
+      "Start with five real inquiries": true,
+      "Copy this simple record": true,
+      "Make the next action specific": true,
+      "Draft a useful reply when a reply is appropriate": true,
+      "Check the record again tomorrow": true,
+      "PRACTICE 001": true,
+      "Do not invent urgency, availability, a discount, or a promise.": true
+    },
+    "sourceLinkPresent": true,
+    "observedTitle": "Give every inquiry an owner and a next step | The LeadFlow Pro",
+    "canonicalUrl": "https://www.theleadflowpro.com/articles/give-every-inquiry-an-owner-and-next-step",
+    "indexCheckedAt": "2026-09-05T11:18:44.925579+00:00",
+    "sitemapCheckedAt": "2026-09-05T11:18:41.736611+00:00",
+    "workshopCtaUrl": "https://www.theleadflowpro.com/events",
+    "workshopCtaFinalUrl": "https://workshop.theleadflowpro.com/",
+    "workshopCtaHttpStatus": 200
+  },
+  "issues": [
+    {
+      "observedAt": "2026-09-05T11:28:20.083Z",
+      "issue": "Mobile review at a 390px device viewport found 630px page width from unwrapped prompt/code content.",
+      "recovery": "Scoped article-body.css wraps prompt lines without changing copyable text. Verify the repaired live article after deployment."
+    }
+  ]
+}

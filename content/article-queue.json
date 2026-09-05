@@ -18,7 +18,8 @@
       "tool": "after-hours-lead-calculator",
       "searchQuestion": "How much business does a locksmith lose after hours?",
       "workingTitle": "The locksmith's best calls come at the worst hours",
-      "status": "queued"
+      "status": "scheduled",
+      "draftedAt": "2026-09-05"
     },
     {
       "slug": "insurance-agent-lead-response",

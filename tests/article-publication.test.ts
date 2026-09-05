@@ -170,8 +170,13 @@ test("publication checks do not mutate, filter, or memoize the full authored cat
     getPublishedArticles(atMidnight).length >
       getPublishedArticles(beforeMidnight).length,
   );
+  // The publishing buffer grows each day. Check after the latest authored
+  // date, rather than assuming the original September 6 buffer is the end.
+  const lastDate = ARTICLES.map((article) => article.publishedAt)
+    .sort()
+    .at(-1)!;
   assert.equal(
-    getPublishedArticles(new Date("2026-09-06T05:00:00Z")).length,
+    getPublishedArticles(new Date(`${lastDate}T18:00:00Z`)).length,
     ARTICLES.length,
   );
 });

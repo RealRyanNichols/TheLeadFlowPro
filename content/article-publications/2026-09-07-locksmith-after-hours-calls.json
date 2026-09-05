@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "slug": "locksmith-after-hours-calls",
+  "publicationDate": "2026-09-07",
+  "sourceChecks": [
+    {
+      "url": "https://support.google.com/business/answer/15300403?hl=en",
+      "checkedAt": "2026-09-05T11:22:22.762Z",
+      "claim": "Businesses can edit main hours via Edit profile and Hours and set special hours for unusual schedules."
+    }
+  ],
+  "editorialChecks": {
+    "example": "Fictional inputs 40 leads,30% after hours,50% lost,50% retained,$150 one-job revenue,40% close rate. Expected $180 monthly and $2,160 annual scenario before costs; zero-effect possibility stated.",
+    "art": "/og/tools/after-hours-lead-calculator.jpg inspected visually; 1200x630 phone calculator card, no event date.",
+    "scope": "One original article for the first uncovered date. No email, social post, paid service, or backend expansion.",
+    "mobileToolCheck": {
+      "checkedAt": "2026-09-05T11:28:20.084Z",
+      "url": "https://www.theleadflowpro.com/tools/after-hours-lead-calculator",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "inputs": {
+        "leads": 40,
+        "share": 30,
+        "lostNow": 50,
+        "saveRate": 50,
+        "value": 150,
+        "close": 40
+      },
+      "annualResult": "$2,160",
+      "monthlyResult": "$180",
+      "resultVerified": true
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "../article-body.css";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import RentVsOwnChart from "@/components/charts/RentVsOwnChart";

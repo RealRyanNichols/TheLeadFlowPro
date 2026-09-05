@@ -1,0 +1,21 @@
+/* Keep copyable prompts readable without making the whole phone page wider. */
+.sv-article-shell .prose-lfp pre {
+  max-width: 100%;
+  margin: 24px 0;
+  padding: 20px;
+  border: 1px solid #d9d0e2;
+  border-radius: 14px;
+  background: #eee8f3;
+  color: #302b3c;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.sv-article-shell .prose-lfp pre code {
+  display: block;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  white-space: inherit;
+  line-height: 1.7;
+}

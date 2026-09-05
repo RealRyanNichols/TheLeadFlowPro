@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "contentCommit": "64d41e8a319213bcc8877609efe3efb1736ba91f",
+  "deployment": {
+    "id": "dpl_4VtaDfJCktnTCNCYn2onLz8NScse",
+    "url": "https://the-lead-flow-8jo3tz6m1-realryannichols.vercel.app",
+    "status": "READY",
+    "verifiedAt": "2026-09-05T11:19:19Z"
+  },
+  "slug": "bring-one-real-task-to-your-business-workshop",
+  "publicationDate": "2026-09-06",
+  "sourceChecks": [
+    {
+      "url": "https://support.claude.com/en/articles/7996857-my-prompt-isn-t-giving-me-a-helpful-answer",
+      "checkedAt": "2026-09-05T11:19:12.855810Z",
+      "claim": "Anthropic's article recommends clear and specific instructions, context, breaking complex requests into substeps, and feedback. This supports the workshop article's teaching prompt and worksheet, which are presented as LeadFlow's application of those principles.",
+      "httpStatus": 200
+    },
+    {
+      "url": "https://workshop.theleadflowpro.com/",
+      "checkedAt": "2026-09-05T11:18:44.236463+00:00",
+      "claim": "The current workshop is September 17, 2026, 6:30–8:00 PM Central in Longview, Texas, at $97 per attendee. The public page links to the existing registration page.",
+      "httpStatus": 200
+    },
+    {
+      "url": "https://www.theleadflowpro.com/events/chatgpt-for-business-owners-longview",
+      "checkedAt": "2026-09-05T11:19:13.127363Z",
+      "claim": "Registration displays the confirmed September 17 date, 10 available seats, $97 price, and Continue to Payment. This was a read-only page check; no registration or payment was submitted.",
+      "httpStatus": 200
+    },
+    {
+      "url": "https://www.theleadflowpro.com/api/events/availability?slug=chatgpt-for-business-owners-longview",
+      "checkedAt": "2026-09-05T11:19:12.547500Z",
+      "claim": "The live availability endpoint reports registration_open=true, payment_ready=true, seats_remaining=10, capacity=10, price_usd=97, and starts_at=2026-09-17T23:30:00+00:00. These are the endpoint's observed readiness and inventory values, not proof of a completed payment.",
+      "httpStatus": 200
+    }
+  ],
+  "scheduledCheck": {
+    "checkedAt": "2026-09-05T11:19:19.860Z",
+    "detailStatus": 404,
+    "ogStatus": 404,
+    "noindex": true,
+    "indexAbsent": true,
+    "relatedAbsent": true,
+    "sitemapAbsent": true,
+    "detailUrl": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop",
+    "ogUrl": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop/opengraph-image",
+    "detailCheckedAt": "2026-09-05T11:18:42.136320+00:00",
+    "ogCheckedAt": "2026-09-05T11:18:42.135842+00:00",
+    "detailCacheControl": "no-store",
+    "ogCacheControl": "no-store",
+    "detailRobotsHeader": "noindex, nofollow",
+    "ogRobotsHeader": "noindex, nofollow",
+    "indexCheckedAt": "2026-09-05T11:18:44.925579+00:00",
+    "sitemapCheckedAt": "2026-09-05T11:18:41.736611+00:00",
+    "relatedVerification": {
+      "checkedAt": "2026-09-05T11:19:19.860Z",
+      "method": "Evaluated getRelatedArticles(todaySlug, 1000, currentTime) from the unchanged production source at the real current time. The helper returned 46 related articles and omitted the future slug. Repository search found no deployed page currently invoking this helper; live home and today's article also omitted the future slug.",
+      "centralDate": "2026-09-05",
+      "timeZone": "America/Chicago",
+      "relatedCount": 46,
+      "homeStatus": 200,
+      "homeAbsent": true,
+      "todayArticleStatus": 200,
+      "todayArticleAbsent": true
+    }
+  }
+}

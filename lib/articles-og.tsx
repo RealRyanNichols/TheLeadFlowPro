@@ -55,9 +55,13 @@ const V4_ARTICLE_ART = Object.fromEntries(
 ) as Record<string, string>;
 
 const PREMIUM_ARTICLE_ART: Record<string, string> = {
-  "one-useful-business-task-with-ai": "/images/articles-v4/ai-website-small-business-2026.jpg",
-  "give-every-inquiry-an-owner-and-next-step": "/images/articles-v4/does-my-business-need-a-crm.jpg",
-  "bring-one-real-task-to-your-business-workshop": "/og/events/chatgpt-for-business-owners-longview.jpg",
+  "locksmith-after-hours-calls": "/og/tools/after-hours-lead-calculator.jpg",
+  "one-useful-business-task-with-ai":
+    "/images/articles-v4/ai-website-small-business-2026.jpg",
+  "give-every-inquiry-an-owner-and-next-step":
+    "/images/articles-v4/does-my-business-need-a-crm.jpg",
+  "bring-one-real-task-to-your-business-workshop":
+    "/og/events/chatgpt-for-business-owners-longview.jpg",
   ...V4_ARTICLE_ART,
   // September 2026 field notes reuse existing repo art on purpose: the Premier
   // piece shows the real client site, and the mobile piece shares the traffic
@@ -82,9 +86,11 @@ const PREMIUM_ARTICLE_OG_ART: Record<string, string> = {
 };
 
 const VISUAL_HEADLINES: Record<string, string> = {
+  "locksmith-after-hours-calls": "Know Your After-Hours Gap",
   "one-useful-business-task-with-ai": "One Task. One Useful Result.",
   "give-every-inquiry-an-owner-and-next-step": "Every Inquiry Has a Next Step",
-  "bring-one-real-task-to-your-business-workshop": "Bring a Task. Learn the Process.",
+  "bring-one-real-task-to-your-business-workshop":
+    "Bring a Task. Learn the Process.",
   "free-tools-that-bring-customers": "Free Tools Fill the Funnel",
   "website-text-too-small-on-mobile": "The Phone Is the Website",
   "data-centers-are-coming-to-texas": "Build for What Is Coming",
@@ -133,9 +139,14 @@ const VISUAL_HEADLINES: Record<string, string> = {
 };
 
 const PREMIUM_ARTICLE_ALT: Record<string, string> = {
-  "one-useful-business-task-with-ai": "An existing LeadFlow illustration showing an owned website and customer system connected to practical AI work",
-  "give-every-inquiry-an-owner-and-next-step": "An existing LeadFlow illustration of calls, messages, forms, and notes converging into one customer record",
-  "bring-one-real-task-to-your-business-workshop": "LeadFlow workshop graphic showing a small Longview class, a laptop, business steps, and the published 97 dollar price",
+  "locksmith-after-hours-calls":
+    "LeadFlow After-Hours Lead Calculator card with a purple phone and message panels on a navy background",
+  "one-useful-business-task-with-ai":
+    "An existing LeadFlow illustration showing an owned website and customer system connected to practical AI work",
+  "give-every-inquiry-an-owner-and-next-step":
+    "An existing LeadFlow illustration of calls, messages, forms, and notes converging into one customer record",
+  "bring-one-real-task-to-your-business-workshop":
+    "LeadFlow workshop graphic showing a small Longview class, a laptop, business steps, and the published 97 dollar price",
   "free-tools-that-bring-customers":
     "Premier Dental Academy of Longview homepage with the 12 week RDA program, free training tools, and enrollment paths",
   "website-text-too-small-on-mobile":
@@ -234,8 +245,10 @@ const CURATED_TAKEAWAYS: Record<string, string> = {
   "website-text-too-small-on-mobile":
     "Your customers judge the phone version. Fix that one first.",
   "pressure-washing-pricing": "Labor. Materials. Margin. Price all three.",
-  "pest-control-customer-value": "One treatment is a sale. Retention builds value.",
-  "tree-service-buy-or-rent-equipment": "Buy only when real usage crosses rental cost.",
+  "pest-control-customer-value":
+    "One treatment is a sale. Retention builds value.",
+  "tree-service-buy-or-rent-equipment":
+    "Buy only when real usage crosses rental cost.",
   "east-texas-business-website-guide":
     "A useful website answers the buying question before the call.",
   "the-money-is-in-the-follow-up":
@@ -248,7 +261,11 @@ const CURATED_TAKEAWAYS: Record<string, string> = {
 
 const OG_LAYOUTS: Record<
   string,
-  { direction: "row" | "row-reverse" | "column" | "column-reverse"; panel: number; imagePosition: string }
+  {
+    direction: "row" | "row-reverse" | "column" | "column-reverse";
+    panel: number;
+    imagePosition: string;
+  }
 > = {
   "pressure-washing-pricing": {
     direction: "row",
@@ -278,7 +295,10 @@ const OG_LAYOUT_VARIANTS = [
 
 function articleOgLayout(slug: string) {
   if (OG_LAYOUTS[slug]) return OG_LAYOUTS[slug];
-  const hash = [...slug].reduce((total, character) => total + character.charCodeAt(0), 0);
+  const hash = [...slug].reduce(
+    (total, character) => total + character.charCodeAt(0),
+    0,
+  );
   return OG_LAYOUT_VARIANTS[hash % OG_LAYOUT_VARIANTS.length];
 }
 
@@ -337,10 +357,14 @@ type ArticleOgCardProps = {
   backgroundUrl: string;
 };
 
-export function articleOgCard({ article, backgroundUrl }: ArticleOgCardProps): ReactElement {
+export function articleOgCard({
+  article,
+  backgroundUrl,
+}: ArticleOgCardProps): ReactElement {
   const layout = articleOgLayout(article.slug);
   const visualHeadline = articleVisualHeadline(article.slug);
-  const horizontal = layout.direction === "row" || layout.direction === "row-reverse";
+  const horizontal =
+    layout.direction === "row" || layout.direction === "row-reverse";
   const panelStyle = horizontal
     ? { width: `${layout.panel}%`, height: "100%" }
     : { width: "100%", height: `${layout.panel}%` };
@@ -429,7 +453,6 @@ export function articleOgCard({ article, backgroundUrl }: ArticleOgCardProps): R
             {articleTakeaway(article.description, article.slug)}
           </div>
         </div>
-
       </div>
     </div>
   );
