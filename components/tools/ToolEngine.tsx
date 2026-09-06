@@ -267,6 +267,9 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
 
   const hasInputs = tool.fields.length > 0;
   const hasResult = Boolean(result.headline || result.output || result.qr || result.table || result.stats?.length);
+  const outputFormat = result.output?.filename.match(/\.([a-z0-9]{1,8})$/i)?.[1].toLowerCase() || "txt";
+  const downloadLabel = outputFormat === "vcf" ? "Download contact (.vcf)"
+    : result.qr ? `Download .${outputFormat} file` : shell.downloadLabel;
   const assumptions = [...(tool.assumptions || []), ...(result.assumptions || [])];
 
   return (
@@ -465,15 +468,15 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
                 {/* Downloads announce here so a screen reader hears the save land. */}
                 <div aria-live="polite" className="sr-only">{announce}</div>
 
-                {/* The QR block has its own PNG and SVG buttons, so a generic
-                    text download next to them only invites the wrong click. */}
-                {!result.qr && (
+                {/* A QR image and its named file are separate deliverables.
+                    Keep the contact/code file downloadable alongside PNG/SVG. */}
+                {(!result.qr || result.output?.filename) && (
                   <button
                     type="button"
                     className="button-primary"
                     style={{ minHeight: 44 }}
                     onClick={() => {
-                      const ok = download("main", "txt", "Result downloaded", () =>
+                      const ok = download("main", outputFormat, outputFormat === "vcf" ? "Contact file downloaded" : "Result downloaded", () =>
                         result.output
                           ? downloadText(result.output.filename, result.output.text)
                           : downloadText(`${tool.slug}-result.txt`, report),
@@ -482,7 +485,7 @@ export default function ToolEngine({ slug, embedded = false }: { slug: string; e
                     }}
                   >
                     {saved?.key === "main" && saved.ok ? <Check aria-hidden="true" className="h-4 w-4" /> : <Download aria-hidden="true" className="h-4 w-4" />}
-                    {saved?.key === "main" ? (saved.ok ? "Saved" : "Could not save") : shell.downloadLabel}
+                    {saved?.key === "main" ? (saved.ok ? "Saved" : "Could not save") : downloadLabel}
                   </button>
                 )}
 

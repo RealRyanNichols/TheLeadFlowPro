@@ -21,6 +21,22 @@
 
 ## Runtime boundaries
 
-No new service, migration or environment variable is required. Existing production Stripe, Supabase service access and signing configuration remain necessary. Local training-page verification is limited by the deliberately absent Supabase service secret; verify the deployed route. Browser conversion behavior was checked with isolated actual handlers/components and mocked providers; live provider acceptance and Meta CAPI are not claimed. Google controls crawling, indexing and ranking.
+No new service, migration or environment variable is required. Existing production Stripe, Supabase service access and signing configuration remain necessary. The local training page needed the deliberately absent Supabase service secret; the deployed Content Engine course was independently verified HTTP 200. Browser conversion behavior was checked with isolated actual handlers/components and mocked providers; live provider acceptance and Meta CAPI are not claimed. Google controls crawling, indexing and ranking.
 
-Production deployment and post-deploy verification will be recorded after Vercel reports READY for the release commit.
+Production release `01f581e07fe428de957f6cca8ac8b8cb5c7846ce` reached Vercel READY as `dpl_BY2GwWBzDFycocZ3WvSNjHZNMuJy`. Live verification passed for seven public pages, ten distinct 1200×630 OG PNGs, private/unknown OG rejection and the 216-URL sitemap. Mobile Pro Kits and scoreboard checks showed the new artwork and live charts without horizontal overflow.
+
+A final functional check found that the free digital-business-card tool hid its named contact-file download when a QR image was also present. The follow-up correction restores a clear Download contact (.vcf) button alongside PNG/SVG. Three generator browser tests and 33 focused regressions passed; an actual fictional contact file downloaded with the correct name, content, vCard media type and line endings. No customer submission or email was sent.
+
+## Post-release Search Console submissions — September 6, 2026
+
+Performed at approximately 21:22–21:27 UTC (4:22–4:27 PM CDT), after production reported READY for commit `01f581e07fe428de957f6cca8ac8b8cb5c7846ce` and deployment `dpl_BY2GwWBzDFycocZ3WvSNjHZNMuJy`. Used the existing verified domain property `theleadflowpro.com` in Google Search Console.
+
+| Canonical URL | Status before request | Submission result |
+| --- | --- | --- |
+| https://www.theleadflowpro.com/tools | URL is on Google; page indexed | Indexing requested; added to a priority crawl queue |
+| https://www.theleadflowpro.com/tools/pro | URL is on Google; page indexed | Indexing requested; added to a priority crawl queue |
+| https://www.theleadflowpro.com/scoreboard/metrics/views | Not indexed; URL unknown to Google; no previous crawl reported | Indexing requested; added to a priority crawl queue |
+
+The existing canonical sitemap https://www.theleadflowpro.com/sitemap.xml was resubmitted through the normal form without deleting its entry. Google confirmed “Sitemap submitted successfully.” The resulting table still had one sitemap entry, now submitted September 6, last read September 6, status **Success**, **216 discovered pages** and zero discovered videos. The earlier read-only observation was 207 discovered pages.
+
+Accepted requests mean queued crawling, not confirmed processing of the release, new indexing, rankings, search traffic, or revenue. In particular, the new views metric page was not yet indexed in the stored inspection result. No repeat URL requests, CAPTCHA solving, account changes, paid activity, or additional URL submissions were performed.

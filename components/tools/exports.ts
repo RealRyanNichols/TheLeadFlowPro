@@ -27,8 +27,10 @@ export function downloadBlob(filename: string, blob: Blob): boolean {
   }
 }
 
-export function downloadText(filename: string, text: string, type = "text/plain"): boolean {
-  return downloadBlob(filename, new Blob([text], { type: `${type};charset=utf-8` }));
+export function downloadText(filename: string, text: string, type = /\.vcf$/i.test(filename) ? "text/vcard" : "text/plain"): boolean {
+  // Contact importers expect vCard media type and CRLF-delimited properties.
+  const body = type === "text/vcard" ? `${text.replace(/\r\n?|\n/g, "\r\n").replace(/(?:\r\n)+$/, "")}\r\n` : text;
+  return downloadBlob(filename, new Blob([body], { type: `${type};charset=utf-8` }));
 }
 
 /** Excel opens CSV by guessing, so quote everything and keep the BOM. */
