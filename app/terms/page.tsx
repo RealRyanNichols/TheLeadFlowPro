@@ -1,10 +1,11 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/terms", {
   title: "Terms of Use | The LeadFlow Pro",
   description: "Terms for using The LeadFlow Pro website and requesting services.",
-};
+});
 
 export default function TermsPage() {
   return (

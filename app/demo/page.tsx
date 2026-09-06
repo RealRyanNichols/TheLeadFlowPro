@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -11,12 +12,12 @@ import {
 } from "lucide-react";
 import styles from "./demo.module.css";
 
-export const metadata = {
+export const metadata = withPublicPageMetadata("/demo", {
   title: "Demo Build: Piney Woods Coffee Co. | The LeadFlow Pro",
   description:
     "A sample client build on the Own Your Platform stack. See the funnel, tracking, lead capture, and back office a larger LeadFlow Pro system can include.",
   openGraph: { images: [{ url: "/og/demo.png", width: 1200, height: 630 }] },
-};
+});
 
 function Hood({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -95,10 +96,10 @@ export default function DemoPage() {
             </p>
           </div>
 
-          <figure className="cb-hero-visual">
+          <figure className="cb-hero-visual cb-hero-visual--paper">
             <Image
-              src="/images/homepage-v2/connected-company-hero.webp"
-              alt="A connected company system linking attention, follow-up, approval, and revenue"
+              src="/images/page-art/coffee-demo.png"
+              alt="An illustrated fictional coffee shop with a mobile order page, loyalty card and order ticket"
               width={1920}
               height={1080}
               priority

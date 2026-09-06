@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, KeyRound, Printer, RefreshCw, ShieldCheck } from "lucide-react";
@@ -7,12 +8,13 @@ import { hasProAccess } from "@/lib/proAccess";
 import { getProEntitlements } from "@/lib/proAccessServer";
 import ProCard from "@/components/tools/pro/ProCard";
 import ProBuyButton from "@/components/tools/pro/ProBuyButton";
+import ProPurchaseTracking from "@/components/tools/pro/ProPurchaseTracking";
 import SiteHero from "@/components/site/system/SiteHero";
 import FinalCta from "@/components/site/system/FinalCta";
 
 const BASE = "https://www.theleadflowpro.com";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/tools/pro", {
   title: `Pro Kits: finished systems for $10 to $29 | The LeadFlow Pro`,
   description:
     "The free tools give you the number. A Pro Kit gives you the finished system built from it: printable documents, scripts, spreadsheets and calendar files, all in your own name. One payment, no subscription.",
@@ -25,7 +27,7 @@ export const metadata: Metadata = {
     siteName: "The LeadFlow Pro",
     type: "website",
   },
-};
+});
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +72,7 @@ export default async function ProShelfPage() {
 
   return (
     <main className="cb-page">
+      <ProPurchaseTracking />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <SiteHero
@@ -79,8 +82,8 @@ export default async function ProShelfPage() {
         title="A kit hands you the finished thing."
         body="Same engine as the free library, pointed at the work that comes after the answer. You put in your numbers, it builds the printable documents, the scripts, the spreadsheets and the calendar reminders, with your name and your logo already on them."
         media={{
-          src: "/images/homepage-v2/connected-company-hero.webp",
-          alt: "A connected operating core feeding useful business modules",
+          src: "/images/page-art/pro-kits.png",
+          alt: "A finished business kit with rate sheets, printable instructions and a reminder calendar",
           kicker: "Built from your own numbers",
           caption: "Print it, paste it, hand it to your staff.",
         }}

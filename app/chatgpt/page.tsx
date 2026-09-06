@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -25,7 +26,7 @@ import {
   formatChatGPTCoursePrice,
 } from "@/lib/chatgptOperatorCourse";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/chatgpt", {
   title: "The ChatGPT Operator Course | The LeadFlow Pro",
   description: CHATGPT_OPERATOR.promise,
   alternates: { canonical: "/chatgpt" },
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
     description: "From your first useful prompt to a complete business system.",
     type: "website",
   },
-};
+});
 
 const BUILDS = [
   { icon: ImageIcon, title: "Professional image", copy: "Create and refine a profile image, branded visual, or social graphic." },

@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,7 +29,7 @@ import {
   formatCoursePrice,
 } from "@/lib/contentEngineCourse";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/operator-academy/content-engine", {
   title: "The Content Engine Course | The LeadFlow Pro",
   description:
     "Learn the exact process Ryan uses to plan with ChatGPT, record with Teleprompter, edit in CapCut, and post business videos that lead somewhere.",
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
     type: "website",
     images: ["/images/operator-academy/content-engine-hero-v2.png"],
   },
-};
+});
 
 const DELIVERABLES = [
   "A clear offer your customer can understand",

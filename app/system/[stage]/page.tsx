@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -48,66 +49,66 @@ type StagePresentation = {
 const STAGE_PRESENTATION: Record<StageSlug, StagePresentation> = {
   attention: {
     icon: Megaphone,
-    image: "/images/homepage-v2/connected-company-hero.webp",
+    image: "/images/system-stages/attention.svg",
     width: 1920,
     height: 1080,
-    alt: "A connected company system routing attention toward customer conversations and measurable sales",
+    alt: "Illustration of a megaphone beside a useful search result and a local map pin",
     caption: "Turn attention into a traceable next action.",
   },
   website: {
     icon: MonitorSmartphone,
-    image: "/images/homepage-v2/company-operating-loop.webp",
+    image: "/images/system-stages/website.svg",
     width: 1920,
     height: 1080,
-    alt: "A premium company operating loop connecting a website to lead capture, follow up, sales, and reporting",
+    alt: "Illustration of a business storefront inside a website, with its matching mobile page and a clear next action",
     caption: "The website is the front door to the operating system.",
   },
   "lead-capture": {
     icon: RadioTower,
-    image: "/images/visual-system/one-customer-one-record.webp",
+    image: "/images/system-stages/lead-capture.svg",
     width: 1254,
     height: 1254,
-    alt: "Phone calls, text messages, social direct messages, and website forms flowing into one customer record",
+    alt: "Illustration of phone, message, and form inquiries collected into a structured contact record",
     caption: "Every channel lands in one owned record.",
   },
   crm: {
     icon: Database,
-    image: "/images/visual-system/one-customer-one-record.webp",
+    image: "/images/system-stages/crm.svg",
     width: 1254,
     height: 1254,
-    alt: "Four lead sources converging into one complete customer record",
+    alt: "Illustration of a customer file with one contact profile, an activity history, and a saved conversation",
     caption: "One customer. One history. One next move.",
   },
   "follow-up": {
     icon: MessageSquareText,
-    image: "/images/visual-system/automate-the-reminder.webp",
+    image: "/images/system-stages/follow-up.svg",
     width: 1254,
     height: 1254,
-    alt: "A quote, timed follow up, and owner review connected in one workflow",
+    alt: "Illustration of scheduled messages beside a clock and an owner review card",
     caption: "The system remembers. The owner stays in control.",
   },
   sale: {
     icon: BadgeDollarSign,
-    image: "/images/visual-system/trace-the-sale.webp",
+    image: "/images/system-stages/sale.svg",
     width: 1254,
     height: 1254,
-    alt: "A customer journey traced from the first source through conversion and sale",
+    alt: "Illustration of a payment card, a confirmed payment terminal, and the matching order record",
     caption: "Trace the sale back to the signal that started it.",
   },
   delivery: {
     icon: PackageCheck,
-    image: "/images/visual-system/course-system-blueprint.webp",
+    image: "/images/system-stages/delivery.svg",
     width: 1254,
     height: 1254,
-    alt: "A connected delivery system with structured content, customer access, progress, and operations",
+    alt: "Illustration of an open delivery box containing a workbook and a completed handoff checklist",
     caption: "Delivery becomes a system instead of a memory test.",
   },
   reporting: {
     icon: ChartNoAxesCombined,
-    image: "/images/homepage-v2/proof-cockpit.webp",
+    image: "/images/system-stages/reporting.svg",
     width: 1920,
     height: 1080,
-    alt: "A premium reporting cockpit with connected performance instruments",
+    alt: "Illustration of a reporting screen with separate activity charts and a magnifying glass for reviewing the details",
     caption: "See what moved, what converted, and what needs attention.",
   },
 };
@@ -136,7 +137,7 @@ export async function generateMetadata({
   const stage = getStage(slug);
   if (!stage) return {};
   const url = `https://www.theleadflowpro.com/system/${stage.slug}`;
-  return {
+  return withPublicPageMetadata(`/system/${stage.slug}`, {
     title: stage.title,
     description: stage.description,
     keywords: stage.keywords,
@@ -155,7 +156,7 @@ export async function generateMetadata({
       description: stage.description,
       images: ["/og/home.png"],
     },
-  };
+  });
 }
 
 export default async function StagePage({

@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Download, Code2, Zap } from "lucide-react";
@@ -20,7 +21,7 @@ const BASE = "https://www.theleadflowpro.com";
 const OG_IMAGE = "/og/tools.jpg";
 const OG_ALT = `${TOOL_COUNT} free tools built for real work, from The LeadFlow Pro`;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/tools", {
   title: `${TOOL_COUNT} Free Tools Built for Real Work | The LeadFlow Pro`,
   description: `${TOOL_COUNT} free calculators, generators, planners and checkers for business owners, professionals, families and anyone trying to get something done. Use them here, save the result, put them on your own website.`,
   alternates: { canonical: `${BASE}/tools` },
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
       "Calculators, generators, planners, checkers and builders. Free to use, free to save, free to put on your own site.",
     images: [OG_IMAGE],
   },
-};
+});
 
 /** The no-JavaScript view of the catalogue. Every card is a real link. */
 function StaticGrid() {
@@ -104,8 +105,8 @@ export default function ToolsPage() {
         title="Let somebody use the answer."
         body="Calculators, generators, planners, checkers, and builders that turn a question into a useful next move. No signup to run them, save the result, or place one on your own website."
         media={{
-          src: "/images/homepage-v2/connected-company-hero.webp",
-          alt: "A connected operating core feeding useful business modules",
+          src: "/images/page-art/tools-library.png",
+          alt: "A calculator, contact card, stopwatch and calendar on a warm business workbench",
           kicker: "Useful before the call",
           caption: "A website should do real work.",
         }}

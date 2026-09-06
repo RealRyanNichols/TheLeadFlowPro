@@ -1,0 +1,30 @@
+[
+  {
+    "key": "tools-library",
+    "route": "/tools",
+    "asset": "public/images/page-art/tools-library.png",
+    "mode": "built-in image_gen, new image",
+    "prompt": "Premium landscape editorial business workbench: violet calculator, contact card, sage stopwatch, peach receipt, calendar; warm ivory/lavender/sage/peach dimensional paper illustration. Clear mobile silhouettes, no words, logos, dark background or blue sci-fi network."
+  },
+  {
+    "key": "pro-kits",
+    "route": "/tools/pro",
+    "asset": "public/images/page-art/pro-kits.png",
+    "mode": "built-in image_gen, new image",
+    "prompt": "Premium landscape business toolkit still life: kraft folder, rate sheets, sage calculation grid, peach instruction cards, reminder calendar, export tray, pencil and brass paper clips. Warm ivory/lavender studio paper illustration. No words, logos or dark sci-fi network."
+  },
+  {
+    "key": "contact",
+    "route": "/contact",
+    "asset": "public/images/page-art/contact.png",
+    "mode": "built-in image_gen, new image",
+    "prompt": "Create a premium website illustration landscape16:9. Warm inviting tactile paper-sculpture still life for a small business contact page: an open soft peach envelope holding a cream message card, two overlapping lavender and sage speech bubbles with minimal embossed horizontal lines, an elegant charcoal desk telephone handset resting beside a small blank contact notebook with purple tab. Simple large objects, softly lit ivory backdrop, warm peach cream sage violet accents, dimensional soft shadows. The idea is a real straightforward personal conversation. No words, logos, people or network technology. Beautiful friendly editorial craftsmanship, legible on a mobile phone."
+  },
+  {
+    "key": "coffee-demo",
+    "route": "/demo",
+    "asset": "public/images/page-art/coffee-demo.png",
+    "mode": "built-in image_gen, new image",
+    "prompt": "Create a premium website hero illustration landscape16:9 for a clearly fictional coffee shop sample project. A small charming pine-green takeaway coffee storefront on an ivory tabletop with a warm terracotta awning, cream takeaway cup and sage coffee bag in foreground, next to an upright lavender-framed smartphone showing a simple coffee order card with a cup pictogram and amber action button. Behind these a paper loyalty punchcard with five coffee bean shapes and order ticket. High-quality friendly vector-inspired dimensional paper sculpture, warm cream lavender peach sage restrained colors, soft bright light and elegant shadows, polished editorial composition. No actual words, brand logos, photos of people, blue glowing machinery, or dark backgrounds. Theme: a local coffee shop getting orders through its own website."
+  }
+]

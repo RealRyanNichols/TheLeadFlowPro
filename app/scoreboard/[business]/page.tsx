@@ -1,4 +1,8 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import Link from "next/link";
+import Image from "next/image";
+import MetricCards from "../MetricCards";
+import { feedObservationLabel, tracksMetric } from "@/lib/scoreboardMetrics";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ExternalLink } from "lucide-react";
 import ScoreboardBoard from "@/components/scoreboard/ScoreboardBoard";
@@ -24,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ business:
   if (!business) return { title: "Scoreboard | The LeadFlow Pro" };
   const title = `${business.name} Scoreboard | Views, clicks and leads, live | The LeadFlow Pro`;
   const description = `Live scoreboard for ${business.name}: views, clicks, leads, paid leads and unpaid leads, rolling daily from its own records. ${business.what}`;
-  return {
+  return withPublicPageMetadata(`/scoreboard/${business.slug}`, {
     title,
     description,
     alternates: { canonical: `https://www.theleadflowpro.com/scoreboard/${business.slug}` },
@@ -34,18 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<{ business:
       url: `https://www.theleadflowpro.com/scoreboard/${business.slug}`,
       type: "website",
     },
-  };
-}
-
-function updatedLabel(fetchedAt: string) {
-  const formatted = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Chicago",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(fetchedAt));
-  return `Refreshed ${formatted}.`;
+  });
 }
 
 export default async function BusinessScoreboardPage({
@@ -66,12 +59,13 @@ export default async function BusinessScoreboardPage({
     <main className={styles.page}>
       <section className={styles.hero}>
         <div className={styles.shell}>
-          <Link href="/scoreboard" className={styles.aboutLink} style={{ color: "#6df4e8" }}>
+          <Link href="/scoreboard" className={styles.aboutLink} >
             <ArrowLeft aria-hidden="true" /> All boards
           </Link>
           <div className={styles.heroRow}>
             <div>
               <p className={styles.eyebrow} style={{ marginTop: 18 }}>Scoreboard</p>
+              <Image src={business.logo} alt="" aria-hidden="true" width={80} height={80} className={styles.businessLogo} />
               <h1>{business.name}</h1>
               <p className={styles.lead}>{business.what}</p>
               <div className={styles.heroActions}>
@@ -84,7 +78,7 @@ export default async function BusinessScoreboardPage({
             <div className={styles.liveBadge}>
               <p>Data source</p>
               <strong>{business.shortName}&apos;s own database</strong>
-              <small>{business.town}. Aggregate counts only. Refreshes every 15 minutes.</small>
+              <small>{business.town}. Aggregate counts only. Checks for updates every 15 minutes when requested.</small>
             </div>
           </div>
         </div>
@@ -97,7 +91,8 @@ export default async function BusinessScoreboardPage({
               windows={windows}
               series={series}
               showSales={business.showSales}
-              updatedLabel={updatedLabel(result.fetchedAt)}
+              updatedLabel={feedObservationLabel(result.fetchedAt)}
+              unsupportedMetrics={SCOREBOARD_METRICS.filter((metric) => !tracksMetric(business, metric.key)).map((metric) => metric.key)}
             />
           ) : (
             <div className={styles.boardPanel}>
@@ -111,7 +106,7 @@ export default async function BusinessScoreboardPage({
             </div>
           )}
           <p className={styles.boardFoot}>
-            Days are counted in Central time. Views are tracked page loads after the feed&apos;s filters.
+            Days are counted in Central time. Views are recorded page loads; filters vary by business and are explained on each metric page.
             Lead records can include forms, calls, and manually entered contacts; they are not necessarily
             unique people or completed purchases. Ad-attributed means the record has an advertising source
             or paid campaign tag. No names, contact details, or dollar figures are published here.
@@ -163,20 +158,7 @@ export default async function BusinessScoreboardPage({
         <div className={styles.shell}>
           <p className={styles.eyebrow}>Read the board</p>
           <h2 id="legend-title">What each number means, and what moves it.</h2>
-          <div className={styles.legendGrid}>
-            {SCOREBOARD_METRICS.filter((metric) => metric.key !== "sales" || business.showSales).map((metric) => (
-              <div
-                key={metric.key}
-                className={`${styles.legendCard} ${metric.key === "paid_leads" ? styles.paid : metric.key === "unpaid_leads" ? styles.unpaid : ""}`}
-              >
-                <h3>{metric.label}</h3>
-                <p>{metric.what}</p>
-                <Link href={metric.move.href}>
-                  How we move it: {metric.move.label} <ArrowRight aria-hidden="true" />
-                </Link>
-              </div>
-            ))}
-          </div>
+          <MetricCards feeds={[{ business, result }]} />
           <div className={styles.callout}>
             <p>
               <strong>Know what the board is counting.</strong> A lead record is not a paying customer.

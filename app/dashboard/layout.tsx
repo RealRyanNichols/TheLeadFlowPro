@@ -1,3 +1,5 @@
+import { PRIVATE_PAGE_METADATA } from "@/lib/publicPageMetadata";
+export const metadata = PRIVATE_PAGE_METADATA;
 import Link from "next/link";
 import BrandLockup from "@/components/BrandLockup";
 import { Activity, ArrowRight, Hammer, LayoutDashboard } from "lucide-react";

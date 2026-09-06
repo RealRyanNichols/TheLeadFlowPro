@@ -1,0 +1,79 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #dbd0c5;
+  border-radius: 18px;
+  background: #fff9ef;
+  color: #20212b;
+  text-decoration: none;
+  box-shadow: 0 3px 12px #4d325309;
+  transition: border-color .18s, box-shadow .18s;
+}
+.card:hover {
+  border-color: #aa8ec2;
+  box-shadow: 0 10px 26px #4d325315;
+}
+.card:focus-visible {
+  outline: 3px solid #5135e5;
+  outline-offset: 4px;
+}
+.art {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  border-bottom: 1px solid #e0d7cb;
+}
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+}
+.count {
+  margin-bottom: 10px;
+  color: #625f6d;
+  font-size: .75rem;
+  font-weight: 750;
+}
+.title {
+  color: #20212b;
+  font-size: 1.08rem;
+  font-weight: 850;
+  letter-spacing: -.015em;
+  line-height: 1.4;
+}
+.hook {
+  display: block;
+  margin: 9px 0 20px;
+  color: #625f6d;
+  font-size: .88rem;
+  line-height: 1.65;
+}
+.action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  width: 100%;
+  min-height: 46px;
+  margin-top: auto;
+  padding: 12px 15px;
+  border: 1px solid #c5b1d8;
+  border-radius: 10px;
+  background: #ede6f3;
+  color: #432abb;
+  font-size: .84rem;
+  font-weight: 850;
+  line-height: 1.4;
+  transition: background .18s;
+}
+.action svg { width: 18px; height: 18px; flex: none; }
+.card:hover .action { background: #e2d7ef; }
+@media (prefers-reduced-motion: reduce) {
+  .card, .action { transition: none; }
+}

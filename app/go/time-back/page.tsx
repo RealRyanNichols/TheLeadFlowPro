@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -16,13 +17,13 @@ import RevealObserver from "./Reveal";
 // buttons. The week-strip graphic SHOWS the product (a calendar that filled
 // itself) instead of describing it.
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/go/time-back", {
   title: "Get Your Time Back From Posting | The LeadFlow Pro",
   description:
     "Pick how many days and how many posts per day. We write it in your voice, schedule it in your accounts, and wire the follow-up. From $297 one-time. No passwords, no monthly seat.",
   alternates: { canonical: "https://www.theleadflowpro.com/go/time-back" },
   robots: { index: false, follow: true },
-};
+});
 
 const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
 

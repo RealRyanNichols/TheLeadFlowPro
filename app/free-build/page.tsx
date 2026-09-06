@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,7 +20,7 @@ import styles from "./free-build.module.css";
 // the five-page build fee is $0, paid growth services are optional, and the
 // client owns the website, accounts, tracking, and leads.
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/free-build", {
   title: "Free Five-Page Website | The LeadFlow Pro",
   description:
     "Apply for a five-page business website with a $0 build fee. Own the site, lead route, analytics and accounts. Paid growth services are optional.",
@@ -46,7 +47,7 @@ export const metadata: Metadata = {
     description: "Application required. Paid growth services are optional and separately approved.",
     images: ["/og/free-build.jpg"],
   },
-};
+});
 
 export default function FreeBuildPage() {
   return (

@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { getSettings } from "@/lib/settings";
 import ConversionPing from "@/components/ConversionPing";
+import { fetchPaidSession } from "@/lib/stripeSession";
+import { purchaseConfirmation } from "@/lib/purchaseConfirmation";
 import styles from "./thank-you.module.css";
 
 export const metadata = {
@@ -27,6 +29,8 @@ function ConfirmationShell({
   actions,
   tracking,
   followUp,
+  confirmationLabel = "Confirmation received",
+  statusNote = "Your confirmation is recorded. The next step is shown here.",
 }: {
   icon: LucideIcon;
   eyebrow: string;
@@ -36,6 +40,8 @@ function ConfirmationShell({
   actions: ReactNode;
   tracking?: ReactNode;
   followUp?: ReactNode;
+  confirmationLabel?: string;
+  statusNote?: string;
 }) {
   return (
     <main className={`cb-page ${styles.page}`}>
@@ -55,7 +61,7 @@ function ConfirmationShell({
             <div className="cb-actions">{actions}</div>
             <p className="cb-hero-own">
               <CircleCheckBig aria-hidden="true" />
-              Your confirmation is recorded. The next step is shown here.
+              {statusNote}
             </p>
           </div>
 
@@ -69,7 +75,7 @@ function ConfirmationShell({
               sizes="(max-width: 900px) 100vw, 56vw"
             />
             <figcaption>
-              <span>Confirmation received</span>
+              <span>{confirmationLabel}</span>
               <strong>One clear next step. No lost handoff.</strong>
             </figcaption>
           </figure>
@@ -80,14 +86,6 @@ function ConfirmationShell({
   );
 }
 
-/**
- * Ask Stripe what was actually paid. Returns null when there is no session id,
- * no Stripe key, the session is not paid, or Stripe is unreachable — and a
- * null simply means the conversion falls back to its old behavior rather than
- * the page breaking. A thank-you page must render even when Stripe is down.
- */
-import { fetchPaidSession, type PaidSession } from "@/lib/stripeSession";
-
 export default async function ThankYou({
   searchParams,
 }: {
@@ -96,28 +94,38 @@ export default async function ThankYou({
   const { purchase, session_id: sessionId } = await searchParams;
   const settings = await getSettings();
 
-  // THE REAL AMOUNT, not a constant.
-  //
-  // ConversionPing used to hardcode value: 497 for every purchase on this
-  // site, so a $500 deposit, a $1,000 full payment and a $25,000 custom
-  // deposit all reported to Meta and Google as a $497 sale. Both platforms
-  // were optimizing against a number that was true for nothing.
-  //
-  // Asking Stripe is the only way to be right for every kind, because deposit
-  // amounts are customer-chosen and no lookup table can know them. It also
-  // fixes the second bug: `bought` was `purchase === "learn_it"`, a kind
-  // nothing has produced since the training product was retired, so a real
-  // $497 System Map sale fired a Lead instead of a Purchase and was invisible
-  // as revenue. Now anything Stripe reports as paid counts as a purchase.
-  const paid: PaidSession | null = await fetchPaidSession(sessionId);
-  const paidAmountUsd: number | undefined = paid ? paid.amountUsd : undefined;
-  const paidSessionId: string | undefined = paid ? paid.sessionId : undefined;
-  const bought = paid !== null || purchase === "learn_it";
-  const paidEvent = purchase === "event";
-  const paidDeposit =
-    purchase === "build_deposit" || purchase === "package_deposit" || purchase === "package_full";
+  const paid = await fetchPaidSession(sessionId);
+  const confirmation = purchaseConfirmation({ purchase, sessionId }, paid);
+  const tracking = paid ? (
+    <ConversionPing
+      googleAdsId={settings.google_ads_id}
+      conversionLabel={settings.google_ads_conversion_label}
+      purchase
+      value={paid.amountUsd}
+      dedupeKey={paid.eventId}
+    />
+  ) : undefined;
 
-  if (paidDeposit) {
+  if (confirmation === "unverified") {
+    return (
+      <ConfirmationShell
+        icon={MessageSquareText}
+        eyebrow="Payment not confirmed"
+        title="Let’s check your payment."
+        accent="You have a clear next step."
+        lead={<>We could not verify a completed payment from this link. If you already paid,
+          check your Stripe receipt or contact Ryan so we can confirm your order before you pay again.</>}
+        confirmationLabel="Payment verification needed"
+        statusNote="An unverified link does not confirm a purchase."
+        actions={<>
+          <Link href="/contact" className="cb-btn cb-btn--primary">Get help with my payment<ArrowRight aria-hidden="true" /></Link>
+          <Link href="/" className="cb-btn cb-btn--ghost">Back Home</Link>
+        </>}
+      />
+    );
+  }
+
+  if (confirmation === "deposit") {
     return (
       <ConfirmationShell
         icon={CircleCheckBig}
@@ -126,20 +134,12 @@ export default async function ThankYou({
         accent="The build moves."
         lead={
           <>
-            Your down payment is credited in full toward the build. Your receipt is on the
+            Your payment is credited in full toward the build. Your receipt is on the
             way by email. Ryan will be in touch with the next step and what he needs from
             you, usually the same day.
           </>
         }
-        tracking={
-          <ConversionPing
-            googleAdsId={settings.google_ads_id}
-            conversionLabel={settings.google_ads_conversion_label}
-            purchase
-            value={paidAmountUsd}
-            dedupeKey={paidSessionId}
-          />
-        }
+        tracking={tracking}
         actions={
           <>
             <Link href="/portfolio" className="cb-btn cb-btn--primary">
@@ -155,17 +155,17 @@ export default async function ThankYou({
     );
   }
 
-  if (paidEvent) {
+  if (confirmation === "event") {
     return (
       <ConfirmationShell
         icon={CalendarCheck2}
-        eyebrow="Registration confirmed"
-        title="Seat locked."
-        accent="See you there."
+        eyebrow="Workshop payment received"
+        title="Payment received."
+        accent="Check your confirmation."
         lead={
           <>
-            Payment received and your registration is confirmed. Bring your laptop and your
-            questions. You&apos;ll leave knowing exactly how to own your platform.
+            Your workshop payment is confirmed. Check your email for your registration details
+            and next step. Contact Ryan if your confirmation has not arrived.
           </>
         }
         actions={
@@ -187,7 +187,7 @@ export default async function ThankYou({
   // told a $497 buyer "Training access confirmed" and sent them to /login.
   // The package page promises "a short intake so the call starts warm"; the
   // Business Growth Diagnostic is that intake.
-  if (paid !== null && purchase === "system_map") {
+  if (confirmation === "system_map") {
     return (
       <ConfirmationShell
         icon={CircleCheckBig}
@@ -202,15 +202,7 @@ export default async function ThankYou({
             instead of small talk.
           </>
         }
-        tracking={
-          <ConversionPing
-            googleAdsId={settings.google_ads_id}
-            conversionLabel={settings.google_ads_conversion_label}
-            purchase
-            value={paidAmountUsd}
-            dedupeKey={paidSessionId}
-          />
-        }
+        tracking={tracking}
         actions={
           <>
             <Link
@@ -229,7 +221,7 @@ export default async function ThankYou({
     );
   }
 
-  if (bought) {
+  if (confirmation === "training") {
     return (
       <ConfirmationShell
         icon={GraduationCap}
@@ -243,15 +235,7 @@ export default async function ThankYou({
             automatically.
           </>
         }
-        tracking={
-          <ConversionPing
-            googleAdsId={settings.google_ads_id}
-            conversionLabel={settings.google_ads_conversion_label}
-            purchase={bought}
-            value={paidAmountUsd}
-            dedupeKey={paidSessionId}
-          />
-        }
+        tracking={tracking}
         actions={
           <>
             <Link href="/login" className="cb-btn cb-btn--primary">
@@ -263,6 +247,24 @@ export default async function ThankYou({
             </Link>
           </>
         }
+      />
+    );
+  }
+
+  if (confirmation === "payment") {
+    return (
+      <ConfirmationShell
+        icon={CircleCheckBig}
+        eyebrow="Payment confirmed"
+        title="Payment received."
+        accent="Your receipt has the details."
+        lead={<>Check your email for the receipt and next steps for the item you purchased.
+          Contact Ryan if you need help finding your order.</>}
+        tracking={tracking}
+        actions={<>
+          <Link href="/contact" className="cb-btn cb-btn--primary">Get help with my order<ArrowRight aria-hidden="true" /></Link>
+          <Link href="/" className="cb-btn cb-btn--ghost">Back Home</Link>
+        </>}
       />
     );
   }
@@ -283,9 +285,6 @@ export default async function ThankYou({
         <ConversionPing
           googleAdsId={settings.google_ads_id}
           conversionLabel={settings.google_ads_conversion_label}
-          purchase={bought}
-          value={paidAmountUsd}
-          dedupeKey={paidSessionId}
         />
       }
       actions={

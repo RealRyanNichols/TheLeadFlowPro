@@ -8,6 +8,7 @@ import { hasProAccess } from "@/lib/proAccess";
 import { getProEntitlements } from "@/lib/proAccessServer";
 import ProToolEngine from "@/components/tools/pro/ProToolEngine";
 import ProBuyButton from "@/components/tools/pro/ProBuyButton";
+import ProPurchaseTracking from "@/components/tools/pro/ProPurchaseTracking";
 import ProCard from "@/components/tools/pro/ProCard";
 import ToolCard from "@/components/tools/ToolCard";
 import SiteHero from "@/components/site/system/SiteHero";
@@ -48,7 +49,7 @@ export async function generateMetadata({
       type: "website",
       images,
     },
-    twitter: { card: "summary_large_image", images: images?.map((i) => i.url) },
+    twitter: { title: kit.name, description: kit.tagline, card: "summary_large_image", images: images?.map((i) => i.url) },
   };
 }
 
@@ -113,6 +114,7 @@ export default async function ProToolPage({ params }: { params: Promise<{ slug: 
 
   return (
     <main className="cb-page">
+      <ProPurchaseTracking />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <SiteHero

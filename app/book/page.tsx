@@ -1,13 +1,14 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import BookForm from "./BookForm";
 import { Suspense } from "react";
 import { Check } from "lucide-react";
 import SiteHero from "@/components/site/system/SiteHero";
 
-export const metadata = {
+export const metadata = withPublicPageMetadata("/book", {
   title: "Book a Call | The LeadFlow Pro",
   description:
     "Thirty minutes. Your next three moves. Tell me about your business and what you are paying to rent your platform.",
-};
+});
 
 export default function BookPage() {
   return (

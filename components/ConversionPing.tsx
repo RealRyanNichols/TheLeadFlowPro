@@ -1,36 +1,37 @@
 "use client";
 
 import { useEffect } from "react";
+import { purchaseEvent } from "@/lib/analytics/purchaseEvent";
+import { analyticsAllowedNow } from "@/lib/analytics/browserPrivacy";
 
 /**
  * Fires ad-platform conversion events once when mounted.
  * Lead on the standard thank-you; Purchase (with value) after checkout.
  *
- * VALUE: `value` is the real amount in dollars. It used to be hardcoded to 497
- * for every purchase on the site, which meant a $500 deposit, a $1,000 full
- * payment and a $25,000 custom deposit all reported to Meta and Google as a
- * $497 sale. Every caller that takes money should pass the actual number.
- * The 497 default is kept only so existing call sites behave exactly as they
- * did before; it is not a sensible default for anything new.
- *
- * DEDUPE: pass `dedupeKey` (the Stripe session id is ideal) on any page a
- * buyer can reload. Without it, a refresh on a post-payment page fires a
- * second Purchase and inflates the number the ad platform optimizes against.
+ * Purchases require the verified Stripe amount and its opaque event ID.
+ * No amount fallback or raw checkout credential is sent to an ad platform.
+ * Existing route privacy guards remain authoritative.
  */
 export default function ConversionPing({
   googleAdsId,
   conversionLabel,
   purchase = false,
-  value = 497,
+  value,
   dedupeKey,
+  sku,
 }: {
   googleAdsId: string;
   conversionLabel: string;
   purchase?: boolean;
   value?: number;
   dedupeKey?: string | null;
+  sku?: string;
 }) {
   useEffect(() => {
+    if (!analyticsAllowedNow()) return;
+    const event = purchase ? purchaseEvent(value, dedupeKey, sku) : null;
+    if (purchase && !event) return;
+    if (!window.fbq && !(window.gtag && googleAdsId && conversionLabel)) return;
     // One fire per key, per browser session. Storage can throw in private
     // windows and locked-down browsers, so a failure here must never stop the
     // event: worst case we are back to the old behavior.
@@ -46,7 +47,10 @@ export default function ConversionPing({
 
     if (window.fbq) {
       if (purchase) {
-        window.fbq("track", "Purchase", { value, currency: "USD" });
+        window.fbq("track", "Purchase", {
+          value: event!.value, currency: event!.currency,
+          ...(event!.sku ? { content_type: "product", content_ids: [event!.sku], num_items: 1 } : {}),
+        }, { eventID: event!.eventId });
       } else {
         window.fbq("track", "Lead");
       }
@@ -54,10 +58,13 @@ export default function ConversionPing({
     if (window.gtag && googleAdsId && conversionLabel) {
       window.gtag("event", "conversion", {
         send_to: `${googleAdsId}/${conversionLabel}`,
-        ...(purchase ? { value, currency: "USD" } : {}),
+        ...(event ? {
+          value: event.value, currency: event.currency, transaction_id: event.eventId,
+          ...(event.sku ? { items: [{ item_id: event.sku, price: event.value, quantity: 1 }] } : {}),
+        } : {}),
       });
     }
-  }, [googleAdsId, conversionLabel, purchase, value, dedupeKey]);
+  }, [googleAdsId, conversionLabel, purchase, value, dedupeKey, sku]);
 
   return null;
 }

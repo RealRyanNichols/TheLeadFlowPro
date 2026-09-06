@@ -1,3 +1,4 @@
+import { PRIVATE_PAGE_METADATA } from "@/lib/publicPageMetadata";
 import { notFound } from "next/navigation";
 import { TOOLS, getTool } from "@/lib/tools";
 import ToolEngine from "@/components/tools/ToolEngine";
@@ -20,7 +21,7 @@ export async function generateMetadata({
   const tool = getTool(slug);
   return {
     title: tool ? `${tool.name} | The LeadFlow Pro` : "Tool",
-    robots: { index: false },
+    ...PRIVATE_PAGE_METADATA,
   };
 }
 

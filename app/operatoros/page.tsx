@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -21,7 +22,7 @@ import {
 } from "lucide-react";
 import { OPERATOR_OFFERS } from "@/lib/operatoros/catalog.ts";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/operatoros", {
   title: "OperatorOS | AI Workers You Can Watch Work | The LeadFlow Pro",
   description:
     "The LeadFlow Pro maps repetitive work, trains ChatGPT and Claude workers, adds human approval gates, and gives the owner a live operating screen.",
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
     url: "https://www.theleadflowpro.com/operatoros",
     type: "website",
   },
-};
+});
 
 const lanes = [
   { name: "Signal", job: "Find the attention and opportunity", icon: Target },

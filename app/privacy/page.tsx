@@ -1,10 +1,11 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/privacy", {
   title: "Privacy Policy | The LeadFlow Pro",
   description: "How The LeadFlow Pro collects, uses, and protects information.",
-};
+});
 
 export default function PrivacyPage() {
   return (

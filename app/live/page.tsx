@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -30,7 +31,7 @@ import styles from "./live.module.css";
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/live", {
   title: "Live Website Analytics & Lead Tracking | The LeadFlow Pro",
   description:
     "See how The LeadFlow Pro tracks website traffic, clicks, tools, conversions, Google visibility, and lead activity through a live, privacy-safe business analytics system.",
@@ -51,7 +52,7 @@ export const metadata: Metadata = {
       "The LeadFlow Pro's own analytics system, live and privacy-safe: traffic, actions, tools, funnel, Google visibility.",
     images: ["/og/home.png"],
   },
-};
+});
 
 const TRACK_GRID = [
   {

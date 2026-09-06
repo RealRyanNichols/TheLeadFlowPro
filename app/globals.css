@@ -216,13 +216,11 @@ body{background:var(--page);min-width:320px;color:var(--text);text-rendering:opt
   .tool-domain-rail .tool-chip{white-space:nowrap;flex-shrink:0}
   .page-hero-compact{padding:16px 0 18px}
   .page-hero-compact h1{font-size:clamp(30px,9.5vw,40px);margin-top:14px}
-  /* /tools on a phone: the library must be reachable without a long scroll
-     (search input within ~900px of the top). The hero stays; its media panel
-     is a desktop flourish that costs a full phone screen, so it is dropped
-     here — and only here, this page, phone widths. */
-  .sv-tools-page .sv-site-hero-media{display:none}
+  /* /tools keeps its original illustration visible on phones so visitors can
+     recognize this page; the main button jumps directly to the working library. */
+  .sv-tools-page .sv-site-hero-media{display:block}
   .sv-tools-page .cb-hero{padding-top:12px;padding-bottom:28px}
-  .sv-tools-page .cb-hero-layout{gap:0}
+  .sv-tools-page .cb-hero-layout{gap:24px}
 }
 .page-hero-centered{text-align:center}
 .page-hero h1{color:var(--heading);letter-spacing:-.055em;margin:24px 0 0;font-size:clamp(42px,6vw,72px);font-weight:880;line-height:.98}

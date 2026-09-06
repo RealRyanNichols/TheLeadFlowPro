@@ -1,3 +1,5 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
+export const metadata = withPublicPageMetadata("/", { title: "Your next move starts here | The LeadFlow Pro", description: "Find the right next step for your website, leads, follow-up, or business skills." });
 import Image from "next/image";
 import Link from "next/link";
 import {

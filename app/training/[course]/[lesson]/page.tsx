@@ -1,3 +1,5 @@
+import { PRIVATE_PAGE_METADATA } from "@/lib/publicPageMetadata";
+export const metadata = PRIVATE_PAGE_METADATA;
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, BookOpenCheck, PlayCircle } from "lucide-react";

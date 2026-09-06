@@ -1,8 +1,9 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import type { DiagnosticAnswers } from "@/lib/businessDiagnostic";
 import BusinessDiagnosticForm from "./BusinessDiagnosticForm";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/diagnostic", {
   title: "Business Growth Diagnostic | The LeadFlow Pro",
   description:
     "Share what is working, what is leaking, and what you want the business to do next so The LeadFlow Pro can prepare a sharper recommendation.",
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
     description: "Find the leaks. Map the next move.",
     images: ["/og/diagnostic.jpg"],
   },
-};
+});
 
 type SearchValue = string | string[] | undefined;
 

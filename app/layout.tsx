@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import { Archivo, Inter } from "next/font/google";
 import "./globals.css";
@@ -27,7 +28,7 @@ const inter = Inter({
   display: "swap",
 });
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/", {
   title: "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
   description:
     "The LeadFlow Pro turns attention into conversations, conversations into qualified leads, and qualified leads into customers with one connected business system.",
@@ -56,7 +57,7 @@ export const metadata: Metadata = {
     description: "One connected system that turns attention into conversations and qualified leads.",
     images: ["/og/home.png"],
   },
-};
+});
 
 // Last two leftovers from the navy era. themeColor painted the mobile browser
 // chrome navy above a light page, and colorScheme "dark" told the UA to render

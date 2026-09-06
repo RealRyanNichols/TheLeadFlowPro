@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -160,10 +161,10 @@ export async function generateMetadata({
   const { slug } = await params;
   const p = PACKS[slug];
   if (!p) return {};
-  return {
+  return withPublicPageMetadata(`/packages/${p.slug}`, {
     title: `${p.name} | ${p.price} | The LeadFlow Pro`,
     description: `${p.headline} ${p.priceNote}`,
-  };
+  });
 }
 
 export default async function PackagePage({
@@ -185,8 +186,8 @@ export default async function PackagePage({
         }
       : p.slug === "system-map"
         ? {
-            src: "/images/homepage-v2/connected-company-hero.webp",
-            alt: "A connected business operating core with multiple mapped modules",
+            src: "/images/system-stages/system-map.svg",
+            alt: "Illustration of a foldout operating map connecting a website, customer records, schedules, and reporting, with a pencil for planning the build",
             kicker: "Map before build",
             caption: "Dependencies, ownership, and the first release.",
           }

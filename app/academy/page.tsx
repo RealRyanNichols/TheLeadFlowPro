@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BookOpenCheck, Check, LockKeyhole, Trophy } from "lucide-react";
@@ -10,7 +11,7 @@ import { academyItemListJsonLd } from "@/lib/courseSeo";
 import { AcademyCheckoutForm, AcademyFreeAccessForm } from "./AcademyActions";
 import styles from "./academy.module.css";
 
-export const metadata = {
+export const metadata = withPublicPageMetadata("/academy", {
   title: "The LeadFlow Operator Academy | Ten courses, two free | The LeadFlow Pro",
   description: OPERATOR_ACADEMY.promise,
   alternates: { canonical: "https://www.theleadflowpro.com/academy" },
@@ -20,7 +21,7 @@ export const metadata = {
     url: "https://www.theleadflowpro.com/academy",
     type: "website",
   },
-};
+});
 
 export default function AcademyPage() {
   const freeCourses = OPERATOR_ACADEMY_COURSES.filter((course) => course.isFree);
@@ -60,6 +61,9 @@ export default function AcademyPage() {
             {OPERATOR_ACADEMY_COURSES.map((course) => (
               <article key={course.slug} className={styles.courseCard}>
                 <div className={styles.cardTop}><span>{course.code}</span><span className={course.isFree ? styles.free : styles.paid}>{course.isFree ? "Free with signup" : "Paid"}</span></div>
+                <div className={styles.courseArt}>
+                  <Image src={`/images/academy/cards/${course.slug}.svg`} alt="" aria-hidden="true" width={640} height={360} sizes="(max-width: 850px) calc(100vw - 76px), 520px" />
+                </div>
                 <p className={styles.level}>{course.level}</p>
                 <h3>{course.shortTitle}</h3>
                 <p>{course.description}</p>

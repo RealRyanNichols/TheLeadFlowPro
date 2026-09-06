@@ -161,6 +161,56 @@
           "scope": "Read-only page and availability checks. No registration, checkout, payment, email, or social action was submitted."
         }
       }
+    },
+    {
+      "contentCommit": "a344f276a9e2b66e033b0d9ebb35b849c2381914",
+      "deployment": {
+        "id": "dpl_DX8JAznzpYS8Egv8WL9KR4M7i1Qa",
+        "url": "https://the-lead-flow-oo61kxqmy-realryannichols.vercel.app",
+        "status": "READY",
+        "verifiedAt": "2026-09-06T17:49:42.746Z"
+      },
+      "liveCheck": {
+        "checkedAt": "2026-09-06T17:50:04.424139+00:00",
+        "url": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop",
+        "httpStatus": 200,
+        "bodyVerified": true,
+        "canonicalVerified": true,
+        "canonicalUrl": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop",
+        "indexPresent": true,
+        "sitemapPresent": true,
+        "metadataVerified": true,
+        "ogStatus": 200,
+        "ogContentType": "image/png",
+        "ogUrl": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop/opengraph-image",
+        "bodyEvidence": [
+          "The task I want to make easier:",
+          "Help me learn this business task one step at a time.",
+          "I can repeat the main steps.",
+          "See the upcoming LeadFlow workshop"
+        ],
+        "workshopCtaCheck": {
+          "checkedAt": "2026-09-06T17:50:03.516922+00:00",
+          "href": "/events",
+          "finalUrl": "https://workshop.theleadflowpro.com/",
+          "httpStatus": 200,
+          "registrationUrl": "https://www.theleadflowpro.com/events/chatgpt-for-business-owners-longview",
+          "registrationStatus": 200,
+          "availability": {
+            "title": "ChatGPT for Business Owners: Live in Longview",
+            "slug": "chatgpt-for-business-owners-longview",
+            "starts_at": "2026-09-17T23:30:00+00:00",
+            "price_usd": 97,
+            "capacity": 10,
+            "clinic_enabled": true,
+            "seats_remaining": 10,
+            "payment_ready": true,
+            "registration_open": true,
+            "registration_url": "https://www.theleadflowpro.com/events/chatgpt-for-business-owners-longview"
+          },
+          "scope": "Read-only deployed page and inventory check. No registration or payment was submitted."
+        }
+      }
     }
   ],
   "liveCheck": {

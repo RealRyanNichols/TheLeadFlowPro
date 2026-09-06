@@ -18,7 +18,7 @@ export default async function PurchasePing({ sessionId }: { sessionId?: string |
       conversionLabel={settings.google_ads_conversion_label}
       purchase
       value={paid.amountUsd}
-      dedupeKey={paid.sessionId}
+      dedupeKey={paid.eventId}
     />
   );
 }

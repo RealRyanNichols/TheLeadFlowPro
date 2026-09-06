@@ -1,3 +1,5 @@
+import { PRIVATE_PAGE_METADATA } from "@/lib/publicPageMetadata";
+export const metadata = PRIVATE_PAGE_METADATA;
 import Link from "next/link";
 import { Award, ArrowLeft } from "lucide-react";
 import { notFound, redirect } from "next/navigation";

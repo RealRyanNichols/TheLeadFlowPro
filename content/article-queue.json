@@ -8,7 +8,8 @@
     "Scheduled is not deployment proof; published requires a verified live URL.",
     "Record deployment and live checks in content/article-publications/.",
     "Add new entries at the end. Every tool slug must exist in lib/tools and",
-    "each tool may appear once, because its OG card becomes the article scene."
+    "each tool may appear once, because its OG card becomes the article scene.",
+    "Tool-coverage editorial briefs: docs/tool-article-coverage-plan-2026-09-06.json. Match queueSlug for the worked example, reader artifact, actual inputs, and source-review requirements."
   ],
   "queue": [
     {
@@ -101,6 +102,402 @@
       "tool": "break-even-calculator",
       "searchQuestion": "How much work does a welding shop need to break even?",
       "workingTitle": "Know your shop's break-even before you quote another rush job",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-compare-a-better-close-rate-with-buying-more-leads",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "close-rate-calculator",
+      "searchQuestion": "How do I compare a better close rate with buying more leads?",
+      "workingTitle": "How to compare a better close rate with buying more leads",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "lead-goal-planner",
+      "searchQuestion": "How do I turn a yearly revenue goal into a weekly activity plan?",
+      "workingTitle": "How to turn a yearly revenue goal into a weekly activity plan",
+      "status": "queued"
+    },
+    {
+      "slug": "what-to-write-down-before-comparing-two-equipment-loans",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "loan-payment-calculator",
+      "searchQuestion": "What should I write down before comparing two equipment loans?",
+      "workingTitle": "What to write down before comparing two equipment loans",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-read-a-cash-runway-estimate-without-counting-credit-as-cash",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "cash-runway-calculator",
+      "searchQuestion": "How do I read a cash runway estimate without counting credit as cash?",
+      "workingTitle": "How to read a cash runway estimate without counting credit as cash",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-separate-sales-tax-from-a-tax-inclusive-total",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "sales-tax-calculator",
+      "searchQuestion": "How do I separate sales tax from a tax-inclusive total?",
+      "workingTitle": "How to separate sales tax from a tax-inclusive total",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-compare-overtime-costs-with-a-hiring-scenario",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "overtime-cost-calculator",
+      "searchQuestion": "How do I compare overtime costs with a hiring scenario?",
+      "workingTitle": "How to compare overtime costs with a hiring scenario",
+      "status": "queued"
+    },
+    {
+      "slug": "why-ad-revenue-and-ad-profit-need-separate-columns",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "roas-calculator",
+      "searchQuestion": "Why do ad revenue and ad profit need separate columns?",
+      "workingTitle": "Why ad revenue and ad profit need separate columns",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-build-an-ad-budget-scenario-from-your-own-records",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "ad-budget-planner",
+      "searchQuestion": "How do I build an ad budget scenario from your own records?",
+      "workingTitle": "How to build an ad budget scenario from your own records",
+      "status": "queued"
+    },
+    {
+      "slug": "how-long-does-a-new-customer-take-to-repay-acquisition-cost",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "cac-payback-calculator",
+      "searchQuestion": "How long does a new customer take to repay acquisition cost?",
+      "workingTitle": "How long does a new customer take to repay acquisition cost",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-scope-an-ad-test-before-splitting-the-budget",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "ad-test-budget-calculator",
+      "searchQuestion": "How do I scope an ad test before splitting the budget?",
+      "workingTitle": "How to scope an ad test before splitting the budget",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-find-one-admin-task-worth-simplifying-this-week",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "admin-time-audit",
+      "searchQuestion": "How do I find one admin task worth simplifying this week?",
+      "workingTitle": "How to find one admin task worth simplifying this week",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-decide-whether-a-weekly-meeting-earns-its-time",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "meeting-cost-calculator",
+      "searchQuestion": "How do I decide whether a weekly meeting earns its time?",
+      "workingTitle": "How to decide whether a weekly meeting earns its time",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-compare-the-work-you-do-with-the-work-you-could-delegate",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "owner-hourly-worth",
+      "searchQuestion": "How do I compare the work you do with the work you could delegate?",
+      "workingTitle": "How to compare the work you do with the work you could delegate",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-read-a-review-rating-goal-without-gaming-reviews",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "review-goal-calculator",
+      "searchQuestion": "How do I read a review-rating goal without gaming reviews?",
+      "workingTitle": "How to read a review-rating goal without gaming reviews",
+      "status": "queued"
+    },
+    {
+      "slug": "what-one-low-rating-changes-and-what-it-cannot-tell-you",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "bad-review-impact",
+      "searchQuestion": "What does one low rating change in a review average?",
+      "workingTitle": "What one low rating changes and what it cannot tell you",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-reply-to-a-review-without-arguing-in-public",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "review-response-writer",
+      "searchQuestion": "How do I reply to a review without arguing in public?",
+      "workingTitle": "How to reply to a review without arguing in public",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-test-a-website-improvement-before-buying-more-visits",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "conversion-lift-calculator",
+      "searchQuestion": "How do I test a website improvement before buying more visits?",
+      "workingTitle": "How to test a website improvement before buying more visits",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-put-a-useful-qr-code-on-a-printed-flyer",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "qr-code-maker",
+      "searchQuestion": "How do I put a useful QR code on a printed flyer?",
+      "workingTitle": "How to put a useful QR code on a printed flyer",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-make-a-guest-wi-fi-card-customers-can-use",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "wifi-qr-code",
+      "searchQuestion": "How do I make a guest Wi-Fi card customers can use?",
+      "workingTitle": "How to make a guest Wi-Fi card customers can use",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-make-a-contact-card-people-can-save",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "digital-business-card",
+      "searchQuestion": "How do I make a contact card people can save?",
+      "workingTitle": "How to make a contact card people can save",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-add-a-call-button-and-check-it-on-your-phone",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "click-to-call-button",
+      "searchQuestion": "How do I add a call button and check it on your phone?",
+      "workingTitle": "How to add a call button and check it on your phone",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-write-a-text-us-button-that-starts-the-right-conversation",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "sms-link-generator",
+      "searchQuestion": "How do I write a text-us button that starts the right conversation?",
+      "workingTitle": "How to write a text-us button that starts the right conversation",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-tag-a-campaign-link-without-putting-private-data-in-it",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "utm-link-builder",
+      "searchQuestion": "How do I tag a campaign link without putting private data in it?",
+      "workingTitle": "How to tag a campaign link without putting private data in it",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-make-an-email-signature-with-one-clear-next-step",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "email-signature-generator",
+      "searchQuestion": "How do I make an email signature with one clear next step?",
+      "workingTitle": "How to make an email signature with one clear next step",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-write-a-missed-call-reply-that-tells-people-what-happens-next",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "missed-call-textback-script",
+      "searchQuestion": "How do I write a missed-call reply that tells people what happens next?",
+      "workingTitle": "How to write a missed-call reply that tells people what happens next",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-ask-for-an-honest-review-after-the-work-is-done",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "review-request-script",
+      "searchQuestion": "How do I ask for an honest review after the work is done?",
+      "workingTitle": "How to ask for an honest review after the work is done",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-check-your-business-details-before-adding-structured-data",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "localbusiness-schema-generator",
+      "searchQuestion": "How do I check your business details before adding structured data?",
+      "workingTitle": "How to check your business details before adding structured data",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-turn-real-customer-questions-into-useful-website-answers",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "faq-schema-generator",
+      "searchQuestion": "How do I turn real customer questions into useful website answers?",
+      "workingTitle": "How to turn real customer questions into useful website answers",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-replace-a-page-title-called-home-with-something-useful",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "meta-title-description-writer",
+      "searchQuestion": "How do I replace a page title called Home with something useful?",
+      "workingTitle": "How to replace a page title called Home with something useful",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-check-ad-copy-before-you-paste-it-into-the-platform",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "ad-character-counter",
+      "searchQuestion": "How do I check ad copy before you paste it into the platform?",
+      "workingTitle": "How to check ad copy before you paste it into the platform",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-make-a-directions-link-that-reaches-the-right-entrance",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "google-maps-link-generator",
+      "searchQuestion": "How do I make a directions link that reaches the right entrance?",
+      "workingTitle": "How to make a directions link that reaches the right entrance",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-give-event-guests-a-calendar-link-they-can-check",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "add-to-calendar-link",
+      "searchQuestion": "How do I give event guests a calendar link they can check?",
+      "workingTitle": "How to give event guests a calendar link they can check",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-leave-callers-with-a-clear-next-step",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "voicemail-script-generator",
+      "searchQuestion": "How do I leave callers with a clear next step?",
+      "workingTitle": "How to leave callers with a clear next step",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-write-a-job-post-that-explains-the-actual-work",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "job-post-writer",
+      "searchQuestion": "How do I write a job post that explains the actual work?",
+      "workingTitle": "How to write a job post that explains the actual work",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-write-one-useful-google-business-profile-update",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "google-post-writer",
+      "searchQuestion": "How do I write one useful Google Business Profile update?",
+      "workingTitle": "How to write one useful Google Business Profile update",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-check-robots-txt-without-treating-it-as-a-lock",
+      "trade": "Small business owners and operators",
+      "industry": "Small business operations",
+      "tool": "robots-txt-generator",
+      "searchQuestion": "How do I check robots.txt without treating it as a lock?",
+      "workingTitle": "How to check robots.txt without treating it as a lock",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-put-a-month-s-bills-on-one-clear-page",
+      "trade": "Households",
+      "industry": "Household planning",
+      "tool": "household-budget-planner",
+      "searchQuestion": "How do I put a month's bills on one clear page?",
+      "workingTitle": "How to put a month's bills on one clear page",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-compare-two-package-sizes-before-buying-the-bigger-one",
+      "trade": "Households",
+      "industry": "Household planning",
+      "tool": "grocery-unit-price-calculator",
+      "searchQuestion": "How do I compare two package sizes before buying the bigger one?",
+      "workingTitle": "How to compare two package sizes before buying the bigger one",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-compare-the-costs-that-come-with-a-job",
+      "trade": "Households",
+      "industry": "Household planning",
+      "tool": "childcare-vs-work-calculator",
+      "searchQuestion": "How do I compare the costs that come with a job?",
+      "workingTitle": "How to compare the costs that come with a job",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-find-the-renewals-you-stopped-noticing",
+      "trade": "Households",
+      "industry": "Household planning",
+      "tool": "subscription-audit",
+      "searchQuestion": "How do I find the renewals you stopped noticing?",
+      "workingTitle": "How to find the renewals you stopped noticing",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-turn-a-cash-cushion-goal-into-a-monthly-target",
+      "trade": "Households",
+      "industry": "Household planning",
+      "tool": "emergency-fund-calculator",
+      "searchQuestion": "How do I turn a cash-cushion goal into a monthly target?",
+      "workingTitle": "How to turn a cash-cushion goal into a monthly target",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-check-what-an-extra-payment-changes-in-a-simple-debt-model",
+      "trade": "Households",
+      "industry": "Household planning",
+      "tool": "debt-payoff-planner",
+      "searchQuestion": "How do I check what an extra payment changes in a simple debt model?",
+      "workingTitle": "How to check what an extra payment changes in a simple debt model",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-compare-rent-with-the-bills-you-already-have",
+      "trade": "Households",
+      "industry": "Household planning",
+      "tool": "rent-affordability-estimator",
+      "searchQuestion": "How do I compare rent with the bills you already have?",
+      "workingTitle": "How to compare rent with the bills you already have",
+      "status": "queued"
+    },
+    {
+      "slug": "how-to-compare-two-job-offers-when-the-hours-are-different",
+      "trade": "Workers comparing job offers",
+      "industry": "Career planning",
+      "tool": "salary-to-hourly-converter",
+      "searchQuestion": "How do I compare two job offers when the hours are different?",
+      "workingTitle": "How to compare two job offers when the hours are different",
       "status": "queued"
     }
   ]

@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,7 +12,7 @@ import {
 } from "lucide-react";
 import ToolStudioFunnel from "./ToolStudioFunnel";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/go/tools", {
   title: "Interactive Tools That Create Leads | The LeadFlow Pro",
   description:
     "Build a calculator, quiz, estimator, generator, searchable archive, or lead funnel that your business owns. Start with a $97 blueprint.",
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
     ],
     type: "website",
   },
-};
+});
 
 const PROOF = [
   {

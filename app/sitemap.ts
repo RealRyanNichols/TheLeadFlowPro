@@ -6,45 +6,17 @@ import { PUBLISHED_COLLECTIONS } from "@/lib/tools/collections";
 import { STAGE_SLUGS } from "@/lib/system-stages";
 import { OPERATOR_ACADEMY_COURSES } from "@/lib/operatorAcademyCatalog";
 import { SCOREBOARD_BUSINESSES } from "@/lib/scoreboard";
+import { PUBLIC_PAGE_CATALOG } from "@/lib/publicPageCatalog";
+import { METRIC_GUIDES } from "@/lib/scoreboardMetrics";
 
 export const dynamic = "force-dynamic";
 
 const BASE = "https://www.theleadflowpro.com";
-const PACKAGE_SLUGS = ["system-map", "launch", "industry-os"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const pages = [
-    "",
-    "/free-build",
-    "/start",
-    "/diagnostic",
-    "/operatoros",
-    "/proof-floor",
-    "/about",
-    "/pricing",
-    "/add-ons",
-    "/tools",
-    "/tools/pro",
-    "/packages",
-    "/portfolio",
-    "/premier-system",
-    "/live",
-    "/showcase",
-    "/demo",
-    "/events",
-    "/articles",
-    "/book",
-    "/operator-academy/content-engine",
-    "/academy",
-    "/training",
-    "/chatgpt",
-    "/scoreboard",
-    "/contact",
-    "/go/lead-follow-up",
-    "/go/tools",
-    "/privacy",
-    "/terms",
-  ];
+  const pages = PUBLIC_PAGE_CATALOG.filter(
+    (page) => !("index" in page && page.index === false),
+  ).map((page) => (page.path === "/" ? "" : page.path));
 
   return [
     ...pages.map((p) => ({
@@ -82,10 +54,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
-    ...PACKAGE_SLUGS.map((slug) => ({
-      url: `${BASE}/packages/${slug}`,
+    ...METRIC_GUIDES.map((metric) => ({
+      url: `${BASE}/scoreboard/metrics/${metric.slug}`,
       changeFrequency: "monthly" as const,
-      priority: 0.7,
+      priority: 0.6,
     })),
     ...getPublishedArticles().map((a) => ({
       url: `${BASE}/articles/${a.slug}`,

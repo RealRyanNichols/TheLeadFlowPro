@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import ExecutionDashboard, {
@@ -7,7 +8,7 @@ import ExecutionDashboard, {
 import { createServiceClient } from "@/lib/supabase/service";
 import { LEADFLOW_GROWTH_LOOP, centralDate } from "@/lib/operatoros/growth";
 
-export const metadata = {
+export const metadata = withPublicPageMetadata("/proof-floor", {
   title: "The Proof Floor | The LeadFlow Pro",
   description:
     "A sanitized live scoreboard showing what The LeadFlow Pro is actually moving: attention, leads, follow-up, verified cash, builds, and AI work.",
@@ -18,7 +19,7 @@ export const metadata = {
     url: "https://www.theleadflowpro.com/proof-floor",
     type: "website",
   },
-};
+});
 export const dynamic = "force-dynamic";
 
 const WINDOWS = [

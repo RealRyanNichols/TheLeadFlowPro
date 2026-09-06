@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,7 +20,7 @@ import { TOOL_COUNT } from "@/lib/tools";
 //      of that is verifiable. Where financial outcomes do not exist, the facts
 //      describe what the system does instead.
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/portfolio", {
   title: "The Work | The LeadFlow Pro",
   description:
     "Seven live systems across multiple industries. Client builds and founder-built platforms, labeled honestly, every one of them running right now and open to inspection.",
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
     images: [{ url: "/og/portfolio/theleadflowpro.jpg", width: 1200, height: 630 }],
     type: "website",
   },
-};
+});
 
 type Kind = "client" | "founder";
 

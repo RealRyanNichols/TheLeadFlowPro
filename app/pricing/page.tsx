@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Boxes, Check, FileSearch, ShieldCheck, Store } from "lucide-react";
@@ -7,7 +8,7 @@ import { OFFER_LADDER, WEBSITE_LAUNCH, WEBSITE_LAUNCH_CHECKOUT } from "@/lib/off
 
 // Current offer ladder from the approved Revenue Pivot and Offer Ladder spec.
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/pricing", {
   title: "Packages | The LeadFlow Pro",
   description:
     "Start with a five-page Website Launch for $1,000, use a $497 System Map for deeper dependencies, or scope a larger operating system around the real work.",
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
     images: [{ url: "/og/pricing.png", width: 1200, height: 630 }],
     type: "website",
   },
-};
+});
 
 const canonicalOffer = (id: (typeof OFFER_LADDER)[number]["id"]) =>
   OFFER_LADDER.find((offer) => offer.id === id)!;

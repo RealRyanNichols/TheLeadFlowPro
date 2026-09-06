@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,7 +13,7 @@ import { TOOL_COUNT } from "@/lib/tools";
 // Everything here is either visible in this repository or on a live property.
 // No revenue, client, or outcome numbers are claimed.
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/about", {
   title: "About Ryan Nichols | The LeadFlow Pro",
   description:
     "The operator behind The LeadFlow Pro. Companies, offers, audiences, ecommerce operations, fulfillment, sales processes, websites, and software, all built under real pressure.",
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
     images: [{ url: "/og/home.png", width: 1200, height: 630 }],
     type: "profile",
   },
-};
+});
 
 const CHAPTERS = [
   {

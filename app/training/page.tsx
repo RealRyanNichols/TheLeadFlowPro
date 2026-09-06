@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -15,12 +16,12 @@ import { academyCourse } from "@/lib/operatorAcademyCatalog";
 import SiteHero from "@/components/site/system/SiteHero";
 import styles from "./training.module.css";
 
-export const metadata = {
+export const metadata = withPublicPageMetadata("/training", {
   title: "Training Library | The LeadFlow Operator Academy",
   description:
     "The LeadFlow Operator Academy library: ten courses on offers, lead capture, follow-up, websites, AI agents, local ads, dashboards, and the company operating system. Two are free.",
   alternates: { canonical: "https://www.theleadflowpro.com/training" },
-};
+});
 
 export const dynamic = "force-dynamic";
 

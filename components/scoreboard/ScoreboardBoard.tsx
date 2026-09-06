@@ -1,11 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
+import { metricPath } from "@/lib/scoreboardMetrics";
 import {
   SCOREBOARD_METRICS,
   SCOREBOARD_WINDOWS,
   formatCount,
   type ScoreboardDay,
+  type ScoreboardMetricKey,
   type ScoreboardWindow,
   type ScoreboardWindowKey,
 } from "@/lib/scoreboard";
@@ -16,6 +19,7 @@ type Props = {
   series: ScoreboardDay[];
   showSales: boolean;
   updatedLabel: string;
+  unsupportedMetrics?: ScoreboardMetricKey[];
 };
 
 function dayLabel(day: string) {
@@ -83,7 +87,7 @@ function LeadsChart({ series }: { series: ScoreboardDay[] }) {
   );
 }
 
-export default function ScoreboardBoard({ windows, series, showSales, updatedLabel }: Props) {
+export default function ScoreboardBoard({ windows, series, showSales, updatedLabel, unsupportedMetrics = [] }: Props) {
   const [windowKey, setWindowKey] = useState<ScoreboardWindowKey>("30d");
   const selected = useMemo(
     () => windows.find((item) => item.key === windowKey) ?? windows[0],
@@ -125,8 +129,9 @@ export default function ScoreboardBoard({ windows, series, showSales, updatedLab
               className={`${styles.tile} ${metric.key === "paid_leads" ? styles.paid : metric.key === "unpaid_leads" ? styles.unpaid : ""}`}
             >
               <span>{metric.label}</span>
-              <strong>{formatCount(selected.totals[metric.key])}</strong>
+              <strong>{unsupportedMetrics.includes(metric.key) ? "Not tracked" : formatCount(selected.totals[metric.key])}</strong>
               <small>{selected.label === "Today" ? "so far today" : `last ${selected.days} days`}</small>
+              {metricPath(metric.key) && <Link className={styles.tileLink} href={metricPath(metric.key)!}>Trend & next steps →</Link>}
             </div>
           ))}
         </div>
@@ -138,8 +143,9 @@ export default function ScoreboardBoard({ windows, series, showSales, updatedLab
           {secondary.map((metric) => (
             <div key={metric.key} className={styles.tile}>
               <span>{metric.label}</span>
-              <strong>{formatCount(selected.totals[metric.key])}</strong>
+              <strong>{unsupportedMetrics.includes(metric.key) ? "Not tracked" : formatCount(selected.totals[metric.key])}</strong>
               <small>{selected.label === "Today" ? "so far today" : `last ${selected.days} days`}</small>
+              {metricPath(metric.key) && <Link className={styles.tileLink} href={metricPath(metric.key)!}>Trend & next steps →</Link>}
             </div>
           ))}
         </div>
@@ -164,6 +170,7 @@ export default function ScoreboardBoard({ windows, series, showSales, updatedLab
         </div>
         <p className={styles.chartNote}>
           Bars show lead records. The views line uses its own scale, so its height is not a lead count.
+          {unsupportedMetrics.includes("paid_leads") && " This business feed does not measure advertising attribution; all included leads appear in the other-records bar."}
         </p>
       </div>
     </div>

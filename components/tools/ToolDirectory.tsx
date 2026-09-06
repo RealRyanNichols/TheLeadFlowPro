@@ -9,6 +9,7 @@
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X, SlidersHorizontal, Sparkles, ArrowRight, Clock } from "lucide-react";
 import {
@@ -22,6 +23,7 @@ import { relevanceTier } from "@/lib/tools/relevance";
 import ToolCard from "./ToolCard";
 import { readRecentTools } from "./useToolProfile";
 import { trackTool, trackSearch } from "@/lib/tools/analytics";
+import styles from "./CollectionCards.module.css";
 
 type Facet = "domain" | "industry" | "audience" | "goal" | "type";
 
@@ -273,6 +275,12 @@ export default function ToolDirectory({
     selected[f].map((id) => ({ facet: f, id, label: LABELS[f](id) })),
   );
   const hasFilters = activeChips.length > 0 || Boolean(query.trim());
+  // Only the default browse path gets an introduction between tool groups.
+  // Searches, filters, explicit sorting, and collection intent keep one result list.
+  const defaultBrowse = !hasFilters && !deferredQuery.trim() && sort === "useful"
+    && pathname === "/tools" && !params.has("collection") && collections.length > 0;
+  const starterTools = defaultBrowse ? sections.primary.slice(0, 6) : [];
+  const remainingTools = defaultBrowse ? sections.primary.slice(6) : sections.primary;
 
   /* --------------------------------- render --------------------------------- */
 
@@ -425,26 +433,54 @@ export default function ToolDirectory({
         </section>
       )}
 
+      {/* Put working tools in reach before inviting visitors to browse by business. */}
+      {starterTools.length > 0 && (
+        <section ref={resultsRef} className="mt-8" aria-labelledby="starter-tools-title">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="starter-tools-title" className="text-sm font-black uppercase tracking-wider text-[var(--muted)]">
+              Start with a useful tool
+            </h2>
+            {remainingTools.length > 0 && (
+              <a href="#all-tools" className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[var(--blue)] underline underline-offset-4">
+                See more tools <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </a>
+            )}
+          </div>
+          <div className="tool-grid mt-3">
+            {starterTools.map((t, i) => <ToolCard key={t.slug} tool={t} priority={i < 3} />)}
+          </div>
+        </section>
+      )}
+
       {/* collections */}
-      {!hasFilters && collections.length > 0 && (
+      {defaultBrowse && (
         <section className="mt-8">
-          <h2 className="text-sm font-black uppercase tracking-wider text-[var(--muted)]">Collections</h2>
+          <h2 className="text-sm font-black uppercase tracking-wider text-[var(--muted)]">Find tools for your business</h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {collections.map((c) => (
               <Link
                 key={c.slug}
                 href={`/tools/collections/${c.slug}`}
-                className="group rounded-xl border border-[var(--line)] bg-[var(--panel)] p-4 transition hover:border-[var(--blue)]"
+                className={styles.card}
                 onClick={() => trackTool("industry_collection_viewed", { collection: c.slug })}
               >
-                <span className="flex items-center justify-between gap-2">
-                  <span className="text-[15px] font-black text-[var(--heading)]">{c.short}</span>
-                  <span className="text-xs font-bold text-[var(--quiet)]">{c.count}</span>
-                </span>
-                <span className="mt-1.5 block text-[13px] leading-relaxed text-[var(--muted)]">{c.hook}</span>
-                <span className="mt-2.5 inline-flex items-center gap-1 text-xs font-black text-[var(--blue)]">
-                  Open the collection
-                  <ArrowRight aria-hidden="true" className="h-3 w-3 transition group-hover:translate-x-0.5" />
+                <Image
+                  src={`/tools-art/collections/${c.slug}.svg`}
+                  alt=""
+                  aria-hidden="true"
+                  width={640}
+                  height={360}
+                  sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) 45vw, 360px"
+                  className={styles.art}
+                />
+                <span className={styles.body}>
+                  <span className={styles.count}>{c.count} free tools</span>
+                  <span className={styles.title}>{c.short}</span>
+                  <span className={styles.hook}>{c.hook}</span>
+                  <span className={styles.action}>
+                    Open collection
+                    <ArrowRight aria-hidden="true" />
+                  </span>
                 </span>
               </Link>
             ))}
@@ -453,17 +489,22 @@ export default function ToolDirectory({
       )}
 
       {/* grid */}
-      <div ref={resultsRef} className="mt-8">
+      <div ref={defaultBrowse ? undefined : resultsRef} id="all-tools" className="mt-8 scroll-mt-24">
         {shownCount > 0 ? (
           <>
+            {defaultBrowse && remainingTools.length > 0 && (
+              <h2 className="mb-3 text-sm font-black uppercase tracking-wider text-[var(--muted)]">
+                Explore the full library
+              </h2>
+            )}
             {sections.split && (
               <h2 className="mb-3 text-sm font-black uppercase tracking-wider text-[var(--muted)]">
                 Best matches
               </h2>
             )}
             <div className="tool-grid">
-              {sections.primary.map((t, i) => (
-                <ToolCard key={t.slug} tool={t} priority={i < 3} />
+              {remainingTools.map((t, i) => (
+                <ToolCard key={t.slug} tool={t} priority={!defaultBrowse && i < 3} />
               ))}
             </div>
             {sections.split && (

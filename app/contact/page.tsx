@@ -1,11 +1,12 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import ContactForm from "./ContactForm";
 import { Check, Phone } from "lucide-react";
 import SiteHero from "@/components/site/system/SiteHero";
 
-export const metadata = {
+export const metadata = withPublicPageMetadata("/contact", {
   title: "Contact | The LeadFlow Pro",
   description: "Send a message. I read every one myself.",
-};
+});
 
 export default function ContactPage() {
   return (
@@ -17,8 +18,8 @@ export default function ContactPage() {
         title="Send Ryan the real question."
         body="Question about a Website Launch, a larger system, training, or whether the offer fits your business? Send the context. Ryan reads every message himself."
         media={{
-          src: "/images/homepage-v2/connected-company-hero.webp",
-          alt: "A connected company operating system with multiple business signals feeding one core",
+          src: "/images/page-art/contact.png",
+          alt: "An open envelope, speech bubbles and phone handset for a direct conversation",
           kicker: "One message",
           caption: "Route the question to the right next move.",
         }}

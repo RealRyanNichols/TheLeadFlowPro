@@ -1,6 +1,7 @@
+import { PRIVATE_PAGE_METADATA } from "@/lib/publicPageMetadata";
 import SetPasswordForm from "./SetPasswordForm";
 
-export const metadata = { title: "Set Your Password | The LeadFlow Pro" };
+export const metadata = { title: "Set Your Password | The LeadFlow Pro", ...PRIVATE_PAGE_METADATA };
 
 export default function SetPasswordPage() {
   return (

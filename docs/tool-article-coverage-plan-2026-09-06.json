@@ -1,0 +1,1569 @@
+{
+  "reviewedAt": "2026-09-06",
+  "status": "editorial-plan-not-published",
+  "publishedToolsWithGuides": 41,
+  "freeTools": 86,
+  "gapsCovered": 45,
+  "newQueuedEntries": 44,
+  "reusedQueuedEntries": 1,
+  "scheduling": "Existing queue order is preserved. No publication dates assigned and no articles authored or published by this plan. Follow the existing one-complete-article-per-run workflow.",
+  "briefs": [
+    {
+      "tool": "close-rate-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/close-rate-calculator",
+      "queueSlug": "how-to-compare-a-better-close-rate-with-buying-more-leads",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to compare a better close rate with buying more leads",
+      "useCase": "An owner deciding whether to improve the first sales conversation before changing ad spend.",
+      "workedExample": "Compare 40 monthly inquiries at the current close rate with a clearly hypothetical five-point improvement; keep job value and lead cost fixed.",
+      "readerArtifact": "A weekly inquiry-review sheet with outcome, reason, owner, and next step.",
+      "toolType": "Calculator",
+      "actualInputs": [
+        {
+          "id": "leads",
+          "label": "Leads per month"
+        },
+        {
+          "id": "close",
+          "label": "Close rate today"
+        },
+        {
+          "id": "improve",
+          "label": "Points you could add"
+        },
+        {
+          "id": "value",
+          "label": "Average job value"
+        },
+        {
+          "id": "cpl",
+          "label": "What a lead costs you"
+        }
+      ],
+      "sourceReview": "Inspect the calculator assumptions; treat improvement as a scenario, not a forecast."
+    },
+    {
+      "tool": "lead-goal-planner",
+      "toolUrl": "https://www.theleadflowpro.com/tools/lead-goal-planner",
+      "queueSlug": "how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to turn a yearly revenue goal into a weekly activity plan",
+      "useCase": "A small service company translating a revenue target into calls, quotes, and jobs.",
+      "workedExample": "Use a fictional annual goal and average job value, then change only the number of working weeks to see why a target needs a calendar.",
+      "readerArtifact": "A one-page weekly leads, quotes, jobs, and review checklist.",
+      "toolType": "Planner",
+      "actualInputs": [
+        {
+          "id": "goal",
+          "label": "Revenue goal for the year"
+        },
+        {
+          "id": "ticket",
+          "label": "Average job"
+        },
+        {
+          "id": "close",
+          "label": "Close rate"
+        },
+        {
+          "id": "leadToQuote",
+          "label": "Leads that become a quote"
+        },
+        {
+          "id": "weeks",
+          "label": "Weeks you work"
+        },
+        {
+          "id": "current",
+          "label": "Revenue you did last year"
+        }
+      ],
+      "sourceReview": "Verify the tool's rounding and quote-to-job assumptions; distinguish targets from predicted demand."
+    },
+    {
+      "tool": "payment-plan-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/payment-plan-calculator",
+      "queueSlug": "hvac-maintenance-plans",
+      "queueAction": "reuse-existing-entry",
+      "proposedTitle": "How to show a service payment schedule before the customer agrees",
+      "useCase": "The existing HVAC queue topic, narrowed to an agreed service total split into a deposit and payments.",
+      "workedExample": "Model a fictional fixed-price maintenance service with a deposit and four payments; compare the total with and without a disclosed fee.",
+      "readerArtifact": "A customer-facing payment-schedule worksheet with total, deposit, dates, and terms to confirm.",
+      "toolType": "Builder",
+      "actualInputs": [
+        {
+          "id": "total",
+          "label": "Total price"
+        },
+        {
+          "id": "deposit",
+          "label": "Deposit percent"
+        },
+        {
+          "id": "payments",
+          "label": "Number of payments"
+        },
+        {
+          "id": "fee",
+          "label": "Payment plan fee"
+        }
+      ],
+      "sourceReview": "Reuse hvac-maintenance-plans instead of adding a duplicate. A fixed payment schedule does not create recurring maintenance revenue. Verify applicable financing and fee rules before drafting claims."
+    },
+    {
+      "tool": "loan-payment-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/loan-payment-calculator",
+      "queueSlug": "what-to-write-down-before-comparing-two-equipment-loans",
+      "queueAction": "appended-queued",
+      "proposedTitle": "What to write down before comparing two equipment loans",
+      "useCase": "A local operator comparing financing for the same piece of equipment.",
+      "workedExample": "Keep the fictional amount financed constant and compare two terms at a stated fixed rate; inspect payment and total interest together.",
+      "readerArtifact": "An equipment quote comparison sheet separating purchase price, rate, term, fees, and total cost.",
+      "toolType": "Calculator",
+      "actualInputs": [
+        {
+          "id": "amount",
+          "label": "Amount financed"
+        },
+        {
+          "id": "rate",
+          "label": "Interest rate"
+        },
+        {
+          "id": "years",
+          "label": "Term in years"
+        },
+        {
+          "id": "earns",
+          "label": "What it earns you a month"
+        }
+      ],
+      "sourceReview": "Verify amortization against the actual run; review current official lender disclosures and CFPB guidance before financial claims. Tool estimates are not lender quotes."
+    },
+    {
+      "tool": "cash-runway-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/cash-runway-calculator",
+      "queueSlug": "how-to-read-a-cash-runway-estimate-without-counting-credit-as-cash",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to read a cash runway estimate without counting credit as cash",
+      "useCase": "A seasonal service owner organizing a slower-month scenario.",
+      "workedExample": "Use fictional bank cash, inflow, and outflow; run a second scenario with less inflow while labeling unused credit separately.",
+      "readerArtifact": "A weekly cash check with confirmed cash, expected receipts, due bills, and the next review date.",
+      "toolType": "Calculator",
+      "actualInputs": [
+        {
+          "id": "cash",
+          "label": "Cash on hand"
+        },
+        {
+          "id": "inflow",
+          "label": "Money in per month"
+        },
+        {
+          "id": "outflow",
+          "label": "Money out per month"
+        },
+        {
+          "id": "credit",
+          "label": "Credit available if you had to"
+        }
+      ],
+      "sourceReview": "Check zero-burn and positive-cash-flow states; distinguish available credit, revenue, and spendable cash."
+    },
+    {
+      "tool": "sales-tax-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/sales-tax-calculator",
+      "queueSlug": "how-to-separate-sales-tax-from-a-tax-inclusive-total",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to separate sales tax from a tax-inclusive total",
+      "useCase": "A retailer checking the arithmetic on a recorded sale.",
+      "workedExample": "Use a fictional receipt and an explicitly illustrative combined rate, then compare add-tax and tax-included modes.",
+      "readerArtifact": "A receipt reconciliation worksheet showing subtotal, rate source, tax, and total.",
+      "toolType": "Calculator",
+      "actualInputs": [
+        {
+          "id": "amount",
+          "label": "Amount"
+        },
+        {
+          "id": "rate",
+          "label": "Combined tax rate"
+        },
+        {
+          "id": "mode",
+          "label": "This amount"
+        },
+        {
+          "id": "volume",
+          "label": "Sales like this per month"
+        }
+      ],
+      "sourceReview": "Check current Texas Comptroller guidance and the exact jurisdiction rate. Do not decide taxability, filing liability, or legal obligations from the calculator."
+    },
+    {
+      "tool": "overtime-cost-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/overtime-cost-calculator",
+      "queueSlug": "how-to-compare-overtime-costs-with-a-hiring-scenario",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to compare overtime costs with a hiring scenario",
+      "useCase": "A shop owner reviewing repeated overtime before changing staffing.",
+      "workedExample": "Enter fictional total weekly overtime, base wage, payroll burden, and annual loaded hire cost; explain omitted onboarding and scheduling constraints.",
+      "readerArtifact": "A four-week staffing review with overtime reasons, workload, coverage, and known hiring costs.",
+      "toolType": "Calculator",
+      "actualInputs": [
+        {
+          "id": "otHours",
+          "label": "Overtime hours per week (all staff)"
+        },
+        {
+          "id": "wage",
+          "label": "Average hourly wage"
+        },
+        {
+          "id": "burden",
+          "label": "Payroll tax and comp on top"
+        },
+        {
+          "id": "weeks",
+          "label": "Weeks a year this happens"
+        },
+        {
+          "id": "newHire",
+          "label": "Loaded cost of another hire per year"
+        }
+      ],
+      "sourceReview": "Verify current U.S. Department of Labor and relevant state rules before overtime claims. The tool's multiplier does not determine worker classification or legal entitlement."
+    },
+    {
+      "tool": "roas-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/roas-calculator",
+      "queueSlug": "why-ad-revenue-and-ad-profit-need-separate-columns",
+      "queueAction": "appended-queued",
+      "proposedTitle": "Why ad revenue and ad profit need separate columns",
+      "useCase": "A business reviewing an ad report that shows revenue but no gross margin.",
+      "workedExample": "Compare two fictional campaigns with the same revenue and spend but different gross margins and management fees.",
+      "readerArtifact": "A campaign worksheet for attributed revenue, refunds, cost of goods, ad spend, and fees.",
+      "toolType": "Calculator",
+      "actualInputs": [
+        {
+          "id": "spend",
+          "label": "Ad spend"
+        },
+        {
+          "id": "revenue",
+          "label": "Revenue from those ads"
+        },
+        {
+          "id": "margin",
+          "label": "Gross margin"
+        },
+        {
+          "id": "fees",
+          "label": "Agency or management fee"
+        }
+      ],
+      "sourceReview": "Verify each output formula; distinguish attribution from causation and gross-profit estimates from net profit."
+    },
+    {
+      "tool": "ad-budget-planner",
+      "toolUrl": "https://www.theleadflowpro.com/tools/ad-budget-planner",
+      "queueSlug": "how-to-build-an-ad-budget-scenario-from-your-own-records",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to build an ad budget scenario from your own records",
+      "useCase": "An owner asking what a customer target would require at the business's recorded lead cost and close rate.",
+      "workedExample": "Use fictional targets and two clearly labeled lead-cost scenarios, holding the close rate constant before testing it separately.",
+      "readerArtifact": "A budget assumptions page with source dates, ranges, owner, and a review threshold.",
+      "toolType": "Planner",
+      "actualInputs": [
+        {
+          "id": "want",
+          "label": "New customers you want this month"
+        },
+        {
+          "id": "close",
+          "label": "Close rate on leads"
+        },
+        {
+          "id": "cpl",
+          "label": "What a lead costs you"
+        },
+        {
+          "id": "value",
+          "label": "What a customer is worth"
+        },
+        {
+          "id": "margin",
+          "label": "Gross margin"
+        }
+      ],
+      "sourceReview": "No industry benchmark, recommended spend, or guaranteed customer count. Verify recorded inputs before real budget decisions."
+    },
+    {
+      "tool": "cac-payback-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/cac-payback-calculator",
+      "queueSlug": "how-long-does-a-new-customer-take-to-repay-acquisition-cost",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How long does a new customer take to repay acquisition cost",
+      "useCase": "A service-plan operator comparing acquisition cost with monthly gross profit.",
+      "workedExample": "Use a fictional acquisition cost and monthly gross profit, then halve the contribution to show sensitivity.",
+      "readerArtifact": "A customer cohort worksheet separating acquisition date, cost, receipts, gross profit, and cancellations.",
+      "toolType": "Calculator",
+      "actualInputs": [
+        {
+          "id": "cac",
+          "label": "Cost to acquire one customer"
+        },
+        {
+          "id": "monthlyValue",
+          "label": "Gross profit they bring per month"
+        },
+        {
+          "id": "newPerMonth",
+          "label": "New customers per month"
+        },
+        {
+          "id": "churn",
+          "label": "Customers you lose per month"
+        }
+      ],
+      "sourceReview": "Check what the model assumes about churn and timing; do not treat payback estimates as observed customer lifetime value."
+    },
+    {
+      "tool": "ad-test-budget-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/ad-test-budget-calculator",
+      "queueSlug": "how-to-scope-an-ad-test-before-splitting-the-budget",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to scope an ad test before splitting the budget",
+      "useCase": "A first-time advertiser deciding how many variants can receive a useful amount of observation.",
+      "workedExample": "Compare one and three proposed variants using the same fictional expected lead cost, target lead count, and daily budget.",
+      "readerArtifact": "A test brief with one question, one changed variable, tracking checks, budget cap, and decision date.",
+      "toolType": "Planner",
+      "actualInputs": [
+        {
+          "id": "cpl",
+          "label": "Expected cost per lead"
+        },
+        {
+          "id": "leadsNeeded",
+          "label": "Leads needed to judge it"
+        },
+        {
+          "id": "dailyMin",
+          "label": "Daily budget you were planning"
+        },
+        {
+          "id": "variants",
+          "label": "Ads or audiences you want to test"
+        }
+      ],
+      "sourceReview": "A chosen lead count is not statistical significance. Verify the actual formula and current official ad-platform measurement guidance; do not promise a conclusive result."
+    },
+    {
+      "tool": "admin-time-audit",
+      "toolUrl": "https://www.theleadflowpro.com/tools/admin-time-audit",
+      "queueSlug": "how-to-find-one-admin-task-worth-simplifying-this-week",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to find one admin task worth simplifying this week",
+      "useCase": "An owner whose day is filled with scheduling, invoices, and repeat questions.",
+      "workedExample": "Keep a fictional five-day time log and test a conservative share of work that could be reduced, then label the estimate separately from time actually saved.",
+      "readerArtifact": "A task log with frequency, minutes, errors, handoff owner, and a before-and-after check.",
+      "toolType": "Interactive checklist",
+      "actualInputs": [
+        {
+          "id": "tasks",
+          "label": "What you personally do every week"
+        },
+        {
+          "id": "hoursEach",
+          "label": "Hours per task per week"
+        },
+        {
+          "id": "worth",
+          "label": "What your hour is worth"
+        },
+        {
+          "id": "automatable",
+          "label": "Share of it a system could handle"
+        }
+      ],
+      "sourceReview": "The tool's estimated automation share is an assumption. Do not claim realized savings before observing the changed process."
+    },
+    {
+      "tool": "meeting-cost-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/meeting-cost-calculator",
+      "queueSlug": "how-to-decide-whether-a-weekly-meeting-earns-its-time",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to decide whether a weekly meeting earns its time",
+      "useCase": "A small team reviewing a recurring meeting with unclear decisions.",
+      "workedExample": "Use fictional attendance, loaded hourly cost, meeting length, and preparation time; compare a shorter meeting with the original.",
+      "readerArtifact": "A meeting reset template: purpose, pre-read, decision, owner, and due date.",
+      "toolType": "Calculator",
+      "actualInputs": [
+        {
+          "id": "people",
+          "label": "People in the room"
+        },
+        {
+          "id": "rate",
+          "label": "Average loaded cost per hour"
+        },
+        {
+          "id": "minutes",
+          "label": "Length in minutes"
+        },
+        {
+          "id": "perWeek",
+          "label": "Times per week"
+        },
+        {
+          "id": "prep",
+          "label": "Prep minutes per person"
+        }
+      ],
+      "sourceReview": "Loaded labor cost is an estimate of time cost, not an immediate cash saving if a meeting is removed."
+    },
+    {
+      "tool": "owner-hourly-worth",
+      "toolUrl": "https://www.theleadflowpro.com/tools/owner-hourly-worth",
+      "queueSlug": "how-to-compare-the-work-you-do-with-the-work-you-could-delegate",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to compare the work you do with the work you could delegate",
+      "useCase": "An owner deciding which recurring task to hand off first.",
+      "workedExample": "Use fictional owner pay and actual working-hour estimates, then compare a delegation scenario including the quoted replacement cost.",
+      "readerArtifact": "A delegation worksheet with instructions, acceptance check, time to train, and actual follow-up time.",
+      "toolType": "Calculator",
+      "actualInputs": [
+        {
+          "id": "profit",
+          "label": "What the business pays you a year"
+        },
+        {
+          "id": "hoursWeek",
+          "label": "Hours you actually work a week"
+        },
+        {
+          "id": "weeks",
+          "label": "Weeks a year"
+        },
+        {
+          "id": "lowValue",
+          "label": "Hours a week on work you could hire out"
+        },
+        {
+          "id": "hireRate",
+          "label": "What it costs to hire that out"
+        }
+      ],
+      "sourceReview": "Owner pay divided by time is a descriptive average, not the marginal revenue of every hour or guaranteed delegation value."
+    },
+    {
+      "tool": "review-goal-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/review-goal-calculator",
+      "queueSlug": "how-to-read-a-review-rating-goal-without-gaming-reviews",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to read a review-rating goal without gaming reviews",
+      "useCase": "A business trying to understand its public review average and improve its review-request process.",
+      "workedExample": "Use fictional review counts and a rounded average; show the effect of the model's assumed future ratings without promising them.",
+      "readerArtifact": "A neutral post-service review request and a feedback tracking sheet.",
+      "toolType": "Planner",
+      "actualInputs": [
+        {
+          "id": "current",
+          "label": "Your rating now"
+        },
+        {
+          "id": "total",
+          "label": "Reviews you have"
+        },
+        {
+          "id": "goal",
+          "label": "Rating you want"
+        },
+        {
+          "id": "perMonth",
+          "label": "New reviews you get a month"
+        },
+        {
+          "id": "asked",
+          "label": "Customers a month you could ask"
+        }
+      ],
+      "sourceReview": "Check current Google review policies. No incentives, review gating, selective requests, or guaranteed five-star reviews; rounded public ratings limit precision."
+    },
+    {
+      "tool": "bad-review-impact",
+      "toolUrl": "https://www.theleadflowpro.com/tools/bad-review-impact",
+      "queueSlug": "what-one-low-rating-changes-and-what-it-cannot-tell-you",
+      "queueAction": "appended-queued",
+      "proposedTitle": "What one low rating changes and what it cannot tell you",
+      "useCase": "An owner reacting to one disappointing public review.",
+      "workedExample": "Use two fictional businesses with different review counts and the same new one-star review; compare only the arithmetic change in average.",
+      "readerArtifact": "A calm review triage checklist: verify, respond, offer a private next step, and record service improvements.",
+      "toolType": "Calculator",
+      "actualInputs": [
+        {
+          "id": "current",
+          "label": "Your rating"
+        },
+        {
+          "id": "total",
+          "label": "Reviews you have"
+        },
+        {
+          "id": "bad",
+          "label": "New one-star reviews"
+        },
+        {
+          "id": "leads",
+          "label": "Leads a month"
+        },
+        {
+          "id": "value",
+          "label": "Value of a customer"
+        },
+        {
+          "id": "close",
+          "label": "Close rate"
+        }
+      ],
+      "sourceReview": "Treat lead and revenue effects as assumptions in the tool, not evidence that a review caused lost customers. Check Google review response and removal policies."
+    },
+    {
+      "tool": "review-response-writer",
+      "toolUrl": "https://www.theleadflowpro.com/tools/review-response-writer",
+      "queueSlug": "how-to-reply-to-a-review-without-arguing-in-public",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to reply to a review without arguing in public",
+      "useCase": "A service owner who wants a useful reply that future customers can understand.",
+      "workedExample": "Use a fictional complaint about a delayed callback, generate a reply, and edit out blame, private details, and promises the business cannot keep.",
+      "readerArtifact": "Three review-response templates for praise, a service concern, and an unverified account.",
+      "toolType": "Generator",
+      "actualInputs": [
+        {
+          "id": "type",
+          "label": "What kind of review"
+        },
+        {
+          "id": "business",
+          "label": "Your business name"
+        },
+        {
+          "id": "name",
+          "label": "Customer first name"
+        },
+        {
+          "id": "topic",
+          "label": "What they mentioned"
+        },
+        {
+          "id": "phone",
+          "label": "Your phone number"
+        },
+        {
+          "id": "owner",
+          "label": "Who is signing it"
+        }
+      ],
+      "sourceReview": "Check current Google guidance; never publish customer records or claim an account is false without support. The tool drafts text and does not post it."
+    },
+    {
+      "tool": "conversion-lift-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/conversion-lift-calculator",
+      "queueSlug": "how-to-test-a-website-improvement-before-buying-more-visits",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to test a website improvement before buying more visits",
+      "useCase": "An owner with recorded site traffic and contact counts.",
+      "workedExample": "Use a fictional baseline, change only contact conversion, and compare modeled extra inquiries with a plan to measure the actual page change.",
+      "readerArtifact": "A before-and-after page log with traffic source, date range, main action, contacts, and limitations.",
+      "toolType": "Calculator",
+      "actualInputs": [
+        {
+          "id": "visitors",
+          "label": "Visitors a month"
+        },
+        {
+          "id": "conv",
+          "label": "Percent who contact you now"
+        },
+        {
+          "id": "lift",
+          "label": "Improvement you could make"
+        },
+        {
+          "id": "close",
+          "label": "Close rate"
+        },
+        {
+          "id": "value",
+          "label": "Value of a customer"
+        },
+        {
+          "id": "cpc",
+          "label": "Cost per website visitor from ads"
+        }
+      ],
+      "sourceReview": "Modeled conversion lift is not a forecast or causal result. Verify whether the tool interprets improvement as relative percent or percentage points."
+    },
+    {
+      "tool": "qr-code-maker",
+      "toolUrl": "https://www.theleadflowpro.com/tools/qr-code-maker",
+      "queueSlug": "how-to-put-a-useful-qr-code-on-a-printed-flyer",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to put a useful QR code on a printed flyer",
+      "useCase": "A local business connecting a flyer to a specific useful page.",
+      "workedExample": "Create a code for a safe sample landing URL, export it, then print and scan it with two phones at the intended size.",
+      "readerArtifact": "A print-ready QR checklist covering destination, visible fallback URL, contrast, quiet space, and scan testing.",
+      "toolType": "QR tool",
+      "actualInputs": [
+        {
+          "id": "url",
+          "label": "Link the code should open"
+        },
+        {
+          "id": "label",
+          "label": "Text under the code"
+        },
+        {
+          "id": "size",
+          "label": "Image size in pixels"
+        }
+      ],
+      "sourceReview": "Verify the actual download formats and encoding. A static QR code is not an analytics system or an editable redirect by itself."
+    },
+    {
+      "tool": "wifi-qr-code",
+      "toolUrl": "https://www.theleadflowpro.com/tools/wifi-qr-code",
+      "queueSlug": "how-to-make-a-guest-wi-fi-card-customers-can-use",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to make a guest Wi-Fi card customers can use",
+      "useCase": "A waiting room or shop that provides a separate guest network.",
+      "workedExample": "Use a fictional guest SSID and password, choose the matching security type, and test only on an authorized guest network.",
+      "readerArtifact": "A guest-network card checklist with scan test and password-change replacement steps.",
+      "toolType": "QR tool",
+      "actualInputs": [
+        {
+          "id": "ssid",
+          "label": "Network name (SSID)"
+        },
+        {
+          "id": "password",
+          "label": "Password"
+        },
+        {
+          "id": "security",
+          "label": "Security type"
+        },
+        {
+          "id": "hidden",
+          "label": "Is the network hidden?"
+        }
+      ],
+      "sourceReview": "A Wi-Fi QR code contains the network credentials; keep staff and private networks separate and verify device compatibility using official device guidance."
+    },
+    {
+      "tool": "digital-business-card",
+      "toolUrl": "https://www.theleadflowpro.com/tools/digital-business-card",
+      "queueSlug": "how-to-make-a-contact-card-people-can-save",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to make a contact card people can save",
+      "useCase": "A local operator sharing public business contact details after a conversation.",
+      "workedExample": "Enter fictional public-facing contact details, export the card and QR, and inspect the saved fields on two phone types.",
+      "readerArtifact": "A contact-card proof checklist and a short handoff line explaining what the scan does.",
+      "toolType": "QR tool",
+      "actualInputs": [
+        {
+          "id": "name",
+          "label": "Your name"
+        },
+        {
+          "id": "title",
+          "label": "Title"
+        },
+        {
+          "id": "company",
+          "label": "Business name"
+        },
+        {
+          "id": "phone",
+          "label": "Phone"
+        },
+        {
+          "id": "email",
+          "label": "Email"
+        },
+        {
+          "id": "website",
+          "label": "Website"
+        },
+        {
+          "id": "address",
+          "label": "Address"
+        },
+        {
+          "id": "note",
+          "label": "What you do, one line"
+        }
+      ],
+      "sourceReview": "Verify the actual vCard and QR behavior. Saving a card does not subscribe someone to messages or synchronize future changes automatically."
+    },
+    {
+      "tool": "click-to-call-button",
+      "toolUrl": "https://www.theleadflowpro.com/tools/click-to-call-button",
+      "queueSlug": "how-to-add-a-call-button-and-check-it-on-your-phone",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to add a call button and check it on your phone",
+      "useCase": "A service business whose mobile visitors need to call easily.",
+      "workedExample": "Generate a button with a fictional business number and a specific label, inspect the HTML, and test using the business's own authorized number.",
+      "readerArtifact": "A mobile call-button placement and testing checklist.",
+      "toolType": "Link tool",
+      "actualInputs": [
+        {
+          "id": "phone",
+          "label": "Your phone number"
+        },
+        {
+          "id": "label",
+          "label": "Button text"
+        },
+        {
+          "id": "color",
+          "label": "Button color"
+        },
+        {
+          "id": "size",
+          "label": "Size"
+        }
+      ],
+      "sourceReview": "Verify tel-link behavior against official browser/device documentation. Opening a dialer is not a connected call or permission to call people back later."
+    },
+    {
+      "tool": "sms-link-generator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/sms-link-generator",
+      "queueSlug": "how-to-write-a-text-us-button-that-starts-the-right-conversation",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to write a text-us button that starts the right conversation",
+      "useCase": "A business offering customers a choice to initiate a text inquiry.",
+      "workedExample": "Build a link with a fictional number and a short quote-request message; check the composed text on two phone types.",
+      "readerArtifact": "Three customer-initiated message prompts and a device-testing checklist.",
+      "toolType": "Link tool",
+      "actualInputs": [
+        {
+          "id": "phone",
+          "label": "Your business number"
+        },
+        {
+          "id": "message",
+          "label": "Message it should pre-fill"
+        },
+        {
+          "id": "label",
+          "label": "Button text"
+        }
+      ],
+      "sourceReview": "The link opens a draft; it does not send automatically or provide marketing consent. Verify current SMS URI and device behavior."
+    },
+    {
+      "tool": "utm-link-builder",
+      "toolUrl": "https://www.theleadflowpro.com/tools/utm-link-builder",
+      "queueSlug": "how-to-tag-a-campaign-link-without-putting-private-data-in-it",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to tag a campaign link without putting private data in it",
+      "useCase": "A business sharing the same landing page by email, social post, and flyer.",
+      "workedExample": "Create three URLs with consistent source, medium, and campaign names, then inspect how the site's actual analytics records each visit.",
+      "readerArtifact": "A campaign naming sheet and a link-testing checklist.",
+      "toolType": "Link tool",
+      "actualInputs": [
+        {
+          "id": "url",
+          "label": "Page you are linking to"
+        },
+        {
+          "id": "source",
+          "label": "Source (where it came from)"
+        },
+        {
+          "id": "medium",
+          "label": "Medium (what kind)"
+        },
+        {
+          "id": "campaign",
+          "label": "Campaign name"
+        },
+        {
+          "id": "content",
+          "label": "Which version (optional)"
+        }
+      ],
+      "sourceReview": "Use current official analytics guidance. Tags label visits; they do not prove causation, and names, email addresses, and secrets must stay out of URLs."
+    },
+    {
+      "tool": "email-signature-generator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/email-signature-generator",
+      "queueSlug": "how-to-make-an-email-signature-with-one-clear-next-step",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to make an email signature with one clear next step",
+      "useCase": "A business owner whose signature needs useful contact details and a single call to action.",
+      "workedExample": "Generate a signature with fictional details, paste it into a test account, and send a test only to an owned mailbox to check desktop and mobile rendering.",
+      "readerArtifact": "A signature content worksheet and Gmail/Outlook preview checklist.",
+      "toolType": "Generator",
+      "actualInputs": [
+        {
+          "id": "name",
+          "label": "Your name"
+        },
+        {
+          "id": "title",
+          "label": "Title"
+        },
+        {
+          "id": "company",
+          "label": "Business"
+        },
+        {
+          "id": "phone",
+          "label": "Phone"
+        },
+        {
+          "id": "email",
+          "label": "Email"
+        },
+        {
+          "id": "website",
+          "label": "Website"
+        },
+        {
+          "id": "cta",
+          "label": "Call to action line"
+        },
+        {
+          "id": "reviewLink",
+          "label": "Review link (optional)"
+        },
+        {
+          "id": "color",
+          "label": "Accent color"
+        }
+      ],
+      "sourceReview": "Check current official Gmail and Outlook installation instructions. Do not claim identical rendering in every mail client or that the generator installs it."
+    },
+    {
+      "tool": "missed-call-textback-script",
+      "toolUrl": "https://www.theleadflowpro.com/tools/missed-call-textback-script",
+      "queueSlug": "how-to-write-a-missed-call-reply-that-tells-people-what-happens-next",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to write a missed-call reply that tells people what happens next",
+      "useCase": "A service owner who cannot always answer while working.",
+      "workedExample": "Draft a fictional business-hours and after-hours reply using an honest callback expectation, then edit the next step and booking link.",
+      "readerArtifact": "A two-message missed-call response set and owner handoff note.",
+      "toolType": "Generator",
+      "actualInputs": [
+        {
+          "id": "business",
+          "label": "Business name"
+        },
+        {
+          "id": "firstName",
+          "label": "Who is texting"
+        },
+        {
+          "id": "bookLink",
+          "label": "Booking or quote link (optional)"
+        },
+        {
+          "id": "tone",
+          "label": "Tone"
+        },
+        {
+          "id": "hours",
+          "label": "Your hours"
+        }
+      ],
+      "sourceReview": "This tool drafts scripts; automatic sending needs a separately configured system and appropriate consent. Verify current messaging requirements before automation claims."
+    },
+    {
+      "tool": "review-request-script",
+      "toolUrl": "https://www.theleadflowpro.com/tools/review-request-script",
+      "queueSlug": "how-to-ask-for-an-honest-review-after-the-work-is-done",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to ask for an honest review after the work is done",
+      "useCase": "A business that wants a consistent, neutral review request.",
+      "workedExample": "Write a fictional text and email after a completed service, using the same neutral request for customers regardless of expected rating.",
+      "readerArtifact": "A short review request, one optional reminder, and a record of when the request was made.",
+      "toolType": "Generator",
+      "actualInputs": [
+        {
+          "id": "business",
+          "label": "Business name"
+        },
+        {
+          "id": "first",
+          "label": "Your first name"
+        },
+        {
+          "id": "link",
+          "label": "Your Google review link"
+        },
+        {
+          "id": "job",
+          "label": "What you do for them"
+        }
+      ],
+      "sourceReview": "Verify current Google review policies and communication-consent requirements. No incentives, positive-review conditions, or review gating."
+    },
+    {
+      "tool": "localbusiness-schema-generator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/localbusiness-schema-generator",
+      "queueSlug": "how-to-check-your-business-details-before-adding-structured-data",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to check your business details before adding structured data",
+      "useCase": "A local business adding machine-readable details that already appear publicly on its site.",
+      "workedExample": "Use a fictional public business record, generate JSON-LD, and compare every field with the visible page before validation.",
+      "readerArtifact": "A name, address, phone, hours, and source-date consistency checklist.",
+      "toolType": "Generator",
+      "actualInputs": [
+        {
+          "id": "name",
+          "label": "Business name"
+        },
+        {
+          "id": "type",
+          "label": "Business type"
+        },
+        {
+          "id": "url",
+          "label": "Website"
+        },
+        {
+          "id": "phone",
+          "label": "Phone"
+        },
+        {
+          "id": "street",
+          "label": "Street address"
+        },
+        {
+          "id": "city",
+          "label": "City"
+        },
+        {
+          "id": "state",
+          "label": "State"
+        },
+        {
+          "id": "zip",
+          "label": "ZIP"
+        },
+        {
+          "id": "areas",
+          "label": "Towns you serve, comma separated"
+        },
+        {
+          "id": "priceRange",
+          "label": "Price range"
+        },
+        {
+          "id": "hours",
+          "label": "Hours"
+        }
+      ],
+      "sourceReview": "Use current Google Search Central LocalBusiness documentation and validation tools. Omit unsupported properties; structured data does not guarantee rankings or rich results."
+    },
+    {
+      "tool": "faq-schema-generator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/faq-schema-generator",
+      "queueSlug": "how-to-turn-real-customer-questions-into-useful-website-answers",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to turn real customer questions into useful website answers",
+      "useCase": "A business writing an FAQ from questions its customers actually ask.",
+      "workedExample": "Write three fictional questions with short supported answers, render them visibly, and compare the generated JSON-LD with the page.",
+      "readerArtifact": "An FAQ worksheet with question, answer, source, owner, and review date.",
+      "toolType": "Generator",
+      "actualInputs": [
+        {
+          "id": "faqs",
+          "label": "One per line: Question | Answer"
+        }
+      ],
+      "sourceReview": "Verify current Google FAQ structured-data eligibility. Ordinary small-business FAQ markup does not guarantee a rich result, quotation, or indexing."
+    },
+    {
+      "tool": "meta-title-description-writer",
+      "toolUrl": "https://www.theleadflowpro.com/tools/meta-title-description-writer",
+      "queueSlug": "how-to-replace-a-page-title-called-home-with-something-useful",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to replace a page title called Home with something useful",
+      "useCase": "A local operator editing the title and description for one real service page.",
+      "workedExample": "Use a fictional service, location, business name, and supported hook to compare three accurate versions.",
+      "readerArtifact": "A page metadata worksheet tying the title and description to the visible content.",
+      "toolType": "Generator",
+      "actualInputs": [
+        {
+          "id": "service",
+          "label": "The service this page is about"
+        },
+        {
+          "id": "city",
+          "label": "Town or area"
+        },
+        {
+          "id": "business",
+          "label": "Business name"
+        },
+        {
+          "id": "hook",
+          "label": "Your hook"
+        },
+        {
+          "id": "phone",
+          "label": "Phone (optional, for the description)"
+        }
+      ],
+      "sourceReview": "Check current Google title-link and snippet guidance. Character meters are drafting aids; Google can rewrite or truncate display text."
+    },
+    {
+      "tool": "ad-character-counter",
+      "toolUrl": "https://www.theleadflowpro.com/tools/ad-character-counter",
+      "queueSlug": "how-to-check-ad-copy-before-you-paste-it-into-the-platform",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to check ad copy before you paste it into the platform",
+      "useCase": "A business preparing copy for a specific ad placement.",
+      "workedExample": "Use one fictional headline and description, compare their counts, and shorten them without removing the offer's necessary details.",
+      "readerArtifact": "A copy review sheet with placement, current platform limit, supported claim, destination, and preview status.",
+      "toolType": "Checker",
+      "actualInputs": [
+        {
+          "id": "headline",
+          "label": "Headline"
+        },
+        {
+          "id": "body",
+          "label": "Body copy"
+        }
+      ],
+      "sourceReview": "Confirm current limits in the exact platform and placement using official docs. Character counts do not establish policy approval or guarantee display."
+    },
+    {
+      "tool": "google-maps-link-generator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/google-maps-link-generator",
+      "queueSlug": "how-to-make-a-directions-link-that-reaches-the-right-entrance",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to make a directions link that reaches the right entrance",
+      "useCase": "A shop or training location helping first-time visitors arrive.",
+      "workedExample": "Use an authorized public business address, generate the link, and manually check the map pin and arrival instructions without exposing private addresses.",
+      "readerArtifact": "An arrival-information checklist with parking, accessible entrance, and a fallback address.",
+      "toolType": "Link tool",
+      "actualInputs": [
+        {
+          "id": "address",
+          "label": "Your full address"
+        },
+        {
+          "id": "label",
+          "label": "Button text"
+        }
+      ],
+      "sourceReview": "Verify actual generated destinations and current Google Maps URL guidance. A maps link does not guarantee the same navigation app or exact entrance routing on every device."
+    },
+    {
+      "tool": "add-to-calendar-link",
+      "toolUrl": "https://www.theleadflowpro.com/tools/add-to-calendar-link",
+      "queueSlug": "how-to-give-event-guests-a-calendar-link-they-can-check",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to give event guests a calendar link they can check",
+      "useCase": "An organizer publishing a confirmed class or open house.",
+      "workedExample": "Use a fictional event with a stated local time and compare the generated calendar link and file after import on two devices.",
+      "readerArtifact": "An event-detail worksheet and time-zone verification checklist.",
+      "toolType": "Link tool",
+      "actualInputs": [
+        {
+          "id": "title",
+          "label": "Event name"
+        },
+        {
+          "id": "date",
+          "label": "Date (YYYY-MM-DD)"
+        },
+        {
+          "id": "start",
+          "label": "Start time (24 hour, HH:MM)"
+        },
+        {
+          "id": "end",
+          "label": "End time (24 hour, HH:MM)"
+        },
+        {
+          "id": "location",
+          "label": "Location"
+        },
+        {
+          "id": "details",
+          "label": "Details"
+        }
+      ],
+      "sourceReview": "Inspect the tool's time-zone handling and calendar file fields. Verify official calendar import guidance; importing a calendar item is not an event registration."
+    },
+    {
+      "tool": "voicemail-script-generator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/voicemail-script-generator",
+      "queueSlug": "how-to-leave-callers-with-a-clear-next-step",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to leave callers with a clear next step",
+      "useCase": "A service business replacing a vague voicemail greeting.",
+      "workedExample": "Draft a fictional greeting with the business name, genuine callback window, details to leave, and an alternate contact option.",
+      "readerArtifact": "A daytime greeting, after-hours greeting, and callback-owner checklist.",
+      "toolType": "Generator",
+      "actualInputs": [
+        {
+          "id": "business",
+          "label": "Business name"
+        },
+        {
+          "id": "name",
+          "label": "Your name"
+        },
+        {
+          "id": "callback",
+          "label": "How fast you call back"
+        },
+        {
+          "id": "textNumber",
+          "label": "Number they can text"
+        },
+        {
+          "id": "bookLink",
+          "label": "Booking link (say it slowly)"
+        }
+      ],
+      "sourceReview": "The tool writes a script; it does not record or install voicemail. Avoid unverified emergency coverage or callback promises."
+    },
+    {
+      "tool": "job-post-writer",
+      "toolUrl": "https://www.theleadflowpro.com/tools/job-post-writer",
+      "queueSlug": "how-to-write-a-job-post-that-explains-the-actual-work",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to write a job post that explains the actual work",
+      "useCase": "A local owner hiring for a defined role with known pay and duties.",
+      "workedExample": "Use a fictional role, real-format pay range, three concrete tasks, essential qualifications, and one clear application method.",
+      "readerArtifact": "A job-post fact sheet and a final check for pay, hours, duties, and application instructions.",
+      "toolType": "Generator",
+      "actualInputs": [
+        {
+          "id": "business",
+          "label": "Business name"
+        },
+        {
+          "id": "role",
+          "label": "Job title"
+        },
+        {
+          "id": "city",
+          "label": "Where"
+        },
+        {
+          "id": "payLow",
+          "label": "Pay range, low"
+        },
+        {
+          "id": "payHigh",
+          "label": "Pay range, high"
+        },
+        {
+          "id": "payType",
+          "label": "Pay type"
+        },
+        {
+          "id": "duties",
+          "label": "What they will actually do, one per line"
+        },
+        {
+          "id": "musts",
+          "label": "What they truly must have, one per line"
+        },
+        {
+          "id": "perks",
+          "label": "What is good about working here, one per line"
+        },
+        {
+          "id": "contact",
+          "label": "How to apply"
+        }
+      ],
+      "sourceReview": "Verify current applicable hiring and pay-transparency rules with official sources. Avoid protected-trait preferences, unsupported earning claims, and unnecessary applicant data."
+    },
+    {
+      "tool": "google-post-writer",
+      "toolUrl": "https://www.theleadflowpro.com/tools/google-post-writer",
+      "queueSlug": "how-to-write-one-useful-google-business-profile-update",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to write one useful Google Business Profile update",
+      "useCase": "A local business sharing a current service update or confirmed offer.",
+      "workedExample": "Draft a fictional seasonal service update, remove unsupported claims, and check the offer details and destination before any publication.",
+      "readerArtifact": "Four distinct update outlines: a useful tip, service explanation, current offer, and customer question.",
+      "toolType": "Generator",
+      "actualInputs": [
+        {
+          "id": "business",
+          "label": "Business name"
+        },
+        {
+          "id": "city",
+          "label": "Town"
+        },
+        {
+          "id": "service",
+          "label": "Main service"
+        },
+        {
+          "id": "offer",
+          "label": "Any current offer"
+        },
+        {
+          "id": "season",
+          "label": "What season it is"
+        },
+        {
+          "id": "phone",
+          "label": "Phone"
+        }
+      ],
+      "sourceReview": "Check current Google Business Profile post policies and availability. The tool drafts text; it does not publish or guarantee traffic."
+    },
+    {
+      "tool": "robots-txt-generator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/robots-txt-generator",
+      "queueSlug": "how-to-check-robots-txt-without-treating-it-as-a-lock",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to check robots.txt without treating it as a lock",
+      "useCase": "A business owner reviewing crawl instructions and a sitemap address.",
+      "workedExample": "Generate a fictional-domain file, inspect the rules for public pages, and compare crawl blocking with noindex and actual authentication.",
+      "readerArtifact": "A robots.txt review checklist with public paths, sitemap URL, private access controls, and recovery notes.",
+      "toolType": "Generator",
+      "actualInputs": [
+        {
+          "id": "domain",
+          "label": "Your domain"
+        },
+        {
+          "id": "mode",
+          "label": "What do you want"
+        },
+        {
+          "id": "extra",
+          "label": "Extra paths to block, one per line"
+        }
+      ],
+      "sourceReview": "Use current Google Search Central documentation. Robots.txt does not secure private content and a blocked URL may still appear in search."
+    },
+    {
+      "tool": "household-budget-planner",
+      "toolUrl": "https://www.theleadflowpro.com/tools/household-budget-planner",
+      "queueSlug": "how-to-put-a-month-s-bills-on-one-clear-page",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to put a month's bills on one clear page",
+      "useCase": "A household trying to understand the gap between take-home pay and recurring costs.",
+      "workedExample": "Use a fictional month of income and categorized spending, then separate a one-time expense from the usual monthly pattern.",
+      "readerArtifact": "A monthly bill map with due date, amount, owner, and what still needs checking.",
+      "toolType": "Planner",
+      "actualInputs": [
+        {
+          "id": "income",
+          "label": "Take-home pay per month"
+        },
+        {
+          "id": "housing",
+          "label": "Rent or mortgage"
+        },
+        {
+          "id": "utilities",
+          "label": "Utilities, phone and internet"
+        },
+        {
+          "id": "food",
+          "label": "Groceries and eating out"
+        },
+        {
+          "id": "transport",
+          "label": "Car payment, fuel and insurance"
+        },
+        {
+          "id": "childcare",
+          "label": "Childcare and school costs"
+        },
+        {
+          "id": "debt",
+          "label": "Loan and card payments"
+        },
+        {
+          "id": "other",
+          "label": "Everything else"
+        }
+      ],
+      "sourceReview": "Reconcile categories to actual statements before decisions; a worksheet is not a personalized financial plan."
+    },
+    {
+      "tool": "grocery-unit-price-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/grocery-unit-price-calculator",
+      "queueSlug": "how-to-compare-two-package-sizes-before-buying-the-bigger-one",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to compare two package sizes before buying the bigger one",
+      "useCase": "A shopper comparing the same product in two sizes.",
+      "workedExample": "Use fictional prices for two packages with the same unit of measure, then consider whether the extra quantity will be used.",
+      "readerArtifact": "A shelf comparison card for unit, size, price, unit cost, and usable quantity.",
+      "toolType": "Converter",
+      "actualInputs": [
+        {
+          "id": "unit",
+          "label": "Unit on the label"
+        },
+        {
+          "id": "sizeA",
+          "label": "Option A size"
+        },
+        {
+          "id": "priceA",
+          "label": "Option A price"
+        },
+        {
+          "id": "sizeB",
+          "label": "Option B size"
+        },
+        {
+          "id": "priceB",
+          "label": "Option B price"
+        },
+        {
+          "id": "perMonth",
+          "label": "How many you buy a month"
+        }
+      ],
+      "sourceReview": "Verify unit consistency and tool arithmetic. Annual savings assume unchanged prices and buying frequency; account for waste and do not promise savings."
+    },
+    {
+      "tool": "childcare-vs-work-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/childcare-vs-work-calculator",
+      "queueSlug": "how-to-compare-the-costs-that-come-with-a-job",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to compare the costs that come with a job",
+      "useCase": "A household organizing childcare, commuting, and work-related spending for a job scenario.",
+      "workedExample": "Use fictional gross pay, a stated rough tax assumption, childcare, commuting, and days worked, then list benefits and longer-term factors outside the calculator.",
+      "readerArtifact": "A job-scenario worksheet with known costs, estimates, benefits, scheduling needs, and unanswered questions.",
+      "toolType": "Calculator",
+      "actualInputs": [
+        {
+          "id": "salary",
+          "label": "Gross pay for this job"
+        },
+        {
+          "id": "taxRate",
+          "label": "Rough combined tax rate"
+        },
+        {
+          "id": "childcare",
+          "label": "Childcare per month"
+        },
+        {
+          "id": "commuteDaily",
+          "label": "Commuting cost per working day"
+        },
+        {
+          "id": "daysPerWeek",
+          "label": "Days worked per week"
+        },
+        {
+          "id": "weeks",
+          "label": "Weeks worked per year"
+        },
+        {
+          "id": "hoursPerDay",
+          "label": "Hours per working day"
+        },
+        {
+          "id": "extras",
+          "label": "Extra spending per month because you work"
+        }
+      ],
+      "sourceReview": "Verify current official tax and benefits information where relevant. The model cannot decide whether a parent should work or capture every personal tradeoff."
+    },
+    {
+      "tool": "subscription-audit",
+      "toolUrl": "https://www.theleadflowpro.com/tools/subscription-audit",
+      "queueSlug": "how-to-find-the-renewals-you-stopped-noticing",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to find the renewals you stopped noticing",
+      "useCase": "A household reviewing recurring charges before the next billing cycle.",
+      "workedExample": "Use a fictional list of six subscriptions, mark actual use, and compare monthly totals with a clearly assumed price-rise scenario.",
+      "readerArtifact": "A renewal list with owner, cost, next charge date, cancellation path, and keep-or-review choice.",
+      "toolType": "Interactive checklist",
+      "actualInputs": [
+        {
+          "id": "services",
+          "label": "What you pay for"
+        },
+        {
+          "id": "avg",
+          "label": "Average price of each"
+        },
+        {
+          "id": "other",
+          "label": "Anything else, total per month"
+        },
+        {
+          "id": "unused",
+          "label": "How many you have not used this month"
+        },
+        {
+          "id": "increase",
+          "label": "Typical yearly price rise"
+        }
+      ],
+      "sourceReview": "Use actual invoices and current provider cancellation terms. The tool does not cancel accounts or guarantee projected future price changes."
+    },
+    {
+      "tool": "emergency-fund-calculator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/emergency-fund-calculator",
+      "queueSlug": "how-to-turn-a-cash-cushion-goal-into-a-monthly-target",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to turn a cash-cushion goal into a monthly target",
+      "useCase": "A household choosing its own essential-spending and coverage assumptions.",
+      "workedExample": "Use fictional essential expenses, current savings, desired months, and monthly contribution; compare two chosen targets without calling one universally correct.",
+      "readerArtifact": "An essential-expense worksheet and monthly progress tracker.",
+      "toolType": "Calculator",
+      "actualInputs": [
+        {
+          "id": "essentials",
+          "label": "Essential spending per month"
+        },
+        {
+          "id": "months",
+          "label": "Months you want covered"
+        },
+        {
+          "id": "saved",
+          "label": "Saved so far"
+        },
+        {
+          "id": "monthly",
+          "label": "What you can put aside each month"
+        }
+      ],
+      "sourceReview": "Check current official consumer-finance guidance. The chosen reserve size depends on circumstances, and the tool does not forecast emergencies or investment returns."
+    },
+    {
+      "tool": "debt-payoff-planner",
+      "toolUrl": "https://www.theleadflowpro.com/tools/debt-payoff-planner",
+      "queueSlug": "how-to-check-what-an-extra-payment-changes-in-a-simple-debt-model",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to check what an extra payment changes in a simple debt model",
+      "useCase": "A person comparing repayment scenarios for one fixed-rate balance.",
+      "workedExample": "Use a fictional balance and rate, compare the scheduled payment with a modest extra amount, and inspect the insufficient-payment warning.",
+      "readerArtifact": "A lender-statement checklist and scenario table including balance, rate, payment, fees, and assumptions.",
+      "toolType": "Planner",
+      "actualInputs": [
+        {
+          "id": "balance",
+          "label": "Balance owed"
+        },
+        {
+          "id": "apr",
+          "label": "Interest rate"
+        },
+        {
+          "id": "payment",
+          "label": "What you pay each month"
+        },
+        {
+          "id": "extra",
+          "label": "Extra you could add each month"
+        }
+      ],
+      "sourceReview": "Verify formulas and current official lender/CFPB guidance. Actual interest accrual, fees, promotional rates, and payment allocation may differ; no personalized debt advice."
+    },
+    {
+      "tool": "rent-affordability-estimator",
+      "toolUrl": "https://www.theleadflowpro.com/tools/rent-affordability-estimator",
+      "queueSlug": "how-to-compare-rent-with-the-bills-you-already-have",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to compare rent with the bills you already have",
+      "useCase": "A household comparing a proposed rent with take-home pay and existing commitments.",
+      "workedExample": "Use a fictional rent, utilities, debt payments, and essential costs, then test a second rent without presenting a universal approval threshold.",
+      "readerArtifact": "A move-in budget separating monthly costs, deposits, moving costs, and cash left afterward.",
+      "toolType": "Estimator",
+      "actualInputs": [
+        {
+          "id": "income",
+          "label": "Household take-home per month"
+        },
+        {
+          "id": "rent",
+          "label": "Rent per month"
+        },
+        {
+          "id": "utilities",
+          "label": "Utilities not included in rent"
+        },
+        {
+          "id": "debts",
+          "label": "Loan, card and car payments per month"
+        },
+        {
+          "id": "other",
+          "label": "Everything else you must pay"
+        }
+      ],
+      "sourceReview": "Check the model's assumptions. Affordability estimates do not establish landlord approval, legal eligibility, or the right decision for every household."
+    },
+    {
+      "tool": "salary-to-hourly-converter",
+      "toolUrl": "https://www.theleadflowpro.com/tools/salary-to-hourly-converter",
+      "queueSlug": "how-to-compare-two-job-offers-when-the-hours-are-different",
+      "queueAction": "appended-queued",
+      "proposedTitle": "How to compare two job offers when the hours are different",
+      "useCase": "A worker comparing salary with contracted and unpaid extra hours.",
+      "workedExample": "Use two fictional offers with different hours and paid time off, then list benefits, commute, and career factors outside the hourly comparison.",
+      "readerArtifact": "A side-by-side offer worksheet with pay, hours, leave, benefits, commute, and unknowns.",
+      "toolType": "Converter",
+      "actualInputs": [
+        {
+          "id": "salary",
+          "label": "Annual salary"
+        },
+        {
+          "id": "hours",
+          "label": "Hours you are contracted for each week"
+        },
+        {
+          "id": "extra",
+          "label": "Unpaid extra hours a week"
+        },
+        {
+          "id": "pto",
+          "label": "Paid days off a year"
+        },
+        {
+          "id": "compareSalary",
+          "label": "Another offer to compare"
+        },
+        {
+          "id": "compareHours",
+          "label": "Hours a week on that one"
+        }
+      ],
+      "sourceReview": "Verify how paid days off affect the denominator and check current official labor guidance before wage claims. An effective hourly comparison does not determine overtime entitlement."
+    }
+  ],
+  "sharedOutline": [
+    "Open with the specific task and the decision the reader needs to make.",
+    "Show the fictional worked example and label assumptions before using the tool.",
+    "Teach the actual inputs and inspect the exact tool output; recalculate every number before writing.",
+    "Explain the result, its limits, and one next step using the reader artifact.",
+    "Answer relevant questions, link back to the working tool, and offer /start only where useful."
+  ],
+  "publicationRequirements": [
+    "Write one complete original article in the existing daily workflow; this plan is not article copy.",
+    "Check authored articles and drafts again before claiming to prevent a concurrent duplicate.",
+    "Verify changing claims against current primary official sources and record the real check date.",
+    "Use no invented benchmarks, revenue, customer results, promises, private details, or em dashes.",
+    "Verify a relevant distinct 1200x630 scene before publication and add the required OG mappings.",
+    "Preserve Central publication gates, source receipt, tests, build, deployment, and actual live verification."
+  ]
+}

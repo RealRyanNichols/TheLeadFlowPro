@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,7 +12,7 @@ import { FEATURED, PHONE_DISPLAY, PHONE_TEL, PROOF, RECEIPTS } from "@/lib/siteC
 
 const SITE = "https://www.theleadflowpro.com";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/results", {
   title: "Results | The LeadFlow Pro",
   description:
     "Eight live systems you can open and inspect right now: client websites, enrollment engines, a media archive, and working software, all built in accounts the owners control.",
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
     images: [{ url: "/og/home.png", width: 1200, height: 630 }],
     type: "website",
   },
-};
+});
 
 export default function ResultsPage() {
   return (

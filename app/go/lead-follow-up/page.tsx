@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -17,7 +18,7 @@ import styles from "./lead-follow-up.module.css";
 // named on the page, because an offer this size earns trust by showing its
 // edges before the buyer finds them.
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/go/lead-follow-up", {
   title: "Lead Follow-Up Campaign | The LeadFlow Pro",
   description:
     "Your follow-up, written and ready to send. The five-minute first reply, a missed-call text-back, a five-message email sequence, and a review ask, written for one offer in your business. $197 one time.",
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     siteName: "The LeadFlow Pro",
     type: "website",
   },
-};
+});
 
 export default function LeadFollowUpPage() {
   const price = formatUsd(LEAD_FOLLOW_UP.priceUsd);

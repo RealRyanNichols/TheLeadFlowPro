@@ -33,7 +33,7 @@ export async function generateMetadata({
     description: `${c.hook} ${n} free tools, no signup to use any of them.`,
     alternates: { canonical: url },
     openGraph: { title: c.title, description: c.hook, url, siteName: "The LeadFlow Pro", type: "website" },
-    twitter: { card: "summary_large_image" },
+    twitter: { title: c.title, description: c.hook, card: "summary_large_image" },
   };
 }
 

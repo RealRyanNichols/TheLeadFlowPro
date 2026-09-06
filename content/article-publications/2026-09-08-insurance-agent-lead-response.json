@@ -16,5 +16,43 @@
     "art": "/og/tools/lead-response-time.jpg visually inspected: 1200x630 navy Lead Response Time Calculator card with blue and gray bars. Alt text describes the actual card.",
     "scope": "One new original article for the first uncovered date. No workshop promotion, outreach, paid service, or private customer records.",
     "preReleaseReview": "913-word article body, 53-character title, 151-character description, one tool marker, balanced escaped template fence, complete FAQ and tool guidance. Article publication, queue, and OG suites passed all 16 tests. Focused ESLint reported zero errors and one pre-existing articles-og.tsx image warning. Changed files passed Prettier and git diff --check. Full build, production deployment, and future-route verification remain for the coordinated release."
+  },
+  "contentCommit": "a344f276a9e2b66e033b0d9ebb35b849c2381914",
+  "deployment": {
+    "id": "dpl_DX8JAznzpYS8Egv8WL9KR4M7i1Qa",
+    "url": "https://the-lead-flow-oo61kxqmy-realryannichols.vercel.app",
+    "status": "READY",
+    "verifiedAt": "2026-09-06T17:49:42.746Z"
+  },
+  "scheduledCheck": {
+    "checkedAt": "2026-09-06T17:51:02.688145Z",
+    "detailStatus": 404,
+    "ogStatus": 404,
+    "noindex": true,
+    "ogNoindex": true,
+    "noStore": true,
+    "ogNoStore": true,
+    "indexAbsent": true,
+    "sitemapAbsent": true,
+    "relatedAbsent": true,
+    "detailUrl": "https://www.theleadflowpro.com/articles/insurance-agent-lead-response",
+    "ogUrl": "https://www.theleadflowpro.com/articles/insurance-agent-lead-response/opengraph-image",
+    "detailCheckedAt": "2026-09-06T17:50:02.278081+00:00",
+    "ogCheckedAt": "2026-09-06T17:50:02.260716+00:00",
+    "detailCacheControl": "no-store",
+    "ogCacheControl": "no-store",
+    "detailRobotsHeader": "noindex, nofollow",
+    "ogRobotsHeader": "noindex, nofollow",
+    "relatedVerification": {
+      "checkedAt": "2026-09-06T17:50:04.680Z",
+      "method": "Evaluated the production-source getRelatedArticles helper at the real current time. It returned 47 articles and excluded this future slug. Live homepage and due article HTML also omitted the slug.",
+      "centralDate": "2026-09-06",
+      "timeZone": "America/Chicago",
+      "relatedCount": 47,
+      "homeStatus": 200,
+      "homeAbsent": true,
+      "todayArticleStatus": 200,
+      "todayArticleAbsent": true
+    }
   }
 }

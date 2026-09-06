@@ -1,8 +1,10 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import Link from "next/link";
+import Image from "next/image";
+import MetricCards from "./MetricCards";
 import { ArrowRight, Eye, PhoneCall, Users } from "lucide-react";
 import {
   SCOREBOARD_BUSINESSES,
-  SCOREBOARD_METRICS,
   formatCount,
   summarizeWindow,
 } from "@/lib/scoreboard";
@@ -13,30 +15,27 @@ export const revalidate = 900;
 
 const TITLE = "Scoreboard | Real views, clicks and leads per business | The LeadFlow Pro";
 const DESCRIPTION =
-  "One live scoreboard per business we run or built: views, clicks, leads, paid leads and unpaid leads, rolling daily. Real numbers from each business's own records, no estimates.";
+  "One live scoreboard per business we run or built: recorded views, clicks, leads, calls and form activity, with daily charts, source definitions and practical next steps.";
 
-const BUSINESS_STORIES: Record<string, { initials: string; tone: string; purpose: string; detail: string }> = {
+const BUSINESS_STORIES: Record<string, { tone: string; purpose: string; detail: string }> = {
   "the-leadflow-pro": {
-    initials: "LF",
     tone: "lavenderCard",
     purpose: "Give a visitor a useful next step.",
     detail: "Free tools, practical lessons, and clear offers connect the website to the work behind it.",
   },
   "premier-dental-academy-of-longview": {
-    initials: "PD",
     tone: "sageCard",
     purpose: "Help future students find their way.",
     detail: "Study tools, course information, and enrollment forms put the next step within reach.",
   },
   realryannichols: {
-    initials: "RN",
     tone: "peachCard",
     purpose: "Give readers a place to go deeper.",
     detail: "Articles and searchable public records sit alongside contact and signup forms.",
   },
 };
 
-export const metadata = {
+export const metadata = withPublicPageMetadata("/scoreboard", {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: "https://www.theleadflowpro.com/scoreboard" },
@@ -46,7 +45,7 @@ export const metadata = {
     url: "https://www.theleadflowpro.com/scoreboard",
     type: "website",
   },
-};
+});
 
 export default async function ScoreboardIndexPage() {
   const results = await Promise.all(
@@ -73,7 +72,7 @@ export default async function ScoreboardIndexPage() {
             <div className={styles.liveBadge}>
               <p>Data source</p>
               <strong>Each business&apos;s own database</strong>
-              <small>Aggregate counts only. Refreshes every 15 minutes.</small>
+              <small>Aggregate counts only. Checks for updates every 15 minutes when requested.</small>
               <span className={styles.sourceNote}>Real records. Room to improve.</span>
             </div>
           </div>
@@ -98,7 +97,6 @@ export default async function ScoreboardIndexPage() {
             {results.map(({ business, result }) => {
               const totals = result.ok ? summarizeWindow(result.days, 30) : null;
               const story = BUSINESS_STORIES[business.slug] ?? {
-                initials: business.shortName.slice(0, 2).toUpperCase(),
                 tone: "lavenderCard",
                 purpose: "Follow the work behind the website.",
                 detail: business.what,
@@ -106,7 +104,7 @@ export default async function ScoreboardIndexPage() {
               return (
                 <Link key={business.slug} href={`/scoreboard/${business.slug}`} className={`${styles.boardCard} ${styles[story.tone]}`}>
                   <div className={styles.cardIdentity}>
-                    <span className={styles.monogram} aria-hidden="true">{story.initials}</span>
+                    <Image src={business.logo} alt="" aria-hidden="true" width={64} height={64} className={styles.businessLogo} />
                     <div>
                       <p className={styles.cardMeta}>{business.town}</p>
                       <h3>{business.name}</h3>
@@ -150,20 +148,8 @@ export default async function ScoreboardIndexPage() {
         <div className={styles.shell}>
           <p className={styles.eyebrow}>02 / Understand the numbers</p>
           <h2 id="legend-title">What each number means, and what moves it.</h2>
-          <div className={styles.legendGrid}>
-            {SCOREBOARD_METRICS.filter((metric) => metric.key !== "sales").map((metric) => (
-              <div
-                key={metric.key}
-                className={`${styles.legendCard} ${metric.key === "paid_leads" ? styles.paid : metric.key === "unpaid_leads" ? styles.unpaid : ""}`}
-              >
-                <h3>{metric.label}</h3>
-                <p>{metric.what}</p>
-                <Link href={metric.move.href}>
-                  How we move it: {metric.move.label} <ArrowRight aria-hidden="true" />
-                </Link>
-              </div>
-            ))}
-          </div>
+          <p className={styles.boardFoot}>Actual combined counts for the last 30 Central days. Open a metric to see the daily numbers, each business’s contribution, and a practical next step.</p>
+          <MetricCards feeds={results} />
           <div className={styles.callout}>
             <p>
               <strong>Know what the board is counting.</strong> A lead record is not a paying customer.

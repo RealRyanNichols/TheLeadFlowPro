@@ -1,7 +1,8 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import AddOnsMenu from "./AddOnsMenu";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/add-ons", {
   title: "The Add-On Menu | The LeadFlow Pro",
   description:
     "Inspect proven LeadFlow modules and request a written scope. Approved first five-page websites have a $0 build fee; tools and growth systems are priced separately.",
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
     ],
     type: "website",
   },
-};
+});
 
 export default function AddOnsPage() {
   return <AddOnsMenu />;

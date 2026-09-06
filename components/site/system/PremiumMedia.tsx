@@ -23,8 +23,13 @@ export default function PremiumMedia({
   caption,
   className = "",
 }: PremiumMediaProps) {
+  const paperArtwork =
+    src.startsWith("/images/page-art/") ||
+    src.startsWith("/images/system-stages/");
   return (
-    <figure className={`cb-hero-visual ${className}`.trim()}>
+    <figure
+      className={`cb-hero-visual ${paperArtwork ? "cb-hero-visual--paper" : ""} ${className}`.trim()}
+    >
       <Image
         src={src}
         alt={alt}
@@ -42,4 +47,3 @@ export default function PremiumMedia({
     </figure>
   );
 }
-

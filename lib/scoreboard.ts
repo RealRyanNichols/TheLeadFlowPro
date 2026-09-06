@@ -3,7 +3,7 @@
 // One board per business The LeadFlow Pro runs or built. Every number comes from a
 // `scoreboard_public_daily(days_back)` Postgres function that returns aggregate counts
 // per day and nothing else: no names, no emails, no phone numbers, no dollar amounts.
-// The LeadFlow Pro reads its own function through the service client. A client
+// The LeadFlow Pro reads its own function through its public aggregate endpoint. A client
 // business exposes the same function on its own Supabase project and the board
 // reads it with that project's publishable key (the same key its public website
 // already ships to every browser). No secrets, no shared credentials.
@@ -34,6 +34,7 @@ export type ScoreboardBusiness = {
   name: string;
   shortName: string;
   url: string;
+  logo: string;
   town: string;
   what: string;
   built: string;
@@ -50,6 +51,7 @@ export const SCOREBOARD_BUSINESSES: readonly ScoreboardBusiness[] = [
     name: "The LeadFlow Pro",
     shortName: "LeadFlow Pro",
     url: "https://www.theleadflowpro.com",
+    logo: "/images/brand/leadflow-logo.png",
     town: "Longview, Texas",
     what: "The company that builds the boards. Website, 86 free tools, articles, courses, lead capture, follow-up, and the operating system behind it.",
     built: "Runs on the same owned stack it sells: Next.js on Vercel, Supabase, GitHub, Stripe, Resend, Quo.",
@@ -62,6 +64,7 @@ export const SCOREBOARD_BUSINESSES: readonly ScoreboardBusiness[] = [
     name: "Premier Dental Academy of Longview",
     shortName: "Premier Dental Academy",
     url: "https://premierdentalacademyoflongview.com",
+    logo: "/images/brand/premier-dental-academy-logo.png",
     town: "Longview, Texas",
     what: "A dental assistant school. Enrollment engine, student portal, free study tools, practice exams, blog, and a business line that logs every call.",
     built: "Built and run on the owned stack: Next.js on Vercel, Supabase, Square, Quo, Resend.",
@@ -78,6 +81,7 @@ export const SCOREBOARD_BUSINESSES: readonly ScoreboardBusiness[] = [
     name: "RealRyanNichols.com",
     shortName: "RealRyanNichols",
     url: "https://www.realryannichols.com",
+    logo: "/images/brand/real-ryan-nichols-logo.png",
     town: "Longview, Texas",
     what: "An independent media site and publishing system: long-form articles, searchable public records, book sales, an AI assistant, and email and text signups. Includes contact and signup records.",
     built: "Built and run on the owned stack: Next.js on Vercel, Supabase, Stripe. The LeadFlow Pro sells the book through it, which is the case study.",
@@ -140,21 +144,21 @@ export const SCOREBOARD_METRICS: Array<{
     key: "views",
     label: "Views",
     headline: true,
-    what: "Tracked page loads after the feed’s internal-traffic filters. Repeat page loads count again; analytics cannot identify every bot.",
+    what: "Recorded page loads. Repeat visits count again, and traffic filters differ between businesses; the detail page explains each source.",
     move: { label: "Articles and a blog that get found", href: "/add-ons" },
   },
   {
     key: "clicks",
     label: "Clicks",
     headline: true,
-    what: "A tap that moves toward business: a call button, a text button, a tool, a download, a checkout.",
+    what: "Recorded click and action events. Each business tracks a different action set, so read the source notes before comparing sites.",
     move: { label: "Free tools people actually use", href: "/go/tools" },
   },
   {
     key: "leads",
     label: "Leads",
     headline: true,
-    what: "Non-test contact records logged by the business. These may include forms, calls, and manually entered contacts. Records are not necessarily unique people or completed purchases.",
+    what: "Contact and signup records returned by each business feed. They may include calls, forms, and manual entries. Filters vary; records are not necessarily unique people or purchases.",
     move: { label: "A website built to capture leads", href: "/free-build" },
   },
   {
@@ -189,14 +193,14 @@ export const SCOREBOARD_METRICS: Array<{
     key: "forms",
     label: "Form leads",
     headline: false,
-    what: "Tracked website form submissions. This is an activity count, not necessarily unique contacts.",
+    what: "Form, signup, and other form-source records returned by the feeds. Sources count these differently; the detail page shows the exact definitions.",
     move: { label: "Forms that route to the right person", href: "/go/lead-follow-up" },
   },
   {
     key: "sales",
-    label: "Sales",
+    label: "Payment records",
     headline: false,
-    what: "A completed payment recorded by the business. Count only. Dollar figures are never published here.",
+    what: "Paid-order and eligible payment records returned by the business feed, which may include donations. Count only; dollar figures are not shown.",
     move: { label: "Checkout wired into the site", href: "/add-ons" },
   },
 ];

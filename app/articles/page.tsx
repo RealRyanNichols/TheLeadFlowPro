@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,12 +14,12 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/articles", {
   title: "Articles | The LeadFlow Pro",
   description:
     "Practical writing on lead flow, follow-up, marketplaces, and owned business systems from The LeadFlow Pro.",
   alternates: { canonical: "https://www.theleadflowpro.com/articles" },
-};
+});
 
 const FEATURED_ARTICLE_SLUGS = new Set([
   "one-useful-business-task-with-ai",

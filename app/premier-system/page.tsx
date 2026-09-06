@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
@@ -5,7 +6,7 @@ import styles from "./premier-system.module.css";
 
 const CANONICAL_URL = "https://www.theleadflowpro.com/premier-system";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/premier-system", {
   title: "Premier System Proof + $1,000 Website Launch | The LeadFlow Pro",
   description:
     "See the connected system Ryan Nichols built for Premier Dental Academy, then review the exact five-page Website Launch available for $1,000: $500 to start and $500 after approval, before launch.",
@@ -32,7 +33,7 @@ export const metadata: Metadata = {
     description: "Proof of the larger build, plus a clear $1,000 Website Launch offer.",
     images: ["/images/offer-v2/premier-operating-system.webp"],
   },
-};
+});
 
 const PREMIER_LAYERS = [
   {

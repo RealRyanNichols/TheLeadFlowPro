@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarCheck, Camera, KeyRound, PhoneCall } from "lucide-react";
-import { FREE_BUILD, findFreeBuildTier, formatUsd } from "@/lib/freeBuild";
+import { FREE_BUILD, formatUsd } from "@/lib/freeBuild";
 import ConversionPing from "@/components/ConversionPing";
 import { getSettings } from "@/lib/settings";
+import { fetchPaidSession } from "@/lib/stripeSession";
+import { freeBuildConfirmation } from "@/lib/purchaseConfirmation";
 import styles from "../free-build.module.css";
 
 // Where a paid Free Build order lands. One job: get the twenty minute call on
@@ -21,27 +23,44 @@ export default async function FreeBuildWelcomePage({
 }: {
   searchParams: Promise<{ tier?: string; session_id?: string }>;
 }) {
-  const { tier: tierId, session_id: sessionId } = await searchParams;
-  const tier = findFreeBuildTier(String(tierId ?? ""));
+  const { session_id: sessionId } = await searchParams;
+  const paid = await fetchPaidSession(sessionId);
+  const confirmation = freeBuildConfirmation(paid);
+  const tier = confirmation.tier;
+
+  if (confirmation.status !== "paid" || !paid) {
+    return (
+      <main className={`cb-page ${styles.page}`}>
+        <section className="cb-hero">
+          <div className="cb-shell">
+            <p className="cb-eyebrow">{paid ? "Payment confirmed" : "Payment not confirmed"}</p>
+            <h1 className="cb-h1">Let’s check your next step.<em>Your receipt has the details.</em></h1>
+            <p className="cb-hero-lead">
+              {paid
+                ? `Stripe confirms a payment of ${formatUsd(paid.amountUsd)}, but this link does not identify a Free Website Program order. Check your receipt or contact Ryan for the next step for your purchase.`
+                : "We could not verify a completed payment from this link. The Free Website Program does not require a paid add-on. If you already paid for an optional service, check your Stripe receipt or contact Ryan before paying again."}
+            </p>
+            <div className="cb-actions">
+              <Link href="/contact" className="cb-btn cb-btn--primary">Get help with my next step<PhoneCall aria-hidden="true" /></Link>
+              <Link href="/free-build#order" className="cb-btn cb-btn--ghost">Back to the Free Website Program</Link>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   const settings = await getSettings();
 
   return (
     <main className={`cb-page ${styles.page}`}>
-      {/* The Purchase event, with the REAL amount for the tier that was
-          bought, not a hardcoded number. Deduped on the Stripe session id so
-          a buyer who refreshes this page does not fire a second Purchase and
-          inflate what the ad platforms optimize against. Fires only when the
-          tier is recognized: an unknown tier means we do not know the value,
-          and a Purchase with a wrong value is worse than no Purchase. */}
-      {tier && (
-        <ConversionPing
-          googleAdsId={settings.google_ads_id}
-          conversionLabel={settings.google_ads_conversion_label}
-          purchase
-          value={tier.priceUsd}
-          dedupeKey={sessionId ?? tier.id}
-        />
-      )}
+      <ConversionPing
+        googleAdsId={settings.google_ads_id}
+        conversionLabel={settings.google_ads_conversion_label}
+        purchase
+        value={paid.amountUsd}
+        dedupeKey={paid.eventId}
+      />
       <section className="cb-hero">
         <div className="cb-shell">
           <p className="cb-eyebrow">Payment received</p>
@@ -51,8 +70,8 @@ export default async function FreeBuildWelcomePage({
           </h1>
           <p className="cb-hero-lead">
             {tier
-              ? `${tier.name} is paid, ${formatUsd(tier.priceUsd)} one time. Your ${tier.pages.toLowerCase()} and the engine behind it are both on my board.`
-              : "Your Free Build order is paid and on my board."}{" "}
+              ? `${tier.name} is paid, ${formatUsd(paid.amountUsd)} one time. Your ${tier.pages.toLowerCase()} and the engine behind it are both on my board.`
+              : `Your website order is paid, ${formatUsd(paid.amountUsd)} one time. Your receipt identifies the work you purchased.`}{" "}
             The {FREE_BUILD.guaranteeDays} business day clock starts at our call, not at this
             payment, so the sooner it is on the calendar the sooner you are live.
           </p>

@@ -1,7 +1,8 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import StartRouter from "./StartRouter";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/start", {
   title: "Map My Company | The LeadFlow Pro",
   description:
     "Answer a few flexible questions and see the connected company system that fits before you submit any contact information.",
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
     description: "See the connected company system that fits before you send your details.",
     images: ["/images/homepage-v2/connected-company-hero.webp"],
   },
-};
+});
 
 export default async function StartPage({
   searchParams,

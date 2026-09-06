@@ -1,3 +1,4 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,7 +12,7 @@ import {
 import styles from "./product-studio.module.css";
 import { WEBSITE_LAUNCH_CHECKOUT as CHECKOUT_URL } from "@/lib/offers";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/packages", {
   title: "Product Studio & Website Launch | The LeadFlow Pro",
   description:
     "Start a conversion-led five-page Website Launch for $1,000: $500 to reserve the build and $500 after approval, before launch. Add funnels, CRM, tools, portals, courses, ads and automation as separately scoped modules.",
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
     description: "A $1,000 Website Launch with a clear two-payment schedule.",
     images: ["/images/product-studio/connected-system-path.webp"],
   },
-};
+});
 
 const FLOW = ["Attention", "Lead capture", "Follow-up", "Booked call", "Sale"];
 

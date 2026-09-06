@@ -1,3 +1,5 @@
+import { PRIVATE_PAGE_METADATA } from "@/lib/publicPageMetadata";
+export const metadata = PRIVATE_PAGE_METADATA;
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import PurchasePing from "@/components/PurchasePing";

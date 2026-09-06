@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { PRO_ACCESS_COOKIE, mergeProAccess, proAccessSecrets, proKindFromSession, proKindSlug, signProAccess } from "@/lib/proAccess";
 import { proAccessCookieOptions, readProAccessCookie } from "@/lib/proAccessServer";
 import { PRO_BUNDLE, proCatalog } from "@/lib/tools/pro";
+import { createProPurchaseReceipt, PRO_PURCHASE_RECEIPT_COOKIE, proPurchasePath, proPurchaseReceiptCookieOptions, signProPurchaseReceipt } from "@/lib/proPurchaseReceipt";
 
 // Where Stripe sends the buyer the second the card clears.
 //
@@ -15,7 +16,10 @@ import { PRO_BUNDLE, proCatalog } from "@/lib/tools/pro";
 const SITE = "https://www.theleadflowpro.com";
 
 function redirect(path: string) {
-  return NextResponse.redirect(`${SITE}${path}`, { status: 303 });
+  return NextResponse.redirect(`${SITE}${path}`, {
+    status: 303,
+    headers: { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer", "X-Robots-Tag": "noindex" },
+  });
 }
 
 export async function GET(request: Request) {
@@ -32,6 +36,9 @@ export async function GET(request: Request) {
   }
 
   let session: {
+    id?: string;
+    created?: number;
+    currency?: string;
     payment_status?: string;
     amount_total?: number;
     amount_subtotal?: number;
@@ -53,6 +60,10 @@ export async function GET(request: Request) {
   if (session.payment_status !== "paid") {
     return redirect("/tools/pro/unlock?claim=unpaid");
   }
+  if (session.id !== sessionId || session.currency !== "usd" ||
+    typeof session.amount_total !== "number" || !Number.isSafeInteger(session.amount_total) || session.amount_total < 0) {
+    return redirect("/tools/pro/unlock?claim=notfound");
+  }
 
   const kind = proKindFromSession(session, proCatalog());
   if (!kind) return redirect("/tools/pro/unlock?claim=notfound");
@@ -62,9 +73,14 @@ export async function GET(request: Request) {
   const token = signProAccess(mergeProAccess(existing, email, [kind]), secrets[0]);
 
   const slug = proKindSlug(kind);
-  const res = redirect(
-    kind === PRO_BUNDLE.kind ? "/tools/pro?unlocked=bundle" : `/tools/pro/${slug}?unlocked=1`,
-  );
+  const res = redirect(proPurchasePath(kind === PRO_BUNDLE.kind ? PRO_BUNDLE.kind : slug!));
   res.cookies.set(PRO_ACCESS_COOKIE, token, proAccessCookieOptions());
+  const receipt = createProPurchaseReceipt(sessionId, session, proCatalog());
+  if (receipt) {
+    res.cookies.set(PRO_PURCHASE_RECEIPT_COOKIE, signProPurchaseReceipt(receipt, secrets[0]), proPurchaseReceiptCookieOptions());
+  } else {
+    // A free or historical claim must not consume an older pending purchase.
+    res.cookies.set(PRO_PURCHASE_RECEIPT_COOKIE, "", { ...proPurchaseReceiptCookieOptions(), maxAge: 0 });
+  }
   return res;
 }

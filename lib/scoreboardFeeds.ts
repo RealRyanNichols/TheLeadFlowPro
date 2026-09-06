@@ -3,9 +3,10 @@
 import "server-only";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { normalizeDays, type ScoreboardBusiness, type ScoreboardDay } from "@/lib/scoreboard";
+import { hasCompleteWindow } from "@/lib/scoreboardMetrics";
 
 export type ScoreboardFetchResult =
-  | { ok: true; days: ScoreboardDay[]; fetchedAt: string }
+  | { ok: true; days: ScoreboardDay[]; fetchedAt: string | null }
   | { ok: false; reason: string };
 
 export async function fetchScoreboardDays(business: ScoreboardBusiness, daysBack = 90): Promise<ScoreboardFetchResult> {
@@ -24,7 +25,12 @@ export async function fetchScoreboardDays(business: ScoreboardBusiness, daysBack
     if (!Array.isArray(raw) || raw.length === 0) return { ok: false, reason: "No aggregate records returned" };
     const days = normalizeDays(raw);
     if (days.length !== raw.length) return { ok: false, reason: "Incomplete aggregate records" };
-    return { ok: true, days, fetchedAt: new Date().toISOString() };
+    const count = Math.min(400, Math.max(1, Math.trunc(daysBack)));
+    if (!hasCompleteWindow(days, count)) return { ok: false, reason: "Daily aggregate coverage is incomplete or stale" };
+    // The upstream Date header is cached with the response; render time is not observation time.
+    const observed = response.headers.get("date");
+    const fetchedAt = observed && Number.isFinite(Date.parse(observed)) ? new Date(observed).toISOString() : null;
+    return { ok: true, days, fetchedAt };
   } catch {
     return { ok: false, reason: "feed unreachable" };
   }

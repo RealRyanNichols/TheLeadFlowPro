@@ -1,7 +1,7 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 // Search metadata and schema.org Course markup for the Operator Academy course pages.
-// Google's Course rich results need: name, description, provider, offers, and
-// hasCourseInstance with courseMode and courseWorkload. Everything here is derived
-// from the published catalog, so the markup can never disagree with the page.
+// Course markup is derived from the catalog and describes the visible offer.
+// Structured data does not guarantee indexing or any particular search appearance.
 
 import type { Metadata } from "next";
 import { CHATGPT_OPERATOR, CHATGPT_OPERATOR_LESSONS } from "@/lib/chatgptOperatorCourse";
@@ -70,7 +70,7 @@ export function courseMetadata(slug: string): Metadata {
       : `Included in Operator Academy all-access, $${Math.round((priceCents ?? 0) / 100)} founding price`;
   const title = `${course.shortTitle} | Operator Academy ${course.code.replace("OA", "")} | The LeadFlow Pro`;
   const description = `${course.description} ${lessonCount} lessons, ${course.level.toLowerCase()} level. ${priceLabel}. Written lessons, exact prompts, workbook, lesson checks, and a private completion record.`;
-  return {
+  return withPublicPageMetadata(`/training/${course.slug}`, {
     title,
     description,
     alternates: { canonical: `${BASE}/training/${course.slug}` },
@@ -80,7 +80,7 @@ export function courseMetadata(slug: string): Metadata {
       url: `${BASE}/training/${course.slug}`,
       type: "website",
     },
-  };
+  });
 }
 
 export function courseJsonLd(course: CatalogCourse) {

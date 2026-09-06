@@ -1,3 +1,4 @@
+import { PRIVATE_PAGE_METADATA } from "@/lib/publicPageMetadata";
 import Link from "next/link";
 import BrandLockup from "@/components/BrandLockup";
 import { redirect } from "next/navigation";
@@ -5,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import InternalTrafficMarker from "@/components/InternalTrafficMarker";
 import SignOutButton from "@/components/SignOutButton";
 
-export const metadata = { title: "Admin | The LeadFlow Pro" };
+export const metadata = { title: "Admin | The LeadFlow Pro", ...PRIVATE_PAGE_METADATA };
 
 export default async function AdminLayout({
   children,
