@@ -94,11 +94,11 @@ export default async function BuildRoom() {
         <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-bold text-[var(--blue)] hover:underline">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to dashboard
         </Link>
-        <div className="mt-8 overflow-hidden rounded-3xl border border-[var(--line)] bg-white shadow-[0_24px_80px_rgba(10,18,32,0.08)]">
-          <div className="border-b border-[var(--line)] bg-[#0a1220] px-6 py-7 text-white sm:px-10">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#8fe3ff]">Client build room</p>
+        <div className="mt-8 overflow-hidden rounded-3xl border border-[var(--line)] bg-[var(--panel)] shadow-[0_24px_80px_rgba(10,18,32,0.08)]">
+          <div className="border-b border-[var(--line)] bg-[#ede6f3] px-6 py-7 text-[var(--heading)] sm:px-10">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--blue)]">Client build room</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Your build room is ready, {firstName}.</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#b8c3d9]">Nothing is hidden behind email threads. Once your project is created, this is where the map, milestones, files, review items, and launch path will live.</p>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">Nothing is hidden behind email threads. Once your project is created, this is where the map, milestones, files, review items, and launch path will live.</p>
           </div>
           <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div>
@@ -162,7 +162,7 @@ export default async function BuildRoom() {
         <Link href="/dashboard" className="btn-ghost inline-flex items-center justify-center gap-2"><MessageSquareText className="h-4 w-4" aria-hidden="true" /> Message the team</Link>
       </div>
 
-      <div className="mt-8 rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-7">
+      <div className="mt-8 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-7">
         <div className="grid grid-cols-5 gap-2" aria-label={`Project is in ${STAGES[activeStage]?.label || project.status}`}>
           {STAGES.map((stage, index) => {
             const complete = activeStage >= 0 && (index < activeStage || project.status === "live" || project.status === "support");
@@ -174,13 +174,13 @@ export default async function BuildRoom() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
-          <section className="rounded-2xl border border-[var(--line)] bg-white p-6 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
+          <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-6 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
             <div className="flex items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Milestones</p><h2 className="mt-1 text-xl font-black text-[var(--heading)]">The path to launch</h2></div><span className="text-sm font-bold text-[var(--blue)]">{progress}%</span></div>
             <div className="mt-4 h-2 overflow-hidden rounded-full bg-[var(--fill-3)]"><div className="h-full rounded-full bg-[var(--blue)]" style={{ width: `${progress}%` }} /></div>
             {milestones.length ? <ol className="mt-6 divide-y divide-[var(--line)]">{milestones.map((item) => <li key={item.id} className="flex gap-4 py-4"><span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${item.status === "done" ? "bg-[var(--green-tint)] text-[var(--green)]" : item.status === "in_progress" ? "bg-[var(--accent-tint)] text-[var(--blue)]" : "bg-[var(--fill-2)] text-[var(--quiet)]"}`}>{item.status === "done" ? <Check className="h-4 w-4" aria-hidden="true" /> : <Clock3 className="h-4 w-4" aria-hidden="true" />}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center justify-between gap-2"><p className="font-bold text-[var(--heading)]">{item.title}</p>{item.due_date && <span className="text-xs text-[var(--muted)]">Due {displayDate(item.due_date)}</span>}</div>{item.description && <p className="mt-1 text-sm leading-6 text-[var(--muted)]">{item.description}</p>}</div></li>)}</ol> : <p className="mt-6 text-sm text-[var(--muted)]">Milestones have not been added yet.</p>}
           </section>
 
-          <section className="rounded-2xl border border-[var(--line)] bg-white p-6 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
+          <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-6 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
             <div className="flex items-center gap-2"><FileText className="h-5 w-5 text-[var(--blue)]" aria-hidden="true" /><h2 className="text-xl font-black text-[var(--heading)]">Files and deliverables</h2></div>
             <DeliverableReview initialDeliverables={deliverables} />
           </section>
@@ -193,7 +193,7 @@ export default async function BuildRoom() {
             <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{activeMilestone?.description || "The LeadFlow Pro team will update this room when the next review item or decision is ready."}</p>
             {activeMilestone?.due_date && <p className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[var(--heading)]"><CalendarDays className="h-4 w-4 text-[var(--blue)]" aria-hidden="true" /> Target {displayDate(activeMilestone.due_date)}</p>}
           </section>
-          <section className="rounded-2xl border border-[var(--line)] bg-white p-6 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
+          <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-6 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
             <Rocket className="h-6 w-6 text-[var(--blue)]" aria-hidden="true" />
             <h2 className="mt-3 text-lg font-black text-[var(--heading)]">Launch target</h2>
             <p className="mt-2 text-sm text-[var(--muted)]">{project.target_launch ? displayDate(project.target_launch) : "Set after the map and scope are approved."}</p>

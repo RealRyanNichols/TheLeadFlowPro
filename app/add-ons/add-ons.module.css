@@ -1,15 +1,15 @@
 .page {
-  --navy-950: #050b19;
-  --navy-900: #081225;
-  --navy-850: #0b172b;
-  --navy-800: #101d33;
-  --line: rgba(148, 163, 184, 0.22);
-  --line-strong: rgba(56, 189, 248, 0.48);
-  --cyan: #39c8f2;
-  --cobalt: #2251f4;
-  --white: #f8fafc;
-  --text: #c7d2e3;
-  --muted: #8fa0ba;
+  --navy-950: #f3efe8;
+  --navy-900: #f6e9dc;
+  --navy-850: #fff9ef;
+  --navy-800: #ede6f3;
+  --line: #dbd0c5;
+  --line-strong: #b9aabd;
+  --cyan: #5135e5;
+  --cobalt: #5135e5;
+  --white: #20212b;
+  --text: #34313f;
+  --muted: #625f6d;
   min-height: 100vh;
   padding-bottom: 9rem;
   color: var(--text);
@@ -19,7 +19,7 @@
 .hero {
   padding: clamp(2.25rem, 5vw, 5.5rem) 0 clamp(3.5rem, 7vw, 6.75rem);
   border-bottom: 1px solid var(--line);
-  background: var(--navy-900);
+  background: linear-gradient(135deg, #f6e9dc, #ede6f3);
 }
 
 .heroInner,
@@ -42,10 +42,10 @@
   grid-area: visual;
   overflow: hidden;
   margin: 0;
-  border: 1px solid rgba(57, 200, 242, 0.34);
+  border: 1px solid #dbd0c5;
   border-radius: 28px;
-  background: #071127;
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
+  background: #f6e9dc;
+  box-shadow: 0 2px 4px #4d32530a, 0 14px 32px #4d325310;
 }
 
 .heroVisual img {
@@ -63,7 +63,7 @@
   gap: 1rem;
   padding: 0.9rem 1.15rem 1rem;
   border-top: 1px solid var(--line);
-  color: var(--muted);
+  color: #625f6d;
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -110,7 +110,7 @@
 .heroCopy h1 span {
   display: block;
   margin-top: 0.12em;
-  color: #8fa2bf;
+  color: #5135e5;
 }
 
 .heroLead {
@@ -152,14 +152,14 @@
 .submitButton,
 .stickyButton {
   border: 1px solid var(--cobalt);
-  color: #fff;
-  background: var(--cobalt);
+  color: #20212b;
+  background: #ffb443;
 }
 
 .secondaryButton {
   border: 1px solid var(--line);
   color: var(--white);
-  background: #0a1528;
+  background: #fff9ef;
 }
 
 .primaryButton svg,
@@ -172,13 +172,13 @@
 .primaryButton:hover,
 .submitButton:hover:not(:disabled),
 .stickyButton:hover {
-  background: #173fd1;
+  background: #ffc36a;
   transform: translateY(-1px);
 }
 
 .secondaryButton:hover {
   border-color: var(--line-strong);
-  background: #0e1b32;
+  background: #fff9ef;
 }
 
 .primaryButton:focus-visible,
@@ -191,7 +191,7 @@
 .field textarea:focus-visible,
 .consentList input:focus-visible,
 .formLegal a:focus-visible {
-  outline: 3px solid #7dd3fc;
+  outline: 3px solid #5135e5;
   outline-offset: 3px;
 }
 
@@ -307,15 +307,15 @@
 }
 
 .item:hover {
-  border-color: rgba(57, 200, 242, 0.4);
+  border-color: #dbd0c5;
   background: var(--navy-800);
   transform: translateY(-1px);
 }
 
 .itemSelected {
   border-color: var(--cyan);
-  background: #0c2139;
-  box-shadow: inset 0 0 0 1px rgba(57, 200, 242, 0.16);
+  background: #fff9ef;
+  box-shadow: 0 2px 4px #4d32530a, 0 14px 32px #4d325310;
 }
 
 .itemIcon {
@@ -323,10 +323,10 @@
   width: 2.75rem;
   height: 2.75rem;
   place-items: center;
-  border: 1px solid rgba(57, 200, 242, 0.28);
+  border: 1px solid #dbd0c5;
   border-radius: 12px;
   color: var(--cyan);
-  background: #0a2036;
+  background: #fff9ef;
 }
 
 .itemIcon svg {
@@ -358,7 +358,7 @@
   align-items: center;
   gap: 0.4rem;
   margin-top: 0.65rem;
-  color: #90a9c5;
+  color: #5135e5;
   font-size: 0.66rem;
   font-weight: 750;
   letter-spacing: 0.06em;
@@ -370,7 +370,7 @@
   width: 0.8rem;
   height: 0.8rem;
   flex: 0 0 auto;
-  color: #40d89b;
+  color: #24724e;
 }
 
 .itemCheck {
@@ -378,15 +378,16 @@
   width: 1.45rem;
   height: 1.45rem;
   place-items: center;
-  border: 1px solid rgba(148, 163, 184, 0.38);
+  border: 1px solid #dbd0c5;
   border-radius: 7px;
-  color: #03101d;
-  background: #071226;
+  color: #20212b;
+  background: #fff9ef;
 }
 
 .itemSelected .itemCheck {
   border-color: var(--cyan);
-  background: var(--cyan);
+  background: #ede6f3;
+  color: #5135e5;
 }
 
 .itemCheck svg {
@@ -407,7 +408,7 @@
   border: 1px solid var(--line-strong);
   border-radius: 26px;
   background: var(--navy-900);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.36);
+  box-shadow: 0 2px 4px #4d32530a, 0 14px 32px #4d325310;
 }
 
 .formCard h2,
@@ -437,11 +438,11 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.42rem 0.72rem;
-  border: 1px solid rgba(57, 200, 242, 0.34);
+  border: 1px solid #dbd0c5;
   border-radius: 8px;
   border-left-width: 3px;
-  color: #c4f2ff;
-  background: #0a2036;
+  color: #24724e;
+  background: #fff9ef;
   font-size: 0.74rem;
   font-weight: 750;
 }
@@ -468,7 +469,7 @@
 }
 
 .field > span {
-  color: #dbe7f7;
+  color: #625f6d;
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -480,12 +481,13 @@
 .field textarea {
   width: 100%;
   min-height: 50px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid #dbd0c5;
   border-radius: 11px;
   padding: 0.8rem 0.9rem;
   color: var(--white);
-  background: #071226;
+  background: #fff9ef;
   font: inherit;
+  border-color: #b9aabd;
 }
 
 .field textarea {
@@ -495,13 +497,13 @@
 
 .field input::placeholder,
 .field textarea::placeholder {
-  color: #667892;
+  color: #625f6d;
 }
 
 .field input:hover,
 .field select:hover,
 .field textarea:hover {
-  border-color: rgba(57, 200, 242, 0.52);
+  border-color: #dbd0c5;
 }
 
 .notesField {
@@ -533,7 +535,7 @@
 
 .formError {
   margin: 1rem 0 0;
-  color: #fca5a5;
+  color: #8a4d0b;
   font-weight: 750;
 }
 
@@ -550,13 +552,13 @@
 
 .formLegal {
   margin: 1rem 0 0;
-  color: #7f90aa;
+  color: #625f6d;
   font-size: 0.72rem;
   line-height: 1.55;
 }
 
 .formLegal a {
-  color: #a8eaff;
+  color: #5135e5;
 }
 
 .successCard {
@@ -566,7 +568,7 @@
 .successCard > svg {
   width: 3rem;
   height: 3rem;
-  color: #40d89b;
+  color: #24724e;
 }
 
 .successCard p {
@@ -606,7 +608,7 @@
   bottom: 0;
   left: 0;
   border-top: 1px solid var(--line-strong);
-  background: rgba(5, 11, 25, 0.96);
+  background: #fff9ef;
   backdrop-filter: blur(14px);
 }
 
@@ -633,8 +635,8 @@
   place-items: center;
   border-radius: 999px;
   padding-inline: 0.5rem;
-  color: #fff;
-  background: var(--cobalt);
+  color: #5135e5;
+  background: #ede6f3;
   font-weight: 900;
 }
 
@@ -676,6 +678,7 @@
 
   .hero {
     padding-top: 1.1rem;
+    background: linear-gradient(135deg, #f6e9dc, #ede6f3);
   }
 
   .heroInner,
@@ -698,6 +701,7 @@
     flex-direction: column;
     gap: 0.2rem;
     padding: 0.75rem 0.85rem 0.85rem;
+    color: #625f6d;
   }
 
   .heroCopy h1 {

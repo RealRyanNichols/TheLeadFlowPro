@@ -112,6 +112,7 @@
 }
 
 .progressPanel {
+  min-width: 0;
   position: sticky;
   top: 94px;
   border: 1px solid var(--line);

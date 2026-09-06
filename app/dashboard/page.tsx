@@ -161,20 +161,18 @@ export default async function Dashboard() {
 
   return (
     <>
-      <style>{`.cc-dark h1, .cc-dark h2, .cc-dark h3 { color: #f4f6fa !important; }`}</style>
-
-      {/* Command hero — dark glass, real numbers */}
-      <section className="cc-dark bg-[#0a1220]">
+      {/* Command overview with the client's real project data. */}
+      <section className="bg-[#ede6f3]">
         <div className="mx-auto max-w-6xl px-4 pb-10 pt-10 sm:pt-14">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#35c6f4]">
+              <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[var(--blue)]">
                 Your command center
               </p>
               <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
                 {firstName}, here is your business system.
               </h1>
-              <p className="mt-2 max-w-xl text-sm text-[#a8b4c8]">
+              <p className="mt-2 max-w-xl text-sm text-[var(--muted)]">
                 {project
                   ? `${project.name} · ${STATUS_LABELS[project.status] ?? project.status}. Everything on this page is live data from your build.`
                   : "The moment your build kicks off, this page turns into live progress, files, and launch dates."}
@@ -182,39 +180,39 @@ export default async function Dashboard() {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               {project?.live_url && (
-                <a href={project.live_url} target="_blank" rel="noreferrer" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[#1240e8] px-5 text-sm font-extrabold text-white shadow-[0_0_28px_#1240e880]">
+                <a href={project.live_url} target="_blank" rel="noreferrer" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[var(--blue)] px-5 text-sm font-extrabold text-white shadow-sm">
                   <Rocket className="h-4 w-4" aria-hidden="true" /> Open my live system
                 </a>
               )}
-              <Link href="/dashboard/build-room" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#ffffff2e] px-5 text-sm font-bold text-[#e6ebf4]">
+              <Link href="/dashboard/build-room" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[var(--line-strong)] px-5 text-sm font-bold text-[var(--text)]">
                 Build Room <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
-              <SignOutButton className="inline-flex min-h-[44px] items-center rounded-xl border border-[#ffffff1f] px-4 text-xs font-bold text-[#8b97ad]" />
+              <SignOutButton className="inline-flex min-h-[44px] items-center rounded-xl border border-[var(--line)] px-4 text-xs font-bold text-[var(--muted)]" />
             </div>
           </div>
 
           {stats.length > 0 && (
             <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {stats.map((stat) => (
-                <div key={stat.label} className="rounded-2xl border border-[#ffffff1f] bg-[#111c30] p-5 shadow-[0_0_40px_#1240e81f]">
-                  <p className="text-[11px] font-extrabold uppercase tracking-wide text-[#8b97ad]">{stat.label}</p>
-                  <p className="mt-1 text-3xl font-black text-white [text-shadow:0_0_24px_#5b87ff4d]">{stat.value}</p>
-                  <p className="mt-1 text-xs text-[#a8b4c8]">{stat.sub}</p>
+                <div key={stat.label} className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-sm">
+                  <p className="text-[11px] font-extrabold uppercase tracking-wide text-[var(--muted)]">{stat.label}</p>
+                  <p className="mt-1 text-3xl font-black text-[var(--heading)]">{stat.value}</p>
+                  <p className="mt-1 text-xs text-[var(--muted)]">{stat.sub}</p>
                 </div>
               ))}
             </div>
           )}
 
           {project && milestones.length > 0 && (
-            <div className="mt-6 rounded-2xl border border-[#ffffff1f] bg-[#111c30] p-5">
+            <div className="mt-6 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
               <div className="flex items-baseline justify-between gap-3">
-                <p className="text-[11px] font-extrabold uppercase tracking-wide text-[#8b97ad]">
+                <p className="text-[11px] font-extrabold uppercase tracking-wide text-[var(--muted)]">
                   {activeMilestone ? `Now building: ${activeMilestone.title}` : "Every milestone is done"}
                 </p>
-                <span className="text-sm font-extrabold text-[#35c6f4]">{buildPct}%</span>
+                <span className="text-sm font-extrabold text-[var(--blue)]">{buildPct}%</span>
               </div>
-              <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-[#ffffff14]">
-                <div className="h-full rounded-full bg-gradient-to-r from-[#1240e8] to-[#35c6f4] shadow-[0_0_18px_#5b87ff99]" style={{ width: `${buildPct}%` }} />
+              <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-[var(--fill-3)]">
+                <div className="h-full rounded-full bg-gradient-to-r from-[#5135e5] to-[#957ddb]" style={{ width: `${buildPct}%` }} />
               </div>
             </div>
           )}

@@ -1,17 +1,17 @@
 .page {
-  --stage-ink: #030712;
-  --stage-ink-soft: #071329;
-  --stage-panel: #0c1930;
-  --stage-panel-strong: #10213d;
-  --stage-line: rgba(128, 163, 231, 0.2);
-  --stage-line-strong: rgba(111, 159, 255, 0.42);
-  --stage-white: #f7f9ff;
-  --stage-copy: #b7c3d8;
-  --stage-muted: #8292ad;
-  --stage-blue: #2059ff;
-  --stage-blue-deep: #1543d7;
-  --stage-cyan: #55dcff;
-  --stage-green: #62e2a1;
+  --stage-ink: #f3efe8;
+  --stage-ink-soft: #f6e9dc;
+  --stage-panel: #fff9ef;
+  --stage-panel-strong: #ede6f3;
+  --stage-line: #dbd0c5;
+  --stage-line-strong: #b9aabd;
+  --stage-white: #20212b;
+  --stage-copy: #34313f;
+  --stage-muted: #625f6d;
+  --stage-blue: #5135e5;
+  --stage-blue-deep: #3c25b6;
+  --stage-cyan: #5135e5;
+  --stage-green: #24724e;
   min-height: 100vh;
   overflow: hidden;
   background: var(--stage-ink);
@@ -44,9 +44,7 @@
   overflow: hidden;
   padding: clamp(30px, 4vw, 58px) 0 0;
   background:
-    radial-gradient(circle at 72% 22%, rgba(25, 91, 255, 0.28), transparent 36%),
-    radial-gradient(circle at 12% 80%, rgba(30, 195, 240, 0.12), transparent 28%),
-    linear-gradient(145deg, #030712 0%, #071329 58%, #050b18 100%);
+    radial-gradient(circle at 72% 22%, #ede6f3, transparent 46%), linear-gradient(145deg, #f6e9dc, #f3efe8);
 }
 
 .hero::before,
@@ -56,8 +54,8 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(93, 143, 255, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(93, 143, 255, 0.07) 1px, transparent 1px);
+    linear-gradient(rgba(81, 53, 229, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(81, 53, 229, 0.07) 1px, transparent 1px);
   background-size: 76px 76px;
   content: "";
   mask-image: linear-gradient(to bottom, #000, transparent 92%);
@@ -106,10 +104,10 @@
   width: 46px;
   height: 46px;
   flex: none;
-  border: 1px solid rgba(85, 220, 255, 0.34);
+  border: 1px solid #dbd0c5;
   border-radius: 13px;
-  background: rgba(85, 220, 255, 0.1);
-  box-shadow: 0 0 28px rgba(32, 89, 255, 0.28);
+  background: rgba(81, 53, 229, 0.1);
+  box-shadow: 0 2px 4px #4d32530a, 0 14px 32px #4d325310;
 }
 
 .iconBadge svg {
@@ -130,7 +128,7 @@
 .hero h1 em,
 .finalSection h2 em {
   display: block;
-  color: #7586a2;
+  color: #5135e5;
   font-style: normal;
 }
 
@@ -186,25 +184,25 @@
 }
 
 .buttonPrimary {
-  background: var(--stage-blue);
-  color: #fff;
-  box-shadow: 0 16px 36px rgba(32, 89, 255, 0.32);
+  background: #ffb443;
+  color: #20212b;
+  box-shadow: 0 2px 4px #4d32530a, 0 14px 32px #4d325310;
 }
 
 .buttonPrimary:hover {
-  background: var(--stage-blue-deep);
-  box-shadow: 0 20px 44px rgba(32, 89, 255, 0.4);
+  background: #ffc36a;
+  box-shadow: 0 2px 4px #4d32530a, 0 14px 32px #4d325310;
 }
 
 .buttonGhost {
-  border-color: rgba(190, 211, 255, 0.34);
-  background: rgba(255, 255, 255, 0.035);
+  border-color: #dbd0c5;
+  background: rgba(81, 53, 229, 0.035);
   color: var(--stage-white);
 }
 
 .buttonGhost:hover {
   border-color: var(--stage-cyan);
-  background: rgba(85, 220, 255, 0.09);
+  background: rgba(81, 53, 229, 0.09);
 }
 
 .ownershipLine {
@@ -232,11 +230,9 @@
   overflow: hidden;
   border: 1px solid var(--stage-line-strong);
   border-radius: clamp(22px, 3vw, 34px);
-  background: #061126;
+  background: #f6e9dc;
   box-shadow:
-    0 42px 100px rgba(0, 0, 0, 0.7),
-    0 0 80px rgba(22, 93, 255, 0.24),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    0 2px 4px #4d32530a, 0 14px 32px #4d325310;
   transform: perspective(1500px) rotateY(-2deg) rotateX(0.5deg);
   transform-origin: center right;
 }
@@ -274,7 +270,7 @@
 }
 
 .heroVisual figcaption span {
-  color: var(--stage-cyan);
+  color: #d4c9ff;
   font-size: 13px;
   font-weight: 850;
   letter-spacing: 0.18em;
@@ -283,7 +279,7 @@
 
 .heroVisual figcaption strong {
   max-width: 24ch;
-  color: #fff;
+  color: #ffffff;
   font-family: var(--font-archivo), Archivo, sans-serif;
   font-size: clamp(16px, 1.3vw, 19px);
   line-height: 1.2;
@@ -318,12 +314,12 @@
 
 .stageRail a:hover,
 .stageRail .stageCurrent {
-  background: rgba(32, 89, 255, 0.12);
+  background: rgba(81, 53, 229, 0.1);
   color: var(--stage-white);
 }
 
 .stageRail .stageCurrent {
-  box-shadow: inset 0 3px 0 var(--stage-cyan);
+  box-shadow: 0 2px 4px #4d32530a, 0 14px 32px #4d325310;
 }
 
 .stageRail svg {
@@ -422,7 +418,7 @@
   min-height: 92px;
   padding: 22px 24px 22px 0;
   border-bottom: 1px solid var(--stage-line);
-  color: #d6dfef;
+  color: #625f6d;
   font-size: 16px;
   line-height: 1.55;
 }
@@ -441,13 +437,13 @@
   height: 20px;
   flex: none;
   margin-top: 2px;
-  color: #ff8e9a;
+  color: #8a4d0b;
 }
 
 .buildSection {
   background:
-    radial-gradient(circle at 90% 10%, rgba(32, 89, 255, 0.2), transparent 34%),
-    linear-gradient(145deg, #081730, #091426 72%);
+    radial-gradient(circle at 90% 10%, rgba(81, 53, 229, 0.1), transparent 34%),
+    linear-gradient(145deg, #f3efe8, #f3efe8 72%);
 }
 
 .offerGrid {
@@ -480,9 +476,9 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  border: 1px solid rgba(85, 220, 255, 0.28);
+  border: 1px solid #dbd0c5;
   border-radius: 13px;
-  background: rgba(85, 220, 255, 0.08);
+  background: rgba(81, 53, 229, 0.08);
   color: var(--stage-cyan);
 }
 
@@ -506,8 +502,8 @@
 
 .comparisonSection {
   background:
-    radial-gradient(circle at 15% 85%, rgba(85, 220, 255, 0.12), transparent 28%),
-    #030712;
+    radial-gradient(circle at 15% 85%, rgba(81, 53, 229, 0.1), transparent 28%),
+    #f3efe8;
 }
 
 .comparisonGrid {
@@ -517,13 +513,13 @@
   overflow: hidden;
   border: 1px solid var(--stage-line-strong);
   border-radius: 24px;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 4px #4d32530a, 0 14px 32px #4d325310;
 }
 
 .rentColumn,
 .ownColumn {
   padding: clamp(26px, 4vw, 46px);
-  background: rgba(255, 255, 255, 0.025);
+  background: rgba(81, 53, 229, 0.025);
 }
 
 .rentColumn {
@@ -531,7 +527,7 @@
 }
 
 .ownColumn {
-  background: linear-gradient(145deg, rgba(32, 89, 255, 0.16), rgba(85, 220, 255, 0.05));
+  background: linear-gradient(145deg, rgba(81, 53, 229, 0.1), rgba(81, 53, 229, 0.05));
 }
 
 .columnLabel {
@@ -559,7 +555,7 @@
   gap: 13px;
   padding: 18px 0;
   border-bottom: 1px solid var(--stage-line);
-  color: #d8e1f0;
+  color: #625f6d;
   font-size: 15px;
   line-height: 1.55;
 }
@@ -576,7 +572,7 @@
 }
 
 .rentColumn svg {
-  color: #ff8e9a;
+  color: #8a4d0b;
 }
 
 .ownColumn svg {
@@ -585,8 +581,8 @@
 
 .toolsSection {
   background:
-    radial-gradient(circle at 70% 20%, rgba(32, 89, 255, 0.14), transparent 35%),
-    #071329;
+    radial-gradient(circle at 70% 20%, rgba(81, 53, 229, 0.1), transparent 35%),
+    #f3efe8;
 }
 
 .toolGrid {
@@ -605,7 +601,7 @@
   overflow: hidden;
   border: 1px solid var(--stage-line);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.035);
+  background: rgba(81, 53, 229, 0.035);
   color: var(--stage-white);
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
@@ -613,14 +609,14 @@
 .toolCard:hover {
   transform: translateY(-3px);
   border-color: var(--stage-line-strong);
-  box-shadow: 0 24px 54px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 2px 4px #4d32530a, 0 14px 32px #4d325310;
 }
 
 .toolArt {
   align-self: stretch;
   overflow: hidden;
   border-right: 1px solid var(--stage-line);
-  background: #eef3fa;
+  background: #fff9ef;
 }
 
 .toolArt img {
@@ -667,8 +663,8 @@
 
 .proofSection {
   background:
-    radial-gradient(circle at 84% 75%, rgba(85, 220, 255, 0.11), transparent 30%),
-    #050b18;
+    radial-gradient(circle at 84% 75%, rgba(81, 53, 229, 0.1), transparent 30%),
+    #f3efe8;
 }
 
 .proofGrid {
@@ -688,13 +684,13 @@
 }
 
 .proofNumber {
-  color: transparent;
+  color: #5135e5;
   font-family: var(--font-archivo), Archivo, sans-serif;
   font-size: 46px;
   font-weight: 900;
   letter-spacing: -0.06em;
   line-height: 1;
-  -webkit-text-stroke: 1px rgba(111, 159, 255, 0.58);
+  -webkit-text-stroke: 0;
 }
 
 .proofGrid h3 {
@@ -733,8 +729,7 @@
   padding: clamp(72px, 9vw, 128px) 0;
   border-top: 1px solid var(--stage-line-strong);
   background:
-    radial-gradient(circle at 76% 40%, rgba(32, 89, 255, 0.32), transparent 36%),
-    linear-gradient(145deg, #071329, #020612);
+    linear-gradient(135deg, #f6e9dc, #ede6f3);
 }
 
 .finalSection .kicker {
@@ -790,6 +785,7 @@
 
   .hero {
     padding-top: 18px;
+    background: radial-gradient(circle at 72% 22%, #ede6f3, transparent 46%), linear-gradient(145deg, #f6e9dc, #f3efe8);
   }
 
   .heroGrid {
@@ -812,6 +808,7 @@
   .heroVisual figcaption strong {
     max-width: 30ch;
     text-align: left;
+    color: #ffffff;
   }
 
   .hero h1 {
@@ -892,6 +889,8 @@
 
   .proofNumber {
     font-size: 36px;
+    color: #5135e5;
+    -webkit-text-stroke: 0;
   }
 
   .proofLink {
@@ -901,6 +900,7 @@
 
   .finalSection {
     padding: 68px 0;
+    background: linear-gradient(135deg, #f6e9dc, #ede6f3);
   }
 
   .finalSection h2 {

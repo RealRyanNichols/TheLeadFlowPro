@@ -146,4 +146,151 @@ You do not have to become a software expert to do this. Start with your own reco
 If the handoff needs help, [find your next business step](/start). If you want to run the numbers again later, save the [After-Hours Lead Calculator](/tools/after-hours-lead-calculator).
 `,
   },
+  {
+    slug: "insurance-agent-lead-response",
+    title: "How fast should an insurance agent respond to a lead?",
+    description:
+      "Review your insurance agency's first replies, find the handoff that stalls, and use a simple response template and calculator to plan a better process.",
+    publishedAt: "2026-09-08",
+    readingMinutes: 7,
+    ogImage: "/og/tools/lead-response-time.jpg",
+    tool: {
+      slug: "lead-response-time",
+      heading: "Explore a reply-time scenario",
+      intro:
+        "This calculator applies a fixed mathematical model to your inputs. It does not use insurance industry data or your agency's actual conversion history. Use it to explore a question, then check your records before making a decision.",
+      steps: [
+        {
+          name: "Count distinct inquiries",
+          text: "Leads per month means separate new-business inquiries for this exercise. Remove spam and repeat messages about the same request. Keep existing-customer service requests in a separate review.",
+        },
+        {
+          name: "Measure a helpful reply",
+          text: "For Hours before you usually reply, measure from receipt to a person reviewing the request and giving a useful next step. An automatic receipt is a different event. The slider uses whole hours, so keep exact minutes in your own log.",
+        },
+        {
+          name: "Keep the value definition consistent",
+          text: "Average job value is a generic field. For an agency scenario, use an estimate of revenue the agency retains per completed sale for a defined period. Do not enter a customer's premium as though all of it were agency revenue. Leave out future renewals you cannot support.",
+        },
+        {
+          name: "Label an estimated close rate",
+          text: "Your close rate when you do reply fast is an assumption unless you have comparable records. Use the same definition of a completed sale and the same period as your value input. Try more than one scenario if you do not know the rate.",
+        },
+      ],
+      readIt: [
+        "The tool's label Lost every year to slow replies is a modeled difference, not a measurement of money your agency lost. Its fixed curve cannot show what caused an actual outcome.",
+        "Five minutes is the model's comparison point, not a verified insurance benchmark, required response deadline, or promise that a quick reply wins a customer.",
+        "The result excludes staffing costs and other expenses. An automatic acknowledgment, a useful conversation, a quote, and a completed sale are separate steps.",
+      ],
+      formHeading: "Where does a new inquiry get stuck?",
+      formLead:
+        "Tell us whether the gap is seeing the message, assigning it, or making the next step clear. Describe the process without including policy numbers, applications, or private customer records.",
+      interest: "blueprint",
+      industry: "Insurance agencies",
+    },
+    faq: [
+      {
+        q: "Does the first reply have to include an insurance quote?",
+        a: "No. A helpful first reply can confirm that a person reviewed the request and explain the next step. Do not rush an unverified price or coverage statement into a message to meet an internal response target.",
+      },
+      {
+        q: "Should an automated acknowledgment count as a response?",
+        a: "Track it separately from the first helpful human reply. A receipt can say that the message arrived, but it does not prove anyone reviewed the request, confirmed availability, or prepared a quote.",
+      },
+      {
+        q: "What if one agent cannot watch the inbox all day?",
+        a: "Choose realistic review windows and a named backup for times when the owner is unavailable. Set expectations around that schedule. A shared inbox still needs clear ownership so two people do not reply while another inquiry receives no response.",
+      },
+      {
+        q: "Does a faster reply prove that more policies will be sold?",
+        a: "No. The person's needs, available products, price, service, and other factors affect the outcome. Track response time and completed sales separately, and mark outcomes unknown when you cannot confirm them.",
+      },
+    ],
+    body: `When someone asks your insurance agency for help, the first useful answer may be simple: your request reached a person, here is who is handling it, and here is what happens next.
+
+That is a process you can improve without buying another system. I would start with three recent inquiries and look for the point where each one waited.
+
+You do not need to be a technology expert. You need the received time, the first helpful reply, and a clear owner.
+
+## Define the reply before you measure it
+
+For this exercise, a helpful first reply means a person reviewed the request and gave a relevant next step. It might offer a time to talk or explain how to provide information through your agency's approved process.
+
+It does not have to include a quote. It should not promise a price, eligibility, or coverage that has not been confirmed.
+
+Track an automatic acknowledgment separately. “We received your message” can set an expectation, but it does not tell you whether a person has started helping. Record quote preparation and completed sales as later events, too.
+
+Choose a response target your team can maintain during its stated working hours. Use your own staffing and inquiry records to set it. Do not borrow a five-minute slogan and turn it into a promise your office cannot keep.
+
+## Read three fictional inquiry records
+
+These practice records are invented to show the method. They are not customer results or an industry average. All three arrived during the same fictional office day.
+
+- Inquiry A arrived at **9:10 a.m.** A helpful reply went out at **9:20 a.m.** The wait was **10 minutes**.
+- Inquiry B arrived at **11:00 a.m.** A helpful reply went out at **12:20 p.m.** The wait was **80 minutes**.
+- Inquiry C arrived at **2:30 p.m.** A helpful reply went out at **2:45 p.m.** The wait was **15 minutes**.
+
+The total wait is 105 minutes. Divide by three and the average is **35 minutes**. Put the waits in order, 10, 15, 80, and the middle value is **15 minutes**.
+
+Both numbers are correct, but neither explains the long wait. Open inquiry B's record and ask what happened. Was the message unseen? Was the owner unavailable? Did two people each think the other had it?
+
+Do not count an unanswered inquiry as a zero-minute reply or quietly leave it out. Put it in an unanswered group with its current age. Keep after-hours inquiries separate so the review reflects when somebody could actually respond.
+
+## Use the calculator as a question, not a verdict
+
+The free calculator below compares a reply-time scenario with roughly five minutes. It applies the same fixed curve to every business. It has no evidence that this curve describes your agency.
+
+For a fictional practice run, enter **20** leads, **2** hours, **$200** average job value, and a **25%** fast-reply close rate. The $200 is an invented agency-revenue input for the exercise, not a premium, commission estimate, or insurance recommendation.
+
+Those inputs display about **$270 a month** and **$3,243 a year** in modeled difference. The annual display uses the unrounded monthly calculation, which explains why multiplying the rounded $270 by twelve gives a different total.
+
+That is not money your agency has been shown to lose. A larger calculator number does not prove that staffing, software, or automatic replies will recover it. Your own records must answer whether the process change helped.
+
+{{TOOL}}
+
+## Give the inbox a person and a backup
+
+Start with the system your team already uses. For an agency using Microsoft 365, Outlook shared mailboxes let a group monitor messages and reply from a shared address. An administrator must create the mailbox and add its members before they can use it. [Microsoft: open and use a shared mailbox in Outlook](https://support.microsoft.com/en-us/outlook/sharing/open-and-use-a-shared-mailbox-in-outlook)
+
+Sharing access does not assign the work. Decide who owns each inquiry, when that person will review it, and who takes over if they are unavailable. Read the existing conversation before replying so the customer does not have to start over.
+
+If you work alone, your backup can be a scheduled review window you can honestly maintain. Make your public hours and reply expectations match that reality.
+
+## Copy this into your existing process
+
+Use an inquiry reference in the handoff. Keep sensitive documents in the agency's approved system rather than pasting them into a shared checklist or AI prompt.
+
+\`\`\`text
+INQUIRY HANDOFF
+
+Inquiry reference:
+Received date and time:
+Request in one sentence:
+Owner:
+Backup or next review window:
+First helpful reply sent at:
+Next action and due time:
+Contact preference or stop-contact instruction:
+Outcome: open / completed / declined / unknown
+
+FIRST-REPLY STARTER
+
+Hi [first name], thank you for reaching out about
+[their request]. I'm [name], and I'll help with
+the next step.
+
+[One confirmed next step, such as an available
+time to talk or your approved intake process.]
+
+[If needed, state when you will check back.
+Only include a time you can actually meet.]
+\`\`\`
+
+Fill in the brackets and review the message before sending. The template does not authorize a quote, confirm coverage, or replace your agency's review process.
+
+At the end of the week, count unanswered inquiries, completed handoffs, and missed review times. Pick one gap to fix. You can improve a small process at any age and with the tools you already know.
+
+For the next step, use the [inquiry ownership checklist](/articles/give-every-inquiry-an-owner-and-next-step). If your team needs help making that process work, [find your next business step](/start).
+`,
+  },
 ];

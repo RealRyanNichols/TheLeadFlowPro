@@ -66,7 +66,37 @@
     {
       "observedAt": "2026-09-05T11:28:20.083Z",
       "issue": "Mobile review at a 390px device viewport found 630px page width from unwrapped prompt/code content.",
-      "recovery": "Scoped article-body.css wraps prompt lines without changing copyable text. Verify the repaired live article after deployment."
+      "recovery": "Scoped article-body.css wraps prompt lines without changing copyable text. Verify the repaired live article after deployment.",
+      "resolvedAt": "2026-09-05T11:32:53.552Z",
+      "resolvedByCommit": "3ababb022c8b0a55341a878ca33022c32d8ac8ff"
+    }
+  ],
+  "followUpChecks": [
+    {
+      "contentCommit": "3ababb022c8b0a55341a878ca33022c32d8ac8ff",
+      "deployment": {
+        "id": "dpl_FZcXaKo6isze6wpNJ5yUX7cgNRvq",
+        "url": "https://the-lead-flow-pfwarqjmc-realryannichols.vercel.app",
+        "status": "READY",
+        "verifiedAt": "2026-09-05T11:32:29.285Z"
+      },
+      "liveCheck": {
+        "checkedAt": "2026-09-05T11:32:29.285Z",
+        "url": "https://www.theleadflowpro.com/articles/give-every-inquiry-an-owner-and-next-step",
+        "httpStatus": 200,
+        "bodyVerified": true,
+        "canonicalVerified": true,
+        "indexPresent": true,
+        "sitemapPresent": true
+      },
+      "mobileCheck": {
+        "checkedAt": "2026-09-05T11:32:53.552Z",
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "promptBlocks": 3,
+        "allPromptBlocksFit": true,
+        "wrapping": "pre-wrap"
+      }
     }
   ]
 }

@@ -80,10 +80,10 @@ export default async function OutreachActionCenter() {
 
   return (
     <div className="space-y-7">
-      <section className="overflow-hidden rounded-[28px] border border-[#ffffff1f] bg-[#07111f] p-6 text-white shadow-[0_30px_90px_rgba(7,17,31,0.24)] sm:p-8">
-        <p className="text-xs font-black uppercase tracking-[0.22em] text-[#50d4ff]">Human-gated execution</p>
+      <section className="overflow-hidden rounded-[28px] border border-[var(--line)] bg-[#ede6f3] p-6 text-[var(--heading)] shadow-[var(--lf-shadow)] sm:p-8">
+        <p className="text-xs font-black uppercase tracking-[0.22em] text-[var(--blue)]">Human-gated execution</p>
         <h1 className="mt-2 text-4xl font-black tracking-tight sm:text-5xl">Outreach Action Center</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-[#b8c5d9]">This is the working queue between a drafted idea and a real message. Verify the decision-maker, edit the draft, approve it, send it yourself, then record the result.</p>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--muted)]">This is the working queue between a drafted idea and a real message. Verify the decision-maker, edit the draft, approve it, send it yourself, then record the result.</p>
       </section>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -94,11 +94,11 @@ export default async function OutreachActionCenter() {
           ["Verified contacts", verified, ContactRound, `${missingContact} still need a route`],
         ].map(([label, value, Icon, note]) => {
           const C = Icon as typeof Target;
-          return <section key={String(label)} className="rounded-2xl border border-[var(--line)] bg-white p-5"><C className="h-5 w-5 text-[var(--blue)]" /><p className="mt-3 text-xs font-black uppercase tracking-wide text-[var(--muted)]">{String(label)}</p><p className="mt-1 text-3xl font-black text-[var(--heading)]">{String(value)}</p><p className="mt-1 text-xs text-[var(--muted)]">{String(note)}</p></section>;
+          return <section key={String(label)} className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5"><C className="h-5 w-5 text-[var(--blue)]" /><p className="mt-3 text-xs font-black uppercase tracking-wide text-[var(--muted)]">{String(label)}</p><p className="mt-1 text-3xl font-black text-[var(--heading)]">{String(value)}</p><p className="mt-1 text-xs text-[var(--muted)]">{String(note)}</p></section>;
         })}
       </div>
 
-      <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
+      <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--panel)] shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
         <div className="border-b border-[var(--line)] px-5 py-4"><h2 className="font-black text-[var(--heading)]">Work in this order</h2><p className="mt-1 text-xs text-[var(--muted)]">Priority A first, then due time. Nothing auto-sends.</p></div>
         <div className="divide-y divide-[var(--line)]">
           {prospects.map((prospect) => {

@@ -271,13 +271,13 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   margin-top: 60px;
-  border: 1px solid var(--cb-hair-ink);
+  border: 1px solid var(--cb-hair);
 }
 
 .metricGrid > div {
   min-height: 150px;
   padding: 25px;
-  border-right: 1px solid var(--cb-hair-ink);
+  border-right: 1px solid var(--cb-hair);
 }
 
 .metricGrid > div:last-child {
@@ -286,7 +286,7 @@
 
 .metricGrid strong {
   display: block;
-  color: #fff;
+  color: var(--cb-ink);
   font-family: var(--font-archivo), Archivo, sans-serif;
   font-size: 38px;
   letter-spacing: -0.05em;
@@ -295,7 +295,7 @@
 .metricGrid span {
   display: block;
   margin-top: 32px;
-  color: var(--cb-muted-ink);
+  color: var(--cb-muted);
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -303,8 +303,8 @@
 
 .leadPanel {
   margin-top: 20px;
-  border: 1px solid var(--cb-hair-ink);
-  background: #ffffff08;
+  border: 1px solid var(--cb-hair);
+  background: var(--cb-surface);
 }
 
 .leadPanel > header,
@@ -317,7 +317,7 @@
 
 .leadPanel > header {
   padding: 19px 21px;
-  border-bottom: 1px solid var(--cb-hair-ink);
+  border-bottom: 1px solid var(--cb-hair);
 }
 
 .leadPanel > header > div {
@@ -345,7 +345,7 @@
 
 .leadRows > div {
   min-height: 72px;
-  border-bottom: 1px solid var(--cb-hair-ink);
+  border-bottom: 1px solid var(--cb-hair);
 }
 
 .leadRows > div > div {
@@ -355,14 +355,14 @@
 }
 
 .leadRows strong {
-  color: #fff;
+  color: var(--cb-ink);
   font-size: 15px;
 }
 
 .leadRows span,
 .leadRows time,
 .leadPanel > p {
-  color: var(--cb-muted-ink);
+  color: var(--cb-muted);
   font-size: 13px;
 }
 
@@ -421,7 +421,7 @@
   }
 
   .metricGrid > div:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--cb-hair-ink);
+    border-bottom: 1px solid var(--cb-hair);
   }
 }
 
@@ -454,7 +454,7 @@
   .metricGrid > div,
   .metricGrid > div:nth-child(2) {
     border-right: 0;
-    border-bottom: 1px solid var(--cb-hair-ink);
+    border-bottom: 1px solid var(--cb-hair);
   }
 
   .metricGrid > div:last-child {

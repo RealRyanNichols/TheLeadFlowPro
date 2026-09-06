@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import BrandLockup from "@/components/BrandLockup";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Menu } from "lucide-react";
 
@@ -30,18 +30,7 @@ export default function SiteHeader() {
   return (
     <header className="site-header">
       <div className="site-header-inner">
-        <Link
-          href="/"
-          className="brand-lockup"
-          aria-label="The LeadFlow Pro home"
-        >
-          <span className="brand-mark brand-mark-logo" aria-hidden="true">
-            <Image src="/images/brand/leadflow-logo.png" alt="" width={96} height={96} sizes="64px" priority />
-          </span>
-          <span className="brand-words">
-            THE LEAD FLOW<small>PRO / YOUR NEXT MOVE</small>
-          </span>
-        </Link>
+        <BrandLockup />
         <nav className="desktop-nav" aria-label="Primary navigation">
           {NAV_LINKS.map(([href, label]) => (
             <Link

@@ -55,6 +55,7 @@ const V4_ARTICLE_ART = Object.fromEntries(
 ) as Record<string, string>;
 
 const PREMIUM_ARTICLE_ART: Record<string, string> = {
+  "insurance-agent-lead-response": "/og/tools/lead-response-time.jpg",
   "locksmith-after-hours-calls": "/og/tools/after-hours-lead-calculator.jpg",
   "one-useful-business-task-with-ai":
     "/images/articles-v4/ai-website-small-business-2026.jpg",
@@ -86,6 +87,7 @@ const PREMIUM_ARTICLE_OG_ART: Record<string, string> = {
 };
 
 const VISUAL_HEADLINES: Record<string, string> = {
+  "insurance-agent-lead-response": "Make the First Reply Useful",
   "locksmith-after-hours-calls": "Know Your After-Hours Gap",
   "one-useful-business-task-with-ai": "One Task. One Useful Result.",
   "give-every-inquiry-an-owner-and-next-step": "Every Inquiry Has a Next Step",
@@ -139,6 +141,8 @@ const VISUAL_HEADLINES: Record<string, string> = {
 };
 
 const PREMIUM_ARTICLE_ALT: Record<string, string> = {
+  "insurance-agent-lead-response":
+    "LeadFlow Lead Response Time Calculator card with blue and gray comparison bars on a navy background",
   "locksmith-after-hours-calls":
     "LeadFlow After-Hours Lead Calculator card with a purple phone and message panels on a navy background",
   "one-useful-business-task-with-ai":

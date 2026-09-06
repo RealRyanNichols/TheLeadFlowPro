@@ -145,20 +145,20 @@ export default async function VerifiedCashLedger() {
 
   return (
     <div className="space-y-7">
-      <section className="overflow-hidden rounded-[28px] border border-[#ffffff1f] bg-[#07111f] p-6 text-white shadow-[0_30px_90px_rgba(7,17,31,0.24)] sm:p-8">
+      <section className="overflow-hidden rounded-[28px] border border-[var(--line)] bg-[#ede6f3] p-6 text-[var(--heading)] shadow-[var(--lf-shadow)] sm:p-8">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-[#50d4ff]">OperatorOS · money received</p>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-[var(--blue)]">OperatorOS · money received</p>
             <h1 className="mt-2 text-4xl font-black tracking-tight sm:text-5xl">Verified Cash Ledger</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-[#b8c5d9]">One conservative cash number built from three separate sources. Paid checkouts, paid invoices, and offline payments confirmed by a human are included. Open invoices, proposals, expected value, and verbal commitments are excluded.</p>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--muted)]">One conservative cash number built from three separate sources. Paid checkouts, paid invoices, and offline payments confirmed by a human are included. Open invoices, proposals, expected value, and verbal commitments are excluded.</p>
           </div>
-          <Link href="/admin/operator/growth" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-[#1240e8] px-5 text-sm font-black text-white">Open Goal Mode <ArrowRight className="h-4 w-4" /></Link>
+          <Link href="/admin/operator/growth" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-[var(--blue)] px-5 text-sm font-black text-white">Open Goal Mode <ArrowRight className="h-4 w-4" /></Link>
         </div>
       </section>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map(({ label, value, note, icon: Icon }) => (
-          <section key={label} className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_10px_30px_rgba(10,18,32,0.04)]">
+          <section key={label} className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_10px_30px_rgba(10,18,32,0.04)]">
             <Icon className="h-5 w-5 text-[var(--blue)]" />
             <p className="mt-3 text-xs font-black uppercase tracking-wide text-[var(--muted)]">{label}</p>
             <p className="mt-1 text-3xl font-black tracking-tight text-[var(--heading)]">{value}</p>
@@ -170,7 +170,7 @@ export default async function VerifiedCashLedger() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,.72fr)]">
         <CashEntryForm />
 
-        <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
+        <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
           <div className="flex items-start gap-3">
             <ReceiptText className="mt-0.5 h-5 w-5 text-[var(--blue)]" />
             <div><h2 className="text-xl font-black text-[var(--heading)]">Cash by source</h2><p className="mt-1 text-sm leading-6 text-[var(--muted)]">Separate lanes make reconciliation visible and prevent a paid invoice from being mistaken for an open one.</p></div>
@@ -191,7 +191,7 @@ export default async function VerifiedCashLedger() {
         </section>
       </div>
 
-      <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
+      <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--panel)] shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
         <div className="border-b border-[var(--line)] px-5 py-4"><h2 className="font-black text-[var(--heading)]">Verified receipt history</h2><p className="mt-1 text-xs text-[var(--muted)]">Most recent first. Offline entries can be voided but not erased.</p></div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-left text-sm">
@@ -215,11 +215,11 @@ export default async function VerifiedCashLedger() {
 
       {(openInvoices.length > 0 || voidEntries.length > 0) && (
         <div className="grid gap-6 lg:grid-cols-2">
-          <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
+          <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
             <h2 className="font-black text-[var(--heading)]">Open invoices excluded from cash</h2>
             <div className="mt-4 space-y-3">{openInvoices.map((invoice) => <div key={invoice.id} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--line)] p-3"><div><p className="font-black text-[var(--heading)]">{invoice.customer_name || invoice.customer_email || invoice.invoice_number || "Invoice"}</p><p className="mt-1 text-xs text-[var(--muted)]">{invoice.status} · due {invoice.due_date || "not set"}</p></div><p className="font-black text-[var(--text)]">{money(Number(invoice.subtotal_cents || 0) / 100)}</p></div>)}</div>
           </section>
-          <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
+          <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
             <h2 className="font-black text-[var(--heading)]">Recent voids</h2>
             <div className="mt-4 space-y-3">{voidEntries.map((entry) => <div key={entry.id} className="rounded-xl border border-red-100 bg-red-50 p-3"><div className="flex items-center justify-between gap-3"><p className="font-black text-red-950">{entry.payer_name || "Offline payment"}</p><p className="font-black text-red-800">{money(Number(entry.amount_cents || 0) / 100)}</p></div><p className="mt-1 text-xs text-red-800">{entry.source} · {entry.void_reason || "No reason recorded"}</p></div>)}</div>
           </section>

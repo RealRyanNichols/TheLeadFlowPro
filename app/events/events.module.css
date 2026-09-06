@@ -18,7 +18,7 @@
   flex-wrap: wrap;
   gap: 22px;
   margin-top: 26px;
-  color: var(--cb-muted-ink);
+  color: var(--cb-muted);
   font-size: 14px;
   font-weight: 700;
 }
@@ -240,14 +240,14 @@
 }
 
 .cadenceCard h3 {
-  color: var(--cb-on-ink);
+  color: var(--cb-ink);
   font-size: 17px;
   font-weight: 800;
   margin: 0 0 8px;
 }
 
 .cadenceCard p {
-  color: var(--cb-muted-ink);
+  color: var(--cb-muted);
   font-size: 15.5px;
   line-height: 1.6;
   margin: 0;

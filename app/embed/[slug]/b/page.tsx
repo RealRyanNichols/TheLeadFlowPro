@@ -51,17 +51,21 @@ export default async function BrandedEmbedPage({
     : "";
 
   return (
-    <div className="fixed inset-0 z-[999] overflow-auto bg-[#0e1a2e] p-3 sm:p-4">
+    <div className="fixed inset-0 z-[999] overflow-auto bg-[var(--page)] p-3 sm:p-4">
       <EmbedAutoHeight slug={tool.slug}>
         <ToolEngine slug={tool.slug} embedded />
         {brand ? (
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#20212b] px-4 py-3">
             <p className="text-sm font-bold text-white">
               A free tool from {brand.n}
               {tel ? (
                 <>
                   {" · "}
-                  <a href={`tel:+${tel}`} className="font-black underline" style={{ color: accent }}>
+                  <a
+                    href={`tel:+${tel}`}
+                    className="font-black underline"
+                    style={{ color: accent }}
+                  >
                     {prettyTel}
                   </a>
                 </>

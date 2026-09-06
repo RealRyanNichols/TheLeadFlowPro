@@ -33,6 +33,24 @@
       "checkedAt": "2026-09-05T11:19:12.547500Z",
       "claim": "The live availability endpoint reports registration_open=true, payment_ready=true, seats_remaining=10, capacity=10, price_usd=97, and starts_at=2026-09-17T23:30:00+00:00. These are the endpoint's observed readiness and inventory values, not proof of a completed payment.",
       "httpStatus": 200
+    },
+    {
+      "url": "https://support.claude.com/en/articles/7996857-my-prompt-isn-t-giving-me-a-helpful-answer",
+      "checkedAt": "2026-09-06T17:23:46.302017Z",
+      "claim": "Current official help article still recommends clear and specific instructions, context, breaking complex requests into substeps, and feedback. The LeadFlow worksheet and prompt remain identified as its practical application.",
+      "verificationMethod": "Read official source through web tool."
+    },
+    {
+      "url": "https://workshop.theleadflowpro.com/",
+      "checkedAt": "2026-09-06T17:21:48.436826+00:00",
+      "claim": "The canonical workshop page still shows September 17, 2026, 6:30-8:00 PM Central in Longview, Texas, $97 per attendee, a maximum of 10 paid attendees, and a link to the existing registration page.",
+      "httpStatus": 200
+    },
+    {
+      "url": "https://www.theleadflowpro.com/api/events/availability?slug=chatgpt-for-business-owners-longview",
+      "checkedAt": "2026-09-06T17:21:48.696538+00:00",
+      "claim": "Observed registration_open=true, payment_ready=true, seats_remaining=10, capacity=10, price_usd=97, starts_at=2026-09-17T23:30:00+00:00. Availability and readiness are endpoint values, not proof of a completed payment.",
+      "httpStatus": 200
     }
   ],
   "scheduledCheck": {
@@ -63,6 +81,134 @@
       "homeAbsent": true,
       "todayArticleStatus": 200,
       "todayArticleAbsent": true
+    }
+  },
+  "followUpChecks": [
+    {
+      "contentCommit": "3ababb022c8b0a55341a878ca33022c32d8ac8ff",
+      "deployment": {
+        "id": "dpl_FZcXaKo6isze6wpNJ5yUX7cgNRvq",
+        "url": "https://the-lead-flow-pfwarqjmc-realryannichols.vercel.app",
+        "status": "READY",
+        "verifiedAt": "2026-09-05T11:32:29.285Z"
+      },
+      "scheduledCheck": {
+        "checkedAt": "2026-09-05T11:32:29.285Z",
+        "detailStatus": 404,
+        "ogStatus": 404,
+        "noindex": true,
+        "ogNoindex": true,
+        "noStore": true,
+        "ogNoStore": true,
+        "indexAbsent": true,
+        "relatedAbsent": true,
+        "sitemapAbsent": true
+      }
+    },
+    {
+      "contentCommit": "3ababb022c8b0a55341a878ca33022c32d8ac8ff",
+      "deployment": {
+        "id": "dpl_FZcXaKo6isze6wpNJ5yUX7cgNRvq",
+        "url": "https://the-lead-flow-pfwarqjmc-realryannichols.vercel.app",
+        "status": "READY",
+        "verifiedAt": "2026-09-06T17:24:04.743Z"
+      },
+      "liveCheck": {
+        "checkedAt": "2026-09-06T17:21:48.362636+00:00",
+        "contentCommit": "3ababb022c8b0a55341a878ca33022c32d8ac8ff",
+        "deploymentId": "dpl_FZcXaKo6isze6wpNJ5yUX7cgNRvq",
+        "url": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop",
+        "httpStatus": 200,
+        "bodyVerified": true,
+        "canonicalVerified": true,
+        "canonicalUrl": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop",
+        "indexPresent": true,
+        "sitemapPresent": true,
+        "metadataVerified": true,
+        "ogCheck": {
+          "checkedAt": "2026-09-06T17:22:38.501632+00:00",
+          "url": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop/opengraph-image",
+          "httpStatus": 200,
+          "contentType": "image/png",
+          "width": 1200,
+          "height": 630
+        },
+        "bodyEvidence": [
+          "Preparation worksheet fields rendered",
+          "Copyable one-step teaching prompt rendered",
+          "Five-item completion checklist rendered",
+          "Workshop and course calls to action rendered"
+        ],
+        "workshopCtaCheck": {
+          "checkedAt": "2026-09-06T17:21:50.033855+00:00",
+          "href": "/events",
+          "finalUrl": "https://workshop.theleadflowpro.com/",
+          "httpStatus": 200,
+          "registrationUrl": "https://www.theleadflowpro.com/events/chatgpt-for-business-owners-longview",
+          "registrationStatus": 200,
+          "availability": {
+            "title": "ChatGPT for Business Owners: Live in Longview",
+            "slug": "chatgpt-for-business-owners-longview",
+            "starts_at": "2026-09-17T23:30:00+00:00",
+            "price_usd": 97,
+            "capacity": 10,
+            "clinic_enabled": true,
+            "seats_remaining": 10,
+            "payment_ready": true,
+            "registration_open": true,
+            "registration_url": "https://www.theleadflowpro.com/events/chatgpt-for-business-owners-longview"
+          },
+          "scope": "Read-only page and availability checks. No registration, checkout, payment, email, or social action was submitted."
+        }
+      }
+    }
+  ],
+  "liveCheck": {
+    "checkedAt": "2026-09-06T17:21:48.362636+00:00",
+    "contentCommit": "3ababb022c8b0a55341a878ca33022c32d8ac8ff",
+    "deploymentId": "dpl_FZcXaKo6isze6wpNJ5yUX7cgNRvq",
+    "url": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop",
+    "httpStatus": 200,
+    "bodyVerified": true,
+    "canonicalVerified": true,
+    "canonicalUrl": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop",
+    "indexPresent": true,
+    "sitemapPresent": true,
+    "metadataVerified": true,
+    "ogCheck": {
+      "checkedAt": "2026-09-06T17:22:38.501632+00:00",
+      "url": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop/opengraph-image",
+      "httpStatus": 200,
+      "contentType": "image/png",
+      "width": 1200,
+      "height": 630
+    },
+    "bodyEvidence": [
+      "Preparation worksheet fields rendered",
+      "Copyable one-step teaching prompt rendered",
+      "Five-item completion checklist rendered",
+      "Workshop and course calls to action rendered"
+    ],
+    "workshopCtaCheck": {
+      "checkedAt": "2026-09-06T17:21:50.033855+00:00",
+      "href": "/events",
+      "finalUrl": "https://workshop.theleadflowpro.com/",
+      "httpStatus": 200,
+      "registrationUrl": "https://www.theleadflowpro.com/events/chatgpt-for-business-owners-longview",
+      "registrationStatus": 200,
+      "availability": {
+        "title": "ChatGPT for Business Owners: Live in Longview",
+        "slug": "chatgpt-for-business-owners-longview",
+        "starts_at": "2026-09-17T23:30:00+00:00",
+        "price_usd": 97,
+        "capacity": 10,
+        "clinic_enabled": true,
+        "seats_remaining": 10,
+        "payment_ready": true,
+        "registration_open": true,
+        "registration_url": "https://www.theleadflowpro.com/events/chatgpt-for-business-owners-longview"
+      },
+      "scope": "Read-only page and availability checks. No registration, checkout, payment, email, or social action was submitted."
     }
   }
 }

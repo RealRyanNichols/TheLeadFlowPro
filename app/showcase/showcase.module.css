@@ -20,9 +20,9 @@
   max-width: 620px;
   margin-top: 42px;
   padding: 16px 18px;
-  border: 1px solid #35c6f438;
-  color: var(--cb-on-ink);
-  background: #35c6f40c;
+  border: 1px solid #dbd0c5;
+  color: #34313f;
+  background: #ede6f3;
 }
 
 .demoBadge svg {
@@ -40,37 +40,37 @@
 }
 
 .demoBadge span {
-  color: var(--cb-muted-ink);
+  color: #625f6d;
   font-size: 13px;
 }
 
 .dashboard {
-  --page: #06101f;
-  --panel: #0b1930;
-  --fill-1: #0b1930;
-  --fill-2: #0e203b;
-  --fill-3: #ffffff12;
-  --line: #ffffff18;
-  --line-strong: #ffffff2b;
-  --heading: #ffffff;
-  --text: #d5deea;
-  --muted: #a8b4c8;
-  --quiet: #7f8ca3;
-  --blue: #5b87ff;
-  --violet: #a999ff;
-  --green: #4ade80;
+  --page: #f3efe8;
+  --panel: #fff9ef;
+  --fill-1: #fff9ef;
+  --fill-2: #ede6f3;
+  --fill-3: #f6e9dc;
+  --line: #dbd0c5;
+  --line-strong: #b9aabd;
+  --heading: #20212b;
+  --text: #34313f;
+  --muted: #625f6d;
+  --quiet: #625f6d;
+  --blue: #5135e5;
+  --violet: #5135e5;
+  --green: #24724e;
   margin-top: 28px;
 }
 
 .dashboard :global(.card) {
-  border-color: #ffffff1f;
-  background: #0b1930;
-  box-shadow: 0 18px 45px #0000002e;
+  border-color: #dbd0c5;
+  background: #fff9ef;
+  box-shadow: 0 2px 4px #4d32530a, 0 14px 32px #4d325310;
 }
 
 .dashboard :global(h2),
 .dashboard :global(h3) {
-  color: #ffffff;
+  color: #20212b;
 }
 
 .dashboard :global(.showcase-event-icon) {
@@ -79,9 +79,9 @@
   height: 26px;
   flex: 0 0 26px;
   place-items: center;
-  border: 1px solid #35c6f43d;
+  border: 1px solid #dbd0c5;
   color: var(--cb-cyan);
-  background: #35c6f412;
+  background: rgba(81, 53, 229, 0.071);
 }
 
 .dashboard :global(.showcase-event-icon svg) {

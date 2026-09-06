@@ -334,15 +334,15 @@ export default async function FlowMissionControl() {
 
   return (
     <div className="space-y-6">
-      <section className="overflow-hidden rounded-[28px] border border-[#20365d] bg-[#091222] text-white shadow-[0_24px_80px_rgba(9,18,34,0.18)]">
-        <div className="border-b border-white/10 px-5 py-4 sm:px-7">
+      <section className="overflow-hidden rounded-[28px] border border-[var(--line)] bg-[#ede6f3] text-[var(--heading)] shadow-[var(--lf-shadow)]">
+        <div className="border-b border-[var(--line)] px-5 py-4 sm:px-7">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#1240e8] shadow-[0_0_30px_rgba(18,64,232,0.5)]">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--blue)] text-white shadow-sm">
                 <Workflow className="h-5 w-5" aria-hidden="true" />
               </span>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#63d8ff]">The operating game</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[var(--blue)]">The operating game</p>
                 <h2 className="text-2xl font-black tracking-tight sm:text-3xl">Flow Mission Control</h2>
               </div>
             </div>
@@ -352,65 +352,65 @@ export default async function FlowMissionControl() {
 
         <div className="grid gap-6 px-5 py-6 sm:px-7 lg:grid-cols-[minmax(0,1fr)_260px]">
           <div>
-            <div className="flex flex-wrap items-center gap-2 text-xs font-extrabold uppercase tracking-[0.16em] text-[#8fa7ca]">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-extrabold uppercase tracking-[0.16em] text-[var(--muted)]">
               <span>Attention</span><ArrowRight className="h-3 w-3" /><span>Lead</span><ArrowRight className="h-3 w-3" /><span>Follow-up</span><ArrowRight className="h-3 w-3" /><span>Sale</span><ArrowRight className="h-3 w-3" /><span>Delivery</span><ArrowRight className="h-3 w-3" /><span>Proof</span>
             </div>
             <h3 className="mt-4 max-w-3xl text-3xl font-black leading-tight sm:text-4xl">
               Turn attention into paid work. Make every handoff visible.
             </h3>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#a9b9d2]">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">
               This board uses the real CRM, analytics, approvals, social queue, payments, and project data already inside The LeadFlow Pro. No decorative counters. If the underlying record moves, this run moves.
             </p>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-4">
-                <p className="text-[10px] font-black uppercase tracking-wider text-[#8296b5]">Attention · 24h</p>
+              <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--muted)]">Attention · 24h</p>
                 <p className="mt-1 text-3xl font-black tabular-nums">{visitors24h}</p>
-                <p className="mt-1 text-xs text-[#a9b9d2]">{pageViews24h} page views · {ctaClicks24h} CTA clicks</p>
+                <p className="mt-1 text-xs text-[var(--muted)]">{pageViews24h} page views · {ctaClicks24h} CTA clicks</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-4">
-                <p className="text-[10px] font-black uppercase tracking-wider text-[#8296b5]">Captured · 24h</p>
+              <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--muted)]">Captured · 24h</p>
                 <p className="mt-1 text-3xl font-black tabular-nums">{leads24h.length}</p>
-                <p className="mt-1 text-xs text-[#a9b9d2]">{leads7d.length} leads in the last 7 days</p>
+                <p className="mt-1 text-xs text-[var(--muted)]">{leads7d.length} leads in the last 7 days</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-4">
-                <p className="text-[10px] font-black uppercase tracking-wider text-[#8296b5]">Open pipeline</p>
+              <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--muted)]">Open pipeline</p>
                 <p className="mt-1 text-3xl font-black tabular-nums">{pipelineCents > 0 ? money(pipelineCents) : "Unscored"}</p>
-                <p className="mt-1 text-xs text-[#a9b9d2]">{scoredOpen.length}/{activeLeads.length} opportunities valued</p>
+                <p className="mt-1 text-xs text-[var(--muted)]">{scoredOpen.length}/{activeLeads.length} opportunities valued</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-4">
-                <p className="text-[10px] font-black uppercase tracking-wider text-[#8296b5]">Recorded cash · 24h</p>
+              <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--muted)]">Recorded cash · 24h</p>
                 <p className="mt-1 text-3xl font-black tabular-nums">{money(recordedRevenue24h)}</p>
-                <p className="mt-1 text-xs text-[#a9b9d2]">From tracked paid checkout records</p>
+                <p className="mt-1 text-xs text-[var(--muted)]">From tracked paid checkout records</p>
               </div>
             </div>
           </div>
 
-          <aside className="rounded-3xl border border-white/10 bg-white/[0.05] p-5">
+          <aside className="rounded-3xl border border-[var(--line)] bg-[var(--panel)] p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#8296b5]">Flow score</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--muted)]">Flow score</p>
                 <p className="mt-1 text-5xl font-black tabular-nums">{flowScore}</p>
               </div>
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1240e8]/20 text-[#63d8ff]">
+              <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent-tint)] text-[var(--blue)]">
                 <Gauge className="h-6 w-6" aria-hidden="true" />
               </span>
             </div>
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
-              <div className="h-full rounded-full bg-gradient-to-r from-[#1240e8] to-[#63d8ff]" style={{ width: `${flowScore}%` }} />
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-[var(--fill-3)]">
+              <div className="h-full rounded-full bg-gradient-to-r from-[#5135e5] to-[#957ddb]" style={{ width: `${flowScore}%` }} />
             </div>
-            <p className="mt-3 text-xs leading-5 text-[#a9b9d2]">
+            <p className="mt-3 text-xs leading-5 text-[var(--muted)]">
               {completedMissions}/{missions.length} operating checks clear. This score measures execution hygiene, not promised revenue.
             </p>
-            <div className="mt-5 rounded-2xl border border-white/10 bg-black/10 p-4">
-              <p className="text-[10px] font-black uppercase tracking-wider text-[#8296b5]">Current run</p>
+            <div className="mt-5 rounded-2xl border border-[var(--line)] bg-[#f6e9dc] p-4">
+              <p className="text-[10px] font-black uppercase tracking-wider text-[var(--muted)]">Current run</p>
               <p className="mt-1 text-sm font-bold">{newLeads.length ? `${newLeads.length} new lead${newLeads.length === 1 ? "" : "s"} need a first move.` : overdueTasks.length ? `${overdueTasks.length} overdue follow-up${overdueTasks.length === 1 ? "" : "s"} are blocking flow.` : proposals.length ? `${proposals.length} proposal${proposals.length === 1 ? "" : "s"} are at the money line.` : "The queue is clear. Create more demand."}</p>
             </div>
           </aside>
         </div>
       </section>
 
-      <section className="rounded-[26px] border border-[var(--line)] bg-white p-5 shadow-[0_14px_36px_rgba(10,18,32,0.05)] sm:p-6">
+      <section className="rounded-[26px] border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_14px_36px_rgba(10,18,32,0.05)] sm:p-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Live company floor</p>
@@ -436,7 +436,7 @@ export default async function FlowMissionControl() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <section className="rounded-[26px] border border-[var(--line)] bg-white p-5 shadow-[0_14px_36px_rgba(10,18,32,0.05)] sm:p-6">
+        <section className="rounded-[26px] border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_14px_36px_rgba(10,18,32,0.05)] sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Today&apos;s mission</p>
@@ -462,7 +462,7 @@ export default async function FlowMissionControl() {
         </section>
 
         <aside className="space-y-6">
-          <section className="rounded-[26px] border border-[var(--line)] bg-white p-5 shadow-[0_14px_36px_rgba(10,18,32,0.05)]">
+          <section className="rounded-[26px] border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_14px_36px_rgba(10,18,32,0.05)]">
             <div className="flex items-center gap-2"><Bot className="h-5 w-5 text-[var(--blue)]" aria-hidden="true" /><h3 className="font-black text-[var(--heading)]">Human stopline</h3></div>
             <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Anything that sends, spends, publishes, changes price, or makes an irreversible move can stop here before it happens.</p>
             <div className={`mt-4 rounded-2xl border p-4 ${approvalsWaiting.length ? "border-[var(--warn-line)] bg-[var(--warn-tint)]" : "border-[var(--green-line)] bg-[var(--green-tint)]"}`}>
@@ -471,7 +471,7 @@ export default async function FlowMissionControl() {
             </div>
           </section>
 
-          <section className="rounded-[26px] border border-[var(--line)] bg-white p-5 shadow-[0_14px_36px_rgba(10,18,32,0.05)]">
+          <section className="rounded-[26px] border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_14px_36px_rgba(10,18,32,0.05)]">
             <div className="flex items-center gap-2"><FileCheck2 className="h-5 w-5 text-[var(--blue)]" aria-hidden="true" /><h3 className="font-black text-[var(--heading)]">Build telemetry</h3></div>
             <dl className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-4"><dt className="text-[var(--muted)]">Active client systems</dt><dd className="font-black text-[var(--heading)]">{activeProjects.length}</dd></div>
@@ -484,7 +484,7 @@ export default async function FlowMissionControl() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <section className="overflow-hidden rounded-[26px] border border-[var(--line)] bg-white shadow-[0_14px_36px_rgba(10,18,32,0.05)]">
+        <section className="overflow-hidden rounded-[26px] border border-[var(--line)] bg-[var(--panel)] shadow-[0_14px_36px_rgba(10,18,32,0.05)]">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] px-5 py-4 sm:px-6">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Live handoffs</p>
@@ -514,18 +514,18 @@ export default async function FlowMissionControl() {
           )}
         </section>
 
-        <aside className="rounded-[26px] border border-[var(--line)] bg-[#0b1424] p-5 text-white shadow-[0_14px_36px_rgba(10,18,32,0.10)]">
-          <div className="flex items-center gap-2 text-[#63d8ff]"><Megaphone className="h-5 w-5" aria-hidden="true" /><p className="text-xs font-black uppercase tracking-[0.18em]">Proof snapshot</p></div>
+        <aside className="rounded-[26px] border border-[var(--line)] bg-[#f6e9dc] p-5 text-[var(--heading)] shadow-[0_14px_36px_rgba(10,18,32,0.10)]">
+          <div className="flex items-center gap-2 text-[var(--blue)]"><Megaphone className="h-5 w-5" aria-hidden="true" /><p className="text-xs font-black uppercase tracking-[0.18em]">Proof snapshot</p></div>
           <h3 className="mt-3 text-2xl font-black leading-tight">Turn the operating run into content.</h3>
-          <p className="mt-2 text-sm leading-6 text-[#a9b9d2]">This is the LeadFlow version of the post you sent: visible progress, real constraints, real counters, and the next target.</p>
-          <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.05] p-4">
-            <p className="text-[10px] font-black uppercase tracking-wider text-[#8296b5]">Last 24 hours</p>
+          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">This is the LeadFlow version of the post you sent: visible progress, real constraints, real counters, and the next target.</p>
+          <div className="mt-5 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+            <p className="text-[10px] font-black uppercase tracking-wider text-[var(--muted)]">Last 24 hours</p>
             <p className="mt-2 text-lg font-black leading-7">
               {visitors24h} visitors → {leads24h.length} leads → {booked.length} booked → {proposals.length} proposals → {money(recordedRevenue24h)} tracked checkout revenue.
             </p>
-            <p className="mt-3 text-xs leading-5 text-[#a9b9d2]">{overdueTasks.length ? `${overdueTasks.length} overdue follow-up${overdueTasks.length === 1 ? "" : "s"} still blocking the board.` : "No overdue follow-up is blocking the board."} {approvalsWaiting.length ? `${approvalsWaiting.length} human approval${approvalsWaiting.length === 1 ? "" : "s"} waiting.` : "Human approval queue clear."}</p>
+            <p className="mt-3 text-xs leading-5 text-[var(--muted)]">{overdueTasks.length ? `${overdueTasks.length} overdue follow-up${overdueTasks.length === 1 ? "" : "s"} still blocking the board.` : "No overdue follow-up is blocking the board."} {approvalsWaiting.length ? `${approvalsWaiting.length} human approval${approvalsWaiting.length === 1 ? "" : "s"} waiting.` : "Human approval queue clear."}</p>
           </div>
-          <Link href="/admin/content-engine" className="mt-5 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-[#1240e8] px-4 text-sm font-black text-white">Turn this run into a post <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+          <Link href="/admin/content-engine" className="mt-5 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-[var(--blue)] px-4 text-sm font-black text-white">Turn this run into a post <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
         </aside>
       </div>
     </div>

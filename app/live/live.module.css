@@ -25,19 +25,19 @@
 
 .graderSection > div,
 .operatorSection :global(.lfp-ink) {
-  border: 1px solid #ffffff1f;
+  border: 1px solid var(--cb-hair);
   border-radius: 22px;
-  background: var(--cb-ink);
-  box-shadow: 0 28px 72px #0a12202b;
+  background: var(--cb-surface);
+  box-shadow: var(--cb-shadow-lift);
 }
 
 .graderSection h2,
 .operatorSection h2 {
-  color: #ffffff;
+  color: var(--cb-ink);
 }
 
 .dashboardSection :global(.lfp-ink) h3 {
-  color: #a8b4c8;
+  color: var(--cb-muted);
 }
 
 .trackSection {

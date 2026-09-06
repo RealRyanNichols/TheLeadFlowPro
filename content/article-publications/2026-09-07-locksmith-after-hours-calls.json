@@ -30,5 +30,83 @@
       "monthlyResult": "$180",
       "resultVerified": true
     }
-  }
+  },
+  "contentCommit": "3ababb022c8b0a55341a878ca33022c32d8ac8ff",
+  "validation": {
+    "checkedAt": "2026-09-05T11:30:34.368Z",
+    "tests": {
+      "passed": 657,
+      "failed": 0
+    },
+    "build": "passed",
+    "typecheck": "passed",
+    "lint": {
+      "errors": 0,
+      "existingWarnings": 1
+    },
+    "formatting": "passed for changed content, receipts, CSS, and test files",
+    "diffCheck": "passed",
+    "privacyReview": "No secrets or personal customer records in the diff; examples labeled fictional.",
+    "mobileArticleReview": "Future article stays gated. The shared calculator was operated at 390px; due article prompts were reviewed with wrapping at 390px without horizontal overflow."
+  },
+  "deployment": {
+    "id": "dpl_FZcXaKo6isze6wpNJ5yUX7cgNRvq",
+    "url": "https://the-lead-flow-pfwarqjmc-realryannichols.vercel.app",
+    "status": "READY",
+    "verifiedAt": "2026-09-05T11:32:29.285Z"
+  },
+  "scheduledCheck": {
+    "checkedAt": "2026-09-05T11:32:29.285Z",
+    "detailStatus": 404,
+    "ogStatus": 404,
+    "noindex": true,
+    "ogNoindex": true,
+    "noStore": true,
+    "ogNoStore": true,
+    "indexAbsent": true,
+    "relatedAbsent": true,
+    "sitemapAbsent": true
+  },
+  "followUpChecks": [
+    {
+      "contentCommit": "3ababb022c8b0a55341a878ca33022c32d8ac8ff",
+      "deployment": {
+        "id": "dpl_FZcXaKo6isze6wpNJ5yUX7cgNRvq",
+        "url": "https://the-lead-flow-pfwarqjmc-realryannichols.vercel.app",
+        "status": "READY",
+        "verifiedAt": "2026-09-06T17:24:04.743Z"
+      },
+      "scheduledCheck": {
+        "checkedAt": "2026-09-06T17:23:46.302017Z",
+        "detailStatus": 404,
+        "ogStatus": 404,
+        "noindex": true,
+        "ogNoindex": true,
+        "noStore": true,
+        "ogNoStore": true,
+        "indexAbsent": true,
+        "sitemapAbsent": true,
+        "relatedAbsent": true,
+        "detailUrl": "https://www.theleadflowpro.com/articles/locksmith-after-hours-calls",
+        "ogUrl": "https://www.theleadflowpro.com/articles/locksmith-after-hours-calls/opengraph-image",
+        "detailCheckedAt": "2026-09-06T17:21:47.436732+00:00",
+        "ogCheckedAt": "2026-09-06T17:21:47.455509+00:00",
+        "detailCacheControl": "no-store",
+        "ogCacheControl": "no-store",
+        "detailRobotsHeader": "noindex, nofollow",
+        "ogRobotsHeader": "noindex, nofollow",
+        "relatedVerification": {
+          "checkedAt": "2026-09-06T17:22:04.701Z",
+          "method": "Ran getRelatedArticles(todaySlug, 1000, realCurrentTime) from the production source in the checked-out commit. It returned 47 related articles and omitted the future slug. Search found no app/component invocation of this helper. Live homepage and due article also omitted the future slug.",
+          "centralDate": "2026-09-06",
+          "timeZone": "America/Chicago",
+          "relatedCount": 47,
+          "homeStatus": 200,
+          "homeAbsent": true,
+          "todayArticleStatus": 200,
+          "todayArticleAbsent": true
+        }
+      }
+    }
+  ]
 }

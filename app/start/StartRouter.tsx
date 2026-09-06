@@ -6,6 +6,7 @@
 // No contact information is requested before the result screen.
 
 import Link from "next/link";
+import BrandLockup from "@/components/BrandLockup";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
 import styles from "./start-v2.module.css";
@@ -120,7 +121,13 @@ const ICONS = {
   wrench: Wrench,
 } as const;
 
-function Icon({ name, className = "h-5 w-5" }: { name: string; className?: string }) {
+function Icon({
+  name,
+  className = "h-5 w-5",
+}: {
+  name: string;
+  className?: string;
+}) {
   const C = ICONS[name as IconName] ?? ChartColumn;
   return <C aria-hidden="true" className={className} strokeWidth={1.8} />;
 }
@@ -189,7 +196,8 @@ const INDUSTRIES: Option[] = [
     id: "mortgage_real_estate",
     label: "Mortgage or real estate",
     short: "Mortgage and real estate",
-    description: "Lenders, brokers, agents, title, insurance, and real estate teams.",
+    description:
+      "Lenders, brokers, agents, title, insurance, and real estate teams.",
     icon: "home",
   },
   {
@@ -212,7 +220,8 @@ const INDUSTRIES: Option[] = [
     id: "professional_services",
     label: "Professional services",
     short: "Professional services",
-    description: "Legal, financial, consulting, agencies, experts, and business services.",
+    description:
+      "Legal, financial, consulting, agencies, experts, and business services.",
     icon: "briefcase",
   },
   {
@@ -350,21 +359,24 @@ const CHANNELS: Option[] = [
     id: "poshmark",
     label: "Poshmark",
     short: "Poshmark",
-    description: "A Poshmark closet, catalog, community, or live selling workflow.",
+    description:
+      "A Poshmark closet, catalog, community, or live selling workflow.",
     icon: "shirt",
   },
   {
     id: "mercari",
     label: "Mercari",
     short: "Mercari",
-    description: "Listings, offers, shipping, and marketplace order management.",
+    description:
+      "Listings, offers, shipping, and marketplace order management.",
     icon: "shopping_bag",
   },
   {
     id: "whatnot",
     label: "Whatnot",
     short: "Whatnot",
-    description: "Live shows, marketplace listings, auctions, and seller operations.",
+    description:
+      "Live shows, marketplace listings, auctions, and seller operations.",
     icon: "video",
   },
   {
@@ -798,12 +810,14 @@ const EMPTY_ANSWERS: Answers = {
   modules: [],
 };
 
-const goalOf = (id: string | null) => GOALS.find((g) => g.id === id) ?? GOALS[5];
+const goalOf = (id: string | null) =>
+  GOALS.find((g) => g.id === id) ?? GOALS[5];
 const industryOf = (id: string | null) =>
   INDUSTRIES.find((i) => i.id === id) ?? INDUSTRIES[9];
 const presenceOf = (id: string | null) =>
   PRESENCES.find((p) => p.id === id) ?? PRESENCES[3];
-const channelOf = (id: string) => CHANNELS.find((c) => c.id === id) ?? CHANNELS[9];
+const channelOf = (id: string) =>
+  CHANNELS.find((c) => c.id === id) ?? CHANNELS[9];
 const stageOf = (id: string) => STAGES.find((s) => s.id === id) ?? STAGES[5];
 
 function listJoin(items: string[]) {
@@ -813,11 +827,21 @@ function listJoin(items: string[]) {
 }
 
 const stagesShort = (ids: string[]) =>
-  ids.length ? listJoin(ids.map((id) => stageOf(id).short)) : "an unclear current stack";
+  ids.length
+    ? listJoin(ids.map((id) => stageOf(id).short))
+    : "an unclear current stack";
 
 // Every business sells or generates leads somewhere, so the sales-channel
 // question is always asked separately from the home-base question above it.
-const STEPS = ["goal", "industry", "presence", "channels", "stage", "modules", "result"];
+const STEPS = [
+  "goal",
+  "industry",
+  "presence",
+  "channels",
+  "stage",
+  "modules",
+  "result",
+];
 
 // Per-option gradient icon tiles. Same brand family as The Work cards:
 // Cyan, violet, emerald, amber, red, and sky cycle so no two neighbors match.
@@ -876,7 +900,12 @@ function OptionButton({
   onClick: () => void;
 }) {
   return (
-    <button type="button" className="router-option" style={tileVars(tint)} onClick={onClick}>
+    <button
+      type="button"
+      className="router-option"
+      style={tileVars(tint)}
+      onClick={onClick}
+    >
       <span className="router-option-icon">
         <Icon name={icon} />
       </span>
@@ -926,7 +955,13 @@ function MultiOptionButton({
   );
 }
 
-function BackButton({ onClick, compact = false }: { onClick: () => void; compact?: boolean }) {
+function BackButton({
+  onClick,
+  compact = false,
+}: {
+  onClick: () => void;
+  compact?: boolean;
+}) {
   return (
     <button
       type="button"
@@ -998,7 +1033,9 @@ function ContactCard({
     const summary = [
       `Primary goal: ${goal.label}.`,
       `Business home: ${presence.label}.`,
-      channelLabels.length ? `Sales channels: ${channelLabels.join(", ")}.` : "",
+      channelLabels.length
+        ? `Sales channels: ${channelLabels.join(", ")}.`
+        : "",
       `Current setup: ${stageLabels.join("; ") || "Not specified"}.`,
       `Recommended path: ${PACKAGES[packageId].name}.`,
       `System map: ${moduleLabels.join(", ")}.`,
@@ -1098,13 +1135,29 @@ function ContactCard({
       <form onSubmit={handleSubmit} className="system-map-form">
         <div className="form-grid">
           <Field label="Your name" required>
-            <input name="full_name" autoComplete="name" required maxLength={200} />
+            <input
+              name="full_name"
+              autoComplete="name"
+              required
+              maxLength={200}
+            />
           </Field>
           <Field label="Business name" required>
-            <input name="business_name" autoComplete="organization" required maxLength={200} />
+            <input
+              name="business_name"
+              autoComplete="organization"
+              required
+              maxLength={200}
+            />
           </Field>
           <Field label="Work email" required>
-            <input name="email" type="email" autoComplete="email" required maxLength={200} />
+            <input
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              maxLength={200}
+            />
           </Field>
           <Field label="Mobile phone">
             <input name="phone" type="tel" autoComplete="tel" maxLength={50} />
@@ -1137,7 +1190,9 @@ function ContactCard({
               <option value="" disabled>
                 Choose one
               </option>
-              <option value="scope_approved">As soon as the scope is approved</option>
+              <option value="scope_approved">
+                As soon as the scope is approved
+              </option>
               <option value="30_days">Within 30 days</option>
               <option value="90_days">Within 90 days</option>
               <option value="this_year">This year</option>
@@ -1171,16 +1226,17 @@ function ContactCard({
           <label>
             <input type="checkbox" name="sms_consent" />
             <span>
-              If I provided a mobile number, The LeadFlow Pro may call or text me about
-              this request and related project updates. Consent is not a condition of
-              purchase. Message and data rates may apply. Reply STOP to opt out.
+              If I provided a mobile number, The LeadFlow Pro may call or text
+              me about this request and related project updates. Consent is not
+              a condition of purchase. Message and data rates may apply. Reply
+              STOP to opt out.
             </span>
           </label>
           <label>
             <input type="checkbox" name="marketing_email_consent" />
             <span>
-              Send me occasional LeadFlow articles, tools, and launch updates by email. I
-              can unsubscribe at any time.
+              Send me occasional LeadFlow articles, tools, and launch updates by
+              email. I can unsubscribe at any time.
             </span>
           </label>
         </div>
@@ -1189,7 +1245,11 @@ function ContactCard({
             {error}
           </p>
         )}
-        <button type="submit" className="button-primary form-submit" disabled={sending}>
+        <button
+          type="submit"
+          className="button-primary form-submit"
+          disabled={sending}
+        >
           {sending
             ? isWebsiteLaunch
               ? "Sending Website Launch Details..."
@@ -1200,9 +1260,9 @@ function ContactCard({
           {!sending && <ArrowRight aria-hidden="true" className="h-4 w-4" />}
         </button>
         <p className="form-legal">
-          By submitting, you agree to our <Link href="/terms">Terms</Link> and acknowledge
-          our <Link href="/privacy">Privacy Policy</Link>. We use your information to
-          respond to this request.
+          By submitting, you agree to our <Link href="/terms">Terms</Link> and
+          acknowledge our <Link href="/privacy">Privacy Policy</Link>. We use
+          your information to respond to this request.
         </p>
       </form>
     </div>
@@ -1210,8 +1270,13 @@ function ContactCard({
 }
 
 export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
-  const validInitial = GOALS.some((g) => g.id === initialGoal) ? initialGoal! : null;
-  const [answers, setAnswers] = useState<Answers>({ ...EMPTY_ANSWERS, goal: validInitial });
+  const validInitial = GOALS.some((g) => g.id === initialGoal)
+    ? initialGoal!
+    : null;
+  const [answers, setAnswers] = useState<Answers>({
+    ...EMPTY_ANSWERS,
+    goal: validInitial,
+  });
   const [step, setStep] = useState<string>(validInitial ? "industry" : "goal");
   const [showContact, setShowContact] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -1220,7 +1285,10 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
   const steps = STEPS;
 
   const stepIndex = steps.indexOf(step);
-  const progress = step === "result" ? 100 : ((Math.max(0, stepIndex) + 1) / steps.length) * 100;
+  const progress =
+    step === "result"
+      ? 100
+      : ((Math.max(0, stepIndex) + 1) / steps.length) * 100;
 
   function goTo(next: string) {
     document.documentElement.scrollTop = 0;
@@ -1269,14 +1337,20 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
       answers.modules.length +
       heavyCount +
       Number(
-        answers.stages.includes("disconnected") || answers.stages.includes("existing_crm"),
+        answers.stages.includes("disconnected") ||
+          answers.stages.includes("existing_crm"),
       ) +
       2 * Number(answers.stages.includes("custom_system")) +
-      (answers.salesChannels.length >= 3 ? 2 : Number(answers.salesChannels.length > 0)) +
+      (answers.salesChannels.length >= 3
+        ? 2
+        : Number(answers.salesChannels.length > 0)) +
       Number(answers.presence === "site_and_channels") +
       2 * Number(answers.industry === "software") +
       2 * Number(answers.goal === "custom");
-    if (score >= 10 || (answers.goal === "custom" && answers.modules.length >= 6)) {
+    if (
+      score >= 10 ||
+      (answers.goal === "custom" && answers.modules.length >= 6)
+    ) {
       return "custom_platform";
     }
     return score >= 6 || heavyCount >= 2 ? "industry_os" : "launch";
@@ -1315,16 +1389,17 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
   return (
     <div className={`router-page ${styles.routerV2}`}>
       <header className="router-header">
-        <Link href="/" className="brand-lockup" aria-label="The LeadFlow Pro home">
-          The LeadFlow<span>Pro</span>
-        </Link>
+        <BrandLockup />
         <Link href="/" className="router-exit">
           Browse the full site
           <ArrowRight aria-hidden="true" className="h-4 w-4" />
         </Link>
       </header>
       <main className="router-main">
-        <div className="router-progress" aria-label={`Progress: ${Math.round(progress)} percent`}>
+        <div
+          className="router-progress"
+          aria-label={`Progress: ${Math.round(progress)} percent`}
+        >
           <div className="router-progress-meta">
             <span>
               {step === "result"
@@ -1362,8 +1437,8 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
             </div>
             <p className="router-reassurance">
               <Compass aria-hidden="true" className="h-4 w-4" />
-              Not sure where the real problem is? Choose &ldquo;I have a bigger idea.&rdquo;
-              We will keep the map wide open.
+              Not sure where the real problem is? Choose &ldquo;I have a bigger
+              idea.&rdquo; We will keep the map wide open.
             </p>
           </QuestionShell>
         )}
@@ -1462,7 +1537,11 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
             </div>
             <div className="router-actions">
               <BackButton onClick={goBack} compact />
-              <button type="button" className="button-primary" onClick={() => goTo("stage")}>
+              <button
+                type="button"
+                className="button-primary"
+                onClick={() => goTo("stage")}
+              >
                 Continue
                 <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </button>
@@ -1504,7 +1583,11 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
             </div>
             <div className="router-actions">
               <BackButton onClick={goBack} compact />
-              <button type="button" className="button-primary" onClick={() => goTo("modules")}>
+              <button
+                type="button"
+                className="button-primary"
+                onClick={() => goTo("modules")}
+              >
                 Continue
                 <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </button>
@@ -1525,7 +1608,10 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
             description={`We started with the modules that fit ${goal.short}. Select as many as you need. We will add the connected foundation automatically.`}
           >
             <div className="router-option-grid">
-              {(answers.goal ? GOAL_MODULE_ORDER[answers.goal] : GOAL_MODULE_ORDER.custom)
+              {(answers.goal
+                ? GOAL_MODULE_ORDER[answers.goal]
+                : GOAL_MODULE_ORDER.custom
+              )
                 .map((id) => MODULES[id])
                 .map((m, i) => (
                   <MultiOptionButton
@@ -1550,7 +1636,9 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
               <button
                 type="button"
                 className="router-wide-open"
-                onClick={() => setAnswers((a) => ({ ...a, modules: Object.keys(MODULES) }))}
+                onClick={() =>
+                  setAnswers((a) => ({ ...a, modules: Object.keys(MODULES) }))
+                }
               >
                 Show me the whole system, not just these suggestions
                 <ArrowRight aria-hidden="true" className="h-4 w-4" />
@@ -1580,12 +1668,13 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
             <div className="result-heading">
               <span className="eyebrow">Your first system map</span>
               <h1 id="system-map-title" ref={headingRef} tabIndex={-1}>
-                A system for {industry.short.toLowerCase()}, built around {goal.short}.
+                A system for {industry.short.toLowerCase()}, built around{" "}
+                {goal.short}.
               </h1>
               <p>
-                You told us the business is working from {presence.short} with {stagesText}.
-                This is the connected first version I would put on the table before anybody
-                sells you random software.
+                You told us the business is working from {presence.short} with{" "}
+                {stagesText}. This is the connected first version I would put on
+                the table before anybody sells you random software.
               </p>
             </div>
 
@@ -1614,13 +1703,18 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                   </li>
                   <li className="flex items-start gap-3">
                     <TriangleAlert className="mt-0.5 h-4 w-4 flex-none text-warn" />
-                    <span>Leads and follow-up depend on somebody remembering</span>
+                    <span>
+                      Leads and follow-up depend on somebody remembering
+                    </span>
                   </li>
                 </ul>
               </div>
               <div className="flex items-center justify-center md:px-1">
                 <div className="flex h-11 w-11 rotate-90 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-600 shadow-[0_0_24px_rgba(56,189,248,0.45)] md:rotate-0">
-                  <ArrowRight className="h-5 w-5 text-[var(--heading)]" strokeWidth={2.6} />
+                  <ArrowRight
+                    className="h-5 w-5 text-[var(--heading)]"
+                    strokeWidth={2.6}
+                  />
                 </div>
               </div>
               <div className="rounded-2xl border border-[var(--green-line)] bg-emerald-500/[0.05] p-6">
@@ -1630,19 +1724,30 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                 <ul className="mt-4 space-y-3 text-sm text-[var(--text)]">
                   <li className="flex items-start gap-3">
                     <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-[var(--green)]" />
-                    <span>One owned platform behind every channel you already use</span>
+                    <span>
+                      One owned platform behind every channel you already use
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-[var(--green)]" />
-                    <span>Every lead captured, answered in seconds, and followed up automatically</span>
+                    <span>
+                      Every lead captured, answered in seconds, and followed up
+                      automatically
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-[var(--green)]" />
-                    <span>One pipeline showing what came in, what stalled, and what made money</span>
+                    <span>
+                      One pipeline showing what came in, what stalled, and what
+                      made money
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <CircleCheck className="mt-0.5 h-4 w-4 flex-none text-[var(--green)]" />
-                    <span>Your code, your data, your customer list. Nobody can take it</span>
+                    <span>
+                      Your code, your data, your customer list. Nobody can take
+                      it
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -1674,7 +1779,9 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                         >
                           <Icon name={ch.icon} className="h-[18px] w-[18px]" />
                         </span>
-                        <span className="text-sm font-semibold text-[var(--heading)]">{ch.short}</span>
+                        <span className="text-sm font-semibold text-[var(--heading)]">
+                          {ch.short}
+                        </span>
                       </div>
                     );
                   })}
@@ -1686,14 +1793,22 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                 </div>
                 <div className="flow-line-v md:hidden" />
                 <div className="flow-line hidden w-16 md:block" />
-                <div className="flex flex-col items-center justify-center gap-1.5 rounded-full border-2 border-[var(--accent-line)] bg-[var(--panel)] px-2 text-center shadow-[0_10px_30px_rgba(18,64,232,0.14)]" style={{ width: 168, height: 168 }}>
+                <div
+                  className="flex flex-col items-center justify-center gap-1.5 rounded-full border-2 border-[var(--accent-line)] bg-[var(--panel)] px-2 text-center shadow-[0_10px_30px_rgba(18,64,232,0.14)]"
+                  style={{ width: 168, height: 168 }}
+                >
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-r from-sky-400 to-blue-600 shadow-[0_4px_14px_rgba(56,189,248,0.5)]">
-                    <Zap className="h-5 w-5 text-[var(--heading)]" strokeWidth={2.4} />
+                    <Zap
+                      className="h-5 w-5 text-[var(--heading)]"
+                      strokeWidth={2.4}
+                    />
                   </span>
                   <span className="text-[13px] font-extrabold tracking-[0.08em] text-[var(--heading)]">
                     YOUR PLATFORM
                   </span>
-                  <span className="text-[11px] font-medium text-[var(--muted)]">Owned. Not rented.</span>
+                  <span className="text-[11px] font-medium text-[var(--muted)]">
+                    Owned. Not rented.
+                  </span>
                 </div>
                 <div className="flow-line-v md:hidden" />
                 <div className="flow-line hidden w-16 md:block" />
@@ -1703,8 +1818,12 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                       <Inbox className="h-4 w-4" />
                     </span>
                     <span>
-                      <span className="block text-sm font-semibold text-[var(--heading)]">One inbox and CRM</span>
-                      <span className="block text-[11.5px] text-[var(--muted)]">Every lead in your database</span>
+                      <span className="block text-sm font-semibold text-[var(--heading)]">
+                        One inbox and CRM
+                      </span>
+                      <span className="block text-[11.5px] text-[var(--muted)]">
+                        Every lead in your database
+                      </span>
                     </span>
                   </div>
                   <div className="flex items-center gap-3 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(10,18,32,0.08)]">
@@ -1712,8 +1831,12 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                       <Send className="h-4 w-4" />
                     </span>
                     <span>
-                      <span className="block text-sm font-semibold text-[var(--heading)]">Automatic follow-up</span>
-                      <span className="block text-[11.5px] text-[var(--muted)]">Email and text until they answer</span>
+                      <span className="block text-sm font-semibold text-[var(--heading)]">
+                        Automatic follow-up
+                      </span>
+                      <span className="block text-[11.5px] text-[var(--muted)]">
+                        Email and text until they answer
+                      </span>
                     </span>
                   </div>
                   <div className="flex items-center gap-3 rounded-xl border border-[var(--line-strong)] bg-[var(--panel)] px-3.5 py-2.5 shadow-[0_8px_22px_rgba(10,18,32,0.08)]">
@@ -1721,8 +1844,12 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                       <ChartColumn className="h-4 w-4" />
                     </span>
                     <span>
-                      <span className="block text-sm font-semibold text-[var(--heading)]">Reporting you own</span>
-                      <span className="block text-[11.5px] text-[var(--muted)]">What made money, in plain sight</span>
+                      <span className="block text-sm font-semibold text-[var(--heading)]">
+                        Reporting you own
+                      </span>
+                      <span className="block text-[11.5px] text-[var(--muted)]">
+                        What made money, in plain sight
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -1735,10 +1862,13 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                   <span className="eyebrow">Channel strategy</span>
                   <strong>Keep the reach. Build the owned center.</strong>
                   <p>
-                    {answers.salesChannels.map((c) => channelOf(c).short).join(", ")} can
-                    remain active sales channels. The system map connects the inventory,
-                    orders, reporting, and follow-up that each channel permits without
-                    treating any marketplace account like an asset you fully control.
+                    {answers.salesChannels
+                      .map((c) => channelOf(c).short)
+                      .join(", ")}{" "}
+                    can remain active sales channels. The system map connects
+                    the inventory, orders, reporting, and follow-up that each
+                    channel permits without treating any marketplace account
+                    like an asset you fully control.
                   </p>
                   {channelFees.length > 0 && (
                     <details className="result-fee-details">
@@ -1752,15 +1882,19 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                             </div>
                             <a href={f.source} target="_blank" rel="noreferrer">
                               Official fee page
-                              <ExternalLink aria-hidden="true" className="h-3.5 w-3.5" />
+                              <ExternalLink
+                                aria-hidden="true"
+                                className="h-3.5 w-3.5"
+                              />
                             </a>
                           </li>
                         ))}
                       </ul>
                       <small>
-                        Fee rules change and can depend on category, order value, shipping,
-                        fulfillment, ads, promotions, and account status. The map uses the
-                        seller&rsquo;s real statements before estimating savings.
+                        Fee rules change and can depend on category, order
+                        value, shipping, fulfillment, ads, promotions, and
+                        account status. The map uses the seller&rsquo;s real
+                        statements before estimating savings.
                       </small>
                     </details>
                   )}
@@ -1776,7 +1910,10 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                     <span>LeadFlow Core + Industry Pack</span>
                     <strong>One business. One connected system.</strong>
                   </div>
-                  <ShieldCheck aria-hidden="true" className="h-7 w-7 text-[var(--green)]" />
+                  <ShieldCheck
+                    aria-hidden="true"
+                    className="h-7 w-7 text-[var(--green)]"
+                  />
                 </div>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   {recommendedModules.map((id, i) => {
@@ -1840,8 +1977,8 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
               <div>
                 <strong>This is a recommendation, not a box.</strong>
                 <span>
-                  Change the priorities, compare the packages, or keep exploring before you
-                  talk to anybody.
+                  Change the priorities, compare the packages, or keep exploring
+                  before you talk to anybody.
                 </span>
               </div>
               <button type="button" onClick={() => goTo("modules")}>
@@ -1884,7 +2021,10 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
 
             {submitted && (
               <div className="router-success" role="status">
-                <CircleCheck aria-hidden="true" className="h-10 w-10 text-[var(--green)]" />
+                <CircleCheck
+                  aria-hidden="true"
+                  className="h-10 w-10 text-[var(--green)]"
+                />
                 <div>
                   <h2>
                     {packageId === "launch"
@@ -1898,7 +2038,10 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                   </p>
                   <div className="router-success-actions">
                     {packageId === "launch" ? (
-                      <a href={WEBSITE_LAUNCH_CHECKOUT} className="button-primary">
+                      <a
+                        href={WEBSITE_LAUNCH_CHECKOUT}
+                        className="button-primary"
+                      >
                         Reserve Website Launch | $500
                         <ArrowRight aria-hidden="true" className="h-4 w-4" />
                       </a>
@@ -1928,7 +2071,9 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
       </main>
       <footer className="router-footer">
         <span>The LeadFlow Pro, a DBA of Longview Training Center, LLC</span>
-        <span>Your answers stay in this browser until you choose to send the map.</span>
+        <span>
+          Your answers stay in this browser until you choose to send the map.
+        </span>
       </footer>
     </div>
   );

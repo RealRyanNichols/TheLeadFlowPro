@@ -34,15 +34,15 @@ export default async function EmbedPage({
   if (!tool) notFound();
 
   return (
-    <div className="fixed inset-0 z-[999] overflow-auto bg-[#0e1a2e] p-3 sm:p-4">
+    <div className="fixed inset-0 z-[999] overflow-auto bg-[var(--page)] p-3 sm:p-4">
       <EmbedAutoHeight slug={tool.slug}>
         <ToolEngine slug={tool.slug} embedded />
-        <p className="mt-3 pb-2 text-center text-xs text-slate-500">
+        <p className="mt-3 pb-2 text-center text-xs text-[var(--muted)]">
           Free tool by{" "}
           <a
             href={`https://www.theleadflowpro.com/tools/${tool.slug}?utm_source=embed&utm_medium=tool&utm_campaign=${tool.slug}`}
             target="_top"
-            className="font-bold text-sky-400 underline"
+            className="font-bold text-[var(--blue)] underline"
           >
             The LeadFlow Pro
           </a>{" "}

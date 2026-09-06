@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BrandLockup from "@/components/BrandLockup";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import InternalTrafficMarker from "@/components/InternalTrafficMarker";
@@ -26,9 +27,10 @@ export default async function AdminLayout({
   if (profile?.role !== "admin") redirect("/dashboard");
 
   return (
-    <section className="min-h-screen">
+    <section className="min-h-screen bg-[var(--page)] text-[var(--text)]">
       <InternalTrafficMarker />
       <div className="mx-auto max-w-6xl px-4 pb-20 pt-[22px] sm:pt-8">
+        <div className="mb-6"><BrandLockup href="/" /></div>
       <div className="mb-8 flex flex-wrap items-center gap-6 border-b border-line pb-4">
         <h1 className="text-2xl font-black text-[var(--heading)]">Back Office</h1>
         <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-4 text-sm font-semibold">
@@ -74,7 +76,7 @@ export default async function AdminLayout({
           <Link href="/admin/settings" className="text-[var(--text)] hover:text-[var(--heading)]">
             Settings
           </Link>
-          <SignOutButton className="rounded-lg border border-[var(--line-strong)] px-3 py-1.5 text-xs font-bold text-[var(--text)] hover:border-[var(--accent-line)] hover:text-[var(--heading)]" />
+          <SignOutButton className="min-h-[44px] rounded-lg border border-[var(--line-strong)] px-3 py-2 text-xs font-bold text-[var(--text)] hover:border-[var(--accent-line)] hover:text-[var(--heading)]" />
         </nav>
       </div>
       {children}

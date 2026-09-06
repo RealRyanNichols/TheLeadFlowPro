@@ -18,21 +18,35 @@ export default function BillingPortalButton() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ session_id: sessionId }),
     }).catch(() => null);
-    const body = (await response?.json().catch(() => ({}))) as { url?: string; error?: string };
+    const body = (await response?.json().catch(() => ({}))) as {
+      url?: string;
+      error?: string;
+    };
     if (response?.ok && body.url) {
       window.location.href = body.url;
       return;
     }
-    setError(body.error || "Billing management could not open. Email hello@theleadflowpro.com.");
+    setError(
+      body.error ||
+        "Billing management could not open. Email hello@theleadflowpro.com.",
+    );
     setLoading(false);
   }
 
   return (
     <div>
-      <button onClick={openPortal} disabled={loading} className="inline-flex min-h-12 items-center rounded-xl border border-white/20 px-5 font-black text-white disabled:opacity-60">
+      <button
+        onClick={openPortal}
+        disabled={loading}
+        className="inline-flex min-h-12 items-center rounded-xl border border-[#dbd0c5] px-5 font-black text-[#20212b] disabled:opacity-60"
+      >
         {loading ? "Opening Billing..." : "Manage Billing in Stripe"}
       </button>
-      {error ? <p className="mt-2 max-w-sm text-xs font-bold text-red-300">{error}</p> : null}
+      {error ? (
+        <p className="mt-2 max-w-sm text-xs font-bold text-[#b42318]">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

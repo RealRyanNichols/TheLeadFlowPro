@@ -76,28 +76,28 @@ export default async function ProspectRecord({ params }: { params: Promise<{ id:
         </Link>
         <div className="flex flex-wrap items-center gap-2">
           <span className={`rounded-full border px-3 py-1 text-xs font-black ${prospect.priority === "A" ? "border-red-200 bg-red-50 text-red-700" : prospect.priority === "B" ? "border-amber-200 bg-amber-50 text-amber-700" : "border-slate-200 bg-slate-50 text-slate-600"}`}>Priority {prospect.priority}</span>
-          <span className="rounded-full border border-[var(--line)] bg-white px-3 py-1 text-xs font-black text-[var(--muted)]">{prospect.status.replaceAll("_", " ")}</span>
+          <span className="rounded-full border border-[var(--line)] bg-[var(--panel)] px-3 py-1 text-xs font-black text-[var(--muted)]">{prospect.status.replaceAll("_", " ")}</span>
           <span className={`rounded-full border px-3 py-1 text-xs font-black ${verifiedContact ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>{verifiedContact ? "Contact verified" : "Contact needs verification"}</span>
         </div>
       </div>
 
-      <section className="overflow-hidden rounded-[28px] border border-[#ffffff1f] bg-[#07111f] p-6 text-white shadow-[0_30px_90px_rgba(7,17,31,0.24)] sm:p-8">
+      <section className="overflow-hidden rounded-[28px] border border-[var(--line)] bg-[#ede6f3] p-6 text-[var(--heading)] shadow-[var(--lf-shadow)] sm:p-8">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-[#50d4ff]">Prospect record · {prospect.market}</p>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-[var(--blue)]">Prospect record · {prospect.market}</p>
             <h1 className="mt-2 text-4xl font-black tracking-tight">{prospect.business_name}</h1>
-            <p className="mt-2 text-sm text-[#aabbd2]">{prospect.industry || "Local business"} · owner {prospect.owner_name || "unassigned"} · permission {prospect.permission_state.replaceAll("_", " ")}</p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{prospect.industry || "Local business"} · owner {prospect.owner_name || "unassigned"} · permission {prospect.permission_state.replaceAll("_", " ")}</p>
           </div>
           {prospect.website_url && (
-            <a href={prospect.website_url} target="_blank" rel="noreferrer" className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl border border-white/20 px-4 text-sm font-black text-white">
+            <a href={prospect.website_url} target="_blank" rel="noreferrer" className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl border border-[var(--line-strong)] px-4 text-sm font-black text-[var(--heading)]">
               Review public source <ExternalLink className="h-4 w-4" />
             </a>
           )}
         </div>
         <div className="mt-6 grid gap-3 md:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-[#101d31] p-4"><p className="text-[11px] font-black uppercase tracking-wide text-[#8295b1]">Why it is worth attention</p><p className="mt-2 text-sm leading-6 text-[#dbe5f3]">{prospect.qualification_signal || "Needs verification"}</p></div>
-          <div className="rounded-2xl border border-white/10 bg-[#101d31] p-4"><p className="text-[11px] font-black uppercase tracking-wide text-[#8295b1]">Observed opportunity</p><p className="mt-2 text-sm leading-6 text-[#dbe5f3]">{prospect.observed_gap || "Needs verification"}</p></div>
-          <div className="rounded-2xl border border-white/10 bg-[#101d31] p-4"><p className="text-[11px] font-black uppercase tracking-wide text-[#8295b1]">Best first offer</p><p className="mt-2 text-sm leading-6 text-[#dbe5f3]">{prospect.best_offer || "Private audit"}</p></div>
+          <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4"><p className="text-[11px] font-black uppercase tracking-wide text-[var(--muted)]">Why it is worth attention</p><p className="mt-2 text-sm leading-6 text-[var(--text)]">{prospect.qualification_signal || "Needs verification"}</p></div>
+          <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4"><p className="text-[11px] font-black uppercase tracking-wide text-[var(--muted)]">Observed opportunity</p><p className="mt-2 text-sm leading-6 text-[var(--text)]">{prospect.observed_gap || "Needs verification"}</p></div>
+          <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4"><p className="text-[11px] font-black uppercase tracking-wide text-[var(--muted)]">Best first offer</p><p className="mt-2 text-sm leading-6 text-[var(--text)]">{prospect.best_offer || "Private audit"}</p></div>
         </div>
       </section>
 
@@ -105,7 +105,7 @@ export default async function ProspectRecord({ params }: { params: Promise<{ id:
         <div className="space-y-6">
           <ProspectContactEditor prospect={prospect} />
 
-          <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
+          <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
             <div className="flex items-start gap-3">
               <Target className="mt-0.5 h-5 w-5 text-[var(--blue)]" />
               <div><h2 className="font-black text-[var(--heading)]">Response planner</h2><p className="mt-1 text-xs leading-5 text-[var(--muted)]">Paste a real reply. OperatorOS will cancel the old sequence, classify the response, and queue the next recommendation for human review.</p></div>
@@ -115,7 +115,7 @@ export default async function ProspectRecord({ params }: { params: Promise<{ id:
         </div>
 
         <div className="space-y-6">
-          <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
+          <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2"><CalendarClock className="h-5 w-5 text-[var(--blue)]" /><h2 className="font-black text-[var(--heading)]">Active outreach</h2></div>
               <span className="rounded-full bg-[var(--fill-2)] px-3 py-1 text-xs font-black text-[var(--muted)]">{activeActions.length} open</span>
@@ -149,7 +149,7 @@ export default async function ProspectRecord({ params }: { params: Promise<{ id:
             )}
           </section>
 
-          <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
+          <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)]">
             <div className="flex items-center gap-2"><Clock3 className="h-5 w-5 text-[var(--blue)]" /><h2 className="font-black text-[var(--heading)]">Current state</h2></div>
             <dl className="mt-4 space-y-3 text-sm">
               <div><dt className="text-xs font-black uppercase tracking-wide text-[var(--muted)]">Next action</dt><dd className="mt-1 font-semibold leading-6 text-[var(--text)]">{prospect.next_action || "No next action is recorded."}</dd></div>
@@ -162,7 +162,7 @@ export default async function ProspectRecord({ params }: { params: Promise<{ id:
       </div>
 
       {(closedActions.length > 0 || events.length > 0) && (
-        <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
+        <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
           <div className="flex items-center gap-2"><History className="h-5 w-5 text-[var(--blue)]" /><h2 className="font-black text-[var(--heading)]">Outreach audit trail</h2></div>
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
             <div className="space-y-3">

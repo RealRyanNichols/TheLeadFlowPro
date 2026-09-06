@@ -72,7 +72,7 @@ function cardCls(selected: boolean) {
   return `relative rounded-xl border p-4 text-left transition-colors cursor-pointer ${
     selected
       ? "tb-card-on"
-      : "border-[var(--cb-hair-ink)] bg-[#ffffff08] hover:border-[#ffffff45]"
+      : "border-[#dbd0c5] bg-[#fff9ef] hover:border-[#5135e5]"
   }`;
 }
 
@@ -82,8 +82,8 @@ function CheckMark({ on }: { on: boolean }) {
       aria-hidden="true"
       className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full border ${
         on
-          ? "border-[var(--cb-blue-soft)] bg-[var(--cb-blue-soft)] text-[#0a1220]"
-          : "border-[#ffffff45] bg-transparent"
+          ? "border-[#5135e5] bg-[#5135e5] text-white"
+          : "border-[#dbd0c5] bg-transparent"
       }`}
     >
       {on ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : null}
@@ -94,7 +94,7 @@ function CheckMark({ on }: { on: boolean }) {
 function StepTag({ n, label }: { n: string; label: string }) {
   return (
     <p className="flex items-center gap-3">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--cb-blue)] text-sm font-extrabold text-white shadow-[0_0_18px_#1240e880]">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#ffb443] text-sm font-extrabold text-[#20212b] shadow-[0_4px_12px_#43364c14]">
         {n}
       </span>
       <span className="text-xs font-extrabold uppercase tracking-[0.2em] text-[var(--cb-cyan)]">
@@ -107,7 +107,10 @@ function StepTag({ n, label }: { n: string; label: string }) {
 export default function TimeBackFunnel() {
   const [daysIdx, setDaysIdx] = useState(0);
   const [perDayIdx, setPerDayIdx] = useState(0);
-  const [platforms, setPlatforms] = useState<string[]>(["facebook", "instagram"]);
+  const [platforms, setPlatforms] = useState<string[]>([
+    "facebook",
+    "instagram",
+  ]);
   const [emailSeries, setEmailSeries] = useState<string | null>(null);
   const [extras, setExtras] = useState<string[]>([]);
   const [downsell, setDownsell] = useState(false);
@@ -177,7 +180,8 @@ export default function TimeBackFunnel() {
       setShowDownsell(true);
     }
     document.documentElement.addEventListener("mouseleave", onLeave);
-    return () => document.documentElement.removeEventListener("mouseleave", onLeave);
+    return () =>
+      document.documentElement.removeEventListener("mouseleave", onLeave);
   }, [sending]);
 
   function toggle(list: string[], id: string): string[] {
@@ -189,7 +193,9 @@ export default function TimeBackFunnel() {
     setEmailSeries(null);
     setExtras([]);
     setShowDownsell(false);
-    document.getElementById("tb-checkout")?.scrollIntoView({ behavior: "smooth" });
+    document
+      .getElementById("tb-checkout")
+      ?.scrollIntoView({ behavior: "smooth" });
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -258,7 +264,9 @@ export default function TimeBackFunnel() {
         }),
       });
     } catch {
-      setError("Could not reach the order intake. Check the connection and try again.");
+      setError(
+        "Could not reach the order intake. Check the connection and try again.",
+      );
       setSending(false);
       return;
     }
@@ -271,7 +279,10 @@ export default function TimeBackFunnel() {
       return;
     }
     window.fbq?.("track", "Lead");
-    window.fbq?.("track", "InitiateCheckout", { value: priced.total, currency: "USD" });
+    window.fbq?.("track", "InitiateCheckout", {
+      value: priced.total,
+      currency: "USD",
+    });
 
     try {
       const co = await fetch("/api/checkout", {
@@ -311,24 +322,26 @@ export default function TimeBackFunnel() {
   }
 
   const inputCls =
-    "w-full rounded-xl border border-[#ffffff2e] bg-[#ffffff0f] px-4 py-3 text-[15px] text-[var(--cb-on-ink)] placeholder:text-[#8b97ad] outline-none focus:border-[var(--cb-blue-soft)]";
+    "w-full rounded-xl border border-[#dbd0c5] bg-[#fff9ef] px-4 py-3 text-[15px] text-[#34313f] placeholder:text-[#625f6d] outline-none focus:border-[var(--cb-blue-soft)]";
   const panelCls =
-    "tb-panel-glass rounded-[26px] border border-[var(--cb-hair-ink)] bg-[var(--cb-ink-2)] p-6 sm:p-8";
+    "tb-panel-glass rounded-[26px] border border-[#dbd0c5] bg-[#fff9ef] p-6 sm:p-8";
 
   return (
     <div className="mx-auto grid w-full max-w-[1120px] gap-5 px-4 pb-32">
       {/* Step 1 — the two dials */}
       <section className={panelCls} id="tb-build" data-tbr>
         <StepTag n="1" label="Pick your workload" />
-        <h2 className="mt-4 text-2xl font-extrabold text-[var(--cb-on-ink)] sm:text-3xl">
+        <h2 className="mt-4 text-2xl font-extrabold text-[#34313f] sm:text-3xl">
           How much posting comes off your plate?
         </h2>
         <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_300px]">
           <div className="grid gap-8">
             <label className="grid gap-3">
-              <span className="flex items-baseline justify-between text-sm font-bold text-[var(--cb-on-ink)]">
+              <span className="flex items-baseline justify-between text-sm font-bold text-[#34313f]">
                 <span>How many days?</span>
-                <span className="text-lg font-extrabold text-[var(--cb-cyan)]">{days} days</span>
+                <span className="text-lg font-extrabold text-[var(--cb-cyan)]">
+                  {days} days
+                </span>
               </span>
               <input
                 type="range"
@@ -343,18 +356,23 @@ export default function TimeBackFunnel() {
                 }}
                 aria-label="Number of days"
               />
-              <span className="flex justify-between text-xs font-bold text-[#8b97ad]">
+              <span className="flex justify-between text-xs font-bold text-[#625f6d]">
                 {CONTENT_DAYS.map((d) => (
-                  <span key={d} className={d === days ? "text-[var(--cb-cyan)]" : ""}>
+                  <span
+                    key={d}
+                    className={d === days ? "text-[var(--cb-cyan)]" : ""}
+                  >
                     {d}
                   </span>
                 ))}
               </span>
             </label>
             <label className="grid gap-3">
-              <span className="flex items-baseline justify-between text-sm font-bold text-[var(--cb-on-ink)]">
+              <span className="flex items-baseline justify-between text-sm font-bold text-[#34313f]">
                 <span>Posts per day?</span>
-                <span className="text-lg font-extrabold text-[var(--cb-cyan)]">{perDay} a day</span>
+                <span className="text-lg font-extrabold text-[var(--cb-cyan)]">
+                  {perDay} a day
+                </span>
               </span>
               <input
                 type="range"
@@ -369,16 +387,21 @@ export default function TimeBackFunnel() {
                 }}
                 aria-label="Posts per day"
               />
-              <span className="flex justify-between text-xs font-bold text-[#8b97ad]">
+              <span className="flex justify-between text-xs font-bold text-[#625f6d]">
                 {CONTENT_PER_DAY.map((p) => (
-                  <span key={p} className={p === perDay ? "text-[var(--cb-cyan)]" : ""}>
+                  <span
+                    key={p}
+                    className={p === perDay ? "text-[var(--cb-cyan)]" : ""}
+                  >
                     {p}
                   </span>
                 ))}
               </span>
             </label>
             <div className="grid gap-2">
-              <span className="text-sm font-bold text-[var(--cb-on-ink)]">Where do we post it?</span>
+              <span className="text-sm font-bold text-[#34313f]">
+                Where do we post it?
+              </span>
               <div className="grid grid-cols-3 gap-2" data-tbr-group>
                 {PLATFORMS.map((p) => {
                   const on = platforms.includes(p.id);
@@ -387,7 +410,7 @@ export default function TimeBackFunnel() {
                       key={p.id}
                       type="button"
                       onClick={() => setPlatforms((cur) => toggle(cur, p.id))}
-                      className={`${cardCls(on)} px-3 py-3 pr-9 text-sm font-bold text-[var(--cb-on-ink)]`}
+                      className={`${cardCls(on)} px-3 py-3 pr-9 text-sm font-bold text-[#34313f]`}
                     >
                       {p.label}
                       <CheckMark on={on} />
@@ -395,16 +418,19 @@ export default function TimeBackFunnel() {
                   );
                 })}
               </div>
-              <span className="text-xs text-[#8b97ad]">
-                Same price across all three. We spread your posts where your customers are.
+              <span className="text-xs text-[#625f6d]">
+                Same price across all three. We spread your posts where your
+                customers are.
               </span>
             </div>
           </div>
           <div className="tb-grad-border tb-price-hero flex flex-col items-center justify-center rounded-[20px] p-6 text-center">
-            <span className="text-xs font-extrabold uppercase tracking-[0.15em] text-[#8b97ad]">
-              {downsell ? "Starter week" : `${totalPosts} posts, written + scheduled`}
+            <span className="text-xs font-extrabold uppercase tracking-[0.15em] text-[#625f6d]">
+              {downsell
+                ? "Starter week"
+                : `${totalPosts} posts, written + scheduled`}
             </span>
-            <span className="mt-2 text-6xl font-extrabold tracking-tight text-white [font-variant-numeric:tabular-nums] [text-shadow:0_0_30px_#5b87ff66]">
+            <span className="mt-2 text-6xl font-extrabold tracking-tight text-[#20212b] [font-variant-numeric:tabular-nums]">
               {fmt(shownPanelPrice)}
             </span>
             <span className="mt-2 text-sm font-bold text-[var(--cb-cyan)]">
@@ -413,12 +439,13 @@ export default function TimeBackFunnel() {
                 : `about ${fmt(Math.round(perPost))} per post, one-time`}
             </span>
             {!downsell && perPost < entryRate - 0.5 ? (
-              <span className="mt-2 rounded-lg bg-[#146c3433] px-3 py-1 text-xs font-bold text-[#7ee2a1]">
-                Volume rate: {fmt(Math.round((entryRate - perPost) * totalPosts))} less than the
-                entry rate
+              <span className="mt-2 rounded-lg bg-[#e5eee3] px-3 py-1 text-xs font-bold text-[#23643c]">
+                Volume rate:{" "}
+                {fmt(Math.round((entryRate - perPost) * totalPosts))} less than
+                the entry rate
               </span>
             ) : !downsell ? (
-              <span className="mt-2 text-xs text-[#8b97ad]">
+              <span className="mt-2 text-xs text-[#625f6d]">
                 Slide up. The per-post price drops.
               </span>
             ) : (
@@ -437,21 +464,24 @@ export default function TimeBackFunnel() {
       {/* Step 2 — sell the follow-up */}
       <section className={panelCls} data-tbr>
         <StepTag n="2" label="Turn the attention into money" />
-        <h2 className="mt-4 text-2xl font-extrabold text-[var(--cb-on-ink)] sm:text-3xl">
+        <h2 className="mt-4 text-2xl font-extrabold text-[#34313f] sm:text-3xl">
           Posts get you seen. Follow-up gets you paid.
         </h2>
-        <p className="mt-2 max-w-2xl text-sm text-[#a8b4c8]">
-          Most businesses lose the lead AFTER the post works. These automations catch them. One
-          closed job usually covers everything on this page.
+        <p className="mt-2 max-w-2xl text-sm text-[#625f6d]">
+          Most businesses lose the lead AFTER the post works. These automations
+          catch them. One closed job usually covers everything on this page.
         </p>
         {!downsell ? (
-          <p className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#146c3433] px-4 py-2 text-sm font-bold text-[#7ee2a1]">
+          <p className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#e5eee3] px-4 py-2 text-sm font-bold text-[#23643c]">
             <Check className="h-4 w-4" aria-hidden="true" />
-            Your first email series is {Math.round(FIRST_EMAIL_DISCOUNT * 100)}% off with any
-            content package
+            Your first email series is {Math.round(FIRST_EMAIL_DISCOUNT * 100)}%
+            off with any content package
           </p>
         ) : null}
-        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3" data-tbr-group>
+        <div
+          className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3"
+          data-tbr-group
+        >
           {EMAIL_SERIES.map((s) => {
             const discounted = !downsell;
             const cut = discounted
@@ -466,27 +496,28 @@ export default function TimeBackFunnel() {
                 className={`${cardCls(on)} pr-10`}
               >
                 {s.id === "email_7" ? (
-                  <span className="absolute -top-2 left-3 rounded bg-[var(--cb-cyan)] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-[#0a1220]">
+                  <span className="absolute -top-2 left-3 rounded bg-[#f6e9dc] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-[#20212b]">
                     Most added
                   </span>
                 ) : null}
-                <span className="block text-sm font-extrabold text-[var(--cb-on-ink)]">
+                <span className="block text-sm font-extrabold text-[#34313f]">
                   {s.label}
                 </span>
-                <span className="mt-1 block text-xs text-[#a8b4c8]">
-                  A sales email a day for {s.days} days, written once, selling for months.
+                <span className="mt-1 block text-xs text-[#625f6d]">
+                  A sales email a day for {s.days} days, written once, selling
+                  for months.
                 </span>
                 <span className="mt-2 block text-sm">
                   {discounted ? (
                     <>
-                      <s className="text-[#8b97ad]">{fmt(s.price)}</s>{" "}
-                      <b className="text-[#7ee2a1]">{fmt(cut)}</b>{" "}
-                      <span className="text-xs font-bold text-[#7ee2a1]">
+                      <s className="text-[#625f6d]">{fmt(s.price)}</s>{" "}
+                      <b className="text-[#23643c]">{fmt(cut)}</b>{" "}
+                      <span className="text-xs font-bold text-[#23643c]">
                         save {fmt(s.price - cut)}
                       </span>
                     </>
                   ) : (
-                    <b className="text-[var(--cb-on-ink)]">{fmt(s.price)}</b>
+                    <b className="text-[#34313f]">{fmt(s.price)}</b>
                   )}
                 </span>
                 <CheckMark on={on} />
@@ -504,11 +535,13 @@ export default function TimeBackFunnel() {
                 onClick={() => setExtras((cur) => toggle(cur, x.id))}
                 className={`${cardCls(on)} pr-10`}
               >
-                <span className="block text-sm font-extrabold text-[var(--cb-on-ink)]">
+                <span className="block text-sm font-extrabold text-[#34313f]">
                   {x.label}
                 </span>
-                <span className="mt-1 block text-xs text-[#a8b4c8]">{x.desc}</span>
-                <span className="mt-2 block text-sm font-extrabold text-[var(--cb-on-ink)]">
+                <span className="mt-1 block text-xs text-[#625f6d]">
+                  {x.desc}
+                </span>
+                <span className="mt-2 block text-sm font-extrabold text-[#34313f]">
                   {fmt(x.price)}
                 </span>
                 <CheckMark on={on} />
@@ -521,7 +554,10 @@ export default function TimeBackFunnel() {
       {/* What happens after you pay */}
       <section className="grid gap-3 sm:grid-cols-3" data-tbr-group>
         {[
-          ["Pay in 60 seconds", "Secure Stripe checkout. Card, Apple Pay, Google Pay."],
+          [
+            "Pay in 60 seconds",
+            "Secure Stripe checkout. Card, Apple Pay, Google Pay.",
+          ],
           [
             "Approve access, no passwords",
             "You get official partner invites for your accounts. Click approve. We never see a password.",
@@ -533,11 +569,15 @@ export default function TimeBackFunnel() {
         ].map(([title, body], i) => (
           <div
             key={title}
-            className="rounded-[20px] border border-[var(--cb-hair-ink)] bg-[#ffffff08] p-5 shadow-[inset_0_1px_0_#ffffff10]"
+            className="rounded-[20px] border border-[#dbd0c5] bg-[#fff9ef] p-5 shadow-[inset_0_1px_0_#ffffff10]"
           >
-            <span className="text-2xl font-extrabold text-[var(--cb-cyan)]">{i + 1}</span>
-            <h3 className="mt-1 text-sm font-extrabold text-[var(--cb-on-ink)]">{title}</h3>
-            <p className="mt-1 text-xs text-[#a8b4c8]">{body}</p>
+            <span className="text-2xl font-extrabold text-[var(--cb-cyan)]">
+              {i + 1}
+            </span>
+            <h3 className="mt-1 text-sm font-extrabold text-[#34313f]">
+              {title}
+            </h3>
+            <p className="mt-1 text-xs text-[#625f6d]">{body}</p>
           </div>
         ))}
       </section>
@@ -545,37 +585,57 @@ export default function TimeBackFunnel() {
       {/* Step 3 — order + checkout */}
       <section className={panelCls} id="tb-checkout" data-tbr>
         <StepTag n="3" label="Lock it in" />
-        <h2 className="mt-4 text-2xl font-extrabold text-[var(--cb-on-ink)] sm:text-3xl">
+        <h2 className="mt-4 text-2xl font-extrabold text-[#34313f] sm:text-3xl">
           Your order
         </h2>
         <ul className="mt-4 grid gap-2">
           {(priced?.lines ?? []).map((l) => (
             <li
               key={l.label}
-              className="flex items-baseline justify-between gap-4 border-b border-[var(--cb-hair-ink)] pb-2 text-sm"
+              className="flex items-baseline justify-between gap-4 border-b border-[#dbd0c5] pb-2 text-sm"
             >
-              <span className="text-[#a8b4c8]">{l.label}</span>
-              <b className="text-[var(--cb-on-ink)]">{fmt(l.amount)}</b>
+              <span className="text-[#625f6d]">{l.label}</span>
+              <b className="text-[#34313f]">{fmt(l.amount)}</b>
             </li>
           ))}
           <li className="flex items-baseline justify-between gap-4 pt-1 text-base">
-            <span className="font-bold text-[var(--cb-on-ink)]">Total, one-time</span>
-            <b className="text-3xl font-extrabold text-white [font-variant-numeric:tabular-nums] [text-shadow:0_0_24px_#5b87ff66]">
+            <span className="font-bold text-[#34313f]">Total, one-time</span>
+            <b className="text-3xl font-extrabold text-[#20212b] [font-variant-numeric:tabular-nums]">
               {fmt(shownTotal)}
             </b>
           </li>
         </ul>
         {payNotice ? (
-          <p className="mt-4 rounded-xl bg-[#146c3433] p-4 text-sm font-bold text-[#7ee2a1]">
+          <p className="mt-4 rounded-xl bg-[#e5eee3] p-4 text-sm font-bold text-[#23643c]">
             {payNotice}
           </p>
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 grid gap-3">
             <div className="grid gap-3 sm:grid-cols-2">
-              <input name="full_name" required placeholder="Your name" className={inputCls} />
-              <input name="business_name" placeholder="Business name" className={inputCls} />
-              <input name="email" type="email" required placeholder="Email" className={inputCls} />
-              <input name="phone" type="tel" placeholder="Mobile number" className={inputCls} />
+              <input
+                name="full_name"
+                required
+                placeholder="Your name"
+                className={inputCls}
+              />
+              <input
+                name="business_name"
+                placeholder="Business name"
+                className={inputCls}
+              />
+              <input
+                name="email"
+                type="email"
+                required
+                placeholder="Email"
+                className={inputCls}
+              />
+              <input
+                name="phone"
+                type="tel"
+                placeholder="Mobile number"
+                className={inputCls}
+              />
             </div>
             <textarea
               name="notes"
@@ -583,38 +643,48 @@ export default function TimeBackFunnel() {
               placeholder="Anything we should know? (optional)"
               className={inputCls}
             />
-            <label className="flex items-start gap-2 text-sm text-[#a8b4c8]">
-              <input type="checkbox" name="sms_consent" className="mt-1 accent-[#5b87ff]" />
+            <label className="flex items-start gap-2 text-sm text-[#625f6d]">
+              <input
+                type="checkbox"
+                name="sms_consent"
+                className="mt-1 accent-[#5135e5]"
+              />
               <span>
-                You may call or text me about this order from (903) 500-8898. Reply STOP any time.
+                You may call or text me about this order from (903) 500-8898.
+                Reply STOP any time.
               </span>
             </label>
-            <label className="flex items-start gap-2 text-sm text-[#a8b4c8]">
+            <label className="flex items-start gap-2 text-sm text-[#625f6d]">
               <input
                 type="checkbox"
                 name="marketing_email_consent"
-                className="mt-1 accent-[#5b87ff]"
+                className="mt-1 accent-[#5135e5]"
               />
               <span>Send me your marketing emails. Unsubscribe any time.</span>
             </label>
-            {error ? <p className="text-sm font-bold text-[#ff8a8a]">{error}</p> : null}
+            {error ? (
+              <p className="text-sm font-bold text-[#b42318]">{error}</p>
+            ) : null}
             <button
               type="submit"
               disabled={sending || !priced}
-              className="inline-flex min-h-[56px] items-center justify-center gap-2 rounded-xl bg-[var(--cb-blue)] px-6 text-base font-extrabold text-white shadow-[0_0_36px_#1240e880] transition hover:bg-[var(--cb-blue-deep)] disabled:opacity-60"
+              className="inline-flex min-h-[56px] items-center justify-center gap-2 rounded-xl bg-[#ffb443] px-6 text-base font-extrabold text-[#20212b] shadow-[0_8px_24px_#43364c1f] transition hover:bg-[#ffca76] disabled:opacity-60"
             >
               <Lock className="h-4 w-4" aria-hidden="true" />
-              {sending ? "Starting secure checkout..." : `Pay ${fmt(total)} and start`}
+              {sending
+                ? "Starting secure checkout..."
+                : `Pay ${fmt(total)} and start`}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
-            <p className="text-xs text-[#8b97ad]">
-              Secure card checkout by Stripe. Everything we build lives in YOUR accounts, granted
-              through official partner access. We never ask for a password.
+            <p className="text-xs text-[#625f6d]">
+              Secure card checkout by Stripe. Everything we build lives in YOUR
+              accounts, granted through official partner access. We never ask
+              for a password.
             </p>
             {!downsell ? (
               <button
                 type="button"
-                className="justify-self-start text-sm font-bold text-[#8b97ad] underline"
+                className="justify-self-start text-sm font-bold text-[#625f6d] underline"
                 onClick={() => {
                   downsellOffered.current = true;
                   setShowDownsell(true);
@@ -629,15 +699,15 @@ export default function TimeBackFunnel() {
 
       {/* Sticky total bar — the buy button never leaves the screen */}
       {!payNotice ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--cb-hair-ink)] bg-[#0a1220f2] px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#dbd0c5] bg-[#f3efe8f2] px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur">
           <div className="mx-auto flex w-full max-w-[1120px] items-center justify-between gap-3">
             <div className="leading-tight">
-              <span className="block text-[11px] font-bold uppercase tracking-wide text-[#8b97ad]">
+              <span className="block text-[11px] font-bold uppercase tracking-wide text-[#625f6d]">
                 {downsell
                   ? "Starter week"
                   : `${days} days · ${perDay}/day · ${platforms.length || 1} platform${(platforms.length || 1) > 1 ? "s" : ""}`}
               </span>
-              <span className="block text-xl font-extrabold text-white [font-variant-numeric:tabular-nums]">
+              <span className="block text-xl font-extrabold text-[#20212b] [font-variant-numeric:tabular-nums]">
                 {fmt(shownTotal)}
               </span>
             </div>
@@ -645,9 +715,11 @@ export default function TimeBackFunnel() {
               key={pulseKey}
               type="button"
               onClick={() =>
-                document.getElementById("tb-checkout")?.scrollIntoView({ behavior: "smooth" })
+                document
+                  .getElementById("tb-checkout")
+                  ?.scrollIntoView({ behavior: "smooth" })
               }
-              className={`inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-[var(--cb-blue)] px-5 text-sm font-extrabold text-white shadow-[0_0_28px_#1240e880] ${
+              className={`inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-[#ffb443] px-5 text-sm font-extrabold text-[#20212b] shadow-[0_6px_18px_#43364c1f] ${
                 pulseKey > 0 ? "tb-btn-pulse" : ""
               }`}
             >
@@ -666,36 +738,36 @@ export default function TimeBackFunnel() {
           aria-modal="true"
           aria-label="Starter offer"
         >
-          <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-[20px] border border-[#5b87ff59] bg-[var(--cb-ink-2)] p-7 shadow-[inset_0_1px_0_#ffffff1f,0_0_80px_#1240e866]">
+          <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-[20px] border border-[#dbd0c5] bg-[#fff9ef] p-7 shadow-[inset_0_1px_0_#ffffff1f,0_24px_60px_#43364c26]">
             <div className="flex items-start justify-between gap-4">
-              <h3 className="text-xl font-extrabold text-[var(--cb-on-ink)]">
+              <h3 className="text-xl font-extrabold text-[#34313f]">
                 Not ready? Try {DOWNSELL.days} days for {fmt(DOWNSELL.price)}.
               </h3>
               <button
                 type="button"
                 aria-label="Close"
                 onClick={() => setShowDownsell(false)}
-                className="text-[#8b97ad]"
+                className="text-[#625f6d]"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
-            <p className="mt-3 text-sm text-[#a8b4c8]">
-              {DOWNSELL.label} Written in your voice, scheduled in your accounts. If it feels like
-              a vacation, come back for the month.
+            <p className="mt-3 text-sm text-[#625f6d]">
+              {DOWNSELL.label} Written in your voice, scheduled in your
+              accounts. If it feels like a vacation, come back for the month.
             </p>
             <div className="mt-5 grid gap-2">
               <button
                 type="button"
                 onClick={acceptDownsell}
-                className="min-h-[48px] rounded-xl bg-[var(--cb-blue)] px-5 font-extrabold text-white shadow-[0_0_28px_#1240e880]"
+                className="min-h-[48px] rounded-xl bg-[#ffb443] px-5 font-extrabold text-[#20212b] shadow-[0_6px_18px_#43364c1f]"
               >
                 Give me the {fmt(DOWNSELL.price)} starter
               </button>
               <button
                 type="button"
                 onClick={() => setShowDownsell(false)}
-                className="min-h-[44px] rounded-xl border border-[var(--cb-hair-ink)] px-5 text-sm font-bold text-[#a8b4c8]"
+                className="min-h-[44px] rounded-xl border border-[#dbd0c5] px-5 text-sm font-bold text-[#625f6d]"
               >
                 No thanks, keep the full packages
               </button>

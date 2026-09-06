@@ -43,7 +43,7 @@
   height: 54px;
   place-items: center;
   border-radius: 16px;
-  background: var(--cb-ink);
+  background: #ede6f3;
   color: var(--cb-cyan);
 }
 
@@ -449,8 +449,8 @@
 .lessonHero {
   padding: clamp(26px, 4vw, 48px) 0 clamp(46px, 6vw, 78px);
   overflow: hidden;
-  background: var(--cb-ink);
-  color: #fff;
+  background: linear-gradient(135deg, #f6e9dc, #f3efe8 55%, #ede6f3);
+  color: var(--cb-ink);
 }
 
 .lessonHeroShell {
@@ -474,7 +474,7 @@
 .lessonHeroCopy h1 {
   max-width: 15ch;
   margin: 14px 0 0;
-  color: #fff;
+  color: var(--cb-ink);
   font-family: var(--font-archivo), Archivo, sans-serif;
   font-size: clamp(42px, 6vw, 76px);
   font-weight: 850;
@@ -485,7 +485,7 @@
 .lessonHeroCopy > p:not(:first-of-type) {
   max-width: 58ch;
   margin: 24px 0 0;
-  color: var(--cb-muted-ink);
+  color: var(--cb-muted);
   font-size: clamp(16px, 1.4vw, 19px);
   line-height: 1.62;
 }
@@ -496,8 +496,8 @@
   align-items: center;
   margin-top: 30px;
   padding-top: 22px;
-  border-top: 1px solid var(--cb-hair-ink);
-  color: var(--cb-muted-ink);
+  border-top: 1px solid var(--cb-hair);
+  color: var(--cb-muted);
   font-size: 15px;
   font-weight: 650;
 }
@@ -516,7 +516,8 @@
   border: 1px solid #6f9fff59;
   border-radius: clamp(20px, 2.5vw, 32px);
   background: #061126;
-  box-shadow: 0 36px 86px #0009;
+  box-shadow: var(--cb-shadow-lift);
+  border-color: var(--cb-hair);
 }
 
 .lessonHeroImage img {
@@ -624,18 +625,19 @@
   padding: 0 19px;
   border: 1px solid var(--cb-blue);
   border-radius: 11px;
-  background: var(--cb-blue);
-  color: #fff;
+  background: #ffb443;
+  color: #20212b;
   font: inherit;
   font-size: 15px;
   font-weight: 800;
   cursor: pointer;
   transition: transform 150ms ease, background-color 150ms ease, border-color 150ms ease;
+  border-color: #dfac68;
 }
 
 .completeButton:hover:not(:disabled) {
   transform: translateY(-2px);
-  background: #0d35c5;
+  background: #ffc36a;
 }
 
 .completeButton:focus-visible {
@@ -777,8 +779,8 @@
   padding: 0 20px;
   border: 0;
   border-radius: 11px;
-  background: var(--cb-blue);
-  color: white;
+  background: #ffb443;
+  color: #20212b;
   font: inherit;
   font-size: 15px;
   font-weight: 850;
@@ -789,28 +791,28 @@
 .assessmentActions strong { color: var(--cb-ink); }
 .assessmentMessage { min-height: 20px; margin: 0; color: var(--cb-muted); font-size: 15px; }
 
-.deliverablePanel { margin-top: clamp(46px, 7vw, 76px); padding: clamp(24px, 4vw, 38px); border: 1px solid var(--cb-hair); border-radius: var(--cb-radius-lg); background: #f0f6ff; box-shadow: var(--cb-shadow); }
+.deliverablePanel { margin-top: clamp(46px, 7vw, 76px); padding: clamp(24px, 4vw, 38px); border: 1px solid var(--cb-hair); border-radius: var(--cb-radius-lg); background: #ede6f3; box-shadow: var(--cb-shadow); }
 .deliverablePanel h2 { margin: 9px 0; color: var(--cb-ink); font-family: var(--font-archivo), Archivo, sans-serif; font-size: clamp(28px, 4vw, 42px); letter-spacing: -.04em; }
 .deliverablePanel > p { color: var(--cb-muted); line-height: 1.62; }
-.submissionStatus { display: inline-flex; margin: 8px 0 18px; padding: 7px 11px; border-radius: 999px; background: #dce7f6; color: #234c7b; font-size: 14px; font-weight: 900; text-transform: capitalize; }
+.submissionStatus { display: inline-flex; margin: 8px 0 18px; padding: 7px 11px; border-radius: 999px; background: #ede6f3; color: #5135e5; font-size: 14px; font-weight: 900; text-transform: capitalize; }
 .submissionStatus[data-status="approved"] { background: #dff6ec; color: #146b54; }
 .submissionStatus[data-status="revision-requested"] { background: #fff0dc; color: #8b5205; }
-.reviewNotes { margin: 0 0 18px; padding: 16px; border-left: 4px solid var(--cb-blue); background: white; }
+.reviewNotes { margin: 0 0 18px; padding: 16px; border-left: 4px solid var(--cb-blue); background: var(--cb-surface); }
 .reviewNotes p { margin-bottom: 0; color: var(--cb-muted); }
 .deliverableForm { display: grid; gap: 14px; }
 .deliverableForm label { display: grid; gap: 7px; color: var(--cb-ink); font-size: 15px; font-weight: 850; }
-.deliverableForm input, .deliverableForm textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--cb-hair); border-radius: 10px; background: white; font: inherit; }
-.deliverableForm button { justify-self: start; min-height: 50px; padding: 0 20px; border: 0; border-radius: 10px; background: var(--cb-blue); color: white; font: inherit; font-weight: 850; cursor: pointer; }
+.deliverableForm input, .deliverableForm textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--cb-hair); border-radius: 10px; background: var(--cb-surface); font: inherit; color: var(--cb-ink); border-color: #b9aabd; }
+.deliverableForm button { justify-self: start; min-height: 50px; padding: 0 20px; border: 0; border-radius: 10px; background: #ffb443; color: #20212b; font: inherit; font-weight: 850; cursor: pointer; }
 .deliverableForm button:disabled { cursor: not-allowed; opacity: .65; }
 .deliverableForm > p { min-height: 20px; margin: 0; color: var(--cb-muted); font-size: 15px; }
 
 .credentialRequest { display: grid; gap: 10px; margin-top: 28px; }
 .credentialRequest label { color: var(--cb-ink); font-size: 15px; font-weight: 850; }
-.credentialRequest input { min-height: 50px; padding: 0 14px; border: 1px solid var(--cb-hair); border-radius: 10px; background: white; font: inherit; }
-.credentialRequest button, .printAction button { min-height: 50px; padding: 0 20px; border: 0; border-radius: 10px; background: var(--cb-blue); color: white; font: inherit; font-weight: 850; cursor: pointer; }
+.credentialRequest input { min-height: 50px; padding: 0 14px; border: 1px solid var(--cb-hair); border-radius: 10px; background: var(--cb-surface); font: inherit; color: var(--cb-ink); border-color: #b9aabd; }
+.credentialRequest button, .printAction button { min-height: 50px; padding: 0 20px; border: 0; border-radius: 10px; background: #ffb443; color: #20212b; font: inherit; font-weight: 850; cursor: pointer; }
 .credentialRequest button:disabled { cursor: wait; opacity: .62; }
 .credentialRequest > p { min-height: 20px; margin: 0; color: #9c3428; font-size: 15px; }
-.credential { margin-top: 40px; padding: clamp(38px, 7vw, 74px); border: 10px solid #061126; outline: 2px solid #30e5f4; outline-offset: -18px; background: white; text-align: center; }
+.credential { margin-top: 40px; padding: clamp(38px, 7vw, 74px); border: 10px solid #b9aabd; outline: 2px solid #5135e5; outline-offset: -18px; background: #fff9ef; text-align: center; }
 .credential > svg { width: 58px; height: 58px; color: var(--cb-blue); }
 .credential > p:first-of-type { margin-top: 22px; color: var(--cb-blue); font-size: 14px; font-weight: 900; letter-spacing: .14em; }
 .credential h1 { margin: 30px 0 0; color: var(--cb-ink); font-family: var(--font-archivo), Archivo, sans-serif; font-size: clamp(42px, 7vw, 72px); letter-spacing: -.05em; }
@@ -818,7 +820,7 @@
 .credential strong, .credential small { display: block; margin-top: 18px; }
 .credential footer { max-width: 76ch; margin: 34px auto 0; padding-top: 20px; border-top: 1px solid var(--cb-hair); color: var(--cb-muted); font-size: 13px; line-height: 1.55; }
 .printAction { margin-top: 22px; text-align: center; }
-@media print { .printAction, .backLink { display: none !important; } .credential { margin: 0; } }
+@media print { .printAction, .backLink { display: none !important; } .credential { margin: 0; border: 10px solid #b9aabd; outline: 2px solid #5135e5; background: #fff9ef; } }
 
 @media (max-width: 1000px) {
   .courseGrid {
@@ -884,6 +886,8 @@
 
   .lessonHeroImage {
     order: -1;
+    border-color: var(--cb-hair);
+    box-shadow: var(--cb-shadow-lift);
   }
 
   .darkBackLink {

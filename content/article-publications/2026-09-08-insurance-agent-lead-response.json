@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "slug": "insurance-agent-lead-response",
+  "publicationDate": "2026-09-08",
+  "sourceChecks": [
+    {
+      "url": "https://support.microsoft.com/en-us/outlook/sharing/open-and-use-a-shared-mailbox-in-outlook",
+      "checkedAt": "2026-09-06T17:23:46Z",
+      "claim": "Outlook shared mailboxes let a group monitor messages and reply from a shared address; a Microsoft 365 administrator must create the mailbox and add members before they can use it."
+    }
+  ],
+  "editorialChecks": {
+    "example": "Three explicitly fictional received/reply pairs produce waits of 10, 80, and 15 minutes, a 35-minute mean, and a 15-minute median. Unanswered inquiries are kept separate rather than counted as zero.",
+    "calculatorScope": "The lead-response-time implementation was read. Its fixed decay curve is explained as a hypothetical model, not an insurance benchmark, causal result, measured revenue loss, or coverage advice. Practice value is agency revenue, explicitly not premium.",
+    "calculatorExampleCheck": "Node imported the actual lead-response-time tool and ran leads=20, hours=2, ticket=200, baseClose=25. Output verified as $270 a month and $3,243 a year. Timestamp example mean and median were also asserted.",
+    "art": "/og/tools/lead-response-time.jpg visually inspected: 1200x630 navy Lead Response Time Calculator card with blue and gray bars. Alt text describes the actual card.",
+    "scope": "One new original article for the first uncovered date. No workshop promotion, outreach, paid service, or private customer records.",
+    "preReleaseReview": "913-word article body, 53-character title, 151-character description, one tool marker, balanced escaped template fence, complete FAQ and tool guidance. Article publication, queue, and OG suites passed all 16 tests. Focused ESLint reported zero errors and one pre-existing articles-og.tsx image warning. Changed files passed Prettier and git diff --check. Full build, production deployment, and future-route verification remain for the coordinated release."
+  }
+}

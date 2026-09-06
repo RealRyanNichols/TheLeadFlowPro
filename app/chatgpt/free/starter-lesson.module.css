@@ -11,15 +11,15 @@
   padding: 12px 18px;
   border: 0;
   border-radius: 8px;
-  background: #0759cf;
-  color: white;
+  background: #ffb443;
+  color: #20212b;
   font: inherit;
   font-weight: 750;
   cursor: pointer;
 }
 
 .copyControl button:focus-visible {
-  outline: 3px solid #0759cf;
+  outline: 3px solid #5135e5;
   outline-offset: 4px;
 }
 
@@ -31,6 +31,6 @@
 .copyControl p {
   min-height: 1.5em;
   margin: 8px 0 0;
-  color: #334d65;
+  color: #625f6d;
   font-size: 0.88rem;
 }

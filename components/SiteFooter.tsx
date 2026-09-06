@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import BrandLockup from "@/components/BrandLockup";
 import { usePathname } from "next/navigation";
 
 // The footer is ink on every page, light or dark, so the site always lands on
@@ -35,10 +36,7 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
     heading: "Work together",
     links: [
       ["/packages", "Packages"],
-      [
-        "https://workshop.theleadflowpro.com/",
-        "Events & Workshops",
-      ],
+      ["https://workshop.theleadflowpro.com/", "Events & Workshops"],
       ["/go/lead-follow-up", "Follow-Up Campaign | $197"],
       ["/free-build", "Free Website | $0 Build Fee"],
       ["/start", "Map My Company"],
@@ -63,14 +61,16 @@ export default function SiteFooter() {
       <div className="cb-shell">
         <div className="cb-footer-top">
           <div>
-            <Link href="/" className="brand-lockup" aria-label="The LeadFlow Pro home">
-              The LeadFlow<span>Pro</span>
-            </Link>
+            <BrandLockup />
             <p className="cb-footer-pitch">
-              More attention. More leads. More revenue. We connect the website, follow-up,
-              sales tools, and operating system in accounts you control.
+              More attention. More leads. More revenue. We connect the website,
+              follow-up, sales tools, and operating system in accounts you
+              control.
             </p>
-            <a href="mailto:hello@theleadflowpro.com" className="cb-textlink mt-6 inline-flex">
+            <a
+              href="mailto:hello@theleadflowpro.com"
+              className="cb-textlink mt-6 inline-flex"
+            >
               hello@theleadflowpro.com
             </a>
           </div>
@@ -89,8 +89,8 @@ export default function SiteFooter() {
         </div>
         <div className="cb-footer-bottom">
           <span>
-            &copy; {new Date().getFullYear()} The LeadFlow Pro. A DBA of Longview Training
-            Center, LLC.
+            &copy; {new Date().getFullYear()} The LeadFlow Pro. A DBA of
+            Longview Training Center, LLC.
           </span>
           <nav aria-label="Legal">
             <Link href="/privacy">Privacy</Link>

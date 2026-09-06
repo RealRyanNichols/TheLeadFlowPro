@@ -3,6 +3,7 @@ import { Archivo, Inter } from "next/font/google";
 import "./globals.css";
 import "./company-builder.css";
 import "./leadflow-theme.css";
+import "./theme-consistency.css";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import TrackingScripts from "@/components/TrackingScripts";

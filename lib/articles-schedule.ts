@@ -24,6 +24,7 @@ export const ARTICLE_PUBLICATION_DATES: Record<string, string> = {
   "give-every-inquiry-an-owner-and-next-step": "2026-09-05",
   "gym-break-even-members": "2026-08-14",
   "hvac-missed-calls-cost": "2026-08-12",
+  "insurance-agent-lead-response": "2026-09-08",
   "lawn-care-hourly-rate": "2026-08-12",
   "locksmith-after-hours-calls": "2026-09-07",
   "marketplace-is-not-your-website": "2026-08-08",

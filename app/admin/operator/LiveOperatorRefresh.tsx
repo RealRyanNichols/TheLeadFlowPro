@@ -61,7 +61,7 @@ export default function LiveOperatorRefresh() {
   }, [router]);
 
   return (
-    <div className="inline-flex min-h-[38px] items-center gap-2 rounded-full border border-[#ffffff24] bg-[#111c30] px-3 text-xs font-bold text-[#b8c5d9]">
+    <div className="inline-flex min-h-[38px] items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--panel)] px-3 text-xs font-bold text-[var(--muted)]">
       <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${connected ? "bg-emerald-400" : "bg-amber-400"}`}>
         <span className="absolute inset-0 animate-ping rounded-full bg-current opacity-30 motion-reduce:animate-none" />
       </span>

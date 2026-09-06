@@ -28,7 +28,8 @@
       "tool": "lead-response-time",
       "searchQuestion": "How fast should an insurance agent respond to a lead?",
       "workingTitle": "The quote you sent second never had a chance",
-      "status": "queued"
+      "status": "scheduled",
+      "draftedAt": "2026-09-06"
     },
     {
       "slug": "handyman-job-pricing",

@@ -48,7 +48,7 @@
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  color: var(--cb-on-ink, #f4f6fa);
+  color: var(--cb-body);
   font-size: 16px;
   font-weight: 650;
   line-height: 1.45;
@@ -66,7 +66,7 @@
   display: block;
   font-style: normal;
   font-weight: 500;
-  color: var(--cb-muted-ink, #a8b4c8);
+  color: var(--cb-muted);
   font-size: 15px;
 }
 
@@ -371,20 +371,22 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  background: #0a1220f2;
+  background: #fff9eff2;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-top: 1px solid #ffffff1f;
+  border-top: 1px solid var(--cb-hair);
 }
 
 @media (max-width: 780px) {
   .stickyBar {
     display: flex;
+    background: #fff9eff2;
+    border-top: 1px solid var(--cb-hair);
   }
 }
 
 .stickyCopy {
-  color: #f4f6fa;
+  color: var(--cb-ink);
   font-size: 15px;
   font-weight: 700;
   line-height: 1.3;
@@ -392,7 +394,7 @@
 
 .stickyCopy span {
   display: block;
-  color: #a8b4c8;
+  color: var(--cb-muted);
   font-weight: 600;
   font-size: 14px;
 }

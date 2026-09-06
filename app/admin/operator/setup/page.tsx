@@ -146,17 +146,17 @@ export default async function OperatorSetup() {
 
   return (
     <div className="space-y-7">
-      <section className="overflow-hidden rounded-[28px] border border-[#ffffff1f] bg-[#07111f] p-6 text-white shadow-[0_30px_90px_rgba(7,17,31,0.24)] sm:p-8">
+      <section className="overflow-hidden rounded-[28px] border border-[var(--line)] bg-[#ede6f3] p-6 text-[var(--heading)] shadow-[var(--lf-shadow)] sm:p-8">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-[#50d4ff]">OperatorOS activation</p>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-[var(--blue)]">OperatorOS activation</p>
             <h1 className="mt-2 text-4xl font-black tracking-tight sm:text-5xl">Inputs, access, and stoplines</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-[#b8c5d9]">This page separates what is already built from what still needs a human decision, a business contact, or a server-side credential. Secrets are never displayed here.</p>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--muted)]">This page separates what is already built from what still needs a human decision, a business contact, or a server-side credential. Secrets are never displayed here.</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-[#101d31] px-5 py-4">
-            <p className="text-[11px] font-black uppercase tracking-wide text-[#8295b1]">Activation readiness</p>
+          <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] px-5 py-4">
+            <p className="text-[11px] font-black uppercase tracking-wide text-[var(--muted)]">Activation readiness</p>
             <p className="mt-1 text-3xl font-black">{readyCount}/{readiness.length}</p>
-            <p className="mt-1 text-xs text-[#aabbd2]">controls ready</p>
+            <p className="mt-1 text-xs text-[var(--muted)]">controls ready</p>
           </div>
         </div>
       </section>
@@ -173,7 +173,7 @@ export default async function OperatorSetup() {
 
       <OperatorSetupForm settings={settings} />
 
-      <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
+      <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
         <h2 className="text-xl font-black text-[var(--heading)]">What happens after these inputs are complete</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <Link href="/admin/operator/prospects" className="rounded-xl border border-[var(--line)] p-4 hover:border-[var(--accent-line)] hover:bg-[var(--accent-tint)]"><p className="font-black text-[var(--heading)]">1. Verify the first contacts</p><p className="mt-1 text-xs leading-5 text-[var(--muted)]">Load decision-maker details, review the evidence, edit the draft, approve it, send it yourself, then mark it sent.</p><span className="mt-3 inline-flex items-center gap-1 text-xs font-black text-[var(--blue)]">Open Prospect Command <ArrowRight className="h-3.5 w-3.5" /></span></Link>

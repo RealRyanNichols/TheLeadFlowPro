@@ -56,9 +56,9 @@ type CashEntry = {
 };
 
 function statTone(status: string) {
-  if (status === "AHEAD" || status === "ON PACE") return "border-emerald-400/35 bg-emerald-400/10 text-emerald-200";
-  if (status === "BEHIND") return "border-amber-400/35 bg-amber-400/10 text-amber-100";
-  return "border-cyan-400/30 bg-cyan-400/10 text-cyan-100";
+  if (status === "AHEAD" || status === "ON PACE") return "border-emerald-400/35 bg-emerald-400/10 text-emerald-800";
+  if (status === "BEHIND") return "border-amber-400/35 bg-amber-400/10 text-amber-800";
+  return "border-cyan-400/30 bg-cyan-400/10 text-[var(--blue)]";
 }
 
 function cashSourceLabel(source: string) {
@@ -209,12 +209,12 @@ export default async function GrowthGoalMode() {
 
   return (
     <div className="space-y-7">
-      <section className="overflow-hidden rounded-[28px] border border-[#ffffff1f] bg-[#07111f] px-5 py-7 text-white shadow-[0_30px_90px_rgba(7,17,31,0.24)] sm:px-8">
+      <section className="overflow-hidden rounded-[28px] border border-[var(--line)] bg-[#ede6f3] px-5 py-7 text-[var(--heading)] shadow-[var(--lf-shadow)] sm:px-8">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#50d4ff]">Goal Mode · September 2026</p>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-[var(--blue)]">Goal Mode · September 2026</p>
             <h2 className="mt-2 text-4xl font-black tracking-tight sm:text-5xl">{mission?.name || "$75K Cash Collected"}</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-[#b8c5d9]">The scoreboard works backward from verified money received into conversations, proposals, follow-up, and targeted outreach. Open invoices, expected value, and promises are not counted as cash.</p>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--muted)]">The scoreboard works backward from verified money received into conversations, proposals, follow-up, and targeted outreach. Open invoices, expected value, and promises are not counted as cash.</p>
           </div>
           <div className={`rounded-2xl border px-5 py-4 ${statTone(paceStatus)}`}>
             <p className="text-[11px] font-black uppercase tracking-[0.18em]">Pace</p>
@@ -223,20 +223,20 @@ export default async function GrowthGoalMode() {
           </div>
         </div>
 
-        <div className="mt-7 flex flex-wrap items-center gap-2 text-xs font-black tracking-wide text-[#9fb0c8]">
+        <div className="mt-7 flex flex-wrap items-center gap-2 text-xs font-black tracking-wide text-[var(--muted)]">
           {LEADFLOW_GROWTH_LOOP.map((stage, index) => (
             <span key={`${stage}-${index}`} className="flex items-center gap-2">
-              <span className="rounded-full border border-[#ffffff1f] bg-[#101d31] px-3 py-2 text-white">{stage}</span>
-              {index < LEADFLOW_GROWTH_LOOP.length - 1 && <ArrowRight className="h-3.5 w-3.5 text-[#50d4ff]" />}
+              <span className="rounded-full border border-[var(--line)] bg-[var(--panel)] px-3 py-2 text-[var(--heading)]">{stage}</span>
+              {index < LEADFLOW_GROWTH_LOOP.length - 1 && <ArrowRight className="h-3.5 w-3.5 text-[var(--blue)]" />}
             </span>
           ))}
         </div>
-        <div className="mt-7 h-3 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-[#1240e8] to-[#35c6f4]" style={{ width: `${Math.min(100, targetProgress * 100)}%` }} /></div>
+        <div className="mt-7 h-3 overflow-hidden rounded-full bg-[var(--fill-3)]"><div className="h-full rounded-full bg-gradient-to-r from-[#5135e5] to-[#957ddb]" style={{ width: `${Math.min(100, targetProgress * 100)}%` }} /></div>
       </section>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         {scorecards.map(({ label, value, note, icon: Icon }) => (
-          <section key={label} className="rounded-2xl border border-[var(--line)] bg-white p-4 shadow-[0_10px_30px_rgba(10,18,32,0.04)]">
+          <section key={label} className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4 shadow-[0_10px_30px_rgba(10,18,32,0.04)]">
             <Icon className="h-5 w-5 text-[var(--blue)]" />
             <p className="mt-3 text-[11px] font-black uppercase tracking-wide text-[var(--muted)]">{label}</p>
             <p className="mt-1 text-2xl font-black tracking-tight text-[var(--heading)]">{value}</p>
@@ -246,7 +246,7 @@ export default async function GrowthGoalMode() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,.85fr)]">
-        <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
+        <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div><p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Reverse-engineered funnel</p><h3 className="mt-1 text-2xl font-black text-[var(--heading)]">What the month requires</h3></div>
             <span className="rounded-full bg-[var(--fill-2)] px-3 py-1.5 text-xs font-bold text-[var(--muted)]">{closeTarget} closes in the working mix</span>
@@ -274,7 +274,7 @@ export default async function GrowthGoalMode() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
+        <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Daily operating card</p>
           <h3 className="mt-1 text-2xl font-black text-[var(--heading)]">The minimum useful day</h3>
           <div className="mt-5 space-y-3">
@@ -293,7 +293,7 @@ export default async function GrowthGoalMode() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,.75fr)_minmax(0,1.25fr)]">
-        <section className="rounded-2xl border border-[var(--line)] bg-white p-5 sm:p-6">
+        <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 sm:p-6">
           <div className="flex items-center gap-2"><Landmark className="h-5 w-5 text-[var(--blue)]" /><h3 className="text-xl font-black text-[var(--heading)]">Verified cash sources</h3></div>
           <div className="mt-4 space-y-3">
             {[...cashSources.entries()].sort((a,b) => b[1]-a[1]).map(([source, total]) => <div key={source} className="flex items-center justify-between rounded-xl border border-[var(--line)] bg-[var(--fill-2)] px-4 py-3"><span className="font-black capitalize text-[var(--heading)]">{cashSourceLabel(source)}</span><span className="font-black text-emerald-700">{money(total)}</span></div>)}
@@ -301,14 +301,14 @@ export default async function GrowthGoalMode() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
+        <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6">
           <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Offer mix</p><h3 className="mt-1 text-2xl font-black text-[var(--heading)]">Sell systems, use the site as the wedge</h3></div><CalendarDays className="h-6 w-6 text-[var(--blue)]" /></div>
           <div className="mt-5 overflow-x-auto"><table className="w-full min-w-[640px] text-left text-sm"><thead className="bg-[var(--fill-2)] text-xs uppercase tracking-wide text-[var(--muted)]"><tr><th className="px-4 py-3">Offer</th><th className="px-4 py-3">Setup</th><th className="px-4 py-3">Working closes</th><th className="px-4 py-3">Setup revenue</th></tr></thead><tbody className="divide-y divide-[var(--line)]">{offerMix.map((item) => <tr key={item.name}><td className="px-4 py-3 font-black text-[var(--heading)]">{item.name}</td><td className="px-4 py-3">{money(item.setup)}</td><td className="px-4 py-3">{item.closes}</td><td className="px-4 py-3 font-black">{money(item.setup * item.closes)}</td></tr>)}</tbody><tfoot><tr className="border-t-2 border-[var(--line-strong)]"><td className="px-4 py-3 font-black" colSpan={3}>Working mix total</td><td className="px-4 py-3 text-lg font-black text-[var(--blue)]">{money(offerMix.reduce((sum, item) => sum + item.setup * item.closes, 0))}</td></tr></tfoot></table></div>
           <p className="mt-4 text-sm leading-6 text-[var(--muted)]">A free homepage concept earns attention. Systems setup, ongoing plans, custom integrations, archives, e-commerce, and full operating systems remain paid scope.</p>
         </section>
       </div>
 
-      {episodes.length > 0 && <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6"><p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Episode Engine</p><h3 className="mt-1 text-2xl font-black text-[var(--heading)]">The business becomes the content</h3><div className="mt-5 grid gap-4 lg:grid-cols-3">{episodes.map((episode) => <article key={episode.episode_date} className="rounded-xl border border-[var(--line)] bg-[var(--fill-2)] p-4"><p className="text-xs font-black uppercase tracking-wide text-[var(--muted)]">Day {episode.day_number} · {episode.episode_date}</p><p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[var(--text)]">{episode.content_draft}</p><p className="mt-3 text-xs font-black uppercase text-[var(--blue)]">{episode.status}</p></article>)}</div></section>}
+      {episodes.length > 0 && <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.04)] sm:p-6"><p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--blue)]">Episode Engine</p><h3 className="mt-1 text-2xl font-black text-[var(--heading)]">The business becomes the content</h3><div className="mt-5 grid gap-4 lg:grid-cols-3">{episodes.map((episode) => <article key={episode.episode_date} className="rounded-xl border border-[var(--line)] bg-[var(--fill-2)] p-4"><p className="text-xs font-black uppercase tracking-wide text-[var(--muted)]">Day {episode.day_number} · {episode.episode_date}</p><p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[var(--text)]">{episode.content_draft}</p><p className="mt-3 text-xs font-black uppercase text-[var(--blue)]">{episode.status}</p></article>)}</div></section>}
     </div>
   );
 }

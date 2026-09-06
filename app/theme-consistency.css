@@ -1,0 +1,251 @@
+/* The approved workshop palette is shared by every LeadFlow interface.
+   Inverse photo captions keep their own ink/white pairing. */
+:root,
+.cb-home-dark,
+.operator-dark {
+  color-scheme: light;
+  --page: #f3efe8;
+  --page-soft: #eee7de;
+  --panel: #fff9ef;
+  --panel-strong: #fff9ef;
+  --panel-soft: #f6e9dc;
+  --line: #dbd0c5;
+  --line-strong: #b9aabd;
+  --text: #34313f;
+  --heading: #20212b;
+  --muted: #625f6d;
+  --quiet: #625f6d;
+  --blue: #5135e5;
+  --blue-strong: #3c25b6;
+  --fill-1: #fff9ef;
+  --fill-2: #ede6f3;
+  --fill-3: #e5ddeb;
+  --fill-4: #dbd0e4;
+  --accent-tint: #ede6f3;
+  --accent-line: #b9aabd;
+  --surface-raised: #fff9ef;
+  --menu-bg: #fff9ef;
+  --cb-canvas: #f3efe8;
+  --cb-surface: #fff9ef;
+  --cb-surface-2: #f6e9dc;
+  --cb-ink: #20212b;
+  --cb-ink-2: #34313f;
+  --cb-body: #34313f;
+  --cb-muted: #625f6d;
+  --cb-blue: #5135e5;
+  --cb-blue-deep: #3c25b6;
+  --cb-blue-soft: #5135e5;
+  --cb-cyan: #5135e5;
+  --cb-hair: #dbd0c5;
+  --cb-shadow: var(--lf-shadow);
+  --cb-shadow-lift: var(--lf-shadow-lift);
+}
+body:has(.cb-page.cb-home-dark),
+.cb-home-dark {
+  color-scheme: light;
+  background: var(--page);
+}
+.brand-lockup.brand-official {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: #20212b;
+  font-size: 14px;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  line-height: 1.35;
+  white-space: normal;
+}
+.brand-lockup.brand-official .brand-mark-logo {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  flex: none;
+  margin: 0;
+  width: 52px;
+  height: 52px;
+  border: 1px solid #ddd8d2;
+  border-radius: 11px;
+  background: white;
+  box-shadow: 0 3px 10px #23437e12;
+}
+.brand-lockup.brand-official .brand-mark-logo img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 130%;
+  max-width: none;
+  height: 130%;
+  object-fit: cover;
+  transform: translate(-50%, -50%);
+}
+.brand-lockup.brand-official .brand-words {
+  display: block;
+  margin: 0;
+  color: #20212b;
+}
+.brand-lockup.brand-official .brand-words small {
+  display: block;
+  margin-top: 3px;
+  color: #5135e5;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+}
+.cb-hero,
+.cb-home-dark .cb-hero,
+.sv-article-text-hero {
+  background: linear-gradient(120deg, #ede6f3, #f3efe8 52%, #f6e9dc);
+  color: var(--cb-body);
+}
+.cb-hero .cb-h1,
+.cb-home-dark .cb-hero .cb-h1 span,
+.cb-final .cb-h2,
+.sv-article-text-hero h1 {
+  color: var(--cb-ink);
+}
+.cb-hero .cb-h1 em,
+.cb-home-dark .cb-hero .cb-h1 span:nth-child(2),
+.cb-final .cb-h2 em {
+  color: var(--cb-blue);
+}
+.cb-hero-lead,
+.cb-hero-own,
+.sv-article-text-hero__lead {
+  color: var(--cb-muted);
+}
+.cb-hero-own {
+  border-color: var(--cb-hair);
+}
+.cb-hero::before,
+.cb-final::before {
+  opacity: 0.2;
+  background-image:
+    linear-gradient(#b9aabd 1px, transparent 1px),
+    linear-gradient(90deg, #b9aabd 1px, transparent 1px);
+}
+.cb-band--ink,
+.cb-home-dark .cb-band--ink,
+.cb-band--visual,
+.cb-home-dark .cb-band--visual {
+  background: linear-gradient(135deg, #e5eee3, #f3efe8 65%, #ede6f3);
+  color: var(--cb-body);
+}
+.cb-final,
+.cb-home-dark .cb-final {
+  background: linear-gradient(125deg, #f6e9dc, #ede6f3);
+  color: var(--cb-body);
+}
+.cb-band--ink .cb-h2,
+.cb-band--ink .cb-h3,
+.cb-band--ink strong,
+.cb-band--visual .cb-h2,
+.cb-band--visual .cb-visual-copy h3 {
+  color: var(--cb-ink);
+}
+.cb-band--ink .cb-lead,
+.cb-final .cb-lead,
+.cb-band--visual .cb-lead,
+.cb-band--visual .cb-visual-copy > p {
+  color: var(--cb-muted);
+}
+.cb-band--visual .cb-eyebrow {
+  color: var(--cb-blue);
+}
+.cb-visual-intro,
+.cb-visual-scene {
+  border-color: var(--cb-hair);
+}
+.cb-home-dark .cb-btn--ghost,
+.cb-band--ink .cb-btn--ghost,
+.cb-hero .cb-btn--ghost,
+.cb-final .cb-btn--ghost {
+  border-color: var(--cb-hair);
+  color: var(--cb-ink);
+  background: #fff9ef;
+}
+.cb-home-dark .cb-btn--ghost:hover,
+.cb-band--ink .cb-btn--ghost:hover,
+.cb-hero .cb-btn--ghost:hover,
+.cb-final .cb-btn--ghost:hover {
+  border-color: #b9aabd;
+  color: #5135e5;
+  background: #ede6f3;
+}
+.cb-band--ink .cb-textlink,
+.cb-hero .cb-textlink,
+.cb-final .cb-textlink,
+.cb-footer .cb-textlink {
+  color: var(--cb-blue);
+}
+.sv-tool-hero-art {
+  background: #ede6f3;
+}
+.sv-form-band,
+.sv-tools-band {
+  background: linear-gradient(120deg, #f3efe8, #f6e9dc 60%, #ede6f3);
+}
+.sv-workbench {
+  border-color: var(--cb-hair);
+  box-shadow: var(--lf-shadow);
+}
+.operator-dark {
+  background: #f3efe8;
+}
+.operator-dark .bg-white {
+  background-color: #fff9ef !important;
+}
+.operator-dark .text-emerald-700 {
+  color: #146c34 !important;
+}
+.operator-dark .text-amber-700,
+.operator-dark .text-amber-800 {
+  color: #92400e !important;
+}
+.operator-dark .text-red-700 {
+  color: #b91c1c !important;
+}
+.operator-dark .bg-emerald-100 {
+  background-color: #e5eee3 !important;
+}
+.operator-dark .bg-amber-100,
+.operator-dark .bg-amber-50 {
+  background-color: #fae8c7 !important;
+}
+.operator-dark .bg-red-100,
+.operator-dark .bg-red-50 {
+  background-color: #fde7e3 !important;
+}
+.operator-dashboard-nav {
+  background: #fff9eff2 !important;
+}
+@media (max-width: 640px) {
+  .brand-lockup.brand-official {
+    gap: 9px;
+    font-size: 12px;
+  }
+  .brand-lockup.brand-official .brand-mark-logo {
+    width: 44px;
+    height: 44px;
+  }
+  .brand-lockup.brand-official .brand-words small {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+  }
+}
+
+/* Captions sit on original photography, independent of warm UI surfaces. */
+.cb-hero-visual figcaption > span {
+  color: #d7ceff;
+}
+.cb-hero-visual figcaption > strong {
+  color: #fff;
+}
+.router-header .brand-lockup.brand-official {
+  font-size: 14px;
+}
+@media (max-width: 640px) {
+  .router-header .brand-lockup.brand-official {
+    font-size: 12px;
+  }
+}

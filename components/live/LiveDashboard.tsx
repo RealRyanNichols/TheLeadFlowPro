@@ -28,15 +28,21 @@ export type LivePayload = {
 };
 
 const POLL_MS = 45_000;
-// Sequential blue ramp for the funnel on ink (light → reads down the stages).
-const FUNNEL_COLORS = ["#98acf8", "#7d97f6", "#5b87ff", "#3d63ef", "#2b4ed1"];
-const ACCENT = "#5b87ff"; // validated against #0a1220
+// Violet ramp with white value labels on the warm dashboard surface.
+const FUNNEL_COLORS = ["#5135e5", "#6043cf", "#694bbb", "#7154a7", "#725b95"];
+const ACCENT = "#5135e5";
 
 function toolName(slug: string): string {
   return slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-export default function LiveDashboard({ initial, showLeads }: { initial: LivePayload; showLeads: boolean }) {
+export default function LiveDashboard({
+  initial,
+  showLeads,
+}: {
+  initial: LivePayload;
+  showLeads: boolean;
+}) {
   const [payload, setPayload] = useState<LivePayload>(initial);
   const [stale, setStale] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -75,8 +81,9 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
   if (!m || m.enabled === false) {
     return (
       <div className="lfp-ink p-8 text-center">
-        <p className="text-sm text-[#a8b4c8]">
-          The live dashboard is offline right now. The system underneath it is still running.
+        <p className="text-sm text-[#625f6d]">
+          The live dashboard is offline right now. The system underneath it is
+          still running.
         </p>
       </div>
     );
@@ -84,12 +91,25 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
 
   const funnel = (m.funnel_30d as Json) ?? {};
   const gsc = m.gsc as Json | null;
-  const gscClicksTrend = gsc ? trend(gsc.clicks_28d ?? 0, gsc.prev_clicks_28d ?? 0) : null;
-  const gscPosTrend = gsc ? positionTrend(gsc.position_28d, gsc.prev_position_28d) : null;
+  const gscClicksTrend = gsc
+    ? trend(gsc.clicks_28d ?? 0, gsc.prev_clicks_28d ?? 0)
+    : null;
+  const gscPosTrend = gsc
+    ? positionTrend(gsc.position_28d, gsc.prev_position_28d)
+    : null;
   const visitorsTrend = trend(m.visitors_30d ?? 0, m.visitors_prev_30d ?? 0);
 
-  const tiles: Array<{ label: string; value: number | null; live?: boolean; sub?: string }> = [
-    { label: "Visitors today", value: m.visitors_today, sub: `${m.visitors_yesterday ?? 0} yesterday` },
+  const tiles: Array<{
+    label: string;
+    value: number | null;
+    live?: boolean;
+    sub?: string;
+  }> = [
+    {
+      label: "Visitors today",
+      value: m.visitors_today,
+      sub: `${m.visitors_yesterday ?? 0} yesterday`,
+    },
     {
       label: "Visitors · 30 days",
       value: m.visitors_30d,
@@ -98,13 +118,40 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
           ? `${visitorsTrend.diff >= 0 ? "+" : ""}${visitorsTrend.diff} vs prior 30d`
           : "first 30-day window",
     },
-    { label: "Page views today", value: m.pageviews_today, sub: `${compactNumber(m.pageviews_30d)} in 30d` },
-    { label: "Actions tracked today", value: m.actions_today, sub: `${compactNumber(m.actions_30d)} in 30d` },
-    { label: "Active right now", value: m.active_now, live: true, sub: "last 5 minutes" },
-    { label: "Tool sessions today", value: m.tool_sessions_today, sub: `${compactNumber(m.tool_views_30d)} tool views in 30d` },
-    { label: "CTA clicks · 30 days", value: m.cta_clicks_30d, sub: "calls, texts, emails, buttons" },
+    {
+      label: "Page views today",
+      value: m.pageviews_today,
+      sub: `${compactNumber(m.pageviews_30d)} in 30d`,
+    },
+    {
+      label: "Actions tracked today",
+      value: m.actions_today,
+      sub: `${compactNumber(m.actions_30d)} in 30d`,
+    },
+    {
+      label: "Active right now",
+      value: m.active_now,
+      live: true,
+      sub: "last 5 minutes",
+    },
+    {
+      label: "Tool sessions today",
+      value: m.tool_sessions_today,
+      sub: `${compactNumber(m.tool_views_30d)} tool views in 30d`,
+    },
+    {
+      label: "CTA clicks · 30 days",
+      value: m.cta_clicks_30d,
+      sub: "calls, texts, emails, buttons",
+    },
     ...(showLeads && m.leads_30d != null
-      ? [{ label: "Leads · 30 days", value: m.leads_30d as number, sub: `${m.leads_today ?? 0} today` }]
+      ? [
+          {
+            label: "Leads · 30 days",
+            value: m.leads_30d as number,
+            sub: `${m.leads_today ?? 0} today`,
+          },
+        ]
       : []),
   ];
 
@@ -112,12 +159,13 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
     <div className="space-y-6">
       {/* ---- status line ---- */}
       <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wider">
-        <span className="inline-flex items-center gap-2 border-l-2 border-[#4ade80] pl-3 text-[#4ade80]">
+        <span className="inline-flex items-center gap-2 border-l-2 border-[#23643c] pl-3 text-[#23643c]">
           <span className="live-pulse-dot" aria-hidden="true" />
           {stale ? "Reconnecting. Showing last verified data." : "System live"}
         </span>
-        <span className="text-[#a8b4c8]">
-          Data updated {hydrated ? relativeTime(payload.fetched_at) : "recently"} · refreshes
+        <span className="text-[#625f6d]">
+          Data updated{" "}
+          {hydrated ? relativeTime(payload.fetched_at) : "recently"} · refreshes
           about every 30–45s
         </span>
       </div>
@@ -125,53 +173,78 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
       {/* ---- command center ---- */}
       <section className="lfp-ink p-5 sm:p-7" aria-label="Live traffic metrics">
         <div className="lfp-ink-grid" aria-hidden="true" />
-        <div className="lfp-ink-glow" style={{ background: "#1240e8", top: -160, right: -120 }} aria-hidden="true" />
+        <div
+          className="lfp-ink-glow"
+          style={{ background: "#ede6f3", top: -160, right: -120 }}
+          aria-hidden="true"
+        />
         <div className="relative">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {tiles.map((t) => (
-              <div key={t.label} className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-[#a8b4c8]">{t.label}</div>
+              <div
+                key={t.label}
+                className="rounded-xl border border-[#dbd0c5] bg-[#ede6f3] p-4"
+              >
+                <div className="text-[11px] font-bold uppercase tracking-wider text-[#625f6d]">
+                  {t.label}
+                </div>
                 <div className="mt-1.5 flex items-baseline gap-2">
-                  <span key={String(t.value)} className="lfp-num text-3xl font-black text-white">
+                  <span
+                    key={String(t.value)}
+                    className="lfp-num text-3xl font-black text-[#20212b]"
+                  >
                     {t.value != null ? compactNumber(t.value) : "—"}
                   </span>
                   {t.live && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#4ade80]">
-                      <span className="live-pulse-dot" aria-hidden="true" /> live
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#23643c]">
+                      <span className="live-pulse-dot" aria-hidden="true" />{" "}
+                      live
                     </span>
                   )}
                 </div>
-                {t.sub && <div className="mt-1 text-[11px] text-[#7f8ca3]">{t.sub}</div>}
+                {t.sub && (
+                  <div className="mt-1 text-[11px] text-[#625f6d]">{t.sub}</div>
+                )}
               </div>
             ))}
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
             <div>
-              <h3 className="mb-3 text-sm font-black uppercase tracking-wider text-[#a8b4c8]">
+              <h3 className="mb-3 text-sm font-black uppercase tracking-wider text-[#625f6d]">
                 Visitors · last 30 days
               </h3>
               <AreaChart
-                points={((series?.daily as Json[]) ?? []).map((d) => ({ x: d.day, ys: [d.visitors] }))}
+                points={((series?.daily as Json[]) ?? []).map((d) => ({
+                  x: d.day,
+                  ys: [d.visitors],
+                }))}
                 seriesNames={["Visitors"]}
                 colors={[ACCENT]}
                 height={200}
-                ink
+                ink={false}
                 summary="Daily unique visitors for the last 30 days."
               />
             </div>
             <div>
-              <h3 className="mb-3 text-sm font-black uppercase tracking-wider text-[#a8b4c8]">
+              <h3 className="mb-3 text-sm font-black uppercase tracking-wider text-[#625f6d]">
                 Live activity
               </h3>
               {feed.length > 0 ? (
                 <ol className="space-y-2.5" aria-live="polite">
                   {feed.slice(0, 8).map((item, i) => (
-                    <li key={`${item.at}-${i}`} className="flex items-start gap-2.5 text-[13px]">
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: ACCENT }} aria-hidden="true" />
-                      <span className="flex-1 text-[#e7ecf5]">
+                    <li
+                      key={`${item.at}-${i}`}
+                      className="flex items-start gap-2.5 text-[13px]"
+                    >
+                      <span
+                        className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
+                        style={{ background: ACCENT }}
+                        aria-hidden="true"
+                      />
+                      <span className="flex-1 text-[#34313f]">
                         {publicFeedSentence(item)}
-                        <span className="ml-1.5 text-[11px] text-[#7f8ca3]">
+                        <span className="ml-1.5 text-[11px] text-[#625f6d]">
                           {hydrated ? relativeTime(item.at) : "recently"}
                           {item.device ? ` · ${item.device}` : ""}
                         </span>
@@ -180,9 +253,9 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
                   ))}
                 </ol>
               ) : (
-                <p className="rounded-lg border border-dashed border-white/15 p-4 text-[13px] text-[#a8b4c8]">
-                  Quiet right now. Real actions appear here after a short privacy delay. No
-                  identities, no locations, ever.
+                <p className="rounded-lg border border-dashed border-[#dbd0c5] p-4 text-[13px] text-[#625f6d]">
+                  Quiet right now. Real actions appear here after a short
+                  privacy delay. No identities, no locations, ever.
                 </p>
               )}
             </div>
@@ -191,29 +264,38 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
       </section>
 
       {/* ---- funnel ---- */}
-      <section className="lfp-ink p-5 sm:p-7" aria-label="Attention to action funnel">
+      <section
+        className="lfp-ink p-5 sm:p-7"
+        aria-label="Attention to action funnel"
+      >
         <div className="lfp-ink-grid" aria-hidden="true" />
         <div className="relative">
-          <h3 className="text-sm font-black uppercase tracking-wider text-[#a8b4c8]">
+          <h3 className="text-sm font-black uppercase tracking-wider text-[#625f6d]">
             Attention → action · last 30 days
           </h3>
-          <p className="mb-4 mt-1 text-[13px] text-[#7f8ca3]">
-            The post gets attention. The system turns it into conversations. Distinct visitors per stage.
+          <p className="mb-4 mt-1 text-[13px] text-[#625f6d]">
+            The post gets attention. The system turns it into conversations.
+            Distinct visitors per stage.
           </p>
           <FunnelChart
-            ink
+            ink={false}
             colors={FUNNEL_COLORS}
             stages={[
               { label: "Visitors", count: funnel.visitors ?? 0 },
               { label: "Engaged", count: funnel.engaged ?? 0 },
               { label: "Took action", count: funnel.cta_actions ?? 0 },
-              { label: "Started a conversation", count: funnel.conversations_started ?? 0 },
-              ...(showLeads && funnel.leads != null ? [{ label: "Became leads", count: funnel.leads }] : []),
+              {
+                label: "Started a conversation",
+                count: funnel.conversations_started ?? 0,
+              },
+              ...(showLeads && funnel.leads != null
+                ? [{ label: "Became leads", count: funnel.leads }]
+                : []),
             ]}
           />
-          <p className="mt-4 text-[11px] text-[#7f8ca3]">
-            Interaction tracking went live in August 2026, so action stages count from then. These
-            are measured events, not estimates.
+          <p className="mt-4 text-[11px] text-[#625f6d]">
+            Interaction tracking went live in August 2026, so action stages
+            count from then. These are measured events, not estimates.
           </p>
         </div>
       </section>
@@ -221,11 +303,11 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
       {/* ---- pages + tools ---- */}
       <div className="grid gap-6 md:grid-cols-2">
         <section className="lfp-ink p-5 sm:p-6" aria-label="Most active pages">
-          <h3 className="mb-3 text-sm font-black uppercase tracking-wider text-[#a8b4c8]">
+          <h3 className="mb-3 text-sm font-black uppercase tracking-wider text-[#625f6d]">
             Most active pages · 7 days
           </h3>
           <BarList
-            ink
+            ink={false}
             color={ACCENT}
             items={((series?.top_pages as Json[]) ?? []).map((p) => ({
               label: p.path === "/" ? "Homepage" : publicPageLabel(p.path),
@@ -235,16 +317,17 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
             }))}
             emptyLabel="Not enough page data yet. Collecting"
           />
-          <p className="mt-3 text-[11px] text-[#7f8ca3]">
-            Every row is a real page. Click one and you become part of the numbers.
+          <p className="mt-3 text-[11px] text-[#625f6d]">
+            Every row is a real page. Click one and you become part of the
+            numbers.
           </p>
         </section>
         <section className="lfp-ink p-5 sm:p-6" aria-label="Most used tools">
-          <h3 className="mb-3 text-sm font-black uppercase tracking-wider text-[#a8b4c8]">
+          <h3 className="mb-3 text-sm font-black uppercase tracking-wider text-[#625f6d]">
             Most used free tools · 30 days
           </h3>
           <BarList
-            ink
+            ink={false}
             color={ACCENT}
             items={((series?.top_tools as Json[]) ?? []).map((t) => ({
               label: toolName(t.tool),
@@ -254,7 +337,10 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
             emptyLabel="Tool usage tracking is new. Numbers build from today"
           />
           <p className="mt-3 text-[13px]">
-            <Link href="/tools" className="font-bold text-[#5b87ff] hover:text-white">
+            <Link
+              href="/tools"
+              className="font-bold text-[#5135e5] hover:text-[#3c25b6]"
+            >
               Try the free tools yourself →
             </Link>
           </p>
@@ -263,66 +349,89 @@ export default function LiveDashboard({ initial, showLeads }: { initial: LivePay
 
       {/* ---- Google growth + index ---- */}
       <div className="grid gap-6 md:grid-cols-2">
-        <section className="lfp-ink p-5 sm:p-6" aria-label="Google organic visibility">
-          <h3 className="mb-3 text-sm font-black uppercase tracking-wider text-[#a8b4c8]">
+        <section
+          className="lfp-ink p-5 sm:p-6"
+          aria-label="Google organic visibility"
+        >
+          <h3 className="mb-3 text-sm font-black uppercase tracking-wider text-[#625f6d]">
             Organic Google growth
           </h3>
           {gsc ? (
             <div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border border-white/10 p-3">
-                  <div className="text-2xl font-black text-white lfp-num">{compactNumber(gsc.clicks_28d)}</div>
-                  <div className="text-[11px] text-[#a8b4c8]">Google clicks · 28d</div>
+                <div className="rounded-lg border border-[#dbd0c5] p-3">
+                  <div className="text-2xl font-black text-[#20212b] lfp-num">
+                    {compactNumber(gsc.clicks_28d)}
+                  </div>
+                  <div className="text-[11px] text-[#625f6d]">
+                    Google clicks · 28d
+                  </div>
                   {gscClicksTrend && gscClicksTrend.arrow !== "flat" && (
-                    <div className={`mt-1 text-[11px] font-bold ${gscClicksTrend.tone === "positive" ? "text-[#4ade80]" : "text-[#f87171]"}`}>
-                      {gscClicksTrend.arrow === "up" ? "▲" : "▼"} {Math.abs(gscClicksTrend.diff)} vs prior 28d
+                    <div
+                      className={`mt-1 text-[11px] font-bold ${gscClicksTrend.tone === "positive" ? "text-[#23643c]" : "text-[#b42318]"}`}
+                    >
+                      {gscClicksTrend.arrow === "up" ? "▲" : "▼"}{" "}
+                      {Math.abs(gscClicksTrend.diff)} vs prior 28d
                     </div>
                   )}
                 </div>
-                <div className="rounded-lg border border-white/10 p-3">
-                  <div className="text-2xl font-black text-white lfp-num">{gsc.position_28d ?? "—"}</div>
-                  <div className="text-[11px] text-[#a8b4c8]">avg position (lower = better)</div>
+                <div className="rounded-lg border border-[#dbd0c5] p-3">
+                  <div className="text-2xl font-black text-[#20212b] lfp-num">
+                    {gsc.position_28d ?? "—"}
+                  </div>
+                  <div className="text-[11px] text-[#625f6d]">
+                    avg position (lower = better)
+                  </div>
                   {gscPosTrend && gscPosTrend.arrow !== "flat" && (
-                    <div className={`mt-1 text-[11px] font-bold ${gscPosTrend.tone === "positive" ? "text-[#4ade80]" : "text-[#f87171]"}`}>
-                      {gscPosTrend.tone === "positive" ? "▲ improved" : "▼ slipped"} from {gsc.prev_position_28d}
+                    <div
+                      className={`mt-1 text-[11px] font-bold ${gscPosTrend.tone === "positive" ? "text-[#23643c]" : "text-[#b42318]"}`}
+                    >
+                      {gscPosTrend.tone === "positive"
+                        ? "▲ improved"
+                        : "▼ slipped"}{" "}
+                      from {gsc.prev_position_28d}
                     </div>
                   )}
                 </div>
               </div>
-              <p className="mt-3 text-[11px] text-[#7f8ca3]">
-                Straight from Google Search Console, through {gsc.last_data_date} (Google's data lags ~2 days).
+              <p className="mt-3 text-[11px] text-[#625f6d]">
+                Straight from Google Search Console, through{" "}
+                {gsc.last_data_date} (Google's data lags ~2 days).
               </p>
             </div>
           ) : (
-            <p className="rounded-lg border border-dashed border-white/15 p-4 text-[13px] text-[#a8b4c8]">
-              Search Console not connected yet. When Google&apos;s own data feed is wired in, real
-              impressions, clicks, and average position appear here, never estimates.
+            <p className="rounded-lg border border-dashed border-[#dbd0c5] p-4 text-[13px] text-[#625f6d]">
+              Search Console not connected yet. When Google&apos;s own data feed
+              is wired in, real impressions, clicks, and average position appear
+              here, never estimates.
             </p>
           )}
         </section>
         <section className="lfp-ink p-5 sm:p-6" aria-label="Index coverage">
-          <h3 className="mb-3 text-sm font-black uppercase tracking-wider text-[#a8b4c8]">
+          <h3 className="mb-3 text-sm font-black uppercase tracking-wider text-[#625f6d]">
             Index coverage
           </h3>
           {m.index_coverage ? (
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-white lfp-num">
+                <span className="text-3xl font-black text-[#20212b] lfp-num">
                   {(m.index_coverage as Json).indexed}
                 </span>
-                <span className="text-sm text-[#a8b4c8]">
-                  of {(m.index_coverage as Json).monitored} monitored pages verified indexed by Google
+                <span className="text-sm text-[#625f6d]">
+                  of {(m.index_coverage as Json).monitored} monitored pages
+                  verified indexed by Google
                 </span>
               </div>
-              <p className="mt-3 text-[11px] text-[#7f8ca3]">
-                Checked daily against Google&apos;s URL Inspection API. &quot;Indexed&quot; is only
-                claimed when Google confirms it.
+              <p className="mt-3 text-[11px] text-[#625f6d]">
+                Checked daily against Google&apos;s URL Inspection API.
+                &quot;Indexed&quot; is only claimed when Google confirms it.
               </p>
             </div>
           ) : (
-            <p className="rounded-lg border border-dashed border-white/15 p-4 text-[13px] text-[#a8b4c8]">
-              Awaiting first inspection. Priority pages get verified against Google&apos;s index
-              every day once the Search Console connection is live.
+            <p className="rounded-lg border border-dashed border-[#dbd0c5] p-4 text-[13px] text-[#625f6d]">
+              Awaiting first inspection. Priority pages get verified against
+              Google&apos;s index every day once the Search Console connection
+              is live.
             </p>
           )}
         </section>

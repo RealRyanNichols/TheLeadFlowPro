@@ -101,10 +101,10 @@ function money(cents: number) {
 }
 
 function workerTone(status: Worker["status"]) {
-  if (status === "working") return "border-emerald-400/40 bg-emerald-400/10 text-emerald-200";
-  if (status === "blocked") return "border-red-400/40 bg-red-400/10 text-red-200";
-  if (status === "offline") return "border-slate-400/30 bg-slate-400/10 text-slate-300";
-  return "border-cyan-400/30 bg-cyan-400/10 text-cyan-100";
+  if (status === "working") return "border-emerald-400/40 bg-emerald-400/10 text-emerald-800";
+  if (status === "blocked") return "border-red-400/40 bg-red-400/10 text-red-800";
+  if (status === "offline") return "border-slate-400/30 bg-slate-400/10 text-slate-600";
+  return "border-cyan-400/30 bg-cyan-400/10 text-[var(--blue)]";
 }
 
 function eventTone(type: string) {
@@ -312,28 +312,28 @@ export default async function OperatorMissionControl() {
 
   return (
     <div className="space-y-8">
-      <section className="overflow-hidden rounded-[28px] border border-[#ffffff1f] bg-[#07111f] text-white shadow-[0_30px_90px_rgba(7,17,31,0.28)]">
+      <section className="overflow-hidden rounded-[28px] border border-[var(--line)] bg-[#ede6f3] text-[var(--heading)] shadow-[var(--lf-shadow)]">
         <div className="relative px-5 py-7 sm:px-8 sm:py-9">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(18,64,232,0.34),transparent_36%),radial-gradient(circle_at_82%_16%,rgba(53,198,244,0.18),transparent_30%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,#e5eee3,transparent_50%),radial-gradient(circle_at_82%_16%,#f6e9dc,transparent_45%)]" />
           <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-start">
             <div>
               <div className="flex flex-wrap items-center gap-3">
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#50d4ff]">The LeadFlow Pro</p>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-[var(--blue)]">The LeadFlow Pro</p>
                 <LiveOperatorRefresh />
               </div>
               <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">OperatorOS Mission Control</h2>
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-[#b8c5d9] sm:text-base">
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--muted)] sm:text-base">
                 Watch attention become leads, leads become decisions, decisions become delivery, and completed work become proof. Every number below comes from a stored business record.
               </p>
             </div>
             <div className="grid min-w-[280px] grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-[#ffffff1f] bg-[#101d31]/90 p-4">
-                <p className="text-[11px] font-black uppercase tracking-wide text-[#8fa2bd]">Current mission</p>
+              <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+                <p className="text-[11px] font-black uppercase tracking-wide text-[var(--muted)]">Current mission</p>
                 <p className="mt-1 text-sm font-black">{missionResult.data?.name || "No active mission"}</p>
               </div>
-              <div className="rounded-2xl border border-[#ffffff1f] bg-[#101d31]/90 p-4">
-                <p className="text-[11px] font-black uppercase tracking-wide text-[#8fa2bd]">Execution</p>
-                <p className={`mt-1 text-sm font-black ${executionEnabled ? "text-emerald-300" : "text-amber-300"}`}>
+              <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
+                <p className="text-[11px] font-black uppercase tracking-wide text-[var(--muted)]">Execution</p>
+                <p className={`mt-1 text-sm font-black ${executionEnabled ? "text-emerald-800" : "text-amber-800"}`}>
                   {executionEnabled ? "Enabled" : "Safe pause"}
                 </p>
               </div>
@@ -342,33 +342,33 @@ export default async function OperatorMissionControl() {
 
           <div className="relative mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
             {metrics.map(({ label, value, note, icon: Icon }) => (
-              <article key={label} className="rounded-2xl border border-[#ffffff1f] bg-[#101d31]/90 p-4">
+              <article key={label} className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[11px] font-black uppercase tracking-wide text-[#8fa2bd]">{label}</p>
-                  <Icon className="h-4 w-4 text-[#50d4ff]" aria-hidden="true" />
+                  <p className="text-[11px] font-black uppercase tracking-wide text-[var(--muted)]">{label}</p>
+                  <Icon className="h-4 w-4 text-[var(--blue)]" aria-hidden="true" />
                 </div>
                 <p className="mt-2 text-2xl font-black tabular-nums">{value}</p>
-                <p className="mt-1 text-[11px] text-[#aebcd0]">{note}</p>
+                <p className="mt-1 text-[11px] text-[var(--muted)]">{note}</p>
               </article>
             ))}
           </div>
 
-          <div className="relative mt-6 rounded-2xl border border-[#ffffff1f] bg-[#101d31]/90 p-5">
+          <div className="relative mt-6 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="text-[11px] font-black uppercase tracking-wide text-[#8fa2bd]">Daily operating controls</p>
-                <p className="mt-1 text-sm text-[#b8c5d9]">The score is transparent. Each cleared condition is worth 20 points.</p>
+                <p className="text-[11px] font-black uppercase tracking-wide text-[var(--muted)]">Daily operating controls</p>
+                <p className="mt-1 text-sm text-[var(--muted)]">The score is transparent. Each cleared condition is worth 20 points.</p>
               </div>
-              <span className="text-3xl font-black text-[#50d4ff]">{flowScore}%</span>
+              <span className="text-3xl font-black text-[var(--blue)]">{flowScore}%</span>
             </div>
             <div className="mt-4 grid gap-2 md:grid-cols-5">
               {checks.map((check) => (
                 <div key={check.label} className={`rounded-xl border p-3 ${check.pass ? "border-emerald-400/30 bg-emerald-400/10" : "border-amber-400/30 bg-amber-400/10"}`}>
                   <div className="flex items-center gap-2">
-                    {check.pass ? <CheckCircle2 className="h-4 w-4 text-emerald-300" /> : <CircleAlert className="h-4 w-4 text-amber-300" />}
+                    {check.pass ? <CheckCircle2 className="h-4 w-4 text-emerald-800" /> : <CircleAlert className="h-4 w-4 text-amber-800" />}
                     <p className="text-xs font-black">{check.label}</p>
                   </div>
-                  <p className="mt-1 text-[11px] text-[#b8c5d9]">{check.detail}</p>
+                  <p className="mt-1 text-[11px] text-[var(--muted)]">{check.detail}</p>
                 </div>
               ))}
             </div>
@@ -386,12 +386,12 @@ export default async function OperatorMissionControl() {
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {orderedWorkers.map((worker, index) => (
-            <article key={worker.id} className="relative overflow-hidden rounded-2xl border border-[#ffffff1f] bg-[#0a1424] p-4 text-white shadow-[0_18px_45px_rgba(10,20,36,0.14)]">
+            <article key={worker.id} className="relative overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4 text-[var(--heading)] shadow-[var(--lf-shadow)]">
               {index < orderedWorkers.length - 1 && (
-                <ArrowRight className="absolute right-2 top-2 h-4 w-4 text-[#355271] opacity-50" aria-hidden="true" />
+                <ArrowRight className="absolute right-2 top-2 h-4 w-4 text-[var(--muted)] opacity-50" aria-hidden="true" />
               )}
               <div className="flex items-center justify-between gap-3">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#132642] text-[#50d4ff]">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent-tint)] text-[var(--blue)]">
                   <Bot className={`h-5 w-5 ${worker.status === "working" ? "animate-pulse" : ""}`} aria-hidden="true" />
                 </span>
                 <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${workerTone(worker.status)}`}>
@@ -399,11 +399,11 @@ export default async function OperatorMissionControl() {
                 </span>
               </div>
               <p className="mt-4 text-lg font-black">{worker.name}</p>
-              <p className="text-xs font-bold text-[#50d4ff]">{worker.role_title}</p>
-              <p className="mt-3 line-clamp-3 min-h-[54px] text-xs leading-5 text-[#aebcd0]">
+              <p className="text-xs font-bold text-[var(--blue)]">{worker.role_title}</p>
+              <p className="mt-3 line-clamp-3 min-h-[54px] text-xs leading-5 text-[var(--muted)]">
                 {worker.status_detail || "Ready for a controlled mission."}
               </p>
-              <div className="mt-4 flex items-center justify-between border-t border-[#ffffff14] pt-3 text-[10px] font-bold uppercase tracking-wide text-[#7f91aa]">
+              <div className="mt-4 flex items-center justify-between border-t border-[var(--line)] pt-3 text-[10px] font-bold uppercase tracking-wide text-[var(--muted)]">
                 <span>{worker.provider === "openai" ? "ChatGPT" : worker.provider === "anthropic" ? "Claude" : "Human"}</span>
                 <span>{worker.model || "manual"}</span>
               </div>
@@ -419,7 +419,7 @@ export default async function OperatorMissionControl() {
         />
 
         <aside className="space-y-6">
-          <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.05)]">
+          <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.05)]">
             <div className="flex items-center gap-2">
               <Radio className="h-5 w-5 text-[var(--blue)]" aria-hidden="true" />
               <h3 className="font-black text-[var(--heading)]">Provider readiness</h3>
@@ -443,7 +443,7 @@ export default async function OperatorMissionControl() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.05)]">
+          <section className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.05)]">
             <div className="flex items-center gap-2">
               <LockKeyhole className="h-5 w-5 text-[var(--blue)]" aria-hidden="true" />
               <h3 className="font-black text-[var(--heading)]">Blast radius</h3>
@@ -469,7 +469,7 @@ export default async function OperatorMissionControl() {
       <TeachJobForm />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white shadow-[0_12px_32px_rgba(10,18,32,0.05)]">
+        <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--panel)] shadow-[0_12px_32px_rgba(10,18,32,0.05)]">
           <div className="flex items-center justify-between border-b border-[var(--line)] px-5 py-4">
             <div>
               <div className="flex items-center gap-2">
@@ -524,7 +524,7 @@ export default async function OperatorMissionControl() {
           )}
         </section>
 
-        <aside className="rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[0_12px_32px_rgba(10,18,32,0.05)]">
+        <aside className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-[0_12px_32px_rgba(10,18,32,0.05)]">
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-[var(--blue)]" aria-hidden="true" />
             <h3 className="font-black text-[var(--heading)]">Live event trail</h3>
