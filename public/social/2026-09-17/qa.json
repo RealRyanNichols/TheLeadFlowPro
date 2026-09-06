@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex content_library subagent, direct final-image visual review",
+  "reviewed_at": "2026-09-06T18:42:51.419424+00:00",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "e1e94548c8f77a2cfdfedb056d9bcf03d85a9e055eb1574a4163f88f01bbf13e",
+      "passed": true,
+      "notes": "Individually viewed the final 1200 x 630 PNG. Exact headline and single support line verified visually, with readable contrast and no text over the subject. Subject and arrangement: bell-counter-lower-right.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "a1721b550a36017922538d0ab9f22968424afa05e5b1519640cf065395214d54",
+      "passed": true,
+      "notes": "Individually viewed the final 1200 x 630 PNG. Exact headline and single support line verified visually, with readable contrast and no text over the subject. Subject and arrangement: appointment-card-clock-side-by-side.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "2927b98b532aa5a799363a7927837c60972828900fdcd0edffb1d0c836319cd9",
+      "passed": true,
+      "notes": "Individually viewed the final 1200 x 630 PNG. Exact headline and single support line verified visually, with readable contrast and no text over the subject. Subject and arrangement: insurance-folder-roof-outline. Automated OCR misread narrow lettering; exact spelling and arithmetic were checked directly in the rendered image.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "521d719aa95514437e05e2f8ba8f5ca54852f2c176f4edd17d5ecd6327869d38",
+      "passed": true,
+      "notes": "Individually viewed the final 1200 x 630 PNG. Exact headline and single support line verified visually, with readable contrast and no text over the subject. Subject and arrangement: seven-stacked-paper-ledger. Illustrative arithmetic is labeled and correct; no reported client result or extra chart labels. Automated OCR misread narrow lettering; exact spelling and arithmetic were checked directly in the rendered image.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "6444e4fdb1bb23e0297972c6eadebff8d4fae41d903e57259cdf446dc626af05",
+      "passed": true,
+      "notes": "Individually viewed the final 1200 x 630 PNG. Exact headline and single support line verified visually, with readable contrast and no text over the subject. Subject and arrangement: question-speech-panel-wide-bottom.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}

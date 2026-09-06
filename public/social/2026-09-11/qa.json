@@ -1,0 +1,63 @@
+{
+  "date": "2026-09-11",
+  "reviewer": "Codex images_part_a visual review of every final 1200x630 PNG",
+  "reviewed_at": "2026-09-06T19:25:59.275863+00:00",
+  "passed": true,
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "906127c18a870b0e5b00fed8bc6a8b8fecc8f1534327408ba406f653547d6325",
+      "passed": true,
+      "notes": "Window ledge with unbranded brass key left and navy headline right. Two exact strings fully readable, clear of key and window details.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "83fad2dbf4787963b7125bebbd0383db0d8ddd6082531ba04883d921ebec7460",
+      "passed": true,
+      "notes": "Blank hanging storefront sign on blue siding. Exact headline and support in clear left space; no storefront text or logo.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "d507802c9f85735013fba23fa52b320058d58c883346e276fe006e8f11a57e03",
+      "passed": true,
+      "notes": "Sage tabletop with key and blank card above cream text band. Exact real estate headline/support below subjects; no readable object text or branding.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "fc02eea9c7292bba571d7bd26654db708750761dc094260792390f04bd736f35",
+      "passed": true,
+      "notes": "Navy arithmetic graphic with three groups of four blank discs. Correct illustrative 12 divided by 3 = 4 and exact support, no chart labels.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "b02247ffecc2fd28d5249bfef86a00287aff9ad5a9fcf49a475aa3e99326ffba",
+      "passed": true,
+      "notes": "Cobalt field with three stacked stones left. Exact trust question and support right, clear of subject, no extra text.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}

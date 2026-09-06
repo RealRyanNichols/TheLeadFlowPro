@@ -1,0 +1,63 @@
+{
+  "date": "2026-09-07",
+  "reviewer": "Codex images_part_a visual review of every final 1200x630 PNG",
+  "reviewed_at": "2026-09-06T19:25:59.257408+00:00",
+  "passed": true,
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "477bc1d590d9e0abc4fbd3643a4c1963a21b3ff20fe00959c6006a1a7451800c",
+      "passed": true,
+      "notes": "Warm sunrise photo and cobalt bottom band; truck remains fully clear above type. Headline and support read exactly; no human or readable markings.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "4288bb661c73dab8d62c7f91fe9d0349c2a299bdfa83a1a115c011c9efd51026",
+      "passed": true,
+      "notes": "Warm offwhite phone composition with right-aligned type; final AI edit removed keypad numerals. Both strings exact and clear of the phone and cable.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "8a3ee67b0dbcd037b53eed1dc7286b6683fd50c0a6be8cbbc92c735a172e916f",
+      "passed": true,
+      "notes": "Diagonal roof photo and cream type panel; final AI edit removed ruler markings. Headline and support exact, clear of roof and tool.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "b278ef5878472c062b323c7fcd01296266f9d66042e1d547e46a8fc5992e75b6",
+      "passed": true,
+      "notes": "Cobalt arithmetic graphic has correct 4 x $250 = $1,000 math, four blank tiles, and explicit illustrative wording. Exact support, no overlap.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "9a93e3527a7261c83507e2aad391ba1fed82389102b6665dee462affdaa0803a",
+      "passed": true,
+      "notes": "Sage linen and blank notebook on right. Headline question and support exact and readable; separate subject and type.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}

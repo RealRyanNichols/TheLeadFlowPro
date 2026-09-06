@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex visual review",
+  "reviewed_at": "2026-09-06T18:37:43.524Z",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "9e0a738f7e73c57441d02499fd2388c55d6ff7a9b036dde144e2dd37a3fd9906",
+      "passed": true,
+      "notes": "Viewed final 1200x630 PNG. Exact headline and support sit on empty navy at right, clear of the unbranded lamp and warm light pool at left. No faces, hands, extra text or logos.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "f8eabd8640af8df5b27efe2a3bae9ea0db01d57053a34922abc047b90ce8947c",
+      "passed": true,
+      "notes": "Viewed final 1200x630 PNG. Exact headline and support on the clear left field remain separate from the tangled cobalt ribbon at right. Ribbon tail passes below the text. No extra writing or symbols.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "6d027fe6c7365576f805d75082560a02e3dce8cc96d5be375f178e8891af3370",
+      "passed": true,
+      "notes": "Viewed final 1200x630 PNG. Exact headline and support on the cobalt top band are fully clear of the empty gym bench and dumbbell rack below. No people, mirror reflections, weight labels, equipment branding or extra lettering.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "e910e7eaa15e795558ce10e9954f26ae7b9e1c7d13471633596ef0ffaeab67f0",
+      "passed": true,
+      "notes": "Viewed final 1200x630 PNG. Exact illustrative equation 10 × 3 = 30 minutes and exact support are correct. Counted exactly ten navy bars above one amber rule. Pale blue field and centered arithmetic differ from the other four layouts. No labels or extra text.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "188c0494dbef23211d4887e76c0f55834a6274ff46b4f729e80631ea91a383aa",
+      "passed": true,
+      "notes": "Viewed final 1200x630 PNG. Exact question and support sit at right on cobalt, clear of the blank paper loop at left. Paper has no dates, marks or writing. No extra symbols, people, hands or branding.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex final PNG visual review",
+  "reviewed_at": "2026-09-06T18:49:26.844Z",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "a10030ef3dd9f53c130ccfea625e697fd62d8356d3fa87907f52eda883e4703b",
+      "passed": true,
+      "notes": "Blank open planner at bottom; white title and support clear on cobalt; no extra markings.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "9cb3430b9b31c7878ef22a5cc5b5cd825e61cd1ad4ca5ef1ba5f67339f8b0d87",
+      "passed": true,
+      "notes": "Paper maze at left; navy title and support clear at right on sage; no subject overlap. Native OCR falsely read the geometric maze as letters; visual review confirms no extra text and the exact headline.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "49a5f9686681405fbe65282720c5641f480cb6f1c81dcd3899f856a6adc6a444",
+      "passed": true,
+      "notes": "Empty dental room upper right; navy headline and support on separate offwhite region; no people or clinic logo.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "523be1cab6f2aacb8a6239a65885c9cb2731da557c0fbda68202234d14e3dbc5",
+      "passed": true,
+      "notes": "Exactly eight blank navy tabs; exact illustrative 8 times 5 equals 40 minutes; headline and support separate from tabs. Native OCR dropped initial narrow letters from Illustrative; final image was visually verified spelled correctly.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "1bc45ff796e76e84d57432b2ebbf177bc170385efed18d3e69ac7cc87194ff5f",
+      "passed": true,
+      "notes": "Sage doorway frames navy center with clear white headline and pale blue support; no other lettering.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex final PNG visual review",
+  "reviewed_at": "2026-09-06T18:49:26.850Z",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "d5697f74ee43c441b2bcdd6e7c5173ade15793bdcad4b5b89d489becdf6eb955",
+      "passed": true,
+      "notes": "Sage rolled cord and closed tool pouch below offwhite text band; both exact strings clear.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "29c6b0396a5f183a81562e88e322937b42daa5c003de1d45d39e1c4011f68d26",
+      "passed": true,
+      "notes": "Blank unbranded phone and hourglass at right; exact white text on left clear of objects.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "e119870b7b15406137b9065888cef872a91d4332e451365dc62ab660c9fc06b0",
+      "passed": true,
+      "notes": "Empty treatment room across center; exact headline above and support below; no people, claims or logos.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "42f1648b5dac8a6da559b090aa0e100c1570405612c6509602cdfbe09cd446fb",
+      "passed": true,
+      "notes": "Two blank receipts left and exact illustrative arithmetic right; example gross sales disclosure readable. Native OCR dropped initial narrow letters from Illustrative; final image was visually verified spelled correctly.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "ec57cf7da15ae97069f3557ee2a296b579ac3191ed9477c2110ad9f027682555",
+      "passed": true,
+      "notes": "Cobalt layered paper arcs at lower left; clear white question and support on right; two text strings only.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}

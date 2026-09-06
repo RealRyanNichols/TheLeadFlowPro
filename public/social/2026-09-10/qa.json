@@ -1,0 +1,63 @@
+{
+  "date": "2026-09-10",
+  "reviewer": "Codex images_part_a visual review of every final 1200x630 PNG",
+  "reviewed_at": "2026-09-06T19:25:59.272027+00:00",
+  "passed": true,
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "b986b02a9070b27178f418ba92cba7cbb4d398711f53758e89089a7c980bc9d9",
+      "passed": true,
+      "notes": "Sage felt board with blank card lower left and large type upper right. Exact headline and single support line; no overlap.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "7591a514d05c15d76504a2c6cdd4863de8e396b8bc7a03b725984d4a3d29d0e6",
+      "passed": true,
+      "notes": "Two cobalt inboxes joined by a bridge carrying blank envelope. Exact type centered overhead on offwhite; no incidental labels.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "e0425ebd040704b746c5da1493aa64b5f78228223b80be8a9a810b599acdc80a",
+      "passed": true,
+      "notes": "Navy split layout with unmarked electrical tools and meter right. Both strings exact, clearly left of tools and fully legible.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "dbf38cb583defdf2702593b36ab0caecf0df1c89c5e7f2bae20f8ee340c35b93",
+      "passed": true,
+      "notes": "Muted blue surface and five cobalt beads in a top channel. Illustrative 5 x 6 = 30 minutes and support correct; no other type.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "ce9186eca1c48a7c10fed0534099794fdd8d86470ddd876a24c447fcd99dc826",
+      "passed": true,
+      "notes": "Cobalt field and three fanned blank paper sheets on right. Exact question and support at left, no extra text or subject overlay.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}

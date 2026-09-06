@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "npm run validate:tools && npm run validate:visuals && next build",
+    "build": "npm run validate:tools && npm run validate:visuals && npm run validate:social && next build",
     "build:only": "next build",
     "start": "next start",
     "art": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/generate-tool-art.ts",
@@ -18,7 +18,10 @@
     "draft:article": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/draft-article-brief.ts",
     "test:e2e": "playwright test",
     "test": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs --test tests/*.test.ts",
-    "check:a11y": "node scripts/check-a11y.mjs"
+    "check:a11y": "node scripts/check-a11y.mjs",
+    "social:images": "node scripts/social-images.mjs",
+    "validate:social": "node scripts/social-images.mjs validate",
+    "test:social-images": "node --test tests/social-images.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

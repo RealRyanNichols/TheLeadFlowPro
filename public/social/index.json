@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-09-06T18:55:31.684Z",
+  "dates": [
+    "2026-09-20",
+    "2026-09-19",
+    "2026-09-18",
+    "2026-09-17",
+    "2026-09-16",
+    "2026-09-15",
+    "2026-09-14",
+    "2026-09-13",
+    "2026-09-12",
+    "2026-09-11",
+    "2026-09-10",
+    "2026-09-09",
+    "2026-09-08",
+    "2026-09-07"
+  ],
+  "days": [
+    {
+      "date": "2026-09-20",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-20/manifest.json",
+      "image_count": 5
+    },
+    {
+      "date": "2026-09-19",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-19/manifest.json",
+      "image_count": 5
+    },
+    {
+      "date": "2026-09-18",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-18/manifest.json",
+      "image_count": 5
+    },
+    {
+      "date": "2026-09-17",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-17/manifest.json",
+      "image_count": 5
+    },
+    {
+      "date": "2026-09-16",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-16/manifest.json",
+      "image_count": 5
+    },
+    {
+      "date": "2026-09-15",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-15/manifest.json",
+      "image_count": 5
+    },
+    {
+      "date": "2026-09-14",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-14/manifest.json",
+      "image_count": 5
+    },
+    {
+      "date": "2026-09-13",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-13/manifest.json",
+      "image_count": 5
+    },
+    {
+      "date": "2026-09-12",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-12/manifest.json",
+      "image_count": 5
+    },
+    {
+      "date": "2026-09-11",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-11/manifest.json",
+      "image_count": 5
+    },
+    {
+      "date": "2026-09-10",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-10/manifest.json",
+      "image_count": 5
+    },
+    {
+      "date": "2026-09-09",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-09/manifest.json",
+      "image_count": 5
+    },
+    {
+      "date": "2026-09-08",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-08/manifest.json",
+      "image_count": 5
+    },
+    {
+      "date": "2026-09-07",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-07/manifest.json",
+      "image_count": 5
+    }
+  ]
+}

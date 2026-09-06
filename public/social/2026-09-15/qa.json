@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex visual review",
+  "reviewed_at": "2026-09-06T18:37:43.393Z",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "c21ba2e4e9a2b53ef0a243b9d5d3bbc7ed5daa31c3a73ff56160f85e7e811e30",
+      "passed": true,
+      "notes": "Viewed final 1200x630 PNG. Exact headline and support appear on the left navy panel, clear of the empty pine-lined road on the right. No faces, hands, extra text or branding.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "0c1df13be2781c620334e7f4ec5c70ef4f15be4330b9ef892319e407c6690a6c",
+      "passed": true,
+      "notes": "Viewed final 1200x630 PNG. Exact headline and support above a fan of blank cards. Warm white field and cobalt accent differ from the road image; all cards are blank, with no personal information or logos.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "5833822b616c38fabfc46a002da9955571679a3e1a1715b8ad83321f4ce4b86d",
+      "passed": true,
+      "notes": "Viewed final 1200x630 PNG. Exact headline and support remain inside the pale sage diagonal panel, clear of the wheelbarrow and planted garden. No people, hands, logos or extra lettering.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "cc1e971225b668b33a9d99b1b480f892e8a56ee35aa0e01605433124470bf3f4",
+      "passed": true,
+      "notes": "Viewed final 1200x630 PNG. Exact illustrative equation 4 × 20 = 80 minutes and exact support are correct. Counted exactly four amber blocks; offwhite field, left arithmetic and right diagonal blocks form a distinct composition. No other lettering.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "641658b042c688a692a3be73f0d6a3b0ae90ace5cbab7eb1abc3dde8d5f44b38",
+      "passed": true,
+      "notes": "Viewed final 1200x630 PNG. Exact question and support are the only writing on a single clipped paper note. Text stays inside the note, clear of the sage clip and curled edge; navy cork surround gives a distinct frame. No people or branding.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "date": "2026-09-08",
+  "reviewer": "Codex images_part_a visual review of every final 1200x630 PNG",
+  "reviewed_at": "2026-09-06T19:25:59.262432+00:00",
+  "passed": true,
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "6be8356365a1f0aa20179ce2031bcabfc82b67f8f7ff98f1479319cbfb62c43a",
+      "passed": true,
+      "notes": "Offwhite index card with amber clip and muted blue table. Two exact text strings printed on card; large type clear and uncropped.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "1ecd88427afd2fd80ec2e65668878cee2a5596f52fa23f20a42ec92ed87dd5fb",
+      "passed": true,
+      "notes": "Cobalt chute, falling blank cards and inbox at right; type on left exact and separate. No labels or other text.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "3ff1295d513fe327a31e68d1811b0442cd42b301c2ceca364d134ef93f3a1dcf",
+      "passed": true,
+      "notes": "HVAC exterior photo entirely above offwhite band. Exact headline and support are fully visible below equipment without overlay.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "9ca4f6d12d9a0a145717d0f77866bd6a7fc580b9bd7b44f100c3fc42ee6618ba",
+      "passed": true,
+      "notes": "Navy field with sage four-quarter disc. Correct illustrative 15 x 4 = 60 minutes wording and exact support, distinct right-side chart.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "7d4433343eca811e7044b86bfde3d2514c1bc5e33e8f5bf9a1e3d7b8cecc1467",
+      "passed": true,
+      "notes": "Sage storefront miniature with converging paths. Exact question and support centered overhead, no storefront lettering or people.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}

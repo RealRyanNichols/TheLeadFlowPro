@@ -1,0 +1,63 @@
+{
+  "date": "2026-09-09",
+  "reviewer": "Codex images_part_a visual review of every final 1200x630 PNG",
+  "reviewed_at": "2026-09-06T19:25:59.267267+00:00",
+  "passed": true,
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "1894aed54a056e1aeb9ec69fc7a5dfc3ceed729767fb0e0240ca5e2764e22220",
+      "passed": true,
+      "notes": "Cream upper type band above blue rolling workshop door photograph. Exact two strings clear of scene, no people or incidental text.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "90fff9110cfcdd48e86b489e2900022f089021c8373e12c2bb2f481f908662bf",
+      "passed": true,
+      "notes": "Sage folder stack on right, cream blank card. Headline and support exact on left, no folder labels; distinct depth composition.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "bf813fdf4d0de32a776bae782e6109f76c3144850da7de20ea3eea3207c3f74d",
+      "passed": true,
+      "notes": "Copper pipe outline and generic blue location marker left, offwhite type space right. Headline and support exact, no app branding or labels.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "e565bd452d32793dd3ba259cf5f12240e6e997bdf505f58ebbe4108e0b80196f",
+      "passed": true,
+      "notes": "Three equal pedestals with unmarked objects left, illustrative $180 equation right on blue field. Correct arithmetic and support, no overlap.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "23653cdaebfae54ab235c3f89ccb3edbecf3f7d4ce4d74ad78ed5d652df1b98a",
+      "passed": true,
+      "notes": "Navy framed wood texture with amber tape at lower right. Exact question and support centered, no extra marks or type.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}

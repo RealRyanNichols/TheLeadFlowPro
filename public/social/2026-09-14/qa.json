@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex final PNG visual review",
+  "reviewed_at": "2026-09-06T18:49:26.857Z",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "b5c67c5b3cef37915b6e39d7c251380cb5aa338a7632daa15e3ca6c9f11a6b8e",
+      "passed": true,
+      "notes": "Empty trolley at lower right; uppercase equivalent headline and blue support clear left; no extra lettering.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "226f4ee4a2018b89a37704b81008435d08ad48e5167a48dd7df5cd7791b6af6b",
+      "passed": true,
+      "notes": "Paper bridge with missing segment below text; exact headline and support on cobalt with no overlap. Native OCR confused the narrow n with m in link; visual review confirms link is correctly rendered.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "27a16211ba82764c6fe02b7e92f318e7d8bd1ea24c04b62f7b3074b050ef9060",
+      "passed": true,
+      "notes": "Unlabeled detailing cloth, bottle, brush, sponge on left; exact two strings on offwhite right panel.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "b27374613041f435a504809c8103f0774c4b09eaf28a764b0b6d8a5e77e75e27",
+      "passed": true,
+      "notes": "Exactly six amber disks in two rows of three; correct illustrative arithmetic and gross sales disclosure.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "73ab04f55c32f6dff2511336df3c49d7f13f16a0b5d5e0a6644cfdf9183b9799",
+      "passed": true,
+      "notes": "Blank envelope and card upper right; exact question and support clear at lower left; no overlap.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}

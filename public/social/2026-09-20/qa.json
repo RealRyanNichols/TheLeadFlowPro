@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex content_library subagent, direct final-image visual review",
+  "reviewed_at": "2026-09-06T18:42:51.426890+00:00",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "728d63829e9f3353a39deb673df3c4d7664c1c5dbbe9f0b18fa0aa900a16bcf2",
+      "passed": true,
+      "notes": "Individually viewed the final 1200 x 630 PNG. Exact headline and single support line verified visually, with readable contrast and no text over the subject. Subject and arrangement: closed-shop-window-light-stripe.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "7a20d10c77db4de9d43e71f681e5e822e98ab18d68c71e6409ee54f501e16eae",
+      "passed": true,
+      "notes": "Individually viewed the final 1200 x 630 PNG. Exact headline and single support line verified visually, with readable contrast and no text over the subject. Subject and arrangement: blank-feedback-card-route. Automated OCR misread narrow lettering; exact spelling and arithmetic were checked directly in the rendered image.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "398b1a2f81bfea1344cfc948b81e1c2c78f0b95947bbc24301237cd317894c9e",
+      "passed": true,
+      "notes": "Individually viewed the final 1200 x 630 PNG. Exact headline and single support line verified visually, with readable contrast and no text over the subject. Subject and arrangement: barber-chair-circle-panel.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "ac8ab56e3f8a69d8fd7a65e89d66d7ea0c61d3b4e889fd94f4dcea810b6244d1",
+      "passed": true,
+      "notes": "Individually viewed the final 1200 x 630 PNG. Exact headline and single support line verified visually, with readable contrast and no text over the subject. Subject and arrangement: four-paper-rolls-overhead-proof. Illustrative arithmetic is labeled and correct; no reported client result or extra chart labels. Automated OCR misread narrow lettering; exact spelling and arithmetic were checked directly in the rendered image.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "9db9514da26bfac32a77a55e37dbee75177778e2c83a8b8733cc433b83327de3",
+      "passed": true,
+      "notes": "Individually viewed the final 1200 x 630 PNG. Exact headline and single support line verified visually, with readable contrast and no text over the subject. Subject and arrangement: question-offset-door-panels.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}
