@@ -54,24 +54,61 @@ export type FreeWebsiteNurtureCandidate = NurtureLeadAttribution & {
 };
 
 /**
+ * Meta instant forms whose leads belong in this 30-day sequence. The v2 free
+ * website form plus the Sep 2026 volume lanes that all sell the same flagship
+ * offer: the $0 build, the services menu, and the scoreboard. The workshop
+ * form is NOT here; it has its own short sequence below.
+ */
+export const FREE_BUILD_SEQUENCE_META_FORM_IDS: ReadonlySet<string> = new Set([
+  LEADFLOW_META.formId,
+  "1602617814609528", // LFP Free Build NoQ v2
+  "1001553739566746", // LFP Services Volume v1
+  "1072145798524733", // LFP Scoreboard Volume v1
+]);
+
+/** LFP Workshop Sep 17 Volumev1 — enrolled in the workshop sequence instead. */
+export const WORKSHOP_META_FORM_ID = "1749164796410610";
+
+/**
  * The free-build sequence is an offer-specific campaign, not a general list.
- * Admit only the owned website funnel or the exact active Meta v2 form, and
- * only when the lead explicitly accepted marketing email.
+ * Admit the owned website funnel, or a Meta lead from one of the admitted
+ * instant forms above, and only when marketing_email_consent is true (a
+ * checked box, or an inquiryOptIn form per lib/metaCampaignGuard).
  */
 export function isFreeWebsiteProgramNurtureLead(
   lead: FreeWebsiteNurtureCandidate,
 ): boolean {
-  if (lead.interest !== "free_website_program" || lead.marketing_email_consent !== true) {
-    return false;
-  }
+  if (lead.marketing_email_consent !== true) return false;
   if (!lead.diagnostic || typeof lead.diagnostic !== "object" || Array.isArray(lead.diagnostic)) {
     return false;
   }
 
   const diagnostic = lead.diagnostic as Record<string, unknown>;
-  if (diagnostic.source !== "free_build_funnel") return false;
-  if (lead.source === "website") return true;
-  return lead.source === "meta_lead_ad" && diagnostic.form_id === LEADFLOW_META.formId;
+  if (
+    lead.source === "meta_lead_ad" &&
+    typeof diagnostic.form_id === "string" &&
+    FREE_BUILD_SEQUENCE_META_FORM_IDS.has(diagnostic.form_id)
+  ) {
+    return true;
+  }
+  return (
+    lead.interest === "free_website_program" &&
+    diagnostic.source === "free_build_funnel" &&
+    lead.source === "website"
+  );
+}
+
+/**
+ * Workshop leads get the short seats-and-deadline sequence, never the 30-day
+ * campaign. Same consent rule as above.
+ */
+export function isWorkshopNurtureLead(lead: FreeWebsiteNurtureCandidate): boolean {
+  if (lead.marketing_email_consent !== true) return false;
+  if (!lead.diagnostic || typeof lead.diagnostic !== "object" || Array.isArray(lead.diagnostic)) {
+    return false;
+  }
+  const diagnostic = lead.diagnostic as Record<string, unknown>;
+  return lead.source === "meta_lead_ad" && diagnostic.form_id === WORKSHOP_META_FORM_ID;
 }
 
 export function isBusinessDiagnosticLead(lead: NurtureLeadAttribution): boolean {
@@ -649,3 +686,103 @@ export function stepsDueBy(ageInDays: number): NurtureStep[] {
 
 export const NURTURE_FIRST_STEP = NURTURE_STEPS[0].step;
 export const NURTURE_LAST_STEP = NURTURE_STEPS[NURTURE_STEPS.length - 1].step;
+
+// ---------------------------------------------------------------------------
+// The Sep 17 workshop sequence. Four short emails, days 1 through 4 after the
+// lead, for people who raised a hand on the workshop instant form but have
+// not paid for a seat. The instant welcome at capture is day zero and lives in
+// lib/leadNotify.ts like everything else.
+//
+// STEP NUMBERS 201-204. The 30-day campaign owns 101-130 and retired history
+// owns 0-4; never reuse either range.
+//
+// HARD STOP: the event happens Thursday Sep 17 at 6:30 PM Central. No email
+// in this sequence may go out after the doors close. The cron checks
+// workshopSequenceClosed() before sending and skips these leads entirely once
+// it returns true.
+
+export const WORKSHOP_CUTOFF_MS = Date.parse("2026-09-17T23:30:00Z"); // 6:30 PM Central
+
+export function workshopSequenceClosed(now = Date.now()): boolean {
+  return now >= WORKSHOP_CUTOFF_MS;
+}
+
+export function workshopLink(day: number): string {
+  return (
+    "https://workshop.theleadflowpro.com/" +
+    `?utm_source=email&utm_medium=nurture&utm_campaign=workshop_sep17_2026&utm_content=day${day}`
+  );
+}
+
+export const WORKSHOP_STEPS: NurtureStep[] = [
+  {
+    step: 201,
+    day: 1,
+    subject: "What task are you bringing?",
+    body: (first) => `${first},
+
+Here is how the night works.
+
+You bring one real task. A quote you keep putting off. A week of content. The follow up nobody sends.
+
+We turn it into written instructions, check what comes back, and save it as a process you own. Then you use it Friday.
+
+Ten owners, ten laptops, ten real tasks. That is the whole format.
+
+Grab your seat:
+${workshopLink(1)}`,
+  },
+  {
+    step: 202,
+    day: 2,
+    subject: "You opened ChatGPT and closed it again",
+    body: (first) => `${first},
+
+Most business owners have done it. Opened ChatGPT, typed something, got something generic back, closed the tab.
+
+That is not a you problem. Nobody showed you what to actually type for YOUR business.
+
+That is what September 17 is for. Not a lecture. A working session.
+
+Seats confirm after payment, ten max:
+${workshopLink(2)}`,
+  },
+  {
+    step: 203,
+    day: 3,
+    subject: "Small room on purpose",
+    body: (first) => `${first},
+
+I capped this at ten people on purpose.
+
+I am not talking at a crowd. I am sitting down with owners and building. When you get stuck, I am at your table.
+
+That only works in a small room. That is also why seats do not hold without payment.
+
+$97, one evening, Longview:
+${workshopLink(3)}`,
+  },
+  {
+    step: 204,
+    day: 4,
+    subject: "Doors close on this one",
+    body: (first) => `${first},
+
+Last note from me about the workshop.
+
+Thursday September 17, 6:30 PM, Longview. Whatever seats are left when the room is full, that is that.
+
+If the timing is wrong, no problem. Reply and tell me what you were hoping to build and I will point you at the next best step either way.
+
+Last call for a chair:
+${workshopLink(4)}`,
+  },
+];
+
+/** Every workshop step at or before this age, oldest first. */
+export function workshopStepsDueBy(ageInDays: number): NurtureStep[] {
+  return WORKSHOP_STEPS.filter((s) => s.day <= ageInDays);
+}
+
+export const WORKSHOP_FIRST_STEP = WORKSHOP_STEPS[0].step;
+export const WORKSHOP_LAST_STEP = WORKSHOP_STEPS[WORKSHOP_STEPS.length - 1].step;

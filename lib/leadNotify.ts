@@ -285,6 +285,28 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
           ...SIGNATURE,
         ].join("\n"),
       };
+    case "workshop_sep17":
+      return {
+        ...base,
+        subject: `${first}, your seat is not locked yet.`,
+        text: [
+          `${first},`,
+          ``,
+          `You put your name in for the September 17 workshop in Longview. Good move.`,
+          ``,
+          `One thing: seats are confirmed after payment, and there are only ten chairs in the room.`,
+          ``,
+          `Lock yours here:`,
+          `https://workshop.theleadflowpro.com/`,
+          ``,
+          `One evening. 6:30 to 8:00. Bring your laptop and one real task from your business. You leave with a ChatGPT workflow you can run again the next day.`,
+          ``,
+          `$97. No subscription. No upsell in the room.`,
+          ``,
+          `Questions? Call or text me at (903) 500-8898.`,
+          ...SIGNATURE,
+        ].join("\n"),
+      };
     case "free_tools":
       return {
         ...base,

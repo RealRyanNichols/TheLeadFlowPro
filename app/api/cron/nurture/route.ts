@@ -4,10 +4,14 @@ import { SUPABASE_URL } from "@/lib/config";
 import {
   isBusinessDiagnosticLead,
   isFreeWebsiteProgramNurtureLead,
+  isWorkshopNurtureLead,
   NURTURE_FIRST_STEP,
-  NURTURE_LAST_STEP,
   NURTURE_STEPS,
   stepsDueBy,
+  workshopSequenceClosed,
+  workshopStepsDueBy,
+  WORKSHOP_LAST_STEP,
+  WORKSHOP_STEPS,
   type NurtureStep,
 } from "@/lib/nurture";
 import {
@@ -138,7 +142,6 @@ export async function GET(request: Request) {
     .is("email_unsubscribed_at", null)
     .not("is_test", "is", true)
     .eq("marketing_email_consent", true)
-    .eq("interest", "free_website_program")
     .in("status", ["new", "contacted"])
     .gte("created_at", since)
     .order("created_at", { ascending: true });
@@ -155,7 +158,14 @@ export async function GET(request: Request) {
   const nonDiagnosticLeads = ((leads ?? []) as EligibleLead[]).filter(
     (lead) => !isBusinessDiagnosticLead(lead),
   );
-  const eligibleLeads = nonDiagnosticLeads.filter(isFreeWebsiteProgramNurtureLead);
+  // Two sequences share this sender: the 30-day campaign and the short
+  // workshop countdown. Workshop leads drop out entirely once the event has
+  // started; nobody gets sold a chair in a room that already met.
+  const eligibleLeads = nonDiagnosticLeads.filter(
+    (lead) =>
+      isFreeWebsiteProgramNurtureLead(lead) ||
+      (isWorkshopNurtureLead(lead) && !workshopSequenceClosed()),
+  );
   const excludedDiagnostic = (leads ?? []).length - nonDiagnosticLeads.length;
   const excludedWrongProgram = nonDiagnosticLeads.length - eligibleLeads.length;
   const ids = eligibleLeads.map((lead) => lead.id);
@@ -177,7 +187,7 @@ export async function GET(request: Request) {
     )
     .in("lead_id", ids)
     .gte("step", NURTURE_FIRST_STEP)
-    .lte("step", NURTURE_LAST_STEP);
+    .lte("step", WORKSHOP_LAST_STEP);
 
   if (sentRowsError) {
     console.error("Nurture send-history query failed:", sentRowsError.message);
@@ -218,7 +228,13 @@ export async function GET(request: Request) {
     // sending domain, which hurts delivery for everybody else on the list.
     if (!lead.email || lead.email.includes("@no-email.")) continue;
 
-    const due = stepsDueBy(ageInDays(lead.created_at));
+    // Which sequence owns this lead decides both the steps that exist for it
+    // and which of them are due at its age.
+    const workshopLead = isWorkshopNurtureLead(lead);
+    const sequenceSteps = workshopLead ? WORKSHOP_STEPS : NURTURE_STEPS;
+    const due = workshopLead
+      ? workshopStepsDueBy(ageInDays(lead.created_at))
+      : stepsDueBy(ageInDays(lead.created_at));
     if (!due.length) continue;
 
     const deliveryRows = deliveryRowsByLead.get(lead.id) ?? [];
@@ -235,7 +251,7 @@ export async function GET(request: Request) {
     let deliveryRow: NurtureDeliveryRow | null = null;
 
     if (pendingRow) {
-      next = NURTURE_STEPS.find((step) => step.step === pendingRow.step);
+      next = sequenceSteps.find((step) => step.step === pendingRow.step);
       if (!next || nurtureRetryWindowExpired(pendingRow.first_attempt_at)) {
         const reason = next
           ? "Automatic retry stopped before Resend's 24-hour idempotency key expired"

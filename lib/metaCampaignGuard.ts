@@ -52,6 +52,19 @@ export const FOREIGN_CLIENT_ASSETS = {
 export type MetaFormRegistration = {
   campaign: string;
   consentLayout?: ReadonlyArray<MetaConsentKind>;
+  /**
+   * Ryan's 2026-09-07 decision for the no-checkbox instant forms: submitting
+   * one of these forms IS the request to be emailed about that exact offer,
+   * so the lead is enrolled in email follow-up on submission. Every email the
+   * cron sends carries a one-click unsubscribe. Forms with real consent
+   * checkboxes keep using consentLayout and must not set this.
+   */
+  inquiryOptIn?: boolean;
+  /**
+   * Overrides diagnostic.source for this form so the instant welcome email
+   * can speak to what the person actually asked for.
+   */
+  funnel?: string;
 };
 
 /**
@@ -81,6 +94,29 @@ export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> 
   [LEADFLOW_META.formId]: {
     campaign: LEADFLOW_META.campaignKey,
     consentLayout: ["marketing"],
+  },
+  // Sep 2026 volume forms. No checkboxes on purpose (see inquiryOptIn).
+  "1749164796410610": {
+    // LFP Workshop Sep 17 Volumev1 — the $97 Longview workshop.
+    campaign: "workshop_sep17_2026",
+    inquiryOptIn: true,
+    funnel: "workshop_sep17",
+  },
+  "1602617814609528": {
+    // LFP Free Build NoQ v2 — free five-page build, zero questions.
+    campaign: "free_website_noq_2026_09",
+    inquiryOptIn: true,
+    funnel: "free_build_funnel",
+  },
+  "1001553739566746": {
+    // LFP Services Volume v1 — Learn It / Build It With You / Done For You.
+    campaign: "services_menu_2026_09",
+    inquiryOptIn: true,
+  },
+  "1072145798524733": {
+    // LFP Scoreboard Volume v1 — live scoreboard curiosity lane.
+    campaign: "scoreboard_2026_09",
+    inquiryOptIn: true,
   },
 };
 

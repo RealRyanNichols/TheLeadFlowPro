@@ -178,9 +178,14 @@ function mapLead(raw: MetaLead) {
     product.includes("seo") ? "website_funnels" : null,
   ].filter((value, index, values): value is string => !!value && values.indexOf(value) === index);
   const consents = parseConsents(raw);
+  const registration = registeredMetaForm(raw.form_id);
   const smsConsent = consents.sms && !!phone;
-  const marketingEmailConsent = consents.marketing;
-  const campaign = registeredMetaForm(raw.form_id)?.campaign ?? "meta_lead_form";
+  // A checked marketing box is consent, and so is submitting one of the
+  // registry's inquiryOptIn forms: those forms have no checkboxes because the
+  // submission itself is the request to hear about that offer (Ryan,
+  // 2026-09-07). SMS is untouched: no box, no text, ever.
+  const marketingEmailConsent = consents.marketing || !!registration?.inquiryOptIn;
+  const campaign = registration?.campaign ?? "meta_lead_form";
   const isFreeWebsiteCampaign = campaign === "free_build_volume" || campaign.startsWith("free_website");
 
   // Everything the lead actually told us, kept verbatim so the admin view and
@@ -209,14 +214,15 @@ function mapLead(raw: MetaLead) {
       utm_source: "facebook",
       utm_medium: "paid",
       utm_campaign: campaign,
-      // Consent comes ONLY from the form's own optional checkboxes. No
-      // checkbox checked means no text and no marketing email, full stop.
+      // SMS consent comes ONLY from a checked box. Email follow-up comes from
+      // a checked box or from an inquiryOptIn form (see registry).
       sms_consent: smsConsent,
       marketing_email_consent: marketingEmailConsent,
       consent_at: smsConsent || marketingEmailConsent ? new Date().toISOString() : null,
       external_id: `meta:${raw.id}`,
       diagnostic: {
-        source: isFreeWebsiteCampaign ? "free_build_funnel" : "meta_lead_form",
+        source:
+          registration?.funnel ?? (isFreeWebsiteCampaign ? "free_build_funnel" : "meta_lead_form"),
         notification_pipeline: "lead_intake_v1",
         meta_lead_id: raw.id,
         form_id: raw.form_id ?? null,
