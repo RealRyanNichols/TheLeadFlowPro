@@ -32,6 +32,9 @@ describe("analytics URL privacy", () => {
   it("excludes private routes and credentials even on otherwise public paths", () => {
     for (const value of [
       "/events/workshop/confirmed",
+      "/sellerproof/build",
+      "/sellerproof/build?session_id=cs_live_private",
+      "/sellerproof/%62uild",
       "/events/workshop/confirmed?t=private-seat-token",
       "/events/workshop/%63onfirmed",
       "/admin",

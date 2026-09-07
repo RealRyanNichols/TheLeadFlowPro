@@ -30,6 +30,8 @@ import {
   proKindSlug,
 } from "@/lib/proAccess";
 import { PRO_BUNDLE, getProTool, proCatalog } from "@/lib/tools/pro";
+import { SELLERPROOF } from "@/lib/sellerproof/packet";
+import { sendSellerProofReceipt } from "@/lib/sellerproof/receipt";
 
 // Stripe webhook: records paid checkouts and unlocks training access.
 // Needs STRIPE_WEBHOOK_SECRET (from Stripe dashboard → Webhooks) and
@@ -1332,6 +1334,8 @@ export async function POST(request: Request) {
       await ensureWebsiteLaunchIntake(supabase, session);
     } else if (proKind) {
       await sendProKitReceipt(customer.email, proKind);
+    } else if (kind === SELLERPROOF.kind) {
+      await sendSellerProofReceipt(customer.email, session.id);
     } else if (kind === "timeback_order") {
       await ensureTimebackOrderPaid(supabase, session);
     } else if (kind === "event") {

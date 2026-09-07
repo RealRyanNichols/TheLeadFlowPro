@@ -1,5 +1,8 @@
 // Reviewed canonical public pages. Redirects and private completion URLs are excluded.
 export const PUBLIC_PAGE_CATALOG = [
+  { path: "/sellerproof", title: "Organized evidence. A clearer response.", description: "Build a chargeback evidence packet before your deadline. Free preview, $49 to export one dispute packet. You review and submit it yourself.", eyebrow: "SellerProof" },
+  { path: "/sellerproof/terms", title: "SellerProof purchase terms", description: "What a single evidence packet purchase covers, how delivery works, and your responsibility to review and submit the evidence.", eyebrow: "SellerProof terms" },
+  { path: "/sellerproof/privacy", title: "Your records stay under your control", description: "How SellerProof handles draft entries, temporary processing, private backups, purchase access, and original evidence files.", eyebrow: "SellerProof privacy" },
   {
     path: "/",
     title: "Your next move starts here",

@@ -152,6 +152,13 @@ export default function ToolsPage() {
         </div>
       </section>
       <FinalCta
+        eyebrow="SellerProof · chargeback evidence packets"
+        title="A chargeback needs a clear record."
+        body="Organize a response draft, source timeline, and evidence index. Preview free. Export one dispute packet for $49, then review and submit it yourself. No outcome guarantees. SellerProof is a separate paid product."
+        primary={{ href: "/sellerproof", label: "See SellerProof" }}
+        secondary={{ href: "/sellerproof/sample", label: "Read a sample packet" }}
+      />
+      <FinalCta
         eyebrow="Why is all this free?"
         title="Because this is a fraction of what your website should be doing."
         body="Use every tool and never talk to me. That is fine. When you are ready to turn the useful idea into an owned business system, the next move is already here."
