@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex final PNG visual review",
+  "reviewed_at": "2026-09-07T10:20:41.660Z",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "642796666a231e84b6993ad9888fb6a936604e844c209b335d4b9a464bae1fe9",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Exact headline in large navy serif type centered on offwhite; support is one readable line. Cup is upper left and cropped laptop is below both text blocks. No extra lettering or logos.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "8883cbb53cd3bcae06d3b0922cd901aa38a24060d018c22407e8e2d05b69e5ef",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Exact headline in upper right and one support line beneath. Magnifying glass stays lower left without text crossing its lens. Muted blue surface and caustic light distinguish this arrangement.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "7da69412880a5cd4b8e8bef733c10429407f87fc5fa9264de3bcfc259b237901",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Roofing headline and one support line are exact and clearly above shingle samples, nail coil and flashing. Sage background; large centered sans serif typography. Tools have no labels.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "e85dce012e535c6357357afcea48410ee10e2a24ff5c699659b5b8e4f0d3cfdb",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Illustrative label and 6 times 10 equals 60 minutes are correct; the support explicitly says Example. One large headline wraps across three lines. Glass prism stays to the right, away from text. No actual customer result is claimed.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "9069de8ef3363e17670734248510fc471cd7acbd6b48528a8387e3f3968d9796",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Exact callback question in large offwhite type and one amber support line. Navy field remains open around text. Sculptural fins are confined to lower corners with clear separation from both text blocks.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}
