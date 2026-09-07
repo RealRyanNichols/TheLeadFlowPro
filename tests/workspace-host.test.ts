@@ -31,14 +31,20 @@ test("the override only matches when it is set", () => {
   assert.equal(isWorkspaceHost(preview, undefined), false);
 });
 
-test("the root of the workspace host lands on the delivery workspace", () => {
+test("the root resolves the signed-in person's role instead of forcing sales delivery", () => {
   assert.equal(workspaceRedirect("/"), WORKSPACE_HOME);
-  assert.equal(WORKSPACE_HOME, "/admin/sales/delivery");
+  assert.equal(WORKSPACE_HOME, "/login");
 });
 
 test("the workspace and its sign-in round trip pass through untouched", () => {
   for (const path of [
     "/admin/sales",
+    "/admin",
+    "/admin/leads/abc-123",
+    "/admin/command-center",
+    "/dashboard",
+    "/dashboard/build-room",
+    "/training/chatgpt-operator",
     "/admin/sales/delivery",
     "/admin/sales/invoices",
     "/admin/sales/leads/abc-123",
@@ -62,11 +68,12 @@ test("the marketing site never renders under the workspace hostname", () => {
     "/go/time-back",
     "/tools",
     "/connect",
-    "/admin",
-    "/admin/leads",
-    "/dashboard",
   ]) {
-    assert.equal(workspaceRedirect(path), WORKSPACE_HOME, `${path} should route to the workspace`);
+    assert.equal(
+      workspaceRedirect(path),
+      WORKSPACE_HOME,
+      `${path} should route to the workspace`,
+    );
   }
 });
 

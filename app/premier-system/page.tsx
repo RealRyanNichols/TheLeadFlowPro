@@ -1,103 +1,112 @@
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
+import {
+  ArrowRight,
+  BookOpen,
+  CalendarDays,
+  Check,
+  ClipboardCheck,
+  CreditCard,
+  GraduationCap,
+  LayoutDashboard,
+  MessageCircle,
+  Monitor,
+  Search,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
+import ContactForm from "@/app/contact/ContactForm";
 import styles from "./premier-system.module.css";
 
 const CANONICAL_URL = "https://www.theleadflowpro.com/premier-system";
+const PREMIER = "https://www.premierdentalacademyoflongview.com";
 
 export const metadata: Metadata = withPublicPageMetadata("/premier-system", {
-  title: "Premier System Proof + $1,000 Website Launch | The LeadFlow Pro",
+  title: "Premier Dental Academy’s System | The LeadFlow Pro",
   description:
-    "See the connected system Ryan Nichols built for Premier Dental Academy, then review the exact five-page Website Launch available for $1,000: $500 to start and $500 after approval, before launch.",
-  alternates: { canonical: CANONICAL_URL },
+    "Meet Amanda Williams and explore the website, enrollment tools, and student learning system built for Premier Dental Academy of Longview by The LeadFlow Pro.",
   openGraph: {
-    title: "I didn’t just build Premier a website. I built the system behind the business.",
+    title: "Premier Dental Academy: a school, a team, a connected system",
     description:
-      "Inspect the Premier system proof and the exact $1,000 Website Launch scope from The LeadFlow Pro.",
-    url: CANONICAL_URL,
-    siteName: "The LeadFlow Pro",
-    type: "website",
-    images: [
-      {
-        url: "/images/offer-v2/premier-operating-system.webp",
-        width: 3840,
-        height: 2160,
-        alt: "A connected operating system linking a public website, customer records, payments, portals, and course delivery",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "The system behind Premier Dental Academy",
-    description: "Proof of the larger build, plus a clear $1,000 Website Launch offer.",
-    images: ["/images/offer-v2/premier-operating-system.webp"],
+      "Meet Amanda. See the real academy. Try the tools that connect a first question to a place to learn.",
   },
 });
 
-const PREMIER_LAYERS = [
+const STUDENT_PATH = [
   {
-    number: "01",
-    name: "Public site",
-    detail: "A clear front door for program details, paths, proof, and the next enrollment action.",
+    icon: Search,
+    title: "Find the school",
+    detail: "Programs, real school photos, and a clear way to ask a question.",
+    action: "Explore Premier",
+    href: `${PREMIER}/`,
   },
   {
-    number: "02",
-    name: "Admin office",
-    detail: "A working back office for the team to see and manage the operation.",
+    icon: CalendarDays,
+    title: "Picture yourself here",
+    detail:
+      "Try a training tool, explore the costs, or ask Amanda’s team for a tour.",
+    action: "Request a tour",
+    href: `${PREMIER}/tour`,
   },
   {
-    number: "03",
-    name: "CRM",
-    detail: "One place to organize inquiries, applications, contacts, and next steps.",
+    icon: ClipboardCheck,
+    title: "Take the next step",
+    detail:
+      "Apply, review the enrollment options, and work with the school’s team.",
+    action: "See the application",
+    href: `${PREMIER}/apply`,
   },
   {
-    number: "04",
-    name: "Student portal",
-    detail: "A dedicated environment for students to reach the information and tools built for them.",
-  },
-  {
-    number: "05",
-    name: "Course environment",
-    detail: "A structured digital home for curriculum delivered by Premier’s instructors.",
-  },
-  {
-    number: "06",
-    name: "Payment enrollment",
-    detail: "A connected path from interest to application, plan selection, and payment.",
-  },
-  {
-    number: "07",
-    name: "Email automation",
-    detail: "Follow-up that supports the team after a prospect raises a hand.",
+    icon: GraduationCap,
+    title: "Learn by doing",
+    detail:
+      "Coursework, practice tools, and instructor support connect the next part of the journey.",
+    action: "Try Practice Pro",
+    href: `${PREMIER}/tools/practice-pro`,
   },
 ];
 
-const STORYBOARD = [
+const SYSTEM_PIECES = [
   {
-    time: "00–06",
-    title: "The hook",
-    detail: "I didn’t just build Premier a website.",
+    icon: Monitor,
+    name: "A website that answers questions",
+    detail: "Programs, school photos, free tools, and visible next steps.",
   },
   {
-    time: "06–14",
-    title: "Show the front door",
-    detail: "Move through the public experience so the work is visible, not theoretical.",
+    icon: Users,
+    name: "One place for inquiries",
+    detail:
+      "Contact details, applications, and the next follow-up for the team.",
   },
   {
-    time: "14–23",
-    title: "Reveal the system",
-    detail: "Cut to the CRM, admin office, student portal, course, payments, and follow-up.",
+    icon: CreditCard,
+    name: "An enrollment path",
+    detail:
+      "Application, plan selection, and payment steps connected to the school.",
   },
   {
-    time: "23–31",
-    title: "Make the distinction",
-    detail: "Premier is the larger proof. The fixed offer is a focused five-page Website Launch.",
+    icon: GraduationCap,
+    name: "A student home",
+    detail: "A private place to reach courses and learning tools.",
   },
   {
-    time: "31–36",
-    title: "Give one next move",
-    detail: "Start the $1,000 Website Launch with a $500 deposit.",
+    icon: BookOpen,
+    name: "Practice beyond the lesson",
+    detail: "Front-desk and chairside trainers students can explore and use.",
+  },
+  {
+    icon: MessageCircle,
+    name: "Follow-up with context",
+    detail:
+      "The team can pick up the conversation after someone asks for help.",
+  },
+  {
+    icon: LayoutDashboard,
+    name: "A working back office",
+    detail: "A shared view of the operation for the people running the school.",
   },
 ];
 
@@ -105,50 +114,38 @@ const WEBSITE_LAUNCH_SCOPE = [
   {
     number: "01",
     name: "Conversion map",
-    detail: "One audience, one primary offer, and one measurable next action before the pages are built.",
+    detail:
+      "One audience, one primary offer, and one measurable next action before the pages are built.",
   },
   {
     number: "02",
     name: "Five agreed pages",
-    detail: "Typically Home, About, Offer or Services, Proof, and Contact. The final page list is written into the scope.",
+    detail:
+      "Typically Home, About, Offer or Services, Proof, and Contact. The final page list is written into the scope.",
   },
   {
     number: "03",
     name: "Responsive production build",
-    detail: "A deliberate desktop and mobile experience built for speed, clarity, and accessibility.",
+    detail:
+      "A deliberate desktop and mobile experience built for speed, clarity, and accessibility.",
   },
   {
     number: "04",
     name: "Lead capture + routing",
-    detail: "One primary form and a clear delivery path so the right person receives the inquiry context.",
+    detail:
+      "One primary form and a clear delivery path so the right person receives the inquiry context.",
   },
   {
     number: "05",
     name: "Launch foundation",
-    detail: "Core on-page SEO, basic analytics, domain connection, and production deployment for the agreed site.",
+    detail:
+      "Core on-page SEO, basic analytics, domain connection, and production deployment for the agreed site.",
   },
   {
     number: "06",
     name: "Two focused revision rounds",
-    detail: "Review a working preview, then tighten the approved scope before the final launch payment.",
-  },
-];
-
-const VISUAL_BONUS = [
-  {
-    number: "A",
-    name: "Hero system scene",
-    detail: "A premium visual that makes the main offer understandable before the visitor reads the full page.",
-  },
-  {
-    number: "B",
-    name: "Process or lead-flow scene",
-    detail: "A simple visual explanation of how attention becomes an inquiry or next action.",
-  },
-  {
-    number: "C",
-    name: "Proof or approval scene",
-    detail: "A visual that supports the proof, process, or launch decision without stuffing words into the image.",
+    detail:
+      "Review a working preview, then tighten the approved scope before the final launch payment.",
   },
 ];
 
@@ -161,17 +158,20 @@ const MILESTONES = [
   {
     number: "02",
     name: "Scope is confirmed in writing",
-    detail: "Pages, assets, primary action, responsibilities, and launch requirements are agreed before production.",
+    detail:
+      "Pages, assets, primary action, responsibilities, and launch requirements are agreed before production.",
   },
   {
     number: "03",
     name: "You review working proof",
-    detail: "The site is presented in a live review environment with two focused revision rounds.",
+    detail:
+      "The site is presented in a live review environment with two focused revision rounds.",
   },
   {
     number: "04",
     name: "$500 is due after approval",
-    detail: "The remaining balance is paid after approval and before the production site goes live.",
+    detail:
+      "The remaining balance is paid after approval and before the production site goes live.",
   },
 ];
 
@@ -188,23 +188,10 @@ const EXCLUSIONS = [
   "Third-party subscriptions, hosting, or platform fees",
 ];
 
-const GOOD_FIT = [
-  "You have a real offer and one primary buyer path.",
-  "You can provide the core business facts, photos, and approvals needed to build.",
-  "One decision-maker can give direct feedback through the two revision rounds.",
-  "You need a strong public foundation now and can scope deeper systems separately later.",
-];
-
-const NOT_FIT = [
-  "You expect Premier’s full operating system inside a $1,000 website scope.",
-  "You need guaranteed leads, sales, rankings, or revenue.",
-  "You need a portal, course platform, CRM, automation, or custom application in the first release.",
-  "You want unlimited concepts, unlimited pages, or an open-ended revision process.",
-];
-
 const FAQ = [
   {
-    question: "Is the $1,000 Website Launch the same system Ryan built for Premier?",
+    question:
+      "Is the $1,000 Website Launch the same system Ryan built for Premier?",
     answer:
       "No. Premier is proof of a larger, separately scoped operating system. The $1,000 Website Launch is a focused five-page public foundation with the exact items listed on this page.",
   },
@@ -219,14 +206,15 @@ const FAQ = [
       "At the current founding rate, three premium visual scenes are included as a bonus inside the agreed five-page Website Launch. Their purpose and placement are confirmed in the written scope.",
   },
   {
-    question: "Can I add a funnel, CRM, portal, course, payments, ads, or automation?",
+    question:
+      "Can I add a funnel, CRM, portal, course, payments, ads, or automation?",
     answer:
       "Yes, when the business case is clear. Those are separate modules with their own written scope, price, requirements, and timeline. They are not hidden inside the $1,000 Website Launch.",
   },
   {
     question: "Who did what in the Premier build?",
     answer:
-      "Ryan Nichols built the connected system. Premier’s instructors delivered the curriculum, and Premier’s sales team handled most direct enrollment. Ads, content, and follow-up helped support visibility and movement through the path.",
+      "Amanda Williams leads Premier Dental Academy as its owner and director. Premier’s instructors deliver the curriculum, and its enrollment team handles student conversations. Ryan Nichols built the connected website, tools, and business system through The LeadFlow Pro.",
   },
   {
     question: "Does this guarantee leads or sales?",
@@ -282,371 +270,468 @@ export default function PremierSystemPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
       />
-
-      <section className={styles.hero} aria-labelledby="premier-system-title">
+      <section className={styles.hero} aria-labelledby="premier-title">
         <div className={styles.shell}>
+          <div className={styles.brandRow}>
+            <Image
+              src="/images/brand/premier-dental-academy-logo.png"
+              alt="Premier Dental Academy tooth and graduation cap logo"
+              width={64}
+              height={64}
+            />
+            <div>
+              <strong>Premier Dental Academy of Longview</strong>
+              <span>Client spotlight · Longview, Texas</span>
+            </div>
+          </div>
           <div className={styles.heroGrid}>
-            <div className={styles.heroCopy}>
-              <p className={styles.kicker}>Premier Dental Academy · system proof</p>
-              <h1 id="premier-system-title">
-                I didn’t just build Premier a website.
-                <span>I built the system behind the business.</span>
-              </h1>
-              <p className={styles.heroLead}>
-                The public site was only the front door. Behind it, I connected the places
-                where an inquiry, application, payment, student, course, and follow-up could
-                move through the business.
+            <div>
+              <p className={styles.kicker}>
+                A school. A team. A connected system.
               </p>
-              <div className={styles.heroActions}>
-                <a
-                  className={styles.primaryAction}
-                  href={WEBSITE_LAUNCH_CHECKOUT}
-                  data-analytics="cta-premier-system-hero-checkout"
-                >
-                  Start My Website Launch | $500
+              <h1 id="premier-title">
+                A new career starts <em>with a person.</em>
+              </h1>
+              <p className={styles.lead}>
+                Amanda and her team help people take their next step into dental
+                assisting. We built the website and tools that help that first
+                question become a clear path to learning.
+              </p>
+              <div className={styles.actions}>
+                <a href="#student-path" className={styles.primary}>
+                  See how it works <ArrowRight aria-hidden="true" size={18} />
                 </a>
-                <a className={styles.secondaryAction} href="#website-launch">
-                  See Exactly What $1,000 Includes
+                <a href="#website-launch" className={styles.secondary}>
+                  Build this kind of clarity for my business
                 </a>
               </div>
-              <p className={styles.heroNote}>
-                $1,000 total. $500 to start. $500 after approval and before launch. Once
-                intake begins, the deposit is non-refundable, except where the written
-                agreement or applicable law requires otherwise.
+              <p className={styles.note}>
+                Premier’s people teach and support the students. The LeadFlow
+                Pro connects the technology behind their work.
               </p>
             </div>
-
             <figure className={styles.heroVisual}>
               <Image
-                src="/images/offer-v2/premier-operating-system.webp"
-                alt="A connected operating system linking a public website, customer records, payments, portals, and course delivery"
-                fill
+                src="/images/premier/academy-learning-20260907.webp"
+                alt="Premier-inspired dental training illustration with a dental chair, tooth model, and learning tools in academy blue and teal"
+                width={1440}
+                height={810}
                 priority
-                sizes="(max-width: 760px) 100vw, 56vw"
+                sizes="(max-width: 850px) 100vw, 52vw"
               />
               <figcaption>
-                <span>Premier full system</span>
-                <strong>Seven connected layers. One business path.</strong>
+                <span>The learning experience · illustrated</span>
+                <strong>
+                  Explore the school. Take the next step. Practice the work.
+                </strong>
               </figcaption>
             </figure>
           </div>
+          <nav
+            className={styles.jumpLinks}
+            aria-label="Explore the Premier story"
+          >
+            <a href="#meet-amanda">
+              Meet Amanda <ArrowRight size={15} aria-hidden="true" />
+            </a>
+            <a href="#student-path">
+              Follow the student path{" "}
+              <ArrowRight size={15} aria-hidden="true" />
+            </a>
+            <a href="#try-the-tools">
+              Try the real tools <ArrowRight size={15} aria-hidden="true" />
+            </a>
+            <a href="#website-launch">
+              Plan your own build <ArrowRight size={15} aria-hidden="true" />
+            </a>
+          </nav>
         </div>
       </section>
 
-      <section className={styles.proofSection} aria-labelledby="proof-title">
-        <div className={styles.shell}>
-          <header className={styles.sectionIntro}>
-            <p className={styles.kickerDark}>What the proof actually shows</p>
-            <h2 id="proof-title">The website was one layer.</h2>
-            <p>
-              The larger work was connecting the public experience to the operating pieces
-              behind it. No private student records are shown here. This is a capability map
-              of the system that was built.
+      <section
+        id="meet-amanda"
+        className={styles.section}
+        aria-labelledby="amanda-title"
+      >
+        <div className={`${styles.shell} ${styles.amandaGrid}`}>
+          <figure className={styles.portrait}>
+            <Image
+              src="/images/premier/amanda-williams.jpg"
+              alt="Amanda Williams, owner and director of Premier Dental Academy of Longview"
+              width={750}
+              height={1000}
+              sizes="(max-width: 650px) 100vw, 35vw"
+            />
+            <figcaption>
+              <strong>Amanda Williams</strong>
+              <span>Owner & Director · Registered Dental Assistant</span>
+            </figcaption>
+          </figure>
+          <div>
+            <p className={styles.kicker}>The person behind Premier</p>
+            <h2 id="amanda-title">
+              She sat in the student’s chair.
+              <br />
+              <em>Now she leads the school.</em>
+            </h2>
+            <p className={styles.lead}>
+              Amanda graduated from Premier, worked chairside in East Texas, and
+              came back to own the academy. Today, she teaches and mentors
+              students in Longview.
             </p>
-          </header>
-
-          <div className={styles.proofStage}>
-            <figure className={styles.proofVisual}>
-              <Image
-                src="/images/offer-v2/premier-operating-system.webp"
-                alt="Seven business-system capabilities connected around one customer and student record"
-                fill
-                sizes="(max-width: 900px) 100vw, 58vw"
-              />
-            </figure>
-            <ol className={styles.layerLedger}>
-              {PREMIER_LAYERS.map((layer) => (
-                <li key={layer.number}>
-                  <span>{layer.number}</span>
-                  <div>
-                    <strong>{layer.name}</strong>
-                    <p>{layer.detail}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <aside className={styles.truthNote} aria-label="Premier Dental Academy role clarity">
-            <strong>Clear roles. Real proof.</strong>
             <p>
-              Ryan Nichols built the connected system. Premier’s instructors delivered the
-              curriculum, and Premier’s sales team handled most direct enrollment. Ads,
-              content, and follow-up helped support visibility and movement through the path.
-              This work is proof of capability, not a promise of identical results.
+              That experience belongs at the center of this story. The school’s
+              instructors, enrollment team, and students bring the work to life.
+              The website helps people see it, ask for help, and take a useful
+              next step.
             </p>
+            <div className={styles.creditCards}>
+              <div>
+                <Users aria-hidden="true" />
+                <strong>Premier’s contribution</strong>
+                <p>
+                  The teaching, student support, enrollment conversations, and
+                  school experience.
+                </p>
+              </div>
+              <div>
+                <Monitor aria-hidden="true" />
+                <strong>The LeadFlow Pro’s contribution</strong>
+                <p>
+                  The connected website, enrollment tools, learning environment,
+                  and back office.
+                </p>
+              </div>
+            </div>
             <a
-              href="https://www.premierdentalacademyoflongview.com"
+              className={styles.textLink}
+              href={`${PREMIER}/about`}
               target="_blank"
               rel="noreferrer"
             >
-              Inspect Premier’s public website
+              Read Amanda’s story at Premier{" "}
+              <ArrowRight size={17} aria-hidden="true" />
             </a>
-          </aside>
-        </div>
-      </section>
-
-      <section className={styles.videoSection} aria-labelledby="video-title">
-        <div className={styles.shell}>
-          <div className={styles.videoGrid}>
-            <div>
-              <p className={styles.kicker}>The proof-led ad</p>
-              <h2 id="video-title">Show it before you explain it.</h2>
-              <p className={styles.videoLead}>
-                The ad opens on the finished experience, reveals the machinery behind it,
-                then gives one simple next move. The viewer should understand the difference
-                in under 45 seconds.
-              </p>
-              <div className={styles.videoFrame}>
-                <video
-                  controls
-                  playsInline
-                  preload="metadata"
-                  poster="/images/premier-dental-academy-makeover-poster.jpg"
-                  aria-label="Premier Dental Academy website and system makeover teaser"
-                >
-                  <source
-                    src="/videos/premier-dental-academy-makeover-teaser.mp4"
-                    type="video/mp4"
-                  />
-                  Your browser does not support the video element.
-                </video>
-              </div>
-              <p className={styles.videoCaption}>
-                Public website views only. No private student information appears in this
-                presentation.
-              </p>
-            </div>
-
-            <div className={styles.storyboard}>
-              <div className={styles.storyboardTopline}>
-                <span>36-second cut</span>
-                <span>One idea per beat</span>
-              </div>
-              <ol>
-                {STORYBOARD.map((beat) => (
-                  <li key={beat.time}>
-                    <time>{beat.time}</time>
-                    <div>
-                      <strong>{beat.title}</strong>
-                      <p>{beat.detail}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
           </div>
         </div>
       </section>
 
       <section
-        id="website-launch"
-        className={styles.offerSection}
-        aria-labelledby="website-launch-title"
+        id="student-path"
+        className={`${styles.section} ${styles.tinted}`}
+        aria-labelledby="path-title"
       >
         <div className={styles.shell}>
-          <div className={styles.offerHeader}>
-            <div>
-              <p className={styles.kickerDark}>The fixed offer</p>
-              <h2 id="website-launch-title">Website Launch</h2>
-              <p>
-                Premier proves what a larger connected system can become. This offer is the
-                public foundation: five focused pages, a clear buyer path, and a working way
-                to capture the next conversation.
-              </p>
-            </div>
-            <aside className={styles.priceCard} aria-label="Website Launch price">
-              <span>Fixed project total</span>
-              <strong>$1,000</strong>
-              <p>$500 now. $500 after approval, before launch.</p>
-              <a
-                href={WEBSITE_LAUNCH_CHECKOUT}
-                data-analytics="cta-premier-system-offer-checkout"
-              >
-                Start My Website Launch | $500
-              </a>
-              <small>
-                Once intake begins, the $500 deposit is non-refundable, except where the
-                written agreement or applicable law requires otherwise.
-              </small>
-            </aside>
-          </div>
-
-          <figure className={styles.approvalVisual}>
-            <Image
-              src="/images/offer-v2/website-launch-approval-path.webp"
-              alt="A secure website build path moving from protected intake to production, approval, and launch"
-              fill
-              sizes="(max-width: 760px) 100vw, 1280px"
-            />
-            <figcaption>
-              <span>Reserve</span>
-              <span>Build</span>
-              <span>Approve</span>
-              <span>Launch</span>
-            </figcaption>
-          </figure>
-
-          <div className={styles.scopeGrid}>
-            <div className={styles.scopeHeading}>
-              <p className={styles.kickerDark}>Exact scope</p>
-              <h3>What the $1,000 gets you.</h3>
-              <p>
-                A deliberately tight first release. The final page names, responsibilities,
-                assets, and primary conversion action are confirmed in writing.
-              </p>
-            </div>
-            <ol className={styles.scopeLedger}>
-              {WEBSITE_LAUNCH_SCOPE.map((item) => (
-                <li key={item.number}>
-                  <span>{item.number}</span>
-                  <div>
-                    <strong>{item.name}</strong>
-                    <p>{item.detail}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <div className={styles.bonusBlock}>
-            <header>
-              <p className={styles.kicker}>Founding-rate bonus</p>
-              <h3>Three premium visual scenes.</h3>
-              <p>
-                These are visual explanations, not posters full of copy. The page keeps the
-                real message in readable HTML and lets each scene make the flow easier to see.
-              </p>
-            </header>
-            <ol>
-              {VISUAL_BONUS.map((item) => (
-                <li key={item.number}>
-                  <span>{item.number}</span>
-                  <strong>{item.name}</strong>
-                  <p>{item.detail}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.paymentSection} aria-labelledby="payment-title">
-        <div className={styles.shell}>
-          <header className={styles.sectionIntro}>
-            <p className={styles.kickerDark}>Payment and approval</p>
-            <h2 id="payment-title">Working proof before the final payment.</h2>
+          <header className={styles.sectionHeader}>
+            <p className={styles.kicker}>What the system makes easier</p>
+            <h2 id="path-title">
+              “Could I do this?”
+              <br />
+              <em>Give that question somewhere to go.</em>
+            </h2>
             <p>
-              The two-payment structure keeps the start simple and the approval milestone
-              clear. It does not create an open-ended build or change the written scope.
+              A person should see the school, understand the next step, and find
+              someone who can help. Follow the path below; every button opens
+              part of Premier’s real website.
             </p>
           </header>
-          <ol className={styles.milestones}>
-            {MILESTONES.map((item) => (
-              <li key={item.number}>
-                <span>{item.number}</span>
-                <strong>{item.name}</strong>
-                <p>{item.detail}</p>
+          <figure className={styles.students}>
+            <Image
+              src="/images/premier/premier-students.jpg"
+              alt="Premier Dental Academy students in blue scrubs outside the Longview campus"
+              width={1000}
+              height={750}
+              sizes="(max-width: 760px) 100vw, 70vw"
+            />
+            <figcaption>
+              <span>Real people. A real academy.</span>
+              <strong>This is the school behind the system.</strong>
+              <p>Longview, Texas · Published academy photography</p>
+            </figcaption>
+          </figure>
+          <ol className={styles.pathGrid}>
+            {STUDENT_PATH.map(({ icon: Icon, ...step }, index) => (
+              <li key={step.title}>
+                <div className={styles.stepTop}>
+                  <span>0{index + 1}</span>
+                  <Icon size={26} aria-hidden="true" />
+                </div>
+                <h3>{step.title}</h3>
+                <p>{step.detail}</p>
+                <a href={step.href} target="_blank" rel="noreferrer">
+                  {step.action}
+                  <ArrowRight size={17} aria-hidden="true" />
+                </a>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      <section className={styles.fitSection} aria-labelledby="fit-title">
+      <section
+        id="try-the-tools"
+        className={styles.section}
+        aria-labelledby="tools-title"
+      >
         <div className={styles.shell}>
-          <header className={styles.fitIntro}>
-            <p className={styles.kicker}>The fit filter</p>
-            <h2 id="fit-title">The right foundation for the right buyer.</h2>
+          <header className={styles.sectionHeader}>
+            <p className={styles.kicker}>Open it. Try it. Understand it.</p>
+            <h2 id="tools-title">
+              The lesson can keep going <em>after class.</em>
+            </h2>
             <p>
-              Clear scope protects the quality of the work. If the business needs a larger
-              system, that is a different conversation and a different price.
+              Premier pairs instructor-led learning with tools for practicing
+              the work. These links open the academy’s own training experiences.
             </p>
           </header>
-          <div className={styles.fitGrid}>
-            <article>
-              <span>Good fit</span>
-              <h3>Start here when the public site is the immediate bottleneck.</h3>
-              <ul>
-                {GOOD_FIT.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </article>
-            <article>
-              <span>Not this scope</span>
-              <h3>Scope a larger system when the work starts behind the website.</h3>
-              <ul>
-                {NOT_FIT.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </article>
-          </div>
-
-          <div className={styles.exclusions}>
-            <div>
-              <p className={styles.kicker}>Separately scoped</p>
-              <h3>What is not hidden inside $1,000.</h3>
+          <div className={styles.learningGrid}>
+            <figure className={styles.classroom}>
+              <Image
+                src="/images/premier/premier-classroom.jpg"
+                alt="Premier students practicing with dental tooth models in the classroom"
+                width={1000}
+                height={750}
+                sizes="(max-width: 850px) 100vw, 50vw"
+              />
+              <figcaption>
+                Hands-on learning at Premier’s Longview campus.
+              </figcaption>
+            </figure>
+            <div className={styles.toolCards}>
+              <a
+                href={`${PREMIER}/tools/practice-pro`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Monitor size={28} aria-hidden="true" />
+                <div>
+                  <span>At the front desk</span>
+                  <h3>Practice Pro</h3>
+                  <p>
+                    Explore scheduling, charting, and the everyday flow of a
+                    dental office in a training environment.
+                  </p>
+                  <strong>
+                    Open the trainer <ArrowRight size={17} aria-hidden="true" />
+                  </strong>
+                </div>
+              </a>
+              <a
+                href={`${PREMIER}/skills-lab/virtual-office`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <GraduationCap size={28} aria-hidden="true" />
+                <div>
+                  <span>Beside the dental chair</span>
+                  <h3>Virtual Dental Office</h3>
+                  <p>
+                    Explore the operatory, discover the stations, and practice
+                    setting up an instrument tray.
+                  </p>
+                  <strong>
+                    Step inside the office{" "}
+                    <ArrowRight size={17} aria-hidden="true" />
+                  </strong>
+                </div>
+              </a>
+              <p className={styles.note}>
+                Training tools use fictional practice scenarios. They support
+                learning; they do not replace an instructor or clinical
+                supervision.
+              </p>
             </div>
+          </div>
+          <div className={styles.studentCallout}>
+            <div>
+              <p className={styles.kicker}>Thinking about dental assisting?</p>
+              <h3>Meet Amanda. See Premier for yourself.</h3>
+              <p>
+                Amanda’s team can answer questions about programs, class dates,
+                and enrollment.
+              </p>
+            </div>
+            <a
+              className={styles.primary}
+              href={`${PREMIER}/tour`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Request a school tour <ArrowRight size={18} aria-hidden="true" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section
+        className={`${styles.section} ${styles.tinted}`}
+        aria-labelledby="system-title"
+      >
+        <div className={styles.shell}>
+          <header className={styles.sectionHeader}>
+            <p className={styles.kicker}>Behind the experience</p>
+            <h2 id="system-title">
+              One school.
+              <br />
+              <em>Seven connected parts.</em>
+            </h2>
+            <p>
+              Each part has a job. Together, they support the people running the
+              academy and the students finding their way through it.
+            </p>
+          </header>
+          <div className={styles.systemGrid}>
+            {SYSTEM_PIECES.map(({ icon: Icon, name, detail }) => (
+              <article key={name}>
+                <Icon size={28} aria-hidden="true" />
+                <h3>{name}</h3>
+                <p>{detail}</p>
+              </article>
+            ))}
+          </div>
+          <div className={styles.proofLink}>
+            <ShieldCheck aria-hidden="true" />
+            <p>
+              Want the numbers too? The academy’s board shows aggregate activity
+              and explains what each metric counts.
+            </p>
+            <Link href="/businesses/premier-dental-academy-of-longview">
+              View Premier’s board <ArrowRight size={17} aria-hidden="true" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="website-launch"
+        className={styles.section}
+        aria-labelledby="launch-title"
+      >
+        <div className={styles.shell}>
+          <header className={styles.sectionHeader}>
+            <p className={styles.kicker}>Now picture your own business</p>
+            <h2 id="launch-title">
+              Start with a clearer website.
+              <br />
+              <em>Build the next pieces from there.</em>
+            </h2>
+            <p>
+              Premier is a larger, separately scoped system. Our Website Launch
+              starts with the public foundation: five agreed pages and one clear
+              way for customers to reach you.
+            </p>
+          </header>
+          <div className={styles.offerGrid}>
+            <div className={styles.scopeList}>
+              {WEBSITE_LAUNCH_SCOPE.map((item) => (
+                <div key={item.number}>
+                  <Check aria-hidden="true" size={20} />
+                  <div>
+                    <h3>{item.name}</h3>
+                    <p>{item.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <aside className={styles.priceCard}>
+              <span>Website Launch · fixed scope</span>
+              <strong>$1,000</strong>
+              <p>$500 to start. $500 after approval, before launch.</p>
+              <a
+                href={WEBSITE_LAUNCH_CHECKOUT}
+                className={styles.primary}
+                data-cta="premier_launch_checkout"
+                data-cta-placement="premier_offer"
+              >
+                Start my website · $500{" "}
+                <ArrowRight size={18} aria-hidden="true" />
+              </a>
+              <small>
+                Checkout through Longview Training Center, LLC. Once intake
+                begins, the deposit is non-refundable, except where the written
+                agreement or applicable law requires otherwise.
+              </small>
+              <a href="#talk-about-your-build" className={styles.textLink}>
+                Need a larger system? Talk to Ryan{" "}
+                <ArrowRight size={17} aria-hidden="true" />
+              </a>
+            </aside>
+          </div>
+          <div className={styles.bonus}>
+            <BookOpen size={25} aria-hidden="true" />
+            <div>
+              <h3>Three custom visual scenes included at the founding rate.</h3>
+              <p>
+                A hero image, a process visual, and a proof or approval scene,
+                planned for your business within the agreed five-page scope.
+              </p>
+            </div>
+          </div>
+          <ol className={styles.milestones}>
+            {MILESTONES.map((step) => (
+              <li key={step.number}>
+                <span>{step.number}</span>
+                <h3>{step.name}</h3>
+                <p>{step.detail}</p>
+              </li>
+            ))}
+          </ol>
+          <details className={styles.scopeDetails}>
+            <summary>What needs a separate scope and price?</summary>
             <ul>
               {EXCLUSIONS.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
-          </div>
+          </details>
         </div>
       </section>
 
-      <section className={styles.faqSection} aria-labelledby="faq-title">
-        <div className={styles.shell}>
-          <div className={styles.faqGrid}>
-            <header>
-              <p className={styles.kickerDark}>Straight answers</p>
-              <h2 id="faq-title">Before you start.</h2>
-              <p>
-                No guarantee language. No private data. No pretending the full Premier system
-                is a thousand-dollar website.
-              </p>
-            </header>
-            <div className={styles.faqList}>
-              {FAQ.map((item, index) => (
-                <details key={item.question} open={index === 0}>
-                  <summary>{item.question}</summary>
-                  <p>{item.answer}</p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.finalSection} aria-labelledby="final-title">
-        <div className={styles.shell}>
-          <div className={styles.finalGrid}>
-            <div>
-              <p className={styles.kicker}>Build the front door first</p>
-              <h2 id="final-title">Let the site show people what you can do.</h2>
-            </div>
-            <div>
-              <p>
-                Start with the five-page Website Launch. If the business needs the CRM,
-                funnel, portal, course, payments, ads, or automation behind it, we scope that
-                next layer honestly.
-              </p>
-              <a
-                href={WEBSITE_LAUNCH_CHECKOUT}
-                data-analytics="cta-premier-system-final-checkout"
-              >
-                Start My Website Launch | $500
+      <section
+        id="talk-about-your-build"
+        className={`${styles.section} ${styles.tinted}`}
+        aria-labelledby="contact-title"
+      >
+        <div className={`${styles.shell} ${styles.contactGrid}`}>
+          <div>
+            <p className={styles.kicker}>For business owners</p>
+            <h2 id="contact-title">
+              What should your website <em>help people do?</em>
+            </h2>
+            <p className={styles.lead}>
+              Tell Ryan what you sell and where people get stuck. We’ll talk
+              through a practical starting point for your business.
+            </p>
+            <p>
+              This message goes to The LeadFlow Pro. For classes or enrollment,{" "}
+              <a className={styles.inlineLink} href={`${PREMIER}/contact`}>
+                contact Premier’s team
               </a>
-              <small>
-                Secure checkout through Longview Training Center, LLC. The $500 payment is
-                applied to the $1,000 Website Launch total. Once intake begins, the deposit
-                is non-refundable, except where the written agreement or applicable law
-                requires otherwise.
-              </small>
-            </div>
+              .
+            </p>
+            <Link className={styles.textLink} href="/portfolio">
+              See more businesses we’ve built for{" "}
+              <ArrowRight size={17} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className={styles.formCard}>
+            <ContactForm />
+          </div>
+        </div>
+      </section>
+      <section className={styles.section} aria-labelledby="faq-title">
+        <div className={`${styles.shell} ${styles.faqGrid}`}>
+          <header>
+            <p className={styles.kicker}>Straight answers</p>
+            <h2 id="faq-title">Before you start.</h2>
+          </header>
+          <div className={styles.faqList}>
+            {FAQ.map((item) => (
+              <details key={item.question}>
+                <summary>{item.question}</summary>
+                <p>{item.answer}</p>
+              </details>
+            ))}
           </div>
         </div>
       </section>

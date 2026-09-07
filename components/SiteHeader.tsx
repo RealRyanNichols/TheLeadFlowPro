@@ -3,7 +3,7 @@
 import Link from "next/link";
 import BrandLockup from "@/components/BrandLockup";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Menu } from "lucide-react";
+import { ArrowRight, Menu, LogIn } from "lucide-react";
 import { useRef } from "react";
 
 // Public navigation mirrors the approved LeadFlow Pro redesign. Existing
@@ -48,6 +48,13 @@ export default function SiteHeader() {
               {label}
             </Link>
           ))}
+          <Link
+            href="/login"
+            className="header-portal inline-flex items-center gap-1.5"
+            aria-label="Member and staff portal"
+          >
+            <LogIn aria-hidden="true" className="h-4 w-4" /> Portal
+          </Link>
           <Link
             href="/#qualify"
             className="header-cta"
@@ -97,6 +104,10 @@ export default function SiteHeader() {
                 {label}
               </Link>
             ))}
+            <Link href="/login">
+              Member & staff portal{" "}
+              <LogIn aria-hidden="true" className="h-4 w-4" />
+            </Link>
             <Link
               href="/#qualify"
               className="header-cta"

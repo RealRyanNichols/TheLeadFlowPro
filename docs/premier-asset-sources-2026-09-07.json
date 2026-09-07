@@ -1,0 +1,64 @@
+{
+  "reviewedOn": "2026-09-07",
+  "purpose": "User-authorized Premier Dental Academy feature on The LeadFlow Pro",
+  "assets": [
+    {
+      "file": "/images/premier/amanda-williams.jpg",
+      "sourceLocal": "/Users/ryannichols/pda-redesign-work/premierdentalacademyoflongview/assets/amanda-williams.jpg",
+      "sourceUrl": "https://www.premierdentalacademyoflongview.com/assets/amanda-williams.jpg",
+      "publishedSourcePage": "https://www.premierdentalacademyoflongview.com/about",
+      "alt": "Amanda Williams, owner and director of Premier Dental Academy of Longview.",
+      "sha256": "c5a0477e73e64b97afbfb8803f98e97799f3b0dfe850e2598bd04031e34a383e",
+      "notes": "Existing publicly published academy photography, copied without image edits. No patient imagery or private student records."
+    },
+    {
+      "file": "/images/premier/premier-students.jpg",
+      "sourceLocal": "/Users/ryannichols/pda-redesign-work/premierdentalacademyoflongview/assets/students/students-group.jpg",
+      "sourceUrl": "https://www.premierdentalacademyoflongview.com/assets/students/students-group.jpg",
+      "publishedSourcePage": "https://www.premierdentalacademyoflongview.com/",
+      "alt": "Premier Dental Academy students in blue scrubs outside the Longview campus.",
+      "sha256": "ccc7997b68ec7c0418995c3d4a728680f68740ecf8286eb33dbcf49dacece58d",
+      "notes": "Existing publicly published academy photography, copied without image edits. No patient imagery or private student records."
+    },
+    {
+      "file": "/images/premier/premier-classroom.jpg",
+      "sourceLocal": "/Users/ryannichols/pda-redesign-work/premierdentalacademyoflongview/assets/photos/classroom-typodont.jpg",
+      "sourceUrl": "https://www.premierdentalacademyoflongview.com/assets/photos/classroom-typodont.jpg",
+      "publishedSourcePage": "https://www.premierdentalacademyoflongview.com/",
+      "alt": "Premier Dental Academy students practicing with tooth models in the classroom.",
+      "sha256": "5350c5f7d4374c95d1a8cfed404444bf2e659d5912eaf5f32c2c0ec67b9aad9c",
+      "notes": "Existing publicly published academy photography, copied without image edits. No patient imagery or private student records."
+    }
+  ],
+  "publicFactSources": [
+    {
+      "url": "https://www.premierdentalacademyoflongview.com/about",
+      "checkedOn": "2026-09-07",
+      "facts": [
+        "Amanda Williams is listed as Owner & Director and Registered Dental Assistant.",
+        "The academy says Amanda graduated from its program, worked chairside in East Texas, bought the school, and teaches and mentors in Longview."
+      ]
+    },
+    {
+      "url": "https://www.premierdentalacademyoflongview.com/tools/practice-pro",
+      "checkedOn": "2026-09-07",
+      "facts": [
+        "Practice Pro is a training environment covering dental-office scheduling, charting, treatment plans, insurance workflows, notes, and recall."
+      ]
+    },
+    {
+      "url": "https://www.premierdentalacademyoflongview.com/skills-lab/virtual-office",
+      "checkedOn": "2026-09-07",
+      "facts": [
+        "The public Virtual Dental Office includes operatory stations, guided visits, and instrument-tray practice."
+      ]
+    },
+    {
+      "url": "https://www.premierdentalacademyoflongview.com/tour",
+      "checkedOn": "2026-09-07",
+      "facts": [
+        "The tour page accepts in-person or virtual walkthrough requests and routes them to Amanda or her team."
+      ]
+    }
+  ]
+}

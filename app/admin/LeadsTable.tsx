@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -42,6 +42,9 @@ const INTEREST_LABELS: Record<string, string> = {
 
 export default function LeadsTable({ initialLeads }: { initialLeads: Lead[] }) {
   const [leads, setLeads] = useState(initialLeads);
+  useEffect(() => {
+    setLeads(initialLeads);
+  }, [initialLeads]);
   const [open, setOpen] = useState<string | null>(null);
   // Bulk delete: the fastest way to clear out the test leads that pile up
   // while a form is being built. Soft delete, so a mistake is recoverable.
@@ -140,14 +143,19 @@ export default function LeadsTable({ initialLeads }: { initialLeads: Lead[] }) {
               className="h-4 w-4 flex-none"
             />
             <div className="min-w-0 flex-1">
-              <span className="font-bold text-[var(--heading)]">{l.full_name}</span>
+              <span className="font-bold text-[var(--heading)]">
+                {l.full_name}
+              </span>
               {l.business_name && (
-                <span className="ml-2 text-sm text-[var(--muted)]">{l.business_name}</span>
+                <span className="ml-2 text-sm text-[var(--muted)]">
+                  {l.business_name}
+                </span>
               )}
               <div className="text-xs text-[var(--muted)]">
                 {new Date(l.created_at).toLocaleDateString()} ·{" "}
                 {INTEREST_LABELS[l.interest] ?? l.interest}
-                {l.monthly_platform_spend && ` · spends ${l.monthly_platform_spend.replace(/_/g, " ")}`}
+                {l.monthly_platform_spend &&
+                  ` · spends ${l.monthly_platform_spend.replace(/_/g, " ")}`}
                 {l.is_test && (
                   <span className="ml-2 rounded-full bg-[var(--warn-tint)] px-2 py-0.5 text-[10px] font-black uppercase text-warn">
                     test
@@ -180,12 +188,16 @@ export default function LeadsTable({ initialLeads }: { initialLeads: Lead[] }) {
             <div className="mt-4 space-y-2 border-t border-line pt-4 text-sm text-[var(--text)]">
               <p>
                 <span className="text-[var(--muted)]">Email:</span>{" "}
-                <a href={`mailto:${l.email}`} className="text-flow-400">{l.email}</a>
+                <a href={`mailto:${l.email}`} className="text-flow-400">
+                  {l.email}
+                </a>
                 {l.phone && (
                   <>
                     {" · "}
                     <span className="text-[var(--muted)]">Phone:</span>{" "}
-                    <a href={`tel:${l.phone}`} className="text-flow-400">{l.phone}</a>
+                    <a href={`tel:${l.phone}`} className="text-flow-400">
+                      {l.phone}
+                    </a>
                   </>
                 )}
               </p>
@@ -197,17 +209,20 @@ export default function LeadsTable({ initialLeads }: { initialLeads: Lead[] }) {
               )}
               {l.timeline && (
                 <p>
-                  <span className="text-[var(--muted)]">Timeline:</span> {l.timeline.replace(/_/g, " ")}
+                  <span className="text-[var(--muted)]">Timeline:</span>{" "}
+                  {l.timeline.replace(/_/g, " ")}
                 </p>
               )}
               {l.best_contact_method && (
                 <p>
-                  <span className="text-[var(--muted)]">Prefers:</span> {l.best_contact_method}
+                  <span className="text-[var(--muted)]">Prefers:</span>{" "}
+                  {l.best_contact_method}
                 </p>
               )}
               {l.goals && (
                 <p className="rounded-lg bg-[var(--page)] p-3">
-                  <span className="text-[var(--muted)]">What they want:</span> {l.goals}
+                  <span className="text-[var(--muted)]">What they want:</span>{" "}
+                  {l.goals}
                 </p>
               )}
             </div>

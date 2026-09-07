@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -12,8 +12,27 @@ import {
 } from "@/lib/businessDiagnostic";
 import LeadThread, { type LeadMsg } from "./LeadThread";
 import DeleteLead from "./DeleteLead";
+import LeadHistory from "./LeadHistory";
+import LiveRefresh from "@/app/admin/command-center/LiveRefresh";
+import {
+  buildLeadTimeline,
+  leadSourceLabel,
+  originalLeadAnswers,
+  safeLeadDiagnostic,
+  type LeadNoteRecord,
+  type LeadActivityRecord,
+  type LeadEmailRecord,
+  type LeadCallRecord,
+} from "@/lib/leadTimeline";
 
-const STAGES = ["new", "contacted", "call_booked", "proposal", "won", "lost"] as const;
+const STAGES = [
+  "new",
+  "contacted",
+  "call_booked",
+  "proposal",
+  "won",
+  "lost",
+] as const;
 
 const STAGE_LABELS: Record<string, string> = {
   new: "New",
@@ -74,7 +93,7 @@ type Lead = {
   diagnostic: Record<string, unknown> | null;
 };
 
-type Note = { id: string; body: string; author: string | null; created_at: string };
+type Note = LeadNoteRecord;
 type Task = {
   id: string;
   title: string;
@@ -82,8 +101,8 @@ type Task = {
   completed_at: string | null;
   created_at: string;
 };
-type Activity = { id: string; kind: string; detail: string; created_at: string };
-type LeadEmail = { id: string; step: number; sent_at: string };
+type Activity = LeadActivityRecord;
+type LeadEmail = LeadEmailRecord;
 export type DiagnosticNotification = {
   id: string;
   event_type: "draft_saved" | "submitted";
@@ -204,32 +223,32 @@ function displayText(value: unknown): string {
 }
 
 function displayScore(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) ? Math.round(value) : null;
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.round(value)
+    : null;
 }
 
 function safeDiagnosticForDisplay(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(safeDiagnosticForDisplay);
-  if (!value || typeof value !== "object") return value;
-
-  return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>)
-      .filter(([key]) => {
-        const normalized = key.toLowerCase().replace(/[^a-z]/g, "");
-        return !normalized.includes("resume");
-      })
-      .map(([key, item]) => [key, safeDiagnosticForDisplay(item)]),
-  );
+  return safeLeadDiagnostic(value);
 }
 
-function BusinessGrowthDiagnosticViewer({ diagnostic }: { diagnostic: Record<string, unknown> }) {
+function BusinessGrowthDiagnosticViewer({
+  diagnostic,
+}: {
+  diagnostic: Record<string, unknown>;
+}) {
   const summary = asRecord(diagnostic.summary) as BusinessDiagnosticSummary;
   const completeness = displayScore(diagnostic.completeness_score);
   const opportunity = displayScore(diagnostic.opportunity_score);
   const tags = Array.isArray(diagnostic.tags)
-    ? diagnostic.tags.filter((item): item is string => typeof item === "string").slice(0, 40)
+    ? diagnostic.tags
+        .filter((item): item is string => typeof item === "string")
+        .slice(0, 40)
     : [];
   const submittedAt =
-    typeof diagnostic.submitted_at === "string" ? diagnostic.submitted_at : null;
+    typeof diagnostic.submitted_at === "string"
+      ? diagnostic.submitted_at
+      : null;
 
   return (
     <div className="card !p-4">
@@ -239,7 +258,9 @@ function BusinessGrowthDiagnosticViewer({ diagnostic }: { diagnostic: Record<str
             Business Growth Diagnostic
           </h2>
           <p className="mt-1 text-xs text-[var(--quiet)]">
-            {submittedAt ? `Submitted ${fmt(submittedAt)}` : "Saved business intake"}
+            {submittedAt
+              ? `Submitted ${fmt(submittedAt)}`
+              : "Saved business intake"}
           </p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-bold">
@@ -321,7 +342,9 @@ function BusinessGrowthDiagnosticViewer({ diagnostic }: { diagnostic: Record<str
 
       {tags.length > 0 && (
         <div className="mt-4">
-          <p className="text-xs font-bold uppercase tracking-wide text-[var(--muted)]">Tags</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-[var(--muted)]">
+            Tags
+          </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {tags.map((tag) => (
               <span
@@ -371,7 +394,8 @@ function hasStoredAnswer(value: unknown): boolean {
 function answerLabel(field: DiagnosticField, value: unknown): string {
   if (typeof value === "boolean") return value ? "Yes" : "No";
   const optionLabel = (item: string) =>
-    field.options?.find((option) => option.value === item)?.label ?? pretty(item);
+    field.options?.find((option) => option.value === item)?.label ??
+    pretty(item);
   if (Array.isArray(value)) {
     return value
       .filter((item): item is string => typeof item === "string")
@@ -385,12 +409,17 @@ function answerLabel(field: DiagnosticField, value: unknown): string {
   return "-";
 }
 
-function FullBusinessDiagnosticViewer({ response }: { response: StoredBusinessDiagnostic }) {
+function FullBusinessDiagnosticViewer({
+  response,
+}: {
+  response: StoredBusinessDiagnostic;
+}) {
   const answers = asRecord(response.answers) as DiagnosticAnswers;
   const answeredSections = BUSINESS_DIAGNOSTIC_SECTIONS.map((section) => ({
     ...section,
     fields: section.fields.filter(
-      (field) => fieldVisible(field, answers) && hasStoredAnswer(answers[field.id]),
+      (field) =>
+        fieldVisible(field, answers) && hasStoredAnswer(answers[field.id]),
     ),
   })).filter((section) => section.fields.length > 0);
 
@@ -402,7 +431,8 @@ function FullBusinessDiagnosticViewer({ response }: { response: StoredBusinessDi
             Full questionnaire answers
           </h2>
           <p className="mt-1 text-xs text-[var(--quiet)]">
-            Form v{response.form_version} · {displayValue(response.source_channel)} · Updated{" "}
+            Form v{response.form_version} ·{" "}
+            {displayValue(response.source_channel)} · Updated{" "}
             {fmt(response.updated_at)}
           </p>
         </div>
@@ -429,9 +459,13 @@ function FullBusinessDiagnosticViewer({ response }: { response: StoredBusinessDi
                 {section.fields.map((field) => (
                   <div
                     key={field.id}
-                    className={field.type === "textarea" ? "sm:col-span-2" : undefined}
+                    className={
+                      field.type === "textarea" ? "sm:col-span-2" : undefined
+                    }
                   >
-                    <dt className="text-xs text-[var(--muted)]">{field.label}</dt>
+                    <dt className="text-xs text-[var(--muted)]">
+                      {field.label}
+                    </dt>
                     <dd className="mt-1 break-words whitespace-pre-wrap text-[var(--text)]">
                       {answerLabel(field, answers[field.id])}
                     </dd>
@@ -442,7 +476,9 @@ function FullBusinessDiagnosticViewer({ response }: { response: StoredBusinessDi
           ))}
         </div>
       ) : (
-        <p className="mt-3 text-sm text-[var(--muted)]">No questionnaire answers are available.</p>
+        <p className="mt-3 text-sm text-[var(--muted)]">
+          No questionnaire answers are available.
+        </p>
       )}
     </div>
   );
@@ -462,7 +498,10 @@ function DiagnosticNotificationStatus({
       </h2>
       <ul className="mt-3 space-y-3">
         {notifications.map((notification) => {
-          const label = notification.event_type === "submitted" ? "Final submission" : "Draft saved";
+          const label =
+            notification.event_type === "submitted"
+              ? "Final submission"
+              : "Draft saved";
           const badge =
             notification.status === "sent"
               ? "bg-mint/15 text-mint"
@@ -470,10 +509,15 @@ function DiagnosticNotificationStatus({
                 ? "bg-warn/15 text-warn"
                 : "bg-flow-400/15 text-flow-400";
           return (
-            <li key={notification.id} className="rounded-lg border border-[var(--line)] p-3 text-sm">
+            <li
+              key={notification.id}
+              className="rounded-lg border border-[var(--line)] p-3 text-sm"
+            >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-bold text-[var(--heading)]">{label}</span>
-                <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${badge}`}>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-bold ${badge}`}
+                >
                   {notification.status}
                 </span>
               </div>
@@ -508,7 +552,8 @@ export function DiagnosticViewer({
   notifications?: DiagnosticNotification[];
 }) {
   const isBusinessDiagnostic =
-    diagnostic?.source === "business_growth_diagnostic" || Boolean(businessDiagnostic);
+    diagnostic?.source === "business_growth_diagnostic" ||
+    Boolean(businessDiagnostic);
 
   if (isBusinessDiagnostic) {
     const storedAnswers = asRecord(businessDiagnostic?.answers);
@@ -516,23 +561,22 @@ export function DiagnosticViewer({
     const compactDiagnostic: Record<string, unknown> = {
       ...(diagnostic ?? {}),
       source: "business_growth_diagnostic",
-      summary:
-        diagnostic?.summary ??
-        {
-          problem: storedAnswers.primary_problem ?? storedAnswers.situation_summary,
-          desired_outcome: storedAnswers.desired_outcome,
-          success_definition: storedAnswers.success_definition,
-          help_categories: storedAnswers.help_categories,
-          timeframe: storedAnswers.timeframe,
-          decision_role: storedAnswers.decision_role,
-          website_state: storedAnswers.website_state,
-          website_platform: storedAnswers.website_platform,
-          website_issue_detail: storedAnswers.website_issue_detail,
-          facebook_page_status: storedAnswers.facebook_page_status,
-          youtube_status: storedAnswers.youtube_status,
-          crm_status: storedAnswers.crm_status,
-          lead_response_time: storedAnswers.lead_response_time,
-        },
+      summary: diagnostic?.summary ?? {
+        problem:
+          storedAnswers.primary_problem ?? storedAnswers.situation_summary,
+        desired_outcome: storedAnswers.desired_outcome,
+        success_definition: storedAnswers.success_definition,
+        help_categories: storedAnswers.help_categories,
+        timeframe: storedAnswers.timeframe,
+        decision_role: storedAnswers.decision_role,
+        website_state: storedAnswers.website_state,
+        website_platform: storedAnswers.website_platform,
+        website_issue_detail: storedAnswers.website_issue_detail,
+        facebook_page_status: storedAnswers.facebook_page_status,
+        youtube_status: storedAnswers.youtube_status,
+        crm_status: storedAnswers.crm_status,
+        lead_response_time: storedAnswers.lead_response_time,
+      },
       readiness_label:
         diagnostic?.readiness_label ??
         (storedCompleteness === undefined
@@ -553,7 +597,9 @@ export function DiagnosticViewer({
     return (
       <div className="space-y-6">
         <BusinessGrowthDiagnosticViewer diagnostic={compactDiagnostic} />
-        {businessDiagnostic && <FullBusinessDiagnosticViewer response={businessDiagnostic} />}
+        {businessDiagnostic && (
+          <FullBusinessDiagnosticViewer response={businessDiagnostic} />
+        )}
         <DiagnosticNotificationStatus notifications={notifications} />
       </div>
     );
@@ -566,8 +612,8 @@ export function DiagnosticViewer({
           System Map diagnostic
         </h2>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          No guided diagnostic on this lead. It fills in automatically when someone
-          completes the Map My System flow.
+          No guided diagnostic on this lead. It fills in automatically when
+          someone completes the Map My System flow.
         </p>
       </div>
     );
@@ -596,12 +642,16 @@ export function DiagnosticViewer({
           </div>
           <div>
             <dt className="text-[var(--muted)]">Current setup</dt>
-            <dd className="text-[var(--text)]">{stages.length ? stages.join(", ") : "-"}</dd>
+            <dd className="text-[var(--text)]">
+              {stages.length ? stages.join(", ") : "-"}
+            </dd>
           </div>
           {(d.labels.sales_channels ?? []).length > 0 && (
             <div className="sm:col-span-2">
               <dt className="text-[var(--muted)]">Sales channels</dt>
-              <dd className="text-[var(--text)]">{d.labels.sales_channels!.join(", ")}</dd>
+              <dd className="text-[var(--text)]">
+                {d.labels.sales_channels!.join(", ")}
+              </dd>
             </div>
           )}
         </dl>
@@ -610,23 +660,30 @@ export function DiagnosticViewer({
         <div className="mt-4 rounded-lg bg-[var(--page)] p-3 text-sm">
           <p className="font-bold text-[var(--heading)]">
             Recommended: {d.recommendation.package_name ?? "-"}{" "}
-            <span className="text-flow-400">{d.recommendation.price_range ?? ""}</span>
+            <span className="text-flow-400">
+              {d.recommendation.price_range ?? ""}
+            </span>
           </p>
           {(d.recommendation.module_labels ?? []).length > 0 && (
             <p className="mt-1 text-[var(--text)]">
               {d.recommendation.module_labels!.join(" · ")}
             </p>
           )}
-          {d.next_action && <p className="mt-2 text-[var(--muted)]">Next: {d.next_action}</p>}
+          {d.next_action && (
+            <p className="mt-2 text-[var(--muted)]">Next: {d.next_action}</p>
+          )}
         </div>
       )}
       {d.owner_notes && (
         <p className="mt-3 rounded-lg bg-[var(--page)] p-3 text-sm text-[var(--text)]">
-          <span className="text-[var(--muted)]">In their words:</span> {d.owner_notes}
+          <span className="text-[var(--muted)]">In their words:</span>{" "}
+          {d.owner_notes}
         </p>
       )}
       <details className="mt-3">
-        <summary className="cursor-pointer text-xs text-[var(--muted)]">Raw diagnostic JSON</summary>
+        <summary className="cursor-pointer text-xs text-[var(--muted)]">
+          Raw diagnostic JSON
+        </summary>
         <pre className="mt-2 max-h-80 overflow-auto rounded-lg bg-[var(--page)] p-3 text-xs text-[var(--text)]">
           {JSON.stringify(safeDiagnosticForDisplay(diagnostic), null, 2)}
         </pre>
@@ -644,6 +701,9 @@ export default function LeadWorkspace({
   initialThread,
   businessDiagnostic,
   diagnosticNotifications,
+  calls = [],
+  actorName,
+  unavailableSections = [],
 }: {
   lead: Lead;
   initialNotes: Note[];
@@ -653,15 +713,42 @@ export default function LeadWorkspace({
   initialThread: LeadMsg[];
   businessDiagnostic: StoredBusinessDiagnostic | null;
   diagnosticNotifications: DiagnosticNotification[];
+  calls?: LeadCallRecord[];
+  actorName?: string;
+  unavailableSections?: string[];
 }) {
   const [status, setStatusState] = useState(lead.status);
   const [owner, setOwnerState] = useState(lead.owner ?? "");
   const [notes, setNotes] = useState(initialNotes);
   const [tasks, setTasks] = useState(initialTasks);
   const [activity, setActivity] = useState(initialActivity);
+  const [thread, setThread] = useState(initialThread);
   const [noteDraft, setNoteDraft] = useState("");
   const [taskDraft, setTaskDraft] = useState("");
   const [saving, setSaving] = useState(false);
+  const [noteSaving, setNoteSaving] = useState(false);
+  const [workspaceError, setWorkspaceError] = useState("");
+  const answers = originalLeadAnswers(lead.diagnostic);
+  const history = buildLeadTimeline({
+    lead,
+    notes,
+    activity,
+    messages: thread,
+    emails,
+    calls,
+  });
+  useEffect(() => {
+    setNotes(initialNotes);
+  }, [initialNotes]);
+  useEffect(() => {
+    setTasks(initialTasks);
+  }, [initialTasks]);
+  useEffect(() => {
+    setActivity(initialActivity);
+  }, [initialActivity]);
+  useEffect(() => {
+    setThread(initialThread);
+  }, [initialThread]);
 
   async function logActivity(kind: string, detail: string) {
     const supabase = createClient();
@@ -678,9 +765,13 @@ export default function LeadWorkspace({
     if (next === prev) return;
     setStatusState(next);
     const supabase = createClient();
-    const { error } = await supabase.from("leads").update({ status: next }).eq("id", lead.id);
+    const { error } = await supabase
+      .from("leads")
+      .update({ status: next })
+      .eq("id", lead.id);
     if (error) {
       setStatusState(prev);
+      setWorkspaceError("The stage could not be saved. Please try again.");
       return;
     }
     await logActivity(
@@ -699,6 +790,8 @@ export default function LeadWorkspace({
       .update({ owner: next || null })
       .eq("id", lead.id);
     setSaving(false);
+    if (error)
+      setWorkspaceError("The owner could not be saved. Please try again.");
     if (!error) {
       await logActivity(
         "owner_change",
@@ -710,17 +803,24 @@ export default function LeadWorkspace({
   async function addNote(e: React.FormEvent) {
     e.preventDefault();
     const body = noteDraft.trim();
-    if (!body) return;
+    if (!body || noteSaving) return;
+    setNoteSaving(true);
+    setWorkspaceError("");
     const supabase = createClient();
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("lead_notes")
-      .insert({ lead_id: lead.id, body })
+      .insert({ lead_id: lead.id, body, author: actorName || null })
       .select()
       .single();
     if (data) {
       setNotes((n) => [data, ...n]);
       setNoteDraft("");
     }
+    if (error)
+      setWorkspaceError(
+        "Your note was not saved. It is still in the box so you can try again.",
+      );
+    setNoteSaving(false);
   }
 
   async function addTask(e: React.FormEvent) {
@@ -741,16 +841,42 @@ export default function LeadWorkspace({
 
   async function toggleTask(task: Task) {
     const completed_at = task.completed_at ? null : new Date().toISOString();
-    setTasks((ts) => ts.map((t) => (t.id === task.id ? { ...t, completed_at } : t)));
+    setTasks((ts) =>
+      ts.map((t) => (t.id === task.id ? { ...t, completed_at } : t)),
+    );
     const supabase = createClient();
-    await supabase.from("lead_tasks").update({ completed_at }).eq("id", task.id);
+    await supabase
+      .from("lead_tasks")
+      .update({ completed_at })
+      .eq("id", task.id);
   }
 
   return (
     <div className="space-y-6">
+      {unavailableSections.length > 0 && (
+        <div
+          role="alert"
+          className="rounded-xl border border-[var(--warn-line)] bg-[var(--warn-tint)] p-4 text-sm"
+        >
+          Some history could not be loaded: {unavailableSections.join(", ")}.
+          These sections may have records. Refresh before treating them as
+          empty.
+        </div>
+      )}
+      {workspaceError && (
+        <p
+          role="alert"
+          className="rounded-lg bg-[var(--danger-tint)] p-3 text-sm text-[var(--danger)]"
+        >
+          {workspaceError}
+        </p>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <Link href="/admin" className="text-sm text-[var(--muted)] hover:text-[var(--heading)]">
+          <Link
+            href="/admin"
+            className="text-sm text-[var(--muted)] hover:text-[var(--heading)]"
+          >
             ← All leads
           </Link>
           <h1 className="mt-1 text-2xl font-black text-[var(--heading)]">
@@ -762,11 +888,13 @@ export default function LeadWorkspace({
             )}
           </h1>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Arrived {fmt(lead.created_at)} · {INTEREST_LABELS[lead.interest] ?? lead.interest}
+            Arrived {fmt(lead.created_at)} ·{" "}
+            {INTEREST_LABELS[lead.interest] ?? lead.interest}
             {lead.is_test && " · TEST LEAD"}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <LiveRefresh />
           <label className="text-xs text-[var(--muted)]">
             Stage
             <select
@@ -813,8 +941,99 @@ export default function LeadWorkspace({
         )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <nav
+        className="flex flex-wrap gap-2"
+        aria-label="Lead workspace sections"
+      >
+        <a
+          href="#lead-intake"
+          className="min-h-11 rounded-lg border border-[var(--line)] px-4 py-2 text-sm font-bold"
+        >
+          Intake and answers
+        </a>
+        <a
+          href="#lead-history"
+          className="min-h-11 rounded-lg border border-[var(--line)] px-4 py-2 text-sm font-bold"
+        >
+          Recorded history
+        </a>
+        <a
+          href="#lead-reply"
+          className="min-h-11 rounded-lg bg-[var(--blue)] px-4 py-2 text-sm font-bold text-white"
+        >
+          Reply or log a message
+        </a>
+        <a
+          href="#lead-team-note"
+          className="min-h-11 rounded-lg border border-[var(--line)] px-4 py-2 text-sm font-bold"
+        >
+          Add a team note
+        </a>
+      </nav>
+      <div id="lead-intake" className="grid scroll-mt-24 gap-6 lg:grid-cols-2">
         <div className="space-y-6">
+          <section className="card !p-4" aria-labelledby="lead-source-heading">
+            <h2
+              id="lead-source-heading"
+              className="text-lg font-black text-[var(--heading)]"
+            >
+              Where this lead came from
+            </h2>
+            <p className="mt-2 text-xl font-bold text-[var(--blue)]">
+              {leadSourceLabel(lead.source)}
+            </p>
+            <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-[var(--muted)]">Received</dt>
+                <dd>{fmt(lead.created_at)}</dd>
+              </div>
+              <div>
+                <dt className="text-[var(--muted)]">Campaign</dt>
+                <dd className="break-words">
+                  {lead.utm_campaign || "Not recorded"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[var(--muted)]">Channel / medium</dt>
+                <dd>
+                  {[lead.utm_source, lead.utm_medium]
+                    .filter(Boolean)
+                    .join(" / ") || "Not recorded"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-[var(--muted)]">Saved intake route</dt>
+                <dd className="break-words">
+                  {typeof lead.diagnostic?.source === "string"
+                    ? pretty(lead.diagnostic.source)
+                    : "Not recorded"}
+                </dd>
+              </div>
+              {(
+                [
+                  ["form_id", "Facebook form ID"],
+                  ["ad_id", "Facebook ad ID"],
+                  ["meta_lead_id", "Facebook lead ID"],
+                ] as const
+              ).map(
+                ([key, label]) =>
+                  typeof lead.diagnostic?.[key] === "string" && (
+                    <div key={key}>
+                      <dt className="text-[var(--muted)]">{label}</dt>
+                      <dd className="break-all">
+                        {String(lead.diagnostic[key])}
+                      </dd>
+                    </div>
+                  ),
+              )}
+            </dl>
+            {lead.source?.includes("meta") && !lead.diagnostic?.ad_id && (
+              <p className="mt-3 text-xs text-[var(--muted)]">
+                The form submission is recorded, but Meta did not attach an ad
+                ID to this record. A specific ad cannot be verified here.
+              </p>
+            )}
+          </section>
           <div className="card !p-4">
             <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
               Intake
@@ -842,7 +1061,9 @@ export default function LeadWorkspace({
               </div>
               <div>
                 <dt className="text-[var(--muted)]">Website / profile</dt>
-                <dd className="break-all text-[var(--text)]">{lead.website_url ?? "-"}</dd>
+                <dd className="break-all text-[var(--text)]">
+                  {lead.website_url ?? "-"}
+                </dd>
               </div>
               <div>
                 <dt className="text-[var(--muted)]">Industry</dt>
@@ -850,11 +1071,15 @@ export default function LeadWorkspace({
               </div>
               <div>
                 <dt className="text-[var(--muted)]">Home base</dt>
-                <dd className="text-[var(--text)]">{pretty(lead.current_platform)}</dd>
+                <dd className="text-[var(--text)]">
+                  {pretty(lead.current_platform)}
+                </dd>
               </div>
               <div>
                 <dt className="text-[var(--muted)]">Budget</dt>
-                <dd className="text-[var(--text)]">{pretty(lead.budget_range)}</dd>
+                <dd className="text-[var(--text)]">
+                  {pretty(lead.budget_range)}
+                </dd>
               </div>
               <div>
                 <dt className="text-[var(--muted)]">Timeline</dt>
@@ -862,12 +1087,19 @@ export default function LeadWorkspace({
               </div>
               <div>
                 <dt className="text-[var(--muted)]">Prefers</dt>
-                <dd className="text-[var(--text)]">{pretty(lead.best_contact_method)}</dd>
+                <dd className="text-[var(--text)]">
+                  {pretty(lead.best_contact_method)}
+                </dd>
               </div>
               <div>
                 <dt className="text-[var(--muted)]">Source</dt>
                 <dd className="text-[var(--text)]">
-                  {[lead.source, lead.utm_source, lead.utm_medium, lead.utm_campaign]
+                  {[
+                    lead.source,
+                    lead.utm_source,
+                    lead.utm_medium,
+                    lead.utm_campaign,
+                  ]
                     .filter(Boolean)
                     .join(" / ") || "-"}
                 </dd>
@@ -883,78 +1115,104 @@ export default function LeadWorkspace({
             </dl>
             {lead.goals && (
               <p className="mt-3 rounded-lg bg-[var(--page)] p-3 text-sm text-[var(--text)]">
-                <span className="text-[var(--muted)]">Summary:</span> {lead.goals}
+                <span className="text-[var(--muted)]">Summary:</span>{" "}
+                {lead.goals}
               </p>
             )}
           </div>
 
-          <DiagnosticViewer
-            diagnostic={lead.diagnostic}
-            businessDiagnostic={businessDiagnostic}
-            notifications={diagnosticNotifications}
-          />
-
-          <div className="card !p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
-              Automated emails
-            </h2>
-            {emails.length === 0 ? (
-              <p className="mt-2 text-sm text-[var(--muted)]">No automated emails sent yet.</p>
-            ) : (
-              <ul className="mt-2 space-y-1 text-sm text-[var(--text)]">
-                {emails.map((e) => (
-                  <li key={e.id}>
-                    Step {e.step} · sent {fmt(e.sent_at)}
-                  </li>
+          {answers.length > 0 && (
+            <section
+              className="card !p-4"
+              aria-labelledby="original-answers-heading"
+            >
+              <h2
+                id="original-answers-heading"
+                className="text-lg font-black text-[var(--heading)]"
+              >
+                Their original form answers
+              </h2>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                Saved answers from the submitted form, before any team notes or
+                recommendations.
+              </p>
+              <dl className="mt-4 space-y-3">
+                {answers.map((answer) => (
+                  <div
+                    key={answer.label}
+                    className="rounded-lg bg-[var(--page)] p-3"
+                  >
+                    <dt className="text-xs font-semibold text-[var(--muted)]">
+                      {answer.label}
+                    </dt>
+                    <dd className="mt-1 whitespace-pre-wrap break-words text-sm">
+                      {answer.value}
+                    </dd>
+                  </div>
                 ))}
-              </ul>
-            )}
-          </div>
+              </dl>
+            </section>
+          )}
+
+          {answers.length === 0 && (
+            <DiagnosticViewer
+              diagnostic={lead.diagnostic}
+              businessDiagnostic={businessDiagnostic}
+              notifications={diagnosticNotifications}
+            />
+          )}
         </div>
 
         <div className="space-y-6">
+          <LeadHistory items={history} />
           <LeadThread
             leadId={lead.id}
             initialMessages={initialThread}
-            canText={Boolean(lead.phone) && lead.sms_consent && !lead.sms_unsubscribed_at}
-            hasEmail={Boolean(lead.email)}
+            canText={
+              Boolean(lead.phone) &&
+              lead.sms_consent &&
+              !lead.sms_unsubscribed_at
+            }
+            hasEmail={
+              Boolean(lead.email) &&
+              !lead.email.endsWith("@no-email.facebook.lead")
+            }
+            actorName={actorName}
+            onMessagesChange={setThread}
+            showMessages={false}
           />
 
-          <div className="card !p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">Notes</h2>
+          <div id="lead-team-note" className="card scroll-mt-24 !p-4">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
+              Add a team note
+            </h2>
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Saved under {actorName || "your account"}. Team notes stay private
+              and appear in the history above.
+            </p>
             <form onSubmit={addNote} className="mt-3 flex gap-2">
               <input
                 className="input text-sm"
                 value={noteDraft}
                 onChange={(e) => setNoteDraft(e.target.value)}
                 placeholder="Add a note"
+                aria-label="Private team note"
                 maxLength={4000}
               />
-              <button type="submit" className="btn-primary !px-4 !py-2 text-sm">
-                Add
+              <button
+                type="submit"
+                className="btn-primary !px-4 !py-2 text-sm"
+                disabled={noteSaving || !noteDraft.trim()}
+              >
+                {noteSaving ? "Saving…" : "Save note"}
               </button>
             </form>
-            <ul className="mt-4 space-y-3">
-              {lead.notes && (
-                <li className="rounded-lg bg-[var(--page)] p-3 text-sm text-[var(--text)]">
-                  <span className="text-xs text-[var(--quiet)]">Legacy note</span>
-                  <p>{lead.notes}</p>
-                </li>
-              )}
-              {notes.map((n) => (
-                <li key={n.id} className="rounded-lg bg-[var(--page)] p-3 text-sm text-[var(--text)]">
-                  <span className="text-xs text-[var(--quiet)]">{fmt(n.created_at)}</span>
-                  <p>{n.body}</p>
-                </li>
-              ))}
-              {notes.length === 0 && !lead.notes && (
-                <li className="text-sm text-[var(--muted)]">No notes yet.</li>
-              )}
-            </ul>
           </div>
 
           <div className="card !p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">Tasks</h2>
+            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
+              Tasks
+            </h2>
             <form onSubmit={addTask} className="mt-3 flex gap-2">
               <input
                 className="input text-sm"
@@ -977,33 +1235,18 @@ export default function LeadWorkspace({
                     aria-label={`Mark task ${t.title} ${t.completed_at ? "open" : "done"}`}
                   />
                   <span
-                    className={t.completed_at ? "text-[var(--quiet)] line-through" : "text-[var(--text)]"}
+                    className={
+                      t.completed_at
+                        ? "text-[var(--quiet)] line-through"
+                        : "text-[var(--text)]"
+                    }
                   >
                     {t.title}
                   </span>
                 </li>
               ))}
-              {tasks.length === 0 && <li className="text-sm text-[var(--muted)]">No tasks yet.</li>}
-            </ul>
-          </div>
-
-          <div className="card !p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
-              Activity
-            </h2>
-            <ul className="mt-3 space-y-2 text-sm">
-              {activity.map((a) => (
-                <li key={a.id} className="flex gap-3">
-                  <span className="whitespace-nowrap text-xs text-[var(--quiet)]">
-                    {fmt(a.created_at)}
-                  </span>
-                  <span className="text-[var(--text)]">{a.detail}</span>
-                </li>
-              ))}
-              {activity.length === 0 && (
-                <li className="text-sm text-[var(--muted)]">
-                  No activity yet. Stage and owner changes are logged automatically.
-                </li>
+              {tasks.length === 0 && (
+                <li className="text-sm text-[var(--muted)]">No tasks yet.</li>
               )}
             </ul>
           </div>

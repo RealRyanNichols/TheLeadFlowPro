@@ -148,11 +148,11 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/premier-system",
-    title: "See a connected business in action",
+    title: "The school behind the system",
     description:
-      "Explore the Premier Dental Academy system and the Website Launch that starts a new build.",
-    eyebrow: "Premier system proof",
-    art: "/og/portfolio/premier-dental.jpg",
+      "Meet Amanda Williams and explore Premier Dental Academy’s website, enrollment path, and student learning tools.",
+    eyebrow: "Premier Dental Academy of Longview",
+    art: "/images/premier/academy-learning-20260907.webp",
   },
   {
     path: "/live",

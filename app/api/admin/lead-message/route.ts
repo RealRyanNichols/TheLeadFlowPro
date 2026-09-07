@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendLeadText } from "@/lib/quo";
+import {
+  leadMessageAuthor,
+  leadMessageEmail,
+  hasLeadEmailAddress,
+} from "@/lib/leadMessageAuthor";
 
 // Send a message to a lead from the CRM and record it on the thread.
 //
@@ -17,37 +22,31 @@ import { sendLeadText } from "@/lib/quo";
 // stored with delivered=false and the error, so a failed message never silently
 // vanishes from the conversation.
 
-const RESEND_FROM = "Ryan Nichols <ryan@theleadflowpro.com>";
-
-function esc(s: string) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-async function sendEmail(to: string, name: string, body: string) {
+async function sendEmail(
+  to: string,
+  name: string,
+  body: string,
+  author: ReturnType<typeof leadMessageAuthor>,
+) {
   const key = process.env.RESEND_API_KEY;
-  if (!key) return { ok: false, id: null as string | null, error: "RESEND_API_KEY not set" };
-  const firstName = (name || "").trim().split(/\s+/)[0] || "there";
-  const html = `<div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:15px;line-height:1.6;color:#0a1220">
-<p>Hi ${esc(firstName)},</p>
-<p>${esc(body).replace(/\n/g, "<br>")}</p>
-<p style="margin-top:22px">Ryan Nichols<br>
-<span style="color:#4e5866">The LeadFlow Pro &middot; (903) 500-8898</span></p>
-</div>`;
+  if (!key)
+    return {
+      ok: false,
+      id: null as string | null,
+      error: "RESEND_API_KEY not set",
+    };
   try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: RESEND_FROM,
-        to,
-        reply_to: "ryan@theleadflowpro.com",
-        subject: `Message from Ryan at The LeadFlow Pro`,
-        html,
-        text: `Hi ${firstName},\n\n${body}\n\nRyan Nichols\nThe LeadFlow Pro · (903) 500-8898`,
-      }),
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(leadMessageEmail(to, name, body, author)),
     });
     const j = await r.json().catch(() => ({}));
-    if (!r.ok) return { ok: false, id: null, error: j?.message || `Resend ${r.status}` };
+    if (!r.ok)
+      return { ok: false, id: null, error: j?.message || `Resend ${r.status}` };
     return { ok: true, id: j?.id ?? null, error: null };
   } catch (e) {
     return { ok: false, id: null, error: String(e).slice(0, 200) };
@@ -62,21 +61,31 @@ export async function POST(request: Request) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   const { data: profile } = await supabase
     .from("profiles")
     .select("role, full_name")
     .eq("id", user.id)
     .single();
   if (profile?.role !== "admin" && profile?.role !== "sales") {
-    return NextResponse.json({ error: "Sales access required" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Sales access required" },
+      { status: 403 },
+    );
   }
 
+  const author = leadMessageAuthor(profile.full_name, user.email);
   const payload = await request.json().catch(() => ({}));
   const leadId = String(payload.lead_id ?? "");
-  const body = String(payload.body ?? "").trim().slice(0, 3000);
+  const body = String(payload.body ?? "")
+    .trim()
+    .slice(0, 3000);
   if (!leadId || !body) {
-    return NextResponse.json({ error: "lead_id and body are required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "lead_id and body are required" },
+      { status: 400 },
+    );
   }
 
   const { data: lead } = await supabase
@@ -84,10 +93,13 @@ export async function POST(request: Request) {
     .select("id, full_name, email, phone, sms_consent, sms_unsubscribed_at")
     .eq("id", leadId)
     .single();
-  if (!lead) return NextResponse.json({ error: "Lead not found" }, { status: 404 });
+  if (!lead)
+    return NextResponse.json({ error: "Lead not found" }, { status: 404 });
 
   const canText =
-    Boolean(lead.phone) && Boolean(lead.sms_consent) && !lead.sms_unsubscribed_at;
+    Boolean(lead.phone) &&
+    Boolean(lead.sms_consent) &&
+    !lead.sms_unsubscribed_at;
 
   let channel: "sms" | "email";
   let ok = false;
@@ -100,13 +112,16 @@ export async function POST(request: Request) {
     if (!ok) error = "Quo did not accept the message";
   } else {
     channel = "email";
-    if (!lead.email) {
+    if (!hasLeadEmailAddress(lead.email)) {
       return NextResponse.json(
-        { error: "This lead has no phone with SMS consent and no email address." },
+        {
+          error:
+            "This lead has no phone with SMS consent and no usable email address.",
+        },
         { status: 400 },
       );
     }
-    const res = await sendEmail(lead.email, lead.full_name, body);
+    const res = await sendEmail(lead.email, lead.full_name, body, author);
     ok = res.ok;
     providerId = res.id;
     error = res.error;
@@ -119,7 +134,7 @@ export async function POST(request: Request) {
       direction: "out",
       channel,
       body,
-      author: profile?.full_name || user.email || "admin",
+      author: author.auditName,
       delivered: ok,
       provider_id: providerId,
       error,
@@ -135,8 +150,8 @@ export async function POST(request: Request) {
     lead_id: leadId,
     kind: "message",
     detail: ok
-      ? `Sent ${channel === "sms" ? "a text" : "an email"}`
-      : `${channel === "sms" ? "Text" : "Email"} failed to send`,
+      ? `${author.auditName} sent ${channel === "sms" ? "a text" : "an email"}`
+      : `${author.auditName}: ${channel === "sms" ? "text" : "email"} failed to send`,
   });
 
   return NextResponse.json({ message: row, delivered: ok, channel, error });

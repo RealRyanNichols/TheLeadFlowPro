@@ -7,8 +7,7 @@ import { isUnpublishedArticlePath } from "@/lib/article-publication";
 
 const PUBLIC_SALES_PATH = "/admin/sales";
 const INTERNAL_SALES_PATH = "/sales";
-const WORKSHOP_SITE_URL =
-  "https://workshop.theleadflowpro.com/";
+const WORKSHOP_SITE_URL = "https://workshop.theleadflowpro.com/";
 
 function isPath(path: string, base: string) {
   return path === base || path.startsWith(`${base}/`);
@@ -63,7 +62,11 @@ export async function middleware(request: NextRequest) {
   // security boundary (authentication + roles are); it is the canonical URL.
   if (isPath(requestedPath, INTERNAL_SALES_PATH)) {
     const url = request.nextUrl.clone();
-    url.pathname = movePath(requestedPath, INTERNAL_SALES_PATH, PUBLIC_SALES_PATH);
+    url.pathname = movePath(
+      requestedPath,
+      INTERNAL_SALES_PATH,
+      PUBLIC_SALES_PATH,
+    );
     return NextResponse.redirect(url);
   }
 
@@ -74,7 +77,11 @@ export async function middleware(request: NextRequest) {
 
   const rewriteUrl = request.nextUrl.clone();
   if (isSalesWorkspace) {
-    rewriteUrl.pathname = movePath(requestedPath, PUBLIC_SALES_PATH, INTERNAL_SALES_PATH);
+    rewriteUrl.pathname = movePath(
+      requestedPath,
+      PUBLIC_SALES_PATH,
+      INTERNAL_SALES_PATH,
+    );
   }
 
   const makeResponse = () => {
@@ -86,10 +93,15 @@ export async function middleware(request: NextRequest) {
     return res;
   };
 
-  // Only protected paths need a session read. The matcher below now sees every
-  // request so the workspace host can be handled, and calling Supabase on
-  // public marketing pages would add a network round trip to each one.
-  if (!isProtected && !isSalesWorkspace) return makeResponse();
+  // Refresh sign-in and recovery cookies before their server components read
+  // the session. Public marketing pages still avoid the auth round trip.
+  const readsSession =
+    isProtected ||
+    isSalesWorkspace ||
+    requestedPath === "/login" ||
+    requestedPath === "/account/password" ||
+    isPath(requestedPath, "/training");
+  if (!readsSession) return makeResponse();
 
   let response = makeResponse();
 
@@ -98,8 +110,12 @@ export async function middleware(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet: { name: string; value: string; options?: object }[]) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+      setAll(
+        cookiesToSet: { name: string; value: string; options?: object }[],
+      ) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value),
+        );
         response = makeResponse();
         cookiesToSet.forEach(({ name, value, options }) =>
           response.cookies.set(name, value, options),

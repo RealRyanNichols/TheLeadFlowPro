@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import type { LeadMessageRecord } from "@/lib/leadTimeline";
 
 // The conversation with one lead, laid out like a phone: their messages on the
 // left, Ryan's on the right, oldest at the top.
@@ -11,16 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 // covers anything that came in another way (a call, a DM, an email reply) so
 // the whole conversation stays on the lead instead of scattered across apps.
 
-export type LeadMsg = {
-  id: string;
-  direction: "out" | "in";
-  channel: "sms" | "email" | "note";
-  body: string;
-  author: string | null;
-  delivered: boolean;
-  error: string | null;
-  created_at: string;
-};
+export type LeadMsg = LeadMessageRecord;
 
 function time(ts: string) {
   return new Date(ts).toLocaleString(undefined, {
@@ -42,11 +34,17 @@ export default function LeadThread({
   initialMessages,
   canText,
   hasEmail,
+  actorName,
+  onMessagesChange,
+  showMessages = true,
 }: {
   leadId: string;
   initialMessages: LeadMsg[];
   canText: boolean;
   hasEmail: boolean;
+  actorName?: string;
+  onMessagesChange?: (messages: LeadMsg[]) => void;
+  showMessages?: boolean;
 }) {
   const [messages, setMessages] = useState<LeadMsg[]>(initialMessages);
   const [draft, setDraft] = useState("");
@@ -54,6 +52,10 @@ export default function LeadThread({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
+  // A server refresh updates history without replacing an unsent draft.
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
 
   // Keep the newest message in view, the way a messages app does.
   useEffect(() => {
@@ -61,6 +63,11 @@ export default function LeadThread({
   }, [messages.length]);
 
   const channel = canText ? "Text" : hasEmail ? "Email" : null;
+  function appendMessage(message: LeadMsg) {
+    const next = [...messages, message];
+    setMessages(next);
+    onMessagesChange?.(next);
+  }
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
@@ -74,12 +81,19 @@ export default function LeadThread({
       const supabase = createClient();
       const { data, error: err } = await supabase
         .from("lead_messages")
-        .insert({ lead_id: leadId, direction: "in", channel: "note", body, delivered: true })
+        .insert({
+          lead_id: leadId,
+          direction: "in",
+          channel: "note",
+          body,
+          author: actorName || null,
+          delivered: true,
+        })
         .select()
         .single();
       if (err) setError(err.message);
       else if (data) {
-        setMessages((m) => [...m, data as LeadMsg]);
+        appendMessage(data as LeadMsg);
         setDraft("");
       }
       setBusy(false);
@@ -96,7 +110,7 @@ export default function LeadThread({
       if (!r.ok) {
         setError(j.error || "Could not send.");
       } else {
-        setMessages((m) => [...m, j.message as LeadMsg]);
+        appendMessage(j.message as LeadMsg);
         setDraft("");
         if (!j.delivered) {
           setError(
@@ -113,10 +127,10 @@ export default function LeadThread({
   }
 
   return (
-    <div className="card !p-4">
+    <div id="lead-reply" className="card scroll-mt-24 !p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
-          Conversation
+          Reply or log a conversation
         </h2>
         {channel ? (
           <span className="rounded-full bg-[var(--accent-tint)] px-2.5 py-1 text-[11px] font-bold text-[var(--blue)]">
@@ -129,39 +143,50 @@ export default function LeadThread({
         )}
       </div>
 
-      <div className="mt-4 max-h-[420px] space-y-3 overflow-y-auto pr-1">
-        {messages.length === 0 && (
-          <p className="text-sm text-[var(--muted)]">
-            Nothing yet. Send the first message and it lands on their phone or in their
-            inbox. Their replies show up here.
-          </p>
-        )}
-        {messages.map((m) => {
-          const mine = m.direction === "out";
-          return (
-            <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[80%] ${mine ? "text-right" : "text-left"}`}>
+      {showMessages && (
+        <div className="mt-4 max-h-[420px] space-y-3 overflow-y-auto pr-1">
+          {messages.length === 0 && (
+            <p className="text-sm text-[var(--muted)]">
+              No messages are saved here yet. Send a message or log a reply you
+              received elsewhere.
+            </p>
+          )}
+          {messages.map((m) => {
+            const mine = m.direction === "out";
+            return (
+              <div
+                key={m.id}
+                className={`flex ${mine ? "justify-end" : "justify-start"}`}
+              >
                 <div
-                  className={`inline-block whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm ${
-                    mine
-                      ? "rounded-br-sm bg-[var(--blue)] text-white"
-                      : "rounded-bl-sm bg-[var(--fill-3)] text-[var(--text)]"
-                  }`}
+                  className={`max-w-[80%] ${mine ? "text-right" : "text-left"}`}
                 >
-                  {m.body}
+                  <div
+                    className={`inline-block whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm ${
+                      mine
+                        ? "rounded-br-sm bg-[var(--blue)] text-white"
+                        : "rounded-bl-sm bg-[var(--fill-3)] text-[var(--text)]"
+                    }`}
+                  >
+                    {m.body}
+                  </div>
+                  <p className="mt-1 text-[11px] text-[var(--quiet)]">
+                    {CHANNEL_LABEL[m.channel] ?? m.channel} ·{" "}
+                    {m.author || (mine ? "Sender not recorded" : "Lead")} ·{" "}
+                    {time(m.created_at)}
+                    {mine && !m.delivered && (
+                      <span className="ml-1 font-bold text-[var(--danger)]">
+                        not sent
+                      </span>
+                    )}
+                  </p>
                 </div>
-                <p className="mt-1 text-[11px] text-[var(--quiet)]">
-                  {CHANNEL_LABEL[m.channel] ?? m.channel} · {time(m.created_at)}
-                  {mine && !m.delivered && (
-                    <span className="ml-1 font-bold text-[var(--danger)]">not delivered</span>
-                  )}
-                </p>
               </div>
-            </div>
-          );
-        })}
-        <div ref={endRef} />
-      </div>
+            );
+          })}
+          <div ref={endRef} />
+        </div>
+      )}
 
       {error && (
         <p
@@ -173,7 +198,14 @@ export default function LeadThread({
       )}
 
       <form onSubmit={send} className="mt-4">
+        <label
+          htmlFor={`lead-message-${leadId}`}
+          className="mb-2 block text-sm font-semibold"
+        >
+          {logging ? "Reply received elsewhere" : "Your message"}
+        </label>
         <textarea
+          id={`lead-message-${leadId}`}
           className="input text-sm"
           rows={3}
           value={draft}
@@ -199,16 +231,28 @@ export default function LeadThread({
           <button
             type="submit"
             className="btn-primary !px-4 !py-2 text-sm"
-            disabled={busy || (!logging && !channel)}
+            disabled={busy || !draft.trim() || (!logging && !channel)}
           >
-            {busy ? "Sending" : logging ? "Log it" : "Send"}
+            {busy
+              ? logging
+                ? "Saving…"
+                : "Sending…"
+              : logging
+                ? "Save reply · nothing sent"
+                : `Send ${channel?.toLowerCase() ?? "message"}`}
           </button>
         </div>
         {!canText && hasEmail && !logging && (
           <p className="mt-2 text-[11px] text-[var(--quiet)]">
-            Going by email because there is no phone number with SMS consent on this lead.
+            Going by email because there is no phone number with SMS consent on
+            this lead.
           </p>
         )}
+        <p className="mt-2 text-[11px] text-[var(--quiet)]">
+          Replies sent to Outlook or another inbox are not automatically
+          imported by this form. Use “Log their reply” to keep an external
+          conversation here.
+        </p>
       </form>
     </div>
   );

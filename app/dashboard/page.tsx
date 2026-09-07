@@ -9,6 +9,7 @@ import {
   Rocket,
   Wallet,
 } from "lucide-react";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signDeliverableFile } from "@/lib/deliverableFiles";
 import SignOutButton from "@/components/SignOutButton";
@@ -31,7 +32,12 @@ const STATUS_LABELS: Record<string, string> = {
   paused: "Paused",
 };
 
-type MilestoneRow = { id: string; title: string; status: string; sort_order: number };
+type MilestoneRow = {
+  id: string;
+  title: string;
+  status: string;
+  sort_order: number;
+};
 type DeliverableRow = {
   id: string;
   title: string;
@@ -58,6 +64,8 @@ export default async function Dashboard() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login?next=/dashboard");
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -98,10 +106,14 @@ export default async function Dashboard() {
     .eq("user_id", user!.id);
   const publishedIds = new Set((publishedLessons ?? []).map((l) => l.id));
   const completedCount = new Set(
-    (progressRows ?? []).map((p) => p.lesson_id).filter((id) => publishedIds.has(id)),
+    (progressRows ?? [])
+      .map((p) => p.lesson_id)
+      .filter((id) => publishedIds.has(id)),
   ).size;
   const lessonCount = publishedIds.size;
-  const trainingPct = lessonCount ? Math.round((completedCount / lessonCount) * 100) : 0;
+  const trainingPct = lessonCount
+    ? Math.round((completedCount / lessonCount) * 100)
+    : 0;
 
   const firstName = profile?.full_name?.split(" ")[0] || "there";
   const project = (projects ?? [])[0] as
@@ -119,43 +131,75 @@ export default async function Dashboard() {
       })
     | undefined;
 
-  const milestones = [...(project?.milestones ?? [])].sort((a, b) => a.sort_order - b.sort_order);
+  const milestones = [...(project?.milestones ?? [])].sort(
+    (a, b) => a.sort_order - b.sort_order,
+  );
   const doneCount = milestones.filter((m) => m.status === "done").length;
-  const buildPct = milestones.length ? Math.round((doneCount / milestones.length) * 100) : 0;
+  const buildPct = milestones.length
+    ? Math.round((doneCount / milestones.length) * 100)
+    : 0;
   const activeMilestone =
-    milestones.find((m) => m.status === "in_progress") || milestones.find((m) => m.status !== "done");
+    milestones.find((m) => m.status === "in_progress") ||
+    milestones.find((m) => m.status !== "done");
 
   const visibleDeliverables = [...(project?.deliverables ?? [])]
     .filter((d) => d.visible_to_client)
-    .sort((a, b) => a.sort_order - b.sort_order || b.created_at.localeCompare(a.created_at));
+    .sort(
+      (a, b) =>
+        a.sort_order - b.sort_order || b.created_at.localeCompare(a.created_at),
+    );
   const signedDeliverables = await Promise.all(
-    visibleDeliverables.map(async (d) => ({ ...d, file_url: await signDeliverableFile(d.file_path) })),
+    visibleDeliverables.map(async (d) => ({
+      ...d,
+      file_url: await signDeliverableFile(d.file_path),
+    })),
   );
   const deliveredCount = signedDeliverables.filter(
     (d) => d.status === "delivered" || d.status === "approved",
   ).length;
   const awaitingReview = signedDeliverables.filter(
-    (d) => d.requires_approval && d.status === "ready_for_review" && d.client_decision === "pending",
+    (d) =>
+      d.requires_approval &&
+      d.status === "ready_for_review" &&
+      d.client_decision === "pending",
   ).length;
 
   const launchDays = daysUntil(project?.target_launch ?? null);
   const oldCost = Number(project?.old_monthly_cost ?? 0);
   const newCost = Number(project?.new_monthly_cost ?? 0);
-  const monthlySavings = oldCost > 0 && oldCost > newCost ? Math.round(oldCost - newCost) : 0;
+  const monthlySavings =
+    oldCost > 0 && oldCost > newCost ? Math.round(oldCost - newCost) : 0;
 
   const stats: { label: string; value: string; sub: string }[] = [];
   if (project) {
-    stats.push({ label: "Build progress", value: `${buildPct}%`, sub: `${doneCount} of ${milestones.length || 0} milestones done` });
-    stats.push({ label: "Delivered to you", value: String(deliveredCount), sub: awaitingReview ? `${awaitingReview} waiting on your review` : "everything reviewed" });
+    stats.push({
+      label: "Build progress",
+      value: `${buildPct}%`,
+      sub: `${doneCount} of ${milestones.length || 0} milestones done`,
+    });
+    stats.push({
+      label: "Delivered to you",
+      value: String(deliveredCount),
+      sub: awaitingReview
+        ? `${awaitingReview} waiting on your review`
+        : "everything reviewed",
+    });
     if (launchDays !== null) {
       stats.push({
         label: launchDays >= 0 ? "To target launch" : "Since target date",
         value: `${Math.abs(launchDays)}d`,
-        sub: project.status === "live" || project.status === "support" ? "your system is live" : "target can move with scope",
+        sub:
+          project.status === "live" || project.status === "support"
+            ? "your system is live"
+            : "target can move with scope",
       });
     }
     if (monthlySavings > 0) {
-      stats.push({ label: "Monthly rent replaced", value: `$${monthlySavings.toLocaleString("en-US")}`, sub: `vs ${project.old_platform || "your old platform"}` });
+      stats.push({
+        label: "Monthly rent replaced",
+        value: `$${monthlySavings.toLocaleString("en-US")}`,
+        sub: `vs ${project.old_platform || "your old platform"}`,
+      });
     }
   }
 
@@ -180,11 +224,20 @@ export default async function Dashboard() {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               {project?.live_url && (
-                <a href={project.live_url} target="_blank" rel="noreferrer" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[var(--blue)] px-5 text-sm font-extrabold text-white shadow-sm">
-                  <Rocket className="h-4 w-4" aria-hidden="true" /> Open my live system
+                <a
+                  href={project.live_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[var(--blue)] px-5 text-sm font-extrabold text-white shadow-sm"
+                >
+                  <Rocket className="h-4 w-4" aria-hidden="true" /> Open my live
+                  system
                 </a>
               )}
-              <Link href="/dashboard/build-room" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[var(--line-strong)] px-5 text-sm font-bold text-[var(--text)]">
+              <Link
+                href="/dashboard/build-room"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[var(--line-strong)] px-5 text-sm font-bold text-[var(--text)]"
+              >
                 Build Room <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <SignOutButton className="inline-flex min-h-[44px] items-center rounded-xl border border-[var(--line)] px-4 text-xs font-bold text-[var(--muted)]" />
@@ -194,9 +247,16 @@ export default async function Dashboard() {
           {stats.length > 0 && (
             <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {stats.map((stat) => (
-                <div key={stat.label} className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-sm">
-                  <p className="text-[11px] font-extrabold uppercase tracking-wide text-[var(--muted)]">{stat.label}</p>
-                  <p className="mt-1 text-3xl font-black text-[var(--heading)]">{stat.value}</p>
+                <div
+                  key={stat.label}
+                  className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 shadow-sm"
+                >
+                  <p className="text-[11px] font-extrabold uppercase tracking-wide text-[var(--muted)]">
+                    {stat.label}
+                  </p>
+                  <p className="mt-1 text-3xl font-black text-[var(--heading)]">
+                    {stat.value}
+                  </p>
                   <p className="mt-1 text-xs text-[var(--muted)]">{stat.sub}</p>
                 </div>
               ))}
@@ -207,12 +267,19 @@ export default async function Dashboard() {
             <div className="mt-6 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5">
               <div className="flex items-baseline justify-between gap-3">
                 <p className="text-[11px] font-extrabold uppercase tracking-wide text-[var(--muted)]">
-                  {activeMilestone ? `Now building: ${activeMilestone.title}` : "Every milestone is done"}
+                  {activeMilestone
+                    ? `Now building: ${activeMilestone.title}`
+                    : "Every milestone is done"}
                 </p>
-                <span className="text-sm font-extrabold text-[var(--blue)]">{buildPct}%</span>
+                <span className="text-sm font-extrabold text-[var(--blue)]">
+                  {buildPct}%
+                </span>
               </div>
               <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-[var(--fill-3)]">
-                <div className="h-full rounded-full bg-gradient-to-r from-[#5135e5] to-[#957ddb]" style={{ width: `${buildPct}%` }} />
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#5135e5] to-[#957ddb]"
+                  style={{ width: `${buildPct}%` }}
+                />
               </div>
             </div>
           )}
@@ -223,14 +290,24 @@ export default async function Dashboard() {
       <section className="mx-auto max-w-6xl px-4 py-10">
         {!project && (
           <div className="card text-center">
-            <h2 className="text-xl font-bold text-[var(--heading)]">No active build yet</h2>
+            <h2 className="text-xl font-bold text-[var(--heading)]">
+              No active build yet
+            </h2>
             <p className="mx-auto mt-2 max-w-xl text-[var(--muted)]">
-              Once we kick off your build, every milestone, file, and launch date lands here.
-              In the meantime the training area is open, and the team is one message away.
+              Once we kick off your build, every milestone, file, and launch
+              date lands here. In the meantime the training area is open, and
+              the team is one message away.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-4">
-              <Link href="/training" className="btn-primary">Go to Training</Link>
-              <Link href="/book" className="btn-ghost">Book a Call</Link>
+              <Link href="/training" className="btn-primary">
+                Go to Training
+              </Link>
+              <Link
+                href="https://www.theleadflowpro.com/book"
+                className="btn-ghost"
+              >
+                Book a Call
+              </Link>
             </div>
           </div>
         )}
@@ -239,42 +316,73 @@ export default async function Dashboard() {
           <div className="card">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-[var(--blue)]" aria-hidden="true" />
-                <h2 className="text-lg font-bold text-[var(--heading)]">Delivered to you</h2>
+                <FileText
+                  className="h-5 w-5 text-[var(--blue)]"
+                  aria-hidden="true"
+                />
+                <h2 className="text-lg font-bold text-[var(--heading)]">
+                  Delivered to you
+                </h2>
               </div>
-              <Link href="/dashboard/build-room" className="inline-flex items-center gap-1 text-sm font-bold text-[var(--blue)] hover:underline">
-                Review and approve in the Build Room <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              <Link
+                href="/dashboard/build-room"
+                className="inline-flex items-center gap-1 text-sm font-bold text-[var(--blue)] hover:underline"
+              >
+                Review and approve in the Build Room{" "}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
             {signedDeliverables.length ? (
               <ul className="mt-4 divide-y divide-[var(--line)]">
                 {signedDeliverables.map((d) => (
-                  <li key={d.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <li
+                    key={d.id}
+                    className="flex flex-wrap items-center justify-between gap-3 py-3"
+                  >
                     <div className="min-w-0 flex-1">
-                      <p className="font-bold text-[var(--heading)]">{d.title}</p>
+                      <p className="font-bold text-[var(--heading)]">
+                        {d.title}
+                      </p>
                       <p className="text-xs uppercase tracking-wide text-[var(--muted)]">
-                        {d.kind.replace(/_/g, " ")} · {d.status.replace(/_/g, " ")}
+                        {d.kind.replace(/_/g, " ")} ·{" "}
+                        {d.status.replace(/_/g, " ")}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                      {d.requires_approval && d.status === "ready_for_review" && d.client_decision === "pending" && (
-                        <Link href="/dashboard/build-room" className="rounded-lg bg-[var(--accent-tint)] px-3 py-1.5 text-xs font-bold text-[var(--blue)]">
-                          Needs your review
-                        </Link>
-                      )}
+                      {d.requires_approval &&
+                        d.status === "ready_for_review" &&
+                        d.client_decision === "pending" && (
+                          <Link
+                            href="/dashboard/build-room"
+                            className="rounded-lg bg-[var(--accent-tint)] px-3 py-1.5 text-xs font-bold text-[var(--blue)]"
+                          >
+                            Needs your review
+                          </Link>
+                        )}
                       {d.url && (
-                        <a href={d.url} target="_blank" rel="noreferrer" className="rounded-lg border border-[var(--line-strong)] px-3 py-1.5 text-xs font-bold text-[var(--blue)]">
+                        <a
+                          href={d.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-lg border border-[var(--line-strong)] px-3 py-1.5 text-xs font-bold text-[var(--blue)]"
+                        >
                           Open
                         </a>
                       )}
                       {d.file_url && (
-                        <a href={d.file_url} target="_blank" rel="noreferrer" className="rounded-lg bg-[var(--blue)] px-3 py-1.5 text-xs font-bold text-white">
+                        <a
+                          href={d.file_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-lg bg-[var(--blue)] px-3 py-1.5 text-xs font-bold text-white"
+                        >
                           Download
                         </a>
                       )}
                       {d.client_decision === "approved" && (
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-[var(--green)]">
-                          <CircleCheck className="h-4 w-4" aria-hidden="true" /> Approved
+                          <CircleCheck className="h-4 w-4" aria-hidden="true" />{" "}
+                          Approved
                         </span>
                       )}
                     </div>
@@ -292,13 +400,23 @@ export default async function Dashboard() {
         {monthlySavings > 0 && (
           <div className="card mt-6 border-[var(--green-line)] bg-[var(--green-tint)]">
             <div className="flex items-center gap-2">
-              <Wallet className="h-5 w-5 text-[var(--green)]" aria-hidden="true" />
-              <h2 className="text-lg font-bold text-[var(--heading)]">You own this. You stopped renting.</h2>
+              <Wallet
+                className="h-5 w-5 text-[var(--green)]"
+                aria-hidden="true"
+              />
+              <h2 className="text-lg font-bold text-[var(--heading)]">
+                You own this. You stopped renting.
+              </h2>
             </div>
             <p className="mt-2 text-sm text-[var(--text)]">
-              {project?.old_platform ? `${project.old_platform} was` : "Your old platform stack was"} costing about
-              ${oldCost.toLocaleString("en-US")}/month. Your system runs at ${newCost.toLocaleString("en-US")}/month,
-              in accounts you control. That is ${monthlySavings.toLocaleString("en-US")} a month that stays in your business.
+              {project?.old_platform
+                ? `${project.old_platform} was`
+                : "Your old platform stack was"}{" "}
+              costing about ${oldCost.toLocaleString("en-US")}/month. Your
+              system runs at ${newCost.toLocaleString("en-US")}/month, in
+              accounts you control. That is $
+              {monthlySavings.toLocaleString("en-US")} a month that stays in
+              your business.
             </p>
           </div>
         )}
@@ -307,13 +425,23 @@ export default async function Dashboard() {
           <div className="card mt-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5 text-[var(--blue)]" aria-hidden="true" />
-                <h2 className="text-lg font-bold text-[var(--heading)]">Training progress</h2>
+                <GraduationCap
+                  className="h-5 w-5 text-[var(--blue)]"
+                  aria-hidden="true"
+                />
+                <h2 className="text-lg font-bold text-[var(--heading)]">
+                  Training progress
+                </h2>
               </div>
-              <span className="text-sm text-[var(--muted)]">{completedCount} of {lessonCount} lessons complete</span>
+              <span className="text-sm text-[var(--muted)]">
+                {completedCount} of {lessonCount} lessons complete
+              </span>
             </div>
             <div className="mt-4 h-2 overflow-hidden rounded-full bg-line">
-              <div className="h-full bg-mint" style={{ width: `${trainingPct}%` }} />
+              <div
+                className="h-full bg-mint"
+                style={{ width: `${trainingPct}%` }}
+              />
             </div>
             <div className="mt-4">
               <Link href="/training" className="btn-primary">
@@ -323,13 +451,19 @@ export default async function Dashboard() {
           </div>
         )}
 
-        <div className="card mt-6">
+        <div id="messages" className="card mt-6 scroll-mt-24">
           <div className="flex items-center gap-2">
-            <MessageSquareText className="h-5 w-5 text-[var(--blue)]" aria-hidden="true" />
-            <h2 className="text-lg font-bold text-[var(--heading)]">Message the team</h2>
+            <MessageSquareText
+              className="h-5 w-5 text-[var(--blue)]"
+              aria-hidden="true"
+            />
+            <h2 className="text-lg font-bold text-[var(--heading)]">
+              Message the team
+            </h2>
           </div>
           <p className="mb-4 mt-1 text-sm text-[var(--muted)]">
-            Questions about your build land straight in our back office. We answer fast.
+            Questions about your build land straight in our back office. We
+            answer fast.
           </p>
           <MessageThread
             threadProfileId={user!.id}
@@ -340,8 +474,17 @@ export default async function Dashboard() {
 
         {project?.target_launch && (
           <p className="mt-6 inline-flex items-center gap-2 text-sm text-[var(--muted)]">
-            <CalendarDays className="h-4 w-4 text-[var(--blue)]" aria-hidden="true" />
-            Target launch: {new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "America/Chicago" }).format(new Date(`${project.target_launch}T12:00:00Z`))}
+            <CalendarDays
+              className="h-4 w-4 text-[var(--blue)]"
+              aria-hidden="true"
+            />
+            Target launch:{" "}
+            {new Intl.DateTimeFormat("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+              timeZone: "America/Chicago",
+            }).format(new Date(`${project.target_launch}T12:00:00Z`))}
           </p>
         )}
       </section>

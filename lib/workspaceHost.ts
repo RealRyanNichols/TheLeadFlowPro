@@ -12,8 +12,8 @@
 
 export const WORKSPACE_HOST = "go.theleadflowpro.com";
 
-/** Where a bare visit to the workspace host lands. */
-export const WORKSPACE_HOME = "/admin/sales/delivery";
+/** Sign-in resolves the current user's existing admin, staff, or client role. */
+export const WORKSPACE_HOME = "/login";
 
 /**
  * Paths a workspace-host request is allowed to reach directly. Everything
@@ -25,8 +25,10 @@ export const WORKSPACE_HOME = "/admin/sales/delivery";
  * Pat started on.
  */
 const PASSTHROUGH_PREFIXES = [
-  "/admin/sales",
+  "/admin",
+  "/dashboard",
   "/sales",
+  "/training",
   "/login",
   "/logout",
   "/account",

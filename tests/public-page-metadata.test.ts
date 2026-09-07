@@ -27,6 +27,9 @@ test("paid-traffic pages use distinct finished 1200 by 630 JPEG artwork", async 
     "/services": "/images/social/services-20260907.jpg",
     "/free-build": "/images/social/free-build-20260907.jpg",
     "/scoreboard": "/images/social/scoreboard-20260907.jpg",
+    "/premier-system": "/images/social/premier-system-20260907.jpg",
+    "/portfolio": "/images/social/portfolio-20260907.jpg",
+    "/results": "/images/social/results-20260907.jpg",
   };
   const hashes = new Set<string>();
   for (const [route, imagePath] of Object.entries(expected)) {
@@ -45,7 +48,7 @@ test("paid-traffic pages use distinct finished 1200 by 630 JPEG artwork", async 
     );
     hashes.add(hash);
   }
-  assert.equal(hashes.size, 3);
+  assert.equal(hashes.size, 6);
 });
 
 test("legacy ad preview URLs return the full finished image bytes and reject query/private paths", async () => {
@@ -78,7 +81,14 @@ test("legacy ad preview URLs return the full finished image bytes and reject que
     return require(name);
   };
   new Function("require", "exports", compiled)(localRequire, routeExports);
-  for (const route of ["/services", "/free-build", "/scoreboard"]) {
+  for (const route of [
+    "/services",
+    "/free-build",
+    "/scoreboard",
+    "/premier-system",
+    "/portfolio",
+    "/results",
+  ]) {
     const context = {
       params: Promise.resolve({ path: route.slice(1).split("/") }),
     };
