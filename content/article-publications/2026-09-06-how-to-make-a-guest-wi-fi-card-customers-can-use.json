@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "slug": "how-to-make-a-guest-wi-fi-card-customers-can-use",
+  "publicationDate": "2026-09-06",
+  "contentCommit": "b4a5f707b03d5c971d7f584e59e7c66c3f8f32a7",
+  "deployment": {
+    "id": "dpl_2EriusyrXSSJx5mkwqFnmDbzFR4D",
+    "url": "https://the-lead-flow-jjupnx4u1-realryannichols.vercel.app/",
+    "status": "READY",
+    "verifiedAt": "2026-09-07T06:24:26.721Z"
+  },
+  "liveCheck": {
+    "slug": "how-to-make-a-guest-wi-fi-card-customers-can-use",
+    "url": "https://www.theleadflowpro.com/articles/how-to-make-a-guest-wi-fi-card-customers-can-use",
+    "checkedAt": "2026-09-07T06:30:32.405Z",
+    "httpStatus": 200,
+    "downloadStatus": 200,
+    "ogStatus": 200,
+    "bodyVerified": true,
+    "downloadSha256": "8743b7886714cff4398793bc6185324cfcc972247c8284a3bdbdca36fe6f27fe",
+    "canonicalVerified": true,
+    "metadataVerified": true,
+    "noindex": false,
+    "toolLinkPresent": true,
+    "indexPresent": true,
+    "sitemapPresent": true,
+    "ogVerified": true,
+    "ogWidth": 1200,
+    "ogHeight": 630,
+    "ogSha256": "d5f07ae361d8c1a72db189665c2d419051c81f337a80f306363421ccfc7a6899",
+    "reportCompletedAt": "2026-09-07T06:30:36.146Z",
+    "sourceFingerprint": "0db6492823f87f85f7de61f6e19f94be098227766dd980379d1d7195de98e633"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "slug": "how-to-tag-a-campaign-link-without-putting-private-data-in-it",
+  "publicationDate": "2026-09-06",
+  "contentCommit": "b4a5f707b03d5c971d7f584e59e7c66c3f8f32a7",
+  "deployment": {
+    "id": "dpl_2EriusyrXSSJx5mkwqFnmDbzFR4D",
+    "url": "https://the-lead-flow-jjupnx4u1-realryannichols.vercel.app/",
+    "status": "READY",
+    "verifiedAt": "2026-09-07T06:24:26.721Z"
+  },
+  "liveCheck": {
+    "slug": "how-to-tag-a-campaign-link-without-putting-private-data-in-it",
+    "url": "https://www.theleadflowpro.com/articles/how-to-tag-a-campaign-link-without-putting-private-data-in-it",
+    "checkedAt": "2026-09-07T06:30:33.043Z",
+    "httpStatus": 200,
+    "downloadStatus": 200,
+    "ogStatus": 200,
+    "bodyVerified": true,
+    "downloadSha256": "a28a8b5c93f9e94ffe66ee072f386264345126d496225251f7dd0d8f006a2f16",
+    "canonicalVerified": true,
+    "metadataVerified": true,
+    "noindex": false,
+    "toolLinkPresent": true,
+    "indexPresent": true,
+    "sitemapPresent": true,
+    "ogVerified": true,
+    "ogWidth": 1200,
+    "ogHeight": 630,
+    "ogSha256": "92f2afc8d12bf241f7e36960a11e8632fd91a342b2fdc72d9fe86c6e6f1c77de",
+    "reportCompletedAt": "2026-09-07T06:30:36.146Z",
+    "sourceFingerprint": "0db6492823f87f85f7de61f6e19f94be098227766dd980379d1d7195de98e633"
+  }
+}

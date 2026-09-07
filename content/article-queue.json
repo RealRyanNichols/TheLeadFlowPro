@@ -10,7 +10,7 @@
     "Add new entries at the end. Every tool slug must exist in lib/tools and",
     "each tool may appear once, because its OG card becomes the article scene.",
     "Tool-coverage editorial briefs: docs/tool-article-coverage-plan-2026-09-06.json. Match queueSlug for the worked example, reader artifact, actual inputs, and source-review requirements.",
-    "The September 6, 2026 tool-guide batch was explicitly authorized for same-day website publication. Its 45 completed guides remain scheduled until live verification; the existing September 7 and 8 daily dates are preserved."
+    "The September 6, 2026 tool-guide batch contains 45 guides verified live at 2026-09-07T06:30:36.146Z. Existing September 7 and 8 daily dates are preserved."
   ],
   "queue": [
     {
@@ -85,7 +85,7 @@
       "tool": "payment-plan-calculator",
       "searchQuestion": "How to show a service payment schedule before the customer agrees?",
       "workingTitle": "How to show a service payment schedule before the customer agrees",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -114,7 +114,7 @@
       "tool": "close-rate-calculator",
       "searchQuestion": "How to compare a better close rate with buying more leads?",
       "workingTitle": "How to compare a better close rate with buying more leads",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -125,7 +125,7 @@
       "tool": "lead-goal-planner",
       "searchQuestion": "How to turn a yearly revenue goal into a weekly activity plan?",
       "workingTitle": "How to turn a yearly revenue goal into a weekly activity plan",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -136,7 +136,7 @@
       "tool": "loan-payment-calculator",
       "searchQuestion": "What to write down before comparing two equipment loans?",
       "workingTitle": "What to write down before comparing two equipment loans",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -147,7 +147,7 @@
       "tool": "cash-runway-calculator",
       "searchQuestion": "How to read a cash runway estimate without counting credit as cash?",
       "workingTitle": "How to read a cash runway estimate without counting credit as cash",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -158,7 +158,7 @@
       "tool": "sales-tax-calculator",
       "searchQuestion": "How to separate sales tax from a tax-inclusive total?",
       "workingTitle": "How to separate sales tax from a tax-inclusive total",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -169,7 +169,7 @@
       "tool": "overtime-cost-calculator",
       "searchQuestion": "How to compare overtime costs with a hiring scenario?",
       "workingTitle": "How to compare overtime costs with a hiring scenario",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -180,7 +180,7 @@
       "tool": "roas-calculator",
       "searchQuestion": "Why ad revenue and ad profit need separate columns?",
       "workingTitle": "Why ad revenue and ad profit need separate columns",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -191,7 +191,7 @@
       "tool": "ad-budget-planner",
       "searchQuestion": "How to build an ad budget scenario from your own records?",
       "workingTitle": "How to build an ad budget scenario from your own records",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -202,7 +202,7 @@
       "tool": "cac-payback-calculator",
       "searchQuestion": "How long does a new customer take to repay acquisition cost?",
       "workingTitle": "How long does a new customer take to repay acquisition cost",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -213,7 +213,7 @@
       "tool": "ad-test-budget-calculator",
       "searchQuestion": "How to scope an ad test before splitting the budget?",
       "workingTitle": "How to scope an ad test before splitting the budget",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -224,7 +224,7 @@
       "tool": "admin-time-audit",
       "searchQuestion": "How to find one admin task worth simplifying this week?",
       "workingTitle": "How to find one admin task worth simplifying this week",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -235,7 +235,7 @@
       "tool": "meeting-cost-calculator",
       "searchQuestion": "How to decide whether a weekly meeting earns its time?",
       "workingTitle": "How to decide whether a weekly meeting earns its time",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -246,7 +246,7 @@
       "tool": "owner-hourly-worth",
       "searchQuestion": "How to compare the work you do with the work you could delegate?",
       "workingTitle": "How to compare the work you do with the work you could delegate",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -257,7 +257,7 @@
       "tool": "review-goal-calculator",
       "searchQuestion": "How to read a review-rating goal without gaming reviews?",
       "workingTitle": "How to read a review-rating goal without gaming reviews",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -268,7 +268,7 @@
       "tool": "bad-review-impact",
       "searchQuestion": "What one low rating changes and what it cannot tell you?",
       "workingTitle": "What one low rating changes and what it cannot tell you",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -279,7 +279,7 @@
       "tool": "review-response-writer",
       "searchQuestion": "How to reply to a review without arguing in public?",
       "workingTitle": "How to reply to a review without arguing in public",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -290,7 +290,7 @@
       "tool": "conversion-lift-calculator",
       "searchQuestion": "How to test a website improvement before buying more visits?",
       "workingTitle": "How to test a website improvement before buying more visits",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -301,7 +301,7 @@
       "tool": "qr-code-maker",
       "searchQuestion": "How to put a useful QR code on a printed flyer?",
       "workingTitle": "How to put a useful QR code on a printed flyer",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -312,7 +312,7 @@
       "tool": "wifi-qr-code",
       "searchQuestion": "How to make a guest Wi-Fi card customers can use?",
       "workingTitle": "How to make a guest Wi-Fi card customers can use",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -323,7 +323,7 @@
       "tool": "digital-business-card",
       "searchQuestion": "How to make a contact card people can save?",
       "workingTitle": "How to make a contact card people can save",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -334,7 +334,7 @@
       "tool": "click-to-call-button",
       "searchQuestion": "How to add a call button and check it on your phone?",
       "workingTitle": "How to add a call button and check it on your phone",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -345,7 +345,7 @@
       "tool": "sms-link-generator",
       "searchQuestion": "How to write a text-us button that starts the right conversation?",
       "workingTitle": "How to write a text-us button that starts the right conversation",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -356,7 +356,7 @@
       "tool": "utm-link-builder",
       "searchQuestion": "How to tag a campaign link without putting private data in it?",
       "workingTitle": "How to tag a campaign link without putting private data in it",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -367,7 +367,7 @@
       "tool": "email-signature-generator",
       "searchQuestion": "How to make an email signature with one clear next step?",
       "workingTitle": "How to make an email signature with one clear next step",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -378,7 +378,7 @@
       "tool": "missed-call-textback-script",
       "searchQuestion": "How to write a missed-call reply that tells people what happens next?",
       "workingTitle": "How to write a missed-call reply that tells people what happens next",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -389,7 +389,7 @@
       "tool": "review-request-script",
       "searchQuestion": "How to ask for an honest review after the work is done?",
       "workingTitle": "How to ask for an honest review after the work is done",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -400,7 +400,7 @@
       "tool": "localbusiness-schema-generator",
       "searchQuestion": "How to check your business details before adding structured data?",
       "workingTitle": "How to check your business details before adding structured data",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -411,7 +411,7 @@
       "tool": "faq-schema-generator",
       "searchQuestion": "How to turn real customer questions into useful website answers?",
       "workingTitle": "How to turn real customer questions into useful website answers",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -422,7 +422,7 @@
       "tool": "meta-title-description-writer",
       "searchQuestion": "How to replace a page title called Home with something useful?",
       "workingTitle": "How to replace a page title called Home with something useful",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -433,7 +433,7 @@
       "tool": "ad-character-counter",
       "searchQuestion": "How to check ad copy before you paste it into the platform?",
       "workingTitle": "How to check ad copy before you paste it into the platform",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -444,7 +444,7 @@
       "tool": "google-maps-link-generator",
       "searchQuestion": "How to make a directions link that reaches the right entrance?",
       "workingTitle": "How to make a directions link that reaches the right entrance",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -455,7 +455,7 @@
       "tool": "add-to-calendar-link",
       "searchQuestion": "How to give event guests a calendar link they can check?",
       "workingTitle": "How to give event guests a calendar link they can check",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -466,7 +466,7 @@
       "tool": "voicemail-script-generator",
       "searchQuestion": "How to leave callers with a clear next step?",
       "workingTitle": "How to leave callers with a clear next step",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -477,7 +477,7 @@
       "tool": "job-post-writer",
       "searchQuestion": "How to write a job post that explains the actual work?",
       "workingTitle": "How to write a job post that explains the actual work",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -488,7 +488,7 @@
       "tool": "google-post-writer",
       "searchQuestion": "How to write one useful Google Business Profile update?",
       "workingTitle": "How to write one useful Google Business Profile update",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -499,7 +499,7 @@
       "tool": "robots-txt-generator",
       "searchQuestion": "How to check robots.txt without treating it as a lock?",
       "workingTitle": "How to check robots.txt without treating it as a lock",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -510,7 +510,7 @@
       "tool": "household-budget-planner",
       "searchQuestion": "How to put a month's bills on one clear page?",
       "workingTitle": "How to put a month's bills on one clear page",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -521,7 +521,7 @@
       "tool": "grocery-unit-price-calculator",
       "searchQuestion": "How to compare two package sizes before buying the bigger one?",
       "workingTitle": "How to compare two package sizes before buying the bigger one",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -532,7 +532,7 @@
       "tool": "childcare-vs-work-calculator",
       "searchQuestion": "How to compare the costs that come with a job?",
       "workingTitle": "How to compare the costs that come with a job",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -543,7 +543,7 @@
       "tool": "subscription-audit",
       "searchQuestion": "How to find the renewals you stopped noticing?",
       "workingTitle": "How to find the renewals you stopped noticing",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -554,7 +554,7 @@
       "tool": "emergency-fund-calculator",
       "searchQuestion": "How to turn a cash-cushion goal into a monthly target?",
       "workingTitle": "How to turn a cash-cushion goal into a monthly target",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -565,7 +565,7 @@
       "tool": "debt-payoff-planner",
       "searchQuestion": "How to check what an extra payment changes in a simple debt model?",
       "workingTitle": "How to check what an extra payment changes in a simple debt model",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -576,7 +576,7 @@
       "tool": "rent-affordability-estimator",
       "searchQuestion": "How to compare rent with the bills you already have?",
       "workingTitle": "How to compare rent with the bills you already have",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     },
@@ -587,7 +587,7 @@
       "tool": "salary-to-hourly-converter",
       "searchQuestion": "How to compare two job offers when the hours are different?",
       "workingTitle": "How to compare two job offers when the hours are different",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06",
       "scheduledFor": "2026-09-06"
     }

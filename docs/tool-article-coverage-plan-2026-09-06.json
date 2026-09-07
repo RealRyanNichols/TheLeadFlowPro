@@ -1,11 +1,11 @@
 {
   "reviewedAt": "2026-09-06",
-  "status": "authored-awaiting-deployment",
+  "status": "published-live-verified",
   "freeTools": 86,
   "gapsCovered": 45,
   "newQueuedEntries": 44,
   "reusedQueuedEntries": 1,
-  "scheduling": "Ryan explicitly authorized all 45 completed tool guides for same-day website publication on September 6, 2026. Source authored and dated; live deployment has not been verified by this receipt. Existing September 7 and 8 daily article dates and unrelated queued entries are preserved.",
+  "scheduling": "All 45 September 6 tool guides were verified on the production site, including full downloads, canonical metadata, index, sitemap and distinct social images. Existing daily article dates and unrelated queue entries are preserved.",
   "briefs": [
     {
       "tool": "close-rate-calculator",
@@ -40,7 +40,7 @@
         }
       ],
       "sourceReview": "Inspect the calculator assumptions; treat improvement as a scenario, not a forecast.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-compare-a-better-close-rate-with-buying-more-leads",
       "socialImagePath": "/articles/how-to-compare-a-better-close-rate-with-buying-more-leads/opengraph-image"
     },
@@ -81,7 +81,7 @@
         }
       ],
       "sourceReview": "Verify the tool's rounding and quote-to-job assumptions; distinguish targets from predicted demand.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan",
       "socialImagePath": "/articles/how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan/opengraph-image"
     },
@@ -114,7 +114,7 @@
         }
       ],
       "sourceReview": "Reuse hvac-maintenance-plans instead of adding a duplicate. A fixed payment schedule does not create recurring maintenance revenue. Verify applicable financing and fee rules before drafting claims.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/hvac-maintenance-plans",
       "socialImagePath": "/articles/hvac-maintenance-plans/opengraph-image"
     },
@@ -147,7 +147,7 @@
         }
       ],
       "sourceReview": "Verify amortization against the actual run; review current official lender disclosures and CFPB guidance before financial claims. Tool estimates are not lender quotes.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/what-to-write-down-before-comparing-two-equipment-loans",
       "socialImagePath": "/articles/what-to-write-down-before-comparing-two-equipment-loans/opengraph-image"
     },
@@ -180,7 +180,7 @@
         }
       ],
       "sourceReview": "Check zero-burn and positive-cash-flow states; distinguish available credit, revenue, and spendable cash.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-read-a-cash-runway-estimate-without-counting-credit-as-cash",
       "socialImagePath": "/articles/how-to-read-a-cash-runway-estimate-without-counting-credit-as-cash/opengraph-image"
     },
@@ -213,7 +213,7 @@
         }
       ],
       "sourceReview": "Check current Texas Comptroller guidance and the exact jurisdiction rate. Do not decide taxability, filing liability, or legal obligations from the calculator.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-separate-sales-tax-from-a-tax-inclusive-total",
       "socialImagePath": "/articles/how-to-separate-sales-tax-from-a-tax-inclusive-total/opengraph-image"
     },
@@ -250,7 +250,7 @@
         }
       ],
       "sourceReview": "Verify current U.S. Department of Labor and relevant state rules before overtime claims. The tool's multiplier does not determine worker classification or legal entitlement.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-compare-overtime-costs-with-a-hiring-scenario",
       "socialImagePath": "/articles/how-to-compare-overtime-costs-with-a-hiring-scenario/opengraph-image"
     },
@@ -283,7 +283,7 @@
         }
       ],
       "sourceReview": "Verify each output formula; distinguish attribution from causation and gross-profit estimates from net profit.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/why-ad-revenue-and-ad-profit-need-separate-columns",
       "socialImagePath": "/articles/why-ad-revenue-and-ad-profit-need-separate-columns/opengraph-image"
     },
@@ -320,7 +320,7 @@
         }
       ],
       "sourceReview": "No industry benchmark, recommended spend, or guaranteed customer count. Verify recorded inputs before real budget decisions.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-build-an-ad-budget-scenario-from-your-own-records",
       "socialImagePath": "/articles/how-to-build-an-ad-budget-scenario-from-your-own-records/opengraph-image"
     },
@@ -353,7 +353,7 @@
         }
       ],
       "sourceReview": "Check what the model assumes about churn and timing; do not treat payback estimates as observed customer lifetime value.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-long-does-a-new-customer-take-to-repay-acquisition-cost",
       "socialImagePath": "/articles/how-long-does-a-new-customer-take-to-repay-acquisition-cost/opengraph-image"
     },
@@ -386,7 +386,7 @@
         }
       ],
       "sourceReview": "A chosen lead count is not statistical significance. Verify the actual formula and current official ad-platform measurement guidance; do not promise a conclusive result.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-scope-an-ad-test-before-splitting-the-budget",
       "socialImagePath": "/articles/how-to-scope-an-ad-test-before-splitting-the-budget/opengraph-image"
     },
@@ -419,7 +419,7 @@
         }
       ],
       "sourceReview": "The tool's estimated automation share is an assumption. Do not claim realized savings before observing the changed process.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-find-one-admin-task-worth-simplifying-this-week",
       "socialImagePath": "/articles/how-to-find-one-admin-task-worth-simplifying-this-week/opengraph-image"
     },
@@ -456,7 +456,7 @@
         }
       ],
       "sourceReview": "Loaded labor cost is an estimate of time cost, not an immediate cash saving if a meeting is removed.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-decide-whether-a-weekly-meeting-earns-its-time",
       "socialImagePath": "/articles/how-to-decide-whether-a-weekly-meeting-earns-its-time/opengraph-image"
     },
@@ -493,7 +493,7 @@
         }
       ],
       "sourceReview": "Owner pay divided by time is a descriptive average, not the marginal revenue of every hour or guaranteed delegation value.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-compare-the-work-you-do-with-the-work-you-could-delegate",
       "socialImagePath": "/articles/how-to-compare-the-work-you-do-with-the-work-you-could-delegate/opengraph-image"
     },
@@ -530,7 +530,7 @@
         }
       ],
       "sourceReview": "Check current Google review policies. No incentives, review gating, selective requests, or guaranteed five-star reviews; rounded public ratings limit precision.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-read-a-review-rating-goal-without-gaming-reviews",
       "socialImagePath": "/articles/how-to-read-a-review-rating-goal-without-gaming-reviews/opengraph-image"
     },
@@ -571,7 +571,7 @@
         }
       ],
       "sourceReview": "Treat lead and revenue effects as assumptions in the tool, not evidence that a review caused lost customers. Check Google review response and removal policies.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/what-one-low-rating-changes-and-what-it-cannot-tell-you",
       "socialImagePath": "/articles/what-one-low-rating-changes-and-what-it-cannot-tell-you/opengraph-image"
     },
@@ -612,7 +612,7 @@
         }
       ],
       "sourceReview": "Check current Google guidance; never publish customer records or claim an account is false without support. The tool drafts text and does not post it.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-reply-to-a-review-without-arguing-in-public",
       "socialImagePath": "/articles/how-to-reply-to-a-review-without-arguing-in-public/opengraph-image"
     },
@@ -653,7 +653,7 @@
         }
       ],
       "sourceReview": "Modeled conversion lift is not a forecast or causal result. Verify whether the tool interprets improvement as relative percent or percentage points.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-test-a-website-improvement-before-buying-more-visits",
       "socialImagePath": "/articles/how-to-test-a-website-improvement-before-buying-more-visits/opengraph-image"
     },
@@ -682,7 +682,7 @@
         }
       ],
       "sourceReview": "Verify the actual download formats and encoding. A static QR code is not an analytics system or an editable redirect by itself.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-put-a-useful-qr-code-on-a-printed-flyer",
       "socialImagePath": "/articles/how-to-put-a-useful-qr-code-on-a-printed-flyer/opengraph-image"
     },
@@ -715,7 +715,7 @@
         }
       ],
       "sourceReview": "A Wi-Fi QR code contains the network credentials; keep staff and private networks separate and verify device compatibility using official device guidance.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-make-a-guest-wi-fi-card-customers-can-use",
       "socialImagePath": "/articles/how-to-make-a-guest-wi-fi-card-customers-can-use/opengraph-image"
     },
@@ -764,7 +764,7 @@
         }
       ],
       "sourceReview": "Verify the actual vCard and QR behavior. Saving a card does not subscribe someone to messages or synchronize future changes automatically.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-make-a-contact-card-people-can-save",
       "socialImagePath": "/articles/how-to-make-a-contact-card-people-can-save/opengraph-image"
     },
@@ -797,7 +797,7 @@
         }
       ],
       "sourceReview": "Verify tel-link behavior against official browser/device documentation. Opening a dialer is not a connected call or permission to call people back later.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-add-a-call-button-and-check-it-on-your-phone",
       "socialImagePath": "/articles/how-to-add-a-call-button-and-check-it-on-your-phone/opengraph-image"
     },
@@ -826,7 +826,7 @@
         }
       ],
       "sourceReview": "The link opens a draft; it does not send automatically or provide marketing consent. Verify current SMS URI and device behavior.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-write-a-text-us-button-that-starts-the-right-conversation",
       "socialImagePath": "/articles/how-to-write-a-text-us-button-that-starts-the-right-conversation/opengraph-image"
     },
@@ -863,7 +863,7 @@
         }
       ],
       "sourceReview": "Use current official analytics guidance. Tags label visits; they do not prove causation, and names, email addresses, and secrets must stay out of URLs.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-tag-a-campaign-link-without-putting-private-data-in-it",
       "socialImagePath": "/articles/how-to-tag-a-campaign-link-without-putting-private-data-in-it/opengraph-image"
     },
@@ -916,7 +916,7 @@
         }
       ],
       "sourceReview": "Check current official Gmail and Outlook installation instructions. Do not claim identical rendering in every mail client or that the generator installs it.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-make-an-email-signature-with-one-clear-next-step",
       "socialImagePath": "/articles/how-to-make-an-email-signature-with-one-clear-next-step/opengraph-image"
     },
@@ -953,7 +953,7 @@
         }
       ],
       "sourceReview": "This tool drafts scripts; automatic sending needs a separately configured system and appropriate consent. Verify current messaging requirements before automation claims.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-write-a-missed-call-reply-that-tells-people-what-happens-next",
       "socialImagePath": "/articles/how-to-write-a-missed-call-reply-that-tells-people-what-happens-next/opengraph-image"
     },
@@ -986,7 +986,7 @@
         }
       ],
       "sourceReview": "Verify current Google review policies and communication-consent requirements. No incentives, positive-review conditions, or review gating.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-ask-for-an-honest-review-after-the-work-is-done",
       "socialImagePath": "/articles/how-to-ask-for-an-honest-review-after-the-work-is-done/opengraph-image"
     },
@@ -1047,7 +1047,7 @@
         }
       ],
       "sourceReview": "Use current Google Search Central LocalBusiness documentation and validation tools. Omit unsupported properties; structured data does not guarantee rankings or rich results.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-check-your-business-details-before-adding-structured-data",
       "socialImagePath": "/articles/how-to-check-your-business-details-before-adding-structured-data/opengraph-image"
     },
@@ -1068,7 +1068,7 @@
         }
       ],
       "sourceReview": "Verify current Google FAQ structured-data eligibility. Ordinary small-business FAQ markup does not guarantee a rich result, quotation, or indexing.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-turn-real-customer-questions-into-useful-website-answers",
       "socialImagePath": "/articles/how-to-turn-real-customer-questions-into-useful-website-answers/opengraph-image"
     },
@@ -1105,7 +1105,7 @@
         }
       ],
       "sourceReview": "Check current Google title-link and snippet guidance. Character meters are drafting aids; Google can rewrite or truncate display text.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-replace-a-page-title-called-home-with-something-useful",
       "socialImagePath": "/articles/how-to-replace-a-page-title-called-home-with-something-useful/opengraph-image"
     },
@@ -1130,7 +1130,7 @@
         }
       ],
       "sourceReview": "Confirm current limits in the exact platform and placement using official docs. Character counts do not establish policy approval or guarantee display.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-check-ad-copy-before-you-paste-it-into-the-platform",
       "socialImagePath": "/articles/how-to-check-ad-copy-before-you-paste-it-into-the-platform/opengraph-image"
     },
@@ -1155,7 +1155,7 @@
         }
       ],
       "sourceReview": "Verify actual generated destinations and current Google Maps URL guidance. A maps link does not guarantee the same navigation app or exact entrance routing on every device.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-make-a-directions-link-that-reaches-the-right-entrance",
       "socialImagePath": "/articles/how-to-make-a-directions-link-that-reaches-the-right-entrance/opengraph-image"
     },
@@ -1196,7 +1196,7 @@
         }
       ],
       "sourceReview": "Inspect the tool's time-zone handling and calendar file fields. Verify official calendar import guidance; importing a calendar item is not an event registration.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-give-event-guests-a-calendar-link-they-can-check",
       "socialImagePath": "/articles/how-to-give-event-guests-a-calendar-link-they-can-check/opengraph-image"
     },
@@ -1233,7 +1233,7 @@
         }
       ],
       "sourceReview": "The tool writes a script; it does not record or install voicemail. Avoid unverified emergency coverage or callback promises.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-leave-callers-with-a-clear-next-step",
       "socialImagePath": "/articles/how-to-leave-callers-with-a-clear-next-step/opengraph-image"
     },
@@ -1290,7 +1290,7 @@
         }
       ],
       "sourceReview": "Verify current applicable hiring and pay-transparency rules with official sources. Avoid protected-trait preferences, unsupported earning claims, and unnecessary applicant data.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-write-a-job-post-that-explains-the-actual-work",
       "socialImagePath": "/articles/how-to-write-a-job-post-that-explains-the-actual-work/opengraph-image"
     },
@@ -1331,7 +1331,7 @@
         }
       ],
       "sourceReview": "Check current Google Business Profile post policies and availability. The tool drafts text; it does not publish or guarantee traffic.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-write-one-useful-google-business-profile-update",
       "socialImagePath": "/articles/how-to-write-one-useful-google-business-profile-update/opengraph-image"
     },
@@ -1360,7 +1360,7 @@
         }
       ],
       "sourceReview": "Use current Google Search Central documentation. Robots.txt does not secure private content and a blocked URL may still appear in search.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-check-robots-txt-without-treating-it-as-a-lock",
       "socialImagePath": "/articles/how-to-check-robots-txt-without-treating-it-as-a-lock/opengraph-image"
     },
@@ -1409,7 +1409,7 @@
         }
       ],
       "sourceReview": "Reconcile categories to actual statements before decisions; a worksheet is not a personalized financial plan.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-put-a-month-s-bills-on-one-clear-page",
       "socialImagePath": "/articles/how-to-put-a-month-s-bills-on-one-clear-page/opengraph-image"
     },
@@ -1450,7 +1450,7 @@
         }
       ],
       "sourceReview": "Verify unit consistency and tool arithmetic. Annual savings assume unchanged prices and buying frequency; account for waste and do not promise savings.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-compare-two-package-sizes-before-buying-the-bigger-one",
       "socialImagePath": "/articles/how-to-compare-two-package-sizes-before-buying-the-bigger-one/opengraph-image"
     },
@@ -1499,7 +1499,7 @@
         }
       ],
       "sourceReview": "Verify current official tax and benefits information where relevant. The model cannot decide whether a parent should work or capture every personal tradeoff.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-compare-the-costs-that-come-with-a-job",
       "socialImagePath": "/articles/how-to-compare-the-costs-that-come-with-a-job/opengraph-image"
     },
@@ -1536,7 +1536,7 @@
         }
       ],
       "sourceReview": "Use actual invoices and current provider cancellation terms. The tool does not cancel accounts or guarantee projected future price changes.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-find-the-renewals-you-stopped-noticing",
       "socialImagePath": "/articles/how-to-find-the-renewals-you-stopped-noticing/opengraph-image"
     },
@@ -1569,7 +1569,7 @@
         }
       ],
       "sourceReview": "Check current official consumer-finance guidance. The chosen reserve size depends on circumstances, and the tool does not forecast emergencies or investment returns.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-turn-a-cash-cushion-goal-into-a-monthly-target",
       "socialImagePath": "/articles/how-to-turn-a-cash-cushion-goal-into-a-monthly-target/opengraph-image"
     },
@@ -1602,7 +1602,7 @@
         }
       ],
       "sourceReview": "Verify formulas and current official lender/CFPB guidance. Actual interest accrual, fees, promotional rates, and payment allocation may differ; no personalized debt advice.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-check-what-an-extra-payment-changes-in-a-simple-debt-model",
       "socialImagePath": "/articles/how-to-check-what-an-extra-payment-changes-in-a-simple-debt-model/opengraph-image"
     },
@@ -1639,7 +1639,7 @@
         }
       ],
       "sourceReview": "Check the model's assumptions. Affordability estimates do not establish landlord approval, legal eligibility, or the right decision for every household.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-compare-rent-with-the-bills-you-already-have",
       "socialImagePath": "/articles/how-to-compare-rent-with-the-bills-you-already-have/opengraph-image"
     },
@@ -1680,7 +1680,7 @@
         }
       ],
       "sourceReview": "Verify how paid days off affect the denominator and check current official labor guidance before wage claims. An effective hourly comparison does not determine overtime entitlement.",
-      "status": "authored-awaiting-deployment",
+      "status": "published-live-verified",
       "articlePath": "/articles/how-to-compare-two-job-offers-when-the-hours-are-different",
       "socialImagePath": "/articles/how-to-compare-two-job-offers-when-the-hours-are-different/opengraph-image"
     }
@@ -1703,5 +1703,7 @@
   "previousPublishedToolsWithGuides": 41,
   "authoredToolsWithGuides": 86,
   "authoredBatchArticles": 45,
-  "scheduledDate": "2026-09-06"
+  "scheduledDate": "2026-09-06",
+  "liveVerifiedAt": "2026-09-07T06:30:36.146Z",
+  "verifiedContentCommit": "b4a5f707b03d5c971d7f584e59e7c66c3f8f32a7"
 }

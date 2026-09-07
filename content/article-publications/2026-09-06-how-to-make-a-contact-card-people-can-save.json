@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "slug": "how-to-make-a-contact-card-people-can-save",
+  "publicationDate": "2026-09-06",
+  "contentCommit": "b4a5f707b03d5c971d7f584e59e7c66c3f8f32a7",
+  "deployment": {
+    "id": "dpl_2EriusyrXSSJx5mkwqFnmDbzFR4D",
+    "url": "https://the-lead-flow-jjupnx4u1-realryannichols.vercel.app/",
+    "status": "READY",
+    "verifiedAt": "2026-09-07T06:24:26.721Z"
+  },
+  "liveCheck": {
+    "slug": "how-to-make-a-contact-card-people-can-save",
+    "url": "https://www.theleadflowpro.com/articles/how-to-make-a-contact-card-people-can-save",
+    "checkedAt": "2026-09-07T06:30:32.486Z",
+    "httpStatus": 200,
+    "downloadStatus": 200,
+    "ogStatus": 200,
+    "bodyVerified": true,
+    "downloadSha256": "c2533c2a60fe6cc3c67669223819279b87b72d7c99701a346d2d073118c840eb",
+    "canonicalVerified": true,
+    "metadataVerified": true,
+    "noindex": false,
+    "toolLinkPresent": true,
+    "indexPresent": true,
+    "sitemapPresent": true,
+    "ogVerified": true,
+    "ogWidth": 1200,
+    "ogHeight": 630,
+    "ogSha256": "3b7fbd5e501be34d74eb8b19b6d8e0252f7caa9a9e3fb60bdd83261094d1ceb5",
+    "reportCompletedAt": "2026-09-07T06:30:36.146Z",
+    "sourceFingerprint": "0db6492823f87f85f7de61f6e19f94be098227766dd980379d1d7195de98e633"
+  }
+}

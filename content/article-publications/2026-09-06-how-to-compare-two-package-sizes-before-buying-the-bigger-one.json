@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "slug": "how-to-compare-two-package-sizes-before-buying-the-bigger-one",
+  "publicationDate": "2026-09-06",
+  "contentCommit": "b4a5f707b03d5c971d7f584e59e7c66c3f8f32a7",
+  "deployment": {
+    "id": "dpl_2EriusyrXSSJx5mkwqFnmDbzFR4D",
+    "url": "https://the-lead-flow-jjupnx4u1-realryannichols.vercel.app/",
+    "status": "READY",
+    "verifiedAt": "2026-09-07T06:24:26.721Z"
+  },
+  "liveCheck": {
+    "slug": "how-to-compare-two-package-sizes-before-buying-the-bigger-one",
+    "url": "https://www.theleadflowpro.com/articles/how-to-compare-two-package-sizes-before-buying-the-bigger-one",
+    "checkedAt": "2026-09-07T06:30:35.126Z",
+    "httpStatus": 200,
+    "downloadStatus": 200,
+    "ogStatus": 200,
+    "bodyVerified": true,
+    "downloadSha256": "acedff91d567e5509a1d71e60974fa5594f0d7dfb155be08ca244d7e17077d3b",
+    "canonicalVerified": true,
+    "metadataVerified": true,
+    "noindex": false,
+    "toolLinkPresent": true,
+    "indexPresent": true,
+    "sitemapPresent": true,
+    "ogVerified": true,
+    "ogWidth": 1200,
+    "ogHeight": 630,
+    "ogSha256": "02d4ffd8c8bcdba0b02fdb33a0801db7c7805df7da7df71d05e2caaaf96f86e8",
+    "reportCompletedAt": "2026-09-07T06:30:36.146Z",
+    "sourceFingerprint": "0db6492823f87f85f7de61f6e19f94be098227766dd980379d1d7195de98e633"
+  }
+}

@@ -6,6 +6,8 @@ import { ArrowRight } from "lucide-react";
 import FinalCta from "@/components/site/system/FinalCta";
 import SiteHero from "@/components/site/system/SiteHero";
 import { getPublishedArticles } from "@/lib/articles";
+import ArticleLibrary from "./ArticleLibrary";
+import { articleLibraryEntry } from "./article-library";
 import {
   articlePremiumArtAlt,
   articlePremiumArtPath,
@@ -21,16 +23,8 @@ export const metadata: Metadata = withPublicPageMetadata("/articles", {
   alternates: { canonical: "https://www.theleadflowpro.com/articles" },
 });
 
-const FEATURED_ARTICLE_SLUGS = new Set([
-  "one-useful-business-task-with-ai",
-  "give-every-inquiry-an-owner-and-next-step",
-  "bring-one-real-task-to-your-business-workshop",
-]);
-
 export default function ArticlesPage() {
   const articles = getPublishedArticles().sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-  const featuredArticles = articles.filter((article) => FEATURED_ARTICLE_SLUGS.has(article.slug));
-  const libraryArticles = articles.filter((article) => !FEATURED_ARTICLE_SLUGS.has(article.slug));
   return (
     <main className="cb-page">
       <SiteHero
@@ -45,62 +39,25 @@ export default function ArticlesPage() {
           kicker: "Receipts before claims",
           caption: "See the leak. Trace the next move.",
         }}
-        primary={{ href: "#latest", label: "Browse the field notes" }}
+        primary={{ href: "#article-library", label: "Find a useful guide" }}
         secondary={{ href: "/premier-system", label: "See the Premier proof" }}
         trustLine="Real examples, useful tools, and no guaranteed outcome claims."
       />
 
       <section id="latest" className="cb-band sv-index-band">
         <div className="cb-shell">
-          <div className="cb-headrow">
+          <div id="article-library" className="cb-headrow" style={{ scrollMarginTop: 110 }}>
             <div>
-              <p className="cb-eyebrow">Latest breakdowns</p>
-              <h2 className="cb-h2 cb-heading">Understand the system without reading a textbook.</h2>
+              <p className="cb-eyebrow">The guide library</p>
+              <h2 className="cb-h2 cb-heading">Find the next move for your business.</h2>
             </div>
             <p className="cb-lead">
-              The picture creates the context. The article gives you the numbers, the tradeoffs,
-              and the move you can make next.
+              Pick a task or search for your question. Open a guide, try the tool,
+              and put the answer to work.
             </p>
           </div>
-          <div className="sv-index-grid sv-article-feature-grid mt-12">
-          {featuredArticles.map((a) => (
-            <Link key={a.slug} href={`/articles/${a.slug}`} className="sv-index-card sv-article-feature-card">
-              <span className="sv-index-card__media">
-                <Image
-                  src={articlePremiumArtPath(a.slug)}
-                  alt={articlePremiumArtAlt(a.slug)}
-                  fill
-                  sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1000px) 50vw, 33vw"
-                />
-                <span className="sv-index-card__media-title">
-                  {articleVisualHeadline(a.slug)}
-                </span>
-              </span>
-              <span className="sv-index-card__body">
-                <span className="sv-index-card__meta">
-                  {new Date(a.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}{" "}
-                  · {a.readingMinutes} min
-                </span>
-                <h2>{a.title}</h2>
-                <p>{a.description}</p>
-                <span className="sv-index-card__link">
-                  Read the breakdown <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                </span>
-              </span>
-            </Link>
-          ))}
-          </div>
-
-          <div className="sv-article-library-head">
-            <p className="cb-eyebrow">Every field note</p>
-            <h3>More practical breakdowns</h3>
-          </div>
-          <div className="sv-index-grid sv-article-feature-grid sv-article-library-grid">
-            {libraryArticles.map((a) => (
+          <ArticleLibrary entries={articles.map(articleLibraryEntry)}>
+            {articles.map((a) => (
               <Link key={a.slug} href={`/articles/${a.slug}`} className="sv-index-card sv-article-feature-card">
                 <span className="sv-index-card__media">
                   <Image
@@ -123,7 +80,7 @@ export default function ArticlesPage() {
                     · {a.readingMinutes} min
                     {a.video ? ` · ${a.video.durationSeconds}s video` : ""}
                   </span>
-                  <h2>{a.title}</h2>
+                  <h3>{a.title}</h3>
                   <p>{a.description}</p>
                   <span className="sv-index-card__link">
                     Read the breakdown <ArrowRight aria-hidden="true" className="h-4 w-4" />
@@ -131,7 +88,7 @@ export default function ArticlesPage() {
                 </span>
               </Link>
             ))}
-          </div>
+          </ArticleLibrary>
         </div>
       </section>
 

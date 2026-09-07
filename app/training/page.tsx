@@ -1,20 +1,8 @@
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
-import Image from "next/image";
-import Link from "next/link";
-import {
-  ArrowRight,
-  BookOpenCheck,
-  Check,
-  LockKeyhole,
-  Network,
-} from "lucide-react";
 import { createServiceClient } from "@/lib/supabase/service";
 import { canAccessCourse, getTrainingEntitlements } from "@/lib/access";
-import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
-import { CHATGPT_OPERATOR } from "@/lib/chatgptOperatorCourse";
-import { academyCourse } from "@/lib/operatorAcademyCatalog";
-import SiteHero from "@/components/site/system/SiteHero";
-import styles from "./training.module.css";
+import TrainingLibrary from "./TrainingLibrary";
+import type { TrainingLibraryCourse } from "./training-library";
 
 export const metadata = withPublicPageMetadata("/training", {
   title: "Training Library | The LeadFlow Operator Academy",
@@ -27,166 +15,42 @@ export const dynamic = "force-dynamic";
 
 export default async function TrainingPage() {
   const service = createServiceClient();
-  const { data: courses } = await service
+  const { data: courses, error } = await service
     .from("courses")
     .select("*")
     .eq("is_published", true)
     .order("sort_order");
   const entitlements = await getTrainingEntitlements();
-  const hasTraining =
-    entitlements.isAdmin || entitlements.purchaseKinds.size > 0;
-  const firstOpenCourse = courses?.find((course) =>
-    canAccessCourse(course, entitlements),
+  const cards: TrainingLibraryCourse[] = (courses ?? []).map((course) => ({
+    id: course.id,
+    slug: course.slug,
+    title: course.title,
+    description: course.description,
+    is_free: course.is_free,
+    hasAccess: canAccessCourse(course, entitlements),
+  }));
+  const firstOpenCourse = cards.find((course) => course.hasAccess);
+  const firstOpenFreeCourse = cards.find(
+    (course) => course.is_free && course.hasAccess,
   );
 
   return (
-    <main className={`cb-page ${styles.page}`}>
-      <SiteHero
-        eyebrow="LeadFlow Operator Academy"
-        mutedTitle="The course is not the system."
-        title="Training should move the work forward."
-        body="Use the library to understand the owned stack, continue your existing courses, and keep every completed lesson recorded in one place."
-        media={{
-          src: "/images/visual-system/course-system-blueprint.webp",
-          alt: "A connected training platform blueprint linking enrollment, access, lessons, and progress",
-          width: 1254,
-          height: 1254,
-          kicker: "Owned learning system",
-          caption: "One path from enrollment to the next lesson",
-        }}
-        primary={
-          firstOpenCourse
-            ? {
-                href: `/training/${firstOpenCourse.slug}`,
-                label: hasTraining ? "Continue training" : "Open the free course",
-              }
-            : { href: "#course-library", label: "View the library" }
-        }
-        secondary={{ href: "/start?goal=delivery", label: "Plan a training platform" }}
-        trustLine="Existing access and lesson progress stay intact."
-      />
-
-      <section className={`cb-band ${styles.library}`} id="course-library" aria-labelledby="library-title">
-        <div className="cb-shell">
-          <div className={styles.sectionHead}>
-            <div>
-              <p className="cb-eyebrow">Course library</p>
-              <h2 className="cb-h2 cb-heading" id="library-title">
-                Learn the stack in a clear order.
-              </h2>
-            </div>
-            <p className="cb-lead">
-              Free courses remain open. Existing purchasers keep their full library access.
-              New standalone enrollment for the legacy library is closed.
-            </p>
-          </div>
-
-          {!hasTraining ? (
-            <aside className={styles.accessNotice} aria-label="Training access information">
-              <div className={styles.noticeIcon}>
-                <BookOpenCheck aria-hidden="true" />
-              </div>
-              <div className={styles.noticeCopy}>
-                <p className={styles.noticeKicker}>Existing members</p>
-                <h3>Your previous access is still yours.</h3>
-                <p>
-                  Log in with the email used for purchase to restore your courses and saved
-                  progress. Building a training platform for your own business is a separate
-                  service.
-                </p>
-              </div>
-              <div className={styles.noticeActions}>
-                {!entitlements.user ? (
-                  <Link className="cb-btn cb-btn--primary" href="/login">
-                    Log in
-                    <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                  </Link>
-                ) : null}
-                <Link className="cb-btn cb-btn--ghost" href="/packages/system-map">
-                  Start with a System Map
-                </Link>
-              </div>
-            </aside>
-          ) : null}
-
-          <div className={styles.courseGrid}>
-            {courses?.map((course, index) => {
-              const locked = !canAccessCourse(course, entitlements);
-              const isContentEngine = course.slug === CONTENT_ENGINE.slug;
-              const isChatGPTOperator = course.slug === CHATGPT_OPERATOR.slug;
-              const academy = academyCourse(course.slug);
-              const lockedHref = isContentEngine
-                ? "/operator-academy/content-engine"
-                : isChatGPTOperator
-                  ? "/chatgpt"
-                  : academy
-                    ? academy.isFree ? "/academy#free-access" : "/academy#pricing"
-                    : "/start?goal=delivery";
-              return (
-                <article className={`${styles.courseCard}${locked ? ` ${styles.locked}` : ""}`} key={course.id}>
-                  <div className={styles.cardImage}>
-                    <Image
-                      src="/images/visual-system/course-system-blueprint.webp"
-                      alt=""
-                      width={1254}
-                      height={1254}
-                      sizes="(max-width: 760px) calc(100vw - 40px), 31vw"
-                    />
-                    <span className={styles.courseNumber}>Course {String(index + 1).padStart(2, "0")}</span>
-                  </div>
-                  <div className={styles.cardBody}>
-                    <div className={styles.cardStatus}>
-                      {course.is_free && !locked ? (
-                        <span>
-                          <Check aria-hidden="true" /> Free access
-                        </span>
-                      ) : course.is_free && locked ? (
-                        <span>
-                          <LockKeyhole aria-hidden="true" /> Free registration
-                        </span>
-                      ) : locked ? (
-                        <span>
-                          <LockKeyhole aria-hidden="true" /> Existing members
-                        </span>
-                      ) : (
-                        <span>
-                          <BookOpenCheck aria-hidden="true" /> In your library
-                        </span>
-                      )}
-                    </div>
-                    <h3>{course.title}</h3>
-                    <p>{course.description}</p>
-                    <Link
-                      className={styles.cardLink}
-                      href={locked ? lockedHref : `/training/${course.slug}`}
-                      aria-label={locked ? `View access options for ${course.title}` : `Open ${course.title}`}
-                    >
-                      {locked
-                        ? isContentEngine || isChatGPTOperator || academy
-                          ? "View course"
-                          : "Plan a training platform"
-                        : "Open course"}
-                      {locked && !isContentEngine && !isChatGPTOperator && !academy ? (
-                        <Network aria-hidden="true" />
-                      ) : (
-                        <ArrowRight aria-hidden="true" />
-                      )}
-                    </Link>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-
-          {!courses?.length ? (
-            <div className={styles.emptyState}>
-              <BookOpenCheck aria-hidden="true" />
-              <h3>The next course is being prepared.</h3>
-              <p>Check back soon for the next published module.</p>
-            </div>
-          ) : null}
-        </div>
-      </section>
-    </main>
+    <TrainingLibrary
+      courses={cards}
+      signedIn={!!entitlements.user}
+      continueHref={
+        entitlements.user
+          ? firstOpenCourse
+            ? `/training/${firstOpenCourse.slug}`
+            : "#course-library"
+          : "/login?next=/training"
+      }
+      freeCourseHref={
+        firstOpenFreeCourse
+          ? `/training/${firstOpenFreeCourse.slug}`
+          : "/academy#free-access"
+      }
+      loadFailed={!!error}
+    />
   );
 }

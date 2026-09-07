@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "slug": "hvac-maintenance-plans",
+  "publicationDate": "2026-09-06",
+  "contentCommit": "b4a5f707b03d5c971d7f584e59e7c66c3f8f32a7",
+  "deployment": {
+    "id": "dpl_2EriusyrXSSJx5mkwqFnmDbzFR4D",
+    "url": "https://the-lead-flow-jjupnx4u1-realryannichols.vercel.app/",
+    "status": "READY",
+    "verifiedAt": "2026-09-07T06:24:26.721Z"
+  },
+  "liveCheck": {
+    "slug": "hvac-maintenance-plans",
+    "url": "https://www.theleadflowpro.com/articles/hvac-maintenance-plans",
+    "checkedAt": "2026-09-07T06:30:29.473Z",
+    "httpStatus": 200,
+    "downloadStatus": 200,
+    "ogStatus": 200,
+    "bodyVerified": true,
+    "downloadSha256": "28d19df173bdbb28f249e5ebb42461496ea78601744600a8dc7c713333f7896c",
+    "canonicalVerified": true,
+    "metadataVerified": true,
+    "noindex": false,
+    "toolLinkPresent": true,
+    "indexPresent": true,
+    "sitemapPresent": true,
+    "ogVerified": true,
+    "ogWidth": 1200,
+    "ogHeight": 630,
+    "ogSha256": "d885ae5353c1f484773571fe036093a320246077c5e5fe08d2016ffd69eb1e83",
+    "reportCompletedAt": "2026-09-07T06:30:36.146Z",
+    "sourceFingerprint": "0db6492823f87f85f7de61f6e19f94be098227766dd980379d1d7195de98e633"
+  }
+}

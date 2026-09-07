@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "slug": "how-to-give-event-guests-a-calendar-link-they-can-check",
+  "publicationDate": "2026-09-06",
+  "contentCommit": "b4a5f707b03d5c971d7f584e59e7c66c3f8f32a7",
+  "deployment": {
+    "id": "dpl_2EriusyrXSSJx5mkwqFnmDbzFR4D",
+    "url": "https://the-lead-flow-jjupnx4u1-realryannichols.vercel.app/",
+    "status": "READY",
+    "verifiedAt": "2026-09-07T06:24:26.721Z"
+  },
+  "liveCheck": {
+    "slug": "how-to-give-event-guests-a-calendar-link-they-can-check",
+    "url": "https://www.theleadflowpro.com/articles/how-to-give-event-guests-a-calendar-link-they-can-check",
+    "checkedAt": "2026-09-07T06:30:34.028Z",
+    "httpStatus": 200,
+    "downloadStatus": 200,
+    "ogStatus": 200,
+    "bodyVerified": true,
+    "downloadSha256": "740b85b387fbb998f3b28e8601b005c92bff189943c421cce83554d0a8715d4b",
+    "canonicalVerified": true,
+    "metadataVerified": true,
+    "noindex": false,
+    "toolLinkPresent": true,
+    "indexPresent": true,
+    "sitemapPresent": true,
+    "ogVerified": true,
+    "ogWidth": 1200,
+    "ogHeight": 630,
+    "ogSha256": "1c23c1379fe75ad90bbbe6220736028599c0df22fcdf69465c381529ac006fa5",
+    "reportCompletedAt": "2026-09-07T06:30:36.146Z",
+    "sourceFingerprint": "0db6492823f87f85f7de61f6e19f94be098227766dd980379d1d7195de98e633"
+  }
+}

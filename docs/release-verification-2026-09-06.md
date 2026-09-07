@@ -33,4 +33,16 @@ The production GA4 ID and Google Ads ID were empty. Neither inspected Google acc
 
 ## Production status
 
-Deployment, live guide coverage, current sitemap resubmission, and fresh contact inbox delivery are pending. Record their exact results after the authorized push; passing local checks alone do not satisfy these gates.
+Production release confirmed September 7, 2026. Vercel deployment `dpl_2EriusyrXSSJx5mkwqFnmDbzFR4D`, commit `b4a5f707b03d5c971d7f584e59e7c66c3f8f32a7`, reached READY at 06:24:26.721 UTC with the main public domains attached. Integrated release has 949 passing tests and a passing production build. SellerProof and the concurrently shipped Meta form/nurture changes were preserved.
+
+The first production publish hit Vercel's 250 MB function limit because a dynamic image read traced unrelated public videos and downloads. The social-image function now excludes those directories while those files remain publicly served. The rebuilt trace contains about 60.2 MB of files and includes all three new ad creatives. The corrected deployment succeeded.
+
+All 45 new guides passed live page, full-download byte equality, metadata, canonical, relevant tool-link, article-index, sitemap and unique 1200 x 630 PNG checks. Their publication queue entries and individual receipts were marked published only after verification completed. See `docs/tool-guide-publication-verification-2026-09-07.json`.
+
+All four paid-traffic destinations now have distinct finished social images: Scoreboard, Services, Free Build, and the workshop. The workshop's separate Sites publication is version 12, source `516ebcee3cd980e3a84e5cfb4e78e18374083b43`. Both Open Graph and Twitter reference the new JPEG. Main-site legacy social-image paths also serve the complete new artwork. The 3840 x 2016 delivery files are enlarged exports of the preserved native generation, not native 4K. See `docs/production-ad-pages-verification-2026-09-07.json` for live checks.
+
+The live contact test saved name, phone, email and body, queued its owner alert atomically, and received provider acceptance on attempt 1 at 06:31:55 UTC. Outlook independently received `CONTACT: LeadFlow Release QA Test 20260907` at 06:32:01 UTC. The synthetic contact row was then removed without touching customer messages.
+
+The live $0 Free Build application saved all requested contact fields and its specific next action, showed the correct no-payment confirmation, and accepted both owner-alert and applicant-welcome emails on attempt 1. Outlook independently received the owner alert at 06:40:20 UTC and application confirmation at 06:40:21 UTC. The synthetic lead was marked `is_test=true` so it does not count as customer proof. Both SMS and marketing-email consent remained false.
+
+Search Console displayed **Sitemap submitted successfully** on September 7 after the new guides were live. Its existing discovered-page/indexing totals are delayed; submission is not a claim that the new guides are indexed or ranked. No GA4 property or live Meta Purchase attribution is claimed.

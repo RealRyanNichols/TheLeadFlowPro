@@ -46,6 +46,13 @@ const hasLink = (html, pathname) =>
     (a) => a.href === pathname || a.href === SITE + pathname,
   );
 
+// JSON-LD can contain one node, an array (Article + HowTo + FAQ), or @graph.
+export function structuredNodes(value) {
+  if (Array.isArray(value)) return value.flatMap(structuredNodes);
+  if (!value || typeof value !== "object") return [];
+  return [value, ...structuredNodes(value["@graph"])];
+}
+
 async function checkSource() {
   const plan = JSON.parse(await readFile(PLAN, "utf8"));
   assert.equal(BATCH.length, 45);
@@ -165,7 +172,7 @@ async function verify(options) {
             ),
           ].flatMap((m) => {
             try {
-              return [JSON.parse(m[1])];
+              return structuredNodes(JSON.parse(m[1]));
             } catch {
               return [];
             }

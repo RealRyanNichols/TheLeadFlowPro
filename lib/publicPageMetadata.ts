@@ -6,6 +6,7 @@ export const PUBLIC_OG_SIZE = { width: 1200, height: 630 } as const;
 // Finished, page-specific creatives for the destinations receiving paid traffic.
 // Dated URLs prompt social crawlers to fetch the new artwork instead of old cards.
 export const AD_PAGE_SOCIAL_IMAGES: Readonly<Record<string, string>> = {
+  "/commerce": "/images/social/commerce-20260907.jpg",
   "/services": "/images/social/services-20260907.jpg",
   "/free-build": "/images/social/free-build-20260907.jpg",
   "/scoreboard": "/images/social/scoreboard-20260907.jpg",

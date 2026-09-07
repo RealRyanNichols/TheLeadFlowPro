@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "slug": "why-ad-revenue-and-ad-profit-need-separate-columns",
+  "publicationDate": "2026-09-06",
+  "contentCommit": "b4a5f707b03d5c971d7f584e59e7c66c3f8f32a7",
+  "deployment": {
+    "id": "dpl_2EriusyrXSSJx5mkwqFnmDbzFR4D",
+    "url": "https://the-lead-flow-jjupnx4u1-realryannichols.vercel.app/",
+    "status": "READY",
+    "verifiedAt": "2026-09-07T06:24:26.721Z"
+  },
+  "liveCheck": {
+    "slug": "why-ad-revenue-and-ad-profit-need-separate-columns",
+    "url": "https://www.theleadflowpro.com/articles/why-ad-revenue-and-ad-profit-need-separate-columns",
+    "checkedAt": "2026-09-07T06:30:30.447Z",
+    "httpStatus": 200,
+    "downloadStatus": 200,
+    "ogStatus": 200,
+    "bodyVerified": true,
+    "downloadSha256": "ff611da7013bf7b70745f41d9e2137807256ed9bd63942e8d505d9f3f947a44f",
+    "canonicalVerified": true,
+    "metadataVerified": true,
+    "noindex": false,
+    "toolLinkPresent": true,
+    "indexPresent": true,
+    "sitemapPresent": true,
+    "ogVerified": true,
+    "ogWidth": 1200,
+    "ogHeight": 630,
+    "ogSha256": "e05b14c5f7ddac62211e109812478228da028d9f8ab9506078b4732236a7f552",
+    "reportCompletedAt": "2026-09-07T06:30:36.146Z",
+    "sourceFingerprint": "0db6492823f87f85f7de61f6e19f94be098227766dd980379d1d7195de98e633"
+  }
+}

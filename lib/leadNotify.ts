@@ -169,6 +169,26 @@ export function welcomeSuppressed(lead: Pick<NotifiableLead, "funnel">) {
 function funnelWelcome(lead: NotifiableLead, first: string) {
   const base = { from: FROM_RYAN, to: [lead.email], reply_to: "hello@theleadflowpro.com" };
   switch (lead.funnel) {
+    case "commerce_planner":
+      return {
+        ...base,
+        subject: `${first}, your commerce build request is in.`,
+        text: [
+          `${first},`,
+          "",
+          "Your commerce build list and contact details are saved with The LeadFlow Pro.",
+          "",
+          "I will review what you sell and the accounts you already use. We will agree the scope, cost, and payment and delivery checks before any build.",
+          "",
+          "Submitting the list did not buy a service, connect an account, or authorize a charge.",
+          "",
+          "Reply here with any details you want to add. Do not send passwords, payment information, or customer lists.",
+          "",
+          "You can keep using the free tools and kit previews here:",
+          "https://www.theleadflowpro.com/commerce",
+          ...SIGNATURE,
+        ].join("\n"),
+      };
     case "operator_academy_free_access":
       return {
         ...base,

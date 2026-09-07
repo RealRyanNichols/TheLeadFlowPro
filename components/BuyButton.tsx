@@ -17,12 +17,15 @@ export default function BuyButton({
 
   async function buy() {
     setBusy(true);
-    const checkoutValue = kind === "system_map" || kind === "learn_it" ? 497 : undefined;
-    if (window.fbq) {
-      window.fbq("track", "InitiateCheckout", {
+    const checkoutValue =
+      kind === "system_map" || kind === "learn_it" ? 497 : undefined;
+    try {
+      window.fbq?.("track", "InitiateCheckout", {
         ...(checkoutValue ? { value: checkoutValue } : {}),
         currency: "USD",
       });
+    } catch {
+      // Optional analytics must not prevent a customer from opening checkout.
     }
     try {
       const r = await fetch("/api/checkout", {
@@ -31,7 +34,11 @@ export default function BuyButton({
         body: JSON.stringify({ kind }),
       });
       if (r.status === 501) {
-        router.push(kind === "learn_it" ? "/book?interest=learn" : "/book?interest=system_map");
+        router.push(
+          kind === "learn_it"
+            ? "/book?interest=learn"
+            : "/book?interest=system_map",
+        );
         return;
       }
       const j = await r.json();
@@ -39,12 +46,23 @@ export default function BuyButton({
         window.location.href = j.url;
         return;
       }
-    } catch { /* fall through */ }
-    router.push(kind === "learn_it" ? "/book?interest=learn" : "/book?interest=system_map");
+    } catch {
+      /* fall through */
+    }
+    router.push(
+      kind === "learn_it"
+        ? "/book?interest=learn"
+        : "/book?interest=system_map",
+    );
   }
 
   return (
-    <button type="button" onClick={buy} disabled={busy} className={`${className} disabled:opacity-60`}>
+    <button
+      type="button"
+      onClick={buy}
+      disabled={busy}
+      className={`${className} disabled:opacity-60`}
+    >
       {busy ? "Opening checkout..." : label}
     </button>
   );

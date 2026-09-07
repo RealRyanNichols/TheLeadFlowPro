@@ -296,6 +296,18 @@ export default function ServicesPage() {
           </div>
           <div className={styles.custom}>
             <div>
+              <h3>Have something to sell?</h3>
+              <p>
+                Products, services, or downloads. Plan the path from the offer
+                to payment and delivery, and try the tools that support it.
+              </p>
+            </div>
+            <Link className={styles.textLink} href="/commerce">
+              Explore commerce <ArrowRight size={18} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className={styles.custom}>
+            <div>
               <h3>Need a custom platform?</h3>
               <p>
                 Multi-location systems, complex migrations, deeper permissions,

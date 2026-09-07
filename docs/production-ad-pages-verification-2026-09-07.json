@@ -1,0 +1,606 @@
+{
+  "observedAt": "2026-09-07T06:38:17.382Z",
+  "completedAt": "2026-09-07T06:48:45.051Z",
+  "deployment": {
+    "commit": "b4a5f707",
+    "id": "dpl_2EriusyrXSSJx5mkwqFnmDbzFR4D",
+    "workshopVersion": 12,
+    "identityProvidedByRoot": true
+  },
+  "status": "passed",
+  "scope": "Read-only production checks for the four active ad destinations, five repaired legacy paths, and the two public business capture panels.",
+  "readOnly": {
+    "formSubmissions": 0,
+    "paymentActions": 0,
+    "nonReadRequestsBlocked": true,
+    "internalTrafficCookie": true
+  },
+  "summary": {
+    "httpAssertions": 48,
+    "httpFailures": 0,
+    "viewportChecks": 16,
+    "viewportFailures": 0,
+    "browserErrors": [],
+    "visualInspection": "All four published social images and mobile hero screenshots inspected. Distinct compositions and readable headlines. Scoreboard at320px measured321px document width, within1px rounding tolerance; no content was hidden."
+  },
+  "adPages": [
+    {
+      "url": "https://www.theleadflowpro.com/free-build",
+      "status": 200,
+      "canonical": [
+        "https://www.theleadflowpro.com/free-build"
+      ],
+      "og": [
+        "https://www.theleadflowpro.com/images/social/free-build-20260907.jpg"
+      ],
+      "twitter": [
+        "https://www.theleadflowpro.com/images/social/free-build-20260907.jpg"
+      ],
+      "image": {
+        "url": "https://www.theleadflowpro.com/images/social/free-build-20260907.jpg",
+        "status": 200,
+        "mime": "image/jpeg",
+        "width": 1200,
+        "height": 630,
+        "bytes": 194676,
+        "sha256": "af1eed16273a606986e2abd8d20b17a80560284d7022247e150ea4414fad323b",
+        "matchesReviewedLocal": true
+      },
+      "legacy": {
+        "url": "https://www.theleadflowpro.com/og/pages/free-build",
+        "status": 200,
+        "mime": "image/jpeg",
+        "bytes": 194676,
+        "sha256": "af1eed16273a606986e2abd8d20b17a80560284d7022247e150ea4414fad323b",
+        "matchesNewImage": true
+      },
+      "viewportChecks": [
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "pass": true
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "pass": true
+        },
+        {
+          "width": 768,
+          "documentWidth": 768,
+          "pass": true
+        },
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "/tmp/lfp-live-ad-screenshots/free-build-og.png",
+        "/tmp/lfp-live-ad-screenshots/free-build-mobile.png"
+      ],
+      "flow": {
+        "applicationAnchor": "#pick",
+        "formVisible": true,
+        "contactFields": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "required": true,
+            "label": "Your name *"
+          },
+          {
+            "name": "email",
+            "type": "email",
+            "required": true,
+            "label": "Email *"
+          },
+          {
+            "name": "phone",
+            "type": "tel",
+            "required": true,
+            "label": "Cell phone *"
+          }
+        ],
+        "submitted": false
+      }
+    },
+    {
+      "url": "https://www.theleadflowpro.com/services",
+      "status": 200,
+      "canonical": [
+        "https://www.theleadflowpro.com/services"
+      ],
+      "og": [
+        "https://www.theleadflowpro.com/images/social/services-20260907.jpg"
+      ],
+      "twitter": [
+        "https://www.theleadflowpro.com/images/social/services-20260907.jpg"
+      ],
+      "image": {
+        "url": "https://www.theleadflowpro.com/images/social/services-20260907.jpg",
+        "status": 200,
+        "mime": "image/jpeg",
+        "width": 1200,
+        "height": 630,
+        "bytes": 163388,
+        "sha256": "2992b61c73770d995209cba94a98bf9ef5bd4e680d4c375816b78fdc353ccc7a",
+        "matchesReviewedLocal": true
+      },
+      "legacy": {
+        "url": "https://www.theleadflowpro.com/og/pages/services",
+        "status": 200,
+        "mime": "image/jpeg",
+        "bytes": 163388,
+        "sha256": "2992b61c73770d995209cba94a98bf9ef5bd4e680d4c375816b78fdc353ccc7a",
+        "matchesNewImage": true
+      },
+      "viewportChecks": [
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "pass": true
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "pass": true
+        },
+        {
+          "width": 768,
+          "documentWidth": 768,
+          "pass": true
+        },
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "/tmp/lfp-live-ad-screenshots/services-og.png",
+        "/tmp/lfp-live-ad-screenshots/services-mobile.png"
+      ],
+      "flow": {
+        "applicationDestination": "https://www.theleadflowpro.com/free-build",
+        "websiteLaunchDetails": "https://www.theleadflowpro.com/packages/launch",
+        "submitted": false
+      }
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard",
+      "status": 200,
+      "canonical": [
+        "https://www.theleadflowpro.com/scoreboard"
+      ],
+      "og": [
+        "https://www.theleadflowpro.com/images/social/scoreboard-20260907.jpg"
+      ],
+      "twitter": [
+        "https://www.theleadflowpro.com/images/social/scoreboard-20260907.jpg"
+      ],
+      "image": {
+        "url": "https://www.theleadflowpro.com/images/social/scoreboard-20260907.jpg",
+        "status": 200,
+        "mime": "image/jpeg",
+        "width": 1200,
+        "height": 630,
+        "bytes": 179735,
+        "sha256": "102fa393b4f04354ee76bf348ada4f5822c7a6ba1daf8b2b3601b7acb8ab1715",
+        "matchesReviewedLocal": true
+      },
+      "legacy": {
+        "url": "https://www.theleadflowpro.com/og/pages/scoreboard",
+        "status": 200,
+        "mime": "image/jpeg",
+        "bytes": 179735,
+        "sha256": "102fa393b4f04354ee76bf348ada4f5822c7a6ba1daf8b2b3601b7acb8ab1715",
+        "matchesNewImage": true
+      },
+      "viewportChecks": [
+        {
+          "width": 320,
+          "documentWidth": 321,
+          "pass": true
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "pass": true
+        },
+        {
+          "width": 768,
+          "documentWidth": 768,
+          "pass": true
+        },
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "/tmp/lfp-live-ad-screenshots/scoreboard-og.png",
+        "/tmp/lfp-live-ad-screenshots/scoreboard-mobile.png"
+      ],
+      "flow": {
+        "businessBoards": [
+          "https://www.theleadflowpro.com/scoreboard/the-leadflow-pro",
+          "https://www.theleadflowpro.com/scoreboard/premier-dental-academy-of-longview",
+          "https://www.theleadflowpro.com/scoreboard/realryannichols"
+        ],
+        "openedPdaAndRrn": true
+      }
+    },
+    {
+      "url": "https://workshop.theleadflowpro.com/",
+      "status": 200,
+      "canonical": [
+        "https://workshop.theleadflowpro.com/"
+      ],
+      "og": [
+        "https://workshop.theleadflowpro.com/images/workshop-social-september-17-20260907.jpg"
+      ],
+      "twitter": [
+        "https://workshop.theleadflowpro.com/images/workshop-social-september-17-20260907.jpg"
+      ],
+      "image": {
+        "url": "https://workshop.theleadflowpro.com/images/workshop-social-september-17-20260907.jpg",
+        "status": 200,
+        "mime": "image/jpeg",
+        "width": 1200,
+        "height": 630,
+        "bytes": 170815,
+        "sha256": "491257f55c7ec26e47d34d540f76dc39129687285652ba25e89383c8da985d7d"
+      },
+      "viewportChecks": [
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "pass": true
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "pass": true
+        },
+        {
+          "width": 768,
+          "documentWidth": 768,
+          "pass": true
+        },
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "pass": true
+        }
+      ],
+      "screenshots": [
+        "/tmp/lfp-live-ad-screenshots/workshop-og.png",
+        "/tmp/lfp-live-ad-screenshots/workshop-mobile.png"
+      ],
+      "flow": {
+        "registrationDestination": "https://www.theleadflowpro.com/events/chatgpt-for-business-owners-longview",
+        "submitted": false
+      }
+    }
+  ],
+  "canonicalTrackingQueryChecks": [
+    {
+      "url": "https://www.theleadflowpro.com/free-build",
+      "status": 200,
+      "canonical": [
+        "https://www.theleadflowpro.com/free-build"
+      ],
+      "pass": true
+    },
+    {
+      "url": "https://www.theleadflowpro.com/services",
+      "status": 200,
+      "canonical": [
+        "https://www.theleadflowpro.com/services"
+      ],
+      "pass": true
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard",
+      "status": 200,
+      "canonical": [
+        "https://www.theleadflowpro.com/scoreboard"
+      ],
+      "pass": true
+    },
+    {
+      "url": "https://workshop.theleadflowpro.com/",
+      "status": 200,
+      "canonical": [
+        "https://workshop.theleadflowpro.com/"
+      ],
+      "pass": true
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/industries/real-estate-leads",
+      "target": "/tools/collections/real-estate",
+      "requests": [
+        {
+          "requested": "https://www.theleadflowpro.com/industries/real-estate-leads",
+          "status": 308,
+          "location": "https://www.theleadflowpro.com/tools/collections/real-estate"
+        },
+        {
+          "requested": "https://www.theleadflowpro.com/industries/real-estate-leads?qa_marker=public_check",
+          "status": 308,
+          "location": "https://www.theleadflowpro.com/tools/collections/real-estate"
+        }
+      ],
+      "targetStatus": 200,
+      "targetCanonical": [
+        "https://www.theleadflowpro.com/tools/collections/real-estate"
+      ]
+    },
+    {
+      "source": "/industries/mortgage-leads",
+      "target": "/tools/collections/mortgage-lending",
+      "requests": [
+        {
+          "requested": "https://www.theleadflowpro.com/industries/mortgage-leads",
+          "status": 308,
+          "location": "https://www.theleadflowpro.com/tools/collections/mortgage-lending"
+        },
+        {
+          "requested": "https://www.theleadflowpro.com/industries/mortgage-leads?qa_marker=public_check",
+          "status": 308,
+          "location": "https://www.theleadflowpro.com/tools/collections/mortgage-lending"
+        }
+      ],
+      "targetStatus": 200,
+      "targetCanonical": [
+        "https://www.theleadflowpro.com/tools/collections/mortgage-lending"
+      ]
+    },
+    {
+      "source": "/industries/contractor-leads",
+      "target": "/tools/collections/home-services",
+      "requests": [
+        {
+          "requested": "https://www.theleadflowpro.com/industries/contractor-leads",
+          "status": 308,
+          "location": "https://www.theleadflowpro.com/tools/collections/home-services"
+        },
+        {
+          "requested": "https://www.theleadflowpro.com/industries/contractor-leads?qa_marker=public_check",
+          "status": 308,
+          "location": "https://www.theleadflowpro.com/tools/collections/home-services"
+        }
+      ],
+      "targetStatus": 200,
+      "targetCanonical": [
+        "https://www.theleadflowpro.com/tools/collections/home-services"
+      ]
+    },
+    {
+      "source": "/leaderboard",
+      "target": "/scoreboard",
+      "requests": [
+        {
+          "requested": "https://www.theleadflowpro.com/leaderboard",
+          "status": 308,
+          "location": "https://www.theleadflowpro.com/scoreboard"
+        },
+        {
+          "requested": "https://www.theleadflowpro.com/leaderboard?qa_marker=public_check",
+          "status": 308,
+          "location": "https://www.theleadflowpro.com/scoreboard"
+        }
+      ],
+      "targetStatus": 200,
+      "targetCanonical": [
+        "https://www.theleadflowpro.com/scoreboard"
+      ]
+    },
+    {
+      "source": "/lead-leak-audit",
+      "target": "/diagnostic",
+      "requests": [
+        {
+          "requested": "https://www.theleadflowpro.com/lead-leak-audit",
+          "status": 308,
+          "location": "https://www.theleadflowpro.com/diagnostic"
+        },
+        {
+          "requested": "https://www.theleadflowpro.com/lead-leak-audit?qa_marker=public_check",
+          "status": 308,
+          "location": "https://www.theleadflowpro.com/diagnostic"
+        }
+      ],
+      "targetStatus": 200,
+      "targetCanonical": [
+        "https://www.theleadflowpro.com/diagnostic"
+      ]
+    }
+  ],
+  "scoreboard": [
+    {
+      "slug": "premier-dental-academy-of-longview",
+      "pageStatus": 200,
+      "captureStatus": 200,
+      "capture": [
+        {
+          "source": "leads",
+          "records": 220,
+          "additional_emails": 0,
+          "start_day": "2026-08-09",
+          "end_day": "2026-09-07"
+        },
+        {
+          "source": "subscribers",
+          "records": 75,
+          "additional_emails": 2,
+          "start_day": "2026-08-09",
+          "end_day": "2026-09-07"
+        },
+        {
+          "source": "enrollment_forms",
+          "records": 1,
+          "additional_emails": 0,
+          "start_day": "2026-08-09",
+          "end_day": "2026-09-07"
+        }
+      ],
+      "dailyStatus": 200,
+      "firstDay": "2026-08-09",
+      "lastDay": "2026-09-07",
+      "aggregateTotals": {
+        "views": 4758,
+        "visitors": 2190,
+        "clicks": 341,
+        "leads": 220,
+        "paid_leads": 32,
+        "unpaid_leads": 188,
+        "calls": 126,
+        "forms": 58,
+        "sales": 6
+      },
+      "displayDefinitionsFound": true,
+      "visiblePanelVerified": {
+        "slug": "premier-dental-academy-of-longview",
+        "allSourceCountsVisible": true,
+        "viewAndLeadTotalsVisible": true,
+        "paymentCountVisible": true,
+        "overlapWarningVisible": true,
+        "paymentsQualified": true,
+        "unavailable": false
+      }
+    },
+    {
+      "slug": "realryannichols",
+      "pageStatus": 200,
+      "captureStatus": 200,
+      "capture": [
+        {
+          "source": "book_email_signups",
+          "records": 15,
+          "additional_emails": 0,
+          "start_day": "2026-08-09",
+          "end_day": "2026-09-07"
+        },
+        {
+          "source": "notify_signups",
+          "records": 16,
+          "additional_emails": 0,
+          "start_day": "2026-08-09",
+          "end_day": "2026-09-07"
+        },
+        {
+          "source": "poll_unlocks",
+          "records": 2,
+          "additional_emails": 0,
+          "start_day": "2026-08-09",
+          "end_day": "2026-09-07"
+        },
+        {
+          "source": "chat_escalations",
+          "records": 0,
+          "additional_emails": 0,
+          "start_day": "2026-08-09",
+          "end_day": "2026-09-07"
+        },
+        {
+          "source": "leads",
+          "records": 6,
+          "additional_emails": 1,
+          "start_day": "2026-08-09",
+          "end_day": "2026-09-07"
+        }
+      ],
+      "dailyStatus": 200,
+      "firstDay": "2026-08-09",
+      "lastDay": "2026-09-07",
+      "aggregateTotals": {
+        "views": 8775,
+        "visitors": 5662,
+        "clicks": 6727,
+        "leads": 33,
+        "paid_leads": 0,
+        "unpaid_leads": 33,
+        "calls": 0,
+        "forms": 33,
+        "sales": 48
+      },
+      "displayDefinitionsFound": true,
+      "visiblePanelVerified": {
+        "slug": "realryannichols",
+        "allSourceCountsVisible": true,
+        "viewAndLeadTotalsVisible": true,
+        "paymentCountVisible": true,
+        "overlapWarningVisible": true,
+        "paymentsQualified": true,
+        "unavailable": false
+      }
+    }
+  ],
+  "workshopRegistration": {
+    "url": "https://www.theleadflowpro.com/events/chatgpt-for-business-owners-longview",
+    "status": 200,
+    "h1": "ChatGPT for Business Owners: Live in Longview",
+    "inputs": [
+      {
+        "name": "full_name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "email",
+        "type": "email",
+        "required": true
+      },
+      {
+        "name": "phone",
+        "type": "tel",
+        "required": false
+      },
+      {
+        "name": "business_name",
+        "type": "text",
+        "required": false
+      },
+      {
+        "name": "recording_consent",
+        "type": "checkbox",
+        "required": false
+      },
+      {
+        "name": "marketing_consent",
+        "type": "checkbox",
+        "required": false
+      }
+    ],
+    "submit": [
+      {
+        "text": "CONTINUE TO PAYMENT | $97",
+        "disabled": false
+      }
+    ],
+    "robots": "noindex, follow",
+    "documentWidth": 390,
+    "viewport": 390,
+    "submitted": false,
+    "observedPublicFacts": {
+      "date": "2026-09-17",
+      "time": "6:30 PM–8:00 PM CDT",
+      "priceUsd": 97,
+      "seatsAvailable": 10,
+      "seatConfirmedOnlyAfterPayment": true,
+      "privateArrivalInstructionsAfterPayment": true
+    }
+  },
+  "limitations": [
+    "This check did not submit forms, create checkout sessions, charge cards, send email, or change ads.",
+    "Provider delivery, successful purchases and Meta ad-creative updates require their separate evidence.",
+    "The rolling30day business window is2026-08-09 through2026-09-07; counts differ from September6 snapshots because the window moved.",
+    "RRN advertising-attribution and call fields are not supported; the public UI correctly says Not tracked rather than interpreting the RPC placeholder zeros as measured results."
+  ]
+}
