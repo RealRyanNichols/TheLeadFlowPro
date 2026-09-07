@@ -1,0 +1,104 @@
+[
+  {
+    "asset": "Services page social-preview creative",
+    "createdDate": "2026-09-07",
+    "mode": "Built-in imagegen, new generation with no reference image",
+    "requestedNativeResolution": {
+      "width": 3840,
+      "height": 2016
+    },
+    "actualNativeResolution": {
+      "width": 1731,
+      "height": 909
+    },
+    "nativeMaster": "output/creative/services-20260907/services-native.png",
+    "publicExport": {
+      "path": "public/images/social/services-20260907.jpg",
+      "width": 1200,
+      "height": 630,
+      "bytes": 163388,
+      "encoding": "Progressive JPEG, quality91, mozjpeg; reduced from native, centered fit, no upscaling."
+    },
+    "resolutionNote": "The built-in generator delivered1731\u00d7909 after a3840\u00d72016 request. The native master retains its actual resolution. The3840\u00d72016 deliverable is explicitly labeled as an upscaled export,not a native4K generation.",
+    "review": "Both generated original and final1200\u00d7630 export visually inspected. Exact headline is correctly spelled and prominent. Bright warm cream photographic desk, cobalt laptop/phone accents and vermilion red quote button/bell. No performance metrics, testimonials, people, or private customer data. Website and quote/inquiry/follow-up interface are conceptual, not screenshots of an actual customer's records.",
+    "suggestedAlt": "A better website. A clearer workday. A laptop displays a business website beside a quote clipboard and a phone showing inquiry and follow-up cards on a warm cream desk.",
+    "prompt": "Use case: ads-marketing. Create one final, high-end photographic 3D editorial social-preview advertisement for The LeadFlow Pro services page. Requested native master resolution: EXACTLY 3840 pixels wide by 2016 pixels high (1.90476:1 landscape, matching a 1200x630 Facebook/Open Graph card). Generate the best actual native resolution you support in that wide aspect ratio.\n\nThis must feel like an attractive, full-bleed art-directed photograph of a beautiful working business desk, not a flat white word card, abstract engine, sci-fi diagram, or dashboard full of invented success metrics. Warm cream and pale sand surfaces, rich electric cobalt blue, vivid vermilion red highlights, brushed silver laptop, soft daylight, a beautiful play of real material texture and shadow. No purple. Give the entire image visual depth and atmosphere. Keep the background light, never dark or blank white.\n\nScene: a premium silver laptop sits at a three-quarter angle slightly right of center on the cream desktop. Its screen clearly resembles an inviting, professionally built local-business website: one large tasteful photo of a clean modern shopfront, crisp navigation shapes, and a red button labeled exactly 'GET A QUOTE'. On the desk immediately around it, a substantial blue clipboard with a cream quote document labeled 'QUOTE', a small red reminder bell, and a blue smartphone standing on a neat silver stand. The phone shows a simple anonymous customer-inquiry message card labeled 'NEW INQUIRY' and a smaller cream reply card labeled 'FOLLOW-UP'. No actual person names, phone numbers, message content, transaction values, metrics, charts, testimonial stars, revenue claims, or checkmarks suggesting verified results. Use believable materials and physically grounded objects. No floating magical icon networks, neon connections, piles of paper, or visual clutter. This is a conceptual illustration of what a service can build, not a photograph of customer data or performance evidence.\n\nCompose with a beautifully lit cream wall/desk area in the upper-left where the headline can be very large and immediately readable at 600px preview size, while the laptop and phone form a compelling focal point across the lower-right. Do not place text in a box or on a separate white panel. Photograph/render spans edge to edge behind everything.\n\nExact headline, bold modern sans-serif, exceptionally readable, aligned left, with 6 percent safe margin from all edges:\n'A BETTER WEBSITE.'\n'A CLEARER WORKDAY.'\nUse very dark blue-ink for the first line, electric cobalt blue for the second. Both lines must be spelled exactly, comfortably fit in the frame, and have strong contrast. Headline is the main message and must not be blocked by the devices. Small but clearly readable brand at upper-left above headline: 'THE LEADFLOW PRO'. No additional tagline, price, date, URL or call to action outside the specified simple device/document labels.\n\nMake this look premium and inviting enough that a business owner stops scrolling, understands 'better website plus easier follow-up' immediately, and wants to look closer. Beautiful lighting, thoughtful photography, tactile detail, confident typography. No stock people, no robots, no invented brand logos, no fake results. Deliver one polished wide finished graphic.",
+    "upscaledExport": {
+      "path": "output/creative/services-20260907/services-3840x2016-upscaled.jpg",
+      "width": 3840,
+      "height": 2016,
+      "bytes": 1995133,
+      "sha256": "8ffe19cfa1193c27908e3d39deb5e4951c2cb7236bb0143f72174eba94501589",
+      "encoding": "Sharp Lanczos3 enlargement,centered fit,JPEG quality96,4:4:4,mozjpeg",
+      "native4K": false
+    }
+  },
+  {
+    "asset": "September17 ChatGPT workshop social-preview creative",
+    "createdDate": "2026-09-07",
+    "mode": "Built-in imagegen, new generation with no reference image",
+    "requestedNativeResolution": {
+      "width": 3840,
+      "height": 2016
+    },
+    "actualNativeResolution": {
+      "width": 1731,
+      "height": 909
+    },
+    "nativeMaster": "output/creative/workshop-20260907/workshop-native.png",
+    "publicExport": {
+      "path": "public/images/social/workshop-20260907.jpg",
+      "width": 1200,
+      "height": 630,
+      "bytes": 170815,
+      "sha256": "491257f55c7ec26e47d34d540f76dc39129687285652ba25e89383c8da985d7d",
+      "encoding": "Progressive JPEG quality91, mozjpeg; reduced from native with centered fit."
+    },
+    "upscaledExport": {
+      "path": "output/creative/workshop-20260907/workshop-3840x2016-upscaled.jpg",
+      "width": 3840,
+      "height": 2016,
+      "bytes": 2080656,
+      "sha256": "ceca5dfd73a30635b35e7072bce2ff5e4281f96e1c5dc920adacbb857ecd76c6",
+      "encoding": "Sharp Lanczos3 enlargement, centered fit, JPEG quality96,4:4:4,mozjpeg",
+      "native4K": false
+    },
+    "resolutionNote": "Built-in returned1731\u00d7909 after a3840\u00d72016 request. The3840\u00d72016 file is an explicitly upscaled export, not a native4K generation.",
+    "eventFacts": "Current authorized event: ChatGPT for Business Owners, Longview, September17,2026,$97 per attendee. Only supplied headline, topic, date, location and price appear in the ad.",
+    "review": "Original and1200\u00d7630 export visually inspected. Exact headline and date prominent and correctly spelled. Warm bright hands-on laptop desk with quote/content/follow-up clipboards, blue/red accents. No people, crowd, attendance count, testimonial or fabricated outcome. Chat interface and paper exercises are conceptual, not real customer content.",
+    "suggestedAlt": "Build something you can use. ChatGPT for Business Owners, September17,Longview,$97. A laptop and quote, content and follow-up worksheets on a warm workshop desk.",
+    "prompt": "Use case: ads-marketing. Create one premium final full-bleed photographic 3D editorial advertisement for a real workshop by The LeadFlow Pro. Request native master size EXACTLY 3840x2016 pixels, wide landscape ratio 1.90476:1, appropriate for an Open Graph/Facebook preview at1200x630. Generate the best actual native size you support in that ratio.\n\nCreative direction: a bright, inviting hands-on business workshop desk, warm cream and sunlit pale sand materials, electric cobalt blue, vivid vermilion red accents, brushed silver laptop, crisp tactile paper, beautiful soft daylight and detailed realistic shadows. It must be a visually arresting, art-directed business photograph rendered in high-quality3D. Full-bleed scene behind all typography, no white text panel, no dark background, no purple, no abstract machine or neon engine. A busy business owner should instantly understand that they will learn to build something useful with ChatGPT.\n\nDesk scene positioned across the right half and lower area: a beautiful open silver-and-blue laptop with a simple friendly generic chat interface (no OpenAI logo, no brand mashups, no actual conversation or simulated results); three beautifully arranged cream work pieces with blue clips and red accents represent practical workshop exercises. Their only large labels are 'QUOTE', 'CONTENT', and 'FOLLOW-UP'. A small red desk calendar object and a blue pen show a hands-on work session. The objects are physical, grounded and photographically credible, not floating holograms. Deliberate uncluttered arrangement and compelling camera angle distinct from a standard stock laptop shot. No people, crowds, attendance claims, sales amounts, income charts, conversion percentages, stars, testimonials, or success checkmarks. This is a conceptual workshop creative, not a photo of an event that already occurred.\n\nTypography placed in the upper-left and left-center on the warmly lit scene. Huge bold confident modern sans serif with excellent mobile readability. Keep a6percent safe margin from the edges and no device overlapping text. Use precisely these texts:\nSmall top brand: 'THE LEADFLOW PRO'\nMain headline on two or three lines as needed, preserving the exact sentence: 'BUILD SOMETHING YOU CAN USE.'\nUse very dark navy-ink for 'BUILD SOMETHING' and electric cobalt blue for 'YOU CAN USE.'\nReadable secondary line: 'ChatGPT for Business Owners'\nA large unmistakable date block in rich vermilion red with warm cream letters: 'SEPTEMBER 17'\nClear location and price line immediately below or beside the date block: 'LONGVIEW \u00b7 $97'\n\nThe headline and date must be the first things seen in a600pixel preview. Reserve enough room for both without clutter. No additional tagline, URL, time, scarcity message, promise, invented logo, or CTA sentence. Exact event facts for your context only: September17,2026;Longview,Texas;ninety-minute business workshop;$97per attendee;beginners welcome;bring a laptop. Add no facts beyond the specified text. Deliver one polished, wide final creative with detailed, beautiful full-bleed lighting and a premium brand feel."
+  },
+  {
+    "generator": "Built-in image_gen",
+    "nativeResolution": {
+      "width": 1731,
+      "height": 909
+    },
+    "requestedResolution": {
+      "width": 3840,
+      "height": 2016
+    },
+    "masterResolutionNote": "The 3840x2016 master is an upscaled export of the 1731x909 native generation, not native 4K.",
+    "files": [
+      {
+        "path": "output/creative/free-build-20260907-native.png",
+        "width": 1731,
+        "height": 909,
+        "bytes": 1821515
+      },
+      {
+        "path": "output/creative/free-build-20260907-master-4k.jpg",
+        "width": 3840,
+        "height": 2016,
+        "bytes": 1479264
+      },
+      {
+        "path": "public/images/social/free-build-20260907.jpg",
+        "width": 1200,
+        "height": 630,
+        "bytes": 194676
+      }
+    ]
+  }
+]

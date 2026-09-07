@@ -3,7 +3,10 @@ import path from "node:path";
 import { ImageResponse } from "next/og";
 import { getPublicOgPage } from "@/lib/publicOgCatalog";
 import { publicOgCard } from "@/lib/publicOgCard";
-import { PUBLIC_OG_SIZE } from "@/lib/publicPageMetadata";
+import {
+  AD_PAGE_SOCIAL_IMAGES,
+  PUBLIC_OG_SIZE,
+} from "@/lib/publicPageMetadata";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,6 +35,20 @@ export async function GET(
   const page = new URL(request.url).search
     ? undefined
     : getPublicOgPage(canonicalPath);
+  const finishedArt = page && AD_PAGE_SOCIAL_IMAGES[canonicalPath];
+  if (finishedArt) {
+    // Existing shares may still request the old generated-card URL.
+    const bytes = await readFile(
+      path.join(process.cwd(), "public", finishedArt),
+    );
+    return new Response(bytes, {
+      headers: {
+        "Content-Type": "image/jpeg",
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=3600",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  }
   if (!page || page.imagePath !== `/og/pages/${segments.join("/")}`) {
     return new Response("Share image not found", {
       status: 404,

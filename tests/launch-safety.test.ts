@@ -16,8 +16,8 @@ test("nurture checks the exact LeadFlow Supabase origin before reading the servi
   assert.ok(serviceKeyRead > identityCheck);
   assert.ok(clientCreation > identityCheck);
   assert.match(route, /\.eq\("marketing_email_consent", true\)/);
-  assert.match(route, /\.eq\("interest", "free_website_program"\)/);
-  assert.match(route, /filter\(isFreeWebsiteProgramNurtureLead\)/);
+  // Recipient behavior is covered in nurture-eligibility-route.test.ts. The
+  // sender now admits the free-build and workshop lanes, not one SQL interest.
 });
 
 test("unsubscribe checks the exact LeadFlow Supabase origin before service-role use", async () => {

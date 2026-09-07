@@ -10,6 +10,8 @@ import type { ReactElement } from "react";
 import { getPublicOgPage, getPublicOgPages } from "../lib/publicOgCatalog.ts";
 import { PUBLIC_PAGE_CATALOG } from "../lib/publicPageCatalog.ts";
 import {
+  AD_PAGE_SOCIAL_IMAGES,
+  PUBLIC_OG_SIZE,
   PUBLIC_SITE_URL,
   publicPageImagePath,
   withPublicPageMetadata,
@@ -19,6 +21,103 @@ import sitemap from "../app/sitemap.ts";
 const require = createRequire(import.meta.url);
 const { ImageResponse }: typeof import("next/og") = require("next/og");
 const observedAt = new Date("2026-09-06T18:00:00Z");
+
+test("paid-traffic pages use distinct finished 1200 by 630 JPEG artwork", async () => {
+  const expected = {
+    "/services": "/images/social/services-20260907.jpg",
+    "/free-build": "/images/social/free-build-20260907.jpg",
+    "/scoreboard": "/images/social/scoreboard-20260907.jpg",
+  };
+  const hashes = new Set<string>();
+  for (const [route, imagePath] of Object.entries(expected)) {
+    assert.equal(AD_PAGE_SOCIAL_IMAGES[route], imagePath);
+    assert.equal(publicPageImagePath(route), imagePath);
+    assert.equal(getPublicOgPage(route, observedAt)?.imagePath, imagePath);
+    const bytes = await readFile(path.join(process.cwd(), "public", imagePath));
+    const dimensions = await sharp(bytes).metadata();
+    assert.equal(dimensions.format, "jpeg", route);
+    assert.equal(dimensions.width, 1200, route);
+    assert.equal(dimensions.height, 630, route);
+    const hash = createHash("sha256").update(bytes).digest("hex");
+    assert.ok(
+      !hashes.has(hash),
+      `${route} repeats another ad page's image bytes`,
+    );
+    hashes.add(hash);
+  }
+  assert.equal(hashes.size, 3);
+});
+
+test("legacy ad preview URLs return the full finished image bytes and reject query/private paths", async () => {
+  const source = await readFile("app/og/pages/[...path]/route.tsx", "utf8");
+  const compiled = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2022,
+      jsx: ts.JsxEmit.ReactJSX,
+      esModuleInterop: true,
+    },
+  }).outputText;
+  const routeExports = {} as {
+    GET: (
+      request: Request,
+      context: { params: Promise<{ path: string[] }> },
+    ) => Promise<Response>;
+  };
+  const localRequire = (name: string) => {
+    if (name === "@/lib/publicOgCatalog") return { getPublicOgPage };
+    if (name === "@/lib/publicPageMetadata")
+      return { AD_PAGE_SOCIAL_IMAGES, PUBLIC_OG_SIZE };
+    if (name === "@/lib/publicOgCard")
+      return {
+        publicOgCard: () =>
+          assert.fail(
+            "Finished ad art must not be inserted into another generated card",
+          ),
+      };
+    return require(name);
+  };
+  new Function("require", "exports", compiled)(localRequire, routeExports);
+  for (const route of ["/services", "/free-build", "/scoreboard"]) {
+    const context = {
+      params: Promise.resolve({ path: route.slice(1).split("/") }),
+    };
+    const response = await routeExports.GET(
+      new Request(`${PUBLIC_SITE_URL}/og/pages${route}`),
+      context,
+    );
+    assert.equal(response.status, 200, route);
+    assert.equal(response.headers.get("Content-Type"), "image/jpeg", route);
+    assert.equal(
+      response.headers.get("X-Content-Type-Options"),
+      "nosniff",
+      route,
+    );
+    assert.deepEqual(
+      Buffer.from(await response.arrayBuffer()),
+      await readFile(
+        path.join(process.cwd(), "public", AD_PAGE_SOCIAL_IMAGES[route]),
+      ),
+      route,
+    );
+    const queryResponse = await routeExports.GET(
+      new Request(`${PUBLIC_SITE_URL}/og/pages${route}?token=private-fixture`),
+      context,
+    );
+    assert.equal(queryResponse.status, 404);
+    assert.equal(queryResponse.headers.get("Cache-Control"), "no-store");
+  }
+  for (const segments of [["admin"], ["not-a-page"], ["..", "admin"]]) {
+    const response = await routeExports.GET(
+      new Request(`${PUBLIC_SITE_URL}/og/pages/unlisted`),
+      {
+        params: Promise.resolve({ path: segments }),
+      },
+    );
+    assert.equal(response.status, 404);
+    assert.equal(response.headers.get("X-Robots-Tag"), "noindex, nofollow");
+  }
+});
 
 test("every catalogued public URL has one distinct social image URL", () => {
   const pages = getPublicOgPages(observedAt);

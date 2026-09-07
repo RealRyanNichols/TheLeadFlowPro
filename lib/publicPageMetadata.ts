@@ -3,6 +3,14 @@ import type { Metadata } from "next";
 export const PUBLIC_SITE_URL = "https://www.theleadflowpro.com";
 export const PUBLIC_OG_SIZE = { width: 1200, height: 630 } as const;
 
+// Finished, page-specific creatives for the destinations receiving paid traffic.
+// Dated URLs prompt social crawlers to fetch the new artwork instead of old cards.
+export const AD_PAGE_SOCIAL_IMAGES: Readonly<Record<string, string>> = {
+  "/services": "/images/social/services-20260907.jpg",
+  "/free-build": "/images/social/free-build-20260907.jpg",
+  "/scoreboard": "/images/social/scoreboard-20260907.jpg",
+};
+
 /** Only canonical paths enter metadata. Tokens and user-entered text never enter OG URLs. */
 export function isCanonicalPublicPath(path: string): boolean {
   return (
@@ -16,7 +24,9 @@ export function isCanonicalPublicPath(path: string): boolean {
 export function publicPageImagePath(path: string): string {
   if (!isCanonicalPublicPath(path))
     throw new Error("A canonical page path is required");
-  return `/og/pages${path === "/" ? "/home" : path}`;
+  return (
+    AD_PAGE_SOCIAL_IMAGES[path] ?? `/og/pages${path === "/" ? "/home" : path}`
+  );
 }
 
 function textTitle(title: Metadata["title"], fallback: string): string {
