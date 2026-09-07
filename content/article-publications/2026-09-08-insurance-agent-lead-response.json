@@ -54,5 +54,19 @@
       "todayArticleStatus": 200,
       "todayArticleAbsent": true
     }
+  },
+  "calculationCorrection": {
+    "checkedAt": "2026-09-07T01:58:30.921492+00:00",
+    "status": "source-correction-awaiting-coordinated-deployment",
+    "reason": "Five-minute comparison corrected from .08 hours to exactly 5/60; old publication evidence above retained as history.",
+    "input": {
+      "leads": 20,
+      "hours": 2,
+      "ticket": 200,
+      "baseClose": 25
+    },
+    "annualDisplay": "$3,236",
+    "monthlyDisplay": "$270",
+    "publicationDateUnchanged": "2026-09-08"
   }
 }

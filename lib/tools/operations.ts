@@ -116,7 +116,8 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
     ],
     run: (v) => {
       const volume = num(v, "volume");
-      const avgSale = Math.max(1, num(v, "avgSale"));
+      const avgSale = num(v, "avgSale");
+      if (avgSale <= 0) return { note: "Enter an average sale above zero to estimate transaction count and per-transaction fees." };
       const rate = num(v, "rate") / 100;
       const per = num(v, "perTxn") / 100;
       const better = num(v, "betterRate") / 100;
@@ -129,10 +130,10 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       return {
         headline: { value: money(monthly * 12), label: "Processing fees per year", sub: `${money(monthly)} a month`, tone: "bad" },
         stats: [
-          { label: "Effective rate", value: pct(effective, 2), sub: "not the rate they quoted you", tone: "warn" },
+          { label: "Effective rate", value: volume > 0 ? pct(effective, 2) : "Not defined", sub: "not the rate they quoted you", tone: "warn" },
           { label: "Transactions a month", value: count(txns) },
           { label: "Saved at the better rate", value: money(saved * 12) + "/yr", tone: "good" },
-          { label: "Cost per sale", value: money2(monthly / Math.max(1, txns)) },
+          { label: "Cost per sale", value: txns > 0 ? money2(monthly / txns) : "Not defined" },
         ],
         ramp: rampMonths(monthly, "Fees taken off the top, month by month"),
         verdict: {
@@ -183,7 +184,7 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
           { label: "Cut on repeat customers", value: money(repeatCut), sub: "customers you already earned", tone: "bad" },
           { label: "Five year total", value: money(yearly * 5), tone: "bad" },
           { label: "Kept if repeats book direct", value: money(repeatCut), tone: "good" },
-          { label: "Effective take rate", value: pct((monthly / Math.max(1, revenue)) * 100, 1), tone: "warn" },
+          { label: "Effective take rate", value: revenue > 0 ? pct((monthly / revenue) * 100, 1) : "Not defined", tone: "warn" },
         ],
         bars: {
           title: "Every $100 of platform work",
@@ -231,7 +232,7 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       const price = num(v, "price");
       const tools = num(v, "tools");
       const growth = num(v, "growth");
-      const ghost = num(v, "ghost");
+      const ghost = Math.min(seats, num(v, "ghost"));
       const monthly = seats * price * tools;
       const future = (seats + growth) * price * tools;
       const ghostCost = ghost * price * tools * 12;
@@ -297,12 +298,12 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       const backupYear = backup * 12;
 
       return {
-        headline: { value: money(perHour), label: "Every hour you are down costs this", sub: `${money(lost)} a year at ${count(downHours)} hours`, tone: "bad" },
+        headline: { value: money(perHour), label: "Revenue per open hour, before the loss assumption", sub: `${money(lost)} a year at ${count(downHours)} hours`, tone: "bad" },
         stats: [
           { label: "Lost per year", value: money(lost), tone: "bad" },
           { label: "Backup costs", value: money(backupYear) + "/yr" },
           { label: lost > backupYear ? "Backup pays for itself" : "Backup costs more", value: money(Math.abs(lost - backupYear)), tone: lost > backupYear ? "good" : "warn" },
-          { label: "Break-even downtime", value: `${dec(backupYear / Math.max(1, perHour * lossRate), 1)} hrs/yr` },
+          { label: "Break-even downtime", value: perHour * lossRate > 0 ? `${dec(backupYear / (perHour * lossRate), 1)} hrs/yr` : "Not defined at zero modeled loss" },
         ],
         bars: {
           title: "Downtime cost vs redundancy cost",
@@ -371,7 +372,7 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
         stats: [
           { label: "Rent, total", value: money(rentTotal), tone: diff >= 0 ? "bad" : "good" },
           { label: "Buy, net of resale", value: money(buyTotal), tone: diff >= 0 ? "good" : "bad" },
-          { label: "Break-even", value: `${dec(breakEvenDays, 0)} days/yr`, sub: `you use it ${count(days)}` },
+          { label: "Break-even", value: dayRate > 0 ? `${dec(Math.max(0, breakEvenDays), 1)} days/yr` : "Not defined", sub: `you use it ${count(days)}` },
           { label: "Your cost per day owned", value: money2(costPerDayOwned) },
         ],
         bars: {
@@ -383,7 +384,7 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
         },
         verdict: {
           tone: "neutral",
-          text: `Past ${dec(breakEvenDays, 0)} days a year, buying wins. Under that, renting keeps your cash free and the maintenance somebody else's problem.`,
+          text: dayRate > 0 ? `The entered costs are equal at ${dec(Math.max(0, breakEvenDays), 1)} rental days per year. Compare the scenario with your job calendar and actual resale expectations.` : "With zero rental cost, a rental-day break-even cannot be calculated. Compare the total cash and ownership assumptions directly.",
         },
         note: "Owning also means storage, insurance, transport and the day it breaks on a job. Rented gear gets swapped out. Weigh that against the number.",
       };
@@ -399,7 +400,7 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
     category: "Ads",
     tagline: "Is the ad actually working?",
     description:
-      "Return on ad spend, profit on ad spend, and the break-even point most people never check. Revenue ROAS lies. Profit ROAS does not.",
+      "Compare attributed revenue with ad spend, fees, and gross margin. See the contribution remaining before business costs outside the model.",
     who: "Anyone running Facebook, Instagram, Google or local ads.",
     problem:
       "A 3x return sounds great until you remember your margin is 30 percent. Then 3x is losing money.",
@@ -421,6 +422,7 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       const margin = num(v, "margin") / 100;
       const fees = num(v, "fees");
       const total = spend + fees;
+      if (total <= 0) return { headline: { value: "Not defined", label: "ROAS needs positive marketing spending", tone: "warn" }, note: "Revenue divided by zero marketing cost has no finite ROAS. Enter spending and fees for the period being compared." };
       const roas = total > 0 ? revenue / total : 0;
       const grossProfit = revenue * margin;
       const net = grossProfit - total;
@@ -430,14 +432,14 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       return {
         headline: {
           value: `${dec(roas, 2)}x`,
-          label: "Return on ad spend",
-          sub: `You need ${dec(breakEven, 2)}x just to break even`,
+          label: "Revenue / ad spend plus fees",
+          sub: `${dec(breakEven, 2)}x covers the modeled costs before excluded overhead`,
           tone: roas >= breakEven ? "good" : "bad",
         },
         stats: [
           { label: "Gross profit from ads", value: money(grossProfit) },
-          { label: net >= 0 ? "Actual profit" : "Actual loss", value: money(Math.abs(net)), tone: net >= 0 ? "good" : "bad" },
-          { label: "Profit on ad spend", value: `${dec(poas, 2)}x`, tone: poas >= 1 ? "good" : "bad" },
+          { label: net >= 0 ? "Contribution after marketing" : "Shortfall after marketing", value: money(Math.abs(net)), tone: net >= 0 ? "good" : "bad" },
+          { label: "Gross profit / marketing cost", value: `${dec(poas, 2)}x`, tone: poas >= 1 ? "good" : "bad" },
           { label: "Break-even ROAS", value: `${dec(breakEven, 2)}x`, sub: "at your margin" },
         ],
         bars: {
@@ -451,10 +453,10 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
           tone: net >= 0 ? "good" : "bad",
           text:
             net >= 0
-              ? `Every dollar in is bringing back ${money2(net / Math.max(1, total) + 1)} of gross profit. This one earns more budget.`
-              : `At ${pct(margin * 100)} margin, ${dec(roas, 2)}x loses ${money(Math.abs(net))}. Fix margin, ticket, or close rate before you spend more.`,
+              ? `Modeled gross profit exceeds the entered marketing costs by ${money(net)}. Check attribution, excluded expenses, cash timing, and capacity before changing spending.`
+              : `At ${pct(margin * 100)} margin, modeled gross profit is ${money(Math.abs(net))} below the entered marketing costs. Review the inputs and costs before deciding.`,
         },
-        note: "No ad platform can promise a return. This measures what already happened so you can decide what to do next.",
+        note: "Uses your entered figures, which may be actual records or assumptions. Fees are included in the ROAS denominator. The result excludes costs outside the margin and does not prove advertising caused the revenue.",
       };
     },
   },
@@ -496,15 +498,15 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       const profit = revenue * margin - budget;
 
       return {
-        headline: { value: money(budget), label: "Budget to hit that goal", sub: `${count(leads)} leads at ${money2(cpl)} each`, tone: "neutral" },
+        headline: { value: money(budget), label: "Budget implied by this scenario", sub: `${count(leads)} leads at ${money2(cpl)} each`, tone: "neutral" },
         stats: [
           { label: "Cost per customer", value: money2(cac), tone: cac < value * margin ? "good" : "bad" },
-          { label: "Revenue it should produce", value: money(revenue), tone: "good" },
-          { label: profit >= 0 ? "Profit after ad spend" : "Loss after ad spend", value: money(Math.abs(profit)), tone: profit >= 0 ? "good" : "bad" },
+          { label: "Modeled customer revenue", value: money(revenue), tone: "good" },
+          { label: profit >= 0 ? "Contribution after ad spend" : "Shortfall after ad spend", value: money(Math.abs(profit)), tone: profit >= 0 ? "good" : "bad" },
           { label: "Daily budget", value: money2(budget / 30) },
         ],
         bars: {
-          title: "Budget vs what it should return",
+          title: "Modeled spending and gross profit",
           items: [
             { label: "You spend", value: budget, display: money(budget), tone: "warn" },
             { label: "Gross profit back", value: revenue * margin, display: money(revenue * margin), tone: "good" },
@@ -514,7 +516,7 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
           tone: profit >= 0 ? "good" : "bad",
           text:
             profit >= 0
-              ? `Spending ${money(budget)} to make ${money(revenue * margin)} of gross profit. Start at half that budget for two weeks and confirm the numbers before you go full.`
+              ? `This scenario compares ${money(budget)} of spending with ${money(revenue * margin)} of gross profit before advertising. Check comparable records, capacity, and cash timing before choosing a budget.`
               : `The math does not work at this cost per lead. Either the lead price is too high or your close rate has to come up first.`,
         },
         note: "This is a plan, not a promise. No one can guarantee lead volume or cost. Start small, measure, then scale what proves out.",
@@ -534,21 +536,22 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
     who: "Any business paying to acquire customers who pay over time: memberships, retainers, service plans, repeat trades.",
     problem:
       "You can be profitable on paper and broke in the bank at the same time. Payback period is the number that explains it.",
-    payoff: "Months to payback, and how much cash you need to fund growth.",
+    payoff: "Simple modeled payback and an acquisition-spending window to compare with an actual cash forecast.",
     steps: [
       "Enter what it costs to get a customer.",
-      "Enter what they pay you and how often.",
-      "Read the payback months and the cash you have to float.",
+      "Enter monthly gross profit after the delivery costs included in your analysis.",
+      "Read the modeled payback and compare assumptions with actual retention and cash timing.",
     ],
     fields: [
       { id: "cac", label: "Cost to acquire one customer", type: "money", def: 320 },
       { id: "monthlyValue", label: "Gross profit they bring per month", type: "money", def: 95 },
       { id: "newPerMonth", label: "New customers per month", type: "slider", min: 1, max: 200, step: 1, def: 12 },
-      { id: "churn", label: "Customers you lose per month", type: "slider", min: 0, max: 20, step: 0.5, def: 3, suffix: "%" },
+      { id: "churn", label: "Monthly customer churn rate", type: "slider", min: 0, max: 20, step: 0.5, def: 3, suffix: "%" },
     ],
     run: (v) => {
       const cac = num(v, "cac");
-      const mv = Math.max(0.01, num(v, "monthlyValue"));
+      const mv = num(v, "monthlyValue");
+      if (mv <= 0) return { headline: { value: "No payback", label: "No positive monthly gross profit entered", tone: "warn" }, note: "A positive acquisition cost cannot be recovered from zero monthly gross profit. Review the inputs rather than substituting a small positive value." };
       const perMonth = num(v, "newPerMonth");
       const churn = num(v, "churn") / 100;
       const payback = cac / mv;
@@ -561,14 +564,14 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
         headline: {
           value: `${dec(payback, 1)} months`,
           label: "Until a customer pays back what you spent",
-          sub: `They stay about ${dec(lifetimeMonths, 1)} months`,
+          sub: churn > 0 ? `Constant-churn model: ${dec(lifetimeMonths, 1)} months` : "Zero churn: illustrative 60-month comparison horizon",
           tone: payback < 6 ? "good" : payback < 12 ? "warn" : "bad",
         },
         stats: [
           { label: "Lifetime gross profit", value: money(ltv), tone: "good" },
-          { label: "Value to cost ratio", value: `${dec(ratio, 1)}x`, tone: ratio >= 3 ? "good" : ratio >= 1 ? "warn" : "bad" },
-          { label: "Cash you must float", value: money(cashNeeded), sub: "to grow at this pace", tone: "warn" },
-          { label: "Profit per customer", value: money(ltv - cac), tone: ltv > cac ? "good" : "bad" },
+          { label: "Value to cost ratio", value: cac > 0 ? `${dec(ratio, 1)}x` : "Not defined", tone: ratio >= 3 ? "good" : ratio >= 1 ? "warn" : "bad" },
+          { label: "Acquisition-spending window", value: money(cashNeeded), sub: "not a complete cash forecast", tone: "warn" },
+          { label: "Modeled lifetime gross profit less CAC", value: money(ltv - cac), tone: ltv > cac ? "good" : "bad" },
         ],
         bars: {
           title: "What you pay vs what you get back",
@@ -581,8 +584,8 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
           tone: payback < 6 ? "good" : "warn",
           text:
             payback < 6
-              ? "Fast payback means growth funds itself. This is the good position to be in."
-              : `At ${dec(payback, 1)} months of payback you are the bank. Make sure you have ${money(cashNeeded)} of cushion before you push growth.`,
+              ? "The entered monthly gross profit recovers acquisition cost within six modeled months. Actual cash timing and retention still need review."
+              : `Simple payback is ${dec(payback, 1)} months. Build a dated cash forecast before deciding how to fund acquisition.`,
         },
       };
     },
@@ -594,28 +597,29 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
     short: "Ad Test Budget",
     emoji: "🧪",
     category: "Ads",
-    tagline: "How much you need to spend to actually know",
+    tagline: "See the spending implied by your test",
     description:
-      "Most small budgets never spend enough to produce a real answer, then people conclude ads do not work. This shows the minimum honest test.",
+      "Compare the lead target per variant, expected lead cost, total budget, and modeled duration. Sample sufficiency requires a separate analysis.",
     who: "Anybody about to try ads for the first time, or trying again after a bad round.",
     problem:
-      "Two hundred dollars and four days is not a test. It is a coin flip you then treat as a verdict.",
-    payoff: "A minimum test budget and duration, so a no is a real no.",
+      "Splitting a budget across more variants changes the time and spending needed to reach your chosen planning target.",
+    payoff: "A documented spending and timing scenario, with statistical questions kept separate.",
     steps: [
       "Enter your expected cost per lead and what you want to learn.",
-      "Read the minimum spend and days.",
-      "If you cannot afford the honest test, do not run the dishonest one.",
+      "Read the spending and days implied by those assumptions.",
+      "Define the question, review points, and decision method before spending.",
     ],
     fields: [
       { id: "cpl", label: "Expected cost per lead", type: "money", def: 45 },
-      { id: "leadsNeeded", label: "Leads needed to judge it", type: "slider", min: 10, max: 200, step: 5, def: 30, help: "Under about 30 conversions you are reading noise, not a result." },
+      { id: "leadsNeeded", label: "Planned leads per variant", type: "slider", min: 10, max: 200, step: 5, def: 30, help: "A planning target you choose, not a universal significance threshold. Sample sufficiency depends on the question, variability, and analysis." },
       { id: "dailyMin", label: "Daily budget you were planning", type: "money", def: 20 },
       { id: "variants", label: "Ads or audiences you want to test", type: "slider", min: 1, max: 8, step: 1, def: 2 },
     ],
     run: (v) => {
       const cpl = num(v, "cpl");
       const need = num(v, "leadsNeeded");
-      const daily = Math.max(1, num(v, "dailyMin"));
+      const daily = num(v, "dailyMin");
+      if (daily <= 0) return { note: "Enter a daily budget above zero to calculate a finite test duration. Zero daily spending cannot reach a positive spending target." };
       const variants = num(v, "variants");
       const perVariant = need * cpl;
       const total = perVariant * variants;
@@ -623,21 +627,21 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       const properDaily = total / 14;
 
       return {
-        headline: { value: money(total), label: "Minimum honest test budget", sub: `${count(need)} leads on each of ${count(variants)} variants`, tone: "neutral" },
+        headline: { value: money(total), label: "Modeled test budget", sub: `${count(need)} leads on each of ${count(variants)} variants`, tone: "neutral" },
         stats: [
           { label: "Per variant", value: money(perVariant) },
           { label: "Days at your budget", value: `${dec(days, 0)} days`, tone: days > 30 ? "bad" : "good" },
           { label: "Daily to finish in 2 weeks", value: money2(properDaily), tone: "warn" },
-          { label: "Cost of an unreadable test", value: money(daily * 7), sub: "spent, learned nothing", tone: "bad" },
+          { label: "Seven days at entered budget", value: money(daily * 7), sub: "calendar comparison only", tone: "bad" },
         ],
         verdict: {
           tone: days > 30 ? "bad" : "good",
           text:
             days > 30
-              ? `At ${money2(daily)} a day this test takes ${dec(days, 0)} days. The market changes before you get an answer. Test one variant with a bigger daily budget instead.`
-              : `Run it for ${dec(days, 0)} days, do not touch it while it runs, and judge it on leads, not likes.`,
+              ? `The entered scope implies ${dec(days, 0)} days at ${money2(daily)} a day. Review scope, uncertainty, and the decision method before choosing a test.`
+              : `The entered scope implies ${dec(days, 0)} days. This calendar calculation does not establish statistical significance or guarantee leads.`,
         },
-        note: "Testing more variants does not get you an answer faster. It splits the same budget into pieces too small to read.",
+        note: "The lead target and fourteen-day comparison are planning assumptions. More variants increase modeled spending at the same per-variant target; no fixed lead count guarantees a reliable conclusion.",
       };
     },
   },
@@ -686,12 +690,12 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       const commissionOfProfit = grossProfit > 0 ? (commission / grossProfit) * 100 : 0;
 
       return {
-        headline: { value: money(repTotal), label: "Rep takes home per month", sub: `${money(commission)} commission plus ${money(base)} base`, tone: "neutral" },
+        headline: { value: money(repTotal), label: "Modeled gross rep pay per month", sub: `${money(commission)} commission plus ${money(base)} base`, tone: "neutral" },
         stats: [
           { label: "Revenue they produce", value: money(revenue) },
           { label: "Gross profit", value: money(grossProfit), tone: "good" },
           { label: "Business keeps", value: money(businessKeeps), tone: businessKeeps > 0 ? "good" : "bad" },
-          { label: "Commission as share of profit", value: pct(commissionOfProfit, 1), tone: commissionOfProfit > 50 ? "bad" : "good" },
+          { label: "Commission as share of profit", value: grossProfit > 0 ? pct(commissionOfProfit, 1) : "Not defined", tone: commissionOfProfit > 50 ? "bad" : "good" },
         ],
         bars: {
           title: "Where the gross profit goes",
@@ -705,8 +709,8 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
           tone: commissionOfProfit > 50 ? "bad" : "good",
           text:
             basis === "revenue"
-              ? "Paying on revenue means a rep who discounts still gets paid the same. Paying on gross profit makes them defend your price like it is their own money, because it is."
-              : "Paying on gross profit is the version that survives a discount war. The rep protects margin without being told to.",
+              ? "Revenue commission falls when the sale price falls, but it does not directly track changing job costs. Compare commission with actual gross profit before setting terms."
+              : "Gross-profit commission depends on an agreed definition of job costs. Review base pay, employment costs, and payment timing before adopting a plan.",
         },
       };
     },
@@ -798,7 +802,7 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
     steps: [
       "Enter how long the task takes and how often it happens.",
       "Enter what it would cost to automate it.",
-      "Read the payback. Under six months is usually a yes.",
+      "Review the modeled payback and confirm what work would actually disappear.",
     ],
     fields: [
       { id: "minutes", label: "Minutes the task takes", type: "slider", min: 1, max: 240, step: 1, def: 8 },
@@ -830,8 +834,8 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       return {
         headline: {
           value: Number.isFinite(paybackWeeks) ? `${dec(paybackWeeks, 1)} weeks` : "Never",
-          label: "Until automating this pays for itself",
-          sub: `${money(netSaving)} saved a year after that`,
+          label: "Modeled payback if all entered work disappears",
+          sub: `${money(netSaving)} annual modeled benefit before build cost`,
           tone: paybackWeeks < 26 ? "good" : paybackWeeks < 78 ? "warn" : "bad",
         },
         stats: [
@@ -847,12 +851,13 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
             { label: "Automated", value: autoCost, display: money(autoCost), tone: "good" },
           ],
         },
+        note: "Upper-bound scenario assumes all entered task time and errors are eliminated, with no residual labor or setup overruns. Error costs must exclude labor already counted above. Valued time is not automatically cash saved or new sales.",
         verdict: {
           tone: paybackWeeks < 26 ? "good" : "warn",
           text:
             paybackWeeks < 26
-              ? "Under six months payback. Build it. You will forget you ever did it by hand."
-              : "Long payback. Either the task is rarer than it feels, or the build is scoped too big. Try automating just the worst part of it.",
+              ? "The scenario has a short payback. Confirm remaining review work, reliability, and actual cash savings before approving a build."
+              : "The entered assumptions produce a longer payback. Compare a smaller scope and include continuing human review.",
         },
       };
     },
@@ -866,7 +871,7 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
     category: "Time",
     tagline: "What your truck really costs to run",
     description:
-      "Fuel, insurance, maintenance, tires, the note and depreciation, divided by the miles you actually drive. The number you need before you quote a job an hour away.",
+      "Compare cash outlay with economic operating cost per mile. Loan payments and depreciation stay in separate views so principal is not counted twice.",
     who: "Trades, delivery, mobile services, anybody quoting jobs outside their town.",
     problem:
       "Most owners price fuel and forget everything else. Then the truck needs tires and it feels like bad luck.",
@@ -882,6 +887,8 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       { id: "fuelPrice", label: "Fuel price per gallon", type: "money", def: 3 },
       { id: "insurance", label: "Insurance per year", type: "money", def: 2400 },
       { id: "maintenance", label: "Maintenance and tires per year", type: "money", def: 2200 },
+      { id: "basis", label: "Cost basis", type: "select", def: "cash", options: [{ value: "cash", label: "Cash outlay: includes loan payments" }, { value: "economic", label: "Economic cost: depreciation plus interest" }] },
+      { id: "interest", label: "Vehicle loan interest per year", type: "money", def: 0, help: "Interest only, not principal. Used in economic cost; cash outlay already includes it in the payment." },
       { id: "payment", label: "Payment per month", type: "money", def: 650 },
       { id: "depreciation", label: "Value it loses per year", type: "money", def: 3500 },
       { id: "jobMiles", label: "Round-trip miles on a typical job", type: "slider", min: 0, max: 400, step: 5, def: 45 },
@@ -895,16 +902,19 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       const maintenance = num(v, "maintenance");
       const payment = num(v, "payment") * 12;
       const dep = num(v, "depreciation");
-      const total = fuel + insurance + maintenance + payment + dep;
+      const cash = fuel + insurance + maintenance + payment;
+      const economic = fuel + insurance + maintenance + dep + num(v, "interest");
+      const isCash = str(v, "basis", "cash") === "cash";
+      const total = isCash ? cash : economic;
       const perMile = total / miles;
       const jobMiles = num(v, "jobMiles");
       const perJob = perMile * jobMiles;
 
       return {
-        headline: { value: money2(perMile), label: "Cost per mile", sub: `${money(total)} a year, ${count(miles)} miles`, tone: "neutral" },
+        headline: { value: money2(perMile), label: isCash ? "Cash outlay per mile" : "Economic cost per mile", sub: `${money(total)} a year, ${count(miles)} miles`, tone: "neutral" },
         stats: [
           { label: "Cost per typical job", value: money2(perJob), sub: `${count(jobMiles)} round-trip miles`, tone: "warn" },
-          { label: "Fuel is only", value: pct((fuel / total) * 100, 0), sub: "of the real cost" },
+          { label: "Fuel is only", value: total > 0 ? pct((fuel / total) * 100, 0) : "Not defined", sub: "of the real cost" },
           { label: "Cost per month", value: money(total / 12) },
           { label: "Per job, 100 jobs a year", value: money(perJob * 100) + "/yr", tone: "bad" },
         ],
@@ -912,15 +922,15 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
           title: "What it actually costs to roll",
           items: [
             { label: "Fuel", value: fuel, display: money(fuel), tone: "warn" },
-            { label: "Payment", value: payment, display: money(payment), tone: "warn" },
-            { label: "Depreciation", value: dep, display: money(dep), tone: "bad" },
+            { label: isCash ? "Loan payments" : "Depreciation and interest", value: isCash ? payment : dep + num(v, "interest"), display: money(isCash ? payment : dep + num(v, "interest")), tone: "warn" },
             { label: "Maintenance", value: maintenance, display: money(maintenance), tone: "warn" },
             { label: "Insurance", value: insurance, display: money(insurance), tone: "warn" },
           ],
         },
+        note: `Cash outlay: ${money2(cash / miles)}/mile. Economic cost: ${money2(economic / miles)}/mile. Cash includes full loan payments and excludes depreciation; economic cost includes depreciation and loan interest, excluding principal payments. Neither is a tax deduction calculation.`,
         verdict: {
           tone: "warn",
-          text: `If you are not charging at least ${money2(perJob)} of travel on a typical job, the truck is being paid for out of your profit.`,
+          text: `The selected basis allocates ${money2(perJob)} to this trip. Consider total job pricing, billable travel time, and costs not entered before setting a charge.`,
         },
       };
     },
@@ -1025,14 +1035,17 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       const perMeeting = people * hoursEach * rate;
       const yearly = perMeeting * perWeek * 52;
       const hoursYear = people * hoursEach * perWeek * 52;
+      const shortenedMinutes = Math.min(minutes, 30);
+      const shorterYearly = people * ((shortenedMinutes + prep) / 60) * rate * perWeek * 52;
+      const savedByHalvingDuration = people * (minutes / 120) * rate * perWeek * 52;
 
       return {
         headline: { value: money(yearly), label: "This meeting costs you per year", sub: `${money(perMeeting)} every time it happens`, tone: "bad" },
         stats: [
           { label: "Hours a year", value: count(hoursYear), tone: "bad" },
           { label: "Cost per minute", value: money2(perMeeting / Math.max(1, minutes + prep)) },
-          { label: "Cut it to 30 minutes", value: money(yearly * (30 / Math.max(1, minutes))) + "/yr", tone: "good" },
-          { label: "Saved by cutting it in half", value: money(yearly / 2), tone: "good" },
+          { label: "At most 30 minutes, same prep", value: money(shorterYearly) + "/yr", tone: "good" },
+          { label: "Time value saved by halving duration", value: money(savedByHalvingDuration), tone: "good" },
         ],
         verdict: {
           tone: "warn",
@@ -1081,12 +1094,12 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       const netGain = opportunityCost - hireCost;
 
       return {
-        headline: { value: money2(worth) + "/hr", label: "What one hour of yours is worth", sub: `${count(totalHours)} hours a year`, tone: "good" },
+        headline: { value: money2(worth) + "/hr", label: "Average owner compensation per work hour", sub: `${count(totalHours)} hours a year`, tone: "good" },
         stats: [
           { label: "Hours a year on low-value work", value: count(lowHoursYear), tone: "bad" },
           { label: "What that time is worth", value: money(opportunityCost), tone: "bad" },
           { label: "Cost to hire it out", value: money(hireCost), tone: "warn" },
-          { label: "You come out ahead by", value: money(netGain), tone: netGain > 0 ? "good" : "bad" },
+          { label: "Time-value comparison minus hiring cost", value: money(netGain), tone: netGain > 0 ? "good" : "bad" },
         ],
         bars: {
           title: "Doing it yourself vs paying somebody",
@@ -1099,10 +1112,10 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
           tone: netGain > 0 ? "good" : "neutral",
           text:
             netGain > 0
-              ? `Anything you can hire out for less than ${money2(worth)} an hour and still get done right, hire out. You are net ahead ${money(netGain)} a year on the ${count(low)} hours a week alone.`
-              : "You are already close to fully leveraged on your time. The next gain comes from raising the value of the hours, not offloading more of them.",
+              ? `At your current average, this time is valued ${money(netGain)} above the entered hiring cost. That is not additional income: identify how you would use the time and whether the expense is affordable.`
+              : "The entered hiring cost meets or exceeds the time valued at your average compensation. Other reasons to delegate may still matter.",
         },
-        note: "Some low-value work is worth keeping because you learn from it or you like it. That is a fine reason. Just make it a decision instead of a habit.",
+        note: "Average compensation is not the marginal value of another free hour. Delegation does not itself create revenue or remove an existing cash expense. Include supervision and replacement costs.",
       };
     },
   },

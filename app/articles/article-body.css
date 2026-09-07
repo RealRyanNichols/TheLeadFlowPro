@@ -19,3 +19,11 @@
   white-space: inherit;
   line-height: 1.7;
 }
+
+@media print {
+  .site-frame > header, .site-frame > footer, .article-actions,
+  .sv-article-shell form, .sv-article-shell button { display: none !important; }
+  .sv-article-shell { width: 100%; max-width: none; padding: 0; color: #111; }
+  .sv-article-shell pre, .sv-article-shell details { break-inside: avoid; }
+  .sv-article-shell details > * { display: block !important; }
+}

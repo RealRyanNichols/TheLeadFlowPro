@@ -43,6 +43,13 @@ export default function ConfirmedClient({ slug }: { slug: string }) {
       setState("missing");
       return;
     }
+    // Older Checkout Sessions still return here. Route their paid verification
+    // through the same clean handoff; this private page never runs ad scripts.
+    const sessionId = new URLSearchParams(window.location.search).get("session_id");
+    if (sessionId && /^cs_[A-Za-z0-9_]{8,200}$/.test(sessionId)) {
+      window.location.replace(`/api/events/claim?t=${encodeURIComponent(t)}&session_id=${encodeURIComponent(sessionId)}`);
+      return;
+    }
     let stopped = false;
     let timer: ReturnType<typeof setTimeout>;
     let attempts = 0;

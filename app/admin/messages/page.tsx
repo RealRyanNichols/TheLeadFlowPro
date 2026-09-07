@@ -10,7 +10,7 @@ export default async function AdminMessages({
   const { thread } = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: visitorMessages }, { data: clientMessages }, { data: profiles }] =
+  const [{ data: visitorMessages }, { data: clientMessages }, { data: profiles }, { data: alerts }] =
     await Promise.all([
       supabase
         .from("messages")
@@ -24,9 +24,12 @@ export default async function AdminMessages({
         .not("thread_profile_id", "is", null)
         .order("created_at"),
       supabase.from("profiles").select("id, full_name, email"),
+      supabase.from("contact_notifications").select("message_id,status,attempt_count,last_error")
+        .order("created_at", { ascending: false }).limit(100),
     ]);
 
   const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
+  const alertById = new Map((alerts ?? []).map((a) => [a.message_id, a]));
 
   // Group client messages into threads
   const threads = new Map<string, Msg[]>();
@@ -113,6 +116,15 @@ export default async function AdminMessages({
               </a>
               <p className="mt-2 whitespace-pre-wrap text-sm text-[var(--text)]">
                 {m.body}
+              </p>
+              <p className="mt-3 text-xs font-semibold text-[var(--muted)]">
+                Owner: Ryan · {alertById.get(m.id)?.status === "sent"
+                  ? "Email alert accepted by provider"
+                  : alertById.get(m.id)?.status === "failed"
+                    ? "Alert needs attention. Reply from this inbox."
+                    : alertById.get(m.id)?.status === "pending"
+                      ? "Email alert queued for retry"
+                      : "Message saved in this inbox"}
               </p>
             </div>
           ))}

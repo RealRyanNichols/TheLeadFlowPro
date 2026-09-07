@@ -149,7 +149,7 @@ export default function FreeBuildOrder() {
   return (
     <div className={styles.orderWrap} id="order">
       {/* ------------------------------------------------------- tier cards --- */}
-      <div className={styles.tierGrid} role="radiogroup" aria-label="Pick your engine">
+      <div className={styles.tierGrid} role="radiogroup" aria-label="Choose your website application">
         {options.map((t) => {
           const active = t.id === tier.id;
           return (
@@ -197,7 +197,7 @@ export default function FreeBuildOrder() {
             <label className="label" htmlFor="fb-name">
               Your name *
             </label>
-            <input className="input" id="fb-name" name="full_name" required maxLength={200} />
+            <input className="input" id="fb-name" name="full_name" autoComplete="name" required maxLength={200} />
           </div>
           <div>
             <label className="label" htmlFor="fb-business">
@@ -207,6 +207,7 @@ export default function FreeBuildOrder() {
               className="input"
               id="fb-business"
               name="business_name"
+              autoComplete="organization"
               required
               maxLength={200}
             />
@@ -223,6 +224,9 @@ export default function FreeBuildOrder() {
               id="fb-email"
               name="email"
               type="email"
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="none"
               required
               maxLength={200}
             />
@@ -231,7 +235,7 @@ export default function FreeBuildOrder() {
             <label className="label" htmlFor="fb-phone">
               Cell phone *
             </label>
-            <input className="input" id="fb-phone" name="phone" type="tel" required maxLength={50} />
+            <input className="input" id="fb-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" required maxLength={50} />
           </div>
         </div>
 
@@ -243,6 +247,9 @@ export default function FreeBuildOrder() {
             className="input"
             id="fb-site"
             name="website_url"
+            autoComplete="url"
+            inputMode="url"
+            autoCapitalize="none"
             maxLength={300}
             placeholder="Leave it blank if you do not have one yet"
           />

@@ -68,7 +68,7 @@ export const GROWTH_TOOLS: ToolDef[] = [
       const asked = num(v, "asked");
 
       // n new 5-star reviews: (current*total + 5n) / (total + n) = goal
-      const needed = goal >= 5 ? Infinity : Math.max(0, Math.ceil((total * (goal - current)) / (5 - goal)));
+      const needed = current >= goal ? 0 : goal >= 5 ? Infinity : Math.max(0, Math.ceil((total * (goal - current)) / (5 - goal) - 1e-9));
       const months = perMonth > 0 && Number.isFinite(needed) ? needed / perMonth : Infinity;
       const askRate = asked > 0 ? (perMonth / asked) * 100 : 0;
       const atTwentyPct = asked * 0.2;
@@ -78,31 +78,31 @@ export const GROWTH_TOOLS: ToolDef[] = [
         headline: {
           value: Number.isFinite(needed) ? count(needed) : "Not possible",
           label: `Five-star reviews to reach ${dec(goal, 1)}`,
-          sub: Number.isFinite(months) ? `${dec(months, 1)} months at your current pace` : "You are not collecting reviews",
+          sub: !Number.isFinite(needed) ? "An exact 5.0 cannot be reached by adding a finite number of reviews" : Number.isFinite(months) ? `${dec(months, 1)} months at the entered pace` : "No monthly review pace entered",
           tone: needed > 100 ? "bad" : "good",
         },
         stats: [
           { label: "Your rating now", value: dec(current, 2), tone: current >= 4.5 ? "good" : "warn" },
-          { label: "Review request rate", value: pct(askRate, 1), sub: "of customers who leave one" },
-          { label: "If you ask everyone", value: Number.isFinite(monthsIfAsking) ? `${dec(monthsIfAsking, 1)} months` : "n/a", tone: "good" },
-          { label: "Time saved by asking", value: Number.isFinite(months) && Number.isFinite(monthsIfAsking) ? `${dec(Math.max(0, months - monthsIfAsking), 1)} months` : "n/a", tone: "good" },
+          { label: "Reviews / entered customer count", value: pct(askRate, 1), sub: "not a measured request response rate" },
+          { label: "Hypothetical 20% review pace", value: Number.isFinite(monthsIfAsking) ? `${dec(monthsIfAsking, 1)} months` : "n/a", tone: "good" },
+          { label: "Difference between modeled paces", value: Number.isFinite(months) && Number.isFinite(monthsIfAsking) ? `${dec(Math.max(0, months - monthsIfAsking), 1)} months` : "n/a", tone: "good" },
         ],
         bars: {
-          title: "How fast you climb",
-          caption: "Same goal. Only the asking changes.",
+          title: "Two hypothetical review paces",
+          caption: "Assumes all added ratings are five stars. The 20% comparison is not a benchmark.",
           items: [
             { label: "Current pace", value: Number.isFinite(months) ? months : 120, display: Number.isFinite(months) ? `${dec(months, 1)} mo` : "never", tone: "bad" },
-            { label: "Ask 20% of customers", value: Number.isFinite(monthsIfAsking) ? monthsIfAsking : 120, display: Number.isFinite(monthsIfAsking) ? `${dec(monthsIfAsking, 1)} mo` : "n/a", tone: "good" },
+            { label: "Reviews at 20% of entered customer count", value: Number.isFinite(monthsIfAsking) ? monthsIfAsking : 120, display: Number.isFinite(monthsIfAsking) ? `${dec(monthsIfAsking, 1)} mo` : "n/a", tone: "good" },
           ],
         },
         verdict: {
           tone: "good",
           text:
-            needed > 200
-              ? "That is a long climb from where you sit. The fastest fix is volume: ask every single customer, every time, starting today."
-              : `${count(needed)} good reviews. At ${count(asked)} customers a month you could do that in a season if you actually ask.`,
+            !Number.isFinite(needed)
+              ? "An exact five-star average cannot be restored by adding a finite number of ratings below it. Focus on the service and honest feedback."
+              : `${count(needed)} hypothetical five-star additions reach the entered target. Customers choose whether and what to review; this is not a request quota or rating promise.`,
         },
-        note: "You cannot delete honest bad reviews and you should not try. You outweigh them.",
+        note: "Starting averages may be rounded. Invite honest feedback without incentives, selective positive-review requests, or pressure about the rating or content.",
       };
     },
   },
@@ -113,41 +113,33 @@ export const GROWTH_TOOLS: ToolDef[] = [
     short: "Bad Review Impact",
     emoji: "📉",
     category: "Reputation",
-    tagline: "What one angry customer costs you",
+    tagline: "Understand a change in your rating",
     description:
-      "See what a single one-star does to your average, and what dropping below four stars does to the people deciding between you and the next name on the list.",
+      "See how new one-star ratings change a weighted average. Separate the rating arithmetic from assumptions about leads or revenue.",
     who: "Anybody who just got their first bad review and feels sick about it.",
     problem:
       "A bad review feels personal. What matters is what it does to the number people sort by.",
-    payoff: "Perspective, plus the exact number of good reviews that erase it.",
+    payoff: "A weighted-average comparison and a clearly labeled hypothetical rating scenario.",
     steps: [
       "Enter your rating and review count.",
       "See what one, three or five bad reviews do.",
-      "See how many good ones cancel them out.",
+      "Use the arithmetic to understand the average, then review the actual feedback.",
     ],
     fields: [
       { id: "current", label: "Your rating", type: "slider", min: 1, max: 5, step: 0.1, def: 4.7 },
       { id: "total", label: "Reviews you have", type: "slider", min: 1, max: 2000, step: 1, def: 60 },
       { id: "bad", label: "New one-star reviews", type: "slider", min: 1, max: 20, step: 1, def: 1 },
-      { id: "leads", label: "Leads a month", type: "slider", min: 1, max: 500, step: 1, def: 50 },
-      { id: "value", label: "Value of a customer", type: "money", def: 900 },
-      { id: "close", label: "Close rate", type: "slider", min: 5, max: 90, step: 5, def: 30, suffix: "%" },
     ],
     run: (v) => {
       const current = num(v, "current");
       const total = num(v, "total");
       const bad = num(v, "bad");
-      const leads = num(v, "leads");
-      const value = num(v, "value");
-      const close = num(v, "close") / 100;
 
       const newRating = (current * total + 1 * bad) / (total + bad);
       const drop = current - newRating;
-      // Rough demand sensitivity: below 4.0 people start filtering you out.
-      const demandFactor = (r: number) => Math.min(1, Math.max(0.35, (r - 3) / 1.7));
-      const lostLeads = leads * (demandFactor(current) - demandFactor(newRating));
-      const lostRevenue = lostLeads * close * value * 12;
-      const fiveStarsToFix = newRating < current ? Math.ceil(((current - newRating) * (total + bad)) / Math.max(0.01, 5 - current)) : 0;
+      // Algebra avoids subtracting rounded averages; tolerance prevents exact
+      // integer answers such as seven becoming eight through floating-point noise.
+      const fiveStarsToFix = current <= 1 ? 0 : current >= 5 ? Infinity : Math.max(0, Math.ceil((bad * (current - 1)) / (5 - current) - 1e-9));
 
       return {
         headline: {
@@ -157,10 +149,10 @@ export const GROWTH_TOOLS: ToolDef[] = [
           tone: newRating < 4 ? "bad" : "warn",
         },
         stats: [
-          { label: "Five-stars to erase it", value: count(fiveStarsToFix), tone: "good" },
-          { label: "Estimated leads lost a month", value: dec(lostLeads, 1), tone: "bad" },
-          { label: "Estimated yearly cost", value: money(lostRevenue), tone: "bad" },
-          { label: "Rating floor to protect", value: "4.0", sub: "below this people filter you out" },
+          { label: "Hypothetical five-stars to return", value: Number.isFinite(fiveStarsToFix) ? count(fiveStarsToFix) : "Not possible", tone: "good" },
+          { label: "Rating change", value: dec(drop, 2) },
+          { label: "Reviews after additions", value: count(total + bad) },
+          { label: "Revenue effect", value: "Not determined", sub: "ratings do not measure sales" },
         ],
         bars: {
           title: "What review volume does to the damage",
@@ -172,9 +164,9 @@ export const GROWTH_TOOLS: ToolDef[] = [
         },
         verdict: {
           tone: "good",
-          text: "The real defense against bad reviews is volume. At 300 reviews a one-star is a rounding error. At 20 it is a crisis. Go get reviews before you need them.",
+          text: "A larger existing review count reduces each new rating's effect on the average. Review the actual feedback, protect customer privacy, and respond with verified facts.",
         },
-        note: "The lead impact here is a rough model, not a measured fact. Ratings are one of many things people weigh. The direction is reliable, the exact dollar is not.",
+        note: "This tool calculates rating averages only. It does not estimate lost leads or revenue. Displayed starting ratings may be rounded; exact underlying rating totals can differ. Customers choose their own ratings without incentives or pressure.",
       };
     },
   },
@@ -217,7 +209,7 @@ export const GROWTH_TOOLS: ToolDef[] = [
       const topic = str(v, "topic").trim() || "the work we did";
       const phone = str(v, "phone").trim();
       const owner = str(v, "owner").trim();
-      const callLine = phone ? ` Call or text me directly at ${phone}` : " Reach out to me directly";
+      const callLine = phone ? ` Please contact our team at ${phone} so we can review the concern.` : " Please use the contact details on our business profile so our team can review the concern.";
 
       // The signature builds from whichever pieces exist. Nothing entered, no line.
       const signature =
@@ -230,26 +222,26 @@ export const GROWTH_TOOLS: ToolDef[] = [
             ? `${name}, thank you. Hearing that ${topic} went well is the whole reason we do this.\n\nWe appreciate you taking the time to write it out, and we appreciate the trust. If you ever need us again, you know where to find us.`
             : `Thank you for taking the time to write this. Hearing that ${topic} went well is the whole reason we do this.\n\nWe appreciate the trust. If you ever need us again, you know where to find us.`
           : type === "mixed"
-            ? `${name ? `${name}, thank` : "Thank"} you for the honest review. Three stars tells me we got the job done but did not give you the experience we want to be known for.\n\nI would like to hear what would have made it a five.${callLine} and I will make it right where I can.`
+            ? `${name ? `${name}, thank` : "Thank"} you for sharing your feedback. We would like to understand more about your experience with ${topic}.${callLine}`
             : type === "bad"
-              ? `${name ? `${name}, I` : "I"} am sorry. That is not the standard we hold ourselves to, and I am not going to argue with you in a review box about it.\n\nI want to understand what happened with ${topic} and fix what can be fixed.${callLine}. I will pick up.`
-              : `${name ? `${name}, thank` : "Thank"} you for the feedback. I take every review seriously, and I want to get this right.\n\nMy records show a different sequence of events than what is described here, so I would rather talk it through than go back and forth publicly.${callLine} and I will give you my full attention.`;
+              ? `${name ? `${name}, thank` : "Thank"} you for telling us about your concern with ${topic}. We would like to review what happened.${callLine}`
+              : `${name ? `${name}, thank` : "Thank"} you for the feedback. We would like to understand the concern before making any assumptions.${callLine}`;
 
       const text = `${body}${signature}`;
 
       return {
         output: {
-          title: "Your reply. Read it once, then post it.",
+          title: "Your reply draft. Check the facts before posting.",
           text,
           filename: `review-response-${type}.txt`,
         },
         note:
           type === "unfair"
-            ? "Never call a customer a liar in public, even when you are right. The person reading this is not the reviewer, it is your next customer deciding whether you are steady under pressure."
-            : "Reply to every review, good and bad, within 48 hours. It shows up to the next person reading, and Google notices activity too.",
+            ? "Selecting this category does not establish that a review is inaccurate. Verify facts, keep private records out of the reply, and use an authorized contact route."
+            : "Read and edit every sentence. Do not add unsupported promises or private customer details. This tool drafts text; it does not publish a response.",
         verdict: {
           tone: "good",
-          text: "The audience for a review reply is never the reviewer. It is the hundred people who read it later.",
+          text: "Write for the reviewer and everyone who may read the public response. Keep it calm, factual, and clear about an achievable next step.",
         },
       };
     },
@@ -262,9 +254,9 @@ export const GROWTH_TOOLS: ToolDef[] = [
     short: "Site Speed Cost",
     emoji: "🐌",
     category: "Website",
-    tagline: "Every second costs you customers",
+    tagline: "Explore a hypothetical speed scenario",
     description:
-      "People leave slow sites. Put a dollar figure on your load time and see what getting under two seconds is worth.",
+      "Compare an illustrative speed-retention curve with a two-second scenario. This is not a measurement of lost customers or revenue.",
     who: "Anyone whose site was built on a page builder loaded with plugins and sliders.",
     problem:
       "Your site takes six seconds on a phone in a truck on rural data. A big share of visitors never see it at all.",
@@ -272,7 +264,7 @@ export const GROWTH_TOOLS: ToolDef[] = [
     steps: [
       "Test your site on PageSpeed Insights and get your real mobile load time.",
       "Enter your monthly visitors and what a customer is worth.",
-      "See what each second is costing you.",
+      "Compare scenarios, then measure actual visitor behavior.",
     ],
     fields: [
       { id: "visitors", label: "Website visitors a month", type: "slider", min: 50, max: 100000, step: 50, def: 1800 },
@@ -294,15 +286,15 @@ export const GROWTH_TOOLS: ToolDef[] = [
       const fastRet = retention(2);
       const nowCustomers = visitors * nowRet * conv * close;
       const fastCustomers = visitors * fastRet * conv * close;
-      const lost = (fastCustomers - nowCustomers) * value;
+      const lost = Math.max(0, fastCustomers - nowCustomers) * value;
 
       return {
-        headline: { value: money(lost * 12), label: "Lost every year to load time", sub: `${money(lost)} a month`, tone: "bad" },
+        headline: { value: money(lost * 12), label: "Illustrative annual revenue gap", sub: `${money(lost)} a month`, tone: "bad" },
         stats: [
-          { label: "Visitors who leave early", value: count(visitors * (1 - nowRet)), tone: "bad" },
-          { label: "Customers a month now", value: dec(nowCustomers, 1) },
+          { label: "Modeled visitors leaving", value: count(visitors * (1 - nowRet)), tone: "bad" },
+          { label: "Modeled customers at entered speed", value: dec(nowCustomers, 1) },
           { label: "At a 2 second load", value: dec(fastCustomers, 1), tone: "good" },
-          { label: "Cost of each extra second", value: money((lost / Math.max(0.1, load - 2)) * 12) + "/yr", tone: "bad" },
+          { label: "Modeled gap per extra second", value: load > 2 ? money((lost / (load - 2)) * 12) + "/yr" : "Not applicable", tone: "bad" },
         ],
         bars: {
           title: "Visitors who stick around by load time",
@@ -317,10 +309,10 @@ export const GROWTH_TOOLS: ToolDef[] = [
           tone: load > 3 ? "bad" : "good",
           text:
             load > 3
-              ? "Most of this is images that were never resized, a page builder, and six plugins doing one job. It is fixable in an afternoon by somebody who knows where to look."
-              : "You are in decent shape. Keep images compressed and do not let anybody install a slider.",
+              ? "Measure your page on representative mobile connections. Identify the slow resources, change one issue, and compare real measurements."
+              : "The entered speed is near the comparison target. Check actual measurements and contact completion before choosing a change.",
         },
-        note: "The retention curve here is a working model of well-documented mobile abandonment behavior, not a measurement of your site. Run PageSpeed Insights for your real numbers.",
+        note: "Illustration only: the arbitrary curve removes nine percentage points of retention per second beyond one second, with a 25% floor. It is unvalidated and cannot establish lost sales or causal improvement. Conversion is applied to retained visitors, so do not enter a site-wide conversion rate without adjusting its denominator.",
       };
     },
   },
@@ -366,7 +358,7 @@ export const GROWTH_TOOLS: ToolDef[] = [
       const trafficCost = trafficNeeded * cpc;
 
       return {
-        headline: { value: money(gain * 12), label: `Extra revenue a year from +${dec(lift * 100, 1)} points`, sub: `${money(gain)} a month`, tone: "good" },
+        headline: { value: money(gain * 12), label: `Modeled extra revenue a year from +${dec(lift * 100, 1)} points`, sub: `${money(gain)} a month`, tone: "good" },
         stats: [
           { label: "Inquiries now", value: dec(visitors * conv, 1) + "/mo" },
           { label: "Inquiries after", value: dec(visitors * (conv + lift), 1) + "/mo", tone: "good" },
@@ -374,15 +366,15 @@ export const GROWTH_TOOLS: ToolDef[] = [
           { label: "That traffic would cost", value: money(trafficCost) + "/mo", tone: "bad" },
         ],
         bars: {
-          title: "Fix the page or buy the traffic",
+          title: "Inquiries with the entered conversion assumptions",
           items: [
-            { label: "Fix conversion", value: 0, display: "one-time work", tone: "good" },
-            { label: "Buy the traffic", value: trafficCost * 12, display: money(trafficCost * 12) + "/yr", tone: "bad" },
+            { label: "Current scenario", value: visitors * conv, display: dec(visitors * conv, 1) + "/mo", tone: "neutral" },
+            { label: "Improved scenario", value: visitors * (conv + lift), display: dec(visitors * (conv + lift), 1) + "/mo", tone: "good" },
           ],
         },
         verdict: {
           tone: "good",
-          text: "Phone number in the header, one clear button, proof near the top, a form that asks three questions instead of nine. That is usually the whole point improvement.",
+          text: "The improvement is an input, not a prediction. Test a clear next step and a usable contact flow. Include implementation costs before comparing profit.",
         },
       };
     },
@@ -430,24 +422,24 @@ export const GROWTH_TOOLS: ToolDef[] = [
       const gapPct = dConv > 0 ? ((dConv - mConv) / dConv) * 100 : 0;
 
       return {
-        headline: { value: money(lostRevenue * 12), label: "Lost every year on mobile", sub: `${count(mobileVisitors)} phone visitors a month`, tone: "bad" },
+        headline: { value: money(lostRevenue * 12), label: "Modeled annual gap if mobile matched desktop", sub: `${count(mobileVisitors)} phone visitors a month`, tone: "bad" },
         stats: [
-          { label: "Mobile converts worse by", value: pct(gapPct, 0), tone: "bad" },
-          { label: "Inquiries lost a month", value: dec(lostInquiries, 1), tone: "bad" },
+          { label: gapPct >= 0 ? "Mobile rate below desktop by" : "Mobile rate above desktop by", value: pct(Math.abs(gapPct), 0), tone: "bad" },
+          { label: "Modeled inquiry gap a month", value: dec(lostInquiries, 1), tone: "bad" },
           { label: "If mobile matched desktop", value: dec(potential, 1) + " inquiries", tone: "good" },
-          { label: "Revenue back a month", value: money(lostRevenue), tone: "good" },
+          { label: "Modeled monthly revenue gap", value: money(lostRevenue), tone: "good" },
         ],
         bars: {
           title: "Inquiries a month, by device",
           items: [
             { label: "Desktop", value: visitors * (1 - share) * dConv, display: dec(visitors * (1 - share) * dConv, 1), tone: "good" },
             { label: "Mobile now", value: actual, display: dec(actual, 1), tone: "bad" },
-            { label: "Mobile fixed", value: potential, display: dec(potential, 1), tone: "good" },
+            { label: "At desktop rate", value: potential, display: dec(potential, 1), tone: "good" },
           ],
         },
         verdict: {
           tone: "warn",
-          text: "Three fixes cover most of it: a tap-to-call button that is always visible, text you can read without pinching, and a form that fits on one screen.",
+          text: "Device audiences may behave differently. Equal conversion is a comparison assumption, not proof of a mobile defect. Test readability, contact buttons, and forms, then measure actual results.",
         },
       };
     },
@@ -523,7 +515,7 @@ export const GROWTH_TOOLS: ToolDef[] = [
     category: "Website",
     tagline: "Score your site in two minutes",
     description:
-      "Twenty checks that actually decide whether a visitor calls you. Pull your site up on your phone and go down the list honestly.",
+      "Twenty self-reported checks to help review whether a visitor can understand and contact your business. Pull your site up on your phone and go down the list honestly.",
     who: "Anyone who suspects their website is not pulling its weight.",
     problem:
       "Most small business sites look fine and do nothing. The gap is never design, it is the basics nobody checked.",
@@ -556,8 +548,6 @@ export const GROWTH_TOOLS: ToolDef[] = [
         { value: "titles", label: "Page titles say what the page is, with your town" },
         { value: "track", label: "You can see where visitors come from" },
       ] },
-      { id: "visitors", label: "Visitors a month", type: "slider", min: 50, max: 50000, step: 50, def: 1200 },
-      { id: "value", label: "Value of a customer", type: "money", def: 800 },
     ],
     run: (v) => {
       const picked = list(v, "checks");
@@ -587,10 +577,7 @@ export const GROWTH_TOOLS: ToolDef[] = [
       const missing = all.filter((a) => !picked.includes(a));
       const score = Math.round((picked.length / all.length) * 100);
       const grade = score >= 90 ? "A" : score >= 80 ? "B" : score >= 70 ? "C" : score >= 60 ? "D" : "F";
-      const visitors = num(v, "visitors");
-      const value = num(v, "value");
-      // Rough model: each missing basic costs a slice of conversion.
-      const estLoss = missing.length * visitors * 0.0015 * value * 12;
+
 
       return {
         headline: {
@@ -601,7 +588,7 @@ export const GROWTH_TOOLS: ToolDef[] = [
         },
         stats: [
           { label: "Things to fix", value: count(missing.length), tone: missing.length > 6 ? "bad" : "warn" },
-          { label: "Estimated yearly cost", value: money(estLoss), sub: "of the gaps", tone: "bad" },
+          { label: "What this measures", value: "Checklist coverage", sub: "not traffic, revenue, or ranking" },
           { label: "Biggest win available", value: missing.length ? labels[missing[0]].split(",")[0] : "You are solid", tone: "good" },
           { label: "Score if you fix the top 5", value: `${Math.min(100, score + Math.min(5, missing.length) * 5)} / 100`, tone: "good" },
         ],
@@ -616,8 +603,8 @@ export const GROWTH_TOOLS: ToolDef[] = [
           tone: score >= 80 ? "good" : "warn",
           text:
             score >= 80
-              ? "Your site is doing its job. Now make sure something answers the leads it produces within five minutes."
-              : "None of these are design problems. They are all decisions. That is good news, because decisions are cheap to change.",
+              ? "Most checklist items are complete. Test the actual contact flow and measure results before drawing conclusions."
+              : "Use the missing items as a review list. Some changes need implementation work; verify that each change fits your business.",
         },
       };
     },
@@ -629,90 +616,88 @@ export const GROWTH_TOOLS: ToolDef[] = [
     short: "GBP Scorecard",
     emoji: "📍",
     category: "Website",
-    tagline: "The free listing that outranks your website",
+    tagline: "Make your local listing easier to find and use",
     description:
-      "For most local businesses the Google Business Profile brings more calls than the website. Check yours against the list of what actually moves it.",
+      "Review your business details, customer contact options, photos, and review routine. Get a practical checklist from your answers, with no Google login required.",
     who: "Every local business with a physical location or a service area.",
     problem:
-      "Most profiles are half filled out, have four photos from 2019, and have never had a single post. That is free ground being given away.",
-    payoff: "A score and a prioritized list, all of it free to fix.",
+      "An old phone number, wrong hours, or missing service description can stop a customer from taking the next step.",
+    payoff: "A self-reported checklist score and a clear list of details to review.",
     steps: [
       "Open your Google Business Profile.",
       "Check everything that is genuinely done and current.",
-      "Work the fix list top down. It is all free.",
+      "Review the missing items, starting with accurate business and contact details. This score does not predict Google rankings or leads.",
     ],
     fields: [
-      { id: "checks", label: "Check what is done", type: "checks", def: ["claimed", "hours"], options: [
+      { id: "checks", label: "Check what you have verified", type: "checks", def: [], help: "This tool uses your answers; it does not inspect Google. For an optional feature, check it only after confirming it is configured or does not apply to your business.", options: [
         { value: "claimed", label: "Claimed and verified" },
         { value: "category", label: "Primary category is exactly right" },
-        { value: "secondary", label: "Secondary categories added" },
+        { value: "secondary", label: "Additional categories reviewed; only relevant ones selected" },
         { value: "hours", label: "Hours correct, including holidays" },
         { value: "phone", label: "Phone number matches your website" },
         { value: "website", label: "Website linked" },
         { value: "services", label: "Services listed with descriptions" },
         { value: "description", label: "Business description written" },
-        { value: "photos", label: "20+ real photos" },
-        { value: "recent", label: "Photos added in the last 30 days" },
+        { value: "photos", label: "Real photos show the business and what it offers" },
+        { value: "recent", label: "Photos reviewed for outdated or misleading details" },
         { value: "logo", label: "Logo and cover photo set" },
-        { value: "posts", label: "Posting at least twice a month" },
-        { value: "qa", label: "Questions section seeded and answered" },
-        { value: "reviews50", label: "50 or more reviews" },
-        { value: "replies", label: "Replying to every review" },
-        { value: "messaging", label: "Messaging turned on and watched" },
-        { value: "booking", label: "Booking link added" },
-        { value: "products", label: "Products or menu filled in" },
+        { value: "posts", label: "Published updates and offers are accurate and current" },
+        { value: "customer_answers", label: "Common customer questions answered on the website" },
+        { value: "review_process", label: "Honest review requests have a consistent process" },
+        { value: "replies", label: "Customer reviews reviewed and answered helpfully" },
+        { value: "contact_options", label: "Available contact options tested; replies have an owner" },
+        { value: "booking", label: "Booking link tested, or confirmed not applicable" },
+        { value: "products", label: "Products or menu reviewed, or confirmed not applicable" },
         { value: "area", label: "Service area set correctly" },
         { value: "utm", label: "Website link tagged so you can track it" },
       ] },
     ],
     run: (v) => {
-      const picked = list(v, "checks");
-      const order = ["claimed","category","hours","phone","website","reviews50","replies","photos","recent","services","description","posts","qa","messaging","booking","secondary","products","area","logo","utm"];
+      const order = ["claimed","category","hours","phone","website","review_process","replies","photos","recent","services","description","posts","customer_answers","contact_options","booking","secondary","products","area","logo","utm"];
+      const picked = [...new Set(list(v, "checks"))].filter((key) => order.includes(key));
       const labels: Record<string, string> = {
-        claimed: "Claim and verify the profile. Nothing else matters until this is done",
-        category: "Set the primary category exactly. It is the single biggest ranking factor here",
-        secondary: "Add secondary categories for everything else you do",
-        hours: "Fix your hours, including holidays. Wrong hours generate one-star reviews",
+        claimed: "Claim and verify the business profile using Google's available verification options",
+        category: "Choose the primary category that best describes the business",
+        secondary: "Use additional categories only when they accurately describe the business",
+        hours: "Check regular and holiday hours so customers know when they can reach you",
         phone: "Make the phone number match your website exactly",
         website: "Link your website",
         services: "List every service with a real description",
-        description: "Write the business description, 750 characters, plain English",
-        photos: "Get to 20+ real photos. Trucks, crew, before and after, storefront",
-        recent: "Add photos monthly. Fresh photos signal an active business",
+        description: "Write a clear, factual business description within the current field limit",
+        photos: "Add useful, real photos of the business, team, and work you can show with permission",
+        recent: "Review photos and replace images that no longer represent the business accurately",
         logo: "Set the logo and cover photo",
-        posts: "Post twice a month. Offers, jobs finished, seasonal reminders",
-        qa: "Seed the Q&A with the questions you get every day, and answer them",
-        reviews50: "Get past 50 reviews. Volume beats perfection",
-        replies: "Reply to every review, good and bad",
-        messaging: "Turn on messaging, and actually watch it",
-        booking: "Add a booking link",
-        products: "Fill in products or menu items",
+        posts: "Review published updates, offers, and dates; remove information that is no longer accurate",
+        customer_answers: "Answer real customer questions clearly on your website; do not depend on a profile Q&A feature being available",
+        review_process: "Invite genuine customers to leave honest reviews without incentives or selecting only happy customers",
+        replies: "Review customer feedback and write useful replies without disclosing private customer details",
+        contact_options: "Test the phone and website links. If WhatsApp or SMS is available for your profile, add it only when someone can respond",
+        booking: "Test the booking link if appointments apply; otherwise mark it not applicable",
+        products: "Review supported product or menu features if relevant; otherwise mark them not applicable",
         area: "Set the service area to the towns you really serve",
         utm: "Tag the website link so you can see the traffic it sends",
       };
       const missing = order.filter((o) => !picked.includes(o));
       const score = Math.round((picked.length / order.length) * 100);
-      const grade = score >= 90 ? "A" : score >= 75 ? "B" : score >= 60 ? "C" : score >= 45 ? "D" : "F";
-
       return {
         headline: {
           value: `${score} / 100`,
-          label: `Profile grade: ${grade}`,
+          label: "Your checklist coverage",
           sub: `${count(picked.length)} of ${count(order.length)} done`,
           tone: score >= 75 ? "good" : score >= 50 ? "warn" : "bad",
         },
         stats: [
           { label: "Items left", value: count(missing.length), tone: missing.length > 8 ? "bad" : "warn" },
-          { label: "Cost to fix all of it", value: "$0", sub: "just time", tone: "good" },
-          { label: "Hours it would take", value: `${dec(missing.length * 0.4, 1)} hrs` },
-          { label: "Do this first", value: missing.length ? labels[missing[0]].split(".")[0] : "Keep posting", tone: "good" },
+          { label: "Source", value: "Your answers", sub: "No live profile inspection" },
+          { label: "Ranking prediction", value: "Not measured" },
+          { label: "Review first", value: missing.length ? labels[missing[0]].split(".")[0] : "Keep details current", tone: "good" },
         ],
         table: missing.length
-          ? { title: "Fix list, in order", headers: ["#", "Do this"], rows: missing.map((m, i) => [i + 1, labels[m]]) }
+          ? { title: "Details to review", headers: ["#", "Next action"], rows: missing.map((m, i) => [i + 1, labels[m]]) }
           : undefined,
         verdict: {
           tone: "good",
-          text: "For a lot of local businesses this listing brings more calls than the website does. It is free, and most of your competitors have half of it blank.",
+          text: "This score measures the checklist items you confirmed, not Google's ranking system. Local results depend on relevance, distance, and prominence. There is no promised review count, photo count, or posting schedule that guarantees a position or more calls.",
         },
       };
     },
@@ -724,17 +709,17 @@ export const GROWTH_TOOLS: ToolDef[] = [
     short: "Form Friction",
     emoji: "🧱",
     category: "Website",
-    tagline: "Every extra field costs you leads",
+    tagline: "Explore a form-length scenario",
     description:
-      "Each question you add to a contact form loses people. See how many, and what your nine-field form is costing you.",
+      "Compare form lengths using an explicit illustrative completion curve. The output is a scenario, not measured lost leads or revenue.",
     who: "Anyone whose contact form asks for a mailing address and a budget range.",
     problem:
-      "Long forms feel thorough. They are actually a filter that removes your busiest, highest-value prospects first.",
-    payoff: "The cost of your current form and what trimming it recovers.",
+      "A longer form asks for more effort. Whether removing a question improves qualified inquiries needs to be tested with your audience.",
+    payoff: "A transparent comparison to help plan a real form test.",
     steps: [
-      "Count the fields on your contact form. Count required ones twice as heavy.",
+      "Count the actual fields on your form. Required fields are not counted twice in this model.",
       "Enter your traffic and value per customer.",
-      "See what cutting to three fields does.",
+      "Compare the hypothetical three-field scenario, then measure actual completions.",
     ],
     fields: [
       { id: "fields", label: "Fields on your form", type: "slider", min: 1, max: 20, step: 1, def: 8 },
@@ -756,12 +741,12 @@ export const GROWTH_TOOLS: ToolDef[] = [
       const lost = trimmed - now;
 
       return {
-        headline: { value: money(lost * close * value * 12), label: "Lost a year to extra form fields", sub: `${dec(lost, 1)} leads a month`, tone: "bad" },
+        headline: { value: money(lost * close * value * 12), label: "Illustrative annual revenue gap", sub: `${dec(lost, 1)} leads a month`, tone: "bad" },
         stats: [
-          { label: "Leads a month now", value: dec(now, 1) },
+          { label: "Modeled completed forms now", value: dec(now, 1) },
           { label: "With 3 fields", value: dec(trimmed, 1), tone: "good" },
-          { label: "Completion rate now", value: pct(completion(fields) * 100, 0), tone: fields > 5 ? "bad" : "good" },
-          { label: "Extra fields costing you", value: count(Math.max(0, fields - 3)), tone: "warn" },
+          { label: "Illustrative completion rate", value: pct(completion(fields) * 100, 0), tone: fields > 5 ? "bad" : "good" },
+          { label: "Fields above comparison length", value: count(Math.max(0, fields - 3)), tone: "warn" },
         ],
         bars: {
           title: "Leads a month by form length",
@@ -772,9 +757,10 @@ export const GROWTH_TOOLS: ToolDef[] = [
             tone: (f <= 3 ? "good" : f <= 5 ? "warn" : "bad") as "good" | "warn" | "bad",
           })),
         },
+        note: "Illustration only: each field beyond three retains 90% of the previous modeled completions, with a 15% floor. These are arbitrary, unvalidated assumptions, not measured abandonment or revenue loss.",
         verdict: {
           tone: "good",
-          text: "Name, phone, and what do you need. That is the form. Everything else you can ask on the phone, once they are already talking to you.",
+          text: "Keep the information needed for the next step. Test a shorter form against real completed submissions; fewer fields do not guarantee more qualified leads.",
         },
       };
     },

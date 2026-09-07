@@ -1,6 +1,7 @@
 import {
   type ToolDef,
   num,
+  str,
   money,
   money2,
   pct,
@@ -134,7 +135,7 @@ export const MONEY_TOOLS: ToolDef[] = [
         stats: [
           { label: "Your true cost", value: money(cost) },
           { label: "Profit in the job", value: money(profit), tone: "good" },
-          { label: "Gross margin", value: pct((profit / (price || 1)) * 100, 1) },
+          { label: "Gross margin", value: price > 0 ? pct((profit / price) * 100, 1) : "Not defined" },
           { label: "Effective rate", value: money2(price / Math.max(1, num(v, "hours") + num(v, "drive"))) + "/hr" },
         ],
         bars: {
@@ -187,6 +188,7 @@ export const MONEY_TOOLS: ToolDef[] = [
       const units = num(v, "units");
       const profit = price - cost;
       const margin = price ? (profit / price) * 100 : 0;
+      if (price <= 0) return { headline: { value: "Not defined", label: "Margin needs a positive selling price", tone: "warn" }, note: "A zero selling price cannot be used as the denominator of gross margin. Enter a price above zero." };
       const markup = cost ? (profit / cost) * 100 : 0;
       const target = num(v, "target") / 100;
       const targetPrice = cost / Math.max(0.05, 1 - target);
@@ -310,6 +312,7 @@ export const MONEY_TOOLS: ToolDef[] = [
       const days = Math.max(1, num(v, "days"));
       const actual = num(v, "actual");
       const grossPerSale = ticket * margin;
+      if (grossPerSale <= 0 && fixed > 0) return { headline: { value: "No break-even", label: "There is no positive contribution per sale", tone: "warn" }, note: "Enter a positive sale value and contribution margin before calculating how sales cover fixed costs." };
       const salesNeeded = grossPerSale > 0 ? fixed / grossPerSale : 0;
       const revenueNeeded = salesNeeded * ticket;
       const perDay = salesNeeded / days;
@@ -480,7 +483,7 @@ export const MONEY_TOOLS: ToolDef[] = [
           text:
             newProfit <= 0
               ? "At this discount you are paying for the privilege of doing the work. Walk away instead."
-              : `To make back one ${pct(d * 100)} discount you have to sell ${dec(extraSales, 2)} more jobs at full price.`,
+              : `To recover the original gross profit at the same discounted price, the model needs ${dec(extraSales * 100, 1)}% more sales.`,
         },
         note: "Add value instead of cutting price. A free add-on costs you cost. A discount costs you profit.",
       };
@@ -534,7 +537,7 @@ export const MONEY_TOOLS: ToolDef[] = [
           { label: "First sale", value: money2(ticket), sub: "what most owners price off" },
           { label: "Lifetime profit", value: money(profit), tone: "good" },
           { label: "With referrals", value: money(withReferrals), tone: "good" },
-          { label: "You can afford to spend", value: money(maxCac), sub: "to win one customer", tone: "good" },
+          { label: "Illustrative 33% allocation", value: money(maxCac), sub: "of modeled gross profit", tone: "good" },
         ],
         bars: {
           title: "First sale vs the whole relationship",
@@ -549,7 +552,7 @@ export const MONEY_TOOLS: ToolDef[] = [
           tone: "good",
           text: `Losing one customer is not a ${money2(ticket)} problem. It is a ${money(revenue)} problem.`,
         },
-        note: "Spending a third of lifetime profit to acquire a customer is a common working target, not a rule. Your cash flow decides what you can actually front.",
+        note: "The 33% allocation is an arbitrary scenario, not a spending recommendation. Purchase frequency, retention and referrals are assumptions; overhead, timing and discounting are excluded. Review cash flow before committing spending.",
       };
     },
   },
@@ -569,30 +572,35 @@ export const MONEY_TOOLS: ToolDef[] = [
     steps: [
       "Enter the total price and the deposit you want up front.",
       "Set the number of payments.",
-      "Show the customer the monthly number, not the total.",
+      "Show the customer the full price, deposit, every installment, and any fees together.",
     ],
     fields: [
       { id: "total", label: "Total price", type: "money", def: 4800 },
       { id: "deposit", label: "Deposit percent", type: "slider", min: 0, max: 75, step: 5, def: 30, suffix: "%" },
       { id: "payments", label: "Number of payments", type: "slider", min: 2, max: 24, step: 1, def: 6 },
-      { id: "fee", label: "Payment plan fee", type: "slider", min: 0, max: 20, step: 1, def: 0, suffix: "%", help: "Some shops add a small fee. Zero is fine and closes better." },
+      { id: "fee", label: "Payment plan fee", type: "slider", min: 0, max: 20, step: 1, def: 0, suffix: "%", help: "Flat percentage of the full price, added before the deposit. This is not APR. Confirm permitted fees and the agreed total." },
     ],
     run: (v) => {
       const total = num(v, "total");
       const depPct = num(v, "deposit") / 100;
       const n = Math.max(1, num(v, "payments"));
       const fee = num(v, "fee") / 100;
-      const billed = total * (1 + fee);
-      const deposit = billed * depPct;
-      const financed = billed - deposit;
-      const monthly = financed / n;
+      const billedCents = Math.round((total * (1 + fee) + Number.EPSILON) * 100);
+      const depositCents = Math.round(billedCents * depPct);
+      const financedCents = billedCents - depositCents;
+      const regularCents = Math.floor(financedCents / n);
+      const billed = billedCents / 100;
+      const deposit = depositCents / 100;
+      const financed = financedCents / 100;
+      const monthly = regularCents / 100;
+      const finalPayment = (financedCents - regularCents * (n - 1)) / 100;
 
       const rows: (string | number)[][] = [["Deposit today", money2(deposit)]];
-      for (let i = 1; i <= n; i++) rows.push([`Payment ${i}`, money2(monthly)]);
+      for (let i = 1; i <= n; i++) rows.push([`Payment ${i}${i === n && finalPayment !== monthly ? " (final adjustment)" : ""}`, money2(i === n ? finalPayment : monthly)]);
       rows.push(["Total collected", money2(billed)]);
 
       return {
-        headline: { value: money2(monthly), label: `Per payment for ${n} payments`, sub: `after ${money2(deposit)} down`, tone: "good" },
+        headline: { value: money2(monthly), label: `Regular payment across ${n} installments`, sub: `after ${money2(deposit)} down; final ${money2(finalPayment)}`, tone: "good" },
         stats: [
           { label: "Cash up front", value: money2(deposit), tone: "good" },
           { label: "Financed", value: money2(financed) },
@@ -602,9 +610,9 @@ export const MONEY_TOOLS: ToolDef[] = [
         table: { title: "The schedule. Print it and attach it to the invoice.", headers: ["When", "Amount"], rows },
         verdict: {
           tone: "good",
-          text: `"${money2(monthly)} a month" lands very differently than "${money(total)}." Same money to you.`,
+          text: `Show the total of ${money2(billed)}, the ${money2(deposit)} deposit, and the complete schedule together. The final payment is ${money2(finalPayment)}.`,
         },
-        note: "Take the deposit before work starts, every time. Auto-charge the rest on a card on file.",
+        note: "Amounts reconcile to cents; the final installment carries any rounding remainder. These are proposed amounts, not an authorization to charge. Confirm the schedule, fees, and payment consent in your actual agreement.",
       };
     },
   },
@@ -625,7 +633,7 @@ export const MONEY_TOOLS: ToolDef[] = [
     steps: [
       "Enter the amount financed, rate and term.",
       "Read the monthly payment and total interest.",
-      "Check whether the thing pays for itself at that payment.",
+      "Compare the payment with the entered monthly amount, then account for costs outside the model.",
     ],
     fields: [
       { id: "amount", label: "Amount financed", type: "money", def: 45000 },
@@ -639,26 +647,31 @@ export const MONEY_TOOLS: ToolDef[] = [
       const n = Math.max(1, num(v, "years") * 12);
       const earns = num(v, "earns");
       const payment = r === 0 ? p / n : (p * r) / (1 - Math.pow(1 + r, -n));
-      const totalPaid = payment * n;
-      const interest = totalPaid - p;
-      const net = earns - payment;
-
+      const regularPaymentCents = Math.round((payment + Number.EPSILON) * 100);
       const rows: (string | number)[][] = [];
-      let bal = p;
-      for (let i = 1; i <= n; i++) {
-        const int = bal * r;
-        const prin = payment - int;
-        bal = Math.max(0, bal - prin);
-        if (i % 6 === 0 || i === 1 || i === n) rows.push([`Month ${i}`, money2(int), money2(prin), money2(bal)]);
+      let balanceCents = Math.round((p + Number.EPSILON) * 100);
+      let paidCents = 0;
+      let interestCents = 0;
+      for (let i = 1; i <= n && balanceCents > 0; i++) {
+        const chargeCents = Math.round(balanceCents * num(v, "rate") / 1200);
+        const paid = i === n ? balanceCents + chargeCents : Math.min(regularPaymentCents, balanceCents + chargeCents);
+        const principalCents = paid - chargeCents;
+        balanceCents -= principalCents;
+        paidCents += paid;
+        interestCents += chargeCents;
+        rows.push([`Month ${i}`, money2(paid / 100), money2(chargeCents / 100), money2(principalCents / 100), money2(balanceCents / 100)]);
       }
+      const totalPaid = paidCents / 100;
+      const interest = interestCents / 100;
+      const net = earns - regularPaymentCents / 100;
 
       return {
         headline: { value: money2(payment), label: "Monthly payment", sub: `${money(totalPaid)} paid over ${n} months`, tone: "neutral" },
         stats: [
           { label: "Total interest", value: money(interest), tone: "bad" },
-          { label: "Interest as percent of price", value: pct((interest / (p || 1)) * 100, 1), tone: "warn" },
-          { label: net >= 0 ? "Nets you monthly" : "Costs you monthly", value: money2(Math.abs(net)), tone: net >= 0 ? "good" : "bad" },
-          { label: "Pays for itself in", value: earns > 0 ? `${dec(p / earns, 1)} months` : "Never at $0", tone: "neutral" },
+          { label: "Interest as percent of price", value: p > 0 ? pct((interest / p) * 100, 1) : "Not defined", tone: "warn" },
+          { label: net >= 0 ? "Entered amount minus payment" : "Payment exceeds entered amount", value: money2(Math.abs(net)), tone: net >= 0 ? "good" : "bad" },
+          { label: "Principal / entered monthly amount", value: earns > 0 ? `${dec(p / earns, 1)} months` : "n/a at $0", tone: "neutral" },
         ],
         bars: {
           title: "Principal vs interest",
@@ -667,8 +680,8 @@ export const MONEY_TOOLS: ToolDef[] = [
             { label: "What the bank keeps", value: interest, display: money(interest), tone: "bad" },
           ],
         },
-        table: { title: "Payoff schedule (every 6 months)", headers: ["When", "Interest", "Principal", "Balance"], rows },
-        note: "Estimate only. Your lender's fees, insurance requirements and prepayment terms change the real number.",
+        table: { title: "Estimated monthly schedule, final payment adjusted to cents", headers: ["When", "Payment", "Interest", "Principal", "Balance"], rows },
+        note: "Fixed-rate monthly-payment estimate; monthly interest and payments round to cents and the final payment adjusts. Fees, insurance, operating expenses, taxes, and lender terms are excluded. Revenue minus the payment is not net profit; principal divided by revenue is not a complete payback calculation.",
       };
     },
   },
@@ -782,15 +795,15 @@ export const MONEY_TOOLS: ToolDef[] = [
 
       return {
         headline: {
-          value: burn > 0 ? `${dec(months, 1)} months` : "Profitable",
-          label: burn > 0 ? "Before you run out of cash" : "You are adding cash every month",
+          value: burn > 0 ? `${dec(months, 1)} months` : burn < 0 ? "Cash surplus" : "Cash balanced",
+          label: burn > 0 ? "Modeled cash runway" : "At the entered monthly cash flow",
           sub: burn > 0 ? `Burning ${money(burn)} a month` : `Adding ${money(-burn)} a month`,
           tone: burn > 0 ? (months < 3 ? "bad" : "warn") : "good",
         },
         stats: [
           { label: burn > 0 ? "Monthly burn" : "Monthly surplus", value: money(Math.abs(burn)), tone: burn > 0 ? "bad" : "good" },
-          { label: "Runway with credit", value: burn > 0 ? `${dec(withCredit, 1)} months` : "No limit", tone: "neutral" },
-          { label: "Extra revenue to break even", value: money(needed), tone: needed > 0 ? "warn" : "good" },
+          { label: "Runway with credit", value: burn > 0 ? `${dec(withCredit, 1)} months` : "No burn modeled", tone: "neutral" },
+          { label: "Extra monthly cash inflow to balance", value: money(needed), tone: needed > 0 ? "warn" : "good" },
           { label: "Or cut expenses by", value: money(needed), tone: needed > 0 ? "warn" : "good" },
         ],
         ramp: burn > 0
@@ -800,8 +813,8 @@ export const MONEY_TOOLS: ToolDef[] = [
           tone: burn > 0 ? "warn" : "good",
           text:
             burn > 0
-              ? `You need ${money(needed)} more a month, from anywhere: price increase, one more job a week, or a bill you stop paying.`
-              : "Bank the surplus. Three to six months of expenses in reserve is what keeps a slow quarter from becoming a closed business.",
+              ? `The entered cash outflow exceeds inflow by ${money(needed)} a month. Review dated collections and obligations before choosing a change.`
+              : "No cash burn appears in these monthly inputs. This does not establish accounting profit or remove the need to plan for irregular obligations and changes.",
         },
       };
     },
@@ -814,7 +827,7 @@ export const MONEY_TOOLS: ToolDef[] = [
     category: "Money",
     tagline: "Add it, back it out, or split the invoice",
     description:
-      "Add tax to a price, pull tax out of a total you already collected, and see the exact amount you owe. Texas defaults built in.",
+      "Add tax to a price, pull tax out of a total you already collected, and reconcile the amount at your entered rate. Taxability and actual remittance obligations require a separate check.",
     who: "Retail, restaurants, shops, anyone collecting sales tax.",
     problem:
       "Backing tax out of a total is the one everybody gets wrong, and it is the one the state cares about.",
@@ -837,16 +850,19 @@ export const MONEY_TOOLS: ToolDef[] = [
       const amount = num(v, "amount");
       const rate = num(v, "rate") / 100;
       const mode = v["mode"] === "post" ? "post" : "pre";
-      const pre = mode === "pre" ? amount : amount / (1 + rate);
-      const tax = pre * rate;
-      const total = pre + tax;
+      const amountCents = Math.round((amount + Number.EPSILON) * 100);
+      const preCents = mode === "pre" ? amountCents : Math.round(amountCents / (1 + rate));
+      const taxCents = mode === "pre" ? Math.round(preCents * rate + Number.EPSILON) : amountCents - preCents;
+      const pre = preCents / 100;
+      const tax = taxCents / 100;
+      const total = (preCents + taxCents) / 100;
       const volume = num(v, "volume");
 
       return {
         headline: { value: money2(total), label: "Total the customer pays", tone: "neutral" },
         stats: [
           { label: "Your revenue", value: money2(pre), tone: "good" },
-          { label: "Tax you owe the state", value: money2(tax), tone: "warn" },
+          { label: "Tax at entered rate", value: money2(tax), tone: "warn" },
           { label: "Tax collected per month", value: money(tax * volume), sub: "not yours, set it aside", tone: "warn" },
           { label: "Tax per year", value: money(tax * volume * 12), tone: "warn" },
         ],
@@ -873,17 +889,17 @@ export const MONEY_TOOLS: ToolDef[] = [
       "A rough set-aside number for self-employed income, including the self-employment tax people forget about.",
     who: "1099 workers, sole proprietors, single-member LLCs.",
     problem:
-      "The self-employment tax is the one that ruins people. You budget for income tax and forget the 15.3 percent underneath it.",
-    payoff: "A percent of every deposit to move to savings the day it lands.",
+      "Self-employment tax and income tax use different rules. A reserve calculation should expose those assumptions instead of treating one flat rate as a completed tax return.",
+    payoff: "An illustrative reserve percentage to review alongside your actual tax situation.",
     steps: [
       "Enter what you expect to bring in and what you can deduct.",
       "Pick a rough income tax bracket.",
-      "Move that percent of every payment into a separate account. Do it the day it hits.",
+      "Review the reserve scenario and excluded items before deciding what to set aside.",
     ],
     fields: [
       { id: "revenue", label: "Business income this year", type: "money", def: 120000 },
       { id: "expenses", label: "Business expenses you can deduct", type: "money", def: 30000 },
-      { id: "bracket", label: "Rough federal income tax bracket", type: "select", def: "22", options: [
+      { id: "bracket", label: "Flat federal income-tax scenario rate", type: "select", def: "22", options: [
         { value: "10", label: "10 percent" },
         { value: "12", label: "12 percent" },
         { value: "22", label: "22 percent" },
@@ -891,15 +907,28 @@ export const MONEY_TOOLS: ToolDef[] = [
         { value: "32", label: "32 percent" },
       ] },
       { id: "already", label: "Already paid in this year", type: "money", def: 0 },
+      { id: "taxYear", label: "Tax year", type: "select", def: "2026", options: [{ value: "2026", label: "2026" }, { value: "2025", label: "2025" }] },
+      { id: "socialSecurityWages", label: "Your Social Security wages for the year", type: "money", def: 0, help: "Your wages subject to Social Security, generally W-2 box 3. Do not include a spouse's wages." },
+      { id: "medicareWages", label: "Medicare wages for the filing unit", type: "money", def: 0, help: "Generally W-2 box 5; include both spouses when filing jointly. Used only for the additional Medicare threshold." },
+      { id: "filing", label: "Filing status for Medicare threshold", type: "select", def: "single", options: [{ value: "single", label: "Single, head of household, or qualifying surviving spouse" }, { value: "joint", label: "Married filing jointly" }, { value: "separate", label: "Married filing separately" }] },
     ],
     run: (v) => {
       const revenue = num(v, "revenue");
       const expenses = num(v, "expenses");
       const netProfit = Math.max(0, revenue - expenses);
       const seBase = netProfit * 0.9235;
-      const seTax = seBase * 0.153;
+      const taxYear = str(v, "taxYear", "2026");
+      const socialSecurityBase = taxYear === "2025" ? 176100 : 184500;
+      const socialSecurityWages = num(v, "socialSecurityWages");
+      const medicareWages = num(v, "medicareWages");
+      const filing = str(v, "filing", "single");
+      const additionalThreshold = filing === "joint" ? 250000 : filing === "separate" ? 125000 : 200000;
+      const eligibleBase = seBase >= 400 ? seBase : 0;
+      const regularSeTax = Math.min(eligibleBase, Math.max(0, socialSecurityBase - socialSecurityWages)) * 0.124 + eligibleBase * 0.029;
+      const additionalMedicare = Math.max(0, eligibleBase - Math.max(0, additionalThreshold - medicareWages)) * 0.009;
+      const seTax = regularSeTax + additionalMedicare;
       const bracket = num(v, "bracket") / 100;
-      const incomeTax = Math.max(0, netProfit - seTax / 2) * bracket;
+      const incomeTax = Math.max(0, netProfit - regularSeTax / 2) * bracket;
       const total = seTax + incomeTax;
       const already = num(v, "already");
       const owed = Math.max(0, total - already);
@@ -909,15 +938,15 @@ export const MONEY_TOOLS: ToolDef[] = [
       return {
         headline: {
           value: pct(setAside, 1),
-          label: "Set this much aside from every dollar you collect",
+          label: "Modeled business-income reserve percentage",
           sub: `About ${money(total)} for the year`,
           tone: "warn",
         },
         stats: [
           { label: "Net profit", value: money(netProfit) },
-          { label: "Self-employment tax", value: money(seTax), sub: "the one people forget", tone: "bad" },
-          { label: "Estimated income tax", value: money(incomeTax), tone: "warn" },
-          { label: "Per quarterly payment", value: money(perQuarter), tone: "warn" },
+          { label: "SE and additional Medicare components", value: money(seTax), sub: `${taxYear} scenario; wage inputs affect the caps`, tone: "bad" },
+          { label: "Flat-rate income-tax scenario", value: money(incomeTax), tone: "warn" },
+          { label: "Remaining reserve divided by four", value: money(perQuarter), tone: "warn" },
         ],
         bars: {
           title: "Where your net profit goes",
@@ -927,7 +956,7 @@ export const MONEY_TOOLS: ToolDef[] = [
             { label: "Income tax", value: incomeTax, display: money(incomeTax), tone: "warn" },
           ],
         },
-        note: "This is a rough estimate to help you save, not tax advice and not a filing. State tax, credits, deductions, filing status, an S-corp election and a dozen other things change it. Talk to a CPA before you file.",
+        note: "Reserve scenario, not a tax return or required quarterly installment. Uses the selected year's Social Security cap, 92.35% SE base, regular 12.4% and 2.9% components, and applicable additional Medicare threshold. Flat income-tax rate is not a progressive tax calculation. Credits, deductions, other income, safe-harbor rules, timing, state tax, and special SE methods are excluded. Confirm payments with current IRS guidance or your tax professional.",
       };
     },
   },
@@ -940,7 +969,7 @@ export const MONEY_TOOLS: ToolDef[] = [
     category: "Money",
     tagline: "The deduction most owners under-claim",
     description:
-      "Business miles are real money back. See what your driving is worth, and what forgetting to log it costs you.",
+      "Estimate a mileage deduction for the entered period and an illustrative tax effect. A deduction is not a dollar-for-dollar refund.",
     who: "Trades, sales, delivery, real estate, anybody living in a truck.",
     problem:
       "You remember the big trips and forget the fifteen supply runs. Those runs are usually the bigger number.",
@@ -952,8 +981,8 @@ export const MONEY_TOOLS: ToolDef[] = [
     ],
     fields: [
       { id: "weekly", label: "Business miles per week", type: "slider", min: 0, max: 2000, step: 10, def: 250 },
-      { id: "weeks", label: "Weeks you drive", type: "slider", min: 20, max: 52, step: 1, def: 50 },
-      { id: "rate", label: "IRS standard mileage rate (cents per mile)", type: "number", def: 70, suffix: "¢", help: "The IRS changes this every year. Look up the current year's rate on irs.gov and put it here." },
+      { id: "weeks", label: "Weeks in this rate period", type: "slider", min: 1, max: 52, step: 1, def: 26 },
+      { id: "rate", label: "IRS standard mileage rate (cents per mile)", type: "number", def: 76, suffix: "¢", help: "IRS business rate: 76¢ for July through December 2026; 72.5¢ for January through June 2026; 70¢ for 2025. Run periods separately and combine the deductions. Confirm the rate for your trip dates at irs.gov/tax-professionals/standard-mileage-rates." },
       { id: "bracket", label: "Your combined tax rate", type: "slider", min: 10, max: 50, step: 1, def: 30, suffix: "%" },
       { id: "missed", label: "Percent of miles you forget to log", type: "slider", min: 0, max: 80, step: 5, def: 30, suffix: "%" },
     ],
@@ -968,11 +997,11 @@ export const MONEY_TOOLS: ToolDef[] = [
       const lostSavings = lostDeduction * bracket;
 
       return {
-        headline: { value: money(deduction), label: "Yearly mileage deduction", sub: `${count(miles)} business miles`, tone: "good" },
+        headline: { value: money(deduction), label: "Modeled mileage deduction for entered weeks", sub: `${count(miles)} business miles`, tone: "good" },
         stats: [
-          { label: "Tax it saves you", value: money(saved), tone: "good" },
-          { label: "Deduction you are losing", value: money(lostDeduction), sub: "miles you never logged", tone: "bad" },
-          { label: "Cash that costs you", value: money(lostSavings), tone: "bad" },
+          { label: "Tax-effect scenario at entered rate", value: money(saved), tone: "good" },
+          { label: "Deduction associated with unlogged miles", value: money(lostDeduction), sub: "miles you never logged", tone: "bad" },
+          { label: "Tax-effect scenario for those miles", value: money(lostSavings), tone: "bad" },
           { label: "Per week", value: money(deduction / Math.max(1, num(v, "weeks"))) },
         ],
         bars: {
@@ -982,7 +1011,7 @@ export const MONEY_TOOLS: ToolDef[] = [
             { label: "Deduction you lose", value: lostDeduction, display: money(lostDeduction), tone: "bad" },
           ],
         },
-        note: "Standard mileage only, and only for business miles. Commuting does not count. The rate changes yearly and there are rules about switching between standard mileage and actual expenses. Ask your CPA.",
+        note: "Standard mileage only, and only for business miles. Commuting does not count. Rates can change within a year. Use each trip date's rate and separately total periods; do not apply the second-half 2026 rate to a full year. Eligibility and documentation matter; confirm current IRS rules or ask your tax professional.",
       };
     },
   },
@@ -1098,7 +1127,8 @@ export const MONEY_TOOLS: ToolDef[] = [
       const personYears = [0, 1, 2].map((i) => person * Math.pow(1 + raise, i));
       const person3 = personYears.reduce((a, b) => a + b, 0);
       const remainder = person * (1 - coverage);
-      const system3 = build + monthly * 3 + remainder * 3;
+      const system3 = build + monthly * 3 + person3 * (1 - coverage);
+      const monthlyNetSaving = (person * coverage - monthly) / 12;
       const savings = person3 - system3;
 
       return {
@@ -1111,7 +1141,7 @@ export const MONEY_TOOLS: ToolDef[] = [
           { label: "Hire, 3 years", value: money(person3), tone: "warn" },
           { label: "System, 3 years", value: money(system3), tone: "good" },
           { label: "Year one difference", value: money(Math.abs(personYears[0] - (build + monthly + remainder))) },
-          { label: "System pays for itself in", value: person * coverage > 0 ? `${dec((build / ((person * coverage - monthly) / 12)) || 0, 1)} months` : "n/a" },
+          { label: "System pays for itself in", value: monthlyNetSaving > 0 ? `${dec(build / monthlyNetSaving, 1)} months` : "No payback at these costs" },
         ],
         bars: {
           title: "Three-year cost, side by side",
@@ -1188,8 +1218,8 @@ export const MONEY_TOOLS: ToolDef[] = [
           tone: otCost > hire ? "bad" : "warn",
           text:
             otCost > hire
-              ? "You are paying more than a full-time salary in overtime premium. That is a hire, and your best people are exhausted for free."
-              : "Overtime still wins on paper. Watch burnout and turnover, because replacing a good hand costs more than either number here.",
+              ? "Total modeled overtime spending exceeds the entered hire cost. The overtime premium is only the extra portion shown separately. Compare schedule, skills, and capacity before deciding."
+              : "Total modeled overtime spending is below the entered hire cost. Compare the actual hours, skills, and capacity covered; this is not a hiring recommendation.",
         },
         note: "Overtime rules vary by state and by whether an employee is exempt. Check your state's labor rules.",
       };

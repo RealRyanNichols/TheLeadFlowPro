@@ -35,6 +35,8 @@ import {
 import { TOOLS } from "@/lib/tools";
 import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
 import CtaLink from "@/components/site/CtaLink";
+import CapabilityWorkflow from "@/components/site/CapabilityWorkflow";
+import ReportingPreview from "./ReportingPreview";
 import styles from "./stage.module.css";
 
 type StagePresentation = {
@@ -114,6 +116,10 @@ const STAGE_PRESENTATION: Record<StageSlug, StagePresentation> = {
 };
 
 const OFFER_ICONS: LucideIcon[] = [Workflow, Layers3, Database, Boxes, Gauge];
+const WORKFLOW_EXAMPLES: Record<StageSlug, string> = {
+  attention: "seo", website: "public-website", "lead-capture": "lead-capture", crm: "crm",
+  "follow-up": "email", sale: "payments", delivery: "customer-portals", reporting: "your-analytics",
+};
 
 // One full page per stage of the connected-company loop. The nodes on the
 // homepage diagram link here.
@@ -122,7 +128,7 @@ const OFFER_ICONS: LucideIcon[] = [Workflow, Layers3, Database, Boxes, Gauge];
 // proof, and live interactive tools that already exist on this site. The tools
 // are the "interactive" part Ryan asked for and they are real, not mock-ups.
 
-export const revalidate = 3600;
+export const revalidate = 900;
 
 export function generateStaticParams() {
   return STAGE_SLUGS.map((stage) => ({ stage }));
@@ -272,6 +278,7 @@ export default async function StagePage({
             </figure>
           </div>
 
+          <p className={styles.stageNavLabel}>Explore every stage. Start where you need help.</p>
           <nav className={styles.stageRail} aria-label="The eight connected-company stages">
             {STAGES.map((s) => {
               const RailIcon = STAGE_PRESENTATION[s.slug].icon;
@@ -328,6 +335,9 @@ export default async function StagePage({
               <h2>{stage.buildHeading}</h2>
             </div>
             <p>{stage.buildLead}</p>
+          </div>
+          <div className={styles.outputPreview}>
+            {stage.slug === "reporting" ? <ReportingPreview /> : <CapabilityWorkflow id={WORKFLOW_EXAMPLES[stage.slug]} />}
           </div>
           <div className={styles.offerGrid}>
             {stage.offers.map((o, index) => {
@@ -415,8 +425,8 @@ export default async function StagePage({
                 <h2>Free tools for this stage. No signup to use them.</h2>
               </div>
               <p>
-                Put your real figures in. If the number that comes back is uncomfortable,
-                that is the leak, and it is the thing worth fixing first.
+                Try a tool with your own details. Check the assumptions beside the result,
+                then use it to decide what to review next.
               </p>
             </div>
             <div className={styles.toolGrid}>

@@ -451,7 +451,7 @@ export const str = (v: Values, id: string, fallback = ""): string => {
 
 export const list = (v: Values, id: string): string[] => {
   const raw = v[id];
-  return Array.isArray(raw) ? raw : [];
+  return Array.isArray(raw) ? [...new Set(raw)] : [];
 };
 
 /* ---------- formatters ---------- */

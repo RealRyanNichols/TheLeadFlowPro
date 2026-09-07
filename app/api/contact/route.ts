@@ -1,56 +1,69 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
+import { randomUUID } from "node:crypto";
+import { SUPABASE_URL } from "@/lib/config";
+import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
+import {
+  contactNotificationStore,
+  deliverContactNotification,
+} from "@/lib/contactNotifications";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     for (const f of ["visitor_name", "visitor_email", "body"]) {
-      if (!body[f] || typeof body[f] !== "string") {
+      if (!body?.[f] || typeof body[f] !== "string" || !body[f].trim()) {
         return NextResponse.json({ error: `Missing ${f}` }, { status: 400 });
       }
     }
-    const supabase = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const name = body.visitor_name.trim();
+    const email = body.visitor_email.trim();
+    const message = body.body.trim();
+    if (
+      name.length > 200 ||
+      email.length > 200 ||
+      message.length > 3000 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
+      return NextResponse.json(
+        { error: "Check your name, email address and message length." },
+        { status: 400 },
+      );
+    }
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+    if (!serviceKey || leadFlowSupabaseRuntimeIssues(SUPABASE_URL).length) {
+      return NextResponse.json(
+        {
+          error:
+            "The contact form is temporarily unavailable. Please call or text us.",
+        },
+        { status: 503 },
+      );
+    }
+    const id = randomUUID();
+    const supabase = createSupabaseClient(SUPABASE_URL, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
     const { error } = await supabase.from("messages").insert({
-      visitor_name: String(body.visitor_name).slice(0, 200),
-      visitor_email: String(body.visitor_email).slice(0, 200),
-      body: String(body.body).slice(0, 3000),
+      id,
+      visitor_name: name,
+      visitor_email: email,
+      body: message,
       sender: "visitor",
     });
     if (error) {
-      return NextResponse.json({ error: "Could not send. Try again." }, { status: 500 });
+      return NextResponse.json(
+        { error: "Could not send. Try again." },
+        { status: 500 },
+      );
     }
 
-    // The page says "Ryan reads every message himself." Until now that only
-    // happened if he opened /admin/messages. Fail soft: the message is saved
-    // either way, and a Resend hiccup must not turn into a visitor error.
-    const key = process.env.RESEND_API_KEY?.trim();
-    if (key) {
-      const visitorName = String(body.visitor_name).slice(0, 200);
-      const visitorEmail = String(body.visitor_email).slice(0, 200);
-      try {
-        await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
-            to: [process.env.LEADFLOW_NOTIFY_EMAIL?.trim() || "hello@theleadflowpro.com"],
-            reply_to: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(visitorEmail) ? visitorEmail : undefined,
-            subject: `CONTACT: ${visitorName}`,
-            text: [
-              `From: ${visitorName} <${visitorEmail}>`,
-              ``,
-              String(body.body).slice(0, 3000),
-              ``,
-              `Reply to this email to answer them directly.`,
-              `Thread: https://www.theleadflowpro.com/admin/messages`,
-            ].join("\n"),
-          }),
-          signal: AbortSignal.timeout(5000),
-        });
-      } catch (e) {
-        console.error("contact alert failed:", e instanceof Error ? e.message : e);
-      }
+    // The database transaction also saved the alert job. Failed delivery stays
+    // in the private inbox and the protected cron retries automatically.
+    try {
+      await deliverContactNotification(contactNotificationStore(supabase), id);
+    } catch {
+      console.error("Contact alert is saved for retry", { messageId: id });
     }
     return NextResponse.json({ ok: true });
   } catch {

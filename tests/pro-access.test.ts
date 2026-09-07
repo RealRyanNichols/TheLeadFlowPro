@@ -243,3 +243,9 @@ describe("emails", () => {
     assert.equal(normalizeEmail(42), "");
   });
 });
+
+test("rejects malformed paid totals even when the pre-discount catalog subtotal matches", () => {
+  for (const amount_total of [-1, 1.5, "1900", null, undefined, Number.NaN, Number.POSITIVE_INFINITY]) {
+    assert.equal(proKindFromSession({ amount_total, amount_subtotal: 1900, metadata: { kind: "pro_tool", pro_slug: "missed-call-text-back-kit" } }, CATALOG), null);
+  }
+});

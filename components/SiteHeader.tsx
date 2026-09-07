@@ -4,6 +4,7 @@ import Link from "next/link";
 import BrandLockup from "@/components/BrandLockup";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Menu } from "lucide-react";
+import { useRef } from "react";
 
 // Public navigation mirrors the approved LeadFlow Pro redesign. Existing
 // offers, tools, events, training, and login routes remain available from the
@@ -26,6 +27,7 @@ function isWorkspacePath(pathname: string) {
 
 export default function SiteHeader() {
   const pathname = usePathname();
+  const mobileMenu = useRef<HTMLDetailsElement>(null);
   if (pathname === "/start" || isWorkspacePath(pathname)) return null;
   return (
     <header className="site-header">
@@ -55,11 +57,32 @@ export default function SiteHeader() {
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </nav>
-        <details className="mobile-nav">
+        <details
+          key={pathname}
+          ref={mobileMenu}
+          className="mobile-nav"
+          onKeyDown={(event) => {
+            if (event.key !== "Escape" || !mobileMenu.current?.open) return;
+            mobileMenu.current.open = false;
+            mobileMenu.current.querySelector("summary")?.focus();
+            event.preventDefault();
+          }}
+        >
           <summary aria-label="Open navigation menu">
             <Menu aria-hidden="true" className="h-5 w-5" />
           </summary>
-          <div className="mobile-nav-panel">
+          <div
+            className="mobile-nav-panel"
+            onClick={(event) => {
+              if (
+                event.target instanceof Element &&
+                event.target.closest("a") &&
+                mobileMenu.current
+              ) {
+                mobileMenu.current.open = false;
+              }
+            }}
+          >
             {NAV_LINKS.map(([href, label]) => (
               <Link
                 key={href}

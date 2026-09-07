@@ -1,0 +1,1636 @@
+{
+  "checkedAt": "2026-09-06T22:52:18.517Z",
+  "publicationDate": "2026-09-06",
+  "status": "source-and-tool-review-not-publication-proof",
+  "articleModule": "lib/articles-tool-household.ts",
+  "sourceChecks": [
+    {
+      "url": "https://developers.google.com/search/docs/crawling-indexing/robots/intro",
+      "publisher": "Google Search Central",
+      "supports": "Robots.txt controls crawling, does not enforce access control, and a blocked URL may still appear in search.",
+      "checkedAt": "2026-09-06T22:52:17.535Z",
+      "method": "Primary official page read with web tool, plus direct HTTP source-link check",
+      "httpStatus": 200,
+      "finalUrl": "https://developers.google.com/search/docs/crawling-indexing/robots/intro?hl=it"
+    },
+    {
+      "url": "https://developers.google.com/search/docs/crawling-indexing/block-indexing",
+      "publisher": "Google Search Central",
+      "supports": "Google must be able to fetch the page to discover its noindex instruction.",
+      "checkedAt": "2026-09-06T22:52:16.593Z",
+      "method": "Primary official page read with web tool, plus direct HTTP source-link check",
+      "httpStatus": 200,
+      "finalUrl": "https://developers.google.com/search/docs/crawling-indexing/block-indexing"
+    },
+    {
+      "url": "https://files.consumerfinance.gov/f/documents/cfpb_well-being_monthly-budget.pdf",
+      "publisher": "Consumer Financial Protection Bureau",
+      "supports": "Monthly budget method lists income and expenses, then subtracts expenses from income.",
+      "checkedAt": "2026-09-06T22:52:17.271Z",
+      "method": "Primary official page read with web tool, plus direct HTTP source-link check",
+      "httpStatus": 200,
+      "finalUrl": "https://files.consumerfinance.gov/f/documents/cfpb_well-being_monthly-budget.pdf"
+    },
+    {
+      "url": "https://www.consumerfinance.gov/consumer-tools/educator-tools/your-money-your-goals/toolkit/",
+      "publisher": "Consumer Financial Protection Bureau",
+      "supports": "Official toolkit provides bill calendar and cash-flow budget resources.",
+      "checkedAt": "2026-09-06T22:52:16.175Z",
+      "method": "Primary official page read with web tool, plus direct HTTP source-link check",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumerfinance.gov/consumer-tools/educator-tools/your-money-your-goals/toolkit/"
+    },
+    {
+      "url": "https://www.gov.uk/government/publications/unit-pricing-information-for-consumers/unit-pricing-information-for-consumers",
+      "publisher": "UK Government",
+      "supports": "Unit prices compare equivalent weight or volume; a bigger package can have a higher unit price. Used for arithmetic only, not US legal rules.",
+      "checkedAt": "2026-09-06T22:52:17.447Z",
+      "method": "Primary official page read with web tool, plus direct HTTP source-link check",
+      "httpStatus": 200,
+      "finalUrl": "https://www.gov.uk/government/publications/unit-pricing-information-for-consumers/unit-pricing-information-for-consumers"
+    },
+    {
+      "url": "https://www.irs.gov/individuals/tax-withholding-estimator",
+      "publisher": "Internal Revenue Service",
+      "supports": "Separate official federal tax withholding estimator; no combined tax or household tax rate inferred.",
+      "checkedAt": "2026-09-06T22:52:16.247Z",
+      "method": "Primary official page read with web tool, plus direct HTTP source-link check",
+      "httpStatus": 200,
+      "finalUrl": "https://www.irs.gov/individuals/tax-withholding-estimator"
+    },
+    {
+      "url": "https://consumer.ftc.gov/articles/getting-and-out-free-trials-auto-renewals-and-negative-option-subscriptions",
+      "publisher": "Federal Trade Commission",
+      "supports": "Review renewal and cancellation terms; retain confirmation and monitor statements. No legal click-to-cancel rule asserted.",
+      "checkedAt": "2026-09-06T22:52:18.500Z",
+      "method": "Primary official page read with web tool, plus direct HTTP source-link check",
+      "httpStatus": 200,
+      "finalUrl": "https://consumer.ftc.gov/articles/getting-and-out-free-trials-auto-renewals-and-negative-option-subscriptions"
+    },
+    {
+      "url": "https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund/",
+      "publisher": "Consumer Financial Protection Bureau",
+      "supports": "Emergency reserve size depends on circumstances; monitor balances around automatic transfers to avoid overdraft.",
+      "checkedAt": "2026-09-06T22:52:16.751Z",
+      "method": "Primary official page read with web tool, plus direct HTTP source-link check",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund/"
+    },
+    {
+      "url": "https://www.consumerfinance.gov/ask-cfpb/what-is-a-daily-periodic-rate-on-a-credit-card-en-46/",
+      "publisher": "Consumer Financial Protection Bureau",
+      "supports": "Daily periodic rate calculations and issuer-specific day-count conventions differ from a flat monthly model.",
+      "checkedAt": "2026-09-06T22:52:17.129Z",
+      "method": "Primary official page read with web tool, plus direct HTTP source-link check",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumerfinance.gov/ask-cfpb/what-is-a-daily-periodic-rate-on-a-credit-card-en-46/"
+    },
+    {
+      "url": "https://www.consumerfinance.gov/owning-a-home/prepare/assess-your-spending/",
+      "publisher": "Consumer Financial Protection Bureau",
+      "supports": "Review several months of transactions and less frequent expenses; adapted expressly as record-review method, not rental approval criteria.",
+      "checkedAt": "2026-09-06T22:52:16.755Z",
+      "method": "Primary official page read with web tool, plus direct HTTP source-link check",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumerfinance.gov/owning-a-home/prepare/assess-your-spending/"
+    },
+    {
+      "url": "https://www.dol.gov/agencies/whd/fact-sheets/17a-overtime",
+      "publisher": "US Department of Labor",
+      "supports": "Job title alone does not determine exemption; duties and pay tests matter. No salary threshold or individual eligibility asserted.",
+      "checkedAt": "2026-09-06T22:52:16.791Z",
+      "method": "Primary official page read with web tool, plus direct HTTP source-link check",
+      "httpStatus": 200,
+      "finalUrl": "https://www.dol.gov/agencies/whd/fact-sheets/17a-overtime"
+    }
+  ],
+  "articles": [
+    {
+      "slug": "how-to-check-robots-txt-without-treating-it-as-a-lock",
+      "toolSlug": "robots-txt-generator",
+      "bodyWordCount": 704,
+      "titleMatchesPlan": true,
+      "slugMatchesPlan": true,
+      "stepCount": 4,
+      "faqCount": 3,
+      "toolEmbedCount": 1,
+      "sourceUrls": [
+        "https://developers.google.com/search/docs/crawling-indexing/robots/intro",
+        "https://developers.google.com/search/docs/crawling-indexing/block-indexing"
+      ],
+      "cases": [
+        {
+          "inputs": {
+            "domain": "example.com",
+            "mode": "block-admin",
+            "extra": "/search\nthank-you"
+          },
+          "observed": {
+            "output": {
+              "title": "Save this as robots.txt at the root of your site",
+              "text": "User-agent: *\nDisallow: /admin\nDisallow: /cart\nDisallow: /checkout\nDisallow: /wp-admin/\nDisallow: /login\nDisallow: /search\nDisallow: /thank-you\n\nSitemap: https://example.com/sitemap.xml",
+              "filename": "robots.txt",
+              "mono": true
+            }
+          }
+        },
+        {
+          "inputs": {
+            "domain": "example.com",
+            "mode": "open",
+            "extra": ""
+          },
+          "observed": {
+            "output": {
+              "title": "Save this as robots.txt at the root of your site",
+              "text": "User-agent: *\nDisallow:\n\nSitemap: https://example.com/sitemap.xml",
+              "filename": "robots.txt",
+              "mono": true
+            }
+          }
+        },
+        {
+          "inputs": {
+            "domain": "example.com",
+            "mode": "closed",
+            "extra": ""
+          },
+          "observed": {
+            "output": {
+              "title": "Save this as robots.txt at the root of your site",
+              "text": "User-agent: *\nDisallow: /\n\nSitemap: https://example.com/sitemap.xml",
+              "filename": "robots.txt",
+              "mono": true
+            }
+          }
+        }
+      ],
+      "independentMath": [
+        "block-admin produces five default Disallow paths plus two extras, seven total; adds slash to thank-you; normalized sitemap https://example.com/sitemap.xml"
+      ],
+      "status": "pass",
+      "bodyWords": 704
+    },
+    {
+      "slug": "how-to-put-a-month-s-bills-on-one-clear-page",
+      "toolSlug": "household-budget-planner",
+      "bodyWordCount": 734,
+      "titleMatchesPlan": true,
+      "slugMatchesPlan": true,
+      "stepCount": 4,
+      "faqCount": 3,
+      "toolEmbedCount": 1,
+      "sourceUrls": [
+        "https://files.consumerfinance.gov/f/documents/cfpb_well-being_monthly-budget.pdf",
+        "https://www.consumerfinance.gov/consumer-tools/educator-tools/your-money-your-goals/toolkit/"
+      ],
+      "cases": [
+        {
+          "inputs": {
+            "income": 4800,
+            "housing": 1500,
+            "utilities": 350,
+            "food": 700,
+            "transport": 600,
+            "childcare": 400,
+            "debt": 250,
+            "other": 400
+          },
+          "observed": {
+            "headline": {
+              "value": "$600",
+              "label": "Left at the end of the month",
+              "sub": "12.5% of take-home pay",
+              "tone": "good"
+            },
+            "explain": "After everything you listed, $600 is left each month, or $7,200 a year. Housing is taking 31% of your take-home pay.",
+            "stats": [
+              {
+                "label": "Total going out",
+                "value": "$4,200",
+                "tone": "neutral"
+              },
+              {
+                "label": "Housing share",
+                "value": "31%",
+                "sub": "inside the usual range",
+                "tone": "good"
+              },
+              {
+                "label": "Left over per year",
+                "value": "$7,200",
+                "tone": "good"
+              },
+              {
+                "label": "Needs, wants, saving",
+                "value": "74% / 8% / 18%",
+                "sub": "the 50, 30, 20 comparison"
+              }
+            ],
+            "bars": {
+              "title": "Where every dollar goes",
+              "caption": "Share of take-home pay.",
+              "items": [
+                {
+                  "label": "Housing",
+                  "value": 1500,
+                  "display": "$1,500 (31%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Utilities",
+                  "value": 350,
+                  "display": "$350 (7%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Food",
+                  "value": 700,
+                  "display": "$700 (15%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Transport",
+                  "value": 600,
+                  "display": "$600 (13%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Childcare",
+                  "value": 400,
+                  "display": "$400 (8%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Debt payments",
+                  "value": 250,
+                  "display": "$250 (5%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Everything else",
+                  "value": 400,
+                  "display": "$400 (8%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Left over",
+                  "value": 600,
+                  "display": "$600",
+                  "tone": "good"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "inputs": {
+            "income": 4800,
+            "housing": 1500,
+            "utilities": 350,
+            "food": 700,
+            "transport": 600,
+            "childcare": 400,
+            "debt": 250,
+            "other": 760
+          },
+          "observed": {
+            "headline": {
+              "value": "$240",
+              "label": "Left at the end of the month",
+              "sub": "5.0% of take-home pay",
+              "tone": "good"
+            },
+            "explain": "After everything you listed, $240 is left each month, or $2,880 a year. Housing is taking 31% of your take-home pay.",
+            "stats": [
+              {
+                "label": "Total going out",
+                "value": "$4,560",
+                "tone": "neutral"
+              },
+              {
+                "label": "Housing share",
+                "value": "31%",
+                "sub": "inside the usual range",
+                "tone": "good"
+              },
+              {
+                "label": "Left over per year",
+                "value": "$2,880",
+                "tone": "good"
+              },
+              {
+                "label": "Needs, wants, saving",
+                "value": "74% / 16% / 10%",
+                "sub": "the 50, 30, 20 comparison"
+              }
+            ],
+            "bars": {
+              "title": "Where every dollar goes",
+              "caption": "Share of take-home pay.",
+              "items": [
+                {
+                  "label": "Housing",
+                  "value": 1500,
+                  "display": "$1,500 (31%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Utilities",
+                  "value": 350,
+                  "display": "$350 (7%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Food",
+                  "value": 700,
+                  "display": "$700 (15%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Transport",
+                  "value": 600,
+                  "display": "$600 (13%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Childcare",
+                  "value": 400,
+                  "display": "$400 (8%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Debt payments",
+                  "value": 250,
+                  "display": "$250 (5%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Everything else",
+                  "value": 760,
+                  "display": "$760 (16%)",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Left over",
+                  "value": 240,
+                  "display": "$240",
+                  "tone": "good"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "independentMath": [
+        "baseline spending4200,remainder600,remainder share12.5%,annual7200,housing31.25%",
+        "one-time360expense: spending4560,remainder240",
+        "annual600/12=50 monthly allowance"
+      ],
+      "status": "pass",
+      "bodyWords": 734
+    },
+    {
+      "slug": "how-to-compare-two-package-sizes-before-buying-the-bigger-one",
+      "toolSlug": "grocery-unit-price-calculator",
+      "bodyWordCount": 701,
+      "titleMatchesPlan": true,
+      "slugMatchesPlan": true,
+      "stepCount": 4,
+      "faqCount": 3,
+      "toolEmbedCount": 1,
+      "sourceUrls": [
+        "https://www.gov.uk/government/publications/unit-pricing-information-for-consumers/unit-pricing-information-for-consumers"
+      ],
+      "cases": [
+        {
+          "inputs": {
+            "unit": "oz",
+            "sizeA": 16,
+            "priceA": 4.8,
+            "sizeB": 40,
+            "priceB": 10,
+            "perMonth": 3
+          },
+          "observed": {
+            "headline": {
+              "value": "Option B",
+              "label": "Cheaper by 16.7% per ounce",
+              "sub": "$0.25 against $0.30 per ounce",
+              "tone": "good"
+            },
+            "explain": "Option A works out at $0.30 per ounce and option B at $0.25 per ounce. Option B is the better buy, by $0.05 on every ounce.",
+            "stats": [
+              {
+                "label": "Option A per ounce",
+                "value": "$0.30",
+                "tone": "bad"
+              },
+              {
+                "label": "Option B per ounce",
+                "value": "$0.25",
+                "tone": "good"
+              },
+              {
+                "label": "Saved per year",
+                "value": "$72",
+                "sub": "buying 3 a month",
+                "tone": "good"
+              },
+              {
+                "label": "Difference per ounce",
+                "value": "$0.05"
+              }
+            ],
+            "bars": {
+              "title": "Price per ounce",
+              "items": [
+                {
+                  "label": "Option A (16 ounces)",
+                  "value": 0.3,
+                  "display": "$0.30",
+                  "tone": "bad"
+                },
+                {
+                  "label": "Option B (40 ounces)",
+                  "value": 0.25,
+                  "display": "$0.25",
+                  "tone": "good"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "independentMath": [
+        "A4.8/16=.30;B10/40=.25;difference.05;(.30-.25)/.30=16.6667%",
+        "three cheaper40ozpackages=120ozmonth;cost36vs30;6x12=72",
+        "10/30usedoz=.333333;break-even10/.30=33.333333usedoz;remaining6.666667oz"
+      ],
+      "status": "pass",
+      "bodyWords": 701
+    },
+    {
+      "slug": "how-to-compare-the-costs-that-come-with-a-job",
+      "toolSlug": "childcare-vs-work-calculator",
+      "bodyWordCount": 736,
+      "titleMatchesPlan": true,
+      "slugMatchesPlan": true,
+      "stepCount": 4,
+      "faqCount": 3,
+      "toolEmbedCount": 1,
+      "sourceUrls": [
+        "https://www.irs.gov/individuals/tax-withholding-estimator"
+      ],
+      "cases": [
+        {
+          "inputs": {
+            "salary": 48000,
+            "taxRate": 20,
+            "childcare": 1000,
+            "commuteDaily": 15,
+            "daysPerWeek": 5,
+            "weeks": 48,
+            "hoursPerDay": 8,
+            "extras": 200
+          },
+          "observed": {
+            "headline": {
+              "value": "$20,400",
+              "label": "Actually kept per year",
+              "sub": "$1,700 a month",
+              "tone": "good"
+            },
+            "explain": "The job pays $48,000, which is $38,400 after tax. Childcare, commuting and work-related spending take $18,000 of that, leaving $20,400. Across 1,920 hours worked, that is $10.63 an hour in your hand, against the $20.00 an hour the salary looks like.",
+            "stats": [
+              {
+                "label": "After tax",
+                "value": "$38,400"
+              },
+              {
+                "label": "Cost of working",
+                "value": "$18,000",
+                "tone": "bad"
+              },
+              {
+                "label": "Effective hourly",
+                "value": "$10.63",
+                "sub": "salary alone looks like $20.00",
+                "tone": "good"
+              },
+              {
+                "label": "Childcare share of net pay",
+                "value": "31%",
+                "tone": "neutral"
+              }
+            ],
+            "bars": {
+              "title": "Where the salary goes",
+              "caption": "Annual figures.",
+              "items": [
+                {
+                  "label": "Tax",
+                  "value": 9600,
+                  "display": "$9,600",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Childcare",
+                  "value": 12000,
+                  "display": "$12,000",
+                  "tone": "bad"
+                },
+                {
+                  "label": "Commuting",
+                  "value": 3600,
+                  "display": "$3,600",
+                  "tone": "bad"
+                },
+                {
+                  "label": "Work-related spending",
+                  "value": 2400,
+                  "display": "$2,400",
+                  "tone": "bad"
+                },
+                {
+                  "label": "Kept",
+                  "value": 20400,
+                  "display": "$20,400",
+                  "tone": "good"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "inputs": {
+            "salary": 48000,
+            "taxRate": 20,
+            "childcare": 800,
+            "commuteDaily": 15,
+            "daysPerWeek": 5,
+            "weeks": 48,
+            "hoursPerDay": 8,
+            "extras": 200
+          },
+          "observed": {
+            "headline": {
+              "value": "$22,800",
+              "label": "Actually kept per year",
+              "sub": "$1,900 a month",
+              "tone": "good"
+            },
+            "explain": "The job pays $48,000, which is $38,400 after tax. Childcare, commuting and work-related spending take $15,600 of that, leaving $22,800. Across 1,920 hours worked, that is $11.88 an hour in your hand, against the $20.00 an hour the salary looks like.",
+            "stats": [
+              {
+                "label": "After tax",
+                "value": "$38,400"
+              },
+              {
+                "label": "Cost of working",
+                "value": "$15,600",
+                "tone": "bad"
+              },
+              {
+                "label": "Effective hourly",
+                "value": "$11.88",
+                "sub": "salary alone looks like $20.00",
+                "tone": "good"
+              },
+              {
+                "label": "Childcare share of net pay",
+                "value": "25%",
+                "tone": "neutral"
+              }
+            ],
+            "bars": {
+              "title": "Where the salary goes",
+              "caption": "Annual figures.",
+              "items": [
+                {
+                  "label": "Tax",
+                  "value": 9600,
+                  "display": "$9,600",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Childcare",
+                  "value": 9600,
+                  "display": "$9,600",
+                  "tone": "bad"
+                },
+                {
+                  "label": "Commuting",
+                  "value": 3600,
+                  "display": "$3,600",
+                  "tone": "bad"
+                },
+                {
+                  "label": "Work-related spending",
+                  "value": 2400,
+                  "display": "$2,400",
+                  "tone": "bad"
+                },
+                {
+                  "label": "Kept",
+                  "value": 22800,
+                  "display": "$22,800",
+                  "tone": "good"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "independentMath": [
+        "48000*.8=38400;childcare12000;commute15*5*48=3600;extras2400;net20400;monthly1700",
+        "workinghours5*48*8=1920;20400/1920=10.625 displayed10.63",
+        "childcare800:net22800;monthly1900;hourly11.875 displayed11.88"
+      ],
+      "status": "pass",
+      "bodyWords": 736
+    },
+    {
+      "slug": "how-to-find-the-renewals-you-stopped-noticing",
+      "toolSlug": "subscription-audit",
+      "bodyWordCount": 713,
+      "titleMatchesPlan": true,
+      "slugMatchesPlan": true,
+      "stepCount": 4,
+      "faqCount": 3,
+      "toolEmbedCount": 1,
+      "sourceUrls": [
+        "https://consumer.ftc.gov/articles/getting-and-out-free-trials-auto-renewals-and-negative-option-subscriptions"
+      ],
+      "cases": [
+        {
+          "inputs": {
+            "services": [
+              "video1",
+              "video2",
+              "music",
+              "cloud",
+              "gym",
+              "games"
+            ],
+            "avg": 15,
+            "other": 10,
+            "unused": 2,
+            "increase": 5
+          },
+          "observed": {
+            "headline": {
+              "value": "$1,200",
+              "label": "Leaving your account every year",
+              "sub": "$100 a month across 6 subscriptions",
+              "tone": "bad"
+            },
+            "explain": "You listed 6 subscriptions averaging $15.00 each, which is $100 a month. Over five years, with prices rising about 5% a year, that is $6,631. The 2 you have not opened this month account for $360 of it a year.",
+            "stats": [
+              {
+                "label": "Per month",
+                "value": "$100",
+                "tone": "bad"
+              },
+              {
+                "label": "Unused this month",
+                "value": "$360",
+                "sub": "2 services, per year",
+                "tone": "bad"
+              },
+              {
+                "label": "Over five years",
+                "value": "$6,631",
+                "sub": "with 5% yearly rises",
+                "tone": "bad"
+              },
+              {
+                "label": "Saved by cancelling the unused",
+                "value": "$360",
+                "tone": "good"
+              }
+            ],
+            "ramp": {
+              "title": "What it adds up to, year by year",
+              "caption": "Including normal price rises.",
+              "tone": "bad",
+              "points": [
+                {
+                  "label": "Year 1",
+                  "value": 1200,
+                  "display": "$1,200"
+                },
+                {
+                  "label": "Year 2",
+                  "value": 2460,
+                  "display": "$2,460"
+                },
+                {
+                  "label": "Year 3",
+                  "value": 3783,
+                  "display": "$3,783"
+                },
+                {
+                  "label": "Year 4",
+                  "value": 5172.15,
+                  "display": "$5,172"
+                },
+                {
+                  "label": "Year 5",
+                  "value": 6630.7575,
+                  "display": "$6,631"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "inputs": {
+            "services": [
+              "video1",
+              "video2",
+              "music",
+              "cloud",
+              "gym",
+              "games"
+            ],
+            "avg": 15,
+            "other": 10,
+            "unused": 2,
+            "increase": 0
+          },
+          "observed": {
+            "headline": {
+              "value": "$1,200",
+              "label": "Leaving your account every year",
+              "sub": "$100 a month across 6 subscriptions",
+              "tone": "bad"
+            },
+            "explain": "You listed 6 subscriptions averaging $15.00 each, which is $100 a month. Over five years, with prices rising about 0% a year, that is $6,000. The 2 you have not opened this month account for $360 of it a year.",
+            "stats": [
+              {
+                "label": "Per month",
+                "value": "$100",
+                "tone": "bad"
+              },
+              {
+                "label": "Unused this month",
+                "value": "$360",
+                "sub": "2 services, per year",
+                "tone": "bad"
+              },
+              {
+                "label": "Over five years",
+                "value": "$6,000",
+                "sub": "with 0% yearly rises",
+                "tone": "bad"
+              },
+              {
+                "label": "Saved by cancelling the unused",
+                "value": "$360",
+                "tone": "good"
+              }
+            ],
+            "ramp": {
+              "title": "What it adds up to, year by year",
+              "caption": "Including normal price rises.",
+              "tone": "bad",
+              "points": [
+                {
+                  "label": "Year 1",
+                  "value": 1200,
+                  "display": "$1,200"
+                },
+                {
+                  "label": "Year 2",
+                  "value": 2400,
+                  "display": "$2,400"
+                },
+                {
+                  "label": "Year 3",
+                  "value": 3600,
+                  "display": "$3,600"
+                },
+                {
+                  "label": "Year 4",
+                  "value": 4800,
+                  "display": "$4,800"
+                },
+                {
+                  "label": "Year 5",
+                  "value": 6000,
+                  "display": "$6,000"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "independentMath": [
+        "fictionalinvoices12+18+10+8+22+20=90;average15;monthly90+10=100;yearly1200",
+        "two unused actual costs10+20=30 matches2*15 estimate;yearly360",
+        "five years1200+1260+1323+1389.15+1458.6075=6630.7575;constant6000;difference630.7575"
+      ],
+      "status": "pass",
+      "bodyWords": 713
+    },
+    {
+      "slug": "how-to-turn-a-cash-cushion-goal-into-a-monthly-target",
+      "toolSlug": "emergency-fund-calculator",
+      "bodyWordCount": 745,
+      "titleMatchesPlan": true,
+      "slugMatchesPlan": true,
+      "stepCount": 4,
+      "faqCount": 3,
+      "toolEmbedCount": 1,
+      "sourceUrls": [
+        "https://www.consumerfinance.gov/an-essential-guide-to-building-an-emergency-fund/"
+      ],
+      "cases": [
+        {
+          "inputs": {
+            "essentials": 2400,
+            "months": 3,
+            "saved": 1800,
+            "monthly": 300
+          },
+          "observed": {
+            "headline": {
+              "value": "$5,400",
+              "label": "Still to save",
+              "sub": "Target is $7,200, which is 3 months of essentials",
+              "tone": "bad"
+            },
+            "explain": "You have $1,800, which covers 0.8 months of essential spending. To reach 3 months you need $7,200, so there is $5,400 to go. At $300 a month that takes 18 months.",
+            "stats": [
+              {
+                "label": "Covered right now",
+                "value": "0.8 months",
+                "tone": "bad"
+              },
+              {
+                "label": "Target",
+                "value": "$7,200"
+              },
+              {
+                "label": "Months to target",
+                "value": "18",
+                "tone": "neutral"
+              },
+              {
+                "label": "One month of essentials",
+                "value": "$2,400"
+              }
+            ],
+            "bars": {
+              "title": "Progress to target",
+              "items": [
+                {
+                  "label": "Saved",
+                  "value": 1800,
+                  "display": "$1,800",
+                  "tone": "good"
+                },
+                {
+                  "label": "Still needed",
+                  "value": 5400,
+                  "display": "$5,400",
+                  "tone": "bad"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "inputs": {
+            "essentials": 2400,
+            "months": 2,
+            "saved": 1800,
+            "monthly": 300
+          },
+          "observed": {
+            "headline": {
+              "value": "$3,000",
+              "label": "Still to save",
+              "sub": "Target is $4,800, which is 2 months of essentials",
+              "tone": "bad"
+            },
+            "explain": "You have $1,800, which covers 0.8 months of essential spending. To reach 2 months you need $4,800, so there is $3,000 to go. At $300 a month that takes 10 months.",
+            "stats": [
+              {
+                "label": "Covered right now",
+                "value": "0.8 months",
+                "tone": "bad"
+              },
+              {
+                "label": "Target",
+                "value": "$4,800"
+              },
+              {
+                "label": "Months to target",
+                "value": "10",
+                "tone": "neutral"
+              },
+              {
+                "label": "One month of essentials",
+                "value": "$2,400"
+              }
+            ],
+            "bars": {
+              "title": "Progress to target",
+              "items": [
+                {
+                  "label": "Saved",
+                  "value": 1800,
+                  "display": "$1,800",
+                  "tone": "good"
+                },
+                {
+                  "label": "Still needed",
+                  "value": 3000,
+                  "display": "$3,000",
+                  "tone": "bad"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "inputs": {
+            "essentials": 2400,
+            "months": 3,
+            "saved": 1800,
+            "monthly": 350
+          },
+          "observed": {
+            "headline": {
+              "value": "$5,400",
+              "label": "Still to save",
+              "sub": "Target is $7,200, which is 3 months of essentials",
+              "tone": "bad"
+            },
+            "explain": "You have $1,800, which covers 0.8 months of essential spending. To reach 3 months you need $7,200, so there is $5,400 to go. At $350 a month that takes 16 months.",
+            "stats": [
+              {
+                "label": "Covered right now",
+                "value": "0.8 months",
+                "tone": "bad"
+              },
+              {
+                "label": "Target",
+                "value": "$7,200"
+              },
+              {
+                "label": "Months to target",
+                "value": "16",
+                "tone": "neutral"
+              },
+              {
+                "label": "One month of essentials",
+                "value": "$2,400"
+              }
+            ],
+            "bars": {
+              "title": "Progress to target",
+              "items": [
+                {
+                  "label": "Saved",
+                  "value": 1800,
+                  "display": "$1,800",
+                  "tone": "good"
+                },
+                {
+                  "label": "Still needed",
+                  "value": 5400,
+                  "display": "$5,400",
+                  "tone": "bad"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "independentMath": [
+        "target2400*3=7200;gap5400;5400/300=18months;coverage1800/2400=.75 displayed.8",
+        "2monthtarget4800;gap3000;10months",
+        "ceil5400/350=16months;after15contributions150remains"
+      ],
+      "status": "pass",
+      "bodyWords": 745
+    },
+    {
+      "slug": "how-to-check-what-an-extra-payment-changes-in-a-simple-debt-model",
+      "toolSlug": "debt-payoff-planner",
+      "bodyWordCount": 735,
+      "titleMatchesPlan": true,
+      "slugMatchesPlan": true,
+      "stepCount": 4,
+      "faqCount": 3,
+      "toolEmbedCount": 1,
+      "sourceUrls": [
+        "https://www.consumerfinance.gov/ask-cfpb/what-is-a-daily-periodic-rate-on-a-credit-card-en-46/"
+      ],
+      "cases": [
+        {
+          "inputs": {
+            "balance": 1200,
+            "apr": 12,
+            "payment": 110,
+            "extra": 40
+          },
+          "observed": {
+            "headline": {
+              "value": "1.0 years",
+              "label": "Until it is paid off",
+              "sub": "$77 of interest along the way",
+              "tone": "good"
+            },
+            "explain": "Paying $110 a month clears $1,200 in 12 months, and costs $77 in interest on the way. Adding $40 a month clears it in 9 months instead, which is 3 months sooner and $20 less interest.",
+            "stats": [
+              {
+                "label": "Total interest",
+                "value": "$77",
+                "tone": "bad"
+              },
+              {
+                "label": "Total repaid",
+                "value": "$1,277"
+              },
+              {
+                "label": "With the extra payment",
+                "value": "9 months",
+                "sub": "3 months sooner",
+                "tone": "good"
+              },
+              {
+                "label": "Interest saved",
+                "value": "$20",
+                "tone": "good"
+              }
+            ],
+            "bars": {
+              "title": "Interest paid",
+              "caption": "The same balance, two payment plans.",
+              "items": [
+                {
+                  "label": "Paying $110",
+                  "value": 77.11470470669673,
+                  "display": "$77",
+                  "tone": "bad"
+                },
+                {
+                  "label": "Paying $150",
+                  "value": 57.14323695581955,
+                  "display": "$57",
+                  "tone": "good"
+                }
+              ]
+            },
+            "verdict": {
+              "tone": "good",
+              "text": "In this model, an extra $40 a month, which is $480 a year, takes 3 months off this and reduces interest by $20. Actual results depend on your rate, fees, payment timing and account terms."
+            }
+          }
+        },
+        {
+          "inputs": {
+            "balance": 1200,
+            "apr": 12,
+            "payment": 10,
+            "extra": 0
+          },
+          "observed": {
+            "headline": {
+              "value": "It never clears",
+              "label": "At this payment the balance grows",
+              "tone": "bad"
+            },
+            "explain": "Interest on $1,200 at 12.00% is about $12.00 in the first month alone. A payment of $10 does not cover that, so the balance goes up every month rather than down.",
+            "stats": [
+              {
+                "label": "Interest charged month one",
+                "value": "$12.00",
+                "tone": "bad"
+              },
+              {
+                "label": "Minimum to stand still",
+                "value": "$12.00",
+                "tone": "bad"
+              },
+              {
+                "label": "Your payment",
+                "value": "$10",
+                "tone": "bad"
+              }
+            ],
+            "verdict": {
+              "tone": "bad",
+              "text": "This is the point where budgeting stops being the answer. A balance transfer, a consolidation loan or a call to a non-profit debt advice service is the next step."
+            }
+          }
+        },
+        {
+          "inputs": {
+            "balance": 1200,
+            "apr": 0,
+            "payment": 110,
+            "extra": 40
+          },
+          "observed": {
+            "headline": {
+              "value": "11 months",
+              "label": "Until it is paid off",
+              "sub": "$0 of interest along the way",
+              "tone": "good"
+            },
+            "explain": "Paying $110 a month clears $1,200 in 11 months, and costs $0 in interest on the way. Adding $40 a month clears it in 8 months instead, which is 3 months sooner and $0 less interest.",
+            "stats": [
+              {
+                "label": "Total interest",
+                "value": "$0",
+                "tone": "bad"
+              },
+              {
+                "label": "Total repaid",
+                "value": "$1,200"
+              },
+              {
+                "label": "With the extra payment",
+                "value": "8 months",
+                "sub": "3 months sooner",
+                "tone": "good"
+              },
+              {
+                "label": "Interest saved",
+                "value": "$0",
+                "tone": "good"
+              }
+            ],
+            "bars": {
+              "title": "Interest paid",
+              "caption": "The same balance, two payment plans.",
+              "items": [
+                {
+                  "label": "Paying $110",
+                  "value": 0,
+                  "display": "$0",
+                  "tone": "bad"
+                },
+                {
+                  "label": "Paying $150",
+                  "value": 0,
+                  "display": "$0",
+                  "tone": "good"
+                }
+              ]
+            },
+            "verdict": {
+              "tone": "warn",
+              "text": "Even a small extra payment moves this a long way, because every dollar above the minimum comes straight off the balance rather than the interest."
+            }
+          }
+        }
+      ],
+      "independentMath": [
+        "monthly rate.12/12=.01;firstmonthinterest12;endbalance1102at110payment,1062at150payment",
+        "independent min(payment,balance+interest) schedule:110payment12months77.11470470669673interest67.11470470669667finalpayment",
+        "150payment9months57.14323695581955interest57.14323695581932finalpayment",
+        "interestdifference19.97146775087718; firstmonthbalance1202at10payment"
+      ],
+      "status": "pass",
+      "priorEngineCheck": {
+        "checkedAt": "2026-09-06T22:52:18.517Z",
+        "status": "pending-engine-fix",
+        "issue": "Original engine subtracts final payment overage from total accrued interest, producing34.2294 and-35.7135. Parent/root notified for correction before publication. Article uses correct independently checked math.",
+        "cases": [
+          {
+            "inputs": {
+              "balance": 1200,
+              "apr": 12,
+              "payment": 110,
+              "extra": 40
+            },
+            "observed": {
+              "headline": {
+                "value": "1.0 years",
+                "label": "Until it is paid off",
+                "sub": "$34 of interest along the way",
+                "tone": "good"
+              },
+              "explain": "Paying $110 a month clears $1,200 in 12 months, and costs $34 in interest on the way. Adding $40 a month clears it in 9 months instead, which is 3 months sooner and $70 less interest.",
+              "stats": [
+                {
+                  "label": "Total interest",
+                  "value": "$34",
+                  "tone": "bad"
+                },
+                {
+                  "label": "Total repaid",
+                  "value": "$1,234"
+                },
+                {
+                  "label": "With the extra payment",
+                  "value": "9 months",
+                  "sub": "3 months sooner",
+                  "tone": "good"
+                },
+                {
+                  "label": "Interest saved",
+                  "value": "$70",
+                  "tone": "good"
+                }
+              ],
+              "bars": {
+                "title": "Interest paid",
+                "caption": "The same balance, two payment plans.",
+                "items": [
+                  {
+                    "label": "Paying $110",
+                    "value": 34.2294094133934,
+                    "display": "$34",
+                    "tone": "bad"
+                  },
+                  {
+                    "label": "Paying $150",
+                    "value": -35.71352608836113,
+                    "display": "-$36",
+                    "tone": "good"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "inputs": {
+              "balance": 1200,
+              "apr": 12,
+              "payment": 10,
+              "extra": 0
+            },
+            "observed": {
+              "headline": {
+                "value": "It never clears",
+                "label": "At this payment the balance grows",
+                "tone": "bad"
+              },
+              "explain": "Interest on $1,200 at 12.00% is about $12.00 in the first month alone. A payment of $10 does not cover that, so the balance goes up every month rather than down.",
+              "stats": [
+                {
+                  "label": "Interest charged month one",
+                  "value": "$12.00",
+                  "tone": "bad"
+                },
+                {
+                  "label": "Minimum to stand still",
+                  "value": "$12.00",
+                  "tone": "bad"
+                },
+                {
+                  "label": "Your payment",
+                  "value": "$10",
+                  "tone": "bad"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "resolvedAt": "2026-09-06T22:53:39.226Z",
+      "resolution": "Approved engine correction retains accrued interest when final payment is smaller than the regular amount; removed guaranteed-return sentence. Targeted regression tests pass.",
+      "bodyWords": 735
+    },
+    {
+      "slug": "how-to-compare-rent-with-the-bills-you-already-have",
+      "toolSlug": "rent-affordability-estimator",
+      "bodyWordCount": 728,
+      "titleMatchesPlan": true,
+      "slugMatchesPlan": true,
+      "stepCount": 4,
+      "faqCount": 3,
+      "toolEmbedCount": 1,
+      "sourceUrls": [
+        "https://www.consumerfinance.gov/owning-a-home/prepare/assess-your-spending/"
+      ],
+      "cases": [
+        {
+          "inputs": {
+            "income": 4200,
+            "rent": 1400,
+            "utilities": 250,
+            "debts": 450,
+            "other": 1300
+          },
+          "observed": {
+            "headline": {
+              "value": "39%",
+              "label": "Of your take-home pay goes on housing",
+              "sub": "$1,650 of $4,200 a month",
+              "tone": "warn"
+            },
+            "explain": "Rent and utilities come to $1,650 a month, which is 39% of your take-home pay. After housing, your existing payments and everything else, $800 is left over each month. A rent of about $1,010 would put housing at the 30 percent guideline.",
+            "stats": [
+              {
+                "label": "Rent alone",
+                "value": "33%",
+                "sub": "share of take-home"
+              },
+              {
+                "label": "Left after everything",
+                "value": "$800",
+                "tone": "good"
+              },
+              {
+                "label": "Rent at the 30 percent guideline",
+                "value": "$1,010",
+                "sub": "with your utilities"
+              },
+              {
+                "label": "Difference from that guideline",
+                "value": "$390",
+                "tone": "warn"
+              }
+            ],
+            "bars": {
+              "title": "Where the month goes",
+              "items": [
+                {
+                  "label": "Housing",
+                  "value": 1650,
+                  "display": "$1,650",
+                  "tone": "warn"
+                },
+                {
+                  "label": "Existing payments",
+                  "value": 450,
+                  "display": "$450",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Everything else",
+                  "value": 1300,
+                  "display": "$1,300",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Left over",
+                  "value": 800,
+                  "display": "$800",
+                  "tone": "good"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "inputs": {
+            "income": 4200,
+            "rent": 1650,
+            "utilities": 250,
+            "debts": 450,
+            "other": 1300
+          },
+          "observed": {
+            "headline": {
+              "value": "45%",
+              "label": "Of your take-home pay goes on housing",
+              "sub": "$1,900 of $4,200 a month",
+              "tone": "bad"
+            },
+            "explain": "Rent and utilities come to $1,900 a month, which is 45% of your take-home pay. After housing, your existing payments and everything else, $550 is left over each month. A rent of about $1,010 would put housing at the 30 percent guideline.",
+            "stats": [
+              {
+                "label": "Rent alone",
+                "value": "39%",
+                "sub": "share of take-home"
+              },
+              {
+                "label": "Left after everything",
+                "value": "$550",
+                "tone": "good"
+              },
+              {
+                "label": "Rent at the 30 percent guideline",
+                "value": "$1,010",
+                "sub": "with your utilities"
+              },
+              {
+                "label": "Difference from that guideline",
+                "value": "$640",
+                "tone": "warn"
+              }
+            ],
+            "bars": {
+              "title": "Where the month goes",
+              "items": [
+                {
+                  "label": "Housing",
+                  "value": 1900,
+                  "display": "$1,900",
+                  "tone": "bad"
+                },
+                {
+                  "label": "Existing payments",
+                  "value": 450,
+                  "display": "$450",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Everything else",
+                  "value": 1300,
+                  "display": "$1,300",
+                  "tone": "neutral"
+                },
+                {
+                  "label": "Left over",
+                  "value": 550,
+                  "display": "$550",
+                  "tone": "good"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "independentMath": [
+        "housing1650;share39.285714%;left800;reference4200*.3-250=1010",
+        "secondhousing1900;share45.238095%;left550",
+        "moveincash1400+1000+350+150=2900;4000-2900=1100"
+      ],
+      "status": "pass",
+      "bodyWords": 728
+    },
+    {
+      "slug": "how-to-compare-two-job-offers-when-the-hours-are-different",
+      "toolSlug": "salary-to-hourly-converter",
+      "bodyWordCount": 749,
+      "titleMatchesPlan": true,
+      "slugMatchesPlan": true,
+      "stepCount": 4,
+      "faqCount": 3,
+      "toolEmbedCount": 1,
+      "sourceUrls": [
+        "https://www.dol.gov/agencies/whd/fact-sheets/17a-overtime"
+      ],
+      "cases": [
+        {
+          "inputs": {
+            "salary": 60000,
+            "hours": 40,
+            "extra": 5,
+            "pto": 20,
+            "compareSalary": 66000,
+            "compareHours": 50
+          },
+          "observed": {
+            "headline": {
+              "value": "$27.78",
+              "label": "What you actually earn per hour",
+              "sub": "$31.25 on paper, before the 5 unpaid hours a week",
+              "tone": "warn"
+            },
+            "explain": "A $60,000 salary across 40 contracted hours a week is $31.25 an hour. Once the 5 unpaid extra hours a week are counted, it is $27.78 an hour, a difference of $3.47. The other offer at $66,000 for 50 hours works out at $27.50 an hour, so your current figure is the better hourly rate.",
+            "stats": [
+              {
+                "label": "On paper",
+                "value": "$31.25"
+              },
+              {
+                "label": "Actually",
+                "value": "$27.78",
+                "tone": "warn"
+              },
+              {
+                "label": "The other offer",
+                "value": "$27.50",
+                "sub": "$66,000 for 50 hours",
+                "tone": "bad"
+              },
+              {
+                "label": "Unpaid hours a year",
+                "value": "240",
+                "sub": "worth $7,500 at your paper rate",
+                "tone": "bad"
+              }
+            ],
+            "bars": {
+              "title": "Real hourly rate",
+              "caption": "Both figures include the hours actually worked.",
+              "items": [
+                {
+                  "label": "This job",
+                  "value": 27.77777777777778,
+                  "display": "$27.78",
+                  "tone": "good"
+                },
+                {
+                  "label": "The other offer",
+                  "value": 27.5,
+                  "display": "$27.50",
+                  "tone": "bad"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "inputs": {
+            "salary": 66000,
+            "hours": 50,
+            "extra": 0,
+            "pto": 10,
+            "compareSalary": 60000,
+            "compareHours": 45
+          },
+          "observed": {
+            "headline": {
+              "value": "$26.40",
+              "label": "What you actually earn per hour",
+              "sub": "across 2,500 hours a year",
+              "tone": "neutral"
+            },
+            "explain": "A $66,000 salary across 50 contracted hours a week is $26.40 an hour. Once the 0 unpaid extra hours a week are counted, it is $26.40 an hour, a difference of $0.00. The other offer at $60,000 for 45 hours works out at $26.67 an hour, so the other offer pays more per hour despite the longer week.",
+            "stats": [
+              {
+                "label": "On paper",
+                "value": "$26.40"
+              },
+              {
+                "label": "Actually",
+                "value": "$26.40",
+                "tone": "good"
+              },
+              {
+                "label": "The other offer",
+                "value": "$26.67",
+                "sub": "$60,000 for 45 hours",
+                "tone": "good"
+              },
+              {
+                "label": "Unpaid hours a year",
+                "value": "0",
+                "sub": "none",
+                "tone": "good"
+              }
+            ],
+            "bars": {
+              "title": "Real hourly rate",
+              "caption": "Both figures include the hours actually worked.",
+              "items": [
+                {
+                  "label": "This job",
+                  "value": 26.4,
+                  "display": "$26.40",
+                  "tone": "bad"
+                },
+                {
+                  "label": "The other offer",
+                  "value": 26.666666666666668,
+                  "display": "$26.67",
+                  "tone": "good"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "independentMath": [
+        "workedweeks52-20/5=48;contractedhours1920;realhours2160;paper31.25;effective27.777778;extraannual240",
+        "comparison66000/(50*48)=27.50;sharedPTOexplicit",
+        "separatesecondoffer:52-10/5=50weeks;2500hours;26.40hourly"
+      ],
+      "status": "pass",
+      "bodyWords": 749
+    }
+  ],
+  "scopeNotes": [
+    "Nine original guides, each over650bodywords plus real tool teaching and3FAQs.",
+    "All worked people, prices, income, costs, offers, domains and scenarios are fictional.",
+    "No paid kit linked: no household upsell asserted without a matching capability.",
+    "Writer changed nine-guide module, source/math receipt, approved two debt-engine hunks, and dedicated regression tests. Registry, queue, schedule, OG mapping, git, full build, and deployment remain parent responsibilities.",
+    "Source link checks prove availability on the recorded date, not financial advice or guaranteed tool outcomes."
+  ],
+  "validation": {
+    "checkedAt": "2026-09-06T22:52:53.247Z",
+    "articleCount": 9,
+    "allPlanSlugsAndTitlesMatch": true,
+    "allDated20260906": true,
+    "allOgFilesExist": true,
+    "allBodyWords650to900": true,
+    "allRealToolFieldLabelsPresent": true,
+    "allHave4StepsAnd3Faqs": true,
+    "allHaveOneToolEmbedAndFreeToolLink": true,
+    "noEmDashesOrPlaceholders": true,
+    "typescriptTranspileDiagnostics": 0,
+    "nonDebtWorkedCaseAssertions": "pass",
+    "debtEngineStatus": "pass-after-approved-correction",
+    "fullTestSuite": "parent integration responsibility",
+    "build": "parent integration responsibility",
+    "debtRegressionTests": {
+      "command": "node --no-warnings --import ./scripts/register-ts.mjs --test tests/debt-payoff-planner.test.ts",
+      "passed": 3,
+      "failed": 0
+    }
+  },
+  "calculationRecheckedAt": "2026-09-07T02:09:19.373Z",
+  "bodyWords": 6545
+}

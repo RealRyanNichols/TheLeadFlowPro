@@ -127,12 +127,13 @@ export async function POST(request: Request) {
     const supabase = createSupabaseClient(SUPABASE_URL, serviceKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const { data } = await supabase
+    const { data, error: lookupError } = await supabase
       .from("purchases")
       .select("kind")
       .ilike("email", email.replace(/[\\%_]/g, (c) => `\\${c}`))
       .eq("status", "paid")
       .like("kind", "pro_%");
+    if (lookupError) throw new Error("Purchase recovery lookup failed");
     const kinds = [...new Set((data ?? []).map((r) => String(r.kind)).filter(isProKind))];
 
     if (kinds.length > 0) {

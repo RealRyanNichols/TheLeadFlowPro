@@ -200,8 +200,10 @@ export function proKindFromSession(
 ): string | null {
   const meta = session.metadata ?? {};
   const kind = typeof meta.kind === "string" ? meta.kind : "";
-  const total = Number(session.amount_total);
-  const subtotal = Number(session.amount_subtotal);
+  const total = session.amount_total;
+  const subtotal = session.amount_subtotal;
+  if (typeof total !== "number" || !Number.isSafeInteger(total) || total < 0 ||
+    (subtotal !== undefined && subtotal !== null && (typeof subtotal !== "number" || !Number.isSafeInteger(subtotal) || subtotal < 0))) return null;
   const matches = (usd: number) => total === usd * 100 || subtotal === usd * 100;
 
   if (kind === PRO_BUNDLE.kind) {

@@ -70,13 +70,13 @@ export const LEAD_META: Record<string, ToolMeta> = {
     disclaimer: "general-estimate",
     dataSensitivity: "none",
     popularity: 92,
-    seoTitle: "Lead Response Time Calculator: what slow replies cost",
+    seoTitle: "Lead Response Time Calculator: compare reply scenarios",
     seoDescription:
-      "Compare your real reply time against a five minute reply and see the revenue difference over a year.",
+      "Explore a hypothetical five-minute reply comparison. See the assumptions, then measure actual response times and customer outcomes.",
     assumptions: [
-      "Contact odds fall on an exponential curve after the first hour, which is the shape the published research shows.",
-      "The floor is set at 12 percent, because some leads still convert days later.",
-      "Your close rate on the calls you do reach stays the same at every speed.",
+      "The exponential curve is an arbitrary sensitivity model, not a validated benchmark or causal evidence.",
+      "The 12% floor is an unvalidated assumption, not a measured conversion rate.",
+      "Your entered base close rate is multiplied by the hypothetical time factor; an automated acknowledgment is not a helpful completed response.",
     ],
     relatedSlugs: ["missed-call-calculator", "quote-follow-up-calculator", "after-hours-lead-calculator", "missed-call-textback-script"],
     presets: [

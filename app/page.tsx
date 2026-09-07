@@ -169,35 +169,34 @@ export default function HomePage() {
           </div>
         </div>
         <div className="lf-hero-feature">
-          <figure className="lf-founder-photo">
-            <Image
-              src="/images/ryan-wholesale-universe-owner.jpg"
-              alt="Ryan Nichols in the warehouse of the wholesale business he built"
-              width={1800}
-              height={1350}
-              priority
-              sizes="(max-width: 800px) 100vw, 48vw"
-            />
-            <figcaption>
-              <span>RYAN NICHOLS / FOUNDER</span>
-              <strong>Built from doing the work.</strong>
-            </figcaption>
+          <figure className="lf-workshop-creative">
+            <a href="https://workshop.theleadflowpro.com/" aria-label="Explore the September 17 ChatGPT workshop in Longview">
+              <Image
+                src="/images/workshops/chatgpt-build-september-17-warm-square.webp"
+                alt="Stop guessing. Start building with ChatGPT. September 17 hands-on workshop in Longview. A blue laptop connects an offer document, contact form, and follow-up message on a warm cream background."
+                width={1254}
+                height={1254}
+                priority
+                sizes="(max-width: 800px) 94vw, 48vw"
+              />
+            </a>
           </figure>
-          <a
-            className="lf-workshop-ribbon"
-            href="https://workshop.theleadflowpro.com/"
-          >
-            <div className="lf-date">
-              <span>SEP</span>
+          <div className="lf-workshop-booking">
+            <time className="lf-workshop-date" dateTime="2026-09-17T18:30:00-05:00" aria-label="Thursday, September 17, 2026">
+              <span>SEPTEMBER</span>
               <strong>17</strong>
+              <small>THURSDAY</small>
+            </time>
+            <div className="lf-workshop-booking-copy">
+              <span>CHATGPT FOR BUSINESS OWNERS</span>
+              <strong>Live in Longview, Texas</strong>
+              <p>6:30–8:00 PM Central<br /><b>$97 per attendee</b></p>
             </div>
-            <div>
-              <span>THE NEXT WORKSHOP</span>
-              <strong>Stop guessing at ChatGPT.</strong>
-              <p>Longview · $97 founding seat</p>
-            </div>
-            <ArrowUpRight aria-hidden="true" />
-          </a>
+            <Link className="lf-workshop-seat" href="/events/chatgpt-for-business-owners-longview">
+              Reserve my seat <ArrowRight size={21} aria-hidden="true" />
+            </Link>
+            <p className="lf-workshop-booking-note">Beginners welcome. Bring your laptop.</p>
+          </div>
         </div>
       </section>
       <BusinessTaskPreview />

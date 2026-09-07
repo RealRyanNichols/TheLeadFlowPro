@@ -1,0 +1,1060 @@
+{
+  "checkedAt": "2026-09-06T22:57:02.796Z",
+  "scope": "18 generator guides and narrowly scoped generator draft corrections; authored, not independently published by this subtask",
+  "articleCount": 18,
+  "totalBodyWords": 12975,
+  "minBodyWords": 682,
+  "maxBodyWords": 753,
+  "verificationLimits": [
+    "Fictional businesses, example.com destinations and reserved example phone values are demonstrations.",
+    "No customer messages sent, no sign-ins changed, no website buttons installed, no physical prints scanned, no phone calls made, no device/calendar imports claimed.",
+    "Actual tool outputs were executed and inspected; parent owns full tests/build/deployment/public verification."
+  ],
+  "focusedRegressionTests": {
+    "command": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs --test tests/generator-draft-safety.test.ts",
+    "passed": 6,
+    "failed": 0
+  },
+  "articles": [
+    {
+      "tool": "qr-code-maker",
+      "articleSlug": "how-to-put-a-useful-qr-code-on-a-printed-flyer",
+      "bodyWords": 705,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "url": "example.com/book",
+        "label": "Scan to request a repair",
+        "size": 400
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "qr": {
+            "data": "https://example.com/book",
+            "caption": "Scan to request a repair",
+            "size": 400
+          },
+          "output": {
+            "title": "The link this code opens",
+            "text": "https://example.com/book",
+            "filename": "qr-link.txt",
+            "mono": true
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "Scan it with your own phone before you print it. Every time. It takes five seconds and it has saved a lot of people a reprint bill."
+          }
+        }
+      },
+      "sources": [],
+      "linkedProKits": [
+        {
+          "slug": "qr-sign-kit",
+          "name": "QR Sign Kit"
+        }
+      ]
+    },
+    {
+      "tool": "wifi-qr-code",
+      "articleSlug": "how-to-make-a-guest-wi-fi-card-customers-can-use",
+      "bodyWords": 717,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "ssid": "Cedar-Guest",
+        "password": "SampleOnly2026!",
+        "security": "WPA",
+        "hidden": "false"
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "qr": {
+            "data": "WIFI:T:WPA;S:Cedar-Guest;P:SampleOnly2026!;;",
+            "caption": "Scan to join Cedar-Guest"
+          },
+          "output": {
+            "title": "Print this card",
+            "text": "GUEST WI-FI\n\nNetwork: Cedar-Guest\nPassword: SampleOnly2026!\n\nScan the code above with your camera to join automatically.",
+            "filename": "wifi-card.txt"
+          },
+          "note": "Put your guest network on this card, not the one your point of sale and cameras run on. Most routers let you turn on a separate guest network in about two minutes."
+        }
+      },
+      "sources": [],
+      "linkedProKits": [
+        {
+          "slug": "qr-sign-kit",
+          "name": "QR Sign Kit"
+        }
+      ]
+    },
+    {
+      "tool": "digital-business-card",
+      "articleSlug": "how-to-make-a-contact-card-people-can-save",
+      "bodyWords": 715,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "name": "Alex Morgan",
+        "title": "Owner",
+        "company": "Cedar Repair",
+        "phone": "+1 202 555 0142",
+        "email": "alex@example.com",
+        "website": "example.com",
+        "address": "Example City",
+        "note": "Furniture repair by appointment"
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "qr": {
+            "data": "BEGIN:VCARD\nVERSION:3.0\nN:Morgan;Alex;;;\nFN:Alex Morgan\nORG:Cedar Repair\nTITLE:Owner\nTEL;TYPE=CELL:+12025550142\nEMAIL;TYPE=WORK:alex@example.com\nURL:https://example.com\nADR;TYPE=WORK:;;Example City;;;;\nNOTE:Furniture repair by appointment\nEND:VCARD",
+            "caption": "Scan to save Alex Morgan"
+          },
+          "output": {
+            "title": "Your contact card file",
+            "text": "BEGIN:VCARD\nVERSION:3.0\nN:Morgan;Alex;;;\nFN:Alex Morgan\nORG:Cedar Repair\nTITLE:Owner\nTEL;TYPE=CELL:+12025550142\nEMAIL;TYPE=WORK:alex@example.com\nURL:https://example.com\nADR;TYPE=WORK:;;Example City;;;;\nNOTE:Furniture repair by appointment\nEND:VCARD",
+            "filename": "alex-morgan.vcf",
+            "mono": true
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "Screenshot the QR code and set it as your phone's lock screen. Now you hand out your contact info by holding up your phone."
+          },
+          "note": "Download saves a .vcf file. Email it to yourself, or AirDrop it, and it opens straight into contacts on any phone."
+        }
+      },
+      "sources": [],
+      "linkedProKits": [
+        {
+          "slug": "qr-sign-kit",
+          "name": "QR Sign Kit"
+        }
+      ]
+    },
+    {
+      "tool": "click-to-call-button",
+      "articleSlug": "how-to-add-a-call-button-and-check-it-on-your-phone",
+      "bodyWords": 714,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "phone": "+1 202 555 0142",
+        "label": "Call Cedar Repair",
+        "color": "#2f6fff",
+        "size": "large"
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "output": {
+            "title": "Paste this into your website",
+            "text": "<a href=\"tel:+12025550142\" style=\"display:inline-block;background:#2f6fff;color:#fff;font-weight:700;font-size:18px;padding:16px 30px;border-radius:10px;text-decoration:none;font-family:system-ui,-apple-system,sans-serif;\">📞 Call Cedar Repair: (202) 555-0142</a>",
+            "filename": "call-button.html",
+            "mono": true
+          },
+          "table": {
+            "title": "Other versions you might want",
+            "headers": [
+              "Use it for",
+              "Code"
+            ],
+            "rows": [
+              [
+                "Plain text link",
+                "<a href=\"tel:+12025550142\">(202) 555-0142</a>"
+              ],
+              [
+                "Text me instead",
+                "<a href=\"sms:+12025550142\">Text (202) 555-0142</a>"
+              ],
+              [
+                "Email signature",
+                "<a href=\"tel:+12025550142\">📞 (202) 555-0142</a>"
+              ]
+            ]
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "Put this in your header so it is visible on every page without scrolling. That one change moves more calls than a redesign."
+          }
+        }
+      },
+      "sources": [],
+      "linkedProKits": []
+    },
+    {
+      "tool": "sms-link-generator",
+      "articleSlug": "how-to-write-a-text-us-button-that-starts-the-right-conversation",
+      "bodyWords": 682,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "phone": "+1 202 555 0142",
+        "message": "Hi, can I request a furniture repair quote?",
+        "label": "Text about a repair"
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "qr": {
+            "data": "sms:+12025550142?&body=Hi%2C%20can%20I%20request%20a%20furniture%20repair%20quote%3F",
+            "caption": "Scan to text us"
+          },
+          "output": {
+            "title": "Your text link",
+            "text": "sms:+12025550142?&body=Hi%2C%20can%20I%20request%20a%20furniture%20repair%20quote%3F",
+            "filename": "text-link.txt",
+            "mono": true
+          },
+          "table": {
+            "title": "Ready to paste",
+            "headers": [
+              "Where",
+              "Code"
+            ],
+            "rows": [
+              [
+                "Website button",
+                "<a href=\"sms:+12025550142?&body=Hi%2C%20can%20I%20request%20a%20furniture%20repair%20quote%3F\" style=\"display:inline-block;background:#16a34a;color:#fff;font-weight:700;font-size:18px;padding:16px 30px;border-radius:10px;text-decoration:none;font-family:system-ui,sans-serif;\">💬 Text about a repair</a>"
+              ],
+              [
+                "Plain link",
+                "sms:+12025550142?&body=Hi%2C%20can%20I%20request%20a%20furniture%20repair%20quote%3F"
+              ],
+              [
+                "Yard sign",
+                "Print the QR code above. People scan it and the text is already written."
+              ]
+            ]
+          },
+          "note": "Check that your business line can actually receive texts. Plenty of landlines and VOIP numbers cannot until you turn it on."
+        }
+      },
+      "sources": [
+        {
+          "url": "https://www.rfc-editor.org/rfc/rfc5724",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "SMS URI structure and user decision to send."
+        },
+        {
+          "url": "https://www.twilio.com/en-us/legal/messaging-policy",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "Inbound conversation differs from permission for recurring engagement."
+        }
+      ],
+      "linkedProKits": [
+        {
+          "slug": "qr-sign-kit",
+          "name": "QR Sign Kit"
+        }
+      ]
+    },
+    {
+      "tool": "utm-link-builder",
+      "articleSlug": "how-to-tag-a-campaign-link-without-putting-private-data-in-it",
+      "bodyWords": 714,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "url": "example.com/open-house",
+        "source": "Counter Flyer",
+        "medium": "print",
+        "campaign": "Fall Open House",
+        "content": "Front Desk"
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "qr": {
+            "data": "https://example.com/open-house?utm_source=counter-flyer&utm_medium=print&utm_campaign=fall-open-house&utm_content=front-desk",
+            "caption": "Scan to test it"
+          },
+          "output": {
+            "title": "Your tagged link",
+            "text": "https://example.com/open-house?utm_source=counter-flyer&utm_medium=print&utm_campaign=fall-open-house&utm_content=front-desk",
+            "filename": "tagged-link.txt",
+            "mono": true
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "Tag every link you ever put in front of a customer. In three months your analytics will tell you exactly what to cut and what to double."
+          },
+          "note": "Keep your naming consistent. facebook and Facebook show up as two different sources and it makes a mess of your reports."
+        }
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/analytics/answer/10917952?hl=en",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "Campaign parameter meanings, case sensitivity and traffic-acquisition reporting."
+        }
+      ],
+      "linkedProKits": []
+    },
+    {
+      "tool": "email-signature-generator",
+      "articleSlug": "how-to-make-an-email-signature-with-one-clear-next-step",
+      "bodyWords": 700,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "name": "Alex Morgan",
+        "title": "Owner",
+        "company": "Cedar Repair",
+        "phone": "+1 202 555 0142",
+        "email": "alex@example.com",
+        "website": "example.com/book",
+        "cta": "Request a repair appointment on our website.",
+        "reviewLink": "",
+        "color": "#2f6fff"
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "output": {
+            "title": "Your signature code",
+            "text": "<table style=\"font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:14px;color:#0f172a;border-collapse:collapse\"><tr><td style=\"border-left:3px solid #2f6fff;padding-left:14px\">\n<div style=\"font-weight:700;font-size:16px\">Alex Morgan</div>\n<div style=\"color:#475569\">Owner · Cedar Repair</div>\n<div style=\"height:8px\"></div>\n<div><a href=\"tel:+12025550142\" style=\"color:#2f6fff;text-decoration:none;font-weight:600\">📞 (202) 555-0142</a></div>\n<div><a href=\"mailto:alex@example.com\" style=\"color:#334155;text-decoration:none\">✉️ alex@example.com</a></div>\n<div><a href=\"https://example.com/book\" style=\"color:#334155;text-decoration:none\">🌐 example.com/book</a></div>\n<div style=\"height:8px\"></div><div style=\"color:#475569;font-style:italic\">Request a repair appointment on our website.</div>\n\n</td></tr></table>",
+            "filename": "email-signature.html",
+            "mono": true
+          },
+          "note": "In Gmail, paste into the signature box directly. If it pastes as raw code, save the file, open it in a browser, then copy what you see and paste that.",
+          "verdict": {
+            "tone": "good",
+            "text": "A tappable phone number in every email you send is the cheapest lead source you have."
+          }
+        }
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/mail/answer/8395?hl=en",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "Gmail signature settings and separate defaults."
+        },
+        {
+          "url": "https://support.microsoft.com/en-us/outlook/mail/how-to-add-and-change-an-email-signature-in-outlook",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "Version-specific Outlook signature setup."
+        }
+      ],
+      "linkedProKits": []
+    },
+    {
+      "tool": "missed-call-textback-script",
+      "articleSlug": "how-to-write-a-missed-call-reply-that-tells-people-what-happens-next",
+      "bodyWords": 721,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "business": "Cedar Repair",
+        "firstName": "Alex",
+        "bookLink": "example.com/request",
+        "tone": "professional",
+        "hours": "Monday-Friday, 9 a.m.-5 p.m."
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "output": {
+            "title": "Your text-back scripts",
+            "text": "INSTANT MISSED CALL TEXT (fires within 60 seconds)\n\nHello, this is Cedar Repair. We are sorry we missed your call. Please reply with your name and what you need, and we will respond shortly.\n\nYou can also grab a time here: https://example.com/request - Alex\n\n\nAFTER HOURS VERSION\n\nThanks for reaching out to Cedar Repair. We are closed right now (we are open Monday-Friday, 9 a.m.-5 p.m.), but we got your message and you are first up in the morning. Reply here with what you need so we can hit the ground running.\n\nYou can also grab a time here: https://example.com/request - Alex\n\n\nFOLLOW UP, DAY 2\n\nHey, Alex again. Just circling back on your call the other day. Still want me to take a look at it? Yes or no is fine, I would just rather not leave you hanging.\n\n\nFOLLOW UP, DAY 5\n\nLast one from me, I promise. If the timing is not right, no problem at all, keep my number. If you still need it handled, reply HERE and I will get you on the schedule.\n\n\nSETUP NOTES\n- Fire the instant text within 60 seconds. Speed is the entire point.\n- Send from the same number people called, not a different one.\n- Somebody has to actually watch the replies.\n- Include your opt-out language if you are sending automated marketing texts.",
+            "filename": "missed-call-scripts.txt"
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "The instant text is the one that matters. Two minutes late and they already called somebody else."
+          },
+          "note": "Automated texting is regulated. Reply STOP handling, clear identification and consent rules apply to marketing messages. A direct reply to someone who just called you is a different thing than a blast, but know your rules."
+        }
+      },
+      "sources": [
+        {
+          "url": "https://www.twilio.com/en-us/legal/messaging-policy",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "Provider consent, identification, opt-out and recurring-engagement limits."
+        }
+      ],
+      "linkedProKits": [
+        {
+          "slug": "missed-call-text-back-kit",
+          "name": "Missed Call Text-Back Kit"
+        }
+      ]
+    },
+    {
+      "tool": "review-request-script",
+      "articleSlug": "how-to-ask-for-an-honest-review-after-the-work-is-done",
+      "bodyWords": 751,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "business": "Cedar Repair",
+        "first": "Alex",
+        "link": "example.com/review",
+        "job": "the chair repair"
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "output": {
+            "title": "Your review request scripts",
+            "text": "REVIEW REQUEST TEXT (review before sending)\n\nHi, this is Alex with Cedar Repair. Thank you for trusting us with the chair repair. If you would like to share your experience, you can leave an honest review here:\nhttps://example.com/review\n\nYour feedback is welcome either way. Thank you.\n\n\nEMAIL VERSION\n\nSubject: Your experience with Cedar Repair\n\nHi there,\n\nAlex here from Cedar Repair. Thanks again for trusting us with the chair repair.\n\nIf you would like to share your experience, you can leave an honest Google review at the link below.\n\nhttps://example.com/review\n\nYour feedback is welcome regardless of your rating. You can also reply with a service question; getting support does not depend on leaving or changing a review.\n\nThanks,\nAlex\nCedar Repair\n\n\nIN PERSON SCRIPT\n\n\"Thank you for your business. If you would like to share your experience, you are welcome to leave an honest review. Would you like the review link? There is no obligation.\"\n\nProvide the link through an appropriate channel if the customer wants it. Do not pressure them to review while on the premises.\n\n\nOPTIONAL REMINDER (only if appropriate and no decline or opt-out)\n\nHi, Alex with Cedar Repair again. Here is the review link in case you wanted to share your experience. No need to reply, and thank you again for your business.\nhttps://example.com/review\n\n\nREVIEW CHECKLIST\n- Use a consistent milestone after a genuine customer experience, regardless of expected rating.\n- Verify that the link opens the correct business listing.\n- Never offer incentives or condition the request on satisfaction.\n- Do not require a private survey before showing the public review link.\n- Check communication permission and stop after a decline, opt-out, or completed response.\n- This tool drafts language; it does not send messages or create reviews.",
+            "filename": "review-request-scripts.txt"
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "Review the wording, verify the listing link, and invite honest feedback without trying to influence the rating."
+          }
+        }
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/contributionpolicy/answer/7400114?hl=en",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "No review incentives, selective positive solicitation or rating influence."
+        }
+      ],
+      "linkedProKits": [
+        {
+          "slug": "google-review-kit",
+          "name": "Google Review Kit"
+        }
+      ]
+    },
+    {
+      "tool": "localbusiness-schema-generator",
+      "articleSlug": "how-to-check-your-business-details-before-adding-structured-data",
+      "bodyWords": 724,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "name": "Cedar Repair",
+        "type": "LocalBusiness",
+        "url": "example.com",
+        "phone": "+1 202 555 0142",
+        "street": "",
+        "city": "Example City",
+        "state": "TX",
+        "zip": "",
+        "areas": "Example City, Sample Town",
+        "priceRange": "$$",
+        "hours": "Mo-Fr 09:00-17:00"
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "output": {
+            "title": "Paste this into the head of your homepage",
+            "text": "<script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"LocalBusiness\",\n  \"name\": \"Cedar Repair\",\n  \"url\": \"https://example.com\",\n  \"telephone\": \"+1 202 555 0142\",\n  \"priceRange\": \"$$\",\n  \"address\": {\n    \"@type\": \"PostalAddress\",\n    \"addressLocality\": \"Example City\",\n    \"addressRegion\": \"TX\",\n    \"addressCountry\": \"US\"\n  },\n  \"openingHours\": \"Mo-Fr 09:00-17:00\",\n  \"areaServed\": [\n    {\n      \"@type\": \"City\",\n      \"name\": \"Example City\"\n    },\n    {\n      \"@type\": \"City\",\n      \"name\": \"Sample Town\"\n    }\n  ]\n}\n</script>",
+            "filename": "localbusiness-schema.html",
+            "mono": true
+          },
+          "note": "Your name, address and phone here must match your Google Business Profile exactly, character for character. Mismatches do more harm than having no schema at all. Test it with Google's Rich Results Test before you call it done.",
+          "verdict": {
+            "tone": "good",
+            "text": "This is free, takes five minutes, and most of your competitors have never heard of it."
+          }
+        }
+      },
+      "sources": [
+        {
+          "url": "https://developers.google.com/search/docs/appearance/structured-data/local-business",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "Supported LocalBusiness properties and requirements."
+        },
+        {
+          "url": "https://developers.google.com/search/docs/appearance/structured-data/sd-policies",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "Visible accuracy, eligibility and no guaranteed search appearance."
+        }
+      ],
+      "linkedProKits": [
+        {
+          "slug": "local-seo-schema-kit",
+          "name": "Local SEO Schema Kit"
+        }
+      ]
+    },
+    {
+      "tool": "faq-schema-generator",
+      "articleSlug": "how-to-turn-real-customer-questions-into-useful-website-answers",
+      "bodyWords": 737,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "faqs": "Do you repair chairs? | We assess wooden chair repairs by appointment.\nHow do I request a quote? | Use the request form and describe the item.\nCan I bring an item today? | Please wait until we confirm a drop-off appointment."
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "output": {
+            "title": "Your FAQ schema",
+            "text": "<script type=\"application/ld+json\">\n{\n  \"@context\": \"https://schema.org\",\n  \"@type\": \"FAQPage\",\n  \"mainEntity\": [\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Do you repair chairs?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"We assess wooden chair repairs by appointment.\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"How do I request a quote?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"Use the request form and describe the item.\"\n      }\n    },\n    {\n      \"@type\": \"Question\",\n      \"name\": \"Can I bring an item today?\",\n      \"acceptedAnswer\": {\n        \"@type\": \"Answer\",\n        \"text\": \"Please wait until we confirm a drop-off appointment.\"\n      }\n    }\n  ]\n}\n</script>\n\n<!-- Visible version for the page -->\n<h3>Do you repair chairs?</h3>\n<p>We assess wooden chair repairs by appointment.</p>\n\n<h3>How do I request a quote?</h3>\n<p>Use the request form and describe the item.</p>\n\n<h3>Can I bring an item today?</h3>\n<p>Please wait until we confirm a drop-off appointment.</p>",
+            "filename": "faq-schema.html",
+            "mono": true
+          },
+          "table": {
+            "title": "3 questions found",
+            "headers": [
+              "Question",
+              "Answer"
+            ],
+            "rows": [
+              [
+                "Do you repair chairs?",
+                "We assess wooden chair repairs by appointment."
+              ],
+              [
+                "How do I request a quote?",
+                "Use the request form and describe the item."
+              ],
+              [
+                "Can I bring an item today?",
+                "Please wait until we confirm a drop-off appointment."
+              ]
+            ]
+          },
+          "note": "The questions and answers in the schema must actually appear on the page for a visitor to see. Do not put schema on a page that does not show the same content."
+        }
+      },
+      "sources": [
+        {
+          "url": "https://developers.google.com/search/updates",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "FAQ rich results ended May 7, 2026; former FAQ documentation redirects here."
+        },
+        {
+          "url": "https://schema.org/FAQPage",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "FAQPage remains a schema type for question-and-answer content."
+        }
+      ],
+      "linkedProKits": [
+        {
+          "slug": "local-seo-schema-kit",
+          "name": "Local SEO Schema Kit"
+        }
+      ]
+    },
+    {
+      "tool": "meta-title-description-writer",
+      "articleSlug": "how-to-replace-a-page-title-called-home-with-something-useful",
+      "bodyWords": 741,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "service": "Furniture Repair",
+        "city": "Example City",
+        "business": "Cedar Repair",
+        "hook": "Written repair scope before work starts",
+        "phone": ""
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "46 / 60",
+            "label": "Title length",
+            "sub": "Within drafting guide",
+            "tone": "good"
+          },
+          "stats": [
+            {
+              "label": "Description length",
+              "value": "150 / 158",
+              "tone": "good"
+            },
+            {
+              "label": "Has the town",
+              "value": "Yes",
+              "tone": "good"
+            },
+            {
+              "label": "Has the service",
+              "value": "Yes",
+              "tone": "good"
+            },
+            {
+              "label": "Has a reason to call",
+              "value": "Yes",
+              "tone": "good"
+            }
+          ],
+          "output": {
+            "title": "Paste these into your page settings",
+            "text": "TITLE TAG (46 characters)\nFurniture Repair | Example City | Cedar Repair\n\nMETA DESCRIPTION (150 characters)\nFurniture Repair in Example City from Cedar Repair. Written repair scope before work starts. Learn about the service and how to request the next step.",
+            "filename": "page-title-description.txt"
+          },
+          "note": "Review every claim against the visible page. Character counts are drafting guides; search engines may select or truncate different title and snippet text."
+        }
+      },
+      "sources": [
+        {
+          "url": "https://developers.google.com/search/docs/appearance/title-link",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "Google title selection can use several page sources."
+        },
+        {
+          "url": "https://developers.google.com/search/docs/appearance/snippet",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "Snippets may use page content or a supplied meta description."
+        }
+      ],
+      "linkedProKits": [
+        {
+          "slug": "local-seo-schema-kit",
+          "name": "Local SEO Schema Kit"
+        }
+      ]
+    },
+    {
+      "tool": "ad-character-counter",
+      "articleSlug": "how-to-check-ad-copy-before-you-paste-it-into-the-platform",
+      "bodyWords": 701,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "headline": "Furniture Repair by Appointment",
+        "body": "Describe your chair repair. We will confirm the next step before you bring it in."
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "31",
+            "label": "Headline characters",
+            "sub": "81 characters of body copy",
+            "tone": "neutral"
+          },
+          "table": {
+            "title": "Where it fits",
+            "headers": [
+              "Placement",
+              "Limit",
+              "Yours",
+              "Fits?"
+            ],
+            "rows": [
+              [
+                "Google Ads headline",
+                30,
+                31,
+                "Over by 1"
+              ],
+              [
+                "Google Ads description",
+                90,
+                81,
+                "Yes"
+              ],
+              [
+                "Facebook / Instagram primary text (before See More)",
+                125,
+                81,
+                "Yes"
+              ],
+              [
+                "Facebook headline",
+                40,
+                31,
+                "Yes"
+              ],
+              [
+                "Google Business Profile post",
+                1500,
+                81,
+                "Yes"
+              ],
+              [
+                "Text message, single segment",
+                160,
+                81,
+                "Yes"
+              ],
+              [
+                "Meta description",
+                158,
+                81,
+                "Yes"
+              ],
+              [
+                "Page title",
+                60,
+                31,
+                "Yes"
+              ],
+              [
+                "X post",
+                280,
+                81,
+                "Yes"
+              ],
+              [
+                "Instagram bio",
+                150,
+                81,
+                "Yes"
+              ],
+              [
+                "Email subject line",
+                50,
+                31,
+                "Yes"
+              ]
+            ]
+          },
+          "note": "Front-load the important words. On most platforms the first 40 characters are the only ones people read on a phone."
+        }
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/google-ads/answer/7684791?hl=en",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "Responsive search ad 30-character headline and 90-character description limits; double-width character qualification."
+        },
+        {
+          "url": "https://www.twilio.com/docs/glossary/what-sms-character-limit",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "SMS capacity depends on encoding and segmentation."
+        }
+      ],
+      "linkedProKits": []
+    },
+    {
+      "tool": "google-maps-link-generator",
+      "articleSlug": "how-to-make-a-directions-link-that-reaches-the-right-entrance",
+      "bodyWords": 712,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "address": "1600 Pennsylvania Avenue NW, Washington, DC 20500",
+        "label": "View example directions"
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "qr": {
+            "data": "https://www.google.com/maps/dir/?api=1&destination=1600%20Pennsylvania%20Avenue%20NW%2C%20Washington%2C%20DC%2020500",
+            "caption": "Scan for directions"
+          },
+          "output": {
+            "title": "Your directions link",
+            "text": "https://www.google.com/maps/dir/?api=1&destination=1600%20Pennsylvania%20Avenue%20NW%2C%20Washington%2C%20DC%2020500",
+            "filename": "directions-link.txt",
+            "mono": true
+          },
+          "table": {
+            "title": "Other versions",
+            "headers": [
+              "Use",
+              "Code or link"
+            ],
+            "rows": [
+              [
+                "Website button",
+                "<a href=\"https://www.google.com/maps/dir/?api=1&destination=1600%20Pennsylvania%20Avenue%20NW%2C%20Washington%2C%20DC%2020500\" target=\"_blank\" rel=\"noopener\" style=\"display:inline-block;background:#2f6fff;color:#fff;font-weight:700;padding:14px 26px;border-radius:10px;text-decoration:none;font-family:system-ui,sans-serif;\">🗺️ View example directions</a>"
+              ],
+              [
+                "Apple Maps",
+                "https://maps.apple.com/?daddr=1600%20Pennsylvania%20Avenue%20NW%2C%20Washington%2C%20DC%2020500"
+              ],
+              [
+                "Just show the pin",
+                "https://www.google.com/maps/search/?api=1&query=1600%20Pennsylvania%20Avenue%20NW%2C%20Washington%2C%20DC%2020500"
+              ]
+            ]
+          },
+          "note": "The Google link opens the default map app on most phones, so it works for iPhone and Android both."
+        }
+      },
+      "sources": [
+        {
+          "url": "https://developers.google.com/maps/documentation/urls/get-started",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "api=1, destination parameters and Maps app/browser behavior."
+        }
+      ],
+      "linkedProKits": [
+        {
+          "slug": "qr-sign-kit",
+          "name": "QR Sign Kit"
+        }
+      ]
+    },
+    {
+      "tool": "add-to-calendar-link",
+      "articleSlug": "how-to-give-event-guests-a-calendar-link-they-can-check",
+      "bodyWords": 710,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "title": "Cedar Repair Open House - Central Time",
+        "date": "2026-10-15",
+        "start": "18:00",
+        "end": "19:30",
+        "location": "Example showroom",
+        "details": "Fictional practice event. Confirm venue and Central Time before sharing."
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "qr": {
+            "data": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Cedar%20Repair%20Open%20House%20-%20Central%20Time&dates=20261015T180000/20261015T193000&details=Fictional%20practice%20event.%20Confirm%20venue%20and%20Central%20Time%20before%20sharing.&location=Example%20showroom",
+            "caption": "Scan to add to calendar"
+          },
+          "output": {
+            "title": "Calendar file (check the imported time before sharing)",
+            "text": "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//The LeadFlow Pro//Free Tools//EN\nBEGIN:VEVENT\nUID:cedar-repair-open-house-central-time-20261015T180000@theleadflowpro.com\nDTSTART:20261015T180000\nDTEND:20261015T193000\nSUMMARY:Cedar Repair Open House - Central Time\nLOCATION:Example showroom\nDESCRIPTION:Fictional practice event. Confirm venue and Central Time before sharing.\nEND:VEVENT\nEND:VCALENDAR",
+            "filename": "cedar-repair-open-house-central-time.ics",
+            "mono": true
+          },
+          "table": {
+            "title": "Your links",
+            "headers": [
+              "Where",
+              "Link"
+            ],
+            "rows": [
+              [
+                "Google Calendar",
+                "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Cedar%20Repair%20Open%20House%20-%20Central%20Time&dates=20261015T180000/20261015T193000&details=Fictional%20practice%20event.%20Confirm%20venue%20and%20Central%20Time%20before%20sharing.&location=Example%20showroom"
+              ],
+              [
+                "Other calendar applications",
+                "Download the .ics file and verify the imported event before sharing"
+              ]
+            ]
+          },
+          "note": "This file uses floating local times without a time-zone identifier. Writing a zone in the title does not fix the event time. For a fixed event across time zones, use a calendar system that creates a properly zoned invitation. Both times use the entered date; check the date, duration, and imported event before sharing."
+        }
+      },
+      "sources": [
+        {
+          "url": "https://www.rfc-editor.org/rfc/rfc5545",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "Floating local date-time has no timezone binding; fixed events need proper UTC or zone representation."
+        },
+        {
+          "url": "https://support.google.com/calendar/answer/37118?hl=en",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "ICS import and lack of synchronization between imported copies."
+        }
+      ],
+      "linkedProKits": []
+    },
+    {
+      "tool": "voicemail-script-generator",
+      "articleSlug": "how-to-leave-callers-with-a-clear-next-step",
+      "bodyWords": 740,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "business": "Cedar Repair",
+        "name": "Alex",
+        "callback": "nextday",
+        "textNumber": "+1 202 555 0142",
+        "bookLink": "example.com/request"
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "output": {
+            "title": "Your voicemail scripts",
+            "text": "MAIN GREETING\n\n\"Thanks for calling Cedar Repair, this is Alex. We are either on a job or on another call right now. Leave your name, your number, and what you need, and we will call you back first thing the next business day. If you would rather text, send a message to (202) 555-0142 and we will get right back to you. You can also book online at example.com/request. Thanks.\"\n\n\nAFTER HOURS\n\n\"You have reached Cedar Repair. We are closed right now, but we check messages every morning. Leave your name, number, and what is going on, and you will be one of the first calls we make. If you would rather text, send a message to (202) 555-0142 and we will get right back to you. If this is an emergency, [say what they should do]. Thanks for calling.\"\n\n\nON A JOB / BUSY DAY\n\n\"Cedar Repair, Alex here. We are running jobs today so we are slow to the phone. Leave a message and we will call back first thing the next business day. If you would rather text, send a message to (202) 555-0142 and we will get right back to you. Appreciate you.\"\n\n\nRECORDING TIPS\n- Stand up. You sound more awake.\n- Say the phone number and any website slowly, twice.\n- Keep it under 20 seconds. People hang up on long greetings.\n- Re-record it when your hours or schedule change. An outdated greeting reads as a closed business.",
+            "filename": "voicemail-scripts.txt"
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "Better than a perfect voicemail: an automatic text to everybody who hits it. Voicemail is the backup, not the plan."
+          }
+        }
+      },
+      "sources": [],
+      "linkedProKits": [
+        {
+          "slug": "missed-call-text-back-kit",
+          "name": "Missed Call Text-Back Kit"
+        }
+      ]
+    },
+    {
+      "tool": "job-post-writer",
+      "articleSlug": "how-to-write-a-job-post-that-explains-the-actual-work",
+      "bodyWords": 738,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "business": "Cedar Repair",
+        "role": "Workshop Assistant",
+        "city": "Example City, TX",
+        "payLow": 20,
+        "payHigh": 24,
+        "payType": "hour",
+        "duties": "Prepare work areas\nLabel incoming furniture\nUpdate repair status records",
+        "musts": "Read work orders\nFollow documented workshop safety procedures",
+        "perks": "Paid training\nPublished weekly schedule",
+        "contact": "Apply at example.com/jobs"
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "output": {
+            "title": "Your job posting",
+            "text": "Workshop Assistant — Example City, TX\nCedar Repair\n$20 to $24 an hour, depending on what you bring\n\nWHAT THIS JOB IS\n- Prepare work areas\n- Label incoming furniture\n- Update repair status records\n\nWHAT YOU NEED\n- Read work orders\n- Follow documented workshop safety procedures\n\nWHAT WE OFFER\n- Paid training\n- Published weekly schedule\n\nWHO WE ARE\nThe role is with Cedar Repair in Example City, TX. Before publishing, add a short, verified description of the workplace, schedule and reporting manager.\n\nHOW TO APPLY\nApply at example.com/jobs. Include your relevant experience and availability. Confirm the application instructions and responsible reviewer before publishing.\n\n\nPOSTING NOTES\n- Verify pay, hours, duties, benefits and job-related requirements with the hiring owner.\n- Check current posting requirements for the role and location.\n- Confirm who monitors applications and what response expectation is realistic.\n- Remove these internal notes before publishing the final approved post.",
+            "filename": "job-post-workshop-assistant.txt"
+          },
+          "note": "Keep hiring requirements job-related and consistent for everybody. Employment advertising is regulated. If you are unsure how to word a requirement, ask an employment attorney.",
+          "verdict": {
+            "tone": "good",
+            "text": "Have the hiring owner verify the facts and application path before publishing. This tool creates a draft, not a vacancy or employment agreement."
+          }
+        }
+      },
+      "sources": [
+        {
+          "url": "https://www.eeoc.gov/prohibited-employment-policiespractices",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "Job advertisements must not express protected-trait preferences; no jurisdiction-specific pay rule claimed."
+        }
+      ],
+      "linkedProKits": []
+    },
+    {
+      "tool": "google-post-writer",
+      "articleSlug": "how-to-write-one-useful-google-business-profile-update",
+      "bodyWords": 753,
+      "localSources": [
+        "lib/tools/generators.ts",
+        "lib/tools/index.ts",
+        "lib/tools/pro/index.ts"
+      ],
+      "input": {
+        "business": "Cedar Repair",
+        "city": "Example City",
+        "service": "wooden chair repair",
+        "offer": "Repair assessment appointments in October",
+        "season": "fall",
+        "phone": ""
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "output": {
+            "title": "Four draft posts to review",
+            "text": "POST 1 (116 characters)\n\nLooking for wooden chair repair in Example City? Contact Cedar Repair to ask about service details and availability.\n\n\nPOST 2 (93 characters)\n\nPlanning wooden chair repair this fall? Ask Cedar Repair about the next step in Example City.\n\n\nPOST 3 (115 characters)\n\nRepair assessment appointments in October. Contact Cedar Repair for current terms and availability in Example City.\n\n\nPOST 4 (127 characters)\n\nWhat should you know before requesting wooden chair repair? Ask Cedar Repair what information is needed to assess your request.",
+            "filename": "google-business-posts.txt"
+          },
+          "table": {
+            "title": "Posting checklist",
+            "headers": [
+              "Do this",
+              "Why"
+            ],
+            "rows": [
+              [
+                "Verify the service and offer",
+                "Drafts use your inputs; the tool cannot confirm business facts"
+              ],
+              [
+                "Use an approved relevant image",
+                "Check ownership, permission and private details before sharing"
+              ],
+              [
+                "Use the appropriate profile action",
+                "Google post text must not contain a phone number; use the verified Call now button"
+              ],
+              [
+                "Check the exact profile and destination",
+                "Generating a draft does not publish it or verify a working link"
+              ]
+            ]
+          },
+          "note": "These are editable drafts, not published posts. Check current Google Business Profile policy and your offer terms. Phone input is deliberately excluded from post text; use the profile's verified Call now button instead. Review or remove stale updates when the facts change."
+        }
+      },
+      "sources": [
+        {
+          "url": "https://support.google.com/business/answer/7213077?hl=en",
+          "checkedAt": "2026-09-06",
+          "method": "Official primary page opened with web tool and relevant guidance inspected",
+          "claim": "Post text must not contain phone numbers; verified profile Call now action is the stated alternative."
+        }
+      ],
+      "linkedProKits": []
+    }
+  ],
+  "calculationRecheckedAt": "2026-09-07T02:09:19.373Z",
+  "bodyWords": 12975
+}

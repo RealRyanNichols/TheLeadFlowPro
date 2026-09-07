@@ -6,9 +6,15 @@ control. Live at [theleadflowpro.com](https://www.theleadflowpro.com).
 ## Build
 
 `main` is the real source tree and deploys straight to production through Vercel.
-`npm run build` runs the tool-registry validation first (`npm run validate:tools`),
+`npm run build` first runs the calculation release gate (`npm run validate:calculations`)
+and tool-registry validation (`npm run validate:tools`),
 so a published tool that is missing metadata, imagery, a formula or a disclaimer
-fails the build instead of shipping. Node 22.6 or later is required.
+fails the build instead of shipping. `build:only` also runs the calculation gate;
+it skips asset validation, not numeric checks. The gate covers every published
+free tool, independent reference examples, numeric boundaries, cent-reconciled
+exports, and paid-kit regressions. Add an audit classification and checks when
+adding a tool. See `docs/tool-calculation-audit-2026-09-06.md` for assumptions and
+known model limits. Node 22.6 or later is required.
 
 ## Stack
 

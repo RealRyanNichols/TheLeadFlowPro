@@ -876,7 +876,7 @@ If you want to see what the delay is costing on its own, the [lead response time
       slug: "cost-per-mile-calculator",
       heading: "Work out what a mile actually costs you",
       intro:
-        "Fixed costs, variable costs and the miles you actually run. The tool splits it the way it needs splitting so you can see what an empty mile costs as well as a loaded one.",
+        "Choose cash outlay, which includes loan payments, or economic cost, which includes depreciation and interest instead. Use total miles, then add owner pay and other costs outside the tool separately.",
       steps: [
         {
           name: "List fixed costs first",
@@ -896,7 +896,7 @@ If you want to see what the delay is costing on its own, the [lead response time
         },
       ],
       readIt: [
-        "The number that comes out is your floor. Any load under it loses money, no matter how good the rate per mile sounds against what somebody else got.",
+        "The result covers the entered vehicle costs on the selected basis, not your complete job price. Add owner pay, permits, tolls, and other business costs separately; do not add loan principal and depreciation together.",
         "Look at the fixed portion on its own. That is what a week off costs you, and it is why sitting is more expensive than most owner operators think.",
         "Run it again with fewer total miles, like a slow month. Cost per mile goes up when miles go down, which is exactly when rates are usually worst. That is the squeeze that ends most one-truck operations.",
       ],

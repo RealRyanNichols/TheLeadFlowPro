@@ -101,14 +101,14 @@ describe("sales tax", () => {
     const r = run("sales-tax-calculator", { amount: 1000, rate: 8.25, mode: "pre", volume: 60 });
     assert.equal(r.headline?.value, money2(1082.5));
     assert.equal(stat(r, "Your revenue"), money2(1000));
-    assert.equal(stat(r, "Tax you owe"), money2(82.5));
+    assert.equal(stat(r, "Tax at entered rate"), money2(82.5));
   });
 
   // Backing out: 1000 / 1.0825 = 923.79, so tax is 76.21.
   test("backs tax out when the amount already includes it", () => {
     const r = run("sales-tax-calculator", { amount: 1000, rate: 8.25, mode: "post", volume: 60 });
     assert.equal(stat(r, "Your revenue"), money2(1000 / 1.0825));
-    assert.equal(stat(r, "Tax you owe"), money2(1000 - 1000 / 1.0825));
+    assert.equal(stat(r, "Tax at entered rate"), money2(1000 - 1000 / 1.0825));
   });
 
   test("a zero rate changes nothing", () => {
@@ -158,7 +158,7 @@ describe("review response writer", () => {
   test("a bad review with a phone number offers the direct line", () => {
     const r = run("review-response-writer", { type: "bad", phone: "(903) 500-8898" });
     const text = r.output?.text ?? "";
-    assert.ok(text.includes("Call or text me directly at (903) 500-8898"), text);
+    assert.ok(text.includes("contact our team at (903) 500-8898"), text);
   });
 
   test("a blank unfair review reads as complete sentences", () => {

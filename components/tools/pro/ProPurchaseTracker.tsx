@@ -6,11 +6,13 @@ import { analyticsAllowedNow } from "@/lib/analytics/browserPrivacy";
 import { createProPurchaseReceiptConsumer } from "@/lib/analytics/proPurchaseClient";
 import type { ProPurchaseEvent } from "@/lib/proPurchaseReceipt";
 
-const receipts = createProPurchaseReceiptConsumer();
+const consumers = new Map<string, ReturnType<typeof createProPurchaseReceiptConsumer>>();
 
-export default function ProPurchaseTracker({ googleAdsId, conversionLabel }: { googleAdsId: string; conversionLabel: string }) {
+export default function ProPurchaseTracker({ googleAdsId, conversionLabel, receiptEndpoint = "/api/pro/purchase-receipt" }: { googleAdsId: string; conversionLabel: string; receiptEndpoint?: string }) {
   const [event, setEvent] = useState<ProPurchaseEvent | null>(null);
   useEffect(() => {
+    if (!consumers.has(receiptEndpoint)) consumers.set(receiptEndpoint, createProPurchaseReceiptConsumer(undefined, receiptEndpoint));
+    const receipts = consumers.get(receiptEndpoint)!;
     let active = true;
     let timer: number | undefined;
     let attempts = 0;
@@ -34,7 +36,7 @@ export default function ProPurchaseTracker({ googleAdsId, conversionLabel }: { g
     // Parent/sibling tracking effects finish before the first attempt.
     timer = window.setTimeout(check, 0);
     return () => { active = false; window.clearTimeout(timer); };
-  }, [googleAdsId, conversionLabel]);
+  }, [googleAdsId, conversionLabel, receiptEndpoint]);
   return event ? (
     <ConversionPing
       googleAdsId={googleAdsId} conversionLabel={conversionLabel}

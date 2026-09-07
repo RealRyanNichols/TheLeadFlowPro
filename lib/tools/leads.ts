@@ -71,15 +71,15 @@ export const LEAD_TOOLS: ToolDef[] = [
     category: "Leads",
     tagline: "Slow replies are why leads go cold",
     description:
-      "The first business to answer usually wins the job. See what your reply time is costing you against a competitor who answers in five minutes.",
+      "Explore an illustrative response-time scenario against a five-minute comparison, then measure your actual replies and outcomes.",
     who: "Anyone getting leads from a website form, Facebook, Google or a referral.",
     problem:
       "You get the email at 9am, see it at 4pm, call at 5:30. By then they already booked somebody who called back in ten minutes.",
-    payoff: "A dollar figure on the delay, which is usually the cheapest problem you have to fix.",
+    payoff: "A visible comparison of assumptions and a reason to track your own response times.",
     steps: [
       "Enter how many leads you get and how long you actually take to reply.",
       "Compare it against a five-minute reply.",
-      "Set up an instant auto-reply tonight. It costs nothing.",
+      "Assign a person and an achievable next step to each inquiry.",
     ],
     fields: [
       { id: "leads", label: "Leads per month", type: "slider", min: 1, max: 500, step: 1, def: 40 },
@@ -94,25 +94,25 @@ export const LEAD_TOOLS: ToolDef[] = [
       const base = num(v, "baseClose") / 100;
       // Decay curve: contact and conversion odds fall off sharply after the first hour.
       const decay = (h: number) => Math.max(0.12, Math.exp(-h / 6));
-      const fastFactor = decay(0.08);
+      const fastFactor = decay(5 / 60);
       const yourFactor = decay(hours);
       const fastRevenue = leads * base * fastFactor * ticket;
       const yourRevenue = leads * base * yourFactor * ticket;
-      const lost = fastRevenue - yourRevenue;
+      const lost = Math.max(0, fastRevenue - yourRevenue);
 
       return {
-        headline: { value: money(lost * 12), label: "Lost every year to slow replies", sub: `${money(lost)} a month`, tone: "bad" },
+        headline: { value: money(lost * 12), label: "Illustrative annual response-time gap", sub: `${money(lost)} a month`, tone: "bad" },
         stats: [
-          { label: "Jobs won replying in 5 min", value: count(leads * base * fastFactor), tone: "good" },
-          { label: `Jobs won at ${count(hours)} hours`, value: count(leads * base * yourFactor), tone: "bad" },
-          { label: "Jobs lost a month", value: count(leads * base * (fastFactor - yourFactor)), tone: "bad" },
+          { label: "Modeled jobs at 5 minutes", value: count(leads * base * fastFactor), tone: "good" },
+          { label: `Modeled jobs at ${count(hours)} hours`, value: count(leads * base * yourFactor), tone: "bad" },
+          { label: "Modeled job difference a month", value: count(Math.max(0, leads * base * (fastFactor - yourFactor))), tone: "bad" },
           { label: "Revenue difference a month", value: money(lost), tone: "bad" },
         ],
         bars: {
-          title: "Jobs won per month by reply speed",
-          caption: "Same leads. Only the clock changed.",
+          title: "Illustrative jobs per month by reply speed",
+          caption: "Same assumed leads and value, with an unvalidated decay curve.",
           items: [
-            { label: "5 minutes", value: leads * base * decay(0.08), display: count(leads * base * decay(0.08)), tone: "good" },
+            { label: "5 minutes", value: leads * base * decay(5 / 60), display: count(leads * base * decay(5 / 60)), tone: "good" },
             { label: "1 hour", value: leads * base * decay(1), display: count(leads * base * decay(1)), tone: "good" },
             { label: "4 hours", value: leads * base * decay(4), display: count(leads * base * decay(4)), tone: "warn" },
             { label: "24 hours", value: leads * base * decay(24), display: count(leads * base * decay(24)), tone: "bad" },
@@ -121,9 +121,9 @@ export const LEAD_TOOLS: ToolDef[] = [
         },
         verdict: {
           tone: "bad",
-          text: "You do not have to answer in five minutes. Something you own has to answer in five minutes. That is the whole fix.",
+          text: "Set a realistic reply commitment, give each inquiry an owner, and record the first helpful response. An automated acknowledgment does not complete the conversation.",
         },
-        note: "The decay curve here is a working model based on the well-known pattern that contact rates drop hard after the first hour. Your business will have its own curve. The direction is never wrong.",
+        note: "Illustrative sensitivity model, not observed results or a validated response-time benchmark. The exponential curve and 12% floor are assumptions. A five-minute comparison uses exactly 5/60 of an hour. An automated acknowledgment is not a completed helpful human response.",
       };
     },
   },
@@ -173,26 +173,27 @@ export const LEAD_TOOLS: ToolDef[] = [
         headline: { value: money2(leadRevenue), label: "Revenue per raw lead", sub: `${money2(leadProfit)} of gross profit`, tone: "good" },
         stats: [
           { label: "Lifetime value of one customer", value: money(customerRevenue), tone: "good" },
-          { label: "Ceiling per lead", value: money2(leadProfit), sub: "above this you lose money" },
-          { label: "Comfortable to pay", value: money2(maxPay), sub: "leaves real profit", tone: "good" },
-          { label: "Return on what you pay now", value: pct(roi, 0), tone: roi > 0 ? "good" : "bad" },
+          { label: "Gross contribution per lead", value: money2(leadProfit), sub: "before overhead and acquisition costs" },
+          { label: "Illustrative 40% allocation", value: money2(maxPay), sub: "of modeled gross profit; not a budget rule", tone: "good" },
+          { label: "Return on what you pay now", value: paying > 0 ? pct(roi, 0) : "Not defined", tone: roi > 0 ? "good" : "bad" },
         ],
         bars: {
           title: "What a lead is worth vs what you pay",
           items: [
             { label: "You pay", value: paying, display: money2(paying), tone: "warn" },
-            { label: "Comfortable price", value: maxPay, display: money2(maxPay), tone: "good" },
-            { label: "Absolute ceiling", value: leadProfit, display: money2(leadProfit), tone: "bad" },
+            { label: "40% scenario", value: maxPay, display: money2(maxPay), tone: "good" },
+            { label: "Gross contribution", value: leadProfit, display: money2(leadProfit), tone: "bad" },
           ],
         },
+        note: "Scenario assumes every referred customer has the same first and repeat purchases. It excludes recursive referrals, overhead, refunds, timing, and discounting. The 40% allocation is arbitrary; average gross contribution is not cash available today.",
         verdict: {
           tone: paying < maxPay ? "good" : paying < leadProfit ? "warn" : "bad",
           text:
             paying < maxPay
-              ? `At ${money2(paying)} a lead you have room to buy more of them. That is usually the right move.`
+              ? `The acquisition cost is below the illustrative allocation. Check cash timing, actual delivery costs, and observed customer behavior before increasing spending.`
               : paying < leadProfit
-                ? `You are profitable but thin. Push close rate or ticket before you buy more leads.`
-                : `You are paying more than a lead is worth. Fix close rate first or stop buying.`,
+                ? `Acquisition cost uses more than 40% of modeled gross profit. Include overhead and cash timing before judging profitability.`
+                : `Acquisition cost reaches or exceeds modeled gross contribution. Review the assumptions and actual outcomes before committing more money.`,
         },
       };
     },
@@ -227,6 +228,7 @@ export const LEAD_TOOLS: ToolDef[] = [
       const spend = num(v, "spend");
       const leads = Math.max(1, num(v, "leads"));
       const customers = num(v, "customers");
+      if (customers > leads) return { headline: { value: "Check inputs", label: "Customers cannot exceed inquiries in the same cohort", tone: "warn" }, note: "Use leads and converted customers from the same source and period." };
       const value = num(v, "value");
       const margin = num(v, "margin") / 100;
       const cpl = spend / leads;
@@ -235,7 +237,7 @@ export const LEAD_TOOLS: ToolDef[] = [
       const profitPer = value * margin;
       const netPer = profitPer - cac;
       const roas = spend > 0 ? (customers * value) / spend : 0;
-      const betterClose = leads * ((closeRate + 5) / 100);
+      const betterClose = leads * (Math.min(100, closeRate + 5) / 100);
       const betterCac = betterClose > 0 ? spend / betterClose : 0;
 
       return {
@@ -248,13 +250,13 @@ export const LEAD_TOOLS: ToolDef[] = [
         stats: [
           { label: "Cost per lead", value: money2(cpl) },
           { label: "Gross profit per customer", value: money2(profitPer), tone: "good" },
-          { label: netPer >= 0 ? "Profit after acquisition" : "Loss per customer", value: money2(Math.abs(netPer)), tone: netPer >= 0 ? "good" : "bad" },
-          { label: "Return on ad spend", value: `${dec(roas, 2)}x`, tone: roas >= 3 ? "good" : roas >= 1 ? "warn" : "bad" },
+          { label: "Contribution after acquisition per customer", value: customers > 0 ? money2(netPer) : "Not defined", tone: customers > 0 && netPer >= 0 ? "good" : "bad" },
+          { label: "Return on ad spend", value: spend > 0 ? `${dec(roas, 2)}x` : "Not defined", tone: roas >= 3 ? "good" : roas >= 1 ? "warn" : "bad" },
         ],
         bars: {
           title: "What you pay vs what you get",
           items: [
-            { label: "Cost per customer", value: cac, display: money2(cac), tone: "warn" },
+            { label: "Cost per customer", value: cac, display: customers > 0 ? money2(cac) : "Not defined", tone: "warn" },
             { label: "Profit per customer", value: profitPer, display: money2(profitPer), tone: "good" },
           ],
         },
@@ -262,8 +264,8 @@ export const LEAD_TOOLS: ToolDef[] = [
           tone: netPer > 0 ? "good" : "bad",
           text:
             customers === 0
-              ? "Zero customers from this spend means the problem is downstream of the ad. Look at reply speed and follow-up before you touch the budget."
-              : `Raising close rate by 5 points would drop your cost per customer to ${money2(betterCac)} without spending another dollar.`,
+              ? "No customers are recorded for this cohort. Check attribution, lead quality, follow-up, and whether enough time has passed to observe a completed sale."
+              : `If close rate reached ${pct(Math.min(100, closeRate + 5), 1)}, modeled cost per customer would be ${money2(betterCac)} without spending another dollar.`,
         },
         note: "Include everything: ad spend, agency fees, lead subscriptions, print, sponsorships. Leaving costs out is how people convince themselves marketing is working.",
       };
@@ -357,7 +359,7 @@ export const LEAD_TOOLS: ToolDef[] = [
       const quotes = num(v, "quotes");
       const value = num(v, "value");
       const closeNow = num(v, "closeNow") / 100;
-      const lift = num(v, "lift") / 100;
+      const lift = Math.min(1 - closeNow, num(v, "lift") / 100);
       const margin = num(v, "margin") / 100;
 
       const openQuotes = quotes * (1 - closeNow);
@@ -418,7 +420,7 @@ export const LEAD_TOOLS: ToolDef[] = [
     run: (v) => {
       const leads = num(v, "leads");
       const close = num(v, "close") / 100;
-      const improve = num(v, "improve") / 100;
+      const improve = Math.min(1 - close, num(v, "improve") / 100);
       const value = num(v, "value");
       const cpl = num(v, "cpl");
 
@@ -480,7 +482,8 @@ export const LEAD_TOOLS: ToolDef[] = [
     ],
     run: (v) => {
       const goal = num(v, "goal");
-      const ticket = Math.max(1, num(v, "ticket"));
+      const ticket = num(v, "ticket");
+      if (ticket <= 0) return { headline: { value: "Check job value", label: "A positive job value is needed for this goal", tone: "warn" }, note: "Dividing a revenue goal by a zero-value job does not produce a finite activity plan." };
       const close = Math.max(0.01, num(v, "close") / 100);
       const l2q = Math.max(0.01, num(v, "leadToQuote") / 100);
       const weeks = Math.max(1, num(v, "weeks"));

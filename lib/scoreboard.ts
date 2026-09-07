@@ -41,6 +41,8 @@ export type ScoreboardBusiness = {
   feed: ScoreboardFeed;
   /** Show the sales count tile. Off by default; dollar figures are never shown. */
   showSales: boolean;
+  /** Exact public payment-count definition, never a claim of distinct buyers or revenue. */
+  paymentSourceNote?: string;
   /** Short list of the LeadFlow Pro services this business runs on. */
   runsOn: string[];
 };
@@ -73,7 +75,8 @@ export const SCOREBOARD_BUSINESSES: readonly ScoreboardBusiness[] = [
       url: "https://lmbsuwslsycukynzpzik.supabase.co",
       publishableKey: "sb_publishable_vzuQZbkmj-UsYZVs5Zqw9w_c8PiOfbh",
     },
-    showSales: false,
+    showSales: true,
+    paymentSourceNote: "Purchase records marked completed or active in the school's database. This is a record count, not unique students, verified enrollments, or revenue. The selected window uses each record's creation date.",
     runsOn: ["Website", "Free tools", "Blog", "Enrollment forms", "Calls and texts", "Ads"],
   },
   {
@@ -93,6 +96,7 @@ export const SCOREBOARD_BUSINESSES: readonly ScoreboardBusiness[] = [
     // Ryan's own company. The sales count (book orders, store orders, donations)
     // is the point of the case study; it is a count, never dollars.
     showSales: true,
+    paymentSourceNote: "Book orders and store orders marked paid, plus donation records without a refund timestamp. These are payment records, not necessarily unique buyers or fulfilled orders. The selected window uses each record's creation date.",
     runsOn: ["Website", "Articles", "Archive", "Book store", "AI assistant", "Email and text list"],
   },
 ];

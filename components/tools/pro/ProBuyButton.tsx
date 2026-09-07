@@ -36,9 +36,8 @@ export default function ProBuyButton({
   async function buy() {
     setBusy(true);
     setError(null);
-    trackTool("tool_card_opened", { slug: slug || "pro_bundle", surface: "buy" });
+    try { trackTool("tool_card_opened", { slug: slug || "pro_bundle", surface: "buy" }); } catch { /* Measurement must not block payment. */ }
     try {
-      window.fbq?.("track", "InitiateCheckout", { value: priceUsd, currency: "USD" });
       const r = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -46,6 +45,7 @@ export default function ProBuyButton({
       });
       const body = (await r.json().catch(() => ({}))) as { url?: string; error?: string };
       if (r.ok && body.url) {
+        try { window.fbq?.("track", "InitiateCheckout", { value: priceUsd, currency: "USD" }); } catch { /* Optional vendor failure must not block checkout. */ }
         window.location.href = body.url;
         return;
       }

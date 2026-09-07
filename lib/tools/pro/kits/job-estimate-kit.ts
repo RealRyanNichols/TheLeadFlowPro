@@ -34,7 +34,9 @@ export type EstimateLine = {
 };
 
 const moneyIn = (raw: string): number | null => {
-  const n = Number(raw.replace(/[$,\s]/g, ""));
+  const cleaned = raw.replace(/[$,\s]/g, "");
+  if (!cleaned || !/^\d+(?:\.\d{1,2})?$/.test(cleaned)) return null;
+  const n = Number(cleaned);
   return Number.isFinite(n) && n >= 0 && n <= 10_000_000 ? n : null;
 };
 
@@ -174,11 +176,16 @@ function run(v: Values): Result {
   const estNumber =
     str(v, "estNumber").trim().slice(0, 40) || `EST-${estDate.replace(/-/g, "").slice(2)}`;
 
-  const subtotal = lines.reduce((sum, l) => sum + l.price, 0);
-  const tax = subtotal * taxRate;
-  const total = subtotal + tax;
-  const depositDue = total * depositPct;
-  const balance = total - depositDue;
+  // Round currency once in cents so the invoice and deposit split reconcile.
+  const subtotalCents = lines.reduce((sum, l) => sum + Math.round(l.price * 100), 0);
+  const taxCents = Math.round(subtotalCents * taxRate);
+  const totalCents = subtotalCents + taxCents;
+  const depositCents = Math.round(totalCents * depositPct);
+  const subtotal = subtotalCents / 100;
+  const tax = taxCents / 100;
+  const total = totalCents / 100;
+  const depositDue = depositCents / 100;
+  const balance = (totalCents - depositCents) / 100;
   const validUntil = addDays(estDate, validDays);
 
   const knownCost = lines.filter((l) => l.cost !== null);

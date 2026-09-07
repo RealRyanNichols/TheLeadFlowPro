@@ -216,6 +216,9 @@ function run(v: Values): Result {
   const current = Math.min(5, Math.max(1, num(v, "current", 4.3)));
   const total = Math.max(0, num(v, "total"));
   const goal = Math.min(4.9, Math.max(3, num(v, "goal", 4.8)));
+  if ([current, goal].some(value => Math.abs(value * 10 - Math.round(value * 10)) > 1e-8)) {
+    return { headline: { value: "Check inputs", label: "Use ratings to one decimal place" }, explain: "Enter ratings such as 4.3 or 4.8, matching the rating controls, before generating the review plan." };
+  }
   const weekly = Math.max(1, num(v, "weekly", 40));
   const yesRate = Math.max(0.05, num(v, "yesRate", 25) / 100);
   const job = (str(v, "job").trim() || "job").slice(0, 40);
@@ -226,7 +229,7 @@ function run(v: Values): Result {
 
   // The same formula the free review goal calculator uses, with the same
   // stated assumption: every new review is five stars.
-  const alreadyThere = current >= goal;
+  const alreadyThere = total > 0 && current >= goal;
   // With zero existing reviews the formula degenerates to zero needed, which
   // is nonsense: the first five star review sets the average at 5. One is the
   // honest floor whenever the target has not been met.
@@ -234,7 +237,7 @@ function run(v: Values): Result {
     ? 0
     : total === 0
       ? 1
-      : Math.max(1, Math.ceil((total * (goal - current)) / (5 - goal)));
+      : Math.max(1, Math.ceil((total * (Math.round(goal * 10) - Math.round(current * 10))) / (50 - Math.round(goal * 10))));
   const weeklyYes = weekly * yesRate;
   const weeksToGoal = needed > 0 && weeklyYes > 0 ? Math.ceil(needed / weeklyYes) : 0;
 
@@ -246,7 +249,7 @@ function run(v: Values): Result {
       week: i + 1,
       date: addDays(start, i * 7),
       asks: Math.round(weekly),
-      expected: Math.max(1, Math.round(weeklyYes)),
+      expected: gained - Math.round(weeklyYes * i),
       runningTotal: total + gained,
       projected: Math.min(5, projected),
     };

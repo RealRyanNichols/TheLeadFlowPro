@@ -55,7 +55,7 @@ export default function FreeBuildPage() {
       {/* -------------------------------------------------------------- hero --- */}
       <section className="cb-hero">
         <div className={`cb-shell ${styles.heroGrid}`}>
-          <div>
+          <div className={styles.heroCopy}>
             <p className="cb-eyebrow">The LeadFlow Pro Free Website Program</p>
             <h1 className="cb-h1">
               {FREE_BUILD.headline}
@@ -91,12 +91,12 @@ export default function FreeBuildPage() {
             </ul>
 
             <div className="cb-actions">
-              <a className="cb-btn cb-btn--primary" href="#why">
-                See What $0 Includes
+              <a className="cb-btn cb-btn--primary" href="#pick">
+                Apply for My Free Website
                 <ArrowRight aria-hidden="true" />
               </a>
-              <a className="cb-btn cb-btn--ghost" href="#pick">
-                Apply Now
+              <a className="cb-btn cb-btn--ghost" href="#why">
+                See What $0 Includes
               </a>
             </div>
 
@@ -115,7 +115,19 @@ export default function FreeBuildPage() {
             <p className={styles.slots}>{FREE_BUILD.slotsNote}</p>
           </div>
 
-          <div className={styles.tradeCard}>
+          <div className={styles.heroAside}>
+            <figure className={styles.heroFigure}>
+              <Image
+                src="/images/page-art/free-build-website-inquiries.webp"
+                alt="A polished business website on a desktop and phone beside five page tabs and a customer inquiry card"
+                width={1536}
+                height={1024}
+                priority
+                sizes="(max-width: 939px) 100vw, 45vw"
+              />
+              <figcaption><strong>A website people can understand. A clear way to reach you.</strong><span>Illustrative build concept. Your pages and business details are agreed in writing.</span></figcaption>
+            </figure>
+            <div className={styles.tradeCard}>
             <div className={styles.tradeRow}>
               <span className={styles.tradeLabel}>Your first five-page website</span>
               <span className={styles.tradeFree}>$0 build fee</span>
@@ -135,9 +147,10 @@ export default function FreeBuildPage() {
               separate written price. Domain, hosting after 90 days, software, and ad spend are disclosed.
             </p>
             <a className={`cb-btn cb-btn--primary ${styles.tradeBtn}`} href="#pick">
-              Apply Or Add Growth Services
+              Start My Application
               <ArrowRight aria-hidden="true" />
             </a>
+            </div>
           </div>
         </div>
       </section>

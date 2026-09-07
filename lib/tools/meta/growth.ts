@@ -56,7 +56,7 @@ export const GROWTH_META: Record<string, ToolMeta> = {
     disclaimer: "general-estimate",
     dataSensitivity: "none",
     popularity: 76,
-    assumptions: ["The link between rating and enquiry volume is modelled from your own numbers, not from an industry study."],
+    assumptions: ["Only weighted rating averages are calculated. Lead and revenue effects cannot be determined from ratings alone."],
     relatedSlugs: ["review-response-writer", "review-goal-calculator", "google-review-link", "review-request-script"],
   },
 
@@ -86,7 +86,7 @@ export const GROWTH_META: Record<string, ToolMeta> = {
     disclaimer: "general-estimate",
     dataSensitivity: "none",
     popularity: 80,
-    assumptions: ["Uses a conversion penalty that grows with load time. Your real curve depends on your audience and your offer."],
+    assumptions: ["Uses an arbitrary, unvalidated retention curve for illustration. It does not measure actual abandonment, conversions or lost sales."],
     relatedSlugs: ["mobile-traffic-loss", "conversion-lift-calculator", "website-grader", "downtime-cost-calculator"],
   },
 
@@ -158,6 +158,7 @@ export const GROWTH_META: Record<string, ToolMeta> = {
     disclaimer: "general-estimate",
     dataSensitivity: "none",
     popularity: 84,
+    assumptions: ["The score is the percentage of this site's checklist items the reader confirms, not a Google inspection, ranking score, or forecast.", "Feature availability varies by business type and region. Review optional items and confirm when they do not apply."],
     relatedSlugs: ["google-review-link", "google-post-writer", "localbusiness-schema-generator", "website-grader"],
   },
 
@@ -172,7 +173,7 @@ export const GROWTH_META: Record<string, ToolMeta> = {
     disclaimer: "general-estimate",
     dataSensitivity: "none",
     popularity: 75,
-    assumptions: ["Each extra field is modelled as a fixed drop in completion. Real forms vary by what you are asking for."],
+    assumptions: ["An arbitrary, unvalidated multiplicative completion curve compares form lengths. Count actual fields once; measure your own completions before drawing conclusions."],
     relatedSlugs: ["conversion-lift-calculator", "lead-response-time", "mobile-traffic-loss", "website-grader"],
   },
 };

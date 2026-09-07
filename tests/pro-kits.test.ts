@@ -747,7 +747,7 @@ describe("rate card kit", () => {
   });
 
   test("a service is priced from the rate with materials marked up, rounded to fives", () => {
-    // 4 hours x $100 + 780 x 1.15 = 400 + 897 = 1,297, rounding to $1,295.
+    // 4 hours x $100 + 780 x 1.15 = 400 + 897 = 1,297, rounding up to $1,300.
     const csvDoc = doc(
       run(SLUG, {
         take: 90000, overhead: 24000, weeks: 48, hours: 50, billable: 60, tax: 25,
@@ -755,7 +755,7 @@ describe("rate card kit", () => {
       }),
       "services",
     );
-    assert.match(csvDoc.body, /"Water heater replacement","4","780",".*","1295"/);
+    assert.match(csvDoc.body, /"Water heater replacement","4","780",".*","1300"/);
   });
 
   // At a 33.33 percent increase, revenue holds up to 1 - 1/1.3333 = 25 percent
@@ -1035,10 +1035,10 @@ describe("review findings stay fixed", () => {
     assert.equal(letters.body.includes("undefined"), false);
   });
 
-  test("ninety minutes reads as 2 hours, plural", () => {
+  test("ninety minutes preserves the actual promised response window", () => {
     const messages = doc(run("missed-call-text-back-kit", { promise: 90, tone: "direct" }), "messages");
-    assert.match(messages.body, /inside 2 hours/);
-    assert.equal(messages.body.includes("2 hour "), false);
+    assert.match(messages.body, /inside 90 minutes/);
+    assert.equal(messages.body.includes("inside 2 hours"), false);
   });
 
   test("a closing script tag inside an answer cannot break the schema block", () => {

@@ -1,0 +1,616 @@
+import type { Values } from "../../lib/tools/types";
+
+export type CalculationCase = {
+  slug: string;
+  input: Values;
+  path?: string;
+  expected: number | string;
+  tolerance?: number;
+  reasoning: string;
+};
+// Hand-calculated examples of the stated arithmetic. Scenario-model cases check
+// their declared assumptions only; they do not validate predicted behavior.
+export const CALCULATION_CASES: CalculationCase[] = [
+  {
+    slug: "missed-call-calculator",
+    input: { missed: 2, closeRate: 25, ticket: 100, repeats: 1 },
+    expected: 5200,
+    reasoning:
+      "104 annual missed calls × .25 × $200 first-plus-repeat revenue.",
+  },
+  {
+    slug: "lead-response-time",
+    input: { leads: 100, hours: 0, ticket: 100, baseClose: 50 },
+    expected: 0,
+    reasoning:
+      "An immediate response has no positive modeled gap against five minutes.",
+  },
+  {
+    slug: "lead-value-calculator",
+    input: {
+      closeRate: 25,
+      ticket: 100,
+      margin: 50,
+      repeat: 1,
+      referral: 0,
+      paying: 10,
+    },
+    expected: 50,
+    reasoning:
+      "Two $100 sales × one-quarter conversion = $50 modeled revenue per inquiry.",
+  },
+  {
+    slug: "cost-per-lead-calculator",
+    input: { spend: 1000, leads: 50, customers: 10, value: 200, margin: 50 },
+    expected: 100,
+    reasoning: "$1000 divided by ten acquired customers; $20 per inquiry.",
+  },
+  {
+    slug: "no-show-calculator",
+    input: {
+      appts: 20,
+      noShow: 10,
+      value: 100,
+      wasted: 0,
+      hourly: 10,
+      reminderLift: 50,
+    },
+    expected: 10400,
+    reasoning: "Two modeled empty $100 slots per week ×52; no added time cost.",
+  },
+  {
+    slug: "quote-follow-up-calculator",
+    input: { quotes: 10, value: 100, closeNow: 20, lift: 10, margin: 50 },
+    expected: 1200,
+    reasoning: "Ten quotes × .10 added close share × $100 ×12.",
+  },
+  {
+    slug: "close-rate-calculator",
+    input: { leads: 10, close: 20, improve: 10, value: 100, cpl: 5 },
+    expected: 1200,
+    reasoning: "One additional modeled job monthly at $100 ×12.",
+  },
+  {
+    slug: "lead-goal-planner",
+    input: {
+      goal: 12000,
+      ticket: 100,
+      close: 50,
+      leadToQuote: 50,
+      weeks: 40,
+      current: 10000,
+    },
+    expected: 12,
+    reasoning:
+      "120 jobs require240 quotes and480 inquiries, divided by40 weeks.",
+  },
+  {
+    slug: "capacity-calculator",
+    input: {
+      crews: 1,
+      hoursDay: 8,
+      days: 5,
+      jobHours: 2,
+      actual: 10,
+      value: 100,
+    },
+    expected: 50,
+    reasoning: "Forty available hours cover20 jobs;10 scheduled jobs use50%.",
+  },
+  {
+    slug: "after-hours-lead-calculator",
+    input: {
+      leads: 100,
+      share: 20,
+      lostNow: 50,
+      saveRate: 50,
+      value: 100,
+      close: 20,
+    },
+    expected: 1200,
+    reasoning:
+      "20 after-hours inquiries × .5 lost × .5 recovery × .2 close × $100 ×12.",
+  },
+  {
+    slug: "hourly-rate-calculator",
+    input: {
+      take: 30000,
+      overhead: 5000,
+      weeks: 50,
+      hours: 40,
+      billable: 50,
+      tax: 25,
+      current: 40,
+    },
+    expected: 45,
+    reasoning: "$30000/.75 +$5000 = $45000 needed across1000 billable hours.",
+  },
+  {
+    slug: "job-price-calculator",
+    input: {
+      materials: 100,
+      waste: 0,
+      hours: 2,
+      laborCost: 25,
+      drive: 0,
+      overhead: 20,
+      profit: 25,
+    },
+    expected: 240,
+    reasoning: "$150 direct cost +$30 overhead, divided by .75 for25% margin.",
+  },
+  {
+    slug: "profit-margin-calculator",
+    input: { cost: 60, price: 100, target: 50, units: 10 },
+    expected: 40,
+    reasoning: "$40 gross profit divided by $100 price.",
+  },
+  {
+    slug: "markup-vs-margin",
+    input: { cost: 100, markup: 50, wantMargin: 40 },
+    expected: 33.3,
+    tolerance: 0.051,
+    reasoning: "$50 gross profit on $150 selling price is one third.",
+  },
+  {
+    slug: "break-even-calculator",
+    input: { fixed: 1000, ticket: 100, margin: 50, days: 20, actual: 25 },
+    expected: 20,
+    reasoning: "$1000 fixed cost divided by $50 contribution per sale.",
+  },
+  {
+    slug: "price-increase-impact",
+    input: { price: 100, cost: 50, units: 100, increase: 10, churn: 10 },
+    expected: 400,
+    reasoning: "90 sales ×$60 margin less100 sales ×$50 margin.",
+  },
+  {
+    slug: "discount-damage-calculator",
+    input: { price: 100, cost: 60, discount: 10, howOften: 10 },
+    expected: 25,
+    reasoning: "$10 discount consumes25% of the original $40 gross profit.",
+  },
+  {
+    slug: "customer-lifetime-value",
+    input: { ticket: 100, visits: 2, years: 3, margin: 50, referrals: 1 },
+    expected: 600,
+    reasoning: "Six assumed $100 visits over the entered relationship.",
+  },
+  {
+    slug: "payment-plan-calculator",
+    input: { total: 100, deposit: 0, payments: 3, fee: 0 },
+    expected: 33.33,
+    tolerance: 0.001,
+    reasoning:
+      "First two installments $33.33; final $33.34 reconciles to $100.",
+  },
+  {
+    slug: "loan-payment-calculator",
+    input: { amount: 1200, rate: 0, years: 1, earns: 200 },
+    expected: 100,
+    tolerance: 0.001,
+    reasoning: "Twelve $100 payments retire zero-interest principal of $1200.",
+  },
+  {
+    slug: "late-invoice-calculator",
+    input: { monthly: 3650, days: 30, writeoff: 0, deposit: 50, cost: 10 },
+    expected: 3600,
+    reasoning:
+      "$43800 annual invoicing /365 ×30 days = $3600 outstanding scenario.",
+  },
+  {
+    slug: "cash-runway-calculator",
+    input: { cash: 18000, inflow: 9000, outflow: 12000, credit: 6000 },
+    expected: 6,
+    tolerance: 0.001,
+    reasoning: "$18000 cash divided by $3000 monthly net cash outflow.",
+  },
+  {
+    slug: "sales-tax-calculator",
+    input: { amount: 108, rate: 8, mode: "post", volume: 10 },
+    expected: 108,
+    tolerance: 0.001,
+    reasoning: "$108 inclusive total /1.08 = $100 net plus $8 tax.",
+  },
+  {
+    slug: "quarterly-tax-estimator",
+    input: {
+      revenue: 300000,
+      expenses: 0,
+      bracket: "22",
+      already: 0,
+      taxYear: "2026",
+      socialSecurityWages: 0,
+      medicareWages: 0,
+      filing: "joint",
+    },
+    path: "stats.1.value",
+    expected: 31156,
+    reasoning:
+      "$184500×12.4% + $277050×2.9% +($277050-$250000)×.9% = $31155.90.",
+  },
+  {
+    slug: "mileage-deduction-calculator",
+    input: { weekly: 100, weeks: 20, rate: 76, bracket: 20, missed: 0 },
+    expected: 1520,
+    reasoning:
+      "2000 eligible miles in a76-cent period ×$.76; not a tax credit.",
+  },
+  {
+    slug: "employee-true-cost",
+    input: {
+      wage: 20,
+      hours: 40,
+      payrollTax: 10,
+      comp: 0,
+      benefits: 0,
+      equipment: 0,
+      mgmt: 0,
+      yourRate: 0,
+    },
+    expected: 22,
+    tolerance: 0.001,
+    reasoning: "Base wage plus10% employer burden, with no other costs.",
+  },
+  {
+    slug: "hire-vs-automate",
+    input: {
+      personCost: 10000,
+      raise: 10,
+      buildCost: 1000,
+      monthly: 100,
+      coverage: 50,
+    },
+    expected: 11950,
+    reasoning:
+      "Hire costs33100; system1000+3600+16550 residual labor=21150; difference11950.",
+  },
+  {
+    slug: "overtime-cost-calculator",
+    input: { otHours: 20, wage: 20, burden: 10, weeks: 50, newHire: 40000 },
+    expected: 33000,
+    reasoning: "1000 hours × $20 ×1.5 ×1.1; only11000 is premium.",
+  },
+  {
+    slug: "rent-receipt",
+    input: { stack: ["website", "email"], avg: 10, agencyCost: 0, increase: 0 },
+    expected: 20,
+    reasoning: "Two selected subscriptions at $10 each per month.",
+  },
+  {
+    slug: "credit-card-fee-calculator",
+    input: { volume: 1000, avgSale: 100, rate: 3, perTxn: 30, betterRate: 2 },
+    expected: 396,
+    reasoning: "Ten transactions ×$.30 plus3% of$1000 = $33 monthly ×12.",
+  },
+  {
+    slug: "platform-fee-calculator",
+    input: { revenue: 1000, fee: 10, leadFees: 20, repeat: 50 },
+    expected: 1440,
+    reasoning: "$100 percentage fee +$20 fixed fees each month ×12.",
+  },
+  {
+    slug: "per-seat-cost-calculator",
+    input: { seats: 5, price: 10, tools: 2, growth: 1, ghost: 2 },
+    expected: 1200,
+    reasoning: "Ten seats across products ×$10 ×12.",
+  },
+  {
+    slug: "downtime-cost-calculator",
+    input: {
+      revenue: 5200,
+      openHours: 40,
+      downHours: 10,
+      recovery: 50,
+      backup: 10,
+    },
+    expected: 30,
+    reasoning:
+      "$62400 annual revenue /2080 open hours = $30 revenue per hour before loss share.",
+  },
+  {
+    slug: "equipment-buy-vs-rent",
+    input: {
+      dayRate: 100,
+      days: 10,
+      price: 1000,
+      upkeep: 100,
+      years: 2,
+      resale: 200,
+    },
+    expected: 1000,
+    reasoning: "Rent costs2000; purchase+upkeep-resale costs1000.",
+  },
+  {
+    slug: "roas-calculator",
+    input: { spend: 1000, revenue: 4000, margin: 40, fees: 200 },
+    expected: 3.33,
+    tolerance: 0.0051,
+    reasoning: "$4000 attributed revenue /$1200 marketing cost including fees.",
+  },
+  {
+    slug: "ad-budget-planner",
+    input: { want: 10, close: 25, cpl: 40, value: 500, margin: 50 },
+    expected: 1600,
+    reasoning: "40 modeled inquiries ×$40; contribution after ads is900.",
+  },
+  {
+    slug: "cac-payback-calculator",
+    input: { cac: 300, monthlyValue: 75, newPerMonth: 10, churn: 5 },
+    expected: 4,
+    tolerance: 0.001,
+    reasoning: "$300 acquisition cost /$75 monthly gross profit.",
+  },
+  {
+    slug: "ad-test-budget-calculator",
+    input: { cpl: 25, leadsNeeded: 20, dailyMin: 50, variants: 2 },
+    expected: 1000,
+    reasoning:
+      "Two variants ×20 planned leads ×$25; sample significance untested.",
+  },
+  {
+    slug: "commission-calculator",
+    input: {
+      deals: 10,
+      size: 100,
+      margin: 50,
+      basis: "profit",
+      rate: 10,
+      base: 100,
+    },
+    expected: 150,
+    reasoning: "$500 gross profit ×10% commission +$100 base pay.",
+  },
+  {
+    slug: "admin-time-audit",
+    input: {
+      tasks: ["quotes", "invoices", "scheduling"],
+      hoursEach: 2,
+      worth: 40,
+      automatable: 25,
+    },
+    expected: 12480,
+    reasoning: "Six weekly hours ×52 ×$40 time valuation.",
+  },
+  {
+    slug: "task-automation-savings",
+    input: {
+      minutes: 60,
+      times: 1,
+      rate: 10,
+      buildCost: 100,
+      monthly: 0,
+      errorRate: 0,
+      errorCost: 0,
+    },
+    expected: 10,
+    tolerance: 0.001,
+    reasoning: "$520 assumed annual time value; $100 setup /$520 ×52 weeks.",
+  },
+  {
+    slug: "cost-per-mile-calculator",
+    input: {
+      miles: 10000,
+      mpg: 10,
+      fuelPrice: 2,
+      insurance: 500,
+      maintenance: 500,
+      payment: 0,
+      depreciation: 0,
+      jobMiles: 10,
+    },
+    expected: 0.3,
+    tolerance: 0.001,
+    reasoning: "$2000 fuel +$1000 other costs /10000 miles.",
+  },
+  {
+    slug: "drive-time-cost",
+    input: {
+      hoursDay: 1,
+      people: 2,
+      days: 5,
+      billRate: 100,
+      wage: 20,
+      improve: 20,
+    },
+    expected: 520,
+    reasoning: "Ten combined driving hours a week ×52.",
+  },
+  {
+    slug: "meeting-cost-calculator",
+    input: { people: 4, rate: 30, minutes: 60, perWeek: 1, prep: 15 },
+    expected: 7800,
+    reasoning: "Five participant-hours with prep ×$30 ×52 sessions.",
+  },
+  {
+    slug: "owner-hourly-worth",
+    input: {
+      profit: 90000,
+      hoursWeek: 45,
+      weeks: 50,
+      lowValue: 5,
+      hireRate: 25,
+    },
+    expected: 40,
+    tolerance: 0.001,
+    reasoning: "$90000 profit /2250 actual working hours; average only.",
+  },
+  {
+    slug: "review-goal-calculator",
+    input: { current: 4.2, total: 40, goal: 4.5, perMonth: 5, asked: 50 },
+    expected: 24,
+    reasoning: "(168+5n)/(40+n)=4.5 has n=24.",
+  },
+  {
+    slug: "bad-review-impact",
+    input: {
+      current: 4.5,
+      total: 20,
+      bad: 1,
+      leads: 30,
+      value: 500,
+      close: 25,
+    },
+    expected: 4.33,
+    tolerance: 0.0051,
+    reasoning: "91 rating points /21 ratings; no causal financial inference.",
+  },
+  {
+    slug: "website-speed-money",
+    input: {
+      visitors: 1000,
+      loadTime: 2,
+      conversion: 2,
+      value: 100,
+      close: 50,
+    },
+    expected: 0,
+    reasoning:
+      "At its2-second comparison baseline, the illustrative curve has no gap.",
+  },
+  {
+    slug: "conversion-lift-calculator",
+    input: { visitors: 1000, conv: 2, lift: 1, close: 25, value: 500, cpc: 2 },
+    expected: 15000,
+    reasoning: "Ten extra modeled inquiries ×.25 ×$500 ×12.",
+  },
+  {
+    slug: "mobile-traffic-loss",
+    input: {
+      visitors: 1000,
+      mobileShare: 50,
+      desktopConv: 2,
+      mobileConv: 1,
+      value: 100,
+      close: 20,
+    },
+    expected: 1200,
+    reasoning: "500 mobile visits ×.01 rate gap ×.2 close ×$100 ×12.",
+  },
+  {
+    slug: "seo-traffic-value",
+    input: {
+      visitors: 100,
+      cpc: 2,
+      conv: 2,
+      close: 50,
+      value: 100,
+      growth: 50,
+    },
+    expected: 2400,
+    reasoning: "100 monthly visits ×$2 replacement-click assumption ×12.",
+  },
+  {
+    slug: "website-grader",
+    input: { checks: ["phone", "mobile"], visitors: 100, value: 100 },
+    expected: "10 / 100",
+    reasoning:
+      "Two of20 self-reported checklist items, not an observed conversion score.",
+  },
+  {
+    slug: "google-business-profile-scorecard",
+    input: { checks: ["claimed", "hours"] },
+    expected: "10 / 100",
+    reasoning:
+      "Two of20 self-reported checklist items, not a Google ranking score.",
+  },
+  {
+    slug: "form-friction-calculator",
+    input: { fields: 3, visitors: 100, baseStart: 50, value: 100, close: 50 },
+    expected: 0,
+    reasoning:
+      "At its3-field model baseline there is no modeled extra-field gap.",
+  },
+  {
+    slug: "household-budget-planner",
+    input: {
+      income: 4000,
+      housing: 1000,
+      utilities: 200,
+      food: 500,
+      transport: 300,
+      childcare: 0,
+      debt: 100,
+      other: 400,
+    },
+    expected: 1500,
+    reasoning: "$4000 income less $2500 listed outgoings.",
+  },
+  {
+    slug: "grocery-unit-price-calculator",
+    input: {
+      unit: "oz",
+      sizeA: 10,
+      priceA: 5,
+      sizeB: 20,
+      priceB: 8,
+      perMonth: 2,
+    },
+    path: "stats.2.value",
+    expected: 48,
+    reasoning: "$.10 difference per ounce ×40 equivalent monthly ounces ×12.",
+  },
+  {
+    slug: "childcare-vs-work-calculator",
+    input: {
+      salary: 40000,
+      taxRate: 20,
+      childcare: 500,
+      commuteDaily: 10,
+      daysPerWeek: 5,
+      weeks: 40,
+      hoursPerDay: 8,
+      extras: 100,
+    },
+    expected: 22800,
+    reasoning:
+      "$32000 after assumed tax less6000 care,2000 commute,1200 extras.",
+  },
+  {
+    slug: "subscription-audit",
+    input: {
+      services: ["video1", "music"],
+      avg: 10,
+      other: 5,
+      unused: 1,
+      increase: 0,
+    },
+    expected: 300,
+    reasoning: "Two$10 services +$5 other monthly ×12.",
+  },
+  {
+    slug: "emergency-fund-calculator",
+    input: { essentials: 1000, months: 3, saved: 1000, monthly: 500 },
+    expected: 2000,
+    reasoning: "$3000 chosen target less$1000 already saved.",
+  },
+  {
+    slug: "debt-payoff-planner",
+    input: { balance: 1200, apr: 0, payment: 110, extra: 40 },
+    expected: 11,
+    tolerance: 0.001,
+    reasoning:
+      "Ten$110 payments plus$100 final payment; zero accrued interest.",
+  },
+  {
+    slug: "rent-affordability-estimator",
+    input: { income: 4000, rent: 1000, utilities: 200, debts: 100, other: 500 },
+    expected: 30,
+    reasoning:
+      "$1200 housing /$4000 take-home; not a universal affordability rule.",
+  },
+  {
+    slug: "salary-to-hourly-converter",
+    input: {
+      salary: 52000,
+      hours: 40,
+      extra: 10,
+      pto: 10,
+      compareSalary: 50000,
+      compareHours: 40,
+    },
+    expected: 20.8,
+    tolerance: 0.001,
+    reasoning: "50 working weeks ×50 actual weekly hours =2500; $52000/2500.",
+  },
+];

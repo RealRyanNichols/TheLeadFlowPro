@@ -34,7 +34,7 @@ export function parseServices(text: string): { services: ServiceLine[]; bad: str
     if (!trimmed) continue;
     const parts = trimmed.split("|").map((p) => p.trim());
     const name = parts[0]?.slice(0, 160) ?? "";
-    const hours = Number((parts[1] ?? "").replace(/[^\d.]/g, ""));
+    const hours = Number((parts[1] ?? "").trim());
     const materials = parts.length > 2 ? Number((parts[2] ?? "0").replace(/[$,\s]/g, "")) : 0;
     if (name && Number.isFinite(hours) && hours > 0 && hours <= 2000 && Number.isFinite(materials) && materials >= 0) {
       services.push({ name, hours, materials: Math.min(materials, 1_000_000) });
@@ -45,8 +45,8 @@ export function parseServices(text: string): { services: ServiceLine[]; bad: str
   return { services: services.slice(0, 40), bad: bad.slice(0, 20) };
 }
 
-/** Prices land on retail-shaped numbers: nearest 5 dollars, never below cost. */
-export const roundPrice = (n: number) => Math.max(5, Math.round(n / 5) * 5);
+/** Prices land on retail-shaped numbers: next 5 dollars, never below cost. */
+export const roundPrice = (n: number) => Math.max(5, Math.ceil(n / 5) * 5);
 
 const EXAMPLE_SERVICES = [
   "Service call and diagnosis | 1.5",
@@ -222,7 +222,7 @@ function run(v: Values): Result {
           ) +
           heading("What this assumed") +
           bullets([
-            "Materials carry your markup and hours carry the required rate; prices round to the nearest five dollars and never below.",
+            "Materials carry your markup and hours carry the required rate; prices round to the next five dollars and never below.",
             "The loss tolerance is revenue arithmetic, not a prediction of who leaves. Nothing here guarantees retention or income.",
             "Overhead and billable share are yours to keep honest; the rate is only as real as they are.",
           ]),

@@ -96,9 +96,9 @@ export const HOME_FAMILY_TOOLS: ToolDef[] = [
             : `After everything you listed, ${money(left)} is left each month, or ${money(left * 12)} a year. Housing is taking ${pct(housingShare, 0)} of your take-home pay.`,
         stats: [
           { label: "Total going out", value: money(spent), tone: "neutral" },
-          { label: "Housing share", value: pct(housingShare, 0), sub: housingShare > 35 ? "above the usual comfort line" : "inside the usual range", tone: housingShare > 35 ? "warn" : "good" },
+          { label: "Housing share", value: income > 0 ? pct(housingShare, 0) : "Not defined", sub: "share of entered take-home income", tone: housingShare > 35 ? "warn" : "good" },
           { label: "Left over per year", value: money(left * 12), tone },
-          { label: "Needs, wants, saving", value: `${pct(share(num(v, "housing") + num(v, "utilities") + num(v, "food") + num(v, "transport") + num(v, "childcare")), 0)} / ${pct(share(num(v, "other")), 0)} / ${pct(share(num(v, "debt") + Math.max(0, left)), 0)}`, sub: "the 50, 30, 20 comparison" },
+          { label: "Needs, other, debt plus remainder", value: `${pct(share(num(v, "housing") + num(v, "utilities") + num(v, "food") + num(v, "transport") + num(v, "childcare")), 0)} / ${pct(share(num(v, "other")), 0)} / ${pct(share(num(v, "debt") + Math.max(0, left)), 0)}`, sub: "illustrative allocation; debt is not savings" },
         ],
         bars: {
           title: "Where every dollar goes",
@@ -192,6 +192,7 @@ export const HOME_FAMILY_TOOLS: ToolDef[] = [
         return { note: "Enter a size above zero for both options and the comparison appears here." };
       }
 
+      const unitMoney = (n: number) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 });
       const unitA = priceA / sizeA;
       const unitB = priceB / sizeB;
       const label: Record<string, string> = { oz: "ounce", lb: "pound", g: "gram", l: "litre", ct: "item" };
@@ -211,21 +212,21 @@ export const HOME_FAMILY_TOOLS: ToolDef[] = [
         headline: {
           value: `Option ${cheaper}`,
           label: `Cheaper by ${pct(gapPct, 1)} per ${u}`,
-          sub: `${money2(cheapUnit)} against ${money2(dearUnit)} per ${u}`,
+          sub: `${unitMoney(cheapUnit)} against ${unitMoney(dearUnit)} per ${u}`,
           tone: "good",
         },
-        explain: `Option A works out at ${money2(unitA)} per ${u} and option B at ${money2(unitB)} per ${u}. Option ${cheaper} is the better buy, by ${money2(dearUnit - cheapUnit)} on every ${u}.`,
+        explain: `Option A works out at ${unitMoney(unitA)} per ${u} and option B at ${unitMoney(unitB)} per ${u}. Option ${cheaper} is the better buy, by ${unitMoney(dearUnit - cheapUnit)} on every ${u}.`,
         stats: [
-          { label: "Option A per " + u, value: money2(unitA), tone: aWins ? "good" : "bad" },
-          { label: "Option B per " + u, value: money2(unitB), tone: aWins ? "bad" : "good" },
+          { label: "Option A per " + u, value: unitMoney(unitA), tone: aWins ? "good" : "bad" },
+          { label: "Option B per " + u, value: unitMoney(unitB), tone: aWins ? "bad" : "good" },
           { label: "Saved per year", value: money(yearSaving), sub: `buying ${count(perMonth)} a month`, tone: "good" },
-          { label: "Difference per " + u, value: money2(dearUnit - cheapUnit) },
+          { label: "Difference per " + u, value: unitMoney(dearUnit - cheapUnit) },
         ],
         bars: {
           title: `Price per ${u}`,
           items: [
-            { label: `Option A (${count(sizeA)} ${u}s)`, value: unitA, display: money2(unitA), tone: aWins ? "good" : "bad" },
-            { label: `Option B (${count(sizeB)} ${u}s)`, value: unitB, display: money2(unitB), tone: aWins ? "bad" : "good" },
+            { label: `Option A (${count(sizeA)} ${u}s)`, value: unitA, display: unitMoney(unitA), tone: aWins ? "good" : "bad" },
+            { label: `Option B (${count(sizeB)} ${u}s)`, value: unitB, display: unitMoney(unitB), tone: aWins ? "bad" : "good" },
           ],
         },
         verdict: {
@@ -344,7 +345,7 @@ export const HOME_FAMILY_TOOLS: ToolDef[] = [
             net < 0
               ? `On these numbers the job costs more than it pays, by ${money(Math.abs(net))} a year. That is worth knowing, but money is only part of the decision, and childcare costs fall a lot once school starts.`
               : net < afterTax * 0.35
-              ? `You keep ${money(net)}, which is under a third of the after-tax pay. Worth checking whether fewer days a week keeps most of the income and much less of the childcare.`
+              ? `You keep ${money(net)}, which is under 35% of the after-tax pay. Worth checking whether fewer days a week keeps most of the income and much less of the childcare.`
               : `You keep ${money(net)} a year, about ${money2(effectiveHourly)} an hour after the costs of working. The job clears its own costs comfortably.`,
         },
         note: "Pension contributions, employer benefits, health cover and career progression are not in this number, and they matter.",
@@ -527,6 +528,7 @@ export const HOME_FAMILY_TOOLS: ToolDef[] = [
     ],
     run: (v) => {
       const essentials = num(v, "essentials");
+      if (essentials <= 0) return { headline: { value: "Check essentials", label: "Enter monthly essential spending above zero", tone: "warn" }, note: "A zero spending denominator cannot establish months of emergency coverage." };
       const months = num(v, "months");
       const saved = num(v, "saved");
       const monthly = num(v, "monthly");
@@ -534,7 +536,7 @@ export const HOME_FAMILY_TOOLS: ToolDef[] = [
       const target = essentials * months;
       const gap = Math.max(0, target - saved);
       const covered = essentials > 0 ? saved / essentials : 0;
-      const monthsToGo = monthly > 0 ? Math.ceil(gap / monthly) : Infinity;
+      const monthsToGo = gap <= 0 ? 0 : monthly > 0 ? Math.ceil(gap / monthly) : Infinity;
       const done = gap <= 0;
 
       const tone = done ? "good" : covered >= 1 ? "warn" : "bad";
@@ -565,7 +567,7 @@ export const HOME_FAMILY_TOOLS: ToolDef[] = [
         verdict: {
           tone,
           text: done
-            ? "This is the boring part of a financial plan that quietly prevents most debt. Leave it somewhere you can reach in a day and do not invest it."
+            ? "The entered target is funded. Review whether it fits your actual risks and how quickly you need access to the money."
             : monthly <= 0
             ? "Nothing is going in at the moment, so this target never arrives. Even 25 dollars a month started this week beats a bigger number that starts later."
             : `At ${money(monthly)} a month you get there in ${count(monthsToGo)} months. Set it to move automatically the day you get paid, before you can spend it.`,
@@ -641,7 +643,9 @@ export const HOME_FAMILY_TOOLS: ToolDef[] = [
           if (pay <= charge && monthlyRate > 0) return null;
           interest += charge;
           bal = bal + charge - pay;
-          if (bal <= 0) return { months: m, interest: interest + Math.min(0, bal) };
+          // The last payment is capped at the remaining balance plus interest.
+          // Its unused portion does not reduce interest already accrued.
+          if (bal <= 0) return { months: m, interest };
         }
         return null;
       };
@@ -651,9 +655,10 @@ export const HOME_FAMILY_TOOLS: ToolDef[] = [
 
       if (!base) {
         const minimum = balance * monthlyRate;
+        if (payment > minimum) return { headline: { value: "Beyond 50 years", label: "Payoff exceeds this calculator's 600-month window", tone: "warn" }, note: "The payment reduces principal, but the modeled payoff takes longer than 600 months. This is not a claim that the balance never clears. Review the account terms and a complete payment schedule." };
         return {
-          headline: { value: "It never clears", label: "At this payment the balance grows", tone: "bad" },
-          explain: `Interest on ${money(balance)} at ${pct(num(v, "apr"), 2)} is about ${money2(minimum)} in the first month alone. A payment of ${money(payment)} does not cover that, so the balance goes up every month rather than down.`,
+          headline: { value: "It never clears", label: "This payment does not reduce the starting balance", tone: "bad" },
+          explain: `Interest on ${money(balance)} at ${pct(num(v, "apr"), 2)} is about ${money2(minimum)} in the first month alone. A payment of ${money(payment)} ${payment < minimum ? "is below that charge, so the modeled balance grows" : "equals that charge, so the modeled balance stays unchanged"}.`,
           stats: [
             { label: "Interest charged month one", value: money2(minimum), tone: "bad" },
             { label: "Minimum to stand still", value: money2(minimum), tone: "bad" },
@@ -701,7 +706,7 @@ export const HOME_FAMILY_TOOLS: ToolDef[] = [
           tone: savedInterest > 0 ? "good" : "warn",
           text:
             savedInterest > 0
-              ? `An extra ${money(extra)} a month, which is ${money(extra * 12)} a year, takes ${count(savedMonths)} months off this and saves ${money(savedInterest)} in interest. That is the highest guaranteed return available to most households.`
+              ? `In this model, an extra ${money(extra)} a month, which is ${money(extra * 12)} a year, takes ${count(savedMonths)} months off this and reduces interest by ${money(savedInterest)}. Actual results depend on your rate, fees, payment timing and account terms.`
               : `Even a small extra payment moves this a long way, because every dollar above the minimum comes straight off the balance rather than the interest.`,
         },
         note: "Nothing you type here is sent anywhere. Print or download this to keep it.",
@@ -776,7 +781,7 @@ export const HOME_FAMILY_TOOLS: ToolDef[] = [
           sub: `${money(housing)} of ${money(income)} a month`,
           tone,
         },
-        explain: `Rent and utilities come to ${money(housing)} a month, which is ${pct(housingShare, 0)} of your take-home pay. After housing, your existing payments and everything else, ${money(left)} is left over each month. A rent of about ${money(thirty - utilities)} would put housing at the 30 percent guideline.`,
+        explain: `Rent and utilities come to ${money(housing)} a month, which is ${pct(housingShare, 0)} of your take-home pay. After housing, your existing payments and everything else, ${money(left)} is left over each month. A rent of about ${money(Math.max(0, thirty - utilities))} would put housing at the 30 percent guideline.`,
         stats: [
           { label: "Rent alone", value: pct(rentShare, 0), sub: "share of take-home" },
           { label: "Left after everything", value: money(left), tone: left < 0 ? "bad" : left < income * 0.1 ? "warn" : "good" },

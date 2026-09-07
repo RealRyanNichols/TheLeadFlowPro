@@ -6,6 +6,7 @@ import {
   retryPendingLeadEmailNotifications,
 } from "@/lib/leadEmailNotifications";
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
+import { retryContactNotifications } from "@/lib/contactNotifications";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -42,8 +43,13 @@ export async function GET(request: Request) {
   });
 
   try {
-    const result = await retryPendingLeadEmailNotifications(supabase, 50);
-    const status = leadEmailNotificationCronHttpStatus(result);
+    const [result, contact] = await Promise.all([
+      // A provider outage can use the full five-second timeout per message.
+      // Bound the serial lead batch so this 60-second cron can finish reliably.
+      retryPendingLeadEmailNotifications(supabase, 8),
+      retryContactNotifications(supabase),
+    ]);
+    const status = contact.failed > 0 ? 500 : leadEmailNotificationCronHttpStatus(result);
     if (status !== 200) {
       console.error(
         "Lead email notification retry produced permanent failures:",
@@ -54,11 +60,12 @@ export async function GET(request: Request) {
           ok: false,
           error: "One or more lead email notifications require manual follow-up",
           ...result,
+          contact,
         },
         { status },
       );
     }
-    return NextResponse.json({ ok: true, ...result }, { status });
+    return NextResponse.json({ ok: true, ...result, contact }, { status });
   } catch (error) {
     console.error(
       "Lead email notification retry failed:",

@@ -45,6 +45,7 @@ export default function ConversionPing({
       }
     }
 
+    try {
     if (window.fbq) {
       if (purchase) {
         window.fbq("track", "Purchase", {
@@ -55,6 +56,8 @@ export default function ConversionPing({
         window.fbq("track", "Lead");
       }
     }
+    } catch { /* Optional vendor failure cannot interrupt the buyer or other measurement. */ }
+    try {
     if (window.gtag && googleAdsId && conversionLabel) {
       window.gtag("event", "conversion", {
         send_to: `${googleAdsId}/${conversionLabel}`,
@@ -64,6 +67,7 @@ export default function ConversionPing({
         } : {}),
       });
     }
+    } catch { /* Optional vendor failure cannot interrupt the buyer. */ }
   }, [googleAdsId, conversionLabel, purchase, value, dedupeKey, sku]);
 
   return null;

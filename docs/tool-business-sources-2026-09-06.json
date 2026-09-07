@@ -1,0 +1,1392 @@
+{
+  "checkedAt": "2026-09-07T01:32:17.281Z",
+  "status": "authored-and-calculation-checked-not-live-publication-proof",
+  "articleCount": 18,
+  "bodyWords": 12035,
+  "method": "Actual getTool.run examples, independent arithmetic review, primary-source reading, and focused regression tests. No messages, payments, or real customer outcomes produced.",
+  "sourceChecks": [
+    {
+      "url": "https://www.consumerfinance.gov/ask-cfpb/what-is-the-difference-between-a-loan-interest-rate-and-the-apr-en-733/",
+      "supports": "Interest rate and APR measure different costs; no business-loan disclosure obligation inferred.",
+      "httpStatus": 200,
+      "readWithWebTool": true
+    },
+    {
+      "url": "https://comptroller.texas.gov/taxes/sales/faq/collection.php",
+      "supports": "Inclusive-price arithmetic and checking actual applicable tax treatment; illustrative 8% is not a claimed Texas rate.",
+      "httpStatus": 200,
+      "readWithWebTool": true
+    },
+    {
+      "url": "https://www.dol.gov/agencies/whd/fact-sheets/23-flsa-overtime-pay",
+      "supports": "Federal covered nonexempt-worker overtime framework; calculator does not classify workers.",
+      "httpStatus": 200,
+      "readWithWebTool": true
+    },
+    {
+      "url": "https://support.google.com/contributionpolicy/answer/7400114?hl=en",
+      "supports": "Honest-review requests without incentives, rating steering, or selective positive solicitation.",
+      "httpStatus": 200,
+      "readWithWebTool": true
+    },
+    {
+      "url": "https://support.google.com/business/answer/3474050?hl=en",
+      "supports": "Verified businesses can reply; approved replies are public and reviewers notified.",
+      "httpStatus": 200,
+      "readWithWebTool": true
+    }
+  ],
+  "articles": [
+    {
+      "articleSlug": "how-to-compare-a-better-close-rate-with-buying-more-leads",
+      "tool": "close-rate-calculator",
+      "bodyWords": 700,
+      "input": {
+        "leads": 40,
+        "close": 25,
+        "improve": 5,
+        "value": 500,
+        "cpl": 40
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "$12,000",
+            "label": "Extra revenue a year from closing better",
+            "sub": "$1,000 a month",
+            "tone": "good"
+          },
+          "stats": [
+            {
+              "label": "Extra jobs a month",
+              "value": "2.0",
+              "tone": "good"
+            },
+            {
+              "label": "Same gain by buying leads",
+              "value": "8 leads",
+              "tone": "warn"
+            },
+            {
+              "label": "That would cost",
+              "value": "$320/mo",
+              "tone": "bad"
+            },
+            {
+              "label": "Saved by fixing close rate",
+              "value": "$3,840/yr",
+              "tone": "good"
+            }
+          ],
+          "bars": {
+            "title": "Monthly revenue, before and after",
+            "items": [
+              {
+                "label": "Today at 25%",
+                "value": 5000,
+                "display": "$5,000",
+                "tone": "neutral"
+              },
+              {
+                "label": "At 30%",
+                "value": 6000,
+                "display": "$6,000",
+                "tone": "good"
+              }
+            ]
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "Answer faster, follow up four times, ask for the sale, and make it easy to say yes. That is usually worth more than doubling the ad budget."
+          }
+        }
+      },
+      "localSources": [
+        "lib/tools/leads.ts"
+      ]
+    },
+    {
+      "articleSlug": "how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan",
+      "tool": "lead-goal-planner",
+      "bodyWords": 697,
+      "input": {
+        "goal": 240000,
+        "ticket": 1000,
+        "close": 50,
+        "leadToQuote": 50,
+        "weeks": 48,
+        "current": 200000
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "20.0",
+            "label": "Leads you need every week",
+            "sub": "960 leads for the year",
+            "tone": "neutral"
+          },
+          "stats": [
+            {
+              "label": "Jobs a year",
+              "value": "240",
+              "sub": "5.0 a week"
+            },
+            {
+              "label": "Quotes a year",
+              "value": "480",
+              "sub": "10.0 a week"
+            },
+            {
+              "label": "Growth needed",
+              "value": "20%",
+              "tone": "warn"
+            },
+            {
+              "label": "Revenue a week",
+              "value": "$5,000"
+            }
+          ],
+          "bars": {
+            "title": "The weekly scoreboard",
+            "items": [
+              {
+                "label": "Leads",
+                "value": 20,
+                "display": "20.0",
+                "tone": "neutral"
+              },
+              {
+                "label": "Quotes",
+                "value": 10,
+                "display": "10.0",
+                "tone": "warn"
+              },
+              {
+                "label": "Jobs",
+                "value": 5,
+                "display": "5.0",
+                "tone": "good"
+              }
+            ]
+          },
+          "verdict": {
+            "tone": "neutral",
+            "text": "Hit 20.0 leads and 10.0 quotes a week for 48 weeks and the goal takes care of itself. Track the weekly number, not the yearly one."
+          }
+        }
+      },
+      "localSources": [
+        "lib/tools/leads.ts"
+      ]
+    },
+    {
+      "articleSlug": "hvac-maintenance-plans",
+      "tool": "payment-plan-calculator",
+      "bodyWords": 655,
+      "input": {
+        "total": 1200,
+        "deposit": 25,
+        "payments": 3,
+        "fee": 0
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "$300.00",
+            "label": "Regular payment across 3 installments",
+            "sub": "after $300.00 down; final $300.00",
+            "tone": "good"
+          },
+          "stats": [
+            {
+              "label": "Cash up front",
+              "value": "$300.00",
+              "tone": "good"
+            },
+            {
+              "label": "Financed",
+              "value": "$900.00"
+            },
+            {
+              "label": "Total collected",
+              "value": "$1,200.00"
+            },
+            {
+              "label": "Paid in full by",
+              "value": "Month 3"
+            }
+          ],
+          "table": {
+            "title": "The schedule. Print it and attach it to the invoice.",
+            "headers": [
+              "When",
+              "Amount"
+            ],
+            "rows": [
+              [
+                "Deposit today",
+                "$300.00"
+              ],
+              [
+                "Payment 1",
+                "$300.00"
+              ],
+              [
+                "Payment 2",
+                "$300.00"
+              ],
+              [
+                "Payment 3",
+                "$300.00"
+              ],
+              [
+                "Total collected",
+                "$1,200.00"
+              ]
+            ]
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "Show the total of $1,200.00, the $300.00 deposit, and the complete schedule together. The final payment is $300.00."
+          },
+          "note": "Amounts reconcile to cents; the final installment carries any rounding remainder. These are proposed amounts, not an authorization to charge. Confirm the schedule, fees, and payment consent in your actual agreement."
+        }
+      },
+      "localSources": [
+        "lib/tools/money.ts"
+      ]
+    },
+    {
+      "articleSlug": "what-to-write-down-before-comparing-two-equipment-loans",
+      "tool": "loan-payment-calculator",
+      "bodyWords": 641,
+      "input": {
+        "amount": 12000,
+        "rate": 12,
+        "years": 1,
+        "earns": 1500
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "$1,066.19",
+            "label": "Monthly payment",
+            "sub": "$12,794 paid over 12 months",
+            "tone": "neutral"
+          },
+          "stats": [
+            {
+              "label": "Total interest",
+              "value": "$794",
+              "tone": "bad"
+            },
+            {
+              "label": "Interest as percent of price",
+              "value": "6.6%",
+              "tone": "warn"
+            },
+            {
+              "label": "Entered amount minus payment",
+              "value": "$433.81",
+              "tone": "good"
+            },
+            {
+              "label": "Principal / entered monthly amount",
+              "value": "8.0 months",
+              "tone": "neutral"
+            }
+          ],
+          "bars": {
+            "title": "Principal vs interest",
+            "items": [
+              {
+                "label": "What you borrowed",
+                "value": 12000,
+                "display": "$12,000",
+                "tone": "neutral"
+              },
+              {
+                "label": "What the bank keeps",
+                "value": 794.23,
+                "display": "$794",
+                "tone": "bad"
+              }
+            ]
+          },
+          "table": {
+            "title": "Estimated monthly schedule, final payment adjusted to cents",
+            "headers": [
+              "When",
+              "Payment",
+              "Interest",
+              "Principal",
+              "Balance"
+            ],
+            "rows": [
+              [
+                "Month 1",
+                "$1,066.19",
+                "$120.00",
+                "$946.19",
+                "$11,053.81"
+              ],
+              [
+                "Month 2",
+                "$1,066.19",
+                "$110.54",
+                "$955.65",
+                "$10,098.16"
+              ],
+              [
+                "Month 3",
+                "$1,066.19",
+                "$100.98",
+                "$965.21",
+                "$9,132.95"
+              ],
+              [
+                "Month 4",
+                "$1,066.19",
+                "$91.33",
+                "$974.86",
+                "$8,158.09"
+              ],
+              [
+                "Month 5",
+                "$1,066.19",
+                "$81.58",
+                "$984.61",
+                "$7,173.48"
+              ],
+              [
+                "Month 6",
+                "$1,066.19",
+                "$71.73",
+                "$994.46",
+                "$6,179.02"
+              ],
+              [
+                "Month 7",
+                "$1,066.19",
+                "$61.79",
+                "$1,004.40",
+                "$5,174.62"
+              ],
+              [
+                "Month 8",
+                "$1,066.19",
+                "$51.75",
+                "$1,014.44",
+                "$4,160.18"
+              ],
+              [
+                "Month 9",
+                "$1,066.19",
+                "$41.60",
+                "$1,024.59",
+                "$3,135.59"
+              ],
+              [
+                "Month 10",
+                "$1,066.19",
+                "$31.36",
+                "$1,034.83",
+                "$2,100.76"
+              ],
+              [
+                "Month 11",
+                "$1,066.19",
+                "$21.01",
+                "$1,045.18",
+                "$1,055.58"
+              ],
+              [
+                "Month 12",
+                "$1,066.14",
+                "$10.56",
+                "$1,055.58",
+                "$0.00"
+              ]
+            ]
+          },
+          "note": "Fixed-rate monthly-payment estimate; monthly interest and payments round to cents and the final payment adjusts. Fees, insurance, operating expenses, taxes, and lender terms are excluded. Revenue minus the payment is not net profit; principal divided by revenue is not a complete payback calculation."
+        }
+      },
+      "localSources": [
+        "lib/tools/money.ts"
+      ]
+    },
+    {
+      "articleSlug": "how-to-read-a-cash-runway-estimate-without-counting-credit-as-cash",
+      "tool": "cash-runway-calculator",
+      "bodyWords": 653,
+      "input": {
+        "cash": 18000,
+        "inflow": 9000,
+        "outflow": 12000,
+        "credit": 6000
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "6.0 months",
+            "label": "Modeled cash runway",
+            "sub": "Burning $3,000 a month",
+            "tone": "warn"
+          },
+          "stats": [
+            {
+              "label": "Monthly burn",
+              "value": "$3,000",
+              "tone": "bad"
+            },
+            {
+              "label": "Runway with credit",
+              "value": "8.0 months",
+              "tone": "neutral"
+            },
+            {
+              "label": "Extra monthly cash inflow to balance",
+              "value": "$3,000",
+              "tone": "warn"
+            },
+            {
+              "label": "Or cut expenses by",
+              "value": "$3,000",
+              "tone": "warn"
+            }
+          ],
+          "ramp": {
+            "title": "Your bank balance, month by month",
+            "points": [
+              {
+                "label": "M1",
+                "value": 15000,
+                "display": "$15,000"
+              },
+              {
+                "label": "M2",
+                "value": 12000,
+                "display": "$12,000"
+              },
+              {
+                "label": "M3",
+                "value": 9000,
+                "display": "$9,000"
+              },
+              {
+                "label": "M4",
+                "value": 6000,
+                "display": "$6,000"
+              },
+              {
+                "label": "M5",
+                "value": 3000,
+                "display": "$3,000"
+              },
+              {
+                "label": "M6",
+                "value": 0,
+                "display": "$0"
+              },
+              {
+                "label": "M7",
+                "value": 0,
+                "display": "-$3,000"
+              },
+              {
+                "label": "M8",
+                "value": 0,
+                "display": "-$6,000"
+              },
+              {
+                "label": "M9",
+                "value": 0,
+                "display": "-$9,000"
+              },
+              {
+                "label": "M10",
+                "value": 0,
+                "display": "-$12,000"
+              },
+              {
+                "label": "M11",
+                "value": 0,
+                "display": "-$15,000"
+              },
+              {
+                "label": "M12",
+                "value": 0,
+                "display": "-$18,000"
+              }
+            ],
+            "tone": "bad"
+          },
+          "verdict": {
+            "tone": "warn",
+            "text": "The entered cash outflow exceeds inflow by $3,000 a month. Review dated collections and obligations before choosing a change."
+          }
+        }
+      },
+      "localSources": [
+        "lib/tools/money.ts"
+      ]
+    },
+    {
+      "articleSlug": "how-to-separate-sales-tax-from-a-tax-inclusive-total",
+      "tool": "sales-tax-calculator",
+      "bodyWords": 642,
+      "input": {
+        "amount": 108,
+        "rate": 8,
+        "mode": "post",
+        "volume": 10
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "$108.00",
+            "label": "Total the customer pays",
+            "tone": "neutral"
+          },
+          "stats": [
+            {
+              "label": "Your revenue",
+              "value": "$100.00",
+              "tone": "good"
+            },
+            {
+              "label": "Tax at entered rate",
+              "value": "$8.00",
+              "tone": "warn"
+            },
+            {
+              "label": "Tax collected per month",
+              "value": "$80",
+              "sub": "not yours, set it aside",
+              "tone": "warn"
+            },
+            {
+              "label": "Tax per year",
+              "value": "$960",
+              "tone": "warn"
+            }
+          ],
+          "bars": {
+            "title": "Who gets what",
+            "items": [
+              {
+                "label": "You keep",
+                "value": 100,
+                "display": "$100.00",
+                "tone": "good"
+              },
+              {
+                "label": "State keeps",
+                "value": 8,
+                "display": "$8.00",
+                "tone": "warn"
+              }
+            ]
+          },
+          "note": "Sales tax you collect is not revenue. Move it to a separate account the day you collect it. Rates and rules vary by address and by what you sell. Confirm with your state comptroller or your CPA."
+        }
+      },
+      "localSources": [
+        "lib/tools/money.ts"
+      ]
+    },
+    {
+      "articleSlug": "how-to-compare-overtime-costs-with-a-hiring-scenario",
+      "tool": "overtime-cost-calculator",
+      "bodyWords": 694,
+      "input": {
+        "otHours": 20,
+        "wage": 20,
+        "burden": 10,
+        "weeks": 50,
+        "newHire": 40000
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "$33,000",
+            "label": "Overtime bill per year",
+            "sub": "1,000 overtime hours",
+            "tone": "bad"
+          },
+          "stats": [
+            {
+              "label": "The premium alone",
+              "value": "$11,000",
+              "sub": "the extra half, pure surcharge",
+              "tone": "bad"
+            },
+            {
+              "label": "Per month",
+              "value": "$2,750"
+            },
+            {
+              "label": "Cost of a new hire",
+              "value": "$40,000",
+              "tone": "neutral"
+            },
+            {
+              "label": "Overtime still cheaper",
+              "value": "$7,000",
+              "tone": "good"
+            }
+          ],
+          "bars": {
+            "title": "Overtime vs hiring",
+            "items": [
+              {
+                "label": "Overtime, one year",
+                "value": 33000,
+                "display": "$33,000",
+                "tone": "bad"
+              },
+              {
+                "label": "One more hire",
+                "value": 40000,
+                "display": "$40,000",
+                "tone": "warn"
+              }
+            ]
+          },
+          "verdict": {
+            "tone": "warn",
+            "text": "Total modeled overtime spending is below the entered hire cost. Compare the actual hours, skills, and capacity covered; this is not a hiring recommendation."
+          },
+          "note": "Overtime rules vary by state and by whether an employee is exempt. Check your state's labor rules."
+        }
+      },
+      "localSources": [
+        "lib/tools/money.ts"
+      ]
+    },
+    {
+      "articleSlug": "why-ad-revenue-and-ad-profit-need-separate-columns",
+      "tool": "roas-calculator",
+      "bodyWords": 689,
+      "input": {
+        "spend": 1000,
+        "revenue": 4000,
+        "margin": 40,
+        "fees": 200
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "3.33x",
+            "label": "Revenue / ad spend plus fees",
+            "sub": "2.50x covers the modeled costs before excluded overhead",
+            "tone": "good"
+          },
+          "stats": [
+            {
+              "label": "Gross profit from ads",
+              "value": "$1,600"
+            },
+            {
+              "label": "Contribution after marketing",
+              "value": "$400",
+              "tone": "good"
+            },
+            {
+              "label": "Gross profit / marketing cost",
+              "value": "1.33x",
+              "tone": "good"
+            },
+            {
+              "label": "Break-even ROAS",
+              "value": "2.50x",
+              "sub": "at your margin"
+            }
+          ],
+          "bars": {
+            "title": "Your ROAS against the line that matters",
+            "items": [
+              {
+                "label": "Break-even",
+                "value": 2.5,
+                "display": "2.50x",
+                "tone": "warn"
+              },
+              {
+                "label": "Your ROAS",
+                "value": 3.3333333333333335,
+                "display": "3.33x",
+                "tone": "good"
+              }
+            ]
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "Modeled gross profit exceeds the entered marketing costs by $400. Check attribution, excluded expenses, cash timing, and capacity before changing spending."
+          },
+          "note": "Uses your entered figures, which may be actual records or assumptions. Fees are included in the ROAS denominator. The result excludes costs outside the margin and does not prove advertising caused the revenue."
+        }
+      },
+      "localSources": [
+        "lib/tools/operations.ts"
+      ]
+    },
+    {
+      "articleSlug": "how-to-build-an-ad-budget-scenario-from-your-own-records",
+      "tool": "ad-budget-planner",
+      "bodyWords": 683,
+      "input": {
+        "want": 10,
+        "close": 25,
+        "cpl": 40,
+        "value": 500,
+        "margin": 50
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "$1,600",
+            "label": "Budget implied by this scenario",
+            "sub": "40 leads at $40.00 each",
+            "tone": "neutral"
+          },
+          "stats": [
+            {
+              "label": "Cost per customer",
+              "value": "$160.00",
+              "tone": "good"
+            },
+            {
+              "label": "Modeled customer revenue",
+              "value": "$5,000",
+              "tone": "good"
+            },
+            {
+              "label": "Contribution after ad spend",
+              "value": "$900",
+              "tone": "good"
+            },
+            {
+              "label": "Daily budget",
+              "value": "$53.33"
+            }
+          ],
+          "bars": {
+            "title": "Modeled spending and gross profit",
+            "items": [
+              {
+                "label": "You spend",
+                "value": 1600,
+                "display": "$1,600",
+                "tone": "warn"
+              },
+              {
+                "label": "Gross profit back",
+                "value": 2500,
+                "display": "$2,500",
+                "tone": "good"
+              }
+            ]
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "This scenario compares $1,600 of spending with $2,500 of gross profit before advertising. Check comparable records, capacity, and cash timing before choosing a budget."
+          },
+          "note": "This is a plan, not a promise. No one can guarantee lead volume or cost. Start small, measure, then scale what proves out."
+        }
+      },
+      "localSources": [
+        "lib/tools/operations.ts"
+      ]
+    },
+    {
+      "articleSlug": "how-long-does-a-new-customer-take-to-repay-acquisition-cost",
+      "tool": "cac-payback-calculator",
+      "bodyWords": 683,
+      "input": {
+        "cac": 300,
+        "monthlyValue": 75,
+        "newPerMonth": 10,
+        "churn": 5
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "4.0 months",
+            "label": "Until a customer pays back what you spent",
+            "sub": "Constant-churn model: 20.0 months",
+            "tone": "good"
+          },
+          "stats": [
+            {
+              "label": "Lifetime gross profit",
+              "value": "$1,500",
+              "tone": "good"
+            },
+            {
+              "label": "Value to cost ratio",
+              "value": "5.0x",
+              "tone": "good"
+            },
+            {
+              "label": "Acquisition-spending window",
+              "value": "$12,000",
+              "sub": "not a complete cash forecast",
+              "tone": "warn"
+            },
+            {
+              "label": "Modeled lifetime gross profit less CAC",
+              "value": "$1,200",
+              "tone": "good"
+            }
+          ],
+          "bars": {
+            "title": "What you pay vs what you get back",
+            "items": [
+              {
+                "label": "Acquisition cost",
+                "value": 300,
+                "display": "$300",
+                "tone": "warn"
+              },
+              {
+                "label": "Lifetime gross profit",
+                "value": 1500,
+                "display": "$1,500",
+                "tone": "good"
+              }
+            ]
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "The entered monthly gross profit recovers acquisition cost within six modeled months. Actual cash timing and retention still need review."
+          }
+        }
+      },
+      "localSources": [
+        "lib/tools/operations.ts"
+      ]
+    },
+    {
+      "articleSlug": "how-to-scope-an-ad-test-before-splitting-the-budget",
+      "tool": "ad-test-budget-calculator",
+      "bodyWords": 673,
+      "input": {
+        "cpl": 25,
+        "leadsNeeded": 20,
+        "dailyMin": 50,
+        "variants": 2
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "$1,000",
+            "label": "Modeled test budget",
+            "sub": "20 leads on each of 2 variants",
+            "tone": "neutral"
+          },
+          "stats": [
+            {
+              "label": "Per variant",
+              "value": "$500"
+            },
+            {
+              "label": "Days at your budget",
+              "value": "20 days",
+              "tone": "good"
+            },
+            {
+              "label": "Daily to finish in 2 weeks",
+              "value": "$71.43",
+              "tone": "warn"
+            },
+            {
+              "label": "Seven days at entered budget",
+              "value": "$350",
+              "sub": "calendar comparison only",
+              "tone": "bad"
+            }
+          ],
+          "verdict": {
+            "tone": "good",
+            "text": "The entered scope implies 20 days. This calendar calculation does not establish statistical significance or guarantee leads."
+          },
+          "note": "The lead target and fourteen-day comparison are planning assumptions. More variants increase modeled spending at the same per-variant target; no fixed lead count guarantees a reliable conclusion."
+        }
+      },
+      "localSources": [
+        "lib/tools/operations.ts"
+      ]
+    },
+    {
+      "articleSlug": "how-to-find-one-admin-task-worth-simplifying-this-week",
+      "tool": "admin-time-audit",
+      "bodyWords": 659,
+      "input": {
+        "tasks": [
+          "quotes",
+          "invoices",
+          "scheduling"
+        ],
+        "hoursEach": 2,
+        "worth": 40,
+        "automatable": 25
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "$12,480",
+            "label": "Yearly value of your admin hours",
+            "sub": "312 hours, 6.0 a week",
+            "tone": "bad"
+          },
+          "stats": [
+            {
+              "label": "Weeks a year spent on admin",
+              "value": "7.8",
+              "sub": "of 40-hour weeks",
+              "tone": "bad"
+            },
+            {
+              "label": "Hours a system could take",
+              "value": "78",
+              "tone": "good"
+            },
+            {
+              "label": "That is worth",
+              "value": "$3,120",
+              "tone": "good"
+            },
+            {
+              "label": "Tasks on your plate",
+              "value": "3"
+            }
+          ],
+          "bars": {
+            "title": "Your week",
+            "items": [
+              {
+                "label": "Admin",
+                "value": 6,
+                "display": "6.0 hrs",
+                "tone": "bad"
+              },
+              {
+                "label": "Could be automated",
+                "value": 1.5,
+                "display": "1.5 hrs",
+                "tone": "warn"
+              },
+              {
+                "label": "Back in your pocket",
+                "value": 1.5,
+                "display": "$3,120/yr",
+                "tone": "good"
+              }
+            ]
+          },
+          "verdict": {
+            "tone": "warn",
+            "text": "You are spending 7.8 full work weeks a year on things that do not require you. That is the real cost of doing it all by hand."
+          }
+        }
+      },
+      "localSources": [
+        "lib/tools/operations.ts"
+      ]
+    },
+    {
+      "articleSlug": "how-to-decide-whether-a-weekly-meeting-earns-its-time",
+      "tool": "meeting-cost-calculator",
+      "bodyWords": 642,
+      "input": {
+        "people": 4,
+        "rate": 30,
+        "minutes": 60,
+        "perWeek": 1,
+        "prep": 15
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "$7,800",
+            "label": "This meeting costs you per year",
+            "sub": "$150 every time it happens",
+            "tone": "bad"
+          },
+          "stats": [
+            {
+              "label": "Hours a year",
+              "value": "260",
+              "tone": "bad"
+            },
+            {
+              "label": "Cost per minute",
+              "value": "$2.00"
+            },
+            {
+              "label": "At most 30 minutes, same prep",
+              "value": "$4,680/yr",
+              "tone": "good"
+            },
+            {
+              "label": "Time value saved by halving duration",
+              "value": "$3,120",
+              "tone": "good"
+            }
+          ],
+          "verdict": {
+            "tone": "warn",
+            "text": "Put $150 at the top of the agenda. Meetings get shorter when the price is in the room."
+          }
+        }
+      },
+      "localSources": [
+        "lib/tools/operations.ts"
+      ]
+    },
+    {
+      "articleSlug": "how-to-compare-the-work-you-do-with-the-work-you-could-delegate",
+      "tool": "owner-hourly-worth",
+      "bodyWords": 662,
+      "input": {
+        "profit": 90000,
+        "hoursWeek": 45,
+        "weeks": 50,
+        "lowValue": 5,
+        "hireRate": 25
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "$40.00/hr",
+            "label": "Average owner compensation per work hour",
+            "sub": "2,250 hours a year",
+            "tone": "good"
+          },
+          "stats": [
+            {
+              "label": "Hours a year on low-value work",
+              "value": "250",
+              "tone": "bad"
+            },
+            {
+              "label": "What that time is worth",
+              "value": "$10,000",
+              "tone": "bad"
+            },
+            {
+              "label": "Cost to hire it out",
+              "value": "$6,250",
+              "tone": "warn"
+            },
+            {
+              "label": "Time-value comparison minus hiring cost",
+              "value": "$3,750",
+              "tone": "good"
+            }
+          ],
+          "bars": {
+            "title": "Doing it yourself vs paying somebody",
+            "items": [
+              {
+                "label": "Your time",
+                "value": 10000,
+                "display": "$10,000",
+                "tone": "bad"
+              },
+              {
+                "label": "Hiring it out",
+                "value": 6250,
+                "display": "$6,250",
+                "tone": "good"
+              }
+            ]
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "At your current average, this time is valued $3,750 above the entered hiring cost. That is not additional income: identify how you would use the time and whether the expense is affordable."
+          },
+          "note": "Average compensation is not the marginal value of another free hour. Delegation does not itself create revenue or remove an existing cash expense. Include supervision and replacement costs."
+        }
+      },
+      "localSources": [
+        "lib/tools/operations.ts"
+      ]
+    },
+    {
+      "articleSlug": "how-to-read-a-review-rating-goal-without-gaming-reviews",
+      "tool": "review-goal-calculator",
+      "bodyWords": 656,
+      "input": {
+        "current": 4.2,
+        "total": 40,
+        "goal": 4.5,
+        "perMonth": 5,
+        "asked": 50
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "24",
+            "label": "Five-star reviews to reach 4.5",
+            "sub": "4.8 months at the entered pace",
+            "tone": "good"
+          },
+          "stats": [
+            {
+              "label": "Your rating now",
+              "value": "4.20",
+              "tone": "warn"
+            },
+            {
+              "label": "Reviews / entered customer count",
+              "value": "10.0%",
+              "sub": "not a measured request response rate"
+            },
+            {
+              "label": "Hypothetical 20% review pace",
+              "value": "2.4 months",
+              "tone": "good"
+            },
+            {
+              "label": "Difference between modeled paces",
+              "value": "2.4 months",
+              "tone": "good"
+            }
+          ],
+          "bars": {
+            "title": "Two hypothetical review paces",
+            "caption": "Assumes all added ratings are five stars. The 20% comparison is not a benchmark.",
+            "items": [
+              {
+                "label": "Current pace",
+                "value": 4.8,
+                "display": "4.8 mo",
+                "tone": "bad"
+              },
+              {
+                "label": "Reviews at 20% of entered customer count",
+                "value": 2.4,
+                "display": "2.4 mo",
+                "tone": "good"
+              }
+            ]
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "24 hypothetical five-star additions reach the entered target. Customers choose whether and what to review; this is not a request quota or rating promise."
+          },
+          "note": "Starting averages may be rounded. Invite honest feedback without incentives, selective positive-review requests, or pressure about the rating or content."
+        }
+      },
+      "localSources": [
+        "lib/tools/growth.ts"
+      ]
+    },
+    {
+      "articleSlug": "what-one-low-rating-changes-and-what-it-cannot-tell-you",
+      "tool": "bad-review-impact",
+      "bodyWords": 638,
+      "input": {
+        "current": 4.5,
+        "total": 20,
+        "bad": 1,
+        "leads": 30,
+        "value": 500,
+        "close": 25
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "4.33",
+            "label": "Your rating after 1 one-star review",
+            "sub": "Down 0.17 from 4.50",
+            "tone": "warn"
+          },
+          "stats": [
+            {
+              "label": "Hypothetical five-stars to return",
+              "value": "7",
+              "tone": "good"
+            },
+            {
+              "label": "Rating change",
+              "value": "0.17"
+            },
+            {
+              "label": "Reviews after additions",
+              "value": "21"
+            },
+            {
+              "label": "Revenue effect",
+              "value": "Not determined",
+              "sub": "ratings do not measure sales"
+            }
+          ],
+          "bars": {
+            "title": "What review volume does to the damage",
+            "caption": "The same bad review on a bigger pile barely moves the needle.",
+            "items": [
+              {
+                "label": "25 reviews",
+                "value": 0.13461538461538503,
+                "display": "-0.13",
+                "tone": "bad"
+              },
+              {
+                "label": "50 reviews",
+                "value": 0.06862745098039191,
+                "display": "-0.07",
+                "tone": "good"
+              },
+              {
+                "label": "100 reviews",
+                "value": 0.03465346534653424,
+                "display": "-0.03",
+                "tone": "good"
+              },
+              {
+                "label": "250 reviews",
+                "value": 0.013944223107570153,
+                "display": "-0.01",
+                "tone": "good"
+              },
+              {
+                "label": "500 reviews",
+                "value": 0.006986027944111406,
+                "display": "-0.01",
+                "tone": "good"
+              }
+            ]
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "A larger existing review count reduces each new rating's effect on the average. Review the actual feedback, protect customer privacy, and respond with verified facts."
+          },
+          "note": "This tool calculates rating averages only. It does not estimate lost leads or revenue. Displayed starting ratings may be rounded; exact underlying rating totals can differ. Customers choose their own ratings without incentives or pressure."
+        }
+      },
+      "localSources": [
+        "lib/tools/growth.ts"
+      ]
+    },
+    {
+      "articleSlug": "how-to-reply-to-a-review-without-arguing-in-public",
+      "tool": "review-response-writer",
+      "bodyWords": 697,
+      "input": {
+        "type": "bad",
+        "business": "Example Repair Shop",
+        "name": "Alex",
+        "topic": "a delayed callback",
+        "phone": "",
+        "owner": "The service team"
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "output": {
+            "title": "Your reply draft. Check the facts before posting.",
+            "text": "Alex, thank you for telling us about your concern with a delayed callback. We would like to review what happened. Please use the contact details on our business profile so our team can review the concern.\n\n- The service team, Example Repair Shop",
+            "filename": "review-response-bad.txt"
+          },
+          "note": "Read and edit every sentence. Do not add unsupported promises or private customer details. This tool drafts text; it does not publish a response.",
+          "verdict": {
+            "tone": "good",
+            "text": "Write for the reviewer and everyone who may read the public response. Keep it calm, factual, and clear about an achievable next step."
+          }
+        }
+      },
+      "localSources": [
+        "lib/tools/growth.ts"
+      ]
+    },
+    {
+      "articleSlug": "how-to-test-a-website-improvement-before-buying-more-visits",
+      "tool": "conversion-lift-calculator",
+      "bodyWords": 671,
+      "input": {
+        "visitors": 1000,
+        "conv": 2,
+        "lift": 1,
+        "close": 25,
+        "value": 500,
+        "cpc": 2
+      },
+      "outputCheck": {
+        "status": "passed",
+        "result": {
+          "headline": {
+            "value": "$15,000",
+            "label": "Modeled extra revenue a year from +1.0 points",
+            "sub": "$1,250 a month",
+            "tone": "good"
+          },
+          "stats": [
+            {
+              "label": "Inquiries now",
+              "value": "20.0/mo"
+            },
+            {
+              "label": "Inquiries after",
+              "value": "30.0/mo",
+              "tone": "good"
+            },
+            {
+              "label": "Same gain in extra traffic",
+              "value": "500 visitors"
+            },
+            {
+              "label": "That traffic would cost",
+              "value": "$1,000/mo",
+              "tone": "bad"
+            }
+          ],
+          "bars": {
+            "title": "Inquiries with the entered conversion assumptions",
+            "items": [
+              {
+                "label": "Current scenario",
+                "value": 20,
+                "display": "20.0/mo",
+                "tone": "neutral"
+              },
+              {
+                "label": "Improved scenario",
+                "value": 30,
+                "display": "30.0/mo",
+                "tone": "good"
+              }
+            ]
+          },
+          "verdict": {
+            "tone": "good",
+            "text": "The improvement is an input, not a prediction. Test a clear next step and a usable contact flow. Include implementation costs before comparing profit."
+          }
+        }
+      },
+      "localSources": [
+        "lib/tools/growth.ts"
+      ]
+    }
+  ],
+  "calculationRecheckedAt": "2026-09-07T02:09:19.373Z"
+}

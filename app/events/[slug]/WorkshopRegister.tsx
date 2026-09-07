@@ -44,7 +44,6 @@ export default function WorkshopRegister({
 
   async function openCheckout(registrationToken: string) {
     track("checkout_start", { label: event.slug });
-    if (window.fbq) window.fbq("track", "InitiateCheckout");
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -54,7 +53,8 @@ export default function WorkshopRegister({
       }),
     });
     const data = await res.json().catch(() => ({}));
-    if (data.url) {
+    if (res.ok && data.url) {
+      try { window.fbq?.("track", "InitiateCheckout", { value: Number(event.price_usd), currency: "USD", content_name: event.slug }); } catch { /* Checkout still opens if measurement fails. */ }
       window.location.href = data.url;
       return true;
     }
@@ -109,7 +109,8 @@ export default function WorkshopRegister({
       }
 
       track("registration_complete", { label: event.slug });
-      if (window.fbq) window.fbq("track", "CompleteRegistration");
+      // This is a saved lead, not a purchased seat. Purchase is verified after Stripe payment.
+      try { window.fbq?.("track", "Lead", { content_name: event.slug }); } catch { /* Checkout still proceeds. */ }
       setRegistered(true);
       setToken(data.registration_token ?? null);
 

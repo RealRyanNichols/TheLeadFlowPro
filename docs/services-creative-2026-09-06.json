@@ -1,0 +1,27 @@
+{
+  "mode": "Built-in imagegen, generate mode; two new conceptual illustrations with no reference photos",
+  "assets": [
+    {
+      "path": "public/images/services/customer-record-light.webp",
+      "source": "/Users/ryannichols/.codex/generated_images/01a077be-4364-7da1-83d6-3c28056cc6ba/exec-e418120a-aa08-46fe-831b-b387c4cc4b8d.png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 129750,
+      "prompt": "Use case: editorial conceptual business illustration for The LeadFlow Pro services page. Generate a premium 4:3 landscape raster artwork, bright warm cream background, electric cobalt blue, vermilion red accents, silver materials, tactile stationery, realistic soft daylight and directional shadows, generous negative space. Grounded, inviting, instantly understandable to a small local business owner on a phone. No purple, black background, neon science fiction, robots, crowds, charts, financial gains, reviews, testimonials, company logos, personal information, tiny text, fake dashboard screenshot, or decorative chains. This is a conceptual teaching scene, not evidence of real performance. Keep every key object inside an 8% safe margin. No headline text. Scene: one organized customer record. A beautiful blue-and-silver open laptop on a cream desk at a three-quarter angle; its screen shows a single large cream customer card with a simple anonymous avatar and three large clearly recognizable icons: telephone handset, envelope, calendar. A blue physical telephone/message token, a cream paper inquiry card with a large envelope icon, and a small red appointment calendar are arranged neatly around the laptop. Exactly three thin clean blue connectors visually bring those items into that one customer card, conveying that calls, messages, and appointments belong together. No actual text labels, addresses, fake checkboxes, notification counts, numbers, or simulated graphs. The customer card must read clearly as one organized record, not a web of complicated objects. Warm elegant composition, crisp materials, attractive studio quality."
+    },
+    {
+      "path": "public/images/services/quote-follow-up-light.webp",
+      "source": "/Users/ryannichols/.codex/generated_images/01a077be-4364-7da1-83d6-3c28056cc6ba/exec-55283bff-9b26-4254-b2a3-47183ba14888.png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 108866,
+      "prompt": "Use case: editorial conceptual business illustration for The LeadFlow Pro services page. Generate a premium 4:3 landscape raster artwork, bright warm cream background, electric cobalt blue, vermilion red accents, silver materials, tactile stationery, realistic soft daylight and directional shadows, generous negative space. Grounded, inviting, instantly understandable to a small local business owner on a phone. No purple, black background, neon science fiction, robots, crowds, charts, financial gains, reviews, testimonials, company logos, personal information, tiny text, fake dashboard screenshot, or decorative chains. This is a conceptual teaching scene, not evidence of real performance. Keep every key object inside an 8% safe margin. No headline text. Scene: following up on a quote without forgetting. On a sunlit cream desk, one upright blue smartphone shows one large cream message bubble with a simple line envelope icon; beside it, a cream paper quote document in a blue clipboard, and a small physical desk calendar with one vermilion red highlighted square (no numbers or letters). A simple red reminder bell token rests between calendar and phone. Arrange quote, calendar, phone left-to-right with one clear thin blue curved connection. Include a tasteful blue pen and soft plant shadow in background, no plant clutter. The result must instantly communicate 'quote sent, reminder scheduled, reply ready'. No text at all, no checkmark implying real completion, no clocks, no prices, no fabricated results. Compose as a high-quality editorial photo of beautiful dimensional conceptual objects with approachable tactile detail."
+    }
+  ],
+  "encoding": "WebP quality88, effort6, no cropping or resizing. Original PNGs retained.",
+  "review": "Both artwork outputs inspected. Bright cream surfaces, blue and red objects. No people, prices, performance charts, testimonials, or actual customer information. Simplified symbolic records illustrate the service rather than a live application screenshot.",
+  "page": "/services",
+  "ownership": "Services page and services module CSS; new ServicesPreview component. Shared site CSS, legacy CapabilityExplorer and CompanyLoop remain untouched.",
+  "offerPreservation": "The page still uses the existing LADDER source for all package names, prices, inclusions, and URLs. Free-program application/capacity terms and separate costs remain disclosed. No price, checkout, payment or auth behavior changed.",
+  "verification": "Actual page JSX and CSS isolated render at390/768/1440; both images loaded, no horizontal overflow, three example choices and keyboard activation worked. ESLint and scoped diff check passed. Full integrated build, actual Next.js image optimization, header/footer, and deployment are owned by the parent release agent."
+}

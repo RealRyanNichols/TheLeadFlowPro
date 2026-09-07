@@ -1,0 +1,553 @@
+{
+  "gscReportAsOf": "2026-09-03",
+  "checkedAt": "2026-09-07T03:45:50.953Z",
+  "source": "/tmp/lfp-gsc-404-urls.json",
+  "sitemapEntryExcluded": true,
+  "count": 53,
+  "current": {
+    "http200": 1,
+    "http404": 52,
+    "redirects": 0
+  },
+  "implemented": {
+    "permanentRedirectsPendingDeployment": 5,
+    "expected404Retained": 47
+  },
+  "guard": "Exactly five new GET route handlers. Fixed same-site destinations. No request/query interpolation; Referrer-Policy:no-referrer. Existing middleware, auth, payment handlers, sitemap and global config unchanged.",
+  "validation": "All five destination URLs returned200 and self-canonical. Twenty direct handler input cases passed (ordinary query, retired product/request, synthetic privacy markers and external next parameter). All returned308, fixed Location with empty query, no-referrer and emptybody. ESLint/scoped diff check clean. Integrated Next build/production deployment must still happen.",
+  "sources": [
+    "https://developers.google.com/search/docs/crawling-indexing/301-redirects",
+    "https://developers.google.com/crawling/docs/troubleshooting/http-status-codes"
+  ],
+  "rows": [
+    {
+      "url": "https://www.theleadflowpro.com/industries/ecommerce-leads",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "No equivalent current offer. A loosely related calculator collection would not replace this content."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/growth-machine",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "No proven equivalent in current routes. Preserve404 rather than choose a broad/unrelated destination."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/industries/real-estate-leads",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "308 implemented, pending deployment",
+      "plannedDestination": "https://www.theleadflowpro.com/tools/collections/real-estate",
+      "plannedDestinationLiveStatus": 200,
+      "reason": "Real-estate collection contains seven free tools and guidance for lead value and follow-up."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/voice",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "No proven equivalent in current routes. Preserve404 rather than choose a broad/unrelated destination."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/stats/unused-gym-memberships-today",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired speculative statistics page; no verified replacement."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/industries/political-data-and-issue-signals",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired civic/political-data content; no equivalent current business page."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/marketplace/ecommerce-vendor-signal-pack/sample",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired marketplace/listing-access product. Current paid tool kits are different offers, so no redirect."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/industries/va-irrrl-leads",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "No equivalent current offer. A loosely related calculator collection would not replace this content."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/industries/dental-marketing-leads",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "No equivalent current offer. A loosely related calculator collection would not replace this content."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/industries/mortgage-leads",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "308 implemented, pending deployment",
+      "plannedDestination": "https://www.theleadflowpro.com/tools/collections/mortgage-lending",
+      "plannedDestinationLiveStatus": 200,
+      "reason": "Mortgage-lending collection contains seven tools and guidance for application value, response and lead economics."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/industries/creator-audience-leads",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "No equivalent current offer. A loosely related calculator collection would not replace this content."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/civic/surveys",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired civic/political-data content; no equivalent current business page."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/action-menu",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "No proven equivalent in current routes. Preserve404 rather than choose a broad/unrelated destination."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/marketplace",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired marketplace/listing-access product. Current paid tool kits are different offers, so no redirect."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/industries/contractor-leads",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "308 implemented, pending deployment",
+      "plannedDestination": "https://www.theleadflowpro.com/tools/collections/home-services",
+      "plannedDestinationLiveStatus": 200,
+      "reason": "Home-services collection includes contractors, missed calls and quote follow-up, with twenty tools."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/leaderboard",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "308 implemented, pending deployment",
+      "plannedDestination": "https://www.theleadflowpro.com/scoreboard",
+      "plannedDestinationLiveStatus": 200,
+      "reason": "Public business results board continues at the scoreboard."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?request=req_2&product=boost_stat_100",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?stat=drive-thru-minutes-burned&product=boost_stat_100",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?request=req_4&product=boost_stat_100",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/backend",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Ambiguous old back-office path; no inferred public replacement or change to auth routing."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?request=req_3",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/stats/missed-business-calls-today",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired speculative statistics page; no verified replacement."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/pulse",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "No proven equivalent in current routes. Preserve404 rather than choose a broad/unrelated destination."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?stat=abandoned-carts-today&product=boost_stat_100",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/stats/drive-thru-minutes-burned",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired speculative statistics page; no verified replacement."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/checkout/listing_access/dental-office-growth-signal",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired marketplace/listing-access product. Current paid tool kits are different offers, so no redirect."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/stats/dm-replies-left-hanging",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired speculative statistics page; no verified replacement."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/site.webmanifest",
+      "currentStatus": 200,
+      "currentLocation": null,
+      "classification": "Current200",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Already restored: valid manifest currently HTTP200."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?stat=unused-gym-memberships-today&product=boost_stat_100",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/stats/receipts-lost-before-expense-report",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired speculative statistics page; no verified replacement."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/stats/calendar-invites-ignored",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired speculative statistics page; no verified replacement."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?stat=streaming-decision-minutes&product=boost_stat_100",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?stat=screenshots-never-reopened&product=boost_stat_100",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/stats/meetings-that-could-have-been-emails",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired speculative statistics page; no verified replacement."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/stats/streaming-decision-minutes",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired speculative statistics page; no verified replacement."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/stats/headline-clicks-from-curiosity",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired speculative statistics page; no verified replacement."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?stat=dm-replies-left-hanging&product=boost_stat_100",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?board=ai-explosion&product=premium_board_unlock_500",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?product=submit_weird_stat_300",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/checkout/listing_access/local-contractor-demand-signal",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired marketplace/listing-access product. Current paid tool kits are different offers, so no redirect."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?board=internet-weirdness&product=premium_board_unlock_500",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?stat=receipts-lost-before-expense-report&product=boost_stat_100",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/stats/coffee-cups-in-meetings",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired speculative statistics page; no verified replacement."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/lead-leak-audit",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "308 implemented, pending deployment",
+      "plannedDestination": "https://www.theleadflowpro.com/diagnostic",
+      "plannedDestinationLiveStatus": 200,
+      "reason": "Diagnostic asks about lead channels, response, CRM, follow-up and the largest lead leak."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/unlock",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired marketplace/listing-access product. Current paid tool kits are different offers, so no redirect."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/data-marketplace",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired marketplace/listing-access product. Current paid tool kits are different offers, so no redirect."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?stat=return-packages-created&product=boost_stat_100",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?board=daily-time-wasters&product=premium_board_unlock_500",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?stat=unsubscribe-links-clicked&product=boost_stat_100",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/api/intake",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired intake endpoint; do not redirect old API callers to an incompatible schema or a public form."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?stat=meetings-that-could-have-been-emails&product=boost_stat_100",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/request?request=req_4",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "Retired request/product/boost/board action. No equivalent offer; keep404 and do not transfer query values."
+    },
+    {
+      "url": "https://www.theleadflowpro.com/availability",
+      "currentStatus": 404,
+      "currentLocation": null,
+      "currentTitle": "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+      "classification": "Expected404 retained",
+      "plannedDestination": null,
+      "plannedDestinationLiveStatus": null,
+      "reason": "No proven equivalent in current routes. Preserve404 rather than choose a broad/unrelated destination."
+    }
+  ]
+}

@@ -8,6 +8,8 @@ export const WEBSITE_LAUNCH_PAYMENT_LINK_ID = "plink_1U5atHBHH7tuNwAA8GVDFUBJ";
 export type StripeCheckoutSession = {
   id?: unknown;
   amount_total?: unknown;
+  amount_subtotal?: unknown;
+  currency?: unknown;
   customer_email?: unknown;
   customer_details?: {
     email?: unknown;

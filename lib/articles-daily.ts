@@ -242,7 +242,7 @@ The free calculator below compares a reply-time scenario with roughly five minut
 
 For a fictional practice run, enter **20** leads, **2** hours, **$200** average job value, and a **25%** fast-reply close rate. The $200 is an invented agency-revenue input for the exercise, not a premium, commission estimate, or insurance recommendation.
 
-Those inputs display about **$270 a month** and **$3,243 a year** in modeled difference. The annual display uses the unrounded monthly calculation, which explains why multiplying the rounded $270 by twelve gives a different total.
+Those inputs display about **$270 a month** and **$3,236 a year** in modeled difference. The annual display uses the unrounded monthly calculation, which explains why multiplying the rounded $270 by twelve gives a different total.
 
 That is not money your agency has been shown to lose. A larger calculator number does not prove that staffing, software, or automatic replies will recover it. Your own records must answer whether the process change helped.
 

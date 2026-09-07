@@ -1,6 +1,58 @@
 // Lightweight date manifest for middleware. No article bodies or tool catalog.
 // Keep this in sync with article dates; article-publication.test.ts checks it.
 export const ARTICLE_PUBLICATION_DATES: Record<string, string> = {
+  "how-to-compare-a-better-close-rate-with-buying-more-leads": "2026-09-06",
+  "how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan": "2026-09-06",
+  "hvac-maintenance-plans": "2026-09-06",
+  "what-to-write-down-before-comparing-two-equipment-loans": "2026-09-06",
+  "how-to-read-a-cash-runway-estimate-without-counting-credit-as-cash":
+    "2026-09-06",
+  "how-to-separate-sales-tax-from-a-tax-inclusive-total": "2026-09-06",
+  "how-to-compare-overtime-costs-with-a-hiring-scenario": "2026-09-06",
+  "why-ad-revenue-and-ad-profit-need-separate-columns": "2026-09-06",
+  "how-to-build-an-ad-budget-scenario-from-your-own-records": "2026-09-06",
+  "how-long-does-a-new-customer-take-to-repay-acquisition-cost": "2026-09-06",
+  "how-to-scope-an-ad-test-before-splitting-the-budget": "2026-09-06",
+  "how-to-find-one-admin-task-worth-simplifying-this-week": "2026-09-06",
+  "how-to-decide-whether-a-weekly-meeting-earns-its-time": "2026-09-06",
+  "how-to-compare-the-work-you-do-with-the-work-you-could-delegate":
+    "2026-09-06",
+  "how-to-read-a-review-rating-goal-without-gaming-reviews": "2026-09-06",
+  "what-one-low-rating-changes-and-what-it-cannot-tell-you": "2026-09-06",
+  "how-to-reply-to-a-review-without-arguing-in-public": "2026-09-06",
+  "how-to-test-a-website-improvement-before-buying-more-visits": "2026-09-06",
+  "how-to-put-a-useful-qr-code-on-a-printed-flyer": "2026-09-06",
+  "how-to-make-a-guest-wi-fi-card-customers-can-use": "2026-09-06",
+  "how-to-make-a-contact-card-people-can-save": "2026-09-06",
+  "how-to-add-a-call-button-and-check-it-on-your-phone": "2026-09-06",
+  "how-to-write-a-text-us-button-that-starts-the-right-conversation":
+    "2026-09-06",
+  "how-to-tag-a-campaign-link-without-putting-private-data-in-it": "2026-09-06",
+  "how-to-make-an-email-signature-with-one-clear-next-step": "2026-09-06",
+  "how-to-write-a-missed-call-reply-that-tells-people-what-happens-next":
+    "2026-09-06",
+  "how-to-ask-for-an-honest-review-after-the-work-is-done": "2026-09-06",
+  "how-to-check-your-business-details-before-adding-structured-data":
+    "2026-09-06",
+  "how-to-turn-real-customer-questions-into-useful-website-answers":
+    "2026-09-06",
+  "how-to-replace-a-page-title-called-home-with-something-useful": "2026-09-06",
+  "how-to-check-ad-copy-before-you-paste-it-into-the-platform": "2026-09-06",
+  "how-to-make-a-directions-link-that-reaches-the-right-entrance": "2026-09-06",
+  "how-to-give-event-guests-a-calendar-link-they-can-check": "2026-09-06",
+  "how-to-leave-callers-with-a-clear-next-step": "2026-09-06",
+  "how-to-write-a-job-post-that-explains-the-actual-work": "2026-09-06",
+  "how-to-write-one-useful-google-business-profile-update": "2026-09-06",
+  "how-to-check-robots-txt-without-treating-it-as-a-lock": "2026-09-06",
+  "how-to-put-a-month-s-bills-on-one-clear-page": "2026-09-06",
+  "how-to-compare-two-package-sizes-before-buying-the-bigger-one": "2026-09-06",
+  "how-to-compare-the-costs-that-come-with-a-job": "2026-09-06",
+  "how-to-find-the-renewals-you-stopped-noticing": "2026-09-06",
+  "how-to-turn-a-cash-cushion-goal-into-a-monthly-target": "2026-09-06",
+  "how-to-check-what-an-extra-payment-changes-in-a-simple-debt-model":
+    "2026-09-06",
+  "how-to-compare-rent-with-the-bills-you-already-have": "2026-09-06",
+  "how-to-compare-two-job-offers-when-the-hours-are-different": "2026-09-06",
   "ai-website-small-business-2026": "2026-08-09",
   "appliance-repair-unclosed-quotes": "2026-08-14",
   "auto-shop-credit-card-fees": "2026-08-12",

@@ -515,7 +515,7 @@ ${review ? `<div style="height:6px"></div><div><a href="${review}" style="color:
     steps: [
       "Fill in your details and paste your review link.",
       "Copy the scripts.",
-      "Send the text the same day you finish, while they are still happy.",
+      "Invite honest feedback consistently after a genuine customer experience, using an appropriate communication channel.",
     ],
     embedHeight: 840,
     fields: [
@@ -531,26 +531,26 @@ ${review ? `<div style="height:6px"></div><div><a href="${review}" style="color:
       const job = str(v, "job").trim() || "the work";
       const linkPart = link ? `\n${link}` : "\n[paste your review link here]";
 
-      const text = `SAME DAY TEXT (send within 2 hours of finishing)
+      const text = `REVIEW REQUEST TEXT (review before sending)
 
-Hey, this is ${first} with ${biz}. Really appreciate you letting us handle ${job} today. If we did right by you, would you mind leaving a quick review? It genuinely helps a small shop like ours.${linkPart}
+Hi, this is ${first} with ${biz}. Thank you for trusting us with ${job}. If you would like to share your experience, you can leave an honest review here:${linkPart}
 
-Takes about 30 seconds. Thanks either way.
+Your feedback is welcome either way. Thank you.
 
 
 EMAIL VERSION
 
-Subject: Quick favor?
+Subject: Your experience with ${biz}
 
 Hi there,
 
 ${first} here from ${biz}. Thanks again for trusting us with ${job}.
 
-If you were happy with how it went, a short Google review would mean a lot. It is the main way people around here find us.
+If you would like to share your experience, you can leave an honest Google review at the link below.
 
 ${link || "[your review link]"}
 
-If anything was not right, reply to this email instead and tell me. I would rather hear it from you than read it later.
+Your feedback is welcome regardless of your rating. You can also reply with a service question; getting support does not depend on leaving or changing a review.
 
 Thanks,
 ${first}
@@ -559,26 +559,27 @@ ${biz}
 
 IN PERSON SCRIPT
 
-"Before I take off, can I ask you a favor? Reviews are pretty much how people find us. If you were happy with how it went, I am going to text you a link. Takes about thirty seconds. No pressure either way."
+"Thank you for your business. If you would like to share your experience, you are welcome to leave an honest review. Would you like the review link? There is no obligation."
 
-Then text the link before you pull out of the driveway.
-
-
-FOLLOW UP, 3 DAYS LATER (only once, never twice)
-
-Hey, ${first} with ${biz} again. Not trying to bug you. If you have got 30 seconds for that review it would help us out a bunch. If not, no worries at all, we appreciate the business either way.${linkPart}
+Provide the link through an appropriate channel if the customer wants it. Do not pressure them to review while on the premises.
 
 
-TIMING RULES
-- Send it the same day, while they still like you.
-- Ask right after a win: job finished, problem solved, delivery landed.
-- Ask everybody, not just the ones you think will say something nice.
-- One follow-up. Never two.
-- Never offer a discount or a gift for a review. It violates Google's policy and can get your reviews wiped.`;
+OPTIONAL REMINDER (only if appropriate and no decline or opt-out)
+
+Hi, ${first} with ${biz} again. Here is the review link in case you wanted to share your experience. No need to reply, and thank you again for your business.${linkPart}
+
+
+REVIEW CHECKLIST
+- Use a consistent milestone after a genuine customer experience, regardless of expected rating.
+- Verify that the link opens the correct business listing.
+- Never offer incentives or condition the request on satisfaction.
+- Do not require a private survey before showing the public review link.
+- Check communication permission and stop after a decline, opt-out, or completed response.
+- This tool drafts language; it does not send messages or create reviews.`;
 
       return {
         output: { title: "Your review request scripts", text, filename: "review-request-scripts.txt" },
-        verdict: { tone: "good", text: "The whole game is timing. Same day, right after the win, with a link they can tap. That is it." },
+        verdict: { tone: "good", text: "Review the wording, verify the listing link, and invite honest feedback without trying to influence the rating." },
       };
     },
   },
@@ -966,7 +967,7 @@ See you at [time] today for [service]. Address: [address]. Running late? Just te
     category: "Generators",
     tagline: "The line Google shows before anybody clicks",
     description:
-      "Write your page title and description with a live length meter, so they do not get cut off. Includes the local formula that works.",
+      "Draft a page title and description from your service, location and supported details. Length meters help you review the wording before installation.",
     who: "Anyone whose page titles say Home, About and Services.",
     problem:
       "Your title tag is your billboard in the search results, and most small business sites have never touched it.",
@@ -994,7 +995,7 @@ See you at [time] today for [service]. Address: [address]. Running late? Just te
 
       const title = [service, city, biz].filter(Boolean).join(" | ");
       const desc = clean(
-        `${hook || `Professional ${service.toLowerCase()}`}${city ? ` in ${city}` : ""}. ${biz ? `${biz} ` : ""}is licensed, insured and local.${phone ? ` Call ${prettyPhone(phone)} for a free estimate.` : " Call for a free estimate."}`,
+        `${service}${city ? ` in ${city}` : ""}${biz ? ` from ${biz}` : ""}. ${hook ? `${hook}. ` : ""}${phone ? `Call ${prettyPhone(phone)} to ask about details and availability.` : "Learn about the service and how to request the next step."}`,
       );
 
       const tLen = title.length;
@@ -1003,7 +1004,7 @@ See you at [time] today for [service]. Address: [address]. Running late? Just te
       const dTone = dLen >= 120 && dLen <= 158 ? "good" : dLen < 120 ? "warn" : "bad";
 
       return {
-        headline: { value: `${tLen} / 60`, label: "Title length", sub: tTone === "good" ? "Fits" : tTone === "warn" ? "Might get cut" : "Too long, it will be truncated", tone: tTone as "good" | "warn" | "bad" },
+        headline: { value: `${tLen} / 60`, label: "Title length", sub: tTone === "good" ? "Within drafting guide" : "Review length and meaning", tone: tTone as "good" | "warn" | "bad" },
         stats: [
           { label: "Description length", value: `${dLen} / 158`, tone: dTone as "good" | "warn" | "bad" },
           { label: "Has the town", value: city ? "Yes" : "No", tone: city ? "good" : "bad" },
@@ -1015,7 +1016,7 @@ See you at [time] today for [service]. Address: [address]. Running late? Just te
           text: `TITLE TAG (${tLen} characters)\n${title}\n\nMETA DESCRIPTION (${dLen} characters)\n${desc}`,
           filename: "page-title-description.txt",
         },
-        note: "One page per service per town. A single Services page trying to cover eight services in five towns ranks for none of them.",
+        note: "Review every claim against the visible page. Character counts are drafting guides; search engines may select or truncate different title and snippet text.",
       };
     },
   },
@@ -1185,16 +1186,16 @@ See you at [time] today for [service]. Address: [address]. Running late? Just te
 
       return {
         qr: { data: gcal, caption: "Scan to add to calendar" },
-        output: { title: "Calendar file (works with Apple, Outlook, everything)", text: ics, filename: `${slugify(title) || "event"}.ics`, mono: true },
+        output: { title: "Calendar file (check the imported time before sharing)", text: ics, filename: `${slugify(title) || "event"}.ics`, mono: true },
         table: {
           title: "Your links",
           headers: ["Where", "Link"],
           rows: [
             ["Google Calendar", gcal],
-            ["Outlook / Apple / everything else", "Download the .ics file above and attach it to your email"],
+            ["Other calendar applications", "Download the .ics file and verify the imported event before sharing"],
           ],
         },
-        note: "Times are local to whoever opens it. For an event with people in different time zones, say the time zone in the event name.",
+        note: "This file uses floating local times without a time-zone identifier. Writing a zone in the title does not fix the event time. For a fixed event across time zones, use a calendar system that creates a properly zoned invitation. Both times use the entered date; check the date, duration, and imported event before sharing.",
       };
     },
   },
@@ -1329,22 +1330,22 @@ WHAT WE OFFER
 ${perks.length ? perks.map((p) => `- ${p}`).join("\n") : "- [pay, truck, tools, schedule, time off]"}
 
 WHO WE ARE
-${biz} is a ${city ? `${city} ` : ""}shop. We show up when we say we will, we do the work right, and we pay on time. We are not a big outfit and we do not act like one. If you do good work, you will be treated like it matters, because it does.
+The role is with ${biz}${city ? ` in ${city}` : ""}. Before publishing, add a short, verified description of the workplace, schedule and reporting manager.
 
 HOW TO APPLY
-${contact}. Tell me what you have worked on and when you can start. I read every one of them.
+${contact}. Include your relevant experience and availability. Confirm the application instructions and responsible reviewer before publishing.
 
 
 POSTING NOTES
-- Leave the pay range in. Posts with pay get far more responses than posts without.
-- Post it on Indeed, your Facebook page, and local trade groups.
-- Reply to everyone within 24 hours. Good people are gone in three days.
-- Say what the job is before you say what you require. Requirements-first posts read as a warning.`;
+- Verify pay, hours, duties, benefits and job-related requirements with the hiring owner.
+- Check current posting requirements for the role and location.
+- Confirm who monitors applications and what response expectation is realistic.
+- Remove these internal notes before publishing the final approved post.`;
 
       return {
         output: { title: "Your job posting", text, filename: `job-post-${slugify(role) || "role"}.txt` },
         note: "Keep hiring requirements job-related and consistent for everybody. Employment advertising is regulated. If you are unsure how to word a requirement, ask an employment attorney.",
-        verdict: { tone: "good", text: "The two things that fix most hiring posts: put the pay in, and answer every applicant within a day." },
+        verdict: { tone: "good", text: "Have the hiring owner verify the facts and application path before publishing. This tool creates a draft, not a vacancy or employment agreement." },
       };
     },
   },
@@ -1357,15 +1358,15 @@ POSTING NOTES
     category: "Generators",
     tagline: "Free real estate most businesses never use",
     description:
-      "Google Business Profile lets you post like social media, and almost nobody does it. Write a month of posts in five minutes.",
+      "Draft four updates from your business details. Review every claim, current offer and destination before publishing through your Business Profile.",
     who: "Any local business with a Google Business Profile, which should be all of them.",
     problem:
-      "Your profile has not been touched in a year. Posting tells Google you are active and gives searchers something to look at.",
-    payoff: "Four ready-to-post updates, sized for the platform.",
+      "It is hard to start a useful update when the service, offer and next step are scattered across notes.",
+    payoff: "Four editable drafts to check against your real business details.",
     steps: [
       "Fill in your business and what is going on this month.",
-      "Copy the posts.",
-      "Paste them into your Google Business Profile, one a week.",
+      "Review the drafts for accuracy and remove unsupported claims.",
+      "Check the correct profile, current policy and destination before publishing an approved update.",
     ],
     embedHeight: 880,
     fields: [
@@ -1387,37 +1388,35 @@ POSTING NOTES
       const service = str(v, "service").trim() || "the work";
       const offer = str(v, "offer").trim();
       const season = str(v, "season", "summer");
-      const phone = str(v, "phone").trim();
-      const call = phone ? ` Call or text ${prettyPhone(phone)}.` : "";
       const seasonLine: Record<string, string> = {
-        spring: "Spring is when the problems you ignored all winter finally show up.",
-        summer: "Summer runs everything harder, and heat finds the weak spot first.",
-        fall: "Fall is the cheap time to fix what winter is going to break.",
-        winter: "Winter does not care that you meant to get to it.",
+        spring: "spring",
+        summer: "summer",
+        fall: "fall",
+        winter: "winter",
       };
 
       const posts = [
-        `Serving ${city} and everywhere around it. If you need ${service}, we answer the phone and we show up when we say we will.${call}`,
-        `${seasonLine[season]} If something has been nagging at you, get it looked at before it turns into the expensive version.${call}`,
-        offer ? `${offer}. That is it, no fine print. ${biz}, right here in ${city}.${call}` : `Free estimates, no trip charge, straight answers. That is how we have always done it at ${biz}.${call}`,
-        `Another one finished in ${city} this week. Thanks for trusting us with it. If you need ${service}, we are local, licensed and easy to get a hold of.${call}`,
+        `Looking for ${service} in ${city}? Contact ${biz} to ask about service details and availability.`,
+        `Planning ${service} this ${seasonLine[season] || "season"}? Ask ${biz} about the next step in ${city}.`,
+        offer ? `${offer}. Contact ${biz} for current terms and availability in ${city}.` : `Have a question about ${service}? Contact ${biz} to ask about the request process and next steps.`,
+        `What should you know before requesting ${service}? Ask ${biz} what information is needed to assess your request.`,
       ];
 
       const text = posts.map((p, i) => `POST ${i + 1} (${p.length} characters)\n\n${p}`).join("\n\n\n");
 
       return {
-        output: { title: "Four posts. One a week.", text, filename: "google-business-posts.txt" },
+        output: { title: "Four draft posts to review", text, filename: "google-business-posts.txt" },
         table: {
           title: "Posting checklist",
           headers: ["Do this", "Why"],
           rows: [
-            ["Post at least twice a month", "Google reads activity as a live business"],
-            ["Add a real photo every time", "Photos get looked at, text does not"],
-            ["Use the Call or Book button", "It turns a viewer into a lead"],
-            ["Never repost the same text", "Write four, rotate, then write four more"],
+            ["Verify the service and offer", "Drafts use your inputs; the tool cannot confirm business facts"],
+            ["Use an approved relevant image", "Check ownership, permission and private details before sharing"],
+            ["Use the appropriate profile action", "Google post text must not contain a phone number; use the verified Call now button"],
+            ["Check the exact profile and destination", "Generating a draft does not publish it or verify a working link"],
           ],
         },
-        note: "Google Business posts expire, most after about a week. That is the point. Post regularly rather than perfectly.",
+        note: "These are editable drafts, not published posts. Check current Google Business Profile policy and your offer terms. Phone input is deliberately excluded from post text; use the profile's verified Call now button instead. Review or remove stale updates when the facts change.",
       };
     },
   },

@@ -153,7 +153,7 @@ function messageFor(
   // Pluralized on the rounded hours, not the raw minutes: 90 minutes rounds
   // to 2 hours and must not read "inside 2 hour" in a customer text.
   const promiseHours = Math.round(promise / 60);
-  const within = promise >= 60 ? `${promiseHours} hour${promiseHours === 1 ? "" : "s"}` : `${promise} minutes`;
+  const within = promise % 60 === 0 ? `${promiseHours} hour${promiseHours === 1 ? "" : "s"}` : `${promise} minutes`;
 
   const T = <A, B, C>(f: A, d: B, p: C) => (tone === "friendly" ? f : tone === "direct" ? d : p);
 

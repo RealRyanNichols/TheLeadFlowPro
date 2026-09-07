@@ -1,0 +1,4060 @@
+{
+  "checkedAt": "2026-09-07T02:09:19.373Z",
+  "publicationDate": "2026-09-06",
+  "status": "source-complete-awaiting-production-deployment-and-live-verification",
+  "articleCount": 45,
+  "bodyWords": 31591,
+  "articles": [
+    {
+      "slug": "how-to-compare-a-better-close-rate-with-buying-more-leads",
+      "tool": "close-rate-calculator",
+      "words": 700,
+      "articlePath": "/articles/how-to-compare-a-better-close-rate-with-buying-more-leads",
+      "ogPath": "/articles/how-to-compare-a-better-close-rate-with-buying-more-leads/opengraph-image"
+    },
+    {
+      "slug": "how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan",
+      "tool": "lead-goal-planner",
+      "words": 697,
+      "articlePath": "/articles/how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan",
+      "ogPath": "/articles/how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan/opengraph-image"
+    },
+    {
+      "slug": "hvac-maintenance-plans",
+      "tool": "payment-plan-calculator",
+      "words": 655,
+      "articlePath": "/articles/hvac-maintenance-plans",
+      "ogPath": "/articles/hvac-maintenance-plans/opengraph-image"
+    },
+    {
+      "slug": "what-to-write-down-before-comparing-two-equipment-loans",
+      "tool": "loan-payment-calculator",
+      "words": 641,
+      "articlePath": "/articles/what-to-write-down-before-comparing-two-equipment-loans",
+      "ogPath": "/articles/what-to-write-down-before-comparing-two-equipment-loans/opengraph-image"
+    },
+    {
+      "slug": "how-to-read-a-cash-runway-estimate-without-counting-credit-as-cash",
+      "tool": "cash-runway-calculator",
+      "words": 653,
+      "articlePath": "/articles/how-to-read-a-cash-runway-estimate-without-counting-credit-as-cash",
+      "ogPath": "/articles/how-to-read-a-cash-runway-estimate-without-counting-credit-as-cash/opengraph-image"
+    },
+    {
+      "slug": "how-to-separate-sales-tax-from-a-tax-inclusive-total",
+      "tool": "sales-tax-calculator",
+      "words": 642,
+      "articlePath": "/articles/how-to-separate-sales-tax-from-a-tax-inclusive-total",
+      "ogPath": "/articles/how-to-separate-sales-tax-from-a-tax-inclusive-total/opengraph-image"
+    },
+    {
+      "slug": "how-to-compare-overtime-costs-with-a-hiring-scenario",
+      "tool": "overtime-cost-calculator",
+      "words": 694,
+      "articlePath": "/articles/how-to-compare-overtime-costs-with-a-hiring-scenario",
+      "ogPath": "/articles/how-to-compare-overtime-costs-with-a-hiring-scenario/opengraph-image"
+    },
+    {
+      "slug": "why-ad-revenue-and-ad-profit-need-separate-columns",
+      "tool": "roas-calculator",
+      "words": 689,
+      "articlePath": "/articles/why-ad-revenue-and-ad-profit-need-separate-columns",
+      "ogPath": "/articles/why-ad-revenue-and-ad-profit-need-separate-columns/opengraph-image"
+    },
+    {
+      "slug": "how-to-build-an-ad-budget-scenario-from-your-own-records",
+      "tool": "ad-budget-planner",
+      "words": 683,
+      "articlePath": "/articles/how-to-build-an-ad-budget-scenario-from-your-own-records",
+      "ogPath": "/articles/how-to-build-an-ad-budget-scenario-from-your-own-records/opengraph-image"
+    },
+    {
+      "slug": "how-long-does-a-new-customer-take-to-repay-acquisition-cost",
+      "tool": "cac-payback-calculator",
+      "words": 683,
+      "articlePath": "/articles/how-long-does-a-new-customer-take-to-repay-acquisition-cost",
+      "ogPath": "/articles/how-long-does-a-new-customer-take-to-repay-acquisition-cost/opengraph-image"
+    },
+    {
+      "slug": "how-to-scope-an-ad-test-before-splitting-the-budget",
+      "tool": "ad-test-budget-calculator",
+      "words": 673,
+      "articlePath": "/articles/how-to-scope-an-ad-test-before-splitting-the-budget",
+      "ogPath": "/articles/how-to-scope-an-ad-test-before-splitting-the-budget/opengraph-image"
+    },
+    {
+      "slug": "how-to-find-one-admin-task-worth-simplifying-this-week",
+      "tool": "admin-time-audit",
+      "words": 659,
+      "articlePath": "/articles/how-to-find-one-admin-task-worth-simplifying-this-week",
+      "ogPath": "/articles/how-to-find-one-admin-task-worth-simplifying-this-week/opengraph-image"
+    },
+    {
+      "slug": "how-to-decide-whether-a-weekly-meeting-earns-its-time",
+      "tool": "meeting-cost-calculator",
+      "words": 642,
+      "articlePath": "/articles/how-to-decide-whether-a-weekly-meeting-earns-its-time",
+      "ogPath": "/articles/how-to-decide-whether-a-weekly-meeting-earns-its-time/opengraph-image"
+    },
+    {
+      "slug": "how-to-compare-the-work-you-do-with-the-work-you-could-delegate",
+      "tool": "owner-hourly-worth",
+      "words": 662,
+      "articlePath": "/articles/how-to-compare-the-work-you-do-with-the-work-you-could-delegate",
+      "ogPath": "/articles/how-to-compare-the-work-you-do-with-the-work-you-could-delegate/opengraph-image"
+    },
+    {
+      "slug": "how-to-read-a-review-rating-goal-without-gaming-reviews",
+      "tool": "review-goal-calculator",
+      "words": 656,
+      "articlePath": "/articles/how-to-read-a-review-rating-goal-without-gaming-reviews",
+      "ogPath": "/articles/how-to-read-a-review-rating-goal-without-gaming-reviews/opengraph-image"
+    },
+    {
+      "slug": "what-one-low-rating-changes-and-what-it-cannot-tell-you",
+      "tool": "bad-review-impact",
+      "words": 638,
+      "articlePath": "/articles/what-one-low-rating-changes-and-what-it-cannot-tell-you",
+      "ogPath": "/articles/what-one-low-rating-changes-and-what-it-cannot-tell-you/opengraph-image"
+    },
+    {
+      "slug": "how-to-reply-to-a-review-without-arguing-in-public",
+      "tool": "review-response-writer",
+      "words": 697,
+      "articlePath": "/articles/how-to-reply-to-a-review-without-arguing-in-public",
+      "ogPath": "/articles/how-to-reply-to-a-review-without-arguing-in-public/opengraph-image"
+    },
+    {
+      "slug": "how-to-test-a-website-improvement-before-buying-more-visits",
+      "tool": "conversion-lift-calculator",
+      "words": 671,
+      "articlePath": "/articles/how-to-test-a-website-improvement-before-buying-more-visits",
+      "ogPath": "/articles/how-to-test-a-website-improvement-before-buying-more-visits/opengraph-image"
+    },
+    {
+      "slug": "how-to-put-a-useful-qr-code-on-a-printed-flyer",
+      "tool": "qr-code-maker",
+      "words": 706,
+      "articlePath": "/articles/how-to-put-a-useful-qr-code-on-a-printed-flyer",
+      "ogPath": "/articles/how-to-put-a-useful-qr-code-on-a-printed-flyer/opengraph-image"
+    },
+    {
+      "slug": "how-to-make-a-guest-wi-fi-card-customers-can-use",
+      "tool": "wifi-qr-code",
+      "words": 718,
+      "articlePath": "/articles/how-to-make-a-guest-wi-fi-card-customers-can-use",
+      "ogPath": "/articles/how-to-make-a-guest-wi-fi-card-customers-can-use/opengraph-image"
+    },
+    {
+      "slug": "how-to-make-a-contact-card-people-can-save",
+      "tool": "digital-business-card",
+      "words": 716,
+      "articlePath": "/articles/how-to-make-a-contact-card-people-can-save",
+      "ogPath": "/articles/how-to-make-a-contact-card-people-can-save/opengraph-image"
+    },
+    {
+      "slug": "how-to-add-a-call-button-and-check-it-on-your-phone",
+      "tool": "click-to-call-button",
+      "words": 715,
+      "articlePath": "/articles/how-to-add-a-call-button-and-check-it-on-your-phone",
+      "ogPath": "/articles/how-to-add-a-call-button-and-check-it-on-your-phone/opengraph-image"
+    },
+    {
+      "slug": "how-to-write-a-text-us-button-that-starts-the-right-conversation",
+      "tool": "sms-link-generator",
+      "words": 683,
+      "articlePath": "/articles/how-to-write-a-text-us-button-that-starts-the-right-conversation",
+      "ogPath": "/articles/how-to-write-a-text-us-button-that-starts-the-right-conversation/opengraph-image"
+    },
+    {
+      "slug": "how-to-tag-a-campaign-link-without-putting-private-data-in-it",
+      "tool": "utm-link-builder",
+      "words": 715,
+      "articlePath": "/articles/how-to-tag-a-campaign-link-without-putting-private-data-in-it",
+      "ogPath": "/articles/how-to-tag-a-campaign-link-without-putting-private-data-in-it/opengraph-image"
+    },
+    {
+      "slug": "how-to-make-an-email-signature-with-one-clear-next-step",
+      "tool": "email-signature-generator",
+      "words": 701,
+      "articlePath": "/articles/how-to-make-an-email-signature-with-one-clear-next-step",
+      "ogPath": "/articles/how-to-make-an-email-signature-with-one-clear-next-step/opengraph-image"
+    },
+    {
+      "slug": "how-to-write-a-missed-call-reply-that-tells-people-what-happens-next",
+      "tool": "missed-call-textback-script",
+      "words": 722,
+      "articlePath": "/articles/how-to-write-a-missed-call-reply-that-tells-people-what-happens-next",
+      "ogPath": "/articles/how-to-write-a-missed-call-reply-that-tells-people-what-happens-next/opengraph-image"
+    },
+    {
+      "slug": "how-to-ask-for-an-honest-review-after-the-work-is-done",
+      "tool": "review-request-script",
+      "words": 752,
+      "articlePath": "/articles/how-to-ask-for-an-honest-review-after-the-work-is-done",
+      "ogPath": "/articles/how-to-ask-for-an-honest-review-after-the-work-is-done/opengraph-image"
+    },
+    {
+      "slug": "how-to-check-your-business-details-before-adding-structured-data",
+      "tool": "localbusiness-schema-generator",
+      "words": 725,
+      "articlePath": "/articles/how-to-check-your-business-details-before-adding-structured-data",
+      "ogPath": "/articles/how-to-check-your-business-details-before-adding-structured-data/opengraph-image"
+    },
+    {
+      "slug": "how-to-turn-real-customer-questions-into-useful-website-answers",
+      "tool": "faq-schema-generator",
+      "words": 738,
+      "articlePath": "/articles/how-to-turn-real-customer-questions-into-useful-website-answers",
+      "ogPath": "/articles/how-to-turn-real-customer-questions-into-useful-website-answers/opengraph-image"
+    },
+    {
+      "slug": "how-to-replace-a-page-title-called-home-with-something-useful",
+      "tool": "meta-title-description-writer",
+      "words": 742,
+      "articlePath": "/articles/how-to-replace-a-page-title-called-home-with-something-useful",
+      "ogPath": "/articles/how-to-replace-a-page-title-called-home-with-something-useful/opengraph-image"
+    },
+    {
+      "slug": "how-to-check-ad-copy-before-you-paste-it-into-the-platform",
+      "tool": "ad-character-counter",
+      "words": 702,
+      "articlePath": "/articles/how-to-check-ad-copy-before-you-paste-it-into-the-platform",
+      "ogPath": "/articles/how-to-check-ad-copy-before-you-paste-it-into-the-platform/opengraph-image"
+    },
+    {
+      "slug": "how-to-make-a-directions-link-that-reaches-the-right-entrance",
+      "tool": "google-maps-link-generator",
+      "words": 713,
+      "articlePath": "/articles/how-to-make-a-directions-link-that-reaches-the-right-entrance",
+      "ogPath": "/articles/how-to-make-a-directions-link-that-reaches-the-right-entrance/opengraph-image"
+    },
+    {
+      "slug": "how-to-give-event-guests-a-calendar-link-they-can-check",
+      "tool": "add-to-calendar-link",
+      "words": 711,
+      "articlePath": "/articles/how-to-give-event-guests-a-calendar-link-they-can-check",
+      "ogPath": "/articles/how-to-give-event-guests-a-calendar-link-they-can-check/opengraph-image"
+    },
+    {
+      "slug": "how-to-leave-callers-with-a-clear-next-step",
+      "tool": "voicemail-script-generator",
+      "words": 741,
+      "articlePath": "/articles/how-to-leave-callers-with-a-clear-next-step",
+      "ogPath": "/articles/how-to-leave-callers-with-a-clear-next-step/opengraph-image"
+    },
+    {
+      "slug": "how-to-write-a-job-post-that-explains-the-actual-work",
+      "tool": "job-post-writer",
+      "words": 739,
+      "articlePath": "/articles/how-to-write-a-job-post-that-explains-the-actual-work",
+      "ogPath": "/articles/how-to-write-a-job-post-that-explains-the-actual-work/opengraph-image"
+    },
+    {
+      "slug": "how-to-write-one-useful-google-business-profile-update",
+      "tool": "google-post-writer",
+      "words": 754,
+      "articlePath": "/articles/how-to-write-one-useful-google-business-profile-update",
+      "ogPath": "/articles/how-to-write-one-useful-google-business-profile-update/opengraph-image"
+    },
+    {
+      "slug": "how-to-check-robots-txt-without-treating-it-as-a-lock",
+      "tool": "robots-txt-generator",
+      "words": 706,
+      "articlePath": "/articles/how-to-check-robots-txt-without-treating-it-as-a-lock",
+      "ogPath": "/articles/how-to-check-robots-txt-without-treating-it-as-a-lock/opengraph-image"
+    },
+    {
+      "slug": "how-to-put-a-month-s-bills-on-one-clear-page",
+      "tool": "household-budget-planner",
+      "words": 736,
+      "articlePath": "/articles/how-to-put-a-month-s-bills-on-one-clear-page",
+      "ogPath": "/articles/how-to-put-a-month-s-bills-on-one-clear-page/opengraph-image"
+    },
+    {
+      "slug": "how-to-compare-two-package-sizes-before-buying-the-bigger-one",
+      "tool": "grocery-unit-price-calculator",
+      "words": 703,
+      "articlePath": "/articles/how-to-compare-two-package-sizes-before-buying-the-bigger-one",
+      "ogPath": "/articles/how-to-compare-two-package-sizes-before-buying-the-bigger-one/opengraph-image"
+    },
+    {
+      "slug": "how-to-compare-the-costs-that-come-with-a-job",
+      "tool": "childcare-vs-work-calculator",
+      "words": 738,
+      "articlePath": "/articles/how-to-compare-the-costs-that-come-with-a-job",
+      "ogPath": "/articles/how-to-compare-the-costs-that-come-with-a-job/opengraph-image"
+    },
+    {
+      "slug": "how-to-find-the-renewals-you-stopped-noticing",
+      "tool": "subscription-audit",
+      "words": 715,
+      "articlePath": "/articles/how-to-find-the-renewals-you-stopped-noticing",
+      "ogPath": "/articles/how-to-find-the-renewals-you-stopped-noticing/opengraph-image"
+    },
+    {
+      "slug": "how-to-turn-a-cash-cushion-goal-into-a-monthly-target",
+      "tool": "emergency-fund-calculator",
+      "words": 747,
+      "articlePath": "/articles/how-to-turn-a-cash-cushion-goal-into-a-monthly-target",
+      "ogPath": "/articles/how-to-turn-a-cash-cushion-goal-into-a-monthly-target/opengraph-image"
+    },
+    {
+      "slug": "how-to-check-what-an-extra-payment-changes-in-a-simple-debt-model",
+      "tool": "debt-payoff-planner",
+      "words": 737,
+      "articlePath": "/articles/how-to-check-what-an-extra-payment-changes-in-a-simple-debt-model",
+      "ogPath": "/articles/how-to-check-what-an-extra-payment-changes-in-a-simple-debt-model/opengraph-image"
+    },
+    {
+      "slug": "how-to-compare-rent-with-the-bills-you-already-have",
+      "tool": "rent-affordability-estimator",
+      "words": 730,
+      "articlePath": "/articles/how-to-compare-rent-with-the-bills-you-already-have",
+      "ogPath": "/articles/how-to-compare-rent-with-the-bills-you-already-have/opengraph-image"
+    },
+    {
+      "slug": "how-to-compare-two-job-offers-when-the-hours-are-different",
+      "tool": "salary-to-hourly-converter",
+      "words": 751,
+      "articlePath": "/articles/how-to-compare-two-job-offers-when-the-hours-are-different",
+      "ogPath": "/articles/how-to-compare-two-job-offers-when-the-hours-are-different/opengraph-image"
+    }
+  ],
+  "tools": [
+    {
+      "slug": "missed-call-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "missed",
+          "type": "slider",
+          "label": "Calls you miss per week",
+          "min": 0,
+          "max": 60,
+          "step": 1
+        },
+        {
+          "id": "closeRate",
+          "type": "slider",
+          "label": "How many of those callers would have bought",
+          "min": 5,
+          "max": 100,
+          "step": 5
+        },
+        {
+          "id": "ticket",
+          "type": "money",
+          "label": "Average first sale",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "repeats",
+          "type": "slider",
+          "label": "Repeat purchases after the first job",
+          "min": 0,
+          "max": 19,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "missed-call-calculator",
+        "input": {
+          "missed": 2,
+          "closeRate": 25,
+          "ticket": 100,
+          "repeats": 1
+        },
+        "expected": 5200,
+        "reasoning": "104 annual missed calls \u00d7 .25 \u00d7 $200 first-plus-repeat revenue."
+      }
+    },
+    {
+      "slug": "lead-response-time",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "leads",
+          "type": "slider",
+          "label": "Leads per month",
+          "min": 1,
+          "max": 500,
+          "step": 1
+        },
+        {
+          "id": "hours",
+          "type": "slider",
+          "label": "Hours before you usually reply",
+          "min": 0,
+          "max": 72,
+          "step": 1
+        },
+        {
+          "id": "ticket",
+          "type": "money",
+          "label": "Average job value",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "baseClose",
+          "type": "slider",
+          "label": "Your close rate when you do reply fast",
+          "min": 5,
+          "max": 90,
+          "step": 5
+        }
+      ],
+      "reference": {
+        "slug": "lead-response-time",
+        "input": {
+          "leads": 100,
+          "hours": 0,
+          "ticket": 100,
+          "baseClose": 50
+        },
+        "expected": 0,
+        "reasoning": "An immediate response has no positive modeled gap against five minutes."
+      }
+    },
+    {
+      "slug": "lead-value-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "closeRate",
+          "type": "slider",
+          "label": "Leads that turn into customers",
+          "min": 1,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "id": "ticket",
+          "type": "money",
+          "label": "Average first job",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "margin",
+          "type": "slider",
+          "label": "Gross margin",
+          "min": 5,
+          "max": 95,
+          "step": 1
+        },
+        {
+          "id": "repeat",
+          "type": "slider",
+          "label": "Repeat jobs from a customer",
+          "min": 0,
+          "max": 20,
+          "step": 1
+        },
+        {
+          "id": "referral",
+          "type": "slider",
+          "label": "Customers each one refers",
+          "min": 0,
+          "max": 5,
+          "step": 0.5
+        },
+        {
+          "id": "paying",
+          "type": "money",
+          "label": "What you pay per lead now",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "lead-value-calculator",
+        "input": {
+          "closeRate": 25,
+          "ticket": 100,
+          "margin": 50,
+          "repeat": 1,
+          "referral": 0,
+          "paying": 10
+        },
+        "expected": 50,
+        "reasoning": "Two $100 sales \u00d7 one-quarter conversion = $50 modeled revenue per inquiry."
+      }
+    },
+    {
+      "slug": "cost-per-lead-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "spend",
+          "type": "money",
+          "label": "Marketing spend per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "leads",
+          "type": "slider",
+          "label": "Leads it produced",
+          "min": 1,
+          "max": 1000,
+          "step": 1
+        },
+        {
+          "id": "customers",
+          "type": "slider",
+          "label": "Customers that closed",
+          "min": 0,
+          "max": 500,
+          "step": 1
+        },
+        {
+          "id": "value",
+          "type": "money",
+          "label": "What a customer is worth to you",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "margin",
+          "type": "slider",
+          "label": "Gross margin",
+          "min": 5,
+          "max": 95,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "cost-per-lead-calculator",
+        "input": {
+          "spend": 1000,
+          "leads": 50,
+          "customers": 10,
+          "value": 200,
+          "margin": 50
+        },
+        "expected": 100,
+        "reasoning": "$1000 divided by ten acquired customers; $20 per inquiry."
+      }
+    },
+    {
+      "slug": "no-show-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "appts",
+          "type": "slider",
+          "label": "Appointments per week",
+          "min": 1,
+          "max": 300,
+          "step": 1
+        },
+        {
+          "id": "noShow",
+          "type": "slider",
+          "label": "No-show rate",
+          "min": 1,
+          "max": 50,
+          "step": 1
+        },
+        {
+          "id": "value",
+          "type": "money",
+          "label": "Value of one appointment",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "wasted",
+          "type": "slider",
+          "label": "Wasted hours per no-show",
+          "min": 0,
+          "max": 5,
+          "step": 0.25
+        },
+        {
+          "id": "hourly",
+          "type": "money",
+          "label": "What your hour is worth",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "reminderLift",
+          "type": "slider",
+          "label": "No-shows reminders would prevent",
+          "min": 0,
+          "max": 90,
+          "step": 5
+        }
+      ],
+      "reference": {
+        "slug": "no-show-calculator",
+        "input": {
+          "appts": 20,
+          "noShow": 10,
+          "value": 100,
+          "wasted": 0,
+          "hourly": 10,
+          "reminderLift": 50
+        },
+        "expected": 10400,
+        "reasoning": "Two modeled empty $100 slots per week \u00d752; no added time cost."
+      }
+    },
+    {
+      "slug": "quote-follow-up-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "quotes",
+          "type": "slider",
+          "label": "Quotes you send per month",
+          "min": 1,
+          "max": 300,
+          "step": 1
+        },
+        {
+          "id": "value",
+          "type": "money",
+          "label": "Average quote value",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "closeNow",
+          "type": "slider",
+          "label": "Percent you close today",
+          "min": 1,
+          "max": 90,
+          "step": 1
+        },
+        {
+          "id": "lift",
+          "type": "slider",
+          "label": "Extra you would close with follow-up",
+          "min": 1,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "id": "margin",
+          "type": "slider",
+          "label": "Gross margin",
+          "min": 5,
+          "max": 95,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "quote-follow-up-calculator",
+        "input": {
+          "quotes": 10,
+          "value": 100,
+          "closeNow": 20,
+          "lift": 10,
+          "margin": 50
+        },
+        "expected": 1200,
+        "reasoning": "Ten quotes \u00d7 .10 added close share \u00d7 $100 \u00d712."
+      }
+    },
+    {
+      "slug": "close-rate-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "leads",
+          "type": "slider",
+          "label": "Leads per month",
+          "min": 1,
+          "max": 500,
+          "step": 1
+        },
+        {
+          "id": "close",
+          "type": "slider",
+          "label": "Close rate today",
+          "min": 1,
+          "max": 90,
+          "step": 1
+        },
+        {
+          "id": "improve",
+          "type": "slider",
+          "label": "Points you could add",
+          "min": 1,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "id": "value",
+          "type": "money",
+          "label": "Average job value",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "cpl",
+          "type": "money",
+          "label": "What a lead costs you",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "close-rate-calculator",
+        "input": {
+          "leads": 10,
+          "close": 20,
+          "improve": 10,
+          "value": 100,
+          "cpl": 5
+        },
+        "expected": 1200,
+        "reasoning": "One additional modeled job monthly at $100 \u00d712."
+      }
+    },
+    {
+      "slug": "lead-goal-planner",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "goal",
+          "type": "money",
+          "label": "Revenue goal for the year",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "ticket",
+          "type": "money",
+          "label": "Average job",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "close",
+          "type": "slider",
+          "label": "Close rate",
+          "min": 1,
+          "max": 90,
+          "step": 1
+        },
+        {
+          "id": "leadToQuote",
+          "type": "slider",
+          "label": "Leads that become a quote",
+          "min": 5,
+          "max": 100,
+          "step": 5
+        },
+        {
+          "id": "weeks",
+          "type": "slider",
+          "label": "Weeks you work",
+          "min": 30,
+          "max": 52,
+          "step": 1
+        },
+        {
+          "id": "current",
+          "type": "money",
+          "label": "Revenue you did last year",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "lead-goal-planner",
+        "input": {
+          "goal": 12000,
+          "ticket": 100,
+          "close": 50,
+          "leadToQuote": 50,
+          "weeks": 40,
+          "current": 10000
+        },
+        "expected": 12,
+        "reasoning": "120 jobs require240 quotes and480 inquiries, divided by40 weeks."
+      }
+    },
+    {
+      "slug": "capacity-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "crews",
+          "type": "slider",
+          "label": "Crews, chairs, bays or techs",
+          "min": 1,
+          "max": 50,
+          "step": 1
+        },
+        {
+          "id": "hoursDay",
+          "type": "slider",
+          "label": "Productive hours per day",
+          "min": 1,
+          "max": 14,
+          "step": 0.5
+        },
+        {
+          "id": "days",
+          "type": "slider",
+          "label": "Days per week",
+          "min": 1,
+          "max": 7,
+          "step": 1
+        },
+        {
+          "id": "jobHours",
+          "type": "slider",
+          "label": "Hours per job",
+          "min": 0.25,
+          "max": 40,
+          "step": 0.25
+        },
+        {
+          "id": "actual",
+          "type": "slider",
+          "label": "Jobs you actually do a week",
+          "min": 0,
+          "max": 200,
+          "step": 1
+        },
+        {
+          "id": "value",
+          "type": "money",
+          "label": "Average job value",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "capacity-calculator",
+        "input": {
+          "crews": 1,
+          "hoursDay": 8,
+          "days": 5,
+          "jobHours": 2,
+          "actual": 10,
+          "value": 100
+        },
+        "expected": 50,
+        "reasoning": "Forty available hours cover20 jobs;10 scheduled jobs use50%."
+      }
+    },
+    {
+      "slug": "after-hours-lead-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "leads",
+          "type": "slider",
+          "label": "Total leads a month",
+          "min": 1,
+          "max": 600,
+          "step": 1
+        },
+        {
+          "id": "share",
+          "type": "slider",
+          "label": "Share that come in after hours",
+          "min": 5,
+          "max": 80,
+          "step": 5
+        },
+        {
+          "id": "lostNow",
+          "type": "slider",
+          "label": "Of those, how many you lose today",
+          "min": 10,
+          "max": 100,
+          "step": 5
+        },
+        {
+          "id": "saveRate",
+          "type": "slider",
+          "label": "How many an instant auto-reply holds",
+          "min": 10,
+          "max": 90,
+          "step": 5
+        },
+        {
+          "id": "value",
+          "type": "money",
+          "label": "Value of a customer",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "close",
+          "type": "slider",
+          "label": "Close rate",
+          "min": 5,
+          "max": 90,
+          "step": 5
+        }
+      ],
+      "reference": {
+        "slug": "after-hours-lead-calculator",
+        "input": {
+          "leads": 100,
+          "share": 20,
+          "lostNow": 50,
+          "saveRate": 50,
+          "value": 100,
+          "close": 20
+        },
+        "expected": 1200,
+        "reasoning": "20 after-hours inquiries \u00d7 .5 lost \u00d7 .5 recovery \u00d7 .2 close \u00d7 $100 \u00d712."
+      }
+    },
+    {
+      "slug": "hourly-rate-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "take",
+          "type": "money",
+          "label": "What you want to take home a year",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "overhead",
+          "type": "money",
+          "label": "Yearly overhead (insurance, truck, tools, software)",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "weeks",
+          "type": "slider",
+          "label": "Weeks you actually work",
+          "min": 30,
+          "max": 52,
+          "step": 1
+        },
+        {
+          "id": "hours",
+          "type": "slider",
+          "label": "Hours you work a week",
+          "min": 10,
+          "max": 80,
+          "step": 1
+        },
+        {
+          "id": "billable",
+          "type": "slider",
+          "label": "Percent of those hours you can bill",
+          "min": 20,
+          "max": 100,
+          "step": 5
+        },
+        {
+          "id": "tax",
+          "type": "slider",
+          "label": "Set aside for taxes",
+          "min": 0,
+          "max": 45,
+          "step": 1
+        },
+        {
+          "id": "current",
+          "type": "money",
+          "label": "What you charge now per hour",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "hourly-rate-calculator",
+        "input": {
+          "take": 30000,
+          "overhead": 5000,
+          "weeks": 50,
+          "hours": 40,
+          "billable": 50,
+          "tax": 25,
+          "current": 40
+        },
+        "expected": 45,
+        "reasoning": "$30000/.75 +$5000 = $45000 needed across1000 billable hours."
+      }
+    },
+    {
+      "slug": "job-price-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "materials",
+          "type": "money",
+          "label": "Materials cost",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "waste",
+          "type": "slider",
+          "label": "Material waste and returns",
+          "min": 0,
+          "max": 25,
+          "step": 1
+        },
+        {
+          "id": "hours",
+          "type": "slider",
+          "label": "Crew hours on the job",
+          "min": 1,
+          "max": 200,
+          "step": 1
+        },
+        {
+          "id": "laborCost",
+          "type": "money",
+          "label": "Loaded cost per crew hour",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "drive",
+          "type": "slider",
+          "label": "Drive and setup hours",
+          "min": 0,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "id": "overhead",
+          "type": "slider",
+          "label": "Overhead you add to every job",
+          "min": 0,
+          "max": 60,
+          "step": 1
+        },
+        {
+          "id": "profit",
+          "type": "slider",
+          "label": "Profit you want on this job",
+          "min": 0,
+          "max": 60,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "job-price-calculator",
+        "input": {
+          "materials": 100,
+          "waste": 0,
+          "hours": 2,
+          "laborCost": 25,
+          "drive": 0,
+          "overhead": 20,
+          "profit": 25
+        },
+        "expected": 240,
+        "reasoning": "$150 direct cost +$30 overhead, divided by .75 for25% margin."
+      }
+    },
+    {
+      "slug": "profit-margin-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "cost",
+          "type": "money",
+          "label": "What it costs you",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "price",
+          "type": "money",
+          "label": "What you charge",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "target",
+          "type": "slider",
+          "label": "Margin you want",
+          "min": 5,
+          "max": 90,
+          "step": 1
+        },
+        {
+          "id": "units",
+          "type": "slider",
+          "label": "How many you sell a month",
+          "min": 1,
+          "max": 2000,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "profit-margin-calculator",
+        "input": {
+          "cost": 60,
+          "price": 100,
+          "target": 50,
+          "units": 10
+        },
+        "expected": 40,
+        "reasoning": "$40 gross profit divided by $100 price."
+      }
+    },
+    {
+      "slug": "markup-vs-margin",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "cost",
+          "type": "money",
+          "label": "What it costs you",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "markup",
+          "type": "slider",
+          "label": "Markup you add",
+          "min": 5,
+          "max": 300,
+          "step": 5
+        },
+        {
+          "id": "wantMargin",
+          "type": "slider",
+          "label": "Margin you actually want",
+          "min": 5,
+          "max": 85,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "markup-vs-margin",
+        "input": {
+          "cost": 100,
+          "markup": 50,
+          "wantMargin": 40
+        },
+        "expected": 33.3,
+        "tolerance": 0.051,
+        "reasoning": "$50 gross profit on $150 selling price is one third."
+      }
+    },
+    {
+      "slug": "break-even-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "fixed",
+          "type": "money",
+          "label": "Fixed costs a month (rent, payroll, insurance, notes)",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "ticket",
+          "type": "money",
+          "label": "Average sale",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "margin",
+          "type": "slider",
+          "label": "Gross margin on that sale",
+          "min": 5,
+          "max": 95,
+          "step": 1
+        },
+        {
+          "id": "days",
+          "type": "slider",
+          "label": "Days a month you are open",
+          "min": 8,
+          "max": 31,
+          "step": 1
+        },
+        {
+          "id": "actual",
+          "type": "slider",
+          "label": "Sales you average a month",
+          "min": 0,
+          "max": 500,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "break-even-calculator",
+        "input": {
+          "fixed": 1000,
+          "ticket": 100,
+          "margin": 50,
+          "days": 20,
+          "actual": 25
+        },
+        "expected": 20,
+        "reasoning": "$1000 fixed cost divided by $50 contribution per sale."
+      }
+    },
+    {
+      "slug": "price-increase-impact",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "price",
+          "type": "money",
+          "label": "Current price",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "cost",
+          "type": "money",
+          "label": "Your cost",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "units",
+          "type": "slider",
+          "label": "Sales a month",
+          "min": 1,
+          "max": 1000,
+          "step": 1
+        },
+        {
+          "id": "increase",
+          "type": "slider",
+          "label": "Price increase",
+          "min": 1,
+          "max": 50,
+          "step": 1
+        },
+        {
+          "id": "churn",
+          "type": "slider",
+          "label": "Customers you expect to lose",
+          "min": 0,
+          "max": 60,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "price-increase-impact",
+        "input": {
+          "price": 100,
+          "cost": 50,
+          "units": 100,
+          "increase": 10,
+          "churn": 10
+        },
+        "expected": 400,
+        "reasoning": "90 sales \u00d7$60 margin less100 sales \u00d7$50 margin."
+      }
+    },
+    {
+      "slug": "discount-damage-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "price",
+          "type": "money",
+          "label": "Your price",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "cost",
+          "type": "money",
+          "label": "Your cost",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "discount",
+          "type": "slider",
+          "label": "Discount you give",
+          "min": 1,
+          "max": 50,
+          "step": 1
+        },
+        {
+          "id": "howOften",
+          "type": "slider",
+          "label": "Deals a month you discount",
+          "min": 1,
+          "max": 200,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "discount-damage-calculator",
+        "input": {
+          "price": 100,
+          "cost": 60,
+          "discount": 10,
+          "howOften": 10
+        },
+        "expected": 25,
+        "reasoning": "$10 discount consumes25% of the original $40 gross profit."
+      }
+    },
+    {
+      "slug": "customer-lifetime-value",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "ticket",
+          "type": "money",
+          "label": "Average sale",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "visits",
+          "type": "slider",
+          "label": "Purchases per year",
+          "min": 1,
+          "max": 52,
+          "step": 1
+        },
+        {
+          "id": "years",
+          "type": "slider",
+          "label": "Years they stay",
+          "min": 1,
+          "max": 20,
+          "step": 1
+        },
+        {
+          "id": "margin",
+          "type": "slider",
+          "label": "Your gross margin",
+          "min": 5,
+          "max": 95,
+          "step": 1
+        },
+        {
+          "id": "referrals",
+          "type": "slider",
+          "label": "Customers they refer",
+          "min": 0,
+          "max": 10,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "customer-lifetime-value",
+        "input": {
+          "ticket": 100,
+          "visits": 2,
+          "years": 3,
+          "margin": 50,
+          "referrals": 1
+        },
+        "expected": 600,
+        "reasoning": "Six assumed $100 visits over the entered relationship."
+      }
+    },
+    {
+      "slug": "payment-plan-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "total",
+          "type": "money",
+          "label": "Total price",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "deposit",
+          "type": "slider",
+          "label": "Deposit percent",
+          "min": 0,
+          "max": 75,
+          "step": 5
+        },
+        {
+          "id": "payments",
+          "type": "slider",
+          "label": "Number of payments",
+          "min": 2,
+          "max": 24,
+          "step": 1
+        },
+        {
+          "id": "fee",
+          "type": "slider",
+          "label": "Payment plan fee",
+          "min": 0,
+          "max": 20,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "payment-plan-calculator",
+        "input": {
+          "total": 100,
+          "deposit": 0,
+          "payments": 3,
+          "fee": 0
+        },
+        "expected": 33.33,
+        "tolerance": 0.001,
+        "reasoning": "First two installments $33.33; final $33.34 reconciles to $100."
+      }
+    },
+    {
+      "slug": "loan-payment-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "amount",
+          "type": "money",
+          "label": "Amount financed",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "rate",
+          "type": "slider",
+          "label": "Interest rate",
+          "min": 0,
+          "max": 30,
+          "step": 0.25
+        },
+        {
+          "id": "years",
+          "type": "slider",
+          "label": "Term in years",
+          "min": 1,
+          "max": 10,
+          "step": 1
+        },
+        {
+          "id": "earns",
+          "type": "money",
+          "label": "What it earns you a month",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "loan-payment-calculator",
+        "input": {
+          "amount": 1200,
+          "rate": 0,
+          "years": 1,
+          "earns": 200
+        },
+        "expected": 100,
+        "tolerance": 0.001,
+        "reasoning": "Twelve $100 payments retire zero-interest principal of $1200."
+      }
+    },
+    {
+      "slug": "late-invoice-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "monthly",
+          "type": "money",
+          "label": "You invoice a month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "days",
+          "type": "slider",
+          "label": "Average days to get paid",
+          "min": 1,
+          "max": 120,
+          "step": 1
+        },
+        {
+          "id": "writeoff",
+          "type": "slider",
+          "label": "Percent you never collect",
+          "min": 0,
+          "max": 20,
+          "step": 0.5
+        },
+        {
+          "id": "deposit",
+          "type": "slider",
+          "label": "Deposit you could collect up front",
+          "min": 0,
+          "max": 75,
+          "step": 5
+        },
+        {
+          "id": "cost",
+          "type": "slider",
+          "label": "What borrowing costs you",
+          "min": 0,
+          "max": 30,
+          "step": 0.5
+        }
+      ],
+      "reference": {
+        "slug": "late-invoice-calculator",
+        "input": {
+          "monthly": 3650,
+          "days": 30,
+          "writeoff": 0,
+          "deposit": 50,
+          "cost": 10
+        },
+        "expected": 3600,
+        "reasoning": "$43800 annual invoicing /365 \u00d730 days = $3600 outstanding scenario."
+      }
+    },
+    {
+      "slug": "cash-runway-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "cash",
+          "type": "money",
+          "label": "Cash on hand",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "inflow",
+          "type": "money",
+          "label": "Money in per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "outflow",
+          "type": "money",
+          "label": "Money out per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "credit",
+          "type": "money",
+          "label": "Credit available if you had to",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "cash-runway-calculator",
+        "input": {
+          "cash": 18000,
+          "inflow": 9000,
+          "outflow": 12000,
+          "credit": 6000
+        },
+        "expected": 6,
+        "tolerance": 0.001,
+        "reasoning": "$18000 cash divided by $3000 monthly net cash outflow."
+      }
+    },
+    {
+      "slug": "sales-tax-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "amount",
+          "type": "money",
+          "label": "Amount",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "rate",
+          "type": "slider",
+          "label": "Combined tax rate",
+          "min": 0,
+          "max": 12,
+          "step": 0.125
+        },
+        {
+          "id": "volume",
+          "type": "slider",
+          "label": "Sales like this per month",
+          "min": 1,
+          "max": 2000,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "sales-tax-calculator",
+        "input": {
+          "amount": 108,
+          "rate": 8,
+          "mode": "post",
+          "volume": 10
+        },
+        "expected": 108,
+        "tolerance": 0.001,
+        "reasoning": "$108 inclusive total /1.08 = $100 net plus $8 tax."
+      }
+    },
+    {
+      "slug": "quarterly-tax-estimator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "revenue",
+          "type": "money",
+          "label": "Business income this year",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "expenses",
+          "type": "money",
+          "label": "Business expenses you can deduct",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "already",
+          "type": "money",
+          "label": "Already paid in this year",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "socialSecurityWages",
+          "type": "money",
+          "label": "Your Social Security wages for the year",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "medicareWages",
+          "type": "money",
+          "label": "Medicare wages for the filing unit",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "quarterly-tax-estimator",
+        "input": {
+          "revenue": 300000,
+          "expenses": 0,
+          "bracket": "22",
+          "already": 0,
+          "taxYear": "2026",
+          "socialSecurityWages": 0,
+          "medicareWages": 0,
+          "filing": "joint"
+        },
+        "path": "stats.1.value",
+        "expected": 31156,
+        "reasoning": "$184500\u00d712.4% + $277050\u00d72.9% +($277050-$250000)\u00d7.9% = $31155.90."
+      }
+    },
+    {
+      "slug": "mileage-deduction-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "weekly",
+          "type": "slider",
+          "label": "Business miles per week",
+          "min": 0,
+          "max": 2000,
+          "step": 10
+        },
+        {
+          "id": "weeks",
+          "type": "slider",
+          "label": "Weeks in this rate period",
+          "min": 1,
+          "max": 52,
+          "step": 1
+        },
+        {
+          "id": "rate",
+          "type": "number",
+          "label": "IRS standard mileage rate (cents per mile)",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "bracket",
+          "type": "slider",
+          "label": "Your combined tax rate",
+          "min": 10,
+          "max": 50,
+          "step": 1
+        },
+        {
+          "id": "missed",
+          "type": "slider",
+          "label": "Percent of miles you forget to log",
+          "min": 0,
+          "max": 80,
+          "step": 5
+        }
+      ],
+      "reference": {
+        "slug": "mileage-deduction-calculator",
+        "input": {
+          "weekly": 100,
+          "weeks": 20,
+          "rate": 76,
+          "bracket": 20,
+          "missed": 0
+        },
+        "expected": 1520,
+        "reasoning": "2000 eligible miles in a76-cent period \u00d7$.76; not a tax credit."
+      }
+    },
+    {
+      "slug": "employee-true-cost",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "wage",
+          "type": "money",
+          "label": "Hourly wage",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "hours",
+          "type": "slider",
+          "label": "Hours per week",
+          "min": 5,
+          "max": 60,
+          "step": 1
+        },
+        {
+          "id": "payrollTax",
+          "type": "slider",
+          "label": "Payroll taxes",
+          "min": 0,
+          "max": 20,
+          "step": 0.5
+        },
+        {
+          "id": "comp",
+          "type": "slider",
+          "label": "Workers comp",
+          "min": 0,
+          "max": 30,
+          "step": 0.5
+        },
+        {
+          "id": "benefits",
+          "type": "money",
+          "label": "Benefits per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "equipment",
+          "type": "money",
+          "label": "Truck, tools, phone per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "mgmt",
+          "type": "slider",
+          "label": "Hours a week you spend managing them",
+          "min": 0,
+          "max": 20,
+          "step": 0.5
+        },
+        {
+          "id": "yourRate",
+          "type": "money",
+          "label": "What your hour is worth",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "employee-true-cost",
+        "input": {
+          "wage": 20,
+          "hours": 40,
+          "payrollTax": 10,
+          "comp": 0,
+          "benefits": 0,
+          "equipment": 0,
+          "mgmt": 0,
+          "yourRate": 0
+        },
+        "expected": 22,
+        "tolerance": 0.001,
+        "reasoning": "Base wage plus10% employer burden, with no other costs."
+      }
+    },
+    {
+      "slug": "hire-vs-automate",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "personCost",
+          "type": "money",
+          "label": "Loaded cost of the hire per year",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "raise",
+          "type": "slider",
+          "label": "Yearly raise",
+          "min": 0,
+          "max": 15,
+          "step": 1
+        },
+        {
+          "id": "buildCost",
+          "type": "money",
+          "label": "One-time cost to build the system",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "monthly",
+          "type": "money",
+          "label": "System cost per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "coverage",
+          "type": "slider",
+          "label": "Percent of the work a system can do",
+          "min": 10,
+          "max": 100,
+          "step": 5
+        }
+      ],
+      "reference": {
+        "slug": "hire-vs-automate",
+        "input": {
+          "personCost": 10000,
+          "raise": 10,
+          "buildCost": 1000,
+          "monthly": 100,
+          "coverage": 50
+        },
+        "expected": 11950,
+        "reasoning": "Hire costs33100; system1000+3600+16550 residual labor=21150; difference11950."
+      }
+    },
+    {
+      "slug": "overtime-cost-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "otHours",
+          "type": "slider",
+          "label": "Overtime hours per week (all staff)",
+          "min": 0,
+          "max": 200,
+          "step": 1
+        },
+        {
+          "id": "wage",
+          "type": "money",
+          "label": "Average hourly wage",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "burden",
+          "type": "slider",
+          "label": "Payroll tax and comp on top",
+          "min": 0,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "id": "weeks",
+          "type": "slider",
+          "label": "Weeks a year this happens",
+          "min": 1,
+          "max": 52,
+          "step": 1
+        },
+        {
+          "id": "newHire",
+          "type": "money",
+          "label": "Loaded cost of another hire per year",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "overtime-cost-calculator",
+        "input": {
+          "otHours": 20,
+          "wage": 20,
+          "burden": 10,
+          "weeks": 50,
+          "newHire": 40000
+        },
+        "expected": 33000,
+        "reasoning": "1000 hours \u00d7 $20 \u00d71.5 \u00d71.1; only11000 is premium."
+      }
+    },
+    {
+      "slug": "rent-receipt",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "avg",
+          "type": "slider",
+          "label": "Average cost of each, per month",
+          "min": 9,
+          "max": 500,
+          "step": 1
+        },
+        {
+          "id": "agencyCost",
+          "type": "money",
+          "label": "Agency or web guy retainer, per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "increase",
+          "type": "slider",
+          "label": "Yearly price increase they push on you",
+          "min": 0,
+          "max": 25,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "rent-receipt",
+        "input": {
+          "stack": [
+            "website",
+            "email"
+          ],
+          "avg": 10,
+          "agencyCost": 0,
+          "increase": 0
+        },
+        "expected": 20,
+        "reasoning": "Two selected subscriptions at $10 each per month."
+      }
+    },
+    {
+      "slug": "credit-card-fee-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "volume",
+          "type": "money",
+          "label": "Card volume per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "avgSale",
+          "type": "money",
+          "label": "Average sale",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "rate",
+          "type": "slider",
+          "label": "Your rate",
+          "min": 1,
+          "max": 5,
+          "step": 0.05
+        },
+        {
+          "id": "perTxn",
+          "type": "number",
+          "label": "Per transaction fee (cents)",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "betterRate",
+          "type": "slider",
+          "label": "Rate you could negotiate",
+          "min": 1,
+          "max": 5,
+          "step": 0.05
+        }
+      ],
+      "reference": {
+        "slug": "credit-card-fee-calculator",
+        "input": {
+          "volume": 1000,
+          "avgSale": 100,
+          "rate": 3,
+          "perTxn": 30,
+          "betterRate": 2
+        },
+        "expected": 396,
+        "reasoning": "Ten transactions \u00d7$.30 plus3% of$1000 = $33 monthly \u00d712."
+      }
+    },
+    {
+      "slug": "platform-fee-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "revenue",
+          "type": "money",
+          "label": "Revenue through the platform per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "fee",
+          "type": "slider",
+          "label": "Their cut",
+          "min": 1,
+          "max": 40,
+          "step": 0.5
+        },
+        {
+          "id": "leadFees",
+          "type": "money",
+          "label": "Extra lead or listing fees per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "repeat",
+          "type": "slider",
+          "label": "Share that is repeat customers",
+          "min": 0,
+          "max": 100,
+          "step": 5
+        }
+      ],
+      "reference": {
+        "slug": "platform-fee-calculator",
+        "input": {
+          "revenue": 1000,
+          "fee": 10,
+          "leadFees": 20,
+          "repeat": 50
+        },
+        "expected": 1440,
+        "reasoning": "$100 percentage fee +$20 fixed fees each month \u00d712."
+      }
+    },
+    {
+      "slug": "per-seat-cost-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "seats",
+          "type": "slider",
+          "label": "Seats today",
+          "min": 1,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "id": "price",
+          "type": "money",
+          "label": "Price per seat per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "tools",
+          "type": "slider",
+          "label": "Number of per-seat tools you pay for",
+          "min": 1,
+          "max": 10,
+          "step": 1
+        },
+        {
+          "id": "growth",
+          "type": "slider",
+          "label": "People you plan to add",
+          "min": 0,
+          "max": 50,
+          "step": 1
+        },
+        {
+          "id": "ghost",
+          "type": "slider",
+          "label": "Seats nobody uses anymore",
+          "min": 0,
+          "max": 20,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "per-seat-cost-calculator",
+        "input": {
+          "seats": 5,
+          "price": 10,
+          "tools": 2,
+          "growth": 1,
+          "ghost": 2
+        },
+        "expected": 1200,
+        "reasoning": "Ten seats across products \u00d7$10 \u00d712."
+      }
+    },
+    {
+      "slug": "downtime-cost-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "revenue",
+          "type": "money",
+          "label": "Revenue per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "openHours",
+          "type": "slider",
+          "label": "Open hours per week",
+          "min": 10,
+          "max": 168,
+          "step": 1
+        },
+        {
+          "id": "downHours",
+          "type": "slider",
+          "label": "Hours down per year",
+          "min": 0,
+          "max": 200,
+          "step": 1
+        },
+        {
+          "id": "recovery",
+          "type": "slider",
+          "label": "Sales you never recover",
+          "min": 10,
+          "max": 100,
+          "step": 5
+        },
+        {
+          "id": "backup",
+          "type": "money",
+          "label": "Cost of a backup or redundancy per month",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "downtime-cost-calculator",
+        "input": {
+          "revenue": 5200,
+          "openHours": 40,
+          "downHours": 10,
+          "recovery": 50,
+          "backup": 10
+        },
+        "expected": 30,
+        "reasoning": "$62400 annual revenue /2080 open hours = $30 revenue per hour before loss share."
+      }
+    },
+    {
+      "slug": "equipment-buy-vs-rent",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "dayRate",
+          "type": "money",
+          "label": "Rental cost per day",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "days",
+          "type": "slider",
+          "label": "Days you need it per year",
+          "min": 1,
+          "max": 300,
+          "step": 1
+        },
+        {
+          "id": "price",
+          "type": "money",
+          "label": "Purchase price",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "upkeep",
+          "type": "money",
+          "label": "Maintenance and storage per year",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "years",
+          "type": "slider",
+          "label": "Years you would keep it",
+          "min": 1,
+          "max": 15,
+          "step": 1
+        },
+        {
+          "id": "resale",
+          "type": "money",
+          "label": "What you could sell it for after",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "equipment-buy-vs-rent",
+        "input": {
+          "dayRate": 100,
+          "days": 10,
+          "price": 1000,
+          "upkeep": 100,
+          "years": 2,
+          "resale": 200
+        },
+        "expected": 1000,
+        "reasoning": "Rent costs2000; purchase+upkeep-resale costs1000."
+      }
+    },
+    {
+      "slug": "roas-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "spend",
+          "type": "money",
+          "label": "Ad spend",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "revenue",
+          "type": "money",
+          "label": "Revenue from those ads",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "margin",
+          "type": "slider",
+          "label": "Gross margin",
+          "min": 5,
+          "max": 95,
+          "step": 1
+        },
+        {
+          "id": "fees",
+          "type": "money",
+          "label": "Agency or management fee",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "roas-calculator",
+        "input": {
+          "spend": 1000,
+          "revenue": 4000,
+          "margin": 40,
+          "fees": 200
+        },
+        "expected": 3.33,
+        "tolerance": 0.0051,
+        "reasoning": "$4000 attributed revenue /$1200 marketing cost including fees."
+      }
+    },
+    {
+      "slug": "ad-budget-planner",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "want",
+          "type": "slider",
+          "label": "New customers you want this month",
+          "min": 1,
+          "max": 200,
+          "step": 1
+        },
+        {
+          "id": "close",
+          "type": "slider",
+          "label": "Close rate on leads",
+          "min": 1,
+          "max": 90,
+          "step": 1
+        },
+        {
+          "id": "cpl",
+          "type": "money",
+          "label": "What a lead costs you",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "value",
+          "type": "money",
+          "label": "What a customer is worth",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "margin",
+          "type": "slider",
+          "label": "Gross margin",
+          "min": 5,
+          "max": 95,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "ad-budget-planner",
+        "input": {
+          "want": 10,
+          "close": 25,
+          "cpl": 40,
+          "value": 500,
+          "margin": 50
+        },
+        "expected": 1600,
+        "reasoning": "40 modeled inquiries \u00d7$40; contribution after ads is900."
+      }
+    },
+    {
+      "slug": "cac-payback-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "cac",
+          "type": "money",
+          "label": "Cost to acquire one customer",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "monthlyValue",
+          "type": "money",
+          "label": "Gross profit they bring per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "newPerMonth",
+          "type": "slider",
+          "label": "New customers per month",
+          "min": 1,
+          "max": 200,
+          "step": 1
+        },
+        {
+          "id": "churn",
+          "type": "slider",
+          "label": "Monthly customer churn rate",
+          "min": 0,
+          "max": 20,
+          "step": 0.5
+        }
+      ],
+      "reference": {
+        "slug": "cac-payback-calculator",
+        "input": {
+          "cac": 300,
+          "monthlyValue": 75,
+          "newPerMonth": 10,
+          "churn": 5
+        },
+        "expected": 4,
+        "tolerance": 0.001,
+        "reasoning": "$300 acquisition cost /$75 monthly gross profit."
+      }
+    },
+    {
+      "slug": "ad-test-budget-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "cpl",
+          "type": "money",
+          "label": "Expected cost per lead",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "leadsNeeded",
+          "type": "slider",
+          "label": "Planned leads per variant",
+          "min": 10,
+          "max": 200,
+          "step": 5
+        },
+        {
+          "id": "dailyMin",
+          "type": "money",
+          "label": "Daily budget you were planning",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "variants",
+          "type": "slider",
+          "label": "Ads or audiences you want to test",
+          "min": 1,
+          "max": 8,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "ad-test-budget-calculator",
+        "input": {
+          "cpl": 25,
+          "leadsNeeded": 20,
+          "dailyMin": 50,
+          "variants": 2
+        },
+        "expected": 1000,
+        "reasoning": "Two variants \u00d720 planned leads \u00d7$25; sample significance untested."
+      }
+    },
+    {
+      "slug": "commission-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "deals",
+          "type": "slider",
+          "label": "Deals per month",
+          "min": 1,
+          "max": 200,
+          "step": 1
+        },
+        {
+          "id": "size",
+          "type": "money",
+          "label": "Average deal size",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "margin",
+          "type": "slider",
+          "label": "Gross margin",
+          "min": 5,
+          "max": 95,
+          "step": 1
+        },
+        {
+          "id": "rate",
+          "type": "slider",
+          "label": "Commission rate",
+          "min": 1,
+          "max": 50,
+          "step": 0.5
+        },
+        {
+          "id": "base",
+          "type": "money",
+          "label": "Base pay per month",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "commission-calculator",
+        "input": {
+          "deals": 10,
+          "size": 100,
+          "margin": 50,
+          "basis": "profit",
+          "rate": 10,
+          "base": 100
+        },
+        "expected": 150,
+        "reasoning": "$500 gross profit \u00d710% commission +$100 base pay."
+      }
+    },
+    {
+      "slug": "admin-time-audit",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "hoursEach",
+          "type": "slider",
+          "label": "Hours per task per week",
+          "min": 0.25,
+          "max": 15,
+          "step": 0.25
+        },
+        {
+          "id": "worth",
+          "type": "money",
+          "label": "What your hour is worth",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "automatable",
+          "type": "slider",
+          "label": "Share of it a system could handle",
+          "min": 10,
+          "max": 95,
+          "step": 5
+        }
+      ],
+      "reference": {
+        "slug": "admin-time-audit",
+        "input": {
+          "tasks": [
+            "quotes",
+            "invoices",
+            "scheduling"
+          ],
+          "hoursEach": 2,
+          "worth": 40,
+          "automatable": 25
+        },
+        "expected": 12480,
+        "reasoning": "Six weekly hours \u00d752 \u00d7$40 time valuation."
+      }
+    },
+    {
+      "slug": "task-automation-savings",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "minutes",
+          "type": "slider",
+          "label": "Minutes the task takes",
+          "min": 1,
+          "max": 240,
+          "step": 1
+        },
+        {
+          "id": "times",
+          "type": "slider",
+          "label": "Times per week it happens",
+          "min": 1,
+          "max": 500,
+          "step": 1
+        },
+        {
+          "id": "rate",
+          "type": "money",
+          "label": "Cost of the person doing it, per hour",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "buildCost",
+          "type": "money",
+          "label": "One-time cost to automate it",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "monthly",
+          "type": "money",
+          "label": "Ongoing cost per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "errorRate",
+          "type": "slider",
+          "label": "How often it gets done wrong",
+          "min": 0,
+          "max": 30,
+          "step": 1
+        },
+        {
+          "id": "errorCost",
+          "type": "money",
+          "label": "What each mistake costs",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "task-automation-savings",
+        "input": {
+          "minutes": 60,
+          "times": 1,
+          "rate": 10,
+          "buildCost": 100,
+          "monthly": 0,
+          "errorRate": 0,
+          "errorCost": 0
+        },
+        "expected": 10,
+        "tolerance": 0.001,
+        "reasoning": "$520 assumed annual time value; $100 setup /$520 \u00d752 weeks."
+      }
+    },
+    {
+      "slug": "cost-per-mile-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "miles",
+          "type": "slider",
+          "label": "Miles per year",
+          "min": 2000,
+          "max": 100000,
+          "step": 1000
+        },
+        {
+          "id": "mpg",
+          "type": "slider",
+          "label": "Miles per gallon",
+          "min": 5,
+          "max": 45,
+          "step": 0.5
+        },
+        {
+          "id": "fuelPrice",
+          "type": "money",
+          "label": "Fuel price per gallon",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "insurance",
+          "type": "money",
+          "label": "Insurance per year",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "maintenance",
+          "type": "money",
+          "label": "Maintenance and tires per year",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "interest",
+          "type": "money",
+          "label": "Vehicle loan interest per year",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "payment",
+          "type": "money",
+          "label": "Payment per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "depreciation",
+          "type": "money",
+          "label": "Value it loses per year",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "jobMiles",
+          "type": "slider",
+          "label": "Round-trip miles on a typical job",
+          "min": 0,
+          "max": 400,
+          "step": 5
+        }
+      ],
+      "reference": {
+        "slug": "cost-per-mile-calculator",
+        "input": {
+          "miles": 10000,
+          "mpg": 10,
+          "fuelPrice": 2,
+          "insurance": 500,
+          "maintenance": 500,
+          "payment": 0,
+          "depreciation": 0,
+          "jobMiles": 10
+        },
+        "expected": 0.3,
+        "tolerance": 0.001,
+        "reasoning": "$2000 fuel +$1000 other costs /10000 miles."
+      }
+    },
+    {
+      "slug": "drive-time-cost",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "hoursDay",
+          "type": "slider",
+          "label": "Drive hours per person per day",
+          "min": 0.25,
+          "max": 8,
+          "step": 0.25
+        },
+        {
+          "id": "people",
+          "type": "slider",
+          "label": "People driving",
+          "min": 1,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "id": "days",
+          "type": "slider",
+          "label": "Days per week",
+          "min": 1,
+          "max": 7,
+          "step": 1
+        },
+        {
+          "id": "billRate",
+          "type": "money",
+          "label": "What you bill per hour",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "wage",
+          "type": "money",
+          "label": "What you pay per hour",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "improve",
+          "type": "slider",
+          "label": "Drive time better routing would cut",
+          "min": 5,
+          "max": 50,
+          "step": 5
+        }
+      ],
+      "reference": {
+        "slug": "drive-time-cost",
+        "input": {
+          "hoursDay": 1,
+          "people": 2,
+          "days": 5,
+          "billRate": 100,
+          "wage": 20,
+          "improve": 20
+        },
+        "expected": 520,
+        "reasoning": "Ten combined driving hours a week \u00d752."
+      }
+    },
+    {
+      "slug": "meeting-cost-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "people",
+          "type": "slider",
+          "label": "People in the room",
+          "min": 2,
+          "max": 50,
+          "step": 1
+        },
+        {
+          "id": "rate",
+          "type": "money",
+          "label": "Average loaded cost per hour",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "minutes",
+          "type": "slider",
+          "label": "Length in minutes",
+          "min": 15,
+          "max": 240,
+          "step": 5
+        },
+        {
+          "id": "perWeek",
+          "type": "slider",
+          "label": "Times per week",
+          "min": 0.25,
+          "max": 10,
+          "step": 0.25
+        },
+        {
+          "id": "prep",
+          "type": "slider",
+          "label": "Prep minutes per person",
+          "min": 0,
+          "max": 120,
+          "step": 5
+        }
+      ],
+      "reference": {
+        "slug": "meeting-cost-calculator",
+        "input": {
+          "people": 4,
+          "rate": 30,
+          "minutes": 60,
+          "perWeek": 1,
+          "prep": 15
+        },
+        "expected": 7800,
+        "reasoning": "Five participant-hours with prep \u00d7$30 \u00d752 sessions."
+      }
+    },
+    {
+      "slug": "owner-hourly-worth",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "profit",
+          "type": "money",
+          "label": "What the business pays you a year",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "hoursWeek",
+          "type": "slider",
+          "label": "Hours you actually work a week",
+          "min": 20,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "id": "weeks",
+          "type": "slider",
+          "label": "Weeks a year",
+          "min": 40,
+          "max": 52,
+          "step": 1
+        },
+        {
+          "id": "lowValue",
+          "type": "slider",
+          "label": "Hours a week on work you could hire out",
+          "min": 0,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "id": "hireRate",
+          "type": "money",
+          "label": "What it costs to hire that out",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "owner-hourly-worth",
+        "input": {
+          "profit": 90000,
+          "hoursWeek": 45,
+          "weeks": 50,
+          "lowValue": 5,
+          "hireRate": 25
+        },
+        "expected": 40,
+        "tolerance": 0.001,
+        "reasoning": "$90000 profit /2250 actual working hours; average only."
+      }
+    },
+    {
+      "slug": "google-review-link",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "review-goal-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "current",
+          "type": "slider",
+          "label": "Your rating now",
+          "min": 1,
+          "max": 5,
+          "step": 0.1
+        },
+        {
+          "id": "total",
+          "type": "slider",
+          "label": "Reviews you have",
+          "min": 1,
+          "max": 2000,
+          "step": 1
+        },
+        {
+          "id": "goal",
+          "type": "slider",
+          "label": "Rating you want",
+          "min": 3,
+          "max": 5,
+          "step": 0.1
+        },
+        {
+          "id": "perMonth",
+          "type": "slider",
+          "label": "New reviews you get a month",
+          "min": 0,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "id": "asked",
+          "type": "slider",
+          "label": "Customers a month you could ask",
+          "min": 1,
+          "max": 500,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "review-goal-calculator",
+        "input": {
+          "current": 4.2,
+          "total": 40,
+          "goal": 4.5,
+          "perMonth": 5,
+          "asked": 50
+        },
+        "expected": 24,
+        "reasoning": "(168+5n)/(40+n)=4.5 has n=24."
+      }
+    },
+    {
+      "slug": "bad-review-impact",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "current",
+          "type": "slider",
+          "label": "Your rating",
+          "min": 1,
+          "max": 5,
+          "step": 0.1
+        },
+        {
+          "id": "total",
+          "type": "slider",
+          "label": "Reviews you have",
+          "min": 1,
+          "max": 2000,
+          "step": 1
+        },
+        {
+          "id": "bad",
+          "type": "slider",
+          "label": "New one-star reviews",
+          "min": 1,
+          "max": 20,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "bad-review-impact",
+        "input": {
+          "current": 4.5,
+          "total": 20,
+          "bad": 1,
+          "leads": 30,
+          "value": 500,
+          "close": 25
+        },
+        "expected": 4.33,
+        "tolerance": 0.0051,
+        "reasoning": "91 rating points /21 ratings; no causal financial inference."
+      }
+    },
+    {
+      "slug": "review-response-writer",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "website-speed-money",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "visitors",
+          "type": "slider",
+          "label": "Website visitors a month",
+          "min": 50,
+          "max": 100000,
+          "step": 50
+        },
+        {
+          "id": "loadTime",
+          "type": "slider",
+          "label": "Your mobile load time in seconds",
+          "min": 0.5,
+          "max": 15,
+          "step": 0.1
+        },
+        {
+          "id": "conversion",
+          "type": "slider",
+          "label": "Visitors who contact you",
+          "min": 0.1,
+          "max": 20,
+          "step": 0.1
+        },
+        {
+          "id": "value",
+          "type": "money",
+          "label": "Value of a customer",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "close",
+          "type": "slider",
+          "label": "Close rate on inquiries",
+          "min": 5,
+          "max": 95,
+          "step": 5
+        }
+      ],
+      "reference": {
+        "slug": "website-speed-money",
+        "input": {
+          "visitors": 1000,
+          "loadTime": 2,
+          "conversion": 2,
+          "value": 100,
+          "close": 50
+        },
+        "expected": 0,
+        "reasoning": "At its2-second comparison baseline, the illustrative curve has no gap."
+      }
+    },
+    {
+      "slug": "conversion-lift-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "visitors",
+          "type": "slider",
+          "label": "Visitors a month",
+          "min": 50,
+          "max": 100000,
+          "step": 50
+        },
+        {
+          "id": "conv",
+          "type": "slider",
+          "label": "Percent who contact you now",
+          "min": 0.1,
+          "max": 25,
+          "step": 0.1
+        },
+        {
+          "id": "lift",
+          "type": "slider",
+          "label": "Improvement you could make",
+          "min": 0.1,
+          "max": 10,
+          "step": 0.1
+        },
+        {
+          "id": "close",
+          "type": "slider",
+          "label": "Close rate",
+          "min": 5,
+          "max": 95,
+          "step": 5
+        },
+        {
+          "id": "value",
+          "type": "money",
+          "label": "Value of a customer",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "cpc",
+          "type": "money",
+          "label": "Cost per website visitor from ads",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "conversion-lift-calculator",
+        "input": {
+          "visitors": 1000,
+          "conv": 2,
+          "lift": 1,
+          "close": 25,
+          "value": 500,
+          "cpc": 2
+        },
+        "expected": 15000,
+        "reasoning": "Ten extra modeled inquiries \u00d7.25 \u00d7$500 \u00d712."
+      }
+    },
+    {
+      "slug": "mobile-traffic-loss",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "visitors",
+          "type": "slider",
+          "label": "Visitors a month",
+          "min": 50,
+          "max": 100000,
+          "step": 50
+        },
+        {
+          "id": "mobileShare",
+          "type": "slider",
+          "label": "Share on a phone",
+          "min": 20,
+          "max": 95,
+          "step": 5
+        },
+        {
+          "id": "desktopConv",
+          "type": "slider",
+          "label": "Desktop conversion rate",
+          "min": 0.1,
+          "max": 25,
+          "step": 0.1
+        },
+        {
+          "id": "mobileConv",
+          "type": "slider",
+          "label": "Mobile conversion rate",
+          "min": 0.1,
+          "max": 25,
+          "step": 0.1
+        },
+        {
+          "id": "value",
+          "type": "money",
+          "label": "Value of a customer",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "close",
+          "type": "slider",
+          "label": "Close rate",
+          "min": 5,
+          "max": 95,
+          "step": 5
+        }
+      ],
+      "reference": {
+        "slug": "mobile-traffic-loss",
+        "input": {
+          "visitors": 1000,
+          "mobileShare": 50,
+          "desktopConv": 2,
+          "mobileConv": 1,
+          "value": 100,
+          "close": 20
+        },
+        "expected": 1200,
+        "reasoning": "500 mobile visits \u00d7.01 rate gap \u00d7.2 close \u00d7$100 \u00d712."
+      }
+    },
+    {
+      "slug": "seo-traffic-value",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "visitors",
+          "type": "slider",
+          "label": "Organic visitors a month",
+          "min": 10,
+          "max": 50000,
+          "step": 10
+        },
+        {
+          "id": "cpc",
+          "type": "money",
+          "label": "Cost per click if you bought it",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "conv",
+          "type": "slider",
+          "label": "Percent who contact you",
+          "min": 0.1,
+          "max": 25,
+          "step": 0.1
+        },
+        {
+          "id": "close",
+          "type": "slider",
+          "label": "Close rate",
+          "min": 5,
+          "max": 95,
+          "step": 5
+        },
+        {
+          "id": "value",
+          "type": "money",
+          "label": "Value of a customer",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "growth",
+          "type": "slider",
+          "label": "Traffic growth you are aiming for",
+          "min": 10,
+          "max": 300,
+          "step": 10
+        }
+      ],
+      "reference": {
+        "slug": "seo-traffic-value",
+        "input": {
+          "visitors": 100,
+          "cpc": 2,
+          "conv": 2,
+          "close": 50,
+          "value": 100,
+          "growth": 50
+        },
+        "expected": 2400,
+        "reasoning": "100 monthly visits \u00d7$2 replacement-click assumption \u00d712."
+      }
+    },
+    {
+      "slug": "website-grader",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [],
+      "reference": {
+        "slug": "website-grader",
+        "input": {
+          "checks": [
+            "phone",
+            "mobile"
+          ],
+          "visitors": 100,
+          "value": 100
+        },
+        "expected": "10 / 100",
+        "reasoning": "Two of20 self-reported checklist items, not an observed conversion score."
+      }
+    },
+    {
+      "slug": "google-business-profile-scorecard",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [],
+      "reference": {
+        "slug": "google-business-profile-scorecard",
+        "input": {
+          "checks": [
+            "claimed",
+            "hours"
+          ]
+        },
+        "expected": "10 / 100",
+        "reasoning": "Two of20 self-reported checklist items, not a Google ranking score."
+      }
+    },
+    {
+      "slug": "form-friction-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "fields",
+          "type": "slider",
+          "label": "Fields on your form",
+          "min": 1,
+          "max": 20,
+          "step": 1
+        },
+        {
+          "id": "visitors",
+          "type": "slider",
+          "label": "People who reach the form each month",
+          "min": 10,
+          "max": 20000,
+          "step": 10
+        },
+        {
+          "id": "baseStart",
+          "type": "slider",
+          "label": "Percent who start filling it out",
+          "min": 5,
+          "max": 100,
+          "step": 5
+        },
+        {
+          "id": "value",
+          "type": "money",
+          "label": "Value of a customer",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "close",
+          "type": "slider",
+          "label": "Close rate",
+          "min": 5,
+          "max": 95,
+          "step": 5
+        }
+      ],
+      "reference": {
+        "slug": "form-friction-calculator",
+        "input": {
+          "fields": 3,
+          "visitors": 100,
+          "baseStart": 50,
+          "value": 100,
+          "close": 50
+        },
+        "expected": 0,
+        "reasoning": "At its3-field model baseline there is no modeled extra-field gap."
+      }
+    },
+    {
+      "slug": "qr-code-maker",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": [
+        {
+          "id": "size",
+          "type": "slider",
+          "label": "Image size in pixels",
+          "min": 200,
+          "max": 1000,
+          "step": 20
+        }
+      ]
+    },
+    {
+      "slug": "wifi-qr-code",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "digital-business-card",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "click-to-call-button",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "sms-link-generator",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "utm-link-builder",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "email-signature-generator",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "missed-call-textback-script",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "review-request-script",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "estimate-terms-generator",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": [
+        {
+          "id": "deposit",
+          "type": "slider",
+          "label": "Deposit required",
+          "min": 0,
+          "max": 75,
+          "step": 5
+        },
+        {
+          "id": "validDays",
+          "type": "slider",
+          "label": "Estimate good for",
+          "min": 7,
+          "max": 90,
+          "step": 1
+        },
+        {
+          "id": "lateFee",
+          "type": "slider",
+          "label": "Late fee per month",
+          "min": 0,
+          "max": 5,
+          "step": 0.5
+        }
+      ]
+    },
+    {
+      "slug": "late-payment-language",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": [
+        {
+          "id": "days",
+          "type": "slider",
+          "label": "Payment due in",
+          "min": 0,
+          "max": 60,
+          "step": 1
+        },
+        {
+          "id": "lateFee",
+          "type": "slider",
+          "label": "Late fee per month",
+          "min": 0,
+          "max": 5,
+          "step": 0.5
+        },
+        {
+          "id": "discount",
+          "type": "slider",
+          "label": "Early payment discount",
+          "min": 0,
+          "max": 10,
+          "step": 0.5
+        },
+        {
+          "id": "discountDays",
+          "type": "slider",
+          "label": "Early discount if paid within",
+          "min": 1,
+          "max": 20,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "slug": "cancellation-policy-generator",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": [
+        {
+          "id": "notice",
+          "type": "slider",
+          "label": "Notice required to cancel",
+          "min": 2,
+          "max": 72,
+          "step": 1
+        },
+        {
+          "id": "feeAmount",
+          "type": "money",
+          "label": "Fee amount",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "feePercent",
+          "type": "slider",
+          "label": "Fee percent",
+          "min": 10,
+          "max": 100,
+          "step": 5
+        },
+        {
+          "id": "grace",
+          "type": "slider",
+          "label": "How late before it is a no-show",
+          "min": 5,
+          "max": 60,
+          "step": 5
+        }
+      ]
+    },
+    {
+      "slug": "localbusiness-schema-generator",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "faq-schema-generator",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "meta-title-description-writer",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "ad-character-counter",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "google-maps-link-generator",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "add-to-calendar-link",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "voicemail-script-generator",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "job-post-writer",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": [
+        {
+          "id": "payLow",
+          "type": "money",
+          "label": "Pay range, low",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "payHigh",
+          "type": "money",
+          "label": "Pay range, high",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ]
+    },
+    {
+      "slug": "google-post-writer",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "robots-txt-generator",
+      "classification": "document-link-generator-boundary-and-existing-tests",
+      "numericFields": []
+    },
+    {
+      "slug": "household-budget-planner",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "income",
+          "type": "money",
+          "label": "Take-home pay per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "housing",
+          "type": "money",
+          "label": "Rent or mortgage",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "utilities",
+          "type": "money",
+          "label": "Utilities, phone and internet",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "food",
+          "type": "money",
+          "label": "Groceries and eating out",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "transport",
+          "type": "money",
+          "label": "Car payment, fuel and insurance",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "childcare",
+          "type": "money",
+          "label": "Childcare and school costs",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "debt",
+          "type": "money",
+          "label": "Loan and card payments",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "other",
+          "type": "money",
+          "label": "Everything else",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "household-budget-planner",
+        "input": {
+          "income": 4000,
+          "housing": 1000,
+          "utilities": 200,
+          "food": 500,
+          "transport": 300,
+          "childcare": 0,
+          "debt": 100,
+          "other": 400
+        },
+        "expected": 1500,
+        "reasoning": "$4000 income less $2500 listed outgoings."
+      }
+    },
+    {
+      "slug": "grocery-unit-price-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "sizeA",
+          "type": "number",
+          "label": "Option A size",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "priceA",
+          "type": "money",
+          "label": "Option A price",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "sizeB",
+          "type": "number",
+          "label": "Option B size",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "priceB",
+          "type": "money",
+          "label": "Option B price",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "perMonth",
+          "type": "slider",
+          "label": "How many you buy a month",
+          "min": 1,
+          "max": 30,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "grocery-unit-price-calculator",
+        "input": {
+          "unit": "oz",
+          "sizeA": 10,
+          "priceA": 5,
+          "sizeB": 20,
+          "priceB": 8,
+          "perMonth": 2
+        },
+        "path": "stats.2.value",
+        "expected": 48,
+        "reasoning": "$.10 difference per ounce \u00d740 equivalent monthly ounces \u00d712."
+      }
+    },
+    {
+      "slug": "childcare-vs-work-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "salary",
+          "type": "money",
+          "label": "Gross pay for this job",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "taxRate",
+          "type": "slider",
+          "label": "Rough combined tax rate",
+          "min": 0,
+          "max": 50,
+          "step": 1
+        },
+        {
+          "id": "childcare",
+          "type": "money",
+          "label": "Childcare per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "commuteDaily",
+          "type": "money",
+          "label": "Commuting cost per working day",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "daysPerWeek",
+          "type": "slider",
+          "label": "Days worked per week",
+          "min": 1,
+          "max": 7,
+          "step": 1
+        },
+        {
+          "id": "weeks",
+          "type": "slider",
+          "label": "Weeks worked per year",
+          "min": 30,
+          "max": 52,
+          "step": 1
+        },
+        {
+          "id": "hoursPerDay",
+          "type": "slider",
+          "label": "Hours per working day",
+          "min": 2,
+          "max": 14,
+          "step": 0.5
+        },
+        {
+          "id": "extras",
+          "type": "money",
+          "label": "Extra spending per month because you work",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "childcare-vs-work-calculator",
+        "input": {
+          "salary": 40000,
+          "taxRate": 20,
+          "childcare": 500,
+          "commuteDaily": 10,
+          "daysPerWeek": 5,
+          "weeks": 40,
+          "hoursPerDay": 8,
+          "extras": 100
+        },
+        "expected": 22800,
+        "reasoning": "$32000 after assumed tax less6000 care,2000 commute,1200 extras."
+      }
+    },
+    {
+      "slug": "subscription-audit",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "avg",
+          "type": "slider",
+          "label": "Average price of each",
+          "min": 3,
+          "max": 80,
+          "step": 1
+        },
+        {
+          "id": "other",
+          "type": "money",
+          "label": "Anything else, total per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "unused",
+          "type": "slider",
+          "label": "How many you have not used this month",
+          "min": 0,
+          "max": 15,
+          "step": 1
+        },
+        {
+          "id": "increase",
+          "type": "slider",
+          "label": "Typical yearly price rise",
+          "min": 0,
+          "max": 20,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "subscription-audit",
+        "input": {
+          "services": [
+            "video1",
+            "music"
+          ],
+          "avg": 10,
+          "other": 5,
+          "unused": 1,
+          "increase": 0
+        },
+        "expected": 300,
+        "reasoning": "Two$10 services +$5 other monthly \u00d712."
+      }
+    },
+    {
+      "slug": "emergency-fund-calculator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "essentials",
+          "type": "money",
+          "label": "Essential spending per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "months",
+          "type": "slider",
+          "label": "Months you want covered",
+          "min": 1,
+          "max": 12,
+          "step": 1
+        },
+        {
+          "id": "saved",
+          "type": "money",
+          "label": "Saved so far",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "monthly",
+          "type": "money",
+          "label": "What you can put aside each month",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "emergency-fund-calculator",
+        "input": {
+          "essentials": 1000,
+          "months": 3,
+          "saved": 1000,
+          "monthly": 500
+        },
+        "expected": 2000,
+        "reasoning": "$3000 chosen target less$1000 already saved."
+      }
+    },
+    {
+      "slug": "debt-payoff-planner",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "balance",
+          "type": "money",
+          "label": "Balance owed",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "apr",
+          "type": "slider",
+          "label": "Interest rate",
+          "min": 0,
+          "max": 36,
+          "step": 0.25
+        },
+        {
+          "id": "payment",
+          "type": "money",
+          "label": "What you pay each month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "extra",
+          "type": "money",
+          "label": "Extra you could add each month",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "debt-payoff-planner",
+        "input": {
+          "balance": 1200,
+          "apr": 0,
+          "payment": 110,
+          "extra": 40
+        },
+        "expected": 11,
+        "tolerance": 0.001,
+        "reasoning": "Ten$110 payments plus$100 final payment; zero accrued interest."
+      }
+    },
+    {
+      "slug": "rent-affordability-estimator",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "income",
+          "type": "money",
+          "label": "Household take-home per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "rent",
+          "type": "money",
+          "label": "Rent per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "utilities",
+          "type": "money",
+          "label": "Utilities not included in rent",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "debts",
+          "type": "money",
+          "label": "Loan, card and car payments per month",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "other",
+          "type": "money",
+          "label": "Everything else you must pay",
+          "min": 0,
+          "max": 1000000000000
+        }
+      ],
+      "reference": {
+        "slug": "rent-affordability-estimator",
+        "input": {
+          "income": 4000,
+          "rent": 1000,
+          "utilities": 200,
+          "debts": 100,
+          "other": 500
+        },
+        "expected": 30,
+        "reasoning": "$1200 housing /$4000 take-home; not a universal affordability rule."
+      }
+    },
+    {
+      "slug": "salary-to-hourly-converter",
+      "classification": "reference-arithmetic-and-boundary-checked",
+      "numericFields": [
+        {
+          "id": "salary",
+          "type": "money",
+          "label": "Annual salary",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "hours",
+          "type": "slider",
+          "label": "Hours you are contracted for each week",
+          "min": 4,
+          "max": 80,
+          "step": 1
+        },
+        {
+          "id": "extra",
+          "type": "slider",
+          "label": "Unpaid extra hours a week",
+          "min": 0,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "id": "pto",
+          "type": "slider",
+          "label": "Paid days off a year",
+          "min": 0,
+          "max": 45,
+          "step": 1
+        },
+        {
+          "id": "compareSalary",
+          "type": "money",
+          "label": "Another offer to compare",
+          "min": 0,
+          "max": 1000000000000
+        },
+        {
+          "id": "compareHours",
+          "type": "slider",
+          "label": "Hours a week on that one",
+          "min": 4,
+          "max": 80,
+          "step": 1
+        }
+      ],
+      "reference": {
+        "slug": "salary-to-hourly-converter",
+        "input": {
+          "salary": 52000,
+          "hours": 40,
+          "extra": 10,
+          "pto": 10,
+          "compareSalary": 50000,
+          "compareHours": 40
+        },
+        "expected": 20.8,
+        "tolerance": 0.001,
+        "reasoning": "50 working weeks \u00d750 actual weekly hours =2500; $52000/2500."
+      }
+    }
+  ],
+  "validation": {
+    "checkedAt": "2026-09-07T02:13:32.538835+00:00",
+    "calculationGate": {
+      "tests": 328,
+      "suites": 24,
+      "passed": 328,
+      "failed": 0,
+      "log": "/tmp/leadflow-calculation-release-gate.log"
+    },
+    "currentFullSuite": {
+      "tests": 888,
+      "suites": 88,
+      "passed": 888,
+      "failed": 0,
+      "log": "/tmp/leadflow-articles-final-tests.log"
+    },
+    "contentAndOg": {
+      "tests": 22,
+      "passed": 22,
+      "failed": 0,
+      "renderedUnique1200x630Pngs": 45,
+      "log": "/tmp/leadflow-45-final-content-tests.log"
+    },
+    "typecheck": "passed --noEmit --incremental false at source handoff; parent reruns after remaining payment work",
+    "lint": "0 errors; two Next img warnings inside ImageResponse-compatible OG rendering",
+    "remainingIntegration": "Paid-kit agent is adding additional independent parity checks under tests/pro-kit*.test.ts; both build scripts automatically include them. Parent owns final build/deploy/live validation."
+  }
+}

@@ -7,16 +7,16 @@ export const TOOL_SEO: Record<string, { seoTitle: string; seoDescription: string
     seoDescription: "Enter your rating, review count and the rating you want. See how many new five-star reviews it takes and how long at your current pace. Free, no login.",
   },
   "bad-review-impact": {
-    seoTitle: "Bad Review Impact Calculator: what one star costs you",
-    seoDescription: "Enter your rating, review count and leads a month. See what a single one-star does to your average and how many good reviews erase it. Free, no signup.",
+    seoTitle: "Bad Review Impact Calculator: understand rating averages",
+    seoDescription: "See how added one-star ratings change a weighted average. Understand review-count math without inventing lost sales or asking for a specific rating.",
   },
   "review-response-writer": {
     seoTitle: "Review Response Writer: a reply you can post, free",
     seoDescription: "Paste in what they said and pick the situation. Get a calm, human response you can post, for good reviews and bad ones. Free to use and share.",
   },
   "website-speed-money": {
-    seoTitle: "Slow Website Cost Calculator: what load time costs you",
-    seoDescription: "Enter visitors, load time and customer value. Put a dollar figure on your load time and see what getting under two seconds is worth. Free, no login.",
+    seoTitle: "Website Speed Scenario Calculator: explore assumptions",
+    seoDescription: "Explore an illustrative load-time model with visible assumptions. Compare scenarios, then measure actual speed and conversions. Free, no login.",
   },
   "conversion-lift-calculator": {
     seoTitle: "Conversion Rate Lift Calculator: what 1 percent is worth",
@@ -32,15 +32,15 @@ export const TOOL_SEO: Record<string, { seoTitle: string; seoDescription: string
   },
   "website-grader": {
     seoTitle: "Website Scorecard: score your site in two minutes, free",
-    seoDescription: "Pull your site up on your phone and go down twenty checks that decide whether a visitor calls. Get a score, a grade and what to fix first. Free, no signup.",
+    seoDescription: "Review twenty website checklist items on your phone. Get a self-reported coverage score and a fix list, not a revenue or ranking prediction. Free.",
   },
   "google-business-profile-scorecard": {
     seoTitle: "Google Business Profile Scorecard: score your listing free",
-    seoDescription: "Check your Google Business Profile against the list of what actually moves it. Tick off what is done, get a score and a fix list. Free, nothing to install.",
+    seoDescription: "Review your Google Business Profile details, photos, reviews and contact options. Get a checklist score and clear next actions. Free, no Google login needed.",
   },
   "form-friction-calculator": {
-    seoTitle: "Form Field Friction Calculator: what long forms cost",
-    seoDescription: "Enter your form fields, monthly visitors and close rate. See how many leads each extra question loses and what a shorter form recovers. Free, no signup.",
+    seoTitle: "Form Length Scenario Calculator: compare assumptions",
+    seoDescription: "Explore a hypothetical form-completion model with clear assumptions. Compare form lengths, then test actual completed inquiries. Free, no signup.",
   },
   "credit-card-fee-calculator": {
     seoTitle: "Card Processing Fee Calculator: your yearly total, free",
@@ -92,7 +92,7 @@ export const TOOL_SEO: Record<string, { seoTitle: string; seoDescription: string
   },
   "cost-per-mile-calculator": {
     seoTitle: "Vehicle Cost Per Mile Calculator: what your truck costs",
-    seoDescription: "Enter fuel, insurance, maintenance, tires, the note and depreciation. Get the per-mile number you need before quoting a job an hour away. Free, no signup.",
+    seoDescription: "Compare vehicle cash outlay or economic cost per mile. Keep loan payments and depreciation separate, then add job costs outside the model. Free.",
   },
   "drive-time-cost": {
     seoTitle: "Windshield Time Calculator: what drive time costs a year",
@@ -176,11 +176,11 @@ export const TOOL_SEO: Record<string, { seoTitle: string; seoDescription: string
   },
   "quarterly-tax-estimator": {
     seoTitle: "Quarterly Tax Set-Aside Estimator: what to save, free",
-    seoDescription: "Enter business income, expenses and your tax bracket. Get a rough set-aside number, including the self-employment tax people forget about. Free, no login.",
+    seoDescription: "Explore a tax-reserve scenario with business income, expenses, wages and tax year. See the assumptions and exclusions before planning payments. Free.",
   },
   "mileage-deduction-calculator": {
     seoTitle: "Mileage Deduction Calculator: what your driving is worth",
-    seoDescription: "Enter business miles a week, the IRS rate and your tax rate. See what your driving is worth and what forgetting to log it costs you. Free to use and share.",
+    seoDescription: "Estimate business mileage deductions using the rate for each trip period. Keep the deduction separate from a tax-effect scenario. Free to use and share.",
   },
   "employee-true-cost": {
     seoTitle: "True Cost of an Employee Calculator: the loaded number",

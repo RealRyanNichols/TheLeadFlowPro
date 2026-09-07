@@ -7,7 +7,7 @@ It exists to be shown off daily and to start the conversation that sells the own
 ## Rules
 
 - Real numbers or nothing. A feed that cannot be read renders "Feed unavailable". Never zeros, never samples.
-- Aggregate counts only. No names, emails, phones, or dollar figures. `showSales` stays `false` until Ryan approves a business showing a sales count (still a count, never dollars).
+- Aggregate counts only. No names, emails, phones, or dollar figures. Ryan explicitly approved PDA and RRN proof on September 6, 2026; those two boards show payment-record counts with source definitions. Other boards stay `showSales: false` until authorized.
 - Paid lead: came from an ad the business paid for (`source` is a Meta lead ad, or `utm_medium` in paid/cpc/ppc/paid_social). Unpaid lead: everything else, including inbound calls and tool sign-ups.
 - Days are bucketed in America/Chicago on the database side.
 
@@ -24,7 +24,7 @@ It is `security definer`, granted to `anon`, and returns aggregates only, so the
 
 - The LeadFlow Pro: `supabase/migrations/20260903021000_scoreboard_public_daily.sql`. Read through the service client.
 - Premier Dental Academy of Longview: applied 2026-09-03 to project `lmbsuwslsycukynzpzik` (migration name `scoreboard_public_daily`). Sources: `page_visits` (`pv:` rows are views, `click:` rows are clicks), `leads` (`quo_call` rows are calls, Meta lead ad rows are paid), `purchases` (completed or active).
-- RealRyanNichols.com: applied 2026-09-03 to project `rpchhzncxigczfojfdtc`. Sources: `page_views`, `page_events` (`click`), leads = `book_email_signups` + `notify_signups` + `poll_unlocks` + `chat_escalations` with contact (all unpaid: the site buys no ads), sales = paid `book_orders` + paid `orders` + `donations` not refunded. `showSales` is on for this board only: it is Ryan's own company and the book case study.
+- RealRyanNichols.com: applied 2026-09-03 to project `rpchhzncxigczfojfdtc`. Sources: `page_views`, `page_events` (`click`), leads = `book_email_signups` + `notify_signups` + `poll_unlocks` + `chat_escalations` with contact. The feed does not classify advertising attribution or measure calls; its zero placeholders are not presented as observed results for those metrics. Payment records = paid `book_orders` + paid `orders` + `donations` not refunded.
 - Lone Star Total Wash has a `leads` table but no page tracking yet, so it has no board. Installing first-party tracking there is the upsell.
 
 To add a business: write the same function against that project's tables, grant it to anon, then add an entry to `SCOREBOARD_BUSINESSES` in `lib/scoreboard.ts` with the project URL and publishable key. A site that is not on Supabase (Faretta on Wix, for example) has no feed yet; do not add it with made-up numbers.
@@ -36,3 +36,4 @@ To add a business: write the same function against that project's tables, grant 
 - `app/scoreboard/page.tsx` and `app/scoreboard/[business]/page.tsx`: ISR, revalidate 900 seconds.
 - `components/scoreboard/ScoreboardBoard.tsx`: window toggle, tiles, 30 day chart (inline SVG, no library).
 - Footer link under Proof; cross-link from /proof-floor; both routes in the sitemap.
+- `lib/scoreboardCaptureCoverage.ts` and `lib/scoreboardCaptureFeeds.ts`: separate aggregate capture-source breakdown, with fail-closed validation. The SQL for each named source project and overlap rules are documented in `docs/search-and-business-proof-2026-09-06.md`. These source counts are never blindly added to the main lead count.

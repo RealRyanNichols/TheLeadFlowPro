@@ -1,0 +1,1605 @@
+{
+  "observedAt": "2026-09-07T02:02:54.086876+00:00",
+  "sitemapCount": 216,
+  "sitemapUniqueCount": 216,
+  "sitemapProblems": [],
+  "linkedPublicDestinationsChecked": 224,
+  "additionalDestinations": [
+    {
+      "url": "https://www.theleadflowpro.com/",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/",
+      "canonical": "https://www.theleadflowpro.com",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/chatgpt/free",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/chatgpt/free",
+      "canonical": "https://www.theleadflowpro.com",
+      "robots": [
+        "noindex, nofollow"
+      ]
+    },
+    {
+      "url": "https://www.theleadflowpro.com/deposit",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/deposit",
+      "canonical": "https://www.theleadflowpro.com/deposit",
+      "robots": [
+        "noindex, follow"
+      ]
+    },
+    {
+      "url": "https://www.theleadflowpro.com/events",
+      "status": 200,
+      "finalUrl": "https://workshop.theleadflowpro.com/",
+      "canonical": "https://workshop.theleadflowpro.com/",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/go/tools/manage",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/go/tools/manage",
+      "canonical": "https://www.theleadflowpro.com",
+      "robots": [
+        "noindex, nofollow"
+      ]
+    },
+    {
+      "url": "https://www.theleadflowpro.com/login",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/login",
+      "canonical": "https://www.theleadflowpro.com",
+      "robots": [
+        "noindex, follow"
+      ]
+    },
+    {
+      "url": "https://www.theleadflowpro.com/operator-academy",
+      "status": 308,
+      "finalUrl": "https://www.theleadflowpro.com/operator-academy",
+      "error": "HTTP error"
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/pro/unlock",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/pro/unlock",
+      "canonical": "https://www.theleadflowpro.com",
+      "robots": [
+        "noindex, follow"
+      ]
+    },
+    {
+      "url": "https://www.theleadflowpro.com/video/data-centers-are-coming-to-texas.mp4",
+      "status": null,
+      "error": "NotImplementedError"
+    }
+  ],
+  "brokenLinks": [],
+  "allSitemapPages": [
+    {
+      "url": "https://www.theleadflowpro.com",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com",
+      "canonical": "https://www.theleadflowpro.com",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/about",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/about",
+      "canonical": "https://www.theleadflowpro.com/about",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/services",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/services",
+      "canonical": "https://www.theleadflowpro.com/services",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/start",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/start",
+      "canonical": "https://www.theleadflowpro.com/start",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/diagnostic",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/diagnostic",
+      "canonical": "https://www.theleadflowpro.com/diagnostic",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/free-build",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/free-build",
+      "canonical": "https://www.theleadflowpro.com/free-build",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/pricing",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/pricing",
+      "canonical": "https://www.theleadflowpro.com/pricing",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/packages",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/packages",
+      "canonical": "https://www.theleadflowpro.com/packages",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/packages/system-map",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/packages/system-map",
+      "canonical": "https://www.theleadflowpro.com/packages/system-map",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/packages/launch",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/packages/launch",
+      "canonical": "https://www.theleadflowpro.com/packages/launch",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/packages/industry-os",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/packages/industry-os",
+      "canonical": "https://www.theleadflowpro.com/packages/industry-os",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/add-ons",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/add-ons",
+      "canonical": "https://www.theleadflowpro.com/add-ons",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools",
+      "canonical": "https://www.theleadflowpro.com/tools",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/pro",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/pro",
+      "canonical": "https://www.theleadflowpro.com/tools/pro",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/portfolio",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/portfolio",
+      "canonical": "https://www.theleadflowpro.com/portfolio",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/results",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/results",
+      "canonical": "https://www.theleadflowpro.com/results",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/premier-system",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/premier-system",
+      "canonical": "https://www.theleadflowpro.com/premier-system",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/live",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/live",
+      "canonical": "https://www.theleadflowpro.com/live",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/scoreboard",
+      "canonical": "https://www.theleadflowpro.com/scoreboard",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/proof-floor",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/proof-floor",
+      "canonical": "https://www.theleadflowpro.com/proof-floor",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/operatoros",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/operatoros",
+      "canonical": "https://www.theleadflowpro.com/operatoros",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/showcase",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/showcase",
+      "canonical": "https://www.theleadflowpro.com/showcase",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/demo",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/demo",
+      "canonical": "https://www.theleadflowpro.com/demo",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles",
+      "canonical": "https://www.theleadflowpro.com/articles",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/academy",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/academy",
+      "canonical": "https://www.theleadflowpro.com/academy",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/training",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/training",
+      "canonical": "https://www.theleadflowpro.com/training",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/chatgpt",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/chatgpt",
+      "canonical": "https://www.theleadflowpro.com/chatgpt",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/operator-academy/content-engine",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/operator-academy/content-engine",
+      "canonical": "https://www.theleadflowpro.com/operator-academy/content-engine",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/go/tools",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/go/tools",
+      "canonical": "https://www.theleadflowpro.com/go/tools",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/go/lead-follow-up",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/go/lead-follow-up",
+      "canonical": "https://www.theleadflowpro.com/go/lead-follow-up",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/contact",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/contact",
+      "canonical": "https://www.theleadflowpro.com/contact",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/book",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/book",
+      "canonical": "https://www.theleadflowpro.com/book",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/privacy",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/privacy",
+      "canonical": "https://www.theleadflowpro.com/privacy",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/terms",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/terms",
+      "canonical": "https://www.theleadflowpro.com/terms",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/training/chatgpt-operator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/training/chatgpt-operator",
+      "canonical": "https://www.theleadflowpro.com/training/chatgpt-operator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/training/content-engine",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/training/content-engine",
+      "canonical": "https://www.theleadflowpro.com/training/content-engine",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/training/offer-engine",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/training/offer-engine",
+      "canonical": "https://www.theleadflowpro.com/training/offer-engine",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/training/lead-capture-system",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/training/lead-capture-system",
+      "canonical": "https://www.theleadflowpro.com/training/lead-capture-system",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/training/follow-up-engine",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/training/follow-up-engine",
+      "canonical": "https://www.theleadflowpro.com/training/follow-up-engine",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/training/website-conversion-system",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/training/website-conversion-system",
+      "canonical": "https://www.theleadflowpro.com/training/website-conversion-system",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/training/ai-agents-for-business",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/training/ai-agents-for-business",
+      "canonical": "https://www.theleadflowpro.com/training/ai-agents-for-business",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/training/local-ads-operator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/training/local-ads-operator",
+      "canonical": "https://www.theleadflowpro.com/training/local-ads-operator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/training/business-dashboard-analytics",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/training/business-dashboard-analytics",
+      "canonical": "https://www.theleadflowpro.com/training/business-dashboard-analytics",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/training/company-os-blueprint",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/training/company-os-blueprint",
+      "canonical": "https://www.theleadflowpro.com/training/company-os-blueprint",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard/the-leadflow-pro",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/scoreboard/the-leadflow-pro",
+      "canonical": "https://www.theleadflowpro.com/scoreboard/the-leadflow-pro",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard/premier-dental-academy-of-longview",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/scoreboard/premier-dental-academy-of-longview",
+      "canonical": "https://www.theleadflowpro.com/scoreboard/premier-dental-academy-of-longview",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard/realryannichols",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/scoreboard/realryannichols",
+      "canonical": "https://www.theleadflowpro.com/scoreboard/realryannichols",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/system/attention",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/system/attention",
+      "canonical": "https://www.theleadflowpro.com/system/attention",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/system/website",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/system/website",
+      "canonical": "https://www.theleadflowpro.com/system/website",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/system/lead-capture",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/system/lead-capture",
+      "canonical": "https://www.theleadflowpro.com/system/lead-capture",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/system/crm",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/system/crm",
+      "canonical": "https://www.theleadflowpro.com/system/crm",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/system/follow-up",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/system/follow-up",
+      "canonical": "https://www.theleadflowpro.com/system/follow-up",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/system/sale",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/system/sale",
+      "canonical": "https://www.theleadflowpro.com/system/sale",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/system/delivery",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/system/delivery",
+      "canonical": "https://www.theleadflowpro.com/system/delivery",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/system/reporting",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/system/reporting",
+      "canonical": "https://www.theleadflowpro.com/system/reporting",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/missed-call-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/missed-call-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/missed-call-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/lead-response-time",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/lead-response-time",
+      "canonical": "https://www.theleadflowpro.com/tools/lead-response-time",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/lead-value-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/lead-value-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/lead-value-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/cost-per-lead-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/cost-per-lead-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/cost-per-lead-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/no-show-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/no-show-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/no-show-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/quote-follow-up-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/quote-follow-up-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/quote-follow-up-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/close-rate-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/close-rate-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/close-rate-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/lead-goal-planner",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/lead-goal-planner",
+      "canonical": "https://www.theleadflowpro.com/tools/lead-goal-planner",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/capacity-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/capacity-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/capacity-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/after-hours-lead-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/after-hours-lead-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/after-hours-lead-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/hourly-rate-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/hourly-rate-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/hourly-rate-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/job-price-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/job-price-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/job-price-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/profit-margin-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/profit-margin-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/profit-margin-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/markup-vs-margin",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/markup-vs-margin",
+      "canonical": "https://www.theleadflowpro.com/tools/markup-vs-margin",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/break-even-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/break-even-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/break-even-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/price-increase-impact",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/price-increase-impact",
+      "canonical": "https://www.theleadflowpro.com/tools/price-increase-impact",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/discount-damage-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/discount-damage-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/discount-damage-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/customer-lifetime-value",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/customer-lifetime-value",
+      "canonical": "https://www.theleadflowpro.com/tools/customer-lifetime-value",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/payment-plan-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/payment-plan-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/payment-plan-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/loan-payment-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/loan-payment-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/loan-payment-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/late-invoice-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/late-invoice-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/late-invoice-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/cash-runway-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/cash-runway-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/cash-runway-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/sales-tax-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/sales-tax-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/sales-tax-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/quarterly-tax-estimator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/quarterly-tax-estimator",
+      "canonical": "https://www.theleadflowpro.com/tools/quarterly-tax-estimator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/mileage-deduction-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/mileage-deduction-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/mileage-deduction-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/employee-true-cost",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/employee-true-cost",
+      "canonical": "https://www.theleadflowpro.com/tools/employee-true-cost",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/hire-vs-automate",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/hire-vs-automate",
+      "canonical": "https://www.theleadflowpro.com/tools/hire-vs-automate",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/overtime-cost-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/overtime-cost-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/overtime-cost-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/rent-receipt",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/rent-receipt",
+      "canonical": "https://www.theleadflowpro.com/tools/rent-receipt",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/credit-card-fee-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/credit-card-fee-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/credit-card-fee-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/platform-fee-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/platform-fee-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/platform-fee-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/per-seat-cost-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/per-seat-cost-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/per-seat-cost-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/downtime-cost-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/downtime-cost-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/downtime-cost-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/equipment-buy-vs-rent",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/equipment-buy-vs-rent",
+      "canonical": "https://www.theleadflowpro.com/tools/equipment-buy-vs-rent",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/roas-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/roas-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/roas-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/ad-budget-planner",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/ad-budget-planner",
+      "canonical": "https://www.theleadflowpro.com/tools/ad-budget-planner",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/cac-payback-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/cac-payback-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/cac-payback-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/ad-test-budget-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/ad-test-budget-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/ad-test-budget-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/commission-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/commission-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/commission-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/admin-time-audit",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/admin-time-audit",
+      "canonical": "https://www.theleadflowpro.com/tools/admin-time-audit",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/task-automation-savings",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/task-automation-savings",
+      "canonical": "https://www.theleadflowpro.com/tools/task-automation-savings",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/cost-per-mile-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/cost-per-mile-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/cost-per-mile-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/drive-time-cost",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/drive-time-cost",
+      "canonical": "https://www.theleadflowpro.com/tools/drive-time-cost",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/meeting-cost-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/meeting-cost-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/meeting-cost-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/owner-hourly-worth",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/owner-hourly-worth",
+      "canonical": "https://www.theleadflowpro.com/tools/owner-hourly-worth",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/google-review-link",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/google-review-link",
+      "canonical": "https://www.theleadflowpro.com/tools/google-review-link",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/review-goal-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/review-goal-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/review-goal-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/bad-review-impact",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/bad-review-impact",
+      "canonical": "https://www.theleadflowpro.com/tools/bad-review-impact",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/review-response-writer",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/review-response-writer",
+      "canonical": "https://www.theleadflowpro.com/tools/review-response-writer",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/website-speed-money",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/website-speed-money",
+      "canonical": "https://www.theleadflowpro.com/tools/website-speed-money",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/conversion-lift-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/conversion-lift-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/conversion-lift-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/mobile-traffic-loss",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/mobile-traffic-loss",
+      "canonical": "https://www.theleadflowpro.com/tools/mobile-traffic-loss",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/seo-traffic-value",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/seo-traffic-value",
+      "canonical": "https://www.theleadflowpro.com/tools/seo-traffic-value",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/website-grader",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/website-grader",
+      "canonical": "https://www.theleadflowpro.com/tools/website-grader",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/google-business-profile-scorecard",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/google-business-profile-scorecard",
+      "canonical": "https://www.theleadflowpro.com/tools/google-business-profile-scorecard",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/form-friction-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/form-friction-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/form-friction-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/qr-code-maker",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/qr-code-maker",
+      "canonical": "https://www.theleadflowpro.com/tools/qr-code-maker",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/wifi-qr-code",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/wifi-qr-code",
+      "canonical": "https://www.theleadflowpro.com/tools/wifi-qr-code",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/digital-business-card",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/digital-business-card",
+      "canonical": "https://www.theleadflowpro.com/tools/digital-business-card",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/click-to-call-button",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/click-to-call-button",
+      "canonical": "https://www.theleadflowpro.com/tools/click-to-call-button",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/sms-link-generator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/sms-link-generator",
+      "canonical": "https://www.theleadflowpro.com/tools/sms-link-generator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/utm-link-builder",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/utm-link-builder",
+      "canonical": "https://www.theleadflowpro.com/tools/utm-link-builder",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/email-signature-generator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/email-signature-generator",
+      "canonical": "https://www.theleadflowpro.com/tools/email-signature-generator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/missed-call-textback-script",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/missed-call-textback-script",
+      "canonical": "https://www.theleadflowpro.com/tools/missed-call-textback-script",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/review-request-script",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/review-request-script",
+      "canonical": "https://www.theleadflowpro.com/tools/review-request-script",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/estimate-terms-generator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/estimate-terms-generator",
+      "canonical": "https://www.theleadflowpro.com/tools/estimate-terms-generator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/late-payment-language",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/late-payment-language",
+      "canonical": "https://www.theleadflowpro.com/tools/late-payment-language",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/cancellation-policy-generator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/cancellation-policy-generator",
+      "canonical": "https://www.theleadflowpro.com/tools/cancellation-policy-generator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/localbusiness-schema-generator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/localbusiness-schema-generator",
+      "canonical": "https://www.theleadflowpro.com/tools/localbusiness-schema-generator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/faq-schema-generator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/faq-schema-generator",
+      "canonical": "https://www.theleadflowpro.com/tools/faq-schema-generator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/meta-title-description-writer",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/meta-title-description-writer",
+      "canonical": "https://www.theleadflowpro.com/tools/meta-title-description-writer",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/ad-character-counter",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/ad-character-counter",
+      "canonical": "https://www.theleadflowpro.com/tools/ad-character-counter",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/google-maps-link-generator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/google-maps-link-generator",
+      "canonical": "https://www.theleadflowpro.com/tools/google-maps-link-generator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/add-to-calendar-link",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/add-to-calendar-link",
+      "canonical": "https://www.theleadflowpro.com/tools/add-to-calendar-link",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/voicemail-script-generator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/voicemail-script-generator",
+      "canonical": "https://www.theleadflowpro.com/tools/voicemail-script-generator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/job-post-writer",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/job-post-writer",
+      "canonical": "https://www.theleadflowpro.com/tools/job-post-writer",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/google-post-writer",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/google-post-writer",
+      "canonical": "https://www.theleadflowpro.com/tools/google-post-writer",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/robots-txt-generator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/robots-txt-generator",
+      "canonical": "https://www.theleadflowpro.com/tools/robots-txt-generator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/household-budget-planner",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/household-budget-planner",
+      "canonical": "https://www.theleadflowpro.com/tools/household-budget-planner",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/grocery-unit-price-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/grocery-unit-price-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/grocery-unit-price-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/childcare-vs-work-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/childcare-vs-work-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/childcare-vs-work-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/subscription-audit",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/subscription-audit",
+      "canonical": "https://www.theleadflowpro.com/tools/subscription-audit",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/emergency-fund-calculator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/emergency-fund-calculator",
+      "canonical": "https://www.theleadflowpro.com/tools/emergency-fund-calculator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/debt-payoff-planner",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/debt-payoff-planner",
+      "canonical": "https://www.theleadflowpro.com/tools/debt-payoff-planner",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/rent-affordability-estimator",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/rent-affordability-estimator",
+      "canonical": "https://www.theleadflowpro.com/tools/rent-affordability-estimator",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/salary-to-hourly-converter",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/salary-to-hourly-converter",
+      "canonical": "https://www.theleadflowpro.com/tools/salary-to-hourly-converter",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/pro/missed-call-text-back-kit",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/pro/missed-call-text-back-kit",
+      "canonical": "https://www.theleadflowpro.com/tools/pro/missed-call-text-back-kit",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/pro/google-review-kit",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/pro/google-review-kit",
+      "canonical": "https://www.theleadflowpro.com/tools/pro/google-review-kit",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/pro/quote-follow-up-kit",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/pro/quote-follow-up-kit",
+      "canonical": "https://www.theleadflowpro.com/tools/pro/quote-follow-up-kit",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/pro/job-estimate-kit",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/pro/job-estimate-kit",
+      "canonical": "https://www.theleadflowpro.com/tools/pro/job-estimate-kit",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/pro/qr-sign-kit",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/pro/qr-sign-kit",
+      "canonical": "https://www.theleadflowpro.com/tools/pro/qr-sign-kit",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/pro/rate-card-kit",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/pro/rate-card-kit",
+      "canonical": "https://www.theleadflowpro.com/tools/pro/rate-card-kit",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/pro/local-seo-schema-kit",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/pro/local-seo-schema-kit",
+      "canonical": "https://www.theleadflowpro.com/tools/pro/local-seo-schema-kit",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/pro/white-label-tool-embeds",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/pro/white-label-tool-embeds",
+      "canonical": "https://www.theleadflowpro.com/tools/pro/white-label-tool-embeds",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/collections/home-services",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/collections/home-services",
+      "canonical": "https://www.theleadflowpro.com/tools/collections/home-services",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/collections/real-estate",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/collections/real-estate",
+      "canonical": "https://www.theleadflowpro.com/tools/collections/real-estate",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/collections/mortgage-lending",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/collections/mortgage-lending",
+      "canonical": "https://www.theleadflowpro.com/tools/collections/mortgage-lending",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/collections/restaurants-and-food",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/collections/restaurants-and-food",
+      "canonical": "https://www.theleadflowpro.com/tools/collections/restaurants-and-food",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/collections/salons-and-barbers",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/collections/salons-and-barbers",
+      "canonical": "https://www.theleadflowpro.com/tools/collections/salons-and-barbers",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/collections/medical-and-dental-operations",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/collections/medical-and-dental-operations",
+      "canonical": "https://www.theleadflowpro.com/tools/collections/medical-and-dental-operations",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/collections/legal-practices",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/collections/legal-practices",
+      "canonical": "https://www.theleadflowpro.com/tools/collections/legal-practices",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/collections/qr-codes-and-links",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/collections/qr-codes-and-links",
+      "canonical": "https://www.theleadflowpro.com/tools/collections/qr-codes-and-links",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/collections/getting-more-leads",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/collections/getting-more-leads",
+      "canonical": "https://www.theleadflowpro.com/tools/collections/getting-more-leads",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/collections/pricing-and-margin",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/collections/pricing-and-margin",
+      "canonical": "https://www.theleadflowpro.com/tools/collections/pricing-and-margin",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/tools/collections/website-and-online-presence",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/tools/collections/website-and-online-presence",
+      "canonical": "https://www.theleadflowpro.com/tools/collections/website-and-online-presence",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard/metrics/views",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/scoreboard/metrics/views",
+      "canonical": "https://www.theleadflowpro.com/scoreboard/metrics/views",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard/metrics/clicks",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/scoreboard/metrics/clicks",
+      "canonical": "https://www.theleadflowpro.com/scoreboard/metrics/clicks",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard/metrics/leads",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/scoreboard/metrics/leads",
+      "canonical": "https://www.theleadflowpro.com/scoreboard/metrics/leads",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard/metrics/paid-leads",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/scoreboard/metrics/paid-leads",
+      "canonical": "https://www.theleadflowpro.com/scoreboard/metrics/paid-leads",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard/metrics/other-leads",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/scoreboard/metrics/other-leads",
+      "canonical": "https://www.theleadflowpro.com/scoreboard/metrics/other-leads",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard/metrics/daily-visitors",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/scoreboard/metrics/daily-visitors",
+      "canonical": "https://www.theleadflowpro.com/scoreboard/metrics/daily-visitors",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard/metrics/calls",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/scoreboard/metrics/calls",
+      "canonical": "https://www.theleadflowpro.com/scoreboard/metrics/calls",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/scoreboard/metrics/forms",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/scoreboard/metrics/forms",
+      "canonical": "https://www.theleadflowpro.com/scoreboard/metrics/forms",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/free-tools-that-bring-customers",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/free-tools-that-bring-customers",
+      "canonical": "https://www.theleadflowpro.com/articles/free-tools-that-bring-customers",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/website-text-too-small-on-mobile",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/website-text-too-small-on-mobile",
+      "canonical": "https://www.theleadflowpro.com/articles/website-text-too-small-on-mobile",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/data-centers-are-coming-to-texas",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/data-centers-are-coming-to-texas",
+      "canonical": "https://www.theleadflowpro.com/articles/data-centers-are-coming-to-texas",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/the-money-is-in-the-follow-up",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/the-money-is-in-the-follow-up",
+      "canonical": "https://www.theleadflowpro.com/articles/the-money-is-in-the-follow-up",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/marketplace-is-not-your-website",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/marketplace-is-not-your-website",
+      "canonical": "https://www.theleadflowpro.com/articles/marketplace-is-not-your-website",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/small-business-website-cost",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/small-business-website-cost",
+      "canonical": "https://www.theleadflowpro.com/articles/small-business-website-cost",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/website-builder-monthly-fees",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/website-builder-monthly-fees",
+      "canonical": "https://www.theleadflowpro.com/articles/website-builder-monthly-fees",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/does-my-business-need-a-crm",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/does-my-business-need-a-crm",
+      "canonical": "https://www.theleadflowpro.com/articles/does-my-business-need-a-crm",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/website-traffic-but-no-customers",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/website-traffic-but-no-customers",
+      "canonical": "https://www.theleadflowpro.com/articles/website-traffic-but-no-customers",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/missed-calls-cost-customers",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/missed-calls-cost-customers",
+      "canonical": "https://www.theleadflowpro.com/articles/missed-calls-cost-customers",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/facebook-page-is-not-a-website",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/facebook-page-is-not-a-website",
+      "canonical": "https://www.theleadflowpro.com/articles/facebook-page-is-not-a-website",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/own-your-email-list",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/own-your-email-list",
+      "canonical": "https://www.theleadflowpro.com/articles/own-your-email-list",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/east-texas-business-website-guide",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/east-texas-business-website-guide",
+      "canonical": "https://www.theleadflowpro.com/articles/east-texas-business-website-guide",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/cost-of-renting-business-software",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/cost-of-renting-business-software",
+      "canonical": "https://www.theleadflowpro.com/articles/cost-of-renting-business-software",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/ai-website-small-business-2026",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/ai-website-small-business-2026",
+      "canonical": "https://www.theleadflowpro.com/articles/ai-website-small-business-2026",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/lawn-care-hourly-rate",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/lawn-care-hourly-rate",
+      "canonical": "https://www.theleadflowpro.com/articles/lawn-care-hourly-rate",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/hvac-missed-calls-cost",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/hvac-missed-calls-cost",
+      "canonical": "https://www.theleadflowpro.com/articles/hvac-missed-calls-cost",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/dental-office-no-show-cost",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/dental-office-no-show-cost",
+      "canonical": "https://www.theleadflowpro.com/articles/dental-office-no-show-cost",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/auto-shop-credit-card-fees",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/auto-shop-credit-card-fees",
+      "canonical": "https://www.theleadflowpro.com/articles/auto-shop-credit-card-fees",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/restaurant-delivery-app-fees",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/restaurant-delivery-app-fees",
+      "canonical": "https://www.theleadflowpro.com/articles/restaurant-delivery-app-fees",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/contractor-unpaid-invoices",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/contractor-unpaid-invoices",
+      "canonical": "https://www.theleadflowpro.com/articles/contractor-unpaid-invoices",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/salon-google-reviews",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/salon-google-reviews",
+      "canonical": "https://www.theleadflowpro.com/articles/salon-google-reviews",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/roofing-cost-per-lead",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/roofing-cost-per-lead",
+      "canonical": "https://www.theleadflowpro.com/articles/roofing-cost-per-lead",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/trucking-cost-per-mile",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/trucking-cost-per-mile",
+      "canonical": "https://www.theleadflowpro.com/articles/trucking-cost-per-mile",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/cleaning-business-hire-or-stay-solo",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/cleaning-business-hire-or-stay-solo",
+      "canonical": "https://www.theleadflowpro.com/articles/cleaning-business-hire-or-stay-solo",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/pressure-washing-pricing",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/pressure-washing-pricing",
+      "canonical": "https://www.theleadflowpro.com/articles/pressure-washing-pricing",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/pest-control-customer-value",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/pest-control-customer-value",
+      "canonical": "https://www.theleadflowpro.com/articles/pest-control-customer-value",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/tree-service-buy-or-rent-equipment",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/tree-service-buy-or-rent-equipment",
+      "canonical": "https://www.theleadflowpro.com/articles/tree-service-buy-or-rent-equipment",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/med-spa-discount-damage",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/med-spa-discount-damage",
+      "canonical": "https://www.theleadflowpro.com/articles/med-spa-discount-damage",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/gym-break-even-members",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/gym-break-even-members",
+      "canonical": "https://www.theleadflowpro.com/articles/gym-break-even-members",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/food-truck-taxes-set-aside",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/food-truck-taxes-set-aside",
+      "canonical": "https://www.theleadflowpro.com/articles/food-truck-taxes-set-aside",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/mobile-detailing-drive-time",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/mobile-detailing-drive-time",
+      "canonical": "https://www.theleadflowpro.com/articles/mobile-detailing-drive-time",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/appliance-repair-unclosed-quotes",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/appliance-repair-unclosed-quotes",
+      "canonical": "https://www.theleadflowpro.com/articles/appliance-repair-unclosed-quotes",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/fencing-contractor-raise-prices",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/fencing-contractor-raise-prices",
+      "canonical": "https://www.theleadflowpro.com/articles/fencing-contractor-raise-prices",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/wedding-photographer-after-hours-leads",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/wedding-photographer-after-hours-leads",
+      "canonical": "https://www.theleadflowpro.com/articles/wedding-photographer-after-hours-leads",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/plumber-call-back-speed",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/plumber-call-back-speed",
+      "canonical": "https://www.theleadflowpro.com/articles/plumber-call-back-speed",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/electrician-job-capacity",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/electrician-job-capacity",
+      "canonical": "https://www.theleadflowpro.com/articles/electrician-job-capacity",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/painting-contractor-markup-vs-margin",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/painting-contractor-markup-vs-margin",
+      "canonical": "https://www.theleadflowpro.com/articles/painting-contractor-markup-vs-margin",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/barbershop-booth-rent-vs-commission",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/barbershop-booth-rent-vs-commission",
+      "canonical": "https://www.theleadflowpro.com/articles/barbershop-booth-rent-vs-commission",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/chiropractor-google-business-profile",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/chiropractor-google-business-profile",
+      "canonical": "https://www.theleadflowpro.com/articles/chiropractor-google-business-profile",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/towing-truck-downtime-cost",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/towing-truck-downtime-cost",
+      "canonical": "https://www.theleadflowpro.com/articles/towing-truck-downtime-cost",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/bakery-menu-margins",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/bakery-menu-margins",
+      "canonical": "https://www.theleadflowpro.com/articles/bakery-menu-margins",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/used-car-lot-slow-website",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/used-car-lot-slow-website",
+      "canonical": "https://www.theleadflowpro.com/articles/used-car-lot-slow-website",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/daycare-late-pickup-policy",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/daycare-late-pickup-policy",
+      "canonical": "https://www.theleadflowpro.com/articles/daycare-late-pickup-policy",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/real-estate-agent-seo-value",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/real-estate-agent-seo-value",
+      "canonical": "https://www.theleadflowpro.com/articles/real-estate-agent-seo-value",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/one-useful-business-task-with-ai",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/one-useful-business-task-with-ai",
+      "canonical": "https://www.theleadflowpro.com/articles/one-useful-business-task-with-ai",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/give-every-inquiry-an-owner-and-next-step",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/give-every-inquiry-an-owner-and-next-step",
+      "canonical": "https://www.theleadflowpro.com/articles/give-every-inquiry-an-owner-and-next-step",
+      "robots": []
+    },
+    {
+      "url": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop",
+      "status": 200,
+      "finalUrl": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop",
+      "canonical": "https://www.theleadflowpro.com/articles/bring-one-real-task-to-your-business-workshop",
+      "robots": []
+    }
+  ],
+  "mediaChecks": [
+    {
+      "url": "https://www.theleadflowpro.com/video/data-centers-are-coming-to-texas.mp4",
+      "status": 200,
+      "method": "HEAD",
+      "contentType": "video/mp4",
+      "checkedAt": "2026-09-07T02:10:44Z",
+      "note": "HTML crawler could not decode media; separately verified without downloading the video."
+    }
+  ],
+  "scope": "Public sitemap and public in-site HTML links, excluding private routes, query links and download/media bodies. Checks status, canonical and noindex; does not establish Google indexing."
+}

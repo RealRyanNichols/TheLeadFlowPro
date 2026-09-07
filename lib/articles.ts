@@ -4,6 +4,9 @@ import { TRADE_ARTICLES_2 } from "./articles-trades-2";
 import { TRADE_ARTICLES_3 } from "./articles-trades-3";
 import { SEPTEMBER_LAUNCH_ARTICLES } from "./articles-september-launch";
 import { DAILY_ARTICLES } from "./articles-daily";
+import { TOOL_BUSINESS_ARTICLES } from "./articles-tool-business";
+import { TOOL_GENERATOR_ARTICLES } from "./articles-tool-generators";
+import { TOOL_HOUSEHOLD_ARTICLES } from "./articles-tool-household";
 import { isArticlePublished, publishedArticles } from "./article-publication";
 
 // Owned article library. Articles are plain markdown in the repo so they ship
@@ -1641,6 +1644,9 @@ ARTICLES.push(
   ...TRADE_ARTICLES_3,
   ...SEPTEMBER_LAUNCH_ARTICLES,
   ...DAILY_ARTICLES,
+  ...TOOL_BUSINESS_ARTICLES,
+  ...TOOL_GENERATOR_ARTICLES,
+  ...TOOL_HOUSEHOLD_ARTICLES,
 );
 
 // Keep ARTICLES as the complete authored catalog for build tools and duplicate

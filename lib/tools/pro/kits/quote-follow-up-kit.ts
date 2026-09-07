@@ -206,7 +206,7 @@ function run(v: Values): Result {
   const quotes = Math.max(1, num(v, "quotes", 30));
   const value = num(v, "value", 3200);
   const closeNow = num(v, "closeNow", 28) / 100;
-  const lift = num(v, "lift", 10) / 100;
+  const lift = Math.min(1 - closeNow, num(v, "lift", 10) / 100);
   const margin = num(v, "margin", 38) / 100;
   const job = (str(v, "job").trim() || "job").slice(0, 40);
   const who = str(v, "who").trim().slice(0, 40);

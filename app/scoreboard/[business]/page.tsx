@@ -14,6 +14,8 @@ import {
   scoreboardBusiness,
 } from "@/lib/scoreboard";
 import { fetchScoreboardDays } from "@/lib/scoreboardFeeds";
+import { fetchCaptureCoverage } from "@/lib/scoreboardCaptureFeeds";
+import { CAPTURE_SOURCES } from "@/lib/scoreboardCaptureCoverage";
 import styles from "../scoreboard.module.css";
 
 export const revalidate = 900;
@@ -50,7 +52,10 @@ export default async function BusinessScoreboardPage({
   const business = scoreboardBusiness(slug);
   if (!business) notFound();
 
-  const result = await fetchScoreboardDays(business, 90);
+  const [result, captureCoverage] = await Promise.all([
+    fetchScoreboardDays(business, 90),
+    fetchCaptureCoverage(business, 30),
+  ]);
   const windows = result.ok ? buildWindows(result.days) : null;
   const series = result.ok ? recentSeries(result.days, 30) : null;
   const others = SCOREBOARD_BUSINESSES.filter((item) => item.slug !== business.slug);
@@ -111,8 +116,39 @@ export default async function BusinessScoreboardPage({
             unique people or completed purchases. Ad-attributed means the record has an advertising source
             or paid campaign tag. No names, contact details, or dollar figures are published here.
           </p>
+          {business.showSales && business.paymentSourceNote && (
+            <p className={styles.boardFoot}>
+              <strong>Payment records:</strong> {business.paymentSourceNote}
+            </p>
+          )}
         </div>
       </section>
+
+      {CAPTURE_SOURCES[business.slug] && (
+        <section className={styles.board} aria-labelledby="capture-coverage-title">
+          <div className={styles.shell}>
+            <div className={styles.boardPanel}>
+              <p className={styles.eyebrow}>Capture sources · Last 30 days</p>
+              <h2 id="capture-coverage-title">Where inquiries are captured.</h2>
+              {captureCoverage ? (
+                <>
+                  <div className={styles.captureGrid}>
+                    {captureCoverage.map((row) => (
+                      <div key={row.source} className={styles.tile}>
+                        <span>{CAPTURE_SOURCES[business.slug][row.source]}</span>
+                        <strong>{row.records.toLocaleString("en-US")}</strong>
+                        <small>records from {row.start_day} through {row.end_day}</small>
+                        {row.additional_emails > 0 && <p>{row.additional_emails.toLocaleString("en-US")} additional email {row.additional_emails === 1 ? "contact" : "contacts"} outside the main lead feed</p>}
+                      </div>
+                    ))}
+                  </div>
+                  <p className={styles.boardFoot}>These sources can overlap, so their record counts are not added together. Additional email contacts count distinct email addresses not already present in the main feed&apos;s source tables, with overlap between supplementary sources removed. A contact may still use more than one address. Anonymous records are not counted as additional email contacts.</p>
+                </>
+              ) : <p className={styles.boardFoot}>The source breakdown is unavailable right now. The main board above reports its own feed separately; no missing source counts are replaced with zeros.</p>}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className={styles.about} aria-labelledby="about-title">
         <div className={styles.shell}>

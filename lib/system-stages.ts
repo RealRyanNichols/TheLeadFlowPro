@@ -537,16 +537,16 @@ export const STAGES: Stage[] = [
     buildLead:
       "The measurement layer, first-party, stored with the customer record so the report is about revenue rather than pageviews.",
     offers: [
-      { name: "First-party analytics", body: "Visits logged to your own database. Not a third party's dashboard, and not subject to their retention limits." },
-      { name: "Source attribution on every lead", body: "UTM source, medium and campaign captured at the moment of the lead and carried through to the sale." },
-      { name: "Owner dashboard", body: "The handful of numbers that actually change a decision, on one screen, in plain language." },
-      { name: "Channel reporting", body: "What each channel cost, what it produced, and what it costs you to acquire a customer through it." },
-      { name: "Pipeline and conversion reporting", body: "Where people stall between stages, which is where the next fix usually is." },
-      { name: "Ad platform connections", body: "Meta and Google conversion events fired from real outcomes, so the platforms optimise on truth." },
-      { name: "Scheduled digests", body: "A weekly summary that arrives without you logging in, because a report nobody opens is not a report." },
+      { name: "See who is finding you", body: "Page views and useful actions in a dashboard your business controls. Read the dates and traffic filters beside each count." },
+      { name: "Know where an inquiry came from", body: "Keep available ad, search, and referral tags with the inquiry. If the source is unknown, the report says so." },
+      { name: "Know what needs your attention", body: "One screen for new inquiries, work waiting on a reply, and recorded outcomes. Open the record when you need the details." },
+      { name: "Compare your marketing channels", body: "See recorded spending and outcomes together when both sources are connected. A click, a lead, and a paid customer remain separate measures." },
+      { name: "Find where people stop", body: "Compare visits, inquiries, quotes, and recorded sales. Start the next improvement where the evidence shows people are dropping out." },
+      { name: "Tell your ads what actually happened", body: "Connect supported Meta and Google events to verified actions. Check delivery and duplicates before using those events to judge a campaign." },
+      { name: "Get a useful weekly update", body: "An agreed summary of the numbers, questions, and next actions your team needs. No hunting through separate dashboards." },
     ],
     proof: [
-      { name: "TheLeadFlowPro.com", what: "Every visit logged to our own database with source, and every lead credited to the campaign that produced it", url: "https://www.theleadflowpro.com" },
+      { name: "TheLeadFlowPro.com", what: "Recorded website activity and saved lead-source details, with unknown attribution kept separate from verified paid outcomes", url: "https://www.theleadflowpro.com/scoreboard" },
       { name: "RealRyanNichols.com", what: "A searchable archive of 1,568+ case profiles on owned infrastructure. The same source discipline supports the publishing system", url: "https://realryannichols.com" },
     ],
     tools: [

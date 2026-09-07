@@ -167,7 +167,7 @@ export async function getOrCreateEventCheckout(
 
   const params = new URLSearchParams({
     mode: "payment",
-    success_url: `${confirmationUrl}&session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${site}/api/events/claim?t=${encodeURIComponent(registration.access_token)}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${confirmationUrl}&cancelled=1`,
     customer_email: registration.email,
     "line_items[0][quantity]": "1",

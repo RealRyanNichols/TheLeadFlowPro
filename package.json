@@ -7,8 +7,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "npm run validate:tools && npm run validate:visuals && npm run validate:social && next build",
-    "build:only": "next build",
+    "build": "npm run validate:calculations && npm run validate:tools && npm run validate:visuals && npm run validate:social && next build",
+    "build:only": "npm run validate:calculations && next build",
     "start": "next start",
     "art": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/generate-tool-art.ts",
     "og": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/generate-og-images.ts",
@@ -21,7 +21,8 @@
     "check:a11y": "node scripts/check-a11y.mjs",
     "social:images": "node scripts/social-images.mjs",
     "validate:social": "node scripts/social-images.mjs validate",
-    "test:social-images": "node --test tests/social-images.test.mjs"
+    "test:social-images": "node --test tests/social-images.test.mjs",
+    "validate:calculations": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs --test tests/calculation-reference.test.ts tests/calculation-invariants.test.ts tests/formulas.test.ts tests/debt-payoff-planner.test.ts tests/tool-guide-accuracy.test.ts tests/generator-draft-safety.test.ts tests/pro-kit*.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

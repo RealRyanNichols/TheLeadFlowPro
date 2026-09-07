@@ -7,6 +7,7 @@ import {
 import { SUPABASE_URL } from "@/lib/config";
 import { sendInternalLeadAlert } from "@/lib/leadNotify";
 import { isCheckoutPaymentEvent } from "@/lib/eventPayments";
+import { sendProKitReceipt } from "@/lib/proKitFulfillment";
 import { ensureEventSeatPaid } from "@/lib/eventSeatFulfillment";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 import { findFreeBuildTier } from "@/lib/freeBuild";
@@ -23,13 +24,8 @@ import {
   websiteLaunchCustomer,
   type StripeCheckoutSession,
 } from "@/lib/stripeCheckout";
-import {
-  licenseKey,
-  proAccessSecrets,
-  proKindFromSession,
-  proKindSlug,
-} from "@/lib/proAccess";
-import { PRO_BUNDLE, getProTool, proCatalog } from "@/lib/tools/pro";
+import { proKindFromSession } from "@/lib/proAccess";
+import { proCatalog } from "@/lib/tools/pro";
 import { SELLERPROOF } from "@/lib/sellerproof/packet";
 import { sendSellerProofReceipt } from "@/lib/sellerproof/receipt";
 
@@ -393,79 +389,6 @@ async function notifyToolStudioPurchase(
   });
 }
 
-/**
- * A paid pro kit. The buyer already has access: the claim route set their
- * cookie the moment Stripe redirected them back. This is the durable half,
- * and the only thing it has to get right is the key, because that is what
- * restores the kit on their other phone in eight months.
- *
- * The key is derived from the email and the kind, so there is nothing to store
- * and nothing to lose. Throws on send failure so Stripe retries.
- */
-async function sendProKitReceipt(email: string, kind: string) {
-  const key = process.env.RESEND_API_KEY;
-  const secrets = proAccessSecrets();
-  if (!key || secrets.length === 0) return;
-
-  const slug = proKindSlug(kind);
-  const kit = slug ? getProTool(slug) : null;
-  const isBundle = kind === PRO_BUNDLE.kind;
-  const title = isBundle ? PRO_BUNDLE.name : kit?.name ?? "Pro Kit";
-  const path = isBundle ? "/tools/pro" : `/tools/pro/${slug}`;
-  const accessKey = licenseKey(email, kind, secrets[0]);
-  const site = "https://www.theleadflowpro.com";
-
-  const send = async (payload: object) => {
-    const r = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!r.ok) throw new Error(`Resend rejected pro kit email: ${r.status}`);
-  };
-
-  await send({
-    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-    to: ["hello@theleadflowpro.com"],
-    subject: `PRO KIT SOLD: ${title} - ${email}`,
-    text: [
-      `${title} was purchased.`,
-      `Buyer: ${email}`,
-      "",
-      "No action needed. The kit unlocked itself and the key is on its way to them.",
-    ].join("\n"),
-  });
-
-  await send({
-    from: "Ryan Nichols <hello@theleadflowpro.com>",
-    to: [email],
-    reply_to: "hello@theleadflowpro.com",
-    subject: `Your ${title} access key`,
-    text: [
-      `${title} is unlocked.`,
-      "",
-      "It is already open in the browser you bought it in. This email is how you",
-      "open it anywhere else, so keep it.",
-      "",
-      `Your key: ${accessKey}`,
-      "",
-      `Open the kit: ${site}${path}`,
-      `Unlock on another device: ${site}/tools/pro/unlock?email=${encodeURIComponent(email)}&key=${encodeURIComponent(accessKey)}`,
-      "",
-      isBundle
-        ? "The bundle covers every kit on the shelf, including the ones added later. Same key."
-        : "Change any answer in the kit and every document rebuilds, at no extra cost, for as long as the kit exists.",
-      "",
-      "There is nothing recurring here and nothing to cancel.",
-      "",
-      "If anything does not open, reply to this email and I will sort it out.",
-      "",
-      "Ryan Nichols",
-      "The LeadFlow Pro",
-      "(903) 500-8898",
-    ].join("\n"),
-  });
-}
 
 type IntakeLead = {
   id: string;
@@ -1298,7 +1221,7 @@ export async function POST(request: Request) {
     const websiteLaunch = isWebsiteLaunchDeposit(session, configuredPaymentLinkId);
     const customer = websiteLaunchCustomer(session);
     if (!customer.email) {
-      if (websiteLaunch || session.metadata?.kind === "event") {
+      if (websiteLaunch || ["event", "pro_tool", "pro_bundle"].includes(String(session.metadata?.kind))) {
         throw new Error("Paid checkout is missing its customer email");
       }
       return NextResponse.json({ received: true });
@@ -1310,6 +1233,9 @@ export async function POST(request: Request) {
     // against the catalog inside proKindFromSession, so a session for the $10
     // kit can never be recorded as the $29 one.
     const proKind = proKindFromSession(session, proCatalog());
+    if (["pro_tool", "pro_bundle"].includes(String(session.metadata?.kind)) && (!proKind || session.currency !== "usd")) {
+      throw new Error("Paid Pro Kit checkout requires amount or currency review");
+    }
     const kind = websiteLaunch
       ? WEBSITE_LAUNCH_PURCHASE_KIND
       : proKind ?? safeStripeKind(session);
@@ -1333,7 +1259,7 @@ export async function POST(request: Request) {
     if (websiteLaunch) {
       await ensureWebsiteLaunchIntake(supabase, session);
     } else if (proKind) {
-      await sendProKitReceipt(customer.email, proKind);
+      await sendProKitReceipt(supabase, session.id, customer.email, proKind);
     } else if (kind === SELLERPROOF.kind) {
       await sendSellerProofReceipt(customer.email, session.id);
     } else if (kind === "timeback_order") {

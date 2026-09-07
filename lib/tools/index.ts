@@ -6,6 +6,7 @@
 // reaches a route, the sitemap or the directory.
 
 import type { Category, Tool, ToolDef, ToolMeta } from "./types";
+import { numericInputIssue, numericResultIssue } from "./numericInput";
 import { MONEY_TOOLS } from "./money";
 import { LEAD_TOOLS } from "./leads";
 import { OPERATIONS_TOOLS } from "./operations";
@@ -96,6 +97,14 @@ export function resolveTool(def: ToolDef): Tool {
     image,
     hero,
     searchText: "",
+    run(values) {
+      const issue = numericInputIssue(def.fields, values);
+      if (issue) return { headline: { value: "Check inputs", label: "A value is outside this tool's supported range", tone: "warn" }, note: issue };
+      const result = def.run(values);
+      const precisionIssue = numericResultIssue(result);
+      if (precisionIssue) return { headline: { value: "Check inputs", label: "The result exceeds supported numeric precision", tone: "warn" }, note: precisionIssue };
+      return result;
+    },
   };
 
   resolved.searchText = buildSearchText({

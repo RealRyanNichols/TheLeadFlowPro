@@ -6,6 +6,8 @@ import RentVsOwnChart from "@/components/charts/RentVsOwnChart";
 import FollowUpSpeedChart from "@/components/charts/FollowUpSpeedChart";
 import FinalCta from "@/components/site/system/FinalCta";
 import SiteHero from "@/components/site/system/SiteHero";
+import ArticleActions from "@/components/ArticleActions";
+import { proUpgradesFor } from "@/lib/tools/pro";
 
 // Proof charts matched to the articles they back up.
 const ARTICLE_CHARTS: Record<string, React.ComponentType> = {
@@ -95,6 +97,7 @@ export default async function ArticlePage({
   const SITE = "https://www.theleadflowpro.com";
   const socialImage = articleSocialImagePath(article.slug);
   const premiumArt = articlePremiumArtPath(article.slug);
+  const relatedKit = article.tool ? proUpgradesFor(article.tool.slug)[0] : undefined;
   const articleLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -123,8 +126,7 @@ export default async function ArticlePage({
         publisher: { "@type": "Organization", name: "The LeadFlow Pro" },
       }
     : null;
-  // A tool article teaches a repeatable calculation, so it emits HowTo. That is
-  // what earns the step-by-step rich result for "how do I work out X".
+  // Describe the visible steps. Structured data does not promise a rich result.
   const howToLd = article.tool
     ? {
         "@context": "https://schema.org",
@@ -195,6 +197,7 @@ export default async function ArticlePage({
       </div>
 
       <article className="sv-article-shell">
+        <ArticleActions slug={article.slug} title={article.title} />
         {article.video ? (
         <figure className="mb-12 flex flex-col items-center">
           <video
@@ -264,13 +267,21 @@ export default async function ArticlePage({
         ) : null;
       })()}
       </article>
-      <FinalCta
+      {article.tool ? <FinalCta
+        eyebrow="Your next move"
+        title="Put this guide to work."
+        body="Use the free tool, save what you make, and share the guide with someone who can use it. Have a question or a result to tell us about? Send Ryan a message through Contact."
+        primary={{ href: `/tools/${article.tool.slug}`, label: "Use the free tool" }}
+        secondary={relatedKit
+          ? { href: `/tools/pro/${relatedKit.slug}`, label: `See the $${relatedKit.pro.priceUsd} kit` }
+          : { href: "/contact", label: "Tell us what you built" }}
+      /> : <FinalCta
         eyebrow="Put this to work"
         title="Get the website that catches these leads."
         body="Start with the free five-page build, in accounts you own, or call and talk it through with the person who builds them."
         primary={{ href: "/free-build", label: "Start My Free Website" }}
         secondary={{ href: "tel:+19035008898", label: "Call or text (903) 500-8898", external: true }}
-      />
+      />}
     </main>
   );
 }

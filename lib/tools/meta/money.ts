@@ -188,7 +188,7 @@ export const MONEY_META: Record<string, ToolMeta> = {
     popularity: 76,
     assumptions: [
       "This builds a simple in-house schedule. It is not a credit product and it does not compute APR.",
-      "Any fee you add is treated as a flat percentage of the financed balance.",
+      "The fee is a flat percentage of the full price, added before the deposit is calculated; it is not an APR or a charge authorization.",
     ],
     relatedSlugs: ["loan-payment-calculator", "job-price-calculator", "estimate-terms-generator", "late-invoice-calculator"],
   },
@@ -208,7 +208,7 @@ export const MONEY_META: Record<string, ToolMeta> = {
     seoDescription:
       "Monthly payment, total interest and whether the thing you are financing earns more than it costs.",
     assumptions: [
-      "Standard fixed-rate amortization with equal monthly payments.",
+      "Fixed-rate monthly amortization with cent-rounded interest and regular payments; the final payment adjusts to reconcile the balance.",
       "No fees, insurance, taxes or balloon payments are included.",
     ],
     relatedSlugs: ["equipment-buy-vs-rent", "payment-plan-calculator", "cash-runway-calculator", "cost-per-mile-calculator"],
@@ -256,7 +256,7 @@ export const MONEY_META: Record<string, ToolMeta> = {
     dataSensitivity: "none",
     popularity: 77,
     assumptions: [
-      "You supply the rate. This tool does not know your state, county or city rate, and never guesses one.",
+      "Confirm the editable rate for your transaction location and taxability. The default is an example, not a lookup of your actual tax obligation.",
       "It does not handle exemptions, tax holidays or multi-jurisdiction splits.",
     ],
     relatedSlugs: ["quarterly-tax-estimator", "profit-margin-calculator", "credit-card-fee-calculator", "job-price-calculator"],
@@ -274,8 +274,8 @@ export const MONEY_META: Record<string, ToolMeta> = {
     dataSensitivity: "personal",
     popularity: 81,
     assumptions: [
-      "A flat planning rate, not a tax return. It ignores deductions, credits, filing status and state tax.",
-      "Self-employment tax is applied on top of the income rate you choose.",
+      "Income tax uses a flat scenario rate, not progressive brackets. Deductions, credits, other income, state tax, timing and safe-harbor rules are excluded.",
+      "SE components use the selected year, wage inputs and Medicare filing threshold. Half the regular SE component reduces the flat income-tax scenario base.",
     ],
     relatedSlugs: ["mileage-deduction-calculator", "sales-tax-calculator", "cash-runway-calculator", "employee-true-cost"],
   },
@@ -292,7 +292,7 @@ export const MONEY_META: Record<string, ToolMeta> = {
     dataSensitivity: "personal",
     popularity: 75,
     assumptions: [
-      "You enter the mileage rate yourself. The rate changes and this tool never guesses it, so check the current IRS figure.",
+      "The editable default is 76 cents for July through December 2026. Use 72.5 cents for January through June 2026 and 70 cents for 2025; total each period separately and verify the IRS table.",
       "The standard mileage method and the actual expense method are different elections. This models the standard rate only.",
     ],
     relatedSlugs: ["cost-per-mile-calculator", "quarterly-tax-estimator", "drive-time-cost", "sales-tax-calculator"],
