@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex final PNG visual review",
+  "reviewed_at": "2026-09-08T22:15:43.670Z",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "762484f5c61c5daeab34dea9e812876d63faafd54341e8ee2ac08c1fa0da1eaf",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Large navy schedule headline and one support line are correct on offwhite. Earlier branded leather boots were replaced with plain navy rubber work boots; final surfaces have no symbols or lettering. Boots and their shadows remain clear of the text.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "d8671fcff437d14e63286f408d81b31022a8d118583e11860639ad1836e634f1",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Exact mobile headline and one support line are readable at upper right. Blank phone is flat and diagonally cropped along the left, with a strong lower shadow on sage. No screen icons, marks or logos.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "743782ed0322b82469085c3745b9a7c9151a5628e406e905fae671412ddce6ce",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG after removing faint filter-frame printing. White frame is blank; pleats and duct elbow stay left of the exact navy headline and single support line. Subdued blue background. No additional lettering.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "b9147828e6f65dc5885905a3f195811a01a983b1af6761f879240fd14d00b15a",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Illustrative label and 20 plus 15 equals 35 minutes are correct and readable. Single support line explicitly says Example. All text sits above the brushed metal ribbon on navy. No customer result is claimed.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "1a07346d9b38c5ccb33b35bd7e30e54b2c1ae6ef4da1983d056de7434eb9d60b",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Exact progress update question is readable in three lines, with one support line below. Unbranded headset stays at right and the microphone stays clear of the support. Cobalt dominates, with no extra text.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}
