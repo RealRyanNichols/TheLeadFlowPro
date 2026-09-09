@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex final PNG visual review",
+  "reviewed_at": "2026-09-09T16:01:17.385Z",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "e52bb2802553ad57fb862e2543730bf8a7d3f4c3cd69f54edff9a8d39c3fe59f",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Correct navy serif headline and a single support line on offwhite. Metal drafting tool and cobalt mat are lower right; coffee, plant and closed notebook remain at top right. All objects stay clear of text. Tool hardware has visible fasteners without brand lettering or labels.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "b2961bd83df27716b33581d819cc3bad6899f46db69919370bec3ed8b1b563e9",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Exact headline and single support line centered above a small navy camera. Camera surfaces and lens have no printed lettering or logos. Subdued blue ledge and open space separate the subject from the text.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "5eb20f24de04fdaae11c371d4e4b0308962e653314ca3805dd59c29ef4389978",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Exact plumbing headline is right aligned on sage, with a single readable support line. Plain metal faucet and white basin fill the left and lower left. No text crosses the fixtures, and no fixture labels or logos appear.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "255c259cb822a0ebbf5f315917b9c7640d03e3953c6c664b3433c05ae920c2bb",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Illustrative label and 18 plus 12 equals 30 minutes are correct, with a single support line explicitly labeled Example. Solid matte ceramic wedge sits left of the text on cobalt. No customer performance claim appears.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "61cee5aee8b252dfb6798c40372142c2d8951cde1b7ecbcc27e5d08d7215a22b",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Exact eight-word question is large and readable beneath a cropped sage umbrella canopy. The single support line is correct and clearly separated from the canopy by navy space. No people, handles, logos or additional words.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}
