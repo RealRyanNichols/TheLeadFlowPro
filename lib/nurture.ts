@@ -64,6 +64,7 @@ export const FREE_BUILD_SEQUENCE_META_FORM_IDS: ReadonlySet<string> = new Set([
   "1602617814609528", // LFP Free Build NoQ v2
   "1001553739566746", // LFP Services Volume v1
   "1072145798524733", // LFP Scoreboard Volume v1
+  "1075109702046952", // LFP | Qualified | Budget + Timeline (Amanda/PDA video ad)
 ]);
 
 /** LFP Workshop Sep 17 Volumev1 — enrolled in the workshop sequence instead. */

@@ -118,6 +118,12 @@ export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> 
     campaign: "scoreboard_2026_09",
     inquiryOptIn: true,
   },
+  "1075109702046952": {
+    // LFP | Qualified | Budget + Timeline — higher-intent form, two qualifying
+    // questions (30-day budget, timeline). Runs on the Amanda/PDA video ad.
+    campaign: "qualified_video_2026_09",
+    inquiryOptIn: true,
+  },
 };
 
 export function registeredMetaForm(formId: string | null | undefined) {
