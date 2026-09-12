@@ -18,7 +18,7 @@
 -- workspaces
 -- ---------------------------------------------------------------------------
 
-create table public.hq_workspaces (
+create table if not exists public.hq_workspaces (
   id uuid primary key default gen_random_uuid(),
   slug text not null unique,
   name text not null,
@@ -65,11 +65,11 @@ create table public.hq_workspaces (
   updated_at timestamptz not null default now()
 );
 
-create index hq_workspaces_owner_idx on public.hq_workspaces (owner_id);
-create index hq_workspaces_plan_idx on public.hq_workspaces (plan);
-create index hq_workspaces_customer_idx on public.hq_workspaces (stripe_customer_id);
+create index if not exists hq_workspaces_owner_idx on public.hq_workspaces (owner_id);
+create index if not exists hq_workspaces_plan_idx on public.hq_workspaces (plan);
+create index if not exists hq_workspaces_customer_idx on public.hq_workspaces (stripe_customer_id);
 
-create table public.hq_members (
+create table if not exists public.hq_members (
   workspace_id uuid not null references public.hq_workspaces(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
   role text not null default 'member' check (role in ('owner', 'member')),
@@ -77,13 +77,13 @@ create table public.hq_members (
   primary key (workspace_id, user_id)
 );
 
-create index hq_members_user_idx on public.hq_members (user_id);
+create index if not exists hq_members_user_idx on public.hq_members (user_id);
 
 -- ---------------------------------------------------------------------------
 -- the lead inbox
 -- ---------------------------------------------------------------------------
 
-create table public.hq_leads (
+create table if not exists public.hq_leads (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.hq_workspaces(id) on delete cascade,
   created_at timestamptz not null default now(),
@@ -114,13 +114,13 @@ create table public.hq_leads (
   unique (workspace_id, external_id)
 );
 
-create index hq_leads_workspace_created_idx on public.hq_leads (workspace_id, created_at desc);
-create index hq_leads_workspace_status_idx on public.hq_leads (workspace_id, status);
-create index hq_leads_follow_up_idx on public.hq_leads (workspace_id, next_follow_up_at);
+create index if not exists hq_leads_workspace_created_idx on public.hq_leads (workspace_id, created_at desc);
+create index if not exists hq_leads_workspace_status_idx on public.hq_leads (workspace_id, status);
+create index if not exists hq_leads_follow_up_idx on public.hq_leads (workspace_id, next_follow_up_at);
 
 -- Timeline. Also the idempotency ledger for Autopilot: an alert or a brief
 -- that carries a dedupe_key can only ever be recorded once.
-create table public.hq_events (
+create table if not exists public.hq_events (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.hq_workspaces(id) on delete cascade,
   lead_id uuid references public.hq_leads(id) on delete cascade,
@@ -135,10 +135,10 @@ create table public.hq_events (
   unique (workspace_id, dedupe_key)
 );
 
-create index hq_events_workspace_created_idx on public.hq_events (workspace_id, created_at desc);
-create index hq_events_lead_idx on public.hq_events (lead_id, created_at desc);
+create index if not exists hq_events_workspace_created_idx on public.hq_events (workspace_id, created_at desc);
+create index if not exists hq_events_lead_idx on public.hq_events (lead_id, created_at desc);
 
-create table public.hq_messages (
+create table if not exists public.hq_messages (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.hq_workspaces(id) on delete cascade,
   lead_id uuid references public.hq_leads(id) on delete cascade,
@@ -158,15 +158,15 @@ create table public.hq_messages (
   created_at timestamptz not null default now()
 );
 
-create index hq_messages_workspace_idx on public.hq_messages (workspace_id, created_at desc);
-create index hq_messages_lead_idx on public.hq_messages (lead_id, created_at desc);
-create index hq_messages_queued_idx on public.hq_messages (workspace_id, status) where status = 'queued';
+create index if not exists hq_messages_workspace_idx on public.hq_messages (workspace_id, created_at desc);
+create index if not exists hq_messages_lead_idx on public.hq_messages (lead_id, created_at desc);
+create index if not exists hq_messages_queued_idx on public.hq_messages (workspace_id, status) where status = 'queued';
 
 -- ---------------------------------------------------------------------------
 -- content and briefs
 -- ---------------------------------------------------------------------------
 
-create table public.hq_content (
+create table if not exists public.hq_content (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.hq_workspaces(id) on delete cascade,
   kind text not null check (kind in ('post', 'ad', 'video_script', 'review_reply', 'email')),
@@ -186,10 +186,10 @@ create table public.hq_content (
   updated_at timestamptz not null default now()
 );
 
-create index hq_content_workspace_idx on public.hq_content (workspace_id, created_at desc);
-create index hq_content_week_idx on public.hq_content (workspace_id, week_of);
+create index if not exists hq_content_workspace_idx on public.hq_content (workspace_id, created_at desc);
+create index if not exists hq_content_week_idx on public.hq_content (workspace_id, week_of);
 
-create table public.hq_briefs (
+create table if not exists public.hq_briefs (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.hq_workspaces(id) on delete cascade,
   kind text not null default 'daily' check (kind in ('daily', 'weekly')),
@@ -209,7 +209,7 @@ create table public.hq_briefs (
 -- API key, a Twilio auth token, a Page access token) is AES-GCM encrypted
 -- in secret_ciphertext with a server-side key and never returned to the
 -- browser. config holds only the non-secret parts (numbers, page ids, names).
-create table public.hq_connections (
+create table if not exists public.hq_connections (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.hq_workspaces(id) on delete cascade,
   kind text not null check (kind in ('openphone', 'twilio', 'meta_page', 'website')),
@@ -229,10 +229,10 @@ create table public.hq_connections (
 
 -- One business per Facebook Page. Without this, a second workspace could
 -- claim a Page it does not own and swallow the real owner's lead webhooks.
-create unique index hq_connections_meta_page_idx on public.hq_connections ((config->>'page_id'))
+create unique index if not exists hq_connections_meta_page_idx on public.hq_connections ((config->>'page_id'))
   where kind = 'meta_page' and status = 'connected';
 
-create table public.hq_api_keys (
+create table if not exists public.hq_api_keys (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.hq_workspaces(id) on delete cascade,
   name text not null default 'Plugin key',
@@ -244,14 +244,14 @@ create table public.hq_api_keys (
   created_at timestamptz not null default now()
 );
 
-create index hq_api_keys_workspace_idx on public.hq_api_keys (workspace_id);
-create index hq_api_keys_created_by_idx on public.hq_api_keys (created_by);
+create index if not exists hq_api_keys_workspace_idx on public.hq_api_keys (workspace_id);
+create index if not exists hq_api_keys_created_by_idx on public.hq_api_keys (created_by);
 
 -- OAuth 2.1 for ChatGPT and Claude. Clients register themselves (dynamic
 -- client registration), the owner signs in and approves, and the connector
 -- holds a short-lived access token plus a refresh token. Only hashes live
 -- here; the plaintext token is shown to the client once.
-create table public.hq_oauth_clients (
+create table if not exists public.hq_oauth_clients (
   client_id text primary key,
   client_name text not null default '',
   redirect_uris text[] not null default '{}'::text[],
@@ -263,7 +263,7 @@ create table public.hq_oauth_clients (
   last_seen_at timestamptz
 );
 
-create table public.hq_oauth_codes (
+create table if not exists public.hq_oauth_codes (
   code_hash text primary key,
   client_id text not null references public.hq_oauth_clients(client_id) on delete cascade,
   workspace_id uuid not null references public.hq_workspaces(id) on delete cascade,
@@ -278,11 +278,11 @@ create table public.hq_oauth_codes (
   created_at timestamptz not null default now()
 );
 
-create index hq_oauth_codes_client_idx on public.hq_oauth_codes (client_id);
-create index hq_oauth_codes_workspace_idx on public.hq_oauth_codes (workspace_id);
-create index hq_oauth_codes_user_idx on public.hq_oauth_codes (user_id);
+create index if not exists hq_oauth_codes_client_idx on public.hq_oauth_codes (client_id);
+create index if not exists hq_oauth_codes_workspace_idx on public.hq_oauth_codes (workspace_id);
+create index if not exists hq_oauth_codes_user_idx on public.hq_oauth_codes (user_id);
 
-create table public.hq_oauth_tokens (
+create table if not exists public.hq_oauth_tokens (
   id uuid primary key default gen_random_uuid(),
   access_hash text not null unique,
   refresh_hash text unique,
@@ -297,9 +297,9 @@ create table public.hq_oauth_tokens (
   created_at timestamptz not null default now()
 );
 
-create index hq_oauth_tokens_workspace_idx on public.hq_oauth_tokens (workspace_id);
-create index hq_oauth_tokens_client_idx on public.hq_oauth_tokens (client_id);
-create index hq_oauth_tokens_user_idx on public.hq_oauth_tokens (user_id);
+create index if not exists hq_oauth_tokens_workspace_idx on public.hq_oauth_tokens (workspace_id);
+create index if not exists hq_oauth_tokens_client_idx on public.hq_oauth_tokens (client_id);
+create index if not exists hq_oauth_tokens_user_idx on public.hq_oauth_tokens (user_id);
 
 -- ---------------------------------------------------------------------------
 -- updated_at maintenance
@@ -316,12 +316,18 @@ begin
 end;
 $$;
 
+revoke all on function public.hq_touch_updated_at() from public, anon, authenticated;
+
+drop trigger if exists hq_workspaces_touch on public.hq_workspaces;
 create trigger hq_workspaces_touch before update on public.hq_workspaces
   for each row execute function public.hq_touch_updated_at();
+drop trigger if exists hq_leads_touch on public.hq_leads;
 create trigger hq_leads_touch before update on public.hq_leads
   for each row execute function public.hq_touch_updated_at();
+drop trigger if exists hq_content_touch on public.hq_content;
 create trigger hq_content_touch before update on public.hq_content
   for each row execute function public.hq_touch_updated_at();
+drop trigger if exists hq_connections_touch on public.hq_connections;
 create trigger hq_connections_touch before update on public.hq_connections
   for each row execute function public.hq_touch_updated_at();
 
@@ -400,30 +406,39 @@ grant select (id, workspace_id, kind, label, config, status, last_error, last_ch
 grant select (id, workspace_id, name, key_hint, created_by, last_used_at, revoked_at, created_at)
   on public.hq_api_keys to authenticated;
 
+drop policy if exists "hq workspaces member read" on public.hq_workspaces;
 create policy "hq workspaces member read" on public.hq_workspaces
   for select to authenticated using (public.hq_member_of(id));
 
+drop policy if exists "hq members self read" on public.hq_members;
 create policy "hq members self read" on public.hq_members
   for select to authenticated using (user_id = (select auth.uid()) or public.hq_owner_of(workspace_id));
 
+drop policy if exists "hq leads member read" on public.hq_leads;
 create policy "hq leads member read" on public.hq_leads
   for select to authenticated using (public.hq_member_of(workspace_id));
 
+drop policy if exists "hq events member read" on public.hq_events;
 create policy "hq events member read" on public.hq_events
   for select to authenticated using (public.hq_member_of(workspace_id));
 
+drop policy if exists "hq messages member read" on public.hq_messages;
 create policy "hq messages member read" on public.hq_messages
   for select to authenticated using (public.hq_member_of(workspace_id));
 
+drop policy if exists "hq content member read" on public.hq_content;
 create policy "hq content member read" on public.hq_content
   for select to authenticated using (public.hq_member_of(workspace_id));
 
+drop policy if exists "hq briefs member read" on public.hq_briefs;
 create policy "hq briefs member read" on public.hq_briefs
   for select to authenticated using (public.hq_member_of(workspace_id));
 
+drop policy if exists "hq connections member read" on public.hq_connections;
 create policy "hq connections member read" on public.hq_connections
   for select to authenticated using (public.hq_member_of(workspace_id));
 
+drop policy if exists "hq api keys member read" on public.hq_api_keys;
 create policy "hq api keys member read" on public.hq_api_keys
   for select to authenticated using (public.hq_member_of(workspace_id));
 
