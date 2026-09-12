@@ -22,7 +22,9 @@ create table public.hq_workspaces (
   id uuid primary key default gen_random_uuid(),
   slug text not null unique,
   name text not null,
-  owner_id uuid not null references auth.users(id) on delete cascade,
+  -- Restrict, not cascade: deleting a sign-in must never silently wipe a
+  -- business's leads, history, and connections. Remove the workspace first.
+  owner_id uuid not null references auth.users(id) on delete restrict,
   owner_name text,
   industry text,
   phone text,
@@ -243,6 +245,7 @@ create table public.hq_api_keys (
 );
 
 create index hq_api_keys_workspace_idx on public.hq_api_keys (workspace_id);
+create index hq_api_keys_created_by_idx on public.hq_api_keys (created_by);
 
 -- OAuth 2.1 for ChatGPT and Claude. Clients register themselves (dynamic
 -- client registration), the owner signs in and approves, and the connector
@@ -275,6 +278,10 @@ create table public.hq_oauth_codes (
   created_at timestamptz not null default now()
 );
 
+create index hq_oauth_codes_client_idx on public.hq_oauth_codes (client_id);
+create index hq_oauth_codes_workspace_idx on public.hq_oauth_codes (workspace_id);
+create index hq_oauth_codes_user_idx on public.hq_oauth_codes (user_id);
+
 create table public.hq_oauth_tokens (
   id uuid primary key default gen_random_uuid(),
   access_hash text not null unique,
@@ -291,6 +298,8 @@ create table public.hq_oauth_tokens (
 );
 
 create index hq_oauth_tokens_workspace_idx on public.hq_oauth_tokens (workspace_id);
+create index hq_oauth_tokens_client_idx on public.hq_oauth_tokens (client_id);
+create index hq_oauth_tokens_user_idx on public.hq_oauth_tokens (user_id);
 
 -- ---------------------------------------------------------------------------
 -- updated_at maintenance
@@ -393,7 +402,7 @@ create policy "hq workspaces member read" on public.hq_workspaces
   for select to authenticated using (public.hq_member_of(id));
 
 create policy "hq members self read" on public.hq_members
-  for select to authenticated using (user_id = auth.uid() or public.hq_owner_of(workspace_id));
+  for select to authenticated using (user_id = (select auth.uid()) or public.hq_owner_of(workspace_id));
 
 create policy "hq leads member read" on public.hq_leads
   for select to authenticated using (public.hq_member_of(workspace_id));
