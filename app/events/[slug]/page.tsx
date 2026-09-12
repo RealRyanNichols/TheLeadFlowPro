@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import { notFound } from "next/navigation";
 import {
   CalendarDays,
@@ -22,11 +23,26 @@ import { missingEventPaymentConfig } from "@/lib/eventPayments";
 import WorkshopRegister from "./WorkshopRegister";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = {
+const workshopMetadata: Metadata = {
   title: "Workshop registration | The LeadFlow Pro",
   robots: { index: false, follow: true },
   referrer: "no-referrer",
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  if (slug !== "chatgpt-for-business-owners-longview") return workshopMetadata;
+  return withPublicPageMetadata(`/events/${slug}`, {
+    ...workshopMetadata,
+    title: "ChatGPT for Business Owners: Live in Longview | The LeadFlow Pro",
+    description:
+      "Bring one real business task and practice a useful process. Review the workshop page for current event and registration details.",
+  });
+}
 
 export default async function WorkshopPage({
   params,

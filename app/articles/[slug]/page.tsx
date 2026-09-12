@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { uniqueOgImagePath } from "@/lib/uniqueOgImages";
 import "../article-body.css";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
@@ -49,11 +50,15 @@ export async function generateMetadata({
       robots: { index: false, follow: false },
     };
   }
-  const socialImage = articleSocialImagePath(article.slug);
+  const socialImage =
+    uniqueOgImagePath(`/articles/${article.slug}`) ??
+    articleSocialImagePath(article.slug);
   return {
     title: `${article.title} | The LeadFlow Pro`,
     description: article.description,
-    alternates: { canonical: `https://www.theleadflowpro.com/articles/${article.slug}` },
+    alternates: {
+      canonical: `https://www.theleadflowpro.com/articles/${article.slug}`,
+    },
     openGraph: {
       title: article.title,
       description: article.description,
@@ -95,7 +100,9 @@ export default async function ArticlePage({
   if (!article) notFound();
 
   const SITE = "https://www.theleadflowpro.com";
-  const socialImage = articleSocialImagePath(article.slug);
+  const socialImage =
+    uniqueOgImagePath(`/articles/${article.slug}`) ??
+    articleSocialImagePath(article.slug);
   const premiumArt = articlePremiumArtPath(article.slug);
   const relatedKit = article.tool ? proUpgradesFor(article.tool.slug)[0] : undefined;
   const articleLd = {

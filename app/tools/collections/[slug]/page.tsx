@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
+import { uniqueOgImagePath } from "@/lib/uniqueOgImages";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, AlertTriangle } from "lucide-react";
 import { TOOL_COUNT, toolIndex } from "@/lib/tools";
-import { PUBLISHED_COLLECTIONS, collectionCount, collectionSections, getCollection } from "@/lib/tools/collections";
+import {
+  PUBLISHED_COLLECTIONS,
+  collectionCount,
+  collectionSections,
+  getCollection,
+} from "@/lib/tools/collections";
 import ToolCard from "@/components/tools/ToolCard";
 import FinalCta from "@/components/site/system/FinalCta";
 import SiteHero from "@/components/site/system/SiteHero";
@@ -28,12 +34,28 @@ export async function generateMetadata({
   if (!c) return {};
   const url = `${BASE}/tools/collections/${c.slug}`;
   const n = collectionCount(c);
+  const imagePath = uniqueOgImagePath(`/tools/collections/${c.slug}`);
+  const images = imagePath
+    ? [{ url: `${BASE}${imagePath}`, width: 1200, height: 630, alt: c.title }]
+    : undefined;
   return {
     title: `${c.title} (${n} free tools)`,
     description: `${c.hook} ${n} free tools, no signup to use any of them.`,
     alternates: { canonical: url },
-    openGraph: { title: c.title, description: c.hook, url, siteName: "The LeadFlow Pro", type: "website" },
-    twitter: { title: c.title, description: c.hook, card: "summary_large_image" },
+    openGraph: {
+      title: c.title,
+      description: c.hook,
+      url,
+      siteName: "The LeadFlow Pro",
+      type: "website",
+      images,
+    },
+    twitter: {
+      title: c.title,
+      description: c.hook,
+      card: "summary_large_image",
+      images,
+    },
   };
 }
 

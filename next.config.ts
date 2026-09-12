@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
   // The social-card route reads only these reviewed public assets at runtime.
   outputFileTracingIncludes: {
     "/og/pages/*": [
+      "./public/og/unique/2026-09-12/*.jpg",
       "./public/images/brand/leadflow-logo.png",
       "./public/images/academy/cards/*.svg",
       "./public/images/page-art/tools-library.png",

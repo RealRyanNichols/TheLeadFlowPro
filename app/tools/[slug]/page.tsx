@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { uniqueOgImagePath } from "@/lib/uniqueOgImages";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -46,7 +47,9 @@ export async function generateMetadata({
   const tool = getTool(slug);
   if (!tool) return {};
   const url = `${BASE}/tools/${tool.slug}`;
-  const ogImage = TOOL_VISUALS[tool.slug]?.ogImage;
+  const ogImage =
+    uniqueOgImagePath(`/tools/${tool.slug}`) ??
+    TOOL_VISUALS[tool.slug]?.ogImage;
   const images = ogImage
     ? [
         {

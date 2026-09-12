@@ -17,6 +17,7 @@ import {
   withPublicPageMetadata,
 } from "../lib/publicPageMetadata.ts";
 import sitemap from "../app/sitemap.ts";
+import { UNIQUE_OG_IMAGES, uniqueOgImagePath } from "../lib/uniqueOgImages.ts";
 
 const require = createRequire(import.meta.url);
 const { ImageResponse }: typeof import("next/og") = require("next/og");
@@ -82,6 +83,7 @@ test("legacy ad preview URLs return the full finished image bytes and reject que
   };
   new Function("require", "exports", compiled)(localRequire, routeExports);
   for (const route of [
+    ...Object.keys(UNIQUE_OG_IMAGES),
     "/services",
     "/free-build",
     "/scoreboard",
@@ -106,7 +108,11 @@ test("legacy ad preview URLs return the full finished image bytes and reject que
     assert.deepEqual(
       Buffer.from(await response.arrayBuffer()),
       await readFile(
-        path.join(process.cwd(), "public", AD_PAGE_SOCIAL_IMAGES[route]),
+        path.join(
+          process.cwd(),
+          "public",
+          uniqueOgImagePath(route) ?? AD_PAGE_SOCIAL_IMAGES[route],
+        ),
       ),
       route,
     );
@@ -307,4 +313,44 @@ test("all generated previews really render as distinct 1200 by 630 PNGs", async 
     assert.ok(!hashes.has(hash), `${route} repeats another rendered card`);
     hashes.add(hash);
   }
+});
+
+test("September 12 artwork covers 50 public URLs with distinct optimized 1200 by 630 JPEGs", async () => {
+  const entries = Object.entries(UNIQUE_OG_IMAGES).filter(([, image]) =>
+    image.startsWith("/og/unique/2026-09-12/"),
+  );
+  assert.equal(entries.length, 50);
+  const hashes = new Set<string>();
+  for (const [route, image] of entries) {
+    assert.equal(
+      getPublicOgPage(route, new Date("2026-09-12T23:00:00Z"))?.imagePath,
+      image,
+      route,
+    );
+    assert.equal(uniqueOgImagePath(`${route}?token=private`), undefined);
+    const bytes = await readFile(path.join(process.cwd(), "public", image));
+    const metadata = await sharp(bytes).metadata();
+    assert.equal(metadata.format, "jpeg", route);
+    assert.equal(metadata.width, 1200, route);
+    assert.equal(metadata.height, 630, route);
+    assert.ok(
+      bytes.length < 500_000,
+      `${route} exceeds social image size budget`,
+    );
+    hashes.add(createHash("sha256").update(bytes).digest("hex"));
+  }
+  assert.equal(hashes.size, 50);
+  for (const invalid of [
+    "/admin",
+    "/unknown",
+    "__proto__",
+    "/tools/../admin",
+  ]) {
+    assert.equal(uniqueOgImagePath(invalid), undefined);
+  }
+  assert.equal(getPublicOgPage("/chatgpt/free")?.index, false);
+  assert.equal(
+    getPublicOgPage("/events/chatgpt-for-business-owners-longview")?.index,
+    false,
+  );
 });

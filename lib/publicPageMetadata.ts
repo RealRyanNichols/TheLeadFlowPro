@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { uniqueOgImagePath } from "./uniqueOgImages";
 
 export const PUBLIC_SITE_URL = "https://www.theleadflowpro.com";
 export const PUBLIC_OG_SIZE = { width: 1200, height: 630 } as const;
@@ -29,7 +30,9 @@ export function publicPageImagePath(path: string): string {
   if (!isCanonicalPublicPath(path))
     throw new Error("A canonical page path is required");
   return (
-    AD_PAGE_SOCIAL_IMAGES[path] ?? `/og/pages${path === "/" ? "/home" : path}`
+    uniqueOgImagePath(path) ??
+    AD_PAGE_SOCIAL_IMAGES[path] ??
+    `/og/pages${path === "/" ? "/home" : path}`
   );
 }
 

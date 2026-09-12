@@ -35,7 +35,11 @@ export async function GET(
   const page = new URL(request.url).search
     ? undefined
     : getPublicOgPage(canonicalPath);
-  const finishedArt = page && AD_PAGE_SOCIAL_IMAGES[canonicalPath];
+  const finishedArt =
+    page &&
+    (page.imagePath.startsWith("/og/unique/")
+      ? page.imagePath
+      : AD_PAGE_SOCIAL_IMAGES[canonicalPath]);
   if (finishedArt) {
     // Existing shares may still request the old generated-card URL.
     const bytes = await readFile(

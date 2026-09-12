@@ -1,4 +1,5 @@
 import { getPublishedArticles } from "./articles";
+import { uniqueOgImagePath } from "./uniqueOgImages";
 import { OPERATOR_ACADEMY_COURSES } from "./operatorAcademyCatalog";
 import { PUBLIC_PAGE_CATALOG } from "./publicPageCatalog";
 import {
@@ -76,6 +77,7 @@ export function getPublicOgPages(now = new Date()): PublicOgPage[] {
       description: tool.description,
       eyebrow: "Free working tool",
       imagePath:
+        uniqueOgImagePath(`/tools/${tool.slug}`) ??
         TOOL_VISUALS[tool.slug]?.ogImage ??
         `/tools/${tool.slug}/opengraph-image`,
       index: true,
@@ -86,6 +88,7 @@ export function getPublicOgPages(now = new Date()): PublicOgPage[] {
       description: tool.description,
       eyebrow: "Pro Kit",
       imagePath:
+        uniqueOgImagePath(`/tools/pro/${tool.slug}`) ??
         PRO_TOOL_VISUALS[tool.slug]?.ogImage ??
         publicPageImagePath(`/tools/pro/${tool.slug}`),
       index: true,
@@ -95,7 +98,9 @@ export function getPublicOgPages(now = new Date()): PublicOgPage[] {
       title: collection.title,
       description: collection.hook,
       eyebrow: "Curated free tools",
-      imagePath: `/tools/collections/${collection.slug}/opengraph-image`,
+      imagePath:
+        uniqueOgImagePath(`/tools/collections/${collection.slug}`) ??
+        `/tools/collections/${collection.slug}/opengraph-image`,
       index: true,
     })),
     ...getPublishedArticles(now).map((article) => ({
@@ -103,7 +108,9 @@ export function getPublicOgPages(now = new Date()): PublicOgPage[] {
       title: article.title,
       description: article.description,
       eyebrow: "A practical business guide",
-      imagePath: `/articles/${article.slug}/opengraph-image`,
+      imagePath:
+        uniqueOgImagePath(`/articles/${article.slug}`) ??
+        `/articles/${article.slug}/opengraph-image`,
       index: true,
     })),
   ];

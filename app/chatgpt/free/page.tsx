@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, BookOpenCheck, Check } from "lucide-react";
 import PromptCopyButton from "./PromptCopyButton";
 import styles from "../chatgpt-course.module.css";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/chatgpt/free", {
   title: "Your First ChatGPT Page | Free LeadFlow Lesson",
-  description: "Build a practice landing page, check the result, and make one useful revision. A free written lesson for beginners.",
+  description:
+    "Build a practice landing page, check the result, and make one useful revision. A free written lesson for beginners.",
   robots: { index: false, follow: false },
-};
+});
 
 const PROMPT = `Help me practice building a simple landing page. Use a fictional East Texas pressure-washing business called Pine Ridge Pressure Washing. Clearly label it as a practice example.
 

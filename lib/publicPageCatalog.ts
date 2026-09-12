@@ -1,6 +1,22 @@
 // Reviewed canonical public pages. Redirects and private completion URLs are excluded.
 export const PUBLIC_PAGE_CATALOG = [
   {
+    path: "/chatgpt/free",
+    title: "Build your first ChatGPT page",
+    description:
+      "Practice building a landing page, inspect the result, and make one useful revision in this free written lesson.",
+    eyebrow: "Free ChatGPT training",
+    index: false,
+  },
+  {
+    path: "/events/chatgpt-for-business-owners-longview",
+    title: "ChatGPT for Business Owners: Live in Longview",
+    description:
+      "Bring one real business task and practice a useful process. Review the workshop page for current event and registration details.",
+    eyebrow: "Live learning in Longview",
+    index: false,
+  },
+  {
     path: "/commerce",
     title: "Make buying it easy",
     description:
