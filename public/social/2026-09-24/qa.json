@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex final PNG visual review",
+  "reviewed_at": "2026-09-12T10:12:32.184Z",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "e1708285995204d7493245a5dc8bbd5eb6a2c7f482a5d05bb9db881c905a68c4",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Exact navy serif headline is centered below a horizontal cobalt carpenter pencil. Single support line is correct and readable. Pencil is unmarked and clear of all text on warm offwhite.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "2c1af22602ae34ef7a10a78b60a9655f0e5a6e6249f3791134c885955ce8a5cb",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Exact bold navy headline and one support line sit left of a black payment terminal on muted blue. Display and physical buttons have no lettering, logos or interface. The support ends before the terminal.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "8674f4bec007b1472b11817cd87f2b7ce9147f1986f2770c5c6164a737d4361e",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Exact electrical headline and one support line are centered above a suspended linear light on sage. Suspension wires remain outside the text. Plants occupy lower corners without obstructing copy; no equipment labels or people.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "b0db269571d7a83e68fcface904b02a8edbbe0403e565dc85d7d92c19eedb431",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Large offwhite Illustrative label and 3 times 25 equals 75 minutes are correct, with one support line explicitly labeled Example. Cobalt texture and a narrow navy left stripe form a typography-only composition. No real customer result is implied.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "6faf7fa99962cfd740fbae001bfcf741223744a93750ade45eaa8cee40c0fecc",
+      "passed": true,
+      "notes": "Reviewed final 1200 by 630 PNG. Exact offwhite serif question and single support line appear upper left on navy. Plain eraser rests diagonally lower right with a soft shadow, clearly separated from text. No printing, logos or additional objects.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}
