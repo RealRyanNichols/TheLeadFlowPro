@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex final PNG visual review",
+  "reviewed_at": "2026-09-12T21:56:27.231Z",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "5f63e20ff74b1ff889e19babba3389002fa24bd66e12a748ece2aa447290e5b8",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG reviewed. Exact navy serif headline and one support line sit low to the right of a cobalt steel clamp. Clamp surfaces and hardware have no lettering; OCR recognized the physical C-shaped outline as C, not printed text. No text crosses the clamp.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "8dc22f6352c01131fca6aa913f8c9e59e872cf69844545757e840a583d5e2058",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG reviewed after correction. The background is now evenly light blue and fully opaque, without dark blotches. Clear dome remains upper right, with exact navy headline and single support below, both fully legible and clear of the dome.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "c84077650478459b1d440ab449e8d9e896426f16c723957b0634eadb606506e6",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG reviewed. Exact centered navy headline and single support line appear above an unmarked offwhite architectural house model on sage. The buyer apostrophe is correct, model has no address or signage, and no copy overlaps it.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "57657190aa15e86a0b18666ca5a82b215d4b9b8dabbbe7f0d32ff623bef2fc7e",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG reviewed. Explicit Illustrative label and nine minus two equals seven requests are correct. One Example support line remains clear of two plain hanging fabric swatches at right. Swatches carry no lettering or symbols. Arithmetic is illustrative rather than a customer result.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "b6d5e7ebb238f1eb303e244c91e1d69a0884c1665d925f7cb52fdf9e4adfe9d6",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG reviewed after removing the added coffee, plant, notebook and pen. Only a woven mat corner remains upper left on cobalt, with exact offwhite question and one support line low right. Text and mat are fully separated.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}

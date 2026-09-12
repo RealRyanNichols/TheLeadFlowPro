@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex final PNG visual review",
+  "reviewed_at": "2026-09-12T21:56:27.238Z",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "004e9d6b613ae6368b91c2fafa5f7b0b18ad33a9feea2aad516e508082ed4fad",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG reviewed. Exact large navy serif headline and single support line sit lower left on offwhite. Plain wooden clothespin occupies upper right, has no printing or hardware marks, and casts a shadow away from the text.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "54157c6d4ef83dbd243a42520d10e1ddff49eb72afe99079c9c55d9635bac5dc",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG reviewed. Exact centered navy headline and one support line sit above two low curved offwhite partitions on muted blue. Objects are clear of text and have no markings or extra labels.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "cbe1f6004dfd0fda24937e4dd33bb28407f1e816eb9413b5874cf303f77817be",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG reviewed. Exact dental headline and single support line sit upper left on sage. A white ceramic molar teaching prop on a plain oval base sits lower right. No face, gums, patient records or labels appear, and copy ends before the prop.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "a7ceac90776fa7a7dcf16138dd0fc17c7fe919adfce99accca705516418a1135",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG reviewed. Exact Illustrative four times fifteen dollars equals sixty dollars appears as one large headline with one support line specifying before tax or delivery. Navy textured background and amber corner panel are distinct; there is no customer performance claim.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "d57cf5c12b839822f46b45964186f0a0063713430b7f34aab3e2dff00cf69eed",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG reviewed. Exact offwhite question and one support line sit upper right on cobalt. Open empty offwhite eyeglass case is cropped at lower left, with no glasses, branding, text or icons. Copy is clear of the case.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}
