@@ -127,6 +127,15 @@ those events in the Stripe dashboard: `customer.subscription.created`,
 `customer.subscription.updated`, `customer.subscription.deleted` in addition to
 the existing checkout and invoice events.
 
+The webhooks are the fast path, not the only one. `syncWorkspaceFromStripe`
+(same file) reads the subscription straight from Stripe and applies it. The
+pulse calls it when a trial clock runs out (so a card charged on schedule is
+active, not lapsed; if Stripe cannot be reached the trial waits for the next
+pulse instead of being canceled) and once a day for every live workspace
+whose `stripe_event_at` is more than a day old. A plan change from either
+path lands in the timeline as a system event; an unchanged plan writes
+nothing. So a missing subscription webhook costs at most a day of lag.
+
 Plan values: `none`, `trial`, `active`, `past_due` (engine keeps running,
 owner is emailed, checkout is refused in favor of the portal), `canceled`.
 `planIsLive()` is the single gate; read-only MCP tools still answer when the

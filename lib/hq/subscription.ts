@@ -106,6 +106,30 @@ export async function handleHqStripeEvent(client: db.Db, event: StripeEvent, str
   return false;
 }
 
+/**
+ * Ask Stripe directly and set the plan from the answer. Used when a trial
+ * clock runs out (so a card that was charged on schedule is not mistaken
+ * for a lapse) and once a day as a reconciliation, so the plan stays right
+ * even when a subscription webhook was never registered or never arrived.
+ * Returns the synced plan, or null when Stripe could not be asked.
+ */
+export async function syncWorkspaceFromStripe(client: db.Db, ws: { id: string; stripe_subscription_id: string | null; plan: string; trial_used_at: string | null; stripe_event_at: number }, stripeKey: string | undefined, now = new Date()): Promise<ReturnType<typeof planFromSubscription> | null> {
+  if (!stripeKey || !ws.stripe_subscription_id) return null;
+  const sub = await fetchSubscription(stripeKey, ws.stripe_subscription_id);
+  if (!sub) return null;
+  const plan = planFromSubscription(sub);
+  await db.updateWorkspace(client, ws.id, {
+    ...plan,
+    stripe_customer_id: customerIdOf(sub) ?? undefined,
+    trial_used_at: ws.trial_used_at ?? (plan.plan === "trial" ? now.toISOString() : null),
+    stripe_event_at: Math.max(ws.stripe_event_at, Math.floor(now.getTime() / 1000)),
+  });
+  if (plan.plan !== ws.plan) {
+    await db.recordEvent(client, ws.id, { kind: "system", detail: `Plan is now ${plan.plan} (${plan.subscription_status}, checked with Stripe)`, actor: "stripe" });
+  }
+  return plan;
+}
+
 async function fetchSubscription(key: string, id: string): Promise<StripeSubscriptionLike | null> {
   try {
     const r = await fetch(`https://api.stripe.com/v1/subscriptions/${encodeURIComponent(id)}`, { headers: { Authorization: `Bearer ${key}` }, cache: "no-store" });

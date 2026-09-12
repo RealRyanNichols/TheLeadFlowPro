@@ -10,6 +10,7 @@ import * as db from "./server";
 import { localParts, localWeekStart } from "./time";
 import { OPEN_STATUSES, planIsLive, type Lead, type Workspace } from "./types";
 import { pendingAlerts } from "./watchdog";
+import { syncWorkspaceFromStripe } from "./subscription";
 
 // The Autopilot pulse. Runs every five minutes for every live workspace and
 // does the things a good office manager would do without being asked:
@@ -39,6 +40,7 @@ export type PulseSummary = {
 };
 
 const PULSE_BUDGET_MS = 45_000;
+const STRIPE_SYNC_SECONDS = 86_400;
 
 export async function runPulseForAll(client: db.Db, now = new Date()): Promise<PulseSummary[]> {
   const workspaces = await db.listLiveWorkspaces(client);
@@ -67,7 +69,19 @@ export async function runPulseForAll(client: db.Db, now = new Date()): Promise<P
 }
 
 async function expireTrial(client: db.Db, ws: Workspace, now: Date) {
-  await db.updateWorkspace(client, ws.id, { plan: "canceled" });
+  // The trial clock ran out on our side. Before calling it over, ask Stripe:
+  // a card charged on schedule means the plan is active, and only Stripe
+  // knows if the subscription webhook never reached us. When Stripe answers,
+  // its answer is already on the workspace; anything but a cancel means the
+  // plan goes on (or Stripe is a few minutes from closing the trial itself).
+  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  const synced = await syncWorkspaceFromStripe(client, ws, stripeKey, now);
+  if (synced && synced.plan !== "canceled") return;
+  // Stripe has the subscription but could not be reached: the engine stays
+  // paused (the trial date already passed) and the next pulse asks again.
+  // Canceling now would leave a card that was charged on time looking lapsed.
+  if (!synced && stripeKey && ws.stripe_subscription_id) return;
+  if (!synced) await db.updateWorkspace(client, ws.id, { plan: "canceled" });
   const first = await db.recordEvent(client, ws.id, { kind: "system", detail: "Trial ended", actor: "cron", dedupeKey: "trial:ended" });
   if (first && ws.settings.alertEmail) {
     await sendOwnerEmail(ws, `Your ${ws.name} trial ended`, `The 14 day trial for ${ws.name} ended today. The engine has paused: no more instant replies, alerts, or drafts.\n\nTo keep it running, open https://www.theleadflowpro.com/hq/billing and start the plan. Your leads and history are safe either way.`, `trial-ended-${ws.id}-${now.toISOString().slice(0, 10)}`);
@@ -168,7 +182,17 @@ export async function runPulse(client: db.Db, ws: Workspace, now = new Date()): 
     }
   }
 
-  // 6. Trial reminders: three days out and the day before.
+  // 6. Once a day, reconcile the plan with Stripe. Webhooks are the fast
+  //    path; this is the one that cannot be misconfigured away. The last
+  //    Stripe touch (webhook or check) is stamped on the workspace, so a
+  //    day without one is the cue and nothing extra is written when the
+  //    plan is unchanged.
+  if (ws.stripe_subscription_id && ws.stripe_event_at < Math.floor(now.getTime() / 1000) - STRIPE_SYNC_SECONDS) {
+    const synced = await syncWorkspaceFromStripe(client, ws, process.env.STRIPE_SECRET_KEY, now);
+    if (synced) Object.assign(ws, synced, { stripe_event_at: Math.floor(now.getTime() / 1000) });
+  }
+
+  // 7. Trial reminders: three days out and the day before.
   if (ws.plan === "trial" && ws.trial_ends_at) {
     const daysLeft = Math.ceil((new Date(ws.trial_ends_at).getTime() - now.getTime()) / 86_400_000);
     if (daysLeft === 3 || daysLeft === 1) {
