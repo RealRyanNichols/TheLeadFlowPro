@@ -2,20 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Globe, ShieldAlert } from "lucide-react";
+import { Globe } from "lucide-react";
 import { hqPost } from "./api";
 import CopyButton from "./CopyButton";
-import { formSnippet, leadEndpoint, metaWebhook, smsWebhook } from "./snippet";
+import { formSnippet, leadEndpoint, metaWebhook } from "./snippet";
 
-// The address your own website posts to. The token in it is the password to
-// that address, so it is only ever shown once: at the moment it is made. If
-// you did not save it, make a new one. Anything pointed at the old address
-// stops working the second you do, which is exactly what you want if the old
-// one got out.
+// The address your own website posts to. The token in it is an address,
+// not a password: it sits in your site's source for anyone to read, which
+// is why texts use a separate address (see the text line card) and why a
+// form post can never turn on consent by itself. Regenerating gives you a
+// fresh address and turns the old one off.
 
-export default function WebsiteFormCard({ businessName }: { businessName: string }) {
+export default function WebsiteFormCard({ businessName, inboundToken }: { businessName: string; inboundToken: string }) {
   const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string>(inboundToken);
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -31,11 +31,9 @@ export default function WebsiteFormCard({ businessName }: { businessName: string
       return;
     }
     const fresh = result.data.inbound_token;
-    setToken(typeof fresh === "string" ? fresh : null);
+    if (typeof fresh === "string") setToken(fresh);
     router.refresh();
   }
-
-  const shown = token ?? "YOUR_TOKEN";
 
   return (
     <section className="hq-card">
@@ -47,59 +45,33 @@ export default function WebsiteFormCard({ businessName }: { businessName: string
         Point the contact form you already have at this address and every submission becomes a lead here, answered in minutes.
       </p>
 
-      {token ? (
-        <div className="mt-4 rounded-xl border border-[var(--warn-line)] bg-[var(--warn-tint)] p-4">
-          <p className="flex items-center gap-2 text-sm font-black text-[var(--heading)]">
-            <ShieldAlert aria-hidden="true" className="h-4 w-4 text-[var(--warn)]" /> This is the only time the full address is shown. Save it now.
-          </p>
-          <p className="mt-2 text-xs text-[var(--muted)]">
-            Anything pointed at your old address has stopped working. Update your website form, and your SMS and Meta webhooks if you had them set.
-          </p>
-        </div>
-      ) : (
-        <p className="hq-note mt-4">
-          The address is hidden because the token in it is a password. Regenerate it to see it again. That makes a new one and turns the old one off.
-        </p>
-      )}
-
       <div className="mt-4 grid gap-4">
         <div>
           <p className="hq-eyebrow">Lead endpoint</p>
-          <code className="hq-code mt-2">{leadEndpoint(shown)}</code>
-          {token && (
-            <div className="mt-2">
-              <CopyButton value={leadEndpoint(token)} label="Copy the address" />
-            </div>
-          )}
+          <code className="hq-code mt-2">{leadEndpoint(token)}</code>
+          <div className="mt-2">
+            <CopyButton value={leadEndpoint(token)} label="Copy the address" />
+          </div>
         </div>
 
         <div>
           <p className="hq-eyebrow">Paste this form into your site</p>
-          <code className="hq-code mt-2">{formSnippet(shown, businessName)}</code>
-          {token && (
-            <div className="mt-2">
-              <CopyButton value={formSnippet(token, businessName)} label="Copy the form" />
-            </div>
-          )}
+          <code className="hq-code mt-2">{formSnippet(token, businessName)}</code>
+          <div className="mt-2">
+            <CopyButton value={formSnippet(token, businessName)} label="Copy the form" />
+          </div>
           <p className="mt-2 text-xs text-[var(--muted)]">
-            Style it however your site is styled. The field names are what matter. After someone sends it, their browser lands on your thank-you page.
-          </p>
-        </div>
-
-        <div>
-          <p className="hq-eyebrow">Text message webhook</p>
-          <code className="hq-code mt-2">{smsWebhook(shown)}</code>
-          <p className="mt-2 text-xs text-[var(--muted)]">
-            Put this in OpenPhone or Twilio as the address for incoming messages. A text from a number you do not know becomes a lead.
+            Style it however your site is styled. The field names are what matter. After someone sends it, their browser lands on your thank-you page. The
+            hidden field named <code>_hp</code> is a bot trap: leave it empty and hidden.
           </p>
         </div>
 
         <div>
           <p className="hq-eyebrow">Meta lead ads webhook</p>
-          <code className="hq-code mt-2">{metaWebhook(shown)}</code>
+          <code className="hq-code mt-2">{metaWebhook(token)}</code>
           <p className="mt-2 text-xs text-[var(--muted)]">
             In your Meta app webhook setup, use this as the callback address. When it asks for a verify token, use the token out of this address, the part
-            after /in/ and before /meta.
+            after /in/ and before /meta. Your Facebook Page must be connected below for its leads to land.
           </p>
         </div>
 
@@ -126,7 +98,7 @@ export default function WebsiteFormCard({ businessName }: { businessName: string
           </>
         ) : (
           <button type="button" className="hq-btn" onClick={() => setConfirming(true)}>
-            {token ? "Regenerate again" : "Regenerate to see it"}
+            Regenerate the address
           </button>
         )}
       </div>

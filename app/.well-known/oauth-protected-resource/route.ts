@@ -5,8 +5,6 @@ import { protectedResourceMetadata } from "@/lib/hq/oauth";
 // server protects /api/mcp. The MCP route also points here in its
 // WWW-Authenticate header when a request arrives without a token.
 
-export const dynamic = "force-static";
-
 export function GET() {
   return NextResponse.json(protectedResourceMetadata(), {
     headers: { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" },

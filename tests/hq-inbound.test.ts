@@ -44,6 +44,21 @@ describe("meta lead fields", () => {
     assert.equal(f.service, "Hay cutting");
     assert.match(f.message ?? "", /when do you want it done: This week/);
     assert.deepEqual(Object.keys(f.extra), ["what_do_you_need", "when_do_you_want_it_done"]);
+    assert.equal(f.consentSms, false, "a phone number alone is not consent to text");
+  });
+
+  test("consent to texts needs an explicit yes in the form", () => {
+    const yes = metaFieldsToLead([
+      { name: "phone_number", values: ["+19035550199"] },
+      { name: "can_we_text_you_consent", values: ["Yes"] },
+    ]);
+    assert.equal(yes.consentSms, true);
+    assert.equal("can_we_text_you_consent" in yes.extra, false, "the consent answer is not repeated as a message line");
+    const no = metaFieldsToLead([
+      { name: "phone_number", values: ["+19035550199"] },
+      { name: "sms_consent", values: ["No"] },
+    ]);
+    assert.equal(no.consentSms, false);
   });
 
   test("first and last name combine and markup is stripped", () => {
@@ -91,7 +106,7 @@ describe("management guard rails", () => {
 describe("inbound abuse controls", () => {
   test("honeypots, redirects, and Twilio signatures", async () => {
     const { isHoneypotHit, safeFormRedirect, twilioSignatureOk, inboundAllowed } = await import("../lib/hq/inbound.ts");
-    const { workspace } = await import("./hq-engine.test.ts");
+    const { workspace } = await import("./fixtures/hq.ts");
     const crypto = await import("node:crypto");
     assert.equal(isHoneypotHit({ name: "x", _hp: "filled" }), true);
     assert.equal(isHoneypotHit({ name: "x", _hp: "" }), false);
@@ -108,5 +123,28 @@ describe("inbound abuse controls", () => {
     let allowed = 0;
     for (let i = 0; i < 70; i++) if (inboundAllowed("ws-limit")) allowed++;
     assert.equal(allowed, 60);
+  });
+});
+
+describe("openphone signatures", () => {
+  test("verify the timestamped body and reject stale or wrong ones", async () => {
+    const { openphoneSignatureOk } = await import("../lib/hq/inbound.ts");
+    const crypto = await import("node:crypto");
+    const key = crypto.randomBytes(32).toString("base64");
+    const body = JSON.stringify({ type: "message.received" });
+    const ts = String(1_800_000_000_000);
+    const sig = crypto.createHmac("sha256", Buffer.from(key, "base64")).update(`${ts}.${body}`).digest("base64");
+    const header = `hmac;1;${ts};${sig}`;
+    assert.equal(openphoneSignatureOk(key, body, header, 1_800_000_000_000 + 1000), true);
+    assert.equal(openphoneSignatureOk(key, `${body} `, header, 1_800_000_000_000 + 1000), false);
+    assert.equal(openphoneSignatureOk(key, body, header, 1_800_000_000_000 + 10 * 60_000), false, "five minutes is the window");
+    assert.equal(openphoneSignatureOk("AAAA", body, header, 1_800_000_000_000), false);
+    assert.equal(openphoneSignatureOk(key, body, null), false);
+  });
+
+  test("the public URL is rebuilt from forwarded headers", async () => {
+    const { requestPublicUrl } = await import("../lib/hq/inbound.ts");
+    const r = new Request("http://internal:3000/api/hq/in/lfpin_x/sms?source=twilio", { headers: { "x-forwarded-proto": "https", "x-forwarded-host": "www.theleadflowpro.com" } });
+    assert.equal(requestPublicUrl(r), "https://www.theleadflowpro.com/api/hq/in/lfpin_x/sms?source=twilio");
   });
 });

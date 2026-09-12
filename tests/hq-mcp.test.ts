@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { handleJsonRpc, TOOL_SPECS, coerceToolValues, type HqActions, type McpContext } from "../lib/hq/mcp.ts";
 import { SCOPES } from "../lib/hq/oauth.ts";
 import type { Brief, Content, HqEvent, Lead, Message, Workspace } from "../lib/hq/types.ts";
-import { workspace, lead } from "./hq-engine.test.ts";
+import { workspace, lead } from "./fixtures/hq.ts";
 import { getTool } from "../lib/tools/index.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
 
@@ -142,6 +142,9 @@ describe("protocol basics", () => {
     assert.equal(garbage.responses[0].error?.code, -32600);
     const batch = await handleJsonRpc([{ jsonrpc: "2.0", id: 1, method: "ping" }, { jsonrpc: "2.0", method: "notifications/initialized" }], ctxFor(a));
     assert.equal(batch.responses.length, 1);
+    const flood = await handleJsonRpc(Array.from({ length: 21 }, (_, i) => ({ jsonrpc: "2.0", id: i, method: "ping" })), ctxFor(a));
+    assert.equal(flood.responses.length, 1);
+    assert.equal(flood.responses[0].error?.code, -32600, "a batch over the cap is refused whole");
   });
 
   test("tools/list describes every tool with a schema and annotations", async () => {
@@ -215,6 +218,19 @@ describe("working the inbox through the plugin", () => {
 
     const again = result(await call(ctx, "send_message", { message_id: mid }));
     assert.match(again.content[0].text, /already sent/);
+  });
+
+  test("sending a follow-up through the plugin moves the ladder", async () => {
+    const a = new MemoryActions(workspace());
+    a.leads.push(lead({ id: "fu", status: "contacted", follow_up_step: 1, first_contact_at: NOW.toISOString(), next_follow_up_at: NOW.toISOString() }));
+    const ctx = ctxFor(a);
+    const draft = result(await call(ctx, "draft_reply", { lead_id: "fu", purpose: "follow_up" }));
+    const mid = (draft.structuredContent as { message_id: string }).message_id;
+    const sent = result(await call(ctx, "send_message", { message_id: mid }));
+    assert.equal(sent.isError, false, sent.content[0].text);
+    const after = a.leads.find((l) => l.id === "fu")!;
+    assert.equal(after.follow_up_step, 2);
+    assert.notEqual(after.next_follow_up_at, NOW.toISOString());
   });
 
   test("a text cannot go to a lead who never agreed to texts", async () => {
@@ -302,7 +318,10 @@ describe("profile and permissions", () => {
     const before = result(await call(ctx, "business_profile"));
     assert.match(before.content[0].text, /Kirby Plumbing, Longview, TX/);
     const updated = result(await call(ctx, "update_business_profile", { offer: "Free camera inspection with any drain job", auto_text_back: true, brief_hour: 6, phone: "903-555-0100" }));
-    assert.equal(updated.isError, false);
+    assert.equal(updated.isError, false, updated.content[0].text);
+    const partial = ctxFor(a, { scopes: new Set(["leads:read", "leads:write", "content:write"]) });
+    const refused = result(await call(partial, "update_business_profile", { offer: "x" }));
+    assert.equal(refused.isError, true, "changing the profile needs the whole grant");
     assert.equal(a.ws.offer, "Free camera inspection with any drain job");
     assert.equal(a.ws.settings.autoTextBack, true);
     assert.equal(a.ws.settings.briefHour, 6);

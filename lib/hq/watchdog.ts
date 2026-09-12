@@ -35,13 +35,18 @@ export function pendingAlerts(
   now = new Date(),
 ): WatchdogAlert[] {
   const out: WatchdogAlert[] = [];
-  const stages: [AlertStage, number][] = [
-    ["target", settings.responseTargetMinutes],
-    ["1h", 60],
-    ["4h", 240],
-    ["24h", 1440],
-  ];
+  // Sorted by minutes so a target above an hour still fires as "target"
+  // rather than being shadowed by the generic one-hour stage.
+  const stages: [AlertStage, number][] = (
+    [
+      ["target", settings.responseTargetMinutes],
+      ["1h", 60],
+      ["4h", 240],
+      ["24h", 1440],
+    ] as [AlertStage, number][]
+  ).sort((a, b) => a[1] - b[1]);
   for (const lead of leads) {
+    // An automatic reply is the machine answering; the owner still has not.
     if (lead.status !== "new" || lead.first_contact_at) continue;
     const waiting = minutesBetween(new Date(lead.created_at), now);
     if (waiting < settings.responseTargetMinutes) continue;
@@ -55,12 +60,9 @@ export function pendingAlerts(
     const [stage] = due;
     const key = watchdogKey(lead.id, stage);
     if (firedKeys.has(key)) continue;
-    // Mark the lower stages as spent too, so the next run does not fire
-    // "1h" for a lead that already got "4h".
-    for (const [s] of stages) {
-      if (s === stage) break;
-      firedKeys.add(watchdogKey(lead.id, s));
-    }
+    // A lead that already got a later stage never gets an earlier one.
+    const later = stages.slice(stages.findIndex(([s]) => s === stage) + 1);
+    if (later.some(([s]) => firedKeys.has(watchdogKey(lead.id, s)))) continue;
     const name = lead.name.trim() || "A new lead";
     out.push({
       lead,

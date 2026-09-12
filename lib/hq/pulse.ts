@@ -5,6 +5,7 @@ import { buildWeeklyContent } from "./content";
 import { emailReply, followUp, ownerAlertText, textBack } from "./drafts";
 import { dueFollowUps } from "./followups";
 import { isPlausibleEmail } from "./phone";
+import { line } from "./copy";
 import * as db from "./server";
 import { localParts, localWeekStart } from "./time";
 import { OPEN_STATUSES, planIsLive, type Lead, type Workspace } from "./types";
@@ -37,10 +38,21 @@ export type PulseSummary = {
   errors: string[];
 };
 
+const PULSE_BUDGET_MS = 45_000;
+
 export async function runPulseForAll(client: db.Db, now = new Date()): Promise<PulseSummary[]> {
   const workspaces = await db.listLiveWorkspaces(client);
   const out: PulseSummary[] = [];
-  for (const ws of workspaces) {
+  const started = Date.now();
+  // Start somewhere different every run so a long list never leaves the
+  // same businesses at the back of the line when the budget runs out.
+  const offset = workspaces.length ? Math.floor(now.getTime() / 300_000) % workspaces.length : 0;
+  for (let i = 0; i < workspaces.length; i++) {
+    if (Date.now() - started > PULSE_BUDGET_MS) {
+      console.warn(`hq-pulse: budget spent after ${i} of ${workspaces.length} workspaces`);
+      break;
+    }
+    const ws = workspaces[(offset + i) % workspaces.length];
     if (!planIsLive(ws.plan, ws.trial_ends_at, now)) {
       if (ws.plan === "trial") await expireTrial(client, ws, now);
       continue;
@@ -110,9 +122,14 @@ export async function runPulse(client: db.Db, ws: Workspace, now = new Date()): 
     summary.followUpsDrafted++;
   }
 
-  // 4. The daily brief, at the owner's hour, once per local day.
+  // 4. The daily brief, at the owner's hour, once per local day. The cheap
+  //    check first: a brief row for today means the heavy fetch is skipped.
   const local = localParts(now, ws.timezone);
-  if (local.hour >= ws.settings.briefHour) {
+  const todaysBrief = local.hour >= ws.settings.briefHour ? await db.latestBrief(client, ws.id, "daily") : null;
+  const weeklyDue = local.weekday === ws.settings.weeklyDay;
+  const weeklyDone = weeklyDue ? (await db.latestBrief(client, ws.id, "weekly"))?.brief_date === local.date : true;
+  const briefDone = todaysBrief?.brief_date === local.date;
+  if (local.hour >= ws.settings.briefHour && (!briefDone || !weeklyDone)) {
     const allLeads = await db.listLeads(client, ws.id, { limit: 1000, sinceDays: 120 });
     const [events, content] = await Promise.all([db.listEvents(client, ws.id, { sinceDays: 14, limit: 500 }), db.listContent(client, ws.id, { limit: 100 })]);
     const brief = buildDailyBrief({ workspace: ws, leads: allLeads, events, content, now });
@@ -194,7 +211,7 @@ async function ownerAlert(client: db.Db, ws: Workspace, lead: Lead, now: Date): 
   if (ws.settings.alertEmail) {
     const r = await sendOwnerEmail(
       ws,
-      `New lead: ${lead.name || "no name"}${lead.service ? ` (${lead.service})` : ""}`,
+      line(`New lead: ${lead.name || "no name"}${lead.service ? ` (${lead.service})` : ""}`, 150),
       [
         `${lead.name || "Someone"} just reached ${ws.name} from ${lead.source}${lead.source_detail ? ` (${lead.source_detail})` : ""}.`,
         lead.phone ? `Phone: ${lead.phone}` : "",

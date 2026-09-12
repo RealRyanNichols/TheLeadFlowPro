@@ -9,7 +9,7 @@ import { formatPhone } from "./phone";
 // draft leaves a bracketed blank for the owner's real one.
 
 export type ContentDraft = {
-  kind: "post" | "ad" | "video_script";
+  kind: "post" | "ad" | "video_script" | "review_reply";
   title: string;
   hook: string;
   body: string;
@@ -317,7 +317,7 @@ export function reviewReply(ws: Workspace, review: { name?: string; stars: numbe
     ? `${name ? `${name}, thank you` : "Thank you"} for taking the time to write this. ${review.text.length > 60 ? "It means a lot to the whole crew. " : ""}Call us any time you need us. ${who}, ${ws.name}`
     : `${name ? `${name}, ` : ""}I am sorry this was your experience, and I want to make it right. Please call ${formatPhone(ws.phone) || "us"} and ask for ${who} directly so I can hear what happened and fix it. ${ws.name}`;
   return {
-    kind: "post",
+    kind: "review_reply",
     title: `${review.stars} star review reply`,
     hook: body.slice(0, 60),
     body,

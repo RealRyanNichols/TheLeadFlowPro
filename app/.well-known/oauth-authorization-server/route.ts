@@ -4,8 +4,6 @@ import { authorizationServerMetadata } from "@/lib/hq/oauth";
 // RFC 8414. Where to register, where to send the owner, where to trade the
 // code for a token.
 
-export const dynamic = "force-static";
-
 export function GET() {
   return NextResponse.json(authorizationServerMetadata(), {
     headers: { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" },

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { serverActions } from "@/lib/hq/actions";
 import { bearerFrom } from "@/lib/hq/keys";
-import { handleJsonRpc, parseErrorResponse } from "@/lib/hq/mcp";
+import { handleJsonRpc, MAX_BATCH, parseErrorResponse } from "@/lib/hq/mcp";
 import { SCOPES, SITE } from "@/lib/hq/oauth";
 import { resolveBearer } from "@/lib/hq/server";
 
@@ -41,11 +41,11 @@ function unauthorized(reason: string) {
 // A light in-memory limiter per workspace. Serverless instances are
 // ephemeral, so this bounds bursts rather than being a hard quota.
 const calls = new Map<string, number[]>();
-function withinLimit(key: string): boolean {
+function withinLimit(key: string, count: number): boolean {
   const now = Date.now();
   const hits = (calls.get(key) ?? []).filter((t) => now - t < 60_000);
-  if (hits.length >= 240) return false;
-  hits.push(now);
+  if (hits.length + count > 240) return false;
+  for (let i = 0; i < count; i++) hits.push(now);
   calls.set(key, hits);
   if (calls.size > 5000) for (const k of [...calls.keys()].slice(0, 1000)) calls.delete(k);
   return true;
@@ -78,9 +78,6 @@ export async function POST(request: Request) {
 
   const principal = await resolveBearer(db, token, SCOPES);
   if (!principal) return unauthorized("the token is invalid, expired, or revoked");
-  if (!withinLimit(principal.workspace.id)) {
-    return NextResponse.json({ jsonrpc: "2.0", id: null, error: { code: -32029, message: "Too many requests. Slow down for a minute." } }, { status: 429, headers: CORS });
-  }
 
   const raw = await request.text().catch(() => "");
   if (raw.length > MAX_BODY) {
@@ -91,6 +88,11 @@ export async function POST(request: Request) {
     body = JSON.parse(raw);
   } catch {
     return NextResponse.json(parseErrorResponse(), { status: 400, headers: CORS });
+  }
+  // A batch is charged per message, so a 20-message batch is 20 calls.
+  const messageCount = Array.isArray(body) ? Math.max(1, Math.min(body.length, MAX_BATCH)) : 1;
+  if (!withinLimit(principal.workspace.id, messageCount)) {
+    return NextResponse.json({ jsonrpc: "2.0", id: null, error: { code: -32029, message: "Too many requests. Slow down for a minute." } }, { status: 429, headers: CORS });
   }
 
   const actions = serverActions(db, principal.workspace);

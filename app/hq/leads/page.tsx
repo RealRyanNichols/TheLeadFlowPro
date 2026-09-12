@@ -49,7 +49,10 @@ export default async function HqLeadsPage({ searchParams }: { searchParams: Prom
     limit: 200,
   });
 
-  const filtering = tab.key !== "open" || !!query;
+  // An empty view is two different things. Nobody has ever come in, or this
+  // filter is just narrow. Only the first one deserves the how-leads-arrive
+  // explainer, so ask for a single row before showing it.
+  const anyLeadEver = leads.length > 0 || (await listLeads(session.db, ws.id, { limit: 1 })).length > 0;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
@@ -108,9 +111,11 @@ export default async function HqLeadsPage({ searchParams }: { searchParams: Prom
         )}
       </form>
 
-      <p className="mt-4 text-sm text-[var(--muted)]">
-        {leads.length === 0 ? "No leads match this view." : `${leads.length} lead${leads.length === 1 ? "" : "s"} in this view.`}
-      </p>
+      {(leads.length > 0 || anyLeadEver) && (
+        <p className="mt-4 text-sm text-[var(--muted)]">
+          {leads.length === 0 ? "No leads match this view. Try another tab, or clear the search." : `${leads.length} lead${leads.length === 1 ? "" : "s"} in this view.`}
+        </p>
+      )}
 
       {leads.length > 0 && (
         <ul className="mt-3 grid gap-3">
@@ -161,7 +166,7 @@ export default async function HqLeadsPage({ searchParams }: { searchParams: Prom
         </ul>
       )}
 
-      {leads.length === 0 && !filtering && (
+      {!anyLeadEver && (
         <section className="hq-card mt-4">
           <h2 className="text-lg font-black text-[var(--heading)]">No leads here yet. Here is how they arrive.</h2>
           <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">

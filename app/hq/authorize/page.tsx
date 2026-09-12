@@ -4,6 +4,7 @@ import { getHqSession } from "@/lib/hq/session";
 import { parseAuthorizeParams, SCOPES } from "@/lib/hq/oauth";
 import { getClient } from "@/lib/hq/server";
 import { HQ_PLAN } from "@/lib/hq/types";
+import { consentNonce } from "@/lib/hq/consent";
 import ConsentForm from "./ConsentForm";
 
 export const metadata = { ...PRIVATE_PAGE_METADATA, title: "Connect The LeadFlow Pro" };
@@ -55,6 +56,9 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
   // Registration is open, so the one thing the owner must be able to check
   // is where the approval sends them. Show the host in plain sight.
   const backTo = new URL(parsed.value.redirect_uri).host;
+  // The approve form is a plain POST. This nonce ties it to this person,
+  // this client, and this exact request, and it expires in ten minutes.
+  const nonce = consentNonce({ userId: session.user.id, clientId: parsed.value.client_id, redirectUri: parsed.value.redirect_uri, codeChallenge: parsed.value.code_challenge, scope: parsed.value.scope });
 
   return (
     <main className="mx-auto max-w-md px-4 py-12">
@@ -84,6 +88,7 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
         scope={parsed.value.scope}
         resource={parsed.value.resource ?? ""}
         clientName={client?.client_name || "your assistant"}
+        nonce={nonce}
       />
     </main>
   );

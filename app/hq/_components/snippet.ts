@@ -8,10 +8,6 @@ export function leadEndpoint(token: string): string {
   return `${SITE}/api/hq/in/${token}/lead`;
 }
 
-export function smsWebhook(token: string): string {
-  return `${SITE}/api/hq/in/${token}/sms`;
-}
-
 export function metaWebhook(token: string): string {
   return `${SITE}/api/hq/in/${token}/meta`;
 }
@@ -41,6 +37,7 @@ export function formSnippet(token: string, businessName: string): string {
   </label>
 
   <input type="hidden" name="redirect" value="${thanks}">
+  <input type="text" name="_hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
   <button type="submit">Send</button>
 </form>`;
 }

@@ -62,7 +62,7 @@ export default async function HqTodayPage({ searchParams }: { searchParams: Prom
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="hq-eyebrow text-[var(--blue)]">You are in</p>
-              <h1 className="mt-1 text-xl font-black text-[var(--heading)]">Welcome to HQ, {ws.owner_name?.split(" ")[0] || ws.name}.</h1>
+              <h2 className="mt-1 text-xl font-black text-[var(--heading)]">Welcome to HQ, {ws.owner_name?.split(" ")[0] || ws.name}.</h2>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--text)]">
                 Autopilot is running for {ws.name}. Next: install the plugin in ChatGPT or Claude so you can ask it who to call, and point your website
                 form at your lead endpoint so new leads land here on their own.

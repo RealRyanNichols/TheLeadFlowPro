@@ -12,7 +12,8 @@ import type { Brief, Connection, ConnectionKind, Content, HqEvent, Lead, LeadSta
 // where RLS does the scoping). Every query still filters by workspace id
 // in code: RLS is the backstop, not the only wall.
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Untyped on purpose: the hq_* tables are not in the generated Database
+// type, and every query here narrows its own rows.
 export type Db = SupabaseClient<any, any, any>;
 
 function fail(where: string, error: { message?: string } | null): never {
@@ -86,6 +87,7 @@ export async function createWorkspace(db: Db, input: NewWorkspace): Promise<{ wo
         state: input.state ?? null,
         timezone: input.timezone ?? "America/Chicago",
         services: input.services ?? [],
+        inbound_token: inbound.plaintext,
         inbound_token_hash: inbound.hash,
         inbound_token_hint: inbound.hint,
         settings: {},
@@ -127,6 +129,8 @@ export type WorkspacePatch = Partial<
     | "stripe_subscription_id"
     | "subscription_status"
     | "current_period_end"
+    | "trial_used_at"
+    | "stripe_event_at"
     | "onboarding_step"
   >
 > & { settings?: WorkspaceSettings };
@@ -139,7 +143,7 @@ export async function updateWorkspace(db: Db, id: string, patch: WorkspacePatch)
 
 export async function regenerateInboundToken(db: Db, id: string): Promise<string> {
   const inbound = mintKey("inbound");
-  const { error } = await db.from("hq_workspaces").update({ inbound_token_hash: inbound.hash, inbound_token_hint: inbound.hint }).eq("id", id);
+  const { error } = await db.from("hq_workspaces").update({ inbound_token: inbound.plaintext, inbound_token_hash: inbound.hash, inbound_token_hint: inbound.hint }).eq("id", id);
   if (error) fail("regenerateInboundToken", error);
   return inbound.plaintext;
 }
@@ -148,6 +152,21 @@ export async function findWorkspaceByInboundToken(db: Db, token: string): Promis
   if (keyKind(token) !== "inbound") return null;
   const { data, error } = await db.from("hq_workspaces").select("*").eq("inbound_token_hash", hashKey(token)).maybeSingle();
   if (error) fail("findWorkspaceByInboundToken", error);
+  return data ? parseWorkspace(data) : null;
+}
+
+/** The text-message webhook token is separate from the form token and never published. */
+export async function regenerateSmsToken(db: Db, id: string): Promise<string> {
+  const sms = mintKey("inbound");
+  const { error } = await db.from("hq_workspaces").update({ sms_token_hash: sms.hash, sms_token_hint: sms.hint }).eq("id", id);
+  if (error) fail("regenerateSmsToken", error);
+  return sms.plaintext;
+}
+
+export async function findWorkspaceBySmsToken(db: Db, token: string): Promise<Workspace | null> {
+  if (keyKind(token) !== "inbound") return null;
+  const { data, error } = await db.from("hq_workspaces").select("*").eq("sms_token_hash", hashKey(token)).maybeSingle();
+  if (error) fail("findWorkspaceBySmsToken", error);
   return data ? parseWorkspace(data) : null;
 }
 
@@ -215,7 +234,8 @@ export type LeadInsert = {
  * Insert a lead, or recognize a repeat. The same external id is the same
  * lead. The same phone or email inside seven days on an open lead is a
  * repeat submission, which is recorded on the timeline instead of
- * alerting the owner twice.
+ * alerting the owner twice. A repeat can fill in blanks; it can never
+ * turn consent on, because the doors it comes through are public.
  */
 export async function insertLead(db: Db, workspaceId: string, input: LeadInsert): Promise<{ lead: Lead; created: boolean }> {
   if (input.external_id) {
@@ -225,21 +245,23 @@ export async function insertLead(db: Db, workspaceId: string, input: LeadInsert)
   const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
   const digits = last10(input.phone);
   const email = input.email?.toLowerCase() ?? null;
-  if (digits || email) {
-    let q = db.from("hq_leads").select("*").eq("workspace_id", workspaceId).in("status", ["new", "contacted", "quoted"]).gte("created_at", since).order("created_at", { ascending: false }).limit(20);
-    const { data: recent } = await q;
-    const match = ((recent ?? []) as Lead[]).find((l) => (digits && last10(l.phone) === digits) || (email && l.email?.toLowerCase() === email));
-    if (match) {
-      const merged: Partial<Lead> = {};
-      if (!match.message && input.message) merged.message = input.message;
-      if (!match.service && input.service) merged.service = input.service;
-      if (!match.email && input.email) merged.email = input.email;
-      if (!match.phone && input.phone) merged.phone = input.phone;
-      if (input.consent_sms && !match.consent_sms) merged.consent_sms = true;
-      if (input.consent_email && !match.consent_email) merged.consent_email = true;
-      const lead = Object.keys(merged).length ? await updateLead(db, workspaceId, match.id, merged) : match;
-      return { lead, created: false };
-    }
+  let match: Lead | null = null;
+  if (digits) {
+    const { data } = await db.from("hq_leads").select("*").eq("workspace_id", workspaceId).in("status", ["new", "contacted", "quoted"]).gte("created_at", since).ilike("phone", `%${digits}`).order("created_at", { ascending: false }).limit(1);
+    match = ((data ?? []) as Lead[])[0] ?? null;
+  }
+  if (!match && email) {
+    const { data } = await db.from("hq_leads").select("*").eq("workspace_id", workspaceId).in("status", ["new", "contacted", "quoted"]).gte("created_at", since).ilike("email", email.replace(/[%_]/g, "")).order("created_at", { ascending: false }).limit(1);
+    match = ((data ?? []) as Lead[])[0] ?? null;
+  }
+  if (match) {
+    const merged: Partial<Lead> = {};
+    if (!match.message && input.message) merged.message = input.message;
+    if (!match.service && input.service) merged.service = input.service;
+    if (!match.email && input.email) merged.email = input.email;
+    if (!match.phone && input.phone) merged.phone = input.phone;
+    const lead = Object.keys(merged).length ? await updateLead(db, workspaceId, match.id, merged) : match;
+    return { lead, created: false };
   }
   const { data, error } = await db
     .from("hq_leads")
@@ -376,6 +398,24 @@ export async function getMessage(db: Db, workspaceId: string, id: string): Promi
   return (data as Message) ?? null;
 }
 
+/**
+ * Take a draft off the table before sending it. Two callers racing for the
+ * same message (a double tap, a retried request) get exactly one winner;
+ * the other sees null and stops.
+ */
+export async function claimMessage(db: Db, workspaceId: string, id: string, body: string): Promise<Message | null> {
+  const { data, error } = await db
+    .from("hq_messages")
+    .update({ status: "sending", body: body.slice(0, 5000) })
+    .eq("workspace_id", workspaceId)
+    .eq("id", id)
+    .in("status", ["draft", "queued", "failed"])
+    .select("*")
+    .maybeSingle();
+  if (error) fail("claimMessage", error);
+  return (data as Message) ?? null;
+}
+
 export async function updateMessage(db: Db, workspaceId: string, id: string, patch: Partial<Message>): Promise<Message> {
   const { id: _id, workspace_id: _ws, created_at: _c, ...safe } = patch;
   const { data, error } = await db.from("hq_messages").update(safe).eq("workspace_id", workspaceId).eq("id", id).select("*").single();
@@ -482,18 +522,30 @@ export async function listConnections(db: Db, workspaceId: string): Promise<Conn
   return (data ?? []) as Connection[];
 }
 
-export async function getConnectionWithSecret(db: Db, workspaceId: string, kind: ConnectionKind): Promise<{ connection: Connection; secret: string | null } | null> {
+export async function getConnectionWithSecret(
+  db: Db,
+  workspaceId: string,
+  kind: ConnectionKind,
+): Promise<{ connection: Connection; secret: string | null; webhookSecret: string | null } | null> {
   const { data, error } = await db.from("hq_connections").select("*").eq("workspace_id", workspaceId).eq("kind", kind).maybeSingle();
   if (error) fail("getConnectionWithSecret", error);
   if (!data) return null;
-  const { secret_ciphertext, ...connection } = data as Connection & { secret_ciphertext: string | null };
-  return { connection, secret: decryptSecret(secret_ciphertext) };
+  const { secret_ciphertext, webhook_secret_ciphertext, ...connection } = data as Connection & { secret_ciphertext: string | null; webhook_secret_ciphertext: string | null };
+  return { connection, secret: decryptSecret(secret_ciphertext), webhookSecret: decryptSecret(webhook_secret_ciphertext) };
 }
 
 export async function upsertConnection(
   db: Db,
   workspaceId: string,
-  input: { kind: ConnectionKind; label: string; config: Record<string, unknown>; secret?: string | null; status?: Connection["status"]; lastError?: string | null },
+  input: {
+    kind: ConnectionKind;
+    label: string;
+    config: Record<string, unknown>;
+    secret?: string | null;
+    webhookSecret?: string | null;
+    status?: Connection["status"];
+    lastError?: string | null;
+  },
 ): Promise<Connection> {
   const row: Record<string, unknown> = {
     workspace_id: workspaceId,
@@ -505,6 +557,7 @@ export async function upsertConnection(
     last_checked_at: new Date().toISOString(),
   };
   if (input.secret !== undefined) row.secret_ciphertext = input.secret ? encryptSecret(input.secret) : null;
+  if (input.webhookSecret !== undefined) row.webhook_secret_ciphertext = input.webhookSecret ? encryptSecret(input.webhookSecret) : null;
   const { data, error } = await db.from("hq_connections").upsert(row, { onConflict: "workspace_id,kind" }).select(CONNECTION_COLUMNS).single();
   if (error) fail("upsertConnection", error);
   return data as Connection;

@@ -3,7 +3,7 @@ import type { Field, Result, Values } from "../tools/types";
 import { buildDailyBrief, buildWeeklyReport } from "./brief";
 import { buildWeeklyContent, reviewReply, type ContentDraft } from "./content";
 import { emailReply, followUp, quoteFollowUp, reschedule, reviewAsk, textBack, type Draft } from "./drafts";
-import { afterTouch, nextFollowUpAt } from "./followups";
+import { afterFollowUpSent, afterTouch, nextFollowUpAt } from "./followups";
 import { formatPhone, isPlausibleEmail, normalizeEmail, toE164 } from "./phone";
 import { rankLeads } from "./score";
 import { profileGaps } from "./settings";
@@ -460,6 +460,11 @@ export const TOOL_SPECS: ToolSpec[] = [
       }
       const delivered = await ctx.actions.deliverMessage({ ...message, body }, lead);
       if (delivered.status !== "sent") throw new ToolError(`Send failed: ${delivered.error ?? "unknown error"}.`);
+      if (message.purpose === "follow_up") {
+        // The ladder moves when a rung is actually sent, whichever door sent it.
+        const fresh = (await ctx.actions.getLead(lead.id)) ?? lead;
+        await ctx.actions.updateLead(lead.id, afterFollowUpSent(fresh, ctx.workspace.settings, ctx.workspace.timezone, ctx.now));
+      }
       return { text: `Sent by ${message.channel.toUpperCase()} to ${lead.name || "the lead"}.`, data: { message: delivered } };
     },
   },
@@ -647,8 +652,13 @@ export const TOOL_SPECS: ToolSpec[] = [
       brief_hour: num("Local hour for the daily brief, 0 to 23.", { minimum: 0, maximum: 23 }),
       notes: str("Standing instructions for drafts: promos, words to avoid, tone notes."),
     }),
-    scope: "leads:write",
+    scope: "content:write",
     async handler(ctx, args) {
+      // Rewriting the business profile and its automation switches is the
+      // widest thing a connector can do, so it needs the whole grant.
+      if (!ctx.scopes.has("leads:write") || !ctx.scopes.has("messages:send")) {
+        throw new ToolError("This connection was not granted full access. Reconnect The LeadFlow Pro and approve every permission to change the profile.");
+      }
       const ws = ctx.workspace;
       const patch: Partial<Workspace> = {};
       const set = (k: keyof Workspace, v: unknown, max = 120) => {
@@ -834,9 +844,12 @@ function ok(id: JsonRpcId, result: unknown): JsonRpcResponse {
 }
 
 /** Process one parsed body (a single message or a batch). Notifications yield no response. */
+export const MAX_BATCH = 20;
+
 export async function handleJsonRpc(body: unknown, ctx: McpContext): Promise<RpcOutcome> {
   const messages = Array.isArray(body) ? body : [body];
   if (messages.length === 0) return { responses: [err(null, RPC.INVALID_REQUEST, "Empty batch")], hadRequests: true };
+  if (messages.length > MAX_BATCH) return { responses: [err(null, RPC.INVALID_REQUEST, `Batches are limited to ${MAX_BATCH} messages`)], hadRequests: true };
   const responses: JsonRpcResponse[] = [];
   let hadRequests = false;
   for (const m of messages) {

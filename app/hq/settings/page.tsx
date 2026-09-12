@@ -43,9 +43,9 @@ export default async function HqSettingsPage() {
             You do not need all three. Each one you connect is one more place a customer can reach you without anything falling through.
           </p>
           <div className="mt-4 grid gap-4">
-            <SmsCard connection={sms} />
+            <SmsCard connection={sms} hasSmsToken={ws.has_sms_token} />
             <FacebookCard connection={facebook} />
-            <WebsiteFormCard businessName={ws.name} />
+            <WebsiteFormCard businessName={ws.name} inboundToken={ws.inbound_token} />
           </div>
         </section>
       </div>

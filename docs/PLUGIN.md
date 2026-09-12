@@ -24,8 +24,12 @@ or `app/api/oauth`.
 - **HQ.** `/hq`: Today, Leads, Content, Plugin (install and keys), Settings,
   Billing. Setup wizard at `/hq/start`. OAuth consent at `/hq/authorize`.
 - **Inbound doors.** `POST /api/hq/in/{token}/lead` (website forms, Zapier,
-  curl), `/sms` (OpenPhone or Twilio inbound webhook), `/meta` (Meta leadgen
-  webhook, verified with the inbound token, signed with `META_APP_SECRET`).
+  curl) and `/meta` (Meta leadgen webhook, verified with the token, signed
+  with `META_APP_SECRET`) use the lead endpoint token, which is an address
+  (it sits in the business's website source) and is shown in Settings.
+  `POST /api/hq/in/{sms_token}/sms` uses a separate token minted when a
+  text line is connected and shown once; Twilio posts are always signature
+  checked, OpenPhone posts are when the owner pasted the webhook signing key.
 - **Included:** all 86 free calculators callable from the assistant, and every
   Pro Kit unlocked while the plan is live (`lib/proAccessServer.ts`).
 
@@ -74,9 +78,12 @@ Tables: `hq_workspaces`, `hq_members`, `hq_leads`, `hq_events`, `hq_messages`,
 `hq_content`, `hq_briefs`, `hq_connections`, `hq_api_keys`,
 `hq_oauth_clients`, `hq_oauth_codes`, `hq_oauth_tokens`.
 
-- RLS by membership (`hq_member_of`, `hq_owner_of`, both security definer).
-  The browser session reads through RLS; cron, webhooks, and the MCP server
-  use the service role and always filter by `workspace_id` in code.
+- RLS by membership (`hq_member_of`, `hq_owner_of`, both security definer),
+  read-only for the browser and column-scoped where a row carries billing
+  ids or ciphertext. Every write goes through `/api/hq` (service role,
+  explicit patches), so a session can never edit its own `plan`. Cron,
+  webhooks, and the MCP server use the service role and always filter by
+  `workspace_id` in code.
 - `hq_events.dedupe_key` (unique per workspace) is how "once" is enforced:
   watchdog stages, follow-up drafts, weekly content, trial reminders. Briefs
   are unique per `(workspace, kind, date)`.
@@ -121,8 +128,13 @@ those events in the Stripe dashboard: `customer.subscription.created`,
 the existing checkout and invoice events.
 
 Plan values: `none`, `trial`, `active`, `past_due` (engine keeps running,
-owner is emailed), `canceled`. `planIsLive()` is the single gate; read-only
-MCP tools still answer when the plan is off so the owner can see their data.
+owner is emailed, checkout is refused in favor of the portal), `canceled`.
+`planIsLive()` is the single gate; read-only MCP tools still answer when the
+plan is off so the owner can see their data. One trial per business:
+`trial_used_at` is set by the webhook and a restart pays from day one.
+Subscription events carry `event.created`; an event older than
+`stripe_event_at` is ignored, and late events for a subscription that is no
+longer the one on file are ignored too.
 
 ## Environment
 
@@ -147,7 +159,15 @@ their address as reply-to.
   the business first counts as consent; STOP turns it off; START turns it on.
 - The engine never sends a follow-up on its own. It drafts; the owner sends.
   The only automatic outbound is the instant reply to a brand-new lead, and
-  only when the owner turned it on.
+  only when the owner turned it on. That reply stamps `auto_replied_at`, not
+  `first_contact_at`: the watchdog keeps asking for the owner until a person
+  answers.
+- A repeat submission can fill in blanks on a lead but can never turn
+  consent on; a Meta form only grants text consent with an explicit yes.
+- Sending a message claims the row first (`draft` to `sending`), so a double
+  tap or a retried request sends once.
+- The MCP endpoint takes batches of at most 20 messages and charges the
+  per-workspace limiter per message.
 - Real rows only in briefs and reports. No estimates.
 
 ## Meta and calls, honestly

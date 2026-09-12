@@ -4,7 +4,7 @@
 
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { DEFAULT_SETTINGS, planIsLive, type Lead, type Workspace } from "../lib/hq/types.ts";
+import { DEFAULT_SETTINGS, planIsLive, type Lead } from "../lib/hq/types.ts";
 import { parseSettings, parseWorkspace, profileGaps } from "../lib/hq/settings.ts";
 import { decryptSecret, encryptSecret, hqSecrets, sha256Hex, signPayload, verifyPayload } from "../lib/hq/crypto.ts";
 import { bearerFrom, hashKey, keyHint, keyKind, looksLikeKey, mintKey } from "../lib/hq/keys.ts";
@@ -16,69 +16,11 @@ import { pendingAlerts, responseStats, watchdogKey } from "../lib/hq/watchdog.ts
 import { clampSms, emailReply, followUp, ownerAlertText, quoteFollowUp, reviewAsk, reschedule, textBack } from "../lib/hq/drafts.ts";
 import { buildDailyBrief, buildWeeklyReport } from "../lib/hq/brief.ts";
 import { buildWeeklyContent, reviewReply } from "../lib/hq/content.ts";
-import { copyProblems, plain } from "../lib/hq/copy.ts";
+import { copyProblems, line, plain } from "../lib/hq/copy.ts";
 import { isAllowedRedirectUri, normalizeScope, parseAuthorizeParams, parseRegistration, pkceMatches } from "../lib/hq/oauth.ts";
 import crypto from "node:crypto";
 
-const NOW = new Date("2026-09-14T14:00:00Z"); // Monday 9:00 a.m. Central
-
-export function workspace(over: Partial<Workspace> = {}): Workspace {
-  return parseWorkspace({
-    id: "ws-1",
-    slug: "kirby-plumbing",
-    name: "Kirby Plumbing",
-    owner_id: "user-1",
-    owner_name: "Dan Kirby",
-    industry: "plumbing",
-    phone: "+19035550142",
-    email: "dan@kirbyplumbing.com",
-    website: "https://kirbyplumbing.com",
-    city: "Longview",
-    state: "TX",
-    timezone: "America/Chicago",
-    brand_color: "#0B5A33",
-    voice: "plain",
-    services: ["Water heater replacement", "Drain cleaning", "Leak repair"],
-    offer: "$50 off any water heater install this month",
-    review_link: "https://g.page/r/kirby/review",
-    plan: "active",
-    settings: {},
-    created_at: "2026-09-01T00:00:00Z",
-    updated_at: "2026-09-01T00:00:00Z",
-    ...over,
-  });
-}
-
-export function lead(over: Partial<Lead> = {}): Lead {
-  return {
-    id: over.id ?? "lead-1",
-    workspace_id: "ws-1",
-    created_at: over.created_at ?? new Date(NOW.getTime() - 10 * 60_000).toISOString(),
-    updated_at: NOW.toISOString(),
-    name: "Jamie Rivera",
-    phone: "+19035550199",
-    email: "jamie@example.com",
-    source: "website",
-    source_detail: null,
-    message: "Water heater is leaking, need someone today",
-    service: "Water heater replacement",
-    status: "new",
-    score: 0,
-    first_contact_at: null,
-    last_contact_at: null,
-    next_follow_up_at: null,
-    follow_up_step: 0,
-    value_cents: null,
-    notes: null,
-    consent_sms: true,
-    consent_email: true,
-    unsubscribed_at: null,
-    auto_replied_at: null,
-    external_id: null,
-    meta: {},
-    ...over,
-  };
-}
+import { NOW, workspace, lead } from "./fixtures/hq.ts";
 
 describe("settings and workspace parsing", () => {
   test("loose JSON becomes clamped settings", () => {
@@ -269,10 +211,13 @@ describe("the follow-up ladder", () => {
     }
   });
 
-  test("a no-answer keeps climbing so the ladder ends", () => {
-    let l = lead();
+  test("a no-answer never burns a rung, so phone tag cannot drop the lead", () => {
+    let l = lead({ status: "contacted", follow_up_step: 2 });
     for (let i = 0; i < 6; i++) l = { ...l, ...afterTouch(l, settings, "America/Chicago", NOW, "no_answer") } as Lead;
-    assert.equal(l.next_follow_up_at, null, "after the last rung the lead stops being nagged");
+    assert.equal(l.follow_up_step, 2, "the rung stays where it was");
+    assert.ok(l.next_follow_up_at, "and a next date is always set");
+    const past = { ...lead({ status: "contacted", follow_up_step: 4 }), ...afterTouch(lead({ status: "contacted", follow_up_step: 4 }), settings, "America/Chicago", NOW, "no_answer") } as Lead;
+    assert.ok(past.next_follow_up_at, "even on the last rung there is a next date");
   });
 
   test("sending a follow-up advances the step", () => {
@@ -303,7 +248,21 @@ describe("the watchdog", () => {
     assert.equal(first[0].stage, "4h");
     fired.add(first[0].dedupeKey);
     assert.equal(pendingAlerts([waiting], DEFAULT_SETTINGS, fired, NOW).length, 0, "same run again is silent");
-    assert.equal(fired.has(watchdogKey(waiting.id, "1h")), true, "lower stages are marked spent");
+    const later = new Set([watchdogKey(waiting.id, "24h")]);
+    assert.equal(pendingAlerts([waiting], DEFAULT_SETTINGS, later, NOW).length, 0, "a lead that already got a later stage never gets an earlier one");
+  });
+
+  test("a response target above an hour fires as the target, not as the generic hour", () => {
+    const settings = { ...DEFAULT_SETTINGS, responseTargetMinutes: 90 };
+    const waiting = lead({ created_at: new Date(NOW.getTime() - 100 * 60_000).toISOString() });
+    const alerts = pendingAlerts([waiting], settings, new Set(), NOW);
+    assert.equal(alerts.length, 1);
+    assert.equal(alerts[0].stage, "target");
+  });
+
+  test("an automatic reply does not count as the owner answering", () => {
+    const waiting = lead({ created_at: new Date(NOW.getTime() - 30 * 60_000).toISOString(), auto_replied_at: NOW.toISOString() });
+    assert.equal(pendingAlerts([waiting], DEFAULT_SETTINGS, new Set(), NOW).length, 1);
   });
 
   test("a lead inside the target window, or already contacted, is not an alert", () => {
@@ -467,8 +426,10 @@ describe("weekly content", () => {
     for (const d of bundle.drafts) assert.deepEqual(copyProblems(d.body), [], d.title);
   });
 
-  test("review replies fit the star count", () => {
-    assert.match(reviewReply(ws, { name: "Pat", stars: 5, text: "Great work" }).body, /^Pat, thank you/);
+  test("review replies fit the star count and carry their own kind", () => {
+    const five = reviewReply(ws, { name: "Pat", stars: 5, text: "Great work" });
+    assert.match(five.body, /^Pat, thank you/);
+    assert.equal(five.kind, "review_reply");
     assert.match(reviewReply(ws, { stars: 1, text: "Late" }).body, /make it right/);
   });
 });
@@ -481,9 +442,14 @@ describe("copy rules", () => {
     assert.ok(copyProblems("Fast — and cheap").length);
     assert.ok(copyProblems("Value: undefined").length);
   });
-  test("plain strips markup", () => {
+  test("plain strips markup, controls, and bidi tricks; line flattens", () => {
     assert.equal(plain("<b>Hi</b> there"), "Hi there");
     assert.equal(plain(42), "");
+    assert.equal(plain("<img src=x onerror=y"), "");
+    assert.equal(plain("Bob\r\nBcc: x@y"), "Bob\nBcc: x@y");
+    assert.equal(plain(`Bob${String.fromCharCode(0x202e)}evil${String.fromCharCode(0x200b)}`), "Bobevil");
+    assert.equal(line("Bob\r\nBcc: x@y"), "Bob Bcc: x@y");
+    assert.equal(line("  a   b\n\n c "), "a b c");
   });
 });
 
@@ -534,5 +500,21 @@ describe("oauth helpers", () => {
     const r2 = parseAuthorizeParams(noPkce, client);
     assert.equal(r2.ok, false);
     if (!r2.ok) assert.match(r2.redirect ?? "", /error=invalid_request&state=s/);
+  });
+});
+
+describe("consent nonce", () => {
+  test("binds the approval to the person, client, redirect, and challenge, and expires", async () => {
+    const { consentNonce, verifyConsentNonce } = await import("../lib/hq/consent.ts");
+    const secrets = ["a-secret-that-is-long-enough-1"];
+    const b = { userId: "u1", clientId: "c1", redirectUri: "https://claude.ai/cb", codeChallenge: "x".repeat(43), scope: "leads:read" };
+    const t = 1_800_000_000_000;
+    const nonce = consentNonce(b, t, secrets);
+    assert.equal(verifyConsentNonce(nonce, b, t + 60_000, secrets), true);
+    assert.equal(verifyConsentNonce(nonce, { ...b, clientId: "c2" }, t + 60_000, secrets), false, "another client cannot reuse it");
+    assert.equal(verifyConsentNonce(nonce, { ...b, redirectUri: "https://evil.example/cb" }, t + 60_000, secrets), false);
+    assert.equal(verifyConsentNonce(nonce, b, t + 11 * 60_000, secrets), false, "ten minutes and it is gone");
+    assert.equal(verifyConsentNonce("garbage", b, t, secrets), false);
+    assert.equal(verifyConsentNonce(nonce, b, t + 60_000, ["a-different-secret-entirely-2"]), false);
   });
 });

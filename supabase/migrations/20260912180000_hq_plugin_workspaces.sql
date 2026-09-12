@@ -43,8 +43,21 @@ create table public.hq_workspaces (
   subscription_status text,
   current_period_end timestamptz,
   settings jsonb not null default '{}'::jsonb,
+  -- The lead endpoint token is an address, not a secret: it sits in the
+  -- business's website source. Stored in the clear so Settings can always
+  -- show it; the hash is what the inbound route looks up.
+  inbound_token text not null,
   inbound_token_hash text not null unique,
   inbound_token_hint text not null,
+  -- The text-message webhook gets its own token: the form token sits in the
+  -- business's website source, so it must never be the thing that lets a
+  -- caller write "the customer said yes to texts".
+  sms_token_hash text unique,
+  sms_token_hint text,
+  -- One free trial per business, ever. Set by the Stripe webhook.
+  trial_used_at timestamptz,
+  -- Stripe delivers out of order and retries; only a newer event may win.
+  stripe_event_at bigint not null default 0,
   onboarding_step integer not null default 0 check (onboarding_step between 0 and 9),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -134,7 +147,7 @@ create table public.hq_messages (
   body text not null,
   subject text,
   status text not null default 'draft'
-    check (status in ('draft', 'queued', 'sent', 'failed', 'received', 'skipped')),
+    check (status in ('draft', 'queued', 'sending', 'sent', 'failed', 'received', 'skipped')),
   provider text,
   provider_id text,
   error text,
@@ -201,6 +214,9 @@ create table public.hq_connections (
   label text not null default '',
   config jsonb not null default '{}'::jsonb,
   secret_ciphertext text,
+  -- A second secret for providers that sign their webhooks (OpenPhone's
+  -- webhook signing key). Same encryption, never returned to the browser.
+  webhook_secret_ciphertext text,
   status text not null default 'connected' check (status in ('connected', 'error', 'disconnected')),
   last_error text,
   last_checked_at timestamptz,
@@ -209,7 +225,10 @@ create table public.hq_connections (
   unique (workspace_id, kind)
 );
 
-create index hq_connections_meta_page_idx on public.hq_connections ((config->>'page_id')) where kind = 'meta_page';
+-- One business per Facebook Page. Without this, a second workspace could
+-- claim a Page it does not own and swallow the real owner's lead webhooks.
+create unique index hq_connections_meta_page_idx on public.hq_connections ((config->>'page_id'))
+  where kind = 'meta_page' and status = 'connected';
 
 create table public.hq_api_keys (
   id uuid primary key default gen_random_uuid(),
@@ -346,37 +365,51 @@ alter table public.hq_oauth_clients enable row level security;
 alter table public.hq_oauth_codes enable row level security;
 alter table public.hq_oauth_tokens enable row level security;
 
--- Workspaces: members read, owners update. Creation happens through the
--- service role in /api/hq/workspaces so the slug, inbound token, and the
--- owner membership row are written together.
+-- The browser never writes to these tables. Every change goes through
+-- /api/hq, which checks the session and builds an explicit patch, so a
+-- member cannot flip their own plan column or plant a connection key with
+-- the public key and a session. Reads are member-scoped and, where a row
+-- carries billing ids or ciphertext, column-scoped as well.
+revoke all on table
+  public.hq_workspaces, public.hq_members, public.hq_leads, public.hq_events,
+  public.hq_messages, public.hq_content, public.hq_briefs, public.hq_connections,
+  public.hq_api_keys, public.hq_oauth_clients, public.hq_oauth_codes, public.hq_oauth_tokens
+from anon, authenticated;
+
+grant select (
+  id, slug, name, owner_id, owner_name, industry, phone, email, website, city, state,
+  timezone, brand_color, voice, services, offer, review_link, plan, trial_ends_at,
+  current_period_end, settings, inbound_token, inbound_token_hint, sms_token_hint,
+  onboarding_step, created_at, updated_at
+) on public.hq_workspaces to authenticated;
+grant select on public.hq_members, public.hq_leads, public.hq_events, public.hq_messages,
+  public.hq_content, public.hq_briefs to authenticated;
+grant select (id, workspace_id, kind, label, config, status, last_error, last_checked_at, created_at, updated_at)
+  on public.hq_connections to authenticated;
+grant select (id, workspace_id, name, key_hint, created_by, last_used_at, revoked_at, created_at)
+  on public.hq_api_keys to authenticated;
+
 create policy "hq workspaces member read" on public.hq_workspaces
   for select to authenticated using (public.hq_member_of(id));
-create policy "hq workspaces owner update" on public.hq_workspaces
-  for update to authenticated using (public.hq_owner_of(id)) with check (public.hq_owner_of(id));
 
 create policy "hq members self read" on public.hq_members
   for select to authenticated using (user_id = auth.uid() or public.hq_owner_of(workspace_id));
 
-create policy "hq leads member all" on public.hq_leads
-  for all to authenticated using (public.hq_member_of(workspace_id)) with check (public.hq_member_of(workspace_id));
+create policy "hq leads member read" on public.hq_leads
+  for select to authenticated using (public.hq_member_of(workspace_id));
 
 create policy "hq events member read" on public.hq_events
   for select to authenticated using (public.hq_member_of(workspace_id));
-create policy "hq events member insert" on public.hq_events
-  for insert to authenticated with check (public.hq_member_of(workspace_id));
 
-create policy "hq messages member all" on public.hq_messages
-  for all to authenticated using (public.hq_member_of(workspace_id)) with check (public.hq_member_of(workspace_id));
+create policy "hq messages member read" on public.hq_messages
+  for select to authenticated using (public.hq_member_of(workspace_id));
 
-create policy "hq content member all" on public.hq_content
-  for all to authenticated using (public.hq_member_of(workspace_id)) with check (public.hq_member_of(workspace_id));
+create policy "hq content member read" on public.hq_content
+  for select to authenticated using (public.hq_member_of(workspace_id));
 
 create policy "hq briefs member read" on public.hq_briefs
   for select to authenticated using (public.hq_member_of(workspace_id));
 
--- Connections: members can see that a channel exists and its non-secret
--- config. The ciphertext column is never selected by browser code, and the
--- service role is the only writer, so a member cannot plant a key.
 create policy "hq connections member read" on public.hq_connections
   for select to authenticated using (public.hq_member_of(workspace_id));
 

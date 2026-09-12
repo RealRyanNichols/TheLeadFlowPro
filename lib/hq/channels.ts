@@ -99,6 +99,28 @@ export async function checkSmsConnection(kind: "openphone" | "twilio", secret: s
   }
 }
 
+/** The token must actually administer the Page it claims, or the Page is not connected. */
+export async function checkFacebookPage(pageId: string, token: string): Promise<{ ok: boolean; name?: string; error?: string }> {
+  try {
+    const r = await fetch(`https://graph.facebook.com/v21.0/${encodeURIComponent(pageId)}?fields=id,name`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    const j = (await r.json().catch(() => ({}))) as { id?: string; name?: string; error?: { message?: string } };
+    if (!r.ok || j.id !== pageId) return { ok: false, error: j.error?.message?.slice(0, 200) || "Meta did not accept that token for this Page." };
+    // A token that can read the Page is not always one that can post to it.
+    const me = await fetch(`https://graph.facebook.com/v21.0/${encodeURIComponent(pageId)}?fields=id,access_token`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    const mj = (await me.json().catch(() => ({}))) as { access_token?: string };
+    if (!me.ok || !mj.access_token) return { ok: false, error: "That token can read the Page but cannot post to it. Use a Page access token from a Page admin." };
+    return { ok: true, name: j.name };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Could not reach Meta." };
+  }
+}
+
 /* --------------------------------- email -------------------------------- */
 
 type EmailPayload = {

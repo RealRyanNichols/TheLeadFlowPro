@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { runPulseForAll } from "@/lib/hq/pulse";
+import { timingSafeEqualStrings } from "@/lib/hq/crypto";
 
 // The Autopilot heartbeat. Vercel calls this every five minutes
 // (vercel.json). Fails closed: no CRON_SECRET, no run.
@@ -10,7 +11,8 @@ export const maxDuration = 60;
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET?.trim();
-  if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
+  const header = request.headers.get("authorization") ?? "";
+  if (!secret || !timingSafeEqualStrings(header, `Bearer ${secret}`)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {

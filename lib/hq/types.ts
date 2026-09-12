@@ -103,6 +103,12 @@ export type Workspace = {
   stripe_subscription_id: string | null;
   subscription_status: string | null;
   current_period_end: string | null;
+  trial_used_at: string | null;
+  stripe_event_at: number;
+  /** The lead endpoint token. An address, shown in Settings. */
+  inbound_token: string;
+  /** True once a text-message webhook token has been minted. */
+  has_sms_token: boolean;
   settings: WorkspaceSettings;
   onboarding_step: number;
   created_at: string;
@@ -176,7 +182,7 @@ export type MessagePurpose =
   | "custom"
   | "inbound";
 
-export type MessageStatus = "draft" | "queued" | "sent" | "failed" | "received" | "skipped";
+export type MessageStatus = "draft" | "queued" | "sending" | "sent" | "failed" | "received" | "skipped";
 
 export type Message = {
   id: string;

@@ -90,37 +90,46 @@ export function serverActions(client: db.Db, workspace: Workspace): HqActions & 
 
     async deliverMessage(message: Message, lead: Lead): Promise<Message> {
       const ws = self.workspace;
+      // Claim first. Whoever loses the race gets the row as it stands, which
+      // is either "sending" or "sent", and neither is a reason to send again.
+      const claimed = await db.claimMessage(client, wsId, message.id, message.body);
+      if (!claimed) {
+        const current = await db.getMessage(client, wsId, message.id);
+        return current ?? { ...message, status: "failed", error: "The message could not be claimed for sending." };
+      }
       let result: { ok: boolean; provider: string; providerId?: string | null; error?: string | null };
-      if (message.channel === "sms") {
+      if (claimed.channel === "sms") {
         const line = await smsLine(client, wsId);
         if (!line) result = { ok: false, provider: "none", error: "No text line is connected." };
         else if (!lead.phone) result = { ok: false, provider: line.connection.kind, error: "The lead has no phone number." };
-        else result = await sendSms(line.connection, line.secret, lead.phone, message.body);
+        else if (!lead.consent_sms || lead.unsubscribed_at) result = { ok: false, provider: line.connection.kind, error: "The lead has not agreed to texts." };
+        else result = await sendSms(line.connection, line.secret, lead.phone, claimed.body);
       } else {
         if (!lead.email) result = { ok: false, provider: "resend", error: "The lead has no email address." };
-        else result = await sendEmailOnBehalf(ws, lead.email, message.subject ?? `From ${ws.name}`, message.body, `hq-msg-${message.id}`);
+        else result = await sendEmailOnBehalf(ws, lead.email, claimed.subject ?? `From ${ws.name}`, claimed.body, `hq-msg-${claimed.id}`);
       }
       const now = new Date().toISOString();
-      const updated = await db.updateMessage(client, wsId, message.id, {
-        body: message.body,
+      const updated = await db.updateMessage(client, wsId, claimed.id, {
         status: result.ok ? "sent" : "failed",
         provider: result.provider,
         provider_id: result.providerId ?? null,
         error: result.ok ? null : (result.error ?? "unknown").slice(0, 500),
-        sent_at: result.ok ? now : null,
+        ...(result.ok ? { sent_at: now } : {}),
       });
       await db.recordEvent(client, wsId, {
-        kind: message.channel === "sms" ? "text_out" : "email_out",
-        detail: result.ok ? `${message.purpose.replace("_", " ")} sent by ${message.channel}: ${message.body.slice(0, 140)}` : `${message.channel} failed: ${result.error ?? "unknown"}`,
+        kind: claimed.channel === "sms" ? "text_out" : "email_out",
+        detail: result.ok ? `${claimed.purpose.replace("_", " ")} sent by ${claimed.channel}: ${claimed.body.slice(0, 140)}` : `${claimed.channel} failed: ${result.error ?? "unknown"}`,
         leadId: lead.id,
-        actor: message.created_by,
-        meta: { message_id: message.id, ok: result.ok },
+        actor: claimed.created_by,
+        meta: { message_id: claimed.id, ok: result.ok },
       });
       if (result.ok) {
+        // A person answering counts as first contact. The machine's instant
+        // reply does not: the watchdog still wants the owner on the phone.
+        const human = claimed.created_by !== "autopilot" && claimed.created_by !== "cron";
         await db.updateLead(client, wsId, lead.id, {
           last_contact_at: now,
-          first_contact_at: lead.first_contact_at ?? now,
-          status: lead.status === "new" ? "contacted" : lead.status,
+          ...(human ? { first_contact_at: lead.first_contact_at ?? now, status: lead.status === "new" ? "contacted" : lead.status } : {}),
         });
       }
       return updated;

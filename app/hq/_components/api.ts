@@ -26,8 +26,3 @@ export async function hqPost(action: string, fields: Record<string, unknown> = {
     return { ok: false, status: 0, error: "No connection. Check your internet and try again." };
   }
 }
-
-/** A field that came back from the API, read safely. */
-export function pick<T>(data: Record<string, unknown>, key: string): T | undefined {
-  return data[key] as T | undefined;
-}

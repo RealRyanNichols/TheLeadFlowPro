@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { serverActions } from "./actions";
-import { plain } from "./copy";
+import { line, plain } from "./copy";
 import { isPlausibleEmail, normalizeEmail, toE164 } from "./phone";
 import * as db from "./server";
 import type { Lead, Workspace } from "./types";
@@ -62,6 +62,39 @@ export function twilioSignatureOk(authToken: string, url: string, params: Record
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
+/** The URL Twilio actually posted to, reconstructed from the forwarded headers. */
+export function requestPublicUrl(request: Request): string {
+  const u = new URL(request.url);
+  const proto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() || "https";
+  const host = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() || request.headers.get("host") || u.host;
+  return `${proto}://${host}${u.pathname}${u.search}`;
+}
+
+/**
+ * OpenPhone signs webhooks as `hmac;1;<timestamp>;<base64 signature>` over
+ * `<timestamp>.<raw body>` with the webhook's base64 signing key.
+ */
+export function openphoneSignatureOk(signingKey: string, rawBody: string, header: string | null, now = Date.now()): boolean {
+  if (!header) return false;
+  const parts = header.split(";");
+  if (parts.length !== 4 || parts[0] !== "hmac" || parts[1] !== "1") return false;
+  const [, , timestamp, signature] = parts;
+  if (!/^\d{10,13}$/.test(timestamp)) return false;
+  const ts = Number(timestamp) > 1e12 ? Number(timestamp) : Number(timestamp) * 1000;
+  if (Math.abs(now - ts) > 5 * 60_000) return false;
+  let key: Buffer;
+  try {
+    key = Buffer.from(signingKey, "base64");
+  } catch {
+    return false;
+  }
+  if (key.length === 0) return false;
+  const expected = createHmac("sha256", key).update(`${timestamp}.${rawBody}`, "utf8").digest("base64");
+  const a = Buffer.from(expected);
+  const b = Buffer.from(signature);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
 function str(v: unknown, max = 300): string {
   return plain(v, max);
 }
@@ -76,12 +109,12 @@ export async function ingestFormLead(client: db.Db, ws: Workspace, body: Record<
     }
     return "";
   };
-  const name = str(pick("name", "full_name", "fullName", "first_name", "firstName", "contact"), 120) || [str(pick("first_name"), 60), str(pick("last_name"), 60)].filter(Boolean).join(" ");
+  const name = line(pick("name", "full_name", "fullName", "first_name", "firstName", "contact"), 120) || [line(pick("first_name"), 60), line(pick("last_name"), 60)].filter(Boolean).join(" ");
   const phone = toE164(pick("phone", "phone_number", "phoneNumber", "mobile", "tel", "cell"));
   const email = normalizeEmail(pick("email", "email_address", "emailAddress"));
   if (!name && !phone && !email) return { ok: false, error: "Send at least a name, phone, or email.", status: 400 };
   const message = str(pick("message", "notes", "details", "comments", "description", "body", "question"), 1500) || null;
-  const service = str(pick("service", "services", "interest", "job", "need", "subject"), 120) || null;
+  const service = line(pick("service", "services", "interest", "job", "need", "subject"), 120) || null;
   const consentRaw = body.consent_sms ?? body.sms_consent ?? body.consent ?? body.opt_in;
   const consentSms = consentRaw === true || consentRaw === "true" || consentRaw === "yes" || consentRaw === "on" || consentRaw === "1";
   const externalId = str(pick("external_id", "id", "submission_id"), 120) || null;
@@ -191,7 +224,18 @@ export async function ingestSms(client: db.Db, ws: Workspace, sms: InboundSms): 
   return { lead, created, stopped };
 }
 
-export type MetaLeadFields = { name: string; phone: string | null; email: string | null; service: string | null; message: string | null; extra: Record<string, string> };
+export type MetaLeadFields = {
+  name: string;
+  phone: string | null;
+  email: string | null;
+  service: string | null;
+  message: string | null;
+  /** True only when the form carried an explicit yes to texts. */
+  consentSms: boolean;
+  extra: Record<string, string>;
+};
+
+const YES = /^(yes|true|1|on|checked|i agree|agree|ok|yes please)$/i;
 
 /** Meta's field_data array into our fields. Field names vary per form. */
 export function metaFieldsToLead(fieldData: { name?: string; values?: unknown[] }[]): MetaLeadFields {
@@ -202,13 +246,21 @@ export function metaFieldsToLead(fieldData: { name?: string; values?: unknown[] 
     if (key) map[key] = val;
   }
   const get = (...keys: string[]) => keys.map((k) => map[k]).find((v) => v && v.trim()) ?? "";
-  const name = str(get("full_name", "name", "first_name") || [map.first_name, map.last_name].filter(Boolean).join(" "), 120);
+  const name = line(get("full_name", "name", "first_name") || [map.first_name, map.last_name].filter(Boolean).join(" "), 120);
   const phone = toE164(get("phone_number", "phone", "mobile_number"));
   const email = normalizeEmail(get("email", "email_address"));
   const known = new Set(["full_name", "name", "first_name", "last_name", "phone_number", "phone", "mobile_number", "email", "email_address"]);
   const extra: Record<string, string> = {};
-  for (const [k, v] of Object.entries(map)) if (!known.has(k) && v) extra[k] = str(v, 300);
-  const service = str(get("service", "what_do_you_need", "what_service_do_you_need", "job_type", "interest"), 120) || null;
+  let consentSms = false;
+  for (const [k, v] of Object.entries(map)) {
+    if (known.has(k) || !v) continue;
+    if (/consent|agree|opt.?in|text me|sms|permission/.test(k) && YES.test(v.trim())) {
+      consentSms = true;
+      continue;
+    }
+    extra[k] = str(v, 300);
+  }
+  const service = line(get("service", "what_do_you_need", "what_service_do_you_need", "job_type", "interest"), 120) || null;
   const message = Object.entries(extra).map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`).join("\n") || null;
-  return { name, phone, email, service, message, extra };
+  return { name, phone, email, service, message, consentSms: consentSms && !!phone, extra };
 }

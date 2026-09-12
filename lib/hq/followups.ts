@@ -78,10 +78,11 @@ export function afterTouch(
   if (outcome === "quoted") patch.status = "quoted";
   else if (lead.status === "new") patch.status = "contacted";
 
-  // A real conversation resets the ladder from today; a no-answer keeps the
-  // step count so the ladder still ends.
-  const step = outcome === "no_answer" ? lead.follow_up_step + 1 : 0;
-  const next = nextFollowUpAt(step, settings, now, timezone);
+  // A real conversation restarts the ladder from today. A no-answer keeps
+  // the current rung and simply moves it forward, so phone tag never burns
+  // through the ladder and drops the lead.
+  const step = outcome === "no_answer" ? lead.follow_up_step : 0;
+  const next = nextFollowUpAt(step, settings, now, timezone) ?? nextFollowUpAt(0, settings, now, timezone);
   patch.follow_up_step = Math.min(step, 20);
   patch.next_follow_up_at = next ? next.toISOString() : null;
   return patch;

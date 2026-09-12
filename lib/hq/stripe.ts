@@ -18,7 +18,10 @@ export async function createSubscriptionCheckout(input: { workspace: Workspace; 
   params.set("line_items[0][price_data][recurring][interval]", "month");
   params.set("line_items[0][price_data][product_data][name]", `${HQ_PLAN.name} | ${input.workspace.name}`);
   params.set("line_items[0][price_data][product_data][description]", "Autopilot for your leads, follow-ups, and weekly content, inside ChatGPT and Claude. Cancel any time.");
-  params.set("subscription_data[trial_period_days]", String(HQ_PLAN.trialDays));
+  // One trial per business. A restart after a cancel pays from day one.
+  if (!input.workspace.trial_used_at && !input.workspace.stripe_customer_id) {
+    params.set("subscription_data[trial_period_days]", String(HQ_PLAN.trialDays));
+  }
   params.set("subscription_data[metadata][kind]", HQ_PLAN.kind);
   params.set("subscription_data[metadata][workspace_id]", input.workspace.id);
   params.set("metadata[kind]", HQ_PLAN.kind);

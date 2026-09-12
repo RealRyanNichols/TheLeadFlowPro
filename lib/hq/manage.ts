@@ -1,5 +1,5 @@
 import { serverActions, smsLine } from "./actions";
-import { checkSmsConnection } from "./channels";
+import { checkFacebookPage, checkSmsConnection } from "./channels";
 import { buildWeeklyContent, reviewReply } from "./content";
 import { plain } from "./copy";
 import { emailReply, followUp, quoteFollowUp, reschedule, reviewAsk, textBack, type Draft } from "./drafts";
@@ -143,6 +143,10 @@ export async function handleManage(raw: unknown, ctx: ManageContext): Promise<Ma
         if (!/^AC[a-zA-Z0-9]{32}$/.test(sid)) return bad("The Twilio account SID starts with AC and is 34 characters.");
         config.account_sid = sid;
       }
+      // OpenPhone signs its webhooks with a per-webhook key. Optional, but
+      // when it is here every inbound text is verified, not just addressed.
+      const webhookKey = kind === "openphone" && typeof body.webhook_key === "string" ? body.webhook_key.trim() : "";
+      if (webhookKey && (webhookKey.length < 16 || webhookKey.length > 400 || !/^[A-Za-z0-9+/=_-]+$/.test(webhookKey))) return bad("That does not look like an OpenPhone webhook signing key.");
       const check = await checkSmsConnection(kind, secret, config);
       if (!check.ok) return bad(check.error ?? "The provider did not accept those details.");
       if (check.numbers && check.numbers.length && !check.numbers.includes(from)) {
@@ -150,9 +154,20 @@ export async function handleManage(raw: unknown, ctx: ManageContext): Promise<Ma
       }
       // One text line at a time: connecting one disconnects the other.
       await db.deleteConnection(ctx.db, ws.id, kind === "openphone" ? "twilio" : "openphone");
-      const connection = await db.upsertConnection(ctx.db, ws.id, { kind, label: kind === "openphone" ? "OpenPhone" : "Twilio", config, secret });
+      config.signed = kind === "twilio" || !!webhookKey;
+      const connection = await db.upsertConnection(ctx.db, ws.id, { kind, label: kind === "openphone" ? "OpenPhone" : "Twilio", config, secret, webhookSecret: webhookKey || null });
+      // The text webhook gets its own token, minted the first time a line is
+      // connected and shown here so the owner can paste it into the provider.
+      const smsToken = ws.has_sms_token ? null : await db.regenerateSmsToken(ctx.db, ws.id);
       await db.recordEvent(ctx.db, ws.id, { kind: "system", detail: `${connection.label} text line connected (${from})`, actor: `owner:${ctx.user.id}` });
-      return okr({ connection });
+      return okr({ connection, sms_token: smsToken, sms_webhook_url: smsToken ? `https://www.theleadflowpro.com/api/hq/in/${smsToken}/sms` : null });
+    }
+    case "regenerate_sms_token": {
+      const ws = needWorkspace(ctx);
+      if ("status" in ws) return ws;
+      const token = await db.regenerateSmsToken(ctx.db, ws.id);
+      await db.recordEvent(ctx.db, ws.id, { kind: "system", detail: "Text webhook address regenerated", actor: `owner:${ctx.user.id}` });
+      return okr({ sms_token: token, sms_webhook_url: `https://www.theleadflowpro.com/api/hq/in/${token}/sms` });
     }
     case "connect_facebook_token": {
       const ws = needWorkspace(ctx);
@@ -161,8 +176,16 @@ export async function handleManage(raw: unknown, ctx: ManageContext): Promise<Ma
       const token = typeof body.token === "string" ? body.token.trim() : "";
       if (!/^\d{5,25}$/.test(pageId)) return bad("Enter the numeric Facebook Page ID.");
       if (token.length < 20 || token.length > 1000) return bad("Paste the Page access token.");
-      const connection = await db.upsertConnection(ctx.db, ws.id, { kind: "meta_page", label: s(body.page_name, 120) || "Facebook Page", config: { page_id: pageId, page_name: s(body.page_name, 120) }, secret: token });
-      await db.recordEvent(ctx.db, ws.id, { kind: "system", detail: "Facebook Page connected", actor: `owner:${ctx.user.id}` });
+      const check = await checkFacebookPage(pageId, token);
+      if (!check.ok) return bad(check.error ?? "Meta did not accept that token for this Page.");
+      let connection;
+      try {
+        connection = await db.upsertConnection(ctx.db, ws.id, { kind: "meta_page", label: check.name || s(body.page_name, 120) || "Facebook Page", config: { page_id: pageId, page_name: check.name || s(body.page_name, 120) }, secret: token });
+      } catch (e) {
+        if (e instanceof Error && /duplicate key|23505|hq_connections_meta_page_idx/.test(e.message)) return bad("That Page is already connected to another business. Disconnect it there first.", 409);
+        throw e;
+      }
+      await db.recordEvent(ctx.db, ws.id, { kind: "system", detail: `Facebook Page connected: ${connection.label}`, actor: `owner:${ctx.user.id}` });
       return okr({ connection });
     }
     case "disconnect": {
@@ -340,6 +363,7 @@ export async function handleManage(raw: unknown, ctx: ManageContext): Promise<Ma
       const patch: Partial<Content> = {};
       if (typeof body.body === "string" && s(body.body, 10000)) patch.body = s(body.body, 10000);
       if (typeof body.title === "string" && s(body.title, 200)) patch.title = s(body.title, 200);
+      if (typeof body.hook === "string") patch.hook = s(body.hook, 300) || null;
       if (decision === "approve") patch.status = "approved";
       else if (decision === "reject") patch.status = "rejected";
       else if (decision === "draft") patch.status = "draft";
@@ -378,6 +402,8 @@ export async function handleManage(raw: unknown, ctx: ManageContext): Promise<Ma
       const ws = needWorkspace(ctx);
       if ("status" in ws) return ws;
       if (ws.plan === "active" || ws.plan === "trial") return okr({ url: "/hq", already: true });
+      // A failed payment is fixed in the portal, never with a second subscription.
+      if (ws.plan === "past_due") return bad("Update the card on file from Manage billing instead of starting a second plan.", 409);
       if (!ctx.createCheckout) return bad("Billing is not configured.", 501);
       const result = await ctx.createCheckout({ workspace: ws, email: ws.email ?? ctx.user.email });
       if ("error" in result) return bad(result.error, 502);
@@ -424,5 +450,10 @@ export function publicWorkspace(ws: Workspace) {
     onboarding_step: ws.onboarding_step,
     has_billing: !!ws.stripe_customer_id,
     plan_name: HQ_PLAN.name,
+    inbound_token: ws.inbound_token,
+    lead_endpoint: `https://www.theleadflowpro.com/api/hq/in/${ws.inbound_token}/lead`,
+    meta_webhook: `https://www.theleadflowpro.com/api/hq/in/${ws.inbound_token}/meta`,
+    has_sms_token: ws.has_sms_token,
+    trial_used: !!ws.trial_used_at,
   };
 }

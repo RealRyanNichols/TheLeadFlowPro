@@ -1,19 +1,22 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { inboundAllowed, ingestFormLead, ingestSms, isHoneypotHit, metaFieldsToLead, parseInboundSms, safeFormRedirect, twilioSignatureOk } from "@/lib/hq/inbound";
-import { findWorkspaceByInboundToken, findWorkspaceByMetaPage, insertLead, recordEvent, getConnectionWithSecret } from "@/lib/hq/server";
+import { inboundAllowed, ingestFormLead, ingestSms, isHoneypotHit, metaFieldsToLead, openphoneSignatureOk, parseInboundSms, requestPublicUrl, safeFormRedirect, twilioSignatureOk } from "@/lib/hq/inbound";
+import { findWorkspaceByInboundToken, findWorkspaceBySmsToken, findWorkspaceByMetaPage, insertLead, recordEvent, getConnectionWithSecret } from "@/lib/hq/server";
 import { planIsLive } from "@/lib/hq/types";
 
 // The doors leads walk in through, one URL per business:
 //
-//   POST /api/hq/in/{token}/lead    a website form, Zapier, Make, curl
-//   POST /api/hq/in/{token}/sms     OpenPhone or Twilio inbound webhook
-//   GET  /api/hq/in/{token}/meta    Meta webhook verification
-//   POST /api/hq/in/{token}/meta    Meta leadgen webhook (signed)
+//   POST /api/hq/in/{token}/lead       a website form, Zapier, Make, curl
+//   POST /api/hq/in/{sms_token}/sms    OpenPhone or Twilio inbound webhook
+//   GET  /api/hq/in/{token}/meta       Meta webhook verification
+//   POST /api/hq/in/{token}/meta       Meta leadgen webhook (signed)
 //
-// The token is the business's inbound token from HQ. It identifies the
-// workspace and nothing else; an unknown token is a 404 with no detail.
+// The lead and Meta doors use the business's lead endpoint token, which is
+// an address (it sits in their website source). The text door uses its own
+// token that is only ever shown inside HQ, and on top of that Twilio's
+// signature is always verified and OpenPhone's is when the owner pasted
+// the signing key. An unknown token is a 404 with no detail.
 
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "POST, GET, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
 
@@ -87,7 +90,7 @@ export async function POST(request: Request, { params }: Params) {
   } catch {
     return NextResponse.json({ error: "not_configured" }, { status: 500, headers: CORS });
   }
-  const ws = await findWorkspaceByInboundToken(db, token);
+  const ws = channel === "sms" ? await findWorkspaceBySmsToken(db, token) : await findWorkspaceByInboundToken(db, token);
   if (!ws) return NextResponse.json({ error: "not_found" }, { status: 404, headers: CORS });
   const live = planIsLive(ws.plan, ws.trial_ends_at);
 
@@ -113,12 +116,19 @@ export async function POST(request: Request, { params }: Params) {
     if (channel === "sms") {
       const sms = parseInboundSms(type.includes("form") ? raw : parsed, type);
       if (!sms) return NextResponse.json({ ok: true, ignored: true }, { headers: CORS });
+      // The claimed provider must be the one this business connected.
+      const line = await getConnectionWithSecret(db, ws.id, sms.provider);
+      if (!line || line.connection.status !== "connected") return NextResponse.json({ error: "no_such_line" }, { status: 403 });
       if (sms.provider === "twilio") {
-        // Twilio signs with the auth token we hold for this business.
-        const line = await getConnectionWithSecret(db, ws.id, "twilio");
+        // Twilio signs the exact URL it posted to with the auth token we hold.
         const params = Object.fromEntries(new URLSearchParams(raw).entries());
-        const publicUrl = `https://www.theleadflowpro.com/api/hq/in/${token}/sms`;
-        if (!line?.secret || !twilioSignatureOk(line.secret, publicUrl, params, request.headers.get("x-twilio-signature"))) {
+        const candidates = [requestPublicUrl(request), `https://www.theleadflowpro.com/api/hq/in/${token}/sms`];
+        const sig = request.headers.get("x-twilio-signature");
+        if (!line.secret || !candidates.some((u) => twilioSignatureOk(line.secret as string, u, params, sig))) {
+          return NextResponse.json({ error: "bad_signature" }, { status: 403 });
+        }
+      } else if (line.webhookSecret) {
+        if (!openphoneSignatureOk(line.webhookSecret, raw, request.headers.get("openphone-signature"))) {
           return NextResponse.json({ error: "bad_signature" }, { status: 403 });
         }
       }
@@ -164,7 +174,7 @@ export async function POST(request: Request, { params }: Params) {
             source_detail: lead.form_id ? `form ${lead.form_id}` : "lead ad",
             service: fields.service,
             message: fields.message,
-            consent_sms: !!fields.phone,
+            consent_sms: fields.consentSms,
             consent_email: !!fields.email,
             external_id: `meta:${change.value.leadgen_id}`,
             meta: fields.extra,
