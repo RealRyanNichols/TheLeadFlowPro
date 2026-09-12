@@ -342,7 +342,9 @@ as $$
   );
 $$;
 
-revoke all on function public.hq_member_of(uuid) from public;
+-- Supabase's default privileges hand EXECUTE on new functions to anon
+-- directly, so revoking from public alone is not enough.
+revoke execute on function public.hq_member_of(uuid) from public, anon;
 grant execute on function public.hq_member_of(uuid) to authenticated;
 
 create or replace function public.hq_owner_of(ws uuid)
@@ -358,7 +360,7 @@ as $$
   );
 $$;
 
-revoke all on function public.hq_owner_of(uuid) from public;
+revoke execute on function public.hq_owner_of(uuid) from public, anon;
 grant execute on function public.hq_owner_of(uuid) to authenticated;
 
 alter table public.hq_workspaces enable row level security;
