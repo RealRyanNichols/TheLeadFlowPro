@@ -70,6 +70,22 @@ export async function getProEntitlements(): Promise<ProEntitlements> {
           fromAccount = true;
         }
       }
+      // Every kit is included with the plugin subscription. A member of a
+      // live plugin workspace holds the bundle for as long as the plan runs;
+      // the membership policy scopes this read to their own workspaces.
+      const { data: memberships } = await supabase
+        .from("hq_members")
+        .select("hq_workspaces(plan, trial_ends_at)")
+        .eq("user_id", user.id);
+      for (const m of (memberships ?? []) as Array<{ hq_workspaces: { plan?: string; trial_ends_at?: string | null } | { plan?: string; trial_ends_at?: string | null }[] | null }>) {
+        const ws = Array.isArray(m.hq_workspaces) ? m.hq_workspaces[0] : m.hq_workspaces;
+        const plan = ws?.plan ?? "none";
+        const trialOk = plan !== "trial" || !ws?.trial_ends_at || new Date(ws.trial_ends_at).getTime() > Date.now();
+        if ((plan === "active" || plan === "past_due" || plan === "trial") && trialOk) {
+          kinds.add("pro_bundle");
+          fromAccount = true;
+        }
+      }
       if (!email && user.email) email = user.email.toLowerCase();
     }
   } catch {

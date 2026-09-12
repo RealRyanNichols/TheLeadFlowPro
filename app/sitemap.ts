@@ -13,6 +13,12 @@ export const dynamic = "force-dynamic";
 
 const BASE = "https://www.theleadflowpro.com";
 
+// Catalogued pages sit at 0.7 unless they carry a product of their own.
+const PAGE_PRIORITY: Record<string, number> = {
+  "": 1,
+  "/plugin": 0.9,
+};
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const pages = PUBLIC_PAGE_CATALOG.filter(
     (page) => !("index" in page && page.index === false),
@@ -22,7 +28,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...pages.map((p) => ({
       url: `${BASE}${p}`,
       changeFrequency: "weekly" as const,
-      priority: p === "" ? 1 : 0.7,
+      priority: PAGE_PRIORITY[p] ?? 0.7,
     })),
     ...OPERATOR_ACADEMY_COURSES.map((course) => ({
       url: `${BASE}/training/${course.slug}`,

@@ -28,6 +28,7 @@ import { proKindFromSession } from "@/lib/proAccess";
 import { proCatalog } from "@/lib/tools/pro";
 import { SELLERPROOF } from "@/lib/sellerproof/packet";
 import { sendSellerProofReceipt } from "@/lib/sellerproof/receipt";
+import { handleHqStripeEvent } from "@/lib/hq/subscription";
 
 // Stripe webhook: records paid checkouts and unlocks training access.
 // Needs STRIPE_WEBHOOK_SECRET (from Stripe dashboard → Webhooks) and
@@ -1159,6 +1160,21 @@ export async function POST(request: Request) {
     event = JSON.parse(payload);
   } catch {
     return NextResponse.json({ error: "Bad payload" }, { status: 400 });
+  }
+
+  // The plugin subscription: a subscription checkout (which can complete
+  // with no payment during the trial, so it must come before the paid-only
+  // path below) and every customer.subscription.* lifecycle event.
+  try {
+    const handledByHq = await handleHqStripeEvent(
+      createSupabaseClient(SUPABASE_URL, serviceKey),
+      event,
+      process.env.STRIPE_SECRET_KEY,
+    );
+    if (handledByHq) return NextResponse.json({ received: true });
+  } catch (error) {
+    console.error("Stripe plugin subscription webhook failed:", error instanceof Error ? error.message : "unknown");
+    return NextResponse.json({ error: "Subscription processing failed" }, { status: 500 });
   }
 
   if (typeof event.type === "string" && INVOICE_EVENT_STATUS[event.type]) {
