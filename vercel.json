@@ -35,6 +35,10 @@
     {
       "path": "/api/cron/operator-episode",
       "schedule": "55 4 * * *"
+    },
+    {
+      "path": "/api/cron/hq-pulse",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

@@ -73,7 +73,8 @@ export async function middleware(request: NextRequest) {
   const isSalesWorkspace = isPath(requestedPath, PUBLIC_SALES_PATH);
   const isProtected =
     requestedPath.startsWith("/dashboard") ||
-    requestedPath.startsWith("/admin");
+    requestedPath.startsWith("/admin") ||
+    requestedPath.startsWith("/hq");
 
   const rewriteUrl = request.nextUrl.clone();
   if (isSalesWorkspace) {

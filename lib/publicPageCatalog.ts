@@ -132,6 +132,13 @@ export const PUBLIC_PAGE_CATALOG = [
     art: "/images/page-art/pro-kits.png",
   },
   {
+    path: "/plugin",
+    title: "Run your leads from inside ChatGPT",
+    description:
+      "Install The LeadFlow Pro in ChatGPT or Claude. Every lead lands in one inbox, gets answered fast, and gets followed up until it is won.",
+    eyebrow: "The LeadFlow Pro Plugin",
+  },
+  {
     path: "/portfolio",
     title: "Open the work and inspect it",
     description:
