@@ -17,6 +17,7 @@ const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
       ["/add-ons", "Add-On Menu"],
       ["/tools", "Free Tools"],
       ["/tools/pro", "Pro Kits | $10 to $29"],
+      ["/plugin", "Plugin for ChatGPT and Claude | $49/mo"],
       ["/sellerproof", "SellerProof | Chargeback packets"],
       ["/chatgpt/free", "Free starter lesson"],
     ],

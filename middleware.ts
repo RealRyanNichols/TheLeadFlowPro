@@ -71,9 +71,13 @@ export async function middleware(request: NextRequest) {
   }
 
   const isSalesWorkspace = isPath(requestedPath, PUBLIC_SALES_PATH);
+  // /hq/thanks is the page a customer's browser lands on after posting a lead
+  // through someone's website form. It is the one page under /hq that belongs
+  // to the public, so it must not ask them to sign in.
   const isProtected =
     requestedPath.startsWith("/dashboard") ||
-    requestedPath.startsWith("/admin");
+    requestedPath.startsWith("/admin") ||
+    (requestedPath.startsWith("/hq") && !isPath(requestedPath, "/hq/thanks"));
 
   const rewriteUrl = request.nextUrl.clone();
   if (isSalesWorkspace) {
