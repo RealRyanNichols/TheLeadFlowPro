@@ -3,7 +3,8 @@ import { getHqSession } from "@/lib/hq/session";
 import { parseAuthorizeParams, withQuery } from "@/lib/hq/oauth";
 import { getClient, saveAuthorizationCode } from "@/lib/hq/server";
 import { SITE } from "@/lib/hq/oauth";
-import { verifyConsentNonce } from "@/lib/hq/consent";
+import { crossSiteApproval, verifyConsentNonce } from "@/lib/hq/consent";
+import { requestPublicUrl } from "@/lib/hq/inbound";
 
 // The owner clicked Connect. Re-validate everything the consent page
 // validated (the form is just hidden fields), mint a single-use code, and
@@ -11,17 +12,22 @@ import { verifyConsentNonce } from "@/lib/hq/consent";
 
 export const dynamic = "force-dynamic";
 
+// The production origins a consent form can post from. The apex redirects
+// to www, but an old browser that reports it is still ours.
+const TRUSTED_ORIGINS = [SITE, "https://theleadflowpro.com"];
+
 export async function POST(request: Request) {
+  // A post the browser has labelled as coming from another site is turned
+  // away before anything else: it could otherwise mint a code for the
+  // signed-in person's workspace and hand it to an attacker's client. The
+  // nonce below is the proof that the form came from our consent page; this
+  // check only honours what the browser already said.
+  if (crossSiteApproval(request.headers, { own: new URL(requestPublicUrl(request)).origin, trusted: TRUSTED_ORIGINS })) {
+    return NextResponse.json({ error: "invalid_request", error_description: "Cross-site approval is not allowed." }, { status: 403 });
+  }
   const session = await getHqSession().catch(() => null);
   if (!session || !session.workspace) {
     return NextResponse.redirect(new URL("/login?next=%2Fhq", request.url), { status: 303 });
-  }
-  // A cross-site POST could otherwise mint a code for the signed-in
-  // person's workspace and hand it to an attacker's registered client.
-  const origin = request.headers.get("origin");
-  const fetchSite = request.headers.get("sec-fetch-site");
-  if ((origin && origin !== SITE && !origin.startsWith("http://localhost")) || (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none")) {
-    return NextResponse.json({ error: "invalid_request", error_description: "Cross-site approval is not allowed." }, { status: 403 });
   }
   const form = await request.formData().catch(() => null);
   if (!form) return NextResponse.json({ error: "bad_request" }, { status: 400 });
