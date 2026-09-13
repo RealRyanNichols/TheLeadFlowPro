@@ -104,7 +104,15 @@ Tables: `hq_workspaces`, `hq_members`, `hq_leads`, `hq_events`, `hq_messages`,
    to `/hq/authorize` with PKCE S256.
 3. Owner signs in (middleware protects `/hq`), sees the client name, scopes,
    and the host it will return to, approves. `/api/hq/oauth/approve` mints a
-   single-use code (10 minutes).
+   single-use code (10 minutes). The form carries a nonce (HMAC over user,
+   client, redirect, PKCE challenge, scope, ten minutes) that proves the
+   approval came from our consent page; that is the CSRF protection. On top
+   of it `crossSiteApproval` in `lib/hq/consent.ts` turns away a post the
+   browser itself labels foreign: `Sec-Fetch-Site` decides when present,
+   `Origin` only when it names a real origin. The site's no-referrer policy
+   makes Chrome send `Origin: null` on a same-origin form post, so a null or
+   missing Origin is inconclusive, never a refusal. `tests/hq-consent.test.ts`
+   pins the exact header shapes; the e2e spec clicks a real button.
 4. `/api/oauth/token` exchanges the code (PKCE verified) for an access token
    (8 hours) and a refresh token (90 days, rotated on every use).
 5. API keys (`lfp_live_...`) from HQ work as plain bearer tokens for tools

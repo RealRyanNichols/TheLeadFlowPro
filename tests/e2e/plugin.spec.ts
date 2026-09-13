@@ -54,6 +54,40 @@ test("client registration rejects non-https redirects", async ({ request }) => {
   expect(body.error).toBe("invalid_client_metadata");
 });
 
+// The consent page carries the site's no-referrer policy, and under it Chrome
+// sends "Origin: null" on a real form post. A stand-in consent page on the
+// app's own origin, clicked by a real browser, sends the genuine headers.
+// Without a session the route sends the browser to log in; the bug this
+// guards against was a 403 "Cross-site approval" before anything else.
+const CONSENT_PROBE = `<!doctype html><html><head><meta name="referrer" content="no-referrer"></head><body>
+<form method="post" action="/api/hq/oauth/approve"><input type="hidden" name="nonce" value="probe"><button id="go" type="submit">Connect Claude</button></form></body></html>`;
+
+test("the Connect button's real browser post is not mistaken for another site's", async ({ page, baseURL }) => {
+  await page.route(`${baseURL}/__consent-probe`, (route) => route.fulfill({ contentType: "text/html", body: CONSENT_PROBE }));
+  await page.goto(`${baseURL}/__consent-probe`);
+  const [response] = await Promise.all([
+    page.waitForResponse((r) => r.url().endsWith("/api/hq/oauth/approve") && r.request().method() === "POST"),
+    page.click("#go"),
+  ]);
+  expect(response.status()).toBe(303);
+  expect(response.headers()["location"]).toContain("/login");
+  await expect(page).toHaveURL(/\/login/);
+});
+
+test("the same button on another origin is refused", async ({ page, baseURL }) => {
+  // 127.0.0.1 and localhost are different origins for the browser, and the
+  // same dev server answers both.
+  const foreign = "http://127.0.0.1:3000/__attacker";
+  await page.route(foreign, (route) => route.fulfill({ contentType: "text/html", body: CONSENT_PROBE.replace('action="/api/hq/oauth/approve"', `action="${baseURL}/api/hq/oauth/approve"`) }));
+  await page.goto(foreign);
+  const [response] = await Promise.all([
+    page.waitForResponse((r) => r.url().endsWith("/api/hq/oauth/approve") && r.request().method() === "POST"),
+    page.click("#go"),
+  ]);
+  expect(response.status()).toBe(403);
+  expect(await response.text()).toContain("Cross-site approval");
+});
+
 test("HQ and the inbound doors are closed without credentials", async ({ page, request }) => {
   await page.goto("/hq");
   await expect(page).toHaveURL(/\/login\?next=%2Fhq/);
