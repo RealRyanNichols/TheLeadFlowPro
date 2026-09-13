@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex final PNG visual review",
+  "reviewed_at": "2026-09-13T10:24:43.310Z",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "f5215ef3756da605e2a7fc53b41ecf8d63db0a37bc5861fe938ae0c3a2475951",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG visually reviewed. Exact offwhite serif headline appears in two lines at upper right, followed by one support line. A small plain offwhite vase and bare twig occupy the lower left quarter on navy, clear of the text. No brand marks or incidental text appear.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "943960402e6fc0851a682914964d789d9c824d483ff53e5293e2e6f6b20c68ef",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG visually reviewed. Exact navy bold headline appears in two lines high left, followed by one support line on warm offwhite. Two fitted plain cobalt puzzle pieces sit at lower right, cropped by the edges and clear of all copy. No printing or extra labels appear.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "82206e59bee4a8ab09d46ba9c9afbae87fcceb67355bf60a2c67d967d8eaf6d2",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG visually reviewed. Exact med spa headline appears in three navy lines at left with one support line beneath. An empty unmarked offwhite robe hangs from a small peg at far right on a muted blue wall. No human, mannequin, face, hands, label or embroidery appears; copy is clear of the robe.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "2b0f06783f814e4270d7fee3658c5702821ca33cfe6dac54742ff49d267014e5",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG visually reviewed. The exact illustrative equation states 120 divided by 4 equals 30 minutes, with one example planning support line below. Offwhite type on cobalt is clear of the curved copper mesh at the extreme left. The example is explicitly labeled illustrative, with no customer performance claim or extra words.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "30e91d17b1403c33ebafb8d89a0a20eeb6973ae06ca46a507e0156c6f5105d1d",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG visually reviewed. Exact navy serif question appears in two lines low center on sage with one support line below. A single plain navy physical pushpin and metal tip sit high at upper right, well above the copy. No marks, lettering, humans, icons or other objects appear.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}

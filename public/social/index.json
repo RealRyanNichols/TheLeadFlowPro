@@ -1,7 +1,8 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-12T21:38:00.798Z",
+  "updated_at": "2026-09-13T10:17:35.580Z",
   "dates": [
+    "2026-09-27",
     "2026-09-26",
     "2026-09-25",
     "2026-09-24",
@@ -24,6 +25,11 @@
     "2026-09-07"
   ],
   "days": [
+    {
+      "date": "2026-09-27",
+      "manifest_url": "https://www.theleadflowpro.com/social/2026-09-27/manifest.json",
+      "image_count": 5
+    },
     {
       "date": "2026-09-26",
       "manifest_url": "https://www.theleadflowpro.com/social/2026-09-26/manifest.json",
