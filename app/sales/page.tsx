@@ -1,77 +1,86 @@
 import { createClient } from "@/lib/supabase/server";
-import SalesLeadsTable from "./SalesLeadsTable";
+import TodayQueue from "./TodayQueue";
+import { OPEN_STATUSES, type InboundSignals, type QueueLead } from "@/lib/salesQueue";
 
-export default async function SalesPipeline() {
+// The home screen of the sales desk. It answers one question: who do I touch
+// right now, and what do I do about it. The full lead table moved to
+// /admin/sales/pipeline, which is where you go to browse rather than to work.
+
+export const metadata = { title: "Today | LeadFlow Pro Sales Desk" };
+export const dynamic = "force-dynamic";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export default async function SalesToday() {
   const supabase = await createClient();
-  const { data: leads, error } = await supabase
-    .from("leads")
-    .select(
-      "id, created_at, full_name, email, phone, business_name, current_platform, industry, interest, goals, timeline, best_contact_method, status, priority, next_follow_up_at, expected_value_cents, close_probability, owner",
-    )
-    .is("deleted_at", null)
-    .eq("is_test", false)
-    .order("created_at", { ascending: false })
-    .limit(200);
+  const since = new Date(Date.now() - DAY_MS).toISOString();
 
-  if (error)
+  const [leadsResult, messagesResult, callsResult] = await Promise.all([
+    supabase
+      .from("leads")
+      .select(
+        "id, created_at, full_name, business_name, email, phone, status, priority, timeline, interest, goals, industry, next_follow_up_at, last_contacted_at, expected_value_cents, owner, source, sms_consent, sms_unsubscribed_at",
+      )
+      .is("deleted_at", null)
+      .eq("is_test", false)
+      .in("status", OPEN_STATUSES)
+      .order("created_at", { ascending: false })
+      .limit(300),
+    supabase
+      .from("lead_messages")
+      .select("lead_id, created_at")
+      .eq("direction", "in")
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(500),
+    supabase
+      .from("lead_calls")
+      .select("lead_id, started_at")
+      .eq("direction", "incoming")
+      .gte("started_at", since)
+      .order("started_at", { ascending: false })
+      .limit(500),
+  ]);
+
+  if (leadsResult.error) {
     return (
       <section role="alert" className="card border-[var(--danger-line)]">
         <h2 className="text-xl font-bold text-[var(--heading)]">
-          The pipeline could not load.
+          Today could not load.
         </h2>
         <p className="mt-2 text-[var(--muted)]">
-          This is a connection or access error, not an empty lead list. Refresh
-          the page to try again. Saved leads have not been removed.
+          This is a connection or access error, not an empty queue. Refresh to
+          try again. No lead has been changed or removed.
         </p>
-        <a href="/admin/sales" className="btn-primary mt-4 inline-flex">
-          Reload the pipeline
+        <a
+          href="/admin/sales"
+          className="btn-primary mt-4 inline-flex min-h-[44px] items-center"
+        >
+          Reload Today
         </a>
       </section>
     );
+  }
 
-  const all = leads ?? [];
-  const counts = {
-    total: all.length,
-    new: all.filter((lead) => lead.status === "new").length,
-    active: all.filter((lead) =>
-      ["contacted", "call_booked", "proposal"].includes(lead.status),
-    ).length,
-    won: all.filter((lead) => lead.status === "won").length,
-  };
+  // Most recent inbound touch per lead. A call ties ahead of a text at the same
+  // instant, because a missed call is the one you lose fastest.
+  const signals: InboundSignals = {};
+  for (const m of messagesResult.data ?? []) {
+    const leadId = m.lead_id as string | null;
+    const at = Date.parse(m.created_at as string);
+    if (!leadId || !Number.isFinite(at)) continue;
+    const prior = signals[leadId];
+    if (!prior || at > prior.at) signals[leadId] = { at, kind: "text" };
+  }
+  for (const c of callsResult.data ?? []) {
+    const leadId = c.lead_id as string | null;
+    const at = Date.parse(c.started_at as string);
+    if (!leadId || !Number.isFinite(at)) continue;
+    const prior = signals[leadId];
+    if (!prior || at >= prior.at) signals[leadId] = { at, kind: "call" };
+  }
 
-  return (
-    <>
-      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Metric label="Leads" value={counts.total} />
-        <Metric label="New" value={counts.new} tone="text-flow-400" />
-        <Metric label="Active" value={counts.active} tone="text-warn" />
-        <Metric label="Won" value={counts.won} tone="text-mint" />
-      </div>
-      <p className="mb-3 text-xs text-[var(--muted)]">
-        Newest {all.length} leads shown
-        {all.length === 200 ? " · first 200 records" : ""}. Open a call sheet
-        for the shared conversation and next action.
-      </p>
-      <SalesLeadsTable initialLeads={all} />
-    </>
-  );
-}
+  const leads = (leadsResult.data ?? []) as QueueLead[];
 
-function Metric({
-  label,
-  value,
-  tone = "text-[var(--heading)]",
-}: {
-  label: string;
-  value: number;
-  tone?: string;
-}) {
-  return (
-    <div className="card !p-4 text-center">
-      <div className={`text-3xl font-black ${tone}`}>{value}</div>
-      <div className="text-xs uppercase tracking-wide text-[var(--muted)]">
-        {label}
-      </div>
-    </div>
-  );
+  return <TodayQueue leads={leads} signals={signals} loadedAt={Date.now()} />;
 }

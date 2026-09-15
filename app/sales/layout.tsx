@@ -57,7 +57,14 @@ export default async function SalesLayout({
           >
             <Link
               href="/admin/sales"
-              className="text-[var(--text)] hover:text-[var(--heading)]"
+              className="inline-flex min-h-[44px] items-center rounded-lg px-3 font-black text-[var(--on-accent)]"
+              style={{ background: "var(--blue)" }}
+            >
+              Today
+            </Link>
+            <Link
+              href="/admin/sales/pipeline"
+              className="inline-flex min-h-[44px] items-center text-[var(--text)] hover:text-[var(--heading)]"
             >
               Pipeline
             </Link>
