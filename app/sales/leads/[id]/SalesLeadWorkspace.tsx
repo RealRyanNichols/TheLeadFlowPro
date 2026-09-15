@@ -378,9 +378,9 @@ export default function SalesLeadWorkspace({
       <div>
         <Link
           href="/admin/sales"
-          className="text-sm font-semibold text-flow-400"
+          className="inline-flex min-h-[44px] items-center text-sm font-semibold text-flow-400"
         >
-          ← Pipeline
+          ← Today
         </Link>
         <div className="mt-3 flex flex-wrap items-end gap-4">
           <div className="min-w-0 flex-1">
