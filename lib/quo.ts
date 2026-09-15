@@ -236,22 +236,22 @@ export const INBOUND_AUTO_REPLY =
   "myself. If it is after hours it will be first thing in the morning. " +
   "(903) 500-8898 is my direct line, save it. Reply STOP to opt out.";
 
-/** Carrier standard opt-out words. Case and punctuation insensitive. */
-const STOP_WORDS = new Set([
-  "stop",
-  "stopall",
-  "unsubscribe",
-  "cancel",
-  "end",
-  "quit",
-  "optout",
-  "opt-out",
-  "remove",
-]);
+// STOP is NOT evaluated here any more. It is decided by
+// public.is_sms_stop_word in the database, called from public.log_quo_activity
+// before that function creates anything, and the opt-out is recorded in
+// public.sms_suppressions so an unknown number that texts STOP is not lost.
+//
+// The TypeScript copy that used to live here is deleted rather than kept in
+// sync, because the two had already drifted: this list carried "opt-out" with
+// the hyphen preserved and the SQL one strips non-letters, so "stop-" matched
+// in SQL and not here, and "opt-out" matched here and not in SQL. One list, in
+// one place, is the only version of this that stays correct.
+//
+// lib/hq/inbound.ts still has a third, narrower regex for the HQ plugin, which
+// runs on the separate hq_* schema. That one is out of scope here and is a
+// known divergence, not an oversight.
 
-export function isStopMessage(text: string): boolean {
-  const cleaned = String(text ?? "")
-    .toLowerCase()
-    .replace(/[^a-z-]/g, "");
-  return STOP_WORDS.has(cleaned);
+/** Last 10 digits. Mirrors public.normalize_phone so TS and SQL agree on identity. */
+export function normalizePhoneLast10(phone: string): string {
+  return String(phone ?? "").replace(/[^\d]/g, "").slice(-10);
 }
