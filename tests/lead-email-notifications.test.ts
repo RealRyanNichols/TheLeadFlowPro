@@ -109,7 +109,8 @@ test("lead emails pass the stable key to Resend and preserve the free-build prom
 
     const owner = JSON.parse(String(captured[0].init.body));
     const welcome = JSON.parse(String(captured[1].init.body));
-    assert.deepEqual(owner.to, ["hello@theleadflowpro.com"]);
+    // Both people who work inbound leads get the one alert (lib/leadNotify.ts).
+    assert.deepEqual(owner.to, ["hello@theleadflowpro.com", "pat@theleadflowpro.com"]);
     assert.deepEqual(welcome.to, [LEAD.email]);
     assert.match(welcome.subject, /free website application/i);
     assert.match(welcome.text, /build fee is \$0/i);
