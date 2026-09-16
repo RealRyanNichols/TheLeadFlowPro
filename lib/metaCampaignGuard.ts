@@ -124,6 +124,19 @@ export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> 
     campaign: "qualified_video_2026_09",
     inquiryOptIn: true,
   },
+  "3610264839155246": {
+    // LFP | Rent Receipt | Pain + Timeline | v1. Built Sep 15 for the mall
+    // video ad. Two qualifying questions (biggest cost right now, timeline).
+    campaign: "mall_video_rent_receipt_2026_09",
+    inquiryOptIn: true,
+  },
+  "2349934135833664": {
+    // LFP Enrollment Gap Timeline v1. Built Sep 15 for the schools and
+    // enrollments lane. Two qualifying questions (where enrollments break,
+    // timeline).
+    campaign: "schools_enrollments_2026_09",
+    inquiryOptIn: true,
+  },
 };
 
 export function registeredMetaForm(formId: string | null | undefined) {
