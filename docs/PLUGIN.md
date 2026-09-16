@@ -146,6 +146,13 @@ nothing. So a missing subscription webhook costs at most a day of lag.
 
 Plan values: `none`, `trial`, `active`, `past_due` (engine keeps running,
 owner is emailed, checkout is refused in favor of the portal), `canceled`.
+A cancel at the end of the period is not a plan value: the plan stays
+`trial` or `active` and `cancel_at` carries the day it stops (from Stripe's
+`cancel_at`, or the current period's end when only `cancel_at_period_end`
+is set). The header badge reads "Ends Sep 26", Billing says it will not
+renew, the timeline gets a line, and the trial reminders (which talk about
+the card) stay quiet. `current_period_end` is read from the subscription
+or, on newer Stripe API versions, from its first item.
 `planIsLive()` is the single gate; read-only MCP tools still answer when the
 plan is off so the owner can see their data. One trial per business:
 `trial_used_at` is set by the webhook and a restart pays from day one.

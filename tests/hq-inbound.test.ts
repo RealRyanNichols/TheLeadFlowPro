@@ -84,6 +84,30 @@ describe("stripe plan mapping", () => {
     assert.equal(customerIdOf({ customer: { id: "cus_2" } }), "cus_2");
     assert.equal(customerIdOf({}), null);
   });
+
+  test("a cancel at the end of the period keeps the plan live and records the day it stops", () => {
+    // What Stripe sent when the Test Plumbing trial was cancelled through
+    // the billing portal: still trialing, cancel_at set to the trial's end.
+    const trialEnd = 1790477182; // 2026-09-27T02:46:22Z
+    const cancelled = planFromSubscription({ status: "trialing", trial_end: trialEnd, cancel_at_period_end: true, cancel_at: trialEnd });
+    assert.equal(cancelled.plan, "trial", "still live until the day it ends");
+    assert.equal(cancelled.cancel_at, "2026-09-27T02:46:22.000Z");
+    // Older payloads carry only the flag; the current period's end is the day.
+    const flagOnly = planFromSubscription({ status: "trialing", trial_end: trialEnd, cancel_at_period_end: true });
+    assert.equal(flagOnly.cancel_at, "2026-09-27T02:46:22.000Z");
+    const activeFlag = planFromSubscription({ status: "active", current_period_end: 1_800_000_000, cancel_at_period_end: true });
+    assert.equal(activeFlag.cancel_at, new Date(1_800_000_000 * 1000).toISOString());
+    // Taking the cancel back clears it.
+    assert.equal(planFromSubscription({ status: "trialing", trial_end: trialEnd, cancel_at_period_end: false, cancel_at: null }).cancel_at, null);
+    assert.equal(planFromSubscription({ status: "active" }).cancel_at, null);
+  });
+
+  test("the renewal date is read from the items when Stripe no longer puts it on the subscription", () => {
+    const fromItems = planFromSubscription({ status: "active", items: { data: [{ current_period_end: 1_800_000_000 }] } });
+    assert.equal(fromItems.current_period_end, new Date(1_800_000_000 * 1000).toISOString());
+    const topLevelWins = planFromSubscription({ status: "active", current_period_end: 1_700_000_000, items: { data: [{ current_period_end: 1_800_000_000 }] } });
+    assert.equal(topLevelWins.current_period_end, new Date(1_700_000_000 * 1000).toISOString());
+  });
 });
 
 describe("management guard rails", () => {

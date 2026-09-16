@@ -103,6 +103,8 @@ export type Workspace = {
   stripe_subscription_id: string | null;
   subscription_status: string | null;
   current_period_end: string | null;
+  /** Set when the owner cancelled at the end of the period: the day the plan stops. */
+  cancel_at: string | null;
   trial_used_at: string | null;
   stripe_event_at: number;
   /** The lead endpoint token. An address, shown in Settings. */

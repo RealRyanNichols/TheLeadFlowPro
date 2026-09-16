@@ -192,8 +192,9 @@ export async function runPulse(client: db.Db, ws: Workspace, now = new Date()): 
     if (synced) Object.assign(ws, synced, { stripe_event_at: Math.floor(now.getTime() / 1000) });
   }
 
-  // 7. Trial reminders: three days out and the day before.
-  if (ws.plan === "trial" && ws.trial_ends_at) {
+  // 7. Trial reminders: three days out and the day before. Not for a trial
+  //    the owner already set to end; that reminder talks about the card.
+  if (ws.plan === "trial" && ws.trial_ends_at && !ws.cancel_at) {
     const daysLeft = Math.ceil((new Date(ws.trial_ends_at).getTime() - now.getTime()) / 86_400_000);
     if (daysLeft === 3 || daysLeft === 1) {
       const first = await db.recordEvent(client, ws.id, { kind: "system", detail: `Trial ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`, actor: "cron", dedupeKey: `trial:reminder:${daysLeft}` });

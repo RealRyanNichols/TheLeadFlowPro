@@ -4,7 +4,7 @@ import { Check } from "lucide-react";
 import { getHqSession } from "@/lib/hq/session";
 import { HQ_PLAN } from "@/lib/hq/types";
 import { ManageBillingButton, StartPlanButton } from "../_components/BillingButtons";
-import { planBadge, readableDate } from "../_components/plan";
+import { planBadge, planEndsAt, readableDate } from "../_components/plan";
 
 // The plan. What it costs, what state it is in, and the two buttons that
 // change it. Both of those hand off to Stripe; nothing about a card is
@@ -34,6 +34,8 @@ export default async function HqBillingPage({ searchParams }: { searchParams: Pr
   const cancelled = params.cancelled === "1";
   const trialEnds = readableDate(ws.trial_ends_at, ws.timezone);
   const renews = readableDate(ws.current_period_end, ws.timezone);
+  const endsAt = planEndsAt(ws);
+  const ends = readableDate(endsAt, ws.timezone);
 
   const startLabel =
     ws.plan === "none"
@@ -76,20 +78,31 @@ export default async function HqBillingPage({ searchParams }: { searchParams: Pr
             <dt className="hq-eyebrow">Price</dt>
             <dd className="mt-1 text-sm font-bold text-[var(--heading)]">${HQ_PLAN.priceUsd} a month</dd>
           </div>
-          {ws.plan === "trial" && trialEnds && (
+          {endsAt && ends ? (
+            <div>
+              <dt className="hq-eyebrow">Ends</dt>
+              <dd className="mt-1 text-sm font-bold text-[var(--heading)]">{ends}. Will not renew.</dd>
+            </div>
+          ) : ws.plan === "trial" && trialEnds ? (
             <div>
               <dt className="hq-eyebrow">Trial ends</dt>
               <dd className="mt-1 text-sm font-bold text-[var(--heading)]">{trialEnds}</dd>
             </div>
-          )}
-          {(ws.plan === "active" || ws.plan === "past_due") && renews && (
+          ) : (ws.plan === "active" || ws.plan === "past_due") && renews ? (
             <div>
               <dt className="hq-eyebrow">Next renewal</dt>
               <dd className="mt-1 text-sm font-bold text-[var(--heading)]">{renews}</dd>
             </div>
-          )}
+          ) : null}
         </dl>
 
+        {endsAt && ends && (
+          <p className="hq-note mt-4">
+            You cancelled. The plan ends {ends} and will not renew, so there is nothing more to pay.
+            {ws.plan === "trial" ? " Your card is not charged." : ""} Autopilot keeps working until then, and your leads, messages and history stay in
+            HQ after. Changed your mind? Manage billing can keep it going.
+          </p>
+        )}
         {ws.plan === "past_due" && (
           <p className="hq-error mt-4">
             The last payment did not go through. Autopilot is still running for now. Update the card in Manage billing so it does not stop.

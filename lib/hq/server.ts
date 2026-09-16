@@ -129,6 +129,7 @@ export type WorkspacePatch = Partial<
     | "stripe_subscription_id"
     | "subscription_status"
     | "current_period_end"
+    | "cancel_at"
     | "trial_used_at"
     | "stripe_event_at"
     | "onboarding_step"
