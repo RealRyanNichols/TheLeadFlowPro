@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import LeadHistory from "@/app/admin/leads/[id]/LeadHistory";
 import {
   buildLeadTimeline,
+  leadSourceLabel,
   originalLeadAnswers,
   type LeadNoteRecord,
   type LeadActivityRecord,
@@ -390,6 +391,36 @@ export default function SalesLeadWorkspace({
             <p className="text-[var(--muted)]">
               {lead.business_name || "Business name not captured"}
             </p>
+        <dl className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
+          <div className="flex items-center gap-1.5">
+            <dt className="text-[var(--muted)]">Priority</dt>
+            <dd className="font-semibold text-[var(--heading)]">
+              {pretty(priority)}
+            </dd>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <dt className="text-[var(--muted)]">Value</dt>
+            <dd className="font-semibold text-[var(--heading)]">
+              {expectedValue.trim()
+                ? `$${Number(expectedValue).toLocaleString()}`
+                : "Not set"}
+            </dd>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <dt className="text-[var(--muted)]">Next follow-up</dt>
+            <dd className="font-semibold text-[var(--heading)]">
+              {nextFollowUp
+                ? new Date(`${nextFollowUp}T12:00:00`).toLocaleDateString()
+                : "None set"}
+            </dd>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <dt className="text-[var(--muted)]">Source</dt>
+            <dd className="font-semibold text-[var(--heading)]">
+              {leadSourceLabel(lead.source)}
+            </dd>
+          </div>
+        </dl>
           </div>
           <label className="text-xs text-[var(--muted)]">
             Stage
@@ -442,6 +473,154 @@ export default function SalesLeadWorkspace({
         </p>
       )}
 
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-6">
+          <section className="card !p-4">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
+              Add a team note or build link
+            </h2>
+            <form onSubmit={addNote} className="mt-3 flex gap-2">
+              <input
+                className="input text-sm"
+                value={noteDraft}
+                onChange={(event) => setNoteDraft(event.target.value)}
+                aria-label="Team note"
+                placeholder="Add a call note, or tap the mic and talk"
+                maxLength={4000}
+              />
+              <DictationButton
+                onText={(spoken) =>
+                  setNoteDraft((current) =>
+                    current ? `${current} ${spoken}` : spoken,
+                  )
+                }
+              />
+              <button
+                type="submit"
+                className="btn-primary !px-4 !py-2 text-sm"
+                disabled={savingNote}
+              >
+                {savingNote ? "Saving…" : "Add"}
+              </button>
+            </form>
+            <p className="mt-3 text-xs text-[var(--muted)]">
+              Saved as {actorName}. Team notes appear in the shared history
+              above.
+            </p>
+          </section>
+
+          <LeadHistory items={timeline} />
+          <LeadThread
+            leadId={lead.id}
+            initialMessages={initialThread}
+            canText={
+              Boolean(lead.phone) &&
+              lead.sms_consent &&
+              !lead.sms_unsubscribed_at
+            }
+            hasEmail={
+              Boolean(lead.email) &&
+              !lead.email.endsWith("@no-email.facebook.lead") &&
+              lead.marketing_email_consent &&
+              !lead.email_unsubscribed_at
+            }
+            actorName={actorName}
+            onMessagesChange={setThread}
+            showMessages={false}
+          />
+
+          <section className="card !p-4">
+            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
+              Follow-ups
+            </h2>
+            <form onSubmit={addTask} className="mt-3 grid gap-2 sm:grid-cols-2">
+              <input
+                className="input text-sm sm:col-span-2"
+                value={taskDraft}
+                onChange={(event) => setTaskDraft(event.target.value)}
+                aria-label="Follow-up task"
+                placeholder="Second call: review scope and close"
+                maxLength={300}
+              />
+              <input
+                className="input text-sm"
+                aria-label="Follow-up due date"
+                type="date"
+                value={taskDue}
+                onChange={(event) => setTaskDue(event.target.value)}
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  className="input text-sm"
+                  aria-label="Follow-up type"
+                  value={taskType}
+                  onChange={(event) => setTaskType(event.target.value)}
+                >
+                  <option value="call">Call</option>
+                  <option value="email">Email</option>
+                  <option value="text">Text</option>
+                  <option value="meeting">Meeting</option>
+                  <option value="proposal">Proposal</option>
+                  <option value="build">Build</option>
+                  <option value="other">Other</option>
+                </select>
+                <select
+                  className="input text-sm"
+                  aria-label="Follow-up priority"
+                  value={taskPriority}
+                  onChange={(event) => setTaskPriority(event.target.value)}
+                >
+                  <option value="normal">Normal</option>
+                  <option value="high">High</option>
+                  <option value="hot">Hot</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+              <button
+                type="submit"
+                className="btn-primary !px-4 !py-2 text-sm sm:col-span-2"
+                disabled={savingTask}
+              >
+                {savingTask ? "Saving…" : "Assign follow-up"}
+              </button>
+            </form>
+            <ul className="mt-4 space-y-2">
+              {tasks.map((task) => (
+                <li key={task.id} className="flex items-center gap-3 text-sm">
+                  <input
+                    type="checkbox"
+                    aria-label={`Mark ${task.title} ${task.completed_at ? "incomplete" : "complete"}`}
+                    checked={Boolean(task.completed_at)}
+                    onChange={() => toggleTask(task)}
+                  />
+                  <span
+                    className={
+                      task.completed_at
+                        ? "text-[var(--quiet)] line-through"
+                        : "text-[var(--text)]"
+                    }
+                  >
+                    {task.title}
+                    <span className="ml-2 text-xs text-[var(--quiet)]">
+                      {pretty(task.task_type || "call")}
+                      {task.due_date
+                        ? ` · ${new Date(`${task.due_date}T12:00:00`).toLocaleDateString()}`
+                        : ""}
+                      {task.priority && task.priority !== "normal"
+                        ? ` · ${task.priority}`
+                        : ""}
+                    </span>
+                  </span>
+                </li>
+              ))}
+              {tasks.length === 0 && (
+                <li className="text-sm text-[var(--muted)]">No tasks yet.</li>
+              )}
+            </ul>
+          </section>
+        </div>
+
+        <div className="space-y-6">
       <section className="card !p-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -559,8 +738,6 @@ export default function SalesLeadWorkspace({
         </p>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-6">
           <section className="card !p-4">
             <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
               Contact and original intake
@@ -690,152 +867,6 @@ export default function SalesLeadWorkspace({
                 No project has been started for this lead yet.
               </p>
             )}
-          </section>
-        </div>
-
-        <div className="space-y-6">
-          <LeadHistory items={timeline} />
-          <LeadThread
-            leadId={lead.id}
-            initialMessages={initialThread}
-            canText={
-              Boolean(lead.phone) &&
-              lead.sms_consent &&
-              !lead.sms_unsubscribed_at
-            }
-            hasEmail={
-              Boolean(lead.email) &&
-              !lead.email.endsWith("@no-email.facebook.lead") &&
-              lead.marketing_email_consent &&
-              !lead.email_unsubscribed_at
-            }
-            actorName={actorName}
-            onMessagesChange={setThread}
-            showMessages={false}
-          />
-
-          <section className="card !p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
-              Add a team note or build link
-            </h2>
-            <form onSubmit={addNote} className="mt-3 flex gap-2">
-              <input
-                className="input text-sm"
-                value={noteDraft}
-                onChange={(event) => setNoteDraft(event.target.value)}
-                aria-label="Team note"
-                placeholder="Add a call note, or tap the mic and talk"
-                maxLength={4000}
-              />
-              <DictationButton
-                onText={(spoken) =>
-                  setNoteDraft((current) =>
-                    current ? `${current} ${spoken}` : spoken,
-                  )
-                }
-              />
-              <button
-                type="submit"
-                className="btn-primary !px-4 !py-2 text-sm"
-                disabled={savingNote}
-              >
-                {savingNote ? "Saving…" : "Add"}
-              </button>
-            </form>
-            <p className="mt-3 text-xs text-[var(--muted)]">
-              Saved as {actorName}. Team notes appear in the shared history
-              above.
-            </p>
-          </section>
-
-          <section className="card !p-4">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
-              Follow-ups
-            </h2>
-            <form onSubmit={addTask} className="mt-3 grid gap-2 sm:grid-cols-2">
-              <input
-                className="input text-sm sm:col-span-2"
-                value={taskDraft}
-                onChange={(event) => setTaskDraft(event.target.value)}
-                aria-label="Follow-up task"
-                placeholder="Second call: review scope and close"
-                maxLength={300}
-              />
-              <input
-                className="input text-sm"
-                aria-label="Follow-up due date"
-                type="date"
-                value={taskDue}
-                onChange={(event) => setTaskDue(event.target.value)}
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <select
-                  className="input text-sm"
-                  aria-label="Follow-up type"
-                  value={taskType}
-                  onChange={(event) => setTaskType(event.target.value)}
-                >
-                  <option value="call">Call</option>
-                  <option value="email">Email</option>
-                  <option value="text">Text</option>
-                  <option value="meeting">Meeting</option>
-                  <option value="proposal">Proposal</option>
-                  <option value="build">Build</option>
-                  <option value="other">Other</option>
-                </select>
-                <select
-                  className="input text-sm"
-                  aria-label="Follow-up priority"
-                  value={taskPriority}
-                  onChange={(event) => setTaskPriority(event.target.value)}
-                >
-                  <option value="normal">Normal</option>
-                  <option value="high">High</option>
-                  <option value="hot">Hot</option>
-                  <option value="low">Low</option>
-                </select>
-              </div>
-              <button
-                type="submit"
-                className="btn-primary !px-4 !py-2 text-sm sm:col-span-2"
-                disabled={savingTask}
-              >
-                {savingTask ? "Saving…" : "Assign follow-up"}
-              </button>
-            </form>
-            <ul className="mt-4 space-y-2">
-              {tasks.map((task) => (
-                <li key={task.id} className="flex items-center gap-3 text-sm">
-                  <input
-                    type="checkbox"
-                    aria-label={`Mark ${task.title} ${task.completed_at ? "incomplete" : "complete"}`}
-                    checked={Boolean(task.completed_at)}
-                    onChange={() => toggleTask(task)}
-                  />
-                  <span
-                    className={
-                      task.completed_at
-                        ? "text-[var(--quiet)] line-through"
-                        : "text-[var(--text)]"
-                    }
-                  >
-                    {task.title}
-                    <span className="ml-2 text-xs text-[var(--quiet)]">
-                      {pretty(task.task_type || "call")}
-                      {task.due_date
-                        ? ` · ${new Date(`${task.due_date}T12:00:00`).toLocaleDateString()}`
-                        : ""}
-                      {task.priority && task.priority !== "normal"
-                        ? ` · ${task.priority}`
-                        : ""}
-                    </span>
-                  </span>
-                </li>
-              ))}
-              {tasks.length === 0 && (
-                <li className="text-sm text-[var(--muted)]">No tasks yet.</li>
-              )}
-            </ul>
           </section>
         </div>
       </div>
