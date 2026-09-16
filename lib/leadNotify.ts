@@ -123,12 +123,24 @@ async function send(payload: object): Promise<boolean> {
   return result.ok;
 }
 
+// Everyone who works inbound leads gets the NEW LEAD alert. Ryan reads
+// hello@, and Pat is the one on the phone with inbound, so a lead that only
+// reached one inbox is a lead one of them never knew about. One email, both
+// recipients, so the thread stays shared instead of forking.
+//
+// This is the NEW LEAD alert only. The intake, digest and Stripe alerts
+// elsewhere in the app still go to hello@ alone and are a separate decision.
+const OWNER_ALERT_RECIPIENTS = [
+  "hello@theleadflowpro.com",
+  "pat@theleadflowpro.com",
+];
+
 function ownerAlertPayload(lead: NotifiableLead) {
   const via = lead.source === "meta_lead_ad" ? " [FACEBOOK LEAD AD]" : "";
   return {
     from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
     reply_to: "hello@theleadflowpro.com",
-    to: ["hello@theleadflowpro.com"],
+    to: OWNER_ALERT_RECIPIENTS,
     subject: `NEW LEAD${via}: ${lead.full_name}${lead.business_name ? ` (${lead.business_name})` : ""} | ${INTEREST_LABELS[lead.interest] ?? lead.interest}`,
     text: [
       `Name: ${lead.full_name}`,
