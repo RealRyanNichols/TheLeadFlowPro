@@ -293,4 +293,145 @@ At the end of the week, count unanswered inquiries, completed handoffs, and miss
 For the next step, use the [inquiry ownership checklist](/articles/give-every-inquiry-an-owner-and-next-step). If your team needs help making that process work, [find your next business step](/start).
 `,
   },
+  {
+    slug: "handyman-job-pricing",
+    title: "How should a handyman price a job?",
+    description:
+      "Price one real handyman job from your own materials, hours, drive time, overhead, and profit with the free Job Price Calculator, then check the quote.",
+    publishedAt: "2026-09-17",
+    readingMinutes: 7,
+    ogImage: "/og/tools/job-price-calculator.jpg",
+    tool: {
+      slug: "job-price-calculator",
+      heading: "Price one real job with your own numbers",
+      intro:
+        "Pick a job you finished recently and enter what it actually took. The calculator builds a quote from your inputs. It cannot tell you what a customer will accept, what a competitor charges, or whether a job will go smoothly.",
+      steps: [
+        {
+          name: "Enter the real materials, then the waste",
+          text: "Materials cost is what you paid, including the extra trip to the supply house. Material waste and returns covers the offcuts, the wrong-size part, and the piece you bought twice. If you do not track it, start with a modest percentage and correct it after the next few jobs.",
+        },
+        {
+          name: "Count crew hours and use the loaded cost",
+          text: "Crew hours on the job is the time on site doing the work. Loaded cost per crew hour is what an hour of that person costs you with taxes, insurance, and workers comp included, not the wage you tell them. If you work alone, use what you need to earn for an hour of your own labor, not zero.",
+        },
+        {
+          name: "Add the hours the customer never sees",
+          text: "Drive and setup hours covers the trip there and back, unloading, protecting the floor, and cleanup. Handymen lose money here more than anywhere else because these hours are real and nobody writes them down.",
+        },
+        {
+          name: "Set overhead and profit as separate lines",
+          text: "Overhead you add to every job is the share of your truck, tools, phone, insurance, and software that this job has to carry. Profit you want on this job is a separate decision. Profit is what is left after every cost, including your own labor, so do not treat it as your pay.",
+        },
+      ],
+      readIt: [
+        "Quote this job at is a floor built from the numbers you entered. It is not a market price, and it is not proof that a customer will say yes.",
+        "Effective rate divides the quote by the total hours, including drive and setup. Compare it with what you thought you were earning per hour. The gap is usually the hours you were not charging for.",
+        "If the verdict warns that profit is under 10 percent, one bad afternoon on that job erases the profit. Fix the inputs or the scope before you fix the price.",
+      ],
+      formHeading: "Which part of your pricing do you not trust?",
+      formLead:
+        "Tell us whether it is materials, hours, overhead, or the profit line, and roughly what the calculator showed. Share totals and your process, not customer names, addresses, or invoices.",
+      interest: "blueprint",
+      industry: "Handyman services",
+    },
+    faq: [
+      {
+        q: "Should a handyman charge by the hour or by the job?",
+        a: "Quote the job, price it by the hour. The customer wants one number for the work. You need to know what an hour has to earn so the number you give is not a loss. Build the job price from your hours and costs, then present the total with the scope.",
+      },
+      {
+        q: "What counts as overhead for a one-person handyman business?",
+        a: "Anything you pay whether or not you work this week: truck payment and fuel, insurance, phone, tools and their replacement, licenses, software, and the time you spend quoting and invoicing. Add those up for a month, divide by the job revenue you expect that month, and you have a starting overhead percentage.",
+      },
+      {
+        q: "Should I charge for drive time?",
+        a: "The customer is paying for it whether you show it or not. Most handymen fold drive and setup into the job price rather than listing it, and some use a minimum charge or trip fee for small jobs. Whichever you choose, count the hours in your price. Leaving them out is how a $50 an hour day turns into $30.",
+      },
+      {
+        q: "What do I say when a customer says another handyman is cheaper?",
+        a: "Nothing defensive. Restate the scope, what is included, and how you handle problems. Your price came from real costs and a profit you decided on. If the other quote is far below your cost, either they scoped less, they will not finish, or they are working for less than it costs them. None of those are reasons to price your own job at a loss.",
+      },
+    ],
+    body: `Most handymen I talk to price a job the same way. They add up the materials, guess the hours, put a little on top, and find out at the end of the month that the work paid less than it should have.
+
+The guess is the problem. Not the customer, not the market.
+
+I want you to price one job the honest way, with your own numbers, and see what comes out. You will finish with a worked example, the calculator, and a short checklist you can use on the next quote.
+
+## Start with a job you already finished
+
+Pick a recent job you know well. Not your best one. A normal one.
+
+Write down what you actually spent on materials, including the extra trip to the supply house. Write down the hours on site. Then write down the hours nobody paid for: the drive there and back, unloading, protecting the floor, cleanup, and the second trip for the part you forgot.
+
+Now add what an hour of your labor costs. If you have a helper, use what that hour costs you loaded, with taxes and insurance, not the wage. If you work alone, decide what an hour of your own work has to earn. Zero is not an answer.
+
+Most handymen who do this find the same thing. The materials were fine. The hours on site were close. The hours off the clock were the leak.
+
+## Try a small, fictional example
+
+These are practice inputs, not handyman industry averages or anyone's real job. Replace them with your own.
+
+- Materials cost: **$300**.
+- Material waste and returns: **10%**.
+- Crew hours on the job: **6**.
+- Loaded cost per crew hour: **$35**.
+- Drive and setup hours: **1**.
+- Overhead you add to every job: **15%**.
+- Profit you want on this job: **20%**.
+
+Here is the math the calculator runs. Materials with waste are $300 plus 10%, which is **$330**. Labor is 6 hours on site plus 1 hour of drive and setup, 7 hours at $35, which is **$245**. Together that is $575 of direct cost. Overhead at 15% adds about **$86**, so the true cost of the job is about **$661**.
+
+Profit is priced in, not hoped for. To leave 20% profit on the price, the calculator divides the cost by 0.8. The quote comes out at **$827**, with about **$165** of profit in it and a gross margin of **20.0%**. The effective rate is **$118.08 per hour** across all 7 hours, including the drive.
+
+The tool rounds to whole dollars on the display, so your hand math may differ by a dollar. That is rounding, not an error.
+
+Now change one thing. Set the profit line to 8% and leave everything else alone. The quote drops to about **$719**, and the calculator warns you that under 10% profit, one bad day on this job wipes it out. That is the number a lot of handymen have been quoting without knowing it.
+
+{{TOOL}}
+
+## What to do with the number
+
+If your quote came out above what you have been charging, you have three moves.
+
+**Raise the price on the next quote, not the last one.** You do not go back to a finished job. You price the next one from the real numbers. Present the scope and the total. Never show the cost breakdown. Customers buy the finished work, not your overhead percentage.
+
+**Charge for the hours you were giving away.** Drive time, setup, cleanup, and the second trip are labor. Fold them into the job price, or set a minimum charge so a forty-minute job does not cost you two hours. Either way, count them.
+
+**Drop the jobs that never pencil.** Run three or four of your regular job types through the calculator. One of them is probably underwater at any price the customer will accept. Knowing that is worth more than a better quote on it.
+
+## Copy this quote checklist
+
+Keep this with your estimate template. Fill it in before you send the number, not after.
+
+\`\`\`text
+QUOTE CHECK
+
+Job:
+Materials, including the supply run:
+Waste and returns allowance:
+Hours on site:
+Drive, setup, and cleanup hours:
+Loaded cost per crew hour:
+Overhead percentage for this job:
+Profit percentage for this job:
+Calculator quote:
+Minimum charge applies: yes / no
+
+Before sending:
+[ ] Every hour is counted, including the ones off the clock.
+[ ] Profit is its own line, not my pay.
+[ ] The scope in writing matches the price.
+[ ] The customer sees scope, warranty, and price. Not the math.
+[ ] Effective rate is a number I would say out loud.
+\`\`\`
+
+## Check whether the change helped
+
+Price the next ten jobs with the calculator and the checklist. At the end of the month, compare the effective rate on those ten with the rate on the ten before. Compare the close rate too. Most handymen find that a clear scope and a real price close about as often as a guess did, and pay better when they do.
+
+If quotes are going out and not coming back, that is a different leak. [The money is in the follow-up](/articles/the-money-is-in-the-follow-up) walks through it. If pricing and quoting are eating your evenings, [find your next business step](/start).
+`,
+  },
 ];

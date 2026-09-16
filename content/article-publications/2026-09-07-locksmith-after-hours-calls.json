@@ -148,5 +148,22 @@
         }
       }
     }
+  ],
+  "liveCheck": {
+    "checkedAt": "2026-09-16T21:32:38.762525Z",
+    "url": "https://www.theleadflowpro.com/articles/locksmith-after-hours-calls",
+    "httpStatus": 200,
+    "bodyVerified": true,
+    "canonicalVerified": true,
+    "indexPresent": true,
+    "method": "Fetched the production article through the Vercel deployment fetch tool (the-lead-flow-pro.vercel.app alias of www.theleadflowpro.com): HTTP 200, <title> \"How much business does a locksmith lose after hours? | The LeadFlow Pro\", canonical link to the www URL, and the article lead form (\"Send it to Ryan\") present in the body. The public /articles index (HTTP 200) lists the article with its Central publication date."
+  },
+  "issues": [
+    {
+      "observedAt": "2026-09-16T21:32:38.762525Z",
+      "check": "sitemapPresent",
+      "result": "not verified",
+      "detail": "The sitemap could not be fetched from the verification environment (deployment fetch tool refused /sitemap.xml and the egress proxy blocks the domain). Confirm https://www.theleadflowpro.com/sitemap.xml lists the article on the next run that can reach it."
+    }
   ]
 }

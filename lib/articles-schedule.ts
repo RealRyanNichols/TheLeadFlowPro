@@ -4,6 +4,7 @@ export const ARTICLE_PUBLICATION_DATES: Record<string, string> = {
   "how-to-compare-a-better-close-rate-with-buying-more-leads": "2026-09-06",
   "how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan": "2026-09-06",
   "hvac-maintenance-plans": "2026-09-06",
+  "handyman-job-pricing": "2026-09-17",
   "what-to-write-down-before-comparing-two-equipment-loans": "2026-09-06",
   "how-to-read-a-cash-runway-estimate-without-counting-credit-as-cash":
     "2026-09-06",
