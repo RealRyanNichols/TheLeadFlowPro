@@ -446,6 +446,7 @@ export function publicWorkspace(ws: Workspace) {
     plan: ws.plan,
     trial_ends_at: ws.trial_ends_at,
     current_period_end: ws.current_period_end,
+    cancel_at: ws.cancel_at,
     settings: ws.settings,
     onboarding_step: ws.onboarding_step,
     has_billing: !!ws.stripe_customer_id,

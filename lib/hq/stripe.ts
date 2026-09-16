@@ -75,12 +75,24 @@ export type StripeSubscriptionLike = {
   status?: string;
   trial_end?: number | null;
   current_period_end?: number | null;
+  /** Newer Stripe API versions keep the period on the items, not the subscription. */
+  items?: { data?: { current_period_end?: number | null }[] };
+  cancel_at?: number | null;
   cancel_at_period_end?: boolean;
   metadata?: Record<string, unknown>;
 };
 
+export type PlanState = {
+  plan: Workspace["plan"];
+  subscription_status: string;
+  trial_ends_at: string | null;
+  current_period_end: string | null;
+  /** When the owner has cancelled at the end of the period: the day it ends. */
+  cancel_at: string | null;
+};
+
 /** Stripe's subscription status folded into the workspace plan. */
-export function planFromSubscription(sub: StripeSubscriptionLike): { plan: Workspace["plan"]; subscription_status: string; trial_ends_at: string | null; current_period_end: string | null } {
+export function planFromSubscription(sub: StripeSubscriptionLike): PlanState {
   const status = String(sub.status ?? "");
   const iso = (n: number | null | undefined) => (typeof n === "number" && n > 0 ? new Date(n * 1000).toISOString() : null);
   let plan: Workspace["plan"];
@@ -90,7 +102,13 @@ export function planFromSubscription(sub: StripeSubscriptionLike): { plan: Works
   else if (status === "canceled" || status === "incomplete_expired") plan = "canceled";
   else if (status === "incomplete" || status === "paused") plan = "none";
   else plan = "none";
-  return { plan, subscription_status: status, trial_ends_at: iso(sub.trial_end), current_period_end: iso(sub.current_period_end) };
+  const periodEnd = iso(sub.current_period_end) ?? iso(sub.items?.data?.[0]?.current_period_end);
+  const trialEnd = iso(sub.trial_end);
+  // Stripe sets cancel_at alongside cancel_at_period_end on current API
+  // versions; older payloads carry only the flag, and then the end of the
+  // current period (the trial's end while trialing) is the day it stops.
+  const cancelAt = iso(sub.cancel_at) ?? (sub.cancel_at_period_end ? (status === "trialing" ? (trialEnd ?? periodEnd) : (periodEnd ?? trialEnd)) : null);
+  return { plan, subscription_status: status, trial_ends_at: trialEnd, current_period_end: periodEnd, cancel_at: cancelAt };
 }
 
 export function customerIdOf(sub: { customer?: string | { id?: string } }): string | null {

@@ -1,6 +1,6 @@
 import { sendOwnerEmail } from "./channels";
 import * as db from "./server";
-import { customerIdOf, planFromSubscription, type StripeSubscriptionLike } from "./stripe";
+import { customerIdOf, planFromSubscription, type PlanState, type StripeSubscriptionLike } from "./stripe";
 import { HQ_PLAN } from "./types";
 
 // The Stripe side of the plugin subscription, called from the shared
@@ -91,7 +91,9 @@ export async function handleHqStripeEvent(client: db.Db, event: StripeEvent, str
       trial_used_at: ws.trial_used_at ?? (plan.plan === "trial" ? new Date().toISOString() : null),
       stripe_event_at: eventAt,
     });
-    if (plan.plan !== ws.plan) {
+    if (plan.plan === ws.plan) {
+      await noteCancelChange(client, ws, plan);
+    } else {
       await db.recordEvent(client, ws.id, { kind: "system", detail: `Plan is now ${plan.plan} (${plan.subscription_status})`, actor: "stripe" });
       const key = `${typeof sub.id === "string" ? sub.id : ws.id}-${plan.subscription_status}`;
       if (plan.plan === "canceled") {
@@ -113,7 +115,7 @@ export async function handleHqStripeEvent(client: db.Db, event: StripeEvent, str
  * even when a subscription webhook was never registered or never arrived.
  * Returns the synced plan, or null when Stripe could not be asked.
  */
-export async function syncWorkspaceFromStripe(client: db.Db, ws: { id: string; stripe_subscription_id: string | null; plan: string; trial_used_at: string | null; stripe_event_at: number }, stripeKey: string | undefined, now = new Date()): Promise<ReturnType<typeof planFromSubscription> | null> {
+export async function syncWorkspaceFromStripe(client: db.Db, ws: { id: string; stripe_subscription_id: string | null; plan: string; cancel_at?: string | null; trial_used_at: string | null; stripe_event_at: number }, stripeKey: string | undefined, now = new Date()): Promise<PlanState | null> {
   if (!stripeKey || !ws.stripe_subscription_id) return null;
   const sub = await fetchSubscription(stripeKey, ws.stripe_subscription_id);
   if (!sub) return null;
@@ -126,8 +128,26 @@ export async function syncWorkspaceFromStripe(client: db.Db, ws: { id: string; s
   });
   if (plan.plan !== ws.plan) {
     await db.recordEvent(client, ws.id, { kind: "system", detail: `Plan is now ${plan.plan} (${plan.subscription_status}, checked with Stripe)`, actor: "stripe" });
+  } else {
+    await noteCancelChange(client, ws, plan);
   }
   return plan;
+}
+
+/**
+ * The plan did not change state, but the owner set it to end (or took that
+ * back). That deserves a line in the timeline so the cancel is visible
+ * somewhere other than Stripe.
+ */
+async function noteCancelChange(client: db.Db, ws: { id: string; cancel_at?: string | null }, plan: PlanState) {
+  const before = ws.cancel_at ? new Date(ws.cancel_at).toISOString() : null;
+  const after = plan.cancel_at ? new Date(plan.cancel_at).toISOString() : null;
+  if (before === after) return;
+  if (after) {
+    await db.recordEvent(client, ws.id, { kind: "system", detail: `Plan set to end ${new Date(after).toDateString()}. It will not renew.`, actor: "stripe" });
+  } else if (plan.plan === "trial" || plan.plan === "active" || plan.plan === "past_due") {
+    await db.recordEvent(client, ws.id, { kind: "system", detail: "Plan will keep renewing again.", actor: "stripe" });
+  }
 }
 
 async function fetchSubscription(key: string, id: string): Promise<StripeSubscriptionLike | null> {

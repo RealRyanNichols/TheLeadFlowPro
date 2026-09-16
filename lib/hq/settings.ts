@@ -78,6 +78,7 @@ export function parseWorkspace(row: Record<string, unknown>): Workspace {
     stripe_subscription_id: str("stripe_subscription_id"),
     subscription_status: str("subscription_status"),
     current_period_end: str("current_period_end"),
+    cancel_at: str("cancel_at"),
     trial_used_at: str("trial_used_at"),
     stripe_event_at: int(row.stripe_event_at, 0, 0, Number.MAX_SAFE_INTEGER),
     inbound_token: str("inbound_token") || "",
