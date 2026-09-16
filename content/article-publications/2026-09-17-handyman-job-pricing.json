@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "slug": "handyman-job-pricing",
+  "publicationDate": "2026-09-17",
+  "sourceChecks": [],
+  "editorialChecks": {
+    "sourceScope": "The article makes no changing product, price, regulatory, or platform claims, so no external source check applies. Loaded labor cost, overhead, and profit are explained as the reader's own bookkeeping inputs, not quoted figures.",
+    "example": "Fictional inputs: materials $300, waste 10%, crew hours 6, loaded cost $35 per hour, drive and setup 1 hour, overhead 15%, profit 20%. Expected display: quote $827, true cost $661, profit $165, gross margin 20.0%, effective rate $118.08 per hour, bars materials $330, labor $245, overhead $86, profit $165. Second case at 8% profit: quote $719 with the under-10-percent warning. Both labeled fictional; rounding to whole dollars explained.",
+    "calculatorExampleCheck": "Node imported the actual job-price-calculator tool from lib/tools and ran both input sets on 2026-09-16. Outputs matched the article text exactly: $827 / $661 / $165 / 20.0% / $118.08/hr and the 8% case at $719 with the verdict 'Under 10 percent profit, one bad day on this job wipes it out.'",
+    "art": "/og/tools/job-price-calculator.jpg inspected visually: 1200x630 navy card reading Job Price Calculator with the tagline Quote a job without guessing and a purple-topped notepad illustration. No event date or unrelated offer.",
+    "scope": "One original trade article for the first uncovered Central date after today, drafted for review on a branch. No email, social post, paid service, or backend change. Reconciles the two overdue live checks in the same change.",
+    "mobileToolCheck": {
+      "checkedAt": "2026-09-16T22:29:29.370469Z",
+      "url": "http://localhost:3000/tools/job-price-calculator (production build of commit dfd6fcd, run locally)",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "inputs": {
+        "materials": 300,
+        "waste": 10,
+        "hours": 6,
+        "laborCost": 35,
+        "drive": 1,
+        "overhead": 15,
+        "profit": 20
+      },
+      "quoteResult": "$827",
+      "trueCostResult": "$661",
+      "profitResult": "$165",
+      "resultVerified": true,
+      "method": "Playwright set the seven real inputs at 390px width. The page text contained the $827 quote; the $661 true cost and $165 profit cards were confirmed in the captured screenshot. No horizontal overflow."
+    },
+    "mobileArticleReview": "The article page stays gated before 2026-09-17 by design (detail and OG routes returned 404 with x-robots-tag noindex, nofollow and cache-control no-store on the local production build; absent from the public index and sitemap while the live 9/7 article remained in the sitemap). Body, tool marker, fenced checklist, FAQ, and links were reviewed in source at commit dfd6fcd. Live mobile review is due once the article is public."
+  },
+  "issues": [
+    {
+      "observedAt": "2026-09-16T21:33:37.099937Z",
+      "check": "release",
+      "result": "awaiting review",
+      "detail": "Prepared on branch claude/article-draft-handyman-job-pricing as a draft pull request for Ryan's approval. contentCommit, validation, deployment, and scheduledCheck are recorded once the checked commit exists and is deployed. If the merge lands after 2026-09-17, move the date forward in the article, lib/articles-schedule.ts, and this receipt's filename before merging so the article is not backdated."
+    }
+  ],
+  "contentCommit": "dfd6fcdf241f495f66469ebd98278d0206389d36",
+  "validation": {
+    "checkedAt": "2026-09-16T22:29:29.370469Z",
+    "tests": {
+      "passed": 1115,
+      "failed": 1,
+      "note": "The one failure, tests/lead-email-notifications.test.ts 'lead emails pass the stable key to Resend and preserve the free-build promise', is pre-existing on main: commit 5f64001 added pat@theleadflowpro.com to the NEW LEAD recipients and the test still expects only hello@. It is unrelated to this change and was not modified."
+    },
+    "build": "passed (npm run build with validate:calculations, validate:tools, validate:visuals, validate:social; 455 static pages)",
+    "typecheck": "passed (tsc --noEmit)",
+    "lint": {
+      "errors": 0,
+      "existingWarnings": 2,
+      "note": "Both warnings are pre-existing no-img-element warnings in lib/articles-og.tsx OG card JSX."
+    },
+    "formatting": "Changed content, queue, and receipt files pass Prettier. lib/articles-og.tsx has a pre-existing Prettier style issue in the September 6 OG card JSX (also present on main); the three added mapping lines are clean and the file was not reformatted to keep the diff limited to this change.",
+    "diffCheck": "passed (git diff --check)",
+    "privacyReview": "No secrets, customer records, or private notes in the diff; the worked example is labeled fictional."
+  }
+}
