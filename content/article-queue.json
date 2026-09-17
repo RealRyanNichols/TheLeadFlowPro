@@ -50,7 +50,8 @@
       "tool": "capacity-calculator",
       "searchQuestion": "How many pools can one service route actually handle?",
       "workingTitle": "Your pool route has a ceiling. Find it before summer does.",
-      "status": "queued"
+      "status": "scheduled",
+      "draftedAt": "2026-09-17"
     },
     {
       "slug": "junk-removal-cost-per-lead",

@@ -147,6 +147,7 @@ const PREMIUM_ARTICLE_ART: Record<string, string> = {
   "insurance-agent-lead-response": "/og/tools/lead-response-time.jpg",
   "locksmith-after-hours-calls": "/og/tools/after-hours-lead-calculator.jpg",
   "handyman-job-pricing": "/og/tools/job-price-calculator.jpg",
+  "pool-service-route-capacity": "/og/tools/capacity-calculator.jpg",
   "one-useful-business-task-with-ai":
     "/images/articles-v4/ai-website-small-business-2026.jpg",
   "give-every-inquiry-an-owner-and-next-step":
@@ -268,6 +269,7 @@ const VISUAL_HEADLINES: Record<string, string> = {
   "insurance-agent-lead-response": "Make the First Reply Useful",
   "locksmith-after-hours-calls": "Know Your After-Hours Gap",
   "handyman-job-pricing": "Price the Hours Off the Clock",
+  "pool-service-route-capacity": "Count Minutes, Not Pools",
   "one-useful-business-task-with-ai": "One Task. One Useful Result.",
   "give-every-inquiry-an-owner-and-next-step": "Every Inquiry Has a Next Step",
   "bring-one-real-task-to-your-business-workshop":
@@ -416,6 +418,8 @@ const PREMIUM_ARTICLE_ALT: Record<string, string> = {
     "LeadFlow After-Hours Lead Calculator card with a purple phone and message panels on a navy background",
   "handyman-job-pricing":
     "LeadFlow Job Price Calculator card with the tagline Quote a job without guessing and a purple-topped notepad on a navy background",
+  "pool-service-route-capacity":
+    "LeadFlow Job Capacity Calculator card with the tagline How much work you can actually take on and a red ring emblem on a navy background",
   "one-useful-business-task-with-ai":
     "An existing LeadFlow illustration showing an owned website and customer system connected to practical AI work",
   "give-every-inquiry-an-owner-and-next-step":

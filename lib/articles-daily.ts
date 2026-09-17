@@ -434,4 +434,148 @@ Price the next ten jobs with the calculator and the checklist. At the end of the
 If quotes are going out and not coming back, that is a different leak. [The money is in the follow-up](/articles/the-money-is-in-the-follow-up) walks through it. If pricing and quoting are eating your evenings, [find your next business step](/start).
 `,
   },
+  {
+    slug: "pool-service-route-capacity",
+    title: "How many pools can one service route actually handle?",
+    description:
+      "Find the real ceiling on a pool service route from your own techs, hours, and minutes per stop with the free Job Capacity Calculator, then fill it or fix it.",
+    publishedAt: "2026-09-18",
+    readingMinutes: 7,
+    ogImage: "/og/tools/capacity-calculator.jpg",
+    tool: {
+      slug: "capacity-calculator",
+      heading: "Find the ceiling on your route with your own numbers",
+      intro:
+        "Use last week's route, not the one you hope to run. The calculator turns techs, hours, and minutes per stop into a weekly ceiling and tells you what the open slots are worth. It cannot tell you whether a new pool is close enough to keep, or what a customer will pay.",
+      steps: [
+        {
+          name: "Count the techs who actually run the route",
+          text: "Crews, chairs, bays or techs is the number of people testing water on a normal day. The truck in the yard does not count, and neither do you if you spend the day quoting and chasing chemicals.",
+        },
+        {
+          name: "Use gate-to-gate hours and the days you really run",
+          text: "Productive hours per day is the time from the first gate to the last gate, minus lunch and the shop stop. Days per week is the days the route runs, not the days you are open. A Saturday catch-up day only counts if it happens every week.",
+        },
+        {
+          name: "Put the drive inside the stop time",
+          text: "Hours per job is the minutes one stop really takes, including the drive to the next gate. The tool moves in quarter hours, so a 30 minute stop is 0.5 and a 45 minute stop is 0.75. Pool routes go over their ceiling here more than anywhere else, because the drive grows every time a pool is added on the far side of town.",
+        },
+        {
+          name: "Enter stops made and the value of one visit",
+          text: "Jobs you actually do a week is the stops with a reading logged last week. Average job value is what one visit earns: the monthly rate divided by the visits in a month. Do not enter the monthly rate itself. That one mistake makes every result four times too big.",
+        },
+      ],
+      readIt: [
+        "The capacity percentage is stops made divided by the ceiling your inputs allow. Above 100 percent means the route only fits because somebody is finishing in the dark.",
+        "Open slots a week times the value of a visit times 52 is the ceiling you are not using. It is a target for the route, not money you have earned.",
+        "Run it twice: once with the stop time you quote yourself and once with the real one. The gap between those two results is the honest answer.",
+      ],
+      formHeading: "Is your route full, or just long?",
+      formLead:
+        "Tell us how many stops a week you run, what the calculator said your ceiling is, and whether summer or the drive is the problem. Share route totals and your process, not customer names, addresses, or gate codes.",
+      interest: "blueprint",
+      industry: "Pool cleaning and service",
+    },
+    faq: [
+      {
+        q: "How many pools can one tech service in a day?",
+        a: "The only number that matters is yours, and it comes from minutes per stop and the drive between gates. A tight route of small residential pools and a spread-out route of large ones can both be full at very different counts. Take last week's gate-to-gate hours, divide by the stops made, and put that in the calculator. Do not borrow a number from a forum.",
+      },
+      {
+        q: "Should drive time between pools count as part of the job?",
+        a: "Yes. The customer is not paying for the drive, but the route is spending it. Count the time from one gate to the next as part of the stop. If you keep drive time out, the calculator will tell you there is room on a route that already runs past dark.",
+      },
+      {
+        q: "How do I count biweekly pools, one-time cleanups, and repairs?",
+        a: "Count what was actually done last week. A biweekly pool that was visited is one stop, and one that was skipped is zero. A green-to-clean or a pump swap is a job with its own hours, so either enter it at its real time or run those jobs separately. Mixing a two-hour repair into a thirty-minute stop average hides both problems.",
+      },
+      {
+        q: "Should I keep adding pools in summer if the route is at capacity?",
+        a: "Not without a plan for the minutes. Summer stops run longer, with more debris, more chemistry, and more traffic between gates, so a route that fit in April is over in July. Run the calculator with summer stop times before you say yes. If it is over 90 percent, the honest choices are a higher rate on new signups, letting a few far pools go, or adding a tech.",
+      },
+    ],
+    body: `Every pool company I know grows the same way. Spring hits, the phone rings, and you say yes. Then it is July, your tech is testing water in the dark, the Thursday route spills into Friday, and a customer you have had for three years texts to ask why nobody came.
+
+The route did not get busy. It went over its ceiling. You just found out at the customer's expense.
+
+I want you to find that ceiling on paper, with your own numbers, before summer finds it for you. You will finish with a worked example, the calculator, and a short route check you can run every month.
+
+## A route is minutes, not pools
+
+Most pool guys count pools. Sixty on the route, room for a few more, sure, add them.
+
+The route does not care how many pools are on it. It cares how many minutes each stop takes, gate to gate. The test, the brush, the skim, the basket, the chemicals, the note in the app, and the drive to the next gate. That last one is the part nobody counts, and it is the part that grows every time you add a pool on the far side of town.
+
+So the honest math is simple. Techs on the route, times the productive hours in a day, times the days you run, divided by the real time per stop. That is your ceiling. Everything you book above it comes out of your evenings, your tech, or a customer.
+
+## Start with a week you already ran
+
+Pull up last week in whatever you use. Count the stops you actually made. Not the ones on the schedule. The ones with a chemical reading logged.
+
+Then figure the real time per stop. Take the hours from the first gate to the last gate, subtract lunch and the shop stop, and divide by the stops. If that number is bigger than the twenty minutes you have been quoting yourself, that is the whole story right there.
+
+Last, work out what one visit is worth. If a customer pays a monthly rate, divide it by the visits in a month. A monthly rate of $150 with four visits is about $38 a stop. Do not put the monthly rate in the calculator as the job value. That mistake makes every number four times too big.
+
+## Try a small, fictional example
+
+These are practice inputs, not pool industry averages or anyone's real route. Replace them with your own.
+
+- Crews, chairs, bays or techs: **1**.
+- Productive hours per day: **7**.
+- Days per week: **5**.
+- Hours per job: **0.5**, which is thirty minutes a stop.
+- Jobs you actually do a week: **60**.
+- Average job value: **$38**.
+
+One tech with 7 productive hours over 5 days has 35 hours a week. At half an hour a stop, that is a ceiling of **70.0** stops a week. With 60 on the route, the calculator says you are running at **86%** of capacity, with **10.0** open slots a week. Those slots are worth about **$19,760** a year at $38 a visit. Your revenue ceiling on this route is **$138,320** a year against **$118,560** today.
+
+The verdict says you have room, and that marketing makes sense right now. Fair enough. Ten more pools on this route is a real target.
+
+Now be honest about the stop. Change hours per job to **0.75**, forty-five minutes, which is what a thirty-minute pool turns into once you count the drive between gates in summer traffic. Leave everything else alone.
+
+The ceiling drops to **46.7** stops a week. You are running at **129%** of capacity with 60 on the route. Open slots go to **0.0**, and the verdict flips: you are nearly full, raise prices before you buy more leads, or add capacity first.
+
+Read that again. Same route. Same sixty pools. The only thing that changed was telling the truth about the drive. That is why the route runs into the evening, and it is why the next ten pools you add will cost you a customer instead of earning one.
+
+{{TOOL}}
+
+## What to do with the number
+
+**Under 90 percent with real stop times.** You have open slots, and the tool tells you what a year of them is worth. Fill them, but fill them close. A new pool two streets over adds a stop. A new pool across the county adds a stop and twenty minutes of drive to every week for as long as you keep it. Tighten the route before you spend a dollar on marketing.
+
+**Over 90 percent, or over 100.** Stop adding pools this week. Either raise the monthly rate on the next signups and let a few of the far ones go, or add a tech and run the calculator again with two. In the example, a second tech at the honest forty-five minutes takes the route from 129% to **64%**, with **33.3** open slots a week to sell into. That is a hiring decision made with arithmetic instead of a gut feeling in July.
+
+**The stop time is the lever.** Every five minutes you cut from an average stop is worth more than any ad. A tighter route, chemicals loaded the night before, and a gate code list that is actually current are where those minutes come from.
+
+## Copy this route check
+
+Run it once a month, and again the week the weather turns.
+
+\`\`\`text
+ROUTE CHECK
+
+Week of:
+Techs on the route:
+Productive hours per day, first gate to last gate, minus breaks:
+Days per week:
+Stops actually made last week:
+Minutes per stop, including the drive to the next gate:
+Value of one visit (monthly rate divided by visits per month):
+Calculator ceiling (stops per week):
+Calculator capacity percentage:
+
+Before adding a pool:
+[ ] The stop time is the real one, not the one I quote myself.
+[ ] The new pool is inside the route, not a drive away from it.
+[ ] Summer stop times fit, not just spring ones.
+[ ] If capacity is over 90 percent, the answer is price or a tech, not another pool.
+\`\`\`
+
+## Check whether the change helped
+
+Run the check again in a month. Compare the minutes per stop and the last-gate time on the route. If the route finishes earlier with the same pools, the number moved for real. If the route was full and you raised the rate on new signups, count how many said yes. Most pool companies find that a clear price and a route that shows up on time close about as often as the cheap quote did.
+
+If the phone is ringing and the calls go to voicemail while your tech is at a gate, that is a different leak. [Missed calls cost customers](/articles/missed-calls-cost-customers) walks through it. If the route and the office are eating your evenings, [find your next business step](/start).
+`,
+  },
 ];
