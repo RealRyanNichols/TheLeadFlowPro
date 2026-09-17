@@ -35,6 +35,8 @@ export const BUSINESS = {
     alerts: "leadflow@theleadflowpro.com",
     /** The plugin (HQ) sends from this address. */
     hq: "hq@theleadflowpro.com",
+    /** Pat works inbound leads; the NEW LEAD alert copies this inbox. */
+    pat: "pat@theleadflowpro.com",
   },
 
   /**

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BUSINESS } from "@/lib/site/business";
 
 // The qualifying questions are optional here on purpose: the message is the
 // required part, the answers just ride along. They are folded into the message
@@ -143,8 +144,8 @@ export default function ContactForm() {
       </button>
       <p className="text-center text-base text-[var(--text)]">
         Fastest answer: call or text{" "}
-        <a className="font-bold text-[var(--heading)] underline underline-offset-4" href="tel:+19035008898">
-          (903) 500-8898
+        <a className="font-bold text-[var(--heading)] underline underline-offset-4" href={BUSINESS.phone.tel}>
+          {BUSINESS.phone.display}
         </a>
       </p>
     </form>

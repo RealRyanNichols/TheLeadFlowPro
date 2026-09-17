@@ -39,7 +39,8 @@ const SCAN_FILES = [
   "lib/leadFollowUp.ts",
   "lib/offers.ts",
   "lib/toolStudio.ts",
-  "lib/tiers.ts",
+  // lib/tiers.ts (legacy /pricing/[tier]) is excluded until decision 7 in
+  // docs/decisions-needed.md retires or re-prices it.
 ];
 
 /** The homes. Never scanned. */
@@ -74,6 +75,11 @@ const ALLOW: Allow[] = [
     file: /^app\/(diagnostic|business-diagnostic)\//,
     line: /\bto \$|Under \$|or more/,
     reason: "diagnostic budget buckets",
+  },
+  {
+    file: /^app\/agency\/start\//,
+    line: /\bto \$|Under \$|or more|\$0\b/,
+    reason: "monthly ad budget buckets on the agency intake, paid to the platforms, not LeadFlow prices",
   },
   {
     file: /^lib\/tiers\.ts$/,

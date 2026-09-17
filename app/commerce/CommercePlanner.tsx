@@ -8,6 +8,7 @@ import {
   commercePlanText,
   type CommercePath,
 } from "@/lib/commercePlanner";
+import { BUSINESS } from "@/lib/site/business";
 import styles from "./commerce.module.css";
 
 const EXISTING = [
@@ -77,7 +78,7 @@ export default function CommercePlanner() {
       });
       if (!response.ok) {
         setError(
-          "We could not confirm that your request was saved. Please try again or email hello@theleadflowpro.com.",
+          `We could not confirm that your request was saved. Please try again or email ${BUSINESS.email.hello}.`,
         );
         return;
       }
@@ -93,7 +94,7 @@ export default function CommercePlanner() {
       }
     } catch {
       setError(
-        "We could not confirm your request. If you received a confirmation email, it arrived. Otherwise, retry or email hello@theleadflowpro.com.",
+        `We could not confirm your request. If you received a confirmation email, it arrived. Otherwise, retry or email ${BUSINESS.email.hello}.`,
       );
     } finally {
       pending.current = false;

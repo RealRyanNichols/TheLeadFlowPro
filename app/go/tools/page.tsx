@@ -10,12 +10,13 @@ import {
   Gauge,
   Workflow,
 } from "lucide-react";
+import { PRICES, usd } from "@/lib/site/prices";
 import ToolStudioFunnel from "./ToolStudioFunnel";
 
 export const metadata: Metadata = withPublicPageMetadata("/go/tools", {
   title: "Interactive Tools That Create Leads | The LeadFlow Pro",
   description:
-    "Build a calculator, quiz, estimator, generator, searchable archive, or lead funnel that your business owns. Start with a $97 blueprint.",
+    `Build a calculator, quiz, estimator, generator, searchable archive, or lead funnel that your business owns. Start with a ${usd(PRICES.toolStudioBlueprint)} blueprint.`,
   alternates: { canonical: "https://www.theleadflowpro.com/go/tools" },
   openGraph: {
     title: "Your business needs more than a website.",
@@ -93,8 +94,8 @@ export default function ToolStudioPage() {
                 aria-hidden="true"
               />
               <p>
-                The $97 entry is a real blueprint with a defined deliverable.
-                Finished production starts at $497. No unlimited custom software
+                The {usd(PRICES.toolStudioBlueprint)} entry is a real blueprint with a defined deliverable.
+                Finished production starts at {usd(PRICES.toolStudioProduction)}. No unlimited custom software
                 hidden behind a teaser price.
               </p>
             </div>

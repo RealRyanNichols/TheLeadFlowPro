@@ -1,6 +1,6 @@
 "use client";
 
-// The $197 Lead Follow-Up Campaign order form.
+// The Lead Follow-Up Campaign (PRICES.leadFollowUpCampaign) order form.
 //
 // Same contract as the Time Back funnel: the lead is saved BEFORE Stripe
 // opens, so a customer who bails at the card screen is still a lead Ryan can
@@ -49,7 +49,7 @@ export default function LeadFollowUpFunnel() {
           phone: phone || null,
           interest: "done_for_you",
           goals: [
-            "LEAD FOLLOW-UP CAMPAIGN ORDER ($197).",
+            `LEAD FOLLOW-UP CAMPAIGN ORDER (${formatUsd(LEAD_FOLLOW_UP.priceUsd)}).`,
             offer ? `Offer this is for: ${offer}` : "",
           ]
             .filter(Boolean)

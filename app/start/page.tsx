@@ -1,5 +1,6 @@
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import StartRouter from "./StartRouter";
 
 export const metadata: Metadata = withPublicPageMetadata("/start", {
@@ -36,8 +37,10 @@ export default async function StartPage({
 }: {
   searchParams: Promise<{ goal?: string }>;
 }) {
-  // StartRouter validates the goal id itself; unknown values fall back to the
-  // first question.
+  // The "run it for me" lane has its own intake. Everything else stays on
+  // the system-map router, which validates the goal id itself; unknown values
+  // fall back to the first question.
   const { goal } = await searchParams;
+  if (goal === "agency") redirect("/agency/start");
   return <StartRouter initialGoal={goal} />;
 }

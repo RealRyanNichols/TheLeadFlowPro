@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { PRICES, usd } from "@/lib/site/prices";
 import {
   Bot,
   CircleDollarSign,
@@ -70,8 +71,8 @@ export default function ShowcaseDashboard() {
         ]), tone: "text-[var(--violet)]", time: now };
       } else {
         ev = { id: idRef.current, kind: "sale", text: pick([
-          "Website Launch deposit received | $500",
-          "System Map purchased | $497",
+          `Website Launch deposit received | ${usd(PRICES.websiteLaunchDeposit)}`,
+          `System Map purchased | ${usd(PRICES.systemMap)}`,
           "Call booked | Lead Engine scope",
         ]), tone: "text-mint font-black", time: now };
       }
@@ -263,7 +264,7 @@ export default function ShowcaseDashboard() {
         </h2>
         <p className="mx-auto mt-2 max-w-2xl text-[var(--text)]">
           This simulation shows what a larger connected build can make visible.
-          The $1,000 Website Launch is the focused public foundation, and deeper
+          The {usd(PRICES.websiteLaunchTotal)} Website Launch is the focused public foundation, and deeper
           CRM, automation, reporting, and portal modules are scoped separately.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">

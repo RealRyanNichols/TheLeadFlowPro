@@ -8,7 +8,7 @@ import { isPlausibleEmail } from "./phone";
 import { line } from "./copy";
 import * as db from "./server";
 import { localParts, localWeekStart } from "./time";
-import { OPEN_STATUSES, planIsLive, type Lead, type Workspace } from "./types";
+import { HQ_PLAN, OPEN_STATUSES, planIsLive, type Lead, type Workspace } from "./types";
 import { pendingAlerts } from "./watchdog";
 import { syncWorkspaceFromStripe } from "./subscription";
 

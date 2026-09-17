@@ -187,7 +187,7 @@ export default function SellerProofPage() {
               {
                 Icon: FileText,
                 title: "3. Review and export",
-                body: "Read the free preview, unlock one packet for $49, and save it as a PDF. Submit it with your original evidence.",
+                body: `Read the free preview, unlock one packet for ${usd(PRICES.sellerProofPacket)}, and save it as a PDF. Submit it with your original evidence.`,
               },
             ].map(({ Icon, title: h, body }) => (
               <article className={styles.card} key={h}>

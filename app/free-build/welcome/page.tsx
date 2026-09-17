@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarCheck, Camera, KeyRound, PhoneCall } from "lucide-react";
 import { FREE_BUILD, formatUsd } from "@/lib/freeBuild";
+import { BUSINESS } from "@/lib/site/business";
 import ConversionPing from "@/components/ConversionPing";
 import { getSettings } from "@/lib/settings";
 import { fetchPaidSession } from "@/lib/stripeSession";
@@ -76,12 +77,12 @@ export default async function FreeBuildWelcomePage({
             payment, so the sooner it is on the calendar the sooner you are live.
           </p>
           <div className="cb-actions">
-            <a className="cb-btn cb-btn--primary" href="sms:+19035008898?&body=Hi%20Ryan%2C%20my%20Free%20Build%20is%20paid.%20When%20can%20we%20do%20our%20twenty%20minutes%3F">
+            <a className="cb-btn cb-btn--primary" href={`${BUSINESS.phone.sms}?&body=Hi%20Ryan%2C%20my%20Free%20Build%20is%20paid.%20When%20can%20we%20do%20our%20twenty%20minutes%3F`}>
               Text Ryan to Set Up the Call
               <CalendarCheck aria-hidden="true" />
             </a>
-            <a className="cb-btn cb-btn--ghost" href="tel:+19035008898">
-              Or Call Me: (903) 500-8898
+            <a className="cb-btn cb-btn--ghost" href={BUSINESS.phone.tel}>
+              Or Call Me: {BUSINESS.phone.display}
             </a>
           </div>
         </div>
@@ -132,11 +133,11 @@ export default async function FreeBuildWelcomePage({
           <p className="cb-eyebrow">What happens next</p>
           <h2 className="cb-h2">You will hear from me inside one business day.</h2>
           <p className="cb-lead">
-            If you do not, call or text me at (903) 500-8898. That is my direct line, not a queue.
+            If you do not, call or text me at {BUSINESS.phone.display}. That is my direct line, not a queue.
             The receipt for this payment is in your email from Stripe.
           </p>
           <div className="cb-actions">
-            <a className="cb-btn cb-btn--primary" href="sms:+19035008898?&body=Hi%20Ryan%2C%20my%20Free%20Build%20is%20paid.%20When%20can%20we%20do%20our%20twenty%20minutes%3F">
+            <a className="cb-btn cb-btn--primary" href={`${BUSINESS.phone.sms}?&body=Hi%20Ryan%2C%20my%20Free%20Build%20is%20paid.%20When%20can%20we%20do%20our%20twenty%20minutes%3F`}>
               Text Ryan to Set Up the Call
               <CalendarCheck aria-hidden="true" />
             </a>

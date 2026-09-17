@@ -27,6 +27,7 @@ import {
   articleSocialImagePath,
   articleVisualHeadline,
 } from "@/lib/articles-og";
+import { BUSINESS } from "@/lib/site/business";
 
 // Availability is checked for every request, including URLs that returned a
 // 404 before midnight. Future slugs are never statically rendered at build time.
@@ -287,7 +288,7 @@ export default async function ArticlePage({
         title="Get the website that catches these leads."
         body="Start with the free five-page build, in accounts you own, or call and talk it through with the person who builds them."
         primary={{ href: "/free-build", label: "Start My Free Website" }}
-        secondary={{ href: "tel:+19035008898", label: "Call or text (903) 500-8898", external: true }}
+        secondary={{ href: BUSINESS.phone.tel, label: `Call or text ${BUSINESS.phone.display}`, external: true }}
       />}
     </main>
   );

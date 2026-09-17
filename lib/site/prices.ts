@@ -90,8 +90,9 @@ export function usdRange(low: number, high: number): string {
  */
 export function guardedPriceStrings(): string[] {
   const amounts = new Set<number>();
-  for (const value of Object.values(PRICES)) {
+  for (const [key, value] of Object.entries(PRICES)) {
     // Day counts and the zero build fee are not dollar amounts worth guarding.
+    if (key.endsWith("Days")) continue;
     if (value >= 10) amounts.add(value);
   }
   return [...amounts].sort((a, b) => a - b).map((n) => usd(n));

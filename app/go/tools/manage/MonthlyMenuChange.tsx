@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { MONTHLY_MENU, type MonthlyMenuId } from "@/lib/toolStudio";
+import { BUSINESS } from "@/lib/site/business";
 
 export default function MonthlyMenuChange() {
   const [selected, setSelected] = useState<MonthlyMenuId[]>([]);
@@ -53,7 +54,7 @@ export default function MonthlyMenuChange() {
     }).catch(() => null);
     if (!response?.ok) {
       setError(
-        "The change request did not save. Email hello@theleadflowpro.com before your renewal date.",
+        `The change request did not save. Email ${BUSINESS.email.hello} before your renewal date.`,
       );
       setSending(false);
       return;

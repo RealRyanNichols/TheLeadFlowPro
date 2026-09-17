@@ -9,6 +9,7 @@ import {
   Timer,
 } from "lucide-react";
 import { WEEKLY_BUILD_SLOTS } from "@/lib/timeback";
+import { PRICES, usd } from "@/lib/site/prices";
 import TimeBackFunnel from "./TimeBackFunnel";
 import RevealObserver from "./Reveal";
 
@@ -320,7 +321,7 @@ export default function TimeBackPage() {
               See the live systems
             </Link>
             <Link className="cb-btn cb-btn--ghost" href="/packages/system-map">
-              Want the full picture first? The $497 System Map
+              Want the full picture first? The {usd(PRICES.systemMap)} System Map
             </Link>
           </div>
           <p className="mt-6 text-sm text-[var(--quiet)]">

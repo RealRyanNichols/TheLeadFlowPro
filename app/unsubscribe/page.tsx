@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { verifyUnsubscribeAny } from "@/lib/unsubscribe";
+import { BUSINESS } from "@/lib/site/business";
 
 export const metadata: Metadata = {
   title: "Email preferences | The LeadFlow Pro",
@@ -32,7 +33,7 @@ export default async function UnsubscribePage({
           <p className="cb-hero-lead">
             {valid
               ? "You may still receive messages that are necessary to answer a request or deliver work you purchased."
-              : "Email hello@theleadflowpro.com and we will update your preferences by hand."}
+              : `Email ${BUSINESS.email.hello} and we will update your preferences by hand.`}
           </p>
           <div className="cb-actions">
             {valid ? (
@@ -42,7 +43,7 @@ export default async function UnsubscribePage({
                 </button>
               </form>
             ) : (
-              <a className="cb-btn cb-btn--primary" href="mailto:hello@theleadflowpro.com">
+              <a className="cb-btn cb-btn--primary" href={`mailto:${BUSINESS.email.hello}`}>
                 Email The LeadFlow Pro
               </a>
             )}

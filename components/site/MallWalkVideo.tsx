@@ -13,6 +13,7 @@
 
 import { useState } from "react";
 import { Play, ExternalLink } from "lucide-react";
+import { BUSINESS } from "@/lib/site/business";
 
 const VIDEO_ID = "1869359370397748";
 
@@ -105,8 +106,8 @@ export default function MallWalkVideo({ onStart }: { onStart?: () => void }) {
           Start your free build
         </button>{" "}
         or text me at{" "}
-        <a href="tel:+19035008898" className="font-bold text-[var(--blue)] underline">
-          (903) 500-8898
+        <a href={BUSINESS.phone.tel} className="font-bold text-[var(--blue)] underline">
+          {BUSINESS.phone.display}
         </a>
         .
       </p>

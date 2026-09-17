@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Star, Copy, Check, ExternalLink } from "lucide-react";
+import { PRICES, usd } from "@/lib/site/prices";
 
 // Direct Google review link from a Place ID, plus a QR code image for print.
 // Place ID finder is linked for people who do not know theirs.
@@ -92,7 +93,7 @@ export default function ReviewLinkTool() {
       <p className="mt-4 text-center text-sm text-[var(--muted)]">
         Want reviews on autopilot after every job?{" "}
         <a href="https://www.theleadflowpro.com/packages/system-map?utm_source=tool&utm_medium=embed&utm_campaign=review_link_tool" className="font-bold text-[var(--blue)] underline" target="_top">
-          I build that. Start with the $497 System Map.
+          I build that. Start with the {usd(PRICES.systemMap)} System Map.
         </a>
       </p>
     </div>

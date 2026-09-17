@@ -24,6 +24,7 @@ import ToolCard from "./ToolCard";
 import { readRecentTools } from "./useToolProfile";
 import { trackTool, trackSearch } from "@/lib/tools/analytics";
 import styles from "./CollectionCards.module.css";
+import { BUSINESS } from "@/lib/site/business";
 
 type Facet = "domain" | "industry" | "audience" | "goal" | "type";
 
@@ -573,7 +574,7 @@ function EmptyState({
           Clear everything
         </button>
         <a
-          href={`sms:+19035008898?&body=${encodeURIComponent(`Tool idea: ${query.trim() || "I was looking for "}`)}`}
+          href={`${BUSINESS.phone.sms}?&body=${encodeURIComponent(`Tool idea: ${query.trim() || "I was looking for "}`)}`}
           className="button-primary"
           style={{ minHeight: 44 }}
           onClick={() => trackTool("tool_request_submitted", { terms: query.trim().slice(0, 60) })}

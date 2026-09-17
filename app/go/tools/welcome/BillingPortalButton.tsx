@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { BUSINESS } from "@/lib/site/business";
 
 export default function BillingPortalButton() {
   const search = useSearchParams();
@@ -28,7 +29,7 @@ export default function BillingPortalButton() {
     }
     setError(
       body.error ||
-        "Billing management could not open. Email hello@theleadflowpro.com.",
+        `Billing management could not open. Email ${BUSINESS.email.hello}.`,
     );
     setLoading(false);
   }

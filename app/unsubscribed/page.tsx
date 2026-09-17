@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BUSINESS } from "@/lib/site/business";
 
 export const metadata: Metadata = {
   title: "Unsubscribed | The LeadFlow Pro",
@@ -23,7 +24,7 @@ export default async function UnsubscribedPage({
             {failed ? "I could not find that one." : "You are unsubscribed."}
             <em>
               {failed
-                ? "Email hello@theleadflowpro.com and I will take you off by hand."
+                ? `Email ${BUSINESS.email.hello} and I will take you off by hand.`
                 : "No more marketing emails from me. That is it, no confirmation step."}
             </em>
           </h1>
@@ -36,7 +37,7 @@ export default async function UnsubscribedPage({
             <Link className="cb-btn cb-btn--ghost" href="/">
               Back To The Site
             </Link>
-            <a className="cb-btn cb-btn--ghost" href="mailto:hello@theleadflowpro.com">
+            <a className="cb-btn cb-btn--ghost" href={`mailto:${BUSINESS.email.hello}`}>
               Email Ryan
             </a>
           </div>

@@ -139,7 +139,7 @@ async function send(payload: object): Promise<boolean> {
 // elsewhere in the app still go to hello@ alone and are a separate decision.
 const OWNER_ALERT_RECIPIENTS = [
   BUSINESS.email.hello,
-  "pat@theleadflowpro.com",
+  BUSINESS.email.pat,
 ];
 
 function ownerAlertPayload(lead: NotifiableLead) {
