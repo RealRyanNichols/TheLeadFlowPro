@@ -3,6 +3,7 @@
 // imagery, instructions, a disclaimer or a working formula fails the build
 // instead of shipping as a broken card.
 
+import { TOOL_CTA_LANE_IDS } from "./cta";
 import {
   AUDIENCE_IDS,
   DISCLAIMER_IDS,
@@ -92,6 +93,7 @@ export function validateTools(all: Tool[]): Problem[] {
     for (const a of t.audiences) if (!(AUDIENCE_IDS as readonly string[]).includes(a)) p(t.slug, "audiences", `unknown audience "${a}"`);
     if (t.keywords.length < 3) p(t.slug, "keywords", "needs at least 3 search keywords");
     if (t.popularity < 0 || t.popularity > 100) p(t.slug, "popularity", "must be 0 to 100");
+    if (t.cta !== undefined && !(TOOL_CTA_LANE_IDS as readonly string[]).includes(t.cta)) p(t.slug, "cta", `unknown call-to-action lane "${t.cta}"`);
 
     /* ---- page content ---- */
     if (t.name.length < 4) p(t.slug, "name", "too short");

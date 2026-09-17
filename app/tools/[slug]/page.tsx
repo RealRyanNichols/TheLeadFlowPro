@@ -28,6 +28,7 @@ import ToolCard from "@/components/tools/ToolCard";
 import ProUpsell from "@/components/tools/pro/ProUpsell";
 import { SHELLS } from "@/components/tools/shell";
 import FinalCta from "@/components/site/system/FinalCta";
+import { toolCta } from "@/lib/tools/cta";
 import SiteHero from "@/components/site/system/SiteHero";
 import { BUSINESS } from "@/lib/site/business";
 
@@ -99,6 +100,7 @@ export default async function ToolPage({
   const type = TOOL_TYPES[tool.toolType];
   const shell = SHELLS[tool.toolType];
   const related = toolIndex(relatedTools(tool, 4));
+  const cta = toolCta(tool);
   const collections = collectionsForTool(tool).slice(0, 3);
   const guides = getToolArticleGuides(tool.slug).slice(0, 3);
   const url = `${BASE}/tools/${tool.slug}`;
@@ -438,10 +440,10 @@ export default async function ToolPage({
       </section>
 
       <FinalCta
-        eyebrow="One useful tool is the proof"
-        title="Now imagine the whole website doing real work."
-        body="Map the pages, lead capture, follow-up, and reporting that should sit behind your offer. The result is a recommendation, not a guaranteed outcome."
-        primary={{ href: "/start", label: "Map My Company" }}
+        eyebrow={cta.eyebrow}
+        title={cta.title}
+        body={cta.body}
+        primary={{ href: cta.href, label: cta.label }}
         secondary={{ href: "/tools", label: `Browse all ${TOOL_COUNT} tools` }}
       />
     </main>

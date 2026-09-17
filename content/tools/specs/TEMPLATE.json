@@ -1,0 +1,32 @@
+{
+  "$comment": "Copy this to content/tools/specs/<slug>.json. The slug must be an approved backlog item. Then: npm run tool:new -- --spec content/tools/specs/<slug>.json",
+  "slug": "replace-with-backlog-slug",
+  "kind": "free",
+  "emoji": "🧮",
+  "tagline": "One line on what it tells them (10+ characters)",
+  "description": "Sixty or more characters of plain English about what goes in and what comes out. No claims about results.",
+  "who": "Who this is for, in plain English.",
+  "problem": "The painful problem it points at, in the owner's words.",
+  "payoff": "What they leave with. A number, a plan, or a document. Not a promise.",
+  "steps": ["Enter the first thing.", "Enter the second thing.", "Read the result and the assumptions under it."],
+  "domain": "business-money",
+  "goals": ["price-a-service"],
+  "industries": ["general-contracting"],
+  "audiences": ["owners"],
+  "keywords": ["three or more", "search phrases", "people actually type"],
+  "disclaimer": "general-estimate",
+  "dataSensitivity": "none",
+  "fields": [
+    { "id": "example_money", "label": "A dollar input", "type": "money", "def": 100 },
+    { "id": "example_number", "label": "A count input", "type": "number", "def": 10, "suffix": "per month" }
+  ],
+  "formulaSource": "Where the math comes from. Recorded in docs/TOOL_FORMULA_SOURCES.md before publication.",
+  "pro": {
+    "$comment": "Only for kind = pro. priceUsd must be one of PRO_PRICES.",
+    "priceUsd": 19,
+    "promise": "One line on the outcome. Never a guarantee.",
+    "kit": ["First document", "Second document", "Third document"],
+    "upgradeFrom": ["a-published-free-tool-slug"],
+    "freePreview": "What a visitor can use before paying."
+  }
+}

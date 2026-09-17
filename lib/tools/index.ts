@@ -141,7 +141,7 @@ function stripUndefined<T extends object>(o: T): Partial<T> {
 const REQUIRED_META_SET = new Set<string>(REQUIRED_META);
 const OPTIONAL_META_SET = new Set<string>([
   "synonyms", "isNew", "seoTitle", "seoDescription", "relatedSlugs",
-  "presets", "assumptions", "exportFormats", "status",
+  "presets", "assumptions", "exportFormats", "status", "cta",
 ]);
 
 /* ---------------------------------- exports -------------------------------- */
