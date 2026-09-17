@@ -22,7 +22,7 @@ scoreboard_public_daily(days_back integer default 90)
 
 It is `security definer`, granted to `anon`, and returns aggregates only, so the board can call it with the project's publishable key (the same key the business's own website already ships to every browser). No shared secrets, no service keys leave their project, nothing to rotate.
 
-- The LeadFlow Pro: `supabase/migrations/20260903021000_scoreboard_public_daily.sql`. Read through the service client.
+- The LeadFlow Pro: `supabase/migrations/20260903021000_scoreboard_public_daily.sql`, replaced by `20260917200000_scoreboard_public_daily_lead_calls_clicks.sql` (calls now read `lead_calls`, inbound and outbound, instead of the dead `leads.source = 'quo_call'` value; clicks now include `navigation_click`, `tool_card_open`, `tool_view` and `form_start`). Read with the anon key.
 - Premier Dental Academy of Longview: applied 2026-09-03 to project `lmbsuwslsycukynzpzik` (migration name `scoreboard_public_daily`). Sources: `page_visits` (`pv:` rows are views, `click:` rows are clicks), `leads` (`quo_call` rows are calls, Meta lead ad rows are paid), `purchases` (completed or active).
 - RealRyanNichols.com: applied 2026-09-03 to project `rpchhzncxigczfojfdtc`. Sources: `page_views`, `page_events` (`click`), leads = `book_email_signups` + `notify_signups` + `poll_unlocks` + `chat_escalations` with contact. The feed does not classify advertising attribution or measure calls; its zero placeholders are not presented as observed results for those metrics. Payment records = paid `book_orders` + paid `orders` + `donations` not refunded.
 - Lone Star Total Wash has a `leads` table but no page tracking yet, so it has no board. Installing first-party tracking there is the upsell.
@@ -32,8 +32,8 @@ To add a business: write the same function against that project's tables, grant 
 ## Where things live
 
 - `lib/scoreboard.ts`: registry, metric definitions and legend copy, window math. Pure, tested in `tests/scoreboard.test.ts`.
-- `lib/scoreboardFeeds.ts`: server-only fetch (service client for local, REST rpc for remote, 15 minute cache).
-- `app/scoreboard/page.tsx` and `app/scoreboard/[business]/page.tsx`: ISR, revalidate 900 seconds.
+- `lib/scoreboardFeeds.ts`: server-only REST rpc fetch with no fetch-level cache. The page's ISR window is the only cache; a `next.revalidate` on the fetch stacked a second window on top of it. Do not switch it to `cache: "no-store"`: in Next 15 that marks the route dynamic and turns ISR off.
+- `app/scoreboard/page.tsx`, `app/scoreboard/[business]/page.tsx` and `app/scoreboard/metrics/[metric]/page.tsx`: ISR, revalidate 300 seconds as a backstop. What actually keeps them fresh is `app/api/revalidate-scoreboard/route.ts`, a `CRON_SECRET`-guarded route that `vercel.json` runs every 10 minutes to `revalidatePath` the index, every business board and every metric page. ISR alone is lazy and stale-while-revalidate: the first visitor after the window gets the old render while the rebuild happens behind them, and on a low-traffic page that visitor is Ryan. Each page carries an observed stamp from the upstream `Date` header (the index shows the oldest among its feeds); a render time is never shown as an observation time.
 - `components/scoreboard/ScoreboardBoard.tsx`: window toggle, tiles, 30 day chart (inline SVG, no library).
 - Footer link under Proof; cross-link from /proof-floor; both routes in the sitemap.
 - `lib/scoreboardCaptureCoverage.ts` and `lib/scoreboardCaptureFeeds.ts`: separate aggregate capture-source breakdown, with fail-closed validation. The SQL for each named source project and overlap rules are documented in `docs/search-and-business-proof-2026-09-06.md`. These source counts are never blindly added to the main lead count.

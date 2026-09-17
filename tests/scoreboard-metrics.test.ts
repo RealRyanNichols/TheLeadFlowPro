@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { SCOREBOARD_BUSINESSES, emptyTotals, shiftDay, type ScoreboardDay } from "../lib/scoreboard.ts";
-import { aggregateMetric, hasCompleteWindow, METRIC_GUIDES, metricGuide, metricPath, tracksMetric, type MetricFeed } from "../lib/scoreboardMetrics.ts";
+import { aggregateMetric, feedObservationLabel, hasCompleteWindow, METRIC_GUIDES, metricGuide, metricPath, oldestObservation, tracksMetric, type MetricFeed } from "../lib/scoreboardMetrics.ts";
 
 const today = "2026-09-06";
 function days(count: number, values: Partial<ScoreboardDay> = {}) {
@@ -57,6 +57,22 @@ describe("public metric aggregation", () => {
   it("keeps visitor-days additive rather than claiming unique people", () => {
     assert.equal(aggregateMetric([feed(0, days(30, { visitors: 1 })), feed(1, days(30, { visitors: 1 }))], "visitors", 30, today).total, 60);
     assert.match(metricGuide("daily-visitors")!.title, /summed/);
+  });
+  it("stamps a multi-feed page with its oldest upstream observation, never a render time", () => {
+    const newer: MetricFeed = { business: SCOREBOARD_BUSINESSES[0], result: { ok: true, days: days(30), fetchedAt: "2026-09-06T18:25:00.000Z" } };
+    const older: MetricFeed = { business: SCOREBOARD_BUSINESSES[1], result: { ok: true, days: days(30), fetchedAt: "2026-09-06T18:20:17.000Z" } };
+    const failed: MetricFeed = { business: SCOREBOARD_BUSINESSES[2], result: { ok: false, reason: "offline" } };
+    assert.equal(oldestObservation([newer, older, failed]), "2026-09-06T18:20:17.000Z");
+    assert.equal(oldestObservation([older, newer]), "2026-09-06T18:20:17.000Z");
+    assert.equal(oldestObservation([newer]), "2026-09-06T18:25:00.000Z");
+    // Nothing reported, or a reporting feed with no observation time: no stamp at all.
+    assert.equal(oldestObservation([failed]), null);
+    assert.equal(oldestObservation([]), null);
+    const unstamped: MetricFeed = { business: SCOREBOARD_BUSINESSES[2], result: { ok: true, days: days(30), fetchedAt: null } };
+    assert.equal(oldestObservation([newer, unstamped]), null);
+    // The label is the same helper the business boards use, in Central time.
+    assert.equal(feedObservationLabel("2026-09-06T18:20:17.000Z"), "Observed Sep 6, 1:20 PM CDT");
+    assert.equal(feedObservationLabel(null), "Observation time unavailable");
   });
   it("offers eight unique public routes and does not expose sales as an aggregate metric", () => {
     assert.equal(METRIC_GUIDES.length, 8);

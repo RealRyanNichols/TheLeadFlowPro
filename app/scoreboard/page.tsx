@@ -9,9 +9,12 @@ import {
   summarizeWindow,
 } from "@/lib/scoreboard";
 import { fetchScoreboardDays } from "@/lib/scoreboardFeeds";
+import { feedObservationLabel, oldestObservation } from "@/lib/scoreboardMetrics";
 import styles from "./scoreboard.module.css";
 
-export const revalidate = 900;
+// The /api/revalidate-scoreboard cron purges this page every 10 minutes; this
+// window is only the backstop for a page the cron has not reached yet.
+export const revalidate = 300;
 
 const TITLE = "Scoreboard | Real views, clicks and leads per business | The LeadFlow Pro";
 const DESCRIPTION =
@@ -54,6 +57,9 @@ export default async function ScoreboardIndexPage() {
       result: await fetchScoreboardDays(business, 30),
     })),
   );
+  // The oldest upstream observation among the feeds on this page. Never the
+  // render time: a stale render must read as stale.
+  const observedAt = oldestObservation(results);
 
   return (
     <main className={styles.page}>
@@ -68,11 +74,15 @@ export default async function ScoreboardIndexPage() {
                 recorded inquiries. Open a business to follow the work.
               </p>
               <p className={styles.heroNote}>Activity and contact records, not unique customers or revenue.</p>
+              <p className={styles.heroNote}>
+                Central time. {feedObservationLabel(observedAt)}
+                {observedAt ? ", the earliest read among the feeds on this page." : "."}
+              </p>
             </div>
             <div className={styles.liveBadge}>
               <p>Data source</p>
               <strong>Each business&apos;s own database</strong>
-              <small>Aggregate counts only. Checks for updates every 15 minutes when requested.</small>
+              <small>Aggregate counts only. Re-read from each database about every 10 minutes.</small>
               <span className={styles.sourceNote}>Real records. Room to improve.</span>
             </div>
           </div>
