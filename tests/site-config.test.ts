@@ -99,7 +99,8 @@ test("every offer has a name, a status, a URL, terms, and a review date; only TB
     }
   }
   assert.throws(() => offer("not-an-offer"));
-  assert.ok(offersAwaitingRyan().every((o) => o.category === "agency"));
+  // Agency services and the plugin vertical packs (lib/hq/verticals.ts) wait on Ryan for a number.
+  assert.ok(offersAwaitingRyan().every((o) => o.category === "agency" || o.id.startsWith("plugin_pack_")));
   assert.ok(offersAwaitingRyan().length >= 5);
 });
 
