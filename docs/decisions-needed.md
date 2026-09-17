@@ -223,3 +223,13 @@ or activated by the engineering work; every item is a switch Ryan flips.
     ship a default template set (trial follow-up, new customer, new member)
     that clients start from, or write each from scratch. Default: ship a
     default set in a later PR.
+
+32. **7.4 Proposal generator: agency prices.** Every agency proposal prints
+    the neutral TBD line and a "fix before sending" flag until the five
+    agency offers have prices in `lib/site/offers.ts` (decision 3). The
+    generator needs no separate price. Decision: set the agency prices.
+
+33. **7.4 Proposal generator: go-live.** The review page ships with the
+    next merge behind the admin gate; it sends nothing and stores nothing.
+    Ryan sends proposals by hand from hello@. A stored-versions table and
+    e-signature are later builds if wanted.

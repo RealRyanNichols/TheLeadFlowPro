@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { safeLeadDiagnostic } from "@/lib/leadTimeline";
@@ -118,6 +119,12 @@ export default async function LeadWorkspacePage({
   );
 
   return (
+    <>
+      <div className="mb-3 flex justify-end">
+        <Link href={`/admin/proposals/${id}`} className="hq-btn hq-btn-sm">
+          Draft proposal from this intake
+        </Link>
+      </div>
     <LeadWorkspace
       lead={{
         ...lead,
@@ -146,5 +153,6 @@ export default async function LeadWorkspacePage({
       actorName={profile.full_name || user.email || "Admin"}
       unavailableSections={unavailableSections}
     />
+    </>
   );
 }
