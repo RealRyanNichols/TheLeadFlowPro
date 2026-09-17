@@ -239,7 +239,8 @@ export type Brief = {
   created_at: string;
 };
 
-export type ConnectionKind = "openphone" | "twilio" | "meta_page" | "website";
+/** meta_ads and google_ads hold a client's own ad-account token for the ads report (engine 7.2). */
+export type ConnectionKind = "openphone" | "twilio" | "meta_page" | "website" | "meta_ads" | "google_ads";
 
 export type Connection = {
   id: string;

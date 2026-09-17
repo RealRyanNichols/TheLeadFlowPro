@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CreditCard, Megaphone, Plug, Settings, Sun, Users } from "lucide-react";
+import { BarChart3, CreditCard, Megaphone, Plug, Settings, Sun, Users } from "lucide-react";
 
 // The six places in HQ. The current one is marked for screen readers as well
 // as painted, and the row scrolls sideways on a phone instead of wrapping
@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/hq", label: "Today", icon: Sun },
   { href: "/hq/leads", label: "Leads", icon: Users },
   { href: "/hq/content", label: "Content", icon: Megaphone },
+  { href: "/hq/reports", label: "Reports", icon: BarChart3 },
   { href: "/hq/plugin", label: "Plugin", icon: Plug },
   { href: "/hq/settings", label: "Settings", icon: Settings },
   { href: "/hq/billing", label: "Billing", icon: CreditCard },
