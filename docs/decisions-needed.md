@@ -233,3 +233,15 @@ or activated by the engineering work; every item is a switch Ryan flips.
     next merge behind the admin gate; it sends nothing and stores nothing.
     Ryan sends proposals by hand from hello@. A stored-versions table and
     e-signature are later builds if wanted.
+
+34. **7.5 Workshop kit: go-live and the follow-up.** The kit ships with the
+    next merge and changes nothing visible for September 17. The next
+    event is a config entry (`docs/engines/7.5-workshop-kit.md`) plus a
+    database row Ryan creates in /admin/events. The three follow-up
+    drafts now build per event; activating them as an automation is still
+    its own approval (they are unsent drafts today).
+
+35. **7.5 Worksheet delivery.** The worksheet is a printable page at
+    `/events/<slug>/worksheet`, unlisted and noindex. Decision: hand it out
+    on paper in the room, link it from the attendee page (built), or both.
+    Default: both.

@@ -92,7 +92,7 @@ export default function WorkshopShowcase({
         <div className={local.showcaseHead}>
           <div>
             <p className="cb-eyebrow">Founding workshop · Longview, Texas</p>
-            <h2 className="cb-h2">ChatGPT for Business Owners: Live in Longview.</h2>
+            <h2 className="cb-h2">{featuredEvent().title}.</h2>
             <p className="cb-lead">{content.promise}</p>
           </div>
           <div className={local.showcaseFacts}>

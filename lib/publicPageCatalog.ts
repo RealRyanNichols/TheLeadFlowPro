@@ -17,6 +17,13 @@ export const PUBLIC_PAGE_CATALOG = [
     index: false,
   },
   {
+    path: "/events/chatgpt-for-business-owners-longview/worksheet",
+    title: "Workshop worksheet",
+    description: "The worksheet the room works from: one task, one brief, two runs. For attendees.",
+    eyebrow: "Live learning in Longview",
+    index: false,
+  },
+  {
     path: "/commerce",
     title: "Make buying it easy",
     description:

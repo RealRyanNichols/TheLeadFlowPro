@@ -23,7 +23,16 @@ type Confirmation = {
   arrival_notes: string | null;
 };
 
-export default function ConfirmedClient({ slug }: { slug: string }) {
+export default function ConfirmedClient({
+  slug,
+  prep = null,
+  worksheetHref = null,
+}: {
+  slug: string;
+  /** From the event's kit. Null for a plain database event. */
+  prep?: { title: string; items: string[] } | null;
+  worksheetHref?: string | null;
+}) {
   const [state, setState] = useState<"loading" | "missing" | "ready">(
     "loading",
   );
@@ -259,6 +268,22 @@ export default function ConfirmedClient({ slug }: { slug: string }) {
                   Workshop Details
                 </Link>
               </div>
+
+              {prep && prep.items.length > 0 && (
+                <div className={styles.miniCard} style={{ marginTop: 24 }}>
+                  <h3>{prep.title}</h3>
+                  <ul style={{ margin: "8px 0 0", paddingLeft: 20 }}>
+                    {prep.items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                  {worksheetHref && (
+                    <p style={{ marginTop: 12 }}>
+                      <Link href={worksheetHref}>Open the workshop worksheet</Link> to print or read ahead.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className={styles.registerPanel} style={{ marginTop: 36 }}>
                 {bottleneckSaved ? (

@@ -21,6 +21,8 @@ import {
 } from "@/lib/events";
 import { missingEventPaymentConfig } from "@/lib/eventPayments";
 import { BUSINESS } from "@/lib/site/business";
+import { siteEvent } from "@/lib/site/events";
+import { workshopKit, workshopKitOrDefault } from "@/lib/site/workshopKit";
 import WorkshopRegister from "./WorkshopRegister";
 
 export const dynamic = "force-dynamic";
@@ -36,12 +38,12 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  if (slug !== "chatgpt-for-business-owners-longview") return workshopMetadata;
+  const kit = workshopKit(slug);
+  if (!kit) return workshopMetadata;
   return withPublicPageMetadata(`/events/${slug}`, {
     ...workshopMetadata,
-    title: "ChatGPT for Business Owners: Live in Longview | The LeadFlow Pro",
-    description:
-      "Bring one real business task and practice a useful process. Review the workshop page for current event and registration details.",
+    title: kit.metadata.title,
+    description: kit.metadata.description,
   });
 }
 
@@ -77,7 +79,8 @@ export default async function WorkshopPage({
     Boolean(
       event.starts_at && new Date(event.starts_at).getTime() > Date.now(),
     );
-  const workshopUrl = "https://workshop.theleadflowpro.com/";
+  const kit = workshopKitOrDefault(slug);
+  const workshopUrl = kit.registration.detailsUrl ?? siteEvent(slug)?.externalSiteUrl ?? "/events";
   return (
     <main className="lf-home lf-event-registration">
       <div className="lf-shell lf-event-shell">
@@ -86,12 +89,9 @@ export default async function WorkshopPage({
         </a>
         <div className="lf-event-grid">
           <section>
-            <p className="lf-eyebrow">LIVE BUSINESS WORKSHOP</p>
+            <p className="lf-eyebrow">{kit.registration.eyebrow}</p>
             <h1>{event.title}</h1>
-            <p className="lf-intro">
-              Bring one real task. Build a process you can use again. Beginners
-              welcome.
-            </p>
+            <p className="lf-intro">{kit.registration.intro}</p>
             <ul className="lf-event-facts">
               <li>
                 <CalendarDays aria-hidden="true" />
@@ -147,21 +147,13 @@ export default async function WorkshopPage({
             </ul>
             <div className="lf-event-included">
               <h2>What your ticket includes</h2>
-              {[
-                "A live, guided working session with Ryan",
-                "One repeatable process for your own task",
-                "Preparation checklist and private arrival details",
-                "A written next step to use after the workshop",
-              ].map((text) => (
+              {kit.registration.includes.map((text) => (
                 <p key={text}>
                   <Check size={17} aria-hidden="true" />
                   {text}
                 </p>
               ))}
-              <p>
-                Bring your laptop, charger, and access to your own ChatGPT
-                account. Use fictional or anonymized customer details.
-              </p>
+              <p>{kit.registration.bringLine}</p>
             </div>
             <details className="lf-event-policy" open>
               <summary>Ticket and cancellation details</summary>
