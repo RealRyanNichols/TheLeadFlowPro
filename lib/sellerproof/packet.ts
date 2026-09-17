@@ -39,6 +39,8 @@ export const EVIDENCE_TYPES = [
   "Other",
 ] as const;
 export type EvidenceType = (typeof EVIDENCE_TYPES)[number];
+/** Name, size, type, and SHA-256 of the original the seller attaches in their provider dashboard. Metadata only; the file never passes through SellerProof. */
+export type Attachment = { name: string; size: number; type: string; sha256: string };
 export type Packet = {
   id: string;
   business: string;
@@ -59,6 +61,7 @@ export type Packet = {
     fileName: string;
     date: string;
     note: string;
+    attached?: Attachment;
   }[];
 };
 export const DISCLAIMER =
@@ -174,13 +177,23 @@ export function parsePacket(value: unknown): Packet {
     }),
     evidence: value.evidence.map((e) => {
       if (!isRecord(e)) throw new Error("Invalid evidence item.");
-      return {
+      const item: Packet["evidence"][number] = {
         type: option(e.type, EVIDENCE_TYPES),
         title: text(e.title, 200),
         fileName: text(e.fileName, 240),
         date: date(e.date),
         note: text(e.note, 5000),
       };
+      if (e.attached !== undefined && e.attached !== null) {
+        if (!isRecord(e.attached)) throw new Error("Invalid file fingerprint.");
+        const size = e.attached.size;
+        if (typeof size !== "number" || !Number.isInteger(size) || size < 0 || size > 52_428_800) throw new Error("Invalid file size.");
+        const sha256 = text(e.attached.sha256, 64).toLowerCase();
+        if (!/^[0-9a-f]{64}$/.test(sha256)) throw new Error("Invalid file fingerprint.");
+        item.attached = { name: text(e.attached.name, 240), size, type: text(e.attached.type, 100), sha256 };
+        if (!item.fileName) item.fileName = item.attached.name;
+      }
+      return item;
     }),
   };
   if (p.amount && !/^\d{1,9}(?:\.\d{1,2})?$/.test(p.amount))
@@ -273,7 +286,7 @@ export function responseDraft(p: Packet): string {
     `Product or service\n${p.description || "[description missing]"}`,
     `Merchant statement\n${p.statement || "[Add your explanation, supported by the evidence you identify below.]"}`,
     `Timeline supplied by merchant\n${events.map((e) => `${e.date || "Date unknown"}: ${e.description}${e.source ? ` (Source: ${e.source})` : " (Source not identified)"}`).join("\n") || "[No timeline entered.]"}`,
-    `Evidence index\n${p.evidence.map((e, i) => `E${i + 1}. ${e.title || "Untitled evidence"} (${e.type})${e.date ? ` | ${e.date}` : ""}${e.fileName ? ` | File to attach: ${e.fileName}` : ""}\n${e.note || "[Description missing.]"}`).join("\n\n") || "[No evidence entered.]"}`,
+    `Evidence index\n${p.evidence.map((e, i) => `E${i + 1}. ${e.title || "Untitled evidence"} (${e.type})${e.date ? ` | ${e.date}` : ""}${e.fileName ? ` | File to attach: ${e.fileName}` : ""}${e.attached ? ` | Fingerprint SHA-256 ${e.attached.sha256} (${e.attached.size} bytes)` : ""}\n${e.note || "[Description missing.]"}`).join("\n\n") || "[No evidence entered.]"}`,
   ].join("\n\n");
 }
 export function escapeHtml(x: string): string {
