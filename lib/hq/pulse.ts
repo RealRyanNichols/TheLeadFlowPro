@@ -199,7 +199,7 @@ export async function runPulse(client: db.Db, ws: Workspace, now = new Date()): 
     if (daysLeft === 3 || daysLeft === 1) {
       const first = await db.recordEvent(client, ws.id, { kind: "system", detail: `Trial ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`, actor: "cron", dedupeKey: `trial:reminder:${daysLeft}` });
       if (first) {
-        await sendOwnerEmail(ws, `${daysLeft} day${daysLeft === 1 ? "" : "s"} left on your ${ws.name} trial`, `Your trial ends ${new Date(ws.trial_ends_at).toDateString()}. Nothing to do if your card is on file; the plan continues at $49 a month and you can cancel any time from https://www.theleadflowpro.com/hq/billing.`, `trial-reminder-${ws.id}-${daysLeft}`);
+        await sendOwnerEmail(ws, `${daysLeft} day${daysLeft === 1 ? "" : "s"} left on your ${ws.name} trial`, `Your trial ends ${new Date(ws.trial_ends_at).toDateString()}. Nothing to do if your card is on file; the plan continues at $${HQ_PLAN.priceUsd} a month and you can cancel any time from https://www.theleadflowpro.com/hq/billing.`, `trial-reminder-${ws.id}-${daysLeft}`);
       }
     }
   }

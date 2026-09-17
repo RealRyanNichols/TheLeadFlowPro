@@ -29,6 +29,8 @@ import { proCatalog } from "@/lib/tools/pro";
 import { SELLERPROOF } from "@/lib/sellerproof/packet";
 import { sendSellerProofReceipt } from "@/lib/sellerproof/receipt";
 import { handleHqStripeEvent } from "@/lib/hq/subscription";
+import { BUSINESS } from "@/lib/site/business";
+import { PRICES, usd } from "@/lib/site/prices";
 
 // Stripe webhook: records paid checkouts and unlocks training access.
 // Needs STRIPE_WEBHOOK_SECRET (from Stripe dashboard → Webhooks) and
@@ -83,15 +85,15 @@ async function sendPurchaseEmails(email: string, kind: string) {
   };
 
   await send({
-    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-    to: ["hello@theleadflowpro.com"],
+    from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
+    to: [BUSINESS.email.hello],
     subject: `💰 PURCHASE: ${kind} — ${email}`,
     text: `New purchase.\n\nProduct: ${kind}\nBuyer: ${email}\n\nAdmin: https://www.theleadflowpro.com/admin`,
   });
   await send({
-    from: "Ryan Nichols <hello@theleadflowpro.com>",
+    from: `${BUSINESS.operator} <${BUSINESS.email.hello}>`,
     to: [email],
-    reply_to: "hello@theleadflowpro.com",
+    reply_to: BUSINESS.email.hello,
     subject: "You're in. Here's your training.",
     text: [
       "Welcome to Own Your Platform.",
@@ -126,15 +128,15 @@ async function sendContentEnginePurchaseEmails(email: string) {
   };
 
   await send({
-    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-    to: ["hello@theleadflowpro.com"],
+    from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
+    to: [BUSINESS.email.hello],
     subject: `CONTENT ENGINE PURCHASE: ${email}`,
     text: `Founding course access purchased.\nBuyer: ${email}\nCourse: ${CONTENT_ENGINE.title}`,
   });
   await send({
-    from: "Ryan Nichols <hello@theleadflowpro.com>",
+    from: `${BUSINESS.operator} <${BUSINESS.email.hello}>`,
     to: [email],
-    reply_to: "hello@theleadflowpro.com",
+    reply_to: BUSINESS.email.hello,
     subject: "Your Content Engine course access",
     text: [
       "You are in.",
@@ -167,15 +169,15 @@ async function sendAcademyPurchaseEmails(email: string, title: string, nextPath:
     if (!response.ok) throw new Error(`Resend rejected academy email: ${response.status}`);
   };
   await send({
-    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-    to: ["hello@theleadflowpro.com"],
+    from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
+    to: [BUSINESS.email.hello],
     subject: `OPERATOR ACADEMY PURCHASE: ${email}`,
     text: `Paid training access purchased.\nBuyer: ${email}\nAccess: ${title}`,
   });
   await send({
-    from: "Ryan Nichols <hello@theleadflowpro.com>",
+    from: `${BUSINESS.operator} <${BUSINESS.email.hello}>`,
     to: [email],
-    reply_to: "hello@theleadflowpro.com",
+    reply_to: BUSINESS.email.hello,
     subject: `Your ${title} access`,
     text: [
       "You are in.",
@@ -227,8 +229,8 @@ async function sendBuyerAcknowledgement(
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "Ryan Nichols <ryan@theleadflowpro.com>",
-        reply_to: "hello@theleadflowpro.com",
+        from: `${BUSINESS.operator} <${BUSINESS.email.ryan}>`,
+        reply_to: BUSINESS.email.hello,
         to: [email],
         subject,
         text: [
@@ -237,7 +239,7 @@ async function sendBuyerAcknowledgement(
           "Talk soon,",
           "Ryan Nichols",
           "The LeadFlow Pro",
-          "(903) 500-8898",
+          BUSINESS.phone.display,
         ].join("\n"),
       }),
       signal: AbortSignal.timeout(8000),
@@ -272,8 +274,8 @@ async function notifyUnhandledPurchase(
   };
 
   await send({
-    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-    to: ["hello@theleadflowpro.com"],
+    from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
+    to: [BUSINESS.email.hello],
     subject: `💰 PAID: ${kind} ${amount} — ${email}`,
     text: [
       "Somebody paid and there is no automated fulfilment for this product.",
@@ -291,9 +293,9 @@ async function notifyUnhandledPurchase(
   });
 
   await send({
-    from: "Ryan Nichols <hello@theleadflowpro.com>",
+    from: `${BUSINESS.operator} <${BUSINESS.email.hello}>`,
     to: [email],
-    reply_to: "hello@theleadflowpro.com",
+    reply_to: BUSINESS.email.hello,
     subject: "Got your payment. Here is what happens next.",
     text: [
       "Thanks. Your payment came through and I have it.",
@@ -309,7 +311,7 @@ async function notifyUnhandledPurchase(
       "",
       "Ryan Nichols",
       "The LeadFlow Pro",
-      "(903) 500-8898",
+      BUSINESS.phone.display,
       "Longview, Texas",
     ].join("\n"),
   });
@@ -345,8 +347,8 @@ async function notifyToolStudioPurchase(
   };
 
   await send({
-    from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-    to: ["hello@theleadflowpro.com"],
+    from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
+    to: [BUSINESS.email.hello],
     subject: `TOOL STUDIO PAID: ${amount} - ${email}`,
     text: [
       "A Tool Studio checkout completed.",
@@ -365,9 +367,9 @@ async function notifyToolStudioPurchase(
   });
 
   await send({
-    from: "Ryan Nichols <hello@theleadflowpro.com>",
+    from: `${BUSINESS.operator} <${BUSINESS.email.hello}>`,
     to: [email],
-    reply_to: "hello@theleadflowpro.com",
+    reply_to: BUSINESS.email.hello,
     subject: "Your Tool Studio order is in. Here is what happens next.",
     text: [
       "Your payment came through.",
@@ -385,7 +387,7 @@ async function notifyToolStudioPurchase(
       "",
       "Ryan Nichols",
       "The LeadFlow Pro",
-      "(903) 500-8898",
+      BUSINESS.phone.display,
     ].join("\n"),
   });
 }
@@ -453,8 +455,8 @@ async function findWebsiteLaunchLead(
         phone: customer.phone,
         interest: "launch_system",
         goals:
-          "Paid the $500 Website Launch deposit for the approved $1,000 five-page base scope. Intake is ready. The final $500 is due only after approval and before launch.",
-        budget_range: "$1,000 base scope | $500 deposit paid",
+          `Paid the ${usd(PRICES.websiteLaunchDeposit)} Website Launch deposit for the approved ${usd(PRICES.websiteLaunchTotal)} five-page base scope. Intake is ready. The final ${usd(PRICES.websiteLaunchFinal)} is due only after approval and before launch.`,
+        budget_range: `${usd(PRICES.websiteLaunchTotal)} base scope | ${usd(PRICES.websiteLaunchDeposit)} deposit paid`,
         timeline: "Deposit paid; intake ready",
         best_contact_method: "email",
         source,
@@ -468,8 +470,8 @@ async function findWebsiteLaunchLead(
           version: 1,
           source,
           offer: "website_launch",
-          approved_base_scope_usd: 1000,
-          deposit_paid_usd: 500,
+          approved_base_scope_usd: PRICES.websiteLaunchTotal,
+          deposit_paid_usd: PRICES.websiteLaunchDeposit,
           next_action: "Start Website Launch intake against the approved five-page base scope.",
         },
       })
@@ -546,7 +548,7 @@ async function ensureWebsiteLaunchIntake(
   }
 
   const activityDetail =
-    `Website Launch $500 deposit paid through Stripe. Intake is ready. Stripe checkout: ${sessionId}.`;
+    `Website Launch ${usd(PRICES.websiteLaunchDeposit)} deposit paid through Stripe. Intake is ready. Stripe checkout: ${sessionId}.`;
   const existingActivity = await supabase
     .from("lead_activity")
     .select("id")
@@ -572,7 +574,7 @@ async function ensureWebsiteLaunchIntake(
       business_name: lead.business_name,
       interest: "launch_system",
       goals:
-        "The $500 Website Launch deposit is paid. Begin intake for the approved $1,000 five-page base scope. The final $500 is due only after approval and before launch.",
+        `The ${usd(PRICES.websiteLaunchDeposit)} Website Launch deposit is paid. Begin intake for the approved ${usd(PRICES.websiteLaunchTotal)} five-page base scope. The final ${usd(PRICES.websiteLaunchFinal)} is due only after approval and before launch.`,
       timeline: "Deposit paid; intake ready",
       source: stripePaymentLinkId(session) ? "stripe_payment_link" : "stripe_checkout",
       utm_source: "stripe",
@@ -583,12 +585,12 @@ async function ensureWebsiteLaunchIntake(
     await sendBuyerAcknowledgement(customer.email, "Your Website Launch deposit is in.", [
       `${(lead.full_name || customer.fullName || "").trim().split(" ")[0] || "Hey"},`,
       "",
-      "Your $500 Website Launch deposit is paid and the build is on my board. Stripe's receipt is your record.",
+      `Your ${usd(PRICES.websiteLaunchDeposit)} Website Launch deposit is paid and the build is on my board. Stripe's receipt is your record.`,
       "",
       "What happens next:",
       "",
-      "1. I reach out within one business day from (903) 500-8898 to start the intake: your offer, your buyer, your five pages.",
-      "2. We put the scope in writing before anything gets built. The remaining $500 is due only after you approve the build and before it goes live.",
+      `1. I reach out within one business day from ${BUSINESS.phone.display} to start the intake: your offer, your buyer, your five pages.`,
+      `2. We put the scope in writing before anything gets built. The remaining ${usd(PRICES.websiteLaunchFinal)} is due only after you approve the build and before it goes live.`,
       "3. Have ready if you can: real photos of real work, your logo if you have one, and the domain you want. No passwords, ever.",
       "",
       "If you do not hear from me inside one business day, text that number. It is my direct line.",
@@ -745,8 +747,8 @@ async function ensureTimebackOrderPaid(
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-          to: ["hello@theleadflowpro.com"],
+          from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
+          to: [BUSINESS.email.hello],
           subject: `💰 TIME BACK ORDER PAID: ${leadName} — ${customer.email}`,
           text: [
             orderSummary,
@@ -773,7 +775,7 @@ async function ensureTimebackOrderPaid(
       "2. Grant access the official way through the platform invites on that page. You never hand over a password, and you can revoke it in one click.",
       "3. I write and schedule the posts. The first batch waits for your approval. Posts go live within five business days of your onboarding landing.",
       "",
-      "Questions in the meantime: text (903) 500-8898.",
+      `Questions in the meantime: text ${BUSINESS.phone.display}.`,
     ]);
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
@@ -910,8 +912,8 @@ async function ensureLeadFollowUpPaid(
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
-          to: ["hello@theleadflowpro.com"],
+          from: `${BUSINESS.name} <${BUSINESS.email.alerts}>`,
+          to: [BUSINESS.email.hello],
           subject: `💰 FOLLOW-UP CAMPAIGN PAID: ${leadName} — ${customer.email}`,
           text: [
             `$${LEAD_FOLLOW_UP.priceUsd} Lead Follow-Up Campaign paid.`,
@@ -1075,8 +1077,8 @@ async function ensureFreeBuildPaid(
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
-          to: ["hello@theleadflowpro.com"],
+          from: `${BUSINESS.name} <${BUSINESS.email.alerts}>`,
+          to: [BUSINESS.email.hello],
           subject: `FREE BUILD PAID: ${leadName} - ${tier.name} ($${tier.priceUsd})`,
           text: [
             `${tier.name} paid: $${tier.priceUsd}.`,
@@ -1100,7 +1102,7 @@ async function ensureFreeBuildPaid(
       "",
       "What happens next:",
       "",
-      "1. I text or call you within one business day from (903) 500-8898 to set up our twenty minute call. Want to skip the wait? Text that number now.",
+      `1. I text or call you within one business day from ${BUSINESS.phone.display} to set up our twenty minute call. Want to skip the wait? Text that number now.`,
       "2. The ten business day delivery clock starts at that call and your photos landing, not at this payment.",
       "3. Have ready: real photos of real work, your logo if you have one, and the domain you want on the front of it. No passwords, ever.",
       "",
@@ -1231,7 +1233,7 @@ export async function POST(request: Request) {
       // Never guess that an unknown $500 Payment Link is this offer. A non-2xx
       // response keeps the event retryable until its metadata or exact public
       // Payment Link ID is intentionally mapped.
-      throw new Error("Unmapped paid $500 Stripe Payment Link");
+      throw new Error(`Unmapped paid ${usd(PRICES.websiteLaunchDeposit)} Stripe Payment Link`);
     }
 
     const websiteLaunch = isWebsiteLaunchDeposit(session, configuredPaymentLinkId);

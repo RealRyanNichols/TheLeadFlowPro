@@ -5,6 +5,7 @@ import { FREE_BUILD } from "@/lib/freeBuild";
 import { priceToolStudio } from "@/lib/toolStudio";
 import { PRO_BUNDLE, getProTool } from "@/lib/tools/pro";
 import { startEventCheckout } from "@/lib/eventCheckoutServer";
+import { PRICES, usd } from "@/lib/site/prices";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
@@ -13,7 +14,7 @@ import { startEventCheckout } from "@/lib/eventCheckoutServer";
 const PRODUCTS: Record<string, { name: string; amount: number }> = {
   system_map: {
     name: "System Map | The LeadFlow Pro (credited toward your build)",
-    amount: 49700,
+    amount: PRICES.systemMap * 100,
   },
   // Amount comes from lib/leadFollowUp.ts so the page and the charge can
   // never drift apart. The funnel posts no price field at all.
@@ -94,8 +95,8 @@ export async function POST(request: Request) {
       // chosen by the customer but validated server-side; full payment charges
       // the base scope price. Everything is credited toward the final build.
       const PACKAGES: Record<string, { label: string; base: number }> = {
-        "system-map": { label: "System Map", base: 49700 },
-        launch: { label: "Website Launch", base: 100000 },
+        "system-map": { label: "System Map", base: PRICES.systemMap * 100 },
+        launch: { label: "Website Launch", base: PRICES.websiteLaunchTotal * 100 },
       };
       const packageId = requestedPackage;
       const pkg = PACKAGES[packageId];
@@ -113,9 +114,9 @@ export async function POST(request: Request) {
         if (!Number.isFinite(requested)) {
           return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
         }
-        if (packageId === "launch" && requested !== 500) {
+        if (packageId === "launch" && requested !== PRICES.websiteLaunchDeposit) {
           return NextResponse.json(
-            { error: "Website Launch deposit must be $500" },
+            { error: `Website Launch deposit must be ${usd(PRICES.websiteLaunchDeposit)}` },
             { status: 400 },
           );
         }
@@ -173,10 +174,10 @@ export async function POST(request: Request) {
         .slice(0, 480);
     } else if (body.kind === "pro_tool" || body.kind === "pro_bundle") {
       // Pro kits. The browser sends a slug, never a price: the amount comes
-      // from the kit registry here, so a edited request cannot buy the $29
-      // kit for $10. Success lands on the claim route, which verifies the
-      // session with Stripe and writes the access cookie before redirecting
-      // into the unlocked kit.
+      // from the kit registry here, so an edited request cannot buy the top
+      // kit (PRICES.proKitMax) for the entry price (PRICES.proKitMin). Success
+      // lands on the claim route, which verifies the session with Stripe and
+      // writes the access cookie before redirecting into the unlocked kit.
       if (body.kind === "pro_bundle") {
         kind = PRO_BUNDLE.kind;
         name = `${PRO_BUNDLE.name} | The LeadFlow Pro`;

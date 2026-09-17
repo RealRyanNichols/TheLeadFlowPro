@@ -1,142 +1,56 @@
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 export const metadata = withPublicPageMetadata("/", { title: "Your next move starts here | The LeadFlow Pro", description: "Find the right next step for your website, leads, follow-up, or business skills." });
-import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
   ArrowUpRight,
-  CalendarDays,
   BookOpen,
+  Megaphone,
   Wrench,
   ShieldCheck,
 } from "lucide-react";
 import NextStepGuide from "@/components/site/NextStepGuide";
 import HomeScoreboard from "@/components/site/HomeScoreboard";
 import BusinessTaskPreview from "@/components/site/BusinessTaskPreview";
-import { LADDER } from "@/lib/siteContent";
+import FeaturedEventBanner from "@/components/site/FeaturedEventBanner";
+import FeaturedEventHero from "@/components/site/FeaturedEventHero";
+import FeaturedEventPathCard from "@/components/site/FeaturedEventPathCard";
 import { TOOL_COUNT } from "@/lib/tools";
+import { PRICES, usd } from "@/lib/site/prices";
+import { getFeaturedEventState } from "@/lib/site/eventState.server";
+import {
+  graph,
+  jsonLdText,
+  localBusinessJsonLd,
+  organizationJsonLd,
+  webPageJsonLd,
+  websiteJsonLd,
+} from "@/lib/site/structuredData";
 
+// Re-rendered every 15 minutes, so the workshop surfaces swap to the
+// post-event state on their own within a quarter hour of the room closing.
 export const revalidate = 900;
 
-const SITE = "https://www.theleadflowpro.com";
+const HOME_JSONLD = graph(
+  organizationJsonLd(),
+  localBusinessJsonLd(),
+  websiteJsonLd(),
+  webPageJsonLd(
+    "/",
+    "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+    "Turn attention into conversations, conversations into qualified leads, and qualified leads into customers with one connected business system.",
+  ),
+);
 
-const HOME_JSONLD = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": `${SITE}/#organization`,
-      name: "The LeadFlow Pro",
-      legalName: "Longview Training Center, LLC",
-      description:
-        "The Company Builder. We build the website, the system behind it, and the back office that runs it, in accounts the client controls.",
-      url: SITE,
-      logo: {
-        "@type": "ImageObject",
-        url: `${SITE}/icon-512.png`,
-        width: 512,
-        height: 512,
-      },
-      image: `${SITE}/og/home.png`,
-      email: "hello@theleadflowpro.com",
-      telephone: "+1-903-500-8898",
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "2800 Gilmer Rd Suite 106",
-        addressLocality: "Longview",
-        addressRegion: "TX",
-        postalCode: "75604",
-        addressCountry: "US",
-      },
-      founder: {
-        "@type": "Person",
-        name: "Ryan Nichols",
-        url: `${SITE}/about`,
-      },
-      sameAs: [
-        "https://www.youtube.com/@TheLeadFlowProVids",
-        "https://www.facebook.com/profile.php?id=61586176300453",
-      ],
-    },
-    {
-      "@type": "ProfessionalService",
-      "@id": `${SITE}/#localbusiness`,
-      name: "The LeadFlow Pro",
-      parentOrganization: { "@id": `${SITE}/#organization` },
-      url: SITE,
-      telephone: "+1-903-500-8898",
-      email: "hello@theleadflowpro.com",
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "2800 Gilmer Rd Suite 106",
-        addressLocality: "Longview",
-        addressRegion: "TX",
-        postalCode: "75604",
-        addressCountry: "US",
-      },
-      areaServed: [
-        { "@type": "City", name: "Longview" },
-        { "@type": "City", name: "Tyler" },
-        { "@type": "City", name: "Marshall" },
-        { "@type": "AdministrativeArea", name: "East Texas" },
-        { "@type": "Country", name: "United States" },
-      ],
-      knowsAbout: [
-        "Business websites",
-        "Customer relationship management",
-        "Lead capture and follow-up automation",
-        "Small business operations software",
-      ],
-      hasOfferCatalog: {
-        "@type": "OfferCatalog",
-        name: "Website and connected business system offers",
-        itemListElement: LADDER.map((offer) => ({
-          "@type": "Offer",
-          url: `${SITE}${offer.href}`,
-          description: offer.body,
-          itemOffered: {
-            "@type": "Service",
-            name: offer.name,
-          },
-        })),
-      },
-    },
-    {
-      "@type": "WebSite",
-      "@id": `${SITE}/#website`,
-      url: SITE,
-      name: "The LeadFlow Pro",
-      publisher: { "@id": `${SITE}/#organization` },
-      inLanguage: "en-US",
-    },
-    {
-      "@type": "WebPage",
-      "@id": `${SITE}/#webpage`,
-      url: SITE,
-      name: "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
-      description:
-        "Turn attention into conversations, conversations into qualified leads, and qualified leads into customers with one connected business system.",
-      isPartOf: { "@id": `${SITE}/#website` },
-      about: { "@id": `${SITE}/#organization` },
-    },
-  ],
-};
-
-export default function HomePage() {
+export default async function HomePage() {
+  const event = await getFeaturedEventState();
   return (
     <main className="lf-home">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(HOME_JSONLD) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdText(HOME_JSONLD) }}
       />
-      <a
-        className="lf-announcement"
-        href="https://workshop.theleadflowpro.com/"
-      >
-        LIVE IN LONGVIEW · SEPTEMBER 17{" "}
-        <span>One evening. One useful business workflow.</span>
-        <ArrowRight size={17} aria-hidden="true" />
-      </a>
+      <FeaturedEventBanner state={event} />
       <section className="lf-hero lf-shell">
         <div className="lf-hero-copy">
           <p className="lf-eyebrow">THE LEAD FLOW PRO / EAST TEXAS & BEYOND</p>
@@ -150,7 +64,7 @@ export default function HomePage() {
           <p className="lf-intro">
             You don’t need to understand every new tool. You need a better way
             to get customers, follow up, and get work done. We’ll build it with
-            you—or show you how.
+            you, run it for you, or show you how.
           </p>
           <div className="lf-actions">
             <Link className="lf-button" href="#qualify">
@@ -168,36 +82,7 @@ export default function HomePage() {
             <span>Beginners welcome.</span>
           </div>
         </div>
-        <div className="lf-hero-feature">
-          <figure className="lf-workshop-creative">
-            <a href="https://workshop.theleadflowpro.com/" aria-label="Explore the September 17 ChatGPT workshop in Longview">
-              <Image
-                src="/images/workshops/chatgpt-build-september-17-warm-square.webp"
-                alt="Stop guessing. Start building with ChatGPT. September 17 hands-on workshop in Longview. A blue laptop connects an offer document, contact form, and follow-up message on a warm cream background."
-                width={1254}
-                height={1254}
-                priority
-                sizes="(max-width: 800px) 94vw, 48vw"
-              />
-            </a>
-          </figure>
-          <div className="lf-workshop-booking">
-            <time className="lf-workshop-date" dateTime="2026-09-17T18:30:00-05:00" aria-label="Thursday, September 17, 2026">
-              <span>SEPTEMBER</span>
-              <strong>17</strong>
-              <small>THURSDAY</small>
-            </time>
-            <div className="lf-workshop-booking-copy">
-              <span>CHATGPT FOR BUSINESS OWNERS</span>
-              <strong>Live in Longview, Texas</strong>
-              <p>6:30–8:00 PM Central<br /><b>$97 per attendee</b></p>
-            </div>
-            <Link className="lf-workshop-seat" href="/events/chatgpt-for-business-owners-longview">
-              Reserve my seat <ArrowRight size={21} aria-hidden="true" />
-            </Link>
-            <p className="lf-workshop-booking-note">Beginners welcome. Bring your laptop.</p>
-          </div>
-        </div>
+        <FeaturedEventHero state={event} />
       </section>
       <BusinessTaskPreview />
       <section className="lf-section lf-section-raised" id="qualify">
@@ -216,7 +101,13 @@ export default function HomePage() {
               choices will point you in the right direction.
             </p>
           </div>
-          <NextStepGuide />
+          <NextStepGuide
+            event={{
+              status: event.status,
+              shortDate: event.when.shortDate,
+              detailsHref: event.detailsHref,
+            }}
+          />
         </div>
       </section>
       <section className="lf-section lf-shell" id="results">
@@ -269,7 +160,7 @@ export default function HomePage() {
               <h3>A website that gives people a next step.</h3>
               <p>
                 Clear pages, an inquiry form, and the follow-up behind it. Apply
-                for a five-page website with a $0 build fee.
+                for a five-page website with a {usd(PRICES.freeBuildFee)} build fee.
               </p>
               <Link href="/free-build">
                 Check the free website program{" "}
@@ -277,7 +168,8 @@ export default function HomePage() {
               </Link>
               <small>
                 For approved businesses. Hosting and optional services are
-                explained before you commit.
+                explained before you commit. Want it run for you too?{" "}
+                <Link href="/agency">See the agency lane.</Link>
               </small>
             </article>
             <article>
@@ -296,25 +188,27 @@ export default function HomePage() {
                 <Link href="/chatgpt/free">Open the free starter lesson.</Link>
               </small>
             </article>
-            <article>
-              <span className="lf-path-number">03 / DO</span>
-              <CalendarDays aria-hidden="true" />
-              <h3>One evening. Your laptop. Real help.</h3>
-              <p>
-                Bring a follow-up, content, or admin task to the September 17
-                workshop. Build a process you can repeat the next day.
-              </p>
-              <Link href="https://workshop.theleadflowpro.com/">
-                See the Longview workshop{" "}
-                <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-              <small>6:30–8:00 PM Central · $97 · 10 paid seats</small>
-            </article>
+            <FeaturedEventPathCard state={event} />
           </div>
         </div>
       </section>
-      <section className="lf-section lf-shell">
+      <section className="lf-section lf-shell" id="run-it-for-me">
         <div className="lf-resource-grid">
+          <Link href="/agency">
+            <span className="lf-eyebrow">RUN IT FOR ME</span>
+            <strong>
+              Ads, content, follow-up, and media.
+              <br />
+              Handled, in accounts you own.
+            </strong>
+            <p>
+              Meta and Google ads, websites, automation, video, and content, with
+              the ad account, pixel, audiences, and leads in your name.
+            </p>
+            <span className="lf-text-link">
+              See the agency lane <Megaphone aria-hidden="true" />
+            </span>
+          </Link>
           <Link href="/tools">
             <span className="lf-eyebrow">YOUR TOOLBOX</span>
             <strong>
@@ -330,6 +224,10 @@ export default function HomePage() {
               Open the tools <ArrowRight aria-hidden="true" />
             </span>
           </Link>
+        </div>
+      </section>
+      <section className="lf-section lf-shell">
+        <div className="lf-resource-grid">
           <Link href="/articles">
             <span className="lf-eyebrow">PLAIN-ENGLISH GUIDES</span>
             <strong>
@@ -343,6 +241,21 @@ export default function HomePage() {
             </p>
             <span className="lf-text-link">
               Read the articles <ArrowRight aria-hidden="true" />
+            </span>
+          </Link>
+          <Link href="/plugin">
+            <span className="lf-eyebrow">INSIDE CHATGPT AND CLAUDE</span>
+            <strong>
+              Your leads, answered
+              <br />
+              from the assistant you already use.
+            </strong>
+            <p>
+              The LeadFlow Pro Plugin puts every lead in one inbox and drafts the
+              follow-up. {PRICES.pluginTrialDays} days free.
+            </p>
+            <span className="lf-text-link">
+              See the plugin <ArrowRight aria-hidden="true" />
             </span>
           </Link>
         </div>

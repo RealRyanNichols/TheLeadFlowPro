@@ -15,6 +15,7 @@ import {
 } from "@/lib/tools";
 import { relevanceTier } from "@/lib/tools/relevance";
 import { trackTool } from "@/lib/tools/analytics";
+import { BUSINESS } from "@/lib/site/business";
 
 /** The contexts worth offering. Anything narrower belongs in the filter drawer. */
 const CONTEXTS: { id: string; label: string; industries?: Industry[]; audiences?: Audience[] }[] = [
@@ -158,7 +159,7 @@ export default function ToolFinder({ tools }: { tools: ToolIndexEntry[] }) {
             </ul>
           ) : (
             <p className="mt-2 text-sm text-[var(--muted)]">
-              That combination is on the build list rather than the shelf. Text me at (903) 500-8898 and
+              That combination is on the build list rather than the shelf. Text me at {BUSINESS.phone.display} and
               tell me what you needed.
             </p>
           )}

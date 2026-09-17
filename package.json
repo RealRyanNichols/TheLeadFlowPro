@@ -7,8 +7,10 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "npm run validate:calculations && npm run validate:tools && npm run validate:visuals && npm run validate:social && next build",
-    "build:only": "npm run validate:calculations && next build",
+    "build": "npm run validate:calculations && npm run validate:facts && npm run validate:tools && npm run validate:visuals && npm run validate:social && next build",
+    "build:only": "npm run validate:calculations && npm run validate:facts && next build",
+    "validate:facts": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/validate-facts.ts",
+    "check:links": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/check-links.ts",
     "start": "next start",
     "art": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/generate-tool-art.ts",
     "og": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/generate-og-images.ts",

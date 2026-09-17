@@ -1,8 +1,10 @@
 // Product and price source of truth for /go/tools and /api/checkout.
 //
-// The $97 offer is deliberately a paid blueprint, not an unlimited custom
+// The Tool Blueprint offer (PRICES.toolStudioBlueprint) is deliberately a paid blueprint, not an unlimited custom
 // application. Production builds have bounded inputs, outputs, revisions,
 // and integrations so product discovery does not turn into unpriced labor.
+
+import { PRICES, usd } from "@/lib/site/prices";
 
 export type ToolBuildId = "tool_blueprint" | "quick_tool" | "tool_funnel";
 
@@ -21,7 +23,7 @@ export const TOOL_BUILDS: ToolBuild[] = [
   {
     id: "tool_blueprint",
     name: "Tool Blueprint",
-    priceUsd: 97,
+    priceUsd: PRICES.toolStudioBlueprint,
     description:
       "Turn one idea into a build-ready plan before paying for production.",
     bestFor: "You know the problem, but the inputs, outputs, and right first version are not clear yet.",
@@ -32,13 +34,13 @@ export const TOOL_BUILDS: ToolBuild[] = [
       "One-page wireframe and written production quote",
     ],
     boundary:
-      "This is the plan, not finished custom software. It keeps a $97 test from becoming an open-ended build.",
+      `This is the plan, not finished custom software. It keeps a ${usd(PRICES.toolStudioBlueprint)} test from becoming an open-ended build.`,
     tag: "START HERE",
   },
   {
     id: "quick_tool",
     name: "Quick Tool",
-    priceUsd: 497,
+    priceUsd: PRICES.toolStudioProduction,
     description:
       "Launch one focused calculator, quiz, estimator, checklist, or generator from a proven pattern.",
     bestFor: "You need one useful interaction that can live on an existing page and collect interest.",

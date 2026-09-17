@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
+import { BUSINESS } from "@/lib/site/business";
 
 // Monday-morning owner digest → hello@theleadflowpro.com.
 // Runs on Vercel Cron. Needs CRON_SECRET, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY.
@@ -65,8 +66,8 @@ export async function GET(request: Request) {
     method: "POST",
     headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-      to: ["hello@theleadflowpro.com"],
+      from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
+      to: [BUSINESS.email.hello],
       subject: `Weekly digest: ${leads.length} leads · ${purchases.length} purchases · ${s.total_views ?? 0} views`,
       text: lines.join("\n"),
     }),

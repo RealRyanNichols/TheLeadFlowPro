@@ -20,6 +20,7 @@ import {
   sendNurtureEmail,
 } from "@/lib/nurtureDelivery";
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
+import { BUSINESS } from "@/lib/site/business";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
 // The 30 day sequence sender. Runs hourly so an uncertain provider response can
@@ -88,7 +89,7 @@ function renderBody(step: NurtureStep, lead: EligibleLead, unsubUrl: string): st
     "",
     "Ryan Nichols",
     "The LeadFlow Pro",
-    "(903) 500-8898",
+    BUSINESS.phone.display,
     "Longview, Texas",
     "",
     "You are getting this because you asked me to send you business emails.",
@@ -346,8 +347,8 @@ export async function GET(request: Request) {
       resendKey,
       nurtureEmailIdempotencyKey(lead.id, next.step),
       {
-        from: "Ryan Nichols <ryan@theleadflowpro.com>",
-        reply_to: "hello@theleadflowpro.com",
+        from: `${BUSINESS.operator} <${BUSINESS.email.ryan}>`,
+        reply_to: BUSINESS.email.hello,
         to: [lead.email],
         subject: next.subject,
         text: renderBody(next, lead, unsubUrl),

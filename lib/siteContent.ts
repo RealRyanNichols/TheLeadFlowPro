@@ -1,19 +1,32 @@
 import { TOOL_COUNT } from "@/lib/tools";
+import { approvedClaim } from "@/lib/site/claims";
+import { EXTERNAL_LINKS } from "@/lib/site/external-links";
+import { PRICES, usd, usdFrom } from "@/lib/site/prices";
 
 // Shared marketing content for the public pages. The homepage, /services, and
 // /results all draw from here so the numbers and case studies stay identical
-// everywhere they appear. Every figure traces to the repository or to a live
-// property; nothing here claims revenue, leads, conversion rates, or ROI.
+// everywhere they appear. Every figure traces to an approved claim in
+// lib/site/claims.ts or to the repository; nothing here claims revenue,
+// leads, conversion rates, or ROI. A claim that is not approved renders
+// nothing, never a placeholder.
 
 export { PHONE_DISPLAY, PHONE_TEL, PHONE_SMS } from "@/lib/contactInfo";
 
+function proofFigure(id: string): { figure: string; label: string } | null {
+  const claim = approvedClaim(id);
+  return claim ? { figure: claim.value, label: claim.label } : null;
+}
+
+const LIVE_SYSTEMS = approvedClaim("lfp_live_systems");
+const RRN_PROFILES = approvedClaim("rrn_case_profiles");
+
 export const PROOF = [
-  { figure: "8", label: "live systems shipped and running right now" },
-  { figure: "6", label: "industries represented, from local service to software" },
+  proofFigure("lfp_live_systems"),
+  proofFigure("lfp_industries"),
   { figure: String(TOOL_COUNT), label: "free working tools built and published" },
-  { figure: "4", label: "real software products running on the owned stack" },
-  { figure: "100%", label: "built in accounts the client controls" },
-];
+  proofFigure("lfp_software_products"),
+  proofFigure("lfp_owned_accounts"),
+].filter((item): item is { figure: string; label: string } => item !== null);
 
 export const WEBSITE_BUILDER = [
   "Pages that describe the business",
@@ -55,7 +68,7 @@ export const FEATURED = [
     outcome:
       "The school owns the funnel, the student records, and the tools students train on. No enrollment platform to rent.",
     stack: "Next.js, Supabase, Vercel, in the school's accounts",
-    href: "https://www.premierdentalacademyoflongview.com",
+    href: EXTERNAL_LINKS.premierDentalAcademy,
     shot: "/og/portfolio/premier-dental.jpg",
     alt: "Premier Dental Academy of Longview homepage showing the 12 week RDA program and enrollment contact details",
   },
@@ -66,17 +79,16 @@ export const FEATURED = [
     what: "A publishing machine nobody else can switch off.",
     problem:
       "The audience and archive lived on platforms that could throttle reach, change the rules, or disconnect the owner from the people following the work.",
-    built:
-      "An independent media system with long-form publishing, a searchable archive of 1,568+ case profiles, intake forms, an AI assistant trained on the owner's writing, SMS alerts, and a store.",
+    built: `An independent media system with long-form publishing, a searchable archive of ${RRN_PROFILES?.value ?? "thousands of"} case profiles, intake forms, an AI assistant trained on the owner's writing, SMS alerts, and a store.`,
     facts: [
-      { v: "1,568+", l: "case profiles in the searchable archive" },
+      { v: RRN_PROFILES?.value ?? "Archive", l: "case profiles in the searchable archive" },
       { v: "AI assistant", l: "Trained on the owner's published writing" },
       { v: "Owned list", l: "SMS alerts and intake on first-party infrastructure" },
     ],
     outcome:
       "When platforms throttled the story, the story already had its own domain, searchable archive, database, and direct path back to the audience.",
     stack: "Next.js, Supabase, Vercel. Ryan's own site",
-    href: "https://realryannichols.com",
+    href: EXTERNAL_LINKS.realRyanNichols,
     shot: "/og/portfolio/realryannichols.jpg",
     alt: "RealRyanNichols.com homepage with the author profile and links into the searchable archive",
   },
@@ -97,7 +109,7 @@ export const FEATURED = [
     outcome:
       "The business answers the three questions every customer asks before anyone picks up the phone.",
     stack: "Next.js, Vercel, in the owner's accounts",
-    href: "https://www.lonestartotalwash.com",
+    href: EXTERNAL_LINKS.loneStarTotalWash,
     shot: "/og/portfolio/lonestar.jpg",
     alt: "Lone Star Total Wash homepage with the fleet washing offer, free quote request, and company logo",
   },
@@ -137,12 +149,12 @@ export const RECEIPTS = [
     body: "Wholesale and ecommerce: sourcing, pallets, inventory, fulfillment, and the sales process behind all of it. The pressure was payroll, not a sprint board.",
   },
   {
-    head: "Shipped 7 live systems across multiple industries.",
+    head: `Shipped ${LIVE_SYSTEMS?.value ?? "several"} live systems across multiple industries.`,
     body: "Media, dental education, commerce, legal services, local service, nonprofit missions, and the LeadFlow Pro system itself. Every one is publicly inspectable.",
   },
   {
     head: "Built real software, not brochure sites.",
-    body: "A searchable media archive with 1,568+ case profiles. A marketplace with auctions, offers, an AI listing builder, and a live fee engine.",
+    body: `A searchable media archive with ${RRN_PROFILES?.value ?? "thousands of"} case profiles. A marketplace with auctions, offers, an AI listing builder, and a live fee engine.`,
   },
   {
     head: "Publishes on owned infrastructure, not rented reach.",
@@ -154,9 +166,9 @@ export const LADDER = [
   {
     kind: "Application-based foundation",
     name: "Free Website Program",
-    price: "$0 build fee",
+    price: `${usd(PRICES.freeBuildFee)} build fee`,
     lead: true,
-    body: "One owned, mobile-first five-page website. The build fee is genuinely $0 for approved businesses; growth services stay optional.",
+    body: `One owned, mobile-first five-page website. The build fee is genuinely ${usd(PRICES.freeBuildFee)} for approved businesses; growth services stay optional.`,
     items: [
       "Up to five scoped pages",
       "Lead capture routed to your inbox or CRM",
@@ -170,7 +182,7 @@ export const LADDER = [
   {
     kind: "Deeper diagnostic",
     name: "System Map",
-    price: "$497",
+    price: usd(PRICES.systemMap),
     lead: false,
     body: "A working blueprint for a business that needs more than a five-page launch before anyone scopes software or automation.",
     items: [
@@ -185,7 +197,7 @@ export const LADDER = [
   {
     kind: "Buy-it-outright option",
     name: "Website Launch",
-    price: "$1,000",
+    price: usd(PRICES.websiteLaunchTotal),
     lead: false,
     body: "The same five-page foundation for businesses that want to purchase a build outright instead of applying for a program opening.",
     items: [
@@ -201,7 +213,7 @@ export const LADDER = [
   {
     kind: "Connected company core",
     name: "Company OS",
-    price: "$7,500+",
+    price: usdFrom(PRICES.companyOsFrom),
     lead: false,
     body: "The website, CRM, portal, analytics, and operating dashboard connected around the way the business actually works.",
     items: [

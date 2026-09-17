@@ -29,6 +29,7 @@ import ProUpsell from "@/components/tools/pro/ProUpsell";
 import { SHELLS } from "@/components/tools/shell";
 import FinalCta from "@/components/site/system/FinalCta";
 import SiteHero from "@/components/site/system/SiteHero";
+import { BUSINESS } from "@/lib/site/business";
 
 const BASE = "https://www.theleadflowpro.com";
 
@@ -391,7 +392,7 @@ export default async function ToolPage({
               <p className="mt-1.5 text-sm leading-relaxed text-[var(--muted)]">
                 Nothing. No monthly fee, no expiring trial, no watermark you
                 have to pay to remove. If you get stuck putting it in, text me
-                at (903) 500-8898 and I will help you place it.
+                at {BUSINESS.phone.display} and I will help you place it.
               </p>
             </div>
           </div>

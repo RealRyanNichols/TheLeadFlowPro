@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowRight, LockKeyhole } from "lucide-react";
 import { trackTool } from "@/lib/tools/analytics";
+import { BUSINESS } from "@/lib/site/business";
 
 // One button, one price, one job: open Stripe Checkout for this kit.
 //
@@ -51,11 +52,11 @@ export default function ProBuyButton({
       }
       setError(
         body.error === "not_configured"
-          ? "Card payment is not switched on yet. Text (903) 500-8898 and Ryan will send you the kit."
-          : "Checkout did not open. Try again, or text (903) 500-8898.",
+          ? `Card payment is not switched on yet. Text ${BUSINESS.phone.display} and Ryan will send you the kit.`
+          : `Checkout did not open. Try again, or text ${BUSINESS.phone.display}.`,
       );
     } catch {
-      setError("Checkout did not open. Try again, or text (903) 500-8898.");
+      setError(`Checkout did not open. Try again, or text ${BUSINESS.phone.display}.`);
     } finally {
       setBusy(false);
     }

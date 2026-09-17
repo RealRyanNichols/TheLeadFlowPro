@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { KeyRound } from "lucide-react";
 import UnlockForm from "./UnlockForm";
+import { BUSINESS } from "@/lib/site/business";
 
 export const metadata: Metadata = {
   title: "Restore your Pro Kit access | The LeadFlow Pro",
@@ -41,8 +42,8 @@ export default function ProUnlockPage() {
                 <Link href="/login">sign in</Link> and your kits unlock on their own.
               </li>
               <li>
-                Still stuck? Email <a href="mailto:hello@theleadflowpro.com">hello@theleadflowpro.com</a> or
-                text (903) 500-8898 and it will be sorted out by hand.
+                Still stuck? Email <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a> or
+                text {BUSINESS.phone.display} and it will be sorted out by hand.
               </li>
             </ul>
           </div>

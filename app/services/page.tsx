@@ -7,6 +7,7 @@ import ServicesPreview from "@/components/site/ServicesPreview";
 import CtaLink from "@/components/site/CtaLink";
 import { FREE_BUILD } from "@/lib/freeBuild";
 import { LADDER, PHONE_DISPLAY, PHONE_TEL } from "@/lib/siteContent";
+import { PRICES, usd, usdFrom } from "@/lib/site/prices";
 import styles from "./services.module.css";
 
 const SITE = "https://www.theleadflowpro.com";
@@ -80,7 +81,7 @@ export default function ServicesPage() {
               <br />
               Prefer to buy outright?{" "}
               <Link href="/packages/launch">
-                Website Launch is $1,000, with $500 to start.
+                Website Launch is {usd(PRICES.websiteLaunchTotal)}, with {usd(PRICES.websiteLaunchDeposit)} to start.
               </Link>
             </p>
             <p className={styles.ownership}>
@@ -311,7 +312,7 @@ export default function ServicesPage() {
               <h3>Need a custom platform?</h3>
               <p>
                 Multi-location systems, complex migrations, deeper permissions,
-                and software products are scoped from $15,000+. A System Map
+                and software products are scoped from {usdFrom(PRICES.customPlatformFrom)}. A System Map
                 comes first when the dependencies are complex.
               </p>
             </div>

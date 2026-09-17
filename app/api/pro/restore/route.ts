@@ -15,6 +15,7 @@ import {
   verifyLicenseKey,
 } from "@/lib/proAccess";
 import { proAccessCookieOptions, readProAccessCookie } from "@/lib/proAccessServer";
+import { BUSINESS } from "@/lib/site/business";
 import { PRO_BUNDLE, allProKinds, getProTool } from "@/lib/tools/pro";
 
 // Restore access on another device.
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
   const secrets = proAccessSecrets();
   if (secrets.length === 0) {
     return NextResponse.json(
-      { error: "Access restore is not configured yet. Email hello@theleadflowpro.com and we will unlock you by hand." },
+      { error: `Access restore is not configured yet. Email ${BUSINESS.email.hello} and we will unlock you by hand.` },
       { status: 503 },
     );
   }
@@ -118,7 +119,7 @@ export async function POST(request: Request) {
   const resendKey = process.env.RESEND_API_KEY?.trim();
   if (!serviceKey || !resendKey) {
     return NextResponse.json(
-      { error: "Key recovery by email is not switched on yet. Email hello@theleadflowpro.com with the email you paid with." },
+      { error: `Key recovery by email is not switched on yet. Email ${BUSINESS.email.hello} with the email you paid with.` },
       { status: 503 },
     );
   }
@@ -150,9 +151,9 @@ export async function POST(request: Request) {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "The LeadFlow Pro <hello@theleadflowpro.com>",
+          from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
           to: [email],
-          reply_to: "hello@theleadflowpro.com",
+          reply_to: BUSINESS.email.hello,
           subject: "Your Pro Kit access keys",
           text: [
             "Here are the keys for every kit bought with this email.",

@@ -4,11 +4,13 @@
 // and the ChatGPT/Claude connector touch hangs off a workspace id. These
 // types mirror the hq_* tables in supabase/migrations/20260912180000.
 
+import { PRICES } from "@/lib/site/prices";
+
 export const HQ_PLAN = {
   name: "The LeadFlow Pro Plugin",
   shortName: "LeadFlow Plugin",
-  priceUsd: 49,
-  trialDays: 14,
+  priceUsd: PRICES.pluginMonthly,
+  trialDays: PRICES.pluginTrialDays,
   /** purchases.kind and Stripe metadata.kind for the subscription. */
   kind: "hq_subscription",
   connectorName: "The LeadFlow Pro",

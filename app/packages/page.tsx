@@ -11,16 +11,18 @@ import {
 } from "lucide-react";
 import styles from "./product-studio.module.css";
 import { WEBSITE_LAUNCH_CHECKOUT as CHECKOUT_URL } from "@/lib/offers";
+import { BUSINESS } from "@/lib/site/business";
+import { PRICES, usd, usdFrom } from "@/lib/site/prices";
 
 export const metadata: Metadata = withPublicPageMetadata("/packages", {
   title: "Product Studio & Website Launch | The LeadFlow Pro",
   description:
-    "Start a conversion-led five-page Website Launch for $1,000: $500 to reserve the build and $500 after approval, before launch. Add funnels, CRM, tools, portals, courses, ads and automation as separately scoped modules.",
+    `Start a conversion-led five-page Website Launch for ${usd(PRICES.websiteLaunchTotal)}: ${usd(PRICES.websiteLaunchDeposit)} to reserve the build and ${usd(PRICES.websiteLaunchFinal)} after approval, before launch. Add funnels, CRM, tools, portals, courses, ads and automation as separately scoped modules.`,
   alternates: { canonical: "https://www.theleadflowpro.com/packages" },
   openGraph: {
     title: "Not another website. A working business system.",
     description:
-      "Website Launch is $1,000 total: $500 to start and $500 after approval, before launch.",
+      `Website Launch is ${usd(PRICES.websiteLaunchTotal)} total: ${usd(PRICES.websiteLaunchDeposit)} to start and ${usd(PRICES.websiteLaunchFinal)} after approval, before launch.`,
     url: "https://www.theleadflowpro.com/packages",
     siteName: "The LeadFlow Pro",
     images: [
@@ -36,7 +38,7 @@ export const metadata: Metadata = withPublicPageMetadata("/packages", {
   twitter: {
     card: "summary_large_image",
     title: "Not another website. A working business system.",
-    description: "A $1,000 Website Launch with a clear two-payment schedule.",
+    description: `A ${usd(PRICES.websiteLaunchTotal)} Website Launch with a clear two-payment schedule.`,
     images: ["/images/product-studio/connected-system-path.webp"],
   },
 });
@@ -70,7 +72,7 @@ const SERVICES = [
     number: "03",
     name: "Course platform",
     outcome: "Training modules, member access, progress and an operator-owned curriculum.",
-    price: "$5,000+",
+    price: usdFrom(PRICES.trainingPlatformFrom),
   },
   {
     number: "04",
@@ -82,22 +84,22 @@ const SERVICES = [
     number: "05",
     name: "Company operating system",
     outcome: "Join the public site, database, dashboards and delivery workflows into one owned stack.",
-    price: "$7,500+",
+    price: usdFrom(PRICES.companyOsFrom),
   },
   {
     number: "06",
     name: "Custom platform",
     outcome: "Build the product, marketplace or multi-role system that cannot come from a template.",
-    price: "$15,000+",
+    price: usdFrom(PRICES.customPlatformFrom),
   },
 ];
 
 const PROCESS = [
-  ["01", "Reserve", "The $500 deposit reserves the Website Launch and starts intake."],
+  ["01", "Reserve", `The ${usd(PRICES.websiteLaunchDeposit)} deposit reserves the Website Launch and starts intake.`],
   ["02", "Map", "We confirm the audience, goal, pages, assets and written scope."],
   ["03", "Build", "The working experience comes together in a reviewable environment."],
   ["04", "Approve", "Two revision rounds tighten the work against the agreed direction."],
-  ["05", "Launch", "The remaining $500 is due after approval and before production launch."],
+  ["05", "Launch", `The remaining ${usd(PRICES.websiteLaunchFinal)} is due after approval and before production launch.`],
 ];
 
 const WORK = [
@@ -132,15 +134,15 @@ const JSON_LD = {
   provider: {
     "@type": "Organization",
     name: "The LeadFlow Pro",
-    legalName: "Longview Training Center, LLC",
+    legalName: BUSINESS.legalName,
     url: "https://www.theleadflowpro.com",
   },
   offers: {
     "@type": "Offer",
-    price: "1000",
+    price: String(PRICES.websiteLaunchTotal),
     priceCurrency: "USD",
     url: CHECKOUT_URL,
-    description: "$500 deposit and $500 after approval, before launch.",
+    description: `${usd(PRICES.websiteLaunchDeposit)} deposit and ${usd(PRICES.websiteLaunchFinal)} after approval, before launch.`,
   },
 };
 
@@ -180,7 +182,7 @@ export default function ProductStudioPage() {
                   href={CHECKOUT_URL}
                   data-analytics="cta-website-launch-packages-hero"
                 >
-                  Start with $500
+                  Start with {usd(PRICES.websiteLaunchDeposit)}
                   <ArrowUpRight aria-hidden="true" />
                 </a>
                 <a className={styles.secondaryAction} href="#website-launch">
@@ -197,7 +199,7 @@ export default function ProductStudioPage() {
               </p>
               <p className={styles.heroNote}>
                 <ShieldCheck aria-hidden="true" />
-                $1,000 total · written scope · the second $500 is due after approval, before
+                {usd(PRICES.websiteLaunchTotal)} total · written scope · the second {usd(PRICES.websiteLaunchFinal)} is due after approval, before
                 launch · the initial deposit becomes non-refundable once intake begins,
                 except where the written agreement or applicable law requires otherwise
               </p>
@@ -209,19 +211,19 @@ export default function ProductStudioPage() {
                 <span>01 / Foundation</span>
               </div>
               <div className={styles.briefPrice}>
-                <strong>$1,000</strong>
+                <strong>{usd(PRICES.websiteLaunchTotal)}</strong>
                 <span>total investment</span>
               </div>
               <div className={styles.briefPayments}>
                 <div>
                   <span>Now</span>
-                  <strong>$500</strong>
+                  <strong>{usd(PRICES.websiteLaunchDeposit)}</strong>
                   <small>Reserve + intake</small>
                 </div>
                 <MoveRight aria-hidden="true" />
                 <div>
                   <span>Before launch</span>
-                  <strong>$500</strong>
+                  <strong>{usd(PRICES.websiteLaunchFinal)}</strong>
                   <small>After approval</small>
                 </div>
               </div>
@@ -234,7 +236,7 @@ export default function ProductStudioPage() {
                 <ArrowUpRight aria-hidden="true" />
               </a>
               <small>
-                Once intake begins, the $500 deposit is non-refundable, except where the
+                Once intake begins, the {usd(PRICES.websiteLaunchDeposit)} deposit is non-refundable, except where the
                 written agreement or applicable law requires otherwise.
               </small>
             </aside>
@@ -300,8 +302,8 @@ export default function ProductStudioPage() {
               <p className={styles.kickerDark}>The foundation</p>
               <h2>Website Launch</h2>
               <div className={styles.priceLockup}>
-                <strong>$1,000</strong>
-                <span>$500 down / $500 before launch</span>
+                <strong>{usd(PRICES.websiteLaunchTotal)}</strong>
+                <span>{usd(PRICES.websiteLaunchDeposit)} down / {usd(PRICES.websiteLaunchFinal)} before launch</span>
               </div>
               <p>
                 A focused first release for a real business that needs credibility, lead
@@ -313,13 +315,13 @@ export default function ProductStudioPage() {
                 href={CHECKOUT_URL}
                 data-analytics="cta-website-launch-packages-scope"
               >
-                Reserve Website Launch | $500
+                Reserve Website Launch | {usd(PRICES.websiteLaunchDeposit)}
                 <ArrowUpRight aria-hidden="true" />
               </a>
               <small>
-                Payment reserves the build and is applied to the $1,000 project total. Final
+                Payment reserves the build and is applied to the {usd(PRICES.websiteLaunchTotal)} project total. Final
                 scope is confirmed in writing before production work begins. Once intake
-                begins, the $500 deposit is non-refundable, except where the written
+                begins, the {usd(PRICES.websiteLaunchDeposit)} deposit is non-refundable, except where the written
                 agreement or applicable law requires otherwise.
               </small>
             </div>
@@ -347,7 +349,7 @@ export default function ProductStudioPage() {
             <h2>Add only what the business actually needs.</h2>
             <p>
               Funnels, CRM, tools, portals, courses, ads and automation are not buried inside
-              a $1,000 website promise. Each is scoped as its own module or assembled into a
+              a {usd(PRICES.websiteLaunchTotal)} website promise. Each is scoped as its own module or assembled into a
               larger system.
             </p>
           </div>
@@ -446,12 +448,12 @@ export default function ProductStudioPage() {
                 href={CHECKOUT_URL}
                 data-analytics="cta-website-launch-packages-final"
               >
-                Start Website Launch | $500
+                Start Website Launch | {usd(PRICES.websiteLaunchDeposit)}
                 <ArrowUpRight aria-hidden="true" />
               </a>
               <span>
-                Secure checkout through Longview Training Center, LLC. Once intake begins,
-                the $500 deposit is non-refundable, except where the written agreement or
+                Secure checkout through {BUSINESS.legalName}. Once intake begins,
+                the {usd(PRICES.websiteLaunchDeposit)} deposit is non-refundable, except where the written agreement or
                 applicable law requires otherwise.
               </span>
             </div>

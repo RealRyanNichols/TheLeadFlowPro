@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { TOOLS, getTool } from "@/lib/tools";
 import ToolEngine from "@/components/tools/ToolEngine";
 import EmbedAutoHeight from "@/components/tools/EmbedAutoHeight";
+import { BUSINESS } from "@/lib/site/business";
 
 // Iframe-served tool for other people's websites. The overlay covers the site
 // chrome so the frame shows only the tool plus the powered-by backlink. The
@@ -47,7 +48,7 @@ export default async function EmbedPage({
           >
             The LeadFlow Pro
           </a>{" "}
-          · Want one custom for your business? Text (903) 500-8898
+          · Want one custom for your business? Text {BUSINESS.phone.display}
         </p>
       </EmbedAutoHeight>
     </div>

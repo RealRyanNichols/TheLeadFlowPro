@@ -1,6 +1,7 @@
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BUSINESS } from "@/lib/site/business";
 
 export const metadata: Metadata = withPublicPageMetadata("/privacy", {
   title: "Privacy Policy | The LeadFlow Pro",
@@ -13,7 +14,7 @@ export default function PrivacyPage() {
       <span className="eyebrow">Last updated August 28, 2026</span>
       <h1>Privacy Policy</h1>
       <p>
-        The LeadFlow Pro is a DBA of Longview Training Center, LLC. This policy explains
+        {BUSINESS.name} is a DBA of {BUSINESS.legalName}. This policy explains
         how we handle information when you use this website, request a system map, contact
         us, register for an event or training, or become a client.
       </p>
@@ -118,7 +119,7 @@ export default function PrivacyPage() {
       <h2>Contact</h2>
       <p>
         Questions or privacy requests can be sent to{" "}
-        <a href="mailto:hello@theleadflowpro.com">hello@theleadflowpro.com</a>. Please
+        <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>. Please
         include enough information for us to verify and respond to the request.
       </p>
       <Link className="button-secondary" href="/start">

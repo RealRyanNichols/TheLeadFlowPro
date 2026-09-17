@@ -19,6 +19,9 @@ import {
   type EventAvailability,
   type EventRow,
 } from "@/lib/events";
+import { PAST_EVENT_COPY, featuredEvent, type EventStatus } from "@/lib/site/events";
+import { PRICES, usd } from "@/lib/site/prices";
+import WorkshopListForm from "@/components/site/WorkshopListForm";
 import styles from "./[slug]/workshop.module.css";
 import local from "./events.module.css";
 
@@ -33,35 +36,46 @@ const FOUNDING_SLUG = "chatgpt-for-business-owners-longview";
 export default function WorkshopShowcase({
   event,
   availability,
+  status = "upcoming",
 }: {
   /** The published event row, or null while it is still a draft. */
   event: EventRow | null;
   availability: EventAvailability | null;
+  /** Marketing state from lib/site/events.ts. "past" swaps the seat CTA for the list. */
+  status?: EventStatus;
 }) {
   const content = workshopContent(FOUNDING_SLUG);
   if (!content) return null;
 
+  const past = status === "past";
   const published = Boolean(event?.is_published);
-  const price = event ? priceUsd(event) : 97;
-  const capacity = event?.capacity ?? 10;
+  const price = event ? priceUsd(event) : PRICES.workshopSeat;
+  const capacity = event?.capacity ?? featuredEvent().seats;
   const when = event ? formatEventWhen(event) : null;
   // A published event shows its working date the same way the funnel does.
   // Hiding it here while the event card below prints it made the page argue
   // with itself; naming it as "being finalized" is both honest and specific.
-  const dateLine = !published
-    ? "Date announced soon, founding class"
-    : when?.iso
-      ? event?.date_confirmed
-        ? when.full
-        : `${when.full} (date being finalized)`
-      : "Date being finalized";
+  const dateLine = past
+    ? `${when?.dateLabel ?? "The first class"} has run. Next date to be announced.`
+    : !published
+      ? "Date announced soon, founding class"
+      : when?.iso
+        ? event?.date_confirmed
+          ? when.full
+          : `${when.full} (date being finalized)`
+        : "Date being finalized";
   const funnelHref = `/events/${FOUNDING_SLUG}`;
-  const soldOut = availability?.sold_out ?? false;
+  const soldOut = !past && (availability?.sold_out ?? false);
   const seatsRemaining = availability?.seats_remaining ?? capacity;
 
-  const primaryCta = published ? (
+  const primaryCta = past ? (
+    <a className="cb-btn cb-btn--primary" href="#next-workshop">
+      {PAST_EVENT_COPY.listCta}
+      <ArrowRight aria-hidden="true" />
+    </a>
+  ) : published ? (
     <Link className="cb-btn cb-btn--primary" href={funnelHref}>
-      {soldOut ? "Sold Out | See Details" : `Reserve My Seat | $${price}`}
+      {soldOut ? "Sold Out | See Details" : `Reserve My Seat | ${usd(price)}`}
       <ArrowRight aria-hidden="true" />
     </Link>
   ) : (
@@ -86,8 +100,9 @@ export default function WorkshopShowcase({
               <CalendarDays aria-hidden="true" />
               <span>
                 {dateLine}
-                {!published && <em>Founding seats get the date first.</em>}
-                {published && !event?.date_confirmed && (
+                {past && <em>{PAST_EVENT_COPY.announcementDetail}</em>}
+                {!past && !published && <em>Founding seats get the date first.</em>}
+                {!past && published && !event?.date_confirmed && (
                   <em>Paid seats transfer automatically if the date moves.</em>
                 )}
               </span>
@@ -111,8 +126,9 @@ export default function WorkshopShowcase({
               <span>
                 {capacity} seats, first come first served
                 <em>
-                  ${price} founding ticket. A seat is confirmed only after payment, and this
-                  price goes up after the founding class.
+                  {past
+                    ? "A seat is confirmed only after payment. Pricing for the next date is announced with it."
+                    : `${usd(price)} founding ticket. A seat is confirmed only after payment, and this price goes up after the founding class.`}
                 </em>
               </span>
             </p>
@@ -122,7 +138,7 @@ export default function WorkshopShowcase({
             </p>
             <div className={local.showcaseCta}>
               {primaryCta}
-              {published && !soldOut && (
+              {!past && published && !soldOut && (
                 <span className={local.seatNote}>
                   {seatsRemaining} of {capacity} seats open
                 </span>
@@ -130,6 +146,20 @@ export default function WorkshopShowcase({
             </div>
           </div>
         </div>
+
+        {past && (
+          <div id="next-workshop" className={local.showcaseBlock} tabIndex={-1}>
+            <p className="cb-eyebrow">{PAST_EVENT_COPY.kicker}</p>
+            <h3 className={local.showcaseH3}>{PAST_EVENT_COPY.headline}</h3>
+            <p className="cb-lead">{PAST_EVENT_COPY.body}</p>
+            <div className={styles.miniCard}>
+              <WorkshopListForm eventSlug={FOUNDING_SLUG} placement="events_page" />
+            </div>
+            <p className="cb-lead" style={{ marginTop: 16 }}>
+              <Link href={PAST_EVENT_COPY.lessonPath}>{PAST_EVENT_COPY.lessonCta}</Link>
+            </p>
+          </div>
+        )}
 
         {/* ------------------------------------------------------- learn --- */}
         <div className={local.showcaseBlock}>
@@ -233,7 +263,7 @@ export default function WorkshopShowcase({
 
         <div className={local.showcaseFoot}>
           {primaryCta}
-          {published && (
+          {!past && published && (
             <Link className="cb-btn cb-btn--ghost" href={funnelHref}>
               Full Details &amp; FAQ
               <ArrowRight aria-hidden="true" />

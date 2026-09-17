@@ -30,6 +30,9 @@
 //   - Every email ends with a working unsubscribe, added by the cron.
 
 import { LEADFLOW_META } from "@/lib/metaCampaignGuard";
+import { BUSINESS } from "@/lib/site/business";
+import { eventWhen, featuredEvent, featuredEventStartMs } from "@/lib/site/events";
+import { PRICES, usd } from "@/lib/site/prices";
 
 export const NURTURE_CAMPAIGN = "free_build";
 
@@ -213,7 +216,7 @@ You do not need software for this. You need one message already written, saved o
 
 Write it tonight. Save it as a quick reply. That is a free fix and it takes ten minutes.
 
-If you want that message written properly, in your words, that is the $197.
+If you want that message written properly, in your words, that is the ${usd(PRICES.freeBuildFollowUpPack)}.
 
 ${nurtureLink(4)}`,
   },
@@ -238,14 +241,14 @@ ${nurtureLink(5)}`,
   {
     step: 106,
     day: 6,
-    subject: "💼 The optional $497 engine, itemized",
+    subject: `💼 The optional ${usd(PRICES.freeBuildContentEngine)} engine, itemized`,
     body: (first) => `${first},
 
 The middle one, line by line.
 
 Free, at $0: up to five scoped pages built for a phone first. Lead capture. Search foundation. Analytics in your account. Ninety days of defined corrections. Code, domain, tracking, and leads under your control.
 
-Optional, $497 one time: fourteen days of business-specific content, a campaign calendar tied to the offer, one visual direction, and a publishing handoff inside client-controlled accounts.
+Optional, ${usd(PRICES.freeBuildContentEngine)} one time: fourteen days of business-specific content, a campaign calendar tied to the offer, one visual direction, and a publishing handoff inside client-controlled accounts.
 
 No ad spend. No subscription. Nothing renews without written approval.
 
@@ -261,7 +264,7 @@ Seven emails. Here is the only question that matters this week.
 
 When somebody calls your business and nobody picks up, what happens next?
 
-If the honest answer is nothing, that is the cheapest hole in your business and you can plug it for $197.
+If the honest answer is nothing, that is the cheapest hole in your business and you can plug it for ${usd(PRICES.freeBuildFollowUpPack)}.
 
 If the honest answer is something, good. You are further along than most and we should talk about the next thing instead.
 
@@ -455,7 +458,7 @@ Five. A one page cheat sheet of what goes out when, for whoever answers the phon
 
 Written for your business, handed to you, yours to keep and reuse forever.
 
-$197 for the follow-up pack. Optional. The website application stays available at $0 without it.
+${usd(PRICES.freeBuildFollowUpPack)} for the follow-up pack. Optional. The website application stays available at $0 without it.
 
 ${nurtureLink(18)}`,
   },
@@ -512,14 +515,14 @@ ${nurtureLink(21)}`,
   {
     step: 122,
     day: 22,
-    subject: "Why the first optional service is $197",
+    subject: `Why the first optional service is ${usd(PRICES.freeBuildFollowUpPack)}`,
     body: (first) => `${first},
 
 Because $3,000 is where good work goes to die in a small business.
 
 You save for it. You put it off. You finally do it, once, and then it sits for two years because another three grand is not happening.
 
-$197 is a fixed follow-up work product, not a retainer and not ad management. It is small enough to solve one leak without pretending to rebuild the whole company.
+${usd(PRICES.freeBuildFollowUpPack)} is a fixed follow-up work product, not a retainer and not ad management. It is small enough to solve one leak without pretending to rebuild the whole company.
 
 The site being free is the same logic. I would rather earn the bigger work by showing the work first.
 
@@ -577,7 +580,7 @@ Eight prompts. Rotate them and you have a month.
 
 You do not need to be clever online. You need to be visible and specific. Specific beats clever every single time.
 
-If you want it built for you, the optional $497 content engine covers fourteen days of business-specific content, a campaign calendar, one visual direction, and a client-controlled publishing handoff.
+If you want it built for you, the optional ${usd(PRICES.freeBuildContentEngine)} content engine covers fourteen days of business-specific content, a campaign calendar, one visual direction, and a client-controlled publishing handoff.
 
 ${nurtureLink(25)}`,
   },
@@ -661,7 +664,7 @@ ${nurtureLink(29)}`,
 
 Thirty days. This is the last email in this sequence and I am not going to keep pushing.
 
-If the timing is wrong, that is a real answer and I respect it. Keep my number: (903) 500-8898. Text it whenever, even a year from now, even if it is just a question you want a straight answer to. I will answer it either way.
+If the timing is wrong, that is a real answer and I respect it. Keep my number: ${BUSINESS.phone.display}. Text it whenever, even a year from now, even if it is just a question you want a straight answer to. I will answer it either way.
 
 If the timing is right, the offer is simple. Apply for the first five-page website at a $0 build fee. No paid add-on is required. Paid growth services, outside vendor costs, and ad spend are disclosed and approved separately.
 
@@ -704,7 +707,11 @@ export const NURTURE_LAST_STEP = NURTURE_STEPS[NURTURE_STEPS.length - 1].step;
 // workshopSequenceClosed() before sending and skips these leads entirely once
 // it returns true.
 
-export const WORKSHOP_CUTOFF_MS = Date.parse("2026-09-17T23:30:00Z"); // 6:30 PM Central
+// The class start, read from the featured event config (lib/site/events.ts)
+// so the cutoff moves with the date instead of living in two places.
+export const WORKSHOP_CUTOFF_MS = featuredEventStartMs();
+const WORKSHOP_WHEN = eventWhen(featuredEvent());
+const WORKSHOP_PRICE = usd(featuredEvent().priceUsd);
 
 export function workshopSequenceClosed(now = Date.now()): boolean {
   return now >= WORKSHOP_CUTOFF_MS;
@@ -712,7 +719,7 @@ export function workshopSequenceClosed(now = Date.now()): boolean {
 
 export function workshopLink(day: number): string {
   return (
-    "https://workshop.theleadflowpro.com/" +
+    (featuredEvent().externalSiteUrl ?? `${BUSINESS.siteUrl}${featuredEvent().registrationPath}`) +
     `?utm_source=email&utm_medium=nurture&utm_campaign=workshop_sep17_2026&utm_content=day${day}`
   );
 }
@@ -745,7 +752,7 @@ Most business owners have done it. Opened ChatGPT, typed something, got somethin
 
 That is not a you problem. Nobody showed you what to actually type for YOUR business.
 
-That is what September 17 is for. Not a lecture. A working session.
+That is what ${WORKSHOP_WHEN.shortDate} is for. Not a lecture. A working session.
 
 Seats confirm after payment, ten max:
 ${workshopLink(2)}`,
@@ -762,7 +769,7 @@ I am not talking at a crowd. I am sitting down with owners and building. When yo
 
 That only works in a small room. That is also why seats do not hold without payment.
 
-$97, one evening, Longview:
+${WORKSHOP_PRICE}, one evening, Longview:
 ${workshopLink(3)}`,
   },
   {
@@ -773,7 +780,7 @@ ${workshopLink(3)}`,
 
 Last note from me about the workshop.
 
-Thursday September 17, 6:30 PM, Longview. Whatever seats are left when the room is full, that is that.
+${WORKSHOP_WHEN.dateLabel}, ${WORKSHOP_WHEN.startTime}, Longview. Whatever seats are left when the room is full, that is that.
 
 If the timing is wrong, no problem. Reply and tell me what you were hoping to build and I will point you at the next best step either way.
 

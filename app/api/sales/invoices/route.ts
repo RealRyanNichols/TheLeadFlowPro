@@ -3,6 +3,7 @@ import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { SUPABASE_URL } from "@/lib/config";
 import { validateSalesInvoiceDraft } from "@/lib/salesInvoice";
+import { BUSINESS } from "@/lib/site/business";
 
 const STRIPE_VERSION = "2026-06-24.dahlia";
 
@@ -128,7 +129,7 @@ export async function POST(request: Request) {
       due_date: String(draft.due_date_unix),
       auto_advance: "false",
       description: draft.memo || "Custom services from The LeadFlow Pro",
-      footer: "The LeadFlow Pro | Questions: hello@theleadflowpro.com",
+      footer: `${BUSINESS.name} | Questions: ${BUSINESS.email.hello}`,
       "automatic_tax[enabled]": "false",
       "metadata[leadflow_lead_id]": lead.id,
       "metadata[leadflow_created_by]": user.id,

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Bot, CalendarCheck, CheckCircle2, CircleAlert, KeyRound, Mail, Radio, ShieldCheck, UsersRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { BUSINESS } from "@/lib/site/business";
 import OperatorSetupForm from "./OperatorSetupForm";
 
 export const metadata = { title: "OperatorOS Setup | The LeadFlow Pro" };
@@ -24,7 +25,7 @@ type Settings = {
 
 const DEFAULT_SETTINGS: Settings = {
   sender_name: "Ryan Nichols",
-  sender_email: "hello@theleadflowpro.com",
+  sender_email: BUSINESS.email.hello,
   sender_phone: null,
   booking_url: null,
   outbound_owner: "Pat",

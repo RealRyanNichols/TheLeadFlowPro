@@ -1,6 +1,8 @@
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BUSINESS } from "@/lib/site/business";
+import { PRICES, usd } from "@/lib/site/prices";
 
 export const metadata: Metadata = withPublicPageMetadata("/terms", {
   title: "Terms of Use | The LeadFlow Pro",
@@ -13,8 +15,8 @@ export default function TermsPage() {
       <span className="eyebrow">Last updated August 17, 2026</span>
       <h1>Terms of Use</h1>
       <p>
-        These terms apply to this website operated by The LeadFlow Pro, a DBA of Longview
-        Training Center, LLC. By using the site, you agree to these terms. A signed
+        These terms apply to this website operated by {BUSINESS.dbaLine}. By using the
+        site, you agree to these terms. A signed
         proposal, statement of work, order form, or service agreement controls any paid
         project and will replace conflicting website language for that project.
       </p>
@@ -28,9 +30,10 @@ export default function TermsPage() {
       </p>
       <h2>Prices, scope, and results</h2>
       <p>
-        Website Launch is offered at a fixed $1,000 for its published five-page scope:
-        $500 to begin and $500 after approval, before launch. Once intake begins, the
-        initial $500 deposit is non-refundable, except where the written agreement or
+        Website Launch is offered at a fixed {usd(PRICES.websiteLaunchTotal)} for its published
+        five-page scope: {usd(PRICES.websiteLaunchDeposit)} to begin and {usd(PRICES.websiteLaunchFinal)} after
+        approval, before launch. Once intake begins, the initial {usd(PRICES.websiteLaunchDeposit)} deposit
+        is non-refundable, except where the written agreement or
         applicable law requires otherwise. Work outside that scope, larger modules, and
         custom-platform starting prices are not final quotes. Final scope, price, timing,
         deliverables, responsibilities, ownership, support, and payment terms are
@@ -56,7 +59,7 @@ export default function TermsPage() {
       <h2>Intellectual property</h2>
       <p>
         The website, brand, copy, design, software, and materials are owned by or licensed
-        to Longview Training Center, LLC unless stated otherwise. Client ownership and
+        to {BUSINESS.legalName} unless stated otherwise. Client ownership and
         licenses are governed by the signed project agreement. References to an
         &ldquo;owned system&rdquo; mean the agreed project assets and accounts are
         delivered or configured as described in that agreement, subject to third-party
@@ -66,7 +69,7 @@ export default function TermsPage() {
       <h2>Availability and liability</h2>
       <p>
         The website is provided on an &ldquo;as available&rdquo; basis. To the fullest
-        extent permitted by law, Longview Training Center, LLC disclaims implied
+        extent permitted by law, {BUSINESS.legalName} disclaims implied
         warranties and is not liable for indirect, incidental, special, consequential, or
         punitive damages arising from website use. Some jurisdictions do not allow certain
         limitations, so those limitations may not apply to you.
@@ -80,7 +83,7 @@ export default function TermsPage() {
       <h2>Contact</h2>
       <p>
         Questions can be sent to{" "}
-        <a href="mailto:hello@theleadflowpro.com">hello@theleadflowpro.com</a>.
+        <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>.
       </p>
       <Link className="button-secondary" href="/packages">
         Return to Product Studio

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
+import { BUSINESS } from "@/lib/site/business";
 
 // Post-payment writing intake for the Lead Follow-Up Campaign.
 //
@@ -151,8 +152,8 @@ export async function POST(request: Request) {
       method: "POST",
       headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
-        to: ["hello@theleadflowpro.com"],
+        from: `${BUSINESS.name} <${BUSINESS.email.alerts}>`,
+        to: [BUSINESS.email.hello],
         subject: `✍️ FOLLOW-UP CAMPAIGN INTAKE: ${leadName} — ${email}`,
         text: [
           found.data ? "" : "NO MATCHING ORDER ROW. Reconcile against Stripe before writing.",

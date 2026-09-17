@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Check, KeyRound, Mail } from "lucide-react";
+import { BUSINESS } from "@/lib/site/business";
 
 // Restore access on another device.
 //
@@ -35,7 +36,7 @@ export default function UnlockForm() {
       : claim === "notfound"
         ? "We could not match that checkout to a kit. If you were charged, paste your key below or ask for it again."
         : claim === "unavailable"
-          ? "Card payment is not fully configured yet. If you were charged, email hello@theleadflowpro.com and it will be sorted by hand."
+          ? `Card payment is not fully configured yet. If you were charged, email ${BUSINESS.email.hello} and it will be sorted by hand.`
           : claim === "missing"
             ? "That link was missing its checkout reference. Paste your key below instead."
             : null;

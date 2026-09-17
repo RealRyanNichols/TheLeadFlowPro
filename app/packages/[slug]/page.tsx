@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import SiteHero from "@/components/site/system/SiteHero";
 import { WEBSITE_LAUNCH, WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
+import { PRICES, usd, usdFrom } from "@/lib/site/prices";
 import PackageOrderForm from "./PackageOrderForm";
 
 // Full sales pages for each package. "See what is included" lands here, the
@@ -45,10 +46,10 @@ const PACKS: Record<string, Pack> = {
     slug: "system-map",
     eyebrow: "Start here",
     name: "System Map",
-    price: "$497",
+    price: usd(PRICES.systemMap),
     priceNote: "Pay once. Credited in full toward an approved build.",
     headline: "Know exactly what to build before you spend a real dollar.",
-    sub: "A working blueprint of your business: what you have, what leaks, what to build first, and what it should cost. If you move forward with a build, the $497 comes off the price. If you do not, you keep the map.",
+    sub: `A working blueprint of your business: what you have, what leaks, what to build first, and what it should cost. If you move forward with a build, the ${usd(PRICES.systemMap)} comes off the price. If you do not, you keep the map.`,
     interest: "blueprint",
     buyable: true,
     included: [
@@ -82,7 +83,7 @@ const PACKS: Record<string, Pack> = {
     price: WEBSITE_LAUNCH.priceLabel,
     priceNote: WEBSITE_LAUNCH.paymentLabel,
     headline: "A polished business website with a real approval checkpoint.",
-    sub: "A conversion-led five-page public experience with lead capture, responsive production, core analytics, deployment, and two focused revision rounds. A $500 deposit starts the work; the remaining $500 is due after approval and before launch.",
+    sub: `A conversion-led five-page public experience with lead capture, responsive production, core analytics, deployment, and two focused revision rounds. A ${usd(PRICES.websiteLaunchDeposit)} deposit starts the work; the remaining ${usd(PRICES.websiteLaunchFinal)} is due after approval and before launch.`,
     interest: "launch_system",
     buyable: false,
     included: [
@@ -95,10 +96,10 @@ const PACKS: Record<string, Pack> = {
       { name: "Three premium visual scenes", why: "A founding-rate visual pack that explains the offer, process, or system without a wall of copy." },
     ],
     phases: [
-      { title: "Deposit and scope", body: "Pay the $500 deposit, then confirm the audience, goal, five pages, assets, and written scope." },
+      { title: "Deposit and scope", body: `Pay the ${usd(PRICES.websiteLaunchDeposit)} deposit, then confirm the audience, goal, five pages, assets, and written scope.` },
       { title: "The build", body: "The working five-page experience comes together on a reviewable preview." },
       { title: "Approval checkpoint", body: "Click through the pages, test the forms, and use two revision rounds against the agreed direction." },
-      { title: "Final payment and launch", body: "After approval, pay the remaining $500. Then the site moves to the live domain and your accounts." },
+      { title: "Final payment and launch", body: `After approval, pay the remaining ${usd(PRICES.websiteLaunchFinal)}. Then the site moves to the live domain and your accounts.` },
     ],
     proof: [
       { name: "TheLeadFlowPro.com", what: "Website Launch proof and connected systems, live", url: "/portfolio" },
@@ -106,8 +107,8 @@ const PACKS: Record<string, Pack> = {
       { name: "DonAndPatti.com", what: "Giving engine and member hub on an owned stack", url: "https://www.donandpatti.com" },
     ],
     faq: [
-      { q: "What does the Website Launch cost?", a: "The five-page Website Launch is $1,000: $500 to start and $500 after approval, before launch. Funnels, CRM, tools, portals, courses, ads, automation, and other modules are scoped separately." },
-      { q: "What do I pay up front?", a: "A $500 deposit reserves the build and opens intake. The remaining $500 is due after you approve the working site and before it launches." },
+      { q: "What does the Website Launch cost?", a: `The five-page Website Launch is ${usd(PRICES.websiteLaunchTotal)}: ${usd(PRICES.websiteLaunchDeposit)} to start and ${usd(PRICES.websiteLaunchFinal)} after approval, before launch. Funnels, CRM, tools, portals, courses, ads, automation, and other modules are scoped separately.` },
+      { q: "What do I pay up front?", a: `A ${usd(PRICES.websiteLaunchDeposit)} deposit reserves the build and opens intake. The remaining ${usd(PRICES.websiteLaunchFinal)} is due after you approve the working site and before it launches.` },
       { q: "What are the monthly costs after launch?", a: "The stack runs on accounts you own. Hosting and database costs depend on usage and provider pricing; the exact services are documented before launch." },
     ],
   },
@@ -115,7 +116,7 @@ const PACKS: Record<string, Pack> = {
     slug: "industry-os",
     eyebrow: "The connected company core",
     name: "Company OS",
-    price: "$7,500+",
+    price: usdFrom(PRICES.companyOsFrom),
     priceNote: "Scoped from your System Map. Phased payments available.",
     headline: "The website, CRM, portal, analytics, and operating dashboard in one owned system.",
     sub: "Everything in Website Launch, plus the connected records, customer experience, reporting, and workflows the business needs to operate. Industry-specific tools, courses, archives, calls, and texts are scoped where they belong.",
@@ -131,7 +132,7 @@ const PACKS: Record<string, Pack> = {
       { name: "Deeper permissions and integrations", why: "Roles, approvals, migrations, and connections to the tools you already run." },
     ],
     phases: [
-      { title: "Map and scope", body: "The $497 System Map confirms the vertical pack, the phases, and the exact price. Credited to the build." },
+      { title: "Map and scope", body: `The ${usd(PRICES.systemMap)} System Map confirms the vertical pack, the phases, and the exact price. Credited to the build.` },
       { title: "Core first, live early", body: "The connected core ships first so the business feels the difference in weeks, not months." },
       { title: "The vertical build", body: "Portals, tools, courses, and archives land phase by phase on the live system." },
       { title: "Approval at every phase", body: "Each phase has a written scope, a working review point, and its own approved milestone." },
@@ -181,8 +182,8 @@ export default async function PackagePage({
       ? {
           src: "/images/offer-v2/website-launch-approval-path.webp",
           alt: "A secure website build moving through review, approval, and launch",
-          kicker: "$500 starts the build",
-          caption: "$500 after approval, before launch.",
+          kicker: `${usd(PRICES.websiteLaunchDeposit)} starts the build`,
+          caption: `${usd(PRICES.websiteLaunchFinal)} after approval, before launch.`,
         }
       : p.slug === "system-map"
         ? {
@@ -210,13 +211,13 @@ export default async function PackagePage({
         media={heroMedia}
         primary={
           p.slug === "launch"
-            ? { href: WEBSITE_LAUNCH_CHECKOUT, label: "Start Website Launch | $500", external: true }
-            : { href: "#order", label: p.buyable ? "Get the System Map | $497" : `Map the ${p.name}` }
+            ? { href: WEBSITE_LAUNCH_CHECKOUT, label: `Start Website Launch | ${usd(PRICES.websiteLaunchDeposit)}`, external: true }
+            : { href: "#order", label: p.buyable ? `Get the System Map | ${usd(PRICES.systemMap)}` : `Map the ${p.name}` }
         }
         secondary={{ href: "#included", label: "See exactly what is included" }}
         trustLine={
           p.slug === "launch"
-            ? "Review the working site before the final payment and production launch. Once intake begins, the $500 deposit is non-refundable, except where the written agreement or applicable law requires otherwise."
+            ? `Review the working site before the final payment and production launch. Once intake begins, the ${usd(PRICES.websiteLaunchDeposit)} deposit is non-refundable, except where the written agreement or applicable law requires otherwise.`
             : "Written scope, visible dependencies, and working review points before the next approved phase."
         }
       />
@@ -324,7 +325,7 @@ export default async function PackagePage({
         </h2>
         <p className="mx-auto mt-3 max-w-xl leading-relaxed text-[var(--muted)]">
           {p.slug === "launch"
-            ? "You review the work on a live preview, against a written scope, before the launch milestone. $500 starts the Website Launch and the remaining $500 is due after approval and before the site goes live."
+            ? `You review the work on a live preview, against a written scope, before the launch milestone. ${usd(PRICES.websiteLaunchDeposit)} starts the Website Launch and the remaining ${usd(PRICES.websiteLaunchFinal)} is due after approval and before the site goes live.`
             : p.slug === "system-map"
               ? "The paid working session produces a written blueprint: modules, dependencies, phases, and price range. You approve any larger engagement separately."
               : "The System Map defines the written scope, phases, ownership, and milestone schedule. Each Company OS phase has a working review point before the next approved milestone."}
