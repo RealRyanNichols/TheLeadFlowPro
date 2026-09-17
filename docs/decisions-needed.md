@@ -203,3 +203,23 @@ or activated by the engineering work; every item is a switch Ryan flips.
     token issued to The LeadFlow Pro (a Google Ads manager account and an
     application). Decision: apply now so it is ready, or wait for the first
     Google client. Default: wait.
+
+29. **7.3 Company OS stack: price.** The published Company OS offer is
+    "from $7,500" (`PRICES.companyOsFrom`). The stack makes delivery
+    configuration rather than a rebuild (`docs/engines/7.3-company-os-stack.md`).
+    Decision: keep "from $7,500" for a stack deployment, or publish a fixed
+    price for the standard five-module stack and keep "from" for custom
+    work. Default: keep "from $7,500"; no price change.
+
+30. **7.3 Company OS stack: go-live.** Nothing is deployed. The first
+    client deployment follows the printed provisioning plan in the
+    client's own Supabase, Vercel, and Stripe accounts, each created by
+    the client. The deployable app around the library (routes, portal
+    pages, cron) is not on the branch yet; building it is the next step
+    after Ryan confirms the module set.
+
+31. **7.3 Sequence copy.** Sequence steps reference template ids; the copy
+    itself is written per client and goes through the copy rules. Decision:
+    ship a default template set (trial follow-up, new customer, new member)
+    that clients start from, or write each from scratch. Default: ship a
+    default set in a later PR.

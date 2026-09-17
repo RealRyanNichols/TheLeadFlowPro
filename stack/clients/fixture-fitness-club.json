@@ -1,0 +1,51 @@
+{
+  "slug": "fixture-fitness-club",
+  "stackVersion": "1.0.0",
+  "business": {
+    "name": "Fixture Fitness Club (fictional)",
+    "legalName": "Fixture Fitness Club LLC (fictional)",
+    "phoneE164": "+19035550177",
+    "email": "hello@fixture-fitness.example",
+    "timezone": "America/Chicago",
+    "smsSignature": "Fixture Fitness Club. Reply STOP to end texts."
+  },
+  "modules": { "crm": true, "sequences": true, "portal": true, "dashboard": true, "payments": true },
+  "accounts": {
+    "supabaseProjectRef": "abcdefghijklmnopqrst",
+    "vercelProject": "fixture-fitness-club",
+    "stripeAccountId": "acct_FixtureFitness00",
+    "emailFrom": "Fixture Fitness Club <hello@fixture-fitness.example>"
+  },
+  "consent": {
+    "quietHours": { "start": 8, "end": 20 },
+    "stopWords": ["stop", "unsubscribe"],
+    "smsRequiresConsent": true
+  },
+  "sequences": [
+    {
+      "id": "trial-follow-up",
+      "name": "After a free trial visit",
+      "trigger": "person_created",
+      "steps": [
+        { "day": 0, "channel": "sms", "templateId": "trial_thanks" },
+        { "day": 2, "channel": "email", "templateId": "trial_what_next" },
+        { "day": 6, "channel": "sms", "templateId": "trial_last_touch" }
+      ],
+      "stopOnStatus": ["member", "past", "do_not_contact"],
+      "stopOnReply": true
+    },
+    {
+      "id": "new-member-welcome",
+      "name": "New member first week",
+      "trigger": "status_member",
+      "steps": [
+        { "day": 0, "channel": "email", "templateId": "welcome" },
+        { "day": 7, "channel": "email", "templateId": "week_one_check_in" }
+      ],
+      "stopOnStatus": ["past", "do_not_contact"],
+      "stopOnReply": false
+    }
+  ],
+  "portal": { "shows": ["profile", "payments", "messages", "documents"] },
+  "launch": { "status": "draft" }
+}

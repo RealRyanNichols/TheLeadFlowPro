@@ -26,7 +26,8 @@
     "test:social-images": "node --test tests/social-images.test.mjs",
     "validate:calculations": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs --test tests/calculation-reference.test.ts tests/calculation-invariants.test.ts tests/formulas.test.ts tests/debt-payoff-planner.test.ts tests/tool-guide-accuracy.test.ts tests/generator-draft-safety.test.ts tests/pro-kit*.test.ts",
     "factory:new": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/new-client.ts",
-    "factory:qa": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/qa-client-site.ts"
+    "factory:qa": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/qa-client-site.ts",
+    "stack:demo": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/stack-demo.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
