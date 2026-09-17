@@ -75,6 +75,8 @@ export type StackConfig = {
     shows: ("profile" | "payments" | "messages" | "documents")[];
   };
   launch: { status: "draft" | "staging" | "live"; scopeApprovedOn?: string; domain?: string };
+  /** Optional. The client's written opt-in to a board on theleadflowpro.com (engine 7.6). Absent means no board. */
+  scoreboard?: { publicBoard: boolean; ownerView: boolean; approvedBy: string; approvedOn: string };
 };
 
 export type ConfigProblem = { path: string; message: string };
@@ -158,6 +160,11 @@ export function validateStackConfig(input: unknown): ConfigProblem[] {
 
   if (!c.portal || !Array.isArray(c.portal.shows)) bad("portal.shows", "an array");
   else if (c.modules?.portal && c.portal.shows.length === 0) bad("portal.shows", "portal is on but shows nothing");
+
+  const sb = c.scoreboard;
+  if (sb && (typeof sb.publicBoard !== "boolean" || typeof sb.ownerView !== "boolean" || !sb.approvedBy?.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(sb.approvedOn ?? ""))) {
+    bad("scoreboard", "publicBoard and ownerView booleans, approvedBy, and approvedOn (YYYY-MM-DD) are all required when a board is opted in");
+  }
 
   const l = c.launch;
   if (!l || !["draft", "staging", "live"].includes(l.status)) bad("launch.status", "draft, staging, or live");

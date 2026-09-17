@@ -4,7 +4,7 @@ import Image from "next/image";
 import MetricCards from "./MetricCards";
 import { ArrowRight, Eye, PhoneCall, Users } from "lucide-react";
 import {
-  SCOREBOARD_BUSINESSES,
+  publicScoreboardBusinesses,
   formatCount,
   summarizeWindow,
 } from "@/lib/scoreboard";
@@ -49,7 +49,7 @@ export const metadata = withPublicPageMetadata("/scoreboard", {
 
 export default async function ScoreboardIndexPage() {
   const results = await Promise.all(
-    SCOREBOARD_BUSINESSES.map(async (business) => ({
+    publicScoreboardBusinesses().map(async (business) => ({
       business,
       result: await fetchScoreboardDays(business, 30),
     })),

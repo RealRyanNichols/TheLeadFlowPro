@@ -29,7 +29,8 @@
     "factory:qa": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/qa-client-site.ts",
     "stack:demo": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/stack-demo.ts",
     "proposal:demo": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/proposal-demo.ts",
-    "workshop:check": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/check-workshop.ts"
+    "workshop:check": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/check-workshop.ts",
+    "scoreboard:owner-link": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/scoreboard-owner-link.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

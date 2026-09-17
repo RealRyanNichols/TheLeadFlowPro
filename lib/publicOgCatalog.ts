@@ -6,7 +6,7 @@ import {
   isCanonicalPublicPath,
   publicPageImagePath,
 } from "./publicPageMetadata";
-import { SCOREBOARD_BUSINESSES } from "./scoreboard";
+import { publicScoreboardBusinesses } from "./scoreboard";
 import { METRIC_GUIDES, metricDefinition } from "./scoreboardMetrics";
 import { STAGES } from "./system-stages";
 import { TOOLS } from "./tools";
@@ -55,7 +55,7 @@ export function getPublicOgPages(now = new Date()): PublicOgPage[] {
         art: `/images/academy/cards/${course.slug}.svg`,
       }),
     ),
-    ...SCOREBOARD_BUSINESSES.map((business) =>
+    ...publicScoreboardBusinesses().map((business) =>
       generated({
         path: `/scoreboard/${business.slug}`,
         title: `${business.shortName} scoreboard`,

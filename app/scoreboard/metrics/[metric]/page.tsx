@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { SCOREBOARD_BUSINESSES, formatCount } from "@/lib/scoreboard";
+import { publicScoreboardBusinesses, formatCount } from "@/lib/scoreboard";
 import { fetchScoreboardDays } from "@/lib/scoreboardFeeds";
 import { aggregateMetric, feedObservationLabel, METRIC_GUIDES, metricDefinition, metricGuide, SOURCE_NOTES, tracksMetric } from "@/lib/scoreboardMetrics";
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
@@ -26,7 +26,7 @@ export default async function MetricDetailPage({ params }: { params: Promise<{ m
   const guide = metricGuide(slug);
   if (!guide) notFound();
   const definition = metricDefinition(guide.key);
-  const feeds = await Promise.all(SCOREBOARD_BUSINESSES.map(async (business) => ({ business, result: await fetchScoreboardDays(business, 30) })));
+  const feeds = await Promise.all(publicScoreboardBusinesses().map(async (business) => ({ business, result: await fetchScoreboardDays(business, 30) })));
   const rollup = aggregateMetric(feeds, guide.key);
   return <main className={styles.page}>
     <section className={styles.hero}><div className={styles.shell}>

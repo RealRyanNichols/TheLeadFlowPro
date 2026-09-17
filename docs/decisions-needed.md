@@ -245,3 +245,15 @@ or activated by the engineering work; every item is a switch Ryan flips.
     `/events/<slug>/worksheet`, unlisted and noindex. Decision: hand it out
     on paper in the room, link it from the attendee page (built), or both.
     Default: both.
+
+36. **7.6 Client scoreboards: price.** A client's public board and owner
+    view cost nothing to run once the feed function is on their project.
+    Decision: include the board in every hosting and Company OS deal as a
+    retention hook (default), or price the owner view on its own.
+
+37. **7.6 Client scoreboards: go-live.** The opt-in records for the three
+    existing boards are written from the September 3 and 6 approvals in
+    `docs/scoreboard.md`. Nothing changes in public. The owner links need
+    `HQ_SECRET` exported in a local shell to generate; Ryan sends each to
+    its owner. A new client board needs the client's written opt-in, the
+    feed function on their project, and a registry entry.

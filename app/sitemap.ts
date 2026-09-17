@@ -5,7 +5,7 @@ import { PRO_TOOLS } from "@/lib/tools/pro";
 import { PUBLISHED_COLLECTIONS } from "@/lib/tools/collections";
 import { STAGE_SLUGS } from "@/lib/system-stages";
 import { OPERATOR_ACADEMY_COURSES } from "@/lib/operatorAcademyCatalog";
-import { SCOREBOARD_BUSINESSES } from "@/lib/scoreboard";
+import { publicScoreboardBusinesses } from "@/lib/scoreboard";
 import { PUBLIC_PAGE_CATALOG } from "@/lib/publicPageCatalog";
 import { METRIC_GUIDES } from "@/lib/scoreboardMetrics";
 
@@ -35,7 +35,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
-    ...SCOREBOARD_BUSINESSES.map((business) => ({
+    ...publicScoreboardBusinesses().map((business) => ({
       url: `${BASE}/scoreboard/${business.slug}`,
       changeFrequency: "daily" as const,
       priority: 0.7,

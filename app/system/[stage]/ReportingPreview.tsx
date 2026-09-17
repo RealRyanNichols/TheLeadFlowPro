@@ -2,13 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import MetricChart from "@/app/scoreboard/MetricChart";
-import { SCOREBOARD_BUSINESSES, formatCount, summarizeWindow } from "@/lib/scoreboard";
+import { publicScoreboardBusinesses, formatCount, summarizeWindow } from "@/lib/scoreboard";
 import { fetchScoreboardDays } from "@/lib/scoreboardFeeds";
 import { feedObservationLabel } from "@/lib/scoreboardMetrics";
 import styles from "./stage.module.css";
 
 export default async function ReportingPreview() {
-  const sources = await Promise.all(SCOREBOARD_BUSINESSES.filter((b) => b.slug !== "the-leadflow-pro").map(async (business) => ({ business, result: await fetchScoreboardDays(business, 30) })));
+  const sources = await Promise.all(publicScoreboardBusinesses().filter((b) => b.slug !== "the-leadflow-pro").map(async (business) => ({ business, result: await fetchScoreboardDays(business, 30) })));
   return <div className={styles.reportingPreview}>
     <p className={styles.kicker}>Actual business records · Last 30 days</p>
     <h3>See the activity. Then decide the next move.</h3>

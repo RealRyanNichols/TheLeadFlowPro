@@ -45,6 +45,14 @@ export type ScoreboardBusiness = {
   paymentSourceNote?: string;
   /** Short list of the LeadFlow Pro services this business runs on. */
   runsOn: string[];
+  /**
+   * The client's written opt-in. A board renders and is listed only while
+   * publicBoard is true; the private owner view needs ownerView. Both are
+   * per client and revocable by flipping the flag.
+   */
+  optIn: { publicBoard: boolean; ownerView: boolean; approvedBy: string; approvedOn: string };
+  /** Metrics this feed does not observe. They render as "not tracked", never as zero. */
+  unsupportedMetrics?: ScoreboardMetricKey[];
 };
 
 export const SCOREBOARD_BUSINESSES: readonly ScoreboardBusiness[] = [
@@ -60,6 +68,7 @@ export const SCOREBOARD_BUSINESSES: readonly ScoreboardBusiness[] = [
     feed: { kind: "local" },
     showSales: false,
     runsOn: ["Website", "Free tools", "Articles", "Courses", "Follow-up", "Ads"],
+    optIn: { publicBoard: true, ownerView: true, approvedBy: "Ryan Nichols (owner)", approvedOn: "2026-09-03" },
   },
   {
     slug: "premier-dental-academy-of-longview",
@@ -78,6 +87,7 @@ export const SCOREBOARD_BUSINESSES: readonly ScoreboardBusiness[] = [
     showSales: true,
     paymentSourceNote: "Purchase records marked completed or active in the school's database. This is a record count, not unique students, verified enrollments, or revenue. The selected window uses each record's creation date.",
     runsOn: ["Website", "Free tools", "Blog", "Enrollment forms", "Calls and texts", "Ads"],
+    optIn: { publicBoard: true, ownerView: true, approvedBy: "Ryan Nichols (common ownership)", approvedOn: "2026-09-06" },
   },
   {
     slug: "realryannichols",
@@ -98,11 +108,24 @@ export const SCOREBOARD_BUSINESSES: readonly ScoreboardBusiness[] = [
     showSales: true,
     paymentSourceNote: "Book orders and store orders marked paid, plus donation records without a refund timestamp. These are payment records, not necessarily unique buyers or fulfilled orders. The selected window uses each record's creation date.",
     runsOn: ["Website", "Articles", "Archive", "Book store", "AI assistant", "Email and text list"],
+    optIn: { publicBoard: true, ownerView: true, approvedBy: "Ryan Nichols (owner)", approvedOn: "2026-09-06" },
+    unsupportedMetrics: ["calls", "paid_leads"],
   },
 ];
 
 export function scoreboardBusiness(slug: string) {
   return SCOREBOARD_BUSINESSES.find((business) => business.slug === slug) ?? null;
+}
+
+/** Boards the public may see: listed, in the sitemap, on the homepage, and in the metric roll-ups. */
+export function publicScoreboardBusinesses(): ScoreboardBusiness[] {
+  return SCOREBOARD_BUSINESSES.filter((business) => business.optIn.publicBoard);
+}
+
+/** A public board for this slug, or null when the client has not opted in (or withdrew). */
+export function publicScoreboardBusiness(slug: string): ScoreboardBusiness | null {
+  const business = scoreboardBusiness(slug);
+  return business && business.optIn.publicBoard ? business : null;
 }
 
 export const SCOREBOARD_WINDOWS = [
