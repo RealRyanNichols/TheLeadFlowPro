@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "slug": "pool-service-route-capacity",
+  "publicationDate": "2026-09-18",
+  "sourceChecks": [],
+  "editorialChecks": {
+    "sourceScope": "The article makes no changing product, price, regulatory, or platform claims, so no external source check applies. Stop times, visit values, and route hours are explained as the reader's own route records, not quoted figures.",
+    "example": "Fictional inputs: 1 tech, 7 productive hours, 5 days, 0.5 hours per job, 60 jobs a week, $38 average job value. Expected display: 86% of capacity, 60 of 70.0 jobs a week, 10.0 open slots, $19,760 empty capacity a year, $138,320 revenue ceiling, $118,560 revenue today, verdict 'You have room for 10.0 more jobs a week ... Marketing makes sense right now.' Second case at 0.75 hours per job: 129%, 60 of 46.7 jobs a week, 0.0 open slots, ceiling $92,213, verdict 'You are nearly full.' Third case with 2 techs at 0.75: 64% with 33.3 open slots. All labeled fictional in the article.",
+    "calculatorExampleCheck": "Node imported the actual capacity-calculator tool from lib/tools and ran all three input sets on 2026-09-17. Outputs matched the article text exactly, including the 129% over-capacity case and the 64% two-tech case.",
+    "art": "/og/tools/capacity-calculator.jpg inspected visually: 1200x630 navy card reading Job Capacity Calculator with the tagline How much work you can actually take on and a red ring emblem. No event date or unrelated offer. The image is not used by any other article; electrician-job-capacity uses its own scene.",
+    "scope": "One original trade article for the first uncovered Central date after today, completed under the daily publishing authorization in docs/article-drafting.md. No email, social post, paid service, or backend change.",
+    "mobileToolCheck": {
+      "checkedAt": "2026-09-17T17:22:31Z",
+      "url": "http://localhost:3000/tools/capacity-calculator (production build of commit cb4eb2d, run locally)",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "inputs": {
+        "crews": 1,
+        "hoursDay": 7,
+        "days": 5,
+        "jobHours": 0.5,
+        "actual": 60,
+        "value": 38
+      },
+      "results": "86%, 60 of 70.0 jobs a week, 10.0 open slots, $19,760, $138,320, $118,560, and the 'Marketing makes sense right now.' verdict were all present in the page text. Changing hours per job to 0.75 produced 129%, 60 of 46.7 jobs a week, 0.0 open slots, $92,213, and 'You are nearly full.'",
+      "resultVerified": true,
+      "method": "Playwright set the six real inputs at 390px width through the rendered slider and money fields and read the page text. Screenshot inspected. No horizontal overflow."
+    },
+    "mobileArticleReview": "The article page stays gated before 2026-09-18 by design. Body, tool marker, fenced route check, FAQ, and links were reviewed in source at commit cb4eb2d. Live mobile review is due once the article is public."
+  },
+  "localScheduledCheck": {
+    "checkedAt": "2026-09-17T17:21:50Z",
+    "surface": "Local production build of commit cb4eb2d served with next start; the production scheduledCheck is recorded separately after deployment.",
+    "detailStatus": 404,
+    "ogStatus": 404,
+    "noindex": true,
+    "ogNoindex": true,
+    "noStore": true,
+    "ogNoStore": true,
+    "indexAbsent": true,
+    "sitemapAbsent": true,
+    "relatedAbsent": true,
+    "todayArticleStatus": 200,
+    "method": "curl against the local server: detail and OG routes returned 404 with x-robots-tag noindex, nofollow and cache-control no-store; the public /articles HTML, /sitemap.xml, and the related list on /articles/electrician-job-capacity did not contain the slug; the September 17 handyman article returned 200."
+  },
+  "issues": [
+    {
+      "observedAt": "2026-09-17T17:20:00Z",
+      "check": "tests",
+      "result": "two pre-existing failures unrelated to this change",
+      "detail": "tests/factory.test.ts 'scaffolding copies the template, writes the config, and refuses to overwrite without force' and 'the template ships no secrets and names only env variable names' fail identically on origin/main at 9c7a203 (client site factory, PR #56). Confirmed by running the file in a clean worktree of origin/main. Not modified here."
+    }
+  ],
+  "contentCommit": "cb4eb2d04de2d65c3bc6b46eab83f5341f9c6bc5",
+  "validation": {
+    "checkedAt": "2026-09-17T17:20:00Z",
+    "tests": {
+      "passed": 1173,
+      "failed": 2,
+      "note": "Both failures are the pre-existing tests/factory.test.ts cases recorded in issues."
+    },
+    "build": "passed (npm run build with validate:calculations, validate:facts, validate:tools, validate:visuals, validate:social; 464 static pages)",
+    "typecheck": "passed (tsc --noEmit)",
+    "lint": {
+      "errors": 0,
+      "existingWarnings": 2,
+      "note": "Both warnings are pre-existing no-img-element warnings in lib/articles-og.tsx OG card JSX."
+    },
+    "formatting": "Changed content, queue, schedule, and article module files pass Prettier.",
+    "diffCheck": "passed (git diff --check)",
+    "copyRules": "No em dashes or en dashes in the article; no hype words; no guaranteed numbers; description is 157 characters.",
+    "privacyReview": "No secrets, customer records, or private notes in the diff; the worked example is labeled fictional."
+  }
+}
