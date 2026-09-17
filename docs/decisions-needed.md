@@ -184,3 +184,22 @@ or activated by the engineering work; every item is a switch Ryan flips.
     but the repo is shared with anyone who can read it) or in a private
     folder synced by hand. Default: a private `factory/clients/` folder
     outside git until a client asks for versioned edits.
+
+26. **7.2 Ads reporting: price.** The weekly ads report is the retention
+    product for the ads lanes (`docs/engines/7.2-ads-reporting.md`).
+    Decision: include it in the Meta and Google ads management fee (both
+    TBD-Ryan on /agency), or price it on its own for clients who run their
+    own ads. Default: included in the management fee; no standalone price
+    until asked for.
+
+27. **7.2 Ads reporting: go-live.** Nothing is live. To turn it on for a
+    client: apply migration `20260917100000_hq_ads_reporting.sql`, set
+    `ADS_LIVE_PROVIDERS=true` in Vercel, store that client's token under
+    their workspace (Ryan, server side), and add a weekly cron for the pull
+    and build. Sending the email draft is a separate switch, not built.
+    Each client connection is its own approval.
+
+28. **7.2 Google Ads developer token.** Google reporting needs a developer
+    token issued to The LeadFlow Pro (a Google Ads manager account and an
+    application). Decision: apply now so it is ready, or wait for the first
+    Google client. Default: wait.
