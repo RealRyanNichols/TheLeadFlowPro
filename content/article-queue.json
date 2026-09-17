@@ -20,7 +20,7 @@
       "tool": "after-hours-lead-calculator",
       "searchQuestion": "How much business does a locksmith lose after hours?",
       "workingTitle": "The locksmith's best calls come at the worst hours",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-05"
     },
     {
@@ -30,7 +30,7 @@
       "tool": "lead-response-time",
       "searchQuestion": "How fast should an insurance agent respond to a lead?",
       "workingTitle": "The quote you sent second never had a chance",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-06"
     },
     {
@@ -40,7 +40,8 @@
       "tool": "job-price-calculator",
       "searchQuestion": "How should a handyman price a job?",
       "workingTitle": "Stop pricing handyman jobs off the other guy's guess",
-      "status": "queued"
+      "status": "scheduled",
+      "draftedAt": "2026-09-16"
     },
     {
       "slug": "pool-service-route-capacity",
