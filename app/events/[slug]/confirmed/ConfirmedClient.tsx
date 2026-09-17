@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CalendarPlus, CheckCircle2, MapPin } from "lucide-react";
+import { BUSINESS } from "@/lib/site/business";
 import styles from "../workshop.module.css";
 
 // Paid access is verified by the server; this private token page has no analytics.
@@ -327,7 +328,7 @@ export default function ConfirmedClient({ slug }: { slug: string }) {
               <p className="cb-lead">
                 {confirmation.first_name}, the room filled while your checkout
                 was open. Your payment needs review by our team. A seat has not
-                been assigned. Email hello@theleadflowpro.com so we can resolve
+                been assigned. Email {BUSINESS.email.hello} so we can resolve
                 this; please do not pay again.
               </p>
             </>
@@ -350,7 +351,7 @@ export default function ConfirmedClient({ slug }: { slug: string }) {
                         confirmation.payment_state,
                       )
                     ? "your payment is still being confirmed. Please keep this private link and check again. Do not start another payment."
-                    : "contact hello@theleadflowpro.com about this registration before making another payment."}
+                    : `contact ${BUSINESS.email.hello} about this registration before making another payment.`}
               </p>
               <div className="cb-actions" style={{ marginTop: 20 }}>
                 {confirmation.can_retry_payment && (

@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
+import { PRICES, usd } from "@/lib/site/prices";
 export const alt =
-  "SellerProof by The LeadFlow Pro. Organized evidence. A clearer response. Free preview. $49 per packet.";
+  `SellerProof by The LeadFlow Pro. Organized evidence. A clearer response. Free preview. ${usd(PRICES.sellerProofPacket)} per packet.`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export default function Image() {
@@ -81,7 +82,7 @@ export default function Image() {
         }}
       >
         <div style={{ display: "flex", fontSize: 21, color: "#a9bfff" }}>
-          Free preview · $49 per packet · No subscription
+          Free preview · {usd(PRICES.sellerProofPacket)} per packet · No subscription
         </div>
         <div style={{ display: "flex", fontSize: 15, color: "#94a3b8" }}>
           Not legal advice. No outcome guarantees.

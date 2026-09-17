@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { BUSINESS } from "@/lib/site/business";
 import { PLATFORMS } from "@/lib/timeback";
 
 const MAX_FILES = 10;
@@ -42,7 +43,7 @@ const ACCESS_GUIDES: {
     steps: [
       "Open business.facebook.com and sign in like normal.",
       'Go to Settings, then Partners, then Add. Choose "Give a partner access to your assets".',
-      "Enter the partner ID we send you from hello@theleadflowpro.com right after this form.",
+      `Enter the partner ID we send you from ${BUSINESS.email.hello} right after this form.`,
       "Pick your Facebook Page and Instagram account, and grant the content tasks you are comfortable with.",
       "That is it. The access is task-level, it is yours, and you can remove us in one click any time.",
     ],
@@ -65,7 +66,7 @@ const ACCESS_GUIDES: {
     steps: [
       "Open your email platform (Mailchimp, Klaviyo, Constant Contact, whichever you use).",
       "Find Team, Users, or Manage users in its settings.",
-      "Invite hello@theleadflowpro.com with a role that can create and edit campaigns.",
+      `Invite ${BUSINESS.email.hello} with a role that can create and edit campaigns.`,
       "We build your series inside YOUR account, so every subscriber and email stays yours.",
       "No email platform yet? Skip this. We will set one up together on the kickoff.",
     ],
@@ -303,9 +304,9 @@ export default function WelcomeFlow() {
           </h1>
           <p className="mx-auto mt-3 max-w-md text-[15px] text-[#625f6d]">
             Watch your inbox for the access invites from
-            hello@theleadflowpro.com. Once you approve them, your posts go live
+            {BUSINESS.email.hello}. Once you approve them, your posts go live
             within 5 business days. Questions any time: reply to any email from
-            us, or call or text (903) 500-8898.
+            us, or call or text {BUSINESS.phone.display}.
           </p>
         </div>
       </section>

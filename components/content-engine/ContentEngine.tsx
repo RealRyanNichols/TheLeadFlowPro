@@ -13,6 +13,7 @@ import {
   Link2,
   MessageSquareText,
 } from "lucide-react";
+import { PRICES, usd } from "@/lib/site/prices";
 
 type Platform = "facebook" | "x";
 
@@ -154,7 +155,7 @@ I want the real answer, not the process written in a document nobody opens.`,
     time: "8:55 PM",
     type: "Long-form",
     hook: "Your form worked. Your follow-up didn't.",
-    objective: "Position the $497 System Map as the deeper diagnostic",
+    objective: `Position the ${usd(PRICES.systemMap)} System Map as the deeper diagnostic`,
     imageTitle: "YOUR FORM WORKED. YOUR FOLLOW-UP DIDN'T.",
     imageUrl: "/images/social/2026-08-17-form-worked-follow-up-didnt.webp",
     facebook: `Your form worked.
@@ -173,7 +174,7 @@ Calls disappear into personal phones. The CRM has three versions of the same per
 
 When the problem is bigger than five focused pages, the first paid diagnostic at The LeadFlow Pro is the System Map.
 
-Website Launch is fixed at $1,000 when a five-page foundation solves the immediate problem. The deeper System Map is $497, and it is credited toward an approved larger build.
+Website Launch is fixed at ${usd(PRICES.websiteLaunchTotal)} when a five-page foundation solves the immediate problem. The deeper System Map is ${usd(PRICES.systemMap)}, and it is credited toward an approved larger build.
 
 We inventory what you run today. We map the customer path and the data flow. We find the ownership problems, broken handoffs, and places where the same work is being paid for twice.
 
@@ -196,7 +197,7 @@ That is why I do not want to sell you pages before I understand the company behi
 
 3/5
 
-Website Launch is the fixed $1,000 foundation. When the problem is bigger than five pages, the $497 System Map is the deeper paid diagnostic and is credited toward an approved larger build.
+Website Launch is the fixed ${usd(PRICES.websiteLaunchTotal)} foundation. When the problem is bigger than five pages, the ${usd(PRICES.systemMap)} System Map is the deeper paid diagnostic and is credited toward an approved larger build.
 
 4/5
 

@@ -1,7 +1,7 @@
 "use client";
 
 // The Time Back funnel configurator, dark glass edition. Two dials, one live
-// price, add-ons sold on outcomes, a one-time $97 downsell, and a sticky
+// price, add-ons sold on outcomes, a one-time downsell (DOWNSELL in lib/timeback.ts), and a sticky
 // total bar so the buy button is never off screen. All logic mirrors
 // lib/timeback.ts and /api/checkout recomputes every total server-side.
 
@@ -18,6 +18,7 @@ import {
   priceContent,
   priceOrder,
 } from "@/lib/timeback";
+import { BUSINESS } from "@/lib/site/business";
 
 declare global {
   interface Window {
@@ -650,7 +651,7 @@ export default function TimeBackFunnel() {
                 className="mt-1 accent-[#5135e5]"
               />
               <span>
-                You may call or text me about this order from (903) 500-8898.
+                You may call or text me about this order from {BUSINESS.phone.display}.
                 Reply STOP any time.
               </span>
             </label>

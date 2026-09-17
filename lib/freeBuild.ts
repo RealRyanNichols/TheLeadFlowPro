@@ -8,6 +8,8 @@
 // Checkout IDs stay stable because Stripe/webhook history depends on them.
 // Paid tiers below are optional add-ons to the same five-page foundation.
 
+import { PRICES, usd, usdPerMonth } from "@/lib/site/prices";
+
 export type FreeBuildTier = {
   id: "free_build_followup" | "free_build_content" | "free_build_launch" | "free_build_only";
   name: string;
@@ -23,7 +25,7 @@ export const FREE_BUILD = {
   slug: "free-build",
   name: "The Free Website Program",
   headline: "Own your website.",
-  subhead: "Your first five-page build is $0.",
+  subhead: `Your first five-page build is ${usd(PRICES.freeBuildFee)}.`,
   promise:
     "If your business needs a real website, apply and let me build the first five-page foundation " +
     "with no build fee. You own it. If you want ads, follow-up, content, CRM, automation, SEO, " +
@@ -31,9 +33,8 @@ export const FREE_BUILD = {
 
   // The paid-out-right option remains available for businesses that do not
   // want the application/capacity process. It is not the public front door.
-  anchorUsd: 1000,
-  anchorLine:
-    "The same five-page foundation can be purchased outright for $1,000 without waiting for a program opening.",
+  anchorUsd: PRICES.websiteLaunchTotal,
+  anchorLine: `The same five-page foundation can be purchased outright for ${usd(PRICES.websiteLaunchTotal)} without waiting for a program opening.`,
 
   whyFree: [
     {
@@ -95,7 +96,7 @@ export const FREE_BUILD = {
     {
       title: "A clean ownership choice",
       detail:
-        "The first 90 days of managed hosting are included. After that, self-host or export the site, use $49/month managed hosting, or choose $99/month hosting with two minor edits. Nothing renews without written approval.",
+        `The first ${PRICES.hostingIncludedDays} days of managed hosting are included. After that, self-host or export the site, use ${usdPerMonth(PRICES.hostingManagedMonthly)} managed hosting, or choose ${usdPerMonth(PRICES.hostingWithEditsMonthly)} hosting with two minor edits. Nothing renews without written approval.`,
     },
   ],
 
@@ -111,8 +112,8 @@ export const FREE_BUILD = {
     {
       id: "free_build_followup",
       name: "Free Website + Follow-Up Pack",
-      priceUsd: 197,
-      priceCents: 19700,
+      priceUsd: PRICES.freeBuildFollowUpPack,
+      priceCents: PRICES.freeBuildFollowUpPack * 100,
       engine: "A fixed follow-up work product for one offer",
       pages: "Up to five scoped pages, $0 build fee",
       tag: "",
@@ -127,8 +128,8 @@ export const FREE_BUILD = {
     {
       id: "free_build_content",
       name: "Free Website + Content Engine",
-      priceUsd: 497,
-      priceCents: 49700,
+      priceUsd: PRICES.freeBuildContentEngine,
+      priceCents: PRICES.freeBuildContentEngine * 100,
       engine: "Two weeks of business-specific content built around the offer",
       pages: "Up to five scoped pages, $0 build fee",
       tag: "POPULAR START",
@@ -143,8 +144,8 @@ export const FREE_BUILD = {
     {
       id: "free_build_launch",
       name: "Free Website + 30-Day Growth Engine",
-      priceUsd: 997,
-      priceCents: 99700,
+      priceUsd: PRICES.freeBuildGrowthEngine,
+      priceCents: PRICES.freeBuildGrowthEngine * 100,
       engine: "A 30-day campaign and follow-up foundation",
       pages: "Up to five scoped pages, $0 build fee",
       tag: "",
@@ -241,7 +242,7 @@ export const FREE_BUILD = {
     {
       q: "What happens after 90 days?",
       a:
-        "Choose self-hosting or a clean export, $49/month managed hosting, or $99/month hosting with two minor edits. Larger updates, quarterly rebuilds, new pages, and new systems receive a written proposal first.",
+        `Choose self-hosting or a clean export, ${usdPerMonth(PRICES.hostingManagedMonthly)} managed hosting, or ${usdPerMonth(PRICES.hostingWithEditsMonthly)} hosting with two minor edits. Larger updates, quarterly rebuilds, new pages, and new systems receive a written proposal first.`,
     },
     {
       q: "What counts as a correction?",

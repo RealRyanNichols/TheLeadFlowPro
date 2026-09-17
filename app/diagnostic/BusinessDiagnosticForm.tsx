@@ -29,6 +29,7 @@ import {
   type DiagnosticAnswers,
   type DiagnosticField,
 } from "@/lib/businessDiagnostic";
+import { BUSINESS } from "@/lib/site/business";
 import styles from "./diagnostic.module.css";
 
 type UtmValues = {
@@ -659,7 +660,7 @@ export default function BusinessDiagnosticForm({
           </div>
           <p className={styles.successContact}>
             Need to add an attachment? Reply to our email or write to{" "}
-            <a href="mailto:hello@theleadflowpro.com">hello@theleadflowpro.com</a>.
+            <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>.
           </p>
         </section>
       </main>

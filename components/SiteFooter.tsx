@@ -3,101 +3,64 @@
 import Link from "next/link";
 import BrandLockup from "@/components/BrandLockup";
 import { usePathname } from "next/navigation";
+import { BUSINESS } from "@/lib/site/business";
+import {
+  FOOTER_COLUMNS,
+  FOOTER_PITCH,
+  LEGAL_LINKS,
+  hidesSiteChrome,
+} from "@/lib/site/navigation";
 
-// The footer is ink on every page, light or dark, so the site always lands on
-// the same anchor. Add-Ons and Free Tools live here now that the primary nav is
-// organised around buyer intent.
-const COLUMNS: Array<{ heading: string; links: Array<[string, string]> }> = [
-  {
-    heading: "What we build",
-    links: [
-      ["/services", "Services"],
-      ["/commerce", "Commerce & online selling"],
-      ["/operator-academy", "Courses & learning"],
-      ["/add-ons", "Add-On Menu"],
-      ["/tools", "Free Tools"],
-      ["/tools/pro", "Pro Kits | $10 to $29"],
-      ["/plugin", "Plugin for ChatGPT and Claude | $49/mo"],
-      ["/sellerproof", "SellerProof | Chargeback packets"],
-      ["/chatgpt/free", "Free starter lesson"],
-    ],
-  },
-  {
-    heading: "Proof",
-    links: [
-      ["/results", "Results"],
-      ["/premier-system", "Premier System"],
-      ["/scoreboard", "Scoreboard"],
-      ["/proof-floor", "Proof Floor"],
-      ["/live", "Live Proof"],
-      ["/portfolio", "The Work"],
-      ["/articles", "Articles"],
-      ["/about", "About Ryan"],
-    ],
-  },
-  {
-    heading: "Work together",
-    links: [
-      ["/packages", "Packages"],
-      ["https://workshop.theleadflowpro.com/", "Events & Workshops"],
-      ["/go/lead-follow-up", "Follow-Up Campaign | $197"],
-      ["/free-build", "Free Website | $0 Build Fee"],
-      ["/start", "Map My Company"],
-      [
-        "/diagnostic?utm_source=website&utm_medium=footer&utm_campaign=business_diagnostic",
-        "Business Growth Diagnostic",
-      ],
-      ["/contact", "Contact"],
-      ["/login", "Log in"],
-    ],
-  },
-];
+// The one public footer, ink on every page. Columns, price labels, the
+// contact address, and the DBA line all come from lib/site so a change lands
+// everywhere at once.
 
 export default function SiteFooter() {
   const pathname = usePathname();
-  const isWorkspace = ["/admin", "/sales", "/dashboard"].some(
-    (base) => pathname === base || pathname.startsWith(`${base}/`),
-  );
-  if (pathname === "/start" || isWorkspace) return null;
+  if (hidesSiteChrome(pathname)) return null;
   return (
     <footer className="site-footer cb-footer">
       <div className="cb-shell">
         <div className="cb-footer-top">
           <div>
             <BrandLockup />
-            <p className="cb-footer-pitch">
-              More attention. More leads. More revenue. We connect the website,
-              follow-up, sales tools, and operating system in accounts you
-              control.
-            </p>
-            <a
-              href="mailto:hello@theleadflowpro.com"
-              className="cb-textlink mt-6 inline-flex"
-            >
-              hello@theleadflowpro.com
+            <p className="cb-footer-pitch">{FOOTER_PITCH}</p>
+            <a href={`mailto:${BUSINESS.email.hello}`} className="cb-textlink mt-6 inline-flex">
+              {BUSINESS.email.hello}
+            </a>
+            <a href={BUSINESS.phone.tel} className="cb-textlink mt-2 inline-flex">
+              Call or text {BUSINESS.phone.display}
             </a>
           </div>
-          {COLUMNS.map((col) => (
+          {FOOTER_COLUMNS.map((col) => (
             <div key={col.heading} className="cb-footer-col">
               <h2>{col.heading}</h2>
               <nav aria-label={col.heading}>
-                {col.links.map(([href, label]) => (
-                  <Link key={href} href={href}>
-                    {label}
-                  </Link>
-                ))}
+                {col.links.map((link) =>
+                  link.href.startsWith("http") ? (
+                    <a key={link.href} href={link.href}>
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link key={link.href} href={link.href}>
+                      {link.label}
+                    </Link>
+                  ),
+                )}
               </nav>
             </div>
           ))}
         </div>
         <div className="cb-footer-bottom">
           <span>
-            &copy; {new Date().getFullYear()} The LeadFlow Pro. A DBA of
-            Longview Training Center, LLC.
+            &copy; {new Date().getFullYear()} {BUSINESS.name}. A DBA of {BUSINESS.legalName}.
           </span>
           <nav aria-label="Legal">
-            <Link href="/privacy">Privacy</Link>
-            <Link href="/terms">Terms</Link>
+            {LEGAL_LINKS.map((link) => (
+              <Link key={link.href} href={link.href}>
+                {link.label}
+              </Link>
+            ))}
           </nav>
         </div>
       </div>

@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { PRICES, usd } from "@/lib/site/prices";
 
 export default function BuyButton({
   kind = "system_map",
-  label = "Start with a System Map | $497",
+  label = `Start with a System Map | ${usd(PRICES.systemMap)}`,
   className = "btn-primary",
 }: {
   kind?: string;

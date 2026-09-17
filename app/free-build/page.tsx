@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { FREE_BUILD } from "@/lib/freeBuild";
+import { BUSINESS } from "@/lib/site/business";
 import FreeBuildOrder from "./FreeBuildOrder";
 import styles from "./free-build.module.css";
 
@@ -104,8 +105,8 @@ export default function FreeBuildPage() {
               <MessageSquareText aria-hidden="true" />
               <span>
                 Rather just ask me something? Text{" "}
-                <a href="sms:+19035008898?&body=Free%20Build%20question:%20">
-                  (903) 500-8898
+                <a href={`${BUSINESS.phone.sms}?&body=Free%20Build%20question:%20`}>
+                  {BUSINESS.phone.display}
                 </a>
                 . You text me first, I answer myself. I do not send marketing texts to
                 people who have not written to me.
@@ -456,8 +457,8 @@ export default function FreeBuildPage() {
             <Link className="cb-btn cb-btn--ghost" href="/book">
               Ask Me A Question First
             </Link>
-            <a className="cb-btn cb-btn--ghost" href="sms:+19035008898?&body=Free%20Build%20question:%20">
-              Text Me: (903) 500-8898
+            <a className="cb-btn cb-btn--ghost" href={`${BUSINESS.phone.sms}?&body=Free%20Build%20question:%20`}>
+              Text Me: {BUSINESS.phone.display}
             </a>
           </div>
         </div>

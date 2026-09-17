@@ -4,6 +4,7 @@ import { getTool } from "@/lib/tools";
 import { proAccessSecrets, verifyWhiteLabel } from "@/lib/proAccess";
 import ToolEngine from "@/components/tools/ToolEngine";
 import EmbedAutoHeight from "@/components/tools/EmbedAutoHeight";
+import { BUSINESS } from "@/lib/site/business";
 
 // The white-label embed, sold by the White-Label Embeds kit.
 //
@@ -94,7 +95,7 @@ export default async function BrandedEmbedPage({
             >
               The LeadFlow Pro
             </a>{" "}
-            · Want one custom for your business? Text (903) 500-8898
+            · Want one custom for your business? Text {BUSINESS.phone.display}
           </p>
         )}
       </EmbedAutoHeight>

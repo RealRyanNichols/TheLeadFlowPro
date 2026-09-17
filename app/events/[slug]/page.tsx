@@ -20,6 +20,7 @@ import {
   type EventRow,
 } from "@/lib/events";
 import { missingEventPaymentConfig } from "@/lib/eventPayments";
+import { BUSINESS } from "@/lib/site/business";
 import WorkshopRegister from "./WorkshopRegister";
 
 export const dynamic = "force-dynamic";
@@ -172,8 +173,8 @@ export default async function WorkshopPage({
               </p>
               <p>
                 Questions before paying?{" "}
-                <a href="mailto:hello@theleadflowpro.com">
-                  hello@theleadflowpro.com
+                <a href={`mailto:${BUSINESS.email.hello}`}>
+                  {BUSINESS.email.hello}
                 </a>
               </p>
             </details>

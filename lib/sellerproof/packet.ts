@@ -1,8 +1,10 @@
 // Seller-entered facts only. No provider calls, inferred identity, or invented evidence.
+import { PRICES } from "@/lib/site/prices";
+
 export const SELLERPROOF = {
   name: "SellerProof",
   kind: "sellerproof_packet",
-  priceCents: 4900,
+  priceCents: PRICES.sellerProofPacket * 100,
   version: 1,
 } as const;
 export const PLATFORMS = [

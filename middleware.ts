@@ -4,10 +4,10 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { isWorkspaceHost, workspaceRedirect } from "@/lib/workspaceHost";
 import { ARTICLE_PUBLICATION_DATES } from "@/lib/articles-schedule";
 import { isUnpublishedArticlePath } from "@/lib/article-publication";
+import { eventsRedirectTarget } from "@/lib/site/events";
 
 const PUBLIC_SALES_PATH = "/admin/sales";
 const INTERNAL_SALES_PATH = "/sales";
-const WORKSHOP_SITE_URL = "https://workshop.theleadflowpro.com/";
 
 function isPath(path: string, base: string) {
   return path === base || path.startsWith(`${base}/`);
@@ -52,10 +52,12 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  // Keep the legacy event calendar in source while the public Events entry
-  // hands off to the standalone September 17 workshop funnel.
+  // While the featured workshop is on, the public Events entry hands off to
+  // its standalone funnel. Once the room has closed (lib/site/events.ts), the
+  // site's own /events page serves the recap and the upcoming list again.
   if (requestedPath === "/events") {
-    return NextResponse.redirect(WORKSHOP_SITE_URL);
+    const funnel = eventsRedirectTarget();
+    if (funnel) return NextResponse.redirect(funnel);
   }
 
   // Keep the public-facing URL clearly inside the back office. This is not the

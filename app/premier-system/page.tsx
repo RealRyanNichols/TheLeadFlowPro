@@ -18,6 +18,8 @@ import {
   Users,
 } from "lucide-react";
 import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
+import { BUSINESS } from "@/lib/site/business";
+import { PRICES, usd } from "@/lib/site/prices";
 import ContactForm from "@/app/contact/ContactForm";
 import styles from "./premier-system.module.css";
 
@@ -152,7 +154,7 @@ const WEBSITE_LAUNCH_SCOPE = [
 const MILESTONES = [
   {
     number: "01",
-    name: "$500 starts the project",
+    name: `${usd(PRICES.websiteLaunchDeposit)} starts the project`,
     detail: "The first payment reserves the Website Launch and opens intake.",
   },
   {
@@ -169,7 +171,7 @@ const MILESTONES = [
   },
   {
     number: "04",
-    name: "$500 is due after approval",
+    name: `${usd(PRICES.websiteLaunchFinal)} is due after approval`,
     detail:
       "The remaining balance is paid after approval and before the production site goes live.",
   },
@@ -191,14 +193,14 @@ const EXCLUSIONS = [
 const FAQ = [
   {
     question:
-      "Is the $1,000 Website Launch the same system Ryan built for Premier?",
+      `Is the ${usd(PRICES.websiteLaunchTotal)} Website Launch the same system Ryan built for Premier?`,
     answer:
-      "No. Premier is proof of a larger, separately scoped operating system. The $1,000 Website Launch is a focused five-page public foundation with the exact items listed on this page.",
+      `No. Premier is proof of a larger, separately scoped operating system. The ${usd(PRICES.websiteLaunchTotal)} Website Launch is a focused five-page public foundation with the exact items listed on this page.`,
   },
   {
     question: "How do the two payments work?",
     answer:
-      "$500 reserves the Website Launch and starts intake. The remaining $500 is due after you approve the working site and before it is launched to production.",
+      `${usd(PRICES.websiteLaunchDeposit)} reserves the Website Launch and starts intake. The remaining ${usd(PRICES.websiteLaunchFinal)} is due after you approve the working site and before it is launched to production.`,
   },
   {
     question: "Are the premium graphics included?",
@@ -209,7 +211,7 @@ const FAQ = [
     question:
       "Can I add a funnel, CRM, portal, course, payments, ads, or automation?",
     answer:
-      "Yes, when the business case is clear. Those are separate modules with their own written scope, price, requirements, and timeline. They are not hidden inside the $1,000 Website Launch.",
+      `Yes, when the business case is clear. Those are separate modules with their own written scope, price, requirements, and timeline. They are not hidden inside the ${usd(PRICES.websiteLaunchTotal)} Website Launch.`,
   },
   {
     question: "Who did what in the Premier build?",
@@ -236,16 +238,16 @@ const JSON_LD = {
       provider: {
         "@type": "Organization",
         name: "The LeadFlow Pro",
-        legalName: "Longview Training Center, LLC",
+        legalName: BUSINESS.legalName,
         url: "https://www.theleadflowpro.com",
       },
       offers: {
         "@type": "Offer",
-        price: "1000",
+        price: String(PRICES.websiteLaunchTotal),
         priceCurrency: "USD",
         url: "https://www.theleadflowpro.com/packages/launch",
         description:
-          "$500 to start and $500 after approval, before production launch. The initial deposit becomes non-refundable once intake begins, except where the written agreement or applicable law requires otherwise.",
+          `${usd(PRICES.websiteLaunchDeposit)} to start and ${usd(PRICES.websiteLaunchFinal)} after approval, before production launch. The initial deposit becomes non-refundable once intake begins, except where the written agreement or applicable law requires otherwise.`,
       },
     },
     {
@@ -635,19 +637,19 @@ export default function PremierSystemPage() {
             </div>
             <aside className={styles.priceCard}>
               <span>Website Launch · fixed scope</span>
-              <strong>$1,000</strong>
-              <p>$500 to start. $500 after approval, before launch.</p>
+              <strong>{usd(PRICES.websiteLaunchTotal)}</strong>
+              <p>{usd(PRICES.websiteLaunchDeposit)} to start. {usd(PRICES.websiteLaunchFinal)} after approval, before launch.</p>
               <a
                 href={WEBSITE_LAUNCH_CHECKOUT}
                 className={styles.primary}
                 data-cta="premier_launch_checkout"
                 data-cta-placement="premier_offer"
               >
-                Start my website · $500{" "}
+                Start my website · {usd(PRICES.websiteLaunchDeposit)}{" "}
                 <ArrowRight size={18} aria-hidden="true" />
               </a>
               <small>
-                Checkout through Longview Training Center, LLC. Once intake
+                Checkout through {BUSINESS.legalName}. Once intake
                 begins, the deposit is non-refundable, except where the written
                 agreement or applicable law requires otherwise.
               </small>

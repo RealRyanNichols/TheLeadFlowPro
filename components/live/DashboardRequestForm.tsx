@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BUSINESS } from "@/lib/site/business";
 
 // The /live page's own conversion point: "get this dashboard on my website."
 // Posts into the same /api/leads pipeline as every other capture form, with
@@ -51,7 +52,7 @@ export default function DashboardRequestForm() {
       }
       setDone(true);
     } catch {
-      setError("Could not send that. Try again, or text 903-500-8898.");
+      setError(`Could not send that. Try again, or text ${BUSINESS.phone.display}.`);
     } finally {
       setBusy(false);
     }

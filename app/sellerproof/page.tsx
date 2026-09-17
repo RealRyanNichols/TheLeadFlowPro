@@ -10,11 +10,12 @@ import {
   Timer,
 } from "lucide-react";
 import { DISCLAIMER, SELLERPROOF } from "@/lib/sellerproof/packet";
+import { PRICES, usd } from "@/lib/site/prices";
 import styles from "./sellerproof.module.css";
 
 const title = "SellerProof: Chargeback Evidence Packets | The LeadFlow Pro";
 const description =
-  "Organize a chargeback response, timeline, and evidence index before your deadline. Preview free. Export one packet for $49. You review and submit it yourself.";
+  `Organize a chargeback response, timeline, and evidence index before your deadline. Preview free. Export one packet for ${usd(PRICES.sellerProofPacket)}. You review and submit it yourself.`;
 export const metadata: Metadata = {
   title,
   description,
@@ -46,12 +47,12 @@ const faqs = [
     "No outcome is guaranteed. SellerProof organizes the information you enter. Your payment provider and the relevant decision-maker review the dispute; this tool does not decide it.",
   ],
   [
-    "What does the $49 purchase cover?",
+    `What does the ${usd(PRICES.sellerProofPacket)} purchase cover?`,
     "One dispute packet tied to the payment provider, order reference, dispute reference, amount, and currency you entered. You can revise its statement, timeline, and evidence and export again. There is no subscription. This purchase is separate from LeadFlow Pro Kits and their bundle.",
   ],
   [
     "Does it upload my files or connect to Stripe?",
-    "No. You enter factual notes and an index of your records. SellerProof does not read or merge your original files or connect to your processor account. You attach those files yourself when submitting. Stripe is used only to securely collect the $49 purchase payment.",
+    `No. You enter factual notes and an index of your records. SellerProof does not read or merge your original files or connect to your processor account. You attach those files yourself when submitting. Stripe is used only to securely collect the ${usd(PRICES.sellerProofPacket)} purchase payment.`,
   ],
   [
     "Can I use it for digital products or services?",
@@ -110,7 +111,7 @@ export default function SellerProofPage() {
               </a>
             </div>
             <p className={styles.heroFine}>
-              Free to organize and review. $49 to export one dispute packet.
+              Free to organize and review. {usd(PRICES.sellerProofPacket)} to export one dispute packet.
               <br />
               No subscription. You review and submit it yourself.
             </p>
@@ -186,7 +187,7 @@ export default function SellerProofPage() {
               {
                 Icon: FileText,
                 title: "3. Review and export",
-                body: "Read the free preview, unlock one packet for $49, and save it as a PDF. Submit it with your original evidence.",
+                body: `Read the free preview, unlock one packet for ${usd(PRICES.sellerProofPacket)}, and save it as a PDF. Submit it with your original evidence.`,
               },
             ].map(({ Icon, title: h, body }) => (
               <article className={styles.card} key={h}>
@@ -207,7 +208,7 @@ export default function SellerProofPage() {
             </h2>
             <p>
               See the draft and missing-evidence checklist before you spend
-              anything. Your $49 purchase covers the printable packet for that
+              anything. Your {usd(PRICES.sellerProofPacket)} purchase covers the printable packet for that
               dispute.
             </p>
             <ul>

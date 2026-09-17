@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Phone } from "lucide-react";
+import { BUSINESS } from "@/lib/site/business";
 import styles from "./BusinessTaskPreview.module.css";
 
 const choices = [
@@ -79,8 +80,8 @@ export default function BusinessTaskPreview() {
       </div>
       <p className={styles.help}>
         Not sure?{" "}
-        <a href="tel:+19035008898">
-          <Phone size={16} aria-hidden="true" /> Talk to Ryan: (903) 500-8898
+        <a href={BUSINESS.phone.tel}>
+          <Phone size={16} aria-hidden="true" /> Talk to Ryan: {BUSINESS.phone.display}
         </a>
       </p>
     </section>

@@ -13,6 +13,7 @@ import { getSettings } from "@/lib/settings";
 import ConversionPing from "@/components/ConversionPing";
 import { fetchPaidSession } from "@/lib/stripeSession";
 import { purchaseConfirmation } from "@/lib/purchaseConfirmation";
+import { BUSINESS } from "@/lib/site/business";
 import styles from "./thank-you.module.css";
 
 export const metadata = {
@@ -184,7 +185,7 @@ export default async function ThankYou({
   }
 
   // A paid System Map is a diagnostic engagement, not a course. The old page
-  // told a $497 buyer "Training access confirmed" and sent them to /login.
+  // told a System Map buyer (PRICES.systemMap) "Training access confirmed" and sent them to /login.
   // The package page promises "a short intake so the call starts warm"; the
   // Business Growth Diagnostic is that intake.
   if (confirmation === "system_map") {
@@ -196,7 +197,7 @@ export default async function ThankYou({
         accent="One intake and the call starts warm."
         lead={
           <>
-            Payment received. Ryan reaches out within one business day from (903) 500-8898 to
+            Payment received. Ryan reaches out within one business day from {BUSINESS.phone.display} to
             schedule your mapping call. Do the ten-minute Business Growth Diagnostic first if you
             can. It is the exact intake he uses, and it means the call starts with your numbers
             instead of small talk.

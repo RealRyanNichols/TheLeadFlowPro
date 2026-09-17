@@ -1,15 +1,21 @@
-export const WEBSITE_LAUNCH_CHECKOUT =
-  "https://book.stripe.com/cNi6oG52y1kockE5oq5AQ0a";
+// Numbers come from lib/site/prices.ts and the Stripe link from
+// lib/site/external-links.ts. This module keeps the checkout-facing shape the
+// pages, the deposit flow, and the webhook already depend on.
+import { EXTERNAL_LINKS } from "@/lib/site/external-links";
+import { PRICES, usd, usdFrom } from "@/lib/site/prices";
+
+export const WEBSITE_LAUNCH_CHECKOUT = EXTERNAL_LINKS.stripeWebsiteLaunchDeposit;
 
 export const WEBSITE_LAUNCH = {
   id: "website-launch",
   name: "Website Launch",
-  total: 1000,
-  deposit: 500,
-  finalPayment: 500,
-  priceLabel: "$1,000",
-  paymentLabel:
-    "$500 to start. Once intake begins, the deposit is non-refundable, except where the written agreement or applicable law requires otherwise. $500 after approval, before launch.",
+  total: PRICES.websiteLaunchTotal,
+  deposit: PRICES.websiteLaunchDeposit,
+  finalPayment: PRICES.websiteLaunchFinal,
+  priceLabel: usd(PRICES.websiteLaunchTotal),
+  depositLabel: usd(PRICES.websiteLaunchDeposit),
+  finalLabel: usd(PRICES.websiteLaunchFinal),
+  paymentLabel: `${usd(PRICES.websiteLaunchDeposit)} to start. Once intake begins, the deposit is non-refundable, except where the written agreement or applicable law requires otherwise. ${usd(PRICES.websiteLaunchFinal)} after approval, before launch.`,
   summary:
     "The first connected release for a real business: five premium pages built around one buyer, one offer, and one measurable next action.",
   included: [
@@ -34,7 +40,7 @@ export const WEBSITE_LAUNCH = {
     {
       number: "01",
       name: "Reserve",
-      body: "The $500 deposit reserves the build and opens intake. Once intake begins, it is non-refundable, except where the written agreement or applicable law requires otherwise.",
+      body: `The ${usd(PRICES.websiteLaunchDeposit)} deposit reserves the build and opens intake. Once intake begins, it is non-refundable, except where the written agreement or applicable law requires otherwise.`,
     },
     {
       number: "02",
@@ -54,7 +60,7 @@ export const WEBSITE_LAUNCH = {
     {
       number: "05",
       name: "Approve",
-      body: "The final $500 is due only after approval and before production launch.",
+      body: `The final ${usd(PRICES.websiteLaunchFinal)} is due only after approval and before production launch.`,
     },
     {
       number: "06",
@@ -68,48 +74,50 @@ export const OFFER_LADDER = [
   {
     id: "system-map",
     name: "System Map",
-    price: "$497",
-    priceValue: 497,
+    price: usd(PRICES.systemMap),
+    priceValue: PRICES.systemMap,
     purpose: "Paid diagnosis, architecture, priorities, and an implementation roadmap.",
     href: "/packages/system-map",
   },
   {
     id: "website-launch",
     name: "Website Launch",
-    price: "$1,000",
-    priceValue: 1000,
+    price: usd(PRICES.websiteLaunchTotal),
+    priceValue: PRICES.websiteLaunchTotal,
     purpose: "A scope-controlled five-page conversion website with a real approval checkpoint.",
     href: "/packages/launch",
   },
   {
     id: "lead-engine",
     name: "Lead Engine",
-    price: "$3,500+",
-    priceValue: 3500,
+    price: usdFrom(PRICES.leadEngineFrom),
+    priceValue: PRICES.leadEngineFrom,
     purpose: "Website, conversion funnel, CRM, lead routing, and response automation.",
     href: "/start?goal=follow_up",
   },
   {
     id: "training-platform",
     name: "Training Platform",
-    price: "$5,000+",
-    priceValue: 5000,
+    price: usdFrom(PRICES.trainingPlatformFrom),
+    priceValue: PRICES.trainingPlatformFrom,
     purpose: "Course catalog, member dashboard, enrollment, progress, and admin tools.",
     href: "/start?goal=delivery",
   },
   {
     id: "company-os",
     name: "Company OS",
-    price: "$7,500+",
-    priceValue: 7500,
+    price: usdFrom(PRICES.companyOsFrom),
+    priceValue: PRICES.companyOsFrom,
     purpose: "Website, CRM, client portal, analytics, automation, and operating dashboard.",
-    href: "/start?goal=replace_tools",
+    // One address for Company OS everywhere: the footer, /services, and
+    // /pricing all used to disagree. The package page is the canonical one.
+    href: "/packages/industry-os",
   },
   {
     id: "custom-platform",
     name: "Custom Platform",
-    price: "$15,000+",
-    priceValue: 15000,
+    price: usdFrom(PRICES.customPlatformFrom),
+    priceValue: PRICES.customPlatformFrom,
     purpose: "Custom software, multi-role workflows, advanced integrations, and platform architecture.",
     href: "/start?goal=custom",
   },

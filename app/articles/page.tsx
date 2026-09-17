@@ -13,6 +13,7 @@ import {
   articlePremiumArtPath,
   articleVisualHeadline,
 } from "@/lib/articles-og";
+import { BUSINESS } from "@/lib/site/business";
 
 export const dynamic = "force-dynamic";
 
@@ -97,7 +98,7 @@ export default function ArticlesPage() {
         title="Get the website that catches these leads."
         body="Every article on this page points at the same fix: an owned website with capture and follow-up behind it. The first five-page build is free for approved businesses."
         primary={{ href: "/free-build", label: "Start My Free Website" }}
-        secondary={{ href: "tel:+19035008898", label: "Call or text (903) 500-8898", external: true }}
+        secondary={{ href: BUSINESS.phone.tel, label: `Call or text ${BUSINESS.phone.display}`, external: true }}
       />
     </main>
   );

@@ -2,6 +2,7 @@ import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import ContactForm from "./ContactForm";
 import { Check, Phone } from "lucide-react";
 import SiteHero from "@/components/site/system/SiteHero";
+import { BUSINESS } from "@/lib/site/business";
 
 export const metadata = withPublicPageMetadata("/contact", {
   title: "Contact | The LeadFlow Pro",
@@ -24,7 +25,7 @@ export default function ContactPage() {
           caption: "Route the question to the right next move.",
         }}
         primary={{ href: "#contact-form", label: "Send the question" }}
-        secondary={{ href: "tel:+19035008898", label: "Call or text (903) 500-8898", external: true }}
+        secondary={{ href: BUSINESS.phone.tel, label: `Call or text ${BUSINESS.phone.display}`, external: true }}
         trustLine="No list selling. No fake urgency. A direct answer from the operator."
       />
 
@@ -46,9 +47,9 @@ export default function ContactPage() {
               ))}
             </ul>
             <div className="cb-actions">
-              <a className="cb-btn cb-btn--primary" href="tel:+19035008898">
+              <a className="cb-btn cb-btn--primary" href={BUSINESS.phone.tel}>
                 <Phone aria-hidden="true" className="h-4 w-4" />
-                Call or text (903) 500-8898
+                Call or text {BUSINESS.phone.display}
               </a>
             </div>
           </div>

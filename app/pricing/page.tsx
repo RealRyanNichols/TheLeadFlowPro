@@ -5,13 +5,14 @@ import { ArrowRight, Boxes, Check, FileSearch, ShieldCheck, Store } from "lucide
 import CtaLink from "@/components/site/CtaLink";
 import SiteHero from "@/components/site/system/SiteHero";
 import { OFFER_LADDER, WEBSITE_LAUNCH, WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
+import { PRICES, usd } from "@/lib/site/prices";
 
 // Current offer ladder from the approved Revenue Pivot and Offer Ladder spec.
 
 export const metadata: Metadata = withPublicPageMetadata("/pricing", {
   title: "Packages | The LeadFlow Pro",
   description:
-    "Start with a five-page Website Launch for $1,000, use a $497 System Map for deeper dependencies, or scope a larger operating system around the real work.",
+    `Start with a five-page Website Launch for ${usd(PRICES.websiteLaunchTotal)}, use a ${usd(PRICES.systemMap)} System Map for deeper dependencies, or scope a larger operating system around the real work.`,
   alternates: { canonical: "https://www.theleadflowpro.com/pricing" },
   openGraph: {
     title: "Start with the right first release.",
@@ -173,16 +174,16 @@ export default function PricingPage() {
         eyebrow="Two ways to start. Honest scope."
         mutedTitle="Choose your first move."
         title="Bigger systems are priced by the work."
-        body="Apply for the $0 five-page website, subject to fit and capacity, or buy Website Launch outright for $1,000 without waiting for a program opening. The paid option is $500 to start and $500 after approval, before launch. Larger systems are scoped separately."
+        body={`Apply for the $0 five-page website, subject to fit and capacity, or buy Website Launch outright for ${usd(PRICES.websiteLaunchTotal)} without waiting for a program opening. The paid option is ${usd(PRICES.websiteLaunchDeposit)} to start and ${usd(PRICES.websiteLaunchFinal)} after approval, before launch. Larger systems are scoped separately.`}
         media={{
           src: "/images/offer-v2/website-launch-approval-path.webp",
           alt: "A secure website build moving through assembly, approval, final payment, and launch",
-          kicker: "$500 starts the build",
-          caption: "$500 after approval, before launch.",
+          kicker: `${usd(PRICES.websiteLaunchDeposit)} starts the build`,
+          caption: `${usd(PRICES.websiteLaunchFinal)} after approval, before launch.`,
         }}
-        primary={{ href: WEBSITE_LAUNCH_CHECKOUT, label: "Start Website Launch | $500", external: true }}
+        primary={{ href: WEBSITE_LAUNCH_CHECKOUT, label: `Start Website Launch | ${usd(PRICES.websiteLaunchDeposit)}`, external: true }}
         secondary={{ href: "/free-build", label: "Apply for the $0 website" }}
-        trustLine="Written scope, two revision rounds, and no final launch before approval and payment. Once intake begins, the $500 deposit is non-refundable, except where the written agreement or applicable law requires otherwise."
+        trustLine={`Written scope, two revision rounds, and no final launch before approval and payment. Once intake begins, the ${usd(PRICES.websiteLaunchDeposit)} deposit is non-refundable, except where the written agreement or applicable law requires otherwise.`}
       />
 
       <section id="offer-ladder" className="cb-band scroll-mt-24">

@@ -10,10 +10,11 @@ import {
   X,
 } from "lucide-react";
 import { LEAD_FOLLOW_UP, formatUsd } from "@/lib/leadFollowUp";
+import { PRICES, usd } from "@/lib/site/prices";
 import LeadFollowUpFunnel from "./LeadFollowUpFunnel";
 import styles from "./lead-follow-up.module.css";
 
-// The $197 Lead Follow-Up Campaign. Front-end offer: it writes the follow-up
+// The Lead Follow-Up Campaign (PRICES.leadFollowUpCampaign). Front-end offer: it writes the follow-up
 // for one offer in a business and hands it over. Everything it does not do is
 // named on the page, because an offer this size earns trust by showing its
 // edges before the buyer finds them.
@@ -21,12 +22,12 @@ import styles from "./lead-follow-up.module.css";
 export const metadata: Metadata = withPublicPageMetadata("/go/lead-follow-up", {
   title: "Lead Follow-Up Campaign | The LeadFlow Pro",
   description:
-    "Your follow-up, written and ready to send. The five-minute first reply, a missed-call text-back, a five-message email sequence, and a review ask, written for one offer in your business. $197 one time.",
+    `Your follow-up, written and ready to send. The five-minute first reply, a missed-call text-back, a five-message email sequence, and a review ask, written for one offer in your business. ${usd(PRICES.leadFollowUpCampaign)} one time.`,
   alternates: { canonical: "https://www.theleadflowpro.com/go/lead-follow-up" },
   openGraph: {
     title: "Your follow-up, written and ready to send.",
     description:
-      "The five-minute first reply, a missed-call text-back, a five-message email sequence, and a review ask, written for one offer in your business. $197 one time.",
+      `The five-minute first reply, a missed-call text-back, a five-message email sequence, and a review ask, written for one offer in your business. ${usd(PRICES.leadFollowUpCampaign)} one time.`,
     url: "https://www.theleadflowpro.com/go/lead-follow-up",
     siteName: "The LeadFlow Pro",
     type: "website",

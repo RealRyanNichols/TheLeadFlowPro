@@ -1,0 +1,83 @@
+// The four buyer paths the September 2026 expansion added or changed, on a
+// phone and on a desktop: homepage chooser → free-build apply; packages →
+// Stripe click-through; plugin → checkout start; agency intake. Read-only:
+// nothing is submitted and nothing is paid.
+
+import { test, expect, type Page } from "playwright/test";
+
+const VIEWPORTS = [
+  { name: "phone", width: 390, height: 844 },
+  { name: "desktop", width: 1366, height: 900 },
+];
+
+async function noHorizontalScroll(page: Page) {
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow, "no horizontal page scroll").toBeLessThanOrEqual(1);
+}
+
+for (const vp of VIEWPORTS) {
+  test.describe(`${vp.name} (${vp.width}px)`, () => {
+    test.use({ viewport: { width: vp.width, height: vp.height } });
+
+    test("homepage chooser routes to the free website application", async ({ page }) => {
+      await page.goto("/");
+      await noHorizontalScroll(page);
+      const banner = page.locator(".lf-announcement");
+      await expect(banner).toBeVisible();
+      await page.getByRole("button", { name: /I need more customers/ }).click();
+      const build = page.getByRole("link", { name: /Build it for me/ });
+      await expect(build).toHaveAttribute("href", /^\/free-build/);
+      await expect(page.getByRole("link", { name: /Run it for me/ })).toHaveAttribute("href", /^\/agency/);
+      await build.click();
+      await expect(page).toHaveURL(/\/free-build/);
+      await expect(page.locator("form")).toBeVisible();
+    });
+
+    test("packages page carries the Website Launch deposit link to Stripe", async ({ page }) => {
+      await page.goto("/packages");
+      await noHorizontalScroll(page);
+      const stripe = page.locator('a[href^="https://book.stripe.com/"]').first();
+      await expect(stripe).toBeVisible();
+      await expect(page.getByText("$1,000").first()).toBeVisible();
+    });
+
+    test("plugin page starts checkout at the HQ sign-up and links the docs", async ({ page }) => {
+      await page.goto("/plugin");
+      await noHorizontalScroll(page);
+      const cta = page.locator('[data-cta="plugin_checkout_start"]');
+      await expect(cta).toHaveAttribute("href", /\/login\?mode=signup|\/hq\/start/);
+      await expect(page.getByRole("link", { name: /plugin docs/i }).first()).toHaveAttribute("href", "/plugin/docs");
+      await page.goto("/plugin/docs");
+      await expect(page.getByRole("heading", { level: 1 })).toContainText("manual");
+    });
+
+    test("agency hub lists six services and the intake preserves entries on a validation error", async ({ page }) => {
+      await page.goto("/agency");
+      await noHorizontalScroll(page);
+      const cards = page.locator(".cb-toolcard");
+      await expect(cards).toHaveCount(6);
+      await page.goto("/agency/start?service=meta-ads");
+      await expect(page.locator('input[name="service_meta-ads"]')).toBeChecked();
+      await page.fill('input[name="business_name"]', "Fixture Fence Co");
+      await page.fill('input[name="full_name"]', "Fixture Owner");
+      await page.fill('input[name="email"]', "fixture@example.com");
+      // Consent to texts without a number must be refused without losing the answers.
+      await page.check('input[name="sms_consent"]');
+      await page.fill('textarea[name="bottleneck"]', "Leads come in and nobody follows up.");
+      await page.check('input[name="ad_budget"][value="ads_0"]');
+      await page.check('input[name="decision_maker"][value="me"]');
+      await page.check('input[name="timeline"][value="researching"]');
+      await page.getByRole("button", { name: /Send it to Ryan/ }).click();
+      await expect(page.getByRole("alert")).toContainText(/mobile number/);
+      await expect(page.locator('input[name="business_name"]')).toHaveValue("Fixture Fence Co");
+    });
+
+    test("events page serves without a redirect loop and shows either the seat CTA or the next-workshop list", async ({ page }) => {
+      const response = await page.goto("/events");
+      expect(response?.status()).toBeLessThan(400);
+      const seat = page.getByRole("link", { name: /Reserve My Seat|Sold Out/ });
+      const list = page.locator("#next-workshop");
+      expect((await seat.count()) + (await list.count())).toBeGreaterThan(0);
+    });
+  });
+}

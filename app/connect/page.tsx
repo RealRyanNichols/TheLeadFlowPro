@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Check } from "lucide-react";
+import { BUSINESS } from "@/lib/site/business";
 import styles from "./connect.module.css";
 
 const LEADSIE_EMBED = "https://app.leadsie.com/embed/connect/theleadflowpro/manage";
@@ -99,12 +100,12 @@ export default function ConnectPage() {
           </ul>
           <p className="cb-lead" style={{ marginTop: "24px" }}>
             Questions before you click anything? Call or text{" "}
-            <a className="cb-textlink" href="tel:+19035008898">
-              (903) 500-8898
+            <a className="cb-textlink" href={BUSINESS.phone.tel}>
+              {BUSINESS.phone.display}
             </a>{" "}
             or email{" "}
-            <a className="cb-textlink" href="mailto:hello@theleadflowpro.com">
-              hello@theleadflowpro.com
+            <a className="cb-textlink" href={`mailto:${BUSINESS.email.hello}`}>
+              {BUSINESS.email.hello}
             </a>
             .
           </p>

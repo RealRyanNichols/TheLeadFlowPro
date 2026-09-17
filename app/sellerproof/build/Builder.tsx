@@ -30,6 +30,7 @@ import {
   type Packet,
 } from "@/lib/sellerproof/packet";
 import styles from "../sellerproof.module.css";
+import { PRICES, usd } from "@/lib/site/prices";
 
 const STORAGE = "lfp:sellerproof:draft:v1";
 const PENDING = "lfp:sellerproof:pending-session";
@@ -309,7 +310,7 @@ export default function Builder() {
             </p>
           </div>
           <span className={styles.badge}>
-            {owned ? "Payment verified" : "Free preview · $49 to export"}
+            {owned ? "Payment verified" : `Free preview · ${usd(PRICES.sellerProofPacket)} to export`}
           </span>
         </div>
         <div className={styles.privacyNote}>
@@ -411,7 +412,7 @@ export default function Builder() {
             <h2 id="dispute-heading">What payment is being disputed?</h2>
             <p>
               Copy the references and deadline from your provider dashboard. The
-              amount below is the disputed payment; SellerProof costs $49 once.
+              amount below is the disputed payment; SellerProof costs {usd(PRICES.sellerProofPacket)} once.
             </p>
             <div className={styles.fields}>
               <label>
@@ -899,7 +900,7 @@ export default function Builder() {
                     onClick={() => void checkout()}
                     disabled={!!busy || sensitive}
                   >
-                    {busy || "Unlock this packet for $49"}
+                    {busy || `Unlock this packet for ${usd(PRICES.sellerProofPacket)}`}
                     <ArrowRight size={18} aria-hidden="true" />
                   </button>
                   <p className={styles.fine}>

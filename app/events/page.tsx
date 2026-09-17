@@ -10,6 +10,7 @@ import {
 import EventCard from "./EventCard";
 import WorkshopShowcase from "./WorkshopShowcase";
 import styles from "./events.module.css";
+import { PAST_EVENT_COPY, resolveEventStatus, featuredEvent } from "@/lib/site/events";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,20 @@ export default async function EventsPage() {
     const { data } = await supabase.rpc("event_availability", { p_slug: founding.slug });
     availability = ((Array.isArray(data) ? data[0] : data) as EventAvailability | null) ?? null;
   }
+  // Marketing state: the database date wins when the row exists, the config
+  // date otherwise. "past" swaps every seat CTA on this page for the list.
+  const foundingStatus = resolveEventStatus(featuredEvent(), {
+    live: founding
+      ? {
+          startsAt: founding.starts_at,
+          durationMinutes: founding.duration_minutes,
+          soldOut: availability?.sold_out ?? null,
+          seatsRemaining: availability?.seats_remaining ?? null,
+          registrationClosed: founding.registration_closed,
+        }
+      : null,
+  });
+  const foundingPast = foundingStatus === "past";
 
   return (
     <main className={`cb-page ${styles.page}`}>
@@ -81,10 +96,17 @@ export default async function EventsPage() {
               </span>
             </div>
             <div className="cb-actions">
-              <a className="cb-btn cb-btn--primary" href="#founding-workshop">
-                See the Founding Workshop
-                <ArrowRight aria-hidden="true" />
-              </a>
+              {foundingPast ? (
+                <a className="cb-btn cb-btn--primary" href="#next-workshop">
+                  {PAST_EVENT_COPY.listCta}
+                  <ArrowRight aria-hidden="true" />
+                </a>
+              ) : (
+                <a className="cb-btn cb-btn--primary" href="#founding-workshop">
+                  See the Founding Workshop
+                  <ArrowRight aria-hidden="true" />
+                </a>
+              )}
               <a className="cb-btn cb-btn--ghost" href="#upcoming-events">
                 Upcoming Dates
               </a>
@@ -109,7 +131,7 @@ export default async function EventsPage() {
       </section>
 
       {/* ------------------------------------------- founding workshop deep --- */}
-      <WorkshopShowcase event={founding} availability={availability} />
+      <WorkshopShowcase event={founding} availability={availability} status={foundingStatus} />
 
       {/* --------------------------------------------------------- schedule --- */}
       <section id="upcoming-events" className="cb-band cb-band--tint" tabIndex={-1}>
@@ -126,7 +148,19 @@ export default async function EventsPage() {
           </div>
 
           <div className={styles.eventList}>
-            {upcoming.length === 0 && (
+            {upcoming.length === 0 && foundingPast && (
+              <div className={styles.emptyState}>
+                <CalendarDays aria-hidden="true" />
+                <p className="cb-eyebrow">Next date being scheduled</p>
+                <h2>{PAST_EVENT_COPY.headline}</h2>
+                <p>{PAST_EVENT_COPY.body}</p>
+                <a href="#next-workshop" className="cb-btn cb-btn--primary">
+                  {PAST_EVENT_COPY.listCta}
+                  <ArrowRight aria-hidden="true" />
+                </a>
+              </div>
+            )}
+            {upcoming.length === 0 && !foundingPast && (
               <div className={styles.emptyState}>
                 <CalendarDays aria-hidden="true" />
                 <p className="cb-eyebrow">Founding date being finalized</p>

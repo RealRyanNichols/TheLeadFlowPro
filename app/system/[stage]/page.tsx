@@ -34,6 +34,7 @@ import {
 } from "@/lib/system-stages";
 import { TOOLS } from "@/lib/tools";
 import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
+import { PRICES, usd } from "@/lib/site/prices";
 import CtaLink from "@/components/site/CtaLink";
 import CapabilityWorkflow from "@/components/site/CapabilityWorkflow";
 import ReportingPreview from "./ReportingPreview";
@@ -243,11 +244,11 @@ export default async function StagePage({
                   href={WEBSITE_LAUNCH_CHECKOUT}
                   data-analytics={`cta-website-launch-stage-${stage.slug}`}
                 >
-                  Start Website Launch · $500
+                  Start Website Launch · {usd(PRICES.websiteLaunchDeposit)}
                 </a>
               </div>
               <p className={styles.checkoutNote}>
-                $500 starts the five-page Website Launch. Once intake begins, the deposit
+                {usd(PRICES.websiteLaunchDeposit)} starts the five-page Website Launch. Once intake begins, the deposit
                 is non-refundable, except where the written agreement or applicable law
                 requires otherwise. CRM, automation, portals, and deeper systems are
                 scoped separately.

@@ -5,11 +5,18 @@
 // lead from being saved.
 
 import { sendLeadText } from "@/lib/quo";
+import { BUSINESS } from "@/lib/site/business";
+import { PAST_EVENT_COPY, resolveFeaturedEvent } from "@/lib/site/events";
+import { usd } from "@/lib/site/prices";
 
+// Display labels for leads.interest. The database CHECK constraint fixes the
+// set of values (supabase/migrations/20260901234500); these labels are what
+// the owner alert and the admin pipeline print. "learn" is the workshop and
+// training list, "done_for_you" is the full-service agency lane.
 export const INTEREST_LABELS: Record<string, string> = {
-  learn: "Legacy training path",
+  learn: "Training and workshops",
   build_with_you: "Legacy guided build path",
-  done_for_you: "Legacy full-service path",
+  done_for_you: "Agency: run it for me",
   unsure: "Not sure yet",
   blueprint: "System Map",
   system_map: "System Map",
@@ -131,15 +138,15 @@ async function send(payload: object): Promise<boolean> {
 // This is the NEW LEAD alert only. The intake, digest and Stripe alerts
 // elsewhere in the app still go to hello@ alone and are a separate decision.
 const OWNER_ALERT_RECIPIENTS = [
-  "hello@theleadflowpro.com",
-  "pat@theleadflowpro.com",
+  BUSINESS.email.hello,
+  BUSINESS.email.pat,
 ];
 
 function ownerAlertPayload(lead: NotifiableLead) {
   const via = lead.source === "meta_lead_ad" ? " [FACEBOOK LEAD AD]" : "";
   return {
-    from: "The LeadFlow Pro <leadflow@theleadflowpro.com>",
-    reply_to: "hello@theleadflowpro.com",
+    from: `${BUSINESS.name} <${BUSINESS.email.alerts}>`,
+    reply_to: BUSINESS.email.hello,
     to: OWNER_ALERT_RECIPIENTS,
     subject: `NEW LEAD${via}: ${lead.full_name}${lead.business_name ? ` (${lead.business_name})` : ""} | ${INTEREST_LABELS[lead.interest] ?? lead.interest}`,
     text: [
@@ -155,18 +162,18 @@ function ownerAlertPayload(lead: NotifiableLead) {
       `What they told me:`,
       lead.goals || "-",
       ``,
-      `Manage: https://www.theleadflowpro.com/admin`,
+      `Manage: ${BUSINESS.siteUrl}/admin`,
     ].join("\n"),
   };
 }
 
-const FROM_RYAN = "Ryan Nichols <ryan@theleadflowpro.com>";
+const FROM_RYAN = `${BUSINESS.operator} <${BUSINESS.email.ryan}>`;
 const SIGNATURE = [
   ``,
   `Talk soon,`,
-  `Ryan Nichols`,
-  `The LeadFlow Pro`,
-  `(903) 500-8898`,
+  BUSINESS.operator,
+  BUSINESS.name,
+  BUSINESS.phone.display,
 ];
 
 // Funnels that own their own transactional message. The outbox still queues a
@@ -178,8 +185,30 @@ export function welcomeSuppressed(lead: Pick<NotifiableLead, "funnel">) {
   return !!lead.funnel && WELCOME_SUPPRESSED_FUNNELS.has(lead.funnel);
 }
 
+// The "next workshop" list reply. Used for the evergreen list form and for
+// workshop-form leads that arrive after the featured event has run.
+function workshopListWelcome(base: { from: string; to: string[]; reply_to: string }, first: string) {
+  return {
+    ...base,
+    subject: `${first}, you are on the list for the next workshop.`,
+    text: [
+      `${first},`,
+      ``,
+      `You are on the list. When the next Longview workshop date is set, you hear about it before it goes anywhere else.`,
+      ``,
+      `Until then, the free starter lesson is the fastest way to get a real result from ChatGPT on your own business:`,
+      `${BUSINESS.siteUrl}${PAST_EVENT_COPY.lessonPath}`,
+      ``,
+      `Run it on a task you actually have this week. Reply and tell me what came back and I will tell you what I would change.`,
+      ``,
+      `Questions? Call or text me at ${BUSINESS.phone.display}.`,
+      ...SIGNATURE,
+    ].join("\n"),
+  };
+}
+
 function funnelWelcome(lead: NotifiableLead, first: string) {
-  const base = { from: FROM_RYAN, to: [lead.email], reply_to: "hello@theleadflowpro.com" };
+  const base = { from: FROM_RYAN, to: [lead.email], reply_to: BUSINESS.email.hello };
   switch (lead.funnel) {
     case "commerce_planner":
       return {
@@ -252,7 +281,7 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
           `What happens next:`,
           ``,
           `1. I read what you want the tool to do and who it is for.`,
-          `2. I reach out within one business day from (903) 500-8898 with the blueprint questions.`,
+          `2. I reach out within one business day from ${BUSINESS.phone.display} with the blueprint questions.`,
           `3. You approve the plan before anything gets built. No passwords, ever.`,
           ``,
           `If you did not finish checkout and want to, the page is here:`,
@@ -311,31 +340,62 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
           `What happens next:`,
           ``,
           `1. I read what you told me about the business.`,
-          `2. I reach out within one business day from (903) 500-8898 to schedule the call.`,
+          `2. I reach out within one business day from ${BUSINESS.phone.display} to schedule the call.`,
           `3. Want the call to start warm? Run the Business Growth Diagnostic first. It takes about ten minutes and it is the exact intake I use:`,
           `https://www.theleadflowpro.com/diagnostic`,
           ...SIGNATURE,
         ].join("\n"),
       };
-    case "workshop_sep17":
+    case "workshop_sep17": {
+      // The Meta instant form for the workshop keeps delivering leads after
+      // the room has closed. Once the featured event is past, the reply is
+      // the list note, never a seat pitch for a date that has gone.
+      const workshop = resolveFeaturedEvent();
+      if (workshop.status === "past") return workshopListWelcome(base, first);
+      const timeRange = workshop.when.timeRange.replace("–", " to ").replace(" Central", "");
       return {
         ...base,
         subject: `${first}, your seat is not locked yet.`,
         text: [
           `${first},`,
           ``,
-          `You put your name in for the September 17 workshop in Longview. Good move.`,
+          `You put your name in for the ${workshop.when.shortDate} workshop in Longview. Good move.`,
           ``,
-          `One thing: seats are confirmed after payment, and there are only ten chairs in the room.`,
+          `One thing: seats are confirmed after payment, and there are only ${workshop.seats} chairs in the room.`,
           ``,
           `Lock yours here:`,
-          `https://workshop.theleadflowpro.com/`,
+          workshop.detailsHref,
           ``,
-          `One evening. 6:30 to 8:00. Bring your laptop and one real task from your business. You leave with a ChatGPT workflow you can run again the next day.`,
+          `One evening. ${timeRange}. Bring your laptop and one real task from your business. You leave with a ChatGPT workflow you can run again the next day.`,
           ``,
-          `$97. No subscription. No upsell in the room.`,
+          `${usd(workshop.priceUsd)}. No subscription. No upsell in the room.`,
           ``,
-          `Questions? Call or text me at (903) 500-8898.`,
+          `Questions? Call or text me at ${BUSINESS.phone.display}.`,
+          ...SIGNATURE,
+        ].join("\n"),
+      };
+    }
+    case "workshop_waitlist":
+      return workshopListWelcome(base, first);
+    case "agency_intake":
+      return {
+        ...base,
+        subject: `${first}, your agency intake is in.`,
+        text: [
+          `${first},`,
+          ``,
+          `Your answers landed with me. Not a ticket queue. Mine.`,
+          ``,
+          `Here is what happens next:`,
+          ``,
+          `1. I read what you sell, where your leads come from now, and the budget you said you are genuinely prepared to spend on ads each month.`,
+          `2. I reach out within one business day from ${BUSINESS.phone.display} to map the first ninety days.`,
+          `3. You get the scope, what you own, what you pay the platforms directly, and the price in writing before anything is built or billed.`,
+          ``,
+          `Two things that will not change: the ad accounts, pixel, audiences, and leads stay in your name, and nothing runs without your written approval.`,
+          ``,
+          `The agency pages are here if you want to read the process first:`,
+          `${BUSINESS.siteUrl}/agency`,
           ...SIGNATURE,
         ].join("\n"),
       };
@@ -364,9 +424,9 @@ export function leadWelcomePayload(lead: NotifiableLead) {
   if (funnelSpecific) return funnelSpecific;
   if (lead.funnel === "free_build_funnel" || lead.interest === "free_website_program") {
     return {
-      from: "Ryan Nichols <ryan@theleadflowpro.com>",
+      from: FROM_RYAN,
       to: [lead.email],
-      reply_to: "hello@theleadflowpro.com",
+      reply_to: BUSINESS.email.hello,
       subject: `${first}, your free website application is in.`,
       text: [
         `${first},`,
@@ -376,7 +436,7 @@ export function leadWelcomePayload(lead: NotifiableLead) {
         `Here is what happens next:`,
         ``,
         `1. I review the business, the current website or Facebook page, and the service you want more customers for.`,
-        `2. I reach out within one business day. Usually a text or call from (903) 500-8898. Save that number, it is my direct line.`,
+        `2. I reach out within one business day. Usually a text or call from ${BUSINESS.phone.display}. Save that number, it is my direct line.`,
         `3. If the application fits the current capacity, we put the five pages, ownership, outside costs, corrections, and exclusions into a written scope before the build starts.`,
         ``,
         `The build fee is $0. No paid add-on is required. Domain registration, paid hosting after the included 90 days, software, advertising spend, and work outside the five-page scope are separate and disclosed before approval.`,
@@ -389,15 +449,15 @@ export function leadWelcomePayload(lead: NotifiableLead) {
         `Talk soon,`,
         `Ryan Nichols`,
         `The LeadFlow Pro`,
-        `(903) 500-8898`,
+        BUSINESS.phone.display,
       ].join("\n"),
     };
   }
 
   return {
-    from: "Ryan Nichols <ryan@theleadflowpro.com>",
+    from: FROM_RYAN,
     to: [lead.email],
-    reply_to: "hello@theleadflowpro.com",
+    reply_to: BUSINESS.email.hello,
     subject: `Got it, ${first}. I am looking at what to fix first.`,
     text: [
       `${first},`,
@@ -407,7 +467,7 @@ export function leadWelcomePayload(lead: NotifiableLead) {
       `Here is what happens next:`,
       ``,
       `1. I look at what you told me: what you are running now, what it is costing you, and how fast you want it changed.`,
-      `2. I reach out within one business day. Usually a text or call from (903) 500-8898. Save that number, it is my direct line.`,
+      `2. I reach out within one business day. Usually a text or call from ${BUSINESS.phone.display}. Save that number, it is my direct line.`,
       `3. You leave that first conversation knowing the fastest thing to fix and your next three moves, whether you hire me or not.`,
       ``,
       `Want a head start? The live systems I have already built and handed over are here:`,

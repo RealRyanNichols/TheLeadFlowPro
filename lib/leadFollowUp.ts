@@ -1,4 +1,4 @@
-// The $197 Lead Follow-Up Campaign (/go/lead-follow-up).
+// The Lead Follow-Up Campaign (/go/lead-follow-up), priced by PRICES.leadFollowUpCampaign.
 //
 // Every number and promise on that page lives here and ONLY here. The page
 // reads this file to render and /api/checkout reads PRICE_USD to charge, so
@@ -11,12 +11,14 @@
 // review messages are delivered as copy the owner sends from their own phone
 // or tool. Keep it that way unless Ryan says the sending path is back on.
 
+import { PRICES, usd } from "@/lib/site/prices";
+
 export const LEAD_FOLLOW_UP = {
   id: "lead_followup_campaign",
   name: "Lead Follow-Up Campaign",
-  priceUsd: 197,
+  priceUsd: PRICES.leadFollowUpCampaign,
   /** Charged in cents, server-side. */
-  priceCents: 19700,
+  priceCents: PRICES.leadFollowUpCampaign * 100,
   turnaroundDays: 5,
   tagline: "Your follow-up, written and ready to send.",
   promise:
@@ -65,7 +67,7 @@ export const LEAD_FOLLOW_UP = {
     {
       number: "01",
       name: "Pay",
-      body: "$197 one time. No subscription, no seat, nothing recurring.",
+      body: `${usd(PRICES.leadFollowUpCampaign)} one time. No subscription, no seat, nothing recurring.`,
     },
     {
       number: "02",
@@ -96,7 +98,7 @@ export const LEAD_FOLLOW_UP = {
     },
     {
       q: "Will you send the messages for me?",
-      a: "No. This offer writes the follow-up and hands it to you. Having it sent for you is a build, not a $197 campaign, and that is a separate conversation.",
+      a: `No. This offer writes the follow-up and hands it to you. Having it sent for you is a build, not a ${usd(PRICES.leadFollowUpCampaign)} campaign, and that is a separate conversation.`,
     },
     {
       q: "What if the writing does not sound like me?",

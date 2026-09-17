@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
+import { BUSINESS } from "@/lib/site/business";
 
 // Receives the Time Back welcome intake (/go/time-back/welcome) and stamps it
 // onto the buyer's lead: business details, confirmed platforms, access grant
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
     `Access: ${accessSummary}.`,
     onboarding.email_platform ? `Email platform: ${onboarding.email_platform}.` : "",
     uploads.length ? `${uploads.length} file(s) in intake storage.` : "No files uploaded.",
-    "Next: send the partner access invites from hello@theleadflowpro.com.",
+    `Next: send the partner access invites from ${BUSINESS.email.hello}.`,
   ]
     .filter(Boolean)
     .join(" ");
@@ -173,8 +174,8 @@ export async function POST(request: Request) {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "The LeadFlow Pro <hello@theleadflowpro.com>",
-          to: ["hello@theleadflowpro.com"],
+          from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
+          to: [BUSINESS.email.hello],
           subject: `🛠️ TIME BACK INTAKE: ${businessName} — ${email}`,
           text: [
             summary,

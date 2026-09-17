@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import styles from "../sellerproof.module.css";
+import { PRICES, usd } from "@/lib/site/prices";
 export const metadata: Metadata = {
   title: "SellerProof purchase terms",
   alternates: { canonical: "/sellerproof/terms" },
@@ -15,7 +16,7 @@ export default function Terms() {
           SellerProof is offered through The LeadFlow Pro. The site's{" "}
           <Link href="/terms">general terms</Link> also apply.
         </p>
-        <h2>What your $49 buys</h2>
+        <h2>What your {usd(PRICES.sellerProofPacket)} buys</h2>
         <p>
           One payment in USD unlocks a printable packet for one dispute, bound
           to the payment provider, order reference, dispute reference, amount,

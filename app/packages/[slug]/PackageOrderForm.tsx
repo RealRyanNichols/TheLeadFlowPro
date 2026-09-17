@@ -1,7 +1,9 @@
 "use client";
 
 // The order form at the bottom of every package sales page. Website Launch has
-// a fixed $1,000 schedule: $500 to start and $500 after approval, before launch.
+// a fixed schedule: the total (PRICES.websiteLaunchTotal) is paid as the deposit
+// (PRICES.websiteLaunchDeposit) to start and the final payment
+// (PRICES.websiteLaunchFinal) after approval, before launch.
 // Other packages retain their existing purchase, deposit, map-first, and
 // question paths. The CRM capture still runs before any checkout handoff.
 
@@ -10,6 +12,7 @@ import { useRef, useState } from "react";
 import { ArrowRight, CircleCheck, Lock } from "lucide-react";
 import BuyButton from "@/components/BuyButton";
 import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
+import { PRICES, usd } from "@/lib/site/prices";
 
 declare global {
   interface Window {
@@ -30,7 +33,7 @@ const INTENTS: Array<{ id: string; label: string; desc: string }> = [
   },
   {
     id: "map_first",
-    label: "Start me with the $497 System Map",
+    label: `Start me with the ${usd(PRICES.systemMap)} System Map`,
     desc: "Blueprint first, credited toward the build.",
   },
   {
@@ -41,8 +44,8 @@ const INTENTS: Array<{ id: string; label: string; desc: string }> = [
 ];
 
 const BASE_PRICE: Record<string, number> = {
-  "system-map": 497,
-  launch: 1000,
+  "system-map": PRICES.systemMap,
+  launch: PRICES.websiteLaunchTotal,
 };
 
 const DEPOSIT_PRESETS = [500, 1000, 2500, 5000];
@@ -79,7 +82,7 @@ export default function PackageOrderForm({
   const maxDeposit = Math.min(25000, basePrice);
   const parsedCustomDeposit = Math.round(Number(customDeposit));
   const activeDeposit = isWebsiteLaunch
-    ? 500
+    ? PRICES.websiteLaunchDeposit
     : customDeposit
       ? parsedCustomDeposit
       : deposit;
@@ -290,9 +293,9 @@ export default function PackageOrderForm({
       </h2>
       <p className="mt-2 text-[var(--muted)]">
         {isWebsiteLaunch
-          ? "The five-page Website Launch is $1,000: $500 to start and $500 after approval, before launch. Once intake begins, the deposit is non-refundable, except where the written agreement or applicable law requires otherwise."
+          ? `The five-page Website Launch is ${usd(PRICES.websiteLaunchTotal)}: ${usd(PRICES.websiteLaunchDeposit)} to start and ${usd(PRICES.websiteLaunchFinal)} after approval, before launch. Once intake begins, the deposit is non-refundable, except where the written agreement or applicable law requires otherwise.`
           : isCompanyOS
-            ? "Company OS begins with a $497 System Map so the scope, dependencies, and implementation plan are clear before any build payment."
+            ? `Company OS begins with a ${usd(PRICES.systemMap)} System Map so the scope, dependencies, and implementation plan are clear before any build payment.`
             : "Pick your path and add your details. Card payments run on Stripe secure checkout, and every dollar you put down is credited in full toward your build."}
       </p>
 
@@ -341,10 +344,10 @@ export default function PackageOrderForm({
       {intent === "down_payment" && isWebsiteLaunch && (
         <div className="mt-4 rounded-xl border border-[var(--accent-line)] bg-sky-500/[0.06] p-5">
           <p className="text-sm font-bold text-[var(--heading)]">
-            $500 reserves your Website Launch.
+            {usd(PRICES.websiteLaunchDeposit)} reserves your Website Launch.
           </p>
           <p className="mt-1 text-[12.5px] text-[var(--muted)]">
-            The remaining $500 is due after you approve the working site and
+            The remaining {usd(PRICES.websiteLaunchFinal)} is due after you approve the working site and
             before it launches. Once intake begins, the deposit is
             non-refundable, except where the written agreement or applicable law
             requires otherwise. After the order is saved, Stripe opens for the
@@ -426,12 +429,12 @@ export default function PackageOrderForm({
       {intent === "map_first" && (
         <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl border border-[var(--accent-line)] bg-sky-500/[0.06] p-4">
           <p className="min-w-0 flex-1 text-sm text-[var(--text)]">
-            The System Map is the fastest yes. $497, credited in full toward
+            The System Map is the fastest yes. {usd(PRICES.systemMap)}, credited in full toward
             this build.
           </p>
           <BuyButton
             kind="system_map"
-            label="Buy the Map | $497"
+            label={`Buy the Map | ${usd(PRICES.systemMap)}`}
             className="button-primary !min-h-[42px]"
           />
         </div>
@@ -552,9 +555,9 @@ export default function PackageOrderForm({
           By submitting, you agree to our <Link href="/terms">Terms</Link> and
           acknowledge our <Link href="/privacy">Privacy Policy</Link>. Card
           payments are processed by Stripe on their secure checkout page.
-          Deposits and payments follow the written scope. Website Launch is $500
-          now and $500 after approval, before launch. Once intake begins, the
-          initial $500 is non-refundable, except where the written agreement or
+          Deposits and payments follow the written scope. Website Launch is {usd(PRICES.websiteLaunchDeposit)}
+          now and {usd(PRICES.websiteLaunchFinal)} after approval, before launch. Once intake begins, the
+          initial {usd(PRICES.websiteLaunchDeposit)} is non-refundable, except where the written agreement or
           applicable law requires otherwise.
         </p>
       </form>

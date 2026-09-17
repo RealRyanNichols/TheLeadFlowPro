@@ -1252,3 +1252,119 @@
     padding-top: 26px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Featured event, post-event state: the "next workshop" list form on the hero
+   card, and the four-door chooser once a need is picked.
+   --------------------------------------------------------------------------- */
+.lf-workshop-booking--past {
+  grid-template-columns: minmax(0, 1fr);
+}
+.lf-workshop-creative--past img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: center 20%;
+}
+.lf-workshop-list-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 6px;
+}
+.lf-workshop-list-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+.lf-workshop-list-fields label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #514b5c;
+}
+.lf-workshop-list-fields input {
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #20212b;
+  background: #fffdf8;
+  border: 1px solid #c9b8c9;
+  border-radius: 10px;
+}
+.lf-workshop-list-fields input:focus-visible,
+.lf-workshop-list-consent input:focus-visible {
+  outline: 3px solid #5135e5;
+  outline-offset: 2px;
+}
+.lf-workshop-list-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #514b5c;
+}
+.lf-workshop-list-consent input {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-top: 2px;
+  accent-color: #5135e5;
+}
+.lf-workshop-list-error {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #9b1c1c;
+}
+.lf-workshop-list-form .lf-workshop-seat {
+  cursor: pointer;
+  font-family: inherit;
+}
+.lf-workshop-list-form .lf-workshop-seat:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+.lf-workshop-list-form--done {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  color: #20212b;
+  background: #e9f7ee;
+  border: 1px solid #9ccfb0;
+  border-radius: 12px;
+}
+.lf-workshop-list-form--done svg {
+  flex: none;
+  margin-top: 2px;
+  color: #1a7f4b;
+}
+.lf-workshop-list-form--done strong {
+  display: block;
+  font-size: 16px;
+}
+.lf-workshop-list-form--done p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #514b5c;
+}
+.lf-choice-grid--four {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.lf-choice-grid--four .lf-choice:nth-child(4) {
+  background: #eaf3ff;
+  border-color: #bfd4f2;
+}
+@media (min-width: 1101px) {
+  .lf-choice-grid--four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .lf-choice-grid--four {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,4 +1,5 @@
 "use client";
+import { BUSINESS } from "@/lib/site/business";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -14,7 +15,7 @@ import {
 // identity; pat@dripgate.org is the temporary bridge and gets revoked once the
 // company login is verified.
 const KNOWN_OPERATORS: Record<string, string> = {
-  "pat@theleadflowpro.com": "Patrick Grabbs",
+  [BUSINESS.email.pat]: "Patrick Grabbs",
   "pat@dripgate.org": "Patrick Grabbs",
 };
 

@@ -31,7 +31,7 @@ export function StartPlanButton({ label }: { label: string }) {
 
   return (
     <div className="grid gap-2">
-      <button type="button" className="pro-buy-button" onClick={go} disabled={busy}>
+      <button type="button" className="pro-buy-button" onClick={go} disabled={busy} data-cta="plugin_checkout_start" data-cta-placement="hq_billing">
         {busy ? "Opening checkout..." : label}
       </button>
       {error && <p className="hq-error">{error}</p>}

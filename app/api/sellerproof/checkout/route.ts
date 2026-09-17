@@ -4,6 +4,7 @@ import {
   purchaseErrors,
 } from "@/lib/sellerproof/packet";
 import { caseHash } from "@/lib/sellerproof/access";
+import { PRICES, usd } from "@/lib/site/prices";
 import {
   configured,
   json,
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
     "metadata[case_hash]": caseHash(packet),
     "metadata[version]": "1",
     "custom_text[submit][message]":
-      "One payment of $49 for this dispute. No subscription. Original evidence files are attached by you in your provider dashboard. Not legal advice. No outcome guarantees.",
+      `One payment of ${usd(PRICES.sellerProofPacket)} for this dispute. No subscription. Original evidence files are attached by you in your provider dashboard. Not legal advice. No outcome guarantees.`,
   });
   try {
     const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {

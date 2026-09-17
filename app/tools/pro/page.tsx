@@ -11,11 +11,12 @@ import ProBuyButton from "@/components/tools/pro/ProBuyButton";
 import ProPurchaseTracking from "@/components/tools/pro/ProPurchaseTracking";
 import SiteHero from "@/components/site/system/SiteHero";
 import FinalCta from "@/components/site/system/FinalCta";
+import { PRICES, usdRange } from "@/lib/site/prices";
 
 const BASE = "https://www.theleadflowpro.com";
 
 export const metadata: Metadata = withPublicPageMetadata("/tools/pro", {
-  title: `Pro Kits: finished systems for $10 to $29 | The LeadFlow Pro`,
+  title: `Pro Kits: finished systems for ${usdRange(PRICES.proKitMin, PRICES.proKitMax)} | The LeadFlow Pro`,
   description:
     "The free tools give you the number. A Pro Kit gives you the finished system built from it: printable documents, scripts, spreadsheets and calendar files, all in your own name. One payment, no subscription.",
   alternates: { canonical: `${BASE}/tools/pro` },
@@ -77,7 +78,7 @@ export default async function ProShelfPage() {
 
       <SiteHero
         compact
-        eyebrow={`${kits.length} pro kit${kits.length === 1 ? "" : "s"} · $10 to $29 · one payment`}
+        eyebrow={`${kits.length} pro kit${kits.length === 1 ? "" : "s"} · ${usdRange(PRICES.proKitMin, PRICES.proKitMax)} · one payment`}
         mutedTitle="The free tool tells you the number."
         title="A kit hands you the finished thing."
         body="Same engine as the free library, pointed at the work that comes after the answer. You put in your numbers, it builds the printable documents, the scripts, the spreadsheets and the calendar reminders, with your name and your logo already on them."

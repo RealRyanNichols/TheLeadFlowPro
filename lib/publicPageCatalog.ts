@@ -155,6 +155,70 @@ export const PUBLIC_PAGE_CATALOG = [
     eyebrow: "The LeadFlow Pro Plugin",
   },
   {
+    path: "/plugin/docs",
+    title: "Install it, say the first thing, know where your data is",
+    description:
+      "The plugin manual: install in ChatGPT, Claude, Claude Code, or Cursor, first tasks, data handling, billing, cancellation, and the changelog.",
+    eyebrow: "Plugin docs",
+  },
+  {
+    path: "/agency",
+    title: "Ads, websites, automation, video, and content, run for you",
+    description:
+      "The agency lane: Meta ads, Google Ads, websites, automation, video, and content in accounts you own. You pay the platforms directly and keep the leads.",
+    eyebrow: "Run it for me",
+  },
+  {
+    path: "/agency/meta-ads",
+    title: "Meta ads management in your own Business Manager",
+    description:
+      "Lead ads and landing pages built in your Meta account, wired to your inbox and CRM, with the trace from ad to lead to outcome kept in your records.",
+    eyebrow: "Agency · Meta ads",
+  },
+  {
+    path: "/agency/google-ads",
+    title: "Google Ads management with call and form tracking",
+    description:
+      "Search and local campaigns in your Google Ads account, conversion tracking for calls and forms, and plain-English reporting against your own records.",
+    eyebrow: "Agency · Google Ads",
+  },
+  {
+    path: "/agency/websites",
+    title: "Five pages that give people a next step",
+    description:
+      "A mobile-first five-page site with lead capture, search foundation, and analytics in your account. Apply for the free program or buy it outright.",
+    eyebrow: "Agency · Websites",
+  },
+  {
+    path: "/agency/automation",
+    title: "Follow-up that runs whether you are free or not",
+    description:
+      "The capture, record, follow-up, sale, delivery, reporting loop installed in your accounts, with every automation documented and pauseable.",
+    eyebrow: "Agency · Automation",
+  },
+  {
+    path: "/agency/video",
+    title: "Video and media shot on location, cut for the phone",
+    description:
+      "Vertical shorts, an offer explainer, and customer stories captured with written consent, delivered as files you own.",
+    eyebrow: "Agency · Video",
+  },
+  {
+    path: "/agency/content",
+    title: "Posts, pages, and emails that answer real questions",
+    description:
+      "A content engine built around one offer at a time, drafted in your voice and published in your accounts on a calendar you approve.",
+    eyebrow: "Agency · Content",
+  },
+  {
+    path: "/agency/start",
+    title: "Tell Ryan what is leaking",
+    description:
+      "The agency intake: business, channels, the ad budget you are genuinely prepared to spend, the bottleneck, who decides, and when.",
+    eyebrow: "Agency intake",
+    index: false,
+  },
+  {
     path: "/portfolio",
     title: "Open the work and inspect it",
     description:

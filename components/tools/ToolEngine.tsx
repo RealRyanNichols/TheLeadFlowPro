@@ -22,6 +22,7 @@ import SendResultModal, { type SendReason } from "./SendResultModal";
 import QrBlock from "./QrBlock";
 import ReviewLinkTool from "./ReviewLinkTool";
 import { trackTool } from "@/lib/tools/analytics";
+import { BUSINESS } from "@/lib/site/business";
 
 const TONE_BG: Record<Tone, string> = {
   good: "border-[var(--green-line)] bg-[var(--green-tint)]",
@@ -868,7 +869,7 @@ function EmbedBlock({
         <button type="button" onClick={onEmail} className="text-xs font-bold text-[var(--blue)] underline">
           Email me this code and the instructions
         </button>
-        <span className="text-xs text-[var(--muted)]">Stuck? Text (903) 500-8898.</span>
+        <span className="text-xs text-[var(--muted)]">Stuck? Text {BUSINESS.phone.display}.</span>
       </div>
     </div>
   );

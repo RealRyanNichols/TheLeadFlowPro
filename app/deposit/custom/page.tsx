@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import CustomDepositForm from "./CustomDepositForm";
+import { PRICES, usd } from "@/lib/site/prices";
 
 export const metadata: Metadata = {
   title: "Custom Project Deposit | The LeadFlow Pro",
@@ -32,7 +33,7 @@ export default function CustomDepositPage() {
             <p className="cb-eyebrow">Before you pay</p>
             <h2 className="cb-h2 cb-heading">Match the scope, amount and business.</h2>
             <p className="cb-lead">
-              Need the fixed $1,000 Website Launch instead?{" "}
+              Need the fixed {usd(PRICES.websiteLaunchTotal)} Website Launch instead?{" "}
               <Link className="cb-textlink" href="/packages#website-launch">
                 See the Website Launch scope
               </Link>
