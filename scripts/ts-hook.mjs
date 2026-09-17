@@ -38,3 +38,17 @@ export async function resolve(specifier, context, next) {
 
   return next(specifier, context);
 }
+
+// Node strips types from .ts but has no JSX transform. The factory QA script
+// and its test render the client-site templates, which are .tsx, so those
+// files go through TypeScript's transpiler (already a dependency of Next).
+export async function load(url, context, next) {
+  if (!url.endsWith(".tsx")) return next(url, context);
+  const [{ readFile }, ts] = await Promise.all([import("node:fs/promises"), import("typescript")]);
+  const source = await readFile(fileURLToPath(url), "utf8");
+  const { outputText } = ts.default.transpileModule(source, {
+    fileName: fileURLToPath(url),
+    compilerOptions: { jsx: ts.default.JsxEmit.ReactJSX, module: ts.default.ModuleKind.ESNext, target: ts.default.ScriptTarget.ES2022 },
+  });
+  return { format: "module", source: outputText, shortCircuit: true };
+}

@@ -18,3 +18,6 @@ tsconfig.tsbuildinfo
 supabase/.temp/
 test-results/
 .env*
+
+# Factory output (client sites scaffolded by scripts/new-client.ts)
+build/

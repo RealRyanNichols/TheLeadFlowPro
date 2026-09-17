@@ -160,3 +160,27 @@ or activated by the engineering work; every item is a switch Ryan flips.
     and `docs/leadflow-privacy-safe-analytics.md` describe a tree that does
     not exist. `docs/leadflow-web-analytics-plan.md`, `docs/TOOLS_ANALYTICS.md`,
     and `lib/analytics/shared.ts` are accurate. Default: delete the two.
+
+## G. Phase 7 engines
+
+23. **7.1 Client site factory: price.** The factory turns one config file
+    into a five-page client site deployed to the client's own Vercel
+    account (`docs/engines/7.1-client-site-factory.md`). The published
+    Website Launch offer ($1,000 as $500 + $500) and the hosting offers
+    ($49/mo, or $99/mo with two edits) already cover what the factory
+    produces. Decision: sell factory builds under Website Launch as is, or
+    create a separate factory tier. Default: Website Launch, no new price.
+
+24. **7.1 Client site factory: go-live.** The admin-only preview at
+    `/factory/preview/<slug>` and the two scripts ship with the next merge.
+    They touch no account. A real client site needs, per client: the
+    client's Vercel account, the client's Resend account with their domain
+    verified, and the client's DNS. Ryan performs the first real launch on
+    a screen share with the client. No LeadFlow Pro env variable changes.
+
+25. **7.1 Client site factory: where real configs live.** Client configs
+    are JSON files under `factory/clients/`. Only the fictional fixture is
+    committed. Decision: keep real configs in this repo (simple, versioned,
+    but the repo is shared with anyone who can read it) or in a private
+    folder synced by hand. Default: a private `factory/clients/` folder
+    outside git until a client asks for versioned edits.
