@@ -37,6 +37,12 @@
       "check": "release",
       "result": "awaiting review",
       "detail": "Prepared on branch claude/article-draft-handyman-job-pricing as a draft pull request for Ryan's approval. contentCommit, validation, deployment, and scheduledCheck are recorded once the checked commit exists and is deployed. If the merge lands after 2026-09-17, move the date forward in the article, lib/articles-schedule.ts, and this receipt's filename before merging so the article is not backdated."
+    },
+    {
+      "observedAt": "2026-09-17T05:10:36Z",
+      "check": "release",
+      "result": "resolved",
+      "detail": "PR #53 was marked ready and merged into main with a merge commit on 2026-09-17 Central (cb7c7d1), within the scheduled publication date, so no date move was needed. Deployment and liveCheck above record the production verification."
     }
   ],
   "contentCommit": "dfd6fcdf241f495f66469ebd98278d0206389d36",
@@ -57,5 +63,46 @@
     "formatting": "Changed content, queue, and receipt files pass Prettier. lib/articles-og.tsx has a pre-existing Prettier style issue in the September 6 OG card JSX (also present on main); the three added mapping lines are clean and the file was not reformatted to keep the diff limited to this change.",
     "diffCheck": "passed (git diff --check)",
     "privacyReview": "No secrets, customer records, or private notes in the diff; the worked example is labeled fictional."
+  },
+  "deployment": {
+    "mergeCommit": "cb7c7d160f768f2c6b0836ad10f9ce7732505d4b",
+    "mergedAt": "2026-09-17T05:05:45Z",
+    "mergeMethod": "merge commit of PR #53 (marked ready first), pushed to main on 2026-09-17 Central",
+    "deploymentId": "dpl_26x1zmCZUNgVyiCc294NAjhMsF4C",
+    "deploymentUrl": "the-lead-flow-gz8f7b739-realryannichols.vercel.app",
+    "target": "production",
+    "state": "READY",
+    "readyAt": "2026-09-17T05:07:43Z",
+    "aliases": [
+      "theleadflowpro.com",
+      "www.theleadflowpro.com"
+    ],
+    "preDeployGate": "NODE_ENV=development npm install --include=dev, npm test (1123 pass, 0 fail) and npm run build:only (exit 0) run on the exact merge tree df9832a3ac7881c33cb648cddae6ff51b4dd9f17 before the push; the pushed merge commit was verified to carry the same tree hash."
+  },
+  "liveCheck": {
+    "checkedAt": "2026-09-17T05:10:36Z",
+    "url": "https://theleadflowpro.com/articles/handyman-job-pricing",
+    "httpStatus": 200,
+    "redirect": "apex returned 307 to https://www.theleadflowpro.com/articles/handyman-job-pricing, which returned 200 directly as well",
+    "calculatorPresent": true,
+    "indexPresent": true,
+    "sitemapPresent": true,
+    "canonicalVerified": true,
+    "mobileReview": {
+      "checkedAt": "2026-09-17T05:04:00Z",
+      "viewportWidth": 375,
+      "surface": "Vercel preview of the merged head (branch deployment of 9624a1f) in the desktop app browser",
+      "inputs": {
+        "materials": 300,
+        "waste": 10,
+        "hours": 6,
+        "laborCost": 35,
+        "drive": 1,
+        "overhead": 15,
+        "profit": 20
+      },
+      "results": "$827 quote, $661 true cost, $165 profit, 20.0% gross margin, $118.08/hr effective rate, matching the article text; layout readable with no horizontal overflow"
+    },
+    "method": "After the production deployment reached READY, fetched the article over HTTPS: 200 with <title> 'How should a handyman price a job? | The LeadFlow Pro', canonical to the www URL, datePublished 2026-09-17, job-price-calculator markup and the 'Quote this job at' result block present. The public /articles index lists the article and https://www.theleadflowpro.com/sitemap.xml contains the URL. The date gate was also confirmed working before midnight Central (article returned the middleware 404 with noindex)."
   }
 }
