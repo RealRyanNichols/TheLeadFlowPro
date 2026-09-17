@@ -27,6 +27,7 @@
 .hero h1 em { color: #654296; font-family: Georgia, "Times New Roman", serif; font-weight: 500; letter-spacing: -.04em; }
 .lead { font-size: 1.12rem; line-height: 1.75; max-width: 760px; color: var(--muted); margin: 0; }
 .heroNote { color: #5c5266; font-size: .91rem; line-height: 1.6; margin: 18px 0 0; }
+.heroNote + .heroNote { margin-top: 6px; }
 .heroRow { display: flex; justify-content: space-between; gap: 32px; align-items: flex-start; flex-wrap: wrap; }
 .heroRow > div:first-child { flex: 1 1 650px; min-width: 0; }
 .liveBadge { border: 1px solid #c7b5d8; border-left: 4px solid #7752be; background: linear-gradient(145deg, #eee1f4, #fbecd8); border-radius: 16px; padding: 24px; flex: 0 1 290px; box-shadow: 0 10px 26px #684d7720; }

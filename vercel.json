@@ -39,6 +39,10 @@
     {
       "path": "/api/cron/hq-pulse",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/revalidate-scoreboard",
+      "schedule": "*/10 * * * *"
     }
   ]
 }

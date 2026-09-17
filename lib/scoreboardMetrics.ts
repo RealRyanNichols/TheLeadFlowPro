@@ -72,9 +72,27 @@ export function feedObservationLabel(observedAt: string | null) {
   return `Observed ${new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" }).format(new Date(observedAt))}`;
 }
 
+/**
+ * The earliest upstream observation among the feeds that reported, so a page
+ * built from several feeds never claims to be fresher than its oldest read.
+ * Fails closed: if any reporting feed has no observation time, the page has
+ * none. Feeds that could not be read are excluded; their numbers render as
+ * unavailable, not as a timestamp. This is never a render time.
+ */
+export function oldestObservation(feeds: readonly MetricFeed[]): string | null {
+  let oldest: { at: string; time: number } | null = null;
+  for (const { result } of feeds) {
+    if (!result.ok) continue;
+    const time = result.fetchedAt ? Date.parse(result.fetchedAt) : Number.NaN;
+    if (!Number.isFinite(time)) return null;
+    if (oldest === null || time < oldest.time) oldest = { at: result.fetchedAt!, time };
+  }
+  return oldest?.at ?? null;
+}
+
 export const SOURCE_NOTES: Record<string, Record<PublicMetricKey, string>> = {
   "the-leadflow-pro": {
-    views: "Page-view analytics events marked non-internal. Repeat page loads count again.", visitors: "Distinct visitor IDs on page-view events per Central day; summed across days.", clicks: "Named CTA, outbound, phone, text, email, tool-start, download, booking-start and checkout-start events. This is a selected action set, not every click.", leads: "Lead records excluding soft-deleted and test records.", paid_leads: "Lead records with a recognized Meta lead-ad source or a paid/cpc/ppc/paid-social medium.", unpaid_leads: "Eligible lead records minus those with a recognized paid-ad source or medium; unknown sources remain included.", calls: "Eligible lead records whose source is quo_call; a phone-button click alone is not a call record.", forms: "Non-internal analytics form_submit events. These need not equal the number of lead rows.",
+    views: "Page-view analytics events marked non-internal. Repeat page loads count again.", visitors: "Distinct visitor IDs on page-view events per Central day; summed across days.", clicks: "Named CTA, navigation, outbound, phone, text, email, tool-card-open, tool-view, tool-start, form-start, download, booking-start and checkout-start events. Passive signals such as scroll depth, page engagement and session starts are not counted.", leads: "Lead records excluding soft-deleted and test records.", paid_leads: "Lead records with a recognized Meta lead-ad source or a paid/cpc/ppc/paid-social medium.", unpaid_leads: "Eligible lead records minus those with a recognized paid-ad source or medium; unknown sources remain included.", calls: "Call records logged on the business line, inbound and outbound, by the Central day the call started; a phone-button click alone is not a call record.", forms: "Non-internal analytics form_submit events. These need not equal the number of lead rows.",
   },
   "premier-dental-academy-of-longview": {
     views: "Page-visit records whose page marker begins pv:. The public feed does not apply LeadFlow’s internal-traffic filter.", visitors: "Distinct visitor hashes on pv: records per Central day; summed across days.", clicks: "Page-visit records whose marker begins click:. This event set differs from LeadFlow’s selected actions.", leads: "All lead rows returned by the school's aggregate feed. Its current query does not apply a test/deleted filter.", paid_leads: "Lead rows with a recognized Meta lead-ad source or a paid/cpc/ppc/paid-social medium.", unpaid_leads: "Lead rows minus those with a recognized advertising source or paid medium.", calls: "Lead records whose source is quo_call. Repeat callers can produce multiple records.", forms: "Lead rows whose source is neither Quo call/text nor a recognized Meta lead-ad source. This is a source-based category, not a universal form-submit counter.",

@@ -18,7 +18,9 @@ import { fetchCaptureCoverage } from "@/lib/scoreboardCaptureFeeds";
 import { CAPTURE_SOURCES } from "@/lib/scoreboardCaptureCoverage";
 import styles from "../scoreboard.module.css";
 
-export const revalidate = 900;
+// The /api/revalidate-scoreboard cron purges this page every 10 minutes; this
+// window is only the backstop for a page the cron has not reached yet.
+export const revalidate = 300;
 
 export function generateStaticParams() {
   return publicScoreboardBusinesses().map((business) => ({ business: business.slug }));
@@ -83,7 +85,7 @@ export default async function BusinessScoreboardPage({
             <div className={styles.liveBadge}>
               <p>Data source</p>
               <strong>{business.shortName}&apos;s own database</strong>
-              <small>{business.town}. Aggregate counts only. Checks for updates every 15 minutes when requested.</small>
+              <small>{business.town}. Aggregate counts only. Re-read from the database about every 10 minutes.</small>
             </div>
           </div>
         </div>

@@ -9,7 +9,8 @@ import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import MetricChart from "../../MetricChart";
 import styles from "../../scoreboard.module.css";
 
-export const revalidate = 900;
+// Purged every 10 minutes by the /api/revalidate-scoreboard cron; 300 s is the backstop.
+export const revalidate = 300;
 export function generateStaticParams() { return METRIC_GUIDES.map(({ slug }) => ({ metric: slug })); }
 export async function generateMetadata({ params }: { params: Promise<{ metric: string }> }) {
   const { metric } = await params;
@@ -50,7 +51,7 @@ export default async function MetricDetailPage({ params }: { params: Promise<{ m
         <p className={styles.chartNote}>An empty-height bar means the feed reported zero. Unavailable feeds are excluded from the entire chart window; missing records are never filled with made-up zeros. Each metric has its own scale.</p>
         <details className={styles.dailyValues}><summary>Read the daily numbers</summary><div className={styles.dailyTable}><table><thead><tr><th scope="col">Central date</th><th scope="col">{guide.title}</th></tr></thead><tbody>{rollup.series.map(({ day, value }) => <tr key={day}><th scope="row">{day}</th><td>{value === null ? "Unavailable" : formatCount(value)}</td></tr>)}</tbody></table></div></details>
       </div>
-      <p className={styles.boardFoot}>Feeds are checked for refreshed counts every 15 minutes when these pages are requested. Observation times below come from the upstream response, not the moment this page was drawn.</p>
+      <p className={styles.boardFoot}>Feeds are re-read about every 10 minutes. Observation times below come from the upstream response, not the moment this page was drawn.</p>
     </div></section>
 
     <section className={styles.about}><div className={styles.shell}>

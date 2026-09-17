@@ -18,7 +18,13 @@ export async function fetchScoreboardDays(business: ScoreboardBusiness, daysBack
       headers: { apikey: key, Authorization: `Bearer ${key}`, "content-type": "application/json" },
       body: JSON.stringify({ days_back: Math.min(400, Math.max(1, Math.trunc(daysBack))) }),
       signal: AbortSignal.timeout(8000),
-      next: { revalidate: 900 },
+      // No fetch-level Data Cache on purpose. The page's own ISR window plus the
+      // /api/revalidate-scoreboard cron is the only cache this needs; a
+      // `next.revalidate` here stacked a second window on top of the page's, so a
+      // rebuild could re-render with data that was already most of a window old.
+      // Do not use `cache: "no-store"` either: in Next 15 it marks the whole
+      // route dynamic and silently disables ISR. The default fetch is
+      // "auto no cache": uncached, and the route stays static.
     });
     if (!response.ok) return { ok: false, reason: `feed responded ${response.status}` };
     const raw = await response.json();

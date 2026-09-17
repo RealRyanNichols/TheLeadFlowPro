@@ -11,7 +11,8 @@ export async function fetchCaptureCoverage(business: ScoreboardBusiness, daysBac
       headers: { apikey: business.feed.publishableKey, Authorization: `Bearer ${business.feed.publishableKey}`, "content-type": "application/json" },
       body: JSON.stringify({ days_back: daysBack }),
       signal: AbortSignal.timeout(8000),
-      next: { revalidate: 900 },
+      // No fetch-level Data Cache; the page's ISR window is the only cache. See
+      // lib/scoreboardFeeds.ts for why `cache: "no-store"` is not used here.
     });
     if (!response.ok) return null;
     return normalizeCaptureCoverage(await response.json(), business.slug, daysBack);
