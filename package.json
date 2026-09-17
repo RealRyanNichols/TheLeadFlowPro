@@ -28,7 +28,8 @@
     "factory:new": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/new-client.ts",
     "factory:qa": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/qa-client-site.ts",
     "stack:demo": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/stack-demo.ts",
-    "proposal:demo": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/proposal-demo.ts"
+    "proposal:demo": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/proposal-demo.ts",
+    "workshop:check": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/check-workshop.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
