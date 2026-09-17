@@ -1,3 +1,4 @@
+import * as business from "../lib/site/business.ts";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -136,6 +137,7 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
             nurture.workshopSequenceClosed(fixedNow),
         };
       if (name === "@/lib/metaCampaignGuard") return guard;
+      if (name === "@/lib/site/business") return business;
       if (name === "@/lib/unsubscribe")
         return { unsubscribeSecret: () => "fixture-unsubscribe" };
       if (name === "@/lib/nurtureDelivery")
