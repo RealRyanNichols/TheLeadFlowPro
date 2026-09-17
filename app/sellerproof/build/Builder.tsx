@@ -30,6 +30,8 @@ import {
   type Packet,
 } from "@/lib/sellerproof/packet";
 import styles from "../sellerproof.module.css";
+import { fingerprintFile } from "@/lib/sellerproof/fingerprint";
+import { formatFingerprint } from "@/lib/sellerproof/generator";
 import { PRICES, usd } from "@/lib/site/prices";
 
 const STORAGE = "lfp:sellerproof:draft:v1";
@@ -641,6 +643,33 @@ export default function Builder() {
                       />
                     </label>
                   ))}
+                  <label className={styles.full}>
+                    Fingerprint the original file (stays on your device)
+                    <input
+                      type="file"
+                      onChange={async (ev) => {
+                        const file = ev.currentTarget.files?.[0];
+                        if (!file) return;
+                        try {
+                          const attached = await fingerprintFile(file);
+                          update(
+                            "evidence",
+                            packet.evidence.map((x, n) =>
+                              n === i ? { ...x, attached, fileName: x.fileName || attached.name } : x,
+                            ),
+                          );
+                        } catch (err) {
+                          setMessage(err instanceof Error ? err.message : "Could not fingerprint that file.");
+                        }
+                        ev.currentTarget.value = "";
+                      }}
+                    />
+                    <small>
+                      {e.attached
+                        ? `Recorded: ${formatFingerprint(e.attached)}. The file itself is not uploaded; you attach it in your provider dashboard.`
+                        : "Only the name, size, and a SHA-256 fingerprint are recorded, so the packet names the exact file you upload yourself."}
+                    </small>
+                  </label>
                   <label className={styles.full}>
                     What this source shows
                     <textarea

@@ -283,3 +283,17 @@ or activated by the engineering work; every item is a switch Ryan flips.
     a check in the plugin session, none of which exist. Decision: price
     per pack per month, or fold the first real pack into the plugin price
     as an included edition. Default: included until a second pack is real.
+
+42. **7.9 SellerProof: price.** The Phase 7 brief says pricing is TBD in
+    the offers config, but SellerProof already sells at the published
+    price in `lib/site/offers.ts` (`sellerproof_packet`, live), set in the
+    September release. Nothing was changed. Decision: keep the published
+    price, or move the offer to TBD and take it off sale while repricing.
+    Default: keep it.
+
+43. **7.9 SellerProof: uploads.** The brief says evidence is uploaded by
+    the seller. This branch records a browser-computed fingerprint (name,
+    size, SHA-256) of each original instead of taking the file, which keeps
+    customer records off this server. Decision: keep fingerprints only, or
+    build real uploads with storage, retention, and deletion rules as a
+    separate approved change. Default: fingerprints only.
