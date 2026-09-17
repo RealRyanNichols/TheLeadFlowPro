@@ -368,6 +368,50 @@ export const OFFERS: readonly Offer[] = [
     href: "/agency/content",
     source: "docs/decisions-needed.md",
   },
+
+  // -------------------------------------------------- plugin vertical packs --
+  // Industry editions of the plugin (lib/hq/verticals.ts). A pack is marketed
+  // only once every workflow in it exists, and priced only when Ryan sets a
+  // number. Until both, the page 404s and the price is the TBD line.
+  {
+    id: "plugin_pack_contractor",
+    name: "Plugin: Contractor edition",
+    category: "product",
+    priceUsd: null,
+    priceLabel: TBD_PRICE_LABEL,
+    terms: TBD_PRICE_TERMS,
+    status: "tbd_ryan",
+    effectiveDate: "2026-09-17",
+    reviewDate: "2026-10-01",
+    href: "/plugin/packs/contractor",
+    source: "lib/hq/verticals.ts",
+  },
+  {
+    id: "plugin_pack_dental_medical",
+    name: "Plugin: Dental and medical office edition",
+    category: "product",
+    priceUsd: null,
+    priceLabel: TBD_PRICE_LABEL,
+    terms: TBD_PRICE_TERMS,
+    status: "tbd_ryan",
+    effectiveDate: "2026-09-17",
+    reviewDate: "2026-10-01",
+    href: "/plugin/packs/dental_medical",
+    source: "lib/hq/verticals.ts",
+  },
+  {
+    id: "plugin_pack_realtor",
+    name: "Plugin: Realtor edition",
+    category: "product",
+    priceUsd: null,
+    priceLabel: TBD_PRICE_LABEL,
+    terms: TBD_PRICE_TERMS,
+    status: "tbd_ryan",
+    effectiveDate: "2026-09-17",
+    reviewDate: "2026-10-01",
+    href: "/plugin/packs/realtor",
+    source: "lib/hq/verticals.ts",
+  },
 ];
 
 export function offer(id: string): Offer {

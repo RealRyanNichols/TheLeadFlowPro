@@ -1,5 +1,6 @@
 import type { Lead, Workspace } from "./types";
 import { firstName, formatPhone } from "./phone";
+import { requestNoun } from "./verticals";
 
 // Message drafting in the business's voice. Deterministic on purpose: the
 // same lead and the same settings produce the same draft, so the owner can
@@ -34,7 +35,8 @@ function thing(lead: Lead, ws: Workspace): string {
   const svc = (lead.service ?? "").trim();
   if (svc) return svc.toLowerCase();
   if (ws.services.length === 1) return ws.services[0].toLowerCase();
-  return "your request";
+  // A vertical pack names the request the way the trade does ("your estimate request").
+  return requestNoun(ws);
 }
 
 function contactLine(ws: Workspace): string {

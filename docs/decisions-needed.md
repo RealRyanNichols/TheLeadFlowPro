@@ -270,3 +270,16 @@ or activated by the engineering work; every item is a switch Ryan flips.
     free build or the agency intake. Decision: confirm the default lane
     (free build) or make the agency intake the default for lead and ads
     tools.
+
+40. **7.8 Vertical packs: what to build first.** Three packs exist as
+    drafts (`docs/engines/7.8-plugin-vertical-packs.md`). Each is one to
+    two workflows short of real: storm surge mode (contractor),
+    appointment reminders and an intake link (dental and medical), open
+    house capture (realtor). Decision: which pack to finish first. Default:
+    contractor, because most HQ workspaces are trades.
+
+41. **7.8 Vertical packs: price and billing.** The three pack offers are
+    `tbd_ryan`. A pack price needs a Stripe product, a purchase kind, and
+    a check in the plugin session, none of which exist. Decision: price
+    per pack per month, or fold the first real pack into the plugin price
+    as an included edition. Default: included until a second pack is real.
