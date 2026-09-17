@@ -224,9 +224,9 @@ export default async function PluginPage() {
               <h3>A lead lands, and it is already handled.</h3>
               <p>
                 The new lead gets a reply in your voice straight away: a text back when you have a
-                connected line and they said yes to texts, an email when you do not. Your phone gets a
-                call-this-person-now alert the second it arrives, and a second one if nobody has replied
-                inside your response target. Fifteen minutes out of the box.
+                connected line and they said yes to texts, an email when you do not. You get a
+                call-this-person-now alert by email the second it arrives, by text too once a line is
+                connected, and a second one if nobody has replied inside your response target. Fifteen minutes out of the box.
               </p>
             </article>
             <article className="plugin-card">

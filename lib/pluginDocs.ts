@@ -168,7 +168,7 @@ export const PLUGIN_INCLUDED: readonly string[] = [
 export const PLUGIN_DATA_HANDLING: readonly { title: string; body: string }[] = [
   {
     title: "Your leads and messages belong to your business",
-    body: "They live in your workspace, separate from every other business on the plugin. You can export them any time, and they are still yours if you cancel.",
+    body: "They live in your workspace, separate from every other business on the plugin. They are still yours if you cancel: ask and Ryan sends you a file of your leads and messages the same business day. A self-serve export is on the roadmap.",
   },
   {
     title: "Connection keys are encrypted",
@@ -211,7 +211,7 @@ export const PLUGIN_FAQ: readonly { q: string; a: string }[] = [
   },
   {
     q: "Where does my data live, and who can see it?",
-    a: "In your own workspace on The LeadFlow Pro, protected by membership rules in the database. Connection keys are encrypted, sign-in tokens are hashed, and you can export your leads and messages at any time.",
+    a: "In your own workspace on The LeadFlow Pro, protected by membership rules in the database. Connection keys are encrypted, sign-in tokens are hashed, and a file of your leads and messages is one email away whenever you want it.",
   },
   {
     q: "How do I cancel?",

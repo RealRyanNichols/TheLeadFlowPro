@@ -597,7 +597,7 @@ export default function PremierSystemPage() {
               Want the numbers too? The academy’s board shows aggregate activity
               and explains what each metric counts.
             </p>
-            <Link href="/businesses/premier-dental-academy-of-longview">
+            <Link href="/scoreboard/premier-dental-academy-of-longview">
               View Premier’s board <ArrowRight size={17} aria-hidden="true" />
             </Link>
           </div>

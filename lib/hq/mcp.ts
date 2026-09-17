@@ -1,3 +1,4 @@
+import { TOOL_COUNT } from "@/lib/tools";
 import { TOOLS, getTool, type Tool } from "../tools/index";
 import type { Field, Result, Values } from "../tools/types";
 import { buildDailyBrief, buildWeeklyReport } from "./brief";
@@ -41,7 +42,7 @@ export const SERVER_INSTRUCTIONS = [
   "You are connected to The LeadFlow Pro for one business. The tools read and change that business's real lead inbox, messages, and content drafts.",
   "Start most sessions with daily_brief. When the owner asks who to call, use next_calls. When they want to reach a lead, draft_reply first and only send_message when they say to send.",
   "Never invent leads, numbers, or results. If a tool returns nothing, say so.",
-  "Every business has 86 free calculators available through list_calculators and run_calculator (missed call cost, response time, review gap, quote follow-up math and more). Use them when the owner asks a numbers question.",
+  `Every business has ${TOOL_COUNT} free calculators available through list_calculators and run_calculator (missed call cost, response time, review gap, quote follow-up math and more). Use them when the owner asks a numbers question.`,
 ].join(" ");
 
 export type JsonRpcId = string | number | null;
@@ -691,8 +692,8 @@ export const TOOL_SPECS: ToolSpec[] = [
   {
     name: "list_calculators",
     title: "List the free calculators",
-    description: "The 86 free LeadFlow calculators and generators, searchable by what the owner is asking about (missed calls, response time, reviews, quotes, pricing, ads, payroll and more).",
-    inputSchema: obj({ search: str("Words to match against names and descriptions."), limit: num("1 to 86, default 12", { minimum: 1, maximum: 100 }) }),
+    description: `The ${TOOL_COUNT} free LeadFlow calculators and generators, searchable by what the owner is asking about (missed calls, response time, reviews, quotes, pricing, ads, payroll and more).`,
+    inputSchema: obj({ search: str("Words to match against names and descriptions."), limit: num(`1 to ${TOOL_COUNT}, default 12`, { minimum: 1, maximum: 100 }) }),
     readOnly: true,
     async handler(_ctx, args) {
       const q = s(args.search, 100).toLowerCase();
