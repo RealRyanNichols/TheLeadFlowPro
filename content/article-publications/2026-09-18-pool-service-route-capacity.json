@@ -70,5 +70,39 @@
     "diffCheck": "passed (git diff --check)",
     "copyRules": "No em dashes or en dashes in the article; no hype words; no guaranteed numbers; description is 157 characters.",
     "privacyReview": "No secrets, customer records, or private notes in the diff; the worked example is labeled fictional."
+  },
+  "deployment": {
+    "id": "dpl_8F33wJRkuAFbpTcDERvbyjndZ11z",
+    "url": "the-lead-flow-47a5t4sxv-realryannichols.vercel.app",
+    "commit": "f33d1f5dc58ad35b2238f3d89a5aaab766aab08d",
+    "commitNote": "Receipt commit directly on top of content commit cb4eb2d; same article tree. Pushed to main at 2026-09-17T17:23:46Z.",
+    "target": "production",
+    "status": "READY",
+    "readyAt": "2026-09-17T17:25:32Z",
+    "verifiedAt": "2026-09-17T17:34:25Z",
+    "aliases": [
+      "theleadflowpro.com",
+      "www.theleadflowpro.com"
+    ]
+  },
+  "scheduledCheck": {
+    "checkedAt": "2026-09-17T17:34:50Z",
+    "detailUrl": "https://www.theleadflowpro.com/articles/pool-service-route-capacity",
+    "ogUrl": "https://the-lead-flow-pro.vercel.app/articles/pool-service-route-capacity/opengraph-image",
+    "detailStatus": 404,
+    "ogStatus": 404,
+    "noindex": true,
+    "ogNoindex": true,
+    "noStore": true,
+    "ogNoStore": true,
+    "detailRobotsHeader": "noindex, nofollow",
+    "ogRobotsHeader": "noindex, nofollow",
+    "detailCacheControl": "no-store",
+    "ogCacheControl": "no-store",
+    "indexAbsent": true,
+    "sitemapAbsent": true,
+    "relatedAbsent": true,
+    "todayArticleStatus": 200,
+    "method": "Fetched production over HTTPS after the deployment reached READY. The detail route on www and on the production alias, and the OG route, returned 404 with the 'Article not available' body, x-robots-tag noindex, nofollow, and cache-control no-store. https://www.theleadflowpro.com/articles (200) and https://www.theleadflowpro.com/sitemap.xml (200) did not contain the slug; the sitemap listed handyman-job-pricing with lastmod 2026-09-17. The live September 17 article (200) did not list the slug among its related articles."
   }
 }
