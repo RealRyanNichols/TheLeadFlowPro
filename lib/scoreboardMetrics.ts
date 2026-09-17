@@ -35,7 +35,7 @@ export function metricDefinition(key: PublicMetricKey) {
 
 /** RRN's public RPC explicitly returns zero constants for these unmeasured fields. */
 export function tracksMetric(business: ScoreboardBusiness, key: ScoreboardMetricKey) {
-  return !(business.slug === "realryannichols" && (key === "calls" || key === "paid_leads"));
+  return !(business.unsupportedMetrics ?? []).includes(key);
 }
 
 export type MetricFeed = { business: ScoreboardBusiness; result:

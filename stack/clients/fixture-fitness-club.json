@@ -47,5 +47,6 @@
     }
   ],
   "portal": { "shows": ["profile", "payments", "messages", "documents"] },
+  "scoreboard": { "publicBoard": false, "ownerView": true, "approvedBy": "Sam Fixture (fictional)", "approvedOn": "2026-09-14" },
   "launch": { "status": "draft" }
 }

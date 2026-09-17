@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Radio } from "lucide-react";
 import {
-  SCOREBOARD_BUSINESSES,
+  publicScoreboardBusinesses,
   formatCount,
   summarizeWindow,
 } from "@/lib/scoreboard";
@@ -9,7 +9,7 @@ import { fetchScoreboardDays } from "@/lib/scoreboardFeeds";
 
 export default async function HomeScoreboard() {
   const boards = await Promise.all(
-    SCOREBOARD_BUSINESSES.map(async (business) => ({
+    publicScoreboardBusinesses().map(async (business) => ({
       business,
       result: await fetchScoreboardDays(business, 30),
     })),

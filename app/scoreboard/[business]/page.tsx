@@ -7,11 +7,11 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ExternalLink } from "lucide-react";
 import ScoreboardBoard from "@/components/scoreboard/ScoreboardBoard";
 import {
-  SCOREBOARD_BUSINESSES,
   SCOREBOARD_METRICS,
   buildWindows,
+  publicScoreboardBusiness,
+  publicScoreboardBusinesses,
   recentSeries,
-  scoreboardBusiness,
 } from "@/lib/scoreboard";
 import { fetchScoreboardDays } from "@/lib/scoreboardFeeds";
 import { fetchCaptureCoverage } from "@/lib/scoreboardCaptureFeeds";
@@ -21,12 +21,12 @@ import styles from "../scoreboard.module.css";
 export const revalidate = 900;
 
 export function generateStaticParams() {
-  return SCOREBOARD_BUSINESSES.map((business) => ({ business: business.slug }));
+  return publicScoreboardBusinesses().map((business) => ({ business: business.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ business: string }> }) {
   const { business: slug } = await params;
-  const business = scoreboardBusiness(slug);
+  const business = publicScoreboardBusiness(slug);
   if (!business) return { title: "Scoreboard | The LeadFlow Pro" };
   const title = `${business.name} Scoreboard | Views, clicks and leads, live | The LeadFlow Pro`;
   const description = `Live scoreboard for ${business.name}: views, clicks, leads, paid leads and unpaid leads, rolling daily from its own records. ${business.what}`;
@@ -49,7 +49,7 @@ export default async function BusinessScoreboardPage({
   params: Promise<{ business: string }>;
 }) {
   const { business: slug } = await params;
-  const business = scoreboardBusiness(slug);
+  const business = publicScoreboardBusiness(slug);
   if (!business) notFound();
 
   const [result, captureCoverage] = await Promise.all([
@@ -58,7 +58,7 @@ export default async function BusinessScoreboardPage({
   ]);
   const windows = result.ok ? buildWindows(result.days) : null;
   const series = result.ok ? recentSeries(result.days, 30) : null;
-  const others = SCOREBOARD_BUSINESSES.filter((item) => item.slug !== business.slug);
+  const others = publicScoreboardBusinesses().filter((item) => item.slug !== business.slug);
 
   return (
     <main className={styles.page}>

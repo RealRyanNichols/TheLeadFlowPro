@@ -230,7 +230,7 @@ test("provisioning: every step names the client's account, env names only, and o
 test("schema: every table has RLS, browser roles get select at most, and payments store provider ids only", () => {
   const dir = join(process.cwd(), "stack/schema");
   const files = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
-  assert.deepEqual(files, ["001_core.sql", "002_sequences.sql", "003_portal.sql", "004_payments.sql"]);
+  assert.deepEqual(files, ["001_core.sql", "002_sequences.sql", "003_portal.sql", "004_payments.sql", "005_scoreboard.sql"]);
   for (const f of files) {
     const sql = readFileSync(join(dir, f), "utf8");
     const tables = [...sql.matchAll(/create table if not exists public\.(\w+)/g)].map((m) => m[1]);
@@ -239,6 +239,10 @@ test("schema: every table has RLS, browser roles get select at most, and payment
       assert.ok(sql.includes(`public.${t}`) && /revoke all on table[\s\S]*from anon, authenticated/.test(sql), `${f}: ${t} revoke`);
     }
     assert.ok(!/grant (insert|delete)/i.test(sql), `${f}: no browser insert or delete`);
+    if (f === "005_scoreboard.sql") {
+      assert.ok(sql.includes("security definer") && sql.includes("grant execute on function public.scoreboard_public_daily(integer) to anon"), "aggregate feed callable with the publishable key");
+      assert.ok(!/select\s+\*\s+from public\.people/i.test(sql), "the feed never returns person rows");
+    }
     assert.ok(!/card_number|cvv|pan\b/i.test(sql), `${f}: no card fields`);
   }
   const core = readFileSync(join(dir, "001_core.sql"), "utf8");

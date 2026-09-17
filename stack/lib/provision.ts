@@ -21,6 +21,7 @@ export const MIGRATIONS: Record<string, string> = {
   sequences: "schema/002_sequences.sql",
   portal: "schema/003_portal.sql",
   payments: "schema/004_payments.sql",
+  scoreboard: "schema/005_scoreboard.sql",
 };
 
 export function provisioningPlan(config: StackConfig): ProvisionStep[] {
@@ -90,6 +91,16 @@ export function provisioningPlan(config: StackConfig): ProvisionStep[] {
       env: [],
       migrations: [],
       check: "Two test members: each sees only their own payments and messages.",
+    });
+  }
+  if (config.scoreboard && (config.scoreboard.publicBoard || config.scoreboard.ownerView)) {
+    add({
+      account: "client_supabase",
+      title: "Feed the client's scoreboard (opted in)",
+      detail: `Apply the aggregate-only feed function. Opt-in recorded by ${config.scoreboard.approvedBy} on ${config.scoreboard.approvedOn}. Then add the business to SCOREBOARD_BUSINESSES with its project URL and publishable key; publicBoard ${config.scoreboard.publicBoard ? "on" : "off"}, ownerView ${config.scoreboard.ownerView ? "on" : "off"}.`,
+      env: [],
+      migrations: [MIGRATIONS.scoreboard],
+      check: "Calling scoreboard_public_daily with the publishable key returns day rows and nothing else; anon cannot select from page_events.",
     });
   }
   add({
