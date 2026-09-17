@@ -257,3 +257,16 @@ or activated by the engineering work; every item is a switch Ryan flips.
     `HQ_SECRET` exported in a local shell to generate; Ryan sends each to
     its owner. A new client board needs the client's written opt-in, the
     feed function on their project, and a registry entry.
+
+38. **7.7 Tool factory: the backlog.** Eight ideas aimed at East Texas
+    pains are in `content/tools/backlog.json`, all at `idea`. Nothing is
+    scaffolded or published until Ryan sets `approved` with his name and a
+    date on an item. Decision: approve, decline, or add.
+
+39. **7.7 Tool factory: the final call to action.** Every tool page used
+    to end on the `/start` mapper. It now ends on the free-build door by
+    default, or the agency intake when the tool's metadata says so, per
+    the Phase 7 instruction that every tool page carries one CTA into the
+    free build or the agency intake. Decision: confirm the default lane
+    (free build) or make the agency intake the default for lead and ads
+    tools.

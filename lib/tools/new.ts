@@ -4,8 +4,14 @@
 //
 // Adding a batch: create lib/tools/batches/<name>.ts exporting a ToolDef[], then
 // import it here. docs/TOOLS_ROADMAP.md tracks which batches are still open.
+// `npm run tool:new` scaffolds a single approved backlog item and wires it in
+// at the two marker comments below.
 
 import type { ToolDef } from "./types";
 import { HOME_FAMILY_TOOLS } from "./batches/home-family";
+// factory:imports
 
-export const NEW_TOOLS: ToolDef[] = [...HOME_FAMILY_TOOLS];
+export const NEW_TOOLS: ToolDef[] = [
+  ...HOME_FAMILY_TOOLS,
+  // factory:tools
+];
