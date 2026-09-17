@@ -242,7 +242,7 @@ export default function PluginDocsPage() {
             <li>Open HQ, then Billing.</li>
             <li>Choose Manage billing. Stripe&apos;s portal opens in a new tab.</li>
             <li>Cancel the plan there. It stops at the end of the current period and HQ shows the end date.</li>
-            <li>Your leads, messages, and content stay yours. Export them from HQ any time.</li>
+            <li>Your leads, messages, and content stay yours. Ask and Ryan sends you a file of them.</li>
           </ol>
           <p className="plugin-fine">
             If the portal will not open for any reason, email {BUSINESS.email.hello} and Ryan cancels

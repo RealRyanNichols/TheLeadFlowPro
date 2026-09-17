@@ -5,6 +5,10 @@ import Link from "next/link";
 import { ArrowRight, BadgeCheck, ShieldCheck } from "lucide-react";
 import CtaLink from "@/components/site/CtaLink";
 import { TOOL_COUNT } from "@/lib/tools";
+import { approvedClaim } from "@/lib/site/claims";
+
+const LIVE_SYSTEMS = approvedClaim("lfp_live_systems")?.value ?? "several";
+const RRN_PROFILES = approvedClaim("rrn_case_profiles")?.value ?? "thousands of";
 
 // About Ryan. Operator proof, grounded in receipts, kept short on purpose. This
 // is not an autobiography: it exists to answer one question, which is whether
@@ -20,7 +24,7 @@ export const metadata: Metadata = withPublicPageMetadata("/about", {
   alternates: { canonical: "https://www.theleadflowpro.com/about" },
   openGraph: {
     title: "I have already built what you are trying to build.",
-    description: `The operator behind The LeadFlow Pro: 7 live systems across multiple industries, ${TOOL_COUNT} published tools, and real software products.`,
+    description: `The operator behind The LeadFlow Pro: ${LIVE_SYSTEMS} live systems across multiple industries, ${TOOL_COUNT} published tools, and real software products.`,
     url: "https://www.theleadflowpro.com/about",
     siteName: "The LeadFlow Pro",
     images: [{ url: "/og/home.png", width: 1200, height: 630 }],
@@ -63,11 +67,11 @@ const CHAPTERS = [
 
 const RECEIPTS = [
   {
-    head: "7 live systems across multiple industries.",
+    head: `${LIVE_SYSTEMS} live systems across multiple industries.`,
     body: "Every one is publicly inspectable. The portfolio links straight to them and labels which are client systems and which are Ryan's own products.",
   },
   {
-    head: "1,568+ case profiles in a searchable archive.",
+    head: `${RRN_PROFILES} case profiles in a searchable archive.`,
     body: "RealRyanNichols.com is a working publishing system on the owned stack, with a searchable database, intake, an AI assistant, SMS alerts, and a store.",
   },
   {

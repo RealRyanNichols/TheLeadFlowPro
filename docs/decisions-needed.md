@@ -125,3 +125,38 @@ or activated by the engineering work; every item is a switch Ryan flips.
     deploys to production through Vercel. Each checkpoint merge happens
     only with the facts gate, type check, unit tests, and `next build`
     green. Rollback: revert the merge commit on `main`.
+
+## F. Found during discovery (September 17)
+
+17. **SMS acknowledgment on /free-build is not live.** The application form
+    collects text consent and the code path exists, but every outbound text
+    is blocked unless `QUO_OUTBOUND_SMS_DISABLED` is exactly `false` in
+    Vercel (the emergency stop from August 21). Email acknowledgment and the
+    NEW LEAD alert to hello@ and pat@ are real and instant, with retries.
+    Decision: keep texting off and reword the consent box on /free-build and
+    /agency/start to "call", or turn it on (an env change, Ryan only) after
+    the text-back copy is tailored per funnel and a STOP lookup is added
+    before sending. Default: keep it off until the STOP lookup exists.
+
+18. **Duplicate website submissions** create a second lead and a second
+    alert; Meta leads dedupe on an external id, website leads do not.
+    Default: add a lookup by email within a short window before insert.
+
+19. **Plugin FAQ export claim.** The old page promised "export your leads at
+    any time"; no export exists. The rebuilt page and docs now say Ryan sends
+    a file on request and a self-serve export is on the roadmap. Decision:
+    build the export (it belongs in engine 7.3 or the plugin backlog).
+
+20. **/proof-floor** runs a service-role query over up to 20,000 analytics
+    rows on every public request with no cache. Default: cache it for 15
+    minutes or move it behind revalidation. Not changed in this PR.
+
+21. **Revenue figures.** Two public dollar figures exist (the Premier
+    "$2,642 revenue logged" snapshot and the "verified cash" tile on
+    /proof-floor) while the written rule says no revenue claims. Decision:
+    retire both, or write the two exceptions into the rule with definitions.
+
+22. **Stale analytics docs.** `docs/leadflow-analytics-event-taxonomy.md`
+    and `docs/leadflow-privacy-safe-analytics.md` describe a tree that does
+    not exist. `docs/leadflow-web-analytics-plan.md`, `docs/TOOLS_ANALYTICS.md`,
+    and `lib/analytics/shared.ts` are accurate. Default: delete the two.

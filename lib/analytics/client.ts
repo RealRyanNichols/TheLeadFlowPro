@@ -242,6 +242,7 @@ const INTERACTION_EVENTS = new Set([
   "cta_click", "navigation_click", "outbound_click", "phone_click",
   "sms_click", "email_click", "form_start", "form_submit",
   "booking_start", "booking_complete", "tool_start", "tool_complete",
+  "qualifier_answer", "qualifier_result", "capability_interest",
 ]);
 
 function markEngagementSignal(name: string) {

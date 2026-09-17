@@ -1,4 +1,8 @@
-export const WEBSITE_LAUNCH_DEPOSIT_CENTS = 50000;
+import { PRICES } from "@/lib/site/prices";
+
+// The webhook's real gate for the hosted Payment Link. Derived from the one
+// price so a change there cannot make every deposit "Unmapped".
+export const WEBSITE_LAUNCH_DEPOSIT_CENTS = PRICES.websiteLaunchDeposit * 100;
 export const WEBSITE_LAUNCH_PURCHASE_KIND = "package_deposit";
 // Public, non-secret Payment Link resource ID for the approved checkout URL in
 // lib/offers.ts. Keep the metadata match below as the portable identifier and

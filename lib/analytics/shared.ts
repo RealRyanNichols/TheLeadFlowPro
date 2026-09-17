@@ -33,6 +33,10 @@ export const EVENT_NAMES = [
   "tool_action",
   "download",
   "lead_created",
+  "qualifier_answer",
+  "qualifier_result",
+  "capability_interest",
+  "capability_open",
 ] as const;
 
 export type EventName = (typeof EVENT_NAMES)[number];
