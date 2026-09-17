@@ -80,10 +80,7 @@
     "status": "READY",
     "readyAt": "2026-09-17T17:25:32Z",
     "verifiedAt": "2026-09-17T17:34:25Z",
-    "aliases": [
-      "theleadflowpro.com",
-      "www.theleadflowpro.com"
-    ]
+    "aliases": ["theleadflowpro.com", "www.theleadflowpro.com"]
   },
   "scheduledCheck": {
     "checkedAt": "2026-09-17T17:34:50Z",
