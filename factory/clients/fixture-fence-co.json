@@ -1,0 +1,75 @@
+{
+  "slug": "fixture-fence-co",
+  "factoryVersion": "1.0.0",
+  "business": {
+    "name": "Fixture Fence Co",
+    "legalName": "Fixture Fence Company LLC (fictional)",
+    "tagline": "Fences, gates, and repairs across East Texas",
+    "phoneE164": "+19035550100",
+    "phoneDisplay": "(903) 555-0100",
+    "email": "hello@fixture-fence.example",
+    "address": { "city": "Longview", "region": "TX", "country": "US", "showStreet": false },
+    "serviceArea": ["Longview", "Kilgore", "Hallsville", "White Oak"],
+    "hours": ["Mon to Fri 7:30 AM to 5:30 PM", "Sat by appointment"],
+    "schemaType": "HomeAndConstructionBusiness",
+    "socials": []
+  },
+  "brand": {
+    "primary": "#1F5F3B",
+    "accent": "#B45309",
+    "background": "#F7F5F0",
+    "ink": "#12211A"
+  },
+  "offer": {
+    "headline": "A straight fence, a fair number, and a crew that shows up.",
+    "subhead": "Wood, chain link, and ranch fencing built and repaired in Longview and the towns around it. Get a written quote within one business day.",
+    "promise": "Three things every customer asks before they call, answered on this page.",
+    "primaryCta": { "label": "Get a quote", "kind": "form" },
+    "trustLine": "Licensed and insured. Written quotes, no surprises on the invoice."
+  },
+  "pages": {
+    "home": {
+      "sections": [
+        { "title": "What it costs", "body": "Every quote is in writing and itemised: materials, labor, and haul-away. The price on the quote is the price on the invoice." },
+        { "title": "When we can start", "body": "Most residential jobs start within two weeks of a signed quote. We tell you the date before you sign." },
+        { "title": "What happens if something breaks", "body": "One year on workmanship. Call the number on this page and a person answers." }
+      ]
+    },
+    "services": {
+      "intro": "Residential and light commercial fencing, built to last in East Texas weather.",
+      "items": [
+        { "slug": "wood-privacy", "name": "Wood privacy fences", "description": "Six and eight foot cedar or pine, post-set in concrete, with gates to match.", "startingAt": "Quoted per foot after a site visit" },
+        { "slug": "chain-link", "name": "Chain link and ranch fencing", "description": "Yards, pastures, and commercial lots. Galvanised or vinyl-coated." },
+        { "slug": "gates-repairs", "name": "Gates and repairs", "description": "Sagging gates, storm damage, rotted posts. Same crew, same written quote." }
+      ]
+    },
+    "about": {
+      "story": "Fixture Fence Co is a fictional example business used to demonstrate a five-page site built by The LeadFlow Pro factory. Nothing on this site describes a real company.",
+      "people": [{ "name": "Sam Fixture", "role": "Owner (fictional)", "bio": "Runs the crew and answers the phone." }]
+    },
+    "contact": { "intro": "Call, text, or send the quote form. A person replies within one business day." },
+    "conversion": {
+      "kind": "quote",
+      "slug": "quote",
+      "title": "Get a written quote",
+      "intro": "Tell us the job and where it is. We will call to set a site visit and send the quote within one business day of seeing it.",
+      "fields": [
+        { "id": "full_name", "label": "Your name", "type": "text", "required": true },
+        { "id": "phone", "label": "Mobile number", "type": "tel", "required": true },
+        { "id": "email", "label": "Email", "type": "email", "required": true },
+        { "id": "job_type", "label": "What do you need?", "type": "select", "required": true, "options": ["New wood privacy fence", "Chain link or ranch fence", "Gate or repair", "Not sure yet"] },
+        { "id": "details", "label": "Where is the job and roughly how many feet?", "type": "textarea", "required": false }
+      ],
+      "consentLine": "By sending this form you agree that Fixture Fence Co may call or text you about this quote. No marketing texts, and reply STOP any time.",
+      "thankYou": "Your quote request is in. We call within one business day to set the site visit."
+    }
+  },
+  "leadRoute": { "kind": "email", "to": "quotes@fixture-fence.example", "owner": "Sam Fixture answers every quote request" },
+  "analytics": { "firstParty": true },
+  "seo": {
+    "siteUrl": "https://fixture-fence.example",
+    "title": "Fixture Fence Co | Fences, gates, and repairs in Longview, TX",
+    "description": "Wood, chain link, and ranch fencing built and repaired in Longview and East Texas. Written quotes within one business day."
+  },
+  "launch": { "status": "preview" }
+}
