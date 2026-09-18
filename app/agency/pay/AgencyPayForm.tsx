@@ -18,6 +18,8 @@ export type PayableService = {
   /** Whole dollars when Ryan has published a price; null while it is TBD. */
   fixedUsd: number | null;
   fixedLabel: string | null;
+  /** The cadence a published price is sold at; null while the service is TBD. */
+  fixedBilling: AgencyBilling | null;
 };
 
 const PRESETS = [750, 1500, 2500, 4000];
@@ -46,6 +48,8 @@ export default function AgencyPayForm({
   const usingCustom = custom.trim() !== "";
   const parsed = Math.round(Number(custom.replace(/[^0-9.]/g, "")));
   const effective = service?.fixedUsd ?? (usingCustom ? parsed : amount);
+  // A published price carries its cadence; the server enforces the same rule.
+  const effectiveBilling: AgencyBilling = service?.fixedBilling ?? billing;
   const amountValid =
     Number.isFinite(effective) && effective >= AGENCY_PAYMENT.minUsd && effective <= AGENCY_PAYMENT.maxUsd;
   const min = AGENCY_PAYMENT.minUsd.toLocaleString("en-US");
@@ -83,7 +87,7 @@ export default function AgencyPayForm({
         body: JSON.stringify({
           kind: AGENCY_PAYMENT.kind,
           service: service.slug,
-          billing,
+          billing: effectiveBilling,
           amount_usd: effective,
           reference: reference.trim(),
           email: email.trim(),
@@ -118,7 +122,7 @@ export default function AgencyPayForm({
     );
   }
 
-  const cadence = billing === "monthly" ? "a month" : "one time";
+  const cadence = effectiveBilling === "monthly" ? "a month" : "one time";
   const buttonLabel =
     status === "opening"
       ? "Opening secure checkout"
@@ -158,23 +162,30 @@ export default function AgencyPayForm({
 
       <fieldset className="cb-deposit-field">
         <legend>2. One-time or monthly</legend>
-        <div className="cb-choicelist cb-choicelist--row">
-          {AGENCY_BILLING.map((b) => (
-            <label key={b.id} className="cb-choice">
-              <input
-                type="radio"
-                name="billing"
-                value={b.id}
-                checked={billing === b.id}
-                onChange={() => setBilling(b.id)}
-              />
-              <div>
-                <strong>{b.label}</strong>
-                <span>{b.note}</span>
-              </div>
-            </label>
-          ))}
-        </div>
+        {service?.fixedBilling ? (
+          <div className="cb-deposit-fixed">
+            <strong>{AGENCY_BILLING.find((b) => b.id === service.fixedBilling)?.label}</strong>
+            <span>{service.name} is sold {service.fixedBilling === "monthly" ? "as a monthly fee" : "as a one-time price"}. Set with the price, not editable here.</span>
+          </div>
+        ) : (
+          <div className="cb-choicelist cb-choicelist--row">
+            {AGENCY_BILLING.map((b) => (
+              <label key={b.id} className="cb-choice">
+                <input
+                  type="radio"
+                  name="billing"
+                  value={b.id}
+                  checked={billing === b.id}
+                  onChange={() => setBilling(b.id)}
+                />
+                <div>
+                  <strong>{b.label}</strong>
+                  <span>{b.note}</span>
+                </div>
+              </label>
+            ))}
+          </div>
+        )}
       </fieldset>
 
       <fieldset className="cb-deposit-field">

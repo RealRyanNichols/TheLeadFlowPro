@@ -83,6 +83,18 @@ export function agencyFixedPriceUsd(service: AgencyService): number | null {
   return Math.round(offer.priceUsd);
 }
 
+/**
+ * The cadence a published price is sold at. The registry prints "$49/mo"
+ * for a monthly offer (lib/site/prices.ts usdPerMonth) and a plain "$497"
+ * for one-time, so a live price also fixes the cadence: the browser's
+ * billing choice only applies while a service is TBD and the amount comes
+ * from the written scope.
+ */
+export function agencyFixedBilling(service: AgencyService): AgencyBilling | null {
+  if (agencyFixedPriceUsd(service) === null) return null;
+  return /\/mo\b/.test(agencyOffer(service).priceLabel) ? "monthly" : "one_time";
+}
+
 /** Services this route can take a payment for. Websites has its own door. */
 export function payableAgencyServices(): AgencyService[] {
   return AGENCY_SERVICES.filter((s) => s.slug !== "websites");
@@ -90,14 +102,21 @@ export function payableAgencyServices(): AgencyService[] {
 
 export function resolveAgencyCharge(body: AgencyPaymentRequest): Result {
   const slug = clean(body.service, 40);
-  const service = slug ? agencyService(slug) : null;
+  return resolveAgencyChargeFor(slug ? agencyService(slug) : null, body);
+}
+
+/** The same resolution for an already-looked-up service (tests pass a substituted offer). */
+export function resolveAgencyChargeFor(service: AgencyService | null, body: AgencyPaymentRequest): Result {
   if (!service || service.slug === "websites") {
     return { ok: false, error: "Pick the agency service this payment is for." };
   }
 
   const billingRaw = clean(body.billing, 20);
-  const billing: AgencyBilling | null =
+  const chosen: AgencyBilling | null =
     billingRaw === "one_time" || billingRaw === "monthly" ? billingRaw : null;
+  // A published price carries its own cadence; the browser cannot turn a
+  // one-time price into a subscription or a monthly fee into a single charge.
+  const billing = agencyFixedBilling(service) ?? chosen;
   if (!billing) return { ok: false, error: "Choose one-time or monthly." };
 
   const reference = clean(body.reference, 120);

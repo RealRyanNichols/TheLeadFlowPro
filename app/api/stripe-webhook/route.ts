@@ -1154,8 +1154,11 @@ async function ensureAgencyPaymentPaid(
   };
   const summary = `AGENCY PAYMENT: ${serviceName}, ${cadence}, ${paidLabel}${details.reference ? ` (scope: ${details.reference})` : ""}.`;
 
-  // Prefer the agency intake this person filled in; fall back to any live
-  // lead with the same email so a payment never forks a second record.
+  // Only the agency intake this person filled in is reused. Never a lead
+  // another funnel owns (Time Back, Free Build, Follow-Up): their admin
+  // boards read `diagnostic.paid` and `diagnostic.stripe` as *their* order,
+  // so stamping an agency payment onto one would invent a paid order there.
+  // With no intake, the payment gets its own lead, like the sibling flows.
   const byIntake = await supabase
     .from("leads")
     .select("id, full_name, phone, business_name, status, diagnostic, external_id")
@@ -1166,20 +1169,7 @@ async function ensureAgencyPaymentPaid(
     .limit(1)
     .maybeSingle();
   if (byIntake.error) throw new Error(`Agency lead lookup failed: ${byIntake.error.code}`);
-  let found = byIntake.data;
-  if (!found) {
-    const byEmail = await supabase
-      .from("leads")
-      .select("id, full_name, phone, business_name, status, diagnostic, external_id")
-      .ilike("email", escapeIlike(customer.email))
-      .is("deleted_at", null)
-      .eq("is_test", false)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (byEmail.error) throw new Error(`Agency lead email lookup failed: ${byEmail.error.code}`);
-    found = byEmail.data;
-  }
+  const found = byIntake.data;
 
   let leadId: string;
   let leadName = customer.fullName;

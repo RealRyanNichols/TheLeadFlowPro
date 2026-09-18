@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Check } from "lucide-react";
 import AgencyPayForm, { type PayableService } from "./AgencyPayForm";
-import { agencyFixedPriceUsd, payableAgencyServices } from "@/lib/agencyPayment";
+import { agencyFixedBilling, agencyFixedPriceUsd, payableAgencyServices } from "@/lib/agencyPayment";
 import { AGENCY_PROCESS, OWNERSHIP_PROMISE } from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
 import { usd } from "@/lib/site/prices";
@@ -34,6 +34,7 @@ export default async function AgencyPayPage({
       eyebrow: s.eyebrow,
       fixedUsd: fixed,
       fixedLabel: fixed !== null ? usd(fixed) : null,
+      fixedBilling: agencyFixedBilling(s),
     };
   });
   const preselected = service && services.some((s) => s.slug === service) ? service : null;

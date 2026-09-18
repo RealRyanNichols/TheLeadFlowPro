@@ -3,11 +3,13 @@ import test from "node:test";
 import {
   AGENCY_BILLING,
   AGENCY_PAYMENT,
+  agencyFixedBilling,
   agencyFixedPriceUsd,
   agencyPayHref,
   agencyPaymentFromMetadata,
   payableAgencyServices,
   resolveAgencyCharge,
+  resolveAgencyChargeFor,
 } from "../lib/agencyPayment.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
 import { PUBLIC_PAGE_CATALOG } from "../lib/publicPageCatalog.ts";
@@ -72,6 +74,42 @@ test("a TBD service charges the whole-dollar scope amount inside the deposit win
   assert.ok(rounded.ok && rounded.charge.amountUsd === 1250);
 });
 
+test("a live price wins over the browser amount and fixes the cadence", () => {
+  // No agency offer is live today, so point a service at live offers from
+  // the registry: a one-time price (System Map) and a monthly one (the plugin).
+  const meta = agencyService("meta-ads")!;
+  const oneTime = { ...meta, offerId: "system_map" };
+  const monthly = { ...meta, offerId: "plugin" };
+  assert.equal(agencyFixedPriceUsd(oneTime), offer("system_map").priceUsd);
+  assert.equal(agencyFixedBilling(oneTime), "one_time");
+  assert.equal(agencyFixedBilling(monthly), "monthly");
+  assert.equal(agencyFixedBilling(meta), null);
+
+  // The browser sends a lower amount and the opposite cadence; both are ignored.
+  const one = resolveAgencyChargeFor(oneTime, { billing: "monthly", amount_usd: 250, reference: "Acme" });
+  assert.ok(one.ok);
+  if (!one.ok) return;
+  assert.equal(one.charge.amountUsd, offer("system_map").priceUsd);
+  assert.equal(one.charge.amountCents, offer("system_map").priceUsd! * 100);
+  assert.equal(one.charge.billing, "one_time");
+  assert.equal(one.charge.fixedPrice, true);
+  assert.equal(one.charge.metadata.fixed_price, "yes");
+  assert.equal(one.charge.metadata.billing, "one_time");
+  assert.match(one.charge.name, /one-time/);
+
+  const sub = resolveAgencyChargeFor(monthly, { billing: "one_time", amount_usd: 250, reference: "Acme" });
+  assert.ok(sub.ok);
+  if (!sub.ok) return;
+  assert.equal(sub.charge.amountUsd, offer("plugin").priceUsd);
+  assert.equal(sub.charge.billing, "monthly");
+  assert.match(sub.charge.name, /monthly/);
+
+  // A live price also means a garbage amount from the browser is not an error.
+  assert.equal(resolveAgencyChargeFor(oneTime, { billing: "one_time", amount_usd: "abc", reference: "Acme" }).ok, true);
+  // The websites lane never takes this route, even with its live offer.
+  assert.equal(resolveAgencyChargeFor(agencyService("websites"), { billing: "one_time", amount_usd: 250, reference: "Acme" }).ok, false);
+});
+
 test("monthly billing is a recurring line with its own name and metadata", () => {
   const monthly = resolveAgencyCharge({ ...good, billing: "monthly", amount_usd: 900 });
   assert.ok(monthly.ok);
@@ -117,7 +155,8 @@ test("a paid session's metadata is read back defensively", () => {
 test("the pay page is catalogued, unindexed, and chrome-free like the intake", () => {
   const entry = PUBLIC_PAGE_CATALOG.find((p) => p.path === AGENCY_PAYMENT.payPath);
   assert.ok(entry, "/agency/pay is missing from PUBLIC_PAGE_CATALOG");
-  assert.equal("index" in entry! && entry.index, false);
+  // An absent flag means "indexable", so the flag must be present and false.
+  assert.equal((entry as { index?: boolean }).index, false);
   assert.equal(hidesSiteChrome(AGENCY_PAYMENT.payPath), true);
   assert.equal(hidesSiteChrome(AGENCY_PAYMENT.paidPath), false);
   assert.equal(AGENCY_SERVICES.length, 6);
