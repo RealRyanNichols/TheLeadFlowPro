@@ -61,7 +61,7 @@ export type MetaFormRegistration = {
    */
   inquiryOptIn?: boolean;
   /**
-   * Ryan's 2026-09-17 decision, reversing the Aug 26 "they text first" rule
+   * Ryan's 9/17/2026 decision, reversing the Aug 26 "they text first" rule
    * for this one case: the form intro tells the person he calls or texts the
    * number they hand over, so submitting it is the request for the single
    * text-back in lib/leadNotify.ts textLeadBack(). Still fails closed behind

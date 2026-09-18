@@ -180,9 +180,9 @@ function mapLead(raw: MetaLead) {
   ].filter((value, index, values): value is string => !!value && values.indexOf(value) === index);
   const consents = parseConsents(raw);
   const registration = registeredMetaForm(raw.form_id);
-  // SMS: a checked box, or a registry form flagged textOnSubmit (Ryan,
-  // September 2026: the Rent Receipt intro promises a call or text back, so
-  // the submission is the request for that one text). lib/quo.ts still fails
+  // SMS: a checked box, or a registry form flagged textOnSubmit (Ryan's call
+  // on 9/17/2026: the Rent Receipt intro promises a call or text back, so the
+  // submission is the request for that one text). lib/quo.ts still fails
   // closed unless QUO_OUTBOUND_SMS_DISABLED is exactly "false", and ingest()
   // skips any number that ever sent STOP.
   const smsConsent = (consents.sms || !!registration?.textOnSubmit) && !!phone;
