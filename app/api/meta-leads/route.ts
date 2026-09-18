@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { notifyNewLeadSms, sendInternalLeadAlert } from "@/lib/leadNotify";
+import { normalizePhoneLast10 } from "@/lib/quo";
 import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotifications";
 import {
   isAllowedLeadFlowAdId,
@@ -179,11 +180,16 @@ function mapLead(raw: MetaLead) {
   ].filter((value, index, values): value is string => !!value && values.indexOf(value) === index);
   const consents = parseConsents(raw);
   const registration = registeredMetaForm(raw.form_id);
-  const smsConsent = consents.sms && !!phone;
+  // SMS: a checked box, or a registry form flagged textOnSubmit (Ryan,
+  // 2026-09-17: the Rent Receipt intro promises a call or text back, so the
+  // submission is the request for that one text). lib/quo.ts still fails
+  // closed unless QUO_OUTBOUND_SMS_DISABLED is exactly "false", and ingest()
+  // skips any number that ever sent STOP.
+  const smsConsent = (consents.sms || !!registration?.textOnSubmit) && !!phone;
   // A checked marketing box is consent, and so is submitting one of the
   // registry's inquiryOptIn forms: those forms have no checkboxes because the
   // submission itself is the request to hear about that offer (Ryan,
-  // 2026-09-07). SMS is untouched: no box, no text, ever.
+  // 2026-09-07).
   const marketingEmailConsent = consents.marketing || !!registration?.inquiryOptIn;
   const campaign = registration?.campaign ?? "meta_lead_form";
   const isFreeWebsiteCampaign = campaign === "free_build_volume" || campaign.startsWith("free_website");
@@ -480,9 +486,35 @@ async function ingest(raw: MetaLead, token: string): Promise<boolean> {
     );
   }
 
-  // SMS is deliberately separate and remains best effort.
-  await notifyNewLeadSms(lead);
+  // SMS is deliberately separate and remains best effort. A number that ever
+  // sent STOP stays silent even when it comes back through a textOnSubmit
+  // form; the suppression list outranks the form.
+  if (lead.sms_consent && lead.phone && (await smsSuppressed(supabase, lead.phone))) {
+    console.warn("Meta lead text skipped: number is in sms_suppressions", external_id);
+  } else {
+    await notifyNewLeadSms(lead);
+  }
   return true;
+}
+
+// public.sms_suppressions is written by the Quo inbound path the moment a
+// number texts STOP, keyed on the last ten digits (public.normalize_phone).
+// Fails open only on a malformed phone, which sendLeadText rejects anyway.
+async function smsSuppressed(supabase: SupabaseClient, phone: string): Promise<boolean> {
+  const norm = normalizePhoneLast10(phone);
+  if (norm.length < 10) return false;
+  try {
+    const { data } = await supabase
+      .from("sms_suppressions")
+      .select("phone_norm")
+      .eq("phone_norm", norm)
+      .limit(1)
+      .maybeSingle();
+    return !!data;
+  } catch (e) {
+    console.error("sms_suppressions lookup failed, texting withheld:", e instanceof Error ? e.message : e);
+    return true;
+  }
 }
 
 function signatureOk(body: string, header: string | null): boolean {

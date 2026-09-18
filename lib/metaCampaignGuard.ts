@@ -61,6 +61,15 @@ export type MetaFormRegistration = {
    */
   inquiryOptIn?: boolean;
   /**
+   * Ryan's 2026-09-17 decision, reversing the Aug 26 "they text first" rule
+   * for this one case: the form intro tells the person he calls or texts the
+   * number they hand over, so submitting it is the request for the single
+   * text-back in lib/leadNotify.ts textLeadBack(). Still fails closed behind
+   * QUO_OUTBOUND_SMS_DISABLED in lib/quo.ts, and never sent to a number in
+   * public.sms_suppressions. Forms with a real SMS checkbox keep consentLayout.
+   */
+  textOnSubmit?: boolean;
+  /**
    * Overrides diagnostic.source for this form so the instant welcome email
    * can speak to what the person actually asked for.
    */
@@ -129,6 +138,7 @@ export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> 
     // video ad. Two qualifying questions (biggest cost right now, timeline).
     campaign: "mall_video_rent_receipt_2026_09",
     inquiryOptIn: true,
+    textOnSubmit: true,
   },
   "2349934135833664": {
     // LFP Enrollment Gap Timeline v1. Built Sep 15 for the schools and
