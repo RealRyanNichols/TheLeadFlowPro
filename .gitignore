@@ -21,3 +21,6 @@ test-results/
 
 # Factory output (client sites scaffolded by scripts/new-client.ts)
 build/
+
+# local scratch
+query_leads.cjs
