@@ -51,11 +51,29 @@ for (const vp of VIEWPORTS) {
       await expect(page.getByRole("heading", { level: 1 })).toContainText("manual");
     });
 
-    test("agency hub lists six services and the intake preserves entries on a validation error", async ({ page }) => {
+    test("agency hub lists six services with no overlapping text, carries the three doors, and the intake preserves entries on a validation error", async ({ page }) => {
       await page.goto("/agency");
       await noHorizontalScroll(page);
-      const cards = page.locator(".cb-toolcard");
+      const cards = page.locator(".cb-servicecard");
       await expect(cards).toHaveCount(6);
+      // The old three-column tool-card grid stacked five children into three
+      // cells and the eyebrow, name, and promise drew on top of each other.
+      // Every card's children must now sit below the previous one.
+      for (let i = 0; i < 6; i++) {
+        const boxes = await cards.nth(i).locator(":scope > *").evaluateAll((nodes) =>
+          nodes.map((n) => { const r = (n as HTMLElement).getBoundingClientRect(); return { top: r.top, bottom: r.bottom }; }),
+        );
+        for (let j = 1; j < boxes.length; j++) {
+          expect(boxes[j].top, `card ${i} child ${j} overlaps the one above`).toBeGreaterThanOrEqual(boxes[j - 1].bottom - 1);
+        }
+      }
+      await expect(page.locator('[data-cta="agency_door_intake"]')).toHaveAttribute("href", "#intake");
+      await expect(page.locator('[data-cta="agency_door_pay"]')).toHaveAttribute("href", "/agency/pay");
+      await expect(page.locator('[data-cta="agency_door_connect"]')).toHaveAttribute("href", "/connect");
+      await expect(page.locator("#intake form")).toBeVisible();
+      await page.goto("/agency/pay?service=meta-ads");
+      await noHorizontalScroll(page);
+      await expect(page.locator('input[name="service"][value="meta-ads"]')).toBeChecked();
       await page.goto("/agency/start?service=meta-ads");
       await expect(page.locator('input[name="service_meta-ads"]')).toBeChecked();
       await page.fill('input[name="business_name"]', "Fixture Fence Co");
@@ -68,7 +86,8 @@ for (const vp of VIEWPORTS) {
       await page.check('input[name="decision_maker"][value="me"]');
       await page.check('input[name="timeline"][value="researching"]');
       await page.getByRole("button", { name: /Send it to Ryan/ }).click();
-      await expect(page.getByRole("alert")).toContainText(/mobile number/);
+      // Scoped to the form: Next's route announcer is also role="alert".
+      await expect(page.locator('form[aria-label="Agency intake"] [role="alert"]')).toContainText(/mobile number/);
       await expect(page.locator('input[name="business_name"]')).toHaveValue("Fixture Fence Co");
     });
 

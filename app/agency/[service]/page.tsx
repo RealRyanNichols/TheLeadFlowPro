@@ -2,9 +2,10 @@ import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Check, ShieldCheck, X } from "lucide-react";
+import { ArrowRight, Check, CreditCard, KeyRound, ShieldCheck, X } from "lucide-react";
 import SiteHero from "@/components/site/system/SiteHero";
 import FinalCta from "@/components/site/system/FinalCta";
+import { agencyPayHref } from "@/lib/agencyPayment";
 import { AGENCY_PROCESS, AGENCY_SERVICES, OWNERSHIP_PROMISE, agencyOffer, agencyService } from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
 import { TBD_PRICE_LABEL, TBD_PRICE_TERMS } from "@/lib/site/offers";
@@ -34,6 +35,12 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
   if (!s) notFound();
   const offer = agencyOffer(s);
   const priced = offer.status === "live";
+  // Websites is paid through the Website Launch deposit or the free program;
+  // the other five take the written-scope payment on /agency/pay.
+  const payable = s.slug !== "websites";
+  // Ads and automation are built inside the client's own accounts, so the
+  // access step is the first thing after payment.
+  const connects = ["meta-ads", "google-ads", "automation"].includes(s.slug);
   const jsonLd = graph(
     {
       "@type": "Service",
@@ -167,6 +174,35 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
             </div>
             <p className="cb-lead">{priced ? offer.terms : TBD_PRICE_TERMS}</p>
           </div>
+          <div className="cb-actions">
+            {payable ? (
+              <Link href={agencyPayHref(s.slug)} className="cb-btn cb-btn--primary" data-cta="agency_service_pay" data-cta-placement={s.slug}>
+                {priced ? `Pay ${offer.priceLabel}` : "Pay a written scope"}
+                <CreditCard aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            ) : (
+              <Link href="/packages/launch" className="cb-btn cb-btn--primary" data-cta="agency_service_pay" data-cta-placement={s.slug}>
+                Buy the Website Launch
+                <CreditCard aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            )}
+            <Link href={s.intakeHref} className="cb-btn cb-btn--ghost" data-cta="agency_service_intake" data-cta-placement={s.slug}>
+              {s.slug === "websites" ? "Apply for the free website" : "No scope yet? Start the intake"}
+            </Link>
+            {connects ? (
+              <Link href="/connect" className="cb-btn cb-btn--ghost" data-cta="agency_service_connect" data-cta-placement={s.slug}>
+                Connect your accounts
+                <KeyRound aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            ) : null}
+          </div>
+          {payable ? (
+            <p className="cb-lead mt-6" style={{ fontSize: 16 }}>
+              The pay page takes the number from your written scope, one-time or monthly, by card
+              through Stripe. Nothing on it can change what was agreed, and ad spend is paid by you to
+              the platform directly.
+            </p>
+          ) : null}
           {s.related.length > 0 ? (
             <p className="cb-lead mt-6">
               Already priced on this site:{" "}

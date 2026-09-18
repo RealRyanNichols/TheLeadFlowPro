@@ -28,6 +28,10 @@ known model limits. Node 22.6 or later is required.
 
 - `app/page.tsx` and `app/start/` — the guided "Map My System" front-of-site. Completed
   diagnostics are stored in `leads.diagnostic` with attribution and consent.
+- `app/agency/` — the "run it for me" lane: the hub with the six service cards, the
+  intake (also embedded on the hub), `/agency/pay` for paying a written scope by card
+  (`lib/agencyPayment.ts`, `agency_payment` in `/api/checkout` and the Stripe webhook),
+  and `/agency/paid`, which verifies the session before routing to `/connect` and the plugin.
 - `app/admin/` — back office: leads pipeline, per-lead workspace
   (`app/admin/leads/[id]`), CSV export (`app/api/admin/leads/export`).
 - `app/dashboard/` — member dashboard with projects, training progress, and messages.

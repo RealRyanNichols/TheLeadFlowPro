@@ -44,7 +44,16 @@ const TIMELINES = [
 
 type Status = "idle" | "sending" | "done";
 
-export default function AgencyIntake({ services, preselected }: { services: ServiceOption[]; preselected: string | null }) {
+export default function AgencyIntake({
+  services,
+  preselected,
+  placement = "agency_start",
+}: {
+  services: ServiceOption[];
+  preselected: string | null;
+  /** Which page the form was on, so the admin workspace can tell the hub from the intake page. */
+  placement?: "agency_start" | "agency_hub";
+}) {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -112,6 +121,7 @@ export default function AgencyIntake({ services, preselected }: { services: Serv
             timeline: timeline?.[0] ?? null,
             bottleneck: bottleneck.slice(0, 1000),
             preselected,
+            placement,
           },
         }),
       });
@@ -259,7 +269,7 @@ export default function AgencyIntake({ services, preselected }: { services: Serv
         </p>
       ) : null}
 
-      <button type="submit" className="pro-buy-button" disabled={status === "sending"} data-cta="agency_intake_submit" data-cta-placement="agency_start">
+      <button type="submit" className="pro-buy-button" disabled={status === "sending"} data-cta="agency_intake_submit" data-cta-placement={placement}>
         {status === "sending" ? "Sending…" : "Send it to Ryan"}
         <ArrowRight aria-hidden="true" className="h-4 w-4" />
       </button>
