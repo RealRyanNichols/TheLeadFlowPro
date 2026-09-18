@@ -139,7 +139,7 @@ export default async function BusinessScoreboardPage({
                       <div key={row.source} className={styles.tile}>
                         <span>{CAPTURE_SOURCES[business.slug][row.source]}</span>
                         <strong>{row.records.toLocaleString("en-US")}</strong>
-                        <small>records from {row.start_day} through {row.end_day}</small>
+                        <small>{row.records === 1 ? "record" : "records"} from {row.start_day} through {row.end_day}</small>
                         {row.additional_emails > 0 && <p>{row.additional_emails.toLocaleString("en-US")} additional email {row.additional_emails === 1 ? "contact" : "contacts"} outside the main lead feed</p>}
                       </div>
                     ))}
