@@ -12,7 +12,25 @@ export type PaidSession = {
   sessionId: string;
   kind: string | null;
   eventId: string;
+  /**
+   * The session's own metadata, string values only, for pages that need to
+   * say what was bought (the agency service, the billing cadence, the scope
+   * reference). Never customer details: those stay out of the render tree.
+   */
+  metadata?: Record<string, string>;
 };
+
+const METADATA_KEY = /^[a-z][a-z0-9_]{0,39}$/;
+
+function safeMetadata(raw: unknown): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!raw || typeof raw !== "object") return out;
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (!METADATA_KEY.test(key) || typeof value !== "string") continue;
+    out[key] = value.slice(0, 200);
+  }
+  return out;
+}
 
 export function stripePurchaseEventId(sessionId: string): string {
   return `purchase_${createHash("sha256").update(`stripe:purchase:${sessionId}`).digest("hex")}`;
@@ -32,7 +50,7 @@ export async function fetchPaidSession(sessionId: string | undefined | null): Pr
       payment_status?: string;
       amount_total?: number;
       currency?: string;
-      metadata?: { kind?: unknown } | null;
+      metadata?: Record<string, unknown> | null;
     };
     if (j.id !== sessionId || j.payment_status !== "paid" || j.currency !== "usd" ||
       typeof j.amount_total !== "number" || !Number.isSafeInteger(j.amount_total) || j.amount_total < 0) return null;
@@ -44,6 +62,7 @@ export async function fetchPaidSession(sessionId: string | undefined | null): Pr
       kind,
       // An ad event needs a stable identifier, never the access-bearing session ID.
       eventId: stripePurchaseEventId(sessionId),
+      metadata: safeMetadata(j.metadata),
     };
   } catch {
     return null;

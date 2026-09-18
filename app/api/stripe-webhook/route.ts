@@ -29,6 +29,7 @@ import { proCatalog } from "@/lib/tools/pro";
 import { SELLERPROOF } from "@/lib/sellerproof/packet";
 import { sendSellerProofReceipt } from "@/lib/sellerproof/receipt";
 import { handleHqStripeEvent } from "@/lib/hq/subscription";
+import { AGENCY_PAYMENT, agencyPaymentFromMetadata } from "@/lib/agencyPayment";
 import { BUSINESS } from "@/lib/site/business";
 import { PRICES, usd } from "@/lib/site/prices";
 
@@ -1119,6 +1120,232 @@ async function ensureFreeBuildPaid(
   }
 }
 
+// Paid agency scope (/agency/pay). The client paid the number from a written
+// scope, one time or as the first month of a management fee, for one of the
+// six agency services. The intake usually came first, so this finds that
+// lead by email, marks it won, stamps the payment, opens the build task, and
+// tells Ryan and the buyer. Same idempotency contract as every other paid
+// flow in this file: alert first, activity marker second, so a provider
+// failure keeps the Stripe event retryable.
+async function ensureAgencyPaymentPaid(
+  supabase: SupabaseClient,
+  session: StripeCheckoutSession,
+) {
+  const sessionId = typeof session.id === "string" ? session.id.slice(0, 200) : "";
+  const customer = websiteLaunchCustomer(session);
+  if (!sessionId || !customer.email) {
+    throw new Error("Paid agency checkout is missing its session ID or email");
+  }
+  const details = agencyPaymentFromMetadata(session.metadata);
+  const serviceName = details.service?.name ?? "Agency service";
+  const serviceSlug = details.service?.slug ?? "unknown";
+  const cadence = details.billing === "monthly" ? "monthly" : "one-time";
+  const externalId = `stripe_checkout:${sessionId}`;
+  const amountCents = Number.isFinite(Number(session.amount_total)) ? Number(session.amount_total) : null;
+  const paidUsd = amountCents !== null ? Math.round(amountCents / 100) : details.scopeUsd;
+  const paidLabel = paidUsd !== null ? `$${paidUsd.toLocaleString("en-US")}` : "the amount on the Stripe receipt";
+  const stripeStamp = {
+    session_id: sessionId,
+    paid_at: new Date().toISOString(),
+    amount_total_cents: amountCents,
+    service: serviceSlug,
+    billing: details.billing,
+    reference: details.reference || null,
+  };
+  const summary = `AGENCY PAYMENT: ${serviceName}, ${cadence}, ${paidLabel}${details.reference ? ` (scope: ${details.reference})` : ""}.`;
+
+  // Prefer the agency intake this person filled in; fall back to any live
+  // lead with the same email so a payment never forks a second record.
+  const byIntake = await supabase
+    .from("leads")
+    .select("id, full_name, phone, business_name, status, diagnostic, external_id")
+    .ilike("email", escapeIlike(customer.email))
+    .eq("diagnostic->>source", "agency_intake")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (byIntake.error) throw new Error(`Agency lead lookup failed: ${byIntake.error.code}`);
+  let found = byIntake.data;
+  if (!found) {
+    const byEmail = await supabase
+      .from("leads")
+      .select("id, full_name, phone, business_name, status, diagnostic, external_id")
+      .ilike("email", escapeIlike(customer.email))
+      .is("deleted_at", null)
+      .eq("is_test", false)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (byEmail.error) throw new Error(`Agency lead email lookup failed: ${byEmail.error.code}`);
+    found = byEmail.data;
+  }
+
+  let leadId: string;
+  let leadName = customer.fullName;
+  let businessName: string | null = null;
+  if (found) {
+    leadId = found.id;
+    leadName = found.full_name || leadName;
+    businessName = found.business_name ?? null;
+    const diagnostic =
+      found.diagnostic && typeof found.diagnostic === "object"
+        ? (found.diagnostic as Record<string, unknown>)
+        : {};
+    const updates: Record<string, unknown> = {
+      status: "won",
+      interest: "done_for_you",
+      diagnostic: {
+        ...diagnostic,
+        paid: true,
+        agency_payment: { service: serviceSlug, billing: details.billing, reference: details.reference || null },
+        stripe: stripeStamp,
+      },
+    };
+    if (!found.phone && customer.phone) updates.phone = customer.phone;
+    if (!found.external_id) updates.external_id = externalId;
+    const updated = await supabase.from("leads").update(updates).eq("id", leadId);
+    if (updated.error && updated.error.code !== "23505") {
+      throw new Error(`Agency lead update failed: ${updated.error.code}`);
+    }
+  } else {
+    // Paid without an intake (a scope sent by hand, or a different email at
+    // checkout). Create the lead so the payment has a home in the CRM.
+    const inserted = await supabase
+      .from("leads")
+      .insert({
+        full_name: customer.fullName,
+        email: customer.email,
+        phone: customer.phone,
+        business_name: details.reference || null,
+        interest: "done_for_you",
+        goals: `${summary} Paid through Stripe without a matching intake.`,
+        best_contact_method: customer.phone ? "phone" : "email",
+        source: "stripe_checkout",
+        utm_source: "stripe",
+        utm_medium: "checkout",
+        utm_campaign: "agency",
+        sms_consent: false,
+        marketing_email_consent: false,
+        status: "won",
+        external_id: externalId,
+        diagnostic: {
+          version: 1,
+          source: "agency_payment",
+          services: details.service ? [details.service.slug] : [],
+          paid: true,
+          agency_payment: { service: serviceSlug, billing: details.billing, reference: details.reference || null },
+          stripe: stripeStamp,
+          next_action: "Paid without an intake. Call them, confirm the written scope, and start the build.",
+        },
+      })
+      .select("id, full_name")
+      .single();
+    if (inserted.error?.code === "23505") {
+      const raced = await supabase
+        .from("leads")
+        .select("id, full_name")
+        .eq("external_id", externalId)
+        .is("deleted_at", null)
+        .single();
+      if (raced.error) throw new Error(`Agency lead race recovery failed: ${raced.error.code}`);
+      leadId = raced.data.id;
+      leadName = raced.data.full_name || leadName;
+    } else if (inserted.error) {
+      throw new Error(`Agency lead insert failed: ${inserted.error.code}`);
+    } else {
+      leadId = inserted.data.id;
+      leadName = inserted.data.full_name || leadName;
+    }
+  }
+
+  // One open build task per service, so a retried event does not stack them.
+  const taskTitle = `Start agency build: ${serviceName}`;
+  const openTask = await supabase
+    .from("lead_tasks")
+    .select("id")
+    .eq("lead_id", leadId)
+    .eq("title", taskTitle)
+    .is("completed_at", null)
+    .limit(1)
+    .maybeSingle();
+  if (openTask.error) throw new Error(`Agency task lookup failed: ${openTask.error.code}`);
+  if (!openTask.data) {
+    const taskInsert = await supabase.from("lead_tasks").insert({
+      lead_id: leadId,
+      title: taskTitle,
+      due_date: new Date().toISOString().slice(0, 10),
+    });
+    if (taskInsert.error) throw new Error(`Agency task insert failed: ${taskInsert.error.code}`);
+  }
+
+  const activityDetail = `${summary} Paid through Stripe. Stripe checkout: ${sessionId}.`;
+  const existingActivity = await supabase
+    .from("lead_activity")
+    .select("id")
+    .eq("lead_id", leadId)
+    .eq("kind", "system")
+    .eq("detail", activityDetail)
+    .limit(1)
+    .maybeSingle();
+  if (existingActivity.error) {
+    throw new Error(`Agency activity lookup failed: ${existingActivity.error.code}`);
+  }
+  if (!existingActivity.data) {
+    const resendKey = process.env.RESEND_API_KEY;
+    if (resendKey) {
+      const alert = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: `${BUSINESS.name} <${BUSINESS.email.alerts}>`,
+          to: [BUSINESS.email.hello],
+          subject: `💰 AGENCY PAID: ${leadName}${businessName ? ` (${businessName})` : ""} - ${serviceName} ${paidLabel} ${cadence}`,
+          text: [
+            summary,
+            `Buyer: ${leadName}`,
+            `Email: ${customer.email}`,
+            `Phone: ${customer.phone || "-"}`,
+            `Business: ${businessName || details.reference || "-"}`,
+            `Billing: ${cadence}${details.billing === "monthly" ? " (Stripe subscription; renews until cancelled)" : ""}`,
+            `Stripe session: ${sessionId}`,
+            "",
+            "NEXT ACTION: match this payment to the written scope, then start the",
+            "Map step: accounts in their name, tracking proven, launch date agreed.",
+            "They were told to connect their accounts and expect a reply within one business day.",
+            "",
+            `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
+          ].join("\n"),
+        }),
+      }).catch(() => null);
+      if (!alert?.ok) throw new Error("Internal agency paid alert was not accepted");
+    }
+    await sendBuyerAcknowledgement(customer.email, `Your ${serviceName} payment is in. Here is what happens next.`, [
+      `${String(leadName || "").trim().split(" ")[0] || "Hey"},`,
+      "",
+      `${serviceName} is paid, ${paidLabel} ${cadence}${details.reference ? `, against the scope marked "${details.reference}"` : ""}. Stripe's receipt is your record, and the written scope is the contract for what gets built.`,
+      "",
+      "What happens next:",
+      "",
+      `1. I reach out within one business day from ${BUSINESS.phone.display} to start the Map step and agree the launch date.`,
+      `2. Connect your accounts so everything is built in your name from day one: ${BUSINESS.siteUrl}/connect. You log in, you tap approve, you can revoke me in one click.`,
+      "3. Nothing runs without your written approval. Ad spend, if any, goes from your card to Meta or Google directly and never through me.",
+      "",
+      `If you want the same loop in ChatGPT or Claude while we build, the plugin is here: ${BUSINESS.siteUrl}/plugin`,
+      "",
+      "No passwords, ever. If you do not hear from me inside one business day, text that number. It is my direct line.",
+    ]);
+    const activityInsert = await supabase.from("lead_activity").insert({
+      lead_id: leadId,
+      kind: "system",
+      detail: activityDetail,
+    });
+    if (activityInsert.error) {
+      throw new Error(`Agency activity insert failed: ${activityInsert.error.code}`);
+    }
+  }
+}
+
 type StripeInvoiceWebhook = {
   id?: unknown;
   number?: unknown;
@@ -1286,6 +1513,8 @@ export async function POST(request: Request) {
       await ensureEventSeatPaid(supabase, session);
     } else if (kind === LEAD_FOLLOW_UP.id) {
       await ensureLeadFollowUpPaid(supabase, session);
+    } else if (kind === AGENCY_PAYMENT.kind) {
+      await ensureAgencyPaymentPaid(supabase, session);
     } else if (findFreeBuildTier(kind)) {
       await ensureFreeBuildPaid(supabase, session, kind);
     } else if (kind === "tool_studio_order" || kind === "tool_monthly_menu") {

@@ -47,7 +47,14 @@ or activated by the engineering work; every item is a switch Ryan flips.
    Default recommendation: setup plus monthly for Meta and Google Ads,
    project-based for video and content, scoped-per-build for automation.
    Consequence of doing nothing: pages stay live with the TBD line, and the
-   intake still works.
+   intake still works. Since September 18 a TBD service can still be paid:
+   `/agency/pay` takes the number from the written scope (one-time or
+   monthly, $250 to $25,000, the custom-deposit window) and
+   `/api/checkout` charges it as `agency_payment`. The moment an agency
+   offer is set `live` with a `priceUsd` in `lib/site/offers.ts`, the pay
+   page charges that number and ignores what the browser sends
+   (`lib/agencyPayment.ts`). No Stripe product is needed; the line item is
+   created per session like every other checkout here.
 
 5. **"Course platform" versus "Training Platform".** `/packages` prints
    "Course platform", `/pricing` prints "Training Platform", both at the

@@ -226,6 +226,14 @@ export const PUBLIC_PAGE_CATALOG = [
     index: false,
   },
   {
+    path: "/agency/pay",
+    title: "Pay the number in your written scope",
+    description:
+      "Pay an agency scope by card: the service, one-time or monthly, the amount Ryan put in writing, and your receipt. Ad spend stays on your own card.",
+    eyebrow: "Agency payment",
+    index: false,
+  },
+  {
     path: "/portfolio",
     title: "Open the work and inspect it",
     description:
