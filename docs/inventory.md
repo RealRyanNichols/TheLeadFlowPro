@@ -1,5 +1,7 @@
 # Facts inventory
 
+> September 18, 2026: the homepage rows below (the workshop card, the chooser in `components/site/NextStepGuide.tsx`, the `/#qualify` header CTA, the Learn and Events nav links) describe surfaces that no longer exist. See `docs/handoff-2026-09-18-homepage.md` for the current homepage, header CTA, and navigation.
+
 Snapshot taken September 17, 2026 (before the consumer refactor landed in PR #54). Every row maps one public fact to the files that rendered it and the place it now lives. After PR #54 the `validate:facts` build gate keeps app/, components/, and the marketing modules free of hand-typed copies; `npm run check:links` keeps every configured internal link pointing at a real route.
 
 ## Where each kind of fact lives now

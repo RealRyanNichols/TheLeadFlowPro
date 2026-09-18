@@ -1,7 +1,7 @@
-// The four buyer paths the September 2026 expansion added or changed, on a
-// phone and on a desktop: homepage chooser → free-build apply; packages →
-// Stripe click-through; plugin → checkout start; agency intake. Read-only:
-// nothing is submitted and nothing is paid.
+// The buyer paths on a phone and on a desktop: homepage consultation form and
+// the done-for-you service links; packages → Stripe click-through; plugin →
+// checkout start; agency intake. Read-only: nothing is submitted and nothing
+// is paid.
 
 import { test, expect, type Page } from "playwright/test";
 
@@ -19,15 +19,23 @@ for (const vp of VIEWPORTS) {
   test.describe(`${vp.name} (${vp.width}px)`, () => {
     test.use({ viewport: { width: vp.width, height: vp.height } });
 
-    test("homepage chooser routes to the free website application", async ({ page }) => {
+    test("homepage leads with the free consultation form and links the done-for-you services", async ({ page }) => {
       await page.goto("/");
       await noHorizontalScroll(page);
-      const banner = page.locator(".lf-announcement");
-      await expect(banner).toBeVisible();
-      await page.getByRole("button", { name: /I need more customers/ }).click();
-      const build = page.getByRole("link", { name: /Build it for me/ });
+      // No event banner, no workshop pitch anywhere on the front door.
+      await expect(page.locator(".lf-announcement")).toHaveCount(0);
+      await expect(page.getByText(/workshop/i)).toHaveCount(0);
+      const form = page.locator("#free-consultation form");
+      await expect(form).toBeVisible();
+      for (const name of ["full_name", "business_name", "phone", "email", "goals"]) {
+        await expect(form.locator(`[name="${name}"]`)).toHaveAttribute("required", "");
+      }
+      await expect(form.locator('input[name="meeting"]')).toHaveCount(3);
+      await expect(form.getByRole("button", { name: /Book my free consultation/ })).toBeVisible();
+      await expect(page.getByRole("link", { name: /See the lead service/ })).toHaveAttribute("href", /^\/agency\/meta-ads/);
+      await expect(page.getByRole("link", { name: /See the automation service/ })).toHaveAttribute("href", /^\/agency\/automation/);
+      const build = page.getByRole("link", { name: /Check the free website program/ });
       await expect(build).toHaveAttribute("href", /^\/free-build/);
-      await expect(page.getByRole("link", { name: /Run it for me/ })).toHaveAttribute("href", /^\/agency/);
       await build.click();
       await expect(page).toHaveURL(/\/free-build/);
       await expect(page.locator("form")).toBeVisible();

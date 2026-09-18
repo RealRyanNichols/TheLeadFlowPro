@@ -54,10 +54,10 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/",
-    title: "Your next move starts here",
+    title: "Leads, websites, and follow-up. Done for you.",
     description:
-      "Find the right next step for your website, leads, follow-up, or business skills.",
-    eyebrow: "Your next move",
+      "Ads, websites, funnels, and follow-up built and run for East Texas businesses in accounts you own. Start with a free 30-minute consultation.",
+    eyebrow: "Done for you",
     art: "/images/ryan-wholesale-universe-warehouse-pallets-flag.jpg",
   },
   {

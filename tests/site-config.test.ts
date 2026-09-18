@@ -3,8 +3,10 @@ import test from "node:test";
 import { BUSINESS } from "../lib/site/business.ts";
 import { CLAIMS, approvedClaim, approvedClaims, claimDateLabel } from "../lib/site/claims.ts";
 import { EXTERNAL_LINKS } from "../lib/site/external-links.ts";
+import { CONSULTATION } from "../lib/site/consultation.ts";
 import {
   FOOTER_COLUMNS,
+  HEADER_CTA,
   NAV_LINKS,
   chromeInternalHrefs,
   hidesSiteChrome,
@@ -136,7 +138,8 @@ test("every approved claim names a business, source, definition, window, and dat
 
 test("header and footer are defined once and only link to site paths or known off-site addresses", () => {
   assert.ok(NAV_LINKS.some((l) => l.href === "/agency"));
-  assert.ok(NAV_LINKS.some((l) => l.href === "/events"));
+  assert.ok(!NAV_LINKS.some((l) => l.href === "/events"), "events are off the primary nav");
+  assert.equal(HEADER_CTA.href, CONSULTATION.href);
   assert.equal(FOOTER_COLUMNS.length, 3);
   const plugin = FOOTER_COLUMNS[0].links.find((l) => l.href === "/plugin");
   assert.equal(plugin?.label, `Plugin for ChatGPT and Claude | ${usdPerMonth(PRICES.pluginMonthly)}`);

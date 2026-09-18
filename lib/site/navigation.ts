@@ -2,10 +2,12 @@
 // these; nothing else defines a link set. Labels that carry a price read the
 // number from lib/site/prices.ts so the footer can never drift from checkout.
 //
-// Events points at /events on purpose: middleware forwards it to the
-// standalone workshop funnel while the featured event is on, and serves the
-// site's own events page once it is past (lib/site/events.ts).
+// The header CTA is the free consultation on the homepage
+// (lib/site/consultation.ts). Events and courses are deliberately not in the
+// primary navigation: the business sells done-for-you work, not seats or
+// lessons. The pages still exist for people who already hold a link.
 
+import { CONSULTATION } from "./consultation";
 import { PRICES, usd, usdPerMonth, usdRange } from "./prices";
 
 export type NavLink = { href: string; label: string };
@@ -14,15 +16,13 @@ export const NAV_LINKS: readonly NavLink[] = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Build my business" },
   { href: "/agency", label: "Run it for me" },
-  { href: "/operator-academy", label: "Learn" },
-  { href: "/events", label: "Events" },
   { href: "/scoreboard", label: "Scoreboard" },
   { href: "/tools", label: "Tools" },
   { href: "/articles", label: "Articles" },
 ];
 
 export const HEADER_PORTAL: NavLink = { href: "/login", label: "Portal" };
-export const HEADER_CTA: NavLink = { href: "/#qualify", label: "Find my next step" };
+export const HEADER_CTA: NavLink = { href: CONSULTATION.href, label: "Free consultation" };
 
 export type FooterColumn = { heading: string; links: readonly NavLink[] };
 
@@ -58,8 +58,8 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
   {
     heading: "Work together",
     links: [
+      { href: CONSULTATION.href, label: `Free ${CONSULTATION.minutes}-minute consultation` },
       { href: "/packages", label: "Packages" },
-      { href: "/events", label: "Events & Workshops" },
       { href: "/go/lead-follow-up", label: `Follow-Up Campaign | ${usd(PRICES.leadFollowUpCampaign)}` },
       { href: "/free-build", label: `Free Website | ${usd(PRICES.freeBuildFee)} Build Fee` },
       { href: "/agency/start", label: "Agency intake" },

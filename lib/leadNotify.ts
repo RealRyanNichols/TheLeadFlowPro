@@ -6,6 +6,7 @@
 
 import { sendLeadText } from "@/lib/quo";
 import { BUSINESS } from "@/lib/site/business";
+import { CONSULTATION } from "@/lib/site/consultation";
 import { PAST_EVENT_COPY, resolveFeaturedEvent } from "@/lib/site/events";
 import { usd } from "@/lib/site/prices";
 
@@ -377,6 +378,28 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
     }
     case "workshop_waitlist":
       return workshopListWelcome(base, first);
+    case CONSULTATION.funnel:
+      return {
+        ...base,
+        subject: `${first}, your free consultation request is in.`,
+        text: [
+          `${first},`,
+          ``,
+          `Your request for the free ${CONSULTATION.minutes}-minute business consultation just landed with me. Not a ticket queue. Mine.`,
+          ``,
+          `Here is what happens next:`,
+          ``,
+          `1. I read what you told me about the business and what is getting in the way.`,
+          `2. I reach out within one business day, the way you asked: a text or a call from ${BUSINESS.phone.display}, or an email from this address. We set the time and the place: your business, my office in ${BUSINESS.city}, or a call. Save that number, it is my direct line.`,
+          `3. We sit down for ${CONSULTATION.minutes} minutes and go through everything you bring. You leave knowing what to fix first and your next three moves, whether you hire me or not.`,
+          ``,
+          `Have ready if you can:`,
+          ...CONSULTATION.bring.map((item) => `- ${item}`),
+          ``,
+          `Want to move faster? Call or text me at ${BUSINESS.phone.display}.`,
+          ...SIGNATURE,
+        ].join("\n"),
+      };
     case "agency_intake":
       return {
         ...base,
