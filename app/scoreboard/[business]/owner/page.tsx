@@ -102,7 +102,7 @@ export default async function OwnerScoreboardPage({ params, searchParams }: { pa
                     <span>{CAPTURE_SOURCES[business.slug][row.source]}</span>
                     <strong>{row.records.toLocaleString("en-US")}</strong>
                     <small>
-                      records from {row.start_day} through {row.end_day}
+                      {row.records === 1 ? "record" : "records"} from {row.start_day} through {row.end_day}
                     </small>
                   </div>
                 ))}
