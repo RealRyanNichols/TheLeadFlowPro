@@ -21,3 +21,22 @@ test("capture coverage fails closed for missing, stale, unknown or impossible co
   assert.equal(parse(raw.map((r) => ({ ...r, records: null }))), null);
   assert.equal(parse([raw[0], raw[0], raw[2]]), null);
 });
+
+const lfpSlug = "the-leadflow-pro";
+const lfpSources = ["ad_lead_forms", "phone_line", "website_forms", "other_leads", "event_registrations"];
+const lfpRaw = lfpSources.map((source) => ({ source, records: "46", additional_emails: "0", start_day: "2026-08-19", end_day: "2026-09-17" }));
+const parseLfp = (rows: unknown) => normalizeCaptureCoverage(rows, lfpSlug, 30, "2026-09-17");
+
+test("the leadflow pro capture coverage accepts its own five sources in map order", () => {
+  const rows = parseLfp(lfpRaw);
+  assert.equal(rows?.length, 5);
+  assert.deepEqual(rows?.map((row) => row.source), lfpSources);
+  assert.equal(rows?.[4].records, 46);
+});
+
+test("the leadflow pro capture coverage fails closed on a missing or foreign source", () => {
+  assert.equal(parseLfp(lfpRaw.slice(0, 4)), null);
+  assert.equal(parseLfp([...lfpRaw.slice(0, 4), { ...lfpRaw[4], source: "operator_prospects" }]), null);
+  assert.equal(parseLfp(lfpRaw.map((r) => ({ ...r, end_day: "2026-09-16" }))), null);
+  assert.equal(parseLfp(lfpRaw.map((r) => ({ ...r, additional_emails: "47" }))), null);
+});

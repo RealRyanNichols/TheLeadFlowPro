@@ -1,6 +1,13 @@
 import { centralToday, shiftDay } from "./scoreboard";
 
 export const CAPTURE_SOURCES: Record<string, Record<string, string>> = {
+  "the-leadflow-pro": {
+    ad_lead_forms: "Ad lead forms",
+    phone_line: "Phone line and texts",
+    website_forms: "Website forms",
+    other_leads: "Other contact records",
+    event_registrations: "Event registrations",
+  },
   "premier-dental-academy-of-longview": {
     leads: "Lead intake",
     subscribers: "Email subscribers",
