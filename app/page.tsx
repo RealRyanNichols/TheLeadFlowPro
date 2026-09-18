@@ -59,7 +59,7 @@ const STEPS = [
   },
   {
     title: "Bring everything.",
-    body: "Thirty minutes, all of it on the table. You leave with the fastest thing to fix and your next three moves, whether you hire us or not.",
+    body: "Thirty minutes, all of it on the table. You leave with the first thing to fix and your next three moves, whether you hire us or not.",
   },
 ] as const;
 
@@ -113,10 +113,10 @@ export default function HomePage() {
           <div className="lf-consult">
             <div className="lf-consult-head">
               <span>{CONSULTATION.eyebrow.toUpperCase()}</span>
-              <strong>{CONSULTATION.headline}</strong>
+              <h2 id="free-consultation-title">{CONSULTATION.headline}</h2>
               <p>{CONSULTATION.body}</p>
             </div>
-            <ConsultationForm placement={CONSULTATION.placement} />
+            <ConsultationForm placement={CONSULTATION.placement} labelledBy="free-consultation-title" />
           </div>
         </div>
       </section>
@@ -261,8 +261,9 @@ export default function HomePage() {
               </h2>
             </div>
             <p>
-              Businesses running on systems we built and run. Real records from
-              their own accounts. Definitions printed on every board.
+              Our own businesses, running on the same system we build for
+              clients. Real records from their own accounts. Definitions
+              printed on every board.
             </p>
           </div>
           <HomeScoreboard />

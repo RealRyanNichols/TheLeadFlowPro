@@ -42,7 +42,8 @@ export default function SiteHeader() {
           <Link
             href={HEADER_CTA.href}
             className="header-cta"
-            data-analytics="cta-free-website-header"
+            data-cta="consultation_cta"
+            data-cta-placement="header"
           >
             {HEADER_CTA.label}
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
@@ -85,7 +86,8 @@ export default function SiteHeader() {
             <Link
               href={HEADER_CTA.href}
               className="header-cta"
-              data-analytics="cta-free-website-mobile"
+              data-cta="consultation_cta"
+              data-cta-placement="header_mobile"
             >
               {HEADER_CTA.label}
               <ArrowRight aria-hidden="true" className="h-4 w-4" />

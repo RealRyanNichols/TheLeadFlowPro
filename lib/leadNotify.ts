@@ -390,7 +390,7 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
           `Here is what happens next:`,
           ``,
           `1. I read what you told me about the business and what is getting in the way.`,
-          `2. I call or text you within one business day from ${BUSINESS.phone.display} to set the time and the place: your business, my office in ${BUSINESS.city}, or a call. Save that number, it is my direct line.`,
+          `2. I reach out within one business day, the way you asked: a text or a call from ${BUSINESS.phone.display}, or an email from this address. We set the time and the place: your business, my office in ${BUSINESS.city}, or a call. Save that number, it is my direct line.`,
           `3. We sit down for ${CONSULTATION.minutes} minutes and go through everything you bring. You leave knowing what to fix first and your next three moves, whether you hire me or not.`,
           ``,
           `Have ready if you can:`,

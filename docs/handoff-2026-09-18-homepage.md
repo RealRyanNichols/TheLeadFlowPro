@@ -35,8 +35,12 @@ welcome email all read from it.
    `lib/leadNotify.ts`: thirty minutes, Ryan calls or texts within one
    business day, the three meeting options, the bring list.
 4. SMS consent is a separate unchecked box, same wording as the agency
-   intake. A request without it still saves and still alerts Ryan; only the
-   automated texting is gated.
+   intake with "application" changed to "consultation". A request without
+   it still saves and still alerts Ryan; only the automated texting is
+   gated.
+5. The meeting choice and the contact preference are written into the top
+   of the lead's goals field, so they show in the owner alert, the admin
+   lead table, and the sales pipeline without a schema change.
 
 ## What still exists on purpose
 

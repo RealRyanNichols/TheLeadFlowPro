@@ -38,7 +38,7 @@ test("the homepage sells the consultation and the done-for-you services, never e
     "Workshop",
     "operator-academy",
     "chatgpt/free",
-    "—",
+    "\u2014",
   ]) {
     assert.ok(!home.includes(banned), `app/page.tsx still contains "${banned}"`);
   }
@@ -76,7 +76,7 @@ test("meeting options cover the owner's shop, the Longview office, and a call, i
     ...CONSULTATION.meetings.flatMap((m) => [m.label, m.detail]),
   ];
   for (const line of copy) {
-    assert.ok(!line.includes("—"), `em dash in "${line}"`);
+    assert.ok(!line.includes("\u2014"), `em dash in "${line}"`);
     assert.ok(!/guarantee|roas|#1/i.test(line), `banned claim in "${line}"`);
   }
   assert.ok(CONSULTATION.bring.length >= 4);

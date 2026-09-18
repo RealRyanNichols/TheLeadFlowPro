@@ -216,9 +216,16 @@
 .lf-hero {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
-  align-items: center;
+  align-items: start;
   gap: 54px;
   padding-block: 70px 76px;
+}
+@media (min-width: 801px) {
+  /* The form card is taller than the copy; keep the copy in view beside it. */
+  .lf-hero-copy {
+    position: sticky;
+    top: 100px;
+  }
 }
 .lf-eyebrow {
   margin: 0 0 18px !important;
@@ -324,6 +331,7 @@
 }
 /* The consultation card: the homepage's one ask, in the hero. */
 .lf-consult {
+  position: relative;
   padding: 24px;
   color: #20212b;
   background: #fff9ef;
@@ -337,10 +345,10 @@
   font-weight: 850;
   letter-spacing: 0.1em;
 }
-.lf-consult-head > strong {
-  display: block;
-  margin-top: 8px;
+.lf-consult-head > h2 {
+  margin: 8px 0 0;
   font-size: clamp(21px, 1.9vw, 26px);
+  font-weight: 800;
   line-height: 1.18;
   letter-spacing: -0.025em;
 }
@@ -377,7 +385,7 @@
   padding: 11px 13px;
   color: #20212b;
   background: #fff;
-  border: 1px solid #c9bdb3;
+  border: 1px solid #9a8f85;
   border-radius: 9px;
   font: inherit;
   font-size: 15px;
@@ -388,7 +396,7 @@
 }
 .lf-field input::placeholder,
 .lf-field textarea::placeholder {
-  color: #8f8a99;
+  color: #716c7e;
 }
 .lf-field input:focus-visible,
 .lf-field textarea:focus-visible {
@@ -419,7 +427,7 @@
   gap: 11px;
   padding: 11px 13px;
   background: #fff;
-  border: 1px solid #d8cbbb;
+  border: 1px solid #9a8f85;
   border-radius: 9px;
   cursor: pointer;
   transition:
@@ -456,6 +464,8 @@
   font-size: 12px;
   line-height: 1.45;
 }
+/* Segmented radios. The box is the span after the input, so checked and
+   focus states use sibling selectors and need no :has() support. */
 .lf-consult-segment {
   display: flex;
   flex-wrap: wrap;
@@ -465,23 +475,8 @@
   position: relative;
   flex: 1 1 80px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0 12px;
-  background: #fff;
-  border: 1px solid #d8cbbb;
-  border-radius: 9px;
-  font-size: 14px;
-  font-weight: 750;
+  min-width: 0;
   cursor: pointer;
-  transition:
-    border-color 160ms,
-    background 160ms,
-    color 160ms;
-}
-.lf-consult-segment label:hover {
-  border-color: #5135e5;
 }
 .lf-consult-segment input {
   position: absolute;
@@ -492,12 +487,32 @@
   opacity: 0;
   cursor: pointer;
 }
-.lf-consult-segment label:has(input:checked) {
+.lf-consult-segment span {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 12px;
+  background: #fff;
+  border: 1px solid #9a8f85;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 750;
+  transition:
+    border-color 160ms,
+    background 160ms,
+    color 160ms;
+}
+.lf-consult-segment label:hover span {
+  border-color: #5135e5;
+}
+.lf-consult-segment input:checked + span {
   color: #fff;
   background: #5135e5;
   border-color: #4025c7;
 }
-.lf-consult-segment label:has(input:focus-visible) {
+.lf-consult-segment input:focus-visible + span {
   outline: 3px solid #20212b;
   outline-offset: 2px;
 }
@@ -557,12 +572,49 @@
   font-size: 12px;
   text-align: center;
 }
+/* The confirmation is always in the tree (visually hidden while empty) so
+   screen readers announce it as a change to a live region. */
 .lf-consult-done {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.lf-consult-done--shown {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
   display: grid;
   justify-items: center;
   gap: 10px;
   padding: 28px 8px 12px;
   text-align: center;
+}
+.lf-consult-done:focus-visible {
+  outline: 3px solid #5135e5;
+  outline-offset: 6px;
+  border-radius: 8px;
+}
+.lf-consult-done-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  margin-top: 6px;
+  padding: 10px 18px;
+  color: #5135e5;
+  background: #fff;
+  border: 1px solid #9a8f85;
+  border-radius: 9px;
+  font-weight: 750;
+}
+.lf-consult-done-link:hover {
+  border-color: #5135e5;
+  background: #eee4fa;
 }
 .lf-consult-done svg {
   width: 52px;
@@ -579,10 +631,6 @@
   color: #514b5c;
   font-size: 15px;
   line-height: 1.6;
-}
-.lf-consult-done a {
-  color: #5135e5;
-  font-weight: 750;
 }
 /* How the sit-down works: the three steps beside what to bring. */
 .lf-consult-grid {
@@ -1331,6 +1379,31 @@
   font-size: 13px;
   font-weight: 700;
   color: #9b1c1c;
+}
+/* The list button on /events. Its base rule used to live with the homepage
+   workshop card; it is kept here now that the card is gone. */
+.lf-workshop-seat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 13px 18px;
+  color: #fff9ef;
+  background: #5135e5;
+  border: 2px solid #4025c7;
+  border-radius: 11px;
+  box-shadow: 0 3px 0 #352093;
+  font-size: 18px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.lf-workshop-seat:hover {
+  background: #4025c7;
+}
+.lf-workshop-seat:focus-visible {
+  outline: 3px solid #20212b;
+  outline-offset: 4px;
 }
 .lf-workshop-list-form .lf-workshop-seat {
   cursor: pointer;
