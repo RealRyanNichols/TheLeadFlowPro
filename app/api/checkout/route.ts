@@ -5,6 +5,7 @@ import { FREE_BUILD } from "@/lib/freeBuild";
 import { priceToolStudio } from "@/lib/toolStudio";
 import { PRO_BUNDLE, getProTool } from "@/lib/tools/pro";
 import { startEventCheckout } from "@/lib/eventCheckoutServer";
+import { AGENCY_PAYMENT, resolveAgencyCharge } from "@/lib/agencyPayment";
 import { PRICES, usd } from "@/lib/site/prices";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
@@ -71,9 +72,33 @@ export async function POST(request: Request) {
       amount: number;
       recurring: boolean;
     }> | null = null;
+    // The line under the pay button on a subscription checkout. Tool Studio's
+    // wording is the default; a kind that renews on different terms sets its own.
+    let subscriptionNote =
+      "Your selected monthly services renew on the same calendar date until canceled or changed. Submit menu changes at least three business days before renewal.";
     const metadata: Record<string, string> = {};
 
-    if (body.kind === "build_deposit") {
+    if (body.kind === AGENCY_PAYMENT.kind) {
+      // The agency lane (/agency/pay). The client pays the number from the
+      // written scope, one time or monthly, for one of the six services. The
+      // amount is rebuilt in lib/agencyPayment.ts: a live price wins, a TBD
+      // service takes the scope amount inside the deposit window. The buyer
+      // lands on /agency/paid, which verifies the session with Stripe before
+      // it says anything, then routes to account access and the plugin.
+      const resolved = resolveAgencyCharge(body);
+      if (!resolved.ok) return NextResponse.json({ error: resolved.error }, { status: 400 });
+      const charge = resolved.charge;
+      kind = AGENCY_PAYMENT.kind;
+      name = charge.name;
+      amount = charge.amountCents;
+      checkoutMode = charge.billing === "monthly" ? "subscription" : "payment";
+      checkoutLines = [{ name: charge.name, amount: charge.amountCents, recurring: charge.billing === "monthly" }];
+      cancelUrl = `${site}${AGENCY_PAYMENT.payPath}?service=${encodeURIComponent(charge.service.slug)}&cancelled=1`;
+      successUrl = `${site}${AGENCY_PAYMENT.paidPath}?session_id={CHECKOUT_SESSION_ID}`;
+      subscriptionNote =
+        "This management fee renews on the same calendar date each month until you cancel. Cancel any time by replying to your receipt or texting Ryan; it stops at the end of the paid month. Ad spend is separate and is paid by you to Meta or Google directly.";
+      Object.assign(metadata, charge.metadata);
+    } else if (body.kind === "build_deposit") {
       // Down payment on a custom scope or anything Ryan quoted outside the
       // package ladder. Amount is customer-chosen and clamped server-side.
       const requested = Math.round(Number(body.amount_usd));
@@ -273,10 +298,7 @@ export async function POST(request: Request) {
       for (const [k, v] of Object.entries(metadata)) {
         params.set(`subscription_data[metadata][${k}]`, v);
       }
-      params.set(
-        "custom_text[submit][message]",
-        "Your selected monthly services renew on the same calendar date until canceled or changed. Submit menu changes at least three business days before renewal.",
-      );
+      params.set("custom_text[submit][message]", subscriptionNote);
     }
     if (email) params.set("customer_email", email);
 

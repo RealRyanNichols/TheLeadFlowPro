@@ -83,7 +83,7 @@ export const LEGAL_LINKS: readonly NavLink[] = [
 ];
 
 /** Public paths that never show the marketing header or footer. */
-export const CHROME_FREE_PATHS = ["/start", "/agency/start"] as const;
+export const CHROME_FREE_PATHS = ["/start", "/agency/start", "/agency/pay"] as const;
 export const WORKSPACE_PREFIXES = ["/admin", "/sales", "/dashboard", "/factory/preview"] as const;
 
 export function hidesSiteChrome(pathname: string): boolean {

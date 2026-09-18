@@ -18,8 +18,8 @@ tsconfig.tsbuildinfo
 supabase/.temp/
 test-results/
 .env*
-# The example files are tracked on purpose: variable names only, never values.
-!.env.example
+# The factory template's env example carries variable NAMES only (a test
+# enforces that); the scaffolder copies it into every client site.
 !factory/template/.env.example
 
 # Factory output (client sites scaffolded by scripts/new-client.ts)
