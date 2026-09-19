@@ -1,0 +1,61 @@
+{
+  "reviewer": "Codex final PNG visual review",
+  "reviewed_at": "2026-09-19T14:46:56.911Z",
+  "images": [
+    {
+      "file": "01.png",
+      "sha256": "f0c162f7183d0e72817c2aad25db45aae3a142dcd6f1f0ef98d964949c47a6de",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG visually reviewed. Exact offwhite serif headline in two lines at upper left and one sans serif support line on cobalt. A large unmarked silver carabiner occupies the lower right, cropped by the right edge. Copy ends before the metal subject; there are no engravings, logos or extra words.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "02.png",
+      "sha256": "a4995d89614ea3242cb6a798decee4078d7c8a616ddf6e2128db2bda5c0789f3",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG visually reviewed. Exact centered navy service area headline in two lines and one support line on sage. Offwhite sculpted terrain spans the bottom below all text, with no roads, map labels, buildings or symbols. No people, hands or extra copy appear.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "03.png",
+      "sha256": "23d17f943672a66d59912d5dced22a69fe3a2a50a1c40c31b2291eb0b607f7f9",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG visually reviewed. Exact navy detailing headline in three lines at upper right with one complete support line beneath. A single plain navy headed silver vehicle key lies diagonally at lower left on offwhite, clear of the text. No buttons, engraving, branding or extra objects appear.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "04.png",
+      "sha256": "d82ba7ab4467ef01ad6357ec8cdad66f27dbcafd608d8aa16c40167da813cb6f",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG visually reviewed. Exact offwhite Illustrative label and subtraction equation show 80 minus 25 equals 55 minutes, with one example support line below. An amber colored stone is cropped at upper left on navy texture, clear of the copy. OCR normalized the minus glyph as a hyphen; visual review confirmed the mathematical subtraction. No real customer results are implied.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    },
+    {
+      "file": "05.png",
+      "sha256": "aedb2ee45a42eb0f47393a5f9fcc3476ae9496eafd262c4c4b7f0d633d3ddac9",
+      "passed": true,
+      "notes": "Final 1200 by 630 PNG visually reviewed. Exact navy serif question in two lines in the lower half and one support line on muted blue. A single sealed kraft parcel sits at upper right above the copy. Its box and paper tape are blank, without shipping marks, labels, logos or extra text.",
+      "text_correct": true,
+      "text_clear_of_subject": true,
+      "no_faces_or_hands": true,
+      "no_extra_text_or_logos": true,
+      "composition_distinct": true
+    }
+  ]
+}
