@@ -36,7 +36,7 @@ import { plain } from "./copy";
 // against an in-memory implementation.
 
 export const PROTOCOL_VERSIONS = ["2025-06-18", "2025-03-26", "2024-11-05"];
-export const SERVER_INFO = { name: "the-leadflow-pro", title: HQ_PLAN.connectorName, version: "1.0.0" };
+export const SERVER_INFO = { name: "the-leadflow-pro", title: HQ_PLAN.connectorName, version: "1.0.2" };
 
 export const SERVER_INSTRUCTIONS = [
   "You are connected to The LeadFlow Pro for one business. The tools read and change that business's real lead inbox, messages, and content drafts.",
@@ -131,7 +131,12 @@ type ToolSpec = {
   inputSchema: JsonSchema;
   scope?: string;
   readOnly?: boolean;
+  /** Irreversible from the owner's point of view: a text or post that has left the building, or a switch that starts automation. */
   destructive?: boolean;
+  /** Touches a system outside this workspace: a lead's phone, a Facebook Page. */
+  openWorld?: boolean;
+  /** Calling it twice with the same input leaves the same state. */
+  idempotent?: boolean;
   handler: (ctx: McpContext, args: Record<string, unknown>) => Promise<ToolOutcome>;
 };
 
@@ -243,6 +248,21 @@ function draftFor(ctx: McpContext, lead: Lead, purpose: string, instruction: str
 }
 
 const DRAFT_PURPOSES = ["text_back", "email_reply", "follow_up", "quote_follow_up", "review_ask", "reschedule", "custom"];
+
+/**
+ * The MCP annotations both directories review. Read-only tools are by
+ * definition safe and idempotent; a write tool says so only when its flag
+ * is set, and nothing is open-world unless it reaches a phone or a Page.
+ */
+export function toolAnnotations(t: Pick<ToolSpec, "title" | "readOnly" | "destructive" | "openWorld" | "idempotent">) {
+  return {
+    title: t.title,
+    readOnlyHint: !!t.readOnly,
+    destructiveHint: !t.readOnly && !!t.destructive,
+    idempotentHint: !!t.readOnly || !!t.idempotent,
+    openWorldHint: !!t.openWorld,
+  };
+}
 
 export const TOOL_SPECS: ToolSpec[] = [
   {
@@ -444,6 +464,8 @@ export const TOOL_SPECS: ToolSpec[] = [
       ["message_id"],
     ),
     scope: "messages:send",
+    destructive: true,
+    openWorld: true,
     async handler(ctx, args) {
       const mid = s(args.message_id, 80);
       const message = await ctx.actions.getMessage(mid);
@@ -475,6 +497,7 @@ export const TOOL_SPECS: ToolSpec[] = [
     description: "Set when the next follow-up for a lead is due, in days from now. The brief will surface it with a ready draft.",
     inputSchema: obj({ lead_id: str("The lead id."), days: num("Days from now, 0 to 90.", { minimum: 0, maximum: 90 }) }, ["lead_id", "days"]),
     scope: "leads:write",
+    idempotent: true,
     async handler(ctx, args) {
       const id = s(args.lead_id, 80);
       const lead = requireLead(await ctx.actions.getLead(id), id);
@@ -491,6 +514,7 @@ export const TOOL_SPECS: ToolSpec[] = [
     description: "Three Facebook posts, one lead ad, and one 30 second video script with a shot list, in the business's voice, for the current week. Idempotent: running it twice returns the same drafts.",
     inputSchema: obj({}),
     scope: "content:write",
+    idempotent: true,
     async handler(ctx) {
       const weekOf = localWeekStart(ctx.now, ctx.workspace.timezone);
       const existing = await ctx.actions.listContent({ weekOf, limit: 50 });
@@ -569,6 +593,7 @@ export const TOOL_SPECS: ToolSpec[] = [
       ["content_id", "decision"],
     ),
     scope: "content:write",
+    idempotent: true,
     async handler(ctx, args) {
       const id = s(args.content_id, 80);
       const item = await ctx.actions.getContent(id);
@@ -587,6 +612,8 @@ export const TOOL_SPECS: ToolSpec[] = [
     description: "Publish an approved post to the connected Facebook Page. If no Page is connected, marks it approved and returns the text to paste.",
     inputSchema: obj({ content_id: str("The content id.") }, ["content_id"]),
     scope: "content:write",
+    destructive: true,
+    openWorld: true,
     async handler(ctx, args) {
       const id = s(args.content_id, 80);
       const item = await ctx.actions.getContent(id);
@@ -654,6 +681,8 @@ export const TOOL_SPECS: ToolSpec[] = [
       notes: str("Standing instructions for drafts: promos, words to avoid, tone notes."),
     }),
     scope: "content:write",
+    // auto_text_back: true starts texting new leads without another approval.
+    destructive: true,
     async handler(ctx, args) {
       // Rewriting the business profile and its automation switches is the
       // widest thing a connector can do, so it needs the whole grant.
@@ -894,7 +923,7 @@ async function handleOne(req: JsonRpcRequest, ctx: McpContext): Promise<JsonRpcR
             title: t.title,
             description: t.description,
             inputSchema: t.inputSchema,
-            annotations: { title: t.title, readOnlyHint: !!t.readOnly, destructiveHint: !!t.destructive, idempotentHint: !!t.readOnly, openWorldHint: false },
+            annotations: toolAnnotations(t),
           })),
         });
       case "tools/call": {

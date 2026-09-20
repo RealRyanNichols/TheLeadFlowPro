@@ -86,6 +86,11 @@ export default function PluginDocsPage() {
                   </span>
                   <h3>{platform.name}</h3>
                   <p>{platform.who}</p>
+                  {platform.requires ? (
+                    <p className="plugin-fine">
+                      <strong>Needs:</strong> {platform.requires}
+                    </p>
+                  ) : null}
                   <ol className="plugin-steps">
                     {platform.steps.map((line) => (
                       <li key={line}>{line}</li>

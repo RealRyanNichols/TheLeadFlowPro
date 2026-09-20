@@ -28,6 +28,18 @@ export default function WorkspaceLinks({ admin = false }: { admin?: boolean }) {
     ...(admin
       ? [
           {
+            href: "/admin/call-sheet",
+            title: "Call sheet",
+            detail: "Leads no person has called, texted, or noted yet",
+            icon: Users,
+          },
+          {
+            href: "/admin/sales",
+            title: "Today queue",
+            detail: "The sales desk running order with one-tap call and text",
+            icon: Users,
+          },
+          {
             href: "/admin/sales/delivery",
             title: "Client delivery",
             detail: "Builds, reviews, and the next handoff",

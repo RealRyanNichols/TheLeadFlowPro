@@ -161,6 +161,41 @@ describe("protocol basics", () => {
     assert.equal(tools.find((t) => t.name === "send_message")?.annotations.readOnlyHint, false);
   });
 
+  test("annotations tell the truth about what leaves the building", async () => {
+    const a = new MemoryActions(workspace());
+    const out = await handleJsonRpc({ jsonrpc: "2.0", id: 1, method: "tools/list" }, ctxFor(a));
+    type Ann = { readOnlyHint: boolean; destructiveHint: boolean; idempotentHint: boolean; openWorldHint: boolean };
+    const tools = (out.responses[0].result as { tools: { name: string; annotations: Ann }[] }).tools;
+    const ann = (name: string) => tools.find((t) => t.name === name)!.annotations;
+    // Texts and posts reach a third party and cannot be unsent.
+    for (const name of ["send_message", "publish_post"]) {
+      assert.equal(ann(name).destructiveHint, true, name);
+      assert.equal(ann(name).openWorldHint, true, name);
+      assert.equal(ann(name).idempotentHint, false, name);
+    }
+    // Flipping auto_text_back starts automation, so the profile write is destructive but stays inside the workspace.
+    assert.equal(ann("update_business_profile").destructiveHint, true);
+    assert.equal(ann("update_business_profile").openWorldHint, false);
+    // Same input, same state.
+    for (const name of ["draft_weekly_content", "schedule_follow_up", "approve_content"]) {
+      assert.equal(ann(name).idempotentHint, true, name);
+      assert.equal(ann(name).destructiveHint, false, name);
+    }
+    // Every read-only tool is safe, repeatable, and closed-world.
+    for (const t of tools) {
+      if (!t.annotations.readOnlyHint) continue;
+      assert.equal(t.annotations.destructiveHint, false, t.name);
+      assert.equal(t.annotations.idempotentHint, true, t.name);
+      assert.equal(t.annotations.openWorldHint, false, t.name);
+    }
+    // Every tool carries all four hints as booleans.
+    for (const t of tools) {
+      for (const key of ["readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"] as const) {
+        assert.equal(typeof t.annotations[key], "boolean", `${t.name}.${key}`);
+      }
+    }
+  });
+
   test("tool descriptions pass the copy rules", () => {
     for (const t of TOOL_SPECS) assert.deepEqual(copyProblems(`${t.title} ${t.description}`), [], t.name);
   });

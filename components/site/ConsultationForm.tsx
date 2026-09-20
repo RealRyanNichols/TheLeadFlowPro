@@ -8,6 +8,8 @@ import {
   type ConsultationContact,
   type ConsultationMeeting,
 } from "@/lib/site/consultation";
+import { bookingPage } from "@/lib/site/external-links";
+import { TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
 
 // The homepage's one ask. Posts to the same /api/leads route as the book and
 // agency forms, so a consultation request lands in the leads pipeline with
@@ -51,6 +53,9 @@ export default function ConsultationForm({
   const [done, setDone] = useState<{ first: string; contact: ConsultationContact } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const doneRef = useRef<HTMLDivElement>(null);
+  // Null until Ryan sets a booking page in lib/site/external-links.ts; the
+  // line below the confirmation simply does not exist until then.
+  const booking = bookingPage();
 
   useEffect(() => {
     if (done) doneRef.current?.focus();
@@ -143,9 +148,20 @@ export default function ConsultationForm({
               place.
               {done.contact === "email" ? "" : " Save this number, it is his direct line."}
             </p>
-            <a className="lf-consult-done-link" href={BUSINESS.phone.tel}>
-              Call or text {BUSINESS.phone.display} now
+            <a className="lf-consult-done-link" href={BUSINESS.phone.tel} data-cta="call" data-cta-placement="consultation_sent">
+              Call {BUSINESS.phone.display} now
             </a>
+            <a className="lf-consult-done-link" href={smsHref("consultation_sent")} data-cta="text" data-cta-placement="consultation_sent">
+              {TEXT_LABEL} instead
+            </a>
+            {booking ? (
+              <p>
+                Want to pick the time yourself?{" "}
+                <a className="lf-consult-done-link" href={booking} target="_blank" rel="noreferrer">
+                  Book it on Ryan&apos;s calendar
+                </a>
+              </p>
+            ) : null}
           </>
         ) : null}
       </div>

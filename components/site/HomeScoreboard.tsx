@@ -38,11 +38,11 @@ export default async function HomeScoreboard() {
               <span>{business.town}</span>
             </div>
             <div>
-              <strong>{totals ? formatCount(totals.views) : "—"}</strong>
+              <strong>{totals ? formatCount(totals.views) : "n/a"}</strong>
               <span>page views</span>
             </div>
             <div>
-              <strong>{totals ? formatCount(totals.leads) : "—"}</strong>
+              <strong>{totals ? formatCount(totals.leads) : "n/a"}</strong>
               <span>{totals ? "lead records" : "feed unavailable"}</span>
             </div>
             <ArrowUpRight size={18} aria-hidden="true" />

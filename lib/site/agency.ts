@@ -35,6 +35,13 @@ export type AgencyService = {
   offerId: string;
   name: string;
   navLabel: string;
+  /**
+   * The search title and description for the page. Written the way an owner
+   * types the query ("facebook ads", not "meta ads") and naming the place.
+   * The on-page headline stays the promise sentence.
+   */
+  seoTitle: string;
+  metaDescription: string;
   eyebrow: string;
   audience: string;
   problem: string;
@@ -58,6 +65,9 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     offerId: "agency_meta_ads",
     name: "Meta ads management",
     navLabel: "Meta ads",
+    seoTitle: "Facebook and Instagram Ads Management in Longview, TX | The LeadFlow Pro",
+    metaDescription:
+      "Facebook and Instagram lead ads for Longview and East Texas businesses, built in your own Meta Business Manager. You pay Meta directly and keep the pixel, audiences, leads, and reporting.",
     eyebrow: "Facebook and Instagram",
     audience: "Local service businesses, schools, and shops in East Texas that need more inquiries this month, not a brand campaign.",
     problem: "Boosted posts and a lead form nobody follows up on. Money goes out, a few names come in, and nobody can say which ad paid for which job.",
@@ -90,6 +100,9 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     offerId: "agency_google_ads",
     name: "Google Ads management",
     navLabel: "Google Ads",
+    seoTitle: "Google Ads Management in Longview, TX | The LeadFlow Pro",
+    metaDescription:
+      "Google Search and Local Services campaigns for Longview and East Texas businesses, run in your own Google Ads account with call and form tracking you keep.",
     eyebrow: "Search and local",
     audience: "Businesses people search for by name or need: plumbers, roofers, clinics, schools, repair shops.",
     problem: "Clicks on broad keywords, calls that go to voicemail, and no way to tell a call from an ad apart from a call from the sign on the truck.",
@@ -122,6 +135,9 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     offerId: "website_launch",
     name: "Websites",
     navLabel: "Websites",
+    seoTitle: "Website Design for Longview, TX Businesses | The LeadFlow Pro",
+    metaDescription:
+      "Five-page business websites for Longview and East Texas, built to capture the inquiry and hand it to follow-up. Apply for the free build or buy the Website Launch. You own the domain and the site.",
     eyebrow: "Five pages that give people a next step",
     audience: "Any business whose website cannot answer what you do, what it costs, and how to reach you from a phone.",
     problem: "A template someone else owns, a contact form that goes nowhere, and a monthly bill for a site that has never produced a lead you could trace.",
@@ -153,6 +169,9 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     offerId: "agency_automation",
     name: "Automation",
     navLabel: "Automation",
+    seoTitle: "Lead Follow-Up and Missed Call Text Back Automation in Longview, TX | The LeadFlow Pro",
+    metaDescription:
+      "Lead routing, first reply, missed call text back, and follow-up sequences installed in your own CRM, phone, and email accounts for Longview and East Texas businesses, with consent and STOP handled.",
     eyebrow: "Capture, record, follow up, sell, deliver, report",
     audience: "Owners doing follow-up from memory, re-typing the same reply, and losing the lead that came in on Saturday.",
     problem: "Inquiries arrive in five places, nobody owns the next step, and the one automation somebody set up two years ago texts people who never agreed to it.",
@@ -161,6 +180,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       "A map of the loop: capture, record, follow-up, sale, delivery, reporting, with the leaks marked",
       "Lead routing from forms, calls, texts, and ads into one record per person",
       "First-reply and follow-up sequences, written for your offer, with consent and STOP handling",
+      "Missed call text back set up in your own phone or texting account, with the reply written for your business",
       "Owner alerts and a daily list of who to call",
       "Every automation documented: trigger, eligibility, consent, exclusions, delay, stop conditions, owner",
       "Built in your CRM, phone, and email accounts, or on the LeadFlow plugin if you prefer one inbox",
@@ -171,6 +191,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     faq: [
       { q: "Is this the plugin?", a: `The plugin is the ${usd(PRICES.pluginMonthly)} a month product that runs the loop inside ChatGPT or Claude. Automation as an agency service is the same loop built into the tools you already use, or the plugin set up and tuned for you.` },
       { q: "What about texting?", a: "Texts go only to people who agreed, every text carries an opt-out, and STOP is honoured immediately and everywhere. If your list does not have consent recorded, the first job is fixing that." },
+      { q: "Do you set up missed call text back?", a: "Yes, in your own phone or texting account, with the reply written for your business, consent recorded, and STOP honoured immediately. The free script writer on this site drafts the message; this service installs it and wires the reply into your lead records." },
       { q: "What does it cost?", a: "Automation scopes are priced on the scoping call and put in writing. The cheapest version of the follow-up piece is the written Follow-Up Campaign on this site." },
     ],
     intakeHref: intake("automation"),
@@ -184,6 +205,9 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     offerId: "agency_video",
     name: "Video and media",
     navLabel: "Video",
+    seoTitle: "Business Video Production in Longview, TX | The LeadFlow Pro",
+    metaDescription:
+      "Short vertical clips, an offer explainer, and customer stories shot on location for Longview and East Texas businesses, delivered as files you own for your pages and ads.",
     eyebrow: "Shot on location, cut for the phone",
     audience: "Businesses whose work looks better than their website says, and owners who explain the offer well in person.",
     problem: "Nothing on your pages or your ads shows the actual work, the actual room, or the actual person a customer will meet.",
@@ -214,6 +238,9 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     offerId: "agency_content",
     name: "Content",
     navLabel: "Content",
+    seoTitle: "Content Marketing for Longview, TX Businesses | The LeadFlow Pro",
+    metaDescription:
+      "Posts, pages, and emails written for Longview and East Texas businesses, approved by you before anything publishes, in channels you own.",
     eyebrow: "Posts, pages, and emails that answer real questions",
     audience: "Owners who know what customers ask every week and never have time to write it down.",
     problem: "A page that has not changed since launch, a Facebook feed that stops every time the business gets busy, and emails that only go out when there is a sale.",

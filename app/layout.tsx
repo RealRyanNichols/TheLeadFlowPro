@@ -29,9 +29,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = withPublicPageMetadata("/", {
-  title: "More Attention. More Leads. More Revenue. | The LeadFlow Pro",
+  title: "The LeadFlow Pro | Marketing agency in Longview, TX",
   description:
-    "The LeadFlow Pro turns attention into conversations, conversations into qualified leads, and qualified leads into customers with one connected business system.",
+    "Ads, websites, funnels, and follow-up built and run for Longview and East Texas businesses in accounts you own. Start with a free 30-minute consultation.",
   metadataBase: new URL("https://www.theleadflowpro.com"),
   icons: {
     icon: [
@@ -43,9 +43,9 @@ export const metadata: Metadata = withPublicPageMetadata("/", {
   },
   alternates: { canonical: "https://www.theleadflowpro.com" },
   openGraph: {
-    title: "More Attention. More Leads. More Revenue.",
+    title: "The LeadFlow Pro | Marketing agency in Longview, TX",
     description:
-      "Turn attention into conversations, conversations into qualified leads, and qualified leads into customers with The LeadFlow Pro.",
+      "Ads, websites, funnels, and follow-up built and run for Longview and East Texas businesses in accounts you own.",
     url: "https://www.theleadflowpro.com",
     siteName: "The LeadFlow Pro",
     images: [{ url: "/og/home.png", width: 1200, height: 630 }],
@@ -53,8 +53,8 @@ export const metadata: Metadata = withPublicPageMetadata("/", {
   },
   twitter: {
     card: "summary_large_image",
-    title: "More Attention. More Leads. More Revenue.",
-    description: "One connected system that turns attention into conversations and qualified leads.",
+    title: "The LeadFlow Pro | Marketing agency in Longview, TX",
+    description: "Ads, websites, funnels, and follow-up for Longview and East Texas businesses, in accounts you own.",
     images: ["/og/home.png"],
   },
 });

@@ -76,6 +76,13 @@ export const PUBLIC_PAGE_CATALOG = [
     art: "/images/ryan-wholesale-universe-owner.jpg",
   },
   {
+    path: "/longview",
+    title: "Marketing agency in Longview, TX",
+    description:
+      "Ads, websites, and follow-up for Longview and East Texas businesses, built and run in accounts you own. Free 30-minute consultation at your business, the Longview office, or by phone.",
+    eyebrow: "Longview and East Texas",
+  },
+  {
     path: "/services",
     title: "Build the part your business needs",
     description:

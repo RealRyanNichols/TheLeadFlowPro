@@ -443,6 +443,11 @@ export default async function PluginPage() {
                     <li key={line}>{line}</li>
                   ))}
                 </ol>
+                {platform.requires ? (
+                  <p className="plugin-fine">
+                    <strong>Needs:</strong> {platform.requires}
+                  </p>
+                ) : null}
               </article>
             ))}
           </div>

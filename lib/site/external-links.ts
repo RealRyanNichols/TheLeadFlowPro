@@ -27,6 +27,37 @@ export const EXTERNAL_LINKS = {
 
   /** The plugin's MCP endpoint, pasted into ChatGPT, Claude, Claude Code, Cursor. */
   mcpEndpoint: "https://www.theleadflowpro.com/api/mcp",
+
+  /**
+   * Ryan's self-serve booking page (a Google Calendar appointment schedule,
+   * Calendly, or similar). Empty until Ryan creates one and pastes the address
+   * here. While empty, no page, email, or text mentions booking a time:
+   * bookingPage() returns null and every consumer hides the line.
+   */
+  bookingPage: "" as string,
+
+  /**
+   * The Google Business Profile listing (the "share" address of the profile).
+   * Empty until the listing is verified. While empty, structured data and
+   * the contact page leave it out; nothing links to an unverified profile.
+   */
+  googleBusinessProfile: "" as string,
 } as const;
 
 export type ExternalLinkKey = keyof typeof EXTERNAL_LINKS;
+
+/** The booking page when Ryan has set one, otherwise null. Consumers hide the line on null. */
+export function bookingPage(): string | null {
+  return optionalLink(EXTERNAL_LINKS.bookingPage);
+}
+
+/** The Google Business Profile address when set, otherwise null. */
+export function googleBusinessProfile(): string | null {
+  return optionalLink(EXTERNAL_LINKS.googleBusinessProfile);
+}
+
+/** An optional address counts only when it is a real https URL. Anything else reads as unset. */
+export function optionalLink(value: string): string | null {
+  const trimmed = value.trim();
+  return /^https:\/\/[^\s]+$/.test(trimmed) ? trimmed : null;
+}

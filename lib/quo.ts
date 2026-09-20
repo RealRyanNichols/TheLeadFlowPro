@@ -20,6 +20,10 @@
 // If a text ever shows the wrong name again, hit /api/quo-status?secret=...
 // It prints every number, its owner, and every user id in the workspace.
 
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { SUPABASE_URL } from "@/lib/config";
+import { decideSend } from "@/lib/smsPolicy";
+
 const QUO_API = "https://api.openphone.com/v1/messages";
 
 // The LeadFlow Pro line. Hardcoded fallback on purpose: an unset or wrong env
@@ -123,7 +127,16 @@ export function toE164(raw: string): string | null {
   return e164.length < 12 ? null : e164;
 }
 
-export async function sendLeadText(to: string, content: string): Promise<boolean> {
+export type SendLeadTextOptions = {
+  /**
+   * A person pressed send in the CRM. Skips the Central-time send window
+   * (lib/smsPolicy.ts) because the human made the call. Never skips the
+   * STOP list.
+   */
+  humanInitiated?: boolean;
+};
+
+export async function sendLeadText(to: string, content: string, options: SendLeadTextOptions = {}): Promise<boolean> {
   // Emergency compliance stop: outbound Quo SMS is disabled by default while
   // delivery failures and consent/automation rules are audited. Lead capture,
   // CRM storage, and internal email alerts continue normally. Re-enabling is
@@ -151,6 +164,19 @@ export async function sendLeadText(to: string, content: string): Promise<boolean
   const e164 = toE164(to);
   if (!e164) return false;
 
+  // STOP is global and the send window is for software, not people
+  // (lib/smsPolicy.ts). Both sit here, in the one function every
+  // application-originated text goes through, so no caller can forget them.
+  const decision = decideSend({
+    now: new Date(),
+    suppressed: await smsSuppressedGlobally(e164),
+    humanInitiated: Boolean(options.humanInitiated),
+  });
+  if (!decision.allow) {
+    console.warn(`Quo outbound SMS withheld: ${decision.reason}`);
+    return false;
+  }
+
   const body: Record<string, unknown> = { content, from, to: [e164] };
   // Omitted rather than sent empty: Quo rejects a blank userId outright, and
   // falling back to the number's owner (now Ryan) is the correct default.
@@ -167,6 +193,31 @@ export async function sendLeadText(to: string, content: string): Promise<boolean
   } catch (e) {
     console.error("Quo send error:", e);
     return false;
+  }
+}
+
+/**
+ * Is this number on the STOP list (public.sms_suppressions)? Reads with the
+ * service role because the callers run as the application, not as a user.
+ * Fails closed: no service key, or a failed read, means the text is withheld.
+ * The lead still gets the email and lands on the call sheet.
+ */
+export async function smsSuppressedGlobally(phone: string): Promise<boolean> {
+  const norm = normalizePhoneLast10(phone);
+  if (norm.length < 10) return true;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) {
+    console.error("sms_suppressions lookup skipped: no service key; texting withheld");
+    return true;
+  }
+  try {
+    const supabase = createSupabaseClient(SUPABASE_URL, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { data, error } = await supabase.from("sms_suppressions").select("phone_norm").eq("phone_norm", norm).limit(1).maybeSingle();
+    if (error) throw new Error(error.message);
+    return !!data;
+  } catch (e) {
+    console.error("sms_suppressions lookup failed, texting withheld:", e instanceof Error ? e.message : e);
+    return true;
   }
 }
 
