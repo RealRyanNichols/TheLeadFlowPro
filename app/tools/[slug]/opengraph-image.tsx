@@ -1,4 +1,6 @@
 import { ImageResponse } from "next/og";
+import { uniqueOgImagePath } from "@/lib/uniqueOgImages";
+import { PUBLIC_SITE_URL } from "@/lib/publicPageMetadata";
 import { getTool, DOMAINS, TOOLS } from "@/lib/tools";
 import { ogCard, OG_SIZE } from "@/lib/tools/og";
 
@@ -14,9 +16,17 @@ export function generateStaticParams() {
   return TOOLS.map((t) => ({ slug: t.slug }));
 }
 
-export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Image({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const tool = getTool(slug);
+  const finishedImage = tool && uniqueOgImagePath(`/tools/${tool.slug}`);
+  if (finishedImage) {
+    return Response.redirect(`${PUBLIC_SITE_URL}${finishedImage}`, 307);
+  }
 
   if (!tool) {
     return new ImageResponse(

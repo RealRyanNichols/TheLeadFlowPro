@@ -1,4 +1,6 @@
 import { ImageResponse } from "next/og";
+import { uniqueOgImagePath } from "@/lib/uniqueOgImages";
+import { PUBLIC_SITE_URL } from "@/lib/publicPageMetadata";
 import { ogCard, OG_SIZE } from "@/lib/tools/og";
 import {
   PUBLISHED_COLLECTIONS,
@@ -15,9 +17,18 @@ export function generateStaticParams() {
   return PUBLISHED_COLLECTIONS.map((c) => ({ slug: c.slug }));
 }
 
-export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Image({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const collection = getCollection(slug);
+  const finishedImage =
+    collection && uniqueOgImagePath(`/tools/collections/${collection.slug}`);
+  if (finishedImage) {
+    return Response.redirect(`${PUBLIC_SITE_URL}${finishedImage}`, 307);
+  }
 
   const tools = collection ? collectionTools(collection) : [];
   // Colour the card by whatever domain the collection actually leans on, so a
@@ -36,7 +47,8 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     ogCard({
       eyebrow: collection ? `${tools.length} free tools` : "Free tools",
       title: collection?.short ?? "Free Tools Built for Real Work",
-      hook: collection?.hook ?? "Calculators, generators, planners and QR tools.",
+      hook:
+        collection?.hook ?? "Calculators, generators, planners and QR tools.",
       domain: DOMAINS[domain] ? domain : "sales-marketing",
       toolType: "calculator",
       url: collection

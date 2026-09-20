@@ -3,6 +3,13 @@
  * Only literal public paths belong here; never add tokens or user-provided data.
  */
 export const UNIQUE_OG_IMAGES: Readonly<Record<string, string>> = {
+  "/tools/job-price-calculator":
+    "/og/unique/2026-09-19/tools--job-price-calculator.jpg",
+  "/system/follow-up": "/og/unique/2026-09-19/system--follow-up.jpg",
+  "/plugin": "/og/unique/2026-09-19/plugin.jpg",
+  "/events": "/og/unique/2026-09-19/events.jpg",
+  "/articles/handyman-job-pricing":
+    "/og/unique/2026-09-19/articles--handyman-job-pricing.jpg",
   "/go/time-back": "/og/unique/2026-09-12/go--time-back.jpg",
   "/packages": "/og/unique/2026-09-12/packages.jpg",
   "/live": "/og/unique/2026-09-12/live.jpg",

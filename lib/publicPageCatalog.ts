@@ -1,6 +1,13 @@
 // Reviewed canonical public pages. Redirects and private completion URLs are excluded.
 export const PUBLIC_PAGE_CATALOG = [
   {
+    path: "/events",
+    title: "Events and business workshops",
+    description: "Bring one real business task to a practical workshop. Review the current events page for dates, registration, and workshop details.",
+    eyebrow: "Business workshops",
+    index: false,
+  },
+  {
     path: "/chatgpt/free",
     title: "Build your first ChatGPT page",
     description:

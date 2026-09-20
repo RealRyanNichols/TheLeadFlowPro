@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Laptop, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -10,11 +11,15 @@ import {
 import EventCard from "./EventCard";
 import WorkshopShowcase from "./WorkshopShowcase";
 import styles from "./events.module.css";
-import { PAST_EVENT_COPY, resolveEventStatus, featuredEvent } from "@/lib/site/events";
+import {
+  PAST_EVENT_COPY,
+  resolveEventStatus,
+  featuredEvent,
+} from "@/lib/site/events";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
+export const metadata = withPublicPageMetadata("/events", {
   title: "Events & Workshops | The LeadFlow Pro",
   description:
     "Hands-on AI workshops for East Texas business owners, live in Longview. Ten seats, ninety minutes, bring your laptop, build something real. Plus on-site training for your team.",
@@ -26,9 +31,8 @@ export const metadata = {
     url: "https://www.theleadflowpro.com/events",
     siteName: "The LeadFlow Pro",
     type: "website",
-    images: [{ url: "/og/events/chatgpt-for-business-owners-longview.jpg", width: 1200, height: 630 }],
   },
-};
+});
 
 const FOUNDING_SLUG = "chatgpt-for-business-owners-longview";
 

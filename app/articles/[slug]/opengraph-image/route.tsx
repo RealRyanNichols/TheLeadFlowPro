@@ -1,5 +1,7 @@
 import { ImageResponse } from "next/og";
 import { getArticle } from "@/lib/articles";
+import { uniqueOgImagePath } from "@/lib/uniqueOgImages";
+import { PUBLIC_SITE_URL } from "@/lib/publicPageMetadata";
 import {
   articleOgCard,
   ARTICLE_OG_SIZE,
@@ -25,7 +27,15 @@ export async function GET(
     });
   }
 
-  const backgroundUrl = new URL(articlePremiumOgArtPath(article.slug), request.url).toString();
+  const finishedImage = uniqueOgImagePath(`/articles/${article.slug}`);
+  if (finishedImage) {
+    return Response.redirect(`${PUBLIC_SITE_URL}${finishedImage}`, 307);
+  }
+
+  const backgroundUrl = new URL(
+    articlePremiumOgArtPath(article.slug),
+    request.url,
+  ).toString();
 
   return new ImageResponse(articleOgCard({ article, backgroundUrl }), {
     ...ARTICLE_OG_SIZE,
