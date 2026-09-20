@@ -3,6 +3,16 @@
  * Only literal public paths belong here; never add tokens or user-provided data.
  */
 export const UNIQUE_OG_IMAGES: Readonly<Record<string, string>> = {
+  "/articles/how-to-give-event-guests-a-calendar-link-they-can-check":
+    "/og/unique/2026-09-19/articles--how-to-give-event-guests-a-calendar-link-they-can-check.jpg",
+  "/articles/how-to-leave-callers-with-a-clear-next-step":
+    "/og/unique/2026-09-19/articles--how-to-leave-callers-with-a-clear-next-step.jpg",
+  "/articles/how-to-make-a-contact-card-people-can-save":
+    "/og/unique/2026-09-19/articles--how-to-make-a-contact-card-people-can-save.jpg",
+  "/articles/how-to-make-a-directions-link-that-reaches-the-right-entrance":
+    "/og/unique/2026-09-19/articles--how-to-make-a-directions-link-that-reaches-the-right-entrance.jpg",
+  "/articles/how-to-make-a-guest-wi-fi-card-customers-can-use":
+    "/og/unique/2026-09-19/articles--how-to-make-a-guest-wi-fi-card-customers-can-use.jpg",
   "/articles/how-to-compare-two-job-offers-when-the-hours-are-different":
     "/og/unique/2026-09-19/articles--how-to-compare-two-job-offers-when-the-hours-are-different.jpg",
   "/articles/how-to-compare-two-package-sizes-before-buying-the-bigger-one":
