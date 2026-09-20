@@ -3,6 +3,16 @@
  * Only literal public paths belong here; never add tokens or user-provided data.
  */
 export const UNIQUE_OG_IMAGES: Readonly<Record<string, string>> = {
+  "/articles/how-to-build-an-ad-budget-scenario-from-your-own-records":
+    "/og/unique/2026-09-19/articles--how-to-build-an-ad-budget-scenario-from-your-own-records.jpg",
+  "/articles/how-to-check-ad-copy-before-you-paste-it-into-the-platform":
+    "/og/unique/2026-09-19/articles--how-to-check-ad-copy-before-you-paste-it-into-the-platform.jpg",
+  "/articles/how-to-check-robots-txt-without-treating-it-as-a-lock":
+    "/og/unique/2026-09-19/articles--how-to-check-robots-txt-without-treating-it-as-a-lock.jpg",
+  "/articles/how-to-check-what-an-extra-payment-changes-in-a-simple-debt-model":
+    "/og/unique/2026-09-19/articles--how-to-check-what-an-extra-payment-changes-in-a-simple-debt-model.jpg",
+  "/articles/how-to-check-your-business-details-before-adding-structured-data":
+    "/og/unique/2026-09-19/articles--how-to-check-your-business-details-before-adding-structured-data.jpg",
   "/articles/bring-one-real-task-to-your-business-workshop":
     "/og/unique/2026-09-19/articles--bring-one-real-task-to-your-business-workshop.jpg",
   "/articles/give-every-inquiry-an-owner-and-next-step":
