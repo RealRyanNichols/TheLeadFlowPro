@@ -3,6 +3,16 @@
  * Only literal public paths belong here; never add tokens or user-provided data.
  */
 export const UNIQUE_OG_IMAGES: Readonly<Record<string, string>> = {
+  "/articles/how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan":
+    "/og/unique/2026-09-19/articles--how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan.jpg",
+  "/articles/how-to-turn-real-customer-questions-into-useful-website-answers":
+    "/og/unique/2026-09-19/articles--how-to-turn-real-customer-questions-into-useful-website-answers.jpg",
+  "/articles/how-to-write-a-job-post-that-explains-the-actual-work":
+    "/og/unique/2026-09-19/articles--how-to-write-a-job-post-that-explains-the-actual-work.jpg",
+  "/articles/how-to-write-a-missed-call-reply-that-tells-people-what-happens-next":
+    "/og/unique/2026-09-19/articles--how-to-write-a-missed-call-reply-that-tells-people-what-happens-next.jpg",
+  "/articles/how-to-write-a-text-us-button-that-starts-the-right-conversation":
+    "/og/unique/2026-09-19/articles--how-to-write-a-text-us-button-that-starts-the-right-conversation.jpg",
   "/articles/how-to-scope-an-ad-test-before-splitting-the-budget":
     "/og/unique/2026-09-19/articles--how-to-scope-an-ad-test-before-splitting-the-budget.jpg",
   "/articles/how-to-separate-sales-tax-from-a-tax-inclusive-total":
