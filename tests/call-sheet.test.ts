@@ -11,11 +11,16 @@ import {
   callSheetEmail,
   callSheetEmailEnabled,
   callSheetRecipients,
+  canText,
+  classifyCall,
+  isHumanOutboundText,
   sourceLabel,
   tiers,
   type CallSheetLead,
   type CallSheetTouch,
 } from "../lib/callSheet.ts";
+import { leadConsultationTextBody, leadTextBackBody } from "../lib/leadNotify.ts";
+import { INBOUND_AUTO_REPLY } from "../lib/quo.ts";
 
 const NOW = new Date("2026-09-20T13:00:00Z");
 const hoursAgo = (h: number) => new Date(NOW.getTime() - h * 3_600_000).toISOString();
@@ -33,10 +38,63 @@ function lead(overrides: Partial<CallSheetLead> & { id: string }): CallSheetLead
     utm_source: "facebook",
     best_contact_method: "text",
     sms_consent: false,
+    sms_unsubscribed_at: null,
     is_test: false,
     ...overrides,
   };
 }
+
+test("software's own texts are not touches; a person's text is; a missed inbound call is a reply owed", () => {
+  for (const body of [INBOUND_AUTO_REPLY, leadTextBackBody("Sam", null), leadConsultationTextBody("Sam", "https://calendar.app.google/x")]) {
+    assert.equal(isHumanOutboundText(body), false, body);
+  }
+  assert.equal(isHumanOutboundText("Hi Sam, Ryan here. Thursday at 2 work for you?"), true);
+  assert.equal(classifyCall("outgoing", "answered"), "call");
+  assert.equal(classifyCall("incoming", "answered"), "call");
+  assert.equal(classifyCall("incoming", "missed"), "call_in");
+  assert.equal(classifyCall("incoming", "voicemail"), "call_in");
+  assert.equal(classifyCall("incoming", "no_answer"), "call_in");
+  assert.equal(classifyCall(null, null), "call");
+
+  // The echo of the automatic text-back must leave the lead exactly where it was.
+  const echoed = lead({ id: "echo", created_at: hoursAgo(2) });
+  const withEcho = buildCallSheet([echoed], [], NOW);
+  assert.deepEqual(withEcho.rows.map((r) => [r.lead.id, r.tier]), [["echo", "answer"]]);
+
+  // A missed call from the lead goes to the top, worded as a call.
+  const missed = lead({ id: "missed", status: "contacted", created_at: hoursAgo(50) });
+  const sheet = buildCallSheet([missed], [{ lead_id: "missed", at: hoursAgo(1), kind: "call_in" }], NOW);
+  assert.equal(sheet.rows[0].tier, "reply");
+  assert.match(sheet.rows[0].reason, /called and nobody picked up 1 hour ago and nothing has gone back since/);
+  // ...and an answered call after it clears the debt.
+  const answered = buildCallSheet([missed], [{ lead_id: "missed", at: hoursAgo(1), kind: "call_in" }, { lead_id: "missed", at: hoursAgo(0.5), kind: "call" }], NOW);
+  assert.equal(answered.rows.length, 0);
+});
+
+test("texting on the sheet needs consent and no STOP since, in the row and in the email", () => {
+  assert.equal(canText({ phone: "9035550100", sms_consent: true, sms_unsubscribed_at: null }), true);
+  assert.equal(canText({ phone: "9035550100", sms_consent: true, sms_unsubscribed_at: "2026-09-19T00:00:00Z" }), false);
+  assert.equal(canText({ phone: "9035550100", sms_consent: false, sms_unsubscribed_at: null }), false);
+  assert.equal(canText({ phone: null, sms_consent: true, sms_unsubscribed_at: null }), false);
+  const leads = [
+    lead({ id: "ok", sms_consent: true }),
+    lead({ id: "stopped", sms_consent: true, sms_unsubscribed_at: hoursAgo(5) }),
+    lead({ id: "noconsent" }),
+  ];
+  const sheet = buildCallSheet(leads, [], NOW);
+  assert.deepEqual(Object.fromEntries(sheet.rows.map((r) => [r.lead.id, r.canText])), { ok: true, stopped: false, noconsent: false });
+  const email = callSheetEmail(sheet, "https://www.theleadflowpro.com")!;
+  assert.ok(email.text.includes("(texts OK)"));
+  assert.ok(email.text.includes("(replied STOP, call only)"));
+  assert.ok(email.text.includes("(no text consent, call or email)"));
+  const page = readFileSync(join(process.cwd(), "app/admin/call-sheet/page.tsx"), "utf8");
+  assert.ok(page.includes("row.canText ? smsHref"), "the page text button follows canText");
+  assert.ok(page.includes("Replied STOP. Call instead."));
+  const server = readFileSync(join(process.cwd(), "lib/callSheetServer.ts"), "utf8");
+  assert.ok(server.includes("sms_unsubscribed_at"), "the loader selects the STOP timestamp");
+  assert.ok(server.includes("direction, outcome"), "the loader selects call direction and outcome");
+  assert.ok(server.includes("isHumanOutboundText(m.body)") && server.includes("classifyCall("));
+});
 
 test("untouched leads rank newest first, split at the answer window, and the automation's reply never counts", () => {
   const leads = [
@@ -158,7 +216,7 @@ test("the email exists only when there is someone to call, caps its rows, and go
   const sheet = buildCallSheet(many, [{ lead_id: "l0", at: hoursAgo(0.5), kind: "message_in" }], NOW);
   const email = callSheetEmail(sheet, "https://www.theleadflowpro.com")!;
   assert.equal(email.subject, `Call sheet: 1 to reply to, ${EMAIL_ROW_LIMIT + 4} to answer now`);
-  assert.ok(email.text.includes("THEY WROTE TO YOU"));
+  assert.ok(email.text.includes("THEY REACHED OUT"));
   assert.ok(email.text.includes(`  ${EMAIL_ROW_LIMIT}. `));
   assert.ok(!email.text.includes(`  ${EMAIL_ROW_LIMIT + 1}. `));
   assert.ok(email.text.includes("...and 5 more on the page."));
@@ -177,12 +235,13 @@ test("the cron is off unless the flag is exactly true, and only ever addresses t
   const env = readFileSync(join(process.cwd(), ".env.example"), "utf8");
   assert.match(env, /^CALL_SHEET_EMAIL_ENABLED="false"$/m);
   const route = readFileSync(join(process.cwd(), "app/api/cron/call-sheet/route.ts"), "utf8");
+  assert.match(route, /if \(!cronSecret \|\|/, "the cron fails closed when no secret is configured");
   assert.ok(route.includes("callSheetEmailEnabled(process.env)"));
   assert.ok(route.includes("callSheetRecipients(process.env"));
   assert.ok(!route.includes("lead.email"), "the cron never addresses a lead");
   const crons = JSON.parse(readFileSync(join(process.cwd(), "vercel.json"), "utf8")) as { crons: { path: string }[] };
   assert.ok(crons.crons.some((c) => c.path === "/api/cron/call-sheet"));
   const server = readFileSync(join(process.cwd(), "lib/callSheetServer.ts"), "utf8");
-  assert.ok(server.includes("INBOUND_AUTO_REPLY"), "the automatic text is excluded from touches");
+  assert.ok(server.includes("isHumanOutboundText"), "the automatic texts are excluded from touches");
   assert.ok(!server.includes(".insert(") && !server.includes(".update(") && !server.includes(".delete("), "the loader is read-only");
 });

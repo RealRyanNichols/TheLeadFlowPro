@@ -97,7 +97,8 @@ export default async function CallSheetPage() {
               <ol className="grid gap-3">
                 {group.rows.map((row, i) => {
                   const tel = telHref(row.lead.phone);
-                  const sms = row.lead.sms_consent ? smsHref(row.lead.phone) : null;
+                  // Consent and no STOP since, the same rule as the CRM send route.
+                  const sms = row.canText ? smsHref(row.lead.phone) : null;
                   return (
                     <li key={row.lead.id} className="card !p-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -128,6 +129,10 @@ export default async function CallSheetPage() {
                             <a href={sms} className="min-h-[44px] rounded-lg border border-[var(--line-strong)] px-4 py-2 text-sm font-bold text-[var(--text)]">
                               Text (consented)
                             </a>
+                          ) : row.lead.phone && row.lead.sms_unsubscribed_at ? (
+                            <span className="min-h-[44px] rounded-lg border border-[var(--line)] px-4 py-2 text-sm text-[var(--muted)]" title="This number replied STOP. Call instead.">
+                              Replied STOP. Call instead.
+                            </span>
                           ) : row.lead.phone ? (
                             <span className="min-h-[44px] rounded-lg border border-[var(--line)] px-4 py-2 text-sm text-[var(--muted)]" title="No text consent recorded. Call instead.">
                               No text consent

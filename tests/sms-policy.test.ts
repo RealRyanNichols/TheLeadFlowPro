@@ -34,16 +34,44 @@ test("STOP wins over everything; the window holds software, not people", () => {
 
 test("every application text goes through the one sender that applies the policy", () => {
   const quo = readFileSync(join(process.cwd(), "lib/quo.ts"), "utf8");
-  assert.ok(quo.includes("decideSend({"), "sendLeadText consults the policy");
-  assert.ok(quo.includes("smsSuppressedGlobally(e164)"), "sendLeadText consults the STOP list");
-  const suppressedIndex = quo.indexOf("smsSuppressedGlobally(e164)");
-  const fetchIndex = quo.indexOf("fetch(QUO_API", suppressedIndex);
-  assert.ok(suppressedIndex > 0 && fetchIndex > suppressedIndex, "the lookup happens before the provider call");
+  assert.match(quo, /decideSend\(\s*\{/, "sendLeadText consults the policy");
+  const suppressed = quo.search(/smsSuppressedGlobally\(\s*e164\s*\)/);
+  assert.ok(suppressed > 0, "sendLeadText consults the STOP list");
+  const fetchIndex = quo.indexOf("fetch(QUO_API", suppressed);
+  assert.ok(fetchIndex > suppressed, "the lookup happens before the provider call");
   const adminRoute = readFileSync(join(process.cwd(), "app/api/admin/lead-message/route.ts"), "utf8");
-  assert.ok(adminRoute.includes("{ humanInitiated: true }"), "a CRM send is a human decision");
+  assert.match(adminRoute, /humanInitiated:\s*true/, "a CRM send is a human decision");
   for (const file of ["lib/leadNotify.ts", "app/api/leads/route.ts", "app/api/meta-leads/route.ts"]) {
     const source = readFileSync(join(process.cwd(), file), "utf8");
-    assert.ok(!source.includes("humanInitiated: true"), `${file} is automated and must not skip the window`);
+    assert.doesNotMatch(source, /humanInitiated:\s*true/, `${file} is automated and must not skip the window`);
     assert.ok(!source.includes("api.openphone.com"), `${file} never calls the provider directly`);
+  }
+});
+
+test("sendLeadText itself holds an automated text outside the window and lets a person through, never past STOP", async () => {
+  const previous = { ...process.env };
+  process.env.QUO_OUTBOUND_SMS_DISABLED = "false";
+  process.env.QUO_FROM_NUMBER = "+19035008898";
+  process.env.QUO_USER_ID = "";
+  process.env.QUO_LEADFLOW_USER_ID = "";
+  process.env.QUO_API_KEY = "test-key";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "";
+  const calls: string[] = [];
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: string | URL | Request) => {
+    calls.push(String(input));
+    return new Response("{}", { status: 200 });
+  }) as typeof fetch;
+  try {
+    const { sendLeadText } = await import("../lib/quo.ts");
+    // No service key: the STOP lookup fails closed, so nothing is sent even for a person.
+    assert.equal(await sendLeadText("+19035550100", "hi", { humanInitiated: true }), false);
+    assert.equal(calls.length, 0, "no provider call without a STOP lookup");
+  } finally {
+    globalThis.fetch = realFetch;
+    for (const key of ["QUO_OUTBOUND_SMS_DISABLED", "QUO_FROM_NUMBER", "QUO_USER_ID", "QUO_LEADFLOW_USER_ID", "QUO_API_KEY", "SUPABASE_SERVICE_ROLE_KEY"]) {
+      if (previous[key] === undefined) delete process.env[key];
+      else process.env[key] = previous[key];
+    }
   }
 });

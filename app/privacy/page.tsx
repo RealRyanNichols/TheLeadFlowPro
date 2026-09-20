@@ -122,10 +122,10 @@ export default function PrivacyPage() {
       </p>
       <p>
         Texts from a workspace go only to people who agreed to receive them, and a STOP
-        reply ends them for that number. Workspace records are kept while the subscription
-        is active and for a limited period afterward so a returning subscriber does not lose
-        their work; a subscriber can ask for a copy of their leads and messages, or for the
-        workspace to be deleted, by emailing{" "}
+        reply ends them for that number in that workspace. Workspace records are kept while
+        the subscription is active and after it ends, so a returning subscriber does not lose
+        their work, until the subscriber asks for the workspace to be deleted. A subscriber
+        can ask for a copy of their leads and messages, or for deletion, by emailing{" "}
         <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>.
       </p>
       <h2>Retention and security</h2>

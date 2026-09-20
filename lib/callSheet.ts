@@ -16,7 +16,8 @@
 //
 // Nothing here writes to the database or contacts anyone.
 
-import { INTEREST_LABELS } from "@/lib/leadNotify";
+import { INTEREST_LABELS, isAutomatedLeadText } from "@/lib/leadNotify";
+import { INBOUND_AUTO_REPLY } from "@/lib/quo";
 
 export type CallSheetLead = {
   id: string;
@@ -31,14 +32,42 @@ export type CallSheetLead = {
   utm_source: string | null;
   best_contact_method: string | null;
   sms_consent: boolean | null;
+  /** Set by a STOP reply (public.apply_sms_opt_out). Consent alone is not enough to text. */
+  sms_unsubscribed_at: string | null;
   is_test: boolean | null;
 };
 
 export type CallSheetTouch = {
   lead_id: string;
   at: string;
-  kind: "note" | "call" | "message_out" | "message_in";
+  /** note, call, message_out: a person acted. message_in, call_in: the lead reached out and is owed a reply. */
+  kind: "note" | "call" | "message_out" | "message_in" | "call_in";
 };
+
+/** Texting is allowed only with recorded consent and no STOP since. Same rule as the CRM send route. */
+export function canText(lead: Pick<CallSheetLead, "phone" | "sms_consent" | "sms_unsubscribed_at">): boolean {
+  return Boolean(lead.phone) && Boolean(lead.sms_consent) && !lead.sms_unsubscribed_at;
+}
+
+/**
+ * The Quo webhook writes every text on the line into lead_messages, the
+ * application's own included, under Ryan's name. Only a text a person typed
+ * counts as a touch: the inbound auto-reply (lib/quo.ts) and the two
+ * text-backs (lib/leadNotify.ts) are software.
+ */
+export function isHumanOutboundText(body: string): boolean {
+  return body !== INBOUND_AUTO_REPLY && !isAutomatedLeadText(body);
+}
+
+/**
+ * A call somebody had is a touch. A call the lead placed that nobody picked
+ * up (missed, voicemail, no answer) is the opposite: a reply owed, so it
+ * ranks with an inbound message.
+ */
+export function classifyCall(direction: string | null, outcome: string | null): CallSheetTouch["kind"] {
+  if (direction === "incoming" && ["missed", "voicemail", "no_answer"].includes(outcome ?? "")) return "call_in";
+  return "call";
+}
 
 export type CallSheetTier = "reply" | "answer" | "waiting" | "follow_up";
 
@@ -51,6 +80,8 @@ export type CallSheetRow = {
   interestLabel: string;
   ageHours: number;
   lastTouchAt: string | null;
+  /** Consent recorded and no STOP since. The page shows a text button only when true. */
+  canText: boolean;
   href: string;
 };
 
@@ -63,7 +94,7 @@ export type CallSheet = {
 };
 
 export const TIER_LABELS: Record<CallSheetTier, { title: string; lead: string }> = {
-  reply: { title: "They wrote to you", lead: "A message from the lead is the last thing on the thread. Answer these first." },
+  reply: { title: "They reached out", lead: "A message or a missed call from the lead is the last thing on the thread. Answer these first." },
   answer: { title: "Answer now", lead: "New in the last three days and nobody has called, texted, or written a note. The software replied; a person has not." },
   waiting: { title: "Still waiting", lead: "Older than three days and still untouched by a person. Newest first, because they are the most likely to pick up." },
   follow_up: { title: "Follow up", lead: "You touched these once, then nothing for five days or more, and the lead is still open." },
@@ -128,13 +159,17 @@ function displayName(lead: CallSheetLead): string {
  */
 export function buildCallSheet(leads: CallSheetLead[], touches: CallSheetTouch[], now: Date): CallSheet {
   const lastHuman = new Map<string, Date>();
-  const lastInbound = new Map<string, Date>();
+  const lastInbound = new Map<string, { at: Date; kind: "message_in" | "call_in" }>();
   for (const t of touches) {
     const at = new Date(t.at);
     if (Number.isNaN(at.getTime())) continue;
-    const bucket = t.kind === "message_in" ? lastInbound : lastHuman;
-    const prev = bucket.get(t.lead_id);
-    if (!prev || at > prev) bucket.set(t.lead_id, at);
+    if (t.kind === "message_in" || t.kind === "call_in") {
+      const prev = lastInbound.get(t.lead_id);
+      if (!prev || at > prev.at) lastInbound.set(t.lead_id, { at, kind: t.kind });
+    } else {
+      const prev = lastHuman.get(t.lead_id);
+      if (!prev || at > prev) lastHuman.set(t.lead_id, at);
+    }
   }
 
   const rows: CallSheetRow[] = [];
@@ -168,15 +203,17 @@ export function buildCallSheet(leads: CallSheetLead[], touches: CallSheetTouch[]
       interestLabel: interestLabel(lead.interest),
       ageHours,
       lastTouchAt: human ? human.toISOString() : null,
+      canText: canText(lead),
       href: `/admin/leads/${lead.id}`,
     };
     const who = `${displayName(lead)}${lead.business_name ? ` at ${lead.business_name}` : ""}`;
 
-    if (inbound && (!human || inbound > human)) {
+    if (inbound && (!human || inbound.at > human)) {
+      const what = inbound.kind === "call_in" ? "called and nobody picked up" : "sent a message";
       rows.push({
         ...base,
         tier: "reply",
-        reason: `${who} sent a message ${ageLabel(hoursBetween(now, inbound))} and nothing has gone back since.`,
+        reason: `${who} ${what} ${ageLabel(hoursBetween(now, inbound.at))} and nothing has gone back since.`,
       });
       continue;
     }
@@ -249,8 +286,9 @@ export function callSheetEmail(sheet: CallSheet, siteUrl: string): { subject: st
       if (printed >= EMAIL_ROW_LIMIT) break;
       printed += 1;
       const contact = [row.lead.phone, row.lead.email].filter(Boolean).join(" | ");
+      const texting = row.canText ? "texts OK" : row.lead.sms_unsubscribed_at ? "replied STOP, call only" : "no text consent, call or email";
       lines.push(`  ${printed}. ${displayName(row.lead)}${row.lead.business_name ? ` (${row.lead.business_name})` : ""}`);
-      lines.push(`     ${contact}`);
+      lines.push(`     ${contact} (${texting})`);
       lines.push(`     ${row.reason}`);
       lines.push(`     ${siteUrl}${row.href}`);
     }
@@ -259,7 +297,7 @@ export function callSheetEmail(sheet: CallSheet, siteUrl: string): { subject: st
   if (sheet.rows.length > printed) lines.push(`...and ${sheet.rows.length - printed} more on the page.`, "");
   lines.push(`The full sheet, with one-tap call and text: ${siteUrl}/admin/call-sheet`);
   lines.push("");
-  lines.push("Texts go only to people who ticked the consent box; the sheet marks who did. This email is for you and is not sent to anyone on it.");
+  lines.push("Texts go only to people who ticked the consent box and have not replied STOP; each row says which. This email is for you and is not sent to anyone on it.");
   return { subject, text: lines.join("\n") };
 }
 

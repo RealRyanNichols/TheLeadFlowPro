@@ -9,7 +9,7 @@ import { FREE_BUILD } from "@/lib/freeBuild";
 import { LADDER, PHONE_DISPLAY, PHONE_TEL } from "@/lib/siteContent";
 import { CONSULTATION } from "@/lib/site/consultation";
 import { PRICES, usd, usdFrom } from "@/lib/site/prices";
-import { areaServedJsonLd, breadcrumbJsonLd, graph, jsonLdText, webPageJsonLd } from "@/lib/site/structuredData";
+import { areaServedJsonLd, breadcrumbJsonLd, graph, jsonLdText, organizationJsonLd, webPageJsonLd, websiteJsonLd } from "@/lib/site/structuredData";
 import { TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
 import styles from "./services.module.css";
 
@@ -27,7 +27,11 @@ export const metadata: Metadata = withPublicPageMetadata("/services", {
   },
 });
 
+// The organization and website nodes ride along so the @id references
+// (provider, isPartOf, about) resolve inside this one document.
 const SERVICES_JSONLD = graph(
+  organizationJsonLd(),
+  websiteJsonLd(),
   webPageJsonLd("/services", SERVICES_TITLE, SERVICES_DESCRIPTION),
   breadcrumbJsonLd([
     { name: "Home", path: "/" },

@@ -17,8 +17,10 @@ import { BUSINESS } from "@/lib/site/business";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
+  // Fail closed, like the newer crons: no secret configured means nobody
+  // can trigger a service-role read of the lead table.
+  const cronSecret = process.env.CRON_SECRET?.trim();
+  if (!cronSecret || request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   if (!callSheetEmailEnabled(process.env)) {

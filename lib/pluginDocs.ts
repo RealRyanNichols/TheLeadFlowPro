@@ -250,7 +250,7 @@ export const PLUGIN_CHANGELOG: readonly { version: string; date: string; notes: 
     date: "2026-09-20",
     notes: [
       "The install steps now say which ChatGPT and Claude plans accept a connector by address, and walk through ChatGPT's Developer mode.",
-      "Every tool tells the assistant honestly whether it sends something outside the workspace, so ChatGPT and Claude ask before a text or a post goes out.",
+      "Every tool now tells the assistant whether it sends something outside the workspace (a text, a post), so an assistant that confirms such actions can do so.",
     ],
   },
   {

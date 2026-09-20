@@ -295,6 +295,24 @@ export async function updateLead(db: Db, workspaceId: string, id: string, patch:
   return data as Lead;
 }
 
+/**
+ * STOP is per number, not per row. A workspace can hold more than one lead
+ * with the same phone (the seven-day merge window in insertLead), and every
+ * one of them stops. Returns how many rows changed.
+ */
+export async function stopTextsForPhone(db: Db, workspaceId: string, phone: string, at: string): Promise<number> {
+  const digits = last10(phone);
+  if (!digits) return 0;
+  const { data, error } = await db
+    .from("hq_leads")
+    .update({ consent_sms: false, unsubscribed_at: at })
+    .eq("workspace_id", workspaceId)
+    .ilike("phone", `%${digits}`)
+    .select("id");
+  if (error) fail("stopTextsForPhone", error);
+  return (data ?? []).length;
+}
+
 export async function findLeadByPhone(db: Db, workspaceId: string, phone: string): Promise<Lead | null> {
   const digits = last10(phone);
   if (!digits) return null;

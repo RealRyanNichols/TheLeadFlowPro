@@ -9,7 +9,8 @@ import { BUSINESS } from "@/lib/site/business";
 import { CONSULTATION } from "@/lib/site/consultation";
 import { PRICES, usd } from "@/lib/site/prices";
 import { TOOL_COUNT } from "@/lib/tools";
-import { breadcrumbJsonLd, graph, jsonLdText, localBusinessJsonLd, webPageJsonLd } from "@/lib/site/structuredData";
+import { CALL_LABEL, TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
+import { breadcrumbJsonLd, graph, jsonLdText, localBusinessJsonLd, organizationJsonLd, webPageJsonLd, websiteJsonLd } from "@/lib/site/structuredData";
 
 // The one local landing page. Not a city-page farm: Longview is where the
 // office is and East Texas is where Ryan drives to, so one page carries both.
@@ -26,7 +27,11 @@ export const metadata: Metadata = withPublicPageMetadata(PATH, {
   description: DESCRIPTION,
 });
 
+// The organization and website nodes ride along so every @id reference in
+// this graph resolves inside this one document.
 const JSONLD = graph(
+  organizationJsonLd(),
+  websiteJsonLd(),
   webPageJsonLd(PATH, TITLE, DESCRIPTION),
   breadcrumbJsonLd([
     { name: "Home", path: "/" },
@@ -70,7 +75,7 @@ export default function LongviewPage() {
           caption: OWNERSHIP_PROMISE.headline,
         }}
         primary={{ href: `#${CONSULTATION.anchor}`, label: `Book the free ${CONSULTATION.minutes}-minute consultation` }}
-        secondary={{ href: BUSINESS.phone.tel, label: `Call or text ${BUSINESS.phone.display}`, external: true }}
+        secondary={{ href: BUSINESS.phone.tel, label: CALL_LABEL, external: true }}
         trustLine="No guaranteed leads, rankings, or return on ad spend. Anyone promising those is guessing with your money."
       />
 
@@ -150,8 +155,15 @@ export default function LongviewPage() {
           </div>
           <ConsultationForm placement="longview_page" labelledBy="longview-consultation-title" />
           <p className="cb-lead mt-6">
-            <ShieldCheck aria-hidden="true" className="inline h-4 w-4" /> {OWNERSHIP_PROMISE.headline} Prefer to talk first? Call or text{" "}
-            <a href={BUSINESS.phone.tel}>{BUSINESS.phone.display}</a> or email <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>.
+            <ShieldCheck aria-hidden="true" className="inline h-4 w-4" /> {OWNERSHIP_PROMISE.headline} Prefer to talk first?{" "}
+            <a href={BUSINESS.phone.tel} data-cta="call" data-cta-placement="longview">
+              Call {BUSINESS.phone.display}
+            </a>
+            ,{" "}
+            <a href={smsHref("longview")} data-cta="text" data-cta-placement="longview">
+              {TEXT_LABEL.toLowerCase()}
+            </a>
+            , or email <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>.
           </p>
         </div>
       </section>
@@ -164,7 +176,7 @@ export default function LongviewPage() {
               <h2 className="cb-h2 cb-heading">Run the numbers on your own business first.</h2>
             </div>
             <p className="cb-lead">
-              {TOOL_COUNT} free calculators and writers, no login. Two that {BUSINESS.region} owners reach for first:
+              {TOOL_COUNT} free calculators and writers, no login. Two worth running before we talk:
             </p>
           </div>
           <div className="cb-actions">

@@ -583,9 +583,28 @@ export async function enrollInEmailSeries(email: string) {
 
 export async function textLeadBack(lead: NotifiableLead) {
   if (!lead.phone) return;
+  await sendLeadText(lead.phone, textBackBodyFor(lead));
+}
+
+/** Which text-back a lead gets: the consultation's own for a consultation request, the generic one otherwise. */
+export function textBackBodyFor(lead: Pick<NotifiableLead, "full_name" | "funnel">, booking: string | null = bookingPage()): string {
   const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
-  const body = lead.funnel === CONSULTATION.funnel ? leadConsultationTextBody(first) : leadTextBackBody(first);
-  await sendLeadText(lead.phone, body);
+  return lead.funnel === CONSULTATION.funnel ? leadConsultationTextBody(first, booking) : leadTextBackBody(first, booking);
+}
+
+// The fixed sentences of the two automated text-backs, without the name and
+// without the optional booking line. The Quo webhook echoes every outbound
+// text on the line back into lead_messages, so the call sheet needs a way to
+// tell software's texts from a person's. Keep these in step with the bodies.
+const AUTOMATED_TEXT_MARKERS = [
+  "this is Ryan with The LeadFlow Pro. Got your answers and I am already looking at what to fix first.",
+  `this is Ryan with The LeadFlow Pro. Got your request for the free ${CONSULTATION.minutes}-minute consultation.`,
+] as const;
+
+/** True when a message body is one the application sends on its own (the text-backs), not one a person typed. */
+export function isAutomatedLeadText(body: string): boolean {
+  const text = String(body ?? "");
+  return AUTOMATED_TEXT_MARKERS.some((marker) => text.includes(marker));
 }
 
 /** The text-back, exported so the test can prove the booking line appears only when set and STOP stays last. */
