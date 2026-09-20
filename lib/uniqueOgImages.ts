@@ -3,6 +3,16 @@
  * Only literal public paths belong here; never add tokens or user-provided data.
  */
 export const UNIQUE_OG_IMAGES: Readonly<Record<string, string>> = {
+  "/articles/how-to-compare-two-job-offers-when-the-hours-are-different":
+    "/og/unique/2026-09-19/articles--how-to-compare-two-job-offers-when-the-hours-are-different.jpg",
+  "/articles/how-to-compare-two-package-sizes-before-buying-the-bigger-one":
+    "/og/unique/2026-09-19/articles--how-to-compare-two-package-sizes-before-buying-the-bigger-one.jpg",
+  "/articles/how-to-decide-whether-a-weekly-meeting-earns-its-time":
+    "/og/unique/2026-09-19/articles--how-to-decide-whether-a-weekly-meeting-earns-its-time.jpg",
+  "/articles/how-to-find-one-admin-task-worth-simplifying-this-week":
+    "/og/unique/2026-09-19/articles--how-to-find-one-admin-task-worth-simplifying-this-week.jpg",
+  "/articles/how-to-find-the-renewals-you-stopped-noticing":
+    "/og/unique/2026-09-19/articles--how-to-find-the-renewals-you-stopped-noticing.jpg",
   "/articles/how-to-compare-a-better-close-rate-with-buying-more-leads":
     "/og/unique/2026-09-19/articles--how-to-compare-a-better-close-rate-with-buying-more-leads.jpg",
   "/articles/how-to-compare-overtime-costs-with-a-hiring-scenario":
