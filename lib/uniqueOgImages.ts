@@ -3,6 +3,16 @@
  * Only literal public paths belong here; never add tokens or user-provided data.
  */
 export const UNIQUE_OG_IMAGES: Readonly<Record<string, string>> = {
+  "/articles/how-to-compare-a-better-close-rate-with-buying-more-leads":
+    "/og/unique/2026-09-19/articles--how-to-compare-a-better-close-rate-with-buying-more-leads.jpg",
+  "/articles/how-to-compare-overtime-costs-with-a-hiring-scenario":
+    "/og/unique/2026-09-19/articles--how-to-compare-overtime-costs-with-a-hiring-scenario.jpg",
+  "/articles/how-to-compare-rent-with-the-bills-you-already-have":
+    "/og/unique/2026-09-19/articles--how-to-compare-rent-with-the-bills-you-already-have.jpg",
+  "/articles/how-to-compare-the-costs-that-come-with-a-job":
+    "/og/unique/2026-09-19/articles--how-to-compare-the-costs-that-come-with-a-job.jpg",
+  "/articles/how-to-compare-the-work-you-do-with-the-work-you-could-delegate":
+    "/og/unique/2026-09-19/articles--how-to-compare-the-work-you-do-with-the-work-you-could-delegate.jpg",
   "/articles/how-to-build-an-ad-budget-scenario-from-your-own-records":
     "/og/unique/2026-09-19/articles--how-to-build-an-ad-budget-scenario-from-your-own-records.jpg",
   "/articles/how-to-check-ad-copy-before-you-paste-it-into-the-platform":
