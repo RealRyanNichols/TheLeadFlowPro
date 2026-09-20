@@ -3,6 +3,16 @@
  * Only literal public paths belong here; never add tokens or user-provided data.
  */
 export const UNIQUE_OG_IMAGES: Readonly<Record<string, string>> = {
+  "/articles/bring-one-real-task-to-your-business-workshop":
+    "/og/unique/2026-09-19/articles--bring-one-real-task-to-your-business-workshop.jpg",
+  "/articles/give-every-inquiry-an-owner-and-next-step":
+    "/og/unique/2026-09-19/articles--give-every-inquiry-an-owner-and-next-step.jpg",
+  "/articles/how-long-does-a-new-customer-take-to-repay-acquisition-cost":
+    "/og/unique/2026-09-19/articles--how-long-does-a-new-customer-take-to-repay-acquisition-cost.jpg",
+  "/articles/how-to-add-a-call-button-and-check-it-on-your-phone":
+    "/og/unique/2026-09-19/articles--how-to-add-a-call-button-and-check-it-on-your-phone.jpg",
+  "/articles/how-to-ask-for-an-honest-review-after-the-work-is-done":
+    "/og/unique/2026-09-19/articles--how-to-ask-for-an-honest-review-after-the-work-is-done.jpg",
   "/tools/job-price-calculator":
     "/og/unique/2026-09-19/tools--job-price-calculator.jpg",
   "/system/follow-up": "/og/unique/2026-09-19/system--follow-up.jpg",
