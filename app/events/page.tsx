@@ -48,12 +48,17 @@ export default async function EventsPage() {
   const upcoming = published.filter(
     (event) => !event.starts_at || new Date(event.starts_at) > new Date(),
   );
-  const founding = published.find((event) => event.slug === FOUNDING_SLUG) ?? null;
+  const founding =
+    published.find((event) => event.slug === FOUNDING_SLUG) ?? null;
 
   let availability: EventAvailability | null = null;
   if (founding) {
-    const { data } = await supabase.rpc("event_availability", { p_slug: founding.slug });
-    availability = ((Array.isArray(data) ? data[0] : data) as EventAvailability | null) ?? null;
+    const { data } = await supabase.rpc("event_availability", {
+      p_slug: founding.slug,
+    });
+    availability =
+      ((Array.isArray(data) ? data[0] : data) as EventAvailability | null) ??
+      null;
   }
   // Marketing state: the database date wins when the row exists, the config
   // date otherwise. "past" swaps every seat CTA on this page for the list.
@@ -82,8 +87,9 @@ export default async function EventsPage() {
               <em>Real answers.</em>
             </h1>
             <p className="cb-hero-lead">
-              Bring your laptop and your real business. Ryan will show you how to use AI to
-              build something useful, then help you identify the next move that matters.
+              Bring your laptop and your real business. Ryan will show you how
+              to use AI to build something useful, then help you identify the
+              next move that matters.
             </p>
             <div className={styles.heroFacts}>
               <span>
@@ -135,10 +141,18 @@ export default async function EventsPage() {
       </section>
 
       {/* ------------------------------------------- founding workshop deep --- */}
-      <WorkshopShowcase event={founding} availability={availability} status={foundingStatus} />
+      <WorkshopShowcase
+        event={founding}
+        availability={availability}
+        status={foundingStatus}
+      />
 
       {/* --------------------------------------------------------- schedule --- */}
-      <section id="upcoming-events" className="cb-band cb-band--tint" tabIndex={-1}>
+      <section
+        id="upcoming-events"
+        className="cb-band cb-band--tint"
+        tabIndex={-1}
+      >
         <div className="cb-shell">
           <div className={styles.eventHeading}>
             <div>
@@ -146,8 +160,9 @@ export default async function EventsPage() {
               <h2 className="cb-h2">Reserve your place in the room.</h2>
             </div>
             <p className="cb-lead">
-              Dates open here as they are confirmed. Ten paid seats per workshop, first come,
-              first served. A seat is confirmed only after payment.
+              Dates open here as they are confirmed. Ten paid seats per
+              workshop, first come, first served. A seat is confirmed only after
+              payment.
             </p>
           </div>
 
@@ -170,11 +185,14 @@ export default async function EventsPage() {
                 <p className="cb-eyebrow">Founding date being finalized</p>
                 <h2>The founding class opens to this list first.</h2>
                 <p>
-                  The founding ChatGPT workshop above is being scheduled now. Book a call and
-                  Ryan will make sure you get first pick of the ten seats before the date is
-                  announced anywhere else.
+                  The founding ChatGPT workshop above is being scheduled now.
+                  Book a call and Ryan will make sure you get first pick of the
+                  ten seats before the date is announced anywhere else.
                 </p>
-                <Link href="/book?interest=workshop_founding" className="cb-btn cb-btn--primary">
+                <Link
+                  href="/book?interest=workshop_founding"
+                  className="cb-btn cb-btn--primary"
+                >
                   Get First Pick of the Seats
                   <ArrowRight aria-hidden="true" />
                 </Link>
@@ -193,34 +211,38 @@ export default async function EventsPage() {
           <div className={styles.eventHeading}>
             <div>
               <p className="cb-eyebrow">Where this is going</p>
-              <h2 className="cb-h2">One founding class. Then a running calendar.</h2>
+              <h2 className="cb-h2">
+                One founding class. Then a running calendar.
+              </h2>
             </div>
             <p className="cb-lead">
-              The founding workshop sets the format. After it runs, workshops move to a
-              recurring Tuesday and Thursday rhythm: same room, same hands-on format,
-              different builds.
+              The founding workshop sets the format. After it runs, workshops
+              move to a recurring Tuesday and Thursday rhythm: same room, same
+              hands-on format, different builds.
             </p>
           </div>
           <div className={styles.cadenceGrid}>
             <div className={styles.cadenceCard}>
               <h3>1 · The founding class</h3>
               <p>
-                Ten founding seats at the founding price. ChatGPT only, beginner-friendly, and
-                deep enough for real operators. This is the cheapest this room will ever be.
+                Ten founding seats at the founding price. ChatGPT only,
+                beginner-friendly, and deep enough for real operators. This is
+                the cheapest this room will ever be.
               </p>
             </div>
             <div className={styles.cadenceCard}>
               <h3>2 · The recurring workshops</h3>
               <p>
-                Tuesday and Thursday sessions open after the founding class proves the format.
-                New builds, new hot seats, same ten-seat cap.
+                Tuesday and Thursday sessions open after the founding class
+                proves the format. New builds, new hot seats, same ten-seat cap.
               </p>
             </div>
             <div className={styles.cadenceCard}>
               <h3>3 · The advanced room</h3>
               <p>
-                A separate advanced workshop on Claude, Claude Code, and agent tooling comes
-                later, at a higher price, for owners ready to go past ChatGPT.
+                A separate advanced workshop on Claude, Claude Code, and agent
+                tooling comes later, at a higher price, for owners ready to go
+                past ChatGPT.
               </p>
             </div>
           </div>
@@ -233,14 +255,20 @@ export default async function EventsPage() {
           <div className={styles.trainingGrid}>
             <div>
               <p className="cb-eyebrow">Bring the workshop to your company</p>
-              <h2 className="cb-h2">Train the team on the system you actually need.</h2>
+              <h2 className="cb-h2">
+                Train the team on the system you actually need.
+              </h2>
             </div>
             <div>
               <p className="cb-lead">
-                Ryan comes on site, trains your team on the full stack, and works through the
-                company&apos;s real system with you. On-site training is scoped per company.
+                Ryan comes on site, trains your team on the full stack, and
+                works through the company&apos;s real system with you. On-site
+                training is scoped per company.
               </p>
-              <Link href="/book?interest=training_platform" className="cb-btn cb-btn--ghost">
+              <Link
+                href="/book?interest=training_platform"
+                className="cb-btn cb-btn--ghost"
+              >
                 Ask About On-Site Training
                 <ArrowRight aria-hidden="true" />
               </Link>

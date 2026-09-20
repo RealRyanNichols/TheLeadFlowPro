@@ -207,7 +207,7 @@ test("future articles enter the social catalog only on their Central publication
   );
   assert.equal(
     getPublicOgPage(future, new Date("2026-09-08T05:00:00Z"))?.imagePath,
-    "/articles/insurance-agent-lead-response/opengraph-image",
+    "/og/unique/2026-09-19/articles--insurance-agent-lead-response.jpg",
   );
 });
 

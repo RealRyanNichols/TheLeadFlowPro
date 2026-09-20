@@ -3,6 +3,16 @@
  * Only literal public paths belong here; never add tokens or user-provided data.
  */
 export const UNIQUE_OG_IMAGES: Readonly<Record<string, string>> = {
+  "/articles/how-to-write-one-useful-google-business-profile-update":
+    "/og/unique/2026-09-19/articles--how-to-write-one-useful-google-business-profile-update.jpg",
+  "/articles/hvac-maintenance-plans":
+    "/og/unique/2026-09-19/articles--hvac-maintenance-plans.jpg",
+  "/articles/insurance-agent-lead-response":
+    "/og/unique/2026-09-19/articles--insurance-agent-lead-response.jpg",
+  "/articles/locksmith-after-hours-calls":
+    "/og/unique/2026-09-19/articles--locksmith-after-hours-calls.jpg",
+  "/articles/one-useful-business-task-with-ai":
+    "/og/unique/2026-09-19/articles--one-useful-business-task-with-ai.jpg",
   "/articles/how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan":
     "/og/unique/2026-09-19/articles--how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan.jpg",
   "/articles/how-to-turn-real-customer-questions-into-useful-website-answers":
