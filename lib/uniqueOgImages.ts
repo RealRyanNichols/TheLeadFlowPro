@@ -3,6 +3,16 @@
  * Only literal public paths belong here; never add tokens or user-provided data.
  */
 export const UNIQUE_OG_IMAGES: Readonly<Record<string, string>> = {
+  "/articles/how-to-scope-an-ad-test-before-splitting-the-budget":
+    "/og/unique/2026-09-19/articles--how-to-scope-an-ad-test-before-splitting-the-budget.jpg",
+  "/articles/how-to-separate-sales-tax-from-a-tax-inclusive-total":
+    "/og/unique/2026-09-19/articles--how-to-separate-sales-tax-from-a-tax-inclusive-total.jpg",
+  "/articles/how-to-tag-a-campaign-link-without-putting-private-data-in-it":
+    "/og/unique/2026-09-19/articles--how-to-tag-a-campaign-link-without-putting-private-data-in-it.jpg",
+  "/articles/how-to-test-a-website-improvement-before-buying-more-visits":
+    "/og/unique/2026-09-19/articles--how-to-test-a-website-improvement-before-buying-more-visits.jpg",
+  "/articles/how-to-turn-a-cash-cushion-goal-into-a-monthly-target":
+    "/og/unique/2026-09-19/articles--how-to-turn-a-cash-cushion-goal-into-a-monthly-target.jpg",
   "/articles/how-to-put-a-month-s-bills-on-one-clear-page":
     "/og/unique/2026-09-19/articles--how-to-put-a-month-s-bills-on-one-clear-page.jpg",
   "/articles/how-to-put-a-useful-qr-code-on-a-printed-flyer":
