@@ -8,6 +8,7 @@ import {
   LEADFLOW_META,
   metaRuntimeIdentityIssues,
   parseRegisteredFormIds,
+  registeredMetaFormIds,
   resolveLeadFlowMetaPixelId,
   type MetaCampaignPreflightInput,
   validateMetaCampaignPreflight,
@@ -103,6 +104,13 @@ test("the registry rejects unknown forms while retaining the exact v2 form", () 
     ids: [LEADFLOW_META.formId],
     unknown: ["999999"],
   });
+});
+
+test("the recovery poll source includes every registered production form", () => {
+  const ids = registeredMetaFormIds();
+  assert.ok(ids.includes(LEADFLOW_META.formId));
+  assert.ok(ids.includes("3610264839155246"));
+  assert.equal(ids.length, new Set(ids).size);
 });
 
 test("missing-ad test leads require an exact one-lead allowlist", () => {

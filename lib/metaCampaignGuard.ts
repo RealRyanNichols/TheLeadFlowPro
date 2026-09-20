@@ -157,6 +157,18 @@ export function isRegisteredMetaForm(formId: string | null | undefined): boolean
   return !!registeredMetaForm(formId);
 }
 
+/**
+ * Every LeadFlow form the recovery poll must read.
+ *
+ * The registry is the source of truth for admission, attribution, consent and
+ * backfill. Keeping the poll on a separate environment-variable allowlist
+ * caused a live registered form to collect leads in Meta while the five-minute
+ * job kept returning 200 without ever requesting that form.
+ */
+export function registeredMetaFormIds(): string[] {
+  return Object.keys(META_FORM_REGISTRY);
+}
+
 export function isAllowedLeadFlowAdId(adId: string | null | undefined): boolean {
   return !!adId && (LEADFLOW_META.allowedAdIds as readonly string[]).includes(adId);
 }

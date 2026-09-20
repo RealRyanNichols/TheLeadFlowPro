@@ -13,6 +13,7 @@ import {
   metaRuntimeIdentityIssues,
   parseRegisteredFormIds,
   registeredMetaForm,
+  registeredMetaFormIds,
 } from "@/lib/metaCampaignGuard";
 
 // Facebook/Instagram instant form leads → the same pipeline as the website
@@ -570,10 +571,12 @@ export async function GET(request: Request) {
     console.error("Meta poll rejected unknown form IDs:", requested.unknown.join(","));
     return NextResponse.json({ error: "Unknown Meta form ID" }, { status: 400 });
   }
-  // The active v2 form is always polled even if a stale Vercel variable still
-  // lists only older forms. Environment-provided IDs remain supported, but
-  // only after the central registry admits them.
-  const formIds = [...new Set([...requested.ids, LEADFLOW_META.formId])];
+  // Poll every centrally registered LeadFlow form. The Vercel variable is an
+  // optional subset/compatibility input, not a second source of truth: a form
+  // that has passed the registry's ownership and consent review must not go
+  // dark merely because an environment variable was not updated after the ad
+  // was published.
+  const formIds = [...new Set([...registeredMetaFormIds(), ...requested.ids])];
 
   // Lead persistence must not go dark when the email provider is temporarily
   // unavailable. The transactional outbox keeps email failures retryable; the
