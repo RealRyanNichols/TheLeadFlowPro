@@ -3,6 +3,16 @@
  * Only literal public paths belong here; never add tokens or user-provided data.
  */
 export const UNIQUE_OG_IMAGES: Readonly<Record<string, string>> = {
+  "/articles/how-to-put-a-month-s-bills-on-one-clear-page":
+    "/og/unique/2026-09-19/articles--how-to-put-a-month-s-bills-on-one-clear-page.jpg",
+  "/articles/how-to-put-a-useful-qr-code-on-a-printed-flyer":
+    "/og/unique/2026-09-19/articles--how-to-put-a-useful-qr-code-on-a-printed-flyer.jpg",
+  "/articles/how-to-read-a-review-rating-goal-without-gaming-reviews":
+    "/og/unique/2026-09-19/articles--how-to-read-a-review-rating-goal-without-gaming-reviews.jpg",
+  "/articles/how-to-replace-a-page-title-called-home-with-something-useful":
+    "/og/unique/2026-09-19/articles--how-to-replace-a-page-title-called-home-with-something-useful.jpg",
+  "/articles/how-to-reply-to-a-review-without-arguing-in-public":
+    "/og/unique/2026-09-19/articles--how-to-reply-to-a-review-without-arguing-in-public.jpg",
   "/articles/how-to-give-event-guests-a-calendar-link-they-can-check":
     "/og/unique/2026-09-19/articles--how-to-give-event-guests-a-calendar-link-they-can-check.jpg",
   "/articles/how-to-leave-callers-with-a-clear-next-step":
