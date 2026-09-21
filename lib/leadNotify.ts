@@ -7,6 +7,7 @@
 import { sendLeadText } from "@/lib/quo";
 import { BUSINESS } from "@/lib/site/business";
 import { CONSULTATION } from "@/lib/site/consultation";
+import { bookingPage } from "@/lib/site/external-links";
 import { PAST_EVENT_COPY, resolveFeaturedEvent } from "@/lib/site/events";
 import { usd } from "@/lib/site/prices";
 
@@ -176,6 +177,17 @@ const SIGNATURE = [
   BUSINESS.name,
   BUSINESS.phone.display,
 ];
+
+// The self-serve booking line. Nothing until lib/site/external-links.ts has
+// a booking page; then one plain sentence and the address, in the emails and
+// the text-back that already promise a reply within one business day.
+export function bookingLines(url: string | null = bookingPage()): string[] {
+  return url ? [`Or pick the time yourself, right now:`, url, ``] : [];
+}
+
+export function bookingSentence(url: string | null = bookingPage()): string {
+  return url ? ` Pick a time yourself here: ${url}` : "";
+}
 
 // Funnels that own their own transactional message. The outbox still queues a
 // welcome job for them (the trigger cannot tell funnels apart), so the send
@@ -397,6 +409,7 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
           ...CONSULTATION.bring.map((item) => `- ${item}`),
           ``,
           `Want to move faster? Call or text me at ${BUSINESS.phone.display}.`,
+          ...bookingLines(),
           ...SIGNATURE,
         ].join("\n"),
       };
@@ -570,11 +583,42 @@ export async function enrollInEmailSeries(email: string) {
 
 export async function textLeadBack(lead: NotifiableLead) {
   if (!lead.phone) return;
+  await sendLeadText(lead.phone, textBackBodyFor(lead));
+}
+
+/** Which text-back a lead gets: the consultation's own for a consultation request, the generic one otherwise. */
+export function textBackBodyFor(lead: Pick<NotifiableLead, "full_name" | "funnel">, booking: string | null = bookingPage()): string {
   const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
-  await sendLeadText(
-    lead.phone,
-    `${first}, this is Ryan with The LeadFlow Pro. Got your answers and I am already looking at what to fix first. I will text or call you shortly. Save this number, it is my direct line. Reply STOP to opt out.`,
-  );
+  return lead.funnel === CONSULTATION.funnel ? leadConsultationTextBody(first, booking) : leadTextBackBody(first, booking);
+}
+
+// The fixed sentences of the two automated text-backs, without the name and
+// without the optional booking line. The Quo webhook echoes every outbound
+// text on the line back into lead_messages, so the call sheet needs a way to
+// tell software's texts from a person's. Keep these in step with the bodies.
+const AUTOMATED_TEXT_MARKERS = [
+  "this is Ryan with The LeadFlow Pro. Got your answers and I am already looking at what to fix first.",
+  `this is Ryan with The LeadFlow Pro. Got your request for the free ${CONSULTATION.minutes}-minute consultation.`,
+] as const;
+
+/** True when a message body is one the application sends on its own (the text-backs), not one a person typed. */
+export function isAutomatedLeadText(body: string): boolean {
+  const text = String(body ?? "");
+  return AUTOMATED_TEXT_MARKERS.some((marker) => text.includes(marker));
+}
+
+/** The text-back, exported so the test can prove the booking line appears only when set and STOP stays last. */
+export function leadTextBackBody(first: string, booking: string | null = bookingPage()): string {
+  return `${first}, this is Ryan with The LeadFlow Pro. Got your answers and I am already looking at what to fix first. I will text or call you shortly. Save this number, it is my direct line.${bookingSentence(booking)} Reply STOP to opt out.`;
+}
+
+/**
+ * The consultation's own text-back. It names what they asked for and makes
+ * the same promise the page and the welcome email make (one business day),
+ * instead of the generic "shortly".
+ */
+export function leadConsultationTextBody(first: string, booking: string | null = bookingPage()): string {
+  return `${first}, this is Ryan with The LeadFlow Pro. Got your request for the free ${CONSULTATION.minutes}-minute consultation. I will text or call you within one business day to set the time and the place. Save this number, it is my direct line.${bookingSentence(booking)} Reply STOP to opt out.`;
 }
 
 // SMS remains an independent best-effort action. The durable outbox is email

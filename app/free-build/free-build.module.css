@@ -14,7 +14,7 @@
 
 .heroCopy { min-width: 0; }
 .heroAside { display: contents; }
-.heroFigure { order: -1; margin: 0; min-width: 0; overflow: hidden; border: 1px solid #dbd0c5; border-radius: 22px; background: #f6ebdd; box-shadow: 0 14px 38px #49322512; }
+.heroFigure { order: 0; margin: 0; min-width: 0; overflow: hidden; border: 1px solid #dbd0c5; border-radius: 22px; background: #f6ebdd; box-shadow: 0 14px 38px #49322512; }
 .heroFigure img { display: block; width: 100%; height: auto; }
 .heroFigure figcaption { padding: 18px 20px; background: #fff9ef; color: #20212b; }
 .heroFigure strong { display: block; font-size: 17px; line-height: 1.4; }

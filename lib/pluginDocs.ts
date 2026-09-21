@@ -26,7 +26,7 @@ export const PLUGIN = {
   supportEmail: BUSINESS.email.hello,
   supportPhone: BUSINESS.phone.display,
   supportSms: BUSINESS.phone.sms,
-  /** Semantic version served by the MCP server (lib/hq/mcp.ts SERVER_INFO). */
+  /** The first released version; the changelog below starts here. The MCP server reports the newest entry (lib/hq/mcp.ts SERVER_INFO). */
   version: "1.0.0",
 } as const;
 
@@ -36,6 +36,15 @@ export type PluginPlatform = {
   who: string;
   /** OAuth sign-in (no key) or a pasted API key. */
   auth: "oauth" | "api_key";
+  /**
+   * Which plan the assistant itself has to be on before it will accept a
+   * connector by address. Null when any plan works. Stated plainly on the
+   * page so nobody spends twenty minutes hunting for a menu their plan does
+   * not have. Reviewed 2026-09-20 against the vendors' published help pages;
+   * docs/plugin-directory-submission.md tracks the directory listings that
+   * would remove the requirement.
+   */
+  requires: string | null;
   steps: string[];
   check: string;
 };
@@ -46,10 +55,13 @@ export const PLUGIN_PLATFORMS: readonly PluginPlatform[] = [
     name: "ChatGPT",
     who: "On the web, on your phone, or the desktop app.",
     auth: "oauth",
+    requires:
+      "A paid ChatGPT plan (Plus, Pro, Business, Enterprise, or Edu). Free accounts cannot add a connector by address until the LeadFlow app is listed in the ChatGPT app directory. On Business and Enterprise an admin turns on Developer mode for the workspace.",
     steps: [
-      "Open Settings, then Apps and Connectors, then Add.",
-      "Paste the address into the MCP server URL box and save it.",
+      "Open Settings, then Apps and Connectors (called Connectors in some versions), then Advanced settings, and turn on Developer mode.",
+      `Back on Apps and Connectors, choose Create. Name it ${HQ_PLAN.connectorName}, paste the address into the MCP server URL box, choose OAuth for authentication, and save.`,
       "You will be asked to sign in and approve. Sign in with the same email you use for HQ, then approve.",
+      "In a new chat, open the plus or tools menu, choose Developer mode, and tick the connector so the chat can use it.",
     ],
     check: "Ask it: run my morning brief.",
   },
@@ -58,10 +70,13 @@ export const PLUGIN_PLATFORMS: readonly PluginPlatform[] = [
     name: "Claude, web and desktop",
     who: "claude.ai in a browser, or the Claude desktop app.",
     auth: "oauth",
+    requires:
+      "A paid Claude plan (Pro, Max, Team, or Enterprise). On Team and Enterprise an owner or admin adds the connector for the organisation from the admin settings, then each person enables it.",
     steps: [
-      "Open Settings, then Connectors, then Add custom connector.",
-      "Paste the address and save it.",
+      "Open Settings, then Connectors, then Add custom connector (it is at the bottom of the list).",
+      `Name it ${HQ_PLAN.connectorName}, paste the address into the remote MCP server URL box, and choose Add.`,
       "You will be asked to sign in and approve. Sign in with the same email you use for HQ, then approve.",
+      "In a chat, open the search and tools menu and make sure the connector is switched on.",
     ],
     check: "Ask it: who should I call right now?",
   },
@@ -70,6 +85,7 @@ export const PLUGIN_PLATFORMS: readonly PluginPlatform[] = [
     name: "Claude Code",
     who: "The terminal version. This one wants a key from HQ.",
     auth: "api_key",
+    requires: null,
     steps: [
       "In HQ, open Plugin, make a key, and copy it. It is shown once.",
       `Run: claude mcp add --transport http leadflow ${EXTERNAL_LINKS.mcpEndpoint} --header "Authorization: Bearer YOUR_KEY"`,
@@ -81,6 +97,7 @@ export const PLUGIN_PLATFORMS: readonly PluginPlatform[] = [
     name: "Cursor",
     who: "The code editor. Also wants a key from HQ.",
     auth: "api_key",
+    requires: null,
     steps: [
       "In HQ, open Plugin, make a key, and copy it.",
       "Open Cursor Settings, then MCP, then Add new MCP server.",
@@ -228,6 +245,14 @@ export const PLUGIN_FAQ: readonly { q: string; a: string }[] = [
 ];
 
 export const PLUGIN_CHANGELOG: readonly { version: string; date: string; notes: string[] }[] = [
+  {
+    version: "1.0.2",
+    date: "2026-09-20",
+    notes: [
+      "The install steps now say which ChatGPT and Claude plans accept a connector by address, and walk through ChatGPT's Developer mode.",
+      "Every tool now tells the assistant whether it sends something outside the workspace (a text, a post), so an assistant that confirms such actions can do so.",
+    ],
+  },
   {
     version: "1.0.1",
     date: "2026-09-16",

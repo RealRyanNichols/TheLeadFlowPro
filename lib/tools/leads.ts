@@ -7,6 +7,8 @@ export const LEAD_TOOLS: ToolDef[] = [
     short: "Missed Call Money",
     emoji: "📵",
     category: "Leads",
+    // The service that installs the fix is the automation lane, not a website.
+    cta: "agency",
     tagline: "See what missed calls actually cost you",
     description:
       "Punch in how many calls you miss and what a customer is worth. See the real dollars walking to your competitors every month.",

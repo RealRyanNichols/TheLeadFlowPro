@@ -20,6 +20,9 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata = withPublicPageMetadata("/events", {
+  // The catalog keeps /events out of the sitemap (the business sells
+  // done-for-you work, not seats); this keeps it out of the index too.
+  robots: { index: false, follow: true },
   title: "Events & Workshops | The LeadFlow Pro",
   description:
     "Hands-on AI workshops for East Texas business owners, live in Longview. Ten seats, ninety minutes, bring your laptop, build something real. Plus on-site training for your team.",

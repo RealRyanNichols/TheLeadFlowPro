@@ -306,3 +306,122 @@ or activated by the engineering work; every item is a switch Ryan flips.
     customer records off this server. Decision: keep fingerprints only, or
     build real uploads with storage, retention, and deletion rules as a
     separate approved change. Default: fingerprints only.
+
+## H. The September 20 plan (call the leads, then get found)
+
+Added September 20, 2026 with `docs/ceo-plan-2026-09-20.md`. Ground truth
+that day: zero purchases ever, 47 Meta lead-ad leads in thirty days, 45 of
+the last 56 leads still "new", one call logged. Everything below is a
+switch or an account action; the code side of each is already merged.
+
+44. **Move email to Google Workspace.** Runbook:
+    `docs/infrastructure/google-workspace-migration.md`. The MX cutover,
+    SPF edit, DKIM record, and DMARC address are Ryan's to change at
+    GoDaddy, in that order, after the old mail is imported. Nothing in the
+    repository changes; Resend records stay exactly as they are. Default:
+    do it in week 4. Consequence of waiting: replies Ryan types from
+    Outlook may keep failing SPF and DMARC.
+
+45. **Create the booking page and paste it in.** A Google Calendar
+    appointment schedule (30 minutes, the hours Ryan keeps) gives a
+    `https://calendar.app.google/...` address. Paste it into `bookingPage`
+    in `lib/site/external-links.ts`. The consultation confirmation, the
+    welcome email, and the text-back then offer it; until then they do not
+    mention it. Default: do it the day the calendar exists.
+
+46. **ChatGPT app directory.** Verify the OpenAI organisation, take the
+    Apps management role, request the domain token, and set it as
+    `OPENAI_APPS_VERIFICATION_TOKEN` in Vercel (production). Both
+    `/.well-known/openai-apps-challenge` and `/.well-known/openai-apps`
+    serve it. Packet: `docs/plugin-directory-submission.md`. Ryan-only.
+
+47. **Claude connector directory needs a Team or Enterprise organisation.**
+    A Pro or Max plan can add the connector by address but cannot submit
+    a listing. Decision: upgrade to Team for the listing, or stay on the
+    add-by-address path. Default: stay, revisit after the first ten plugin
+    subscribers.
+
+48. **Turn on the morning call sheet email.** Set
+    `CALL_SHEET_EMAIL_ENABLED=true` in Vercel (production). It sends only
+    to `LEADFLOW_NOTIFY_EMAIL`, only when there is someone to call, once a
+    day at 7:30 am Central during daylight time (12:30 UTC; it drifts to
+    6:30 am after the November clock change unless the cron is moved to
+    13:30 UTC). The page at `/admin/call-sheet` works regardless. Default:
+    on, today.
+
+49. **Turn the text-back on.** `QUO_OUTBOUND_SMS_DISABLED=false` in Vercel.
+    Since September 20 the sender checks the STOP list for every door and
+    holds automated texts outside 8 am to 9 pm Central; a text a person
+    sends from the CRM is not held. Texts still go only to people who
+    ticked the consent box. Default: on, after Ryan reads
+    `lib/smsPolicy.ts` and agrees with the window.
+
+50. **The "within one business day" promise.** It is on five surfaces and
+    the data says it was not being kept. Options: keep it and staff it with
+    the call sheet (default), or soften it to "as soon as I can" on every
+    surface at once (`lib/site/consultation.ts` and `lib/leadNotify.ts`).
+    Decision: keep or soften.
+
+51. **One front door.** The site asks four first questions: the
+    consultation (home), the free website application (services, agency
+    copy, free-build), the ten-question agency intake, and the legacy
+    eleven-field `/book` form. Recommendation: the consultation is the
+    front door everywhere; `/book` redirects to `/#free-consultation`; the
+    free website stays as the offer, not the ask. Also from the audit: the
+    consultation form's meeting-place picker could move to the call (seven
+    controls instead of nine). Decision: approve the redirect and the form
+    trim, or keep the current set.
+
+52. **Claim the Google Business Profile.** Name exactly "The LeadFlow Pro",
+    primary category Marketing agency, the Longview address, the business
+    phone, website `https://www.theleadflowpro.com/longview`. Verification
+    (postcard, video, or phone) is owner-only. Then paste the profile's
+    share address into `googleBusinessProfile` in
+    `lib/site/external-links.ts` so structured data links it. Default: do
+    it in week 3; nothing else in local search works without it.
+
+53. **Hours and the visible address.** Item 11 (street address) is still
+    open. Google's guidance is: mark up what is visible on the page. To
+    add `openingHoursSpecification` and `geo` to the ProfessionalService
+    node, Ryan supplies the hours he keeps and confirms the address may be
+    printed on `/contact` and `/longview`. Default: leave hidden until the
+    profile in item 52 is verified, then make both visible together.
+
+54. **Publish the three local-intent articles.** Drafts 01 to 03 under
+    `docs/articles/drafts/` target web design, Meta ads, and Google Ads in
+    Longview. They need approved copy and publication dates before they
+    enter `lib/articles.ts`. Default: one every two weeks starting week 3.
+
+55. **Search Console.** Submit `https://www.theleadflowpro.com/sitemap.xml`,
+    export the three-month query table as the baseline before the retitled
+    pages are indexed, then request indexing for `/`, `/services`,
+    `/longview`, and the six `/agency/*` pages. Ryan-only.
+
+56. **Privacy policy section for the plugin.** Added September 20 to
+    `/privacy` (section "The LeadFlow HQ plugin and workspaces"), because
+    both directories require it. It describes what the code does today.
+    Decision: read it and confirm the wording, or edit it. It is live.
+
+57. **Destroy the DigitalOcean droplet.** It has no job and bills while
+    powered off. Snapshot first if you like. Runbook:
+    `docs/infrastructure/digitalocean.md`. Default: destroy this week.
+
+58. **Google Business Profile as a service line.** The audit suggests
+    adding "profile claimed, categories, hours, photos set up in your
+    account" to the Google Ads service, which today excludes organic
+    search. That is a scope change to a published offer. Decision: add it
+    (price stays "on the scoping call") or keep the exclusion. Default:
+    add it after item 52 proves the process on our own listing.
+
+59. **Marketing email consent on the consultation form.** The form has no
+    marketing-consent box, so consultation leads are never eligible for
+    any nurture sequence. Adding the box adds a line to the form and makes
+    them eligible. Decision: add it or leave the form shorter. Default:
+    leave it; the call sheet is the follow-up.
+
+60. **The public GitHub repository outranks the site for the brand.** A
+    search for the domain shows the repository and its pull requests above
+    most site pages, with the README as the description. Options: make the
+    repository private (nothing in the deploy pipeline needs it public),
+    or keep it public and rewrite the README as a plain description that
+    points at the site. Default: private.

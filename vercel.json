@@ -43,6 +43,10 @@
     {
       "path": "/api/revalidate-scoreboard",
       "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/call-sheet",
+      "schedule": "30 12 * * *"
     }
   ]
 }

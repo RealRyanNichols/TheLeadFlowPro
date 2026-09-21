@@ -24,8 +24,8 @@ export async function generateMetadata({ params }: { params: Promise<{ service: 
   const s = agencyService(service);
   if (!s) return { title: "Agency | The LeadFlow Pro", robots: { index: false } };
   return withPublicPageMetadata(`/agency/${s.slug}`, {
-    title: `${s.name} for East Texas businesses | The LeadFlow Pro Agency`,
-    description: `${s.promise} You own the accounts, pay the platforms directly, and keep the leads and reporting.`,
+    title: s.seoTitle,
+    description: s.metaDescription,
   });
 }
 
@@ -49,7 +49,7 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
       serviceType: s.name,
       description: s.promise,
       areaServed: BUSINESS.areaServed.map((name) => ({ "@type": "Place", name })),
-      provider: { "@type": "Organization", name: BUSINESS.name, legalName: BUSINESS.legalName, url: BUSINESS.siteUrl },
+      provider: { "@type": "Organization", "@id": `${BUSINESS.siteUrl}/#organization`, name: BUSINESS.name, legalName: BUSINESS.legalName, url: BUSINESS.siteUrl },
       ...(priced && typeof offer.priceUsd === "number" && offer.priceUsd > 0
         ? { offers: { "@type": "Offer", price: String(offer.priceUsd), priceCurrency: "USD", url: `${BUSINESS.siteUrl}${offer.href}`, description: offer.terms } }
         : {}),

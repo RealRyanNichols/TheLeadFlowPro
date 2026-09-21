@@ -3,7 +3,7 @@
 import Link from "next/link";
 import BrandLockup from "@/components/BrandLockup";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Menu, LogIn } from "lucide-react";
+import { ArrowRight, Menu, LogIn, MessageSquareText } from "lucide-react";
 import { useRef } from "react";
 import {
   HEADER_CTA,
@@ -11,6 +11,7 @@ import {
   NAV_LINKS,
   hidesSiteChrome,
 } from "@/lib/site/navigation";
+import { smsHref } from "@/lib/site/textLinks";
 
 // The one public header. Links come from lib/site/navigation.ts; nothing
 // here defines a destination. The Portal link is always present so signed-in
@@ -49,6 +50,16 @@ export default function SiteHeader() {
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </nav>
+        {/* On a phone the menu hides every link; the one-tap text stays outside it. */}
+        <a
+          href={smsHref("header_mobile")}
+          className="header-text-mobile"
+          aria-label="Text Ryan"
+          data-cta="text"
+          data-cta-placement="header_mobile"
+        >
+          <MessageSquareText aria-hidden="true" className="h-5 w-5" />
+        </a>
         <details
           key={pathname}
           ref={mobileMenu}

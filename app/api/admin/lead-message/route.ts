@@ -108,7 +108,9 @@ export async function POST(request: Request) {
 
   if (canText) {
     channel = "sms";
-    ok = await sendLeadText(lead.phone as string, body);
+    // A person pressed send: the Central-time window does not apply. The
+    // STOP list still does, inside sendLeadText.
+    ok = await sendLeadText(lead.phone as string, body, { humanInitiated: true });
     if (!ok) error = "Quo did not accept the message";
   } else {
     channel = "email";

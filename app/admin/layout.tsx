@@ -61,6 +61,18 @@ export default async function AdminLayout({
               Content
             </Link>
             <Link
+              href="/admin/call-sheet"
+              className="font-black text-[var(--text)] hover:text-[var(--heading)]"
+            >
+              Call sheet
+            </Link>
+            <Link
+              href="/admin/sales"
+              className="text-[var(--text)] hover:text-[var(--heading)]"
+            >
+              Today queue
+            </Link>
+            <Link
               href="/admin"
               className="text-[var(--text)] hover:text-[var(--heading)]"
             >

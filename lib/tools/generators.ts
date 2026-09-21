@@ -440,6 +440,8 @@ ${review ? `<div style="height:6px"></div><div><a href="${review}" style="color:
     short: "Text-Back Script",
     emoji: "📲",
     category: "Generators",
+    // The service that installs the script is the automation lane.
+    cta: "agency",
     tagline: "The text that saves the call you missed",
     description:
       "Write the automatic text that goes out the second you miss a call. Get the after-hours version and the follow-up sequence too.",

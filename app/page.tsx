@@ -1,8 +1,8 @@
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 export const metadata = withPublicPageMetadata("/", {
-  title: "Leads, websites, and follow-up, done for you | The LeadFlow Pro",
+  title: "Marketing Agency in Longview, TX: Ads, Websites, Follow-Up | The LeadFlow Pro",
   description:
-    "The LeadFlow Pro builds and runs the lead system for East Texas businesses: ads, websites, funnels, and follow-up in accounts you own. Start with a free 30-minute consultation.",
+    "The LeadFlow Pro builds and runs the lead system for Longview and East Texas businesses: ads, websites, funnels, and follow-up in accounts you own. Start with a free 30-minute consultation.",
 });
 import Link from "next/link";
 import {
@@ -21,6 +21,7 @@ import { TOOL_COUNT } from "@/lib/tools";
 import { BUSINESS } from "@/lib/site/business";
 import { CONSULTATION } from "@/lib/site/consultation";
 import { PRICES, usd } from "@/lib/site/prices";
+import { TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
 import {
   graph,
   jsonLdText,
@@ -43,8 +44,8 @@ const HOME_JSONLD = graph(
   websiteJsonLd(),
   webPageJsonLd(
     "/",
-    "Leads, websites, and follow-up, done for you | The LeadFlow Pro",
-    "Ads, websites, funnels, and follow-up built and run for East Texas businesses in accounts they own. Start with a free 30-minute consultation.",
+    "Marketing Agency in Longview, TX: Ads, Websites, Follow-Up | The LeadFlow Pro",
+    "Ads, websites, funnels, and follow-up built and run for Longview and East Texas businesses in accounts they own. Start with a free 30-minute consultation.",
   ),
 );
 
@@ -78,7 +79,7 @@ export default function HomePage() {
             THE LEADFLOW PRO / {BUSINESS.city.toUpperCase()}, {BUSINESS.region.toUpperCase()} AND BEYOND
           </p>
           <h1>
-            More leads.
+            More leads for {BUSINESS.region} businesses.
             <br />
             Less busywork.
             <br />
@@ -241,8 +242,11 @@ export default function HomePage() {
               <a className="lf-button" href={CONSULT_HREF} data-cta="consultation_cta" data-cta-placement="home_how_it_works">
                 Book my free consultation <ArrowRight size={18} aria-hidden="true" />
               </a>
-              <a className="lf-text-link" href={BUSINESS.phone.tel}>
-                Or call or text {BUSINESS.phone.display}
+              <a className="lf-text-link" href={BUSINESS.phone.tel} data-cta="call" data-cta-placement="home_how_it_works">
+                Or call {BUSINESS.phone.display}
+              </a>
+              <a className="lf-text-link" href={smsHref("home_how_it_works")} data-cta="text" data-cta-placement="home_how_it_works">
+                {TEXT_LABEL}
               </a>
             </div>
           </aside>
@@ -333,8 +337,11 @@ export default function HomePage() {
             <a className="lf-button" href={CONSULT_HREF} data-cta="consultation_cta" data-cta-placement="home_final">
               Book my free consultation <ArrowRight aria-hidden="true" />
             </a>
-            <a className="lf-text-link" href={BUSINESS.phone.tel}>
-              Call or text {BUSINESS.phone.display} <ArrowRight aria-hidden="true" />
+            <a className="lf-text-link" href={BUSINESS.phone.tel} data-cta="call" data-cta-placement="home_final">
+              Call {BUSINESS.phone.display} <ArrowRight aria-hidden="true" />
+            </a>
+            <a className="lf-text-link" href={smsHref("home_final")} data-cta="text" data-cta-placement="home_final">
+              {TEXT_LABEL} <ArrowRight aria-hidden="true" />
             </a>
           </div>
         </div>

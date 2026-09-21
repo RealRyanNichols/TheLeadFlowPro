@@ -6,6 +6,7 @@
 // to "hidden" and it disappears from every page at once.
 
 import { BUSINESS } from "./business";
+import { googleBusinessProfile } from "./external-links";
 import { OFFERS } from "./offers";
 
 const SITE = BUSINESS.siteUrl;
@@ -30,6 +31,10 @@ export function organizationJsonLd() {
     legalName: BUSINESS.legalName,
     description:
       "The Company Builder. We build the website, the system behind it, and the back office that runs it, in accounts the client controls.",
+    // The name collides with an unrelated messaging app called LeadFlowPro.
+    // This line tells the search engines which one this is. Never add the
+    // one-word spelling as an alternateName; that would deepen the collision.
+    disambiguatingDescription: `Marketing agency and business systems builder in ${BUSINESS.city}, Texas, operated by ${BUSINESS.operator}. Not the LeadFlowPro messaging app.`,
     url: SITE,
     logo: { "@type": "ImageObject", url: `${SITE}/icon-512.png`, width: 512, height: 512 },
     image: `${SITE}/og/home.png`,
@@ -37,8 +42,14 @@ export function organizationJsonLd() {
     telephone: BUSINESS.phone.schema,
     address: postalAddress(),
     founder: { "@type": "Person", name: BUSINESS.operator, url: `${SITE}/about` },
-    sameAs: [BUSINESS.socials.youtube, BUSINESS.socials.facebook],
+    sameAs: sameAsLinks(),
   };
+}
+
+/** The profiles search engines may tie to this business. The Google listing joins only once it is verified and set. */
+export function sameAsLinks(): string[] {
+  const gbp = googleBusinessProfile();
+  return [BUSINESS.socials.youtube, BUSINESS.socials.facebook, ...(gbp ? [gbp] : [])];
 }
 
 export function areaServedJsonLd() {
@@ -64,6 +75,8 @@ export function localBusinessJsonLd(
     name: options.name ?? BUSINESS.name,
     parentOrganization: { "@id": `${SITE}/#organization` },
     url: SITE,
+    image: `${SITE}/og/home.png`,
+    sameAs: sameAsLinks(),
     telephone: BUSINESS.phone.schema,
     email: BUSINESS.email.hello,
     address: postalAddress(),

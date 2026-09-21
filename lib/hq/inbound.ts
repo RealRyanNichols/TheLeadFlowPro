@@ -207,8 +207,9 @@ export async function ingestSms(client: db.Db, ws: Workspace, sms: InboundSms): 
   });
 
   if (stopped) {
-    await db.updateLead(client, ws.id, lead.id, { consent_sms: false, unsubscribed_at: new Date().toISOString() });
-    await db.recordEvent(client, ws.id, { kind: "text_in", detail: "Replied STOP. Texts are off for this lead.", leadId: lead.id, actor: "webhook" });
+    // Every lead row with this number in the workspace, not only the newest.
+    const rows = await db.stopTextsForPhone(client, ws.id, from, new Date().toISOString());
+    await db.recordEvent(client, ws.id, { kind: "text_in", detail: `Replied STOP. Texts are off for this number${rows > 1 ? ` (${rows} lead records)` : ""}.`, leadId: lead.id, actor: "webhook" });
   } else {
     const patch: Partial<Lead> = {};
     if (restarted && lead.unsubscribed_at) {

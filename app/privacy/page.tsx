@@ -11,12 +11,13 @@ export const metadata: Metadata = withPublicPageMetadata("/privacy", {
 export default function PrivacyPage() {
   return (
     <main className="legal-page">
-      <span className="eyebrow">Last updated August 28, 2026</span>
+      <span className="eyebrow">Last updated September 20, 2026</span>
       <h1>Privacy Policy</h1>
       <p>
         {BUSINESS.name} is a DBA of {BUSINESS.legalName}. This policy explains
         how we handle information when you use this website, request a system map, contact
-        us, register for an event or training, or become a client.
+        us, register for an event or training, become a client, or subscribe to the
+        LeadFlow HQ plugin for ChatGPT and Claude.
       </p>
       <h2>Information we collect</h2>
       <p>
@@ -86,6 +87,46 @@ export default function PrivacyPage() {
         communications, analytics, scheduling, payment, and security providers. We may
         also disclose information when required by law, to protect rights or safety, or as
         part of a business transaction subject to appropriate safeguards.
+      </p>
+      <h2>The LeadFlow HQ plugin and workspaces</h2>
+      <p>
+        The plugin is a connector that a business owner adds to ChatGPT, Claude, Claude Code,
+        or Cursor. It is backed by a private workspace on this site (HQ). A workspace stores
+        what the subscriber and their connected sources put into it: the business profile
+        and its settings; leads and their contact details, source, notes, and status;
+        messages sent to and received from those leads; drafted and approved content;
+        follow-up schedules; and a log of what the automation did and when.
+      </p>
+      <p>
+        The subscriber is responsible for the people whose details they enter or connect,
+        and we process that information on the subscriber&apos;s behalf to run their
+        workspace. We do not use one workspace&apos;s leads, messages, or content for any
+        other business, for advertising audiences, or for training models.
+      </p>
+      <p>
+        When a subscriber connects a text line, a Facebook Page, a lead-ad form, or an
+        automation service, the credential for that connection is encrypted before it is
+        stored and is not shown again. Sign-in tokens and plugin API keys are stored only as
+        hashes. A subscriber can revoke a connection, a key, or an assistant&apos;s access
+        from HQ at any time.
+      </p>
+      <p>
+        Using the plugin inside an assistant sends the assistant&apos;s requests to this
+        site and returns the results to that assistant. Those results, which can include
+        lead names, phone numbers, message text, and drafts, are then handled by the
+        assistant&apos;s provider (OpenAI for ChatGPT, Anthropic for Claude, or the provider
+        of the tool the subscriber connected) under that provider&apos;s own terms and
+        privacy policy. Service providers that operate the workspace include our hosting,
+        database, email, text-messaging, and payment providers, and Meta when a Page or
+        lead-ad form is connected.
+      </p>
+      <p>
+        Texts from a workspace go only to people who agreed to receive them, and a STOP
+        reply ends them for that number in that workspace. Workspace records are kept while
+        the subscription is active and after it ends, so a returning subscriber does not lose
+        their work, until the subscriber asks for the workspace to be deleted. A subscriber
+        can ask for a copy of their leads and messages, or for deletion, by emailing{" "}
+        <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>.
       </p>
       <h2>Retention and security</h2>
       <p>

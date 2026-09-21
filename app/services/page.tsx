@@ -7,26 +7,46 @@ import ServicesPreview from "@/components/site/ServicesPreview";
 import CtaLink from "@/components/site/CtaLink";
 import { FREE_BUILD } from "@/lib/freeBuild";
 import { LADDER, PHONE_DISPLAY, PHONE_TEL } from "@/lib/siteContent";
+import { CONSULTATION } from "@/lib/site/consultation";
 import { PRICES, usd, usdFrom } from "@/lib/site/prices";
+import { areaServedJsonLd, breadcrumbJsonLd, graph, jsonLdText, organizationJsonLd, webPageJsonLd, websiteJsonLd } from "@/lib/site/structuredData";
+import { TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
 import styles from "./services.module.css";
 
 const SITE = "https://www.theleadflowpro.com";
 
+const SERVICES_TITLE = "Website Design and Lead Systems for Longview, TX Businesses | The LeadFlow Pro";
+const SERVICES_DESCRIPTION =
+  "Websites, lead capture, CRM, follow-up, payments, portals, and reporting built for Longview and East Texas businesses in accounts you control. Apply for the $0 five-page build or buy the Website Launch.";
+
 export const metadata: Metadata = withPublicPageMetadata("/services", {
-  title: "Services | The LeadFlow Pro",
-  description:
-    "Websites, lead capture, CRM, follow-up, payments, portals, and analytics, built in accounts you control. See what The LeadFlow Pro builds and what it costs.",
-  alternates: { canonical: `${SITE}/services` },
+  title: SERVICES_TITLE,
+  description: SERVICES_DESCRIPTION,
   openGraph: {
-    title: "Services | The LeadFlow Pro",
-    description:
-      "The website, the system behind it, and the back office that runs it, built in accounts you control.",
-    url: `${SITE}/services`,
-    siteName: "The LeadFlow Pro",
-    images: [{ url: "/og/home.png", width: 1200, height: 630 }],
-    type: "website",
+    description: "The website, the system behind it, and the back office that runs it, built in accounts you control.",
   },
 });
+
+// The organization and website nodes ride along so the @id references
+// (provider, isPartOf, about) resolve inside this one document.
+const SERVICES_JSONLD = graph(
+  organizationJsonLd(),
+  websiteJsonLd(),
+  webPageJsonLd("/services", SERVICES_TITLE, SERVICES_DESCRIPTION),
+  breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Services", path: "/services" },
+  ]),
+  {
+    "@type": "Service",
+    "@id": `${SITE}/services#service`,
+    name: "Website design and lead system build",
+    serviceType: "Website design",
+    description: SERVICES_DESCRIPTION,
+    areaServed: areaServedJsonLd(),
+    provider: { "@id": `${SITE}/#organization` },
+  },
+);
 
 const GUIDE_LINKS = [
   ["Get found", "Ads, search, and useful content", "/system/attention"],
@@ -54,12 +74,13 @@ const GUIDE_LINKS = [
 export default function ServicesPage() {
   return (
     <main className={styles.page}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdText(SERVICES_JSONLD) }} />
       <section className={styles.hero}>
         <div className={styles.shell + " " + styles.heroGrid}>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>WEBSITES + THE WORK BEHIND THEM</p>
             <h1>
-              A better website.
+              A better website for your Longview business.
               <br />
               <em>A clearer workday.</em>
             </h1>
@@ -358,21 +379,23 @@ export default function ServicesPage() {
             </p>
           </div>
           <aside className={styles.helpCard}>
-            <h3>Want to learn it yourself?</h3>
+            <h3>Not sure which piece you need?</h3>
             <p>
-              Use the free tools, work through a practical lesson, or bring your
-              laptop to a workshop.
+              Run one of the free tools on your own numbers, or bring the question
+              to the free thirty-minute consultation.
             </p>
             <Link href="/tools">
               Find a free tool <ArrowRight size={18} aria-hidden="true" />
             </Link>
-            <Link href="/training">
-              Explore the training <ArrowRight size={18} aria-hidden="true" />
+            <Link href={CONSULTATION.href} data-cta="consultation_cta" data-cta-placement="services_help">
+              Book the free consultation <ArrowRight size={18} aria-hidden="true" />
             </Link>
-            <Link href="/events">
-              See upcoming workshops <ArrowRight size={18} aria-hidden="true" />
-            </Link>
-            <a href={PHONE_TEL}>Call or text {PHONE_DISPLAY}</a>
+            <a href={PHONE_TEL} data-cta="call" data-cta-placement="services">
+              Call {PHONE_DISPLAY}
+            </a>
+            <a href={smsHref("services")} data-cta="text" data-cta-placement="services">
+              {TEXT_LABEL}
+            </a>
           </aside>
         </div>
       </section>

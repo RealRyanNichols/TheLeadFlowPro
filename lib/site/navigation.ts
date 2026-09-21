@@ -59,6 +59,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
     heading: "Work together",
     links: [
       { href: CONSULTATION.href, label: `Free ${CONSULTATION.minutes}-minute consultation` },
+      { href: "/longview", label: "Longview and East Texas" },
       { href: "/packages", label: "Packages" },
       { href: "/go/lead-follow-up", label: `Follow-Up Campaign | ${usd(PRICES.leadFollowUpCampaign)}` },
       { href: "/free-build", label: `Free Website | ${usd(PRICES.freeBuildFee)} Build Fee` },

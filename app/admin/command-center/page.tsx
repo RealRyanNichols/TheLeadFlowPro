@@ -352,7 +352,7 @@ export default async function FlowMissionControl() {
       detail: newLeads.length
         ? `${newLeads.length} new lead${newLeads.length === 1 ? "" : "s"} still waiting`
         : "New-lead queue clear",
-      href: "/admin",
+      href: "/admin/call-sheet",
     },
     {
       label: "Clear overdue follow-up",

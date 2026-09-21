@@ -10,6 +10,7 @@ import {
   LEGAL_LINKS,
   hidesSiteChrome,
 } from "@/lib/site/navigation";
+import { CALL_LABEL, TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
 
 // The one public footer, ink on every page. Columns, price labels, the
 // contact address, and the DBA line all come from lib/site so a change lands
@@ -28,8 +29,11 @@ export default function SiteFooter() {
             <a href={`mailto:${BUSINESS.email.hello}`} className="cb-textlink mt-6 inline-flex">
               {BUSINESS.email.hello}
             </a>
-            <a href={BUSINESS.phone.tel} className="cb-textlink mt-2 inline-flex">
-              Call or text {BUSINESS.phone.display}
+            <a href={BUSINESS.phone.tel} className="cb-textlink mt-2 inline-flex" data-cta="call" data-cta-placement="footer">
+              {CALL_LABEL}
+            </a>
+            <a href={smsHref("footer")} className="cb-textlink mt-2 inline-flex" data-cta="text" data-cta-placement="footer">
+              {TEXT_LABEL}
             </a>
           </div>
           {FOOTER_COLUMNS.map((col) => (
