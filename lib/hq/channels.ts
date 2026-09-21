@@ -168,6 +168,24 @@ export async function sendEmailOnBehalf(ws: Workspace, to: string, subject: stri
 }
 
 /** A message to the owner, from the engine. */
+/**
+ * A note to The LeadFlow Pro's own inbox about a workspace: a plan started,
+ * ended, or fell past due. Owner-only, never customer contact, so it needs
+ * no switch. Same idempotency key mechanism as the workspace owner emails.
+ */
+export async function sendInternalHqAlert(ws: Pick<Workspace, "id" | "name" | "email">, subject: string, text: string, idempotencyKey?: string): Promise<SendResult> {
+  return resend(
+    {
+      from: HQ_ALERT_FROM,
+      to: ["hello@theleadflowpro.com"],
+      subject: subject.slice(0, 200),
+      text: `${text}\n\nWorkspace: ${ws.name} (${ws.email || "no email"}, ${ws.id})\nPurchases: https://www.theleadflowpro.com/admin/purchases`,
+      reply_to: "hello@theleadflowpro.com",
+    },
+    idempotencyKey,
+  );
+}
+
 export async function sendOwnerEmail(ws: Workspace, subject: string, text: string, idempotencyKey?: string): Promise<SendResult> {
   const to = ws.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ws.email) ? ws.email : null;
   if (!to) return { ok: false, provider: "resend", error: "The business has no email address on file." };

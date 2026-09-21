@@ -9,7 +9,7 @@ import type { Values } from "@/lib/tools";
 //
 // The page posts what the buyer typed and gets back the numbers plus either
 // the documents or an honest listing of them. Two reasons it works this way:
-// the lock is real, and the generators that make a kit worth $19 stay on the
+// the lock is real, and the generators that make a kit worth PRICES.proKitMid stay on the
 // server instead of shipping to every visitor inside a JavaScript bundle.
 
 export const runtime = "nodejs";

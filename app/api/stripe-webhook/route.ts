@@ -29,7 +29,11 @@ import { proCatalog } from "@/lib/tools/pro";
 import { SELLERPROOF } from "@/lib/sellerproof/packet";
 import { sendSellerProofReceipt } from "@/lib/sellerproof/receipt";
 import { handleHqStripeEvent } from "@/lib/hq/subscription";
+import { HQ_PLAN } from "@/lib/hq/types";
 import { AGENCY_PAYMENT, agencyPaymentFromMetadata } from "@/lib/agencyPayment";
+import { deliverPaymentEmail } from "@/lib/paymentEmailDelivery";
+import { classifyStripeInvoice, dollars, renewalAction } from "@/lib/stripeInvoiceEvents";
+import { refundOutcome } from "@/lib/stripeRefunds";
 import { BUSINESS } from "@/lib/site/business";
 import { PRICES, usd } from "@/lib/site/prices";
 
@@ -38,8 +42,74 @@ import { PRICES, usd } from "@/lib/site/prices";
 // SUPABASE_SERVICE_ROLE_KEY (Supabase → Settings → API) in Vercel env vars.
 // Endpoint to register in Stripe: https://www.theleadflowpro.com/api/stripe-webhook
 // Events to send: checkout.session.completed, checkout.session.async_payment_succeeded,
+// checkout.session.async_payment_failed, charge.refunded, charge.dispute.created,
+// customer.subscription.updated, customer.subscription.deleted,
 // invoice.finalized, invoice.sent,
 // invoice.paid, invoice.payment_failed, invoice.voided, and invoice.marked_uncollectible
+//
+// Every email this file sends goes through the payment_email_deliveries
+// ledger (lib/paymentEmailDelivery.ts), keyed by the Stripe object id and a
+// purpose, so a retried event never sends the same email twice. The ledger
+// throws when the provider rejects a send, which keeps the event retryable.
+
+/** Owner-only alert through the delivery ledger. Skipped, not failed, when Resend is not configured. */
+async function internalAlert(supabase: SupabaseClient, sessionId: string, purpose: string, subject: string, lines: string[]): Promise<boolean> {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  if (!apiKey) return false;
+  await deliverPaymentEmail({
+    supabase,
+    sessionId,
+    purpose,
+    payload: {
+      from: `${BUSINESS.name} <${BUSINESS.email.alerts}>`,
+      to: [BUSINESS.email.hello],
+      subject: subject.slice(0, 200),
+      text: lines.join("\n"),
+    },
+    apiKey,
+  });
+  return true;
+}
+
+/**
+ * The one writer of public.purchases. A row is created once per Stripe
+ * object; a retry never rewrites a status a refund or dispute has since
+ * changed. The only status that may move back to "paid" is
+ * "payment_failed" (a later invoice.paid on the same invoice).
+ */
+async function recordPurchase(
+  supabase: SupabaseClient,
+  purchase: { email: string; kind: string; amount_cents: number | null; stripe_session_id: string; status: "paid" | "payment_failed" },
+) {
+  const existing = await supabase
+    .from("purchases")
+    .select("status")
+    .eq("stripe_session_id", purchase.stripe_session_id)
+    .maybeSingle();
+  if (existing.error) throw new Error(`Purchase lookup failed: ${existing.error.code}`);
+  if (!existing.data) {
+    const inserted = await supabase.from("purchases").insert(purchase);
+    if (inserted.error && inserted.error.code !== "23505") {
+      throw new Error(`Purchase record failed: ${inserted.error.code}`);
+    }
+    return;
+  }
+  if (existing.data.status === "payment_failed" && purchase.status === "paid") {
+    const updated = await supabase
+      .from("purchases")
+      .update({ status: "paid", amount_cents: purchase.amount_cents })
+      .eq("stripe_session_id", purchase.stripe_session_id);
+    if (updated.error) throw new Error(`Purchase status update failed: ${updated.error.code}`);
+  }
+}
+
+function amountCentsOf(session: StripeCheckoutSession): number | null {
+  return Number.isFinite(Number(session.amount_total)) ? Number(session.amount_total) : null;
+}
+
+function dollarsOrUnknown(amountCents: number | null): string {
+  return typeof amountCents === "number" && Number.isFinite(amountCents) ? dollars(amountCents) : "unknown amount";
+}
 
 function verifySignature(payload: string, header: string, secret: string): boolean {
   try {
@@ -68,30 +138,34 @@ function verifySignature(payload: string, header: string, secret: string): boole
   }
 }
 
-async function sendPurchaseEmails(email: string, kind: string) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return;
+/**
+ * A pair of one-shot emails (owner, then buyer) through the ledger. Throws
+ * when the provider rejects one, which keeps the Stripe event retryable; a
+ * retry then sends only the half that never got a provider id.
+ */
+function ledgerPair(supabase: SupabaseClient, sessionId: string, family: string) {
+  const key = process.env.RESEND_API_KEY?.trim();
+  return async (purpose: "internal" | "buyer", payload: object) => {
+    if (!key) return;
+    await deliverPaymentEmail({ supabase, sessionId, purpose: `${family}:${purpose}`, payload, apiKey: key });
+  };
+}
+
+async function sendPurchaseEmails(supabase: SupabaseClient, sessionId: string, email: string, kind: string) {
   // Throw on failure. This used to be `.catch(() => {})` with no r.ok check,
   // so a 429 or 422 from Resend meant the buyer's access instructions silently
   // vanished, the handler still returned {received:true}, and Stripe never
   // retried. Every other paid path in this file throws for exactly that
   // reason: a retried webhook is recoverable, a swallowed one is not.
-  const send = async (payload: object) => {
-    const r = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!r.ok) throw new Error(`Resend rejected purchase email: ${r.status}`);
-  };
+  const send = ledgerPair(supabase, sessionId, "learn-it");
 
-  await send({
+  await send("internal", {
     from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
     to: [BUSINESS.email.hello],
-    subject: `💰 PURCHASE: ${kind} — ${email}`,
-    text: `New purchase.\n\nProduct: ${kind}\nBuyer: ${email}\n\nAdmin: https://www.theleadflowpro.com/admin`,
+    subject: `💰 PURCHASE: ${kind} | ${email}`,
+    text: `New purchase.\n\nProduct: ${kind}\nBuyer: ${email}\n\nAdmin: https://www.theleadflowpro.com/admin/purchases`,
   });
-  await send({
+  await send("buyer", {
     from: `${BUSINESS.operator} <${BUSINESS.email.hello}>`,
     to: [email],
     reply_to: BUSINESS.email.hello,
@@ -106,7 +180,7 @@ async function sendPurchaseEmails(email: string, kind: string) {
       "2. Head to the training area and start at the top:",
       "   https://www.theleadflowpro.com/training",
       "",
-      "Work the courses in order. By the capstone you'll have your own platform live on your own domain — code in your GitHub, data in your database, nobody's hand in your pocket every month.",
+      "Work the courses in order. By the capstone you'll have your own platform live on your own domain: code in your GitHub, data in your database, nobody's hand in your pocket every month.",
       "",
       "Stuck on anything? Reply to this email. I read every one.",
       "",
@@ -116,25 +190,16 @@ async function sendPurchaseEmails(email: string, kind: string) {
   });
 }
 
-async function sendContentEnginePurchaseEmails(email: string) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return;
-  const send = async (payload: object) => {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!response.ok) throw new Error(`Resend rejected course email: ${response.status}`);
-  };
+async function sendContentEnginePurchaseEmails(supabase: SupabaseClient, sessionId: string, email: string) {
+  const send = ledgerPair(supabase, sessionId, "content-engine");
 
-  await send({
+  await send("internal", {
     from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
     to: [BUSINESS.email.hello],
     subject: `CONTENT ENGINE PURCHASE: ${email}`,
     text: `Founding course access purchased.\nBuyer: ${email}\nCourse: ${CONTENT_ENGINE.title}`,
   });
-  await send({
+  await send("buyer", {
     from: `${BUSINESS.operator} <${BUSINESS.email.hello}>`,
     to: [email],
     reply_to: BUSINESS.email.hello,
@@ -158,24 +223,15 @@ async function sendContentEnginePurchaseEmails(email: string) {
   });
 }
 
-async function sendAcademyPurchaseEmails(email: string, title: string, nextPath: string) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return;
-  const send = async (payload: object) => {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!response.ok) throw new Error(`Resend rejected academy email: ${response.status}`);
-  };
-  await send({
+async function sendAcademyPurchaseEmails(supabase: SupabaseClient, sessionId: string, email: string, title: string, nextPath: string) {
+  const send = ledgerPair(supabase, sessionId, "academy");
+  await send("internal", {
     from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
     to: [BUSINESS.email.hello],
     subject: `OPERATOR ACADEMY PURCHASE: ${email}`,
     text: `Paid training access purchased.\nBuyer: ${email}\nAccess: ${title}`,
   });
-  await send({
+  await send("buyer", {
     from: `${BUSINESS.operator} <${BUSINESS.email.hello}>`,
     to: [email],
     reply_to: BUSINESS.email.hello,
@@ -215,10 +271,15 @@ async function sendAcademyPurchaseEmails(email: string, title: string, nextPath:
  */
 // Plain acknowledgement to the person who just paid. Best effort by design:
 // the internal alert and the idempotency marker are the contract that keeps
-// a Stripe event retryable; a buyer email that fails must never block them,
-// and a retry that resends this note is a smaller sin than a buyer who paid
-// $500 and heard nothing from the business.
+// a Stripe event retryable; a buyer email that fails must never block them.
+// It goes through the delivery ledger, so a retried event cannot send it
+// twice, and a failed send is visible as a ledger row with no sent_at. The
+// callers put the result in the owner alert so Ryan knows whether the buyer
+// heard anything.
 async function sendBuyerAcknowledgement(
+  supabase: SupabaseClient,
+  sessionId: string,
+  purpose: string,
   email: string,
   subject: string,
   lines: string[],
@@ -226,10 +287,11 @@ async function sendBuyerAcknowledgement(
   const key = process.env.RESEND_API_KEY?.trim();
   if (!key || !email || !email.includes("@") || email.includes("@no-email.")) return false;
   try {
-    const r = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
+    await deliverPaymentEmail({
+      supabase,
+      sessionId,
+      purpose,
+      payload: {
         from: `${BUSINESS.operator} <${BUSINESS.email.ryan}>`,
         reply_to: BUSINESS.email.hello,
         to: [email],
@@ -242,62 +304,39 @@ async function sendBuyerAcknowledgement(
           "The LeadFlow Pro",
           BUSINESS.phone.display,
         ].join("\n"),
-      }),
-      signal: AbortSignal.timeout(8000),
+      },
+      apiKey: key,
     });
-    return r.ok;
+    return true;
   } catch (e) {
     console.error("buyer acknowledgement failed:", e instanceof Error ? e.message : e);
     return false;
   }
 }
 
+function acknowledgementLine(sent: boolean): string {
+  return sent ? "Buyer acknowledgement: sent." : "Buyer acknowledgement: FAILED, reach out today.";
+}
+
 async function notifyUnhandledPurchase(
+  supabase: SupabaseClient,
   email: string,
   kind: string,
   amountCents: number | null,
   sessionId: string,
 ) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return;
-  const amount =
-    typeof amountCents === "number" && Number.isFinite(amountCents)
-      ? `$${(amountCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}`
-      : "unknown amount";
+  const amount = dollarsOrUnknown(amountCents);
+  const send = ledgerPair(supabase, sessionId, "unhandled");
 
-  const send = async (payload: object) => {
-    const r = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!r.ok) throw new Error(`Resend rejected purchase email: ${r.status}`);
-  };
-
-  await send({
-    from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
-    to: [BUSINESS.email.hello],
-    subject: `💰 PAID: ${kind} ${amount} — ${email}`,
-    text: [
-      "Somebody paid and there is no automated fulfilment for this product.",
-      "",
-      `Product: ${kind}`,
-      `Amount:  ${amount}`,
-      `Buyer:   ${email}`,
-      `Stripe:  ${sessionId}`,
-      "",
-      "Reach out to them today. They have been sent a short acknowledgement",
-      "telling them you will be in touch within one business day.",
-      "",
-      "Admin: https://www.theleadflowpro.com/admin",
-    ].join("\n"),
-  });
-
-  await send({
-    from: `${BUSINESS.operator} <${BUSINESS.email.hello}>`,
-    to: [email],
-    reply_to: BUSINESS.email.hello,
-    subject: "Got your payment. Here is what happens next.",
+  // Buyer first (idempotent through the ledger), so the owner alert can say
+  // truthfully whether the acknowledgement left.
+  let acknowledged = false;
+  try {
+    await send("buyer", {
+      from: `${BUSINESS.operator} <${BUSINESS.email.hello}>`,
+      to: [email],
+      reply_to: BUSINESS.email.hello,
+      subject: "Got your payment. Here is what happens next.",
     text: [
       "Thanks. Your payment came through and I have it.",
       "",
@@ -315,82 +354,221 @@ async function notifyUnhandledPurchase(
       BUSINESS.phone.display,
       "Longview, Texas",
     ].join("\n"),
+    });
+    acknowledged = Boolean(process.env.RESEND_API_KEY?.trim());
+  } catch (e) {
+    console.error("buyer acknowledgement failed:", e instanceof Error ? e.message : e);
+  }
+
+  await send("internal", {
+    from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
+    to: [BUSINESS.email.hello],
+    subject: `💰 PAID: ${kind} ${amount} | ${email}`,
+    text: [
+      "Somebody paid and there is no automated fulfilment for this product.",
+      "",
+      `Product: ${kind}`,
+      `Amount:  ${amount}`,
+      `Buyer:   ${email}`,
+      `Stripe:  ${sessionId}`,
+      "",
+      "Reach out to them today.",
+      acknowledgementLine(acknowledged),
+      "",
+      "Admin: https://www.theleadflowpro.com/admin/purchases",
+    ].join("\n"),
   });
 }
 
-async function notifyToolStudioPurchase(
-  email: string,
-  kind: string,
-  amountCents: number | null,
+/**
+ * Finds or creates the lead a paid checkout belongs to for the flows whose
+ * funnel saves the lead before Stripe opens (System Map on a package page,
+ * Tool Studio), marks it won, stamps the payment, and opens the next task.
+ * These sources have no competing admin board, so diagnostic.paid and
+ * diagnostic.stripe are theirs to set. Returns the lead id and first name.
+ */
+async function claimFunnelLead(
+  supabase: SupabaseClient,
   session: StripeCheckoutSession,
+  input: { source: string; offer: string; campaign: string; interest: string; goals: string; taskTitle: string; nextAction: string },
 ) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return;
-  const amount =
-    typeof amountCents === "number" && Number.isFinite(amountCents)
-      ? `$${(amountCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}`
-      : "the Stripe total";
-  const order =
-    typeof session.metadata?.order === "string"
-      ? session.metadata.order.slice(0, 480)
-      : kind.replace(/_/g, " ");
-  const renewal =
-    typeof session.metadata?.renews_monthly_usd === "string"
-      ? session.metadata.renews_monthly_usd.slice(0, 40)
-      : "0";
-  const send = async (payload: object) => {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!response.ok) throw new Error(`Resend rejected Tool Studio email: ${response.status}`);
-  };
+  const sessionId = typeof session.id === "string" ? session.id.slice(0, 200) : "";
+  const customer = websiteLaunchCustomer(session);
+  if (!sessionId || !customer.email) throw new Error(`Paid ${input.offer} checkout is missing its session ID or email`);
+  const externalId = `stripe_checkout:${sessionId}`;
+  const stripeStamp = { session_id: sessionId, paid_at: new Date().toISOString(), amount_total_cents: amountCentsOf(session) };
 
-  await send({
-    from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
-    to: [BUSINESS.email.hello],
-    subject: `TOOL STUDIO PAID: ${amount} - ${email}`,
-    text: [
-      "A Tool Studio checkout completed.",
-      "",
-      `Buyer: ${email}`,
-      `Paid today: ${amount}`,
-      `Renews monthly: $${renewal}`,
-      `Order: ${order}`,
-      `Stripe session: ${typeof session.id === "string" ? session.id : "-"}`,
-      "",
-      "NEXT ACTION: match this payment to the Tool Studio lead, then lock the",
-      "written inputs, outputs, revisions, exclusions, and delivery date.",
-      "",
-      "Admin: https://www.theleadflowpro.com/admin",
-    ].join("\n"),
-  });
+  const found = await supabase
+    .from("leads")
+    .select("id, full_name, phone, diagnostic, external_id")
+    .ilike("email", escapeIlike(customer.email))
+    .eq("diagnostic->>source", input.source)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (found.error) throw new Error(`${input.offer} lead lookup failed: ${found.error.code}`);
 
-  await send({
-    from: `${BUSINESS.operator} <${BUSINESS.email.hello}>`,
-    to: [email],
-    reply_to: BUSINESS.email.hello,
-    subject: "Your Tool Studio order is in. Here is what happens next.",
-    text: [
-      "Your payment came through.",
-      "",
-      `Order: ${order}`,
-      `Paid today: ${amount}`,
-      renewal !== "0" ? `Monthly renewal: $${renewal}` : "No monthly menu selected.",
-      "",
-      "I will contact you within one business day. We will lock the written",
-      "scope before production: the tool's inputs, outputs, logic, lead route,",
-      "correction rounds, exclusions, and delivery target.",
-      "",
-      "Do not send passwords. I will use approved account invitations wherever",
-      "access is required.",
-      "",
-      "Ryan Nichols",
-      "The LeadFlow Pro",
-      BUSINESS.phone.display,
-    ].join("\n"),
+  let leadId: string;
+  let leadName = customer.fullName;
+  if (found.data) {
+    leadId = found.data.id;
+    leadName = found.data.full_name || leadName;
+    const diagnostic = found.data.diagnostic && typeof found.data.diagnostic === "object" ? (found.data.diagnostic as Record<string, unknown>) : {};
+    const updates: Record<string, unknown> = { status: "won", diagnostic: { ...diagnostic, paid: true, offer: input.offer, stripe: stripeStamp } };
+    if (!found.data.phone && customer.phone) updates.phone = customer.phone;
+    if (!found.data.external_id) updates.external_id = externalId;
+    const updated = await supabase.from("leads").update(updates).eq("id", leadId);
+    if (updated.error && updated.error.code !== "23505") throw new Error(`${input.offer} lead update failed: ${updated.error.code}`);
+  } else {
+    const inserted = await supabase
+      .from("leads")
+      .insert({
+        full_name: customer.fullName,
+        email: customer.email,
+        phone: customer.phone,
+        interest: input.interest,
+        goals: input.goals,
+        best_contact_method: customer.phone ? "phone" : "email",
+        source: "stripe_checkout",
+        utm_source: "stripe",
+        utm_medium: "checkout",
+        utm_campaign: input.campaign,
+        sms_consent: false,
+        marketing_email_consent: false,
+        status: "won",
+        external_id: externalId,
+        diagnostic: { version: 1, source: input.source, offer: input.offer, paid: true, stripe: stripeStamp, next_action: input.nextAction },
+      })
+      .select("id, full_name")
+      .single();
+    if (inserted.error?.code === "23505") {
+      const raced = await supabase.from("leads").select("id, full_name").eq("external_id", externalId).is("deleted_at", null).single();
+      if (raced.error) throw new Error(`${input.offer} lead race recovery failed: ${raced.error.code}`);
+      leadId = raced.data.id;
+      leadName = raced.data.full_name || leadName;
+    } else if (inserted.error) {
+      throw new Error(`${input.offer} lead insert failed: ${inserted.error.code}`);
+    } else {
+      leadId = inserted.data.id;
+      leadName = inserted.data.full_name || leadName;
+    }
+  }
+
+  const openTask = await supabase
+    .from("lead_tasks")
+    .select("id")
+    .eq("lead_id", leadId)
+    .eq("title", input.taskTitle)
+    .is("completed_at", null)
+    .limit(1)
+    .maybeSingle();
+  if (openTask.error) throw new Error(`${input.offer} task lookup failed: ${openTask.error.code}`);
+  if (!openTask.data) {
+    const taskInsert = await supabase.from("lead_tasks").insert({ lead_id: leadId, title: input.taskTitle, due_date: new Date().toISOString().slice(0, 10) });
+    if (taskInsert.error) throw new Error(`${input.offer} task insert failed: ${taskInsert.error.code}`);
+  }
+
+  return { leadId, leadName, customer, sessionId };
+}
+
+/** Writes the system activity row that records a paid event on the lead, once. */
+async function markLeadActivity(supabase: SupabaseClient, leadId: string, detail: string, label: string) {
+  const existing = await supabase.from("lead_activity").select("id").eq("lead_id", leadId).eq("kind", "system").eq("detail", detail).limit(1).maybeSingle();
+  if (existing.error) throw new Error(`${label} activity lookup failed: ${existing.error.code}`);
+  if (existing.data) return false;
+  const inserted = await supabase.from("lead_activity").insert({ lead_id: leadId, kind: "system", detail });
+  if (inserted.error) throw new Error(`${label} activity insert failed: ${inserted.error.code}`);
+  return true;
+}
+
+// Paid System Map ($497 from a package page). The order form saved the lead
+// with diagnostic.source "package_page" before Stripe opened. Until
+// 2026-09-21 this fell into the catch-all: an alert, an acknowledgement, and
+// a lead still sitting at "new".
+async function ensureSystemMapPaid(supabase: SupabaseClient, session: StripeCheckoutSession) {
+  const amount = amountCentsOf(session);
+  const { leadId, leadName, customer, sessionId } = await claimFunnelLead(supabase, session, {
+    source: "package_page",
+    offer: "system_map",
+    campaign: "system_map",
+    interest: "system_map",
+    goals: `SYSTEM MAP paid through Stripe (${dollarsOrUnknown(amount)}). Schedule the mapping call.`,
+    taskTitle: "Schedule System Map call",
+    nextAction: "Paid without a package-page lead. Schedule the mapping call.",
   });
+  const first = String(leadName || "").trim().split(" ")[0] || "Hey";
+  const acknowledged = await sendBuyerAcknowledgement(supabase, sessionId, "system-map:buyer", customer.email, "Your System Map is paid. Here is what happens next.", [
+    `${first},`,
+    "",
+    `Your System Map is paid (${dollarsOrUnknown(amount)}). Stripe's receipt is your record.`,
+    "",
+    "What happens next:",
+    "",
+    `1. I reach out within one business day from ${BUSINESS.phone.display} to set the mapping call.`,
+    "2. Have ready: where your leads come from now, the software you pay for, and the one thing you want more of.",
+    "3. You get the written map: what to fix first, what it costs, and what you keep.",
+  ]);
+  await internalAlert(supabase, sessionId, "system-map:internal", `💰 SYSTEM MAP PAID: ${leadName || customer.email} ${dollarsOrUnknown(amount)}`, [
+    `System Map paid: ${dollarsOrUnknown(amount)}.`,
+    `Buyer: ${leadName || "-"}`,
+    `Email: ${customer.email}`,
+    `Phone: ${customer.phone || "-"}`,
+    `Stripe session: ${sessionId}`,
+    "",
+    "NEXT ACTION: schedule the mapping call. The task is on the lead.",
+    acknowledgementLine(acknowledged),
+    "",
+    `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
+  ]);
+  await markLeadActivity(supabase, leadId, `System Map paid through Stripe. Stripe checkout: ${sessionId}.`, "System Map");
+}
+
+// Paid Tool Studio order or monthly menu. The funnel saved the lead with
+// diagnostic.source "tool_studio" before Stripe opened.
+async function ensureToolStudioPaid(supabase: SupabaseClient, session: StripeCheckoutSession, kind: string) {
+  const amount = amountCentsOf(session);
+  const order = typeof session.metadata?.order === "string" ? session.metadata.order.slice(0, 480) : kind.replace(/_/g, " ");
+  const renewal = typeof session.metadata?.renews_monthly_usd === "string" ? session.metadata.renews_monthly_usd.slice(0, 40) : "0";
+  const { leadId, leadName, customer, sessionId } = await claimFunnelLead(supabase, session, {
+    source: "tool_studio",
+    offer: kind,
+    campaign: "tool_studio",
+    interest: "custom_platform",
+    goals: `TOOL STUDIO paid through Stripe (${dollarsOrUnknown(amount)}). ${order}. Lock the written scope.`,
+    taskTitle: "Lock Tool Studio scope",
+    nextAction: "Paid without a Tool Studio lead. Lock the written scope.",
+  });
+  const acknowledged = await sendBuyerAcknowledgement(supabase, sessionId, "tool-studio:buyer", customer.email, "Your Tool Studio order is in. Here is what happens next.", [
+    "Your payment came through.",
+    "",
+    `Order: ${order}`,
+    `Paid today: ${dollarsOrUnknown(amount)}`,
+    renewal !== "0" ? `Monthly renewal: $${renewal}` : "No monthly menu selected.",
+    "",
+    "I will contact you within one business day. We will lock the written",
+    "scope before production: the tool's inputs, outputs, logic, lead route,",
+    "correction rounds, exclusions, and delivery target.",
+    "",
+    "Do not send passwords. I will use approved account invitations wherever",
+    "access is required.",
+  ]);
+  await internalAlert(supabase, sessionId, "tool-studio:internal", `TOOL STUDIO PAID: ${dollarsOrUnknown(amount)} - ${customer.email}`, [
+    "A Tool Studio checkout completed.",
+    "",
+    `Buyer: ${leadName || customer.email}`,
+    `Paid today: ${dollarsOrUnknown(amount)}`,
+    `Renews monthly: $${renewal}`,
+    `Order: ${order}`,
+    `Stripe session: ${sessionId}`,
+    "",
+    "NEXT ACTION: lock the written inputs, outputs, revisions, exclusions, and",
+    "delivery date. The task is on the lead.",
+    acknowledgementLine(acknowledged),
+    "",
+    `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
+  ]);
+  await markLeadActivity(supabase, leadId, `Tool Studio order paid through Stripe (${kind}). Stripe checkout: ${sessionId}.`, "Tool Studio");
 }
 
 
@@ -411,6 +589,8 @@ const INTAKE_LEAD_FIELDS =
 function escapeIlike(value: string) {
   return value.replace(/[\\%_]/g, (character) => `\\${character}`);
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function findWebsiteLaunchLead(
   supabase: SupabaseClient,
@@ -568,22 +748,9 @@ async function ensureWebsiteLaunchIntake(
   // a duplicate internal alert, which is safer than silently losing a paid
   // intake. This branch never calls the customer email or SMS helpers.
   if (!existingActivity.data) {
-    const accepted = await sendInternalLeadAlert({
-      full_name: lead.full_name || customer.fullName,
-      email: customer.email,
-      phone: lead.phone,
-      business_name: lead.business_name,
-      interest: "launch_system",
-      goals:
-        `The ${usd(PRICES.websiteLaunchDeposit)} Website Launch deposit is paid. Begin intake for the approved ${usd(PRICES.websiteLaunchTotal)} five-page base scope. The final ${usd(PRICES.websiteLaunchFinal)} is due only after approval and before launch.`,
-      timeline: "Deposit paid; intake ready",
-      source: stripePaymentLinkId(session) ? "stripe_payment_link" : "stripe_checkout",
-      utm_source: "stripe",
-      sms_consent: false,
-    });
-    if (!accepted) throw new Error("Internal Website Launch alert was not accepted");
-
-    await sendBuyerAcknowledgement(customer.email, "Your Website Launch deposit is in.", [
+    // Buyer first (idempotent through the ledger) so the alert can say
+    // whether the acknowledgement left.
+    const acknowledged = await sendBuyerAcknowledgement(supabase, sessionId, "website-launch:buyer", customer.email, "Your Website Launch deposit is in.", [
       `${(lead.full_name || customer.fullName || "").trim().split(" ")[0] || "Hey"},`,
       "",
       `Your ${usd(PRICES.websiteLaunchDeposit)} Website Launch deposit is paid and the build is on my board. Stripe's receipt is your record.`,
@@ -596,6 +763,21 @@ async function ensureWebsiteLaunchIntake(
       "",
       "If you do not hear from me inside one business day, text that number. It is my direct line.",
     ]);
+
+    const accepted = await sendInternalLeadAlert({
+      full_name: lead.full_name || customer.fullName,
+      email: customer.email,
+      phone: lead.phone,
+      business_name: lead.business_name,
+      interest: "launch_system",
+      goals:
+        `The ${usd(PRICES.websiteLaunchDeposit)} Website Launch deposit is paid. Begin intake for the approved ${usd(PRICES.websiteLaunchTotal)} five-page base scope. The final ${usd(PRICES.websiteLaunchFinal)} is due only after approval and before launch. ${acknowledgementLine(acknowledged)}`,
+      timeline: "Deposit paid; intake ready",
+      source: stripePaymentLinkId(session) ? "stripe_payment_link" : "stripe_checkout",
+      utm_source: "stripe",
+      sms_consent: false,
+    });
+    if (!accepted) throw new Error("Internal Website Launch alert was not accepted");
 
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: lead.id,
@@ -742,30 +924,7 @@ async function ensureTimebackOrderPaid(
     throw new Error(`Time Back activity lookup failed: ${existingActivity.error.code}`);
   }
   if (!existingActivity.data) {
-    const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
-      const r = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
-          to: [BUSINESS.email.hello],
-          subject: `💰 TIME BACK ORDER PAID: ${leadName} — ${customer.email}`,
-          text: [
-            orderSummary,
-            paidUsd !== null ? `Paid: $${paidUsd}` : "",
-            stripeStamp.platforms ? `Platforms: ${stripeStamp.platforms}` : "",
-            "",
-            "They were sent to the welcome intake. Next: the access invites.",
-            "Admin: https://www.theleadflowpro.com/admin/time-back",
-          ]
-            .filter(Boolean)
-            .join("\n"),
-        }),
-      }).catch(() => null);
-      if (!r?.ok) throw new Error("Internal Time Back paid alert was not accepted");
-    }
-    await sendBuyerAcknowledgement(customer.email, "Your Time Back order is paid.", [
+    const acknowledged = await sendBuyerAcknowledgement(supabase, sessionId, "time-back:buyer", customer.email, "Your Time Back order is paid.", [
       `${String(leadName || "").trim().split(" ")[0] || "Hey"},`,
       "",
       `Your Time Back order is paid${paidUsd !== null ? ` ($${paidUsd})` : ""}. ${orderSummary}. Stripe's receipt is your record.`,
@@ -778,6 +937,15 @@ async function ensureTimebackOrderPaid(
       "",
       `Questions in the meantime: text ${BUSINESS.phone.display}.`,
     ]);
+    await internalAlert(supabase, sessionId, "time-back:internal", `💰 TIME BACK ORDER PAID: ${leadName} | ${customer.email}`, [
+      orderSummary,
+      paidUsd !== null ? `Paid: $${paidUsd}` : "",
+      stripeStamp.platforms ? `Platforms: ${stripeStamp.platforms}` : "",
+      "",
+      "They were sent to the welcome intake. Next: the access invites.",
+      acknowledgementLine(acknowledged),
+      "Admin: https://www.theleadflowpro.com/admin/time-back",
+    ].filter(Boolean));
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
       kind: "system",
@@ -907,26 +1075,7 @@ async function ensureLeadFollowUpPaid(
     throw new Error(`Lead Follow-Up activity lookup failed: ${existingActivity.error.code}`);
   }
   if (!existingActivity.data) {
-    const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
-      const alert = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: `${BUSINESS.name} <${BUSINESS.email.alerts}>`,
-          to: [BUSINESS.email.hello],
-          subject: `💰 FOLLOW-UP CAMPAIGN PAID: ${leadName} — ${customer.email}`,
-          text: [
-            `$${LEAD_FOLLOW_UP.priceUsd} Lead Follow-Up Campaign paid.`,
-            "",
-            "They were sent to the writing intake. The work task is created when that form comes back.",
-            "Admin: https://www.theleadflowpro.com/admin/leads",
-          ].join("\n"),
-        }),
-      }).catch(() => null);
-      if (!alert?.ok) throw new Error("Internal Lead Follow-Up alert was not accepted");
-    }
-    await sendBuyerAcknowledgement(customer.email, "Your Follow-Up Campaign is paid.", [
+    const acknowledged = await sendBuyerAcknowledgement(supabase, sessionId, "lead-follow-up:buyer", customer.email, "Your Follow-Up Campaign is paid.", [
       `${String(leadName || "").trim().split(" ")[0] || "Hey"},`,
       "",
       `Your $${LEAD_FOLLOW_UP.priceUsd} Lead Follow-Up Campaign is paid. Stripe's receipt is your record. I write the messages; you send them from your own accounts.`,
@@ -938,6 +1087,13 @@ async function ensureLeadFollowUpPaid(
       "3. You review, I revise, you start sending.",
       "",
       "Nothing gets written until the intake comes back, so the campaign is built on your business instead of a template.",
+    ]);
+    await internalAlert(supabase, sessionId, "lead-follow-up:internal", `💰 FOLLOW-UP CAMPAIGN PAID: ${leadName} | ${customer.email}`, [
+      `$${LEAD_FOLLOW_UP.priceUsd} Lead Follow-Up Campaign paid.`,
+      "",
+      "They were sent to the writing intake. The work task is created when that form comes back.",
+      acknowledgementLine(acknowledged),
+      `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
     ]);
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
@@ -1072,31 +1228,7 @@ async function ensureFreeBuildPaid(
     throw new Error(`Free Build activity lookup failed: ${existingActivity.error.code}`);
   }
   if (!existingActivity.data) {
-    const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
-      const alert = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: `${BUSINESS.name} <${BUSINESS.email.alerts}>`,
-          to: [BUSINESS.email.hello],
-          subject: `FREE BUILD PAID: ${leadName} - ${tier.name} ($${tier.priceUsd})`,
-          text: [
-            `${tier.name} paid: $${tier.priceUsd}.`,
-            `Email: ${customer.email}`,
-            `Phone: ${customer.phone || "-"}`,
-            `Free build included: ${tier.pages}`,
-            "",
-            "NEXT ACTION: call them and book the twenty minute call. The 10 business day",
-            "delivery clock starts at that call, not at this payment.",
-            "",
-            "Admin: https://www.theleadflowpro.com/admin",
-          ].join("\n"),
-        }),
-      }).catch(() => null);
-      if (!alert?.ok) throw new Error("Internal Free Build alert was not accepted");
-    }
-    await sendBuyerAcknowledgement(customer.email, `Your ${tier.name} is paid. Here is what happens next.`, [
+    const acknowledged = await sendBuyerAcknowledgement(supabase, sessionId, "free-build:buyer", customer.email, `Your ${tier.name} is paid. Here is what happens next.`, [
       `${String(leadName || "").trim().split(" ")[0] || "Hey"},`,
       "",
       `${tier.name} is paid, $${tier.priceUsd} one time. The free build (${tier.pages}) and the engine behind it are both on my board. Stripe's receipt is your record.`,
@@ -1108,6 +1240,18 @@ async function ensureFreeBuildPaid(
       "3. Have ready: real photos of real work, your logo if you have one, and the domain you want on the front of it. No passwords, ever.",
       "",
       "Your domain, your hosting account, your pixel, your leads. If you fired me tomorrow you would keep every bit of it.",
+    ]);
+    await internalAlert(supabase, sessionId, "free-build:internal", `FREE BUILD PAID: ${leadName} - ${tier.name} ($${tier.priceUsd})`, [
+      `${tier.name} paid: $${tier.priceUsd}.`,
+      `Email: ${customer.email}`,
+      `Phone: ${customer.phone || "-"}`,
+      `Free build included: ${tier.pages}`,
+      "",
+      "NEXT ACTION: call them and book the twenty minute call. The 10 business day",
+      "delivery clock starts at that call, not at this payment.",
+      acknowledgementLine(acknowledged),
+      "",
+      `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
     ]);
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
@@ -1154,22 +1298,63 @@ async function ensureAgencyPaymentPaid(
   };
   const summary = `AGENCY PAYMENT: ${serviceName}, ${cadence}, ${paidLabel}${details.reference ? ` (scope: ${details.reference})` : ""}.`;
 
-  // Only the agency intake this person filled in is reused. Never a lead
-  // another funnel owns (Time Back, Free Build, Follow-Up): their admin
-  // boards read `diagnostic.paid` and `diagnostic.stripe` as *their* order,
-  // so stamping an agency payment onto one would invent a paid order there.
-  // With no intake, the payment gets its own lead, like the sibling flows.
-  const byIntake = await supabase
-    .from("leads")
-    .select("id, full_name, phone, business_name, status, diagnostic, external_id")
-    .ilike("email", escapeIlike(customer.email))
-    .eq("diagnostic->>source", "agency_intake")
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (byIntake.error) throw new Error(`Agency lead lookup failed: ${byIntake.error.code}`);
-  const found = byIntake.data;
+  // Which lead this payment belongs to, in order:
+  //   1. The lead Ryan put on the pay link (/agency/pay?lead=<id>), so a
+  //      payment against a Meta, consultation, or /start lead lands on it.
+  //   2. The agency intake this person filled in.
+  //   3. The newest lead with this email that no other funnel owns. Time
+  //      Back, Free Build, and Follow-Up boards read `diagnostic.paid` and
+  //      `diagnostic.stripe` as *their* order, so those are never reused and
+  //      a lead matched this way gets only `diagnostic.agency_payment`.
+  //   4. A new lead, like the sibling flows.
+  const LEAD_FIELDS = "id, full_name, phone, business_name, status, diagnostic, external_id";
+  const FUNNEL_OWNED_SOURCES = ["time_back_funnel", "lead_follow_up_funnel", "free_build_funnel"];
+  const linkedLeadId = typeof session.metadata?.lead_id === "string" && UUID_RE.test(session.metadata.lead_id) ? session.metadata.lead_id.toLowerCase() : null;
+  const isPlaceholderEmail = customer.email.toLowerCase().endsWith("@no-email.facebook.lead");
+
+  let found: { id: string; full_name: string | null; phone: string | null; business_name: string | null; status: string; diagnostic: unknown; external_id: string | null } | null = null;
+  let matchedBy: "link" | "intake" | "email" | null = null;
+  if (linkedLeadId) {
+    const byLink = await supabase.from("leads").select(LEAD_FIELDS).eq("id", linkedLeadId).is("deleted_at", null).maybeSingle();
+    if (byLink.error) throw new Error(`Agency linked lead lookup failed: ${byLink.error.code}`);
+    if (byLink.data) {
+      found = byLink.data;
+      matchedBy = "link";
+    }
+  }
+  if (!found) {
+    const byIntake = await supabase
+      .from("leads")
+      .select(LEAD_FIELDS)
+      .ilike("email", escapeIlike(customer.email))
+      .eq("diagnostic->>source", "agency_intake")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (byIntake.error) throw new Error(`Agency lead lookup failed: ${byIntake.error.code}`);
+    if (byIntake.data) {
+      found = byIntake.data;
+      matchedBy = "intake";
+    }
+  }
+  if (!found && !isPlaceholderEmail) {
+    const byEmail = await supabase
+      .from("leads")
+      .select(LEAD_FIELDS)
+      .ilike("email", escapeIlike(customer.email))
+      .not("diagnostic->>source", "in", `(${FUNNEL_OWNED_SOURCES.map((s) => `"${s}"`).join(",")})`)
+      .is("deleted_at", null)
+      .eq("is_test", false)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (byEmail.error) throw new Error(`Agency email lead lookup failed: ${byEmail.error.code}`);
+    if (byEmail.data) {
+      found = byEmail.data;
+      matchedBy = "email";
+    }
+  }
 
   let leadId: string;
   let leadName = customer.fullName;
@@ -1182,15 +1367,16 @@ async function ensureAgencyPaymentPaid(
       found.diagnostic && typeof found.diagnostic === "object"
         ? (found.diagnostic as Record<string, unknown>)
         : {};
+    const agencyStamp = { service: serviceSlug, billing: details.billing, reference: details.reference || null, stripe: stripeStamp };
     const updates: Record<string, unknown> = {
       status: "won",
       interest: "done_for_you",
-      diagnostic: {
-        ...diagnostic,
-        paid: true,
-        agency_payment: { service: serviceSlug, billing: details.billing, reference: details.reference || null },
-        stripe: stripeStamp,
-      },
+      diagnostic:
+        matchedBy === "intake"
+          ? { ...diagnostic, paid: true, agency_payment: agencyStamp, stripe: stripeStamp }
+          : // A lead from another door keeps its own diagnostic; the payment
+            // rides in its own key so no other board reads it as its order.
+            { ...diagnostic, agency_payment: agencyStamp },
     };
     if (!found.phone && customer.phone) updates.phone = customer.phone;
     if (!found.external_id) updates.external_id = externalId;
@@ -1282,35 +1468,7 @@ async function ensureAgencyPaymentPaid(
     throw new Error(`Agency activity lookup failed: ${existingActivity.error.code}`);
   }
   if (!existingActivity.data) {
-    const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
-      const alert = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: `${BUSINESS.name} <${BUSINESS.email.alerts}>`,
-          to: [BUSINESS.email.hello],
-          subject: `💰 AGENCY PAID: ${leadName}${businessName ? ` (${businessName})` : ""} - ${serviceName} ${paidLabel} ${cadence}`,
-          text: [
-            summary,
-            `Buyer: ${leadName}`,
-            `Email: ${customer.email}`,
-            `Phone: ${customer.phone || "-"}`,
-            `Business: ${businessName || details.reference || "-"}`,
-            `Billing: ${cadence}${details.billing === "monthly" ? " (Stripe subscription; renews until cancelled)" : ""}`,
-            `Stripe session: ${sessionId}`,
-            "",
-            "NEXT ACTION: match this payment to the written scope, then start the",
-            "Map step: accounts in their name, tracking proven, launch date agreed.",
-            "They were told to connect their accounts and expect a reply within one business day.",
-            "",
-            `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
-          ].join("\n"),
-        }),
-      }).catch(() => null);
-      if (!alert?.ok) throw new Error("Internal agency paid alert was not accepted");
-    }
-    await sendBuyerAcknowledgement(customer.email, `Your ${serviceName} payment is in. Here is what happens next.`, [
+    const acknowledged = await sendBuyerAcknowledgement(supabase, sessionId, "agency:buyer", customer.email, `Your ${serviceName} payment is in. Here is what happens next.`, [
       `${String(leadName || "").trim().split(" ")[0] || "Hey"},`,
       "",
       `${serviceName} is paid, ${paidLabel} ${cadence}${details.reference ? `, against the scope marked "${details.reference}"` : ""}. Stripe's receipt is your record, and the written scope is the contract for what gets built.`,
@@ -1324,6 +1482,21 @@ async function ensureAgencyPaymentPaid(
       `If you want the same loop in ChatGPT or Claude while we build, the plugin is here: ${BUSINESS.siteUrl}/plugin`,
       "",
       "No passwords, ever. If you do not hear from me inside one business day, text that number. It is my direct line.",
+    ]);
+    await internalAlert(supabase, sessionId, "agency:internal", `💰 AGENCY PAID: ${leadName}${businessName ? ` (${businessName})` : ""} - ${serviceName} ${paidLabel} ${cadence}`, [
+      summary,
+      `Buyer: ${leadName}`,
+      `Email: ${customer.email}`,
+      `Phone: ${customer.phone || "-"}`,
+      `Business: ${businessName || details.reference || "-"}`,
+      `Billing: ${cadence}${details.billing === "monthly" ? " (Stripe subscription; renews until cancelled)" : ""}`,
+      `Stripe session: ${sessionId}`,
+      "",
+      "NEXT ACTION: match this payment to the written scope, then start the",
+      "Map step: accounts in their name, tracking proven, launch date agreed.",
+      acknowledgementLine(acknowledged),
+      "",
+      `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
     ]);
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
@@ -1343,7 +1516,217 @@ type StripeInvoiceWebhook = {
   hosted_invoice_url?: unknown;
   invoice_pdf?: unknown;
   amount_due?: unknown;
+  amount_paid?: unknown;
+  customer_email?: unknown;
+  metadata?: unknown;
+  billing_reason?: unknown;
+  subscription?: unknown;
+  subscription_details?: unknown;
+  parent?: unknown;
+  lines?: unknown;
 };
+
+/** The newest open lead with this email whose diagnostic carries an agency payment, for renewal and cancel notes. */
+async function findAgencyLeadByEmail(supabase: SupabaseClient, email: string | null): Promise<string | null> {
+  if (!email || !email.includes("@")) return null;
+  const found = await supabase
+    .from("leads")
+    .select("id")
+    .ilike("email", escapeIlike(email))
+    .not("diagnostic->agency_payment", "is", null)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (found.error) {
+    console.warn("agency lead lookup for renewal note failed:", found.error.code);
+    return null;
+  }
+  return found.data?.id ?? null;
+}
+
+/**
+ * Month two onward of an agency retainer or a Tool Studio menu, and every
+ * paid plugin month. The checkout session recorded the first charge for the
+ * first two; the plugin's checkout never wrote a purchase, so every paid
+ * plugin invoice is recorded. Returns true when the invoice was one of these.
+ */
+async function recordSubscriptionInvoice(
+  supabase: SupabaseClient,
+  eventType: string,
+  invoice: ReturnType<typeof classifyStripeInvoice>,
+): Promise<boolean> {
+  const action = renewalAction(invoice, eventType);
+  if (action === "ignore") return invoice.family === "hq_subscription" || invoice.family === "agency_payment" || invoice.family === "tool_monthly_menu";
+  if (action === "skip_first_invoice") return true;
+  const invoiceId = invoice.invoiceId;
+  if (!invoiceId) throw new Error("Stripe invoice event has no invoice ID");
+  const email = invoice.email ?? "unknown";
+  const meta = invoice.subscriptionMetadata;
+  const what =
+    invoice.family === "hq_subscription"
+      ? HQ_PLAN.name
+      : invoice.family === "agency_payment"
+        ? `Agency retainer: ${meta.service_name ?? meta.service ?? "service"}${meta.reference ? ` (${meta.reference})` : ""}`
+        : `Tool Studio monthly menu: ${meta.monthly_ids ?? "menu"}`;
+  const kind = invoice.family === "hq_subscription" ? HQ_PLAN.kind : invoice.family;
+
+  if (action === "record_failed") {
+    await internalAlert(supabase, invoiceId, "renewal-failed:internal", `RENEWAL FAILED: ${what} for ${email}`, [
+      "Stripe could not collect a renewal. Stripe retries the card on its own schedule and emails the customer.",
+      "",
+      `What: ${what}`,
+      `Customer: ${email}`,
+      `Invoice: ${invoice.number ?? invoiceId}${invoice.hostedUrl ? ` ${invoice.hostedUrl}` : ""}`,
+      `Subscription: ${invoice.subscriptionId ?? "-"}`,
+      "",
+      "Nothing to send them. If it fails again, the subscription goes past due and you will hear about it here.",
+    ]);
+    if (invoice.family !== "hq_subscription") {
+      await recordPurchase(supabase, { email, kind, amount_cents: invoice.amountPaidCents || null, stripe_session_id: invoiceId, status: "payment_failed" });
+    }
+    return true;
+  }
+
+  // record_paid
+  await internalAlert(supabase, invoiceId, invoice.family === "hq_subscription" ? "plugin-paid:internal" : "renewal-paid:internal", `💰 ${invoice.family === "hq_subscription" ? "PLUGIN PAID" : "RENEWAL PAID"}: ${what} ${dollars(invoice.amountPaidCents)} - ${email}`, [
+    `${what} paid: ${dollars(invoice.amountPaidCents)}.`,
+    `Customer: ${email}`,
+    `Invoice: ${invoice.number ?? invoiceId}${invoice.hostedUrl ? ` ${invoice.hostedUrl}` : ""}`,
+    `Subscription: ${invoice.subscriptionId ?? "-"}`,
+    `Reason: ${invoice.billingReason ?? "-"}`,
+    "",
+    "Stripe sent the receipt. Nothing to do unless the work is behind.",
+    "Purchases: https://www.theleadflowpro.com/admin/purchases",
+  ]);
+  await recordPurchase(supabase, { email, kind, amount_cents: invoice.amountPaidCents, stripe_session_id: invoiceId, status: "paid" });
+  if (invoice.family === "agency_payment") {
+    const leadId = await findAgencyLeadByEmail(supabase, invoice.email);
+    if (leadId) await markLeadActivity(supabase, leadId, `Agency retainer renewed: ${meta.service_name ?? meta.service ?? "service"}, ${dollars(invoice.amountPaidCents)}. Stripe invoice: ${invoiceId}.`, "Agency renewal");
+  }
+  return true;
+}
+
+/**
+ * A Sales Desk invoice (raised from a lead at /admin/sales/invoices) or one
+ * raised by hand in the Stripe dashboard was paid. Finish the sale: tell the
+ * owner, write the purchase, mark the lead won, and open the delivery task.
+ */
+async function finishPaidInvoice(
+  supabase: SupabaseClient,
+  invoice: ReturnType<typeof classifyStripeInvoice>,
+  matched: { lead_id: string | null; customer_email: string | null; invoice_number: string | null } | null,
+) {
+  const invoiceId = invoice.invoiceId;
+  if (!invoiceId) throw new Error("Stripe invoice event has no invoice ID");
+  const leadId = matched?.lead_id ?? invoice.leadId;
+  const email = (matched?.customer_email ?? invoice.email ?? "unknown").toLowerCase();
+  const number = matched?.invoice_number ?? invoice.number ?? invoiceId;
+  const amount = dollars(invoice.amountPaidCents);
+  if (!matched && !invoice.leadId) console.warn(`Stripe invoice ${invoiceId} paid with no sales_invoices row`);
+
+  await internalAlert(supabase, invoiceId, "invoice-paid:internal", `💰 INVOICE PAID: ${email} ${amount}`, [
+    `Invoice ${number} paid: ${amount}.`,
+    `Customer: ${email}`,
+    invoice.hostedUrl ? `Invoice: ${invoice.hostedUrl}` : "",
+    leadId ? `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}` : "No lead is attached to this invoice (raised outside the Sales Desk).",
+    "",
+    "NEXT ACTION: start the paid scope. The task is on the lead when there is one.",
+    "Purchases: https://www.theleadflowpro.com/admin/purchases",
+  ].filter(Boolean));
+  await recordPurchase(supabase, { email, kind: matched ? "sales_invoice" : "stripe_invoice", amount_cents: invoice.amountPaidCents, stripe_session_id: invoiceId, status: "paid" });
+  if (!leadId) return;
+
+  const won = await supabase.from("leads").update({ status: "won" }).eq("id", leadId).is("deleted_at", null);
+  if (won.error) throw new Error(`Invoice lead update failed: ${won.error.code}`);
+  await markLeadActivity(supabase, leadId, `Invoice ${number} paid through Stripe (${amount}). Stripe invoice: ${invoiceId}.`, "Invoice");
+  const taskTitle = `Start paid scope: invoice ${number}`;
+  const openTask = await supabase.from("lead_tasks").select("id").eq("lead_id", leadId).eq("title", taskTitle).is("completed_at", null).limit(1).maybeSingle();
+  if (openTask.error) throw new Error(`Invoice task lookup failed: ${openTask.error.code}`);
+  if (!openTask.data) {
+    const taskInsert = await supabase.from("lead_tasks").insert({ lead_id: leadId, title: taskTitle, due_date: new Date().toISOString().slice(0, 10) });
+    if (taskInsert.error) throw new Error(`Invoice task insert failed: ${taskInsert.error.code}`);
+  }
+}
+
+/** Refunds, disputes, and failed async payments: tell the owner and flip the purchase status so access and totals follow. */
+async function handleMoneyBack(supabase: SupabaseClient, eventType: string, object: unknown) {
+  const outcome = refundOutcome(eventType, object);
+  if (!outcome) return false;
+  let sessionId = outcome.sessionId;
+  const stripeKey = process.env.STRIPE_SECRET_KEY?.trim();
+  if (!sessionId && outcome.paymentIntent) {
+    if (stripeKey) {
+      const r = await fetch(`https://api.stripe.com/v1/checkout/sessions?payment_intent=${encodeURIComponent(outcome.paymentIntent)}&limit=1`, {
+        headers: { Authorization: `Bearer ${stripeKey}` },
+        cache: "no-store",
+      });
+      if (!r.ok) throw new Error(`Stripe session lookup for ${outcome.status} failed: ${r.status}`);
+      const body = (await r.json().catch(() => null)) as { data?: { id?: unknown }[] } | null;
+      const id = body?.data?.[0]?.id;
+      sessionId = typeof id === "string" ? id.slice(0, 200) : null;
+    } else {
+      console.error(`No STRIPE_SECRET_KEY: cannot map ${outcome.status} on ${outcome.paymentIntent} to a checkout session`);
+    }
+  }
+  const alertKey = outcome.chargeId ?? sessionId ?? outcome.paymentIntent ?? `${eventType}:unknown`;
+  const purpose = outcome.status === "refunded" ? "refund:internal" : outcome.status === "disputed" ? "dispute:internal" : "async-failed:internal";
+  const label = outcome.status === "refunded" ? (outcome.partial ? "PARTIAL REFUND" : "REFUND") : outcome.status === "disputed" ? "DISPUTE" : "PAYMENT FAILED";
+  let purchase: { email: string | null; kind: string | null } | null = null;
+  if (sessionId) {
+    const row = await supabase.from("purchases").select("email, kind").eq("stripe_session_id", sessionId).maybeSingle();
+    if (!row.error && row.data) purchase = row.data;
+  }
+  await internalAlert(supabase, alertKey, purpose, `${label}: ${purchase?.kind ?? "purchase"} ${dollars(outcome.amountCents)} ${purchase?.email ?? ""}`.trim(), [
+    `${label} on ${purchase?.kind ?? "an unmatched purchase"}: ${dollars(outcome.amountCents)}.`,
+    `Buyer: ${purchase?.email ?? "unknown"}`,
+    `Checkout session: ${sessionId ?? "not found"}`,
+    outcome.chargeId ? `Charge: ${outcome.chargeId}` : "",
+    outcome.reason ? `Reason: ${outcome.reason}` : "",
+    outcome.evidenceDueBy ? `Evidence due: ${new Date(outcome.evidenceDueBy * 1000).toDateString()} (answer it in the Stripe dashboard)` : "",
+    "",
+    outcome.partial
+      ? "Partial refund: the purchase stays paid. Nothing else changed."
+      : sessionId
+        ? `The purchase is now marked ${outcome.status}; course and kit access that keys on it is off.`
+        : "No purchase row could be matched, so nothing was changed in the database.",
+    "Purchases: https://www.theleadflowpro.com/admin/purchases",
+  ].filter(Boolean));
+  if (!outcome.partial && sessionId) {
+    const updated = await supabase.from("purchases").update({ status: outcome.status }).eq("stripe_session_id", sessionId).eq("status", "paid").select("stripe_session_id");
+    if (updated.error) throw new Error(`Purchase status flip failed: ${updated.error.code}`);
+    if (!updated.data?.length) console.warn(`No paid purchase matched ${sessionId} for ${outcome.status}`);
+  }
+  return true;
+}
+
+/** An agency retainer or Tool Studio menu ended or was set to end. The plugin's own handler runs first and claims its subscriptions. */
+async function noteSubscriptionEnd(supabase: SupabaseClient, eventType: string, object: unknown) {
+  if (eventType !== "customer.subscription.deleted" && eventType !== "customer.subscription.updated") return false;
+  const sub = object && typeof object === "object" ? (object as Record<string, unknown>) : {};
+  const metadata = (sub.metadata && typeof sub.metadata === "object" ? sub.metadata : {}) as Record<string, unknown>;
+  const kind = typeof metadata.kind === "string" ? metadata.kind : "";
+  if (kind !== AGENCY_PAYMENT.kind && kind !== "tool_monthly_menu") return false;
+  const subId = typeof sub.id === "string" ? sub.id.slice(0, 200) : null;
+  if (!subId) return false;
+  const scheduled = eventType === "customer.subscription.updated" && sub.cancel_at_period_end === true;
+  if (eventType === "customer.subscription.updated" && !scheduled) return true;
+  const what = kind === AGENCY_PAYMENT.kind ? `Agency retainer: ${String(metadata.service_name ?? metadata.service ?? "service")}${metadata.reference ? ` (${String(metadata.reference)})` : ""}` : `Tool Studio monthly menu: ${String(metadata.monthly_ids ?? "menu")}`;
+  const purpose = scheduled ? "subscription-cancel-scheduled:internal" : "subscription-cancelled:internal";
+  await internalAlert(supabase, subId, purpose, `${scheduled ? "CANCEL SCHEDULED" : "CANCELLED"}: ${what}`, [
+    scheduled ? `${what} is set to end at the close of the current period.` : `${what} has ended in Stripe.`,
+    `Subscription: ${subId}`,
+    `Customer: ${typeof sub.customer === "string" ? sub.customer : "-"}`,
+    "",
+    "Nothing was charged or sent. If the work should stop, stop it; if it should continue, reach out.",
+  ]);
+  if (kind === AGENCY_PAYMENT.kind) {
+    const email = typeof metadata.customer_email === "string" ? metadata.customer_email : null;
+    const leadId = await findAgencyLeadByEmail(supabase, email);
+    if (leadId) await markLeadActivity(supabase, leadId, `${scheduled ? "Agency retainer set to end" : "Agency retainer cancelled"} in Stripe. Subscription: ${subId}.`, "Agency cancel");
+  }
+  return true;
+}
 
 const INVOICE_EVENT_STATUS: Record<string, string> = {
   "invoice.finalized": "open",
@@ -1401,6 +1784,15 @@ export async function POST(request: Request) {
       const invoice = (event.data?.object ?? {}) as StripeInvoiceWebhook;
       const invoiceId = webhookString(invoice.id, 200);
       if (!invoiceId) throw new Error("Stripe invoice event has no invoice ID");
+      const invoiceSupabase = createSupabaseClient(SUPABASE_URL, serviceKey);
+      const classified = classifyStripeInvoice(invoice);
+
+      // Subscription invoices (agency retainers, Tool Studio menus, plugin
+      // months) are not Sales Desk invoices; record them and stop.
+      if (await recordSubscriptionInvoice(invoiceSupabase, event.type, classified)) {
+        return NextResponse.json({ received: true });
+      }
+
       const updates: Record<string, unknown> = {
         status: INVOICE_EVENT_STATUS[event.type],
         updated_at: new Date().toISOString(),
@@ -1412,12 +1804,19 @@ export async function POST(request: Request) {
       if (hostedUrl) updates.hosted_invoice_url = hostedUrl;
       if (pdf) updates.invoice_pdf = pdf;
 
-      const invoiceSupabase = createSupabaseClient(SUPABASE_URL, serviceKey);
       const result = await invoiceSupabase
         .from("sales_invoices")
         .update(updates)
-        .eq("stripe_invoice_id", invoiceId);
+        .eq("stripe_invoice_id", invoiceId)
+        .select("lead_id, customer_email, invoice_number")
+        .maybeSingle();
       if (result.error) throw new Error(`Invoice status sync failed: ${result.error.code}`);
+
+      // A paid invoice finishes the sale, whether it came from the Sales Desk
+      // or was raised by hand in the Stripe dashboard.
+      if (event.type === "invoice.paid" && classified.amountPaidCents > 0) {
+        await finishPaidInvoice(invoiceSupabase, classified, result.data ?? null);
+      }
       return NextResponse.json({ received: true });
     } catch (error) {
       console.error(
@@ -1425,6 +1824,23 @@ export async function POST(request: Request) {
         error instanceof Error ? error.message : "unknown invoice error",
       );
       return NextResponse.json({ error: "Invoice processing failed" }, { status: 500 });
+    }
+  }
+
+  // Money going back out, and agency or Tool Studio subscriptions ending.
+  // Both alert the owner only; nothing here charges or contacts a buyer.
+  if (typeof event.type === "string") {
+    try {
+      const moneySupabase = createSupabaseClient(SUPABASE_URL, serviceKey);
+      if (await handleMoneyBack(moneySupabase, event.type, event.data?.object)) {
+        return NextResponse.json({ received: true });
+      }
+      if (await noteSubscriptionEnd(moneySupabase, event.type, event.data?.object)) {
+        return NextResponse.json({ received: true });
+      }
+    } catch (error) {
+      console.error("Stripe refund or subscription webhook failed:", error instanceof Error ? error.message : "unknown");
+      return NextResponse.json({ error: "Refund processing failed" }, { status: 500 });
     }
   }
 
@@ -1475,21 +1891,13 @@ export async function POST(request: Request) {
       ? WEBSITE_LAUNCH_PURCHASE_KIND
       : proKind ?? safeStripeKind(session);
     const supabase = createSupabaseClient(SUPABASE_URL, serviceKey);
-    const purchase = await supabase.from("purchases").upsert(
-      {
-        email: customer.email,
-        kind,
-        amount_cents: Number.isFinite(Number(session.amount_total))
-          ? Number(session.amount_total)
-          : null,
-        stripe_session_id: session.id.slice(0, 200),
-        status: "paid",
-      },
-      { onConflict: "stripe_session_id" },
-    );
-    if (purchase.error) {
-      throw new Error(`Purchase record failed: ${purchase.error.code}`);
-    }
+    await recordPurchase(supabase, {
+      email: customer.email,
+      kind,
+      amount_cents: amountCentsOf(session),
+      stripe_session_id: session.id.slice(0, 200),
+      status: "paid",
+    });
 
     if (websiteLaunch) {
       await ensureWebsiteLaunchIntake(supabase, session);
@@ -1508,31 +1916,23 @@ export async function POST(request: Request) {
     } else if (findFreeBuildTier(kind)) {
       await ensureFreeBuildPaid(supabase, session, kind);
     } else if (kind === "tool_studio_order" || kind === "tool_monthly_menu") {
-      await notifyToolStudioPurchase(
-        customer.email,
-        kind,
-        Number.isFinite(Number(session.amount_total)) ? Number(session.amount_total) : null,
-        session,
-      );
+      await ensureToolStudioPaid(supabase, session, kind);
+    } else if (kind === "system_map") {
+      await ensureSystemMapPaid(supabase, session);
     } else if (kind === "learn_it") {
-      await sendPurchaseEmails(customer.email, kind);
+      await sendPurchaseEmails(supabase, session.id, customer.email, kind);
     } else if (kind === CONTENT_ENGINE.purchaseKind) {
-      await sendContentEnginePurchaseEmails(customer.email);
+      await sendContentEnginePurchaseEmails(supabase, session.id, customer.email);
     } else if (kind === CHATGPT_OPERATOR.purchaseKind) {
-      await sendAcademyPurchaseEmails(customer.email, CHATGPT_OPERATOR.shortTitle, "/training/chatgpt-operator");
+      await sendAcademyPurchaseEmails(supabase, session.id, customer.email, CHATGPT_OPERATOR.shortTitle, "/training/chatgpt-operator");
     } else if (kind === OPERATOR_ACADEMY.allAccessPurchaseKind) {
-      await sendAcademyPurchaseEmails(customer.email, OPERATOR_ACADEMY.title, "/training");
+      await sendAcademyPurchaseEmails(supabase, session.id, customer.email, OPERATOR_ACADEMY.title, "/training");
     } else {
       // Nothing above claimed this payment. Do NOT let it fall off the end in
-      // silence: system_map, package_full, a package_deposit that is not the
-      // exact $500 Website Launch, and every build_deposit used to land here
-      // and produce no alert and no buyer email at all.
-      await notifyUnhandledPurchase(
-        customer.email,
-        kind,
-        Number.isFinite(Number(session.amount_total)) ? Number(session.amount_total) : null,
-        session.id,
-      );
+      // silence: package_full, a package_deposit that is not the exact $500
+      // Website Launch, and every build_deposit land here and get an alert
+      // and a buyer acknowledgement.
+      await notifyUnhandledPurchase(supabase, customer.email, kind, amountCentsOf(session), session.id);
     }
 
     return NextResponse.json({ received: true });

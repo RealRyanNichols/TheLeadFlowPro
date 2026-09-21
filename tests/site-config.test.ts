@@ -23,6 +23,8 @@ import { WEBSITE_LAUNCH, WEBSITE_LAUNCH_CHECKOUT, OFFER_LADDER } from "../lib/of
 import { FREE_BUILD } from "../lib/freeBuild.ts";
 import { LEAD_FOLLOW_UP } from "../lib/leadFollowUp.ts";
 import { HQ_PLAN } from "../lib/hq/types.ts";
+import { MONTHLY_MENU, TOOL_BUILDS } from "../lib/toolStudio.ts";
+import { PRO_BUNDLE, PRO_PRICES } from "../lib/tools/pro/index.ts";
 
 test("the fixed business facts never drift", () => {
   assert.equal(BUSINESS.name, "The LeadFlow Pro");
@@ -75,6 +77,25 @@ test("checkout modules charge exactly what the registry advertises", () => {
     const registry = OFFERS.find((o) => o.href === rung.href && o.priceUsd === rung.priceValue);
     assert.ok(registry, `${rung.id} is missing from lib/site/offers.ts`);
     assert.equal(registry.priceLabel, rung.price, rung.id);
+  }
+});
+
+test("Tool Studio and Pro Kit amounts are registered in PRICES and mirrored by an offer row", () => {
+  const registered = new Set<number>(Object.values(PRICES));
+  for (const item of MONTHLY_MENU) assert.ok(registered.has(item.priceUsd), `${item.id} charges ${item.priceUsd}, not in PRICES`);
+  for (const build of TOOL_BUILDS) assert.ok(registered.has(build.priceUsd), `${build.id} charges ${build.priceUsd}, not in PRICES`);
+  assert.ok(registered.has(PRO_BUNDLE.priceUsd), "PRO_BUNDLE price is not in PRICES");
+  for (const price of PRO_PRICES) assert.ok(registered.has(price), `kit price ${price} is not in PRICES`);
+  assert.deepEqual([...PRO_PRICES], [PRICES.proKitMin, PRICES.proKitMid, PRICES.proKitMax]);
+  assert.equal(offer("pro_bundle").priceUsd, PRICES.proBundle);
+  assert.equal(offer("pro_bundle").priceUsd, PRO_BUNDLE.priceUsd);
+  assert.equal(offer("tool_studio_funnel").priceUsd, PRICES.toolStudioFunnel);
+  assert.equal(offer("tool_studio_funnel").priceUsd, TOOL_BUILDS.find((b) => b.id === "tool_funnel")?.priceUsd);
+  for (const item of MONTHLY_MENU) {
+    const row = offer(`tool_studio_${item.id}`);
+    assert.equal(row.priceUsd, item.priceUsd, item.id);
+    assert.equal(row.priceLabel, usdPerMonth(item.priceUsd), item.id);
+    assert.ok(row.terms.includes(item.description), `${item.id} terms must carry the menu description`);
   }
 });
 

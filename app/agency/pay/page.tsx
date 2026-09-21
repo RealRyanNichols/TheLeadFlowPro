@@ -23,9 +23,12 @@ export const metadata: Metadata = withPublicPageMetadata("/agency/pay", {
 export default async function AgencyPayPage({
   searchParams,
 }: {
-  searchParams: Promise<{ service?: string; cancelled?: string }>;
+  searchParams: Promise<{ service?: string; cancelled?: string; lead?: string }>;
 }) {
-  const { service, cancelled } = await searchParams;
+  const { service, cancelled, lead } = await searchParams;
+  // The lead Ryan put on the link. Only a well-formed id is carried; the
+  // page never reads or shows anything about that lead.
+  const leadId = typeof lead === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lead) ? lead.toLowerCase() : null;
   const services: PayableService[] = payableAgencyServices().map((s) => {
     const fixed = agencyFixedPriceUsd(s);
     return {
@@ -84,7 +87,7 @@ export default async function AgencyPayPage({
               , paid on its own page.
             </p>
           </div>
-          <AgencyPayForm services={services} preselected={preselected} cancelled={cancelled === "1"} />
+          <AgencyPayForm services={services} preselected={preselected} cancelled={cancelled === "1"} leadId={leadId} />
         </div>
       </main>
       <footer className="router-footer">

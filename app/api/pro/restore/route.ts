@@ -35,7 +35,7 @@ const SITE = "https://www.theleadflowpro.com";
 // loop it against a buyer's address and fire branded mail from our domain.
 // This is a best-effort in-memory limiter; serverless instances are
 // ephemeral, so it bounds bursts per instance rather than being airtight,
-// which is the right cost for a $19 product. Key checks are pure HMAC math
+// which is the right cost for a PRICES.proKitMid product. Key checks are pure HMAC math
 // and are not throttled.
 const RESEND_WINDOW_MS = 60 * 60 * 1000;
 const RESEND_MAX_PER_WINDOW = 3;

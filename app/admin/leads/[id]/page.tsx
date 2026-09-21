@@ -2,6 +2,9 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { safeLeadDiagnostic } from "@/lib/leadTimeline";
+import { agencyPayHref } from "@/lib/agencyPayment";
+import { BUSINESS } from "@/lib/site/business";
+import CopyButton from "@/app/hq/_components/CopyButton";
 import LeadWorkspace from "./LeadWorkspace";
 
 export const metadata = { title: "Lead Workspace | The LeadFlow Pro" };
@@ -120,10 +123,14 @@ export default async function LeadWorkspacePage({
 
   return (
     <>
-      <div className="mb-3 flex justify-end">
+      <div className="mb-3 flex flex-wrap justify-end gap-2">
         <Link href={`/admin/proposals/${id}`} className="hq-btn hq-btn-sm">
           Draft proposal from this intake
         </Link>
+        <Link href={`/admin/sales/invoices?lead=${id}`} className="hq-btn hq-btn-sm">
+          Create invoice
+        </Link>
+        <CopyButton value={`${BUSINESS.siteUrl}${agencyPayHref(null, id)}`} label="Copy agency pay link" />
       </div>
     <LeadWorkspace
       lead={{
