@@ -2,14 +2,21 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { loadCallSheet, LOOKBACK_DAYS } from "@/lib/callSheetServer";
-import { ANSWER_WINDOW_HOURS, FOLLOW_UP_AFTER_DAYS, TIER_LABELS, ageLabel, tiers } from "@/lib/callSheet";
+import { ANSWER_WINDOW_HOURS, FOLLOW_UP_AFTER_DAYS, TIER_LABELS, TIER_ORDER, ageLabel, tiers } from "@/lib/callSheet";
+import { speedToLeadLine } from "@/lib/speedToLead";
 import { BUSINESS } from "@/lib/site/business";
 import { toE164 } from "@/lib/quo";
 import LiveRefresh from "../command-center/LiveRefresh";
 
 // Who to call today, in order. Read-only: every action on this page is a
-// phone link, a text link, or a link into the lead workspace where the note
-// gets written. Writing the note is what takes a lead off this sheet.
+// phone link, a text link, or a link into the call card, where the outcome
+// gets logged. Logging the outcome is what takes a lead off this sheet, and
+// it decides when the lead comes back (a call back time, a sit-down, the next
+// try after no answer).
+//
+// The speed-to-lead line under the heading comes from the same rows the
+// sheet was built from. It is Ryan's own record of his own follow-up, shown
+// only here, never as a public claim.
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Call sheet | The LeadFlow Pro" };
@@ -54,11 +61,25 @@ export default async function CallSheetPage() {
           <h2 className="text-2xl font-black">Today&apos;s call sheet</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
             {stamp} Central. Leads from the last {LOOKBACK_DAYS} days that a person has not called, texted, or written a note
-            about. The welcome email and the automatic text do not count. A note or a logged call takes a lead off this list.
+            about, plus the call backs you promised that are now due. The welcome email and the automatic text do not count.
+            Open the call card and log how the call went: that takes the lead off this list and sets when it comes back, at the
+            call back time you pick, the day of a sit-down, or the next try after no answer.
           </p>
+          {loaded.ok ? (
+            <p className="mt-2 text-sm text-[var(--text)]">
+              <span className="font-bold">From your own records:</span> {speedToLeadLine(loaded.speed)}
+            </p>
+          ) : null}
         </div>
         <LiveRefresh />
       </div>
+
+      {loaded.ok && loaded.partial ? (
+        <p className="card mb-5 !p-4 text-sm" role="status">
+          Some call and message history did not load, so a lead below may already have been reached. Check the thread on the
+          call card before you dial.
+        </p>
+      ) : null}
 
       {!loaded.ok ? (
         <div className="card" role="alert">
@@ -70,7 +91,8 @@ export default async function CallSheetPage() {
           <h3 className="font-bold">Nothing waiting on you.</h3>
           <p className="my-3 text-sm text-[var(--muted)]">
             Every open lead from the last {LOOKBACK_DAYS} days has a note, a call, or a message from a person on it within the
-            last {FOLLOW_UP_AFTER_DAYS} days. New leads land here the moment they arrive.
+            last {FOLLOW_UP_AFTER_DAYS} days, or a call back set for later. New leads land here the moment they arrive, and a call
+            back comes back the moment it is due.
           </p>
           <Link href="/admin" className="font-bold text-[var(--blue)]">
             Open the full lead list
@@ -78,8 +100,8 @@ export default async function CallSheetPage() {
         </div>
       ) : (
         <>
-          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {(["reply", "answer", "waiting", "follow_up"] as const).map((tier) => (
+          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
+            {TIER_ORDER.map((tier) => (
               <div key={tier} className="card !p-4 text-center">
                 <div className="text-3xl font-black text-[var(--heading)]">{loaded.sheet.counts[tier]}</div>
                 <div className="text-xs uppercase tracking-wide text-[var(--muted)]">{TIER_LABELS[tier].title}</div>
@@ -143,8 +165,17 @@ export default async function CallSheetPage() {
                               Email
                             </a>
                           ) : null}
-                          <Link href={row.href} className="min-h-[44px] rounded-lg border border-[var(--line-strong)] px-4 py-2 text-sm font-bold text-[var(--blue)]">
-                            Open and log the call
+                          <Link
+                            href={row.href}
+                            className="min-h-[44px] rounded-lg border border-[var(--accent-line)] bg-[var(--accent-tint)] px-4 py-2 text-sm font-bold text-[var(--blue)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--blue)]"
+                          >
+                            Open call card
+                          </Link>
+                          <Link
+                            href={`/admin/leads/${row.lead.id}`}
+                            className="min-h-[44px] rounded-lg px-2 py-2 text-sm font-semibold text-[var(--blue)] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--blue)]"
+                          >
+                            Full record
                           </Link>
                         </div>
                       </div>
@@ -163,9 +194,10 @@ export default async function CallSheetPage() {
             .
           </p>
           <p className="text-xs text-[var(--muted)]">
-            Answer now means under {ANSWER_WINDOW_HOURS} hours old. Follow up means the last human touch was {FOLLOW_UP_AFTER_DAYS} or more days ago and the
-            lead is still open. {loaded.sheet.excluded.length} record{loaded.sheet.excluded.length === 1 ? "" : "s"} in the window left off: won, lost, test,
-            no way to reach them, or touched recently.
+            Answer now means under {ANSWER_WINDOW_HOURS} hours old. You said you would call means a call back you logged has come due and nobody has
+            touched the lead since. Follow up means the last human touch was {FOLLOW_UP_AFTER_DAYS} or more days ago and the lead is still open.{" "}
+            {loaded.sheet.excluded.length} record{loaded.sheet.excluded.length === 1 ? "" : "s"} in the window left off: won, lost, test, no way to reach
+            them, touched recently, or a call back set for later.
           </p>
         </>
       )}

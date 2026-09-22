@@ -14,11 +14,17 @@ import {
   canText,
   classifyCall,
   isHumanOutboundText,
+  NOTE_SUMMARY_MAX,
+  noteSummary,
   sourceLabel,
+  TIER_LABELS,
+  TIER_ORDER,
   tiers,
+  touchesFromRows,
   type CallSheetLead,
   type CallSheetTouch,
 } from "../lib/callSheet.ts";
+import { copyProblems } from "../lib/hq/copy.ts";
 import { leadConsultationTextBody, leadTextBackBody } from "../lib/leadNotify.ts";
 import { INBOUND_AUTO_REPLY } from "../lib/quo.ts";
 
@@ -40,6 +46,7 @@ function lead(overrides: Partial<CallSheetLead> & { id: string }): CallSheetLead
     sms_consent: false,
     sms_unsubscribed_at: null,
     is_test: false,
+    next_follow_up_at: null,
     ...overrides,
   };
 }
@@ -93,7 +100,11 @@ test("texting on the sheet needs consent and no STOP since, in the row and in th
   const server = readFileSync(join(process.cwd(), "lib/callSheetServer.ts"), "utf8");
   assert.ok(server.includes("sms_unsubscribed_at"), "the loader selects the STOP timestamp");
   assert.ok(server.includes("direction, outcome"), "the loader selects call direction and outcome");
-  assert.ok(server.includes("isHumanOutboundText(m.body)") && server.includes("classifyCall("));
+  // The row mapping moved into the pure touchesFromRows; the loader must hand every row to it.
+  assert.ok(server.includes("touchesFromRows("), "the loader maps rows through touchesFromRows");
+  const sheetSource = readFileSync(join(process.cwd(), "lib/callSheet.ts"), "utf8");
+  const mapping = sheetSource.slice(sheetSource.indexOf("export function touchesFromRows("));
+  assert.ok(mapping.includes("isHumanOutboundText(m.body)") && mapping.includes("classifyCall("));
 });
 
 test("untouched leads rank newest first, split at the answer window, and the automation's reply never counts", () => {
@@ -116,7 +127,13 @@ test("untouched leads rank newest first, split at the answer window, and the aut
   assert.equal(sheet.counts.waiting, 1);
   assert.match(sheet.rows[0].reason, /came in 1 hour ago from Meta lead ad asking about Free Website Program/);
   assert.match(sheet.rows[0].reason, /No call, text, or note from a person yet/);
-  assert.equal(sheet.rows[0].href, "/admin/leads/newest");
+  // Every row opens the call card, where the outcome is logged.
+  assert.equal(sheet.rows[0].href, "/admin/call-sheet/newest");
+  assert.deepEqual(
+    sheet.rows.map((r) => r.href),
+    ["/admin/call-sheet/newest", "/admin/call-sheet/mid", "/admin/call-sheet/old"],
+  );
+  assert.ok(sheet.rows.every((r) => r.callbackAt === null), "only the callback tier carries a due time");
 });
 
 test("a note, a call, or an outbound message is a touch; a recent touch removes the lead; an old one makes it a follow-up", () => {
@@ -242,6 +259,293 @@ test("the cron is off unless the flag is exactly true, and only ever addresses t
   const crons = JSON.parse(readFileSync(join(process.cwd(), "vercel.json"), "utf8")) as { crons: { path: string }[] };
   assert.ok(crons.crons.some((c) => c.path === "/api/cron/call-sheet"));
   const server = readFileSync(join(process.cwd(), "lib/callSheetServer.ts"), "utf8");
-  assert.ok(server.includes("isHumanOutboundText"), "the automatic texts are excluded from touches");
+  const sheetSource = readFileSync(join(process.cwd(), "lib/callSheet.ts"), "utf8");
+  assert.ok(server.includes("touchesFromRows(") && sheetSource.includes("isHumanOutboundText"), "the automatic texts are excluded from touches");
   assert.ok(!server.includes(".insert(") && !server.includes(".update(") && !server.includes(".delete("), "the loader is read-only");
+  assert.ok(!server.includes(".upsert(") && !server.includes(".rpc("), "the loader is read-only");
+});
+
+// ---------------------------------------------------------------------------
+// The Call Closer's promise: next_follow_up_at, honoured once a person has
+// touched the lead. NOW is Sunday 2026-09-20 at 8:00 AM CDT.
+// ---------------------------------------------------------------------------
+
+const FRI_10AM = "2026-09-18T15:00:00.000Z"; // Fri, Sep 18 at 10:00 AM CDT
+const THU_9AM = "2026-09-17T14:00:00.000Z"; // Thu, Sep 17 at 9:00 AM CDT
+const SAT_230PM = "2026-09-19T19:30:00.000Z"; // Sat, Sep 19 at 2:30 PM CDT
+const TUE_10AM = "2026-09-22T15:00:00.000Z"; // Tue, Sep 22 at 10:00 AM CDT, still ahead
+
+test("a call back that has come due puts the lead under You said you would call, with the last note beside it", () => {
+  const cb = lead({ id: "cb", status: "contacted", created_at: hoursAgo(200), business_name: "Sample Roofing (fictional)", next_follow_up_at: FRI_10AM });
+  const touches = touchesFromRows({
+    notes: [
+      { lead_id: "cb", created_at: "2026-09-14T15:00:00.000Z", body: "First try. Left a voicemail." },
+      {
+        lead_id: "cb",
+        created_at: "2026-09-15T20:00:00.000Z",
+        body: "Call: talked, call back later. Outcome: call_back. Ref 0123456789abcdef0123\n\nWants a price on the website build first.",
+      },
+    ],
+    calls: [],
+    messages: [],
+  });
+  const sheet = buildCallSheet([cb], touches, NOW);
+  assert.deepEqual(sheet.rows.map((r) => [r.lead.id, r.tier]), [["cb", "callback"]]);
+  const row = sheet.rows[0];
+  assert.equal(row.callbackAt, FRI_10AM);
+  assert.equal(row.reason, "You set a call back with Lead cb at Sample Roofing (fictional) for Fri, Sep 18 at 10:00 AM. Last: Call: talked, call back later.");
+  assert.equal(row.href, "/admin/call-sheet/cb");
+  assert.equal(sheet.counts.callback, 1);
+  assert.deepEqual(copyProblems(row.reason), []);
+
+  // No note on file: the promise still stands, just without a "Last:" line.
+  const called = buildCallSheet([cb], [{ lead_id: "cb", at: "2026-09-15T20:00:00.000Z", kind: "call" }], NOW);
+  assert.equal(called.rows[0].tier, "callback");
+  assert.equal(called.rows[0].reason, "You set a call back with Lead cb at Sample Roofing (fictional) for Fri, Sep 18 at 10:00 AM.");
+
+  // The tier sits right under "They reached out".
+  assert.deepEqual([...TIER_ORDER], ["reply", "callback", "answer", "waiting", "follow_up"]);
+  assert.equal(TIER_LABELS.callback.title, "You said you would call");
+});
+
+test("a call back set for later hides a touched lead, but never a lead nobody has touched", () => {
+  const leads = [
+    // Touched an hour ago, call back Tuesday: off the sheet until then.
+    lead({ id: "later", status: "contacted", created_at: hoursAgo(30), next_follow_up_at: TUE_10AM }),
+    // Silent for nine days would be a follow-up, but the promise is still ahead.
+    lead({ id: "quiet", status: "contacted", created_at: hoursAgo(400), next_follow_up_at: TUE_10AM }),
+    // Nobody has touched these. The field is ignored completely.
+    lead({ id: "untouched_future", created_at: hoursAgo(5), next_follow_up_at: TUE_10AM }),
+    lead({ id: "untouched_past", created_at: hoursAgo(6), next_follow_up_at: FRI_10AM }),
+    // /api/business-diagnostic sets next_follow_up_at to the submission time on a brand-new lead.
+    lead({ id: "diag_new", created_at: hoursAgo(2), next_follow_up_at: hoursAgo(2) }),
+    lead({ id: "diag_old", created_at: hoursAgo(100), next_follow_up_at: hoursAgo(100) }),
+  ];
+  const touches: CallSheetTouch[] = [
+    { lead_id: "later", at: hoursAgo(1), kind: "call" },
+    { lead_id: "quiet", at: hoursAgo(24 * 9), kind: "note", summary: "Talked." },
+  ];
+  const sheet = buildCallSheet(leads, touches, NOW);
+  assert.deepEqual(
+    sheet.rows.map((r) => [r.lead.id, r.tier]),
+    [
+      ["diag_new", "answer"],
+      ["untouched_future", "answer"],
+      ["untouched_past", "answer"],
+      ["diag_old", "waiting"],
+    ],
+  );
+  assert.equal(sheet.counts.callback, 0);
+  assert.deepEqual(
+    sheet.excluded.map((e) => [e.id, e.reason]),
+    [
+      ["later", "call back set for Tue, Sep 22 at 10:00 AM"],
+      ["quiet", "call back set for Tue, Sep 22 at 10:00 AM"],
+    ],
+  );
+  assert.match(sheet.rows[0].reason, /No call, text, or note from a person yet/);
+});
+
+test("a touch after the call back came due means the promise was kept, so the five-day rule decides", () => {
+  const leads = [
+    // Due Friday, called Saturday: touched recently, off the sheet.
+    lead({ id: "kept", status: "contacted", created_at: hoursAgo(300), next_follow_up_at: FRI_10AM }),
+    // Due twelve days ago, last touched nine days ago (after it came due): a follow-up again.
+    lead({ id: "kept_long_ago", status: "proposal", created_at: hoursAgo(500), next_follow_up_at: hoursAgo(24 * 12) }),
+    // A touch exactly at the due instant counts as keeping it.
+    lead({ id: "on_time", status: "contacted", created_at: hoursAgo(300), next_follow_up_at: FRI_10AM }),
+    // An unreadable value is treated as no promise at all.
+    lead({ id: "garbled", status: "contacted", created_at: hoursAgo(300), next_follow_up_at: "not a date" }),
+  ];
+  const touches: CallSheetTouch[] = [
+    { lead_id: "kept", at: hoursAgo(24 * 4), kind: "note" },
+    { lead_id: "kept", at: SAT_230PM, kind: "call" },
+    { lead_id: "kept_long_ago", at: hoursAgo(24 * 13), kind: "note" },
+    { lead_id: "kept_long_ago", at: hoursAgo(24 * 9), kind: "message_out" },
+    { lead_id: "on_time", at: FRI_10AM, kind: "call" },
+    { lead_id: "garbled", at: hoursAgo(24 * 6), kind: "note" },
+  ];
+  const sheet = buildCallSheet(leads, touches, NOW);
+  assert.deepEqual(
+    sheet.rows.map((r) => [r.lead.id, r.tier]),
+    [
+      ["kept_long_ago", "follow_up"],
+      ["garbled", "follow_up"],
+    ],
+  );
+  assert.ok(sheet.rows.every((r) => r.callbackAt === null));
+  assert.ok(sheet.excluded.some((e) => e.id === "kept" && e.reason.startsWith("touched")));
+  assert.ok(sheet.excluded.some((e) => e.id === "on_time" && e.reason.startsWith("touched")));
+});
+
+test("a reply from the lead still beats a call back that is due", () => {
+  const cb = lead({ id: "both", status: "contacted", created_at: hoursAgo(200), next_follow_up_at: FRI_10AM });
+  const touches: CallSheetTouch[] = [
+    { lead_id: "both", at: "2026-09-15T20:00:00.000Z", kind: "note", summary: "Talked, call back Friday." },
+    { lead_id: "both", at: hoursAgo(2), kind: "message_in" },
+  ];
+  const sheet = buildCallSheet([cb], touches, NOW);
+  assert.deepEqual(sheet.rows.map((r) => [r.lead.id, r.tier]), [["both", "reply"]]);
+  assert.match(sheet.rows[0].reason, /sent a message 2 hours ago and nothing has gone back since/);
+  assert.equal(sheet.rows[0].callbackAt, null);
+});
+
+test("call backs sort by the promised time, earliest first, not by when the lead came in", () => {
+  const leads = [
+    lead({ id: "sat", status: "contacted", created_at: hoursAgo(50), next_follow_up_at: SAT_230PM }),
+    lead({ id: "thu", status: "contacted", created_at: hoursAgo(400), next_follow_up_at: THU_9AM }),
+    lead({ id: "fri", status: "contacted", created_at: hoursAgo(100), next_follow_up_at: FRI_10AM }),
+    lead({ id: "fresh", created_at: hoursAgo(1) }),
+  ];
+  const touches: CallSheetTouch[] = [
+    { lead_id: "sat", at: hoursAgo(48), kind: "call" },
+    { lead_id: "thu", at: hoursAgo(24 * 5), kind: "call" },
+    { lead_id: "fri", at: hoursAgo(90), kind: "call" },
+  ];
+  const sheet = buildCallSheet(leads, touches, NOW);
+  assert.deepEqual(
+    sheet.rows.map((r) => [r.lead.id, r.tier]),
+    [
+      ["thu", "callback"],
+      ["fri", "callback"],
+      ["sat", "callback"],
+      ["fresh", "answer"],
+    ],
+  );
+  assert.deepEqual(sheet.rows.slice(0, 3).map((r) => r.callbackAt), [THU_9AM, FRI_10AM, SAT_230PM]);
+  assert.match(sheet.rows[2].reason, /for Sat, Sep 19 at 2:30 PM\./);
+  assert.equal(tiers(sheet).map((g) => g.tier).join(","), "callback,answer");
+});
+
+test("an outbound message the provider rejected is not a touch", () => {
+  const touches = touchesFromRows({
+    notes: [],
+    calls: [],
+    messages: [
+      { lead_id: "a", direction: "out", channel: "sms", body: "Hi Sam, Ryan here. Thursday at 2 work for you?", created_at: hoursAgo(1), delivered: false },
+      { lead_id: "b", direction: "out", channel: "email", body: "Hi Pat, Ryan here. Here is the link we talked about.", created_at: hoursAgo(1), delivered: true },
+      { lead_id: "c", direction: "out", body: "Hi Lee, Ryan here.", created_at: hoursAgo(1) },
+      { lead_id: "d", direction: "out", channel: "sms", body: INBOUND_AUTO_REPLY, created_at: hoursAgo(1), delivered: true },
+    ],
+  });
+  assert.deepEqual(
+    touches.map((t) => [t.lead_id, t.kind]),
+    [
+      ["b", "message_out"],
+      ["c", "message_out"],
+    ],
+  );
+  // The rejected text leaves the lead exactly where it was: nobody has reached them.
+  const sheet = buildCallSheet([lead({ id: "a" })], touches, NOW);
+  assert.deepEqual(sheet.rows.map((r) => [r.lead.id, r.tier]), [["a", "answer"]]);
+});
+
+test("a reply logged by hand (channel note) is a person's touch, not a reply still owed", () => {
+  const touches = touchesFromRows({
+    notes: [],
+    calls: [],
+    messages: [
+      { lead_id: "logged", direction: "in", channel: "note", body: "Yes, call me Tuesday after lunch.\nThey run two crews.", created_at: hoursAgo(3), delivered: true },
+      { lead_id: "texted", direction: "in", channel: "sms", body: "Is this still available?", created_at: hoursAgo(3), delivered: true },
+    ],
+  });
+  assert.deepEqual(touches, [
+    { lead_id: "logged", at: hoursAgo(3), kind: "note", summary: "They said: Yes, call me Tuesday after lunch." },
+    { lead_id: "texted", at: hoursAgo(3), kind: "message_in" },
+  ]);
+  const sheet = buildCallSheet([lead({ id: "logged", status: "contacted" }), lead({ id: "texted", status: "contacted" })], touches, NOW);
+  assert.deepEqual(sheet.rows.map((r) => [r.lead.id, r.tier]), [["texted", "reply"]]);
+  assert.ok(sheet.excluded.some((e) => e.id === "logged" && e.reason === "touched 3 hours ago"));
+});
+
+test("calls the Quo layer scoped out of the company are ignored; company calls and notes still count", () => {
+  const touches = touchesFromRows({
+    notes: [{ lead_id: "n", created_at: hoursAgo(4) }],
+    calls: [
+      { lead_id: "company", started_at: hoursAgo(1), direction: "outgoing", outcome: "answered", scope_status: "company" },
+      { lead_id: "unscoped", started_at: hoursAgo(1), direction: "outgoing", outcome: "answered" },
+      { lead_id: "noise", started_at: hoursAgo(1), direction: "outgoing", outcome: "answered", scope_status: "noise" },
+      { lead_id: "review", started_at: hoursAgo(1), direction: "incoming", outcome: "missed", scope_status: "review" },
+      { lead_id: "excluded", started_at: hoursAgo(1), direction: "outgoing", outcome: "answered", scope_status: "excluded" },
+      { lead_id: null, started_at: hoursAgo(1), direction: "outgoing", outcome: "answered", scope_status: "company" },
+      { lead_id: "missed", started_at: hoursAgo(1), direction: "incoming", outcome: "missed", scope_status: "company" },
+    ],
+    messages: [],
+  });
+  assert.deepEqual(
+    touches.map((t) => [t.lead_id, t.kind]),
+    [
+      ["n", "note"],
+      ["company", "call"],
+      ["unscoped", "call"],
+      ["missed", "call_in"],
+    ],
+  );
+  assert.equal(touches[0].summary, null, "a note with no body has no summary");
+  // A personal call on the same number does not take a waiting lead off the sheet.
+  const sheet = buildCallSheet([lead({ id: "noise" }), lead({ id: "company" })], touches, NOW);
+  assert.deepEqual(sheet.rows.map((r) => [r.lead.id, r.tier]), [["noise", "answer"]]);
+});
+
+test("note summaries are the first line, markers removed, never longer than the cap", () => {
+  assert.equal(noteSummary("Call: no answer. Outcome: no_answer. Ref 0123456789abcdef0123\n\nTry after 4."), "Call: no answer.");
+  assert.equal(noteSummary("Proposal sent. Outcome: proposal_sent. Offer ids: website_launch, system_map. Ref ABCDEF0123456789abcd-ef"), "Proposal sent.");
+  assert.equal(noteSummary("\n\n   Talked   to the owner.  \nSecond line."), "Talked to the owner.");
+  assert.equal(noteSummary("Outcome: great. Referral from Pat."), "Outcome: great. Referral from Pat.", "ordinary words mid-line are left alone");
+  assert.equal(noteSummary("Left a voicemail. Outcome: voicemail."), "Left a voicemail.");
+  assert.equal(noteSummary("Booked Thursday. Ref 0123456789abcdef0123"), "Booked Thursday.");
+  assert.equal(noteSummary(""), null);
+  assert.equal(noteSummary(null), null);
+  assert.equal(noteSummary(undefined), null);
+  const long = noteSummary(`Talked about ${"the website and the ads ".repeat(20)}`)!;
+  assert.ok(long.length <= NOTE_SUMMARY_MAX && long.length > NOTE_SUMMARY_MAX - 10, String(long.length));
+  assert.ok(long.startsWith("Talked about the website") && long.endsWith("..."));
+  const reply = touchesFromRows({ notes: [], calls: [], messages: [{ lead_id: "x", direction: "in", channel: "note", body: "y".repeat(400), created_at: hoursAgo(1) }] });
+  assert.equal(reply[0].summary!.length, NOTE_SUMMARY_MAX);
+});
+
+test("the email counts call backs in the subject, prints the tier, and links each row to its call card", () => {
+  const leads = [
+    lead({ id: "c1", status: "contacted", created_at: hoursAgo(200), next_follow_up_at: THU_9AM }),
+    lead({ id: "c2", status: "contacted", created_at: hoursAgo(200), next_follow_up_at: FRI_10AM }),
+    lead({ id: "r1", status: "contacted", created_at: hoursAgo(200) }),
+    lead({ id: "n1", created_at: hoursAgo(1) }),
+  ];
+  const touches: CallSheetTouch[] = [
+    { lead_id: "c1", at: hoursAgo(24 * 6), kind: "note", summary: "Talked, wants Thursday." },
+    { lead_id: "c2", at: hoursAgo(24 * 6), kind: "call" },
+    { lead_id: "r1", at: hoursAgo(24 * 6), kind: "call" },
+    { lead_id: "r1", at: hoursAgo(1), kind: "message_in" },
+  ];
+  const sheet = buildCallSheet(leads, touches, NOW);
+  const email = callSheetEmail(sheet, "https://www.theleadflowpro.com")!;
+  assert.equal(email.subject, "Call sheet: 1 to reply to, 2 call backs due, 1 to answer now");
+  assert.ok(email.text.includes("YOU SAID YOU WOULD CALL"));
+  assert.ok(email.text.indexOf("THEY REACHED OUT") < email.text.indexOf("YOU SAID YOU WOULD CALL"));
+  assert.ok(email.text.indexOf("YOU SAID YOU WOULD CALL") < email.text.indexOf("ANSWER NOW"));
+  assert.ok(email.text.includes("Last: Talked, wants Thursday."));
+  assert.ok(email.text.includes("https://www.theleadflowpro.com/admin/call-sheet/c1"));
+  assert.ok(!email.text.includes("/admin/leads/"), "rows link to the call card");
+  assert.deepEqual(copyProblems(email.text), []);
+  for (const label of Object.values(TIER_LABELS)) assert.deepEqual(copyProblems(`${label.title} ${label.lead}`), []);
+
+  const one = buildCallSheet([leads[0]], touches, NOW);
+  assert.equal(callSheetEmail(one, "https://www.theleadflowpro.com")!.subject, "Call sheet: 1 call back due");
+});
+
+test("the loader reads the columns the rules need, flags a capped read, and still writes nothing", () => {
+  const server = readFileSync(join(process.cwd(), "lib/callSheetServer.ts"), "utf8");
+  assert.ok(server.includes("is_test, next_follow_up_at"), "leads: the promised call back");
+  assert.ok(server.includes('"lead_id, created_at, body"'), "notes: the body for the summary");
+  assert.ok(server.includes('"lead_id, started_at, direction, outcome, scope_status"'), "calls: the Quo scope");
+  assert.ok(server.includes('"lead_id, direction, channel, body, created_at, delivered"'), "messages: channel and delivery");
+  assert.ok(server.includes(">= TOUCH_ROW_CAP"), "a history query that hits the row cap marks the load partial");
+  assert.ok(server.includes("speedToLead(leads, touches, now"), "speed to lead rides on the same rows");
+  assert.ok(!server.includes("fetch(") && !server.includes("lib/supabase/service"));
+  const page = readFileSync(join(process.cwd(), "app/admin/call-sheet/page.tsx"), "utf8");
+  assert.ok(page.includes("From your own records"));
+  assert.ok(page.includes("speedToLeadLine(loaded.speed)"), "the page shows the line without another query");
+  assert.ok(page.includes("sm:grid-cols-5") && page.includes("TIER_ORDER.map"), "five tiles, callback included");
+  assert.ok(page.includes("Open call card") && page.includes("href={row.href}"));
+  assert.ok(!page.includes(".from(\"lead_"), "the page reads nothing itself beyond the role check");
 });

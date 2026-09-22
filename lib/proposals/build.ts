@@ -6,11 +6,23 @@
 // quoted, not paraphrased into claims. When something the proposal needs
 // is missing (a TBD price, no business name), it is listed under
 // `missing` so Ryan fixes it before sending. Nothing here sends anything.
+//
+// Two ways in. By default the offers come from the lead's interest or the
+// agency intake's services. When Ryan picks offers with the lead on a call
+// (the Call Closer's "Wants a proposal"), that selection replaces the
+// interest mapping, because what they chose together beats what a form
+// guessed. How the customer pays comes from lib/payDoors.ts, so the "To
+// accept" lines print the same published link the Call Closer hands Ryan,
+// and never promise an invoice for a build that costs nothing.
+//
+// This module must not import lib/callCloser.ts (which imports this one),
+// and it imports no email, text, or messaging code.
 
-import { AGENCY_SERVICES, OWNERSHIP_PROMISE, agencyOffer, agencyService } from "../site/agency";
+import { AGENCY_SERVICES, OWNERSHIP_PROMISE, agencyOffer, agencyService, type AgencyService } from "../site/agency";
 import { BUSINESS } from "../site/business";
 import { TBD_PRICE_LABEL, offer, type Offer } from "../site/offers";
 import { PRICES, usdPerMonth } from "../site/prices";
+import { FREE_BUILD_ADD_ON_IDS, acceptanceLine, isCloserOfferId, payDoorFor, type CloserOfferId, type PayDoor } from "../payDoors";
 
 export type ProposalIntake = {
   leadId: string;
@@ -103,12 +115,34 @@ function localDate(at: Date): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: BUSINESS.timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(at);
 }
 
-export function buildProposal(intake: ProposalIntake, now: Date): Proposal {
+/** Offers chosen on a call: at most this many make it into one proposal. */
+export const MAX_PROPOSAL_SELECTION = 3;
+
+const CHOSEN_ON_CALL = "Chosen with you on the call.";
+
+/** Closer offers only, deduped, never a retired one, first three in the order given. */
+function cleanSelection(selection: readonly unknown[] | null | undefined): CloserOfferId[] {
+  const out: CloserOfferId[] = [];
+  for (const id of selection ?? []) {
+    if (out.length >= MAX_PROPOSAL_SELECTION) break;
+    if (!isCloserOfferId(id) || out.includes(id) || !payDoorFor(id)) continue;
+    out.push(id);
+  }
+  return out;
+}
+
+export type BuildProposalOptions = {
+  /** Offer ids chosen with the lead on a call. Valid closer ids replace the interest mapping. */
+  selection?: string[];
+};
+
+export function buildProposal(intake: ProposalIntake, now: Date, options: BuildProposalOptions = {}): Proposal {
   const missing: string[] = [];
   const d = intake.diagnostic ?? {};
   const labels = (d.labels ?? {}) as Record<string, unknown>;
   const rec = (d.recommendation ?? {}) as Record<string, unknown>;
   const isAgency = intake.interest === "done_for_you" || d.source === "agency_intake";
+  const selection = cleanSelection(options.selection);
 
   // Problem: the client's words, then the diagnostic's own labels. No paraphrase.
   const facts: string[] = [];
@@ -139,37 +173,87 @@ export function buildProposal(intake: ProposalIntake, now: Date): Proposal {
     if (o.status !== "live") missing.push(`${o.name} has no confirmed price (${TBD_PRICE_LABEL}). Set it in lib/site/offers.ts or write the number on the call before sending.`);
   };
 
-  if (isAgency) {
+  // Which kinds of work are on the page decides the ownership and cost lines.
+  let agencyLane = false;
+  let buildLane = false;
+  let followUpLane = false;
+
+  const addAgencyService = (s: AgencyService, why: string) => {
+    agencyLane = true;
+    if (recommended.some((r) => r.offerId === s.offerId)) return;
+    addOffer(agencyOffer(s), why);
+    deliverables.push({ source: s.name, items: [...s.included] });
+    s.clientOwns.forEach((x) => clientOwns.add(x));
+    s.clientPaysDirectly.forEach((x) => vendorCosts.add(x));
+    s.notIncluded.forEach((x) => notIncluded.add(x));
+  };
+  const addWork = (o: Offer, why: string) => {
+    if (recommended.some((r) => r.offerId === o.id)) return;
+    if (o.id === "lead_followup_campaign") followUpLane = true;
+    else buildLane = true;
+    addOffer(o, why);
+    deliverables.push({ source: o.name, items: [o.terms] });
+  };
+
+  if (selection.length) {
+    // Chosen on the call. An agency offer brings its service's scope; the
+    // Website Launch stays a build even though the agency lane sells it too.
+    for (const id of selection) {
+      const o = offer(id);
+      const service = o.category === "agency" ? AGENCY_SERVICES.find((s) => s.offerId === id) : undefined;
+      if (service) addAgencyService(service, CHOSEN_ON_CALL);
+      else addWork(o, CHOSEN_ON_CALL);
+    }
+  } else if (isAgency) {
+    agencyLane = true;
     const slugs = strList(d.services);
     if (slugs.length === 0) missing.push("Agency intake lists no services. Pick at least one before sending.");
     for (const slug of slugs) {
       const s = agencyService(slug);
       if (!s) continue;
-      addOffer(agencyOffer(s), s.promise);
-      deliverables.push({ source: s.name, items: [...s.included] });
-      s.clientOwns.forEach((x) => clientOwns.add(x));
-      s.clientPaysDirectly.forEach((x) => vendorCosts.add(x));
-      s.notIncluded.forEach((x) => notIncluded.add(x));
+      addAgencyService(s, s.promise);
     }
-    OWNERSHIP_PROMISE.points.forEach((p) => clientOwns.add(p));
   } else {
     const primaryId = str(rec.package) ? offerIdForInterest(String(rec.package)) : offerIdForInterest(intake.interest);
     const primary = offer(primaryId ?? "system_map");
     const why = str(rec.package_name) ? `The guided intake recommended ${rec.package_name}.` : `Chosen from the interest on the lead (${intake.interest ?? "unsure"}).`;
-    addOffer(primary, why);
-    deliverables.push({ source: primary.name, items: [primary.terms] });
-    // Every larger build begins with the System Map, credited toward the build (its own terms say so).
-    if (primary.id === "company_os" || primary.id === "custom_platform" || primary.id === "lead_engine" || primary.id === "training_platform") {
-      const map = offer("system_map");
-      addOffer(map, "The build starts with the paid System Map, credited toward the approved build.");
-      deliverables.push({ source: map.name, items: [map.terms] });
-    }
+    addWork(primary, why);
+  }
+
+  // Every larger build begins with the System Map, credited toward the build (its own terms say so).
+  if (recommended.some((r) => payDoorFor(r.offerId)?.kind === "starts_with")) {
+    addWork(offer("system_map"), "The build starts with the paid System Map, credited toward the approved build.");
+  }
+
+  if (agencyLane) OWNERSHIP_PROMISE.points.forEach((p) => clientOwns.add(p));
+  if (buildLane) {
     clientOwns.add("The code, the domain, the hosting account, and every record created for you.");
     clientOwns.add("Every account the build touches is created in your name or moved into it before launch.");
     vendorCosts.add(`Hosting after launch: ${usdPerMonth(PRICES.hostingManagedMonthly)} managed, or ${usdPerMonth(PRICES.hostingWithEditsMonthly)} with two edits a month, billed by The LeadFlow Pro; or your own Vercel account at Vercel's price.`);
     vendorCosts.add("Domain registration, email, and any software subscriptions the build connects to, paid by you to the vendor.");
+  }
+  if (followUpLane) {
+    // The Follow-Up Campaign's own page (lib/leadFollowUp.ts): a document you own, sent from your own phone and email.
+    clientOwns.add("The written follow-up, delivered as a document you own.");
+    vendorCosts.add("None required. Every message is written so you can send it from the phone and email you already use.");
+    notIncluded.add("Sending the messages for you. Having them sent for you is a separate build.");
+  }
+  if (buildLane || followUpLane) {
     notIncluded.add("Ad spend, subscriptions, and anything not written in the deliverables above.");
     notIncluded.add("A promise of a number of leads, a ranking, or a revenue result.");
+  }
+
+  // The free build costs nothing. Its paid add-ons are optional, each with its
+  // registry price, confirmed in writing before a separate secure checkout.
+  if (recommended.some((r) => r.offerId === "free_website_program")) {
+    const extras = FREE_BUILD_ADD_ON_IDS.filter((id) => !recommended.some((r) => r.offerId === id))
+      .map((id) => payDoorFor(id))
+      .filter((door): door is PayDoor => door !== null);
+    if (extras.length) {
+      notIncluded.add(
+        `Optional, priced separately: ${extras.map((x) => `${x.offerName} (${x.priceLabel})`).join(", ")}. Any add-on is confirmed in writing before a separate secure checkout.`,
+      );
+    }
   }
 
   // Modules: the intake's own selection, with the intake's own labels.
@@ -178,11 +262,23 @@ export function buildProposal(intake: ProposalIntake, now: Date): Proposal {
   const modules: ProposalModule[] = moduleIds.map((id, i) => ({ id, label: moduleLabels[i] ?? humanize(id) }));
   if (modules.length) deliverables.push({ source: "Modules selected in the intake", items: modules.map((m) => m.label) });
 
+  // How to pay: one line per published pay door. A larger build's line
+  // already carries the System Map link and price, so the map's own line is
+  // left out beside it.
   const acceptance: string[] = ["Reply to this proposal with the word Approved, or sign the written agreement that follows it."];
-  const withDeposit = recommended.map((r) => offer(r.offerId)).find((o) => o.stripeLink);
-  if (withDeposit) acceptance.push(`Pay the deposit on the ${withDeposit.name} link. Intake begins when the deposit clears.`);
-  else acceptance.push("An invoice for the first payment follows approval. Work begins when it clears.");
-  acceptance.push("A kickoff call is scheduled within five business days of payment.");
+  const doors = recommended.map((r) => payDoorFor(r.offerId)).filter((door): door is PayDoor => door !== null);
+  const mapFirst = doors.some((door) => door.kind === "starts_with");
+  for (const door of doors) {
+    if (door.offerId === "system_map" && mapFirst) continue;
+    const line = acceptanceLine(door);
+    if (!acceptance.includes(line)) acceptance.push(line);
+  }
+  if (doors.length === 0) acceptance.push("An invoice for the first payment follows approval. Work begins when it clears.");
+  if (doors.length > 0 && doors.every((door) => door.kind === "no_payment")) {
+    acceptance.push("Intake begins after your application is approved and the written scope is agreed.");
+  } else {
+    acceptance.push("A kickoff call is scheduled within five business days of payment.");
+  }
 
   const date = localDate(now);
   const validUntil = localDate(new Date(now.getTime() + 30 * 86_400_000));
