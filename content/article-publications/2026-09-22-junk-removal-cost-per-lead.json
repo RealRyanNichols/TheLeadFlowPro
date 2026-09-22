@@ -72,5 +72,35 @@
     "diffCheck": "passed (git diff --check)",
     "copyRules": "No em dashes or en dashes in the article; no hype words; no guaranteed numbers; description is 157 characters.",
     "privacyReview": "No secrets, customer records, or private notes in the diff; the worked example is labeled fictional."
+  },
+  "deployment": {
+    "id": "dpl_7AWgKcat2GVhZujD9CHaPocMambu",
+    "url": "the-lead-flow-6ox3ueq0c-realryannichols.vercel.app",
+    "commit": "ff74e8f71a88b05ae0647c7b8914959dee1cb8ac",
+    "commitNote": "Receipt commit directly on top of content commit ea01c0d; same article tree. Pushed to main at 2026-09-22T19:09:02Z.",
+    "target": "production",
+    "status": "READY",
+    "createdAt": "2026-09-22T19:09:06Z",
+    "readyAt": "2026-09-22T19:11:25Z",
+    "verifiedAt": "2026-09-22T19:11:50Z",
+    "aliases": [
+      "theleadflowpro.com",
+      "www.theleadflowpro.com",
+      "the-lead-flow-pro.vercel.app"
+    ]
+  },
+  "liveCheck": {
+    "checkedAt": "2026-09-22T19:12:06Z",
+    "url": "https://the-lead-flow-pro.vercel.app/articles/junk-removal-cost-per-lead",
+    "canonicalUrl": "https://www.theleadflowpro.com/articles/junk-removal-cost-per-lead",
+    "httpStatus": 200,
+    "bodyVerified": true,
+    "canonicalVerified": true,
+    "calculatorPresent": true,
+    "indexPresent": true,
+    "sitemapPresent": true,
+    "noindexAbsent": true,
+    "method": "After the deployment reached READY, the detail route was fetched over HTTPS on the production alias the-lead-flow-pro.vercel.app, which is aliased to the same deployment as www: 200, x-matched-path /articles/[slug], no x-robots-tag header and no robots meta, <title> 'What does a junk removal lead cost? | The LeadFlow Pro', canonical link to the www URL, datePublished 2026-09-22, og:image pointing at the www opengraph-image route, the body ('A lead is not a load'), the $85.71 worked example, the LEAD COST CHECK fence, the FAQ, both internal article links, and the cost-per-lead-calculator markup with its Marketing spend per month input present. https://www.theleadflowpro.com/articles returned 200 at 19:12:06Z with the article card (data-article-card=\"junk-removal-cost-per-lead\", linking to the article, alt text matching the OG mapping), and https://www.theleadflowpro.com/sitemap.xml returned 200 at 19:12:05Z listing the URL with lastmod 2026-09-22.",
+    "limitation": "The www detail URL itself could not be fetched from this session: the container's egress proxy refuses direct requests to theleadflowpro.com and the Vercel fetch tool could only open www for the index and sitemap routes. The body, canonical, and calculator were verified on the production alias; the www index and sitemap checks are direct. The live mobile review is covered by the 390px Playwright checks on the identical local production build recorded under editorialChecks."
   }
 }
