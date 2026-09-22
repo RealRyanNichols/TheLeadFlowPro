@@ -12,7 +12,12 @@
 -- On the live project this migration is pending but is a no-op, with two
 -- exceptions: it drops the unused default on purchases.kind and adds the new
 -- purchases.lead_id column (plus its index). Every other statement is guarded
--- with "if not exists" and matches the live definition column-for-column.
+-- with "if not exists" and matches the live definition column-for-column,
+-- including the live index name purchases_email_idx on lower(email).
+--
+-- "Fresh database" means one that already holds public.leads (no migration in
+-- this repo creates leads either; sales_invoices depends on it the same way).
+-- The lead_id foreign key is added only when public.leads exists.
 
 create table if not exists public.purchases (
   id uuid primary key default gen_random_uuid(),
@@ -35,17 +40,27 @@ alter table public.purchases alter column kind drop default;
 create unique index if not exists purchases_stripe_session_id_key
   on public.purchases (stripe_session_id);
 
-create index if not exists purchases_email_lower_idx
+create index if not exists purchases_email_idx
   on public.purchases (lower(email));
 
 alter table public.purchases
-  add column if not exists lead_id uuid references public.leads(id) on delete set null;
+  add column if not exists lead_id uuid;
+
+do $$
+begin
+  if to_regclass('public.leads') is not null
+     and not exists (
+       select 1 from pg_constraint
+       where conrelid = 'public.purchases'::regclass and conname = 'purchases_lead_id_fkey'
+     ) then
+    alter table public.purchases
+      add constraint purchases_lead_id_fkey
+      foreign key (lead_id) references public.leads(id) on delete set null;
+  end if;
+end $$;
 
 create index if not exists purchases_lead_id_idx
   on public.purchases (lead_id);
-
-comment on table public.purchases is
-  'Stripe checkout ledger written only by the Stripe webhook; status is one of paid, refunded, disputed, payment_failed.';
 
 -- Row level security is intentionally not touched here. We cannot confirm the
 -- live RLS state of public.purchases from the repo, and enabling it blindly

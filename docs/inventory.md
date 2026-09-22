@@ -277,7 +277,7 @@ Occurrence counts are from the pre-refactor snapshot. File and line references p
 
 - Category: price  ·  Occurrences at snapshot: 7
 - Authoritative source: lib/site/prices.ts for the tier (freeBuildGrowthEngine) and Tool Funnel (toolStudioFunnel); lib/operatoros/catalog.ts literal; lib/operatorAcademyCatalog.ts literal cents
-- Authoritative value now: $997 (PRICES.freeBuildGrowthEngine) for the tier; Tool Funnel $997 (PRICES.toolStudioFunnel, offer tool_studio_funnel) since 2026-09-21
+- Authoritative value now: $997 (PRICES.freeBuildGrowthEngine) for the tier; Tool Funnel $997 (PRICES.toolStudioFunnel, offer tool_studio_funnel) and Quick Tool $497 (PRICES.toolStudioProduction, offer tool_studio_quick_tool) since 2026-09-21
 - Notes: '30-Day Growth Engine' appears only in lib/freeBuild.ts:145 and lib/site/offers.ts:101; no page copy names it.
 
 | File | Line | Context |
@@ -566,7 +566,7 @@ Occurrence counts are from the pre-refactor snapshot. File and line references p
 
 - Category: price  ·  Occurrences at snapshot: 8
 - Authoritative source: lib/site/prices.ts (toolStudioBlueprint, toolStudioProduction, toolStudioFunnel, toolCareMonthly, followUpTuneUpMonthly, contentRefreshMonthly, seoArchiveBatchMonthly, funnelTestMonthly); lib/toolStudio.ts reads every one of them
-- Authoritative value now: $97 / $497 / $997 builds and $97 / $197 / $197 / $297 / $297 monthly, all from PRICES since 2026-09-21, each with an offer row (tool_studio_blueprint, tool_studio_funnel, tool_studio_tool_care, tool_studio_follow_up_tuneup, tool_studio_content_refresh, tool_studio_seo_archive_batch, tool_studio_funnel_test)
+- Authoritative value now: $97 / $497 / $997 builds and $97 / $197 / $197 / $297 / $297 monthly, all from PRICES since 2026-09-21, each with an offer row (tool_studio_blueprint, tool_studio_quick_tool, tool_studio_funnel, tool_studio_tool_care, tool_studio_follow_up_tuneup, tool_studio_content_refresh, tool_studio_seo_archive_batch, tool_studio_funnel_test)
 
 | File | Line | Context |
 | --- | --- | --- |

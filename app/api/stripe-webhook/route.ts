@@ -42,7 +42,7 @@ import { PRICES, usd } from "@/lib/site/prices";
 // SUPABASE_SERVICE_ROLE_KEY (Supabase → Settings → API) in Vercel env vars.
 // Endpoint to register in Stripe: https://www.theleadflowpro.com/api/stripe-webhook
 // Events to send: checkout.session.completed, checkout.session.async_payment_succeeded,
-// checkout.session.async_payment_failed, charge.refunded, charge.dispute.created,
+// checkout.session.async_payment_failed, charge.refunded, charge.dispute.created, charge.dispute.closed,
 // customer.subscription.updated, customer.subscription.deleted,
 // invoice.finalized, invoice.sent,
 // invoice.paid, invoice.payment_failed, invoice.voided, and invoice.marked_uncollectible
@@ -52,14 +52,25 @@ import { PRICES, usd } from "@/lib/site/prices";
 // purpose, so a retried event never sends the same email twice. The ledger
 // throws when the provider rejects a send, which keeps the event retryable.
 
-/** Owner-only alert through the delivery ledger. Skipped, not failed, when Resend is not configured. */
-async function internalAlert(supabase: SupabaseClient, sessionId: string, purpose: string, subject: string, lines: string[]): Promise<boolean> {
+/**
+ * Owner-only alert through the delivery ledger. Skipped, not failed, when
+ * Resend is not configured.
+ *
+ * The ledger refuses a retry whose body differs from the first attempt, so
+ * a body that carries state which can change between attempts (whether the
+ * buyer acknowledgement left) needs its own ledger key per state. The
+ * `acknowledged: false` case is keyed separately; if the acknowledgement
+ * succeeds on a later retry the "sent" alert goes out as a new row instead
+ * of tripping the hash guard, and the owner hears the truth twice rather
+ * than never.
+ */
+async function internalAlert(supabase: SupabaseClient, sessionId: string, purpose: string, subject: string, lines: string[], options: { acknowledged?: boolean } = {}): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) return false;
   await deliverPaymentEmail({
     supabase,
     sessionId,
-    purpose,
+    purpose: options.acknowledged === false ? `${purpose}:noack` : purpose,
     payload: {
       from: `${BUSINESS.name} <${BUSINESS.email.alerts}>`,
       to: [BUSINESS.email.hello],
@@ -326,58 +337,35 @@ async function notifyUnhandledPurchase(
   sessionId: string,
 ) {
   const amount = dollarsOrUnknown(amountCents);
-  const send = ledgerPair(supabase, sessionId, "unhandled");
 
   // Buyer first (idempotent through the ledger), so the owner alert can say
   // truthfully whether the acknowledgement left.
-  let acknowledged = false;
-  try {
-    await send("buyer", {
-      from: `${BUSINESS.operator} <${BUSINESS.email.hello}>`,
-      to: [email],
-      reply_to: BUSINESS.email.hello,
-      subject: "Got your payment. Here is what happens next.",
-    text: [
-      "Thanks. Your payment came through and I have it.",
-      "",
-      `What you paid for: ${kind.replace(/_/g, " ")}`,
-      `Amount: ${amount}`,
-      "",
-      "I do this part by hand rather than firing you into a portal. I will",
-      "reach out within one business day to get started and tell you exactly",
-      "what I need from you.",
-      "",
-      "If you need me before then, just reply to this email or call.",
-      "",
-      "Ryan Nichols",
-      "The LeadFlow Pro",
-      BUSINESS.phone.display,
-      "Longview, Texas",
-    ].join("\n"),
-    });
-    acknowledged = Boolean(process.env.RESEND_API_KEY?.trim());
-  } catch (e) {
-    console.error("buyer acknowledgement failed:", e instanceof Error ? e.message : e);
-  }
+  const acknowledged = await sendBuyerAcknowledgement(supabase, sessionId, "unhandled:buyer", email, "Got your payment. Here is what happens next.", [
+    "Thanks. Your payment came through and I have it.",
+    "",
+    `What you paid for: ${kind.replace(/_/g, " ")}`,
+    `Amount: ${amount}`,
+    "",
+    "I do this part by hand rather than firing you into a portal. I will",
+    "reach out within one business day to get started and tell you exactly",
+    "what I need from you.",
+    "",
+    "If you need me before then, just reply to this email or call.",
+  ]);
 
-  await send("internal", {
-    from: `${BUSINESS.name} <${BUSINESS.email.hello}>`,
-    to: [BUSINESS.email.hello],
-    subject: `💰 PAID: ${kind} ${amount} | ${email}`,
-    text: [
-      "Somebody paid and there is no automated fulfilment for this product.",
-      "",
-      `Product: ${kind}`,
-      `Amount:  ${amount}`,
-      `Buyer:   ${email}`,
-      `Stripe:  ${sessionId}`,
-      "",
-      "Reach out to them today.",
-      acknowledgementLine(acknowledged),
-      "",
-      "Admin: https://www.theleadflowpro.com/admin/purchases",
-    ].join("\n"),
-  });
+  await internalAlert(supabase, sessionId, "unhandled:internal", `💰 PAID: ${kind} ${amount} | ${email}`, [
+    "Somebody paid and there is no automated fulfilment for this product.",
+    "",
+    `Product: ${kind}`,
+    `Amount:  ${amount}`,
+    `Buyer:   ${email}`,
+    `Stripe:  ${sessionId}`,
+    "",
+    "Reach out to them today.",
+    acknowledgementLine(acknowledged),
+    "",
+    "Admin: https://www.theleadflowpro.com/admin/purchases",
+  ], { acknowledged });
 }
 
 /**
@@ -520,7 +508,7 @@ async function ensureSystemMapPaid(supabase: SupabaseClient, session: StripeChec
     acknowledgementLine(acknowledged),
     "",
     `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
-  ]);
+  ], { acknowledged });
   await markLeadActivity(supabase, leadId, `System Map paid through Stripe. Stripe checkout: ${sessionId}.`, "System Map");
 }
 
@@ -567,7 +555,7 @@ async function ensureToolStudioPaid(supabase: SupabaseClient, session: StripeChe
     acknowledgementLine(acknowledged),
     "",
     `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
-  ]);
+  ], { acknowledged });
   await markLeadActivity(supabase, leadId, `Tool Studio order paid through Stripe (${kind}). Stripe checkout: ${sessionId}.`, "Tool Studio");
 }
 
@@ -945,7 +933,7 @@ async function ensureTimebackOrderPaid(
       "They were sent to the welcome intake. Next: the access invites.",
       acknowledgementLine(acknowledged),
       "Admin: https://www.theleadflowpro.com/admin/time-back",
-    ].filter(Boolean));
+    ].filter(Boolean), { acknowledged });
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
       kind: "system",
@@ -1094,7 +1082,7 @@ async function ensureLeadFollowUpPaid(
       "They were sent to the writing intake. The work task is created when that form comes back.",
       acknowledgementLine(acknowledged),
       `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
-    ]);
+    ], { acknowledged });
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
       kind: "system",
@@ -1252,7 +1240,7 @@ async function ensureFreeBuildPaid(
       acknowledgementLine(acknowledged),
       "",
       `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
-    ]);
+    ], { acknowledged });
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
       kind: "system",
@@ -1339,11 +1327,13 @@ async function ensureAgencyPaymentPaid(
     }
   }
   if (!found && !isPlaceholderEmail) {
+    // NOT IN drops rows whose source is null (contact, consultation, and
+    // /start leads have no diagnostic.source), so null is allowed explicitly.
     const byEmail = await supabase
       .from("leads")
       .select(LEAD_FIELDS)
       .ilike("email", escapeIlike(customer.email))
-      .not("diagnostic->>source", "in", `(${FUNNEL_OWNED_SOURCES.map((s) => `"${s}"`).join(",")})`)
+      .or(`diagnostic->>source.is.null,diagnostic->>source.not.in.(${FUNNEL_OWNED_SOURCES.map((s) => `"${s}"`).join(",")})`)
       .is("deleted_at", null)
       .eq("is_test", false)
       .order("created_at", { ascending: false })
@@ -1497,7 +1487,7 @@ async function ensureAgencyPaymentPaid(
       acknowledgementLine(acknowledged),
       "",
       `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
-    ]);
+    ], { acknowledged });
     const activityInsert = await supabase.from("lead_activity").insert({
       lead_id: leadId,
       kind: "system",
@@ -1580,7 +1570,7 @@ async function recordSubscriptionInvoice(
       `Invoice: ${invoice.number ?? invoiceId}${invoice.hostedUrl ? ` ${invoice.hostedUrl}` : ""}`,
       `Subscription: ${invoice.subscriptionId ?? "-"}`,
       "",
-      "Nothing to send them. If it fails again, the subscription goes past due and you will hear about it here.",
+      "Nothing to send them. Only this first failure is reported here; Stripe's later retries on the same invoice are in the Stripe dashboard, and a cancellation will be reported.",
     ]);
     if (invoice.family !== "hq_subscription") {
       await recordPurchase(supabase, { email, kind, amount_cents: invoice.amountPaidCents || null, stripe_session_id: invoiceId, status: "payment_failed" });
@@ -1634,7 +1624,13 @@ async function finishPaidInvoice(
     "NEXT ACTION: start the paid scope. The task is on the lead when there is one.",
     "Purchases: https://www.theleadflowpro.com/admin/purchases",
   ].filter(Boolean));
-  await recordPurchase(supabase, { email, kind: matched ? "sales_invoice" : "stripe_invoice", amount_cents: invoice.amountPaidCents, stripe_session_id: invoiceId, status: "paid" });
+  // A Sales Desk invoice's money already lives in sales_invoices, which the
+  // cash ledger, the scoreboard, and the digest count alongside purchases.
+  // Writing it to purchases too would count it twice. Only an invoice raised
+  // outside the Sales Desk (no row) is recorded here.
+  if (!matched) {
+    await recordPurchase(supabase, { email, kind: "stripe_invoice", amount_cents: invoice.amountPaidCents, stripe_session_id: invoiceId, status: "paid" });
+  }
   if (!leadId) return;
 
   const won = await supabase.from("leads").update({ status: "won" }).eq("id", leadId).is("deleted_at", null);
@@ -1649,53 +1645,93 @@ async function finishPaidInvoice(
   }
 }
 
-/** Refunds, disputes, and failed async payments: tell the owner and flip the purchase status so access and totals follow. */
+/**
+ * Refunds, disputes, failed async payments, and disputes won: tell the owner
+ * and move the purchase status so the totals and account-based access
+ * follow. A purchase is keyed by the checkout session id for one-time
+ * checkouts and by the invoice id for everything paid through an invoice
+ * (renewals, plugin months, Sales Desk and dashboard invoices), so the
+ * charge's own `invoice` field is tried first, then the session by payment
+ * intent, then the charge's invoice through the Stripe API.
+ */
 async function handleMoneyBack(supabase: SupabaseClient, eventType: string, object: unknown) {
   const outcome = refundOutcome(eventType, object);
   if (!outcome) return false;
-  let sessionId = outcome.sessionId;
   const stripeKey = process.env.STRIPE_SECRET_KEY?.trim();
-  if (!sessionId && outcome.paymentIntent) {
+  const stripeGet = async (path: string) => {
+    const r = await fetch(`https://api.stripe.com/v1/${path}`, { headers: { Authorization: `Bearer ${stripeKey}` }, cache: "no-store" });
+    if (!r.ok) throw new Error(`Stripe lookup for ${outcome.status} failed: ${r.status}`);
+    return (await r.json().catch(() => null)) as Record<string, unknown> | null;
+  };
+
+  // The keys a purchases row might carry for this money, most direct first.
+  const candidates: string[] = [];
+  if (outcome.invoiceId) candidates.push(outcome.invoiceId);
+  if (outcome.sessionId) candidates.push(outcome.sessionId);
+  if (!candidates.length && outcome.paymentIntent) {
     if (stripeKey) {
-      const r = await fetch(`https://api.stripe.com/v1/checkout/sessions?payment_intent=${encodeURIComponent(outcome.paymentIntent)}&limit=1`, {
-        headers: { Authorization: `Bearer ${stripeKey}` },
-        cache: "no-store",
-      });
-      if (!r.ok) throw new Error(`Stripe session lookup for ${outcome.status} failed: ${r.status}`);
-      const body = (await r.json().catch(() => null)) as { data?: { id?: unknown }[] } | null;
-      const id = body?.data?.[0]?.id;
-      sessionId = typeof id === "string" ? id.slice(0, 200) : null;
+      const sessions = await stripeGet(`checkout/sessions?payment_intent=${encodeURIComponent(outcome.paymentIntent)}&limit=1`);
+      const id = (sessions?.data as { id?: unknown }[] | undefined)?.[0]?.id;
+      if (typeof id === "string") candidates.push(id.slice(0, 200));
     } else {
-      console.error(`No STRIPE_SECRET_KEY: cannot map ${outcome.status} on ${outcome.paymentIntent} to a checkout session`);
+      console.error(`No STRIPE_SECRET_KEY: cannot map ${outcome.status} on ${outcome.paymentIntent} to a purchase`);
     }
   }
-  const alertKey = outcome.chargeId ?? sessionId ?? outcome.paymentIntent ?? `${eventType}:unknown`;
-  const purpose = outcome.status === "refunded" ? "refund:internal" : outcome.status === "disputed" ? "dispute:internal" : "async-failed:internal";
-  const label = outcome.status === "refunded" ? (outcome.partial ? "PARTIAL REFUND" : "REFUND") : outcome.status === "disputed" ? "DISPUTE" : "PAYMENT FAILED";
-  let purchase: { email: string | null; kind: string | null } | null = null;
-  if (sessionId) {
-    const row = await supabase.from("purchases").select("email, kind").eq("stripe_session_id", sessionId).maybeSingle();
-    if (!row.error && row.data) purchase = row.data;
+  if (!candidates.length && outcome.chargeId && stripeKey && eventType !== "checkout.session.async_payment_failed") {
+    const charge = await stripeGet(`charges/${encodeURIComponent(outcome.chargeId)}`);
+    const inv = charge?.invoice;
+    const id = typeof inv === "string" ? inv : typeof (inv as { id?: unknown })?.id === "string" ? (inv as { id: string }).id : null;
+    if (id) candidates.push(id.slice(0, 200));
   }
+
+  let purchase: { stripe_session_id: string; email: string | null; kind: string | null; status: string | null } | null = null;
+  for (const key of candidates) {
+    const row = await supabase.from("purchases").select("stripe_session_id, email, kind, status").eq("stripe_session_id", key).maybeSingle();
+    if (!row.error && row.data) {
+      purchase = row.data;
+      break;
+    }
+  }
+
+  const restoring = outcome.status === "dispute_won";
+  const fromStatus = restoring ? "disputed" : "paid";
+  const toStatus = restoring ? "paid" : outcome.status;
+  const willFlip = !outcome.partial && purchase !== null && purchase.status === fromStatus;
+  const alertKey = outcome.chargeId ?? purchase?.stripe_session_id ?? outcome.paymentIntent ?? `${eventType}:unknown`;
+  const purpose =
+    outcome.status === "refunded"
+      ? outcome.partial
+        ? "refund:partial:internal"
+        : "refund:internal"
+      : outcome.status === "disputed"
+        ? "dispute:internal"
+        : outcome.status === "dispute_won"
+          ? "dispute-won:internal"
+          : "async-failed:internal";
+  const label = outcome.status === "refunded" ? (outcome.partial ? "PARTIAL REFUND" : "REFUND") : outcome.status === "disputed" ? "DISPUTE" : outcome.status === "dispute_won" ? "DISPUTE WON" : "PAYMENT FAILED";
   await internalAlert(supabase, alertKey, purpose, `${label}: ${purchase?.kind ?? "purchase"} ${dollars(outcome.amountCents)} ${purchase?.email ?? ""}`.trim(), [
     `${label} on ${purchase?.kind ?? "an unmatched purchase"}: ${dollars(outcome.amountCents)}.`,
     `Buyer: ${purchase?.email ?? "unknown"}`,
-    `Checkout session: ${sessionId ?? "not found"}`,
+    `Purchase key: ${purchase?.stripe_session_id ?? "not found"}`,
     outcome.chargeId ? `Charge: ${outcome.chargeId}` : "",
     outcome.reason ? `Reason: ${outcome.reason}` : "",
     outcome.evidenceDueBy ? `Evidence due: ${new Date(outcome.evidenceDueBy * 1000).toDateString()} (answer it in the Stripe dashboard)` : "",
     "",
     outcome.partial
       ? "Partial refund: the purchase stays paid. Nothing else changed."
-      : sessionId
-        ? `The purchase is now marked ${outcome.status}; course and kit access that keys on it is off.`
-        : "No purchase row could be matched, so nothing was changed in the database.",
+      : willFlip
+        ? restoring
+          ? "The dispute closed in your favour; the purchase is marked paid again and account-based access is back."
+          : `The purchase is now marked ${toStatus}. Course access and account-based kit access that key on it are off; a kit cookie or license key already issued keeps working until it expires.`
+        : purchase
+          ? `The purchase is marked ${purchase.status ?? "unknown"}, not ${fromStatus}, so nothing was changed.`
+          : "No purchase row could be matched, so nothing was changed in the database.",
     "Purchases: https://www.theleadflowpro.com/admin/purchases",
   ].filter(Boolean));
-  if (!outcome.partial && sessionId) {
-    const updated = await supabase.from("purchases").update({ status: outcome.status }).eq("stripe_session_id", sessionId).eq("status", "paid").select("stripe_session_id");
+  if (willFlip && purchase) {
+    const updated = await supabase.from("purchases").update({ status: toStatus }).eq("stripe_session_id", purchase.stripe_session_id).eq("status", fromStatus).select("stripe_session_id");
     if (updated.error) throw new Error(`Purchase status flip failed: ${updated.error.code}`);
-    if (!updated.data?.length) console.warn(`No paid purchase matched ${sessionId} for ${outcome.status}`);
+    if (!updated.data?.length) console.warn(`No ${fromStatus} purchase matched ${purchase.stripe_session_id} for ${toStatus}`);
   }
   return true;
 }
@@ -1721,11 +1757,27 @@ async function noteSubscriptionEnd(supabase: SupabaseClient, eventType: string, 
     "Nothing was charged or sent. If the work should stop, stop it; if it should continue, reach out.",
   ]);
   if (kind === AGENCY_PAYMENT.kind) {
-    const email = typeof metadata.customer_email === "string" ? metadata.customer_email : null;
-    const leadId = await findAgencyLeadByEmail(supabase, email);
+    // The subscription carries the lead id when the pay link did; that is
+    // the only reliable key (the checkout metadata has no email).
+    const linked = typeof metadata.lead_id === "string" && UUID_RE.test(metadata.lead_id) ? metadata.lead_id.toLowerCase() : null;
+    const leadId = linked ?? (await findAgencyLeadByStripeCustomer(supabase, typeof sub.customer === "string" ? sub.customer : null));
     if (leadId) await markLeadActivity(supabase, leadId, `${scheduled ? "Agency retainer set to end" : "Agency retainer cancelled"} in Stripe. Subscription: ${subId}.`, "Agency cancel");
   }
   return true;
+}
+
+/** Without a lead id on the subscription, the Stripe customer's email (when the API key is set) finds the agency lead. */
+async function findAgencyLeadByStripeCustomer(supabase: SupabaseClient, customerId: string | null): Promise<string | null> {
+  const stripeKey = process.env.STRIPE_SECRET_KEY?.trim();
+  if (!customerId || !stripeKey) return null;
+  try {
+    const r = await fetch(`https://api.stripe.com/v1/customers/${encodeURIComponent(customerId)}`, { headers: { Authorization: `Bearer ${stripeKey}` }, cache: "no-store" });
+    if (!r.ok) return null;
+    const customer = (await r.json().catch(() => null)) as { email?: unknown } | null;
+    return findAgencyLeadByEmail(supabase, typeof customer?.email === "string" ? customer.email : null);
+  } catch {
+    return null;
+  }
 }
 
 const INVOICE_EVENT_STATUS: Record<string, string> = {

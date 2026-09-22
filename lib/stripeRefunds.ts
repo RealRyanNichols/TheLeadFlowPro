@@ -1,13 +1,17 @@
 // Money going back out, or never arriving. purchases.status is written as
-// "paid" once by the webhook and, until 2026-09-21, never changed; course
-// and kit access, the digest, and the scoreboard all filter on "paid", so
-// flipping the status is the whole of revoking access and correcting the
-// totals. Leaf module: no network, no Next.js.
+// "paid" once by the webhook and, until 2026-09-21, never changed. Course
+// access and account-based kit access (lib/access.ts, lib/proAccessServer.ts),
+// the digest, and the scoreboard all filter on "paid", so flipping the status
+// corrects the totals and closes those doors. A kit access cookie or a
+// derived license key already in a buyer's hands is not consulted against
+// purchases and keeps working until it expires. Leaf module: no network.
 
 export type RefundOutcome = {
-  status: "refunded" | "disputed" | "payment_failed";
-  /** Known directly for an async failure; for charge events the webhook resolves it from the payment intent. */
+  status: "refunded" | "disputed" | "payment_failed" | "dispute_won";
+  /** Known directly for an async failure; for charge events the webhook resolves it from the invoice or payment intent. */
   sessionId: string | null;
+  /** The invoice the charge paid, when Stripe says so. Purchases from invoices are keyed by this id. */
+  invoiceId: string | null;
   paymentIntent: string | null;
   chargeId: string | null;
   amountCents: number;
@@ -31,27 +35,34 @@ function idOf(value: unknown): string | null {
 export function refundOutcome(eventType: unknown, input: unknown): RefundOutcome | null {
   const object = input && typeof input === "object" ? (input as Record<string, unknown>) : {};
   if (eventType === "charge.refunded") {
-    if (object.refunded !== true) return null;
+    // Stripe sets `refunded` only when the whole charge is refunded; a
+    // partial refund arrives with refunded: false and amount_refunded > 0.
+    // Decide on money moved, not on the flag.
     const amount = Number(object.amount);
     const refunded = Number(object.amount_refunded);
-    const partial = Number.isFinite(amount) && Number.isFinite(refunded) && refunded < amount;
+    if (!Number.isFinite(refunded) || refunded <= 0) return null;
+    const partial = Number.isFinite(amount) ? refunded < amount : object.refunded !== true;
     return {
       status: "refunded",
       sessionId: null,
+      invoiceId: idOf(object.invoice),
       paymentIntent: idOf(object.payment_intent),
       chargeId: idOf(object.id),
-      amountCents: Number.isFinite(refunded) ? Math.round(refunded) : 0,
+      amountCents: Math.round(refunded),
       partial,
       evidenceDueBy: null,
       reason: null,
     };
   }
-  if (eventType === "charge.dispute.created") {
+  if (eventType === "charge.dispute.created" || eventType === "charge.dispute.closed") {
+    const disputeStatus = str(object.status, 40);
+    if (eventType === "charge.dispute.closed" && disputeStatus !== "won") return null;
     const evidence = (object.evidence_details && typeof object.evidence_details === "object" ? (object.evidence_details as Record<string, unknown>).due_by : null) as unknown;
     const amount = Number(object.amount);
     return {
-      status: "disputed",
+      status: eventType === "charge.dispute.closed" ? "dispute_won" : "disputed",
       sessionId: null,
+      invoiceId: null,
       paymentIntent: idOf(object.payment_intent),
       chargeId: idOf(object.charge),
       amountCents: Number.isFinite(amount) ? Math.round(amount) : 0,
@@ -65,6 +76,7 @@ export function refundOutcome(eventType: unknown, input: unknown): RefundOutcome
     return {
       status: "payment_failed",
       sessionId: idOf(object.id),
+      invoiceId: null,
       paymentIntent: idOf(object.payment_intent),
       chargeId: null,
       amountCents: Number.isFinite(amount) ? Math.round(amount) : 0,

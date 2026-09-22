@@ -24,6 +24,8 @@ import { FREE_BUILD } from "../lib/freeBuild.ts";
 import { LEAD_FOLLOW_UP } from "../lib/leadFollowUp.ts";
 import { HQ_PLAN } from "../lib/hq/types.ts";
 import { MONTHLY_MENU, TOOL_BUILDS } from "../lib/toolStudio.ts";
+import { PRICE_GRID } from "../lib/timeback.ts";
+import { CHATGPT_OPERATOR } from "../lib/chatgptOperatorCourse.ts";
 import { PRO_BUNDLE, PRO_PRICES } from "../lib/tools/pro/index.ts";
 
 test("the fixed business facts never drift", () => {
@@ -90,7 +92,15 @@ test("Tool Studio and Pro Kit amounts are registered in PRICES and mirrored by a
   assert.equal(offer("pro_bundle").priceUsd, PRICES.proBundle);
   assert.equal(offer("pro_bundle").priceUsd, PRO_BUNDLE.priceUsd);
   assert.equal(offer("tool_studio_funnel").priceUsd, PRICES.toolStudioFunnel);
-  assert.equal(offer("tool_studio_funnel").priceUsd, TOOL_BUILDS.find((b) => b.id === "tool_funnel")?.priceUsd);
+  // Every Tool Studio build has an offer row at the price the funnel charges.
+  const buildOffer: Record<string, string> = { tool_blueprint: "tool_studio_blueprint", quick_tool: "tool_studio_quick_tool", tool_funnel: "tool_studio_funnel" };
+  for (const build of TOOL_BUILDS) {
+    assert.ok(buildOffer[build.id], `${build.id} needs an offer id in this test`);
+    assert.equal(offer(buildOffer[build.id]).priceUsd, build.priceUsd, build.id);
+  }
+  // The two $297 prices registered on September 21 are tied to the code that charges them.
+  assert.equal(PRICES.timeBackFrom, PRICE_GRID[3][7]);
+  assert.equal(PRICES.chatgptOperatorFounding * 100, CHATGPT_OPERATOR.foundingPriceCents);
   for (const item of MONTHLY_MENU) {
     const row = offer(`tool_studio_${item.id}`);
     assert.equal(row.priceUsd, item.priceUsd, item.id);

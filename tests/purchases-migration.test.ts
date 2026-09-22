@@ -15,9 +15,14 @@ test("purchases baseline creates the live table shape idempotently", () => {
 
   assert.ok(sql.includes("create table if not exists public.purchases"));
   assert.ok(sql.includes("unique index if not exists purchases_stripe_session_id_key"));
+  // The live index is named purchases_email_idx; "if not exists" matches on name, so the name must match.
+  assert.ok(sql.includes("create index if not exists purchases_email_idx"));
   assert.ok(sql.includes("lower(email)"));
   assert.ok(sql.includes("drop default"));
   assert.ok(sql.includes("add column if not exists lead_id"));
+  // The foreign key waits for public.leads, which no migration here creates.
+  assert.ok(sql.includes("to_regclass('public.leads')"));
+  assert.ok(!sql.includes("comment on table"), "a table comment would be a third undocumented change on the live table");
 });
 
 test("purchases baseline sorts before the cash ledger trigger migration", () => {

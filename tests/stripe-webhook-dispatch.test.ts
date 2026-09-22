@@ -54,10 +54,32 @@ test("every kind the checkout route can mint reaches an alerting branch", () => 
   const literalKinds = ["build_deposit", "package_deposit", "package_full", "tool_studio_order", "tool_monthly_menu", "pro_tool", "pro_bundle", "timeback_order", "system_map", "event"];
   for (const kind of literalKinds) assert.ok(checkout.includes(`"${kind}"`), `checkout mints ${kind}`);
   assert.ok(checkout.includes("FREE_BUILD_IDS.has(kind)") && checkout.includes("LEAD_FOLLOW_UP.id") && checkout.includes("AGENCY_PAYMENT.kind"));
-  assert.ok(kinds.length >= 18);
   assert.ok(dispatch.includes("notifyUnhandledPurchase"), "the catch-all is still the else branch");
-  for (const literal of ['kind === "system_map"', 'kind === "tool_studio_order"', "kind === LEAD_FOLLOW_UP.id", "kind === AGENCY_PAYMENT.kind", "findFreeBuildTier(kind)", 'kind === "timeback_order"', 'kind === "event"', "kind === SELLERPROOF.kind", 'kind === "learn_it"']) {
-    assert.ok(dispatch.includes(literal), `dispatch handles ${literal}`);
+
+  // Every kind must reach a named branch, except the three the catch-all is
+  // designed for (deposits and full package payments with no fulfilment).
+  const catchAll = new Set(["build_deposit", "package_deposit", "package_full"]);
+  const namedBranch: Record<string, string> = {
+    [LEAD_FOLLOW_UP.id]: "kind === LEAD_FOLLOW_UP.id",
+    [SELLERPROOF.kind]: "kind === SELLERPROOF.kind",
+    [CONTENT_ENGINE.purchaseKind]: "kind === CONTENT_ENGINE.purchaseKind",
+    [CHATGPT_OPERATOR.purchaseKind]: "kind === CHATGPT_OPERATOR.purchaseKind",
+    [OPERATOR_ACADEMY.allAccessPurchaseKind]: "kind === OPERATOR_ACADEMY.allAccessPurchaseKind",
+    [AGENCY_PAYMENT.kind]: "kind === AGENCY_PAYMENT.kind",
+    tool_studio_order: 'kind === "tool_studio_order"',
+    tool_monthly_menu: 'kind === "tool_monthly_menu"',
+    pro_tool: "proKind",
+    pro_bundle: "proKind",
+    timeback_order: 'kind === "timeback_order"',
+    system_map: 'kind === "system_map"',
+    event: 'kind === "event"',
+    learn_it: 'kind === "learn_it"',
+  };
+  for (const tier of FREE_BUILD.tiers) namedBranch[tier.id] = "findFreeBuildTier(kind)";
+  for (const kind of kinds) {
+    if (catchAll.has(kind)) continue;
+    assert.ok(namedBranch[kind], `${kind} needs a named branch in this test's map`);
+    assert.ok(dispatch.includes(namedBranch[kind]), `dispatch handles ${kind} through ${namedBranch[kind]}`);
   }
   assert.ok(dispatch.includes("ensureSystemMapPaid(supabase, session)"));
   assert.ok(dispatch.includes("ensureToolStudioPaid(supabase, session, kind)"));
@@ -106,18 +128,34 @@ test("the five funnel flows acknowledge the buyer through the ledger before the 
 test("no email leaves this file outside the delivery ledger, and each purpose is unique", () => {
   assert.equal((hook.match(/api\.resend\.com/g) ?? []).length, 0, "no raw Resend call remains");
   const purposes = [
-    "learn-it", "content-engine", "academy", "unhandled",
+    "learn-it", "content-engine", "academy", "unhandled:buyer", "unhandled:internal",
     "website-launch:buyer", "time-back:buyer", "time-back:internal", "lead-follow-up:buyer", "lead-follow-up:internal",
     "free-build:buyer", "free-build:internal", "agency:buyer", "agency:internal",
     "system-map:buyer", "system-map:internal", "tool-studio:buyer", "tool-studio:internal",
     "invoice-paid:internal", "renewal-paid:internal", "renewal-failed:internal", "plugin-paid:internal",
-    "refund:internal", "dispute:internal", "async-failed:internal",
+    "refund:internal", "refund:partial:internal", "dispute:internal", "dispute-won:internal", "async-failed:internal",
     "subscription-cancelled:internal", "subscription-cancel-scheduled:internal",
   ];
   for (const p of purposes) {
     const count = (hook.match(new RegExp(`"${p.replace(/[-:]/g, (c) => `\\${c}`)}"`, "g")) ?? []).length;
     assert.equal(count, 1, `purpose ${p} appears exactly once`);
   }
+  // The owner alert body carries whether the buyer acknowledgement left,
+  // which can change between a failed attempt and its retry. The ledger
+  // refuses a retry whose body changed, so that state is part of the key.
+  const alert = slice("internalAlert");
+  assert.ok(alert.includes('options.acknowledged === false ? `${purpose}:noack` : purpose'), "the acknowledgement state keys the ledger row");
+  for (const name of ["ensureSystemMapPaid", "ensureToolStudioPaid", "ensureTimebackOrderPaid", "ensureLeadFollowUpPaid", "ensureFreeBuildPaid", "ensureAgencyPaymentPaid", "notifyUnhandledPurchase"]) {
+    assert.ok(slice(name).includes("{ acknowledged })"), `${name} passes the acknowledgement state to the ledgered alert`);
+  }
+});
+
+test("a lead with no diagnostic source is still matched by the agency email fallback", () => {
+  const body = slice("ensureAgencyPaymentPaid");
+  assert.ok(body.includes("diagnostic->>source.is.null,diagnostic->>source.not.in."), "NOT IN would drop a null source; null is allowed explicitly");
+  assert.ok(!body.includes('.not("diagnostic->>source", "in"'));
+  const cancel = slice("noteSubscriptionEnd");
+  assert.ok(cancel.includes("metadata.lead_id") && !cancel.includes("metadata.customer_email"), "the cancel note keys on the lead id the pay link carried");
 });
 
 test("invoices: subscription families are recorded first, a paid Sales Desk invoice finishes the sale, and the cron order is right", () => {
@@ -131,7 +169,10 @@ test("invoices: subscription families are recorded first, a paid Sales Desk invo
   assert.ok(subscription > 0 && salesUpdate > subscription && finish > salesUpdate, "subscription invoices, then the Sales Desk update, then finish");
   assert.ok(post.indexOf("handleHqStripeEvent(") < moneyBack && moneyBack < subEnd && subEnd < gate, "money-back and subscription-end run after the plugin handler and before the checkout gate");
   const finishBody = slice("finishPaidInvoice");
-  assert.ok(finishBody.indexOf("invoice-paid:internal") < finishBody.indexOf('.from("purchases")') || finishBody.includes("recordPurchase("), "alert before the purchase write");
+  const invoiceAlert = finishBody.indexOf('"invoice-paid:internal"');
+  const invoiceWrite = finishBody.indexOf("recordPurchase(");
+  assert.ok(invoiceAlert > 0 && invoiceWrite > invoiceAlert, "alert before the purchase write");
+  assert.ok(finishBody.includes("if (!matched) {"), "a Sales Desk invoice is not written to purchases twice; only an unmatched invoice is recorded");
   assert.ok(finishBody.includes('.from("lead_tasks")') && finishBody.includes('status: "won"'));
   const renew = slice("recordSubscriptionInvoice");
   assert.ok(renew.includes("skip_first_invoice") && renew.includes("record_failed") && renew.includes("record_paid"));

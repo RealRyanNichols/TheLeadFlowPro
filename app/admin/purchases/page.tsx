@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { usd } from "@/lib/site/prices";
+import { createServiceClient } from "@/lib/supabase/service";
+import { dollars } from "@/lib/stripeInvoiceEvents";
 import { BUSINESS } from "@/lib/site/business";
 
 // Read-only ledger of every Stripe checkout, invoice, and plugin month the
@@ -115,28 +116,46 @@ export default async function PurchasesPage({
   let lookupsFailed = false;
 
   if (sessionIds.length > 0) {
-    const externalIds = sessionIds.map((id) => `stripe_checkout:${id}`);
-    const [leadsResult, deliveriesResult] = await Promise.all([
+    // Lookups go out as GET query strings, so they are chunked to stay under
+    // the URL limit once the ledger holds a couple of hundred rows. The
+    // delivery ledger is service-role only (its migration revokes
+    // authenticated), so it is read with the service client after the admin
+    // check above; leads stay on the user's client under row level security.
+    const chunks = <T,>(items: T[], size: number) => Array.from({ length: Math.ceil(items.length / size) }, (_, i) => items.slice(i * size, i * size + size));
+    let service: ReturnType<typeof createServiceClient> | null = null;
+    try {
+      service = createServiceClient();
+    } catch {
+      lookupsFailed = true;
+    }
+    const leadReads = chunks(sessionIds, 50).map((batch) =>
       supabase
         .from("leads")
         .select("id, external_id")
-        .in("external_id", externalIds)
+        .in("external_id", batch.map((id) => `stripe_checkout:${id}`))
         .is("deleted_at", null),
-      supabase
-        .from("payment_email_deliveries")
-        .select("stripe_session_id, purpose, sent_at, first_attempt_at")
-        .in("stripe_session_id", sessionIds),
-    ]);
-    if (leadsResult.error || deliveriesResult.error) lookupsFailed = true;
-    for (const lead of (leadsResult.data ?? []) as { id: string; external_id: string | null }[]) {
-      if (!lead.external_id) continue;
-      const sessionId = lead.external_id.replace(/^stripe_checkout:/, "");
-      if (!leadBySession.has(sessionId)) leadBySession.set(sessionId, lead.id);
+    );
+    const deliveryReads = service
+      ? chunks(sessionIds, 50).map((batch) =>
+          service!.from("payment_email_deliveries").select("stripe_session_id, purpose, sent_at, first_attempt_at").in("stripe_session_id", batch),
+        )
+      : [];
+    const [leadResults, deliveryResults] = await Promise.all([Promise.all(leadReads), Promise.all(deliveryReads)]);
+    for (const result of leadResults) {
+      if (result.error) lookupsFailed = true;
+      for (const lead of (result.data ?? []) as { id: string; external_id: string | null }[]) {
+        if (!lead.external_id) continue;
+        const sessionId = lead.external_id.replace(/^stripe_checkout:/, "");
+        if (!leadBySession.has(sessionId)) leadBySession.set(sessionId, lead.id);
+      }
     }
-    for (const row of (deliveriesResult.data ?? []) as DeliveryRow[]) {
-      const list = deliveriesBySession.get(row.stripe_session_id) ?? [];
-      list.push(row);
-      deliveriesBySession.set(row.stripe_session_id, list);
+    for (const result of deliveryResults) {
+      if (result.error) lookupsFailed = true;
+      for (const row of (result.data ?? []) as DeliveryRow[]) {
+        const list = deliveriesBySession.get(row.stripe_session_id) ?? [];
+        list.push(row);
+        deliveriesBySession.set(row.stripe_session_id, list);
+      }
     }
   }
 
@@ -231,7 +250,7 @@ export default async function PurchasesPage({
               <div className="text-xs uppercase tracking-wide text-[var(--muted)]">Paid</div>
             </div>
             <div className="card !p-4 text-center">
-              <div className="text-3xl font-black text-mint">{usd(paidCents / 100)}</div>
+              <div className="text-3xl font-black text-mint">{dollars(paidCents)}</div>
               <div className="text-xs uppercase tracking-wide text-[var(--muted)]">Paid total</div>
             </div>
           </div>
@@ -266,7 +285,7 @@ export default async function PurchasesPage({
                         <td className="px-4 py-4 text-[var(--text)]">{p.email || "no email"}</td>
                         <td className="px-4 py-4 text-[var(--text)]">{(p.kind || "unknown").replace(/_/g, " ")}</td>
                         <td className="whitespace-nowrap px-4 py-4 text-right font-black text-[var(--heading)]">
-                          {p.amount_cents == null ? "n/a" : usd(Number(p.amount_cents) / 100)}
+                          {p.amount_cents == null ? "n/a" : dollars(Number(p.amount_cents))}
                         </td>
                         <td className="px-4 py-4">
                           <span
@@ -321,7 +340,7 @@ export default async function PurchasesPage({
                     <td className="px-5 py-3" colSpan={3}>
                       {paidRows.length} paid of {rows.length} shown
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right">{usd(paidCents / 100)}</td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right">{dollars(paidCents)}</td>
                     <td className="px-4 py-3" colSpan={4}>
                       <span className="text-xs font-semibold text-[var(--muted)]">Paid total for the rows above</span>
                     </td>

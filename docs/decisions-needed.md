@@ -437,17 +437,20 @@ is a decision, an account action, or a check only Ryan can do.
     creates `public.purchases` on a fresh database and, on the live
     project, only drops the unused `kind` default and adds a nullable
     `lead_id` column. Apply it with `supabase db push --include-all` (or
-    the Supabase MCP) after reading it. Until then the webhook does not
-    write `lead_id`; the purchases page matches leads through the
-    checkout id instead. Default: apply this week.
+    the Supabase MCP) after reading it. The webhook does not write
+    `lead_id` yet; the purchases page matches leads through the checkout
+    id, and writing the column is a follow-up once the migration is on
+    the live project. Default: apply this week.
 
 62. **Register the new Stripe events on the webhook.** In the Stripe
     dashboard, add `charge.refunded`, `charge.dispute.created`,
     `checkout.session.async_payment_failed`, `customer.subscription.updated`,
-    and `customer.subscription.deleted` to
+    `customer.subscription.deleted`, and `charge.dispute.closed` to
     `https://www.theleadflowpro.com/api/stripe-webhook`. Without them a
-    refund or dispute leaves a purchase marked paid and course or kit
-    access stays open. Ryan-only.
+    refund or dispute leaves a purchase marked paid, so the totals stay
+    wrong and course access and account-based kit access stay open. A kit
+    access cookie or license key already issued keeps working until it
+    expires either way. Ryan-only.
 
 63. **Production checks, not builds.** Confirm in Vercel that
     `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`,
@@ -492,9 +495,13 @@ is a decision, an account action, or a check only Ryan can do.
     sent" and moves the stage) or keep sending by hand. Default: keep by
     hand until the first three proposals have gone out.
 
-68. **Agency prices.** Still `tbd_ryan` for all five services and the
-    "from" systems, so proposals print "TBD". Only Ryan sets these in
-    `lib/site/offers.ts`. Nothing changes until he does.
+68. **Agency prices.** Still `tbd_ryan` for all five agency services, so
+    a proposal for one prints "TBD". The larger systems (Lead Engine,
+    Training Platform, Company OS, Custom Platform) are live "from" prices
+    and a proposal prints them as such ($3,500+ and up). Decisions: set the
+    five agency numbers in `lib/site/offers.ts`, and confirm a "from" price
+    is acceptable on a written proposal or should be replaced by the quoted
+    number before it goes out.
 
 69. **Two prices registered under their own names.** The validator's new
     $297 guard surfaced Time Back (from $297) and the ChatGPT Operator
