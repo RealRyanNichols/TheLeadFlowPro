@@ -56,7 +56,7 @@ export const TOOL_BUILDS: ToolBuild[] = [
   {
     id: "tool_funnel",
     name: "Tool Funnel",
-    priceUsd: 997,
+    priceUsd: PRICES.toolStudioFunnel,
     description:
       "Pair the interactive tool with the page, form, alerts, and measurement needed to turn usage into leads.",
     bestFor: "You want a tool that earns attention and gives the business a clear follow-up opportunity.",
@@ -90,31 +90,31 @@ export const MONTHLY_MENU: MonthlyMenuItem[] = [
   {
     id: "tool_care",
     name: "Tool Care",
-    priceUsd: 97,
+    priceUsd: PRICES.toolCareMonthly,
     description: "Monitoring, one minor in-scope update, and a monthly performance note.",
   },
   {
     id: "follow_up_tuneup",
     name: "Follow-Up Tune-Up",
-    priceUsd: 197,
+    priceUsd: PRICES.followUpTuneUpMonthly,
     description: "Refresh one email, call, or owner-response sequence using the month's real questions.",
   },
   {
     id: "content_refresh",
     name: "Content Refresh",
-    priceUsd: 197,
+    priceUsd: PRICES.contentRefreshMonthly,
     description: "One new supporting article, landing-page section, or campaign content batch.",
   },
   {
     id: "seo_archive_batch",
     name: "Search + Archive Batch",
-    priceUsd: 297,
+    priceUsd: PRICES.seoArchiveBatchMonthly,
     description: "Add and index one approved batch of niche records, resources, FAQs, or local pages.",
   },
   {
     id: "funnel_test",
     name: "Funnel Test",
-    priceUsd: 297,
+    priceUsd: PRICES.funnelTestMonthly,
     description: "One measured offer, form, headline, or result-screen test with a written finding.",
   },
 ];

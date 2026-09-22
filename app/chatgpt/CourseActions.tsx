@@ -2,6 +2,7 @@
 
 import { ArrowRight, LockKeyhole } from "lucide-react";
 import { FormEvent, useState } from "react";
+import { PRICES, usd } from "@/lib/site/prices";
 import styles from "./chatgpt-course.module.css";
 
 function utm(name: string) {
@@ -124,7 +125,7 @@ export function PaidCheckoutForm() {
           placeholder="you@example.com"
         />
         <button type="submit" disabled={busy}>
-          {busy ? "Opening secure checkout..." : "Get founding access for $297"}
+          {busy ? "Opening secure checkout..." : `Get founding access for ${usd(PRICES.chatgptOperatorFounding)}`}
           {!busy ? <ArrowRight aria-hidden="true" /> : null}
         </button>
       </div>

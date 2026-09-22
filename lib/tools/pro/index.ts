@@ -9,6 +9,7 @@
 // free directory, the free sitemap entries, search, or the embed route. The
 // free library stays free; this is the shelf next to it.
 
+import { PRICES } from "../../site/prices";
 import { getTool, resolveTool, type Tool } from "../index";
 import type { ToolDocument, ToolVisual } from "../types";
 import { PRO_KIT_DEFS, PRO_KIT_VISUALS } from "./kits";
@@ -19,12 +20,12 @@ export { PRO_PRICES } from "./types";
 
 /* --------------------------------- bundle --------------------------------- */
 
-/** Every kit, one price. The kind is what lands in purchases.kind. */
+/** Every kit, one price (PRICES.proBundle). The kind is what lands in purchases.kind. */
 export const PRO_BUNDLE = {
   id: "pro_bundle",
   kind: "pro_bundle",
   name: "Every Pro Kit",
-  priceUsd: 39,
+  priceUsd: PRICES.proBundle,
   promise: "Every kit on this shelf, and every kit added after, unlocked on one key.",
   pitch:
     "Any three kits bought alone cost more than the whole shelf. One key, every kit, including the ones added later.",

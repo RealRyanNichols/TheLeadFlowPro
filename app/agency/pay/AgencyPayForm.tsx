@@ -30,10 +30,13 @@ export default function AgencyPayForm({
   services,
   preselected,
   cancelled,
+  leadId = null,
 }: {
   services: PayableService[];
   preselected: string | null;
   cancelled: boolean;
+  /** From /agency/pay?lead=<id>, so the payment lands on the lead Ryan sent the link from. Never shown. */
+  leadId?: string | null;
 }) {
   const [slug, setSlug] = useState<string>(preselected ?? "");
   const [billing, setBilling] = useState<AgencyBilling>("one_time");
@@ -91,6 +94,7 @@ export default function AgencyPayForm({
           amount_usd: effective,
           reference: reference.trim(),
           email: email.trim(),
+          ...(leadId ? { lead_id: leadId } : {}),
         }),
       });
       if (response.status === 501) {
