@@ -607,9 +607,14 @@ export function isAutomatedLeadText(body: string): boolean {
   return AUTOMATED_TEXT_MARKERS.some((marker) => text.includes(marker));
 }
 
-/** The text-back, exported so the test can prove the booking line appears only when set and STOP stays last. */
+/**
+ * The text-back, exported so the test can prove the booking line appears only when set and STOP stays last.
+ * It promises nothing on a clock. It used to say "I will text or call you shortly", and on Sept 20 and 21
+ * eleven leads got that promise and nobody called any of them. Now it asks for the one thing that starts
+ * the conversation. Keep the first sentence as is: AUTOMATED_TEXT_MARKERS matches it on old and new texts.
+ */
 export function leadTextBackBody(first: string, booking: string | null = bookingPage()): string {
-  return `${first}, this is Ryan with The LeadFlow Pro. Got your answers and I am already looking at what to fix first. I will text or call you shortly. Save this number, it is my direct line.${bookingSentence(booking)} Reply STOP to opt out.`;
+  return `${first}, this is Ryan with The LeadFlow Pro. Got your answers and I am already looking at what to fix first. Reply here with your business name so I look at the right thing. Save this number, it is my direct line.${bookingSentence(booking)} Reply STOP to opt out.`;
 }
 
 /**
