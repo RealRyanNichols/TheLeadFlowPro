@@ -148,6 +148,7 @@ const PREMIUM_ARTICLE_ART: Record<string, string> = {
   "locksmith-after-hours-calls": "/og/tools/after-hours-lead-calculator.jpg",
   "handyman-job-pricing": "/og/tools/job-price-calculator.jpg",
   "pool-service-route-capacity": "/og/tools/capacity-calculator.jpg",
+  "junk-removal-cost-per-lead": "/og/tools/cost-per-lead-calculator.jpg",
   "one-useful-business-task-with-ai":
     "/images/articles-v4/ai-website-small-business-2026.jpg",
   "give-every-inquiry-an-owner-and-next-step":
@@ -270,6 +271,7 @@ const VISUAL_HEADLINES: Record<string, string> = {
   "locksmith-after-hours-calls": "Know Your After-Hours Gap",
   "handyman-job-pricing": "Price the Hours Off the Clock",
   "pool-service-route-capacity": "Count Minutes, Not Pools",
+  "junk-removal-cost-per-lead": "Price the Load, Not the Lead",
   "one-useful-business-task-with-ai": "One Task. One Useful Result.",
   "give-every-inquiry-an-owner-and-next-step": "Every Inquiry Has a Next Step",
   "bring-one-real-task-to-your-business-workshop":
@@ -420,6 +422,8 @@ const PREMIUM_ARTICLE_ALT: Record<string, string> = {
     "LeadFlow Job Price Calculator card with the tagline Quote a job without guessing and a purple-topped notepad on a navy background",
   "pool-service-route-capacity":
     "LeadFlow Job Capacity Calculator card with the tagline How much work you can actually take on and a red ring emblem on a navy background",
+  "junk-removal-cost-per-lead":
+    "LeadFlow Cost Per Lead and Cost Per Customer card with the tagline What you really pay to win a customer and three linked green circles on a navy background",
   "one-useful-business-task-with-ai":
     "An existing LeadFlow illustration showing an owned website and customer system connected to practical AI work",
   "give-every-inquiry-an-owner-and-next-step":
