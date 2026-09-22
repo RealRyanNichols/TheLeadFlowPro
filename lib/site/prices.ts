@@ -12,6 +12,12 @@
 // a guessed number here.
 
 export const PRICES = {
+  /** Ryan-approved September 2026 introductory package, one time. */
+  septemberSpecialTotal: 1497,
+  septemberSpecialAds: 500,
+  septemberSpecialEstimateLow: 5000,
+  septemberSpecialEstimateHigh: 7500,
+
   /** Website Launch: buy the five-page foundation outright. */
   websiteLaunchTotal: 1000,
   websiteLaunchDeposit: 500,

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
+import type Stripe from "stripe";
+import { handleSpecialWebhook } from "@/lib/septemberSpecialServer";
 import {
   createClient as createSupabaseClient,
   type SupabaseClient,
@@ -1814,6 +1816,22 @@ export async function POST(request: Request) {
     event = JSON.parse(payload);
   } catch {
     return NextResponse.json({ error: "Bad payload" }, { status: 400 });
+  }
+
+  // Capacity-controlled September checkouts are bound to a server reservation.
+  // Process expiry as well as paid events; no generic purchase path may bypass
+  // the five-slot ledger. This runs only after signature verification above.
+  if (typeof event.type === "string" && event.type.startsWith("checkout.session.")) {
+    try {
+      const handled = await handleSpecialWebhook(
+        createSupabaseClient(SUPABASE_URL, serviceKey), event.type,
+        (event.data?.object ?? {}) as Stripe.Checkout.Session,
+      );
+      if (handled) return NextResponse.json({ received: true });
+    } catch {
+      console.error("September special webhook processing failed");
+      return NextResponse.json({ error: "Special payment processing failed" }, { status: 500 });
+    }
   }
 
   // The plugin subscription: a subscription checkout (which can complete
