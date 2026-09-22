@@ -23,6 +23,7 @@ test("contact sync creates missing contacts and stores missing consent as unsubs
   const result = await syncResendContacts({
     apiKey: "fixture",
     fetcher,
+    segmentId: "meta-segment",
     leads: [
       lead(),
       lead({ email: "no-consent@example.com", marketing_email_consent: false }),
@@ -33,24 +34,28 @@ test("contact sync creates missing contacts and stores missing consent as unsubs
 
   assert.equal(result.eligible, 3);
   assert.equal(result.created, 3);
+  assert.equal(result.added_to_segment, 3);
   assert.deepEqual(bodies, [
     {
       email: "pat@example.com",
       first_name: "Pat",
       last_name: "Owner",
       unsubscribed: false,
+      segments: [{ id: "meta-segment" }],
     },
     {
       email: "no-consent@example.com",
       first_name: "Pat",
       last_name: "Owner",
       unsubscribed: true,
+      segments: [{ id: "meta-segment" }],
     },
     {
       email: "optout@example.com",
       first_name: "Pat",
       last_name: "Owner",
       unsubscribed: true,
+      segments: [{ id: "meta-segment" }],
     },
   ]);
 });
@@ -86,6 +91,38 @@ test("contact sync never re-subscribes a provider opt-out", async () => {
   assert.equal(writes, 1);
   assert.equal(result.preserved_provider_opt_out, 1);
   assert.equal(result.marked_unsubscribed, 1);
+});
+
+test("contact sync adds existing contacts to the requested segment", async () => {
+  const writes: string[] = [];
+  const fetcher: typeof fetch = async (url, init) => {
+    if (!init?.method) {
+      if (String(url).includes("/segments/")) {
+        return Response.json({ object: "list", has_more: false, data: [] });
+      }
+      return Response.json({
+        object: "list",
+        has_more: false,
+        data: [{ id: "existing", email: "pat@example.com", unsubscribed: false }],
+      });
+    }
+    writes.push(String(url));
+    return Response.json({ id: "meta-segment" });
+  };
+
+  const result = await syncResendContacts({
+    apiKey: "fixture",
+    fetcher,
+    segmentId: "meta-segment",
+    leads: [lead()],
+  });
+
+  assert.equal(result.created, 0);
+  assert.equal(result.already_present, 1);
+  assert.equal(result.added_to_segment, 1);
+  assert.deepEqual(writes, [
+    "https://api.resend.com/contacts/pat%40example.com/segments/meta-segment",
+  ]);
 });
 
 test("contact sync paginates, de-duplicates by normalized email, and keeps the stricter CRM state", async () => {

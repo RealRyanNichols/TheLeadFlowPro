@@ -40,6 +40,7 @@ import {
 //   SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, QUO_API_KEY
 
 const GRAPH = "https://graph.facebook.com/v21.0";
+const LEADFLOW_META_RESEND_SEGMENT_ID = "f500eae4-6d02-4825-9aad-24808610deef";
 
 export const maxDuration = 60;
 
@@ -521,11 +522,17 @@ async function syncLiveMetaLeadsToResend(): Promise<ResendContactSyncResult | { 
     return { skipped: "lead query failed" };
   }
 
-  const result = await syncResendContacts({ apiKey: resendKey, leads: data ?? [] });
+  const result = await syncResendContacts({
+    apiKey: resendKey,
+    leads: data ?? [],
+    segmentId: LEADFLOW_META_RESEND_SEGMENT_ID,
+  });
   console.info("Resend contact reconciliation:", {
     eligible: result.eligible,
     contacts_before: result.contacts_before,
+    segment_members_before: result.segment_members_before,
     created: result.created,
+    added_to_segment: result.added_to_segment,
     marked_unsubscribed: result.marked_unsubscribed,
     preserved_provider_opt_out: result.preserved_provider_opt_out,
     already_present: result.already_present,
