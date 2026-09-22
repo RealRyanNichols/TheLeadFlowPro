@@ -120,7 +120,10 @@ export default async function LeadWorkspacePage({
 
   return (
     <>
-      <div className="mb-3 flex justify-end">
+      <div className="mb-3 flex flex-wrap justify-end gap-2">
+        <Link href={`/admin/call-sheet/${id}`} className="hq-btn hq-btn-sm">
+          Log a call
+        </Link>
         <Link href={`/admin/proposals/${id}`} className="hq-btn hq-btn-sm">
           Draft proposal from this intake
         </Link>

@@ -261,5 +261,5 @@ test("the module is a leaf: only the time helpers and the business identity, no 
   assert.deepEqual(imports, ["@/lib/hq/time", "@/lib/site/business"]);
   assert.doesNotMatch(source, /Date\.now\(|new Date\(\)/, "now is always passed in");
   assert.doesNotMatch(source, /fetch\(|supabase|leadNotify|\bquo\b/i);
-  assert.doesNotMatch(source, /[—–]/, "no em or en dashes, comments included");
+  assert.doesNotMatch(source, /[\u2013\u2014]/, "no em or en dashes, comments included");
 });

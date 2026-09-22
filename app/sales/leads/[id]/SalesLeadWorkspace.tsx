@@ -19,6 +19,13 @@ import {
   type StoredBusinessDiagnostic,
 } from "@/app/admin/leads/[id]/LeadWorkspace";
 import DictationButton from "@/components/DictationButton";
+import CallOutcomePanel from "@/app/admin/call-sheet/CallOutcomePanel";
+import {
+  closerOffersFor,
+  countPriorAttempts,
+  offerIdsFromDetail,
+} from "@/lib/callCloser";
+import { hasLeadEmailAddress } from "@/lib/leadMessageAuthor";
 
 const STAGES = [
   "new",
@@ -101,6 +108,13 @@ function pretty(value: string | null | undefined) {
 
 function fmt(value: string) {
   return new Date(value).toLocaleString();
+}
+
+// The same normalizing as toE164 in lib/quo.ts, which is server-only code.
+function smsLink(phone: string | null): string | null {
+  const digits = String(phone ?? "").replace(/[^\d+]/g, "");
+  const e164 = digits.startsWith("+") ? digits : `+1${digits.replace(/^1/, "")}`;
+  return e164.length < 12 ? null : `sms:${e164}`;
 }
 
 export default function SalesLeadWorkspace({
@@ -227,6 +241,16 @@ export default function SalesLeadWorkspace({
   });
   const originalAnswers = originalLeadAnswers(lead.diagnostic);
   const supabase = createClient();
+  // The call outcome panel: every call becomes a structured outcome and a
+  // Central-time next follow-up, saved through the Call Closer route.
+  const callDetails = activity
+    .filter((item) => item.kind === "call")
+    .map((item) => item.detail);
+  const lastCallOffers =
+    callDetails.map(offerIdsFromDetail).find((ids) => ids.length > 0) ?? [];
+  const textable =
+    Boolean(lead.phone) && lead.sms_consent && !lead.sms_unsubscribed_at;
+  const emailable = hasLeadEmailAddress(lead.email);
 
   async function logActivity(detail: string) {
     const { data } = await supabase
@@ -274,21 +298,6 @@ export default function SalesLeadWorkspace({
       .eq("id", lead.id);
     if (updateError) setError(updateError.message);
     else await logActivity(detail);
-  }
-
-  async function logCall() {
-    const now = new Date().toISOString();
-    const values: Record<string, unknown> = { last_contacted_at: now };
-    if (status === "new") values.status = "contacted";
-    const { error: updateError } = await supabase
-      .from("leads")
-      .update(values)
-      .eq("id", lead.id);
-    if (updateError) setError(updateError.message);
-    else {
-      if (status === "new") setStatus("contacted");
-      await logActivity("Completed call logged");
-    }
   }
 
   async function addNote(event: React.FormEvent) {
@@ -442,6 +451,34 @@ export default function SalesLeadWorkspace({
         </p>
       )}
 
+      <CallOutcomePanel
+        compact
+        lead={{
+          id: lead.id,
+          full_name: lead.full_name,
+          business_name: lead.business_name,
+          status,
+          interest: lead.interest,
+          phone: lead.phone,
+          email: lead.email,
+          sms_consent: lead.sms_consent,
+          sms_unsubscribed_at: lead.sms_unsubscribed_at,
+          next_follow_up_at: lead.next_follow_up_at,
+          diagnostic: null,
+        }}
+        suggestedOffers={closerOffersFor(lead.interest, lead.diagnostic)}
+        initialOffers={lastCallOffers}
+        priorAttempts={countPriorAttempts(callDetails)}
+        actorName={actorName}
+        smsHref={textable ? smsLink(lead.phone) : null}
+        mailHref={emailable ? `mailto:${lead.email}` : null}
+        canText={textable}
+        hasEmail={emailable}
+        backHref="/admin/sales"
+        backLabel="Back to Today"
+        onSaved={() => router.refresh()}
+      />
+
       <section className="card !p-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -453,13 +490,6 @@ export default function SalesLeadWorkspace({
               confidence.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={logCall}
-            className="btn-ghost !px-3 !py-2 text-xs"
-          >
-            Log completed call
-          </button>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label>

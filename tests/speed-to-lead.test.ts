@@ -176,5 +176,5 @@ test("every line passes the copy rules, and the module is pure", () => {
   }
   const imports = source.match(/^import .*$/gm) ?? [];
   assert.deepEqual(imports, ['import type { CallSheetLead, CallSheetTouch } from "@/lib/callSheet";'], "type-only import, nothing loads at runtime");
-  assert.ok(!/[—–]/.test(source), "house style: no em or en dashes");
+  assert.ok(!/[\u2013\u2014]/.test(source), "house style: no em or en dashes");
 });
