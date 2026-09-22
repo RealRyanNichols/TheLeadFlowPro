@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "slug": "junk-removal-cost-per-lead",
+  "publicationDate": "2026-09-22",
+  "sourceChecks": [],
+  "editorialChecks": {
+    "sourceScope": "The article makes no changing product, price, regulatory, or platform claims, so no external source check applies. Spend, leads, paid loads, ticket value, and margin are explained as the reader's own records, not quoted figures.",
+    "example": "Fictional inputs: marketing spend $1,200 a month, 40 leads, 14 customers, $350 per customer, 55% gross margin. Expected display: $85.71 cost to get one customer, $30.00 per lead, 35.0% close rate, $192.50 gross profit per customer, $106.79 contribution after acquisition, 4.08x return on ad spend, verdict 'If close rate reached 40.0%, modeled cost per customer would be $75.00 without spending another dollar.' Contrast case with 6 customers: $200.00 per customer, 15.0% close rate, -$7.50 contribution, 1.75x, verdict at 20.0% and $150.00. Both labeled fictional in the article.",
+    "calculatorExampleCheck": "Node imported the actual cost-per-lead-calculator tool from lib/tools and ran both input sets on 2026-09-18. Outputs matched the article text exactly, including the -$7.50 contribution and the two verdict sentences.",
+    "art": "/og/tools/cost-per-lead-calculator.jpg inspected visually: 1200x630 navy card reading Cost Per Lead & Cost Per Customer with the tagline What you really pay to win a customer and three linked green circles. No event date or unrelated offer. Not used by any other article; roofing-cost-per-lead uses its own articles-v4 scene.",
+    "scope": "One original trade article completed under the daily publishing authorization in docs/article-drafting.md. No email, social post, paid service, or backend change.",
+    "mobileToolCheck": {
+      "checkedAt": "2026-09-22T19:07:39Z",
+      "url": "http://localhost:3000/tools/cost-per-lead-calculator (production build of commit ea01c0d's tree, run locally with next start)",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "inputs": {
+        "spend": 1200,
+        "leads": 40,
+        "customers": 14,
+        "value": 350,
+        "margin": 55
+      },
+      "results": "$85.71, '$30.00 per lead, 35.0% close rate', $192.50, $106.79, 4.08x, and the 40.0% / $75.00 verdict were all present in the page text. Changing customers to 6 produced $200.00, '$30.00 per lead, 15.0% close rate', -$7.50, 1.75x, and the 20.0% / $150.00 verdict.",
+      "resultVerified": true,
+      "method": "Playwright (project node_modules, /opt/pw-browsers/chromium) set the five real inputs at 390px width through the rendered money fields and range sliders and read the page text. Screenshots captured. documentElement and body scrollWidth both 390, so no horizontal overflow."
+    },
+    "mobileArticleReview": {
+      "checkedAt": "2026-09-22T19:07:47Z",
+      "url": "http://localhost:3000/articles/junk-removal-cost-per-lead (local production build)",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "result": "Title, the 'A lead is not a load' section, the $85.71 worked example, the fenced LEAD COST CHECK, the embedded tool with its Marketing spend per month input, the form heading, and the FAQ were all present. No horizontal overflow. Live mobile review on production is recorded under liveCheck once observed."
+    }
+  },
+  "localCheck": {
+    "checkedAt": "2026-09-22T19:07:26Z",
+    "surface": "Local production build of the committed tree served with next start on the publication date, so the article is expected to be open, not gated.",
+    "detailStatus": 200,
+    "ogStatus": 200,
+    "noindex": false,
+    "indexPresent": true,
+    "sitemapPresent": true,
+    "relatedAbsentOnRoofingArticle": true,
+    "previousArticleStatus": 200,
+    "method": "curl against the local server: the detail route returned 200 with <title> 'What does a junk removal lead cost? | The LeadFlow Pro', canonical to the www URL, datePublished 2026-09-22, the body, the checklist, the cost-per-lead-calculator markup, and both internal article links; the OG route returned 200 image/png; /articles listed the slug and /sitemap.xml contained it; the September 18 pool article still returned 200. A scheduledCheck does not apply to a same-day publication."
+  },
+  "issues": [
+    {
+      "observedAt": "2026-09-22T19:03:00Z",
+      "check": "schedule",
+      "result": "date moved forward, three days uncovered",
+      "detail": "The article was drafted and checked on 2026-09-18 for 2026-09-19, but the daily runs for September 19, 20, and 21 did not execute in this session, so nothing was pushed. No article was published for September 19, 20, or 21, and none is backdated. The article was re-checked on the current main and dated 2026-09-22, the first uncovered Central date. The next two days, September 23 and 24, remain uncovered because one run completes at most one article; the next run should author the next queued topic for September 23."
+    }
+  ],
+  "contentCommit": "ea01c0d057af7e4bec405df4c7e767580165c40d",
+  "validation": {
+    "checkedAt": "2026-09-22T19:06:00Z",
+    "base": "origin/main at 36757c2, freshly reset before the checks",
+    "tests": {
+      "passed": 1281,
+      "failed": 0
+    },
+    "build": "passed (npm run build with validate:calculations, validate:facts, validate:tools, validate:visuals, validate:social, then next build; exit 0)",
+    "typecheck": "passed (tsc --noEmit)",
+    "lint": {
+      "errors": 0,
+      "existingWarnings": 2,
+      "note": "Both warnings are pre-existing no-img-element warnings in lib/articles-og.tsx OG card JSX."
+    },
+    "formatting": "lib/articles-daily.ts, lib/articles-schedule.ts, the queue, and both receipts pass Prettier. lib/articles-og.tsx has a pre-existing Prettier style issue on main (confirmed against HEAD before the change); the three added mapping lines are clean and the file was not reformatted.",
+    "diffCheck": "passed (git diff --check)",
+    "copyRules": "No em dashes or en dashes in the article; no hype words; no guaranteed numbers; description is 157 characters.",
+    "privacyReview": "No secrets, customer records, or private notes in the diff; the worked example is labeled fictional."
+  }
+}
