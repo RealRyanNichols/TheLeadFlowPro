@@ -1,0 +1,15 @@
+services:
+  worker:
+    image: node:22-alpine
+    restart: unless-stopped
+    working_dir: /app
+    command: ["node", "worker/content-command-worker.mjs"]
+    env_file: .env
+    volumes:
+      - ../../:/app:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch(process.env.CONTENT_COMMAND_BASE_URL + '/api/content-command/worker',{headers:{authorization:'Bearer '+process.env.CONTENT_COMMAND_WORKER_TOKEN}}).then(r=>{if(!r.ok)process.exit(1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
