@@ -276,8 +276,8 @@ Occurrence counts are from the pre-refactor snapshot. File and line references p
 ### $997 Free Website + 30-Day Growth Engine tier (and other $997 uses)
 
 - Category: price  ·  Occurrences at snapshot: 7
-- Authoritative source: lib/site/prices.ts:27 for the tier; lib/toolStudio.ts:59 literal; lib/operatoros/catalog.ts literal; lib/operatorAcademyCatalog.ts literal cents
-- Authoritative value now: $997 (PRICES.freeBuildGrowthEngine) for the tier; Tool Funnel $997 not yet in PRICES
+- Authoritative source: lib/site/prices.ts for the tier (freeBuildGrowthEngine) and Tool Funnel (toolStudioFunnel); lib/operatoros/catalog.ts literal; lib/operatorAcademyCatalog.ts literal cents
+- Authoritative value now: $997 (PRICES.freeBuildGrowthEngine) for the tier; Tool Funnel $997 (PRICES.toolStudioFunnel, offer tool_studio_funnel) and Quick Tool $497 (PRICES.toolStudioProduction, offer tool_studio_quick_tool) since 2026-09-21
 - Notes: '30-Day Growth Engine' appears only in lib/freeBuild.ts:145 and lib/site/offers.ts:101; no page copy names it.
 
 | File | Line | Context |
@@ -285,7 +285,7 @@ Occurrence counts are from the pre-refactor snapshot. File and line references p
 | `lib/site/prices.ts` | 27 | freeBuildGrowthEngine: 997 |
 | `lib/freeBuild.ts` | 146 | free_build_launch "Free Website + 30-Day Growth Engine" priceUsd: 997, priceCents: 99700 (HEAD) |
 | `lib/site/offers.ts` | 100 | id free_build_launch name "Free Website + 30-Day Growth Engine" |
-| `lib/toolStudio.ts` | 59 | Tool Funnel priceUsd: 997 (still literal in working tree) |
+| `lib/toolStudio.ts` | 59 | Tool Funnel priceUsd: PRICES.toolStudioFunnel (resolved 2026-09-21) |
 | `lib/operatoros/catalog.ts` | 52 | FlowWorker monthly "$997 per month" |
 | `lib/operatorAcademyCatalog.ts` | 8 | foundingPriceCents: 99700 (Operator Academy founding) |
 | `lib/access.ts` | 30 | comment $997 buyer |
@@ -359,9 +359,9 @@ Occurrence counts are from the pre-refactor snapshot. File and line references p
 ### Pro Kits $10 to $29 (individual kit prices; $39 bundle)
 
 - Category: price  ·  Occurrences at snapshot: 23
-- Authoritative source: lib/site/prices.ts:48-49 for the range; lib/tools/pro/kits/*.ts priceUsd; lib/tools/pro/index.ts:27 bundle
-- Authoritative value now: $10 to $29 per kit (PRICES.proKitMin/proKitMax); each kit's priceUsd on the kit; bundle $39 (PRO_BUNDLE)
-- Notes: The $39 'Every Pro Kit' bundle is outside the published '$10 to $29' range and is not in lib/site/prices.ts.
+- Authoritative source: lib/site/prices.ts for the range (proKitMin/proKitMid/proKitMax, mirrored by PRO_PRICES) and the bundle (proBundle); lib/tools/pro/kits/*.ts priceUsd; lib/tools/pro/index.ts PRO_BUNDLE reads PRICES.proBundle
+- Authoritative value now: $10 to $29 per kit (PRICES.proKitMin/proKitMax); each kit's priceUsd on the kit; bundle $39 (PRICES.proBundle, offer pro_bundle)
+- Notes: The $39 'Every Pro Kit' bundle is outside the published '$10 to $29' range. Resolved 2026-09-21: registered as PRICES.proBundle with an offer row (pro_bundle, href /tools/pro).
 
 | File | Line | Context |
 | --- | --- | --- |
@@ -378,7 +378,7 @@ Occurrence counts are from the pre-refactor snapshot. File and line references p
 | `lib/tools/pro/kits/rate-card-kit.ts` | 357 | priceUsd: 19 |
 | `lib/tools/pro/kits/white-label-tool-embeds.ts` | 271 | priceUsd: 29 |
 | `lib/tools/pro/kits/job-estimate-kit.ts` | 492 | priceUsd: 29 |
-| `lib/tools/pro/index.ts` | 27 | PRO_BUNDLE "Every Pro Kit" priceUsd: 39 |
+| `lib/tools/pro/index.ts` | 28 | PRO_BUNDLE "Every Pro Kit" priceUsd: PRICES.proBundle (resolved 2026-09-21) |
 | `lib/commerce.ts` | 17 | priceCents: Math.round(tool.pro.priceUsd * 100) (catalog feed) |
 | `lib/proAccess.ts` | 16 | comment $10 kit / $29 kit |
 | `lib/proAccess.ts` | 193 | comment $10 / $29 |
@@ -565,16 +565,16 @@ Occurrence counts are from the pre-refactor snapshot. File and line references p
 ### Tool Studio prices: Blueprint $97, Quick Tool $497, Tool Funnel $997; monthly menu $97/$197/$197/$297/$297
 
 - Category: price  ·  Occurrences at snapshot: 8
-- Authoritative source: lib/site/prices.ts:61-62 + lib/toolStudio.ts literals
-- Authoritative value now: $97 / $497 from PRICES; Tool Funnel $997 and monthly menu not yet in PRICES
+- Authoritative source: lib/site/prices.ts (toolStudioBlueprint, toolStudioProduction, toolStudioFunnel, toolCareMonthly, followUpTuneUpMonthly, contentRefreshMonthly, seoArchiveBatchMonthly, funnelTestMonthly); lib/toolStudio.ts reads every one of them
+- Authoritative value now: $97 / $497 / $997 builds and $97 / $197 / $197 / $297 / $297 monthly, all from PRICES since 2026-09-21, each with an offer row (tool_studio_blueprint, tool_studio_quick_tool, tool_studio_funnel, tool_studio_tool_care, tool_studio_follow_up_tuneup, tool_studio_content_refresh, tool_studio_seo_archive_batch, tool_studio_funnel_test)
 
 | File | Line | Context |
 | --- | --- | --- |
 | `lib/site/prices.ts` | 61 | toolStudioBlueprint: 97, toolStudioProduction: 497 |
 | `lib/toolStudio.ts` | 26 | Tool Blueprint priceUsd: PRICES.toolStudioBlueprint |
 | `lib/toolStudio.ts` | 43 | Quick Tool priceUsd: PRICES.toolStudioProduction |
-| `lib/toolStudio.ts` | 59 | Tool Funnel priceUsd: 997 (literal) |
-| `lib/toolStudio.ts` | 93 | Tool Care 97; 99: Follow-Up Tune-Up 197; 105: Content Refresh 197; 111: Search + Archive Batch 297; 117: Funnel Test 297 (literals) |
+| `lib/toolStudio.ts` | 59 | Tool Funnel priceUsd: PRICES.toolStudioFunnel |
+| `lib/toolStudio.ts` | 93 | Tool Care PRICES.toolCareMonthly; 99: Follow-Up Tune-Up PRICES.followUpTuneUpMonthly; 105: Content Refresh PRICES.contentRefreshMonthly; 111: Search + Archive Batch PRICES.seoArchiveBatchMonthly; 117: Funnel Test PRICES.funnelTestMonthly |
 | `app/go/tools/page.tsx` | 18 | "Start with a $97 blueprint." |
 | `app/go/tools/page.tsx` | 96 | "The $97 entry is a real blueprint" |
 | `app/go/tools/page.tsx` | 97 | "Finished production starts at $497" |
@@ -1248,10 +1248,11 @@ Resolved: one header and one footer, both rendered from `lib/site/navigation.ts`
 - $1,997 LEGACY: only literal is lib/operatoros/catalog.ts:59 (FlowDesk monthly); lib/operatorAcademyCatalog.ts:9 regularPriceCents 199700 = $1,997 Operator Academy regular. Neither is in lib/site/prices.ts. The orphaned middle tier in lib/tiers.ts:84 is $2,500, not $1,997.
 - ORPHANED TIERS: lib/tiers.ts (Learn It $497, Build It With You $2,500, Done For You $5,000+, 'checked July 2026') and components/RentCalculator.tsx ('Prices checked July 2026') have zero importers; /pricing/[tier] permanently redirects to /pricing. Learn It '$497' collides with System Map $497.
 - $497 AMBIGUITY: System Map (lib/offers.ts:77), Free Website + Content Engine tier (lib/freeBuild.ts:130), Tool Studio Quick Tool (lib/toolStudio.ts:43), ChatGPT Operator regular price 49700 (lib/chatgptOperatorCourse.ts:11), orphan Learn It (lib/tiers.ts:34) — a string-based guard on '$497' cannot attribute the hit.
-- $997 AMBIGUITY: Free Website + 30-Day Growth Engine (lib/freeBuild.ts:146), Tool Funnel (lib/toolStudio.ts:59 literal), Operator Academy founding 99700 (lib/operatorAcademyCatalog.ts:8), FlowWorker $997/mo (lib/operatoros/catalog.ts:52).
+- $997 AMBIGUITY: Free Website + 30-Day Growth Engine (lib/freeBuild.ts:146), Tool Funnel (lib/toolStudio.ts:59, now PRICES.toolStudioFunnel), Operator Academy founding 99700 (lib/operatorAcademyCatalog.ts:8), FlowWorker $997/mo (lib/operatoros/catalog.ts:52).
 - $49 AMBIGUITY: Plugin $49/mo (lib/hq/types.ts), managed hosting $49/mo (lib/freeBuild.ts:98,244), SellerProof $49 packet (lib/sellerproof/packet.ts) — three products, one number.
-- $97 AMBIGUITY: workshop seat (DB / PRICES.workshopSeat), Tool Studio Blueprint (PRICES.toolStudioBlueprint), Time Back downsell (lib/timeback.ts:70), Tool Care monthly (lib/toolStudio.ts:93).
-- PRO KITS RANGE: published '$10 to $29' (SiteFooter:19, app/tools/pro/page.tsx:18/80, app/plugin/page.tsx:154, PRICES.proKitMin/Max) vs PRO_BUNDLE 'Every Pro Kit' $39 (lib/tools/pro/index.ts:27), which is outside the range and absent from lib/site/prices.ts.
+- $97 AMBIGUITY: workshop seat (DB / PRICES.workshopSeat), Tool Studio Blueprint (PRICES.toolStudioBlueprint), Time Back downsell (lib/timeback.ts:70), Tool Care monthly (PRICES.toolCareMonthly).
+- $297 AMBIGUITY (new guard 2026-09-21): Tool Studio Search + Archive Batch and Funnel Test monthly (PRICES.seoArchiveBatchMonthly / funnelTestMonthly), Time Back entry 3/day x 7 days (PRICES.timeBackFrom; lib/timeback.ts PRICE_GRID still holds the literal), ChatGPT Operator founding (PRICES.chatgptOperatorFounding; lib/chatgptOperatorCourse.ts foundingPriceCents still holds 29700). app/go/time-back/page.tsx and app/chatgpt/CourseActions.tsx now read the PRICES keys.
+- PRO KITS RANGE: published '$10 to $29' (SiteFooter:19, app/tools/pro/page.tsx:18/80, app/plugin/page.tsx:154, PRICES.proKitMin/Max) vs PRO_BUNDLE 'Every Pro Kit' $39 (lib/tools/pro/index.ts:28), which is outside the range. Resolved 2026-09-21: PRICES.proBundle plus offer row pro_bundle; PRO_PRICES reads proKitMin/proKitMid/proKitMax.
 - EMAIL CASE: HEAD lib/config.ts:12 CONTACT_EMAIL = 'Hello@TheLeadFlowPro.com' (mixed case, consumed only by the deleted components/Footer.tsx) vs lowercase 'hello@theleadflowpro.com' in 60+ places; working tree now derives CONTACT_EMAIL from BUSINESS.email.hello.
 - WORKSHOP DATE/PRICE HARD-CODING: app/page.tsx:136/173/176/185/193/311 ('SEPTEMBER 17', '$97 per attendee', '10 paid seats'), components/site/NextStepGuide.tsx:44, lib/leadNotify.ts:327/336, lib/nurture.ts:707 (WORKSHOP_CUTOFF_MS literal)/748/765/776 vs DB authority (lib/events.ts:4, events.price_usd/starts_at) and lib/site/events.ts config; tests/site-events.test.ts expects the cutoff to come from featuredEventStartMs(). Event is today (2026-09-17) and becomes 'past' at 8:30 PM CDT per lib/site/events.ts.
 - /events ROUTE: middleware.ts redirects '/events' to workshop.theleadflowpro.com (HEAD unconditional :57-59; working tree conditional via eventsRedirectTarget()) while internal links still point at /events (app/services/page.tsx:371, app/thank-you/page.tsx:173, lib/articles-september-launch.ts:23/43/63, app/api/events/claim/route.ts:14-15, lib/site/navigation.ts:18/62, lib/site/offers.ts:300, HEAD Footer.tsx:25, HEAD Nav.tsx:36/75) and app/events/page.tsx:20 declares canonical /events. SiteHeader/SiteFooter link the external URL directly instead.

@@ -44,12 +44,29 @@ export const PRICES = {
   pluginMonthly: 49,
   pluginTrialDays: 14,
 
-  /** Pro Kits: the published range. Each kit's own price sits on the kit. */
+  /**
+   * Pro Kits: the published range. Each kit's own price sits on the kit and
+   * must be one of these three (PRO_PRICES in lib/tools/pro/types.ts).
+   */
   proKitMin: 10,
+  proKitMid: 19,
   proKitMax: 29,
+
+  /** Every Pro Kit on one key (PRO_BUNDLE in lib/tools/pro/index.ts), one time. */
+  proBundle: 39,
 
   /** SellerProof: one chargeback evidence packet export. */
   sellerProofPacket: 49,
+
+  /**
+   * Time Back (/go/time-back) entry price: 3 posts a day for 7 days, one time.
+   * lib/timeback.ts PRICE_GRID[3][7] is what /api/checkout charges; this is
+   * the "from" number the page prints.
+   */
+  timeBackFrom: 297,
+
+  /** Operator Academy 01: The ChatGPT Operator, founding price (lib/chatgptOperatorCourse.ts foundingPriceCents). */
+  chatgptOperatorFounding: 297,
 
   /**
    * Workshop seat. The database `events.price_usd` is the authority for a
@@ -57,9 +74,17 @@ export const PRICES = {
    */
   workshopSeat: 97,
 
-  /** Tool Studio (/go/tools). */
+  /** Tool Studio (/go/tools) builds, one time (TOOL_BUILDS in lib/toolStudio.ts). */
   toolStudioBlueprint: 97,
   toolStudioProduction: 497,
+  toolStudioFunnel: 997,
+
+  /** Tool Studio monthly menu (MONTHLY_MENU in lib/toolStudio.ts), per month. */
+  toolCareMonthly: 97,
+  followUpTuneUpMonthly: 197,
+  contentRefreshMonthly: 197,
+  seoArchiveBatchMonthly: 297,
+  funnelTestMonthly: 297,
 } as const;
 
 export type PriceKey = keyof typeof PRICES;

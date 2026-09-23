@@ -64,6 +64,18 @@ test("a TBD service charges the whole-dollar scope amount inside the deposit win
   });
   for (const value of Object.values(ok.charge.metadata)) assert.equal(typeof value, "string");
 
+  // A lead id rides along only when it is well-formed; nothing else adds a key.
+  const uuid = "12345678-1234-4234-8234-123456789012";
+  const linked = resolveAgencyCharge({ ...good, lead_id: uuid.toUpperCase() });
+  assert.ok(linked.ok);
+  if (linked.ok) assert.equal(linked.charge.metadata.lead_id, uuid);
+  const malformed = resolveAgencyCharge({ ...good, lead_id: "not-a-uuid" });
+  assert.ok(malformed.ok);
+  if (malformed.ok) assert.equal("lead_id" in malformed.charge.metadata, false);
+  assert.equal(agencyPayHref("meta-ads", uuid), `/agency/pay?service=meta-ads&lead=${uuid}`);
+  assert.equal(agencyPayHref(null, uuid), `/agency/pay?lead=${uuid}`);
+  assert.equal(agencyPayHref("meta-ads", "junk"), "/agency/pay?service=meta-ads");
+
   // Cents, strings, and out-of-window numbers are refused, not clamped into a charge.
   assert.equal(resolveAgencyCharge({ ...good, amount_usd: "abc" }).ok, false);
   assert.equal(resolveAgencyCharge({ ...good, amount_usd: AGENCY_PAYMENT.minUsd - 1 }).ok, false);

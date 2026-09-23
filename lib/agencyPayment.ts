@@ -48,7 +48,11 @@ export type AgencyPaymentRequest = {
   amount_usd?: unknown;
   reference?: unknown;
   email?: unknown;
+  /** The lead Ryan put on the pay link (/agency/pay?lead=<id>), so the payment lands on that record. */
+  lead_id?: unknown;
 };
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type AgencyCharge = {
   service: AgencyService;
@@ -158,6 +162,9 @@ export function resolveAgencyChargeFor(service: AgencyService | null, body: Agen
     fixed_price: fixed !== null ? "yes" : "no",
     reference,
   };
+  // Only a well-formed id rides along; anything else is dropped, never guessed.
+  const leadId = clean(body.lead_id, 64);
+  if (leadId && UUID.test(leadId)) metadata.lead_id = leadId.toLowerCase();
 
   return {
     ok: true,
@@ -194,7 +201,11 @@ export function agencyPaymentFromMetadata(metadata: Record<string, unknown> | nu
   };
 }
 
-/** Public pay URL for a service, with the service preselected. */
-export function agencyPayHref(slug?: string | null): string {
-  return slug && slug !== "websites" ? `${AGENCY_PAYMENT.payPath}?service=${encodeURIComponent(slug)}` : AGENCY_PAYMENT.payPath;
+/** Public pay URL for a service, with the service preselected and, when Ryan sends it from a lead, that lead attached. */
+export function agencyPayHref(slug?: string | null, leadId?: string | null): string {
+  const params = new URLSearchParams();
+  if (slug && slug !== "websites") params.set("service", slug);
+  if (leadId && UUID.test(leadId)) params.set("lead", leadId.toLowerCase());
+  const query = params.toString();
+  return query ? `${AGENCY_PAYMENT.payPath}?${query}` : AGENCY_PAYMENT.payPath;
 }

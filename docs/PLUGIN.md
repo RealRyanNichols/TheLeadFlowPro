@@ -11,7 +11,7 @@ or `app/api/oauth`.
 - **The connector.** "The LeadFlow Pro" as an MCP server at
   `https://www.theleadflowpro.com/api/mcp`. Installs into ChatGPT (Apps and
   Connectors), Claude (custom connector), Claude Code, Cursor, and anything
-  else that speaks MCP over Streamable HTTP. Seventeen tools, four resources,
+  else that speaks MCP over Streamable HTTP. Nineteen tools, four resources,
   three prompts. See `lib/hq/mcp.ts`.
 - **Autopilot.** `app/api/cron/hq-pulse` every five minutes: instant reply to
   a brand-new lead (text-back through their own line if they turned it on and

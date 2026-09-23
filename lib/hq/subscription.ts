@@ -1,4 +1,4 @@
-import { sendOwnerEmail } from "./channels";
+import { sendInternalHqAlert, sendOwnerEmail } from "./channels";
 import * as db from "./server";
 import { customerIdOf, planFromSubscription, type PlanState, type StripeSubscriptionLike } from "./stripe";
 import { HQ_PLAN } from "./types";
@@ -67,6 +67,14 @@ export async function handleHqStripeEvent(client: db.Db, event: StripeEvent, str
           .join("\n"),
         `hq-welcome-${ws.id}`,
       );
+      // Ryan hears about every plugin start; until 2026-09-21 a new
+      // subscriber was visible only in the Stripe dashboard.
+      await sendInternalHqAlert(
+        ws,
+        `PLUGIN STARTED: ${ws.name} (${plan.plan}${plan.trial_ends_at ? `, trial ends ${new Date(plan.trial_ends_at).toDateString()}` : ""})`,
+        `${ws.name} started the ${HQ_PLAN.name} (${plan.subscription_status}). A paid month lands in purchases when Stripe collects it.`,
+        `hq-welcome-${ws.id}-internal`,
+      );
     }
     return true;
   }
@@ -98,8 +106,10 @@ export async function handleHqStripeEvent(client: db.Db, event: StripeEvent, str
       const key = `${typeof sub.id === "string" ? sub.id : ws.id}-${plan.subscription_status}`;
       if (plan.plan === "canceled") {
         await sendOwnerEmail(ws, `${ws.name}: plan ended`, `The ${HQ_PLAN.name} for ${ws.name} has ended. The engine is paused: no instant replies, alerts, briefs, or drafts until it restarts.\n\nRestart any time: https://www.theleadflowpro.com/hq/billing\nYour leads and history stay put.`, `hq-ended-${key}`);
+        await sendInternalHqAlert(ws, `PLUGIN ENDED: ${ws.name}`, `The ${HQ_PLAN.name} for ${ws.name} ended in Stripe (${plan.subscription_status}). Nothing was sent to them beyond the standard plan-ended note.`, `hq-ended-${key}-internal`);
       } else if (plan.plan === "past_due") {
         await sendOwnerEmail(ws, `${ws.name}: payment did not go through`, `Stripe could not charge the card on file for the ${HQ_PLAN.name}. The engine keeps running for now. Update the card here: https://www.theleadflowpro.com/hq/billing`, `hq-pastdue-${key}-${plan.current_period_end ?? eventAt}`);
+        await sendInternalHqAlert(ws, `PLUGIN PAST DUE: ${ws.name}`, `Stripe could not charge ${ws.name} for the ${HQ_PLAN.name}. They were asked to update the card. Stripe retries on its own schedule.`, `hq-pastdue-${key}-${plan.current_period_end ?? eventAt}-internal`);
       }
     }
     return true;

@@ -578,4 +578,148 @@ Run the check again in a month. Compare the minutes per stop and the last-gate t
 If the phone is ringing and the calls go to voicemail while your tech is at a gate, that is a different leak. [Missed calls cost customers](/articles/missed-calls-cost-customers) walks through it. If the route and the office are eating your evenings, [find your next business step](/start).
 `,
   },
+  {
+    slug: "junk-removal-cost-per-lead",
+    title: "What does a junk removal lead cost?",
+    description:
+      "Count last month's spend, people who asked for a price, and the loads you hauled with the free Cost Per Lead Calculator to see what a junk removal job costs.",
+    publishedAt: "2026-09-22",
+    readingMinutes: 7,
+    ogImage: "/og/tools/cost-per-lead-calculator.jpg",
+    tool: {
+      slug: "cost-per-lead-calculator",
+      heading: "Find what a booked load costs you, with your own month",
+      intro:
+        "Use last month, one lead source at a time. The calculator turns your spend, leads, and paid loads into a cost per lead and a cost per customer, then shows what a better close rate would do. It cannot tell you whether a lead service is honest or whether a customer will book.",
+      steps: [
+        {
+          name: "Add up everything the source cost you",
+          text: "Marketing spend per month is every dollar you paid last month to make the phone ring from this source: ads, the lead service invoice, boosted posts, flyers, signs. Leave out the truck, insurance, and dump fees. Those are the cost of the job, not the cost of getting it.",
+        },
+        {
+          name: "Count people who asked for a price",
+          text: "Leads it produced is the number of people who asked for a quote because of that spend. Repeat customers, referrals, and spam forms do not belong here. If you do not know where a caller came from, ask on the next call and start a tally.",
+        },
+        {
+          name: "Count paid loads, not open quotes",
+          text: "Customers that closed is the loads you hauled and got paid for from those same leads. A quote sitting in your texts is not a customer yet. If most of last month's quotes are still open, that is the leak, and the calculator is about to show it.",
+        },
+        {
+          name: "Use one paid ticket and a measured margin",
+          text: "What a customer is worth to you is the average paid ticket for one load, not a lifetime guess. Gross margin is the share you keep after crew pay, fuel, and the dump fee. Enter the margin you measured on real tickets, not the one you hoped for. The dump fee is the input haulers most often leave out.",
+        },
+      ],
+      readIt: [
+        "Cost to get one customer is the number to manage. Cost per lead only tells you what the lead service charged. Two haulers can pay the same per lead and one of them is losing money on the truck.",
+        "Contribution after acquisition per customer is what one load leaves you after the crew, the fuel, the dump fee, and the money it took to get the job. If it is negative, more leads at the same close rate make it worse.",
+        "The verdict line models five more points of close rate on the same spend. That is a target for the phone and the follow-up, not money you have earned.",
+      ],
+      formHeading: "Is it the lead price, or the phone?",
+      formLead:
+        "Tell us what you spend, how many people ask, how many loads book, and what the calculator showed for contribution. Share totals and your process, not customer names, addresses, or invoices.",
+      interest: "blueprint",
+      industry: "Junk removal and hauling",
+    },
+    faq: [
+      {
+        q: "What is a good cost per lead for junk removal?",
+        a: "There is no number that is good on its own. A $25 lead that closes one in ten costs you $250 a load. A $60 lead that closes one in three costs you $180. Work out cost per customer for each source from your own month and compare it with what you keep on a load after the dump fee. A number borrowed from a hauler in another town will not help you.",
+      },
+      {
+        q: "Should I count the dump fee in my margin?",
+        a: "Yes, every time. The transfer station ticket comes straight out of the load before you see a dollar of it. Gross margin in the calculator is what is left after crew pay, fuel, and that ticket. If you enter a margin that ignores the fee, the contribution line will look healthy on loads that are barely breaking even.",
+      },
+      {
+        q: "Are shared junk removal leads worth paying for?",
+        a: "Sometimes, if you can answer first and quote fast. A shared lead goes to several haulers at once, and it usually books with whoever sends a price first. Run the calculator on that source by itself. If the close rate is low because you are quoting from the truck two hours later, the fix is the phone, not a cheaper lead.",
+      },
+      {
+        q: "How do I count a customer who calls back for a second load?",
+        a: "Count the first load against the source that brought them in. The second load is a repeat, not a new lead, so keep it out of that month's lead count. If repeats are common in your area, that is a reason to be a little more patient with a source that looks expensive on the first load. Write it down as a separate number instead of blending it in.",
+      },
+    ],
+    body: `Somebody is selling you junk removal leads at a price per lead. You paid it. The truck went out. And at the end of the month you still cannot say whether the money worked.
+
+That is not a marketing problem. It is a counting problem.
+
+I want you to count one month the honest way, with your own numbers, and see what a booked load actually costs you before the truck rolls. You will finish with a worked example, the calculator, and a short check you can run on the first of every month.
+
+## A lead is not a load
+
+Junk removal has a lot of people asking for prices. A text with a photo of a garage. A form on your site. A call from a lead service that went to three other haulers at the same time.
+
+None of those are money. A load is money. The truck showed up, the pile went in, the customer paid.
+
+So there are two numbers, and the second one matters more. What did it cost you to get one person to ask? And what did it cost you to get one person to book and pay? The gap between those two is your close rate, and it is the number most haulers never look at.
+
+## Start with last month's spend
+
+Pull up last month. Add up everything you paid to make the phone ring. Ad spend, the lead service invoice, boosted posts, the flyers, the yard signs. Do not include the truck payment or the dump fees. Those are the cost of doing the job, not the cost of getting it.
+
+Count the people who asked for a price because of that spend. Not the repeat customer who texted you again, not the referral from the property manager, not the spam form. If you cannot tell where a lead came from, that is the first thing to fix. Ask every caller.
+
+Count the loads you actually hauled and got paid for out of those leads. A quote sitting in your texts is not a customer yet.
+
+Then write down what one paid job is worth on average, and what you keep of it after the crew, the fuel, and the dump fee. That last one is the margin, and in this trade the dump fee is where it goes wrong.
+
+## Try a small, fictional example
+
+These are practice inputs, not junk removal industry averages or anyone's real month. Replace them with your own.
+
+- Marketing spend per month: **$1,200**.
+- Leads it produced: **40**.
+- Customers that closed: **14**.
+- What a customer is worth to you: **$350** for one paid load.
+- Gross margin: **55%**, what is left after crew, fuel, and the dump fee.
+
+Here is the math. $1,200 across 40 people asking is **$30.00 per lead**. Fourteen of them booked, which is a **35.0%** close rate, so one paying customer cost **$85.71**. A $350 load at 55% margin leaves **$192.50** of gross profit, and after the $85.71 it took to get that customer you keep **$106.79** on the load. The calculator shows a return on ad spend of **4.08x**.
+
+That is a month that worked. Now read the verdict line. If the close rate reached 40%, the modeled cost per customer would be **$75.00** without spending another dollar. Two more booked loads out of the same forty calls. That is the phone, not the ad budget.
+
+Now change one thing. Leave the spend, the leads, the job value, and the margin alone, and drop the customers to **6**. Same $30.00 per lead. But now the close rate is **15.0%**, one customer costs **$200.00**, and the contribution after acquisition is **-$7.50**. You hauled six loads and paid $7.50 each for the privilege. Return on ad spend drops to **1.75x**, which looks fine on a report and is a loss on the truck.
+
+Read that again. Same leads. Same price per lead. The lead service did nothing different. Eight loads did not book, and that turned a good month into a losing one.
+
+{{TOOL}}
+
+## What to do with the number
+
+**Fix the phone before you touch the budget.** If your close rate is low, more leads at the same rate is more money out. Answer the call from the truck, or have somebody answer it. Send the price the same hour with a note on what you can take. Text back every missed call. In the example, five points of close rate did more for the cost per customer than any discount a lead service could offer.
+
+**Put the dump fee in the margin, every job.** A $350 load with a transfer station ticket, two hours of crew, and the fuel to get there may not be a 55% job. Do the subtraction on three real tickets. If you have been entering a margin you hoped for instead of one you measured, run the calculator again with the real one. The contribution line will tell you the truth.
+
+**Price the channel by cost per customer, not cost per lead.** A cheap shared lead that closes one in ten can cost more per load than a pricier lead from your own website that closes one in three. Run the calculator once per source. Cut the one that loses on the contribution line, even if its leads look cheap.
+
+## Copy this monthly lead check
+
+Run it on the first of the month, before you pay the next lead invoice.
+
+\`\`\`text
+LEAD COST CHECK
+
+Month:
+Source (one per sheet):
+Everything spent on this source:
+People who asked for a price from it:
+Loads hauled and paid from those:
+Average paid ticket:
+Margin after crew, fuel, and dump fee:
+Calculator cost per lead:
+Calculator cost per customer:
+Contribution after acquisition:
+
+Before paying the next invoice:
+[ ] Every caller was asked where they found us.
+[ ] Open quotes are not counted as customers.
+[ ] The margin is measured, not hoped for.
+[ ] If contribution is negative, the fix is the phone or the source. Not more spend.
+\`\`\`
+
+## Check whether the change helped
+
+Run the sheet for the same source next month. If you fixed the phone, the close rate should move while the cost per lead stays about the same. If you cut a source, spend goes down and the loads from your other sources should hold. Compare loads hauled and money collected, not calls and clicks.
+
+If the calls are going to voicemail while you are on the truck, that is the leak to fix first. [Missed calls cost customers](/articles/missed-calls-cost-customers) walks through it. If quotes go out and never come back, [the money is in the follow-up](/articles/the-money-is-in-the-follow-up). If the office is eating your evenings, [find your next business step](/start).
+`,
+  },
 ];

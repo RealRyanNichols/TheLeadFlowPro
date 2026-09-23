@@ -101,5 +101,19 @@
     "relatedAbsent": true,
     "todayArticleStatus": 200,
     "method": "Fetched production over HTTPS after the deployment reached READY. The detail route on www and on the production alias, and the OG route, returned 404 with the 'Article not available' body, x-robots-tag noindex, nofollow, and cache-control no-store. https://www.theleadflowpro.com/articles (200) and https://www.theleadflowpro.com/sitemap.xml (200) did not contain the slug; the sitemap listed handyman-job-pricing with lastmod 2026-09-17. The live September 17 article (200) did not list the slug among its related articles."
+  },
+  "liveCheck": {
+    "checkedAt": "2026-09-18T14:04:55Z",
+    "url": "https://the-lead-flow-pro.vercel.app/articles/pool-service-route-capacity",
+    "canonicalUrl": "https://www.theleadflowpro.com/articles/pool-service-route-capacity",
+    "httpStatus": 200,
+    "bodyVerified": true,
+    "canonicalVerified": true,
+    "calculatorPresent": true,
+    "indexPresent": true,
+    "sitemapPresent": true,
+    "noindexAbsent": true,
+    "method": "On the publication date (09:04 Central) the detail route was fetched over HTTPS on the production alias the-lead-flow-pro.vercel.app, which serves the same production deployment as www: 200, x-matched-path /articles/[slug], no x-robots-tag header and no robots meta, <title> 'How many pools can one service route actually handle? | The LeadFlow Pro', canonical link to the www URL, datePublished 2026-09-18, og:image pointing at the www opengraph-image route, the article body ('The route did not get busy'), the 86% worked example, and the capacity-calculator markup present. https://www.theleadflowpro.com/articles returned 200 at 14:04Z with the article card (data-article-card=\"pool-service-route-capacity\"), and https://www.theleadflowpro.com/sitemap.xml returned 200 at 14:04:28Z listing the URL with lastmod 2026-09-18.",
+    "limitation": "The www detail URL itself could not be fetched from this session: the container's egress proxy refused the CONNECT tunnel (403) for direct requests, and the Vercel fetch tool could only open www for the index and sitemap routes. The body, canonical, and calculator were therefore verified on the production alias; the www index and sitemap checks are direct."
   }
 }

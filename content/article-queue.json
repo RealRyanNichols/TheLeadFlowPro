@@ -50,7 +50,7 @@
       "tool": "capacity-calculator",
       "searchQuestion": "How many pools can one service route actually handle?",
       "workingTitle": "Your pool route has a ceiling. Find it before summer does.",
-      "status": "scheduled",
+      "status": "published",
       "draftedAt": "2026-09-17"
     },
     {
@@ -60,7 +60,8 @@
       "tool": "cost-per-lead-calculator",
       "searchQuestion": "What does a junk removal lead cost?",
       "workingTitle": "What a junk removal job really costs before the truck rolls",
-      "status": "queued"
+      "status": "published",
+      "draftedAt": "2026-09-18"
     },
     {
       "slug": "tattoo-studio-no-shows",

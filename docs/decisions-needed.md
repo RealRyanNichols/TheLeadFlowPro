@@ -425,3 +425,86 @@ switch or an account action; the code side of each is already merged.
     repository private (nothing in the deploy pipeline needs it public),
     or keep it public and rewrite the README as a plain description that
     points at the site. Default: private.
+
+## I. Money paths (September 21)
+
+Added September 21, 2026 from the revenue-paths audit. Ground truth: zero
+rows in `purchases`; the only trace of the one plugin trial was in
+`hq_workspaces`. The code side of every item below is merged; each item
+is a decision, an account action, or a check only Ryan can do.
+
+61. **Apply the purchases migration.** `supabase/migrations/20260831220000_purchases_baseline.sql`
+    creates `public.purchases` on a fresh database and, on the live
+    project, only drops the unused `kind` default and adds a nullable
+    `lead_id` column. Apply it with `supabase db push --include-all` (or
+    the Supabase MCP) after reading it. The webhook does not write
+    `lead_id` yet; the purchases page matches leads through the checkout
+    id, and writing the column is a follow-up once the migration is on
+    the live project. Default: apply this week.
+
+62. **Register the new Stripe events on the webhook.** In the Stripe
+    dashboard, add `charge.refunded`, `charge.dispute.created`,
+    `checkout.session.async_payment_failed`, `customer.subscription.updated`,
+    `customer.subscription.deleted`, and `charge.dispute.closed` to
+    `https://www.theleadflowpro.com/api/stripe-webhook`. Without them a
+    refund or dispute leaves a purchase marked paid, so the totals stay
+    wrong and course access and account-based kit access stay open. A kit
+    access cookie or license key already issued keeps working until it
+    expires either way. Ryan-only.
+
+63. **Production checks, not builds.** Confirm in Vercel that
+    `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`,
+    and `RESEND_API_KEY` are set for production; confirm in Stripe that the
+    Website Launch Payment Link id matches
+    `STRIPE_WEBSITE_LAUNCH_PAYMENT_LINK_ID` (or the compiled fallback) and
+    its after-payment redirect is the site's thank-you page; then run one
+    small real payment through `/agency/pay` and look for the row at
+    `/admin/purchases`. Also: is the one workspace on a plugin trial
+    (started September 13, set to end at the trial) yours, or a real
+    business that already cancelled?
+
+64. **Free Build add-on tiers cannot be paid.** The $197, $497, and $997
+    tiers are promised on `/free-build` ("a separate secure checkout") but
+    no page or button calls the checkout for them, by design: the
+    application is $0 and a charge before approval breaks the offer.
+    Decision: after approving an application, should the lead page get an
+    admin-only "Generate checkout link" button (nothing sent automatically,
+    Ryan pastes the link), or do the tiers go out as Sales Desk invoices?
+    Default: the button.
+
+65. **Managed hosting has no way to start.** $49/mo and $99/mo are live
+    offers on `/free-build` with no subscription checkout and no invoice
+    path. Decision: a buyer-started Stripe subscription (a `hosting`
+    checkout kind, modelled on the agency monthly branch) or a monthly
+    Sales Desk invoice. Until decided, should the copy keep promising a
+    renewal path that cannot be started? Default: invoice for now.
+
+66. **Retainer door.** `/agency/pay` monthly creates a Stripe subscription
+    that renews until cancelled. Since September 21 renewals, failed
+    renewals, and cancellations are recorded and alerted, but nothing
+    manages them (no admin cancel, pause, or amount change). Decision:
+    keep monthly on `/agency/pay` and build the admin cancel button, or
+    take monthly off the page and send retainers as recurring Stripe
+    invoices. Default: keep it, build the cancel button next.
+
+67. **Sending proposals.** Decision 33 says proposals go out by hand from
+    hello@. The lead page now has "Draft proposal", "Create invoice", and
+    "Copy agency pay link" (the pay link carries the lead id so the
+    payment lands on that record). Decision: add an in-app "Send proposal"
+    (human-clicked, confirm box, off-by-default switch, records "Proposal
+    sent" and moves the stage) or keep sending by hand. Default: keep by
+    hand until the first three proposals have gone out.
+
+68. **Agency prices.** Still `tbd_ryan` for all five agency services, so
+    a proposal for one prints "TBD". The larger systems (Lead Engine,
+    Training Platform, Company OS, Custom Platform) are live "from" prices
+    and a proposal prints them as such ($3,500+ and up). Decisions: set the
+    five agency numbers in `lib/site/offers.ts`, and confirm a "from" price
+    is acceptable on a written proposal or should be replaced by the quoted
+    number before it goes out.
+
+69. **Two prices registered under their own names.** The validator's new
+    $297 guard surfaced Time Back (from $297) and the ChatGPT Operator
+    founding price ($297), both already charged by code; they are now
+    `PRICES.timeBackFrom` and `PRICES.chatgptOperatorFounding` and printed
+    from there. Decision: confirm both numbers are current. Default: yes.

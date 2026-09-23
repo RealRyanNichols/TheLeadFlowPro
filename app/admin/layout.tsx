@@ -49,6 +49,12 @@ export default async function AdminLayout({
               Command
             </Link>
             <Link
+              href="/admin/purchases"
+              className="text-[var(--text)] hover:text-[var(--heading)]"
+            >
+              Purchases
+            </Link>
+            <Link
               href="/admin/operator"
               className="font-black text-[var(--blue)] hover:text-[var(--heading)]"
             >
