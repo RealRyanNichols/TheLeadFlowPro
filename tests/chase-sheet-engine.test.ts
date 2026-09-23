@@ -298,6 +298,6 @@ describe("the sheet", () => {
     assert.ok(seq[0].message.body.includes("Nichols Roofing"));
     assert.ok(seq[0].message.body.includes("Ryan"));
     assert.equal(firstNameOf("Dana Whitfield"), "Dana");
-    assert.equal(contextFor(quote(), { ...ROOFER, business: "" }, "2026-09-24").biz, "us");
+    assert.equal(contextFor(quote(), { ...ROOFER, business: "" }, "2026-09-24").biz, "[Your business]");
   });
 });

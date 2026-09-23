@@ -87,7 +87,9 @@ export function contextFor(quote: Quote, profile: Profile, today: string): Messa
     first: firstNameOf(quote.customerName),
     job: quote.job.trim() || getTrade(profile.tradeId).jobNoun,
     amount: quote.amountCents > 0 ? money(quote.amountCents) : "",
-    biz: profile.business.trim() || "us",
+    // A visible placeholder until the profile is filled in, so a message
+    // never reads "it is us" and the owner sees what to fix before sending.
+    biz: profile.business.trim() || "[Your business]",
     owner: profile.owner.trim(),
     window: profile.window.trim() || "the week after next",
     tradeId: profile.tradeId,

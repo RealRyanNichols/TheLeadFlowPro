@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     first: text(body.first, 40, "Dana"),
     job: text(body.job, 80, getTrade(tradeId).jobNoun),
     amount: amountUsd ? `$${Math.round(amountUsd).toLocaleString("en-US")}` : "",
-    biz: text(body.business, 80, "your business"),
+    biz: text(body.business, 80, "[Your business]"),
     owner: typeof body.owner === "string" ? body.owner.trim().slice(0, 40) : "",
     window: text(body.window, 80, "the week after next"),
     tradeId,
