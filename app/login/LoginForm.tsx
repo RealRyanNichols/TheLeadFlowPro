@@ -169,6 +169,25 @@ export default function LoginForm() {
     );
   }
 
+  async function signInWithGoogle() {
+    setBusy(true);
+    setMessage(null);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}${authCallbackPath(next)}`,
+        queryParams: {
+          hd: "theleadflowpro.com",
+          prompt: "select_account",
+        },
+      },
+    });
+    if (error) {
+      setMessage(error.message);
+      setBusy(false);
+    }
+  }
+
   async function sendPasswordReset() {
     if (!email.trim()) {
       setMessage("Type your email above first, then tap Forgot password.");
@@ -312,6 +331,14 @@ export default function LoginForm() {
             or
             <span className="h-px flex-1 bg-[var(--line)]" />
           </div>
+          <button
+            type="button"
+            onClick={signInWithGoogle}
+            disabled={!clientReady || busy || linkBusy}
+            className="w-full rounded-lg border border-[var(--line-strong)] px-4 py-3 text-sm font-bold text-[var(--text)] hover:border-[var(--accent-line)] hover:text-[var(--heading)] disabled:opacity-50"
+          >
+            Continue with Google Workspace
+          </button>
           <button
             type="button"
             onClick={sendOneTimeLink}
