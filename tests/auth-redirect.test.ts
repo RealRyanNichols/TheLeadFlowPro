@@ -63,6 +63,13 @@ test("auth destinations reject external redirects and authentication loops", () 
     "/auth/signout",
     "/logout",
     "/%ZZ",
+    // Dot segments resolve to a protocol-relative "//host" after normalizing.
+    "/a/..//evil.test",
+    "/admin/call-sheet/../../..//evil.test",
+    "/a/%2e%2e//evil.test",
+    "/%2e%2e//evil.test",
+    "/.//evil.test",
+    "/admin/..//evil.test/x",
   ]) {
     assert.equal(safeAuthNext(value), null, value);
     assert.equal(authDestination("admin", value), "/admin", value);
