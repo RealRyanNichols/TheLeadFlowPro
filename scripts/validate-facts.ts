@@ -30,6 +30,7 @@ const SCAN_FILES = [
   "lib/leadNotify.ts",
   "lib/nurture.ts",
   "lib/nurtureHtml.ts",
+  "lib/nurtureRentReceipt.ts",
   "lib/workshopFollowUp.ts",
   "lib/pluginOnboarding.ts",
   "lib/pluginDocs.ts",

@@ -506,6 +506,7 @@ export function leadWelcomePayload(lead: NotifiableLead) {
       `2. I reach out within one business day. Usually a text or call from ${BUSINESS.phone.display}. Save that number, it is my direct line.`,
       `3. You leave that first conversation knowing the fastest thing to fix and your next three moves, whether you hire me or not.`,
       ``,
+      ...bookingLines(),
       `Want a head start? The live systems I have already built and handed over are here:`,
       `https://www.theleadflowpro.com/portfolio`,
       ``,

@@ -30,6 +30,7 @@
 //   - Every email ends with a working unsubscribe, added by the cron.
 
 import { LEADFLOW_META } from "@/lib/metaCampaignGuard";
+import type { NurtureContext } from "@/lib/nurtureContext";
 import { BUSINESS } from "@/lib/site/business";
 import { eventWhen, featuredEvent, featuredEventStartMs } from "@/lib/site/events";
 import { PRICES, usd } from "@/lib/site/prices";
@@ -144,8 +145,16 @@ export type NurtureStep = {
   /** Days after the lead was created that this email becomes due. */
   day: number;
   subject: string;
-  /** Body without the signature or the unsubscribe line: the cron adds both. */
-  body: (firstName: string) => string;
+  /**
+   * A subject that depends on what the lead told us (the Rent Receipt series
+   * writes days one to five per pain). Wins over subject when present.
+   */
+  subjectFor?: (context: NurtureContext) => string;
+  /**
+   * Body without the signature or the unsubscribe line: the cron adds both.
+   * The context carries the form answers; the Free Build steps ignore it.
+   */
+  body: (firstName: string, context?: NurtureContext) => string;
 };
 
 export const NURTURE_STEPS: NurtureStep[] = [
@@ -675,6 +684,11 @@ Thank you for reading this far. I built this whole thing because I needed a plat
 Ryan`,
   },
 ];
+
+/** The subject for a lead, honoring a per-lead subject when the step defines one. */
+export function nurtureSubjectFor(step: NurtureStep, context?: NurtureContext): string {
+  return context && step.subjectFor ? step.subjectFor(context) : step.subject;
+}
 
 /** The step due for a lead this many days old, or null. Highest due wins. */
 export function stepDueOnDay(ageInDays: number): NurtureStep | null {
