@@ -9,6 +9,7 @@ import { CONTENT_ENGINE } from "../lib/contentEngineCourse.ts";
 import { CHATGPT_OPERATOR } from "../lib/chatgptOperatorCourse.ts";
 import { OPERATOR_ACADEMY } from "../lib/operatorAcademyCatalog.ts";
 import { AGENCY_PAYMENT } from "../lib/agencyPayment.ts";
+import { CHASE_SHEET } from "../lib/chaseSheet/product.ts";
 import { HQ_PLAN } from "../lib/hq/types.ts";
 
 // Source-level guards over the one file that turns Stripe events into
@@ -35,6 +36,8 @@ test("every kind the checkout route can mint reaches an alerting branch", () => 
     CHATGPT_OPERATOR.purchaseKind,
     OPERATOR_ACADEMY.allAccessPurchaseKind,
     AGENCY_PAYMENT.kind,
+    CHASE_SHEET.monthlyKind,
+    CHASE_SHEET.lifetimeKind,
     "build_deposit",
     "package_deposit",
     "package_full",
@@ -54,6 +57,7 @@ test("every kind the checkout route can mint reaches an alerting branch", () => 
   const literalKinds = ["build_deposit", "package_deposit", "package_full", "tool_studio_order", "tool_monthly_menu", "pro_tool", "pro_bundle", "timeback_order", "system_map", "event"];
   for (const kind of literalKinds) assert.ok(checkout.includes(`"${kind}"`), `checkout mints ${kind}`);
   assert.ok(checkout.includes("FREE_BUILD_IDS.has(kind)") && checkout.includes("LEAD_FOLLOW_UP.id") && checkout.includes("AGENCY_PAYMENT.kind"));
+  assert.ok(checkout.includes("isChaseSheetKind(body.kind)"), "checkout mints both Chase Sheet plans through the product record");
   assert.ok(dispatch.includes("notifyUnhandledPurchase"), "the catch-all is still the else branch");
 
   // Every kind must reach a named branch, except the three the catch-all is
@@ -66,6 +70,8 @@ test("every kind the checkout route can mint reaches an alerting branch", () => 
     [CHATGPT_OPERATOR.purchaseKind]: "kind === CHATGPT_OPERATOR.purchaseKind",
     [OPERATOR_ACADEMY.allAccessPurchaseKind]: "kind === OPERATOR_ACADEMY.allAccessPurchaseKind",
     [AGENCY_PAYMENT.kind]: "kind === AGENCY_PAYMENT.kind",
+    [CHASE_SHEET.monthlyKind]: "isChaseSheetKind(kind)",
+    [CHASE_SHEET.lifetimeKind]: "isChaseSheetKind(kind)",
     tool_studio_order: 'kind === "tool_studio_order"',
     tool_monthly_menu: 'kind === "tool_monthly_menu"',
     pro_tool: "proKind",
@@ -85,6 +91,13 @@ test("every kind the checkout route can mint reaches an alerting branch", () => 
   assert.ok(dispatch.includes("ensureToolStudioPaid(supabase, session, kind)"));
   const post = hook.slice(hook.indexOf("export async function POST"));
   assert.ok(post.indexOf("handleHqStripeEvent(") < post.indexOf("recordPurchase(supabase, {"), `${HQ_PLAN.kind} is claimed before the purchase write`);
+  // Chase Sheet's monthly lifecycle is claimed right after the plugin's; its paid
+  // checkouts flow through the dispatch and its refunds through the money-back path.
+  const chase = post.indexOf("handleChaseSheetSubscription(");
+  assert.ok(post.indexOf("handleHqStripeEvent(") < chase && chase < post.indexOf("recordSubscriptionInvoice("), "Chase Sheet subscription events are claimed after the plugin's and before invoices");
+  assert.ok(dispatch.includes("ensureChaseSheetPaid(supabase, session)"));
+  assert.ok(slice("handleMoneyBack").includes("applyChaseSheetMoneyBack(supabase, purchase, restoring)"), "a refund on either plan reaches the sheet");
+  assert.ok(slice("recordSubscriptionInvoice").includes("markChaseSheetRenewed("), "a paid renewal reopens a past-due sheet");
 });
 
 test("System Map and Tool Studio claim the funnel lead, open a task, acknowledge, alert, then mark", () => {

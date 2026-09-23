@@ -2,6 +2,7 @@ const BASE = "https://www.theleadflowpro.com";
 const PRIVATE_PATH = /^\/(?:admin|dashboard|login|logout|auth|training|api|sales|account|settings|workspace|portal)(?:\/|$)/i;
 const PRIVATE_EVENT = /^\/events\/[^/]+\/confirmed(?:\/|$)/i;
 const PRIVATE_SELLERPROOF = /^\/sellerproof\/build(?:\/|$)/i;
+const PRIVATE_CHASE_SHEET = /^\/chase-sheet\/app(?:\/|$)/i;
 const CREDENTIAL_KEY = /^(?:t|.*token.*|.*secret.*|.*password.*|.*signature.*|session|session_id|checkout_session_id|code|email|email_address|authorization|key)$/i;
 
 function parseUrl(value: string): URL | null {
@@ -31,7 +32,7 @@ export function isPublicAnalyticsUrl(value: string): boolean {
   const url = parseUrl(value);
   if (!url || isLocalAnalyticsHost(url.hostname)) return false;
   const path = decodeURIComponentSafely(url.pathname);
-  if (PRIVATE_PATH.test(path) || PRIVATE_EVENT.test(path) || PRIVATE_SELLERPROOF.test(path)) return false;
+  if (PRIVATE_PATH.test(path) || PRIVATE_EVENT.test(path) || PRIVATE_SELLERPROOF.test(path) || PRIVATE_CHASE_SHEET.test(path)) return false;
   if (/(?:^|\/)(?:cs_(?:live|test)_[^/]+|[a-f0-9]{32,}|eyJ[^/]{20,})(?:\/|$)/i.test(path)) return false;
   if (path.includes("@")) return false;
   for (const key of url.searchParams.keys()) if (CREDENTIAL_KEY.test(key)) return false;

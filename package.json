@@ -33,7 +33,8 @@
     "scoreboard:owner-link": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/scoreboard-owner-link.ts",
     "tool:new": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/new-tool.ts",
     "plugin:packs": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/plugin-packs.ts",
-    "sellerproof:demo": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/sellerproof-demo.ts"
+    "sellerproof:demo": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/sellerproof-demo.ts",
+    "chasesheet:stripe": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/chase-sheet-stripe.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

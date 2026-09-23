@@ -508,3 +508,43 @@ is a decision, an account action, or a check only Ryan can do.
     founding price ($297), both already charged by code; they are now
     `PRICES.timeBackFrom` and `PRICES.chatgptOperatorFounding` and printed
     from there. Decision: confirm both numbers are current. Default: yes.
+
+## J. Chase Sheet (September 23)
+
+Added September 23, 2026 with `docs/CHASE_SHEET_RELEASE.md`. The product is
+built and tested; each item below is a switch, an account action, or a check
+only Ryan can do. Nothing has been deployed, charged, or created in Stripe.
+
+70. **Apply the Chase Sheet migration.**
+    `supabase/migrations/20260923120000_chase_sheet.sql` creates three new
+    tables (accounts, quotes, touches), service role only. Apply it with
+    `supabase db push --include-all` or the Supabase MCP before the first
+    sale. Without it, a paid checkout still charges the card, the claim route
+    sends the buyer to the locked view with "claim=unavailable", and the
+    webhook returns 500 until the tables exist (Stripe retries). Default:
+    apply before merging.
+
+71. **The Stripe payment links.** The page sells through `/api/checkout` and
+    needs nothing in the dashboard. For a link to paste into a text or a
+    post, run `npm run chasesheet:stripe` with the live `STRIPE_SECRET_KEY`
+    exported in a local shell. It prints two hosted links that fulfil
+    exactly like the page. Then, optionally, paste them into
+    `EXTERNAL_LINKS`. Ryan-only: it creates objects in the live account.
+
+72. **Refund window.** `/chase-sheet/terms` promises a full refund within
+    seven days of a first purchase, and no refund on renewal months. Decision:
+    keep, lengthen, or drop. Default: keep.
+
+73. **The price pair.** $20 a month and $97 once, as requested. The lifetime
+    price pays for itself against five months of monthly. Decision: confirm
+    both numbers are what Ryan wants printed. Default: yes.
+
+74. **`CHASE_SHEET_SECRET`.** Optional. Without it the Pro Kit secrets sign
+    the cookie and the key. Setting a dedicated one (`openssl rand -hex 32`)
+    means a Pro Kit key rotation never touches Chase Sheet buyers. Default:
+    set it before the first sale.
+
+75. **Adding a trade.** A buyer whose trade is missing is told to reply to the
+    receipt. A new library is one entry in `lib/chaseSheet/trades.ts`; the
+    engine tests cover every entry automatically. Decision: which trades to
+    add first after launch. Default: whatever the first ten buyers ask for.

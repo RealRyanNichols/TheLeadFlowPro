@@ -53,6 +53,12 @@ test("the published price table is encoded once and formatted consistently", () 
   assert.equal(usdPerMonth(PRICES.hostingManagedMonthly), "$49/mo");
   assert.equal(usdPerMonth(PRICES.hostingWithEditsMonthly), "$99/mo");
   assert.equal(usd(PRICES.workshopSeat), "$97");
+  assert.equal(usdPerMonth(PRICES.chaseSheetMonthly), "$20/mo");
+  assert.equal(usd(PRICES.chaseSheetLifetime), "$97");
+  assert.equal(offer("chase_sheet_monthly").priceUsd, PRICES.chaseSheetMonthly);
+  assert.equal(offer("chase_sheet_lifetime").priceUsd, PRICES.chaseSheetLifetime);
+  assert.equal(offer("chase_sheet_monthly").href, offer("chase_sheet_lifetime").href);
+  assert.ok(guardedPriceStrings().includes("$20"));
   assert.deepEqual(
     [PRICES.freeBuildFollowUpPack, PRICES.freeBuildContentEngine, PRICES.freeBuildGrowthEngine],
     [197, 497, 997],

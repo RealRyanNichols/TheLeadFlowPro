@@ -39,6 +39,27 @@ export const PUBLIC_PAGE_CATALOG = [
     art: "/images/page-art/commerce-20260907.webp",
   },
   {
+    path: "/chase-sheet",
+    title: "Every open quote. Chased every day.",
+    description:
+      "Chase Sheet writes the follow-up for every quote you send, tells you who to chase today, and sends from your own phone with one tap. $20 a month, or $97 once.",
+    eyebrow: "Chase Sheet",
+  },
+  {
+    path: "/chase-sheet/terms",
+    title: "Chase Sheet purchase terms",
+    description:
+      "What the monthly plan and the one-time purchase cover, how cancellation works, and what you send yourself.",
+    eyebrow: "Chase Sheet terms",
+  },
+  {
+    path: "/chase-sheet/app",
+    title: "Your Chase Sheet",
+    description: "The sheet itself: today's chase list, your quotes, and the ledger. For buyers.",
+    eyebrow: "Chase Sheet",
+    index: false,
+  },
+  {
     path: "/sellerproof",
     title: "Organized evidence. A clearer response.",
     description:

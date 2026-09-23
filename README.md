@@ -38,6 +38,9 @@ known model limits. Node 22.6 or later is required.
 - `app/articles/` — owned article library (SEO + lead generation).
 - `app/tools/` and `lib/tools/` — the free tool library: registry, taxonomy, search,
   artwork, collections and embeds. Start with `docs/TOOLS_ARCHITECTURE.md`.
+- `app/chase-sheet/` and `lib/chaseSheet/` — Chase Sheet, the paid open-quote
+  follow-up engine ($20/mo or $97 once): the trade libraries, the cadence, the
+  words, the sheet, and the Stripe plans. Start with `docs/CHASE_SHEET_RELEASE.md`.
 - `supabase/migrations/` — schema history. Every migration documents its rollback.
 
 ## Local development
