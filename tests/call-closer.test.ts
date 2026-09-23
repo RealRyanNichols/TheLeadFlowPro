@@ -35,6 +35,7 @@ import {
   SAMPLE_NOTES,
   SAMPLE_NOW,
 } from "../lib/callCloserFixtures.ts";
+import { buildCallSheet, type CallSheetLead } from "../lib/callSheet.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
 import { CLOSER_OFFER_IDS, FREE_BUILD_ADD_ON_IDS, isCloserOfferId, payDoorFor, type CloserOfferId } from "../lib/payDoors.ts";
 import { AGENCY_SERVICES } from "../lib/site/agency.ts";
@@ -199,6 +200,41 @@ test("parseNextStepRequest reads the posted keys and ignores an author or actor 
   assert.equal(withCallback.request.lostReason, "other");
 });
 
+test("a bare '<' in a call note is sales shorthand, not a tag: the rest of the note is kept", () => {
+  const typed = "Crew of <5, budget under $800/mo.\nOwner is Mike, call him on his cell after 3.\nHates contracts > 6 months.";
+  const parsed = parseNextStepRequest({ outcome: "call_back", idempotency_key: KEY, note: typed, callback_date: "2026-09-25", callback_time: "15:00" });
+  assert.ok(parsed.ok, parsed.ok ? "" : parsed.error);
+  assert.equal(parsed.request.note, typed, "nothing after the '<' is lost");
+  const p = ok(plan(parsed.request));
+  assert.equal(p.noteBody, `Call: talked, call back Fri, Sep 25 at 3:00 PM.\n\n${typed}`);
+  assert.ok(p.noteBody.includes("Owner is Mike, call him on his cell after 3."), p.noteBody);
+
+  // More shorthand that must survive, on its own and mid-line.
+  for (const note of ["budget <$1k", "<= 500 sq ft", "<3 this crew", "a < b, and c > d", "x<y"]) {
+    const r = parseNextStepRequest({ outcome: "no_answer", idempotency_key: KEY, note });
+    assert.ok(r.ok);
+    assert.equal(r.request.note, note, note);
+  }
+  // Complete tags still come out, and a control character still goes.
+  const tags = parseNextStepRequest({ outcome: "no_answer", idempotency_key: KEY, note: 'Wants <a href="x">this</a> <br/>and <5 trucks\u0007.' });
+  assert.ok(tags.ok);
+  assert.equal(tags.request.note, "Wants this and <5 trucks.");
+});
+
+test("Not a fit, Other: a reason that starts with '<' is saved, not refused", () => {
+  const parsed = parseNextStepRequest({ outcome: "not_a_fit", idempotency_key: KEY, lost_reason: "other", note: "<10 trucks, too small for us" });
+  assert.ok(parsed.ok, parsed.ok ? "" : parsed.error);
+  assert.equal(parsed.request.note, "<10 trucks, too small for us");
+  const p = ok(plan(parsed.request));
+  assert.equal(p.leadPatch.lost_reason, "Other: <10 trucks, too small for us");
+  assert.equal(p.noteBody.split("\n")[0], "Call: not a fit (Other: <10 trucks, too small for us).");
+  // Built directly (not parsed), the planner reads the same line the same way.
+  assert.equal(
+    ok(plan(request("not_a_fit", { lostReason: "other", note: "<10 trucks,   too small\nsecond line" }))).leadPatch.lost_reason,
+    "Other: <10 trucks, too small",
+  );
+});
+
 test("parseNextStepRequest rejects bad bodies, keys, outcomes, and offers", () => {
   const base = { outcome: "wants_proposal", idempotency_key: KEY, offers: ["website_launch"] };
   const rejects = (body: unknown, why: string) => {
@@ -269,7 +305,7 @@ test("booked: sit-down in Central time, stage to call_booked, a high meeting tas
   assert.deepEqual(p.preview, [
     "Status moves to Call booked.",
     "Adds a task: Sit-down with Dana, due Thu, Sep 24.",
-    "Next follow-up: Thu, Sep 24 at 2:00 PM. The lead comes back on your call sheet then.",
+    "Next follow-up: Thu, Sep 24 at 2:00 PM. The lead shows as due again then.",
     "Saves a note and adds the call to the timeline.",
     "Nothing is sent to Dana.",
   ]);
@@ -378,8 +414,32 @@ test("ready_to_pay: the published pay door and one draft for Ryan to send himsel
   assert.ok(build.preview.includes("Lead Engine: Starts with the System Map, credited toward the build."));
 });
 
+test("what saving says is true for an admin and a sales user alike: no call sheet a sales user cannot open", () => {
+  const requests: NextStepRequest[] = [
+    request("booked", { meeting: { localDate: "2026-09-24", time: "14:00", place: null } }),
+    request("wants_proposal", { offers: ["website_launch"] }),
+    request("ready_to_pay", { offers: ["website_launch"] }),
+    request("call_back", { callback: { localDate: "2026-09-24", time: "15:00" } }),
+    request("no_answer"),
+    request("voicemail"),
+    request("not_a_fit", { lostReason: "no_budget" }),
+    request("proposal_sent", { offers: ["website_launch"] }),
+  ];
+  for (const r of requests) {
+    const p = ok(plan(r));
+    for (const line of [...p.preview, p.summary]) assert.doesNotMatch(line, /call sheet/i, `${r.outcome}: ${line}`);
+    if (p.nextFollowUpAt) assert.ok(p.preview.some((l) => l.startsWith("Next follow-up: ") && l.endsWith(". The lead shows as due again then.")), r.outcome);
+  }
+  const panel = src("app/admin/call-sheet/CallOutcomePanel.tsx");
+  assert.ok(!/comes back on\s+the call sheet/.test(panel), "the saved view does not promise the call sheet either");
+  assert.match(panel, /shows as due\s+again then\./);
+});
+
 test("ready_to_pay is refused for an offer with no online payment today", () => {
   const message = (name: string) => `No online payment for ${name} yet. Choose Wants a proposal so the number goes in writing first.`;
+  // An agency service does take money online, on the agency pay page, once the number is in writing.
+  const scopeMessage = (name: string) =>
+    `${name} has no set price. It is paid on the agency pay page against a written scope, so choose Wants a proposal to put the number in writing first. Once the proposal is marked sent, Ready to pay now gives you the link.`;
   const blocked: CloserOfferId[] = [
     "free_website_program",
     ...FREE_BUILD_ADD_ON_IDS,
@@ -389,11 +449,41 @@ test("ready_to_pay is refused for an offer with no online payment today", () => 
   for (const id of blocked) {
     const door = payDoorFor(id);
     assert.ok(door && !door.payableNow, id);
-    assert.equal(refused(plan(request("ready_to_pay", { offers: [id] }))), message(door.offerName));
+    const said = refused(plan(request("ready_to_pay", { offers: [id] })));
+    assert.equal(said, door.kind === "written_scope" ? scopeMessage(door.offerName) : message(door.offerName));
+    assert.ok(!/No online payment/.test(door.kind === "written_scope" ? said : ""), "never claims an agency service has no online payment");
+    assert.deepEqual(copyProblems(said), []);
   }
   // One blocked offer blocks the whole save, named in the error.
-  assert.equal(refused(plan(request("ready_to_pay", { offers: ["website_launch", "agency_meta_ads"] }))), message("Meta ads management"));
+  assert.equal(refused(plan(request("ready_to_pay", { offers: ["website_launch", "agency_meta_ads"] }))), scopeMessage("Meta ads management"));
+  assert.equal(refused(plan(request("ready_to_pay", { offers: ["website_launch", "free_build_launch"] }))), message(payDoorFor("free_build_launch")!.offerName));
   refused(plan(request("ready_to_pay")));
+});
+
+test("ready_to_pay hands over an agency pay link once the lead is at the proposal stage, never with an amount", () => {
+  const agency = CLOSER_OFFER_IDS.filter((id) => id.startsWith("agency_") && payDoorFor(id)?.status !== "live");
+  assert.ok(agency.includes("agency_meta_ads"));
+  for (const id of agency) {
+    const door = payDoorFor(id)!;
+    assert.equal(door.kind, "written_scope");
+    const p = ok(plan(request("ready_to_pay", { offers: [id] }), { lead: lead({ status: "proposal" }) }));
+    assert.deepEqual(p.payDoors.map((d) => d.offerId), [id]);
+    assert.equal(p.payDoors[0].url, door.url);
+    assert.ok(p.payMessage?.includes(door.url!), p.payMessage ?? "no message");
+    assert.ok(p.payMessage?.includes("the amount in your written scope"), p.payMessage ?? "");
+    assert.ok(!/\$\d/.test(p.payMessage ?? ""), "no amount for a price Ryan has not set");
+    assert.equal(p.leadPatch.status, undefined, "already at proposal");
+    assert.ok(p.nextFollowUpAt, "a time to check the payment");
+    assert.deepEqual(copyProblems([...p.preview, p.payMessage ?? "", p.summary].join(" ")), []);
+  }
+  const meta = ok(plan(request("ready_to_pay", { offers: ["agency_meta_ads"] }), { lead: lead({ status: "proposal" }) }));
+  assert.ok(meta.payMessage?.includes("/agency/pay?service=meta-ads"), meta.payMessage ?? "");
+  // Earlier stages still put the number in writing first.
+  for (const status of ["new", "contacted", "call_booked"]) {
+    assert.match(refused(plan(request("ready_to_pay", { offers: ["agency_meta_ads"] }), { lead: lead({ status }) })), /has no set price/);
+  }
+  // The free build never takes a payment, whatever the stage.
+  assert.match(refused(plan(request("ready_to_pay", { offers: ["free_website_program"] }), { lead: lead({ status: "proposal" }) })), /No online payment/);
 });
 
 test("no_answer and voicemail leave status and last_contacted_at alone and set the next try", () => {
@@ -427,6 +517,69 @@ test("no_answer and voicemail leave status and last_contacted_at alone and set t
   refused(plan(request("voicemail", { callback: { localDate: "2026-09-21", time: "08:30" } })));
 });
 
+test("an early try nobody answered keeps a call back promised for sooner than the ladder", () => {
+  // Tue Sep 22 10:00 AM: they said "call me Monday morning".
+  const callBack = ok(plan(request("call_back", { callback: { localDate: "2026-09-28", time: "09:00" } })));
+  const promised = callBack.leadPatch.next_follow_up_at!;
+  assert.equal(promised, "2026-09-28T14:00:00.000Z"); // Mon 9:00 AM CDT
+  const afterCall = lead({ status: "contacted", next_follow_up_at: promised });
+
+  // Fri Sep 25 3:00 PM: Ryan tries early and leaves a voicemail. The ladder alone says Tue Sep 29 at 10:00 AM.
+  const FRI_3PM = new Date("2026-09-25T20:00:00.000Z");
+  const priorAttempts = countPriorAttempts([callBack.activity.detail]);
+  assert.equal(priorAttempts, 0);
+  const vm = ok(plan(request("voicemail"), { lead: afterCall, now: FRI_3PM, priorAttempts }));
+  assert.deepEqual(vm.leadPatch, { next_follow_up_at: promised }, "the Monday promise is kept");
+  assert.equal(vm.nextFollowUpAt, promised);
+  const keeps = "Keeps the follow-up already set for Mon, Sep 28 at 9:00 AM, because it is sooner than the next try.";
+  assert.ok(vm.preview.includes(keeps), vm.preview.join(" | "));
+  assert.ok(vm.preview.includes("Next follow-up: Mon, Sep 28 at 9:00 AM. The lead shows as due again then."), vm.preview.join(" | "));
+  assert.equal(vm.noteBody, "Call: left a voicemail. Try again Mon, Sep 28 at 9:00 AM.");
+  assert.equal(vm.summary, "Voicemail logged. Try again Mon, Sep 28 at 9:00 AM.");
+  for (const text of [...vm.preview, vm.summary, vm.noteBody]) assert.deepEqual(copyProblems(text), [], text);
+
+  // On the call sheet, Monday at 9:30 AM, the promise is due: the lead is on the list, not hidden until Tuesday.
+  const sheetLead: CallSheetLead = {
+    id: afterCall.id,
+    created_at: "2026-09-21T15:00:00.000Z",
+    full_name: afterCall.full_name,
+    business_name: afterCall.business_name,
+    email: afterCall.email,
+    phone: afterCall.phone,
+    interest: afterCall.interest ?? "website_launch",
+    status: "contacted",
+    source: "website",
+    utm_source: null,
+    best_contact_method: null,
+    sms_consent: afterCall.sms_consent,
+    sms_unsubscribed_at: null,
+    is_test: false,
+    next_follow_up_at: vm.leadPatch.next_follow_up_at ?? null,
+  };
+  const touches = [
+    { lead_id: afterCall.id, at: TUE_10AM.toISOString(), kind: "note" as const, summary: callBack.noteBody },
+    { lead_id: afterCall.id, at: FRI_3PM.toISOString(), kind: "note" as const, summary: vm.noteBody },
+  ];
+  const monday = buildCallSheet([sheetLead], touches, new Date("2026-09-28T14:30:00.000Z"));
+  assert.equal(monday.rows.length, 1, JSON.stringify(monday.excluded));
+  assert.equal(monday.rows[0].tier, "callback");
+
+  // A no answer keeps it the same way.
+  assert.equal(ok(plan(request("no_answer"), { lead: afterCall, now: FRI_3PM })).nextFollowUpAt, promised);
+  // A time Ryan picks for the next try still wins.
+  const picked = ok(plan(request("voicemail", { callback: { localDate: "2026-09-29", time: "11:00" } }), { lead: afterCall, now: FRI_3PM }));
+  assert.equal(picked.nextFollowUpAt, "2026-09-29T16:00:00.000Z");
+  assert.ok(!picked.preview.some((l) => l.startsWith("Keeps the follow-up")), picked.preview.join(" | "));
+
+  // A stored time later than the ladder, one already past, or garbage: the ladder, and no "Keeps" line.
+  const ladder = "2026-09-29T15:00:00.000Z"; // Tue Sep 29 10:00 AM CDT: voicemail at rung 1, +2 business days
+  for (const stored of ["2026-10-05T14:00:00.000Z", "2026-09-25T14:00:00.000Z", FRI_3PM.toISOString(), "not a date", null]) {
+    const p = ok(plan(request("voicemail"), { lead: lead({ status: "contacted", next_follow_up_at: stored }), now: FRI_3PM }));
+    assert.equal(p.nextFollowUpAt, ladder, String(stored));
+    assert.ok(!p.preview.some((l) => l.startsWith("Keeps the follow-up")), String(stored));
+  }
+});
+
 test("the missed-call ladder: 1, 2, then 4 business days, and a nudge to text after two misses", () => {
   const nudge = "That is several tries without an answer. Try a text or an email next.";
   const at = (outcome: "no_answer" | "voicemail", details: string[]) =>
@@ -452,6 +605,36 @@ test("the missed-call ladder: 1, 2, then 4 business days, and a nudge to text af
   assert.ok(vm2.preview.includes(nudge));
   // A conversation resets the ladder.
   assert.equal(at("no_answer", [detail("call_back"), detail("no_answer"), detail("no_answer")]).nextFollowUpAt, "2026-09-23T15:00:00.000Z");
+  // The nudge names only channels Ryan may use with this lead (SAMPLE_CALL_LEAD has consent and a real email).
+  const nudgeFor = (overrides: Partial<PlannerLead>) =>
+    ok(plan(request("no_answer"), { now: TUE_2PM, priorAttempts: 2, lead: lead(overrides) })).preview.find((l) => l.startsWith("That is several tries"));
+  assert.equal(nudgeFor({}), nudge);
+  // No consent (most Meta lead-ad rows), with a real email: email only, and no word about texting.
+  const noConsent = ok(plan(request("no_answer"), { now: TUE_2PM, priorAttempts: 2, lead: lead({ sms_consent: false }) }));
+  assert.ok(noConsent.preview.includes("That is several tries without an answer. Try an email next."), noConsent.preview.join(" | "));
+  assert.ok(!noConsent.preview.some((l) => /text/i.test(l)), noConsent.preview.join(" | "));
+  // Replied STOP: says so, and suggests the email.
+  assert.equal(
+    nudgeFor({ sms_unsubscribed_at: "2026-09-20T15:00:00.000Z" }),
+    "That is several tries without an answer. They replied STOP, so no texts. Try an email next.",
+  );
+  // Consent but no real email (the Meta placeholder counts as none): a text only.
+  assert.equal(nudgeFor({ email: "x@no-email.facebook.lead" }), "That is several tries without an answer. Try a text next.");
+  assert.equal(nudgeFor({ email: null }), "That is several tries without an answer. Try a text next.");
+  // Neither: keep calling, at another time of day.
+  assert.equal(
+    nudgeFor({ sms_consent: false, email: "x@no-email.facebook.lead" }),
+    "That is several tries without an answer. There is no text consent and no email on file, so call again at a different time of day.",
+  );
+  assert.equal(
+    nudgeFor({ sms_unsubscribed_at: "2026-09-20T15:00:00.000Z", email: null }),
+    "That is several tries without an answer. They replied STOP and there is no email on file, so call again at a different time of day.",
+  );
+  // Consent without a phone is no text either.
+  assert.equal(nudgeFor({ phone: null, email: null }), "That is several tries without an answer. There is no text consent and no email on file, so call again at a different time of day.");
+  for (const o of [{}, { sms_consent: false }, { sms_unsubscribed_at: "2026-09-20T15:00:00.000Z" }, { email: null }, { sms_consent: false, email: null }]) {
+    assert.deepEqual(copyProblems(nudgeFor(o) ?? ""), [], JSON.stringify(o));
+  }
   // Garbage prior counts are treated as zero.
   assert.equal(ok(plan(request("no_answer"), { now: TUE_2PM, priorAttempts: -3 })).nextFollowUpAt, "2026-09-23T15:00:00.000Z");
   assert.equal(ok(plan(request("no_answer"), { now: TUE_2PM, priorAttempts: Number.NaN })).nextFollowUpAt, "2026-09-23T15:00:00.000Z");
@@ -488,7 +671,7 @@ test("not_a_fit needs a reason, and Other needs a note", () => {
   assert.equal(budget.task, null);
   assert.equal(budget.noteBody, "Call: not a fit (No budget right now).");
   assert.ok(budget.preview.includes("Clears the next follow-up."));
-  assert.equal(budget.summary, "Marked not a fit. Dana comes off the call sheet.");
+  assert.equal(budget.summary, "Marked not a fit. Dana is closed as lost, with no follow-up set.");
 
   const other = ok(plan(request("not_a_fit", { lostReason: "other", note: "\nMoved the business to Tyler.\nMaybe next year." })));
   assert.equal(other.leadPatch.lost_reason, "Other: Moved the business to Tyler.");

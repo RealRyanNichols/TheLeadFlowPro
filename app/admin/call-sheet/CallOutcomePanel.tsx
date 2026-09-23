@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import CopyButton from "@/app/hq/_components/CopyButton";
 import { centralDate, quickCallbackChoices } from "@/lib/businessTime";
 import {
+  CALL_OUTCOMES,
   LOST_REASONS,
   MAX_CALL_OFFERS,
   MAX_DAYS_AHEAD,
@@ -30,14 +31,28 @@ import { closerOffers, payDoorFor, type CloserOfferId, type PayDoor } from "@/li
 // - The only network call is the POST to /api/admin/leads/<id>/next-step.
 //   Nothing here texts, emails, or charges anyone. When a lead is ready to
 //   pay, the panel hands Ryan the pay links and a message he sends himself.
-// - Every save carries an idempotency key minted on mount. A retry of the same
-//   failed save reuses it, so a save that landed before the connection dropped
-//   is not written twice. A changed save, or any save after a success, gets a
-//   new key.
+// - Every save carries an idempotency key minted on mount. When the route
+//   answered with its own error, nothing with that key landed: the same save
+//   again reuses the key, and a changed save gets a new one. When no answer
+//   came back (the connection dropped, or a platform error page), the save may
+//   have landed, so every later save keeps that key until one succeeds, even
+//   after an edit: the route then says "already saved" instead of writing the
+//   call twice, and the panel says the later edits were not saved. Any save
+//   after a success gets a new key.
+// - For Wants a proposal and Ready to pay now, only the primary suggestion (or
+//   the offers named on the last call) starts checked. The rest are listed
+//   first, one tap away, so a quick save never names offers nobody talked
+//   about. The optional "Talked about an offer?" list on a sit-down or a call
+//   back starts with nothing ticked, so opening it to add one offer never
+//   records a second one nobody mentioned.
 // - An error keeps everything Ryan entered. A success is announced and gets
 //   focus, so a screen reader and a thumb both land on it.
-// - After a call link is tapped and the phone app closes, focus comes back to
-//   "How did the call go?" if nothing is chosen and Ryan is not typing.
+// - While a save is in flight the form is frozen (SavingLock), so nothing
+//   typed during "Saving..." is dropped when the saved view replaces it.
+// - After a call link is tapped, coming back to the page never moves it: Ryan
+//   often switches back mid-call to read the card. Until an outcome is
+//   chosen, a small "Log how the call went" button shows, and only a tap on it
+//   takes him to "How did the call go?".
 // - Everything that needs lib/quo or lib/callSheet (phone links, texting
 //   consent) is worked out on the server and passed in as plain props. This
 //   file imports no Supabase, Quo, call sheet, or notification code, and no
@@ -63,7 +78,7 @@ export type CallOutcomePanelProps = {
   lead: PlannerLead;
   /** Offers to have ready (closerOffersFor on the server). Shown first in the offer list. */
   suggestedOffers: CloserOfferId[];
-  /** Offers named on the last call. Preselected when present, otherwise the first suggestions are. */
+  /** Offers named on the last call. Preselected for Wants a proposal and Ready to pay now; otherwise only the first (primary) suggestion is. Listed first everywhere. */
   initialOffers?: CloserOfferId[];
   /** countPriorAttempts over the lead's recent call activity. */
   priorAttempts: number;
@@ -136,6 +151,19 @@ function withPeriod(text: string): string {
   return /[.!?]$/.test(text) ? text : `${text}.`;
 }
 
+/**
+ * Under "Ready to pay now": whether this offer can be paid online today. An
+ * agency service pays on the agency pay page against its written scope, which
+ * the planner allows once the lead is at the proposal stage.
+ */
+function payTodayLabel(door: PayDoor, status: string): string {
+  if (door.payableNow) return "Pays online today. ";
+  if (door.kind === "written_scope" && door.url) {
+    return status === "proposal" ? "Pays online against the written scope. " : "Pays online once the number is in writing. ";
+  }
+  return "Cannot be paid online today. ";
+}
+
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
@@ -144,12 +172,17 @@ function strings(v: unknown): string[] {
   return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
 }
 
+function isCallOutcome(v: unknown): v is CallOutcome {
+  return typeof v === "string" && (CALL_OUTCOMES as readonly string[]).includes(v);
+}
+
 /** The route's 200 body, checked field by field before the panel trusts it. */
-function readSaved(data: unknown, outcome: CallOutcome): SavedCall | null {
+export function readSaved(data: unknown, outcome: CallOutcome): SavedCall | null {
   if (!isRecord(data) || data.ok !== true || typeof data.summary !== "string") return null;
   return {
     ok: true,
-    outcome,
+    // "Already saved" names the outcome that was saved, which can differ from an edit on screen.
+    outcome: isCallOutcome(data.outcome) ? data.outcome : outcome,
     duplicate: data.duplicate === true,
     landed: strings(data.landed),
     warnings: strings(data.warnings),
@@ -161,6 +194,109 @@ function readSaved(data: unknown, outcome: CallOutcome): SavedCall | null {
     payMessage: typeof data.payMessage === "string" ? data.payMessage : null,
     proposalHref: typeof data.proposalHref === "string" && data.proposalHref.startsWith("/admin/") ? data.proposalHref : null,
   };
+}
+
+/** What the panel remembers between saves that did not succeed. */
+export type SaveMemory = {
+  /** The key the next save uses unless it has to change. */
+  key: string;
+  /** The last save the route refused with its own error. Nothing with `key` landed from it. */
+  failedPayload: string | null;
+  /** Saves sent under `key` whose answer never came back. Any one of them may have landed. */
+  uncertainPayloads: string[];
+};
+
+/** How a save ended, as far as the panel can tell. */
+export type SaveOutcome =
+  | { kind: "saved"; duplicate: boolean }
+  /** The route answered with its own JSON error. Its Ref marker is written last, so nothing with this key landed. */
+  | { kind: "refused" }
+  /** No answer the panel can trust: the save may or may not have landed. */
+  | { kind: "unknown" };
+
+export const UNCERTAIN_SAVE_MESSAGE =
+  "The connection dropped before the server answered, so this call may already be saved. Everything you entered is still here. Tap Save again: if it already saved, it will say so, and nothing is saved twice.";
+
+export const EDITS_NOT_SAVED_WARNING =
+  "An earlier save of this call had already gone through, so the changes you made after it were not saved. Anything below is for the call that was saved. To record a different outcome and get its links, tap Log another call. To add to the note, use the lead page.";
+
+/** Sort a finished request into saved, refused, or unknown. A null response means fetch itself threw. */
+export function classifySave(response: { ok: boolean } | null, data: unknown): SaveOutcome {
+  if (!response) return { kind: "unknown" };
+  if (response.ok) {
+    return isRecord(data) && data.ok === true && typeof data.summary === "string"
+      ? { kind: "saved", duplicate: data.duplicate === true }
+      : { kind: "unknown" };
+  }
+  return isRecord(data) && data.ok === false ? { kind: "refused" } : { kind: "unknown" };
+}
+
+/** The key for the next save of `payload`. */
+export function keyForSave(memory: SaveMemory, payload: string, mint: () => string): string {
+  if (!memory.key) return mint();
+  // A save under this key may already have landed, and only this key can find it.
+  if (memory.uncertainPayloads.length > 0) return memory.key;
+  // The route refused the last save, so a changed save is a new save.
+  if (memory.failedPayload !== null && memory.failedPayload !== payload) return mint();
+  return memory.key;
+}
+
+/** What to remember after a save of `payload` ended with `outcome`, and whether later edits were lost to an earlier save. */
+export function afterSave(
+  memory: SaveMemory,
+  payload: string,
+  outcome: SaveOutcome,
+  mint: () => string,
+): { memory: SaveMemory; editsLost: boolean } {
+  if (outcome.kind === "saved") {
+    const uncertain = memory.uncertainPayloads;
+    const editsLost = outcome.duplicate && uncertain.length > 0 && !(uncertain.length === 1 && uncertain[0] === payload);
+    return { memory: { key: mint(), failedPayload: null, uncertainPayloads: [] }, editsLost };
+  }
+  if (outcome.kind === "refused") return { memory: { ...memory, failedPayload: payload }, editsLost: false };
+  const uncertainPayloads = memory.uncertainPayloads.includes(payload) ? memory.uncertainPayloads : [...memory.uncertainPayloads, payload];
+  return { memory: { ...memory, uncertainPayloads }, editsLost: false };
+}
+
+/**
+ * Everything Ryan can change, frozen while a save is in flight. The success
+ * view replaces the form, so an edit made during "Saving..." would never be
+ * sent and never be mentioned. A disabled fieldset turns off every input,
+ * radio, checkbox, textarea, and chip button; inert also stops the two
+ * <details> toggles, which are not form controls.
+ */
+export function SavingLock({ busy, children }: { busy: boolean; children: ReactNode }) {
+  return (
+    <fieldset disabled={busy} inert={busy} aria-busy={busy} className="m-0 min-w-0 border-0 p-0">
+      {children}
+    </fieldset>
+  );
+}
+
+/**
+ * Coming back to the page after a call link was tapped. Ryan often switches
+ * back in the middle of a call to read the card (their words, the prices), so
+ * nothing here moves focus or scrolls: it only says whether to show the "Log
+ * how the call went" button. The tap stays armed until an outcome is chosen,
+ * so a glance during the call does not use it up before the call ends.
+ */
+export function showsLogPrompt(state: { visible: boolean; called: boolean; outcome: CallOutcome | null }): boolean {
+  return state.visible && state.called && state.outcome === null;
+}
+
+/** A small button, fixed above the iPhone home bar, that takes Ryan to "How did the call go?" only when he taps it. */
+export function LogCallPrompt({ onClick }: { onClick: () => void }) {
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+      <button
+        type="button"
+        onClick={onClick}
+        className={`pointer-events-auto inline-flex min-h-[44px] items-center rounded-full bg-[var(--blue)] px-5 py-2 text-sm font-bold text-white shadow-lg ${FOCUS}`}
+      >
+        Log how the call went
+      </button>
+    </div>
+  );
 }
 
 function failureMessage(status: number, data: unknown): string {
@@ -204,8 +340,13 @@ export default function CallOutcomePanel({
 
   const featured = useMemo(() => uniqueOffers([...(initialOffers ?? []), ...suggestedOffers]), [initialOffers, suggestedOffers]);
   const others = useMemo(() => closerOffers().filter((d) => !featured.includes(d.offerId)), [featured]);
+  // The offers named on the last call, or only the primary suggestion. The
+  // companions and add-ons stay unchecked, one tap away.
   const startingOffers = useMemo(
-    () => uniqueOffers(initialOffers && initialOffers.length ? initialOffers : suggestedOffers).slice(0, MAX_CALL_OFFERS),
+    () =>
+      initialOffers && initialOffers.length
+        ? uniqueOffers(initialOffers).slice(0, MAX_CALL_OFFERS)
+        : uniqueOffers(suggestedOffers).slice(0, 1),
     [initialOffers, suggestedOffers],
   );
   const startingPlace = MEETING_PLACES.find((p) => p.place === defaultMeetingPlace)?.id ?? "";
@@ -219,7 +360,12 @@ export default function CallOutcomePanel({
   const [callbackTime, setCallbackTime] = useState("");
   const [retryOpen, setRetryOpen] = useState(false);
   const [talkedOpen, setTalkedOpen] = useState(false);
+  // The offers a proposal or a payment is for. Starts with the last call's offers or the primary suggestion.
   const [offers, setOffers] = useState<CloserOfferId[]>(startingOffers);
+  // What "Talked about an offer?" records on a sit-down or a call back. Starts
+  // empty: opening the list must not claim an offer nobody mentioned.
+  const [talkedOffers, setTalkedOffers] = useState<CloserOfferId[]>([]);
+  const [logPrompt, setLogPrompt] = useState(false);
   const [lostReason, setLostReason] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -230,8 +376,7 @@ export default function CallOutcomePanel({
   const fixedMs = fixedNow && Number.isFinite(Date.parse(fixedNow)) ? Date.parse(fixedNow) : null;
   const [nowMs, setNowMs] = useState<number | null>(fixedMs);
 
-  const keyRef = useRef("");
-  const failedPayloadRef = useRef<string | null>(null);
+  const memoryRef = useRef<SaveMemory>({ key: "", failedPayload: null, uncertainPayloads: [] });
   const calledRef = useRef(false);
   const outcomeRef = useRef<CallOutcome | null>(outcome);
   const legendRef = useRef<HTMLLegendElement>(null);
@@ -239,7 +384,7 @@ export default function CallOutcomePanel({
   const hintRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
-    keyRef.current = mintKey();
+    if (!memoryRef.current.key) memoryRef.current = { ...memoryRef.current, key: mintKey() };
   }, []);
 
   useEffect(() => {
@@ -256,19 +401,17 @@ export default function CallOutcomePanel({
     return () => window.clearInterval(timer);
   }, [fixedMs]);
 
-  // Back from the phone app: bring "How did the call go?" into view.
+  // Back from the phone app: offer the way to "How did the call go?" without
+  // moving the page (see showsLogPrompt). choose(), reset(), and a save disarm it.
   useEffect(() => {
     function onClick(event: MouseEvent) {
       const target = event.target instanceof Element ? event.target : null;
       if (target?.closest('a[href^="tel:"]')) calledRef.current = true;
     }
     function onVisibility() {
-      if (document.visibilityState !== "visible" || !calledRef.current) return;
-      calledRef.current = false;
-      if (outcomeRef.current) return;
-      const active = document.activeElement;
-      if (active instanceof HTMLElement && active.closest("input, textarea, select, [contenteditable='true']")) return;
-      legendRef.current?.focus();
+      if (showsLogPrompt({ visible: document.visibilityState === "visible", called: calledRef.current, outcome: outcomeRef.current })) {
+        setLogPrompt(true);
+      }
     }
     document.addEventListener("click", onClick, true);
     document.addEventListener("visibilitychange", onVisibility);
@@ -292,6 +435,9 @@ export default function CallOutcomePanel({
   const sendsOffers = outcome !== null && (OFFER_REQUIRED.has(outcome) || (OFFER_OPTIONAL.has(outcome) && talkedOpen));
   const sendsCallback = outcome === "call_back" || (outcome !== null && UNANSWERED.has(outcome) && retryOpen);
   const place = placeChoice === "other" ? placeOther : (MEETING_PLACES.find((p) => p.id === placeChoice)?.place ?? "");
+  // The list the offer picker shows and changes: the optional "Talked about an offer?" list, or the required one.
+  const talking = outcome !== null && OFFER_OPTIONAL.has(outcome);
+  const picked = talking ? talkedOffers : offers;
 
   // Exactly what Save posts, minus the key.
   const body = useMemo(() => {
@@ -299,7 +445,7 @@ export default function CallOutcomePanel({
     return {
       outcome,
       note: note.trim() ? note : null,
-      offers: sendsOffers ? offers : [],
+      offers: !sendsOffers ? [] : OFFER_REQUIRED.has(outcome) ? offers : talkedOffers,
       meeting_date: outcome === "booked" ? meetingDate || null : null,
       meeting_time: outcome === "booked" ? meetingTime || null : null,
       meeting_place: outcome === "booked" ? place.trim() || null : null,
@@ -307,7 +453,7 @@ export default function CallOutcomePanel({
       callback_time: sendsCallback ? callbackTime || null : null,
       lost_reason: outcome === "not_a_fit" ? lostReason || null : null,
     };
-  }, [outcome, note, sendsOffers, offers, meetingDate, meetingTime, place, sendsCallback, callbackDate, callbackTime, lostReason]);
+  }, [outcome, note, sendsOffers, offers, talkedOffers, meetingDate, meetingTime, place, sendsCallback, callbackDate, callbackTime, lostReason]);
 
   const plan: CallPlan | { ok: false; error: string } | null = useMemo(() => {
     if (!body || nowMs === null) return null;
@@ -317,16 +463,25 @@ export default function CallOutcomePanel({
     return result.ok ? result : { ok: false, error: result.error };
   }, [body, nowMs, lead, actorName, priorAttempts]);
 
+  /** The call is being logged, so the "Log how the call went" button has done its job. */
+  function disarmLogPrompt() {
+    calledRef.current = false;
+    setLogPrompt(false);
+  }
+
   function choose(next: CallOutcome) {
     setOutcome(next);
     setError("");
+    disarmLogPrompt();
   }
 
   function toggleOffer(id: CloserOfferId, on: boolean) {
-    setOffers((current) => (on ? (current.includes(id) || current.length >= MAX_CALL_OFFERS ? current : [...current, id]) : current.filter((x) => x !== id)));
+    const setPicked = talking ? setTalkedOffers : setOffers;
+    setPicked((current) => (on ? (current.includes(id) || current.length >= MAX_CALL_OFFERS ? current : [...current, id]) : current.filter((x) => x !== id)));
   }
 
   function reset() {
+    disarmLogPrompt();
     setSaved(null);
     setOutcome(null);
     setMeetingDate("");
@@ -338,6 +493,7 @@ export default function CallOutcomePanel({
     setRetryOpen(false);
     setTalkedOpen(false);
     setOffers(startingOffers);
+    setTalkedOffers([]);
     setLostReason("");
     setNote("");
     setError("");
@@ -358,37 +514,39 @@ export default function CallOutcomePanel({
       return;
     }
     const payload = JSON.stringify(body);
-    // Same save again after a failure: same key. Anything else: a new one.
-    if (!keyRef.current || (failedPayloadRef.current !== null && failedPayloadRef.current !== payload)) {
-      keyRef.current = mintKey();
-    }
+    const key = keyForSave(memoryRef.current, payload, mintKey);
+    memoryRef.current = { ...memoryRef.current, key };
     setBusy(true);
     setError("");
     try {
-      const response = await fetch(`/api/admin/leads/${encodeURIComponent(lead.id)}/next-step`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...body, idempotency_key: keyRef.current }),
-      });
+      let response: Response | null = null;
       let data: unknown = null;
       try {
-        data = await response.json();
+        response = await fetch(`/api/admin/leads/${encodeURIComponent(lead.id)}/next-step`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...body, idempotency_key: key }),
+        });
+        try {
+          data = await response.json();
+        } catch {
+          data = null;
+        }
       } catch {
-        data = null;
+        response = null;
       }
-      const result = response.ok ? readSaved(data, outcome) : null;
+      const ended = classifySave(response, data);
+      const next = afterSave(memoryRef.current, payload, ended, mintKey);
+      memoryRef.current = next.memory;
+      const result = ended.kind === "saved" ? readSaved(data, outcome) : null;
       if (!result) {
-        failedPayloadRef.current = payload;
-        setError(failureMessage(response.status, data));
+        setError(ended.kind === "refused" && response ? failureMessage(response.status, data) : UNCERTAIN_SAVE_MESSAGE);
         return;
       }
-      failedPayloadRef.current = null;
-      keyRef.current = mintKey();
-      setSaved(result);
-      onSaved?.(result);
-    } catch {
-      failedPayloadRef.current = payload;
-      setError("Could not reach the server, so nothing was saved yet. Everything you entered is still here. Check the connection and tap Save again.");
+      const shown = next.editsLost ? { ...result, warnings: [EDITS_NOT_SAVED_WARNING, ...result.warnings] } : result;
+      disarmLogPrompt();
+      setSaved(shown);
+      onSaved?.(shown);
     } finally {
       setBusy(false);
     }
@@ -405,7 +563,7 @@ export default function CallOutcomePanel({
         ? `${mailHref}?subject=${encodeURIComponent("The link we talked about")}&body=${encodeURIComponent(message)}`
         : null;
     return (
-      <section className={`card ${compact ? "!p-4" : "!p-4 sm:!p-5"}`} aria-labelledby={`${uid}-saved`}>
+      <section className={`card min-w-0 ${compact ? "!p-4" : "!p-4 sm:!p-5"}`} aria-labelledby={`${uid}-saved`}>
         <div
           ref={statusRef}
           role="status"
@@ -418,8 +576,8 @@ export default function CallOutcomePanel({
           <p className="mt-1 text-sm text-[var(--text)]">{saved.summary}</p>
           {saved.nextFollowUpLabel ? (
             <p className="mt-2 text-sm text-[var(--text)]">
-              <span className="font-bold">Next follow-up:</span> {saved.nextFollowUpLabel} Central. {first || "The lead"} comes back on
-              the call sheet then.
+              <span className="font-bold">Next follow-up:</span> {saved.nextFollowUpLabel} Central. {first || "The lead"} shows as due
+              again then.
             </p>
           ) : null}
           {saved.warnings.length > 0 ? (
@@ -458,7 +616,7 @@ export default function CallOutcomePanel({
             {message ? (
               <div className="mt-4">
                 <p className="text-sm font-bold text-[var(--heading)]">A message you can send</p>
-                <p className="mt-1 whitespace-pre-wrap break-words rounded-lg border border-[var(--line)] bg-[var(--panel)] p-3 text-sm text-[var(--text)]">
+                <p className="mt-1 whitespace-pre-wrap [overflow-wrap:anywhere] rounded-lg border border-[var(--line)] bg-[var(--panel)] p-3 text-sm text-[var(--text)]">
                   {message}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -501,7 +659,7 @@ export default function CallOutcomePanel({
   }
 
   const featuredDoors = featured.map((id) => payDoorFor(id)).filter((d): d is PayDoor => d !== null);
-  const chosenElsewhere = offers.filter((id) => !featured.includes(id)).length;
+  const chosenElsewhere = picked.filter((id) => !featured.includes(id)).length;
   const offerLegend =
     outcome === "wants_proposal"
       ? "What goes in the proposal? Pick up to three."
@@ -511,8 +669,8 @@ export default function CallOutcomePanel({
 
   const offerRow = (door: PayDoor) => {
     const id = `${uid}-offer-${door.offerId}`;
-    const checked = offers.includes(door.offerId);
-    const full = !checked && offers.length >= MAX_CALL_OFFERS;
+    const checked = picked.includes(door.offerId);
+    const full = !checked && picked.length >= MAX_CALL_OFFERS;
     return (
       <li key={door.offerId}>
         <label htmlFor={id} className={`${TILE_BASE} items-start ${checked ? TILE_ON : TILE_OFF} ${full ? "cursor-not-allowed opacity-60" : ""}`}>
@@ -529,7 +687,7 @@ export default function CallOutcomePanel({
               {door.offerName} <span className="font-semibold text-[var(--muted)]">{door.priceLabel}</span>
             </span>
             <span className="mt-0.5 block text-xs font-normal text-[var(--muted)]">
-              {outcome === "ready_to_pay" ? (door.payableNow ? "Pays online today. " : "Cannot be paid online today. ") : ""}
+              {outcome === "ready_to_pay" ? payTodayLabel(door, lead.status) : ""}
               {withPeriod(door.howTheyPay)}
             </span>
           </span>
@@ -550,7 +708,7 @@ export default function CallOutcomePanel({
           <ul className="mt-2 grid gap-2">{others.map(offerRow)}</ul>
         </details>
       ) : null}
-      {offers.length >= MAX_CALL_OFFERS ? (
+      {picked.length >= MAX_CALL_OFFERS ? (
         <p className="mt-2 text-xs text-[var(--muted)]">Three is the most one call can name. Uncheck one to pick another.</p>
       ) : null}
     </fieldset>
@@ -570,7 +728,7 @@ export default function CallOutcomePanel({
           <input
             id={`${uid}-${kind}-date`}
             type="date"
-            className="input min-h-[44px] min-w-0 !px-3 text-sm"
+            className="input min-h-[44px] min-w-0 !px-3 text-base sm:text-sm"
             value={date}
             min={today}
             max={lastDay}
@@ -584,7 +742,7 @@ export default function CallOutcomePanel({
           <input
             id={`${uid}-${kind}-time`}
             type="time"
-            className="input min-h-[44px] min-w-0 !px-3 text-sm"
+            className="input min-h-[44px] min-w-0 !px-3 text-base sm:text-sm"
             value={time}
             onChange={(e) => setTime(e.target.value)}
           />
@@ -618,177 +776,191 @@ export default function CallOutcomePanel({
   const noteLabel = outcome === "not_a_fit" && lostReason === "other" ? "Why is it not a fit? The first line is saved as the reason." : "Note (optional)";
 
   return (
-    <section className={`card ${compact ? "!p-4" : "!p-4 sm:!p-5"}`} aria-labelledby={ids.legend}>
+    <section className={`card min-w-0 ${compact ? "!p-4" : "!p-4 sm:!p-5"}`} aria-labelledby={ids.legend}>
       <form onSubmit={save} noValidate>
-        <fieldset className="min-w-0">
-          <legend
-            id={ids.legend}
-            ref={legendRef}
-            tabIndex={-1}
-            className={`rounded-md ${compact ? "text-base" : "text-lg"} font-black text-[var(--heading)] focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--blue)]`}
-          >
-            How did the call go?
-          </legend>
-          <p className="mb-3 mt-1 text-sm text-[var(--muted)]">
-            Pick what happened. The list below shows exactly what saving does. Nothing is sent to {who}.
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {PANEL_OUTCOMES.map((o) => {
-              const id = `${uid}-outcome-${o}`;
-              const on = outcome === o;
-              return (
-                <label key={o} htmlFor={id} className={`${TILE} ${on ? TILE_ON : TILE_OFF}`}>
-                  <input id={id} type="radio" name={`${uid}-outcome`} value={o} checked={on} onChange={() => choose(o)} className={RADIO} />
-                  <span className="min-w-0">{OUTCOME_LABELS[o]}</span>
-                </label>
-              );
-            })}
-          </div>
-        </fieldset>
-
-        {outcome === "booked" ? (
-          <div className="mt-5 grid gap-4">
-            <fieldset className="min-w-0">
-              <legend className={SUBLEGEND}>When is the sit-down?</legend>
-              {timeFields("meeting")}
-            </fieldset>
-            <fieldset className="min-w-0">
-              <legend className={SUBLEGEND}>Where? (optional)</legend>
-              <div className="flex flex-wrap gap-2">
-                {[...MEETING_PLACES, { id: "other", label: "Somewhere else", place: "" }].map((p) => {
-                  const id = `${uid}-place-${p.id}`;
-                  const on = placeChoice === p.id;
-                  return (
-                    <label key={p.id} htmlFor={id} className={`${TILE} ${on ? TILE_ON : TILE_OFF} font-semibold`}>
-                      <input
-                        id={id}
-                        type="radio"
-                        name={`${uid}-place`}
-                        value={p.id}
-                        checked={on}
-                        onChange={() => setPlaceChoice(p.id)}
-                        className={RADIO}
-                      />
-                      <span>{p.label}</span>
-                    </label>
-                  );
-                })}
-              </div>
-              {placeChoice === "other" ? (
-                <div className="mt-2">
-                  <label htmlFor={`${uid}-place-text`} className="mb-1 block text-sm font-semibold text-[var(--text)]">
-                    Where exactly
-                  </label>
-                  <input
-                    id={`${uid}-place-text`}
-                    className="input min-h-[44px] text-sm"
-                    value={placeOther}
-                    maxLength={MEETING_PLACE_MAX}
-                    placeholder="Their shop, a job site, a coffee shop"
-                    onChange={(e) => setPlaceOther(e.target.value)}
-                  />
-                </div>
-              ) : null}
-            </fieldset>
-          </div>
-        ) : null}
-
-        {outcome === "call_back" ? (
-          <fieldset className="mt-5 min-w-0">
-            <legend className={SUBLEGEND}>When should you call back?</legend>
-            {quickChips}
-            {timeFields("callback")}
-          </fieldset>
-        ) : null}
-
-        {outcome && UNANSWERED.has(outcome) ? (
-          <details className="mt-5" open={retryOpen} onToggle={(e) => setRetryOpen(e.currentTarget.open)}>
-            <summary className={SUMMARY}>Pick the next try yourself (optional)</summary>
-            <fieldset className="mt-2 min-w-0">
-              <legend className={SUBLEGEND}>When to try again</legend>
-              {quickChips}
-              {timeFields("callback")}
-              <p className="mt-2 text-xs text-[var(--muted)]">Leave it closed and the next try is set for you, at the other half of the day.</p>
-            </fieldset>
-          </details>
-        ) : null}
-
-        {outcome && OFFER_REQUIRED.has(outcome) ? <div className="mt-5">{offerPicker}</div> : null}
-
-        {outcome && OFFER_OPTIONAL.has(outcome) ? (
-          <details className="mt-4" open={talkedOpen} onToggle={(e) => setTalkedOpen(e.currentTarget.open)}>
-            <summary className={SUMMARY}>Talked about an offer? Add it to the note (optional)</summary>
-            <div className="mt-2">{offerPicker}</div>
-          </details>
-        ) : null}
-
-        {outcome === "not_a_fit" ? (
-          <fieldset className="mt-5 min-w-0">
-            <legend className={SUBLEGEND}>Why is it not a fit?</legend>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {LOST_REASONS.map((r) => {
-                const id = `${uid}-lost-${r.id}`;
-                const on = lostReason === r.id;
+        <SavingLock busy={busy}>
+          <fieldset className="min-w-0">
+            <legend
+              id={ids.legend}
+              ref={legendRef}
+              tabIndex={-1}
+              className={`rounded-md ${compact ? "text-base" : "text-lg"} font-black text-[var(--heading)] focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--blue)]`}
+            >
+              How did the call go?
+            </legend>
+            <p className="mb-3 mt-1 text-sm text-[var(--muted)]">
+              Pick what happened. The list below shows exactly what saving does. Nothing is sent to {who}.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {PANEL_OUTCOMES.map((o) => {
+                const id = `${uid}-outcome-${o}`;
+                const on = outcome === o;
                 return (
-                  <label key={r.id} htmlFor={id} className={`${TILE} ${on ? TILE_ON : TILE_OFF} font-semibold`}>
-                    <input
-                      id={id}
-                      type="radio"
-                      name={`${uid}-lost`}
-                      value={r.id}
-                      checked={on}
-                      onChange={() => setLostReason(r.id)}
-                      className={RADIO}
-                    />
-                    <span>{r.label}</span>
+                  <label key={o} htmlFor={id} className={`${TILE} ${on ? TILE_ON : TILE_OFF}`}>
+                    <input id={id} type="radio" name={`${uid}-outcome`} value={o} checked={on} onChange={() => choose(o)} className={RADIO} />
+                    <span className="min-w-0">{OUTCOME_LABELS[o]}</span>
                   </label>
                 );
               })}
             </div>
           </fieldset>
-        ) : null}
 
-        {outcome ? (
-          <div className="mt-5">
-            <label htmlFor={ids.note} className="mb-1 block text-sm font-semibold text-[var(--text)]">
-              {noteLabel}
-            </label>
-            <textarea
-              id={ids.note}
-              className="input text-sm"
-              rows={compact ? 2 : 3}
-              maxLength={NEXT_STEP_NOTE_MAX}
-              value={note}
-              placeholder={`What ${who} said, in a line or two`}
-              onChange={(e) => setNote(e.target.value)}
-            />
-          </div>
-        ) : null}
-
-        {outcome && plan ? (
-          plan.ok ? (
-            <div id={ids.preview} className="mt-5 rounded-xl border border-[var(--line)] bg-[var(--page)] p-4">
-              <p className="text-sm font-black text-[var(--heading)]">When you save</p>
-              <ul className="mt-2 grid list-disc gap-1 pl-5 text-sm text-[var(--text)]">
-                {plan.preview.map((lineText, i) => (
-                  <li key={`${i}-${lineText}`}>{lineText}</li>
-                ))}
-              </ul>
-              <p className="mt-3 break-words text-xs text-[var(--muted)]">
-                <span className="font-bold">The note starts:</span> {plan.noteBody.split("\n")[0]}
-              </p>
+          {outcome === "booked" ? (
+            <div className="mt-5 grid gap-4">
+              <fieldset className="min-w-0">
+                <legend className={SUBLEGEND}>When is the sit-down?</legend>
+                {timeFields("meeting")}
+              </fieldset>
+              <fieldset className="min-w-0">
+                <legend className={SUBLEGEND}>Where? (optional)</legend>
+                <div className="flex flex-wrap gap-2">
+                  {[...MEETING_PLACES, { id: "other", label: "Somewhere else", place: "" }].map((p) => {
+                    const id = `${uid}-place-${p.id}`;
+                    const on = placeChoice === p.id;
+                    return (
+                      <label key={p.id} htmlFor={id} className={`${TILE} ${on ? TILE_ON : TILE_OFF} font-semibold`}>
+                        <input
+                          id={id}
+                          type="radio"
+                          name={`${uid}-place`}
+                          value={p.id}
+                          checked={on}
+                          onChange={() => setPlaceChoice(p.id)}
+                          className={RADIO}
+                        />
+                        <span>{p.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {placeChoice === "other" ? (
+                  <div className="mt-2">
+                    <label htmlFor={`${uid}-place-text`} className="mb-1 block text-sm font-semibold text-[var(--text)]">
+                      Where exactly
+                    </label>
+                    <input
+                      id={`${uid}-place-text`}
+                      className="input min-h-[44px] text-base sm:text-sm"
+                      value={placeOther}
+                      maxLength={MEETING_PLACE_MAX}
+                      placeholder="Their shop, a job site, a coffee shop"
+                      onChange={(e) => setPlaceOther(e.target.value)}
+                    />
+                  </div>
+                ) : null}
+              </fieldset>
             </div>
-          ) : (
-            <p
-              id={ids.hint}
-              ref={hintRef}
-              tabIndex={-1}
-              className="mt-5 rounded-xl border border-[var(--warn-line)] bg-[var(--warn-tint)] p-3 text-sm text-[var(--text)] focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--blue)]"
+          ) : null}
+
+          {outcome === "call_back" ? (
+            <fieldset className="mt-5 min-w-0">
+              <legend className={SUBLEGEND}>When should you call back?</legend>
+              {quickChips}
+              {timeFields("callback")}
+            </fieldset>
+          ) : null}
+
+          {outcome && UNANSWERED.has(outcome) ? (
+            <details
+              className="mt-5"
+              open={retryOpen}
+              onToggle={(e) => {
+                if (!busy) setRetryOpen(e.currentTarget.open);
+              }}
             >
-              <span className="font-bold">Before you save:</span> {plan.error}
-            </p>
-          )
-        ) : null}
+              <summary className={SUMMARY}>Pick the next try yourself (optional)</summary>
+              <fieldset className="mt-2 min-w-0">
+                <legend className={SUBLEGEND}>When to try again</legend>
+                {quickChips}
+                {timeFields("callback")}
+                <p className="mt-2 text-xs text-[var(--muted)]">Leave it closed and the next try is set for you, at the other half of the day.</p>
+              </fieldset>
+            </details>
+          ) : null}
+
+          {outcome && OFFER_REQUIRED.has(outcome) ? <div className="mt-5">{offerPicker}</div> : null}
+
+          {outcome && OFFER_OPTIONAL.has(outcome) ? (
+            <details
+              className="mt-4"
+              open={talkedOpen}
+              onToggle={(e) => {
+                if (!busy) setTalkedOpen(e.currentTarget.open);
+              }}
+            >
+              <summary className={SUMMARY}>Talked about an offer? Add it to the note (optional)</summary>
+              <div className="mt-2">{offerPicker}</div>
+            </details>
+          ) : null}
+
+          {outcome === "not_a_fit" ? (
+            <fieldset className="mt-5 min-w-0">
+              <legend className={SUBLEGEND}>Why is it not a fit?</legend>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {LOST_REASONS.map((r) => {
+                  const id = `${uid}-lost-${r.id}`;
+                  const on = lostReason === r.id;
+                  return (
+                    <label key={r.id} htmlFor={id} className={`${TILE} ${on ? TILE_ON : TILE_OFF} font-semibold`}>
+                      <input
+                        id={id}
+                        type="radio"
+                        name={`${uid}-lost`}
+                        value={r.id}
+                        checked={on}
+                        onChange={() => setLostReason(r.id)}
+                        className={RADIO}
+                      />
+                      <span>{r.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ) : null}
+
+          {outcome ? (
+            <div className="mt-5">
+              <label htmlFor={ids.note} className="mb-1 block text-sm font-semibold text-[var(--text)]">
+                {noteLabel}
+              </label>
+              <textarea
+                id={ids.note}
+                className="input text-base sm:text-sm"
+                rows={compact ? 2 : 3}
+                maxLength={NEXT_STEP_NOTE_MAX}
+                value={note}
+                placeholder={`What ${who} said, in a line or two`}
+                onChange={(e) => setNote(e.target.value)}
+              />
+            </div>
+          ) : null}
+
+          {outcome && plan ? (
+            plan.ok ? (
+              <div id={ids.preview} className="mt-5 rounded-xl border border-[var(--line)] bg-[var(--page)] p-4">
+                <p className="text-sm font-black text-[var(--heading)]">When you save</p>
+                <ul className="mt-2 grid list-disc gap-1 pl-5 text-sm text-[var(--text)]">
+                  {plan.preview.map((lineText, i) => (
+                    <li key={`${i}-${lineText}`}>{lineText}</li>
+                  ))}
+                </ul>
+                <p className="mt-3 break-words text-xs text-[var(--muted)]">
+                  <span className="font-bold">The note starts:</span> {plan.noteBody.split("\n")[0]}
+                </p>
+              </div>
+            ) : (
+              <p
+                id={ids.hint}
+                ref={hintRef}
+                tabIndex={-1}
+                className="mt-5 rounded-xl border border-[var(--warn-line)] bg-[var(--warn-tint)] p-3 text-sm text-[var(--text)] focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--blue)]"
+              >
+                <span className="font-bold">Before you save:</span> {plan.error}
+              </p>
+            )
+          ) : null}
+        </SavingLock>
 
         {error ? (
           <p role="alert" className="mt-4 rounded-lg border border-[var(--danger-line)] bg-[var(--danger-tint)] p-3 text-sm text-[var(--danger)]">
@@ -812,6 +984,15 @@ export default function CallOutcomePanel({
           ) : null}
         </div>
       </form>
+      {logPrompt && !outcome ? (
+        <LogCallPrompt
+          onClick={() => {
+            setLogPrompt(false);
+            // He asked to go there, so moving the page is right this time.
+            legendRef.current?.focus();
+          }}
+        />
+      ) : null}
     </section>
   );
 }

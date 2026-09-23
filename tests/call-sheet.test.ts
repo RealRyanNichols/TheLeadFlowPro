@@ -24,7 +24,11 @@ import {
   type CallSheetLead,
   type CallSheetTouch,
 } from "../lib/callSheet.ts";
+import ts from "typescript";
+import * as callSheetModule from "../lib/callSheet.ts";
+import { callbackState } from "../lib/callSheet.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
+import * as speedToLeadModule from "../lib/speedToLead.ts";
 import { leadConsultationTextBody, leadTextBackBody } from "../lib/leadNotify.ts";
 import { INBOUND_AUTO_REPLY } from "../lib/quo.ts";
 
@@ -293,7 +297,9 @@ test("a call back that has come due puts the lead under You said you would call,
   assert.deepEqual(sheet.rows.map((r) => [r.lead.id, r.tier]), [["cb", "callback"]]);
   const row = sheet.rows[0];
   assert.equal(row.callbackAt, FRI_10AM);
-  assert.equal(row.reason, "You set a call back with Lead cb at Sample Roofing (fictional) for Fri, Sep 18 at 10:00 AM. Last: Call: talked, call back later.");
+  // The reason names the time and the last note, never who set it: a passed sit-down or another screen can set it too.
+  assert.equal(row.reason, "Lead cb at Sample Roofing (fictional): follow-up due since Fri, Sep 18 at 10:00 AM. Last: Call: talked, call back later.");
+  assert.doesNotMatch(row.reason, /\byou set\b/i);
   assert.equal(row.href, "/admin/call-sheet/cb");
   assert.equal(sheet.counts.callback, 1);
   assert.deepEqual(copyProblems(row.reason), []);
@@ -301,7 +307,10 @@ test("a call back that has come due puts the lead under You said you would call,
   // No note on file: the promise still stands, just without a "Last:" line.
   const called = buildCallSheet([cb], [{ lead_id: "cb", at: "2026-09-15T20:00:00.000Z", kind: "call" }], NOW);
   assert.equal(called.rows[0].tier, "callback");
-  assert.equal(called.rows[0].reason, "You set a call back with Lead cb at Sample Roofing (fictional) for Fri, Sep 18 at 10:00 AM.");
+  assert.equal(called.rows[0].reason, "Lead cb at Sample Roofing (fictional): follow-up due since Fri, Sep 18 at 10:00 AM.");
+  // A summary without its own full stop still ends the sentence.
+  const unpunctuated = buildCallSheet([cb], [{ lead_id: "cb", at: "2026-09-15T20:00:00.000Z", kind: "note", summary: "Wants a price first" }], NOW);
+  assert.equal(unpunctuated.rows[0].reason, "Lead cb at Sample Roofing (fictional): follow-up due since Fri, Sep 18 at 10:00 AM. Last: Wants a price first.");
 
   // The tier sits right under "They reached out".
   assert.deepEqual([...TIER_ORDER], ["reply", "callback", "answer", "waiting", "follow_up"]);
@@ -317,7 +326,7 @@ test("a call back set for later hides a touched lead, but never a lead nobody ha
     // Nobody has touched these. The field is ignored completely.
     lead({ id: "untouched_future", created_at: hoursAgo(5), next_follow_up_at: TUE_10AM }),
     lead({ id: "untouched_past", created_at: hoursAgo(6), next_follow_up_at: FRI_10AM }),
-    // /api/business-diagnostic sets next_follow_up_at to the submission time on a brand-new lead.
+    // /api/business-diagnostic stamps next_follow_up_at on a brand-new lead (its review task's time, the day it came in).
     lead({ id: "diag_new", created_at: hoursAgo(2), next_follow_up_at: hoursAgo(2) }),
     lead({ id: "diag_old", created_at: hoursAgo(100), next_follow_up_at: hoursAgo(100) }),
   ];
@@ -388,6 +397,8 @@ test("a reply from the lead still beats a call back that is due", () => {
   assert.deepEqual(sheet.rows.map((r) => [r.lead.id, r.tier]), [["both", "reply"]]);
   assert.match(sheet.rows[0].reason, /sent a message 2 hours ago and nothing has gone back since/);
   assert.equal(sheet.rows[0].callbackAt, null);
+  // The promise is not forgotten: the reply row names it.
+  assert.match(sheet.rows[0].reason, /Follow-up due since Fri, Sep 18 at 10:00 AM\.$/);
 });
 
 test("call backs sort by the promised time, earliest first, not by when the lead came in", () => {
@@ -413,7 +424,7 @@ test("call backs sort by the promised time, earliest first, not by when the lead
     ],
   );
   assert.deepEqual(sheet.rows.slice(0, 3).map((r) => r.callbackAt), [THU_9AM, FRI_10AM, SAT_230PM]);
-  assert.match(sheet.rows[2].reason, /for Sat, Sep 19 at 2:30 PM\./);
+  assert.match(sheet.rows[2].reason, /follow-up due since Sat, Sep 19 at 2:30 PM\./);
   assert.equal(tiers(sheet).map((g) => g.tier).join(","), "callback,answer");
 });
 
@@ -548,4 +559,368 @@ test("the loader reads the columns the rules need, flags a capped read, and stil
   assert.ok(page.includes("sm:grid-cols-5") && page.includes("TIER_ORDER.map"), "five tiles, callback included");
   assert.ok(page.includes("Open call card") && page.includes("href={row.href}"));
   assert.ok(!page.includes(".from(\"lead_"), "the page reads nothing itself beyond the role check");
+  // A long word in a reason (a link pasted into the last note) wraps inside the row at 390px.
+  assert.match(page, /<ol className="grid grid-cols-1 gap-3">/);
+  assert.match(page, /<p className="mt-2 text-sm \[overflow-wrap:anywhere\]">\{row\.reason\}<\/p>/);
+  assert.match(page, /className="font-black text-\[var\(--heading\)\] \[overflow-wrap:anywhere\]">\s*\{i \+ 1\}\./);
+});
+
+// ---------------------------------------------------------------------------
+// One rule for a stored follow-up time, shared with the call card.
+// ---------------------------------------------------------------------------
+
+test("callbackState: due only when the last human touch came before the time", () => {
+  assert.deepEqual(callbackState(null, hoursAgo(1), NOW), { state: "none", at: null });
+  assert.deepEqual(callbackState("not a date", hoursAgo(1), NOW), { state: "none", at: null });
+  assert.equal(callbackState(TUE_10AM, hoursAgo(1), NOW).state, "later");
+  assert.equal(callbackState(TUE_10AM, null, NOW).state, "later");
+  const due = callbackState(FRI_10AM, "2026-09-15T20:00:00.000Z", NOW);
+  assert.equal(due.state, "due");
+  assert.equal(due.at?.toISOString(), FRI_10AM);
+  // Touched at or after the time: kept, not owed.
+  assert.equal(callbackState(FRI_10AM, FRI_10AM, NOW).state, "none");
+  assert.equal(callbackState(FRI_10AM, SAT_230PM, NOW).state, "none");
+  // Nobody touched the lead: a past time is a stamp, not a promise.
+  assert.equal(callbackState(FRI_10AM, null, NOW).state, "none");
+  // Accepts a Date as the touch too.
+  assert.equal(callbackState(FRI_10AM, new Date("2026-09-15T20:00:00.000Z"), NOW).state, "due");
+});
+
+test("promiseOnly leads show up as call backs or not at all, and never count as excluded", () => {
+  const leads = [
+    lead({ id: "old_cb", status: "contacted", created_at: "2026-06-01T15:00:00.000Z", next_follow_up_at: FRI_10AM }),
+    lead({ id: "old_untouched", created_at: "2026-06-01T15:00:00.000Z", next_follow_up_at: FRI_10AM }),
+    lead({ id: "old_kept", status: "contacted", created_at: "2026-06-01T15:00:00.000Z", next_follow_up_at: FRI_10AM }),
+    lead({ id: "old_test", is_test: true, status: "contacted", created_at: "2026-06-01T15:00:00.000Z", next_follow_up_at: FRI_10AM }),
+    lead({ id: "fresh", created_at: hoursAgo(1) }),
+  ];
+  const touches: CallSheetTouch[] = [
+    { lead_id: "old_cb", at: "2026-09-15T20:00:00.000Z", kind: "note", summary: "Call: talked, call back Fri." },
+    { lead_id: "old_kept", at: SAT_230PM, kind: "call" },
+    { lead_id: "old_test", at: "2026-09-15T20:00:00.000Z", kind: "call" },
+  ];
+  const promiseOnly = new Set(["old_cb", "old_untouched", "old_kept", "old_test"]);
+  const sheet = buildCallSheet(leads, touches, NOW, { promiseOnly });
+  assert.deepEqual(
+    sheet.rows.map((r) => [r.lead.id, r.tier]),
+    [
+      ["old_cb", "callback"],
+      ["fresh", "answer"],
+    ],
+  );
+  assert.deepEqual(sheet.excluded, [], "leads outside the window are not counted as left off");
+  assert.equal(sheet.counts.callback, 1);
+  // Without the option the same leads would land in other tiers: the option is what keeps them out.
+  const plain = buildCallSheet(leads, touches, NOW);
+  assert.ok(plain.rows.some((r) => r.lead.id === "old_untouched" && r.tier === "waiting"));
+});
+
+test("an older promised lead who also replied shows up as a reply, naming the due time; one with no promise owed stays off", () => {
+  const OLD = "2026-05-01T15:00:00.000Z";
+  const leads = [
+    // Promised a call back, then the lead texted in: owes both, shows as a reply.
+    lead({ id: "old_replied", status: "contacted", created_at: OLD, next_follow_up_at: FRI_10AM }),
+    // Same promise, no reply: a plain call back, as before.
+    lead({ id: "old_quiet", status: "contacted", created_at: OLD, next_follow_up_at: FRI_10AM }),
+    // Nobody ever touched it; the only stored time is a stamp. A text in does not bring an old lead back.
+    lead({ id: "old_untouched_replied", created_at: OLD, next_follow_up_at: FRI_10AM }),
+    // Promise kept (called after it came due), then the lead texted: no promise owed, so it stays off.
+    lead({ id: "old_kept_replied", status: "contacted", created_at: OLD, next_follow_up_at: FRI_10AM }),
+  ];
+  const touches: CallSheetTouch[] = [
+    { lead_id: "old_replied", at: "2026-09-15T20:00:00.000Z", kind: "note", summary: "Call: talked, call back Fri." },
+    { lead_id: "old_replied", at: SAT_230PM, kind: "message_in" },
+    { lead_id: "old_quiet", at: "2026-09-15T20:00:00.000Z", kind: "note", summary: "Call: talked, call back Fri." },
+    { lead_id: "old_untouched_replied", at: SAT_230PM, kind: "message_in" },
+    { lead_id: "old_kept_replied", at: "2026-09-15T20:00:00.000Z", kind: "note", summary: "Talked." },
+    { lead_id: "old_kept_replied", at: "2026-09-18T16:00:00.000Z", kind: "call" },
+    { lead_id: "old_kept_replied", at: SAT_230PM, kind: "message_in" },
+  ];
+  const promiseOnly = new Set(leads.map((l) => l.id));
+  const sheet = buildCallSheet(leads, touches, NOW, { promiseOnly });
+  assert.deepEqual(
+    sheet.rows.map((r) => [r.lead.id, r.tier]),
+    [
+      ["old_replied", "reply"],
+      ["old_quiet", "callback"],
+    ],
+  );
+  assert.equal(sheet.counts.reply, 1);
+  assert.equal(sheet.counts.callback, 1);
+  assert.deepEqual(sheet.excluded, [], "leads outside the window are still never counted as left off");
+  const replied = sheet.rows[0];
+  assert.match(replied.reason, /sent a message .* and nothing has gone back since\./);
+  assert.match(replied.reason, / Follow-up due since Fri, Sep 18 at 10:00 AM\.$/);
+  assert.deepEqual(copyProblems(replied.reason), []);
+
+  // The same data without the option: the reply is there too, so the option no longer hides it.
+  const plain = buildCallSheet(leads.slice(0, 2), touches, NOW);
+  assert.deepEqual(
+    plain.rows.map((r) => [r.lead.id, r.tier]),
+    [
+      ["old_replied", "reply"],
+      ["old_quiet", "callback"],
+    ],
+  );
+});
+
+// ---------------------------------------------------------------------------
+// The loader, run for real against a fake database that applies the filters
+// it sends. A promise outlives the 90-day window; an old untouched lead does not.
+// ---------------------------------------------------------------------------
+
+type FakeRow = Record<string, unknown>;
+type FakeQuery = { table: string; ops: { name: string; args: unknown[] }[] };
+
+function loaderDb(tables: Record<string, FakeRow[]>, queries: FakeQuery[]) {
+  const time = (v: unknown) => (typeof v === "string" ? Date.parse(v) : Number.NaN);
+  function apply(q: FakeQuery): FakeRow[] {
+    let rows = (tables[q.table] ?? []).slice();
+    for (const { name, args } of q.ops) {
+      const [col, a, b] = args as [string, unknown, unknown];
+      if (name === "is") rows = rows.filter((r) => (r[col] ?? null) === a);
+      else if (name === "eq") rows = rows.filter((r) => r[col] === a);
+      else if (name === "in") rows = rows.filter((r) => (a as unknown[]).includes(r[col]));
+      else if (name === "gte") rows = rows.filter((r) => time(r[col]) >= time(a));
+      else if (name === "lte") rows = rows.filter((r) => time(r[col]) <= time(a));
+      else if (name === "lt") rows = rows.filter((r) => time(r[col]) < time(a));
+      else if (name === "not") {
+        assert.equal(a, "in", "only not-in is expected");
+        const list = String(b).replace(/^\(|\)$/g, "").split(",");
+        rows = rows.filter((r) => r[col] !== null && r[col] !== undefined && !list.includes(String(r[col])));
+      } else if (name === "order") {
+        const asc = (a as { ascending?: boolean } | undefined)?.ascending !== false;
+        rows.sort((x, y) => (String(x[col]) < String(y[col]) ? -1 : String(x[col]) > String(y[col]) ? 1 : 0) * (asc ? 1 : -1));
+      } else if (name === "limit") rows = rows.slice(0, Number(col));
+      else if (name !== "select") throw new Error(`unexpected filter ${name}`);
+    }
+    return rows;
+  }
+  return {
+    from(table: string) {
+      const q: FakeQuery = { table, ops: [] };
+      queries.push(q);
+      const chain: Record<string, unknown> = {};
+      for (const name of ["select", "is", "eq", "in", "gte", "lte", "lt", "not", "order", "limit"]) {
+        chain[name] = (...args: unknown[]) => {
+          q.ops.push({ name, args });
+          return chain;
+        };
+      }
+      for (const write of ["insert", "update", "upsert", "delete", "rpc"]) {
+        chain[write] = () => {
+          throw new Error(`the loader tried to ${write} ${table}`);
+        };
+      }
+      chain.then = (resolve: (v: unknown) => unknown) => Promise.resolve({ data: apply(q), error: null }).then(resolve);
+      return chain;
+    },
+  };
+}
+
+function loadLoader() {
+  const code = ts.transpileModule(readFileSync(join(process.cwd(), "lib/callSheetServer.ts"), "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  const modules: Record<string, unknown> = {
+    "server-only": {},
+    "@/lib/callSheet": callSheetModule,
+    "@/lib/speedToLead": speedToLeadModule,
+  };
+  const mod = { exports: {} as Record<string, unknown> };
+  new Function("require", "module", "exports", code)(
+    (name: string) => {
+      if (!(name in modules)) throw new Error(`the loader imports ${name}, which this harness does not expect`);
+      return modules[name];
+    },
+    mod,
+    mod.exports,
+  );
+  return mod.exports as {
+    loadCallSheet: (db: unknown, now: Date) => Promise<{
+      ok: boolean;
+      sheet: ReturnType<typeof buildCallSheet>;
+      speed: { leads: number };
+      partial: boolean;
+      leadsCapped: boolean;
+    }>;
+    LOOKBACK_DAYS: number;
+    PROMISE_LIMIT: number;
+  };
+}
+
+function dbLead(overrides: FakeRow & { id: string }): FakeRow {
+  return { ...lead({ id: overrides.id }), deleted_at: null, ...overrides };
+}
+
+test("loader: a call back promised on a lead past the 90-day window still comes back when it is due", async () => {
+  const { loadCallSheet, LOOKBACK_DAYS } = loadLoader();
+  assert.equal(LOOKBACK_DAYS, 90);
+  // Tue, Sep 29, 2026 at 10:30 AM CDT. The window starts Jul 1.
+  const now = new Date("2026-09-29T15:30:00.000Z");
+  const tables: Record<string, FakeRow[]> = {
+    leads: [
+      // Created 85 days before Sep 22, still waiting; Ryan called Sep 22 and set Tue, Sep 29 at 10:00 AM.
+      dbLead({ id: "old_promise", status: "contacted", created_at: "2026-06-29T15:00:00.000Z", next_follow_up_at: "2026-09-29T15:00:00.000Z" }),
+      // Old and untouched: the diagnostic stamped it long before the window.
+      dbLead({ id: "old_diag", created_at: "2026-05-01T15:00:00.000Z", next_follow_up_at: "2026-05-01T15:05:00.000Z" }),
+      // Old and untouched, but the questionnaire was finished inside the window: read, then left off.
+      dbLead({ id: "old_diag_late", created_at: "2026-06-01T15:00:00.000Z", next_follow_up_at: "2026-07-15T15:00:00.000Z" }),
+      // Old, promise kept after it came due: not a call back, and too old for the five-day rule.
+      dbLead({ id: "old_kept", status: "contacted", created_at: "2026-06-01T15:00:00.000Z", next_follow_up_at: "2026-09-10T15:00:00.000Z" }),
+      // Old and closed.
+      dbLead({ id: "old_won", status: "won", created_at: "2026-06-01T15:00:00.000Z", next_follow_up_at: "2026-09-28T15:00:00.000Z" }),
+      // Old, promise still ahead.
+      dbLead({ id: "old_later", status: "contacted", created_at: "2026-06-01T15:00:00.000Z", next_follow_up_at: "2026-10-02T15:00:00.000Z" }),
+      // Old and deleted.
+      dbLead({ id: "old_deleted", status: "contacted", created_at: "2026-06-01T15:00:00.000Z", next_follow_up_at: "2026-09-28T15:00:00.000Z", deleted_at: "2026-09-01T00:00:00.000Z" }),
+      // Inside the window, untouched.
+      dbLead({ id: "fresh", created_at: "2026-09-28T20:00:00.000Z" }),
+    ],
+    lead_notes: [
+      { lead_id: "old_promise", created_at: "2026-09-22T15:05:00.000Z", body: "Call: talked, call back Tue, Sep 29 at 10:00 AM.\n\nWants the price in writing." },
+      { lead_id: "old_kept", created_at: "2026-09-11T15:00:00.000Z", body: "Called back as promised." },
+      { lead_id: "old_later", created_at: "2026-09-25T15:00:00.000Z", body: "Call: talked, call back Fri." },
+    ],
+    lead_calls: [],
+    lead_messages: [],
+  };
+  const queries: FakeQuery[] = [];
+  const loaded = await loadCallSheet(loaderDb(tables, queries), now);
+  assert.equal(loaded.ok, true);
+  assert.deepEqual(
+    loaded.sheet.rows.map((r) => [r.lead.id, r.tier]),
+    [
+      ["old_promise", "callback"],
+      ["fresh", "answer"],
+    ],
+  );
+  const row = loaded.sheet.rows[0];
+  assert.equal(row.callbackAt, "2026-09-29T15:00:00.000Z");
+  assert.equal(row.reason, "Lead old_promise: follow-up due since Tue, Sep 29 at 10:00 AM. Last: Call: talked, call back Tue, Sep 29 at 10:00 AM.");
+  // Nothing outside the window is counted as left off, and nothing old reaches speed to lead.
+  assert.ok(loaded.sheet.excluded.every((e) => e.id === "fresh" || !e.id.startsWith("old_")), JSON.stringify(loaded.sheet.excluded));
+  assert.equal(loaded.speed.leads, 1);
+  assert.equal(loaded.partial, false);
+  assert.equal(loaded.leadsCapped, false);
+  // The promise read is narrow: open, not deleted, older than the window, due inside it.
+  const leadReads = queries.filter((q) => q.table === "leads");
+  assert.equal(leadReads.length, 2);
+  const promiseRead = leadReads.find((q) => q.ops.some((o) => o.name === "lt"));
+  assert.ok(promiseRead);
+  const has = (q: FakeQuery, name: string, ...args: unknown[]) => q.ops.some((o) => o.name === name && JSON.stringify(o.args) === JSON.stringify(args));
+  const since = new Date(now.getTime() - 90 * 86_400_000).toISOString();
+  assert.ok(has(promiseRead, "is", "deleted_at", null));
+  assert.ok(has(promiseRead, "lt", "created_at", since));
+  assert.ok(has(promiseRead, "gte", "next_follow_up_at", since));
+  assert.ok(has(promiseRead, "lte", "next_follow_up_at", now.toISOString()));
+  assert.ok(has(promiseRead, "not", "status", "in", "(won,lost)"));
+  // The old lead's history is read too, so its last note is beside the row.
+  const notesRead = queries.find((q) => q.table === "lead_notes");
+  const idsRead = notesRead?.ops.find((o) => o.name === "in")?.args[1] as string[];
+  assert.ok(idsRead.includes("old_promise") && idsRead.includes("fresh"));
+});
+
+test("loader: a full lead read is flagged, so missing call backs are not silent", async () => {
+  const { loadCallSheet, PROMISE_LIMIT } = loadLoader();
+  const now = new Date("2026-09-29T15:30:00.000Z");
+  const old = Array.from({ length: PROMISE_LIMIT }, (_, i) =>
+    dbLead({ id: `old_${i}`, status: "contacted", created_at: "2026-06-01T15:00:00.000Z", next_follow_up_at: "2026-09-28T15:00:00.000Z" }),
+  );
+  const loaded = await loadCallSheet(loaderDb({ leads: old, lead_notes: [], lead_calls: [], lead_messages: [] }, []), now);
+  assert.equal(loaded.ok, true);
+  assert.equal(loaded.leadsCapped, true);
+  const page = readFileSync(join(process.cwd(), "app/admin/call-sheet/page.tsx"), "utf8");
+  assert.ok(page.includes("loaded.leadsCapped"), "the page says when a lead read came back full");
+});
+
+// ---------------------------------------------------------------------------
+// The call card is where every row now links. When the lead reached out, it
+// has to show what they sent, and the partial-history banner has to point at
+// a thread that exists.
+// ---------------------------------------------------------------------------
+
+test("latestInbound: the newest message or missed call from the lead, by the sheet's own rules", () => {
+  const msg = (overrides: Record<string, unknown>) => ({
+    lead_id: "a",
+    direction: "in",
+    channel: "sms",
+    body: "Can you do a quote\nfor 3 acres Thursday?",
+    created_at: hoursAgo(2),
+    ...overrides,
+  });
+  const call = (overrides: Record<string, unknown>) => ({
+    lead_id: "a",
+    started_at: hoursAgo(1),
+    direction: "incoming",
+    outcome: "missed",
+    scope_status: "company",
+    ...overrides,
+  });
+  assert.equal(callSheetModule.latestInbound({ calls: [], messages: [] }), null);
+  assert.deepEqual(callSheetModule.latestInbound({ calls: [], messages: [msg({})] as never }), {
+    kind: "message_in",
+    at: hoursAgo(2),
+    channel: "sms",
+    said: "Can you do a quote for 3 acres Thursday?",
+  });
+  // The newest wins, whether it is a call or a message.
+  assert.deepEqual(callSheetModule.latestInbound({ calls: [call({})] as never, messages: [msg({})] as never }), {
+    kind: "call_in",
+    at: hoursAgo(1),
+    channel: null,
+    said: null,
+  });
+  assert.equal(callSheetModule.latestInbound({ calls: [call({ started_at: hoursAgo(5) })] as never, messages: [msg({})] as never })?.kind, "message_in");
+  // Not the lead reaching out: a message we sent, a reply a person logged by hand, a call somebody answered,
+  // our own outgoing call, a call scoped out of the company, and a row with no time.
+  const none = callSheetModule.latestInbound({
+    calls: [call({ outcome: "answered" }), call({ direction: "outgoing", outcome: "no_answer" }), call({ scope_status: "personal" }), call({ started_at: null })] as never,
+    messages: [msg({ direction: "out" }), msg({ channel: "note" }), msg({ created_at: "" })] as never,
+  });
+  assert.equal(none, null);
+  // A long message is clipped for the card; the full thread is one tap away.
+  const long = callSheetModule.latestInbound({ calls: [], messages: [msg({ body: "w".repeat(1000) })] as never });
+  assert.equal(long?.said?.length, callSheetModule.INBOUND_SUMMARY_MAX);
+  assert.ok(long?.said?.endsWith("..."));
+});
+
+test("loader: the call card's touches come with the lead's latest message, from the same two reads", async () => {
+  const code = ts.transpileModule(readFileSync(join(process.cwd(), "lib/callSheetServer.ts"), "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  const modules: Record<string, unknown> = { "server-only": {}, "@/lib/callSheet": callSheetModule, "@/lib/speedToLead": speedToLeadModule };
+  const mod = { exports: {} as Record<string, unknown> };
+  new Function("require", "module", "exports", code)((name: string) => modules[name], mod, mod.exports);
+  const loadLeadTouches = mod.exports.loadLeadTouches as (db: unknown, id: string) => Promise<{
+    ok: boolean;
+    touches: CallSheetTouch[];
+    latestInbound: ReturnType<typeof callSheetModule.latestInbound>;
+  }>;
+  const queries: FakeQuery[] = [];
+  const db = loaderDb(
+    {
+      lead_calls: [],
+      lead_messages: [
+        { lead_id: "a", direction: "in", channel: "sms", body: "Are you open Saturday?", created_at: hoursAgo(3), delivered: null },
+        { lead_id: "b", direction: "in", channel: "sms", body: "Someone else's text", created_at: hoursAgo(1), delivered: null },
+      ],
+    },
+    queries,
+  );
+  const loaded = await loadLeadTouches(db, "a");
+  assert.equal(loaded.ok, true);
+  assert.equal(loaded.latestInbound?.said, "Are you open Saturday?");
+  assert.deepEqual(loaded.touches.map((t) => t.kind), ["message_in"]);
+  assert.deepEqual(queries.map((q) => q.table).sort(), ["lead_calls", "lead_messages"], "no extra read");
+});
+
+test("the partial-history banner points at the thread where it lives: Full record on the row", () => {
+  const page = readFileSync(join(process.cwd(), "app/admin/call-sheet/page.tsx"), "utf8");
+  const banner = page.slice(page.indexOf("loaded.partial ?"), page.indexOf("loaded.leadsCapped ?"));
+  assert.ok(banner.includes("Tap Full record on the"), banner);
+  assert.ok(!/thread on the\s+call card/.test(page), "the call card has no thread to check");
+  // The row really has that link, to the lead record with the thread.
+  assert.match(page, /href=\{`\/admin\/leads\/\$\{row\.lead\.id\}`\}[\s\S]{0,400}Full record/);
+  assert.deepEqual(copyProblems(banner.replace(/<[^>]+>|\{[^}]*\}/g, " ")), []);
 });

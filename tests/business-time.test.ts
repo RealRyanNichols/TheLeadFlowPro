@@ -8,6 +8,7 @@ import {
   addCalendarDays,
   centralDate,
   centralHour,
+  centralTime,
   formatCentral,
   formatCentralDate,
   isBusinessDay,
@@ -262,4 +263,16 @@ test("the module is a leaf: only the time helpers and the business identity, no 
   assert.doesNotMatch(source, /Date\.now\(|new Date\(\)/, "now is always passed in");
   assert.doesNotMatch(source, /fetch\(|supabase|leadNotify|\bquo\b/i);
   assert.doesNotMatch(source, /[\u2013\u2014]/, "no em or en dashes, comments included");
+});
+
+test("centralTime reads the Central wall clock as HH:MM, and round-trips through wallClockToInstant", () => {
+  assert.equal(centralTime(new Date("2026-09-22T15:00:00.000Z")), "10:00");
+  assert.equal(centralTime(new Date("2026-09-25T00:30:00.000Z")), "19:30");
+  assert.equal(centralTime(new Date("2026-11-03T21:05:00.000Z")), "15:05");
+  assert.equal(centralTime(new Date("2026-09-22T05:00:00.000Z")), "00:00");
+  for (const iso of ["2026-09-24T20:00:00.000Z", "2026-11-02T16:00:00.000Z", "2026-03-09T13:45:00.000Z"]) {
+    const at = new Date(iso);
+    assert.equal(wallClockToInstant(centralDate(at), centralTime(at)).toISOString(), iso);
+  }
+  assert.throws(() => centralTime(new Date("nope")), RangeError);
 });

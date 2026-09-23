@@ -17,11 +17,18 @@
 //   file does not know is left alone. Won and lost leads are closed (409).
 // - No answer and a voicemail change nothing about the relationship: no stage
 //   change and no last_contacted_at. They only set the next try, on a ladder
-//   (1, then 2, then 4 business days) at the other half of the day. After two
-//   unanswered tries the preview says to try a text or an email.
+//   (1, then 2, then 4 business days) at the other half of the day. A
+//   follow-up already set for sooner than that (a call back Ryan promised)
+//   is kept, so an early try never pushes a promise later. After two
+//   unanswered tries the preview suggests a text or an email, naming only the
+//   ones allowed for this lead: a text needs consent and no STOP, an email
+//   needs a real address. With neither, it says to call at another time.
 // - Callbacks and sit-downs must be in the future and within 90 days.
 // - "Ready to pay now" is only offered when the pay door takes money online
 //   today. A price that is not published yet goes in a written proposal first.
+//   An agency service is paid on the agency pay page against its written
+//   scope, so once the lead is at the proposal stage (the number is in
+//   writing) its pay link is handed over too, never with an amount.
 // - Every price and link comes from lib/payDoors.ts, which reads the offer
 //   registry. Nothing here types a number or a URL.
 // - The activity detail ends with bookkeeping markers: "Outcome: x.",
@@ -44,7 +51,7 @@ import {
   nextWeekdayAfter,
   wallClockToInstant,
 } from "@/lib/businessTime";
-import { line, plain } from "@/lib/hq/copy";
+import { line, noteText } from "@/lib/hq/copy";
 import { isCloserOfferId, payDoorFor, payLinkMessage, type CloserOfferId, type PayDoor } from "@/lib/payDoors";
 import { offerIdForInterest } from "@/lib/proposals/build";
 import { agencyService } from "@/lib/site/agency";
@@ -79,7 +86,11 @@ export const OUTCOME_LABELS: Record<CallOutcome, string> = {
   proposal_sent: "Proposal sent",
 };
 
-/** Outcomes where a conversation happened. One of these ends a run of unanswered tries. */
+/**
+ * Outcomes where a conversation happened. One of these ends a run of
+ * unanswered tries. Proposal sent is written with kind "sales", so callers of
+ * countPriorAttempts read CALL_HISTORY_KINDS, not only "call".
+ */
 export const TALKED_OUTCOMES: readonly CallOutcome[] = [
   "booked",
   "wants_proposal",
@@ -217,7 +228,9 @@ export function parseNextStepRequest(body: unknown): Parsed {
     if (normalized.length > NEXT_STEP_NOTE_MAX) {
       return { ok: false, error: `Keep the note to ${NEXT_STEP_NOTE_MAX.toLocaleString("en-US")} characters.` };
     }
-    note = plain(normalized, NEXT_STEP_NOTE_MAX) || null;
+    // noteText, not plain(): plain() reads a bare "<" as the start of a tag
+    // and would cut "Crew of <5, budget under $800" off at the "<".
+    note = noteText(normalized, NEXT_STEP_NOTE_MAX) || null;
   }
 
   const offers: CloserOfferId[] = [];
@@ -351,6 +364,30 @@ function firstLine(text: string | null): string {
   );
 }
 
+/** Texting is allowed: a phone, recorded consent, and no STOP since. The rule of lib/callSheet.ts canText, kept here so the panel loads no call sheet code. */
+function mayText(lead: PlannerLead): boolean {
+  return Boolean(lead.phone) && lead.sms_consent === true && !lead.sms_unsubscribed_at;
+}
+
+/** A real address to write to, not the placeholder a Meta lead ad leaves. The rule of hasLeadEmailAddress (lib/leadMessageAuthor.ts). */
+function mayEmail(email: string | null): boolean {
+  return typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !email.toLowerCase().endsWith("@no-email.facebook.lead");
+}
+
+/** After two unanswered tries: what to try next, naming only the channels Ryan may use with this lead. */
+function severalTriesLine(lead: PlannerLead): string {
+  const start = "That is several tries without an answer.";
+  const text = mayText(lead);
+  const email = mayEmail(lead.email);
+  const stopped = Boolean(lead.sms_unsubscribed_at);
+  if (text && email) return `${start} Try a text or an email next.`;
+  if (text) return `${start} Try a text next.`;
+  if (email) return stopped ? `${start} They replied STOP, so no texts. Try an email next.` : `${start} Try an email next.`;
+  return stopped
+    ? `${start} They replied STOP and there is no email on file, so call again at a different time of day.`
+    : `${start} There is no text consent and no email on file, so call again at a different time of day.`;
+}
+
 function stageLabel(status: string): string {
   return STAGE_LABELS[status] ?? status.replace(/[_-]+/g, " ");
 }
@@ -363,6 +400,13 @@ function placePhrase(place: string): string {
 function instantFor(pair: { localDate: string; time: string } | null): Date | null {
   if (!pair || !isLocalDate(pair.localDate) || !isLocalTime(pair.time)) return null;
   return wallClockToInstant(pair.localDate, pair.time);
+}
+
+/** A stored ISO time that is a real instant later than now, or null. */
+function futureInstant(iso: string | null, now: Date): Date | null {
+  if (typeof iso !== "string" || !iso) return null;
+  const at = new Date(iso);
+  return Number.isNaN(at.getTime()) || at.getTime() <= now.getTime() ? null : at;
 }
 
 function windowError(at: Date, now: Date, what: string): PlanError | null {
@@ -497,9 +541,16 @@ export function planCallOutcome(input: {
 
     case "ready_to_pay": {
       if (doors.length === 0) return bad("Pick what they are paying for, up to three offers.");
-      const blocked = doors.find((d) => !d.payableNow);
+      // The agency pay page takes the amount from the written scope. At the
+      // proposal stage that scope is in writing, so its link can go out.
+      const scopeInWriting = status === "proposal";
+      const blocked = doors.find((d) => !d.payableNow && !(d.kind === "written_scope" && d.url && scopeInWriting));
       if (blocked) {
-        return bad(`No online payment for ${blocked.offerName} yet. Choose Wants a proposal so the number goes in writing first.`);
+        return bad(
+          blocked.kind === "written_scope"
+            ? `${blocked.offerName} has no set price. It is paid on the agency pay page against a written scope, so choose Wants a proposal to put the number in writing first. Once the proposal is marked sent, Ready to pay now gives you the link.`
+            : `No online payment for ${blocked.offerName} yet. Choose Wants a proposal so the number goes in writing first.`,
+        );
       }
       const at = nextBusinessAt(now, 1, PAYMENT_CHECK_TIME);
       draft.sentence = `Call: ready to pay now for ${joinNames(names)}. Check the payment ${formatCentral(at)}.`;
@@ -548,13 +599,22 @@ export function planCallOutcome(input: {
         // Try the other half of the day: a morning miss comes back in the afternoon.
         const time = centralHour(now) < 12 ? "16:00" : "10:00";
         at = nextBusinessAt(now, businessDays, time);
+        // A follow-up already set for sooner (a call back Ryan promised, a
+        // sit-down) stays: an early try that nobody answered must not push the
+        // lead past a time he gave them. The earlier of the two wins, so the
+        // lead only ever comes back sooner.
+        const stored = futureInstant(lead.next_follow_up_at, now);
+        if (stored && stored.getTime() < at.getTime()) {
+          at = stored;
+          draft.lines.push(`Keeps the follow-up already set for ${formatCentral(stored)}, because it is sooner than the next try.`);
+        }
       }
       draft.sentence = voicemail
         ? `Call: left a voicemail. Try again ${formatCentral(at)}.`
         : `Call: no answer. Try again ${formatCentral(at)}.`;
       draft.patch.next_follow_up_at = at.toISOString();
       draft.next = at;
-      if (rung >= 2) draft.lines.push("That is several tries without an answer. Try a text or an email next.");
+      if (rung >= 2) draft.lines.push(severalTriesLine(lead));
       draft.summary = voicemail ? `Voicemail logged. Try again ${formatCentral(at)}.` : `No answer logged. Try again ${formatCentral(at)}.`;
       break;
     }
@@ -563,7 +623,8 @@ export function planCallOutcome(input: {
       if (!request.lostReason) return bad("Pick why it is not a fit.");
       const reason = LOST_REASONS.find((r) => r.id === request.lostReason);
       if (!reason) return bad("Pick a reason from the list.");
-      const why = line(firstLine(request.note), LOST_REASON_MAX);
+      // Not line(): it runs plain(), which would empty "<10 trucks, too small" and refuse the save.
+      const why = noteText(firstLine(request.note), LOST_REASON_MAX).replace(/\s+/g, " ").trim();
       if (reason.id === "other" && !why) return bad("Add a short note that says why, so the record makes sense later.");
       const lost = clip(reason.id === "other" ? `${reason.label}: ${why}` : reason.label, LOST_REASON_MAX);
       draft.sentence = `Call: not a fit (${lost.replace(/[.\s]+$/, "")}).`;
@@ -572,7 +633,7 @@ export function planCallOutcome(input: {
       draft.patch.next_follow_up_at = null;
       draft.patch.lost_reason = lost;
       draft.lines.push(withPeriod(`Lost reason: ${lost}`));
-      draft.summary = `Marked not a fit. ${first || "This lead"} comes off the call sheet.`;
+      draft.summary = `Marked not a fit. ${first || "This lead"} is closed as lost, with no follow-up set.`;
       break;
     }
 
@@ -603,7 +664,9 @@ export function planCallOutcome(input: {
   else preview.push(status ? `Status stays ${stageLabel(status)}.` : "Status stays as it is.");
   if (draft.task) preview.push(`Adds a task: ${draft.task.title}, due ${formatCentralDate(draft.task.due_date)}.`);
   if (draft.completeProposalTasks) preview.push("Marks the open proposal tasks on this lead done.");
-  if (draft.next) preview.push(`Next follow-up: ${formatCentral(draft.next)}. The lead comes back on your call sheet then.`);
+  // Neutral about where: an admin sees the lead on the call sheet, a sales
+  // user on Today. The same planner runs for both.
+  if (draft.next) preview.push(`Next follow-up: ${formatCentral(draft.next)}. The lead shows as due again then.`);
   else preview.push("Clears the next follow-up.");
   preview.push(...draft.lines);
   preview.push(request.outcome === "proposal_sent" ? "Saves a note and adds it to the timeline." : "Saves a note and adds the call to the timeline.");
@@ -656,6 +719,37 @@ export function countPriorAttempts(activityDetailsNewestFirst: string[]): number
     if (outcome && (TALKED_OUTCOMES as readonly string[]).includes(outcome)) break;
   }
   return count;
+}
+
+/**
+ * The lead_activity kinds a Call Closer save writes: "call" for every call
+ * outcome, and "sales" for Proposal sent. Readers of the call history
+ * (countPriorAttempts, the call card, the Sales Desk) read both kinds and keep
+ * rows with isCallHistoryEntry, so a sent proposal ends a run of missed calls.
+ */
+export const CALL_HISTORY_KINDS = ["call", "sales"] as const;
+
+/**
+ * An ilike pattern every Call Closer entry matches (its outcome marker). Reads
+ * add it so other "sales" rows never take a place in a limited window.
+ */
+export const CALL_HISTORY_DETAIL_PATTERN = "%Outcome: %";
+
+/**
+ * Whether a lead_activity row is part of the call history: every "call" row,
+ * and the "sales" row a Proposal sent save writes. Other "sales" rows (a stage,
+ * owner, or priority change on the Sales Desk) are not calls and are left out.
+ */
+export function isCallHistoryEntry(kind: unknown, detail: unknown): boolean {
+  if (kind === "call") return true;
+  return kind === "sales" && typeof detail === "string" && lastMatch(OUTCOME_MARKER_RE, detail) === "proposal_sent";
+}
+
+/** The outcome a saved call recorded, read back from its activity detail, or null. */
+export function outcomeFromDetail(detail: string): CallOutcome | null {
+  if (typeof detail !== "string") return null;
+  const found = lastMatch(OUTCOME_MARKER_RE, detail);
+  return isCallOutcome(found) ? found : null;
 }
 
 /** The offers a saved call named, read back from its activity detail. */

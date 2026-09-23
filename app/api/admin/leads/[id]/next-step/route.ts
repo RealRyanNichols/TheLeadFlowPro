@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { leadMessageAuthor } from "@/lib/leadMessageAuthor";
 import {
+  CALL_HISTORY_DETAIL_PATTERN,
+  CALL_HISTORY_KINDS,
   countPriorAttempts,
+  isCallHistoryEntry,
+  offerIdsFromDetail,
+  outcomeFromDetail,
   parseNextStepRequest,
   planCallOutcome,
   refMarker,
@@ -27,7 +32,9 @@ import { formatCentral } from "@/lib/businessTime";
 //    security still decides what they can see. A deleted lead is a 404.
 // 4. A retried save carries the same idempotency key. If a timeline entry
 //    already ends with that key's Ref marker, the call was saved and nothing
-//    is written again.
+//    is written again. Any pay or proposal link handed back is rebuilt from
+//    that entry's own Outcome and Offer ids markers, because the retry's body
+//    may be an edit that was never saved.
 // 5. Writes go lead, note, task, timeline. The lead first because the next
 //    follow-up time is what brings the lead back to the call sheet. The note
 //    second because it is the record of the call. If either fails the save
@@ -35,6 +42,12 @@ import { formatCentral } from "@/lib/businessTime";
 //    the proposal tasks, and the timeline entry are extras: a failure there
 //    comes back as a warning on a 200, not a retry. The timeline entry goes
 //    last so its Ref marker only exists once everything before it landed.
+//    One exception: "Not a fit" closes the lead, and a closed lead refuses
+//    every later save (409). So when the plan closes the lead, the note goes
+//    first. A failed note then leaves the lead open and the retry works; a
+//    failed lead update after the note retries cleanly because the same note
+//    is not added twice. Once a closing update has landed, the answer is no
+//    longer "try again", because the retry would be refused.
 //
 // The note's author is the signed-in profile's name. Any author or sender in
 // the request body is ignored.
@@ -104,6 +117,8 @@ function connectionProblem(landed: Landed[]) {
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   const landed: Landed[] = [];
+  // True once the plan says this save closes the lead (Not a fit).
+  let closesLead = false;
   try {
     const supabase = await createClient();
 
@@ -151,21 +166,36 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const marker = refMarker(step.idempotencyKey);
     const prior = await supabase
       .from("lead_activity")
-      .select("id")
+      .select("id, detail")
       .eq("lead_id", id)
       .ilike("detail", `%${marker}`)
       .limit(1);
     if (prior.error) return connectionProblem(landed);
     if (Array.isArray(prior.data) && prior.data.length > 0) {
-      // Replanned only to hand the pay links or proposal link back to the
-      // panel. Nothing is written, and a closed lead simply gets none.
-      const replay = planCallOutcome({ lead, request: step, actorName: signer, now, priorAttempts: 0 });
-      const shown: Pick<CallPlan, "payDoors" | "payMessage" | "proposalHref"> = replay.ok
-        ? replay
-        : { payDoors: [], payMessage: null, proposalHref: null };
+      // Nothing is written. The pay links or the proposal link are handed
+      // back for the call that was SAVED, read from its own markers, never
+      // for this request's body: after a dropped connection the panel sends
+      // an edited save under the old key, and that edit was not written. A
+      // saved outcome with no links, an unreadable entry, or a lead closed
+      // since gets none.
+      const saved = prior.data[0] as unknown;
+      const savedDetail = isRecord(saved) && typeof saved.detail === "string" ? saved.detail : "";
+      const savedOutcome = outcomeFromDetail(savedDetail);
+      let shown: Pick<CallPlan, "payDoors" | "payMessage" | "proposalHref"> = { payDoors: [], payMessage: null, proposalHref: null };
+      if (savedOutcome === "ready_to_pay" || savedOutcome === "wants_proposal") {
+        const replay = planCallOutcome({
+          lead,
+          request: { ...step, outcome: savedOutcome, offers: offerIdsFromDetail(savedDetail) },
+          actorName: signer,
+          now,
+          priorAttempts: 0,
+        });
+        if (replay.ok) shown = { payDoors: replay.payDoors, payMessage: replay.payMessage, proposalHref: replay.proposalHref };
+      }
       return NextResponse.json({
         ok: true,
         duplicate: true,
+        outcome: savedOutcome,
         landed: [],
         warnings: [],
         retryable: false,
@@ -179,15 +209,21 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       });
     }
 
+    // The Call Closer's own entries, newest first: every call, and the sent
+    // proposals (kind "sales"), which end a run of missed calls. Only rows
+    // with an outcome marker are read, so a stage or priority change on the
+    // Sales Desk never takes a place in the window.
     const history = await supabase
       .from("lead_activity")
-      .select("detail")
+      .select("kind, detail")
       .eq("lead_id", id)
-      .eq("kind", "call")
+      .in("kind", [...CALL_HISTORY_KINDS])
+      .ilike("detail", CALL_HISTORY_DETAIL_PATTERN)
       .order("created_at", { ascending: false })
       .limit(PRIOR_CALL_ENTRIES);
     if (history.error) return connectionProblem(landed);
     const details = (Array.isArray(history.data) ? history.data : [])
+      .filter((row: unknown) => isRecord(row) && isCallHistoryEntry(row.kind, row.detail))
       .map((row: unknown) => (isRecord(row) ? row.detail : null))
       .filter((d: unknown): d is string => typeof d === "string");
 
@@ -199,9 +235,12 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       priorAttempts: countPriorAttempts(details),
     });
     if (!plan.ok) return fail(plan.status, plan.error);
+    closesLead = plan.leadPatch.status === "lost";
 
-    // 1. The lead: stage, last contacted, next follow-up, lost reason.
-    if (Object.keys(plan.leadPatch).length > 0) {
+    // The lead: stage, last contacted, next follow-up, lost reason.
+    // Returns the failure to send back, or null when it landed.
+    const writeLead = async () => {
+      if (Object.keys(plan.leadPatch).length === 0) return null;
       const updated = await supabase
         .from("leads")
         .update(plan.leadPatch)
@@ -210,40 +249,55 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         .select("id");
       // Row level security turns a refused update into zero rows, not an error.
       if (updated.error || !Array.isArray(updated.data) || updated.data.length === 0) {
-        return fail(500, "The lead did not update, so nothing was saved. Try saving again.", {
-          retryable: true,
-          landed,
-        });
+        return fail(
+          500,
+          landed.includes("note")
+            ? "The note saved but the lead did not update. Try saving again to finish."
+            : "The lead did not update, so nothing was saved. Try saving again.",
+          { retryable: true, landed },
+        );
       }
       landed.push("lead");
-    }
+      return null;
+    };
 
-    // 2. The note. A double tap or a retry within a few minutes with the same
+    // The note. A double tap or a retry within a few minutes with the same
     // text does not add it twice. If the check itself fails, the note is
     // written anyway: a repeated note is better than a missing one.
-    const since = new Date(now.getTime() - SAME_NOTE_WINDOW_MS).toISOString();
-    const recentNotes = await supabase
-      .from("lead_notes")
-      .select("body")
-      .eq("lead_id", id)
-      .gte("created_at", since)
-      .order("created_at", { ascending: false })
-      .limit(20);
-    const alreadyNoted =
-      !recentNotes.error &&
-      Array.isArray(recentNotes.data) &&
-      recentNotes.data.some((row: unknown) => isRecord(row) && row.body === plan.noteBody);
-    if (!alreadyNoted) {
+    const writeNote = async () => {
+      const since = new Date(now.getTime() - SAME_NOTE_WINDOW_MS).toISOString();
+      const recentNotes = await supabase
+        .from("lead_notes")
+        .select("body")
+        .eq("lead_id", id)
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      const alreadyNoted =
+        !recentNotes.error &&
+        Array.isArray(recentNotes.data) &&
+        recentNotes.data.some((row: unknown) => isRecord(row) && row.body === plan.noteBody);
+      if (alreadyNoted) return null;
       const note = await supabase
         .from("lead_notes")
         .insert({ lead_id: id, body: plan.noteBody, author: author.auditName });
       if (note.error) {
-        return fail(500, "The lead updated but the note did not save. Try saving again to finish.", {
-          retryable: true,
-          landed,
-        });
+        return fail(
+          500,
+          landed.includes("lead")
+            ? "The lead updated but the note did not save. Try saving again to finish."
+            : "The note did not save, so nothing was saved. Try saving again.",
+          { retryable: true, landed },
+        );
       }
       landed.push("note");
+      return null;
+    };
+
+    // 1 and 2. Lead then note, except when the save closes the lead (see the header).
+    for (const write of closesLead ? [writeNote, writeLead] : [writeLead, writeNote]) {
+      const failed = await write();
+      if (failed) return failed;
     }
 
     const warnings: string[] = [];
@@ -283,6 +337,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     return NextResponse.json({
       ok: true,
       duplicate: false,
+      outcome: plan.outcome,
       landed,
       warnings,
       retryable: false,
@@ -298,13 +353,17 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     // Something threw part way. `landed` says what went through. The lead
     // update and the note are safe to repeat with the same key (the note is
     // not added twice); a task that already landed would be, so once one has,
-    // the answer is no longer "try again".
-    const retryable = !landed.includes("task");
+    // the answer is no longer "try again". Neither is it once the lead was
+    // marked not a fit: a closed lead refuses the retry.
+    const closed = closesLead && landed.includes("lead");
+    const retryable = !landed.includes("task") && !closed;
     return fail(
       500,
-      retryable
-        ? "Something went wrong while saving the call. Try saving again."
-        : "Something went wrong after the call was saved. Check the lead page before saving again.",
+      closed
+        ? "Something went wrong after the lead was marked not a fit. The note is saved. Check the lead page before saving again."
+        : retryable
+          ? "Something went wrong while saving the call. Try saving again."
+          : "Something went wrong after the call was saved. Check the lead page before saving again.",
       { retryable, landed },
     );
   }

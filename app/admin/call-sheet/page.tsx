@@ -76,8 +76,17 @@ export default async function CallSheetPage() {
 
       {loaded.ok && loaded.partial ? (
         <p className="card mb-5 !p-4 text-sm" role="status">
-          Some call and message history did not load, so a lead below may already have been reached. Check the thread on the
-          call card before you dial.
+          Some call and message history did not load, so a lead below may already have been reached. Tap Full record on the
+          row to check the thread before you dial.
+        </p>
+      ) : null}
+      {loaded.ok && loaded.leadsCapped ? (
+        <p className="card mb-5 !p-4 text-sm" role="status">
+          More leads matched than the sheet reads at once, so some older leads or call backs may be missing here. Check the{" "}
+          <Link href="/admin" className="font-bold text-[var(--blue)]">
+            full lead list
+          </Link>{" "}
+          for the rest.
         </p>
       ) : null}
 
@@ -116,7 +125,9 @@ export default async function CallSheetPage() {
                 <span className="text-sm font-semibold text-[var(--muted)]">({group.rows.length})</span>
               </h3>
               <p className="mb-3 text-sm text-[var(--muted)]">{TIER_LABELS[group.tier].lead}</p>
-              <ol className="grid gap-3">
+              {/* grid-cols-1 is minmax(0, 1fr): one long word in a reason (a pasted link in the
+                  last note) cannot widen every row past a phone's width. */}
+              <ol className="grid grid-cols-1 gap-3">
                 {group.rows.map((row, i) => {
                   const tel = telHref(row.lead.phone);
                   // Consent and no STOP since, the same rule as the CRM send route.
@@ -125,7 +136,7 @@ export default async function CallSheetPage() {
                     <li key={row.lead.id} className="card !p-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="font-black text-[var(--heading)]">
+                          <div className="font-black text-[var(--heading)] [overflow-wrap:anywhere]">
                             {i + 1}. {row.lead.full_name || "Unnamed lead"}
                             {row.lead.business_name ? (
                               <span className="font-semibold text-[var(--muted)]"> at {row.lead.business_name}</span>
@@ -135,7 +146,7 @@ export default async function CallSheetPage() {
                             {row.sourceLabel} · {row.interestLabel} · {ageLabel(row.ageHours)} · status {row.lead.status.replace(/_/g, " ")}
                             {row.lead.best_contact_method ? ` · prefers ${row.lead.best_contact_method}` : ""}
                           </div>
-                          <p className="mt-2 text-sm">{row.reason}</p>
+                          <p className="mt-2 text-sm [overflow-wrap:anywhere]">{row.reason}</p>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {tel ? (

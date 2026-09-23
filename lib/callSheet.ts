@@ -23,9 +23,18 @@
 // the lead's next_follow_up_at holds that instant. Until then the lead stays
 // off the sheet; once it passes, the lead comes back under "You said you
 // would call", earliest promise first, with the last note beside it so he
-// dials knowing what was said. A lead nobody has touched ignores the field
-// completely: /api/business-diagnostic stamps it with the submission time on
-// brand-new leads, and a person still has to make the first call.
+// dials knowing what was said. The reason on that row names the time, not
+// who set it: a booked sit-down or another screen can set the same field. A
+// lead nobody has touched ignores the field completely: when a Business
+// Growth Diagnostic is first submitted and the field is still empty,
+// /api/business-diagnostic stamps it with its review task's time (9:00 AM
+// Central on the day it came in), and a person still has to make the first
+// call.
+//
+// A promise outlives the lookback window. lib/callSheetServer.ts also reads
+// older leads whose follow-up came due inside the window, and those appear
+// here only while that promise is owed: as a call back, or as a reply when
+// the lead reached out since (the promiseOnly option).
 //
 // Nothing here writes to the database or contacts anyone.
 
@@ -52,7 +61,8 @@ export type CallSheetLead = {
   /**
    * When a person promised to come back to this lead (the Call Closer writes
    * it). Only honoured once a person has touched the lead: the diagnostic
-   * route sets it to the submission time on brand-new leads.
+   * route sets it to its review task's time (9:00 AM Central on the day it
+   * came in) when a questionnaire is first submitted and the field is empty.
    */
   next_follow_up_at: string | null;
 };
@@ -65,6 +75,15 @@ export type CallSheetTouch = {
   /** Note touches only: the first line of the note, markers removed, at most NOTE_SUMMARY_MAX characters. */
   summary?: string | null;
 };
+
+/**
+ * A person acted: a note, a call, or a text a person sent. The lead reaching
+ * out (message_in, call_in) is the opposite. The sheet and the call card both
+ * take the latest of these as the last human touch.
+ */
+export function isHumanTouch(touch: Pick<CallSheetTouch, "kind">): boolean {
+  return touch.kind === "note" || touch.kind === "call" || touch.kind === "message_out";
+}
 
 /** Texting is allowed only with recorded consent and no STOP since. Same rule as the CRM send route. */
 export function canText(lead: Pick<CallSheetLead, "phone" | "sms_consent" | "sms_unsubscribed_at">): boolean {
@@ -184,6 +203,48 @@ export function touchesFromRows(rows: {
   return touches;
 }
 
+/** Longest piece of an inbound message the call card prints. */
+export const INBOUND_SUMMARY_MAX = 280;
+
+export type LatestInbound = {
+  kind: "message_in" | "call_in";
+  at: string;
+  /** Messages only: sms or email, as lead_messages stores it. */
+  channel: string | null;
+  /** Messages only: what they wrote, whitespace collapsed, at most INBOUND_SUMMARY_MAX characters. */
+  said: string | null;
+};
+
+/**
+ * The newest time the lead reached out: a message they sent (not a reply a
+ * person logged by hand) or a call of theirs nobody picked up. The same rows
+ * touchesFromRows counts as a reply owed, so the call card can show what the
+ * sheet's "They reached out" tier is about. Null when there is none.
+ */
+export function latestInbound(rows: { calls: CallSheetCallRow[]; messages: CallSheetMessageRow[] }): LatestInbound | null {
+  const found: LatestInbound[] = [];
+  for (const c of rows.calls) {
+    if (!c.lead_id || !c.started_at) continue;
+    if (c.scope_status && c.scope_status !== "company") continue;
+    if (classifyCall(c.direction, c.outcome) === "call_in") found.push({ kind: "call_in", at: c.started_at, channel: null, said: null });
+  }
+  for (const m of rows.messages) {
+    if (!m.lead_id || !m.created_at || m.direction !== "in" || m.channel === "note") continue;
+    const text = typeof m.body === "string" ? m.body.replace(/\s+/g, " ").trim() : "";
+    found.push({ kind: "message_in", at: m.created_at, channel: m.channel ?? null, said: text ? clip(text, INBOUND_SUMMARY_MAX) : null });
+  }
+  let best: LatestInbound | null = null;
+  let bestMs = -Infinity;
+  for (const item of found) {
+    const ms = Date.parse(item.at);
+    if (Number.isFinite(ms) && ms > bestMs) {
+      best = item;
+      bestMs = ms;
+    }
+  }
+  return best;
+}
+
 export type CallSheetTier = "reply" | "callback" | "answer" | "waiting" | "follow_up";
 
 export type CallSheetRow = {
@@ -275,12 +336,56 @@ function displayName(lead: CallSheetLead): string {
   return String(lead.full_name || "").trim() || "Unnamed lead";
 }
 
-/** The promised call back instant, or null when the field is empty or unreadable. */
-function callbackDue(lead: CallSheetLead): Date | null {
-  if (!lead.next_follow_up_at) return null;
-  const due = new Date(lead.next_follow_up_at);
-  return Number.isNaN(due.getTime()) ? null : due;
+function validInstant(value: Date | string | null | undefined): Date | null {
+  if (value === null || value === undefined || value === "") return null;
+  const at = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(at.getTime()) ? null : at;
 }
+
+export type CallbackState =
+  /** The follow-up time has passed and nobody has touched the lead since it was set: call now. */
+  | { state: "due"; at: Date }
+  /** The follow-up time is still ahead. */
+  | { state: "later"; at: Date }
+  /** No readable follow-up time, a time a person already acted on, or a time on a lead nobody has touched. */
+  | { state: "none"; at: Date | null };
+
+/**
+ * The one rule for a stored follow-up time, shared by the sheet and the call
+ * card so they never disagree. A past time counts as a promise still owed
+ * only when the last human touch came before it: a touch at or after the
+ * time means the promise was kept, and a lead with no human touch at all
+ * never had one (the diagnostic route stamps new leads with their
+ * review task's time).
+ */
+export function callbackState(
+  nextFollowUpAt: string | null | undefined,
+  lastHumanTouchAt: Date | string | null | undefined,
+  now: Date,
+): CallbackState {
+  const at = validInstant(nextFollowUpAt);
+  if (!at) return { state: "none", at: null };
+  if (at.getTime() > now.getTime()) return { state: "later", at };
+  const human = validInstant(lastHumanTouchAt);
+  if (human && human.getTime() < at.getTime()) return { state: "due", at };
+  return { state: "none", at };
+}
+
+function withPeriod(text: string): string {
+  return /[.!?]$/.test(text) ? text : `${text}.`;
+}
+
+export type BuildCallSheetOptions = {
+  /**
+   * Leads read only because a follow-up on them came due, from outside the
+   * window the sheet otherwise covers (lib/callSheetServer.ts). They appear
+   * only while that follow-up is owed: as "callback" rows, or as "reply" rows
+   * when the lead also reached out since the last touch. Anywhere else they
+   * are left out entirely, and not listed as excluded, because the page
+   * counts exclusions in the window.
+   */
+  promiseOnly?: ReadonlySet<string>;
+};
 
 /**
  * Build the sheet. Touches may be in any order; only the latest per lead per
@@ -291,21 +396,28 @@ function callbackDue(lead: CallSheetLead): Date | null {
  * 1. The lead reached out after the last human touch: "reply".
  * 2. No human touch at all: "answer" or "waiting" by age. next_follow_up_at
  *    is ignored here on purpose (see the header).
- * 3. A call back was promised and has passed, and nobody has touched the lead
- *    since it came due: "callback".
- * 4. A call back is promised for later: off the sheet until then.
+ * 3. A follow-up time has passed, and nobody has touched the lead since it
+ *    came due: "callback" (callbackState).
+ * 4. A follow-up time is set for later: off the sheet until then.
  * 5. Otherwise five days of silence since the last touch: "follow_up".
  */
-export function buildCallSheet(leads: CallSheetLead[], touches: CallSheetTouch[], now: Date): CallSheet {
+export function buildCallSheet(
+  leads: CallSheetLead[],
+  touches: CallSheetTouch[],
+  now: Date,
+  options: BuildCallSheetOptions = {},
+): CallSheet {
+  const promiseOnly = options.promiseOnly ?? new Set<string>();
   const lastHuman = new Map<string, Date>();
   const lastInbound = new Map<string, { at: Date; kind: "message_in" | "call_in" }>();
   const lastNote = new Map<string, { at: Date; summary: string }>();
   for (const t of touches) {
     const at = new Date(t.at);
     if (Number.isNaN(at.getTime())) continue;
-    if (t.kind === "message_in" || t.kind === "call_in") {
+    if (!isHumanTouch(t)) {
+      const kind = t.kind === "call_in" ? "call_in" : "message_in";
       const prev = lastInbound.get(t.lead_id);
-      if (!prev || at > prev.at) lastInbound.set(t.lead_id, { at, kind: t.kind });
+      if (!prev || at > prev.at) lastInbound.set(t.lead_id, { at, kind });
     } else {
       const prev = lastHuman.get(t.lead_id);
       if (!prev || at > prev) lastHuman.set(t.lead_id, at);
@@ -320,21 +432,32 @@ export function buildCallSheet(leads: CallSheetLead[], touches: CallSheetTouch[]
   const excluded: CallSheet["excluded"] = [];
 
   for (const lead of leads) {
+    // A lead read only for its due promise shows up only while that promise
+    // is owed: as a call back, or as a reply when the lead also reached out
+    // since (promiseOwed). Otherwise it does not show at all.
+    const outside = promiseOnly.has(lead.id);
+    const leaveOff = (reason: string) => {
+      if (!outside) excluded.push({ id: lead.id, reason });
+    };
+    const place = (row: CallSheetRow, promiseOwed = false) => {
+      if (!outside || row.tier === "callback" || promiseOwed) rows.push(row);
+    };
+
     if (lead.is_test) {
-      excluded.push({ id: lead.id, reason: "test record" });
+      leaveOff("test record");
       continue;
     }
     if ((CLOSED_STATUSES as readonly string[]).includes(lead.status)) {
-      excluded.push({ id: lead.id, reason: `status ${lead.status}` });
+      leaveOff(`status ${lead.status}`);
       continue;
     }
     if (!lead.phone && !lead.email) {
-      excluded.push({ id: lead.id, reason: "no phone and no email" });
+      leaveOff("no phone and no email");
       continue;
     }
     const created = new Date(lead.created_at);
     if (Number.isNaN(created.getTime())) {
-      excluded.push({ id: lead.id, reason: "bad created_at" });
+      leaveOff("bad created_at");
       continue;
     }
 
@@ -354,35 +477,46 @@ export function buildCallSheet(leads: CallSheetLead[], touches: CallSheetTouch[]
     const who = `${displayName(lead)}${lead.business_name ? ` at ${lead.business_name}` : ""}`;
 
     if (inbound && (!human || inbound.at > human)) {
+      // A reply owed outranks a call back owed, so a lead with both sits
+      // under "They reached out", with the promised time named as well.
+      const owed = callbackState(lead.next_follow_up_at, human, now);
       const what = inbound.kind === "call_in" ? "called and nobody picked up" : "sent a message";
-      rows.push({
-        ...base,
-        tier: "reply",
-        reason: `${who} ${what} ${ageLabel(hoursBetween(now, inbound.at))} and nothing has gone back since.`,
-      });
+      place(
+        {
+          ...base,
+          tier: "reply",
+          reason: `${who} ${what} ${ageLabel(hoursBetween(now, inbound.at))} and nothing has gone back since.${
+            owed.state === "due" ? ` Follow-up due since ${formatCentral(owed.at)}.` : ""
+          }`,
+        },
+        owed.state === "due",
+      );
       continue;
     }
     if (!human) {
       const tier: CallSheetTier = ageHours <= ANSWER_WINDOW_HOURS ? "answer" : "waiting";
-      rows.push({
+      place({
         ...base,
         tier,
         reason: `${who} came in ${ageLabel(ageHours)} from ${base.sourceLabel} asking about ${base.interestLabel}. No call, text, or note from a person yet.`,
       });
       continue;
     }
-    const due = callbackDue(lead);
-    if (due && due.getTime() > now.getTime()) {
-      excluded.push({ id: lead.id, reason: `call back set for ${formatCentral(due)}` });
+    const promise = callbackState(lead.next_follow_up_at, human, now);
+    if (promise.state === "later") {
+      leaveOff(`call back set for ${formatCentral(promise.at)}`);
       continue;
     }
-    if (due && human < due) {
+    if (promise.state === "due") {
       const note = lastNote.get(lead.id);
-      rows.push({
+      // Neutral on purpose: the time may be a call back, a sit-down that has
+      // passed, or a date set on another screen, so the row names the time
+      // and the last note, not who promised what.
+      place({
         ...base,
         tier: "callback",
-        callbackAt: due.toISOString(),
-        reason: `You set a call back with ${who} for ${formatCentral(due)}.${note ? ` Last: ${note.summary}` : ""}`,
+        callbackAt: promise.at.toISOString(),
+        reason: `${who}: follow-up due since ${formatCentral(promise.at)}.${note ? ` Last: ${withPeriod(note.summary)}` : ""}`,
       });
       continue;
     }
@@ -390,14 +524,14 @@ export function buildCallSheet(leads: CallSheetLead[], touches: CallSheetTouch[]
     // kept, so the ordinary five-day rule decides.
     const sinceTouch = hoursBetween(now, human);
     if (sinceTouch >= FOLLOW_UP_AFTER_DAYS * 24) {
-      rows.push({
+      place({
         ...base,
         tier: "follow_up",
         reason: `${who} was last touched ${ageLabel(sinceTouch)} and is still ${lead.status.replace(/_/g, " ")}.`,
       });
       continue;
     }
-    excluded.push({ id: lead.id, reason: `touched ${ageLabel(sinceTouch)}` });
+    leaveOff(`touched ${ageLabel(sinceTouch)}`);
   }
 
   rows.sort((a, b) => {

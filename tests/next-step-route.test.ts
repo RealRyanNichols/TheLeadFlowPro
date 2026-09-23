@@ -7,7 +7,7 @@
 // throws, so a route that tried to reach the network would fail here.
 //
 // The fake client keeps small in-memory tables and applies the filters the
-// route actually sends (eq, is, gte, ilike, order, limit). A route that
+// route actually sends (eq, is, in, gte, ilike, order, limit). A route that
 // forgot `.is("deleted_at", null)` or anchored its Ref search wrong would
 // get the wrong rows back, not a friendly stub.
 
@@ -25,6 +25,7 @@ import { CALL_OUTCOMES, refMarker, type CallOutcome } from "../lib/callCloser.ts
 import { SAMPLE_CALL_LEAD, SAMPLE_NOW } from "../lib/callCloserFixtures.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
 import { BUSINESS } from "../lib/site/business.ts";
+import { EXTERNAL_LINKS } from "../lib/site/external-links.ts";
 
 const require = createRequire(import.meta.url);
 const ROUTE = "app/api/admin/leads/[id]/next-step/route.ts";
@@ -61,6 +62,8 @@ type Options = {
   fail?: string[];
   /** Row level security refuses the lead update: zero rows, no error. */
   rlsBlocksLeadUpdate?: boolean;
+  /** "<table>.<action>" pairs whose request throws (a dropped connection), e.g. "lead_activity.insert". */
+  throwOn?: string[];
   /** Seed rows, newest first where order matters. */
   activity?: Row[];
   notes?: Row[];
@@ -97,6 +100,7 @@ function applyFilters(rows: Row[], ops: Op[]): Row[] {
     const [col, val] = op.args as [string, unknown];
     if (op.name === "eq") out = out.filter((r) => r[col] === val);
     else if (op.name === "is") out = out.filter((r) => (r[col] ?? null) === val);
+    else if (op.name === "in") out = out.filter((r) => (val as unknown[]).includes(r[col]));
     else if (op.name === "gte") out = out.filter((r) => String(r[col]) >= String(val));
     else if (op.name === "ilike") out = out.filter((r) => likeToRegExp(String(val)).test(String(r[col] ?? "")));
     else if (op.name === "order") {
@@ -123,10 +127,12 @@ let rowSeq = 0;
 
 function makeDb(tables: Tables, options: Options, calls: Call[]) {
   const fail = new Set(options.fail ?? []);
+  const throwOn = new Set(options.throwOn ?? []);
   function execute(call: Call): { data: unknown; error: { message: string } | null } {
     assert.equal(call.executed, false, `${call.table} query ran twice`);
     call.executed = true;
     const action = call.action ?? "select";
+    if (throwOn.has(`${call.table}.${action}`)) throw new Error("fixture connection reset");
     if (fail.has(`${call.table}.${action}`)) return { data: null, error: { message: "fixture failure" } };
     const table = tables[call.table as keyof Tables];
     assert.ok(table, `unexpected table ${call.table}`);
@@ -181,6 +187,7 @@ function makeDb(tables: Tables, options: Options, calls: Call[]) {
         update: record("update"),
         eq: record("eq"),
         is: record("is"),
+        in: record("in"),
         ilike: record("ilike"),
         gte: record("gte"),
         order: record("order"),
@@ -449,6 +456,64 @@ test("the same key saved twice writes once; the retry hands back the pay links",
   assert.equal(second.json.nextFollowUpAt, first.json.nextFollowUpAt);
 });
 
+test("an edited save under a key already used gets the links of the call that was saved, never of the edit", async () => {
+  const saved = (detail: string, created_at = "2026-09-22T14:59:00.000Z") => [{ lead_id: LEAD_ID, kind: "call", detail, created_at }];
+  const none = (r: Result) => {
+    assert.equal(r.status, 200);
+    assert.equal(r.json.duplicate, true);
+    assert.equal(r.writes.length, 0);
+    assert.deepEqual(r.json.payDoors, []);
+    assert.equal(r.json.payMessage, null);
+    assert.equal(r.json.proposalHref, null);
+  };
+
+  // The saved call was a call back. The retry, edited to Ready to pay or Wants a proposal, gets no links:
+  // nothing recorded a payment to check or a proposal to write.
+  const callBack = saved(`Call: talked, call back Tue, Sep 29 at 9:00 AM. Outcome: call_back. ${refMarker(KEY)}`);
+  const paid = await run({ body: bodyFor("ready_to_pay"), activity: callBack, lead: leadRow({ status: "contacted" }) });
+  none(paid);
+  assert.equal(paid.json.outcome, "call_back", "the answer names what was saved");
+  none(await run({ body: bodyFor("wants_proposal"), activity: callBack, lead: leadRow({ status: "contacted" }) }));
+
+  // Saved: ready to pay for the System Map. Retried as the Website Launch: only the System Map link, the one the record names.
+  const map = saved(`Call: ready to pay now for System Map. Outcome: ready_to_pay. Offer ids: system_map. ${refMarker(KEY)}`);
+  const edited = await run({ body: bodyFor("ready_to_pay", { offers: ["website_launch"] }), activity: map, lead: leadRow({ status: "proposal" }) });
+  assert.equal(edited.json.duplicate, true);
+  assert.equal(edited.writes.length, 0);
+  assert.equal(edited.json.outcome, "ready_to_pay");
+  assert.deepEqual((edited.json.payDoors as { offerId: string }[]).map((d) => d.offerId), ["system_map"]);
+  assert.ok(!String(edited.json.payMessage).includes("Website Launch"), String(edited.json.payMessage));
+  assert.ok(!JSON.stringify(edited.json).includes(EXTERNAL_LINKS.stripeWebsiteLaunchDeposit), "never the deposit link of an offer the record does not name");
+
+  // Saved: a proposal for the System Map. Retried as a Website Launch proposal: the saved proposal's link.
+  const proposal = saved(`Call: wants a proposal for System Map. Outcome: wants_proposal. Offer ids: system_map. ${refMarker(KEY)}`);
+  const asked = await run({ body: bodyFor("wants_proposal", { offers: ["website_launch"] }), activity: proposal, lead: leadRow({ status: "contacted" }) });
+  assert.equal(asked.json.duplicate, true);
+  assert.equal(asked.json.proposalHref, `/admin/proposals/${LEAD_ID}?offers=system_map`);
+  assert.deepEqual(asked.json.payDoors, []);
+
+  // A note-only edit of a ready-to-pay save still gets the saved links, the same as an unchanged retry.
+  const tables = makeTables({});
+  const first = await run({ body: bodyFor("ready_to_pay") }, tables);
+  assert.equal(first.json.duplicate, false);
+  assert.equal(first.json.outcome, "ready_to_pay");
+  const noteEdit = await run({ body: bodyFor("ready_to_pay", { note: "Paying from the shop computer tonight." }) }, tables);
+  assert.equal(noteEdit.json.duplicate, true);
+  assert.equal(noteEdit.writes.length, 0);
+  assert.deepEqual((noteEdit.json.payDoors as { offerId: string }[]).map((d) => d.offerId), ["website_launch"]);
+  assert.equal(noteEdit.json.payMessage, first.json.payMessage);
+
+  // An entry with the Ref but no readable outcome hands back nothing.
+  const unreadable = await run({ body: bodyFor("ready_to_pay"), activity: saved(`Something else. ${refMarker(KEY)}`) });
+  none(unreadable);
+  assert.equal(unreadable.json.outcome, null);
+
+  // The duplicate check reads the saved entry's detail, so it can rebuild from it.
+  const check = unreadable.calls.find((c) => c.table === "lead_activity" && c.ops.some((o) => o.name === "ilike" && String(o.args[1]).includes(refMarker(KEY))));
+  assert.ok(check);
+  assert.match(String(check.ops.find((o) => o.name === "select")?.args[0]), /\bdetail\b/);
+});
+
 test("a retried not-a-fit save is a duplicate, not a 409 for the now lost lead", async () => {
   const tables = makeTables({});
   const first = await run({ body: bodyFor("not_a_fit") }, tables);
@@ -616,7 +681,10 @@ test("no answer and voicemail change only the next try, and the ladder reads the
   const history = fresh.calls.find((c) => c.table === "lead_activity" && c.action === "select" && c.ops.some((o) => o.name === "limit" && o.args[0] === 20));
   assert.ok(history, "reads the last 20 call entries");
   assert.ok(hasOp(history, "eq", "lead_id", LEAD_ID));
-  assert.ok(hasOp(history, "eq", "kind", "call"));
+  // Call entries and the sent proposals (kind "sales"), and only rows with an outcome marker.
+  assert.ok(hasOp(history, "in", "kind", ["call", "sales"]));
+  assert.ok(hasOp(history, "ilike", "detail", "%Outcome: %"));
+  assert.ok(!hasOp(history, "eq", "kind", "sales"), "never every sales row");
   assert.ok(hasOp(history, "order", "created_at", { ascending: false }));
 
   const tries = [
@@ -633,6 +701,35 @@ test("no answer and voicemail change only the next try, and the ladder reads the
 
   const voicemail = await run({ body: bodyFor("voicemail"), activity: tries.slice(0, 1) });
   assert.deepEqual(Object.keys(payloadOf(writeTo(voicemail, "leads", "update"))), ["next_follow_up_at"]);
+
+  // A sales entry that is not a sent proposal never counts as a try: one call miss is rung 1, two business days out.
+  const oneMiss = await run({ body: bodyFor("no_answer"), activity: [tries[2], tries[0]] });
+  assert.deepEqual(payloadOf(writeTo(oneMiss, "leads", "update")), { next_follow_up_at: "2026-09-24T21:00:00.000Z" });
+});
+
+test("a sent proposal ends a run of missed calls, although it is saved as a sales entry", async () => {
+  // Mon: no answer. Mon afternoon: voicemail. Tue morning: proposal sent. Now another no answer.
+  const history = [
+    {
+      lead_id: LEAD_ID,
+      kind: "sales",
+      detail: `Proposal sent for Website Launch. Follow up Thu, Sep 24 at 9:00 AM. Outcome: proposal_sent. Offer ids: website_launch. ${refMarker("e".repeat(36))}`,
+      created_at: "2026-09-22T14:00:00.000Z",
+    },
+    // A Sales Desk change in between is not a call and does not take a place in the window.
+    { lead_id: LEAD_ID, kind: "sales", detail: "Patrick Grabbs: Priority set to high", created_at: "2026-09-22T14:30:00.000Z" },
+    { lead_id: LEAD_ID, kind: "call", detail: `Call: left a voicemail. Outcome: voicemail. ${refMarker("f".repeat(36))}`, created_at: "2026-09-21T20:00:00.000Z" },
+    { lead_id: LEAD_ID, kind: "call", detail: `Call: no answer. Outcome: no_answer. ${refMarker("g".repeat(36))}`, created_at: "2026-09-21T15:00:00.000Z" },
+  ];
+  const r = await run({ body: bodyFor("no_answer"), activity: history });
+  assert.equal(r.status, 200);
+  // Rung 0: one business day out, at the other half of the day (Wed 4:00 PM Central), not four days.
+  assert.deepEqual(payloadOf(writeTo(r, "leads", "update")), { next_follow_up_at: "2026-09-23T21:00:00.000Z" });
+  assert.ok(!(r.json.preview as string[]).some((l) => l.includes("several tries")), (r.json.preview as string[]).join(" | "));
+
+  // Without the proposal the same two misses make this the third try.
+  const withoutProposal = await run({ body: bodyFor("no_answer"), activity: history.slice(2) });
+  assert.deepEqual(payloadOf(writeTo(withoutProposal, "leads", "update")), { next_follow_up_at: "2026-09-28T21:00:00.000Z" });
 });
 
 test("the other outcomes write the stage, task, and links the planner promises", async () => {
@@ -734,6 +831,58 @@ test("a failed task or timeline entry is a 200 with a warning, not a retry", asy
   assert.equal(proposalTasks.status, 200);
   assert.equal((proposalTasks.json.warnings as string[]).length, 1);
   assert.deepEqual(proposalTasks.json.landed, ["lead", "note", "activity"]);
+});
+
+test("not a fit writes the note before it closes the lead, so a failed note leaves nothing to refuse the retry", async () => {
+  const tables = makeTables({});
+  const first = await run({ body: bodyFor("not_a_fit"), fail: ["lead_notes.insert"] }, tables);
+  assert.equal(first.status, 500);
+  assert.equal(first.json.retryable, true);
+  assert.deepEqual(first.json.landed, [], "nothing landed, so the lead is still open");
+  assert.deepEqual(writeNames(first), ["lead_notes.insert"]);
+  assert.equal(tables.leads[0].status, "new");
+
+  const retry = await run({ body: bodyFor("not_a_fit") }, tables);
+  assert.equal(retry.status, 200, String(retry.json.error ?? ""));
+  assert.equal(retry.json.duplicate, false);
+  assert.deepEqual(writeNames(retry), ["lead_notes.insert", "leads.update", "lead_activity.insert"]);
+  assert.deepEqual(retry.json.landed, ["note", "lead", "activity"]);
+  assert.equal(tables.leads[0].status, "lost");
+  assert.equal(tables.leads[0].lost_reason, "No budget right now");
+  assert.equal(tables.lead_notes.length, 1);
+  assert.equal(tables.lead_activity.length, 1);
+  assert.ok(String(tables.lead_activity[0].detail).endsWith(refMarker(KEY)));
+});
+
+test("not a fit whose lead update fails after the note retries cleanly, without a second note", async () => {
+  const tables = makeTables({});
+  const first = await run({ body: bodyFor("not_a_fit"), fail: ["leads.update"] }, tables);
+  assert.equal(first.status, 500);
+  assert.equal(first.json.retryable, true);
+  assert.deepEqual(first.json.landed, ["note"]);
+  assert.match(String(first.json.error), /The note saved but the lead did not update/);
+  assert.equal(tables.leads[0].status, "new");
+
+  const retry = await run({ body: bodyFor("not_a_fit") }, tables);
+  assert.equal(retry.status, 200, String(retry.json.error ?? ""));
+  assert.equal(writeTo(retry, "lead_notes", "insert"), undefined, "the note from the first try is not added again");
+  assert.equal(tables.leads[0].status, "lost");
+  assert.equal(tables.lead_notes.length, 1);
+  assert.equal(tables.lead_activity.length, 1);
+});
+
+test("once a closing update has landed, a crash is not offered as a retry the closed lead would refuse", async () => {
+  const closed = await run({ body: bodyFor("not_a_fit"), throwOn: ["lead_activity.insert"] });
+  assert.equal(closed.status, 500);
+  assert.equal(closed.json.retryable, false);
+  assert.deepEqual(closed.json.landed, ["note", "lead"]);
+  assert.match(String(closed.json.error), /marked not a fit\. The note is saved\. Check the lead page/);
+
+  // Any other outcome without a task stays retryable: the lead stays open.
+  const open = await run({ body: bodyFor("call_back"), throwOn: ["lead_activity.insert"] });
+  assert.equal(open.status, 500);
+  assert.equal(open.json.retryable, true);
+  assert.deepEqual(open.json.landed, ["lead", "note"]);
 });
 
 // ------------------------------------------------------------- source --

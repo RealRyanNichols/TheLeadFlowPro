@@ -149,6 +149,13 @@ export function centralHour(at: Date, tz: string = BUSINESS_TZ): number {
   return localParts(at, zoneOrDefault(tz)).hour;
 }
 
+/** The wall-clock time ("HH:MM", 24-hour) in `tz` at an instant, the shape wallClockToInstant takes. */
+export function centralTime(at: Date, tz: string = BUSINESS_TZ): string {
+  assertValidInstant(at);
+  const p = localParts(at, zoneOrDefault(tz));
+  return `${String(p.hour).padStart(2, "0")}:${String(p.minute).padStart(2, "0")}`;
+}
+
 /** 0 Sunday to 6 Saturday for a calendar date. Pure calendar math, no timezone. */
 export function weekdayOf(localDate: string): number {
   const { year, month, day } = parseLocalDate(localDate);

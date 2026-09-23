@@ -23,9 +23,17 @@ import CallOutcomePanel from "@/app/admin/call-sheet/CallOutcomePanel";
 import {
   closerOffersFor,
   countPriorAttempts,
+  isCallHistoryEntry,
   offerIdsFromDetail,
 } from "@/lib/callCloser";
 import { hasLeadEmailAddress } from "@/lib/leadMessageAuthor";
+import {
+  clearTaskFollowUp,
+  followUpDay,
+  followUpDayEdit,
+  setTaskFollowUpIfEmpty,
+} from "@/lib/taskFollowUp";
+import { formatCentral } from "@/lib/businessTime";
 
 const STAGES = [
   "new",
@@ -145,8 +153,10 @@ export default function SalesLeadWorkspace({
   const [status, setStatus] = useState(lead.status);
   const [owner, setOwner] = useState(lead.owner ?? "");
   const [priority, setPriority] = useState(lead.priority ?? "normal");
+  // The Central day of the stored follow-up. A UTC slice would show a
+  // 7:30 PM Central call back as the next day.
   const [nextFollowUp, setNextFollowUp] = useState(
-    lead.next_follow_up_at?.slice(0, 10) ?? "",
+    followUpDay(lead.next_follow_up_at),
   );
   const [expectedValue, setExpectedValue] = useState(
     lead.expected_value_cents == null
@@ -165,6 +175,7 @@ export default function SalesLeadWorkspace({
   const [taskPriority, setTaskPriority] = useState("normal");
   const [taskType, setTaskType] = useState("call");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [thread, setThread] = useState(initialThread);
   const [savingNote, setSavingNote] = useState(false);
   const [savingTask, setSavingTask] = useState(false);
@@ -173,7 +184,7 @@ export default function SalesLeadWorkspace({
     status: lead.status,
     owner: lead.owner ?? "",
     priority: lead.priority ?? "normal",
-    nextFollowUp: lead.next_follow_up_at?.slice(0, 10) ?? "",
+    nextFollowUp: followUpDay(lead.next_follow_up_at),
     expectedValue:
       lead.expected_value_cents == null
         ? ""
@@ -188,7 +199,7 @@ export default function SalesLeadWorkspace({
       status: lead.status,
       owner: lead.owner ?? "",
       priority: lead.priority ?? "normal",
-      nextFollowUp: lead.next_follow_up_at?.slice(0, 10) ?? "",
+      nextFollowUp: followUpDay(lead.next_follow_up_at),
       expectedValue:
         lead.expected_value_cents == null
           ? ""
@@ -242,9 +253,11 @@ export default function SalesLeadWorkspace({
   const originalAnswers = originalLeadAnswers(lead.diagnostic);
   const supabase = createClient();
   // The call outcome panel: every call becomes a structured outcome and a
-  // Central-time next follow-up, saved through the Call Closer route.
+  // Central-time next follow-up, saved through the Call Closer route. A sent
+  // proposal (kind "sales") is part of the call history: it ends a run of
+  // missed calls.
   const callDetails = activity
-    .filter((item) => item.kind === "call")
+    .filter((item) => isCallHistoryEntry(item.kind, item.detail))
     .map((item) => item.detail);
   const lastCallOffers =
     callDetails.map(offerIdsFromDetail).find((ids) => ids.length > 0) ?? [];
@@ -326,6 +339,7 @@ export default function SalesLeadWorkspace({
     if (!title || savingTask) return;
     setSavingTask(true);
     setError("");
+    setNotice("");
     const { data, error: insertError } = await supabase
       .from("lead_tasks")
       .insert({
@@ -342,12 +356,24 @@ export default function SalesLeadWorkspace({
     else if (data) {
       setTasks((items) => [data as Task, ...items]);
       if (taskDue) {
-        const nextFollowUpAt = new Date(`${taskDue}T09:00:00`).toISOString();
-        await supabase
-          .from("leads")
-          .update({ next_follow_up_at: nextFollowUpAt })
-          .eq("id", lead.id);
-        setNextFollowUp(taskDue);
+        // Fills the follow-up time only when none is set: a call back the
+        // Call Closer stored is a promise and stays.
+        const set = await setTaskFollowUpIfEmpty(supabase, lead.id, taskDue);
+        if (set.error)
+          setError(
+            `The task was added, but its day was not set as the follow-up: ${set.error}`,
+          );
+        else if (set.changed) setNextFollowUp(taskDue);
+        else {
+          const stored = lead.next_follow_up_at
+            ? new Date(lead.next_follow_up_at)
+            : null;
+          setNotice(
+            stored && !Number.isNaN(stored.getTime())
+              ? `Task added. The follow-up already set for ${formatCentral(stored)} Central stays.`
+              : "Task added. The follow-up time already on the lead stays.",
+          );
+        }
       }
       setTaskDraft((current) => (current.trim() === title ? "" : current));
       router.refresh();
@@ -369,15 +395,20 @@ export default function SalesLeadWorkspace({
       setTasks((items) =>
         items.map((item) => (item.id === task.id ? (data as Task) : item)),
       );
+      // The last open task is done. Its follow-up time goes with it, but a
+      // call back the Call Closer set (no task behind it) stays.
       if (
         completed_at &&
         !tasks.some((item) => item.id !== task.id && !item.completed_at)
       ) {
-        await supabase
-          .from("leads")
-          .update({ next_follow_up_at: null })
-          .eq("id", lead.id);
-        setNextFollowUp("");
+        const cleared = await clearTaskFollowUp(
+          supabase,
+          lead.id,
+          task.due_date,
+          task.created_at,
+        );
+        if (cleared.error) setError(cleared.error);
+        else if (cleared.changed) setNextFollowUp("");
       }
     }
   }
@@ -450,6 +481,14 @@ export default function SalesLeadWorkspace({
           {error}
         </p>
       )}
+      {notice && (
+        <p
+          role="status"
+          className="rounded-lg border border-[var(--line)] bg-[var(--panel)] p-3 text-sm text-[var(--text)]"
+        >
+          {notice}
+        </p>
+      )}
 
       <CallOutcomePanel
         compact
@@ -519,18 +558,21 @@ export default function SalesLeadWorkspace({
               type="date"
               value={nextFollowUp}
               onChange={(event) => setNextFollowUp(event.target.value)}
-              onBlur={() =>
-                saveCrmField(
-                  {
-                    next_follow_up_at: nextFollowUp
-                      ? new Date(`${nextFollowUp}T09:00:00`).toISOString()
-                      : null,
-                  },
-                  nextFollowUp
+              onBlur={() => {
+                // Unchanged: write nothing, so leaving the box never moves a
+                // call back. Changed: keep the stored time of day, in Central.
+                const edit = followUpDayEdit(
+                  lead.next_follow_up_at,
+                  nextFollowUp,
+                );
+                if (!edit.write) return;
+                void saveCrmField(
+                  { next_follow_up_at: edit.value },
+                  edit.value
                     ? `Next follow-up set for ${nextFollowUp}`
                     : "Next follow-up cleared",
-                )
-              }
+                );
+              }}
             />
           </label>
           <label>

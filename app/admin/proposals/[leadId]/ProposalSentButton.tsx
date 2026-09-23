@@ -34,6 +34,27 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
+function withPeriod(text: string): string {
+  return /[.!?]$/.test(text) ? text : `${text}.`;
+}
+
+/**
+ * What to say when the tap did not come back as recorded. "Tap again" only
+ * when it can help: the route marked the failure retryable, or no answer the
+ * page can read came back (a timeout page), so it may have landed. A refusal
+ * (the lead was closed or deleted since the page loaded, or access changed)
+ * gets the route's own sentence alone, because tapping again gets the same
+ * answer. The route refuses before it writes anything.
+ */
+export function sentFailureMessage(status: number, data: unknown): string {
+  if (status === 401) return "You are signed out, so nothing was recorded. Sign in again in another tab, then tap the button again.";
+  const said = isRecord(data) && typeof data.error === "string" ? data.error.trim() : "";
+  if (!isRecord(data) || data.retryable === true || !said) {
+    return `${said ? withPeriod(said) : "It may not have been recorded."} Tap the button again to retry. It will not be recorded twice.`;
+  }
+  return status >= 400 && status < 500 ? `${withPeriod(said)} Nothing was recorded.` : withPeriod(said);
+}
+
 export default function ProposalSentButton({
   lead,
   offers,
@@ -101,12 +122,7 @@ export default function ProposalSentButton({
         data = null;
       }
       if (!response.ok || !isRecord(data) || data.ok !== true || typeof data.summary !== "string") {
-        const said = isRecord(data) && typeof data.error === "string" ? data.error : "";
-        setError(
-          response.status === 401
-            ? "You are signed out, so nothing was recorded. Sign in again in another tab, then tap the button again."
-            : `${said || "It was not recorded."} Tap the button again to retry. It will not be recorded twice.`,
-        );
+        setError(sentFailureMessage(response.status, data));
         return;
       }
       keyRef.current = mintKey();
@@ -117,7 +133,8 @@ export default function ProposalSentButton({
         duplicate: data.duplicate === true,
       });
     } catch {
-      setError("Could not reach the server, so nothing was recorded yet. Check the connection and tap the button again.");
+      // A dropped connection does not prove nothing landed. The key stays the same, so tapping again is safe.
+      setError("Could not reach the server, so this may or may not have been recorded. Tap the button again: if it was, it will say so, and nothing is recorded twice.");
     } finally {
       setBusy(false);
     }

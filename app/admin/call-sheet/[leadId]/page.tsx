@@ -3,16 +3,30 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatCentral } from "@/lib/businessTime";
 import {
+  CALL_HISTORY_DETAIL_PATTERN,
+  CALL_HISTORY_KINDS,
   closerOffersFor,
   countPriorAttempts,
   firstName,
+  isCallHistoryEntry,
   meetingPlaceForLabel,
   offerIdsFromDetail,
   theirWords,
   type PlannerLead,
 } from "@/lib/callCloser";
 import { SAMPLE_ACTOR_NAME, SAMPLE_CALL_ACTIVITY, SAMPLE_CALL_LEAD, SAMPLE_NOTES, SAMPLE_NOW } from "@/lib/callCloserFixtures";
-import { ageLabel, canText, interestLabel, noteSummary, sourceLabel } from "@/lib/callSheet";
+import {
+  ageLabel,
+  callbackState,
+  canText,
+  interestLabel,
+  isHumanTouch,
+  noteSummary,
+  sourceLabel,
+  touchesFromRows,
+  type LatestInbound,
+} from "@/lib/callSheet";
+import { loadLeadTouches } from "@/lib/callSheetServer";
 import { hasLeadEmailAddress, leadMessageAuthor } from "@/lib/leadMessageAuthor";
 import { safeLeadDiagnostic } from "@/lib/leadTimeline";
 import { closerOffers, payDoorFor, type CloserOfferId, type PayDoor } from "@/lib/payDoors";
@@ -23,14 +37,18 @@ import CallCardPanel from "./CallCardPanel";
 // taps that record how the call went.
 //
 // Top to bottom it follows the call. Who they are and whether a call back is
-// due. The buttons to reach them (a text only with consent and no STOP). What
+// due. What they sent, when they texted or called since a person last
+// reached them (the call sheet lists them under "They reached out" and links
+// here). The buttons to reach them (a text only with consent and no STOP). What
 // they wrote, in their own words. What he can offer them, with the published
 // price and exactly how they would pay. What was said last time. Then "How did
 // the call go?", which saves the outcome and sets when the lead comes back to
 // the call sheet.
 //
-// Read-only until Save: this page reads the lead, its last three notes, and
-// its last twenty call entries, and the panel posts to the one save route.
+// Read-only until Save: this page reads the lead, its last three notes, its
+// last twenty call entries, and its recent Quo calls and texts through the
+// call sheet's loader (so "Call back due now" follows the same touches the
+// call sheet counts), and the panel posts to the one save route.
 // Authorization sits next to the read, not only in the layout, and runs before
 // anything about the lead is read. /admin/call-sheet/sample shows a fictional
 // lead from lib/callCloserFixtures.ts and reads no lead data at all. Phone and
@@ -51,7 +69,7 @@ const BUTTON = `inline-flex min-h-[44px] items-center rounded-lg px-4 py-2 text-
 const QUIET_LINK = `inline-flex min-h-[44px] items-center px-1 text-sm font-semibold text-[var(--blue)] underline-offset-2 hover:underline ${FOCUS}`;
 const SECTION_TITLE = "text-base font-black text-[var(--heading)]";
 
-type CardNote = { summary: string; at: string; author: string };
+type CardNote = { summary: string; at: string; atIso: string; author: string };
 
 type CardView = {
   sample: boolean;
@@ -66,8 +84,24 @@ type CardView = {
   goals: string | null;
   notes: CardNote[];
   callDetails: string[];
-  /** Notes or call entries failed to load. The page says so instead of showing an empty history. */
+  /**
+   * The latest human touch on the record (ISO), for the call sheet's own
+   * callback rule: a note, a logged call, a Quo call, a text a person sent, or
+   * a reply logged by hand, mapped by the sheet's own touchesFromRows.
+   * last_contacted_at is left out on purpose: an inbound text and the
+   * automatic text-back move it, and neither is a person acting.
+   */
+  lastHumanTouchAt: string | null;
+  /**
+   * The newest message or missed call from the lead (the call sheet's own
+   * rule). Shown when it is newer than the last human touch, so a lead the
+   * sheet lists under "They reached out" arrives with what they asked.
+   */
+  latestInbound: LatestInbound | null;
+  /** Some history failed to load. The page says so instead of showing an empty history. */
   partial: boolean;
+  /** The notes read itself failed, so "Last time" cannot say there are none. */
+  notesFailed: boolean;
   actorName: string;
 };
 
@@ -90,12 +124,38 @@ function toNotes(rows: { body: string | null; created_at: string; author: string
     const summary = noteSummary(row.body);
     const at = validDate(row.created_at);
     if (!summary || !at) return [];
-    return [{ summary, at: formatCentral(at), author: row.author?.trim() || "Author not recorded" }];
+    return [{ summary, at: formatCentral(at), atIso: at.toISOString(), author: row.author?.trim() || "Author not recorded" }];
   });
+}
+
+/**
+ * "They texted you Mon, Sep 21 at 2:12 PM Central, and nobody has answered
+ * since." With some history missing, the second half cannot be known, so it
+ * is left off.
+ */
+function reachedOutSentence(inbound: LatestInbound, partial: boolean): string {
+  const at = validDate(inbound.at);
+  const when = at ? `${formatCentral(at)} Central` : "recently";
+  if (inbound.kind === "call_in") {
+    return partial ? `They called ${when} and nobody picked up.` : `They called ${when} and nobody picked up. Nobody has reached them since.`;
+  }
+  const verb = inbound.channel === "sms" ? "texted you" : inbound.channel === "email" ? "emailed you" : "wrote to you";
+  return partial ? `They ${verb} ${when}.` : `They ${verb} ${when}, and nobody has answered since.`;
+}
+
+/** The newest valid instant among these, as ISO, or null. */
+function latest(values: (string | null | undefined)[]): string | null {
+  let best: Date | null = null;
+  for (const v of values) {
+    const at = validDate(v ?? null);
+    if (at && (!best || at > best)) best = at;
+  }
+  return best ? best.toISOString() : null;
 }
 
 function sampleView(): CardView {
   const { created_at, source, goals, best_contact_method, ...lead } = SAMPLE_CALL_LEAD;
+  const notes = toNotes(SAMPLE_NOTES);
   return {
     sample: true,
     now: SAMPLE_NOW,
@@ -107,9 +167,12 @@ function sampleView(): CardView {
     lastContactedAt: null,
     isTest: false,
     goals,
-    notes: toNotes(SAMPLE_NOTES),
+    notes,
     callDetails: SAMPLE_CALL_ACTIVITY,
+    lastHumanTouchAt: latest(notes.map((n) => n.atIso)),
+    latestInbound: null,
     partial: false,
+    notesFailed: false,
     actorName: SAMPLE_ACTOR_NAME,
   };
 }
@@ -133,24 +196,41 @@ export default async function CallCardPage({ params }: { params: Promise<{ leadI
   const row = leadRead.data as Record<string, unknown> | null;
   if (!row) notFound();
 
-  const [notesRead, callsRead] = await Promise.all([
+  const [notesRead, callsRead, quoTouches] = await Promise.all([
     supabase
       .from("lead_notes")
       .select("body, author, created_at")
       .eq("lead_id", leadId)
       .order("created_at", { ascending: false })
       .limit(NOTES_SHOWN),
+    // The Call Closer's entries: calls, and sent proposals (kind "sales").
     supabase
       .from("lead_activity")
-      .select("detail")
+      .select("kind, detail, created_at")
       .eq("lead_id", leadId)
-      .eq("kind", "call")
+      .in("kind", [...CALL_HISTORY_KINDS])
+      .ilike("detail", CALL_HISTORY_DETAIL_PATTERN)
       .order("created_at", { ascending: false })
       .limit(CALL_ENTRIES_READ),
+    // Quo calls and thread messages, mapped by the call sheet's own rules.
+    loadLeadTouches(supabase, leadId),
   ]);
 
   const author = leadMessageAuthor(profile.full_name, user.email);
   const diagnostic = safeLeadDiagnostic(row.diagnostic);
+  const noteRows = notesRead.error ? [] : ((notesRead.data ?? []) as { body: string | null; created_at: string; author: string | null }[]);
+  const notes = toNotes(noteRows);
+  const callRows = callsRead.error
+    ? []
+    : ((callsRead.data ?? []) as { kind?: unknown; detail: unknown; created_at?: unknown }[]).filter((r) => isCallHistoryEntry(r.kind, r.detail));
+  // The call sheet's own mapping (lib/callSheet.ts): notes, Quo calls about
+  // the company, texts a person sent that were delivered, and replies logged
+  // by hand are touches; an inbound text or a missed call from the lead is not.
+  const touches = [
+    ...touchesFromRows({ notes: noteRows.map((n) => ({ lead_id: leadId, created_at: n.created_at, body: n.body })), calls: [], messages: [] }),
+    ...quoTouches.touches,
+  ];
+  const humanTouches = touches.filter(isHumanTouch).map((t) => t.at);
   const view: CardView = {
     sample: false,
     now: new Date(),
@@ -174,11 +254,12 @@ export default async function CallCardPage({ params }: { params: Promise<{ leadI
     lastContactedAt: text(row.last_contacted_at),
     isTest: row.is_test === true,
     goals: text(row.goals),
-    notes: notesRead.error ? [] : toNotes((notesRead.data ?? []) as { body: string | null; created_at: string; author: string | null }[]),
-    callDetails: callsRead.error
-      ? []
-      : ((callsRead.data ?? []) as { detail: unknown }[]).map((r) => r.detail).filter((d): d is string => typeof d === "string"),
-    partial: Boolean(notesRead.error || callsRead.error),
+    notes,
+    callDetails: callRows.map((r) => r.detail).filter((d): d is string => typeof d === "string"),
+    lastHumanTouchAt: latest([...humanTouches, ...callRows.map((r) => (typeof r.created_at === "string" ? r.created_at : null))]),
+    latestInbound: quoTouches.latestInbound,
+    partial: Boolean(notesRead.error || callsRead.error || !quoTouches.ok),
+    notesFailed: Boolean(notesRead.error),
     // Signs the pay-link draft the same way the save route does: the profile name, else the owner's first name.
     actorName: author.auditName === author.displayName ? author.displayName : "",
   };
@@ -187,7 +268,7 @@ export default async function CallCardPage({ params }: { params: Promise<{ leadI
 
 function ConnectionProblem({ leadId }: { leadId: string }) {
   return (
-    <div className="mx-auto grid max-w-2xl gap-4">
+    <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4">
       <div className="card !p-4" role="alert">
         <h2 className="text-lg font-black text-[var(--heading)]">The call card could not be loaded.</h2>
         <p className="my-3 text-sm">This is a connection problem, not an empty lead. Try again in a moment.</p>
@@ -219,9 +300,15 @@ function CallCard({ view }: { view: CardView }) {
 
   const created = validDate(view.createdAt);
   const ageHours = created ? Math.max(0, (now.getTime() - created.getTime()) / 3_600_000) : null;
-  const touched = view.notes.length > 0 || view.callDetails.length > 0 || Boolean(view.lastContactedAt);
-  const callbackAt = validDate(lead.next_follow_up_at);
-  const callbackDue = callbackAt !== null && callbackAt.getTime() <= now.getTime();
+  const touched = view.notes.length > 0 || view.callDetails.length > 0 || Boolean(view.lastHumanTouchAt) || Boolean(view.lastContactedAt);
+  // The call sheet's own rule (lib/callSheet.ts callbackState): a past time is
+  // a call back still owed only when the last human touch came before it.
+  // Otherwise it was kept, or it is the diagnostic's stamp.
+  const promise = callbackState(lead.next_follow_up_at, view.lastHumanTouchAt, now);
+  const pastTime = promise.at !== null && promise.at.getTime() <= now.getTime() ? promise.at : null;
+  // They reached out after the last time a person did: a reply is owed.
+  const lastTouchMs = view.lastHumanTouchAt ? Date.parse(view.lastHumanTouchAt) : Number.NEGATIVE_INFINITY;
+  const inbound = view.latestInbound && Date.parse(view.latestInbound.at) > lastTouchMs ? view.latestInbound : null;
 
   const words = theirWords(view.goals);
   const suggested = closerOffersFor(lead.interest, lead.diagnostic);
@@ -230,7 +317,9 @@ function CallCard({ view }: { view: CardView }) {
   const everyDoor = closerOffers();
 
   return (
-    <div className="mx-auto grid max-w-2xl gap-4">
+    // grid-cols-1 is minmax(0, 1fr): a long URL in the pay message or in their
+    // words wraps inside the card instead of widening every card past a phone.
+    <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4">
       <Link href="/admin/call-sheet" className={QUIET_LINK + " justify-self-start"}>
         Back to the call sheet
       </Link>
@@ -254,21 +343,46 @@ function CallCard({ view }: { view: CardView }) {
           {view.bestContact ? ` · prefers ${view.bestContact}` : ""}
           {view.isTest ? " · test lead" : ""}
         </p>
-        {!touched ? (
+        {/* "First call" only on a full load: missing history is a connection problem, not proof nobody called. */}
+        {!touched && !view.partial ? (
           <p className="mt-3 rounded-lg border border-[var(--accent-line)] bg-[var(--accent-tint)] p-3 text-sm text-[var(--text)]">
             Nobody has logged a call or a note yet. This is the first call.
           </p>
-        ) : callbackAt && callbackDue ? (
-          <p className="mt-3 rounded-lg border border-[var(--warn-line)] bg-[var(--warn-tint)] p-3 text-sm text-[var(--text)]">
-            <span className="font-bold">Call back due now.</span> You set it for {formatCentral(callbackAt)} Central.
-          </p>
-        ) : callbackAt ? (
+        ) : view.partial && pastTime ? (
+          // Some history did not load, so whether this time is still owed cannot be told.
           <p className="mt-3 rounded-lg border border-[var(--line)] bg-[var(--page)] p-3 text-sm text-[var(--text)]">
-            <span className="font-bold">Call back set for</span> {formatCentral(callbackAt)} Central.
+            <span className="font-bold">Follow-up time on file:</span> {formatCentral(pastTime)} Central.
+          </p>
+        ) : promise.state === "due" ? (
+          <p className="mt-3 rounded-lg border border-[var(--warn-line)] bg-[var(--warn-tint)] p-3 text-sm text-[var(--text)]">
+            <span className="font-bold">Call back due now.</span> You set it for {formatCentral(promise.at)} Central.
+          </p>
+        ) : promise.state === "later" ? (
+          <p className="mt-3 rounded-lg border border-[var(--line)] bg-[var(--page)] p-3 text-sm text-[var(--text)]">
+            <span className="font-bold">Call back set for</span> {formatCentral(promise.at)} Central.
           </p>
         ) : (
           <p className="mt-3 text-sm text-[var(--muted)]">No call back is set.</p>
         )}
+
+        {/* The sheet's "They reached out" case: what they sent, before Ryan dials. */}
+        {inbound ? (
+          <div className="mt-3 rounded-lg border border-[var(--warn-line)] bg-[var(--warn-tint)] p-3 text-sm text-[var(--text)]">
+            <p>
+              <span className="font-bold">They reached out.</span> {reachedOutSentence(inbound, view.partial)}
+            </p>
+            {inbound.said ? (
+              <blockquote className="mt-2 whitespace-pre-wrap border-l-4 [overflow-wrap:anywhere] border-[var(--warn-line)] pl-3">
+                {inbound.said}
+              </blockquote>
+            ) : null}
+            {!sample ? (
+              <Link href={`/admin/leads/${lead.id}`} className={`${QUIET_LINK} mt-1`}>
+                Open the thread in the full record
+              </Link>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={`Reach ${who}`}>
           {tel ? (
@@ -299,7 +413,8 @@ function CallCard({ view }: { view: CardView }) {
         <div className="card !p-4 text-sm" role="alert">
           <p className="font-bold">Some of this lead&apos;s history did not load.</p>
           <p className="mt-1">
-            This is a connection problem, not an empty lead. The notes or the count of unanswered tries below may be short. Saving
+            This is a connection problem, not an empty lead. The notes, the count of unanswered tries, and whether a call back is still
+            owed may be off. Saving
             still checks the full record.
           </p>
         </div>
@@ -310,7 +425,7 @@ function CallCard({ view }: { view: CardView }) {
           In their words
         </h3>
         {words.words ? (
-          <blockquote className="mt-2 whitespace-pre-wrap break-words border-l-4 border-[var(--accent-line)] pl-3 text-sm text-[var(--text)]">
+          <blockquote className="mt-2 whitespace-pre-wrap border-l-4 [overflow-wrap:anywhere] border-[var(--accent-line)] pl-3 text-sm text-[var(--text)]">
             {words.words}
           </blockquote>
         ) : (
@@ -378,10 +493,12 @@ function CallCard({ view }: { view: CardView }) {
                 <p className="text-xs text-[var(--muted)]">
                   {n.at} · {n.author}
                 </p>
-                <p className="break-words text-sm text-[var(--text)]">{n.summary}</p>
+                <p className="text-sm text-[var(--text)] [overflow-wrap:anywhere]">{n.summary}</p>
               </li>
             ))}
           </ol>
+        ) : view.notesFailed ? (
+          <p className="mt-2 text-sm text-[var(--muted)]">The notes did not load. Open the full record to check.</p>
         ) : (
           <p className="mt-2 text-sm text-[var(--muted)]">No notes yet.</p>
         )}

@@ -200,9 +200,15 @@ export function acceptanceLine(door: PayDoor): string {
     case "pay_online": {
       if (!door.url) return `Pay the amount in your written scope for the ${name}.`;
       if (!door.dueNowLabel) return `Pay for the ${name} at ${door.url} once the price is confirmed in writing.`;
-      return door.dueNowLabel !== door.priceLabel
-        ? `Pay the ${door.dueNowLabel} deposit for the ${name} at ${door.url} and intake begins when the deposit clears.`
-        : `Pay ${door.dueNowLabel} for the ${name} at ${door.url} and work begins when the payment clears.`;
+      if (door.dueNowLabel !== door.priceLabel) {
+        return `Pay the ${door.dueNowLabel} deposit for the ${name} at ${door.url} and intake begins when the deposit clears.`;
+      }
+      // The Follow-Up Campaign's checkout lands the buyer on a short intake,
+      // and nothing is written until it comes back (lib/leadFollowUp.ts).
+      if (door.offerId === "lead_followup_campaign") {
+        return `Pay ${door.dueNowLabel} for the ${name} at ${door.url}. After payment you fill in a short intake, and the writing starts from it.`;
+      }
+      return `Pay ${door.dueNowLabel} for the ${name} at ${door.url} and work begins when the payment clears.`;
     }
     case "starts_with": {
       const price = door.dueNowLabel ? ` (${door.dueNowLabel})` : "";
@@ -211,16 +217,35 @@ export function acceptanceLine(door: PayDoor): string {
     }
     case "after_scope_checkout":
       return `After you approve the written scope, a secure checkout for ${name} (${door.priceLabel}) is sent to you.`;
+    // Both name the offer: a proposal can carry a free build beside a paid
+    // one, or two agency services with one pay page each, and a bare "the
+    // build" or "the amount in your written scope" could mean the whole page.
     case "no_payment":
-      return "No payment is due for the build.";
+      return `No payment is due for the ${name} build.`;
     case "written_scope":
-      return door.url ? `Pay the amount in your written scope at ${door.url}.` : "Pay the amount in your written scope.";
+      return door.url ? `Pay the amount in your written scope for ${name} at ${door.url}.` : `Pay the amount in your written scope for ${name}.`;
   }
 }
 
 function joinNames(names: string[]): string {
   if (names.length <= 1) return names.join("");
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+/**
+ * One "To accept" line for every larger build on a proposal. They all start
+ * with the same System Map, paid once, so they share one line, the way the
+ * pay-link message groups them. The price is the first one a build carries
+ * (a build whose own price is not set carries none). With one build this is
+ * exactly acceptanceLine(door).
+ */
+export function startsWithAcceptanceLine(builds: PayDoor[]): string {
+  if (builds.length === 1) return acceptanceLine(builds[0]);
+  const dueNow = builds.find((b) => b.dueNowLabel)?.dueNowLabel ?? null;
+  const url = builds.find((b) => b.url)?.url ?? null;
+  const price = dueNow ? ` (${dueNow})` : "";
+  const start = `${joinNames(builds.map((b) => b.offerName))} start with the System Map${price}, credited toward the approved build.`;
+  return url ? `${start} Pay for the System Map at ${url} to begin.` : start;
 }
 
 function oneLine(value: string): string {

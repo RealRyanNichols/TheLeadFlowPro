@@ -144,7 +144,10 @@ test("free website program: no payment; its add-ons wait for the written scope a
   assert.equal(free.url, null);
   assert.equal(free.dueNowLabel, null);
   assert.equal(free.payableNow, false);
-  assert.equal(acceptanceLine(free), "No payment is due for the build.");
+  // Names the offer, so it cannot be read as covering a paid build on the same proposal.
+  assert.equal(acceptanceLine(free), "No payment is due for the Free Website Program build.");
+  assert.ok(acceptanceLine(free).includes(free.offerName));
+  assert.deepEqual(copyProblems(acceptanceLine(free)), []);
 
   // The public form promises a separate secure checkout after approval, and opens none itself.
   const form = src("app/free-build/FreeBuildOrder.tsx");
@@ -177,8 +180,18 @@ test("agency offers: the agency pay page for their own service, the amount from 
     assert.equal(d.url, `${BUSINESS.siteUrl}${agencyPayHref(service.slug)}`, id);
     assert.ok(d.url!.includes(`${AGENCY_PAYMENT.payPath}?service=${service.slug}`), d.url!);
     assert.equal(d.payableNow, offer(id).status === "live", id);
-    assert.equal(acceptanceLine(d), `Pay the amount in your written scope at ${d.url}.`);
+    assert.equal(acceptanceLine(d), `Pay the amount in your written scope for ${d.offerName} at ${d.url}.`);
+    assert.deepEqual(copyProblems(acceptanceLine(d)), [], id);
   }
+  // Two services on one proposal read as two amounts, one per service, not the same sentence twice.
+  const meta = acceptanceLine(door("agency_meta_ads"));
+  const google = acceptanceLine(door("agency_google_ads"));
+  assert.ok(meta.includes(door("agency_meta_ads").offerName), meta);
+  assert.ok(google.includes(door("agency_google_ads").offerName), google);
+  const withoutUrl = (line: string) => line.replace(/https:\/\/\S+/g, "<url>");
+  assert.notEqual(withoutUrl(meta), withoutUrl(google), "the lines differ in more than the link");
+  // A door without a link still names its service.
+  assert.equal(acceptanceLine({ ...door("agency_meta_ads"), url: null }), `Pay the amount in your written scope for ${door("agency_meta_ads").offerName}.`);
 });
 
 test("a price Ryan has not set never shows an amount and is never payable now", () => {
