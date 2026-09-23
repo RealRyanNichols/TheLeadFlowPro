@@ -167,7 +167,7 @@ export default async function ScoreboardIndexPage() {
               organic traffic, referrals, direct contact, manual entries, or an unknown source. We show
               the recorded counts so you can ask better questions about the work behind them.
             </p>
-            <Link href="/free-build">Build the owned side <ArrowRight aria-hidden="true" /></Link>
+            <Link href="/services">Build the owned side <ArrowRight aria-hidden="true" /></Link>
           </div>
         </div>
       </section>
@@ -182,7 +182,7 @@ export default async function ScoreboardIndexPage() {
           </p>
           <div>
             <Link href="/start">Find my next step <ArrowRight aria-hidden="true" /></Link>
-            <Link href="/free-build">Explore the free website program <ArrowRight aria-hidden="true" /></Link>
+            <Link href="/services">See what we build <ArrowRight aria-hidden="true" /></Link>
           </div>
         </div>
       </section>

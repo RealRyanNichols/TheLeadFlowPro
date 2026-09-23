@@ -2,9 +2,9 @@
 
 // Post-purchase intake for Time Back orders. Four steps on one page:
 // business details, platform confirmation, official access grants (never a
-// password), and voice + brand assets. Files go to the same private Supabase
-// intake storage the free-build funnel uses; the details land on the lead
-// through /api/timeback/onboarding.
+// password), and voice + brand assets. Files go to the private Supabase
+// intake storage bucket; the details land on the lead through
+// /api/timeback/onboarding.
 
 import { useRef, useState } from "react";
 import {
@@ -141,8 +141,8 @@ export default function WelcomeFlow() {
     );
   }
 
-  // Push to talk, same pattern as the free-build funnel: record in the
-  // browser, attach like any other upload, cap at 3 minutes.
+  // Push to talk: record in the browser, attach like any other upload, cap
+  // at 3 minutes.
   async function toggleRecording() {
     if (recording) {
       recRef.current?.stop();

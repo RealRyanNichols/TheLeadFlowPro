@@ -22,8 +22,12 @@ export const LEADFLOW_META = {
   adSetId: "120253551492780154",
   crmDatasetId: "2550895935381476",
   campaignKey: "free_website_longview_2026_09",
+  // The free website build this form sold was retired on 2026-09-22, so the
+  // thank-you screen now points at /services (utm tags unchanged). The Instant
+  // Form's thank-you URL in Ads Manager must be changed to match exactly, or
+  // the preflight's exact comparison fails.
   destinationUrl:
-    "https://www.theleadflowpro.com/free-build?utm_source=facebook&utm_medium=paid&utm_campaign=free_website_longview_2026_09&utm_content=instant_form_thank_you",
+    "https://www.theleadflowpro.com/services?utm_source=facebook&utm_medium=paid&utm_campaign=free_website_longview_2026_09&utm_content=instant_form_thank_you",
   objective: "LEADS",
   conversionLocation: "INSTANT_FORM",
   performanceGoal: "MAXIMIZE_QUALIFIED_LEADS",

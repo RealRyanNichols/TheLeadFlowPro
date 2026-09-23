@@ -59,15 +59,15 @@ test("marketing steps carry the unsubscribe link and the transactional step does
 
 test("the day-2 email makes exactly one offer, priced from the registry", () => {
   const dayTwo = WORKSHOP_FOLLOW_UP_STEPS[1];
-  const content = dayTwo.body({ ...CTX, dayTwoOffer: "content_engine" });
-  assert.ok(content.includes(usd(PRICES.freeBuildContentEngine)));
-  assert.ok(!content.includes(usd(PRICES.websiteLaunchTotal)));
-  assert.equal((content.match(/\$/g) ?? []).length, 1);
-
-  const launch = dayTwo.body({ ...CTX, dayTwoOffer: "website_launch" });
-  assert.ok(launch.includes(usd(PRICES.websiteLaunchTotal)));
-  assert.ok(launch.includes(usd(PRICES.websiteLaunchDeposit)));
-  assert.ok(!launch.includes(usd(PRICES.freeBuildContentEngine)));
+  // The kit default and an explicit pick are the same live offer: the
+  // Website Launch. The free website build it used to sell is retired.
+  for (const body of [dayTwo.body(CTX), dayTwo.body({ ...CTX, dayTwoOffer: "website_launch" })]) {
+    assert.ok(body.includes(usd(PRICES.websiteLaunchTotal)));
+    assert.ok(body.includes(usd(PRICES.websiteLaunchDeposit)));
+    assert.equal((body.match(/\$/g) ?? []).length, 2, "the total and the deposit, nothing else");
+    assert.ok(body.includes("/packages/launch?utm_source=email"));
+    assert.ok(!/free-build|\$0|build fee/i.test(body), "no retired free-build offer");
+  }
 });
 
 test("the same-night step cannot send without the worksheet link", () => {

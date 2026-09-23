@@ -15,6 +15,9 @@ import { usd } from "@/lib/site/prices";
 // set of values (supabase/migrations/20260901234500); these labels are what
 // the owner alert and the admin pipeline print. "learn" is the workshop and
 // training list, "done_for_you" is the full-service agency lane.
+// "free_website_program" is display-only: the free website build was retired
+// on 2026-09-22, old rows still carry the value, and /api/leads no longer
+// accepts it from any form.
 export const INTEREST_LABELS: Record<string, string> = {
   learn: "Training and workshops",
   build_with_you: "Legacy guided build path",
@@ -24,7 +27,7 @@ export const INTEREST_LABELS: Record<string, string> = {
   system_map: "System Map",
   launch_system: "Website Launch",
   website_launch: "Website Launch",
-  free_website_program: "Free Website Program",
+  free_website_program: "Free Website Program (retired)",
   lead_engine: "Lead Engine",
   training_platform: "Training Platform",
   company_os: "Company OS",
@@ -66,11 +69,10 @@ export const LEAD_EMAIL_PROVIDER_TIMEOUT_MS = 5_000;
 
 type LegacySeriesCandidate = Pick<NotifiableLead, "interest" | "goals" | "source">;
 
-// The historical Resend Event automation is retired. The active Free Website
-// Program sequence lives in lib/nurture.ts and is sent by /api/cron/nurture,
-// using the lead's explicit marketing_email_consent snapshot. Never enroll a
-// lead in this legacy provider-side automation as well, or they would receive
-// two independent sequences.
+// The historical Resend Event automation is retired, and so is the 30-day
+// sequence that replaced it (lib/nurture.ts, retired with the free website
+// build on 2026-09-22). Never enroll a lead in this legacy provider-side
+// automation.
 export function shouldEnrollInLegacyEmailSeries(_lead: LegacySeriesCandidate) {
   return false;
 }
@@ -458,38 +460,6 @@ export function leadWelcomePayload(lead: NotifiableLead) {
   const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
   const funnelSpecific = funnelWelcome(lead, first);
   if (funnelSpecific) return funnelSpecific;
-  if (lead.funnel === "free_build_funnel" || lead.interest === "free_website_program") {
-    return {
-      from: FROM_RYAN,
-      to: [lead.email],
-      reply_to: BUSINESS.email.hello,
-      subject: `${first}, your free website application is in.`,
-      text: [
-        `${first},`,
-        ``,
-        `Your Free Website Program application just landed with me. Not a ticket queue. Mine.`,
-        ``,
-        `Here is what happens next:`,
-        ``,
-        `1. I review the business, the current website or Facebook page, and the service you want more customers for.`,
-        `2. I reach out within one business day. Usually a text or call from ${BUSINESS.phone.display}. Save that number, it is my direct line.`,
-        `3. If the application fits the current capacity, we put the five pages, ownership, outside costs, corrections, and exclusions into a written scope before the build starts.`,
-        ``,
-        `The build fee is $0. No paid add-on is required. Domain registration, paid hosting after the included 90 days, software, advertising spend, and work outside the five-page scope are separate and disclosed before approval.`,
-        ``,
-        `Have ready if you can: a few real photos of real work and your logo if you have one. No passwords, ever. Access happens through approvals you control.`,
-        ``,
-        `Review the exact program terms here:`,
-        `https://www.theleadflowpro.com/free-build`,
-        ``,
-        `Talk soon,`,
-        `Ryan Nichols`,
-        `The LeadFlow Pro`,
-        BUSINESS.phone.display,
-      ].join("\n"),
-    };
-  }
-
   return {
     from: FROM_RYAN,
     to: [lead.email],
@@ -545,40 +515,12 @@ export async function sendLeadEmails(lead: NotifiableLead) {
   if (!welcomeSuppressed(lead)) await send(leadWelcomePayload(lead));
 }
 
-// Sends the historical "free-build-lead" event that powers the legacy Resend
-// automation. Callers must first pass shouldEnrollInLegacyEmailSeries().
-//
-// This is NOT a normal email send. The automation is triggered by the Resend
-// Events API, not by adding a contact to an audience. It listens for the event
-// name below and nothing else. Until this call existed the automation sat
-// Enabled with Runs: 0 forever, because the app only ever called
-// /emails (transactional) and never /events/send. Leads got the welcome email
-// and then silence.
-//
-// If the series ever stops firing, check three things in order:
-//   1. Resend -> Automations -> is it still Enabled, and is Runs climbing?
-//   2. Does SERIES_EVENT below still match the automation trigger exactly?
-//   3. Is RESEND_API_KEY set in Vercel for the environment you deployed to?
-const SERIES_EVENT = "free-build-lead";
-
-export async function enrollInEmailSeries(email: string) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key || !email) return;
-  try {
-    const r = await fetch("https://api.resend.com/events/send", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ event: SERIES_EVENT, email }),
-    });
-    if (!r.ok) {
-      console.error("Resend series enroll failed:", r.status, await r.text().catch(() => ""));
-    }
-  } catch (e) {
-    console.error("Resend series enroll error:", e);
-  }
+// The legacy Resend event automation this used to trigger is retired, along
+// with the free website build offer it sold (2026-09-22). It stays as a no-op
+// only because its old callers (notifyNewLead and the retired
+// /api/cron/followups route) still import it. It never calls Resend.
+export async function enrollInEmailSeries(_email: string): Promise<void> {
+  return;
 }
 
 export async function textLeadBack(lead: NotifiableLead) {

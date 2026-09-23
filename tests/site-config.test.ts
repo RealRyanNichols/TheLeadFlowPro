@@ -20,7 +20,6 @@ import {
 } from "../lib/site/offers.ts";
 import { PRICES, guardedPriceStrings, usd, usdFrom, usdPerMonth, usdRange } from "../lib/site/prices.ts";
 import { WEBSITE_LAUNCH, WEBSITE_LAUNCH_CHECKOUT, OFFER_LADDER } from "../lib/offers.ts";
-import { FREE_BUILD } from "../lib/freeBuild.ts";
 import { LEAD_FOLLOW_UP } from "../lib/leadFollowUp.ts";
 import { HQ_PLAN } from "../lib/hq/types.ts";
 import { MONTHLY_MENU, TOOL_BUILDS } from "../lib/toolStudio.ts";
@@ -53,10 +52,9 @@ test("the published price table is encoded once and formatted consistently", () 
   assert.equal(usdPerMonth(PRICES.hostingManagedMonthly), "$49/mo");
   assert.equal(usdPerMonth(PRICES.hostingWithEditsMonthly), "$99/mo");
   assert.equal(usd(PRICES.workshopSeat), "$97");
-  assert.deepEqual(
-    [PRICES.freeBuildFollowUpPack, PRICES.freeBuildContentEngine, PRICES.freeBuildGrowthEngine],
-    [197, 497, 997],
-  );
+  // The free website build and its add-on tiers were retired on 2026-09-22.
+  // Their prices are gone from the table, not left for a page to print.
+  assert.ok(!Object.keys(PRICES).some((key) => /freeBuild|hostingIncludedDays/.test(key)));
   assert.ok(guardedPriceStrings().includes("$1,000"));
   assert.ok(guardedPriceStrings().includes("$7,500"));
   assert.ok(!guardedPriceStrings().includes("$0"));
@@ -71,10 +69,6 @@ test("checkout modules charge exactly what the registry advertises", () => {
   assert.equal(LEAD_FOLLOW_UP.priceCents, PRICES.leadFollowUpCampaign * 100);
   assert.equal(HQ_PLAN.priceUsd, PRICES.pluginMonthly);
   assert.equal(HQ_PLAN.trialDays, PRICES.pluginTrialDays);
-  for (const tier of FREE_BUILD.tiers) {
-    assert.equal(tier.priceCents, tier.priceUsd * 100, tier.id);
-    assert.equal(offer(tier.id).priceUsd, tier.priceUsd, tier.id);
-  }
   for (const rung of OFFER_LADDER) {
     const registry = OFFERS.find((o) => o.href === rung.href && o.priceUsd === rung.priceValue);
     assert.ok(registry, `${rung.id} is missing from lib/site/offers.ts`);
@@ -124,6 +118,10 @@ test("every offer has a name, a status, a URL, terms, and a review date; only TB
     if (o.status === "live") {
       assert.equal(typeof o.priceUsd, "number", `${o.id} is live without a price`);
       assert.match(o.priceLabel, /^\$/, o.id);
+    }
+    if (o.status === "retired") {
+      assert.equal(o.priceUsd, null, `${o.id} is retired and must not carry a price`);
+      assert.equal(priceLabel(o.id), TBD_PRICE_LABEL, o.id);
     }
     if (o.status === "tbd_ryan") {
       assert.equal(o.priceUsd, null, `${o.id} must not carry a guessed price`);

@@ -34,11 +34,11 @@ for (const vp of VIEWPORTS) {
       await expect(form.getByRole("button", { name: /Book my free consultation/ })).toBeVisible();
       await expect(page.getByRole("link", { name: /See the lead service/ })).toHaveAttribute("href", /^\/agency\/meta-ads/);
       await expect(page.getByRole("link", { name: /See the automation service/ })).toHaveAttribute("href", /^\/agency\/automation/);
-      const build = page.getByRole("link", { name: /Check the free website program/ });
-      await expect(build).toHaveAttribute("href", /^\/free-build/);
+      const build = page.getByRole("link", { name: /See the website service/ });
+      await expect(build).toHaveAttribute("href", /^\/agency\/websites/);
       await build.click();
-      await expect(page).toHaveURL(/\/free-build/);
-      await expect(page.locator("form")).toBeVisible();
+      await expect(page).toHaveURL(/\/agency\/websites/);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     });
 
     test("packages page carries the Website Launch deposit link to Stripe", async ({ page }) => {

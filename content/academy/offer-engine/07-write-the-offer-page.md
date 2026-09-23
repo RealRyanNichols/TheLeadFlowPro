@@ -46,7 +46,7 @@ One call to action. One. Not "call, text, email, or fill out the form." One butt
 
 How to do it: choose the next step that matches how your buyer decides. Boards and property managers want a walk-through. Homeowners want an inspection. A contractor with messy books wants a fifteen-minute call. Name it, say how long it takes, and say what happens after. Make the button say the thing: "Book a 20-minute property walk." Never "Submit."
 
-Then decide where the page lives. On a site you own, not a social profile you rent. If you do not have a page you control yet, the free build at /free-build exists for exactly this: one page, on your domain, that you own.
+Then decide where the page lives. On a site you own, not a social profile you rent. If you do not have a page you control yet, the Website Launch at /packages/launch exists for exactly this: pages on your own domain that you own.
 
 What good looks like: the same button at the top and the bottom, a booking link or a short form behind it, and a plain sentence next to it about what happens next. "You will get a text to confirm the time, and I will bring last month's sample report."
 
@@ -106,7 +106,7 @@ The page matches the approved brief, uses one call to action, and makes no unsup
 - Price hidden behind "contact us." Fix: put the number on the page with the founding condition next to it.
 - Three ways to get in touch. Fix: one next step, one button, repeated twice.
 - New claims that appear during drafting. Fix: every sentence in the proof section needs a line in the inventory.
-- Publishing on a page you rent. Fix: put it on a domain you own; use /free-build if you have nothing yet.
+- Publishing on a page you rent. Fix: put it on a domain you own; see /services if you have nothing yet.
 
 ## Recording plan
 

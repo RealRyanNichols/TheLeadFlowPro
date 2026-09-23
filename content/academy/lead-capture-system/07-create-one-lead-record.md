@@ -20,7 +20,7 @@ One record. You own it. Every form field lands in it, every consent choice is st
 
 Pick one place. Two good choices for version one.
 
-Choice one, a Supabase table. This is what I build on. Open the project, click Table Editor, click New table, name it leads, and add the columns below. It is a real database you own, it exports to a file any time you want, and your website form can write to it directly. If you got a site through /free-build, this is already how it is wired.
+Choice one, a Supabase table. This is what I build on. Open the project, click Table Editor, click New table, name it leads, and add the columns below. It is a real database you own, it exports to a file any time you want, and your website form can write to it directly. If I built your site (see /services), this is already how it is wired.
 
 Choice two, a Google Sheet named Leads with the same columns as headers. Less powerful, but you own it, you can export it, and your form tool can append a row to it. For a business doing a handful of leads a week, a sheet is fine to start. What is not fine is the form tool's own dashboard as your only copy. You do not own that.
 

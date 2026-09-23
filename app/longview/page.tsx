@@ -103,8 +103,8 @@ export default function LongviewPage() {
             ))}
           </div>
           <p className="cb-lead mt-6">
-            Need the website first? The five-page build is {usd(PRICES.freeBuildFee)} if you qualify, or {usd(PRICES.websiteLaunchTotal)} outright.{" "}
-            <Link href="/free-build">See the free website program</Link> or <Link href="/services">everything we build</Link>.
+            Need the website first? The five-page Website Launch is {usd(PRICES.websiteLaunchTotal)}.{" "}
+            <Link href="/packages/launch">See the Website Launch</Link> or <Link href="/services">everything we build</Link>.
           </p>
         </div>
       </section>

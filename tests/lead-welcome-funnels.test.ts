@@ -29,9 +29,18 @@ describe("funnel-specific lead welcomes", () => {
     }
   });
 
-  it("keeps the free build welcome and the generic welcome", () => {
-    const free = leadWelcomePayload({ ...base, interest: "free_website_program", funnel: "free_build_funnel" });
-    assert.match(free.subject, /free website application/i);
+  it("sends old free-build leads the generic welcome, never the retired offer", () => {
+    // The free website build was retired on 2026-09-22. A lead that still
+    // carries its interest or funnel gets the general welcome.
+    for (const lead of [
+      { ...base, interest: "free_website_program", funnel: "free_build_funnel" },
+      { ...base, interest: "free_website_program", funnel: null },
+      { ...base, interest: "website_launch", funnel: "free_build_funnel" },
+    ]) {
+      const payload = leadWelcomePayload(lead);
+      assert.match(payload.subject, /what to fix first/i);
+      assert.doesNotMatch(payload.text, /free-build|build fee|free website/i);
+    }
     const generic = leadWelcomePayload({ ...base, interest: "launch_system", funnel: null });
     assert.match(generic.subject, /what to fix first/i);
     assert.match(generic.text, /text or call from \(903\) 500-8898/);

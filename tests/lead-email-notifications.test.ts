@@ -20,9 +20,9 @@ const LEAD: NotifiableLead = {
   email: "jane@example.com",
   phone: "903-555-0100",
   business_name: "Example Co",
-  interest: "free_website_program",
+  interest: "website_launch",
   source: "meta_lead_ad",
-  funnel: "free_build_funnel",
+  funnel: "meta_lead_form",
 };
 
 test("lead email retry schedule stays inside the provider idempotency window", () => {
@@ -67,7 +67,7 @@ test("ambiguous sends are never replayed after the provider idempotency window",
   assert.equal(leadEmailNotificationWindowExpired("not-a-date", now), true);
 });
 
-test("lead emails pass the stable key to Resend and preserve the free-build promise", async () => {
+test("lead emails pass the stable key to Resend and send the general welcome, never the retired free-build one", async () => {
   const previousKey = process.env.RESEND_API_KEY;
   const previousFetch = globalThis.fetch;
   const captured: Array<{ url: string; init: RequestInit }> = [];
@@ -112,9 +112,8 @@ test("lead emails pass the stable key to Resend and preserve the free-build prom
     // Both people who work inbound leads get the one alert (lib/leadNotify.ts).
     assert.deepEqual(owner.to, ["hello@theleadflowpro.com", "pat@theleadflowpro.com"]);
     assert.deepEqual(welcome.to, [LEAD.email]);
-    assert.match(welcome.subject, /free website application/i);
-    assert.match(welcome.text, /build fee is \$0/i);
-    assert.match(welcome.text, /No paid add-on is required/i);
+    assert.match(welcome.subject, /what to fix first/i);
+    assert.doesNotMatch(welcome.text, /free-build|build fee|free website/i);
   } finally {
     globalThis.fetch = previousFetch;
     if (previousKey === undefined) delete process.env.RESEND_API_KEY;

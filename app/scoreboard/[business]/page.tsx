@@ -204,7 +204,7 @@ export default async function BusinessScoreboardPage({
               organic traffic, referrals, direct contact, manual entries, or an unknown source. We show
               the recorded counts so you can ask better questions about the work behind them.
             </p>
-            <Link href="/free-build">Build the owned side <ArrowRight aria-hidden="true" /></Link>
+            <Link href="/services">Build the owned side <ArrowRight aria-hidden="true" /></Link>
           </div>
         </div>
       </section>
@@ -215,11 +215,11 @@ export default async function BusinessScoreboardPage({
           <h2>Want a board like this with your name on it?</h2>
           <p>
             Every build we do ships with first-party tracking in your own database, so your board is
-            yours, not a screenshot of someone else&apos;s dashboard. Start with the free website or map the
-            whole company first.
+            yours, not a screenshot of someone else&apos;s dashboard. Start with a website or map the whole
+            company first.
           </p>
           <div>
-            <Link href="/free-build">Apply for the free website <ArrowRight aria-hidden="true" /></Link>
+            <Link href="/services">See what we build <ArrowRight aria-hidden="true" /></Link>
             <Link href="/start">Map my company <ArrowRight aria-hidden="true" /></Link>
           </div>
         </div>

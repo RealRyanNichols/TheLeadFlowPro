@@ -105,7 +105,7 @@ function firstName(name: string | null | undefined): string {
 function offerUrl(offer: DayTwoOffer, content: string): string {
   const base = `${SITE}${DAY_TWO_OFFERS[offer].path}`;
   const q = `utm_source=email&utm_medium=workshop_followup&utm_campaign=${WORKSHOP_FOLLOW_UP_VERSION}&utm_content=${content}`;
-  return offer === "content_engine" ? `${base}?${q}#pick` : `${base}?${q}`;
+  return `${base}?${q}`;
 }
 
 /** The three-step sequence for one event, from its config. */

@@ -35,7 +35,8 @@ const SCAN_FILES = [
   "lib/site/agency.ts",
   "lib/site/caseStudies.ts",
   "lib/events.ts",
-  "lib/freeBuild.ts",
+  // lib/freeBuild.ts is retired (2026-09-22) and holds only the frozen tier
+  // prices the Stripe webhook needs for late events; it renders no page.
   "lib/leadFollowUp.ts",
   "lib/offers.ts",
   "lib/toolStudio.ts",

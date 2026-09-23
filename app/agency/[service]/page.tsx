@@ -35,8 +35,8 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
   if (!s) notFound();
   const offer = agencyOffer(s);
   const priced = offer.status === "live";
-  // Websites is paid through the Website Launch deposit or the free program;
-  // the other five take the written-scope payment on /agency/pay.
+  // Websites is paid through the Website Launch deposit; the other five take
+  // the written-scope payment on /agency/pay.
   const payable = s.slug !== "websites";
   // Ads and automation are built inside the client's own accounts, so the
   // access step is the first thing after payment.
@@ -77,7 +77,7 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
           kicker: "In your accounts",
           caption: OWNERSHIP_PROMISE.headline,
         }}
-        primary={{ href: s.intakeHref, label: s.slug === "websites" ? "Apply for the free website" : "Start the intake" }}
+        primary={{ href: s.intakeHref, label: "Start the intake" }}
         secondary={{ href: "#included", label: "What is included" }}
         trustLine="No guaranteed leads, cost per lead, ranking, or return on ad spend."
       />
@@ -187,7 +187,7 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
               </Link>
             )}
             <Link href={s.intakeHref} className="cb-btn cb-btn--ghost" data-cta="agency_service_intake" data-cta-placement={s.slug}>
-              {s.slug === "websites" ? "Apply for the free website" : "No scope yet? Start the intake"}
+              No scope yet? Start the intake
             </Link>
             {connects ? (
               <Link href="/connect" className="cb-btn cb-btn--ghost" data-cta="agency_service_connect" data-cta-placement={s.slug}>
@@ -265,7 +265,7 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
         eyebrow={s.name}
         title="Get the scope in writing."
         body={`Ten questions, one business day to a reply from ${BUSINESS.operator}. Or call or text ${BUSINESS.phone.display}.`}
-        primary={{ href: s.intakeHref, label: s.slug === "websites" ? "Apply for the free website" : "Start the intake" }}
+        primary={{ href: s.intakeHref, label: "Start the intake" }}
         secondary={{ href: "/agency", label: "All six services" }}
       />
       <p className="cb-shell" style={{ paddingBlock: 24 }}>

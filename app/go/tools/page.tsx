@@ -24,13 +24,8 @@ export const metadata: Metadata = withPublicPageMetadata("/go/tools", {
       "Build the tool, capture the lead, and own the system behind it.",
     url: "https://www.theleadflowpro.com/go/tools",
     siteName: "The LeadFlow Pro",
-    images: [
-      {
-        url: "/images/ads/leadflow-free-website-ryan-02-square.png",
-        width: 1254,
-        height: 1254,
-      },
-    ],
+    // No images here: withPublicPageMetadata sets the page's own designed
+    // social card (lib/uniqueOgImages.ts) and would override this anyway.
     type: "website",
   },
 });
@@ -102,10 +97,10 @@ export default function ToolStudioPage() {
           </div>
           <figure className="overflow-hidden rounded-[28px] border border-[#5135e5] bg-[#fff9ef] shadow-2xl shadow-[#43364c]/10">
             <Image
-              src="/images/ads/leadflow-free-website-ryan-02-square.png"
-              alt="Ryan Nichols standing in front of an American flag beside the words Your First Website, zero dollar build fee, you own it"
-              width={1254}
-              height={1254}
+              src="/images/page-art/tools-library.png"
+              alt="A purple calculator, a contact card with a QR code, a stopwatch, a receipt roll, a desk calendar, and a notepad with a pen on a cream desk"
+              width={1672}
+              height={941}
               sizes="(max-width: 1024px) calc(100vw - 32px), 46vw"
               priority
               className="h-auto w-full"

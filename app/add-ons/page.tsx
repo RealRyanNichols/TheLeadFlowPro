@@ -5,7 +5,7 @@ import AddOnsMenu from "./AddOnsMenu";
 export const metadata: Metadata = withPublicPageMetadata("/add-ons", {
   title: "The Add-On Menu | The LeadFlow Pro",
   description:
-    "Inspect proven LeadFlow modules and request a written scope. Approved first five-page websites have a $0 build fee; tools and growth systems are priced separately.",
+    "Inspect proven LeadFlow modules and request a written scope. Tools and growth systems are priced separately, in writing, before work begins.",
   alternates: { canonical: "https://www.theleadflowpro.com/add-ons" },
   openGraph: {
     title: "Choose the capability. Get the scope before the build.",

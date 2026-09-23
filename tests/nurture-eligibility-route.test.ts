@@ -158,34 +158,29 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
   return selected;
 }
 
-test("actual nurture route admits only consented website and registered sequence lanes", async () => {
-  const forms = [
+// The 30-day free-build sequence was retired on 2026-09-22 with the offer it
+// sold, so the only lane this sender still admits is the workshop countdown.
+const WORKSHOP_FORM = "1749164796410610";
+const workshop = formLead(WORKSHOP_FORM, "workshop");
+
+test("actual nurture route admits only the consented workshop lane now that the free-build sequence is retired", async () => {
+  const retiredLanes = [
     guard.LEADFLOW_META.formId,
     "1602617814609528",
     "1001553739566746",
     "1072145798524733",
-    "1749164796410610",
   ];
-  const valid = [website, ...forms.map((id) => formLead(id))];
+  const valid = [workshop];
   const invalid: Lead[] = [
+    website,
+    ...retiredLanes.map((id) => formLead(id)),
     formLead("foreign-form"),
     { ...website, id: "wrong-website-interest", interest: "other_offer" },
     { ...website, id: "missing-attribution", diagnostic: null },
-    ...[false, null, undefined, "true", 1].flatMap((consent, index) => [
-      {
-        ...website,
-        id: `website-consent-${index}`,
-        marketing_email_consent: consent,
-      },
-      {
-        ...formLead("1001553739566746", `meta-consent-${index}`),
-        marketing_email_consent: consent,
-      },
-      {
-        ...formLead("1749164796410610", `workshop-consent-${index}`),
-        marketing_email_consent: consent,
-      },
-    ]),
+    ...[false, null, undefined, "true", 1].map((consent, index) => ({
+      ...formLead(WORKSHOP_FORM, `workshop-consent-${index}`),
+      marketing_email_consent: consent,
+    })),
   ];
   assert.deepEqual(
     await recipients([...valid, ...invalid]),
@@ -196,32 +191,32 @@ test("actual nurture route admits only consented website and registered sequence
 test("actual nurture route excludes unsubscribed, deleted, test, closed, old and diagnostic leads", async () => {
   const rejected = [
     {
-      ...website,
+      ...workshop,
       id: "unsubscribed",
       email_unsubscribed_at: "2026-09-06T00:00:00Z",
     },
-    { ...website, id: "deleted", deleted_at: "2026-09-06T00:00:00Z" },
-    { ...website, id: "test", is_test: true },
-    { ...website, id: "won", status: "won" },
-    { ...website, id: "old", created_at: "2026-01-01T00:00:00Z" },
+    { ...workshop, id: "deleted", deleted_at: "2026-09-06T00:00:00Z" },
+    { ...workshop, id: "test", is_test: true },
+    { ...workshop, id: "won", status: "won" },
+    { ...workshop, id: "old", created_at: "2026-01-01T00:00:00Z" },
     {
-      ...formLead("1001553739566746", "diagnostic"),
+      ...formLead(WORKSHOP_FORM, "diagnostic"),
       diagnostic: {
-        form_id: "1001553739566746",
+        form_id: WORKSHOP_FORM,
         campaign: nurture.BUSINESS_DIAGNOSTIC_SOURCE,
       },
     },
   ] as Lead[];
   assert.deepEqual(await recipients(rejected), []);
+  // The same workshop lead with none of those problems is admitted, so the
+  // rejections above are the filters at work, not an empty lane.
+  assert.deepEqual(await recipients([workshop]), ["workshop"]);
 });
 
-test("actual nurture route stops workshop enrollment at its exact start while keeping free-build eligible", async () => {
-  const rows = [website, formLead("1749164796410610", "workshop")];
+test("actual nurture route stops workshop enrollment at its exact start, and the retired free-build lane stays shut", async () => {
+  const rows = [website, workshop];
   assert.deepEqual(await recipients(rows, "2026-09-17T23:29:59.999Z"), [
-    "website",
     "workshop",
   ]);
-  assert.deepEqual(await recipients(rows, "2026-09-17T23:30:00.000Z"), [
-    "website",
-  ]);
+  assert.deepEqual(await recipients(rows, "2026-09-17T23:30:00.000Z"), []);
 });

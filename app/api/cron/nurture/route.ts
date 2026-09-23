@@ -23,8 +23,10 @@ import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
 import { BUSINESS } from "@/lib/site/business";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
-// The 30 day sequence sender. Runs hourly so an uncertain provider response can
-// be retried inside Resend's 24-hour idempotency window.
+// The nurture sequence sender. Runs hourly so an uncertain provider response
+// can be retried inside Resend's 24-hour idempotency window. The 30-day
+// free-build campaign it was built for is retired (lib/nurture.ts); the
+// workshop lane still runs through here.
 //
 // ONE SUCCESSFUL EMAIL PER LEAD PER 24 HOURS. A lead that has been sitting for
 // three weeks with nothing sent does not get slammed with six emails at once.
@@ -160,8 +162,11 @@ export async function GET(request: Request) {
     (lead) => !isBusinessDiagnosticLead(lead),
   );
   // Two sequences share this sender: the 30-day campaign and the short
-  // workshop countdown. Workshop leads drop out entirely once the event has
-  // started; nobody gets sold a chair in a room that already met.
+  // workshop countdown. The 30-day campaign sold the free website build and
+  // was retired with it on 2026-09-22 (isFreeWebsiteProgramNurtureLead is
+  // always false), so nobody new enters it and nobody in it gets another
+  // step. Workshop leads drop out entirely once the event has started; nobody
+  // gets sold a chair in a room that already met.
   const eligibleLeads = nonDiagnosticLeads.filter(
     (lead) =>
       isFreeWebsiteProgramNurtureLead(lead) ||
