@@ -1,5 +1,6 @@
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
+import { SellerProofPromo } from "@/components/site/SellerProofPromo";
 import { ToolsClient } from "./ToolsClient";
 
 export const metadata = {
@@ -13,6 +14,7 @@ export default function ToolsPage() {
     <>
       <Header />
       <ToolsClient />
+      <SellerProofPromo />
       <Footer />
     </>
   );

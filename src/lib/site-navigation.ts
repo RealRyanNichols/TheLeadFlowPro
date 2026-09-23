@@ -75,6 +75,7 @@ export const SITE_MORE_NAV: SiteNavItem[] = [
     icon: "map",
     activePaths: ["/problem-intake"]
   },
+  { href: "https://sellerproof.theleadflowpro.com", label: "SellerProof", shortLabel: "SellerProof", description: "Chargeback evidence packets for e-commerce sellers.", icon: "guardrail" },
   { href: "/profile-model", label: "Profile Model", shortLabel: "Profiles", description: "Proof, scores, tags, suppression, and open questions.", icon: "profile" },
   { href: "/privacy-center", label: "Privacy Center", shortLabel: "Privacy", description: "Consent, suppression, deletion, and data controls.", icon: "guardrail" },
   { href: "/dashboard", label: "Dashboard", shortLabel: "Dashboard", description: "Internal scoring, review, export, and routing console.", icon: "dashboard" },
@@ -105,6 +106,7 @@ export const SITE_FOOTER_NAV = {
   ],
   tools: [
     { href: "/tools", label: "Public tools" },
+    { href: "https://sellerproof.theleadflowpro.com", label: "SellerProof (chargebacks)" },
     { href: "/problem-intake", label: "Problem intake" },
     { href: "/machine", label: "Phase 3 machine" },
     { href: "/data-marketplace", label: "Request builder" },
