@@ -7,6 +7,9 @@ import { PRO_BUNDLE, getProTool } from "@/lib/tools/pro";
 import { startEventCheckout } from "@/lib/eventCheckoutServer";
 import { AGENCY_PAYMENT, resolveAgencyCharge } from "@/lib/agencyPayment";
 import { PRICES, usd } from "@/lib/site/prices";
+import { FIVE_OFFER, fiveOfferExpired } from "@/lib/fiveOffer";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { SUPABASE_URL } from "@/lib/config";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
@@ -22,6 +25,12 @@ const PRODUCTS: Record<string, { name: string; amount: number }> = {
   [LEAD_FOLLOW_UP.id]: {
     name: `${LEAD_FOLLOW_UP.name} | The LeadFlow Pro`,
     amount: LEAD_FOLLOW_UP.priceCents,
+  },
+  // The Five (/five). One price, read from lib/fiveOffer.ts. Five spots,
+  // then the checkout refuses with sold_out (see the guard below).
+  [FIVE_OFFER.kind]: {
+    name: `${FIVE_OFFER.name} | ${FIVE_OFFER.longName} | The LeadFlow Pro`,
+    amount: FIVE_OFFER.priceCents,
   },
   // The Free Build (/free-build). Three tiers, one price each, all read from
   // lib/freeBuild.ts. The site itself is $0 at every tier: what is charged
@@ -56,6 +65,28 @@ export async function POST(request: Request) {
 
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) return NextResponse.json({ error: "not_configured" }, { status: 501 });
+
+  if (body.kind === FIVE_OFFER.kind) {
+    // Five spots and a calendar deadline. Count paid purchases before
+    // opening a session so the sixth buyer is told no instead of charged.
+    if (fiveOfferExpired()) {
+      return NextResponse.json({ error: "expired" }, { status: 410 });
+    }
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+    if (serviceKey) {
+      const supabase = createSupabaseClient(SUPABASE_URL, serviceKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { count } = await supabase
+        .from("purchases")
+        .select("id", { count: "exact", head: true })
+        .eq("kind", FIVE_OFFER.kind)
+        .eq("status", "paid");
+      if ((count ?? 0) >= FIVE_OFFER.spots) {
+        return NextResponse.json({ error: "sold_out" }, { status: 409 });
+      }
+    }
+  }
 
   try {
     const email = typeof body.email === "string" ? body.email.slice(0, 200) : "";
@@ -265,6 +296,14 @@ export async function POST(request: Request) {
         // Nothing gets written until that form comes back.
         cancelUrl = `${site}/go/lead-follow-up?cancelled=1`;
         successUrl = `${site}/go/lead-follow-up/intake?session_id={CHECKOUT_SESSION_ID}`;
+      }
+      if (kind === FIVE_OFFER.kind) {
+        // Buyers land on the welcome page, which books the day 1 call and
+        // lists what to have ready for the shoot.
+        cancelUrl = `${site}${FIVE_OFFER.path}?cancelled=1`;
+        successUrl = `${site}${FIVE_OFFER.path}/welcome?session_id={CHECKOUT_SESSION_ID}`;
+        metadata.offer = "five";
+        metadata.spots = String(FIVE_OFFER.spots);
       }
       if (FREE_BUILD_IDS.has(kind)) {
         // Free Build buyers land on a page that books the twenty minute call

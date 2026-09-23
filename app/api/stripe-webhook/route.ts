@@ -13,6 +13,7 @@ import { sendProKitReceipt } from "@/lib/proKitFulfillment";
 import { ensureEventSeatPaid } from "@/lib/eventSeatFulfillment";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 import { findFreeBuildTier } from "@/lib/freeBuild";
+import { FIVE_OFFER } from "@/lib/fiveOffer";
 import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
 import { CHATGPT_OPERATOR } from "@/lib/chatgptOperatorCourse";
 import { OPERATOR_ACADEMY } from "@/lib/operatorAcademyCatalog";
@@ -512,6 +513,53 @@ async function ensureSystemMapPaid(supabase: SupabaseClient, session: StripeChec
     `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
   ], { acknowledged });
   await markLeadActivity(supabase, leadId, `System Map paid through Stripe. Stripe checkout: ${sessionId}.`, "System Map");
+}
+
+// The Five (/five). One of five thirty day spots, paid once. The page saved
+// a lead with diagnostic.source "five_offer" when the buyer used the two
+// question form; a buyer who went straight to Stripe gets a lead created
+// here. Either way the lead is marked won, Ryan gets the alert with the real
+// amount, and the buyer gets the day 1 instructions in writing.
+async function ensureFivePaid(supabase: SupabaseClient, session: StripeCheckoutSession) {
+  const amount = amountCentsOf(session);
+  const { leadId, leadName, customer, sessionId } = await claimFunnelLead(supabase, session, {
+    source: "five_offer",
+    offer: FIVE_OFFER.kind,
+    campaign: FIVE_OFFER.utmCampaign,
+    interest: "done_for_you",
+    goals: `THE FIVE paid through Stripe (${dollarsOrUnknown(amount)}). Thirty day done-for-you spot. Book the day 1 call and the shoot date.`,
+    taskTitle: "The Five: book day 1 call and shoot date",
+    nextAction: "Paid without a /five lead. Book the day 1 call and the shoot date today.",
+  });
+  const first = String(leadName || "").trim().split(" ")[0] || "Hey";
+  const acknowledged = await sendBuyerAcknowledgement(supabase, sessionId, "five:buyer", customer.email, "You have one of the five. Here is what happens next.", [
+    `${first},`,
+    "",
+    `Your spot is paid (${dollarsOrUnknown(amount)}). Stripe's receipt is your record. The thirty days start at the day 1 call, not today, so nothing is ticking while we get you on the calendar.`,
+    "",
+    "What happens next:",
+    "",
+    `1. I call you within one business day from ${BUSINESS.phone.display} to set the shoot date. If you want it faster, text that number your business name and the best two hour window this week.`,
+    "2. Have ready for the call: your Facebook Page name, the one service you want more of, and the area you serve.",
+    "3. Have ready for the shoot: a clean shirt with your logo if you have one, your truck or your storefront, and one customer story you can tell in sixty seconds.",
+    "4. Leadsie sends you a link to connect your Facebook Page and ad account. It gives me access without giving me your password, and you can pull it any time.",
+    "",
+    "Ad spend is paid by you straight to Meta on your own card. I will tell you the exact daily number I would run on the call, and you decide.",
+  ]);
+  await internalAlert(supabase, sessionId, "five:internal", `💰 THE FIVE PAID: ${leadName || customer.email} ${dollarsOrUnknown(amount)}`, [
+    `The Five paid: ${dollarsOrUnknown(amount)}. One of ${FIVE_OFFER.spots} spots.`,
+    `Buyer: ${leadName || "-"}`,
+    `Email: ${customer.email}`,
+    `Phone: ${customer.phone || "-"}`,
+    `Stripe session: ${sessionId}`,
+    "",
+    "NEXT ACTION: call today, set the shoot date, send the Leadsie link. The task is on the lead.",
+    acknowledgementLine(acknowledged),
+    "",
+    `Lead: ${BUSINESS.siteUrl}/admin/leads/${leadId}`,
+    `Spots left: check ${BUSINESS.siteUrl}/api/five/stats`,
+  ], { acknowledged });
+  await markLeadActivity(supabase, leadId, `The Five (thirty day spot) paid through Stripe. Stripe checkout: ${sessionId}.`, "The Five");
 }
 
 // Paid Tool Studio order or monthly menu. The funnel saved the lead with
@@ -1989,6 +2037,8 @@ export async function POST(request: Request) {
       await ensureToolStudioPaid(supabase, session, kind);
     } else if (kind === "system_map") {
       await ensureSystemMapPaid(supabase, session);
+    } else if (kind === FIVE_OFFER.kind) {
+      await ensureFivePaid(supabase, session);
     } else if (kind === "learn_it") {
       await sendPurchaseEmails(supabase, session.id, customer.email, kind);
     } else if (kind === CONTENT_ENGINE.purchaseKind) {

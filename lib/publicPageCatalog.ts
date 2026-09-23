@@ -104,6 +104,13 @@ export const PUBLIC_PAGE_CATALOG = [
     eyebrow: "Business diagnostic",
   },
   {
+    path: "/five",
+    title: "Five businesses. Thirty days. One price.",
+    description:
+      "The full done-for-you month for five East Texas businesses: on-site video, your ad run for 30 days, 100 Facebook posts, a funnel page, and a 30 day email series. Ends September 30.",
+    eyebrow: "End of month special",
+  },
+  {
     path: "/free-build",
     title: "Your business deserves a useful website",
     description:

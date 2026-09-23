@@ -97,6 +97,10 @@ export function isFreeWebsiteProgramNurtureLead(
   ) {
     return true;
   }
+  if (lead.source === "website" && diagnostic.source === "five_offer") {
+    // The /five two question form. Same offer family, same thirty days.
+    return true;
+  }
   return (
     lead.interest === "free_website_program" &&
     diagnostic.source === "free_build_funnel" &&

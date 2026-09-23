@@ -40,6 +40,13 @@ export const PRICES = {
   /** Lead Follow-Up Campaign (/go/lead-follow-up), one time. */
   leadFollowUpCampaign: 197,
 
+  /**
+   * The Five (/five): five East Texas businesses, thirty days of the full
+   * done-for-you service, paid once. End of September 2026 special. The
+   * regular figure it is compared against is companyOsFrom below.
+   */
+  fiveSpotOffer: 1497,
+
   /** Larger systems, "from" prices. Written scope sets the exact number. */
   leadEngineFrom: 3500,
   trainingPlatformFrom: 5000,
