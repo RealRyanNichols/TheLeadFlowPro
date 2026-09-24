@@ -189,7 +189,8 @@ describe("Google position direction", () => {
 describe("public feed sanitization", () => {
   it("names only allowlisted page groups", () => {
     assert.equal(publicPageLabel("/tools/roi-calculator"), "a free business tool");
-    assert.equal(publicPageLabel("/free-build"), "the Free Build offer");
+    assert.equal(publicPageLabel("/services"), "the services page");
+    assert.equal(publicPageLabel("/free-build"), "the site"); // retired offer, no label
     assert.equal(publicPageLabel("/admin/leads"), "the site"); // never named
     assert.equal(publicPageLabel("/dashboard/x"), "the site");
     assert.equal(publicPageLabel(null), "the site");
@@ -199,7 +200,7 @@ describe("public feed sanitization", () => {
     const s = publicFeedSentence({
       at: "2026-08-13T10:00:00Z",
       kind: "form_start",
-      path: "/free-build",
+      path: "/services",
       device: "mobile",
       source: "google",
     });

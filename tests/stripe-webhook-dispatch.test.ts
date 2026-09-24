@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
-import { FREE_BUILD } from "../lib/freeBuild.ts";
+import { RETIRED_FREE_BUILD_TIERS } from "../lib/freeBuild.ts";
 import { LEAD_FOLLOW_UP } from "../lib/leadFollowUp.ts";
 import { SELLERPROOF } from "../lib/sellerproof/packet.ts";
 import { CONTENT_ENGINE } from "../lib/contentEngineCourse.ts";
@@ -29,8 +29,11 @@ function slice(name: string): string {
 }
 
 test("every kind the checkout route can mint reaches an alerting branch", () => {
+  // The free-build tiers were retired on 2026-09-22: checkout no longer mints
+  // them, but a session created before then can still be paid or replayed,
+  // so the webhook keeps a named branch for each (checked below).
   const kinds = [
-    ...FREE_BUILD.tiers.map((t) => t.id),
+    ...RETIRED_FREE_BUILD_TIERS.map((t) => t.id),
     LEAD_FOLLOW_UP.id,
     SELLERPROOF.kind,
     CONTENT_ENGINE.purchaseKind,
@@ -58,9 +61,9 @@ test("every kind the checkout route can mint reaches an alerting branch", () => 
   // cannot drift silently.
   const literalKinds = ["build_deposit", "package_deposit", "package_full", "tool_studio_order", "tool_monthly_menu", "pro_tool", "pro_bundle", "timeback_order", "system_map", "event"];
   for (const kind of literalKinds) assert.ok(checkout.includes(`"${kind}"`), `checkout mints ${kind}`);
-  assert.ok(checkout.includes("FREE_BUILD_IDS.has(kind)") && checkout.includes("LEAD_FOLLOW_UP.id") && checkout.includes("AGENCY_PAYMENT.kind"));
   assert.ok(checkout.includes("isChaseSheetKind(body.kind)"), "checkout mints both Chase Sheet plans through the product record");
-  assert.ok(checkout.includes("FREE_BUILD_IDS.has(kind)") && checkout.includes("LEAD_FOLLOW_UP.id") && checkout.includes("AGENCY_PAYMENT.kind") && checkout.includes("TLFP_CREDITS.purchaseKind"));
+  assert.ok(checkout.includes("LEAD_FOLLOW_UP.id") && checkout.includes("AGENCY_PAYMENT.kind") && checkout.includes("TLFP_CREDITS.purchaseKind"));
+  assert.ok(!checkout.includes("FREE_BUILD") && !checkout.includes("@/lib/freeBuild"), "checkout no longer mints the retired free-build tiers");
   assert.ok(dispatch.includes("notifyUnhandledPurchase"), "the catch-all is still the else branch");
 
   // Every kind must reach a named branch, except the three the catch-all is
@@ -85,7 +88,7 @@ test("every kind the checkout route can mint reaches an alerting branch", () => 
     event: 'kind === "event"',
     learn_it: 'kind === "learn_it"',
   };
-  for (const tier of FREE_BUILD.tiers) namedBranch[tier.id] = "findFreeBuildTier(kind)";
+  for (const tier of RETIRED_FREE_BUILD_TIERS) namedBranch[tier.id] = "findFreeBuildTier(kind)";
   for (const kind of kinds) {
     if (catchAll.has(kind)) continue;
     assert.ok(namedBranch[kind], `${kind} needs a named branch in this test's map`);

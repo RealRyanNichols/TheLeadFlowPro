@@ -186,14 +186,13 @@ export default function HomePage() {
               <p>
                 Five pages that say what you do, what it costs, and how to
                 reach you from a phone. One offer page with the follow-up
-                behind it. Approved businesses get the five-page build with a{" "}
-                {usd(PRICES.freeBuildFee)} build fee.
+                behind it. Built in accounts you own.
               </p>
-              <Link href="/free-build">
-                Check the free website program <ArrowRight size={18} aria-hidden="true" />
+              <Link href="/agency/websites">
+                See the website service <ArrowRight size={18} aria-hidden="true" />
               </Link>
               <small>
-                Prefer to buy it outright?{" "}
+                Know you want the five pages?{" "}
                 <Link href="/packages/launch">
                   Website Launch is {usd(PRICES.websiteLaunchTotal)}.
                 </Link>

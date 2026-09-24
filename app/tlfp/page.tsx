@@ -15,7 +15,6 @@ import {
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import { BUSINESS } from "@/lib/site/business";
 import { PRICES, usd } from "@/lib/site/prices";
-import { FREE_BUILD } from "@/lib/freeBuild";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
 import { TLFP_CREDITS, TLFP_EARN_RULES, TLFP_PACKS, TLFP_PERKS, findPack } from "@/lib/tlfpCredits";
 import { getTlfpAccountForCurrentUser } from "@/lib/tlfp";
@@ -64,11 +63,6 @@ export default async function TlfpPage({
 
   const redeemOffers: RedeemOffer[] = [
     { kind: "system_map", label: "System Map", priceUsd: PRICES.systemMap, note: "Credited toward the build it maps." },
-    ...FREE_BUILD.tiers.map((tier) => ({
-      kind: tier.id,
-      label: tier.name,
-      priceUsd: tier.priceCents / 100,
-    })),
     { kind: LEAD_FOLLOW_UP.id, label: LEAD_FOLLOW_UP.name, priceUsd: LEAD_FOLLOW_UP.priceUsd },
     {
       kind: "build_deposit",
@@ -204,7 +198,7 @@ export default async function TlfpPage({
           <p className="eyebrow">Spend credits</p>
           <h2 className="mt-3 text-3xl font-black text-[var(--heading)]">Credits apply first. The card covers the rest.</h2>
           <p className="mt-3 max-w-2xl text-[var(--muted)]">
-            Put them on a System Map, a Free Website tier, a follow-up campaign, or a build deposit. When the credits cover the
+            Put them on a System Map, a follow-up campaign, or a build deposit. When the credits cover the
             whole thing, there is no card at all.
           </p>
           <div className="mt-8">

@@ -6,7 +6,6 @@ import { AGENCY_PAYMENT, agencyPayHref } from "../lib/agencyPayment.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
 import {
   CLOSER_OFFER_IDS,
-  FREE_BUILD_ADD_ON_IDS,
   MAP_FIRST_OFFER_IDS,
   acceptanceLine,
   closerOffers,
@@ -30,6 +29,9 @@ const door = (id: string): PayDoor => {
 };
 const ALL = () => closerOffers();
 
+/** The free website build and its add-ons, retired 2026-09-22. */
+const RETIRED_FREE_BUILD_IDS = ["free_website_program", "free_build_followup", "free_build_content", "free_build_launch"];
+
 /** Every "$" figure in a text must be a registry label, registry terms, or a PRICES figure. */
 function assertKnownFigures(text: string, offerIds: string[]) {
   const sources = offerIds.flatMap((id) => [offer(id).priceLabel, offer(id).terms]);
@@ -41,7 +43,7 @@ function assertKnownFigures(text: string, offerIds: string[]) {
 }
 
 test("closer offers: every id exists in the registry, none is retired, and the list is in registry order", () => {
-  assert.equal(CLOSER_OFFER_IDS.length, 16);
+  assert.equal(CLOSER_OFFER_IDS.length, 12);
   assert.equal(new Set(CLOSER_OFFER_IDS).size, CLOSER_OFFER_IDS.length);
   for (const id of CLOSER_OFFER_IDS) {
     const o = OFFERS.find((x) => x.id === id);
@@ -49,6 +51,8 @@ test("closer offers: every id exists in the registry, none is retired, and the l
     assert.notEqual(o.status, "retired", id);
     assert.ok(payDoorFor(id), id);
   }
+  // No retired registry offer is a closer id.
+  for (const o of OFFERS.filter((x) => x.status === "retired")) assert.equal(isCloserOfferId(o.id), false, o.id);
   const registryOrder = OFFERS.filter((o) => (CLOSER_OFFER_IDS as readonly string[]).includes(o.id)).map((o) => o.id);
   assert.deepEqual(ALL().map((d) => d.offerId), registryOrder);
   for (const d of ALL()) {
@@ -140,35 +144,23 @@ test("larger builds start with the System Map: its link, its price, credited tow
   assert.ok(offer("system_map").terms.includes("Credited toward an approved larger build"));
 });
 
-test("free website program: no payment; its add-ons wait for the written scope and a separate checkout", () => {
-  const free = door("free_website_program");
-  assert.equal(free.kind, "no_payment");
-  assert.equal(free.url, null);
-  assert.equal(free.dueNowLabel, null);
-  assert.equal(free.payableNow, false);
-  // Names the offer, so it cannot be read as covering a paid build on the same proposal.
-  assert.equal(acceptanceLine(free), "No payment is due for the Free Website Program build.");
-  assert.ok(acceptanceLine(free).includes(free.offerName));
-  assert.deepEqual(copyProblems(acceptanceLine(free)), []);
-
-  // The public form promises a separate secure checkout after approval, and opens none itself.
-  const form = src("app/free-build/FreeBuildOrder.tsx");
-  assert.ok(form.includes("separate secure checkout"));
-  assert.ok(!form.includes("/api/checkout"));
-
-  assert.deepEqual([...FREE_BUILD_ADD_ON_IDS], ["free_build_followup", "free_build_content", "free_build_launch"]);
-  for (const id of FREE_BUILD_ADD_ON_IDS) {
-    const d = door(id);
-    assert.equal(d.kind, "after_scope_checkout", id);
-    assert.equal(d.url, null, id);
-    assert.equal(d.dueNowLabel, null, id);
-    assert.equal(d.staffHref, "/admin/sales/invoices", id);
-    assert.equal(d.payableNow, false, id);
-    assert.equal(
-      acceptanceLine(d),
-      `After you approve the written scope, a secure checkout for ${d.offerName} (${d.priceLabel}) is sent to you.`,
-    );
+test("the retired free website build and its add-ons: not closer offers, no door, never listed", () => {
+  const LEAD = "7d0c5a4e-1b2f-4c3d-8e9f-a0b1c2d3e4f5";
+  for (const id of RETIRED_FREE_BUILD_IDS) {
+    // The registry keeps the row, so an old record still resolves to a name.
+    assert.equal(offer(id).status, "retired", id);
+    assert.equal(isCloserOfferId(id), false, id);
+    assert.equal(payDoorFor(id), null, id);
+    assert.equal(payDoorFor(id, { leadId: LEAD }), null, id);
+    assert.ok(!ALL().some((d) => d.offerId === id), id);
   }
+  // Every door left takes money through a published link: none promises a build for nothing.
+  for (const d of ALL()) {
+    assert.ok(d.url, `${d.offerId} has no link`);
+    assert.ok(!/no payment|free/i.test(`${acceptanceLine(d)} ${d.howTheyPay}`), d.offerId);
+  }
+  // The public free-build page is gone, so no door can point at it.
+  assert.equal(routeExists("/free-build"), false);
 });
 
 test("agency offers: the agency pay page for their own service, the amount from the written scope", () => {
@@ -240,7 +232,7 @@ test("pay link message: the example shape, links only, and nothing when no door 
   );
   assert.equal(payLinkMessage({ firstName: "Dana", senderFirstName: "Ryan", doors: [] }), null);
   assert.equal(
-    payLinkMessage({ firstName: "Dana", senderFirstName: "Ryan", doors: [door("free_website_program"), door("free_build_content")] }),
+    payLinkMessage({ firstName: "Dana", senderFirstName: "Ryan", doors: [{ ...door("agency_meta_ads"), url: null }, { ...door("system_map"), url: null }] }),
     null,
   );
 
@@ -314,7 +306,7 @@ test("a real lead's agency pay link carries the lead, so the payment lands on it
     assert.equal(payDoorFor("agency_meta_ads", { leadId })!.url, payDoorFor("agency_meta_ads")!.url, String(leadId));
   }
   // Doors on the site's own pages never carry a lead: those pages do not read one.
-  for (const id of ["website_launch", "system_map", "lead_followup_campaign", "lead_engine", "free_website_program", "free_build_launch"]) {
+  for (const id of ["website_launch", "system_map", "lead_followup_campaign", "lead_engine"]) {
     assert.deepEqual(payDoorFor(id, { leadId: LEAD }), payDoorFor(id), id);
   }
 });

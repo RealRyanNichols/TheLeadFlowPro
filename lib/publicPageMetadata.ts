@@ -12,7 +12,6 @@ export const AD_PAGE_SOCIAL_IMAGES: Readonly<Record<string, string>> = {
   "/results": "/images/social/results-20260907.jpg",
   "/commerce": "/images/social/commerce-20260907.jpg",
   "/services": "/images/social/services-20260907.jpg",
-  "/free-build": "/images/social/free-build-20260907.jpg",
   "/scoreboard": "/images/social/scoreboard-20260907.jpg",
 };
 

@@ -769,7 +769,11 @@ export function outcomeFromDetail(detail: string): CallOutcome | null {
   return isCallOutcome(found) ? found : null;
 }
 
-/** The offers a saved call named, read back from its activity detail. */
+/**
+ * The offers a saved call named, read back from its activity detail. Only
+ * current closer offers come back: an id that is no longer one (the retired
+ * free website build on an old record) is skipped, never offered again.
+ */
 export function offerIdsFromDetail(detail: string): CloserOfferId[] {
   if (typeof detail !== "string") return [];
   const list = lastMatch(OFFER_IDS_MARKER_RE, detail);
@@ -784,11 +788,10 @@ export function offerIdsFromDetail(detail: string): CloserOfferId[] {
 const MAX_SUGGESTIONS = 4;
 
 /** What to have ready for a consultation or agency lead that named no service. */
-const CONSULTATION_SUGGESTIONS: readonly CloserOfferId[] = ["system_map", "website_launch", "lead_followup_campaign", "free_website_program"];
+const CONSULTATION_SUGGESTIONS: readonly CloserOfferId[] = ["system_map", "website_launch", "lead_followup_campaign"];
 
 /** What usually goes with the offer the lead came in for. */
 const COMPANIONS: Partial<Record<string, readonly CloserOfferId[]>> = {
-  free_website_program: ["free_build_followup", "free_build_content", "free_build_launch"],
   website_launch: ["lead_followup_campaign", "system_map"],
   system_map: ["website_launch", "lead_followup_campaign"],
   lead_engine: ["system_map"],

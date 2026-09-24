@@ -158,13 +158,6 @@ export const PUBLIC_PAGE_CATALOG = [
     eyebrow: "Business diagnostic",
   },
   {
-    path: "/free-build",
-    title: "Your business deserves a useful website",
-    description:
-      "Apply for a five-page website with a $0 build fee. Review the scope and ownership details.",
-    eyebrow: "Free website build",
-  },
-  {
     path: "/pricing",
     title: "Choose the right starting point",
     description:
@@ -261,7 +254,7 @@ export const PUBLIC_PAGE_CATALOG = [
     path: "/agency/websites",
     title: "Five pages that give people a next step",
     description:
-      "A mobile-first five-page site with lead capture, search foundation, and analytics in your account. Apply for the free program or buy it outright.",
+      "A mobile-first five-page site with lead capture, search foundation, and analytics in your account. Buy the Website Launch outright, in accounts you own.",
     eyebrow: "Agency · Websites",
   },
   {

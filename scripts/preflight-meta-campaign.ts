@@ -49,8 +49,14 @@ async function liveIssues(input: MetaCampaignPreflightInput): Promise<string[]> 
         if (!html.includes(LEADFLOW_META.pixelId)) {
           issues.push(`destination HTML does not contain LeadFlow pixel ${LEADFLOW_META.pixelId}`);
         }
-        if (!/Free Website|five-page build is \$0/i.test(html)) {
-          issues.push("destination HTML does not contain the approved Free Website offer");
+        // The destination is the services page (the free website build it
+        // used to check for was retired on 2026-09-22). Require its two live
+        // offers: the free consultation and the Website Launch.
+        if (!/Book the free consultation/i.test(html) || !/Website Launch/i.test(html)) {
+          issues.push("destination HTML does not contain the services page consultation and Website Launch offers");
+        }
+        if (/free-build|\$0 website|\$0 build fee/i.test(html)) {
+          issues.push("destination HTML still mentions the retired free website build");
         }
       }
     } catch (error) {

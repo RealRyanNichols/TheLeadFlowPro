@@ -18,6 +18,7 @@ import {
   isPayableToday,
   meetingPlaceForLabel,
   offerIdsFromDetail,
+  outcomeFromDetail,
   parseNextStepRequest,
   planCallOutcome,
   realLeadId,
@@ -39,7 +40,7 @@ import {
 } from "../lib/callCloserFixtures.ts";
 import { buildCallSheet, type CallSheetLead } from "../lib/callSheet.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
-import { CLOSER_OFFER_IDS, FREE_BUILD_ADD_ON_IDS, isCloserOfferId, payDoorFor, type CloserOfferId } from "../lib/payDoors.ts";
+import { CLOSER_OFFER_IDS, isCloserOfferId, payDoorFor, type CloserOfferId } from "../lib/payDoors.ts";
 import { AGENCY_SERVICES } from "../lib/site/agency.ts";
 import { CONSULTATION } from "../lib/site/consultation.ts";
 import { EXTERNAL_LINKS } from "../lib/site/external-links.ts";
@@ -61,6 +62,22 @@ const MON_10AM = new Date("2026-09-21T15:00:00.000Z");
 const THU_10AM = new Date("2026-09-24T15:00:00.000Z");
 
 const KEY = "3f2b8c1e-5a4d-4e6f-9b7a-0c1d2e3f4a5b";
+
+/** The free website build and its add-ons, retired 2026-09-22. */
+const RETIRED_FREE_BUILD_IDS = ["free_website_program", "free_build_followup", "free_build_content", "free_build_launch"];
+
+/** Runs fn with one registry offer's status changed, then puts it back. */
+function withOfferStatus<T>(id: string, status: (typeof OFFERS)[number]["status"], fn: () => T): T {
+  const o = OFFERS.find((x) => x.id === id);
+  assert.ok(o, id);
+  const before = o.status;
+  try {
+    o.status = status;
+    return fn();
+  } finally {
+    o.status = before;
+  }
+}
 const PATCH_KEYS = ["status", "last_contacted_at", "next_follow_up_at", "lost_reason"];
 
 function lead(overrides: Partial<PlannerLead> = {}): PlannerLead {
@@ -442,12 +459,9 @@ test("ready_to_pay is refused for an offer with no online payment today", () => 
   // An agency service does take money online, on the agency pay page, once the number is in writing.
   const scopeMessage = (name: string) =>
     `${name} has no set price. It is paid on the agency pay page against a written scope, so choose Wants a proposal to put the number in writing first. Once the proposal is marked sent, Ready to pay now gives you the link.`;
-  const blocked: CloserOfferId[] = [
-    "free_website_program",
-    ...FREE_BUILD_ADD_ON_IDS,
-    ...CLOSER_OFFER_IDS.filter((id) => id.startsWith("agency_") && payDoorFor(id)?.status !== "live"),
-  ];
-  assert.ok(blocked.includes("agency_meta_ads") && blocked.includes("free_build_launch"));
+  // Today the registry's offers with no online payment are the agency services whose price is not set.
+  const blocked: CloserOfferId[] = CLOSER_OFFER_IDS.filter((id) => !payDoorFor(id)?.payableNow);
+  assert.ok(blocked.includes("agency_meta_ads"), blocked.join());
   for (const id of blocked) {
     const door = payDoorFor(id);
     assert.ok(door && !door.payableNow, id);
@@ -458,7 +472,20 @@ test("ready_to_pay is refused for an offer with no online payment today", () => 
   }
   // One blocked offer blocks the whole save, named in the error.
   assert.equal(refused(plan(request("ready_to_pay", { offers: ["website_launch", "agency_meta_ads"] }))), scopeMessage("Meta ads management"));
-  assert.equal(refused(plan(request("ready_to_pay", { offers: ["website_launch", "free_build_launch"] }))), message(payDoorFor("free_build_launch")!.offerName));
+  // A site offer whose price is not published yet has no online payment: the plain answer, naming it.
+  withOfferStatus("website_launch", "tbd_ryan", () => {
+    const door = payDoorFor("website_launch")!;
+    assert.equal(door.payableNow, false);
+    const said = refused(plan(request("ready_to_pay", { offers: ["system_map", "website_launch"] })));
+    assert.equal(said, message(door.offerName));
+    assert.deepEqual(copyProblems(said), []);
+  });
+  // The retired free build is not on the list at all, so it never reaches the planner.
+  for (const id of RETIRED_FREE_BUILD_IDS) {
+    const parsed = parseNextStepRequest({ outcome: "ready_to_pay", idempotency_key: KEY, offers: [id] });
+    assert.equal(parsed.ok, false, id);
+    if (!parsed.ok) assert.equal(parsed.error, "One of the offers is not on the published list.");
+  }
   // With nothing picked, the hint asks for what they are paying for today.
   assert.equal(refused(plan(request("ready_to_pay"))), "Pick what they are paying for today.");
 });
@@ -474,7 +501,13 @@ test("isPayableToday is the planner's own rule: online today, or an agency scope
     }
   }
   assert.equal(isPayableToday(payDoorFor("website_launch")!, "new"), true);
-  assert.equal(isPayableToday(payDoorFor("free_website_program")!, "proposal"), false);
+  // A site offer without a published price stays unpayable even at the proposal stage: only an agency scope gets that door.
+  withOfferStatus("website_launch", "tbd_ryan", () => {
+    const door = payDoorFor("website_launch")!;
+    assert.equal(door.kind, "pay_online");
+    assert.equal(isPayableToday(door, "proposal"), false);
+    assert.equal(plan(request("ready_to_pay", { offers: ["website_launch"] }), { lead: lead({ status: "proposal" }) }).ok, false);
+  });
   assert.equal(isPayableToday(payDoorFor("agency_meta_ads")!, "contacted"), false);
   assert.equal(isPayableToday(payDoorFor("agency_meta_ads")!, "proposal"), true);
 });
@@ -516,8 +549,9 @@ test("ready_to_pay hands over an agency pay link once the lead is at the proposa
   for (const status of ["new", "contacted", "call_booked"]) {
     assert.match(refused(plan(request("ready_to_pay", { offers: ["agency_meta_ads"] }), { lead: lead({ status }) })), /has no set price/);
   }
-  // The free build never takes a payment, whatever the stage.
-  assert.match(refused(plan(request("ready_to_pay", { offers: ["free_website_program"] }), { lead: lead({ status: "proposal" }) })), /No online payment/);
+  // The retired free build never takes a payment, whatever the stage: it has no door, so there is nothing to hand over.
+  for (const id of RETIRED_FREE_BUILD_IDS) assert.equal(payDoorFor(id, { leadId: lead().id }), null, id);
+  assert.equal(parseNextStepRequest({ outcome: "ready_to_pay", idempotency_key: KEY, offers: ["free_website_program"] }).ok, false);
 });
 
 test("no_answer and voicemail leave status and last_contacted_at alone and set the next try", () => {
@@ -840,9 +874,30 @@ test("offerIdsFromDetail reads back what a save recorded", () => {
   assert.deepEqual(offerIdsFromDetail(""), []);
 });
 
+test("an old record that names the retired free build reads back without it, and never brings it back", () => {
+  // Saved before the free website build was retired on 2026-09-22.
+  const oldProposal = "Call: wants a proposal for Free Website Program and Free Website + Follow-Up Pack. Proposal due Thu, Sep 17. Outcome: wants_proposal. Offer ids: free_website_program, free_build_followup. Ref old-ref-0000-0000-0000-0001";
+  const mixed = "Call: booked the sit-down for Thu, Sep 17 at 2:00 PM. Talked about Free Website Program and System Map. Outcome: booked. Offer ids: free_website_program, system_map. Ref old-ref-0000-0000-0000-0002";
+  assert.deepEqual(offerIdsFromDetail(oldProposal), []);
+  assert.deepEqual(offerIdsFromDetail(mixed), ["system_map"]);
+  for (const id of RETIRED_FREE_BUILD_IDS) assert.equal(isCloserOfferId(id), false, id);
+  // The rest of the record still reads: its outcome, and its place in the call history.
+  assert.equal(outcomeFromDetail(oldProposal), "wants_proposal");
+  assert.equal(countPriorAttempts([oldProposal]), 0);
+  // Replayed (the route rebuilds a retried save's links from its markers), it hands over nothing.
+  const replay = plan(request("wants_proposal", { offers: offerIdsFromDetail(oldProposal) }));
+  assert.equal(replay.ok, false);
+  const booked = ok(plan(request("booked", { meeting: { localDate: "2026-09-24", time: "14:00", place: null }, offers: offerIdsFromDetail(mixed) })));
+  assert.match(booked.activity.detail, / Offer ids: system_map\. /);
+  assert.ok(!/free/i.test(`${booked.noteBody} ${booked.activity.detail}`), booked.activity.detail);
+});
+
 test("closerOffersFor suggests up to four offers from the interest, the intake, or the services", () => {
-  assert.deepEqual(closerOffersFor("free_website_program", null), ["free_website_program", "free_build_followup", "free_build_content", "free_build_launch"]);
-  assert.deepEqual(closerOffersFor(SAMPLE_CALL_LEAD.interest, SAMPLE_CALL_LEAD.diagnostic), ["free_website_program", "free_build_followup", "free_build_content", "free_build_launch"]);
+  // The sample is a website lead: the Website Launch, then what usually goes with it.
+  assert.deepEqual(closerOffersFor(SAMPLE_CALL_LEAD.interest, SAMPLE_CALL_LEAD.diagnostic), ["website_launch", "lead_followup_campaign", "system_map"]);
+  // An old lead that asked for the retired free build is offered the Website Launch, never the free build or its add-ons.
+  assert.deepEqual(closerOffersFor("free_website_program", null), ["website_launch", "lead_followup_campaign", "system_map"]);
+  assert.deepEqual(closerOffersFor("unsure", { recommendation: { package: "free_website_program" } }), ["website_launch", "lead_followup_campaign", "system_map"]);
 
   // Agency lead with services: those services, in order, unknown slugs dropped.
   assert.deepEqual(closerOffersFor("done_for_you", { source: "agency_intake", services: ["meta-ads", "websites", "bogus", "meta-ads"] }), ["agency_meta_ads", "website_launch"]);
@@ -852,7 +907,7 @@ test("closerOffersFor suggests up to four offers from the interest, the intake, 
   );
   assert.deepEqual(closerOffersFor(null, { source: "agency_intake", services: ["google-ads"] }), ["agency_google_ads"]);
   // Consultation (done_for_you with no services): the consultation set.
-  const consult = ["system_map", "website_launch", "lead_followup_campaign", "free_website_program"];
+  const consult = ["system_map", "website_launch", "lead_followup_campaign"];
   assert.deepEqual(closerOffersFor("done_for_you", { source: CONSULTATION.funnel, meeting: "your_place" }), consult);
   assert.deepEqual(closerOffersFor("done_for_you", null), consult);
   assert.deepEqual(closerOffersFor("done_for_you", { services: [] }), consult);
@@ -929,7 +984,10 @@ test("fixtures are fictional and tell a story the planner agrees with", () => {
   assert.match(SAMPLE_CALL_LEAD.phone ?? "", /555-01\d\d$/);
   assert.match(SAMPLE_CALL_LEAD.email ?? "", /@example\.test$/);
   assert.equal(SAMPLE_CALL_LEAD.source, "meta_lead_ad");
-  assert.ok(["free_website_program", "done_for_you"].includes(SAMPLE_CALL_LEAD.interest ?? ""));
+  // One of the two interests app/api/meta-leads/route.ts writes: a website lead is a Website Launch inquiry.
+  assert.equal(SAMPLE_CALL_LEAD.interest, "website_launch");
+  assert.ok(!RETIRED_FREE_BUILD_IDS.includes(SAMPLE_CALL_LEAD.interest ?? ""));
+  assert.ok(!/free_build|free_website/.test(JSON.stringify(SAMPLE_CALL_LEAD.diagnostic)), "the sample names no retired funnel");
   assert.ok(SAMPLE_NOTES.length > 0 && SAMPLE_NOTES.length <= 3);
   for (let i = 1; i < SAMPLE_NOTES.length; i += 1) assert.ok(SAMPLE_NOTES[i - 1].created_at > SAMPLE_NOTES[i].created_at, "notes are newest first");
   for (const n of SAMPLE_NOTES) {
@@ -957,11 +1015,18 @@ test("fixtures are fictional and tell a story the planner agrees with", () => {
   assert.ok(new Date(SAMPLE_CALL_LEAD.created_at) < new Date(SAMPLE_NOTES[SAMPLE_NOTES.length - 1].created_at));
 
   // Sample mode works end to end: the sample lead plans every panel outcome cleanly.
+  // The offer Dana came in for is the first suggestion, and it takes money online today: a yes on this
+  // call hands over the Website Launch deposit link, and "put it in writing" opens its proposal.
   const { created_at: _c, source: _s, goals: _g, best_contact_method: _b, ...sampleLead } = SAMPLE_CALL_LEAD;
-  const p = ok(planCallOutcome({ lead: sampleLead, request: request("ready_to_pay", { offers: ["website_launch"] }), actorName: SAMPLE_ACTOR_NAME, now: SAMPLE_NOW, priorAttempts: countPriorAttempts(SAMPLE_CALL_ACTIVITY) }));
+  const [primary] = closerOffersFor(SAMPLE_CALL_LEAD.interest, SAMPLE_CALL_LEAD.diagnostic);
+  assert.equal(primary, "website_launch");
+  assert.ok(isPayableToday(payDoorFor(primary)!, SAMPLE_CALL_LEAD.status));
+  const p = ok(planCallOutcome({ lead: sampleLead, request: request("ready_to_pay", { offers: [primary] }), actorName: SAMPLE_ACTOR_NAME, now: SAMPLE_NOW, priorAttempts: countPriorAttempts(SAMPLE_CALL_ACTIVITY) }));
   assert.equal(p.proposalHref, null);
-  const proposal = ok(planCallOutcome({ lead: sampleLead, request: request("wants_proposal", { offers: ["free_website_program"] }), actorName: SAMPLE_ACTOR_NAME, now: SAMPLE_NOW, priorAttempts: 1 }));
-  assert.equal(proposal.proposalHref, "/admin/proposals/sample?offers=free_website_program");
+  assert.ok(p.payMessage?.includes(EXTERNAL_LINKS.stripeWebsiteLaunchDeposit), p.payMessage ?? "no message");
+  assert.ok(p.payMessage?.startsWith("Hi Dana, it's Ryan with The LeadFlow Pro."), p.payMessage ?? "");
+  const proposal = ok(planCallOutcome({ lead: sampleLead, request: request("wants_proposal", { offers: [primary] }), actorName: SAMPLE_ACTOR_NAME, now: SAMPLE_NOW, priorAttempts: 1 }));
+  assert.equal(proposal.proposalHref, "/admin/proposals/sample?offers=website_launch");
 });
 
 // ---------------------------------------------------- schema conformance --

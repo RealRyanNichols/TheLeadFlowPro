@@ -63,7 +63,7 @@ test("the workspace and its sign-in round trip pass through untouched", () => {
 test("the marketing site never renders under the workspace hostname", () => {
   for (const path of [
     "/pricing",
-    "/free-build",
+    "/services",
     "/packages/launch",
     "/go/time-back",
     "/tools",

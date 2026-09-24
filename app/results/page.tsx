@@ -239,8 +239,8 @@ export default function ResultsPage() {
             Map my business
             <ArrowRight aria-hidden="true" />
           </CtaLink>
-          <Link href="/free-build" className={styles.secondaryLink}>
-            Explore the free website offer
+          <Link href="/services" className={styles.secondaryLink}>
+            See what we build
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>

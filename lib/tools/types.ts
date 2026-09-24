@@ -377,8 +377,8 @@ export type ToolMeta = {
   exportFormats?: ExportFormat[];
   /** Only "published" tools are routable, in the sitemap, or in the directory. */
   status?: PublicationStatus;
-  /** Which door the page's final call to action opens: the free build (default) or the agency intake. */
-  cta?: "free_build" | "agency";
+  /** Which door the page's final call to action opens: the website work (default) or the agency intake. */
+  cta?: "website" | "agency";
 };
 
 export type ExportFormat = "txt" | "csv" | "png" | "svg" | "ics" | "print";

@@ -3,7 +3,7 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, Suspense } from "react";
 import { pageView } from "@/lib/analytics/client";
-import { analyticsAllowedNow, initializeMarketingAnalytics } from "@/lib/analytics/browserPrivacy";
+import { analyticsAllowedNow, initializeChaseSheetXPixel, initializeMarketingAnalytics } from "@/lib/analytics/browserPrivacy";
 
 declare global {
   interface Window {
@@ -20,6 +20,7 @@ function PageViewTracker({ metaPixelId, googleAdsId, ga4Id }: TrackingProps) {
   const searchParams = useSearchParams();
   useEffect(() => {
     initializeMarketingAnalytics(metaPixelId, googleAdsId, ga4Id);
+    if (pathname === "/chase-sheet") initializeChaseSheetXPixel();
     // Private transitions also reach pageView so it can discard timers and
     // queued engagement from the previous page without reading private text.
     pageView(pathname);

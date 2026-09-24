@@ -63,6 +63,12 @@ export default async function SalesLayout({
               Today
             </Link>
             <Link
+              href="/admin/sales/uncalled"
+              className="inline-flex min-h-[44px] items-center font-black text-[var(--text)] hover:text-[var(--heading)]"
+            >
+              Uncalled
+            </Link>
+            <Link
               href="/admin/sales/pipeline"
               className="inline-flex min-h-[44px] items-center text-[var(--text)] hover:text-[var(--heading)]"
             >

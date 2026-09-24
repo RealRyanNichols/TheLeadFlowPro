@@ -36,13 +36,25 @@ const nextConfig: NextConfig = {
       "./public/images/social/portfolio-20260907.jpg",
       "./public/images/social/results-20260907.jpg",
       "./public/images/social/commerce-20260907.jpg",
-      "./public/images/social/free-build-20260907.jpg",
       "./public/images/social/scoreboard-20260907.jpg",
     ],
     // The Longview directory and the sitemap read the committed publish
     // export and the removal list at request time.
     "/longview/**": ["./content/longview-directory/*.json"],
     "/sitemap.xml": ["./content/longview-directory/*.json"],
+  },
+  // The free website build offer was retired on 2026-09-22. Paid ads, old
+  // emails, and outside links still point at /free-build, so it answers with
+  // a permanent 301 (not Next's default 308) to the services page. Next
+  // forwards the query string, so utm_* tags survive the hop.
+  async redirects() {
+    return [
+      // An old paid free-build session's success_url: keep the buyer on a
+      // confirmation page (it verifies session_id), not a sales page.
+      { source: "/free-build/welcome", destination: "/thank-you", statusCode: 301 },
+      { source: "/free-build", destination: "/services", statusCode: 301 },
+      { source: "/free-build/:path*", destination: "/services", statusCode: 301 },
+    ];
   },
 };
 

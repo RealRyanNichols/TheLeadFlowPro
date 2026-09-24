@@ -2,7 +2,7 @@
 //
 // This is a leaf module on purpose: no imports, safe in client components,
 // middleware, scripts, and tests. The checkout modules (lib/offers.ts,
-// lib/freeBuild.ts, lib/leadFollowUp.ts, lib/hq/types.ts, lib/toolStudio.ts)
+// lib/leadFollowUp.ts, lib/hq/types.ts, lib/toolStudio.ts)
 // read their numbers from here, and the public pages read the formatted
 // labels from lib/site/offers.ts. `npm run validate:facts` fails the build
 // when one of these amounts is typed out by hand anywhere under app/ or
@@ -37,14 +37,10 @@ export const PRICES = {
   tlfpPackBuilder: 500,
   tlfpPackFounder: 1000,
 
-  /** Free Website Program: the build fee is genuinely zero for approved businesses. */
-  freeBuildFee: 0,
-  freeBuildFollowUpPack: 197,
-  freeBuildContentEngine: 497,
-  freeBuildGrowthEngine: 997,
-
-  /** Managed hosting after the included window on a free build. */
+  /** Days of managed hosting that came with a (retired) free build; proposals still print it. */
   hostingIncludedDays: 90,
+
+  /** Optional managed hosting for a site we built. */
   hostingManagedMonthly: 49,
   hostingWithEditsMonthly: 99,
 
@@ -148,7 +144,7 @@ export function usdRange(low: number, high: number): string {
 export function guardedPriceStrings(): string[] {
   const amounts = new Set<number>();
   for (const [key, value] of Object.entries(PRICES)) {
-    // Day counts and the zero build fee are not dollar amounts worth guarding.
+    // Day counts and single-digit amounts are not dollar amounts worth guarding.
     if (key.endsWith("Days")) continue;
     if (value >= 10) amounts.add(value);
   }
