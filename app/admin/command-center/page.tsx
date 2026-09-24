@@ -21,6 +21,7 @@ import { stripActivityMarkers } from "@/lib/leadTimeline";
 import { requireOperatorAdmin } from "@/lib/operatoros/auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import WorkspaceLinks from "@/components/WorkspaceLinks";
+import TodaysCallsBanner from "../TodaysCallsBanner";
 import LiveRefresh from "./LiveRefresh";
 
 export const metadata = { title: "Flow Mission Control | The LeadFlow Pro" };
@@ -250,6 +251,7 @@ export default async function FlowMissionControl() {
     // Do not turn failed reads into zero-valued metrics.
     return (
       <div className="space-y-6">
+        <TodaysCallsBanner supabase={supabase} className="" />
         <h2 className="text-2xl font-black text-[var(--heading)]">
           Command Center
         </h2>
@@ -520,6 +522,7 @@ export default async function FlowMissionControl() {
 
   return (
     <div className="space-y-6">
+      <TodaysCallsBanner supabase={supabase} className="" />
       <WorkspaceLinks admin />
       <section className="overflow-hidden rounded-[28px] border border-[var(--line)] bg-[#ede6f3] text-[var(--heading)] shadow-[var(--lf-shadow)]">
         <div className="border-b border-[var(--line)] px-5 py-4 sm:px-7">
