@@ -77,8 +77,10 @@ export default function TlfpTermsPage() {
               {FOUNDING_START} each get one numbered founding seat. Seats are handed out in the order the payments clear, one per
               email, and a seat number is never reissued. When seat {TLFP_FOUNDING.seats} is taken the program is closed to new
               seats. An email that already paid us before {FOUNDING_START} for a build, a website, the training, a retainer, or
-              anything else of {usd(foundingTier("build").minPaidCents / 100)} or more (credit packs aside) is an existing client
-              and does not take a seat. A qualifying purchase, and the founding credits it posts once to the seat, is:
+              anything else of {usd(foundingTier("build").minPaidCents / 100)} or more (credit packs aside) is an early client: it
+              takes a seat with its next new qualifying purchase on or after that date, while seats last. Only a new purchase
+              claims a seat; a renewal of a subscription never does. A qualifying purchase, and the founding credits it posts once
+              to the seat, is:
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5">
               {TLFP_FOUNDING_TIERS.map((tier) => (
@@ -88,7 +90,7 @@ export default function TlfpTermsPage() {
                     ? `a payment of ${usd(tier.minPaidCents / 100)} or more toward a build, a website package, a one time agency scope, a Tool Studio build (bought on its own or with a monthly menu, counted at the build's own price), or an invoice from ${BUSINESS.name}: ${tier.oneTimeCredits.toLocaleString("en-US")} credits.`
                     : tier.id === "learn"
                       ? `The ChatGPT Operator course or Operator Academy all access: ${tier.oneTimeCredits} credits.`
-                      : `a paid month of a monthly agency retainer: ${tier.monthlyCredits} credits for that month, and for every later paid month.`}
+                      : `the first paid month of a new monthly agency retainer: ${tier.monthlyCredits} credits for that month, and for every later paid month.`}
                 </li>
               ))}
             </ul>

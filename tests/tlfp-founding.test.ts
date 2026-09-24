@@ -122,7 +122,7 @@ test("what counts as which tier: cash paid, by kind, with the build floor", () =
   assert.equal(foundingTierFor({ kind: "package_full", amountCents: Number.NaN }), null);
 });
 
-test("an earlier qualifying purchase makes an existing client, not a founder", () => {
+test("a client who paid before launch sees the teaser and buys in with a new purchase; a renewal never claims a seat", () => {
   assert.equal(qualifiedBefore([]), false);
   assert.equal(qualifiedBefore([{ kind: "chase_sheet_monthly", amount_cents: 2_000 }, { kind: "pro_bundle", amount_cents: 3_900 }]), false, "small buys do not count");
   assert.equal(qualifiedBefore([{ kind: "build_deposit", amount_cents: PRICES.buildDepositMin * 100 }]), false, "under the build floor does not count");
@@ -134,11 +134,18 @@ test("an earlier qualifying purchase makes an existing client, not a founder", (
   assert.equal(qualifiedBefore([{ kind: "free_build_launch", amount_cents: 99_700 }]), true, "a retired free build was build work");
   assert.equal(qualifiedBefore([{ kind: "tool_monthly_menu", amount_cents: 109_400 }]), true, "any other payment of the build floor or more");
   assert.equal(qualifiedBefore([{ kind: TLFP_CREDITS.purchaseKind, amount_cents: 100_000 }]), false, "credit packs never make a client");
-  assert.ok(terms.includes("is an existing client") && terms.includes("(credit packs aside)"), "the terms say the same");
+  assert.ok(terms.includes("is an early client") && terms.includes("(credit packs aside)"), "the terms say the same");
+  assert.ok(terms.includes("takes a seat with its next new qualifying purchase") && terms.includes("a renewal of a subscription never does"), "early clients buy in with a new purchase");
   assert.equal(foundingStartLabel(), new Date(`${TLFP_FOUNDING.startsAt}T00:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }));
   assert.match(TLFP_FOUNDING.startsAt, /^\d{4}-\d{2}-\d{2}$/);
-  const gateAt = serverLib.indexOf("await isExistingClient(service, email, key)");
-  assert.ok(gateAt > 0 && gateAt < serverLib.indexOf('service.rpc("tlfp_founding_claim"'), "checked before a seat is claimed");
+  assert.ok(!serverLib.includes("await isExistingClient(service, email, key)"), "an early client is never blocked from buying in");
+  const renewalAt = serverLib.indexOf("if (input.renewal) {");
+  assert.ok(renewalAt > 0 && renewalAt < serverLib.indexOf('service.rpc("tlfp_founding_claim"'), "a renewal is stopped before a seat is claimed");
+  const renewals = hook.slice(hook.indexOf("async function recordSubscriptionInvoice("), hook.indexOf("async function finishPaidInvoice("));
+  assert.ok(renewals.includes("renewal: true,"), "subscription renewals are marked as renewals");
+  assert.ok(serverLib.includes("earlyClient = await isExistingClient(createServiceClient(), email);"), "the balance card knows an early client");
+  assert.ok(card.includes("account?.earlyClient ? <FoundingTeaser /> : null") && card.includes("A seat is waiting."), "and shows the teaser, no email sent");
+  assert.ok(page.includes("Already a client before the {TLFP_FOUNDING.name} opened?"), "/tlfp says how an early client gets in");
   assert.ok(serverLib.includes('.lt("created_at", opened)') && serverLib.includes('.lt("paid_at", opened)'), "purchases and Sales Desk invoices before the start count");
 });
 
@@ -268,7 +275,7 @@ test("the client sees the seat in the playbook's words, and no price talk anywhe
   assert.ok(page.includes("Credit packs do not count.") && card.includes("Credit packs do not count."), "the rebate excludes credit packs, and says so");
   assert.ok(page.includes("The ChatGPT Operator or Operator Academy all access") && terms.includes("The ChatGPT Operator course or Operator Academy all access"), "Learn It names what qualifies");
   assert.ok(!/any paid Operator Academy course|a paid Operator Academy course/.test(page + terms), "no promise the Content Engine course does not keep");
-  assert.ok(terms.includes("is an existing client") && terms.includes("never a second bonus"), "the terms say who is not a founder and that the bonus is once");
+  assert.ok(terms.includes("is an early client") && terms.includes("never a second bonus"), "the terms say how early clients get in and that the bonus is once");
   assert.ok(card.includes("founding_bonus:") && card.includes("founding_rebate:") && card.includes("founding_reversed:"), "the ledger rows read in plain words");
   for (const [name, source] of [["page", page], ["card", card], ["terms", terms]] as const) {
     assert.ok(!/[–—]/.test(source), `${name} carries no en or em dash`);

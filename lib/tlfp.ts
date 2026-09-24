@@ -60,6 +60,8 @@ export type TlfpAccountView = {
   history: TlfpLedgerRow[];
   /** The Founding 100 seat on this email, or null. */
   founding: TlfpFoundingSeat | null;
+  /** No seat yet, and paid us before the program opened: show the teaser. */
+  earlyClient: boolean;
 };
 
 export type TlfpReason =
@@ -294,8 +296,8 @@ export type FoundingOutcome = {
   claimedHere: boolean;
   /** True when this purchase qualified but all seats were already taken. */
   soldOut: boolean;
-  /** True when this purchase qualified but the buyer already had a qualifying purchase before the program opened. */
-  existingClient: boolean;
+  /** True when this purchase qualified but is a renewal, which never claims a seat (only new purchases do). */
+  renewal: boolean;
   /** True when the money was already refunded or disputed (a late redelivery): nothing posts. */
   voided: boolean;
   /** One-time bonus on the seat (only reported when claimedHere). */
@@ -327,11 +329,14 @@ function escapeLike(value: string): string {
 }
 
 /**
- * True when this email paid for something that would have qualified before
- * the program opened: an existing client, not a founder. Checks purchases
- * (checkouts, renewals, dashboard invoices) and paid Sales Desk invoices.
+ * True when this email paid us before the program opened (lib/tlfpCredits.ts
+ * qualifiedBefore): an early client. Early clients get the teaser on their
+ * balance card and buy in with their next new qualifying purchase, like
+ * anyone else; renewals of what they already had never claim a seat. Checks
+ * purchases (checkouts, renewals, dashboard invoices) and paid Sales Desk
+ * invoices.
  */
-async function isExistingClient(service: SupabaseClient, email: string, key: string): Promise<boolean> {
+export async function isExistingClient(service: SupabaseClient, email: string, key = ""): Promise<boolean> {
   const opened = `${TLFP_FOUNDING.startsAt}T00:00:00Z`;
   const [purchases, invoices] = await Promise.all([
     service
@@ -340,7 +345,7 @@ async function isExistingClient(service: SupabaseClient, email: string, key: str
       .ilike("email", escapeLike(email))
       .eq("status", "paid")
       .lt("created_at", opened)
-      .neq("stripe_session_id", key)
+      .neq("stripe_session_id", key || "none")
       .limit(200),
     service
       .from("sales_invoices")
@@ -348,7 +353,7 @@ async function isExistingClient(service: SupabaseClient, email: string, key: str
       .ilike("customer_email", escapeLike(email))
       .eq("status", "paid")
       .lt("paid_at", opened)
-      .neq("stripe_invoice_id", key)
+      .neq("stripe_invoice_id", key || "none")
       .limit(50),
   ]);
   if (purchases.error) throw foundingError("existing client check", purchases.error);
@@ -366,11 +371,12 @@ async function isExistingClient(service: SupabaseClient, email: string, key: str
  * its stripe_session_id, so a refund finds it, and every ref is built from
  * it, so a retried event posts nothing twice.
  *
- * In order: when the purchase qualifies (lib/tlfpCredits.ts foundingTierFor,
- * on `tierKind`/`tierCents` when the qualifying part differs from the whole
- * payment), the buyer holds no seat, and was not already a client before the
- * program opened, claim a seat and post its one-time bonus (the database does
- * both in one transaction and refuses seat 101). Then, for any seat holder:
+ * In order: when a new purchase (never a `renewal`) qualifies
+ * (lib/tlfpCredits.ts foundingTierFor, on `tierKind`/`tierCents` when the
+ * qualifying part differs from the whole payment) and the buyer holds no
+ * seat, claim a seat and post its one-time bonus (the database does both in
+ * one transaction and refuses seat 101). That is how a client who paid before
+ * launch buys in: with their next new purchase. Then, for any seat holder:
  * an Operations Partner month posts its monthly credits, and every paid
  * purchase posts the standing rebate on the whole cash amount. All of it
  * under the 1,999 cap.
@@ -387,6 +393,8 @@ export async function applyFoundingPerks(
     billing?: string | null;
     tierKind?: string;
     tierCents?: number | null;
+    /** A subscription renewal: earns monthly credits and the rebate for a seat holder, never claims a seat. */
+    renewal?: boolean;
   },
 ): Promise<FoundingOutcome> {
   const email = normalizeEmail(input.email);
@@ -396,7 +404,7 @@ export async function applyFoundingPerks(
     seatNo: null,
     claimedHere: false,
     soldOut: false,
-    existingClient: false,
+    renewal: false,
     voided: false,
     bonus: 0,
     monthly: 0,
@@ -433,8 +441,8 @@ export async function applyFoundingPerks(
     outcome.claimedHere = seat.data.ref === key;
     if (outcome.claimedHere) outcome.bonus = Number(seat.data.bonus_applied ?? 0);
   } else if (tier) {
-    if (await isExistingClient(service, email, key)) {
-      outcome.existingClient = true;
+    if (input.renewal) {
+      outcome.renewal = true;
     } else {
       const { data, error } = await service.rpc("tlfp_founding_claim", {
         p_email: email,
@@ -652,6 +660,16 @@ export async function getTlfpAccountForCurrentUser(): Promise<TlfpAccountView | 
     supabase.from("tlfp_founding_seats").select("seat_no, tier, bonus_applied, claimed_at").eq("email", email).maybeSingle(),
   ]);
   const seat = seatRes.error ? null : seatRes.data;
+  // The teaser for a client who paid before launch and has no seat yet.
+  // Never lets a read problem take the card down.
+  let earlyClient = false;
+  if (!seat && !seatRes.error) {
+    try {
+      earlyClient = await isExistingClient(createServiceClient(), email);
+    } catch {
+      earlyClient = false;
+    }
+  }
 
   return {
     email,
@@ -667,6 +685,7 @@ export async function getTlfpAccountForCurrentUser(): Promise<TlfpAccountView | 
           claimedAt: String(seat.claimed_at),
         }
       : null,
+    earlyClient,
   };
 }
 

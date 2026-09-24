@@ -576,6 +576,7 @@ async function foundingPerksOnPaid(
     billing?: string | null;
     tierKind?: string;
     tierCents?: number | null;
+    renewal?: boolean;
   },
 ) {
   let outcome: Awaited<ReturnType<typeof applyFoundingPerks>>;
@@ -1762,13 +1763,16 @@ async function recordSubscriptionInvoice(
     if (leadId) await markLeadActivity(supabase, leadId, `Agency retainer renewed: ${meta.service_name ?? meta.service ?? "service"}, ${dollars(invoice.amountPaidCents)}. Stripe invoice: ${invoiceId}.`, "Agency renewal");
   }
   // A retainer month is an Operations Partner month; every renewal earns a
-  // seat holder the rebate. Month one was handled on the checkout session.
+  // seat holder the rebate. Month one was handled on the checkout session. A
+  // renewal never claims a seat: a client who paid before launch buys in with
+  // a new purchase, not with the renewal of what they already had.
   await foundingPerksOnPaid(supabase, {
     email,
     kind,
     amountCents: invoice.amountPaidCents,
     key: invoiceId,
     billing: invoice.family === "agency_payment" ? "monthly" : null,
+    renewal: true,
   });
   return true;
 }

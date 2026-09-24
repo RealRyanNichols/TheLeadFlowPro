@@ -23,6 +23,26 @@ const REASON_LABELS: Record<string, string> = {
   founding_restored: "Founding credits restored",
 };
 
+/** For a client who paid before launch and has no seat yet: the seat is theirs to buy into. */
+function FoundingTeaser() {
+  return (
+    <div className="mt-5 rounded-xl border border-[var(--accent-line)] bg-[var(--panel)] px-4 py-3 text-sm">
+      <p className="flex items-center gap-2 font-black text-[var(--heading)]">
+        <Award className="h-4 w-4 flex-none text-[var(--blue)]" aria-hidden="true" />
+        You were here before the {TLFP_FOUNDING.name} opened.
+      </p>
+      <p className="mt-1 text-[var(--muted)]">
+        A seat is waiting. Your next new build, training, or retainer claims it, with its founding bonus and{" "}
+        {TLFP_FOUNDING.rebatePercent}% back on what you pay after.
+      </p>
+      <p className="mt-1 text-[var(--muted)]">{TLFP_FOUNDING.valueLine}</p>
+      <Link href={`${TLFP_CREDITS.path}#founding`} className="mt-2 inline-block font-bold text-[var(--blue)] underline-offset-2 hover:underline">
+        See the seats
+      </Link>
+    </div>
+  );
+}
+
 /** The seat, in the playbook's words: a dollar of our work each, no price talk. */
 function FoundingSeat({ founding }: { founding: NonNullable<TlfpAccountView["founding"]> }) {
   const tier = foundingTier(founding.tier);
@@ -109,7 +129,7 @@ export default function TlfpBalanceCard({
         </div>
       </div>
 
-      {account?.founding ? <FoundingSeat founding={account.founding} /> : null}
+      {account?.founding ? <FoundingSeat founding={account.founding} /> : account?.earlyClient ? <FoundingTeaser /> : null}
 
       {account ? (
         history.length ? (

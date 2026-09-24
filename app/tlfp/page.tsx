@@ -209,6 +209,10 @@ export default async function TlfpPage({
               <p className="font-bold text-[var(--heading)]">{TLFP_FOUNDING.valueLine}</p>
               <p className="mt-2 text-[var(--muted)]">Earned credits become claimable as TLFP later.</p>
               <p className="mt-2 text-xs text-[var(--quiet)]">
+                Already a client before the {TLFP_FOUNDING.name} opened? Your next new build, training, or retainer claims your seat.
+                Renewals of what you already have do not.
+              </p>
+              <p className="mt-2 text-xs text-[var(--quiet)]">
                 One seat per email. One founding bonus per seat, set by the purchase that claims it. Credit packs do not claim a seat.
                 A refunded purchase takes its founding credits back. Balance cap{" "}
                 {TLFP_CREDITS.maxBalance.toLocaleString("en-US")} still applies.{" "}
