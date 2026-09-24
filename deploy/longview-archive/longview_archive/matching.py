@@ -30,6 +30,7 @@ import base64
 import hashlib
 import json
 import logging
+import re
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
@@ -51,6 +52,12 @@ SOURCE_LABELS: Dict[str, str] = {
 WEBSITE_SOURCES: Dict[str, str] = {"osm": "osm", "npi": "npi", "tx_tabc": "tx_tabc"}
 
 RESERVED_SLUGS = frozenset({"about", "new", "hiring", "category", "page", "search", "status"})
+# The directory's A to Z pages live at page-2/, page-3/, ... next to the profiles.
+_PAGE_SLUG = re.compile(r"page-\d+")
+
+
+def _reserved(slug: str) -> bool:
+    return slug in RESERVED_SLUGS or bool(_PAGE_SLUG.fullmatch(slug))
 
 MERGE_SIMILARITY = 0.6
 REVIEW_SIMILARITY = 0.4
@@ -837,7 +844,7 @@ def _choose_slug(conn: sqlite3.Connection, biz: sqlite3.Row, public_id: str) -> 
     else:
         candidates.append(public_id)
     for slug in candidates:
-        if slug and slug not in RESERVED_SLUGS and not _slug_taken(conn, slug, biz["id"]):
+        if slug and not _reserved(slug) and not _slug_taken(conn, slug, biz["id"]):
             return slug
     n = 2
     while _slug_taken(conn, f"{candidates[-1]}-{n}", biz["id"]):

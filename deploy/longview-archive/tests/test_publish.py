@@ -17,7 +17,7 @@ NOW = datetime(2026, 9, 24, 18, 0, 7, tzinfo=timezone.utc)
 PLANTED = "ZEPHYRINE QUILLFEATHER-SAMPLETON"
 SITE = "https://www.exampletire.example/"
 
-# Mirrors lib/longviewDirectory/types.ts and the checks in validate.ts.
+# The publish contract (SPEC.md) as longview_archive/validate.py checks it.
 TOP_KEYS = ["schemaVersion", "generatedAt", "batchId", "sample", "indexable", "scope", "counts",
             "sources", "categories", "businesses"]
 BUSINESS_KEYS = ["id", "slug", "name", "category", "categoryLabel", "address", "permitSince", "website",
@@ -131,7 +131,7 @@ def public_id(conn, bid):
 
 class ContractAssertions(unittest.TestCase):
     def assert_contract(self, export):
-        """Every key and type in lib/longviewDirectory/types.ts, plus validate.ts rules."""
+        """Every key and type in the publish contract, plus the rules validate.py checks."""
         self.assertEqual(list(export), TOP_KEYS)
         self.assertEqual(export["schemaVersion"], 1)
         self.assertRegex(export["generatedAt"], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")

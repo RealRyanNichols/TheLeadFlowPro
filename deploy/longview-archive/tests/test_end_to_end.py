@@ -4,8 +4,8 @@ Open-data syncs (fake Socrata, Overpass, and NPI transports) -> matching ->
 due/visit/apply until nothing is due (PoliteFetcher over fake websites, with
 the real 20-second spacing on a fake clock) -> publish -> status. Then the
 export is checked against every privacy and provenance rule, run twice for
-determinism, and handed to the website's own validator
-(lib/longviewDirectory/validate.ts) through node. All data is fictional and
+determinism, handed to the site's own contract check (validate.py), approved,
+and built into the static directory (site.py). All data is fictional and
 nothing touches the network.
 
     cd deploy/longview-archive && python3 -m unittest tests.test_end_to_end -v
@@ -18,7 +18,6 @@ import io
 import json
 import logging
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -26,12 +25,10 @@ import unittest
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from longview_archive import db, normalize, publish
+from longview_archive import approval, db, normalize, publish, site, validate
 from tests.fixtures.e2e import pipeline
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-VALIDATOR = REPO_ROOT / "lib" / "longviewDirectory" / "validate.ts"
-REGISTER = REPO_ROOT / "scripts" / "register-ts.mjs"
 RUN_DATE = "2026-09-24"  # START is 13:00 UTC, 08:00 in Longview
 
 EXPECTED_SLUGS = [
@@ -359,32 +356,22 @@ class EndToEndTest(unittest.TestCase):
         self.assertNotIn('"generatedAt"', without_batch_stamp(first_text))
 
     def test_site_validator_accepts_the_export(self):
-        node = shutil.which("node")
-        if node is None:
-            self.skipTest("node is not installed; the site validator (validate.ts) was not run")
-        if not VALIDATOR.exists() or not REGISTER.exists():
-            self.skipTest("lib/longviewDirectory/validate.ts or scripts/register-ts.mjs is missing")
-        with tempfile.TemporaryDirectory(prefix="lva-validate-") as tmp:
-            script = Path(tmp) / "validate_export.ts"
-            script.write_text(
-                'import { readFileSync } from "node:fs";\n'
-                f'import {{ validateDirectory }} from {json.dumps(VALIDATOR.as_uri())};\n'
-                "const raw: unknown = JSON.parse(readFileSync(process.argv[2], \"utf8\"));\n"
-                "const result = validateDirectory(raw);\n"
-                "console.log(JSON.stringify({ dropped: result.dropped, issues: result.issues,"
-                " published: result.directory.businesses.length }));\n",
-                encoding="utf-8",
-            )
-            proc = subprocess.run(
-                [node, "--experimental-strip-types", "--no-warnings", "--import", "./scripts/register-ts.mjs",
-                 str(script), str(self.pipe.export_path)],
-                cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=120,
-            )
-        self.assertEqual(proc.returncode, 0, proc.stderr)
-        report = json.loads(proc.stdout.strip().splitlines()[-1])
-        self.assertEqual(report["dropped"], [])
-        self.assertEqual(report["issues"], [])
-        self.assertEqual(report["published"], 10)
+        result = validate.validate_directory(self.export)
+        self.assertEqual(result.dropped, [])
+        self.assertEqual(result.issues, [])
+        self.assertEqual(len(result.directory["businesses"]), 10)
+
+    def test_approved_export_becomes_the_static_directory(self):
+        with self.assertLogs("longview_archive", level="INFO"):
+            approval.approve(self.conn, self.pipe.settings, actor="e2e", now=self.pipe.clock.now())
+        folder = site.site_dir(self.pipe.settings)
+        profiles = sorted(p.parent.name for p in folder.glob("*/index.html")
+                          if p.parent.name not in ("about", "new", "hiring"))
+        self.assertEqual(profiles, EXPECTED_SLUGS)
+        text = " ".join(p.read_text(encoding="utf-8") for p in folder.rglob("*.html"))
+        for private in pipeline.TAXPAYER_NAMES + pipeline.PERSON_NAMES + pipeline.PRIVATE_EMAILS:
+            self.assertNotIn(private, text)
+        self.assertNotIn("Example Bakery", text)  # the removal request made before crawling
 
     def test_export_round_trips_through_diff(self):
         diff = publish.diff_exports(self.export, json.loads(json.dumps(self.export)))

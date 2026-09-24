@@ -17,10 +17,14 @@ from __future__ import annotations
 import os
 import re
 import shutil
+import socket
 import stat
 import subprocess
 import tempfile
+import time
 import unittest
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -51,8 +55,12 @@ FORBIDDEN_IN_SCRIPTS = (
 # The CLI commands in SPEC.md ("service.py and __main__.py").
 SPEC_COMMANDS = {
     "run", "migrate", "sync", "match", "crawl-once", "publish", "status",
-    "backup", "suppress", "review", "check", "exports", "publish-pr",
+    "backup", "suppress", "review", "check", "exports", "approve", "site",
 }
+STRICT_CSP = ("default-src 'none'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none';"
+              " frame-ancestors 'none'")
+DIRECTORY_CSP = ("default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
+                 " connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
 
 
 def parse_unit(text: str) -> dict:
@@ -244,25 +252,49 @@ class CaddyFileTest(unittest.TestCase):
         ):
             with self.subTest(header=needle):
                 self.assertIn(needle, self.text)
+        # The noindex header covers everything, the directory included, while
+        # this is a staging host; the file says going public is a separate change.
+        snippet = re.search(r"\(longview_archive_headers\) \{(.*?)\n\}", self.text, re.S).group(1)
+        self.assertIn("X-Robots-Tag", snippet)
+        self.assertRegex(self.text, r"(?m)^\timport longview_archive_headers$")
+
+    @staticmethod
+    def directives(policy: str) -> dict:
+        return dict((part.split()[0], part.split()[1:]) for part in (p.strip() for p in policy.split(";")) if part)
 
     def test_csp_allows_nothing_third_party(self):
-        match = re.search(r'Content-Security-Policy "([^"]+)"', self.text)
-        self.assertIsNotNone(match)
-        policy = match.group(1)
-        directives = dict(
-            (part.split()[0], part.split()[1:])
-            for part in (p.strip() for p in policy.split(";"))
-            if part
-        )
-        self.assertEqual(directives["default-src"], ["'none'"])
-        for name in ("base-uri", "form-action", "frame-ancestors"):
-            self.assertEqual(directives[name], ["'none'"])
+        policies = re.findall(r'Content-Security-Policy "([^"]+)"', self.text)
+        self.assertEqual(sorted(policies), sorted([STRICT_CSP, DIRECTORY_CSP]))
         allowed = {"'none'", "'self'", "data:"}
-        for name, sources in directives.items():
-            for source in sources:
-                with self.subTest(directive=name, source=source):
-                    self.assertIn(source, allowed)
-        self.assertNotRegex(policy, r"https?:|//|\*|unsafe")
+        for policy in policies:
+            directives = self.directives(policy)
+            self.assertEqual(directives["default-src"], ["'none'"])
+            self.assertEqual(directives["style-src"], ["'self'"])
+            self.assertEqual(directives["img-src"], ["'self'", "data:"])
+            for name in ("base-uri", "form-action", "frame-ancestors"):
+                self.assertEqual(directives[name], ["'none'"])
+            for name, sources in directives.items():
+                for source in sources:
+                    with self.subTest(directive=name, source=source):
+                        self.assertIn(source, allowed)
+            self.assertNotRegex(policy, r"https?:|//|\*|unsafe")
+        strict = self.directives(STRICT_CSP)
+        self.assertNotIn("script-src", strict)
+        self.assertNotIn("connect-src", strict)
+        directory = self.directives(DIRECTORY_CSP)
+        self.assertEqual(directory["script-src"], ["'self'"])
+        self.assertEqual(directory["connect-src"], ["'self'"])
+
+    def test_script_policy_only_on_the_directory_paths(self):
+        self.assertIn("@longview_directory path /longview/businesses /longview/businesses/*", self.text)
+        self.assertIn("@longview_not_directory not path /longview/businesses /longview/businesses/*", self.text)
+        self.assertRegex(self.text, r"(?m)^\timport longview_archive_csp_directory @longview_directory$")
+        self.assertRegex(self.text, r"(?m)^\timport longview_archive_csp_strict @longview_not_directory$")
+        errors = re.search(r"handle_errors \{(.*?)\n\t\}", self.text, re.S).group(1)
+        self.assertIn("import longview_archive_csp_strict *", errors)
+        self.assertIn("import longview_archive_headers", errors)
+        # Exactly one snippet sets each policy, with the matcher as its argument.
+        self.assertEqual(len(re.findall(r"header \{args\[0\]\} Content-Security-Policy", self.text)), 2)
 
     def test_robots_blocked_by_caddy_itself(self):
         block = re.search(r"handle /robots\.txt \{(.*?)\n\t\}", self.text, re.S)
@@ -273,20 +305,27 @@ class CaddyFileTest(unittest.TestCase):
         self.assertIn("Disallow: /", body)
         self.assertRegex(body, r"(?m)^\t+TXT 200$")
 
-    def test_serves_only_status_paths(self):
+    def test_serves_only_the_directory_and_status_paths(self):
         self.assertIn("@status path /status /status/ /status/* /status.json", self.text)
-        self.assertRegex(self.text, r"handle / \{\s*redir \* /status/ 302\s*\}")
+        self.assertRegex(self.text, r"handle / \{\s*redir \* /longview/businesses/ 302\s*\}")
+        self.assertRegex(self.text, r"handle /longview/businesses \{\s*redir \* /longview/businesses/ 308\s*\}")
+        block = re.search(r"handle /longview/businesses/\* \{(.*?)\n\t\}", self.text, re.S)
+        self.assertIsNotNone(block)
+        self.assertIn("try_files {path} {path}/index.html", block.group(1))
+        self.assertIn("file_server", block.group(1))
         self.assertIn('respond "Not found" 404', self.text)
         self.assertIn("handle_errors", self.text)
-        for word in ("reverse_proxy", "php_fastcgi", "localhost", "127.0.0.1", "import sites"):
-            self.assertNotIn(word, self.text)
+        self.assertNotIn("/status/ 302", self.text)
+        for word in ("reverse_proxy", "php_fastcgi", "localhost", "127.0.0.1", "import sites", "vercel"):
+            self.assertNotIn(word, self.text.lower() if word == "vercel" else self.text)
 
     def test_tabs_and_header_comment(self):
         for number, line in enumerate(self.text.splitlines(), 1):
             with self.subTest(line=number):
                 self.assertFalse(line.startswith(" "), "indent with tabs")
         header = self.text.split("\n\n")[0]
-        for needle in ("Owner:", "/status", "uninstall.sh", "caddy validate", "2.7"):
+        for needle in ("Owner:", "/status", "/longview/businesses/", "uninstall.sh", "caddy validate", "2.7",
+                       "noindex", "LVA_INDEXABLE", "approved change to this file", "DNS"):
             self.assertIn(needle, header)
 
     def test_caddy_accepts_it(self):
@@ -302,6 +341,74 @@ class CaddyFileTest(unittest.TestCase):
                 env={**os.environ, "HOME": tmp, "XDG_DATA_HOME": tmp, "XDG_CONFIG_HOME": tmp},
             )
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+    def test_caddy_serves_the_directory_and_status(self):
+        """Run the real file on a free local port against a tiny www and check routes and headers."""
+        caddy = shutil.which("caddy")
+        if not caddy:
+            self.skipTest("caddy not installed")
+        with tempfile.TemporaryDirectory() as tmp:
+            www = Path(tmp) / "www"
+            build = www / "longview" / ".builds" / "b1"
+            (build / "about").mkdir(parents=True)
+            (build / "index.html").write_text("<h1>directory</h1>")
+            (build / "about" / "index.html").write_text("<h1>about</h1>")
+            (build / "search.js").write_text("/* js */")
+            (www / "longview" / "businesses").symlink_to(Path(".builds") / "b1")
+            (www / "status").mkdir()
+            (www / "status" / "index.html").write_text("<h1>status</h1>")
+            with socket.socket() as sock:
+                sock.bind(("127.0.0.1", 0))
+                port = sock.getsockname()[1]
+            text = self.text.replace("longview.165-227-248-110.sslip.io {", f"http://127.0.0.1:{port} {{")
+            text = text.replace("/var/lib/longview-archive/www", str(www))
+            caddyfile = Path(tmp) / "Caddyfile"
+            caddyfile.write_text("{\n\tadmin off\n}\n\n" + text)
+            env = {**os.environ, "HOME": tmp, "XDG_DATA_HOME": tmp, "XDG_CONFIG_HOME": tmp}
+            proc = subprocess.Popen([caddy, "run", "--config", str(caddyfile), "--adapter", "caddyfile"],
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=env)
+            try:
+                opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
+
+                def get(path):
+                    deadline = time.monotonic() + 15
+                    while True:
+                        try:
+                            resp = opener.open(f"http://127.0.0.1:{port}{path}", timeout=5)
+                            return resp.status, resp.headers
+                        except urllib.error.HTTPError as exc:
+                            return exc.code, exc.headers
+                        except OSError:
+                            if time.monotonic() > deadline:
+                                raise
+                            time.sleep(0.2)
+
+                status, headers = get("/")
+                self.assertEqual((status, headers["Location"]), (302, "/longview/businesses/"))
+                for path in ("/longview/businesses/", "/longview/businesses/about", "/longview/businesses/about/",
+                             "/longview/businesses/search.js"):
+                    with self.subTest(path=path):
+                        status, headers = get(path)
+                        self.assertEqual(status, 200)
+                        self.assertEqual(headers["Content-Security-Policy"], DIRECTORY_CSP)
+                        self.assertIn("noindex", headers["X-Robots-Tag"])
+                for path, want in (("/status/", 200), ("/longview/businesses/missing/", 404),
+                                   ("/longview/.builds/b1/", 404), ("/elsewhere", 404)):
+                    with self.subTest(path=path):
+                        status, headers = get(path)
+                        self.assertEqual(status, want)
+                        self.assertEqual(headers["Content-Security-Policy"], STRICT_CSP)
+                        self.assertIn("noindex", headers["X-Robots-Tag"])
+                status, headers = get("/longview/businesses")
+                self.assertEqual((status, headers["Location"]), (308, "/longview/businesses/"))
+            finally:
+                proc.terminate()
+                proc.wait(timeout=30)
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None
 
 
 class ScriptStaticTest(unittest.TestCase):
@@ -408,17 +515,25 @@ class ReadmeTest(unittest.TestCase):
             "rm -f /var/lib/longview-archive/PAUSE",
             "bash /opt/longview-archive/uninstall.sh",
             "journalctl -u longview-archive -n 100 --no-pager",
+            f"https://{STATUS_HOST}/longview/businesses/",
             "status.json",
-            "publish --out",
-            "content/longview-directory/directory.json",
+            "lva approve",
+            "lva approve --auto on",
+            "lva approve --auto off",
+            "lva site",
+            "more than 25%",
             "suppress --id",
-            "content/longview-directory/suppressions.json",
             "review list",
             "$48/month",
-            "Merging the pull request is the approval",
+            "Nothing here uses Vercel",
         ):
             with self.subTest(needle=needle):
                 self.assertIn(needle, self.text)
+
+    def test_no_batch_pull_requests_or_vercel_steps(self):
+        for gone in ("publish-pr", "github-token", "Automatic batch pull requests", "Merging the pull request is"
+                     " the approval", "content/longview-directory/"):
+            self.assertNotIn(gone, self.text)
 
     def test_uses_spec_command_names(self):
         used = set(re.findall(r"\blva ([a-z][a-z-]*)", self.text))

@@ -5,7 +5,9 @@ This is the contract every module is built against. The runbook for operators is
 
 ## What it is
 
-Two halves with one contract between them.
+Two halves with one contract between them, both on the LeadFlow droplet.
+Nothing is deployed to Vercel or through GitHub: the engine makes no call to
+any code host or deploy service.
 
 1. **The archive engine** (`deploy/longview-archive/`, Python 3.10+, standard
    library only). It runs 24/7 on the LeadFlow droplet as the systemd service
@@ -14,12 +16,14 @@ Two halves with one contract between them.
    noindex status page, and writes a **publish export**: one JSON file that holds
    only publishable businesses and publishable fields, each fact with its source
    and the date it was checked.
-2. **The public directory** (`app/longview/businesses/`, `lib/longviewDirectory/`)
-   on theleadflowpro.com. It renders from the committed publish export at
-   `content/longview-directory/directory.json`. A new batch reaches the website
-   only through a pull request, so merging the pull request is the approval.
-   The engine can open that pull request itself (`github_pr.py`, off unless a
-   GitHub token file exists); it never merges.
+2. **The public directory**: static pages the engine generates (`site.py`)
+   into `www/longview/businesses/` and Caddy serves at
+   `https://longview.165-227-248-110.sslip.io/longview/businesses/`, the same
+   path it will have on theleadflowpro.com. The pages render only the
+   **approved** batch (`exports/publish/approved.json`). A person approves with
+   one command (`lva approve`), or turns on auto-approve, which still holds a
+   batch that would remove more than 25% of the approved businesses. The
+   earlier Next.js pages on Vercel were removed on the owner's instruction.
 
 Nothing in the engine contacts a business, sends a message, or writes to any
 CRM, email list, or ad audience.
@@ -59,8 +63,11 @@ environment variable so tests never touch real paths or the network.
 | `data_dir` | `/var/lib/longview-archive` | `LVA_DATA_DIR` |
 | `db_path` | `{data_dir}/db/archive.db` | derived |
 | `www_dir` | `{data_dir}/www` (served by Caddy) | derived |
+| `site_dir` | `{www_dir}/longview/businesses` (a link to the live build) | derived |
 | `backup_dir` | `{data_dir}/backups` | derived |
 | `export_dir` | `{data_dir}/exports` (private, 0700) | derived |
+| `publish_export_path` | `{export_dir}/publish/directory.json` (every 45 min) | derived |
+| `approved_export_path` | `{export_dir}/publish/approved.json` (what the site renders) | derived |
 | `pause_file` | `{data_dir}/PAUSE` | derived |
 | `user_agent` | `LeadFlowPro-LongviewArchive/1.0 (+https://www.theleadflowpro.com/longview/businesses/about; hello@theleadflowpro.com)` | `LVA_USER_AGENT` |
 | `max_sites_concurrent` | 2 | `LVA_MAX_SITES` |
@@ -84,16 +91,15 @@ environment variable so tests never touch real paths or the network.
 | `allow_private_hosts` | False (tests only) | `LVA_ALLOW_PRIVATE_HOSTS=1` |
 | `publish_scopes` | `("city",)` | |
 | `indexable` | False (global switch, see decisions) | `LVA_INDEXABLE=1` |
-| `github_token_file` | `/etc/longview-archive/github-token` (absent: batch pull requests off) | `LVA_GITHUB_TOKEN_FILE` |
-| `github_repo` | `RealRyanNichols/TheLeadFlowPro` | `LVA_GITHUB_REPO` |
-| `github_timeout_s` | 30.0 | `LVA_GITHUB_TIMEOUT` |
-| `publish_pr_every_s` | 86400 (at most one batch pull request update a day; lower only in tests) | `LVA_PUBLISH_PR_EVERY` |
+
+Auto-approve is not a setting: it is `meta.auto_approve` (`on`/`off`, default
+off), changed with `lva approve --auto on|off`.
 
 Constants in `config.py`: `LONGVIEW_ZIPS = ("75601","75602","75603","75604","75605")`,
 `EAST_TEXAS_AREA_CODES = ("903","430")`, `TIMEZONE = "America/Chicago"`,
 `CONTACT_EMAIL = "hello@theleadflowpro.com"`,
 `DIRECTORY_URL = "https://www.theleadflowpro.com/longview/businesses"`,
-`VERSION`.
+`STAGING_HOST = "longview.165-227-248-110.sslip.io"`, `VERSION`.
 
 ## Storage (`longview_archive/db.py`)
 
@@ -282,7 +288,8 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   source_id:source_key))[:10].lower()`, and a unique slug `slugify(name)` (set
   once; only the OSM-only confirmation above clears and rebuilds it),
   then `-{street slug}`, then `-{public_id suffix}` on collision. Reserved slugs:
-  `about`, `new`, `hiring`, `category`, `page`, `search`, `status`.
+  `about`, `new`, `hiring`, `category`, `page`, `search`, `status`, and
+  `page-<n>` (the A to Z pages live next to the profiles).
 
 ### `sources/` (open data)
 - `sources/http.py`: `get_json(url, settings, params=None, data=None)`
@@ -434,68 +441,86 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   otherwise `ready`.
 - `build_export(conn, settings, now) -> dict` in the publish contract below,
   deterministic ordering (by `slug`), and `write_export(path, data)` atomically.
-- `diff_exports(old, new) -> {added, removed, changed}` for pull request notes.
+- `diff_exports(old, new) -> {added, removed, changed}` for the approval counts.
 
-### `github_pr.py` (batch pull requests, off by default)
-- On only when `github_token_file` exists, is a regular file with no
-  permission bits for others, is readable by the service user, and holds one
-  token (`[A-Za-z0-9_]{20,255}`). Otherwise off (no file) or refused (an
-  error run `publish_pr` with a plain reason, recorded at most once a day per
-  reason, and shown on the status page). The token is read per run, sent only
-  in the `Authorization` header to `https://api.github.com`, and never logged,
-  stored, or put in an error message; errors name a step and an HTTP status.
-- `GitHubClient(token, settings, transport=None)`: urllib, the archive user
-  agent, `github_timeout_s`, redirects followed only to `https://api.github.com`,
-  a transport hook with the `sources/http.py` shape for tests. Every call is
-  checked against an allowlist before anything is sent: read refs (`main`,
-  the batch branch), commits, trees, blobs, open pull requests from the batch
-  branch; write one blob, one tree whose only entry is
-  `content/longview-directory/directory.json` (mode 100644, `base_tree` =
-  main's tree), one commit (parent = main's HEAD, author and committer
-  `LeadFlow Longview Archive <hello@theleadflowpro.com>`), create or
-  force-move `refs/heads/longview-directory/batch` (the engine owns it), open
-  a pull request batch branch → `main` with `draft: false`, and change an open
-  one's title and body. Merge, review, approve, update-branch, contents, and
-  any other ref or path are refused (`NotAllowed`) without a request.
-- `run_publish_pr(conn, settings, now, transport, allow_large_removal=False)`:
-  token check; due check (`publish_pr_every_s` since the last pull request
-  opened or updated, and not within an hour of a failed call); one run at a
-  time (a lock file). Skips (a `skipped` run) when the export is missing, a
-  sample, has no businesses, is byte-identical to main's file ignoring
-  `generatedAt`/`batchId`, or is already on the open pull request's branch.
-  Diffs with `publish.diff_exports` (main's file as the base; a sample file on
-  main publishes nothing). When the batch would remove more than 25% of the
-  businesses published on main it opens nothing and records an error run
-  "Large removal held for a person" (once a day); `allow_large_removal` is only
-  set by a person with `publish-pr --allow-large-removal`. Otherwise it writes
-  the commit, points the batch branch at it, and updates the open batch pull
-  request or opens one (a 422 on open re-lists and updates, so there is never
-  a second). Records a `publish_pr` run with counts (published, added,
-  removed, changed, held_for_privacy, waiting_for_review) and meta
-  `publish_pr_last_at`, `publish_pr_last_counts`.
-- The body (plain language, phone-first): batch id and America/Chicago time;
-  the counts; up to 50 added and 50 removed names with their category name.
-  Added names only for businesses whose state is `ready`; removed names only
-  for businesses the archive knows that are not `held`, `suppressed`, or
-  `review` and have no `public_id` suppression. Names are the export's
-  `name` (never a taxpayer name, never another field), in code spans so they
-  cannot mention anyone or break the Markdown. Then: merging publishes on
-  theleadflowpro.com, profiles stay noindex until indexing is on, Vercel adds
-  the preview link, and a spot-check list.
-- `dry_run(conn, settings, base_path=None)`: the same title, body, and counts
-  from local files only (the base is `--base`, else the engine's last copy of
-  main's file in `exports/publish/main-directory.json`, else nothing).
-- `status_info(conn, settings)`: enabled, the problem, when the last pull
-  request was opened or updated, and its counts.
+### `validate.py` (the site's own contract check)
+- `validate_directory(raw) -> ValidationResult(directory, dropped, issues)`:
+  a port of the removed website's `lib/longviewDirectory/validate.ts`. Every
+  rule of the publish contract below is checked again; a record that breaks
+  one is dropped with a reason code (`email_not_generic`,
+  `website_fact_off_site:<field>`, `address_street_and_zip_must_match`,
+  `reserved_slug`, `missing_fact:<field>`, ...), never repaired. An unknown
+  `schemaVersion` gives an empty directory. Categories are recounted from the
+  records that survive; anything but `"sample": false` counts as sample data.
+- Pure: no files, no network, no clock.
+
+### `site.py` (the static directory)
+- `build_site(settings, export_or_None, now) -> {businesses, dropped, pages,
+  issues}`: validates, renders every page, and switches the site over
+  atomically. Pages are written to a new folder under
+  `www/longview/.builds/`; `www/longview/businesses` is a symbolic link that
+  is replaced in one rename, so a reader sees the old site or the new one and
+  a failed build leaves the old site untouched. The live build and the one
+  before it are kept. Logs carry counts and reason codes only.
+- Pages (all under `/longview/businesses/`, trailing slash, `index.html` in a
+  folder): the A to Z index (50 per page: `page-2/`, `page-3/`, ...) with the
+  real count, category links, New in Longview, Longview is hiring, About, and
+  a search box plus "Open now" run by one local script (`search.js`) over
+  `search.json` (name, slug, category, categoryLabel, services, zip when the
+  address is public, hours); the section is `hidden` until the script runs,
+  so without JavaScript the index is the plain A to Z list and category
+  links. `category/<slug>/` ("X in Longview", "Every one we could verify,
+  listed A to Z. Not ranked."); `<slug>/` profiles (the removed Next page's
+  content and fallbacks); `new/` (permits within 180 days before the batch,
+  newest first); `hiring/`; `about/` (sources, checks, what it never does,
+  `config.USER_AGENT` and the crawl limits from `Settings`, the robots.txt
+  opt-out, claim/correct/remove).
+- Every page: exactly one `h1`, a skip link, labels, visible focus, AA
+  contrast, LeadFlow tokens, system fonts, 390 px first; one local stylesheet
+  (`directory.css`); no inline styles or scripts; nothing from another host;
+  every value `html.escape`d; outbound links http/https only with
+  `rel="nofollow noopener noreferrer"`; `noindex,nofollow` and a canonical
+  link to `https://www.theleadflowpro.com/longview/businesses/...`; the
+  footer "A free community resource from The LeadFlow Pro." and "The LeadFlow
+  Pro builds websites and follow-up systems for Longview businesses." linking
+  to `https://www.theleadflowpro.com/longview`.
+- `settings.indexable` on (and not a sample, and at least one business):
+  noindex is dropped (kept on page 2+ as `noindex,follow` and on profiles
+  without a fact from the business's own website) and `sitemap.xml` is written.
+- No businesses (or nothing approved): only `index.html` ("The first batch is
+  being checked") and `about/`. A sample export shows the banner "Sample data:
+  fictional businesses for layout testing" on every page.
+
+### `approval.py` (the approval gate)
+- `approve(conn, settings, actor, batch="latest", now)`: the current export
+  (`batch` is `latest` or its exact `batchId`; a sample or a non-export is
+  refused) minus anything suppressed since, written atomically to
+  `approved.json`; a `runs` row `approve` with counts (businesses, added,
+  removed, changed, auto, and the actor); meta `approved_batch_id`,
+  `approved_at`, `approved_by`; then the site is rebuilt. A file lock keeps the
+  service and an operator's command from building at the same time.
+- `auto_approve(conn, settings, now)`: when `meta.auto_approve` is `on` and the
+  export is a new batch, approve it as `auto-approve`, unless it would remove
+  more than 25% of the approved businesses: then nothing changes, meta
+  `approval_held_batch` names it, one `skipped` `approve` run is recorded per
+  held batch, and the status page asks for a person.
+- `apply_suppressions(conn, settings)`: after `lva suppress`, the business is
+  taken out of `approved.json` and the site is rebuilt at once.
+  `rebuild_site` filters suppressions again on every build.
+- `status_info(conn, settings)`: approved batch id and count, last build,
+  auto-approve on or off, what a newer batch would add/remove/change, a held
+  batch. Ids, times, and counts only.
 
 ### `status.py`
 - `collect(conn, settings, now) -> dict` (counts only, no personal data) and
   `write_status(settings, data)`: writes `www/status.json`, `www/status/index.html`
   (phone-first, LeadFlow tokens, `<meta name=robots content=noindex>`, no
   scripts, no external requests), `www/index.html` (redirect link to /status),
-  and `www/robots.txt` (`User-agent: *` / `Disallow: /`). `batchPullRequests`
-  shows whether batch pull requests are on, why not, and when the last one was
-  opened or updated with its counts (never a name, number, or link).
+  and `www/robots.txt` (`User-agent: *` / `Disallow: /`). `directorySite`
+  (from `approval.status_info`) shows the approved batch and its count, when
+  the directory was last built, auto-approve on or off, how many businesses
+  are waiting for approval (new, removed, changed), and a batch auto-approve
+  is holding for a person (never a name, number, or link).
 
 ### `exports.py` (private, not served, unused until approved)
 - `website-prospects.csv` (in-city businesses with no website or a dead one) and
@@ -511,19 +536,21 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   PAUSE file → idle (status still written); free space under the disk guard →
   no crawling or ingest; run due jobs (open data weekly, OSM weekly, NPI weekly,
   matching after ingest, publish evaluation + export every 45 min, right after
-  a successful export the batch pull request when it is on and due (not under
-  PAUSE, a stop, or the disk guard; its GitHub calls end on a stop or pause),
-  status every 10 min, nightly backup at 03:30 Chicago); crawl up to 2 sites at a time on a
+  a successful export the auto-approve step (off by default; see
+  `approval.py`), the site step (builds the directory when it does not exist
+  yet or the indexing switch changed), status every 10 min, nightly backup at
+  03:30 Chicago); crawl up to 2 sites at a time on a
   thread pool (visits are network-only; the main thread writes the DB).
   SIGTERM/SIGINT stop cleanly.
 - Other commands: `migrate`, `sync [sales-tax|tabc|osm|npi|all]`, `match`,
-  `crawl-once [--limit N]`, `publish [--out PATH]`,
-  `publish-pr [--dry-run] [--base PATH] [--allow-large-removal]` (dry run: no
-  network call), `exports`, `status`, `backup`,
-  `suppress --id|--domain|--phone|--name-zip --reason`, `review list|accept|reject`,
+  `crawl-once [--limit N]`, `publish [--out PATH]` (then auto-approve when on),
+  `approve [--batch latest|BATCH_ID] [--actor NAME]`, `approve --auto on|off`,
+  `site` (rebuild the directory from `approved.json`), `exports`, `status`,
+  `backup`, `suppress --id|--domain|--phone|--name-zip --reason` (also takes
+  the business off the directory at once), `review list|accept|reject`,
   `check` (self-test: settings, schema, disk, pause, caps).
 
-## The publish contract (`content/longview-directory/directory.json`)
+## The publish contract (`exports/publish/directory.json`; the approved copy is `approved.json`)
 
 ```json
 {
@@ -582,15 +609,17 @@ breaks one):
   dental_assistant, receptionist`.
 - `indexable` per business is true only when the global switch is on and the
   profile has at least one fact from the business's own website.
-- `sample: true` marks a fictional fixture; the site shows a banner and the
-  committed file must never be a sample.
+- `sample: true` marks a fictional fixture; the site shows a banner, and a
+  sample is never approved.
 - Ordering: businesses by `slug`, categories by the fixed category order.
 - Characters: plain UTF-8 text; no HTML.
 
 ## Tests
 
 `cd deploy/longview-archive && python3 -m unittest discover -s tests -v`
-(also `npm run test:archive`). Standard library only. Tests never touch the
+Standard library only.
+`tests/test_site.py` covers the pages, the contract check, the atomic swap,
+the approval gate, and a check that the engine names no code host. Tests never touch the
 network: HTTP goes through injected transports and fixtures under
 `tests/fixtures/`. All fixture businesses are fictional (`*.example` domains,
 555-01xx phone numbers).

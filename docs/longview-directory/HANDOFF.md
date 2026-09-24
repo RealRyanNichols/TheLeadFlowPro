@@ -4,9 +4,12 @@ For Amanda and Ryan. Written Sept 24, 2026 (Central time).
 
 ## Where it stands
 
-- **Built and tested, not yet running.** The engine that builds the directory
-  and the profile pages on theleadflowpro.com are finished and pass their tests.
-  Nothing is live yet, and nothing has been published.
+- **Off Vercel.** On the owner's instruction nothing is deployed to Vercel any
+  more. The directory pages are now built by the engine itself and served from
+  the LeadFlow droplet by Caddy.
+- **Built and tested, not yet running.** The engine and the directory pages are
+  finished and pass their tests. Nothing is live yet, and nothing has been
+  published.
 - **The real Longview count is not in yet.** This Claude session could not
   reach the Texas open data portal or the droplet, so it has not pulled a single
   real business. The count arrives within minutes of the engine starting on the
@@ -20,9 +23,13 @@ For Amanda and Ryan. Written Sept 24, 2026 (Central time).
   shows businesses found, websites read this week, facts checked, what is ready
   to publish, what needs review, errors, and a heartbeat. It is private: search
   engines are told to stay away, and it shows only counts, never names.
-- **The directory, for the public:** https://www.theleadflowpro.com/longview/businesses
-  appears once the first batch is approved. Until then that address shows "not
-  found" on purpose.
+- **The directory:** https://longview.165-227-248-110.sslip.io/longview/businesses/
+  (the bare address goes there too). Until you approve the first batch it says
+  the first batch is being checked. Search engines are told to stay away while
+  it is on this address.
+- **Later, on theleadflowpro.com:** the pages already use the final path. When
+  the LeadFlow website itself runs on the droplet, one approved Caddy change
+  routes `theleadflowpro.com/longview/businesses/` to them. Nothing uses Vercel.
 
 ## Turn it on (the one step)
 
@@ -43,8 +50,8 @@ After the pull request merges, use `--branch main` instead. The installer:
 - Caps the service at half a CPU and 700 MB of memory, and blocks it at the
   system level from reaching the CRM, Postgres, or anything else private on the
   droplet.
-- Adds one Caddy file for the private status page, and reloads Caddy only after
-  Caddy approves the change.
+- Adds one Caddy file for the directory and the private status page, and
+  reloads Caddy only after Caddy approves the change.
 - Touches nothing else: not DNS, not the Premier site, not the Call Desk, not
   any other site, and not any settings file.
 
@@ -57,12 +64,14 @@ After the pull request merges, use `--branch main` instead. The installer:
    email, Facebook and Instagram, careers pages, and services. A few thousand
    websites take days at this pace. That is expected.
 3. **Every 45 minutes:** it writes a batch of the profiles that are ready.
-4. **You approve a batch:** the batch goes into a pull request. Today someone
-   with droplet access copies it in. If you turn on automatic pull requests
-   (off until you add a GitHub token on the droplet; steps in the README), the
-   engine opens and updates that one pull request itself, at most once a day.
-   Either way you look at the preview, and merging the pull request puts those
-   profiles on theleadflowpro.com. The engine never merges.
+4. **You approve a batch:** look at the status page's "Directory site" box (how
+   many businesses would be added, removed, or changed), then in the droplet
+   console run `lva approve --actor Amanda`. The pages are rebuilt at once. Or
+   turn on auto-approve (`lva approve --auto on`): each new batch is then
+   approved by itself, except one that would remove more than a quarter of the
+   listings, which waits for you.
+5. **A removal request:** `lva suppress --id lv-... --reason "owner asked"`
+   takes the listing off at once, without waiting for an approval.
 
 ## The rules it follows
 
@@ -83,23 +92,27 @@ After the pull request merges, use `--branch main` instead. The installer:
 
 ## What was tested
 
-- **The engine:** 576 automated tests pass. They cover the privacy rules, the
-  hours reader, matching duplicate records, the crawl limits, the 24/7 loop
-  (pause, low disk, restarts, backups), the installer, and the automatic
-  batch pull requests (against a pretend GitHub: it never merges, never names
-  a hidden business, and never leaks the token). The installer runs
-  in a sandbox and is checked against real Caddy.
+- **The engine:** 586 automated tests pass. They cover the privacy
+  rules, the hours reader, matching duplicate records, the crawl limits, the
+  24/7 loop (pause, low disk, restarts, backups), the installer, the directory
+  pages, and the approval gate (nothing public until approved, auto-approve,
+  the 25% removal hold, removals taking effect at once). The installer runs in
+  a sandbox, and the Caddy file is checked and run for real against Caddy 2.8.
 - **The whole pipeline:** it runs end to end on a set of made-up businesses and
   websites. It confirms that a sole proprietor listed under his own name is held
   back, that a home-based business shows "Longview, TX" only, that a chain gets
   one profile per location, that a removal request is honored, and that no
   owner name appears anywhere.
-- **The website:** all 1,585 site tests pass and the full production build
-  succeeds. Every directory page was checked on a phone-width screen:
-  - one heading per page;
-  - no accessibility errors;
-  - no outside tracking added by these pages;
-  - "not found" until a batch is approved.
+- **The directory pages:** built from made-up businesses and checked in a real
+  browser on a phone-width screen (390 px) with the same security policy as
+  the droplet:
+  - one heading per page, a skip link, and visible keyboard focus;
+  - nothing loaded from any other site, no security-policy warnings, and no
+    sideways scrolling;
+  - search and "Open now" work, and without JavaScript the A to Z list and
+    categories still work;
+  - a business name with planted code in it is shown as plain text;
+  - "the first batch is being checked" until a batch is approved.
 - **An independent review:** six reviewers each looked for one kind of
   problem: privacy leaks, honesty, crawl politeness, reliability, installer
   safety, and the web pages. Two more checked each finding before it was
@@ -122,9 +135,9 @@ See `docs/longview-directory/DECISIONS.md`. In short:
    so. Recommended: allow indexing only for profiles with a fact from the
    business's own website, so thousands of thin pages don't count against the
    LeadFlow site.
-3. **Automatic batch pull requests.** Built and off. With a GitHub token on
-   the droplet, the engine opens the pull request for each batch; you still
-   merge each one. Without it, someone copies each batch in by hand.
+3. **Approving batches.** Approve each batch with one command on the droplet
+   (`lva approve`), or turn on auto-approve (large removals still wait for a
+   person).
 4. **Claim-your-listing emails.** One per business, or none. None are sent
    today.
 5. **Call Desk.** Whether the directory feeds the Call Desk. That is Ryan's
@@ -137,7 +150,8 @@ See `docs/longview-directory/DECISIONS.md`. In short:
 - **Pause:** in the droplet console, `touch /var/lib/longview-archive/PAUSE`.
   **Resume:** `rm /var/lib/longview-archive/PAUSE`.
 - **Undo:** `bash /opt/longview-archive/uninstall.sh`. This stops and removes
-  the service and the Caddy file, then reloads Caddy. The collected data stays
+  the service and the Caddy file (so the directory goes offline too), then
+  reloads Caddy. The collected data stays
   until someone deletes it on purpose.
 - **Cost:** none new. It runs on the existing $48/month droplet.
 
@@ -145,3 +159,4 @@ See `docs/longview-directory/DECISIONS.md`. In short:
 
 Paste the install command into the droplet console, then open the status page
 and check that the heartbeat is current and a real business count appears.
+When a batch looks right, run `lva approve` and open the directory.

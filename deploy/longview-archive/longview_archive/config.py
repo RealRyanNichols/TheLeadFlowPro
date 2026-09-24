@@ -2,9 +2,9 @@
 
 Defaults are the production values for the LeadFlow droplet. Every path and
 network endpoint can be overridden with an ``LVA_*`` environment variable so
-tests never touch real paths or the network. Nothing here is a secret: the
-GitHub token for batch pull requests lives in its own file (``github_token_file``),
-which only ``github_pr.py`` reads.
+tests never touch real paths or the network. Nothing here is a secret, and the
+engine talks to no code host or deploy service: the public directory is built
+on the droplet and served by Caddy from ``www/``.
 """
 
 from __future__ import annotations
@@ -22,6 +22,8 @@ SITE_URL = "https://www.theleadflowpro.com"
 DIRECTORY_PATH = "/longview/businesses"
 DIRECTORY_URL = SITE_URL + DIRECTORY_PATH
 ABOUT_URL = DIRECTORY_URL + "/about"
+# The staging host Caddy serves on the droplet (status page and directory).
+STAGING_HOST = "longview.165-227-248-110.sslip.io"
 
 USER_AGENT = (
     "LeadFlowPro-LongviewArchive/1.0 "
@@ -103,12 +105,6 @@ class Settings:
     publish_scopes: Tuple[str, ...] = ("city",)
     indexable: bool = False
 
-    # Batch pull requests (github_pr.py): off unless the token file exists.
-    github_token_file: Path = Path("/etc/longview-archive/github-token")
-    github_repo: str = "RealRyanNichols/TheLeadFlowPro"
-    github_timeout_s: float = 30.0
-    publish_pr_every_s: int = 86_400
-
     extra: Mapping[str, str] = field(default_factory=dict)
 
     @property
@@ -130,6 +126,16 @@ class Settings:
     @property
     def publish_export_path(self) -> Path:
         return self.export_dir / "publish" / "directory.json"
+
+    @property
+    def approved_export_path(self) -> Path:
+        """The batch a person (or auto-approve) approved: the only file the public site renders."""
+        return self.export_dir / "publish" / "approved.json"
+
+    @property
+    def site_dir(self) -> Path:
+        """The public directory Caddy serves at /longview/businesses/ (a link to the live build)."""
+        return self.www_dir / "longview" / "businesses"
 
     @property
     def private_export_dir(self) -> Path:
@@ -154,6 +160,7 @@ class Settings:
             (self.private_export_dir, 0o700),
             (self.www_dir, 0o755),
             (self.www_dir / "status", 0o755),
+            (self.www_dir / "longview", 0o755),
         ):
             path.mkdir(parents=True, exist_ok=True)
             try:
@@ -189,12 +196,6 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
     kwargs["allow_private_hosts"] = _env_flag(env, "LVA_ALLOW_PRIVATE_HOSTS")
     kwargs["allow_fictional_phones"] = _env_flag(env, "LVA_ALLOW_FICTIONAL_PHONES")
     kwargs["indexable"] = _env_flag(env, "LVA_INDEXABLE")
-    if env.get("LVA_GITHUB_TOKEN_FILE"):
-        kwargs["github_token_file"] = Path(env["LVA_GITHUB_TOKEN_FILE"])
-    if env.get("LVA_GITHUB_REPO"):
-        kwargs["github_repo"] = env["LVA_GITHUB_REPO"].strip()
-    kwargs["github_timeout_s"] = _env_float(env, "LVA_GITHUB_TIMEOUT", 30.0)
-    kwargs["publish_pr_every_s"] = _env_int(env, "LVA_PUBLISH_PR_EVERY", 86_400)
     settings = Settings(**kwargs)
     # The politeness floor is not configurable downward in production. Tests
     # lower it only together with the private-host escape hatch.
@@ -205,6 +206,4 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
             )
         if settings.max_pages_per_visit > 6 or settings.max_page_bytes > 2_500_000:
             raise ValueError("Crawl size limits cannot be raised outside tests")
-        if settings.publish_pr_every_s < 86_400:
-            raise ValueError("Batch pull requests cannot be updated more than once a day outside tests")
     return settings

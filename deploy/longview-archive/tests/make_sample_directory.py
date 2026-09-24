@@ -5,9 +5,10 @@
 It runs the same offline pipeline as tests/test_end_to_end.py (fixture open
 data and fixture websites under tests/fixtures/e2e/; every business, phone,
 and domain is fictional; nothing touches the network) and writes the export
-with ``"sample": true``, so the site shows its sample banner and
-``npm run validate:directory`` refuses to ship it. It will not write anywhere
-inside content/longview-directory/, where only real, reviewed batches belong.
+with ``"sample": true``, so the static site (``longview_archive/site.py``) shows
+its sample banner and ``lva approve`` refuses to approve it. It will not write
+anywhere inside a content/longview-directory/ folder (the old website's batch
+folder), so it can never be mistaken for a real batch.
 """
 
 from __future__ import annotations

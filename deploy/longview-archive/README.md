@@ -1,11 +1,16 @@
 # Longview Business Archive: operator runbook
 
-This is the engine behind the LeadFlow Longview business directory
-(theleadflowpro.com/longview/businesses). It runs around the clock on the
-LeadFlow DigitalOcean droplet (`leadflow-web`). It reads public business
-records and business websites politely, keeps a sourced archive, and every 45
-minutes writes one file with the businesses that are ready to publish. Nothing
-reaches the website until you merge a pull request with that file.
+This is the engine behind the LeadFlow Longview business directory. It runs
+around the clock on the LeadFlow DigitalOcean droplet (`leadflow-web`). It
+reads public business records and business websites politely, keeps a sourced
+archive, and every 45 minutes writes one file with the businesses that are
+ready to publish. It also builds the public directory pages itself, and Caddy
+on the same droplet serves them. **Nothing reaches the public directory until
+you approve a batch** with one command on the droplet (`lva approve`), or turn
+on auto-approve.
+
+Nothing here uses Vercel, GitHub, or any other deploy service: the engine makes
+no calls to them, and the directory is built and served on the droplet only.
 
 It never calls, texts, emails, or messages a business, and it never writes to
 the CRM, an email list, or an ad audience.
@@ -18,7 +23,8 @@ Engineers: the contract is [SPEC.md](SPEC.md). The plan and log are in
 In DigitalOcean, open the droplet and choose **Access → Launch Droplet
 Console**. You are logged in as root. Paste one command.
 
-**Until the pull request merges**, use the working branch
+**Until the pull request merges** (the one with this code; directory batches
+never go through GitHub), use the working branch
 `claude/serene-edison-daodg6`:
 
 ```bash
@@ -53,7 +59,7 @@ pause, resume, and rollback commands.
 - Adds and starts one service, `longview-archive`, capped at half a CPU and
   700 MB of memory.
 - Adds one Caddy file, `/etc/caddy/sites/longview-archive.caddy`, for the
-  status page. It checks Caddy's whole config before reloading. If the check
+  directory and the status page. It checks Caddy's whole config before reloading. If the check
   fails, it puts the file back and does not reload, so the live sites never
   change.
 - Copies `uninstall.sh` and `preflight.sh` to `/opt/longview-archive/`.
@@ -89,12 +95,20 @@ is also at `bash /opt/longview-archive/preflight.sh`.
 
 ## Where to see it
 
-**https://longview.165-227-248-110.sslip.io/status/**
+- **The directory:** **https://longview.165-227-248-110.sslip.io/longview/businesses/**
+  (the address without a path goes there too). It shows the approved batch
+  only. Until you approve the first one it says the first batch is being
+  checked. Every page tells search engines to stay away while this is a
+  staging address.
+- **The status page:** **https://longview.165-227-248-110.sslip.io/status/**
+  shows counts and job times only, never a name. It is not linked from
+  anywhere, tells search engines not to index it, and loads nothing from other
+  sites. The raw numbers are at `/status.json`. Its **Directory site** box says
+  which batch is approved, when the pages were last built, whether
+  auto-approve is on, and how many businesses a newer batch would add, remove,
+  or change.
 
-The page shows counts and job times only, never a name. It is not linked from
-anywhere, tells search engines not to index it, and loads nothing from other
-sites. The raw numbers are at `/status.json`. The very first visit can take a
-minute while Caddy gets its certificate.
+The very first visit can take a minute while Caddy gets its certificate.
 
 ## Everyday commands
 
@@ -162,132 +176,90 @@ not, it puts the previous code and unit file back, restarts the service on
 them, and stops with a pointer to the log. It touches Caddy only if the site
 file changed.
 
-## How a batch reaches the website
+## Approving a batch
 
-1. On the droplet, write a fresh publish file (the engine also does this on
-   its own every 45 minutes):
+The engine writes a fresh publish file every 45 minutes. The public directory
+changes only when a batch is approved.
 
-   ```bash
-   lva publish --out /var/lib/longview-archive/exports/publish/directory.json
-   ```
-
-2. On a computer that has this repo and SSH access to the droplet, put the
-   file in a pull request:
+1. Open the status page and look at **Directory site → Waiting for approval**.
+   It says how many businesses the newest batch adds, removes, and changes.
+   To look at the file itself (only public fields are in it):
 
    ```bash
-   git switch main && git pull
-   git switch -c longview-batch-$(date +%Y-%m-%d)
-   scp root@165.227.248.110:/var/lib/longview-archive/exports/publish/directory.json content/longview-directory/directory.json
-   git add content/longview-directory/directory.json
-   git commit -m "Longview directory batch $(date +%Y-%m-%d)"
-   git push -u origin HEAD
-   gh pr create --fill
+   less /var/lib/longview-archive/exports/publish/directory.json
    ```
 
-3. Read the pull request's diff: it shows every business added, removed, or
-   changed. **Merging the pull request is the approval**; Vercel then deploys
-   it. The site re-checks every record and drops any that breaks a rule, and
-   profiles stay `noindex` until you turn indexing on.
+   (Or write a fresh one first with `lva publish`.)
 
-Steps 1 and 2 can run on their own instead: see the next section.
-
-## Automatic batch pull requests (optional)
-
-Off until you add a GitHub token. When it is on, the engine opens the pull
-request itself, so the only thing left for you is to look at the Vercel preview
-and merge. **Merging is still the approval.** The engine:
-
-- keeps **one** pull request open at a time, from the branch
-  `longview-directory/batch` to `main`, ready for review (not a draft). A newer
-  batch updates that same pull request instead of opening a second one;
-- updates it **at most once a day**, and only when the publish file changed;
-- changes only `content/longview-directory/directory.json`, as one commit on
-  top of `main`, by "LeadFlow Longview Archive";
-- **never merges**, never approves, never pushes to `main`, and never touches
-  any other file or branch;
-- skips a batch that is the same as the file on `main`, a sample, or empty;
-- holds a batch that would remove more than a quarter of the published
-  businesses. The status page then says "Large removal held for a person".
-  If you check it and the removals are right, run
-  `lva publish-pr --allow-large-removal` on the droplet.
-
-The pull request says, in plain words: the batch date, how many are
-published, added, removed, changed, held for privacy, and waiting for review;
-up to 50 added and 50 removed business names with their category (never a
-held, removed-on-request, or in-review business, and never a person's name);
-and a short checklist of what to spot-check in the preview. Vercel adds the
-preview link to the pull request by itself.
-
-### Turn it on
-
-1. On GitHub, make a **fine-grained personal access token**
-   (Settings → Developer settings → Personal access tokens → Fine-grained
-   tokens → Generate new token):
-   - Repository access: **Only select repositories** →
-     `RealRyanNichols/TheLeadFlowPro`.
-   - Repository permissions: **Contents: Read and write** and **Pull
-     requests: Read and write**. Nothing else.
-   - Pick an expiry you will remember to renew (for example 90 days).
-2. In the droplet console, as root, paste these one at a time. The `read -rs`
-   line waits for you to paste the token and does not show it on screen:
+2. Approve it:
 
    ```bash
-   install -d -m 0750 -o root -g lvarchive /etc/longview-archive
-   ( umask 027; read -rs -p "Paste the GitHub token, then press Enter: " t; echo; printf '%s\n' "$t" > /etc/longview-archive/github-token; unset t )
-   chown root:lvarchive /etc/longview-archive/github-token
-   chmod 0640 /etc/longview-archive/github-token
-   systemctl restart longview-archive
+   lva approve --actor Amanda
    ```
 
-   The installer does not make this folder; this step is only for you.
-3. Check it: the status page's **Batch pull requests** box says "On". To
-   see what the next pull request would say without sending anything:
+   This copies the newest publish file to
+   `/var/lib/longview-archive/exports/publish/approved.json`, records who
+   approved it (`--actor`; it defaults to "operator"), and rebuilds the pages
+   at once. `--batch latest` is the default; you can instead give the exact
+   batch id you looked at (for example `lva approve --batch 2026-09-24T18:00Z`)
+   and it refuses if a newer batch has been written since.
 
-   ```bash
-   lva publish-pr --dry-run
-   ```
+The pages re-check every record before they are built and leave out any that
+breaks a rule (the status page counts them). A batch marked as sample data is
+never approved.
 
-   The first pull request appears after the next publish file is written
-   (within 45 minutes).
-
-The engine refuses a token file that everyone on the droplet can read, or
-that the service user cannot read, and says so on the status page. The token
-is read only by the engine, sent only to `api.github.com`, and never written
-to a log, the database, or the status page. The service's network guard does
-not block `api.github.com`; nothing in the service or the installer changes
-for this.
-
-### Turn it off
+To rebuild the pages from the approved batch without approving anything new
+(for example after an upgrade):
 
 ```bash
-rm -f /etc/longview-archive/github-token
+lva site
 ```
 
-No restart is needed. Also delete the token on GitHub (same settings page).
-An open batch pull request stays open until you merge or close it. Closing
-it without merging skips that batch; the next changed batch (after a day)
-opens a new one.
+## Auto-approve (optional, off by default)
+
+Turn it on and each new publish file is approved and the pages rebuilt by
+themselves, every 45 minutes:
+
+```bash
+lva approve --auto on
+```
+
+One exception: a batch that would remove more than 25% of the businesses on
+the directory is **not** approved by itself. It waits for a person, and the
+status page says "Needs a person: auto-approve is holding batch ...". Check
+it, and if the removals are right, run `lva approve`. Turn auto-approve off
+again with:
+
+```bash
+lva approve --auto off
+```
+
+## Moving to theleadflowpro.com later
+
+The pages already use the final path, `/longview/businesses/`, and their
+canonical links point at `https://www.theleadflowpro.com/longview/businesses/`.
+When the LeadFlow website itself runs on this droplet, one approved change to
+the Caddy configuration routes `/longview/businesses/` on theleadflowpro.com to
+`/var/lib/longview-archive/www/longview/businesses`. Until then the directory
+lives only on the staging address above. Letting search engines in is a
+separate decision: `LVA_INDEXABLE=1` in the service drops the pages' noindex
+tag and writes `sitemap.xml`, and the Caddy file's noindex header and
+robots.txt must be changed in the same approved change.
 
 ## Removing a business
 
 Removal requests arrive through the "Claim, correct, or remove this listing"
-link on every profile, which goes to hello@theleadflowpro.com. Do both steps:
+link on every profile, which goes to hello@theleadflowpro.com. One step, on
+the droplet (the id starts with `lv-`; it is in the email's subject line):
 
-1. On the droplet, so the engine stops exporting it (the id starts with
-   `lv-`; find it next to the name in
-   `content/longview-directory/directory.json`):
+```bash
+lva suppress --id lv-abcde12345 --reason "owner asked"
+```
 
-   ```bash
-   lva suppress --id lv-abcde12345 --reason "owner asked"
-   ```
-
-2. In the repo, add the same id to the `ids` list in
-   `content/longview-directory/suppressions.json` and merge that in a pull
-   request. The site hides it as soon as that deploys, even before the next
-   batch.
-
-The engine can also suppress by website domain or phone number
-(`lva suppress --help`).
+It takes effect at once, without waiting for an approval: the business is
+taken out of the approved batch, the pages are rebuilt without it, and the
+engine never exports it again. The engine can also suppress by website domain,
+phone number, or name and ZIP (`lva suppress --help`).
 
 ## Review queue
 
@@ -319,7 +291,10 @@ business's, and it reads that site again on its next loop.
 | `lva sync all` | Pull open data now (or `sales-tax`, `tabc`, `osm`, `npi`) |
 | `lva match` | Match new records to businesses |
 | `lva crawl-once --limit 5` | Visit up to 5 due websites once (stop the service first: `systemctl stop longview-archive`) |
-| `lva publish-pr --dry-run` | Show the next batch pull request's title, text, and counts; sends nothing (see "Automatic batch pull requests") |
+| `lva publish` | Write a fresh publish file now (the engine does this every 45 minutes); it is not public until approved |
+| `lva approve` | Approve the newest publish file and rebuild the directory (see "Approving a batch") |
+| `lva approve --auto on` | Approve each new publish file by itself, except one that removes more than 25% (`--auto off` to stop) |
+| `lva site` | Rebuild the directory pages from the approved batch |
 | `lva exports` | Write the two private lists (no website; hiring) to `exports/private/`. They are sent nowhere |
 | `lva backup` | Take a database backup now |
 | `lva migrate` | Create or update the database tables |
@@ -361,8 +336,7 @@ business's, and it reads that site again on its next loop.
 ## Cost
 
 It runs on the existing $48/month droplet. No new servers, paid APIs, API
-keys, or other new spend. (The optional GitHub token for batch pull requests
-is free.) Hard caps: half a CPU, 700 MB of memory, 64 tasks,
+keys, hosting, or other new spend. Hard caps: half a CPU, 700 MB of memory, 64 tasks,
 and the lowest disk priority. It stops crawling and pulling data if free disk
 space drops under 5 GB. It backs up the database nightly at 3:30 am Central
 and keeps the newest 14 backups.
@@ -376,10 +350,13 @@ and keeps the newest 14 backups.
 | The numbers | `cat /var/lib/longview-archive/www/status.json` |
 | Self-test | `lva check` |
 | Disk space | `df -h /` |
-| Batch pull requests on? | the status page's "Batch pull requests" box, or `lva publish-pr --dry-run` |
+| Is a batch waiting? | the status page's "Directory site" box |
+| Rebuild the directory | `lva site` |
 
 - **It keeps restarting.** The log says why; it retries every 30 seconds.
   Pause it or roll back while you look.
+- **The directory still says the first batch is being checked.** Nothing is
+  approved yet: run `lva approve` (see "Approving a batch").
 - **The status page does not load.** Wait a minute on the first visit (the
   certificate). Then check `systemctl status caddy --no-pager` and
   `caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile`.
@@ -396,14 +373,27 @@ and keeps the newest 14 backups.
 | --- | --- |
 | `longview_archive/` | `/opt/longview-archive/app/longview_archive/` (root-owned, read-only to the service) |
 | `systemd/longview-archive.service` | `/etc/systemd/system/longview-archive.service` |
-| `caddy/longview-archive.caddy` | `/etc/caddy/sites/longview-archive.caddy` |
+| `caddy/longview-archive.caddy` | `/etc/caddy/sites/longview-archive.caddy` (serves `/longview/businesses/` and `/status`) |
 | `uninstall.sh`, `preflight.sh` | `/opt/longview-archive/` |
 
 Tests (standard library only, no network):
 
 ```bash
-cd deploy/longview-archive && python3 -m unittest tests.test_deploy -v
+cd deploy/longview-archive && python3 -m unittest discover -s tests
 ```
+
+The directory pages are generated by `longview_archive/site.py` (with the
+contract re-check in `validate.py` and the approval gate in `approval.py`).
+To look at them locally with fictional data:
+
+```bash
+cd deploy/longview-archive
+python3 tests/make_sample_directory.py /tmp/sample.json
+python3 -c "import json; from pathlib import Path; from longview_archive import config, site; site.build_site(config.Settings(data_dir=Path('/tmp/lva-sample')), json.load(open('/tmp/sample.json')))"
+```
+
+The pages land in `/tmp/lva-sample/www/longview/businesses/` with a "Sample
+data" banner.
 
 `tests/test_deploy.py` runs the whole installer and uninstaller in a temporary
 directory using two **test-only** hooks. Never set them on the droplet; the

@@ -3,16 +3,19 @@
 Everything below stays off until the owner says yes. The directory is built so
 that each of these is one switch or one step, not a rebuild.
 
-Already decided (Sept 24, 2026): the directory lives on theleadflowpro.com at
-`/longview/businesses`, and the engine runs on the LeadFlow DigitalOcean
-droplet.
+Already decided (Sept 24, 2026): the directory will live on theleadflowpro.com
+at `/longview/businesses`, and the engine runs on the LeadFlow DigitalOcean
+droplet. Later the same day the owner moved off Vercel: nothing is deployed to
+Vercel any more, and the directory is built and served from the droplet
+(`https://longview.165-227-248-110.sslip.io/longview/businesses/` until the
+LeadFlow site itself runs there).
 
 ## 1. Go-ahead to install the engine on the droplet
 
 **What it changes:** one new service (`longview-archive`, running as its own
 user `lvarchive`), code in `/opt/longview-archive`, data in
-`/var/lib/longview-archive`, and one new Caddy site file for a private status
-page. Nothing else on the droplet is touched: not the CRM, not Premier, not
+`/var/lib/longview-archive`, and one new Caddy site file for the directory and a private
+status page. Nothing else on the droplet is touched: not the CRM, not Premier, not
 DNS, not any other site.
 
 **How:** paste the one command in `deploy/longview-archive/README.md` into the
@@ -24,8 +27,8 @@ brief says not to look for another way in.
 
 ## 2. Let Google index the profiles
 
-**Default:** profiles are live but marked `noindex`, and none are in the
-sitemap.
+**Default:** pages are live on the droplet but marked `noindex`, and there is
+no sitemap.
 
 | Option | Upside | Risk |
 | --- | --- | --- |
@@ -33,31 +36,31 @@ sitemap.
 | Index profiles with a fact from the business's own website (recommended) | Search traffic to the useful profiles; thin ones stay out | Takes a few weeks of crawling before most profiles qualify |
 | Index everything | The most pages in search | Thousands of thin pages (name, category, "Longview, TX") can drag down how Google rates the whole LeadFlow site |
 
-**How:** set `"indexable": true` in the export (the engine's `LVA_INDEXABLE=1`
-setting) and merge that batch. The per-profile rule is already built.
+**How:** turn on the engine's `LVA_INDEXABLE=1` setting; the pages drop noindex
+and a sitemap is written at the next build. The per-profile rule is already
+built. The staging address also tells search engines to stay away in its Caddy
+file, so real indexing happens together with the move to theleadflowpro.com
+(one approved Caddy change and DNS).
 
 ## 3. How batches reach the website
 
-**Default:** every batch is a pull request. You look at the preview and merge
-it; merging is the approval. That does not change.
+**Default:** a person approves each batch on the droplet with one command,
+`lva approve` (it records who). The engine writes a new batch every 45 minutes;
+the public pages change only when one is approved. The status page shows how
+many businesses a waiting batch would add, remove, or change. Nothing goes
+through GitHub or Vercel.
 
-**New (built, off):** the engine can open that pull request by itself, so
-nobody has to copy the batch by hand. It keeps one pull request open, updates
-it at most once a day when the batch changed, and changes only the directory
-file. It never merges. You still merge each batch yourself, one merge per
-batch. It holds back a batch that would remove more than a quarter of the
-listed businesses until a person checks it.
-
-**To turn it on:** make a GitHub token that can only change this one
-repository's files and pull requests, and put it on the droplet (the steps are
-in `deploy/longview-archive/README.md`, "Automatic batch pull requests").
-**To turn it off:** delete that one file on the droplet.
+**Option (built, off):** auto-approve, `lva approve --auto on`. Each new batch
+is approved by itself, except one that would remove more than a quarter of the
+listed businesses: that one waits for a person and the status page says so.
+Turn it off with `lva approve --auto off`.
 
 | Option | Upside | Trade-off |
 | --- | --- | --- |
-| Copy each batch by hand (today) | No GitHub credential on the droplet | Someone with droplet access copies every batch into a pull request |
-| Automatic pull requests, you merge (built, off) | You only look at the preview and merge | A GitHub token on the droplet that can push branches and open pull requests (it cannot merge by itself, but the token itself could, so keep it limited to this one repository) |
-| Publish without a merge | The site keeps growing on its own | Not built. Nobody looks before it is public |
+| Approve by hand (default) | A person looks at every change before it is public | Someone runs one command on the droplet per batch |
+| Auto-approve (built, off) | The directory keeps itself current | New listings appear without a person looking first (large removals still wait) |
+
+Removal requests never wait: `lva suppress` takes a listing off at once.
 
 ## 4. Claim invites
 

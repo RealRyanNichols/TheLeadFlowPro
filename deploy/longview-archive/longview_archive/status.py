@@ -17,7 +17,7 @@ import sqlite3
 from datetime import timedelta
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from . import config, db, github_pr, normalize
+from . import approval, config, db, normalize
 from .publish import as_datetime, atomic_write, local_date, resolve_now, to_local
 
 log = logging.getLogger(__name__)
@@ -212,8 +212,16 @@ def collect(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
             "guard": free is not None and free < settings.disk_guard_bytes,
         },
         "lastExportAt": db.get_meta(conn, "last_export_at"),
-        "batchPullRequests": github_pr.status_info(conn, settings),
+        "directorySite": _site_info(conn, settings),
     }
+
+
+def _site_info(conn: sqlite3.Connection, settings) -> dict:
+    try:
+        return approval.status_info(conn, settings)
+    except Exception as exc:  # noqa: BLE001 - the page is informational; never fail it for this box
+        log.warning("directory site status unreadable: %s", type(exc).__name__)
+        return {}
 
 
 # ---------------------------------------------------------------- render
@@ -282,29 +290,36 @@ def _section(ident: str, title: str, body: str) -> str:
     return f'<section aria-labelledby="{ident}"><h2 id="{ident}">{_e(title)}</h2>{body}</section>'
 
 
-BATCH_ACTIONS = {"opened": "Opened", "updated": "Updated"}
-
-
-def _batch_prs(info: dict) -> str:
-    """On or off, why it is held, and the last pull request: time and counts only."""
-    counts = info.get("lastCounts") or {}
-    if info.get("enabled"):
-        state = "On: the engine opens one pull request per batch; you merge it"
+def _directory_site(info: dict) -> str:
+    """The approved batch, the last build, auto-approve, and what waits: ids, times, and counts only."""
+    if not info:
+        return '<p class="muted">Not known yet.</p>'
+    batch = info.get("approvedBatchId")
+    shown = info.get("shownBusinesses")
+    items = [
+        ("Approved batch", _e(f"{batch} ({_n(info.get('approvedBusinesses'))} businesses)") if batch
+         else "None yet: the site says the first batch is being checked"),
+        ("Businesses on the site", _n(shown if shown is not None else 0)),
+        ("Last built", _e(_when(info.get("builtAt")))),
+        ("Auto-approve", "On (holds a batch that removes more than 25%)" if info.get("autoApprove") else "Off"),
+    ]
+    if info.get("droppedByChecks"):
+        items.append(("Left out by the site's checks", f'<span class="warn">{_n(info.get("droppedByChecks"))}</span>'))
+    waiting = info.get("waiting")
+    if waiting:
+        items.append(("Waiting for approval", _e(
+            f"{waiting.get('added', 0):,} new, {waiting.get('removed', 0):,} removed,"
+            f" {waiting.get('changed', 0):,} changed (batch {waiting.get('batchId')},"
+            f" {waiting.get('businesses', 0):,} businesses)")))
     else:
-        state = "Off (no GitHub token file on the droplet)" if not info.get("problem") else "Off: see below"
-    items = [("Automatic batch pull requests", _e(state))]
-    if info.get("problem"):
-        items.append(("Needs a person", f'<span class="warn">{_e(scrub(info["problem"], limit=300))}</span>'))
-    last = info.get("lastOpenedAt")
-    action = BATCH_ACTIONS.get(info.get("lastAction"), "Opened or updated")
-    items.append((f"Last pull request ({action.lower()})" if last else "Last pull request", _e(_when(last))))
-    if last:
-        for key, label in (("published", "Published after merge"), ("added", "Added"), ("removed", "Removed"),
-                           ("changed", "Changed")):
-            if key in counts:
-                items.append((label, _n(counts.get(key))))
-    items.append(("Last checked", _e(_when(info.get("lastCheckedAt")))))
-    return _dl(items)
+        items.append(("Waiting for approval", "Nothing"))
+    held = info.get("heldForPerson")
+    if held:
+        items.append(("Needs a person", '<span class="warn">' + _e(
+            f"Auto-approve is holding batch {held.get('batchId')}: it would remove {held.get('removed', 0):,} of"
+            f" the {held.get('approved', 0):,} approved businesses. Check it, then run: lva approve") + "</span>"))
+    items.append(("Search engines", "Allowed (indexable)" if info.get("indexable") else "Kept out (noindex)"))
+    return _dl(items) + '<p><a href="/longview/businesses/">Open the directory</a></p>'
 
 
 def render_html(data: dict) -> str:
@@ -361,7 +376,7 @@ def render_html(data: dict) -> str:
             [(label, _n(publish.get(key))) for key, label in PUBLISH_LABELS]
             + [("Last publish file written", _e(_when(data.get("lastExportAt"))))]
         )),
-        _section("batch-prs", "Batch pull requests", _batch_prs(data.get("batchPullRequests") or {})),
+        _section("directory-site", "Directory site", _directory_site(data.get("directorySite") or {})),
         _section("facts", "Facts checked on the businesses' own websites", _dl(
             [(field.capitalize(), _n(count)) for field, count in (data.get("factsVerified") or {}).items()]
         )),
@@ -490,7 +505,10 @@ td { overflow-wrap: break-word; hyphens: auto; }
 
 
 def write_status(settings, data: dict) -> None:
-    """Write status.json, the status page, its stylesheet, a tiny index, and robots.txt."""
+    """Write status.json, the status page, its stylesheet, a tiny index, and robots.txt.
+
+    www/index.html is a fallback only: Caddy sends / to the directory.
+    """
     www = settings.www_dir
     (www / "status").mkdir(parents=True, exist_ok=True)
     files = (

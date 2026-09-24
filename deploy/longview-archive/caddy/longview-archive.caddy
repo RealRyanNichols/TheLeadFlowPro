@@ -1,11 +1,20 @@
-# Longview Business Archive status host (The LeadFlow Pro).
+# Longview Business Archive staging host (The LeadFlow Pro).
 #
 # Owner: The LeadFlow Pro, hello@theleadflowpro.com.
-# Serves the engine's private status page from /var/lib/longview-archive/www:
-# / (redirects to /status/), /status, /status/*, /status.json, and
-# /robots.txt. Everything else is a 404. Every response, errors included,
-# says noindex, and the page loads nothing from any other host. The public
-# directory lives on theleadflowpro.com, not here.
+# Serves two things from /var/lib/longview-archive/www, both built by the
+# engine on this droplet (nothing is deployed anywhere else):
+#   - the public Longview business directory at /longview/businesses/ (the
+#     approved batch only; / redirects there), the same path it will have on
+#     theleadflowpro.com;
+#   - the private status page at /status, /status/*, and /status.json.
+# /robots.txt is answered here. Everything else is a 404. The pages load
+# nothing from any other host.
+#
+# Every response, errors included, says noindex while this is a staging host.
+# This file cannot see the engine's LVA_INDEXABLE switch, so the header stays
+# on even when the pages drop their noindex tag. Going public means a separate,
+# approved change to this file (drop X-Robots-Tag and the robots.txt block for
+# the directory paths) together with DNS for the real domain.
 #
 # Needs Caddy 2.7 or newer (the robots.txt heredoc); preflight.sh checks it.
 # Installed by deploy/longview-archive/install.sh. To remove it, run
@@ -13,11 +22,12 @@
 #   caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 #   systemctl reload caddy
 
-# The snippet name is prefixed so it cannot collide with other site files.
+# The snippet names are prefixed so they cannot collide with other site files.
+# The Content-Security-Policy is set separately (below) because the directory
+# allows its one local script and search.json; everything else allows neither.
 (longview_archive_headers) {
 	header {
 		X-Robots-Tag "noindex, nofollow, noarchive, nosnippet"
-		Content-Security-Policy "default-src 'none'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 		X-Content-Type-Options nosniff
 		Referrer-Policy no-referrer
 		X-Frame-Options DENY
@@ -27,12 +37,27 @@
 	}
 }
 
+# Everything but the directory: no script, no fetch. The argument is a matcher.
+(longview_archive_csp_strict) {
+	header {args[0]} Content-Security-Policy "default-src 'none'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+}
+
+# The directory: also its one local script (search.js) and its own search.json.
+(longview_archive_csp_directory) {
+	header {args[0]} Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+}
+
 longview.165-227-248-110.sslip.io {
 	root * /var/lib/longview-archive/www
 	import longview_archive_headers
 
-	# Answered by Caddy itself, so crawlers are turned away even before the
-	# engine writes its first file.
+	@longview_directory path /longview/businesses /longview/businesses/*
+	@longview_not_directory not path /longview/businesses /longview/businesses/*
+	import longview_archive_csp_strict @longview_not_directory
+	import longview_archive_csp_directory @longview_directory
+
+	# Answered by Caddy itself, so crawlers are turned away from this staging
+	# host even before the engine writes its first file.
 	handle /robots.txt {
 		header Content-Type "text/plain; charset=utf-8"
 		respond <<TXT
@@ -41,9 +66,20 @@ longview.165-227-248-110.sslip.io {
 			TXT 200
 	}
 
-	# The "*" matters: without it Caddy reads /status/ as a path matcher.
+	# The "*" matters: without it Caddy reads the target as a path matcher.
 	handle / {
-		redir * /status/ 302
+		redir * /longview/businesses/ 302
+	}
+
+	handle /longview/businesses {
+		redir * /longview/businesses/ 308
+	}
+
+	# The static directory. A profile, category, or list is a folder with an
+	# index.html; "businesses" is a link the engine switches in one rename.
+	handle /longview/businesses/* {
+		try_files {path} {path}/index.html
+		file_server
 	}
 
 	@status path /status /status/ /status/* /status.json
@@ -55,10 +91,11 @@ longview.165-227-248-110.sslip.io {
 		respond "Not found" 404
 	}
 
-	# A missing status file is an error inside file_server; answer it with
-	# the same headers instead of Caddy's bare default.
+	# A missing file is an error inside file_server; answer it with the same
+	# headers (and the strict policy) instead of Caddy's bare default.
 	handle_errors {
 		import longview_archive_headers
+		import longview_archive_csp_strict *
 		respond "{err.status_code}" {err.status_code}
 	}
 }

@@ -22,7 +22,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from . import config, db, exports, facts, github_pr, matching, normalize, privacy, publish, status
+from . import approval, config, db, exports, facts, matching, normalize, privacy, publish, status
 from .service import SYNC_BY_NAME, SYNC_JOBS, ArchiveService, bootstrap, run_sync, take_backup, where
 
 log = logging.getLogger("longview_archive")
@@ -241,97 +241,85 @@ def cmd_crawl_once(args, settings) -> int:
     return 1 if report["visit_errors"] else 0
 
 
+SITE_URL_HINT = f"https://{config.STAGING_HOST}{config.DIRECTORY_PATH}/"
+
+
 def cmd_publish(args, settings) -> int:
     conn = bootstrap(settings)
+    auto = None
     try:
         counts = publish.run_publish(conn, settings, out_path=args.out)
+        if args.out is None or Path(args.out) == settings.publish_export_path:
+            auto = approval.auto_approve(conn, settings)
     finally:
         conn.close()
     path = Path(args.out) if args.out else settings.publish_export_path
     out(f"Publish file written: {path} ({counts.get('published', 0)} businesses; since the previous file there:"
         f" {counts.get('added', 0)} added, {counts.get('removed', 0)} removed,"
         f" {counts.get('updated', 0)} changed). Nothing is sent anywhere.")
+    status_name = (auto or {}).get("status")
+    if status_name == "approved":
+        out(f"Auto-approve is on: this batch was approved and the directory rebuilt ({SITE_URL_HINT}).")
+    elif status_name == "held":
+        err(f"Auto-approve is holding this batch: it would remove {auto['removed']} of the {auto['approved']}"
+            " approved businesses. Check it, then run: lva approve")
+    else:
+        out("The public directory changes only when a batch is approved: lva approve")
     return 0
 
 
-PR_OUTCOMES = {
-    "opened": "Opened the batch pull request. Open it on GitHub, check the Vercel preview, and merge to publish.",
-    "updated": "Updated the open batch pull request with the new batch. Check the preview, then merge.",
-    "not_due": "Not due yet: the batch pull request is updated at most once a day.",
-    "busy": "Another batch pull request run is in progress (the service); try again in a minute.",
-}
-PR_SKIPS = {
-    "no_export": "there is no publish file yet (run: lva publish)",
-    "not_an_export": "the publish file is not a directory export",
-    "sample": "the publish file is a sample",
-    "empty": "the publish file has no businesses",
-    "same_as_main": "the batch is the same as the file on main",
-    "already_proposed": "the open pull request already has this batch",
-    "large_removal": "it would remove more than 25% of the published businesses (held for a person)",
-}
+APPROVE_REASONS = {"no_export", "not_an_export", "sample", "batch_mismatch"}
 
 
-def _pr_counts(counts: Dict[str, Any]) -> str:
-    return (f"{counts.get('published', 0)} published: {counts.get('added', 0)} added,"
-            f" {counts.get('removed', 0)} removed, {counts.get('changed', 0)} changed;"
-            f" {counts.get('held_for_privacy', 0)} held for privacy,"
-            f" {counts.get('waiting_for_review', 0)} waiting for review")
-
-
-def cmd_publish_pr(args, settings) -> int:
+def cmd_approve(args, settings) -> int:
     conn = bootstrap(settings)
     try:
-        if args.dry_run:
-            result = github_pr.dry_run(conn, settings, base_path=args.base)
-        else:
-            if settings.pause_file.exists():
-                err(f"The PAUSE file is present ({settings.pause_file}); nothing is sent to GitHub. Remove it first.")
-                return 1
-            if below_guard(settings):
-                return 1
-            result = github_pr.run_publish_pr(conn, settings, allow_large_removal=args.allow_large_removal)
+        if args.auto is not None:
+            approval.set_auto(conn, args.auto == "on")
+            if args.auto == "on":
+                out("Auto-approve is on. Each new publish file (every 45 minutes) is approved and the directory"
+                    " rebuilt by itself, except a batch that would remove more than 25% of the approved"
+                    " businesses: that one waits for you (the status page says so). Turn it off with:"
+                    " lva approve --auto off")
+            else:
+                out("Auto-approve is off. The directory changes only when you run: lva approve")
+            return 0
+        actor = (args.actor or DEFAULT_ACTOR).strip() or DEFAULT_ACTOR
+        try:
+            result = approval.approve(conn, settings, actor=actor, batch=args.batch)
+        except approval.ApprovalError as exc:
+            err(f"Nothing was approved: {exc}")
+            return 1
     finally:
         conn.close()
+    out(f"Approved batch {result['batchId']} by {actor}: {result['businesses']} businesses"
+        f" ({result['added']} added, {result['removed']} removed, {result['changed']} changed since the last"
+        " approval).")
+    if result.get("suppressed_since_export"):
+        out(f"{result['suppressed_since_export']} business(es) with a removal request were left out.")
+    if result.get("dropped"):
+        err(f"{result['dropped']} record(s) failed the site's own checks and are not shown (the log has the"
+            " reasons).")
+    out(f"The directory was rebuilt: {SITE_URL_HINT}")
+    return 0
 
-    if args.dry_run:
-        out("Dry run: nothing was sent anywhere and nothing was changed on GitHub.")
-        out(f"Batch pull requests: {'on' if result['enabled'] else 'off'}"
-            + (f" ({result['token_problem']})" if result.get("token_problem") else ""))
-        out(f"Compared with: {result['base'] or 'nothing (no copy of the file on main yet; every business counts as added)'}")
-        if result.get("counts"):
-            out(f"Counts: {_pr_counts(result['counts'])}")
-        verdict = {"propose": "A pull request would be opened or updated (when due).",
-                   "skip": f"Skipped: {PR_SKIPS.get(result.get('reason'), result.get('reason'))}.",
-                   "held": f"Held: {PR_SKIPS['large_removal']}."}[result["outcome"]]
-        out(verdict)
-        if result.get("title"):
-            out("")
-            out(f"Title: {result['title']}")
-            out("")
-            out(result["body"].rstrip("\n"))
-        return 0
 
-    status_name = result.get("status")
-    if status_name == "off":
-        out(f"Batch pull requests are off: there is no token file at {settings.github_token_file}."
-            " See the README section 'Automatic batch pull requests (optional)'.")
-        return 0
-    if status_name == "refused":
-        err(result.get("problem") or "The GitHub token file was refused.")
-        return 1
-    if status_name == "skipped":
-        out(f"No pull request: {PR_SKIPS.get(result.get('reason'), result.get('reason'))}.")
-        return 0
-    if status_name == "held":
-        err(result.get("problem") or "Large removal held for a person.")
-        return 1
-    if status_name == "error":
-        err(f"The batch pull request failed: {result.get('error')}. Recorded as an error run; tried again"
-            " in an hour.")
-        return 1
-    out(PR_OUTCOMES.get(status_name, str(status_name)))
-    if status_name in ("opened", "updated"):
-        out(f"Counts: {_pr_counts(result)}")
+def cmd_site(args, settings) -> int:
+    conn = bootstrap(settings)
+    try:
+        counts = approval.rebuild_site(conn, settings)
+        batch = db.get_meta(conn, "site_batch_id")
+    finally:
+        conn.close()
+    if batch:
+        out(f"Directory rebuilt from approved batch {batch}: {counts['businesses']} businesses,"
+            f" {counts['pages']} pages ({settings.site_dir}).")
+    else:
+        out(f"No batch is approved yet, so the directory says the first batch is being checked"
+            f" ({settings.site_dir}). Approve one with: lva approve")
+    if counts.get("dropped"):
+        err(f"{counts['dropped']} record(s) failed the site's own checks and are not shown (the log has the"
+            " reasons).")
     return 0
 
 
@@ -401,8 +389,11 @@ def cmd_suppress(args, settings) -> int:
         if kind == "public_id":
             known = conn.execute("SELECT 1 FROM businesses WHERE public_id=?", (value,)).fetchone() is not None
         # Re-decide every business and rewrite the publish file at once, so the
-        # file on disk never still lists a business after its removal request.
+        # file on disk never still lists a business after its removal request,
+        # then take it out of the approved batch and rebuild the public site:
+        # a removal never waits for the next approval.
         counts = publish.run_publish(conn, settings)
+        removal = approval.apply_suppressions(conn, settings)
     finally:
         conn.close()
     label = {"public_id": f"public id {value}", "domain": f"domain {value}", "phone": "that phone number",
@@ -410,9 +401,10 @@ def cmd_suppress(args, settings) -> int:
     out(f"{'Suppressed' if added else 'Already suppressed:'} {label}."
         f" {counts.get('suppressed', 0)} business(es) are suppressed in total; the publish file"
         f" ({settings.publish_export_path}) was rewritten.")
+    out(f"The public directory was rebuilt at once: {removal['removed']} listing(s) taken off,"
+        f" {removal['shown']} shown.")
     if not known:
         out("No business in the archive has that id yet; the suppression is kept for when it appears.")
-    out("Also add it to content/longview-directory/suppressions.json in the repo (see the README).")
     return 0
 
 
@@ -693,14 +685,15 @@ def build_parser() -> argparse.ArgumentParser:
     p = add("publish", cmd_publish, "Write the publish file now")
     p.add_argument("--out", metavar="PATH", default=None,
                    help="where to write it (default: exports/publish/directory.json)")
-    p = add("publish-pr", cmd_publish_pr,
-            "Open or update the one batch pull request (off unless the GitHub token file exists)")
-    p.add_argument("--dry-run", action="store_true",
-                   help="print the pull request title, body, and counts; no network call")
-    p.add_argument("--base", metavar="PATH", default=None,
-                   help="dry run: compare with this directory file (default: the last copy of main's file)")
-    p.add_argument("--allow-large-removal", action="store_true",
-                   help="a person checked a held batch that removes more than 25%%; propose it anyway")
+    p = add("approve", cmd_approve,
+            "Approve the newest publish file for the public directory (or turn auto-approve on or off)")
+    p.add_argument("--batch", default="latest", metavar="latest|BATCH_ID",
+                   help="the batch you checked: 'latest' (default) or its exact batch id")
+    p.add_argument("--actor", default=None, metavar="NAME",
+                   help=f"who approved (recorded; default: {DEFAULT_ACTOR})")
+    p.add_argument("--auto", choices=("on", "off"), default=None,
+                   help="approve each new batch by itself (a batch removing more than 25%% still waits)")
+    add("site", cmd_site, "Rebuild the public directory pages from the approved batch")
     add("exports", cmd_exports, "Write the private CSV lists (never sent anywhere)")
     add("backup", cmd_backup, "Take a database backup now")
 

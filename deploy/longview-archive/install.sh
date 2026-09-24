@@ -616,6 +616,7 @@ summary() {
 		say "  Status:    $STATUS_JSON (no status page; installed with --no-caddy)"
 	else
 		say "  Status:    https://$STATUS_HOST/status/"
+		say "  Directory: https://$STATUS_HOST/longview/businesses/ (shows a batch once you run: lva approve)"
 	fi
 	say "  Pause:     touch $DATA_DIR/PAUSE"
 	say "  Resume:    rm -f $DATA_DIR/PAUSE"

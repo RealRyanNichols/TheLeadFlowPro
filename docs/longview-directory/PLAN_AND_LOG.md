@@ -1,9 +1,9 @@
 # Longview Business Directory: plan and log
 
 The Longview business directory for The LeadFlow Pro. Every business in the
-City of Longview gets a sourced profile on theleadflowpro.com at
-`/longview/businesses`. The engine that builds and checks it runs 24/7 on the
-LeadFlow DigitalOcean droplet.
+City of Longview gets a sourced profile at `/longview/businesses`. The engine
+that builds and checks it, and the pages themselves, run 24/7 on the LeadFlow
+DigitalOcean droplet (nothing is deployed to Vercel).
 
 ## Direction (Sept 24, 2026)
 
@@ -20,7 +20,7 @@ LeadFlow DigitalOcean droplet.
 | M0 | Read-only droplet inspection, then this plan | Droplet (`preflight.sh`) |
 | M1 | Ingest Texas Comptroller sales-tax outlets for Longview, categorize, de-duplicate, report the real count | Droplet engine |
 | M2 | Website worker built from the dental-directory design, tested, installed as `longview-archive` | Repo, then droplet |
-| M3 | Private status dashboard on a noindex host; profile pages on the LeadFlow site; privacy filters checked on real rows | Droplet + Vercel preview |
+| M3 | Private status dashboard on a noindex host; directory pages built and served on the droplet; privacy filters checked on real rows | Droplet |
 | M4 | OSM discovery, NPI and TABC, website discovery, hiring signals, "New in Longview" | Droplet engine |
 | M5 | Handoff and a weekly report-only digest | Drive + this folder |
 
@@ -29,9 +29,12 @@ LeadFlow DigitalOcean droplet.
 1. The engine on the droplet ingests public records and reads business websites.
 2. Every 45 minutes it writes a publish export: only publishable businesses and
    fields, each fact with its source and the date it was checked.
-3. That export is committed to `content/longview-directory/directory.json` in a
-   pull request. Merging the pull request is the approval; Vercel deploys it.
-4. Profiles stay `noindex` until the owner turns on indexing (one switch).
+3. A person approves a batch on the droplet (`lva approve`), or auto-approve
+   does (it holds a batch that removes more than 25%). The engine then builds
+   the static pages from the approved batch and Caddy serves them at
+   `/longview/businesses/`.
+4. Pages stay `noindex` until the owner turns on indexing (one switch), which
+   happens with the move to theleadflowpro.com.
 
 ## Log
 
@@ -47,3 +50,14 @@ LeadFlow DigitalOcean droplet.
   installer safety, and the site found about 45 real problems; all are fixed
   with regression tests. Awaiting the owner's go-ahead to install on the
   droplet (see HANDOFF.md).
+- **Sept 24, 2026 (evening). Moved off Vercel on the owner's instruction.**
+  Nothing is deployed to Vercel any more. The Next.js directory pages were
+  removed from the branch, and the engine now generates the directory itself as
+  static pages (`site.py`, with its own copy of the contract check in
+  `validate.py`) that Caddy serves from the droplet at
+  `https://longview.165-227-248-110.sslip.io/longview/businesses/`. Approval
+  moved from merging a pull request to one command on the droplet
+  (`lva approve`), with an optional auto-approve that still holds large
+  removals for a person. The batch pull request feature and every GitHub call
+  were removed from the engine. When the LeadFlow site itself runs on the
+  droplet, one approved Caddy change routes `/longview/businesses/` there.

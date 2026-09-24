@@ -2,8 +2,9 @@
 
 ``evaluate`` decides, for every business, whether it may be published and why
 not. ``build_export`` turns the ready ones into the JSON the directory renders
-(SPEC "The publish contract", lib/longviewDirectory/types.ts): only public
-fields, each with the source it came from and the local date it was checked.
+(SPEC "The publish contract"; ``site.py`` renders it once a batch is approved):
+only public fields, each with the source it came from and the local date it
+was checked.
 The export reads only the normalized columns of source records, never
 ``raw_json``, so a taxpayer's name cannot reach it. The site re-checks every
 rule and drops a record that breaks one, so every rule is applied here first.
