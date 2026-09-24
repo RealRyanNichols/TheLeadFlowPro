@@ -43,7 +43,7 @@ import { CLOSER_OFFER_IDS, FREE_BUILD_ADD_ON_IDS, isCloserOfferId, payDoorFor, t
 import { AGENCY_SERVICES } from "../lib/site/agency.ts";
 import { CONSULTATION } from "../lib/site/consultation.ts";
 import { EXTERNAL_LINKS } from "../lib/site/external-links.ts";
-import { OFFERS } from "../lib/site/offers.ts";
+import { OFFERS, offer } from "../lib/site/offers.ts";
 
 const src = (f: string) => readFileSync(join(process.cwd(), f), "utf8");
 
@@ -413,7 +413,7 @@ test("ready_to_pay: the published pay door and one draft for Ryan to send himsel
   const build = ok(plan(request("ready_to_pay", { offers: ["lead_engine"] })));
   assert.equal(build.payDoors[0].kind, "starts_with");
   assert.ok(build.payMessage?.includes(payDoorFor("system_map")?.url ?? "missing"));
-  assert.ok(build.preview.includes("Lead Engine: Starts with the System Map, credited toward the build."));
+  assert.ok(build.preview.includes(`Lead Engine: Starts with the System Map: pays ${offer("system_map").priceLabel} online today, credited toward the build.`));
 });
 
 test("what saving says is true for an admin and a sales user alike: no call sheet a sales user cannot open", () => {

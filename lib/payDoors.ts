@@ -147,7 +147,11 @@ export function payDoorFor(offerId: string, context: PayDoorContext = {}): PayDo
       kind: "starts_with",
       url: map?.url ?? null,
       dueNowLabel: live ? (map?.dueNowLabel ?? null) : null,
-      howTheyPay: "Starts with the System Map, credited toward the build",
+      // Name the amount due today so a "from" price never reads as payable online in full.
+      howTheyPay:
+        payable && map?.dueNowLabel
+          ? `Starts with the System Map: pays ${map.dueNowLabel} online today, credited toward the build`
+          : "Starts with the System Map, credited toward the build",
       staffHref: null,
       payableNow: payable,
     };

@@ -128,7 +128,9 @@ test("larger builds start with the System Map: its link, its price, credited tow
     assert.equal(d.kind, "starts_with", id);
     assert.equal(d.url, map.url, id);
     assert.equal(d.dueNowLabel, map.priceLabel, id);
-    assert.equal(d.howTheyPay, "Starts with the System Map, credited toward the build");
+    assert.equal(d.howTheyPay, `Starts with the System Map: pays ${offer("system_map").priceLabel} online today, credited toward the build`);
+    // The build's own "from" price is never presented as due online today.
+    assert.ok(!d.howTheyPay.includes(d.priceLabel));
     assert.equal(d.payableNow, true, id);
     const line = acceptanceLine(d);
     assert.ok(line.startsWith(`${d.offerName} starts with the System Map`), line);
