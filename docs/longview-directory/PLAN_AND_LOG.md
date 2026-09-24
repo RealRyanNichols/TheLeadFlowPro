@@ -41,3 +41,9 @@ LeadFlow DigitalOcean droplet.
   here. The engine, the site pages, and the installer are built and tested with
   fictional fixtures instead; the droplet install is one command (see
   `deploy/longview-archive/README.md`).
+- **Sept 24, 2026 (later).** Engine, installer, and directory pages built and
+  integrated (545 engine tests, 1,585 site tests, full build passing). An
+  adversarial review across privacy, honesty, crawl politeness, reliability,
+  installer safety, and the site found about 45 real problems; all are fixed
+  with regression tests. Awaiting the owner's go-ahead to install on the
+  droplet (see HANDOFF.md).
