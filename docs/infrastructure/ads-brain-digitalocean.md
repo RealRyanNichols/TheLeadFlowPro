@@ -35,6 +35,11 @@ It does not create campaigns, change budgets, publish ads, send email, text lead
 | Timer | `ads-brain.timer`, every fifteen minutes |
 | Tables | `ads_brain_run`, `ads_brain_snapshot`, `ads_brain_alert` |
 
+The Vercel route uses `META_ADS_READ_TOKEN` for ad-account reporting and
+`META_PAGE_ACCESS_TOKEN` for Page lead-form inventory. If the Page-scoped token
+is unavailable, campaign, delivery, spend and insight reporting remain live and
+the private dashboard raises a limited form-inventory warning.
+
 ## Verification
 
 ```bash

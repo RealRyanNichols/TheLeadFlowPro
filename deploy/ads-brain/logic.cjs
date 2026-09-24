@@ -55,6 +55,13 @@ function analyzeAdsBrain(metaPayload, leads, now = new Date()) {
       detail: String(metaPayload?.detail || metaPayload?.error || 'The read only Meta source did not answer.'),
     });
   }
+  if (metaConnected && metaPayload.form_access?.connected === false) {
+    alerts.push({
+      key: 'meta_form_reporting_limited', severity: 'warning', category: 'connection',
+      title: 'Meta Page form inventory is not connected',
+      detail: String(metaPayload.form_access?.error || 'The Page form read requires a scoped Page access token.'),
+    });
+  }
   if (activeAds.length > 0) {
     alerts.push({
       key: 'ads_delivery_active', severity: 'critical', category: 'spend_lock',
@@ -119,6 +126,7 @@ function analyzeAdsBrain(metaPayload, leads, now = new Date()) {
       campaign_count: campaigns.length,
       ad_count: ads.length,
       forms: metaConnected && Array.isArray(metaPayload.forms) ? metaPayload.forms : [],
+      form_access: metaConnected ? (metaPayload.form_access || { connected: true, error: null }) : { connected: false, error: null },
       last_7_days: last7,
       last_30_days: last30,
       campaigns,

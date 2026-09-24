@@ -43,3 +43,16 @@ test("observer reports a disconnected Meta source without losing CRM analysis", 
   assert.equal(result.leads.totals.total, 12);
   assert.ok(result.alerts.some((alert: { key: string }) => alert.key === "meta_reporting_disconnected"));
 });
+
+test("observer keeps account reporting connected when only Page form inventory is unavailable", () => {
+  const result = analyzeAdsBrain({
+    ok: true,
+    identity: { adAccountId: "1637329904238602" },
+    campaigns: [], ads: [], forms: [], insights: [], account: { account_id: "1637329904238602" },
+    form_access: { connected: false, error: "Page access token required" },
+  }, leads, new Date("2026-09-24T12:00:00Z"));
+  assert.equal(result.meta.connected, true);
+  assert.equal(result.meta.form_access.connected, false);
+  assert.ok(result.alerts.some((alert: { key: string }) => alert.key === "meta_form_reporting_limited"));
+  assert.ok(!result.alerts.some((alert: { key: string }) => alert.key === "meta_reporting_disconnected"));
+});
