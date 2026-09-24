@@ -1,0 +1,25 @@
+{
+  "resultSetSize": 2,
+  "results": [
+    {
+      "resource": {
+        "id": "mix0-0001",
+        "name": "Mixed Beverage Gross Receipts",
+        "type": "dataset",
+        "updatedAt": "2026-09-23T05:00:00.000Z",
+        "columns_field_name": ["taxpayer_number", "location_name", "location_address", "location_city", "location_zip"]
+      },
+      "metadata": {"domain": "data.texas.example"}
+    },
+    {
+      "resource": {
+        "id": "tabc-9999",
+        "name": "TABC License Information",
+        "type": "dataset",
+        "updatedAt": "2026-09-24T05:00:00.000Z",
+        "columns_field_name": ["license_id", "license_status", "trade_name", "address", "city", "zip"]
+      },
+      "metadata": {"domain": "data.other.example"}
+    }
+  ]
+}
