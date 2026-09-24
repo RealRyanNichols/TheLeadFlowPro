@@ -10,6 +10,13 @@
 
 import { PRICES, usd, usdPerMonth } from "@/lib/site/prices";
 
+/**
+ * How hosting works after a free build, in one sentence the /free-build page
+ * and a proposal both print: the included days first, then the published
+ * monthly prices, and nothing renewing on its own.
+ */
+export const FREE_BUILD_HOSTING_LINE = `The first ${PRICES.hostingIncludedDays} days of managed hosting are included. After that, self-host or export the site, use ${usdPerMonth(PRICES.hostingManagedMonthly)} managed hosting, or choose ${usdPerMonth(PRICES.hostingWithEditsMonthly)} hosting with two minor edits. Nothing renews without written approval.`;
+
 export type FreeBuildTier = {
   id: "free_build_followup" | "free_build_content" | "free_build_launch" | "free_build_only";
   name: string;
@@ -95,8 +102,7 @@ export const FREE_BUILD = {
     },
     {
       title: "A clean ownership choice",
-      detail:
-        `The first ${PRICES.hostingIncludedDays} days of managed hosting are included. After that, self-host or export the site, use ${usdPerMonth(PRICES.hostingManagedMonthly)} managed hosting, or choose ${usdPerMonth(PRICES.hostingWithEditsMonthly)} hosting with two minor edits. Nothing renews without written approval.`,
+      detail: FREE_BUILD_HOSTING_LINE,
     },
   ],
 
