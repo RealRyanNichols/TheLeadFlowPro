@@ -390,6 +390,7 @@ def _page(title: str, body: str) -> str:
         '<meta name="robots" content="noindex,nofollow">\n'
         '<meta name="referrer" content="no-referrer">\n'
         f"<title>{_e(title)}</title>\n"
+        '<link rel="icon" href="data:,">\n'
         '<link rel="stylesheet" href="/status/status.css">\n'
         f"</head>\n<body>\n<main>\n{body}\n</main>\n</body>\n</html>\n"
     )
@@ -451,7 +452,7 @@ table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
 caption { text-align: left; color: var(--muted); font-size: 0.875rem; padding-bottom: 0.5rem; }
 th, td { text-align: left; vertical-align: top; padding: 0.5rem 0.5rem 0.5rem 0; border-top: 1px solid var(--line); }
 th { font-weight: 600; }
-td { overflow-wrap: anywhere; }
+td { overflow-wrap: break-word; hyphens: auto; }
 .foot { padding: 0 0 2rem; }
 @media (min-width: 40rem) {
   main { padding: 2rem 1.5rem; }
