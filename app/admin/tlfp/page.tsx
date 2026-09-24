@@ -3,6 +3,7 @@ import { Coins } from "lucide-react";
 import { createServiceClient } from "@/lib/supabase/service";
 import { TLFP_CREDITS } from "@/lib/tlfpCredits";
 import GrantForm from "./GrantForm";
+import AnnounceForm from "./AnnounceForm";
 
 export const dynamic = "force-dynamic";
 
@@ -96,6 +97,8 @@ export default async function AdminTlfpPage() {
           <GrantForm />
         </div>
       </div>
+
+      <AnnounceForm />
 
       <div className="card mt-6 overflow-x-auto">
         <h3 className="text-lg font-bold text-[var(--heading)]">Balances</h3>
