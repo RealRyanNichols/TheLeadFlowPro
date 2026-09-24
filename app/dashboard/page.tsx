@@ -15,6 +15,9 @@ import { signDeliverableFile } from "@/lib/deliverableFiles";
 import SignOutButton from "@/components/SignOutButton";
 import MessageThread, { type Msg } from "@/components/MessageThread";
 import { canAccessCourse, getTrainingEntitlements } from "@/lib/access";
+import { getTlfpAccountForCurrentUser } from "@/lib/tlfp";
+import { TLFP_CREDITS } from "@/lib/tlfpCredits";
+import TlfpBalanceCard from "@/components/tlfp/TlfpBalanceCard";
 
 export const metadata = { title: "Command Center | The LeadFlow Pro" };
 
@@ -85,6 +88,8 @@ export default async function Dashboard() {
     .order("created_at");
 
   const entitlements = await getTrainingEntitlements();
+  // Never let a ledger problem take the command center down.
+  const tlfp = await getTlfpAccountForCurrentUser().catch(() => null);
   const { data: publishedCourses } = await supabase
     .from("courses")
     .select("id, slug, is_free")
@@ -450,6 +455,19 @@ export default async function Dashboard() {
             </div>
           </div>
         )}
+
+        <div id="credits" className="mt-6 scroll-mt-24">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Wallet className="h-5 w-5 text-[var(--blue)]" aria-hidden="true" />
+              <h2 className="text-lg font-bold text-[var(--heading)]">{TLFP_CREDITS.name}</h2>
+            </div>
+            <Link href={TLFP_CREDITS.path} className="text-sm font-bold text-[var(--blue)] underline-offset-2 hover:underline">
+              Earn, buy, or spend
+            </Link>
+          </div>
+          <TlfpBalanceCard account={tlfp} compact next="/dashboard" />
+        </div>
 
         <div id="messages" className="card mt-6 scroll-mt-24">
           <div className="flex items-center gap-2">

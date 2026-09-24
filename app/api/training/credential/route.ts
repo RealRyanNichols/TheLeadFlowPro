@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getCourseAccess } from "@/lib/access";
 import { courseCredentialConfig } from "@/lib/academyCredential";
+import { awardCourseCompletion } from "@/lib/tlfp";
 
 export const runtime = "nodejs";
 
@@ -63,6 +64,17 @@ export async function POST(request: Request) {
       disclaimer: config.disclaimer,
     });
     if (insertError) throw new Error(`Credential issue failed: ${insertError.code}`);
+
+    // The completion earns TLFP Credits, once per learner per course (the
+    // ledger ref is the user and course). The letter is issued either way: a
+    // ledger problem is logged, never shown to the learner as a failure.
+    if (user.email) {
+      try {
+        await awardCourseCompletion(service, { email: user.email, userId: user.id, courseId: course.id, courseSlug: course.slug });
+      } catch (error) {
+        console.error("TLFP course award failed:", error instanceof Error ? error.message : "unknown");
+      }
+    }
     return NextResponse.json({ issued: true, code: credentialCode });
   } catch (error) {
     console.error("Credential request failed:", error instanceof Error ? error.message : "unknown error");

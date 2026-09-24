@@ -1,21 +1,8 @@
 #!/usr/bin/env sh
-set -eu
-
-if [ "$(id -u)" -ne 0 ]; then
-  echo "Run this installer as root on the DigitalOcean Droplet." >&2
-  exit 1
-fi
-
-apt-get update
-apt-get install -y ca-certificates curl git
-install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-chmod a+r /etc/apt/keyrings/docker.asc
-. /etc/os-release
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-systemctl enable --now docker
-ufw allow OpenSSH
-ufw --force enable
-echo "Docker is ready. Clone the private repository, create deploy/content-command/.env, then run docker compose up -d."
+# Retired September 24, 2026. The Content Command worker ships with the site:
+# see deploy/droplet/install.sh and docs/infrastructure/droplet.md.
+#
+# This script used to turn the firewall on with only SSH allowed, which would
+# block HTTPS for the central brain and the site on the shared droplet.
+echo "Retired. Use deploy/droplet/install.sh (docs/infrastructure/droplet.md)." >&2
+exit 1

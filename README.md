@@ -52,3 +52,13 @@ npm run dev
 
 Supabase URL and publishable key have safe public fallbacks in `lib/config.ts`.
 Secrets (Resend, Quo, cron, unsubscribe) are Vercel env vars and are never committed.
+
+## Reverse-proxy hosting
+
+When Next.js runs behind Caddy, its internal request URL can use the loopback
+listen address. `lib/requestOrigin.ts` keeps checkout returns, sign-in links,
+and same-origin checks on the owned public hosts. Caddy must preserve `Host`
+and replace forwarded headers. Bind Next.js to loopback so requests go through
+the TLS proxy. Add explicitly owned preview hosts to `LEADFLOW_TRUSTED_HOSTS`
+(comma separated); production apex, `www`, and `go` are already allowed. Unknown
+hosts fall back to the canonical site and cannot select an external callback.

@@ -9,6 +9,7 @@ import {
   verifyProAccess,
   type ProAccess,
 } from "@/lib/proAccess";
+import { currentUserIsTlfpHolder } from "@/lib/tlfp";
 
 // The server side of pro access: read the signed cookie, add whatever a
 // logged-in buyer's purchase rows say, and hand pages one Set of kinds.
@@ -85,6 +86,12 @@ export async function getProEntitlements(): Promise<ProEntitlements> {
           kinds.add("pro_bundle");
           fromAccount = true;
         }
+      }
+      // A TLFP Credits holder (500+ on the balance) has every kit for as long
+      // as the balance stays there. Read under the user's own policy.
+      if (!kinds.has("pro_bundle") && (await currentUserIsTlfpHolder(supabase, user.email))) {
+        kinds.add("pro_bundle");
+        fromAccount = true;
       }
       if (!email && user.email) email = user.email.toLowerCase();
     }

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { requestOrigin } from "../requestOrigin";
 import {
   ACCESS_COOKIE,
   ACCESS_SECONDS,
@@ -23,13 +24,7 @@ export function json(body: unknown, status = 200) {
 export function sameOrigin(req: Request): boolean {
   try {
     const origin = new URL(req.headers.get("origin") || "");
-    const target = new URL(req.url);
-    // Next may normalize the local request URL to localhost while preserving
-    // the browser's 127.0.0.1 Host. Compare the actual request host as well.
-    return (
-      origin.protocol === target.protocol &&
-      origin.host === (req.headers.get("host") || target.host)
-    );
+    return origin.origin === requestOrigin(req);
   } catch {
     return false;
   }

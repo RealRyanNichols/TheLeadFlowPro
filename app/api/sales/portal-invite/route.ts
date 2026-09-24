@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createPublicClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/config";
+import { requestOrigin } from "@/lib/requestOrigin";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "This project must be connected to a lead with an email address" }, { status: 400 });
   }
 
-  const origin = new URL(request.url).origin;
+  const origin = requestOrigin(request);
   const auth = createPublicClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });

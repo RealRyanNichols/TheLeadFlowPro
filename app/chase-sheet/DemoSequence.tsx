@@ -5,20 +5,23 @@ import { MessageSquareText, PhoneCall, RefreshCw } from "lucide-react";
 import styles from "./chase-sheet.module.css";
 
 // The free demo. The visitor describes one quote and the server writes the
-// whole sequence for it. The engine never ships to the browser: the trade and
-// tone lists arrive as plain props from the server page, and this component
-// only draws what the API sends back.
+// first touches in full and dates the rest, with one objection reply in full.
+// The engine never ships to the browser: the trade and tone lists arrive as
+// plain props from the server page, and this component only draws what the
+// API sends back.
 
 export type Option = { value: string; label: string };
 
 type DemoStep = {
   step: { step: number; role: string; channel: "text" | "call" | "email"; day: number; on: string; job: string };
-  message: { subject?: string; body: string; fallbackText?: string };
+  /** null for a touch the demo dates but does not write. */
+  message: { subject?: string; body: string; fallbackText?: string } | null;
 };
 type DemoResult = {
   trade: string;
+  written: number;
   steps: DemoStep[];
-  objections: { id: string; heard: string; note: string; reply: string }[];
+  objections: { id: string; heard: string; note: string; reply?: string }[];
 };
 
 const ROLE_LABEL: Record<string, string> = {
@@ -152,7 +155,7 @@ export default function DemoSequence({ trades, tones }: { trades: Option[]; tone
           {!result && !error ? <p className={styles.note}>Writing the first sequence.</p> : null}
           {result
             ? result.steps.map(({ step, message }) => (
-                <article className={styles.touch} key={step.step}>
+                <article className={message ? styles.touch : `${styles.touch} ${styles.held}`} key={step.step}>
                   <div className={styles.touchHead}>
                     <span className={styles.chip}>Day {step.day}</span>
                     <strong>{ROLE_LABEL[step.role] ?? step.role}</strong>
@@ -162,31 +165,51 @@ export default function DemoSequence({ trades, tones }: { trades: Option[]; tone
                     </span>
                     <span>{longDate(step.on)}</span>
                   </div>
-                  <pre className={styles.messageBody}>{message.body}</pre>
-                  {message.fallbackText ? (
+                  {message ? (
                     <>
-                      <p className={styles.touchJob}>If it goes to voicemail, send this instead:</p>
-                      <pre className={styles.messageBody}>{message.fallbackText}</pre>
+                      <pre className={styles.messageBody}>{message.body}</pre>
+                      {message.fallbackText ? (
+                        <>
+                          <p className={styles.touchJob}>If it goes to voicemail, send this instead:</p>
+                          <pre className={styles.messageBody}>{message.fallbackText}</pre>
+                        </>
+                      ) : null}
                     </>
-                  ) : null}
+                  ) : (
+                    <p className={styles.heldNote}>Written in the sheet, on this day, with the customer&rsquo;s name and the job in it.</p>
+                  )}
                   <p className={styles.touchJob}>{step.job}</p>
                 </article>
               ))
             : null}
           {result ? (
+            <p className={styles.note}>
+              {result.written} of the {result.steps.length} touches written here. The sheet writes every one, keeps the dates, and hands you each on its morning.
+            </p>
+          ) : null}
+          {result ? (
             <div className={styles.objections}>
               <p className={styles.note}>
-                <strong>When they push back.</strong> The sheet carries a reply for every objection your trade hears. Four of them for {result.trade.toLowerCase()}:
+                <strong>When they push back.</strong> The sheet carries a reply for every objection {result.trade.toLowerCase()} hears, in your tone, with the rule behind it. One in full here; the rest are written in the sheet.
               </p>
-              {result.objections.map((o) => (
-                <details key={o.id}>
-                  <summary>&ldquo;{o.heard}&rdquo;</summary>
-                  <p>
-                    <em>{o.note}</em>
-                  </p>
-                  <pre className={styles.messageBody}>{o.reply}</pre>
-                </details>
-              ))}
+              {result.objections.map((o) =>
+                o.reply ? (
+                  <details key={o.id} open>
+                    <summary>&ldquo;{o.heard}&rdquo;</summary>
+                    <p>
+                      <em>{o.note}</em>
+                    </p>
+                    <pre className={styles.messageBody}>{o.reply}</pre>
+                  </details>
+                ) : (
+                  <div className={styles.heldObjection} key={o.id}>
+                    <strong>&ldquo;{o.heard}&rdquo;</strong>
+                    <p>
+                      <em>{o.note}</em>
+                    </p>
+                  </div>
+                ),
+              )}
             </div>
           ) : null}
         </div>

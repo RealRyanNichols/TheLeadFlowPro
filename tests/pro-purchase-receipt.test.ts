@@ -81,6 +81,28 @@ describe("signed Pro purchase receipt", () => {
 });
 
 describe("same-origin, one-time receipt consumption", () => {
+  it("consumes a valid browser receipt when Next.js sees the proxy's loopback URL", async () => {
+    const browserRequest = request();
+    browserRequest.headers.set("host", "www.theleadflowpro.com");
+    browserRequest.headers.set("x-forwarded-host", "www.theleadflowpro.com");
+    browserRequest.headers.set("x-forwarded-proto", "https");
+    const proxyRequest = new Request(`http://127.0.0.1:3109${PRO_PURCHASE_RECEIPT_PATH}`, {
+      method: "POST", headers: browserRequest.headers,
+    });
+    let claims = 0;
+    const result = await consumeProPurchaseReceipt({
+      ...input(), request: proxyRequest, claimOnce: async () => { claims++; return true; },
+    });
+    assert.equal(result.status, 200);
+    assert.equal(result.event?.eventId, receipt.eventId);
+    assert.equal(claims, 1);
+    proxyRequest.headers.set("origin", "https://foreign.example");
+    assert.equal((await consumeProPurchaseReceipt({
+      ...input(), request: proxyRequest, claimOnce: async () => { claims++; return true; },
+    })).status, 403);
+    assert.equal(claims, 1);
+  });
+
   it("does not consume for cross-origin, missing custom header, GET or private return URLs", async () => {
     let claims = 0;
     const claimOnce = async () => { claims++; return true; };

@@ -27,14 +27,18 @@ application sends. Do not edit, lower, or delete any of them at any step:
 
 | Record | Value | Why it stays |
 | --- | --- | --- |
-| A `@` | 76.76.21.21 | The production site (Vercel) |
-| CNAME `www` | cname.vercel-dns.com | The production site |
+| A `@` | 76.76.21.21 until the droplet cutover, then the droplet's IP | The production site. Changed only by the site move (`droplet.md`), never by this one |
+| CNAME `www` | cname.vercel-dns.com until the droplet cutover, then an A record to the droplet | The production site, same rule |
 | A `workshop` | 104.18.22.186, 104.18.23.186 | Separate deployment (Cloudflare) |
 | TXT `resend._domainkey` | Resend DKIM | Every lead alert, welcome email, receipt, digest |
 | MX `send` | feedback-smtp.us-east-1.amazonses.com | Resend bounce and envelope domain |
 | TXT `send` | `v=spf1 include:...spfm.send.theleadflowpro.com` | Resend SPF; the root SPF does not cover subdomains |
 | TXT `@` google-site-verification | existing value | Search Console; the Workspace wizard may add a second one, keep both |
 | NS | ns57/ns58.domaincontrol.com | Do not move nameservers |
+
+The site move to the droplet (`droplet.md`) and this email move touch
+different records. Do them on different days so a problem in one is never
+confused with the other.
 
 ## Order of operations
 
@@ -126,3 +130,50 @@ in Gmail during the window stays in Gmail.
 - **A clean sender reputation** for the replies Ryan types by hand.
 - **One admin console** Ryan controls, which is what the ChatGPT app
   directory and the Meta business verification keep asking for.
+
+## Google sign-in for the admin (after the email move)
+
+The sign-in page already has "Continue with Google Workspace"
+(`app/login/LoginForm.tsx`); it needs three settings, all free:
+
+1. **Google Cloud, signed in as the Workspace admin** (console.cloud.google.com):
+   create a project "LeadFlow Admin". APIs and Services, OAuth consent screen:
+   User type **Internal**. Internal means only accounts inside the
+   theleadflowpro.com Workspace can sign in at all; Google enforces it, not
+   the app. App name "The LeadFlow Pro", support email `hello@`.
+2. Same project, Credentials, Create credentials, OAuth client ID, Web
+   application. Authorized redirect URI:
+   `https://hpzpwfymwfgwspaixrxi.supabase.co/auth/v1/callback`. Copy the
+   client ID and secret.
+3. **Supabase dashboard**, the LeadFlow project, Authentication, Sign In /
+   Providers, Google: paste the client ID and secret, enable. Under URL
+   Configuration, confirm `https://www.theleadflowpro.com/auth/callback` is
+   in the redirect list.
+
+Roles do not come from Google. A first sign-in creates the account with the
+role set in `public.handle_new_user()`: `ryan@`, `hello@` (and the existing
+personal addresses) get admin, `pat@` gets sales, everyone else is a client
+(migration `20260924050000_workspace_admin_email.sql`). Test: sign in as
+`ryan@theleadflowpro.com` in a private window and land on `/admin`.
+
+## The brain reads Gmail, Calendar and Drive (next phase)
+
+Plan, not built yet. It needs the email move done and the brain's code in a
+repository a session can work on (today it lives only in `/opt/brain` on the
+droplet).
+
+- **Access:** a Google Cloud service account in the same project with
+  domain-wide delegation, read-only scopes only:
+  `gmail.readonly`, `calendar.readonly`, `drive.readonly`. Granted in Google
+  Admin, Security, API controls, Domain-wide delegation. Nothing can send,
+  delete, or share. Free.
+- **Where it runs:** a container next to the brain on the droplet, on a
+  schedule, writing into the brain's own database. No new paid service.
+- **What it pulls first:** calendar events (who booked, when), mail threads
+  with leads (matched by email address to the CRM, so the brain stops
+  guessing who was answered), and Drive file names and links for client
+  folders. Message bodies stay in Gmail unless a later decision says
+  otherwise.
+- **Needs Ryan:** push `/opt/brain` to a private GitHub repository so the
+  work can be reviewed and redeployed, and approve the scopes above.
+

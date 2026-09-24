@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { OPERATOR_ACADEMY } from "@/lib/operatorAcademyCatalog";
 import { getStripe } from "@/lib/stripe";
+import { requestOrigin } from "@/lib/requestOrigin";
 
 export const runtime = "nodejs";
 
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    const origin = new URL(request.url).origin;
+    const origin = requestOrigin(request);
     const session = await getStripe().checkout.sessions.create({
       mode: "payment",
       customer_email: email,

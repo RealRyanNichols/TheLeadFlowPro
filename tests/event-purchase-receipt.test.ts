@@ -39,3 +39,16 @@ test('analytics storage contains only opaque order ID, price and public workshop
     assert.doesNotMatch(JSON.stringify(row), /cs_test|registrationToken|aaaaaaaa|reg-test/);
     assert.equal(eventConsumptionRow({ ...receipt, issuedAt: now + 20, expiresAt: now + 620 }).client_id, row.client_id);
 });
+test('event receipts accept the public browser origin behind a loopback TLS proxy', () => {
+    const origin = 'https://www.theleadflowpro.com';
+    const request = new Request('http://127.0.0.1:3109/api/events/purchase-receipt', {
+        method: 'POST', headers: {
+            host: 'www.theleadflowpro.com', 'x-forwarded-host': 'www.theleadflowpro.com',
+            'x-forwarded-proto': 'https', origin, referer: origin + eventThanksPath(receipt.sku),
+            'x-leadflow-receipt': '1', 'sec-fetch-site': 'same-origin',
+        },
+    });
+    assert.equal(eventReceiptRequestAllowed(request, receipt), true);
+    request.headers.set('origin', 'https://foreign.example');
+    assert.equal(eventReceiptRequestAllowed(request, receipt), false);
+});

@@ -60,6 +60,20 @@ export const PUBLIC_PAGE_CATALOG = [
     index: false,
   },
   {
+    path: "/tlfp",
+    title: "Every dollar in comes back bigger.",
+    description:
+      "TLFP Credits: store credit for LeadFlow Pro services. Earn credits by finishing courses, showing up, and sending business. Buy packs with a bonus. Spend them on any build.",
+    eyebrow: "TLFP Credits",
+  },
+  {
+    path: "/tlfp/terms",
+    title: "TLFP Credits terms",
+    description:
+      "What a credit is, how credits are earned and bought, how they are spent, and the limits: no cash value, not transferable, redeemable only with The LeadFlow Pro.",
+    eyebrow: "TLFP Credits terms",
+  },
+  {
     path: "/sellerproof",
     title: "Organized evidence. A clearer response.",
     description:

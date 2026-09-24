@@ -29,13 +29,13 @@ export default function WorkspaceLinks({ admin = false }: { admin?: boolean }) {
       ? [
           {
             href: "/admin/call-sheet",
-            title: "Call sheet",
-            detail: "Leads no person has called, texted, or noted yet",
+            title: "Today's calls",
+            detail: "Who to call now, in order, and a place to log each call",
             icon: Users,
           },
           {
             href: "/admin/sales",
-            title: "Today queue",
+            title: "Sales desk",
             detail: "The sales desk running order with one-tap call and text",
             icon: Users,
           },

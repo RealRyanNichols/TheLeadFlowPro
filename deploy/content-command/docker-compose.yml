@@ -1,3 +1,5 @@
+# Retired: the worker is the `worker` service in deploy/droplet/compose.yml.
+# Kept for reference; do not run both.
 services:
   worker:
     image: node:22-alpine
