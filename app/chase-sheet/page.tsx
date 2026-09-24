@@ -45,6 +45,10 @@ const TRADE_COUNT = TRADES.length - 1;
 
 const faqs: [string, string][] = [
   [
+    "What do I get for paying that the free demo does not?",
+    "The demo writes the words for one quote, dated from today, and keeps nothing. The sheet keeps every quote you have out with the day you actually sent it, works out who is due each morning and in what order, puts the text or the call one tap away with the words already in it, logs what you sent and whether they answered, re-spaces the next touch when you run late, holds a quote for three days when they reply, carries every objection reply for your trade with the customer's name in it, and keeps a ledger of what the chasing won. The demo is the writing. The sheet is the remembering, the ordering, and the sending.",
+  ],
+  [
     "Does it send the texts for me?",
     "No, and that is on purpose. You read the message, you tap send, and it goes out from your own phone number in your own name. That means no new number for customers to ignore, no carrier registration, no per-message fees, and no robot texting people who trusted you with a quote. The sheet does the remembering and the writing. You do the sending.",
   ],
@@ -220,9 +224,12 @@ export default function ChaseSheetPage() {
           <p className={styles.eyebrow}>Try it free</p>
           <h2>Watch it write your follow-up.</h2>
           <p className={styles.lead}>
-            Describe one quote. The sheet writes the whole sequence for it, in your trade, in your tone, on real dates. This is the actual engine, not a sample.
+            Describe one quote. The sheet writes the first three touches for it, in your trade, in your tone, on real dates, and dates the rest. This is the actual engine, not a sample.
           </p>
           <DemoSequence trades={TRADE_OPTIONS} tones={TONE_OPTIONS} />
+          <p className={styles.lead} style={{ marginTop: 26 }}>
+            The demo writes the words for one quote and forgets it. The sheet remembers every quote you have out, tells you who to chase each morning and in what order, and puts each text one tap from sent.
+          </p>
         </section>
 
         <section className={styles.pricing} id="pricing">

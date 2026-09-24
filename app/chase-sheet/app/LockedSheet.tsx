@@ -208,7 +208,7 @@ export default function LockedSheet({
             <section className={styles.panel}>
               <h2>Not bought it yet?</h2>
               <p>
-                Every open quote, chased every day, from your own phone. {CHASE_SHEET.monthlyLabel}, or {CHASE_SHEET.lifetimeLabel}. See it write your follow-up first on the{" "}
+                Every quote you have out, remembered and chased every day from your own phone, with the words written for each touch. {CHASE_SHEET.monthlyLabel}, or {CHASE_SHEET.lifetimeLabel}. See it write a follow-up first on the{" "}
                 <Link href={CHASE_SHEET.path} className={styles.textlink}>
                   Chase Sheet page
                 </Link>
