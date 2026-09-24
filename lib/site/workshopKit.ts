@@ -12,7 +12,10 @@
 
 import { PRICES, usd } from "./prices";
 
-export type DayTwoOffer = "content_engine" | "website_launch";
+// The day-2 email used to default to the "Free Website + Content Engine"
+// add-on. The free website build was retired on 2026-09-22, so the Website
+// Launch is the only day-2 offer until Ryan names another live one.
+export type DayTwoOffer = "website_launch";
 
 export type WorkshopKit = {
   slug: string;
@@ -47,13 +50,6 @@ export type WorkshopKit = {
 };
 
 export const DAY_TWO_OFFERS: Record<DayTwoOffer, { name: string; price: string; path: string; pitch: string }> = {
-  content_engine: {
-    name: "Free Website + Content Engine",
-    price: usd(PRICES.freeBuildContentEngine),
-    path: "/free-build",
-    pitch:
-      "Two weeks of content for your business, written around one offer, plus the five-page website with no build fee if you qualify. It is the same process we ran in the room, done for you.",
-  },
   website_launch: {
     name: "Website Launch",
     price: usd(PRICES.websiteLaunchTotal),
@@ -103,7 +99,7 @@ const CHATGPT_LONGVIEW: WorkshopKit = {
     ],
   },
   followUp: {
-    dayTwoOffer: "content_engine",
+    dayTwoOffer: "website_launch",
     recapLead: "because the same three things showed up at every table:",
     recap: [
       "The first draft was generic because the brief was generic. Business name, buyer, offer, and the one action you want. That fixed most of it.",
@@ -134,7 +130,7 @@ export const KIT_TEMPLATE: WorkshopKit = {
       { heading: "Second run", prompt: "What changed.", lines: 4 },
     ],
   },
-  followUp: { dayTwoOffer: "content_engine", recapLead: "because the same three things showed up at every table:", recap: ["Replace with the first thing.", "Replace with the second thing.", "Replace with the third thing."] },
+  followUp: { dayTwoOffer: "website_launch", recapLead: "because the same three things showed up at every table:", recap: ["Replace with the first thing.", "Replace with the second thing.", "Replace with the third thing."] },
 };
 
 export const WORKSHOP_KITS: readonly WorkshopKit[] = [CHATGPT_LONGVIEW];

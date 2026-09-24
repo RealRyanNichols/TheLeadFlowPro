@@ -7,7 +7,10 @@ import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotificatio
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
 import { recordServerEvent } from "@/lib/analytics/server";
 
-const ALLOWED_INTERESTS = Object.keys(INTEREST_LABELS);
+// free_website_program keeps its label for old rows only. The free website
+// build was retired on 2026-09-22, so a stale form that still posts it is
+// saved as "unsure" instead.
+const ALLOWED_INTERESTS = Object.keys(INTEREST_LABELS).filter((interest) => interest !== "free_website_program");
 
 const MODULE_IDS = new Set([
   "website_funnels",

@@ -31,9 +31,18 @@ const nextConfig: NextConfig = {
       "./public/images/social/portfolio-20260907.jpg",
       "./public/images/social/results-20260907.jpg",
       "./public/images/social/commerce-20260907.jpg",
-      "./public/images/social/free-build-20260907.jpg",
       "./public/images/social/scoreboard-20260907.jpg",
     ],
+  },
+  // The free website build offer was retired on 2026-09-22. Paid ads, old
+  // emails, and outside links still point at /free-build, so it answers with
+  // a permanent 301 (not Next's default 308) to the services page. Next
+  // forwards the query string, so utm_* tags survive the hop.
+  async redirects() {
+    return [
+      { source: "/free-build", destination: "/services", statusCode: 301 },
+      { source: "/free-build/:path*", destination: "/services", statusCode: 301 },
+    ];
   },
 };
 

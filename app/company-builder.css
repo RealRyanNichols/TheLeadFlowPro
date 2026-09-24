@@ -1798,84 +1798,6 @@ body:has(.cb-page) .site-footer :focus-visible {
   max-width: 70ch;
 }
 
-/* ------------------------------------------------------- the free build --- */
-
-/* The lead magnet band. Green marks "free" so it never competes with the
-   cobalt build CTAs or reads as another package. */
-.cb-freebuild .cb-eyebrow {
-  color: #4ade80;
-}
-.cb-freebuild-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: clamp(30px, 4.5vw, 68px);
-  align-items: center;
-}
-.cb-freebuild-steps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0;
-}
-.cb-freebuild-steps li {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 18px;
-  align-items: start;
-  padding: 20px 0;
-  border-top: 1px solid var(--cb-hair);
-}
-.cb-freebuild-steps li:last-child {
-  border-bottom: 1px solid var(--cb-hair);
-}
-.cb-freebuild-num {
-  font-family: var(--font-archivo), Archivo, sans-serif;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  color: #4ade80;
-  padding-top: 3px;
-}
-.cb-freebuild-steps strong {
-  display: block;
-  font-family: var(--font-archivo), Archivo, sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--cb-ink);
-}
-.cb-freebuild-steps span:not(.cb-freebuild-num) {
-  display: block;
-  margin-top: 6px;
-  font-size: 15.5px;
-  line-height: 1.55;
-  color: var(--cb-muted);
-}
-
-/* Free Build in the nav. It is the free offer, so it gets the green and a dot
-   rather than looking like another section link. */
-body:has(.cb-page) .desktop-nav > a.nav-free,
-body:has(.cb-page) .mobile-nav-panel > a.nav-free {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: #15803d;
-  font-weight: 750;
-}
-body:has(.cb-page) .desktop-nav > a.nav-free:hover,
-body:has(.cb-page) .mobile-nav-panel > a.nav-free:hover {
-  color: #166534;
-}
-.nav-free::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: currentColor;
-  flex: none;
-}
-
 /* ----------------------------------------------------------- final cta ---- */
 
 .cb-final {
@@ -2080,8 +2002,7 @@ body:has(.cb-page) .mobile-nav-panel > a.nav-free:hover {
   .cb-custom .cb-btn {
     width: 100%;
   }
-  .cb-private,
-  .cb-freebuild-grid {
+  .cb-private {
     grid-template-columns: 1fr;
   }
 
@@ -3871,8 +3792,8 @@ body:has(.cb-page.cb-home-dark) {
   }
 
   /* Offer rail: ordered by commitment and illuminated like selectable product
-     modules. href-based order stays correct whether the free program is present
-     in this checkout or the earlier three-product ladder is rendering. */
+     modules. The order is keyed on each rung's href so it stays correct
+     whichever ladder is rendering. */
   .cb-home-dark .cb-band--tint:has(.cb-ladder) {
     overflow: hidden;
     background:
@@ -3926,12 +3847,6 @@ body:has(.cb-page.cb-home-dark) {
     height: 1px;
     background: linear-gradient(90deg, transparent, #4ad9ff8c 18%, #6f9fff9e 62%, #f5b84b82 86%, transparent);
     box-shadow: 0 0 18px #4ad9ff34;
-  }
-
-  .cb-home-dark .cb-rung:has(a[href="/free-build"]) {
-    order: 0;
-    --rung-accent: var(--lfp-signal);
-    --rung-glow: #f5b84b24;
   }
 
   .cb-home-dark .cb-rung:has(a[href="/packages/system-map"]) {

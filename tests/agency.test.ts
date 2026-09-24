@@ -23,7 +23,8 @@ test("six agency services, each with one audience, one problem, inclusions, owne
     assert.ok(s.clientPaysDirectly.length >= 1, s.slug);
     assert.ok(s.notIncluded.length >= 2, s.slug);
     assert.ok(s.faq.length >= 3, s.slug);
-    assert.match(s.intakeHref, /^\/(agency\/start\?service=|free-build)/, s.slug);
+    assert.equal(s.intakeHref, `/agency/start?service=${s.slug}`, s.slug);
+    assert.ok(!s.related.some((r) => r.href.startsWith("/free-build")), s.slug);
     assert.ok(agencyService(s.slug));
     const text = JSON.stringify(s).toLowerCase();
     for (const banned of BANNED) assert.ok(!text.includes(banned), `${s.slug} contains "${banned}"`);

@@ -141,13 +141,17 @@ test("scaffolding into a scratch root writes the file and wires the markers; wir
   assert.ok(kits.includes("// factory:imports") && kits.includes("// factory:kits"));
 });
 
-test("every published tool page ends on a door into work: the free build by default, the agency intake when chosen", () => {
-  assert.equal(TOOL_CTA_LANES.free_build.href, "/free-build");
+test("every published tool page ends on a door into work: the website work by default, the agency intake when chosen", () => {
+  assert.equal(TOOL_CTA_LANES.website.href, "/services");
+  assert.equal(TOOL_CTA_LANES.website.label, "See what we build");
   assert.equal(TOOL_CTA_LANES.agency.href, "/agency/start");
-  assert.equal(toolCtaLane(undefined), "free_build");
+  assert.equal(toolCtaLane(undefined), "website");
   assert.equal(toolCtaLane("agency"), "agency");
-  assert.equal(toolCtaLane("start"), "free_build");
-  for (const t of TOOLS) assert.ok(["/free-build", "/agency/start"].includes(toolCta(t).href), t.slug);
+  assert.equal(toolCtaLane("start"), "website");
+  // The retired free-build lane is gone, and no lane sells a $0 build.
+  assert.ok(!("free_build" in TOOL_CTA_LANES));
+  for (const lane of Object.values(TOOL_CTA_LANES)) assert.ok(!/free-build|\$0|build fee|free build/i.test(`${lane.href} ${lane.title} ${lane.body} ${lane.label}`), lane.href);
+  for (const t of TOOLS) assert.ok(["/services", "/agency/start"].includes(toolCta(t).href), t.slug);
   const page = readFileSync(join(process.cwd(), "app/tools/[slug]/page.tsx"), "utf8");
   assert.ok(page.includes("const cta = toolCta(tool)") && page.includes("primary={{ href: cta.href, label: cta.label }}"));
   assert.ok(!page.includes('href: "/start", label: "Map My Company"'));

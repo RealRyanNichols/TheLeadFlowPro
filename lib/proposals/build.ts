@@ -65,6 +65,9 @@ export function offerIdForInterest(interest: string | null): string | null {
     case "launch_system":
     case "website_launch":
     case "launch":
+    // The free website build was retired on 2026-09-22. A lead that asked for
+    // it wanted a five-page website, which is the Website Launch.
+    case "free_website_program":
       return "website_launch";
     case "blueprint":
     case "system_map":
@@ -78,8 +81,6 @@ export function offerIdForInterest(interest: string | null): string | null {
       return "company_os";
     case "custom_platform":
       return "custom_platform";
-    case "free_website_program":
-      return "free_website_program";
     case "done_for_you":
       return null; // agency: services decide
     default:

@@ -62,7 +62,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { href: "/longview", label: "Longview and East Texas" },
       { href: "/packages", label: "Packages" },
       { href: "/go/lead-follow-up", label: `Follow-Up Campaign | ${usd(PRICES.leadFollowUpCampaign)}` },
-      { href: "/free-build", label: `Free Website | ${usd(PRICES.freeBuildFee)} Build Fee` },
+      { href: "/packages/launch", label: `Website Launch | ${usd(PRICES.websiteLaunchTotal)}` },
       { href: "/agency/start", label: "Agency intake" },
       { href: "/start", label: "Map My Company" },
       {

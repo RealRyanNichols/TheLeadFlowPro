@@ -191,13 +191,6 @@ export default function ProductStudioPage() {
                 </a>
               </div>
               <p className={styles.heroNote}>
-                <span>
-                  Looking for the $0 website? <Link href="/free-build" className="underline underline-offset-4">Apply for the Free Website Program</Link>,
-                  subject to fit and capacity. The paid Website Launch below is the
-                  buy-it-outright option without waiting for a program opening.
-                </span>
-              </p>
-              <p className={styles.heroNote}>
                 <ShieldCheck aria-hidden="true" />
                 {usd(PRICES.websiteLaunchTotal)} total · written scope · the second {usd(PRICES.websiteLaunchFinal)} is due after approval, before
                 launch · the initial deposit becomes non-refundable once intake begins,

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import ServicesPreview from "@/components/site/ServicesPreview";
 import CtaLink from "@/components/site/CtaLink";
-import { FREE_BUILD } from "@/lib/freeBuild";
 import { LADDER, PHONE_DISPLAY, PHONE_TEL } from "@/lib/siteContent";
 import { CONSULTATION } from "@/lib/site/consultation";
 import { PRICES, usd, usdFrom } from "@/lib/site/prices";
@@ -17,7 +16,7 @@ const SITE = "https://www.theleadflowpro.com";
 
 const SERVICES_TITLE = "Website Design and Lead Systems for Longview, TX Businesses | The LeadFlow Pro";
 const SERVICES_DESCRIPTION =
-  "Websites, lead capture, CRM, follow-up, payments, portals, and reporting built for Longview and East Texas businesses in accounts you control. Apply for the $0 five-page build or buy the Website Launch.";
+  "Websites, lead capture, CRM, follow-up, payments, portals, and reporting built for Longview and East Texas businesses in accounts you control. Start with a free 30-minute consultation or buy the five-page Website Launch.";
 
 export const metadata: Metadata = withPublicPageMetadata("/services", {
   title: SERVICES_TITLE,
@@ -89,21 +88,28 @@ export default function ServicesPage() {
               build the website and connect the next steps.
             </p>
             <div className={styles.actions}>
-              <Link className={styles.button} href="/free-build">
-                Apply for the $0 website{" "}
+              <CtaLink
+                href={CONSULTATION.href}
+                event="consultation_cta"
+                placement="services_hero"
+                className={styles.button}
+              >
+                Book the free consultation{" "}
                 <ArrowRight size={19} aria-hidden="true" />
-              </Link>
-              <Link className={styles.textLink} href="#what-we-build">
-                Show me how it works <ArrowRight size={18} aria-hidden="true" />
-              </Link>
+              </CtaLink>
+              <a className={styles.textLink} href={PHONE_TEL} data-cta="call" data-cta-placement="services_hero">
+                Call {PHONE_DISPLAY} <ArrowRight size={18} aria-hidden="true" />
+              </a>
             </div>
             <p className={styles.small}>
-              Five pages. Application required. Optional services cost extra.
+              {CONSULTATION.minutes} minutes with Ryan. No pitch deck. You get the
+              pages, features, and cost in writing before any build starts.
               <br />
-              Prefer to buy outright?{" "}
+              Ready for the website now?{" "}
               <Link href="/packages/launch">
                 Website Launch is {usd(PRICES.websiteLaunchTotal)}, with {usd(PRICES.websiteLaunchDeposit)} to start.
-              </Link>
+              </Link>{" "}
+              <Link href="#what-we-build">Show me how it works.</Link>
             </p>
             <p className={styles.ownership}>
               <ShieldCheck size={18} aria-hidden="true" /> Your website. Your
@@ -346,56 +352,44 @@ export default function ServicesPage() {
 
       <section
         className={styles.tintedSection}
-        aria-labelledby="free-program-title"
+        aria-labelledby="consultation-title"
       >
         <div className={styles.shell + " " + styles.programGrid}>
           <div>
-            <p className={styles.eyebrow}>THE FREE WEBSITE PROGRAM</p>
-            <h2 id="free-program-title">
-              The build fee is $0.
-              <br />
-              The website is yours.
-            </h2>
-            <p>
-              Apply for one of {FREE_BUILD.monthlySlots} monthly openings.
-              Approved businesses receive a five-page website with no required
-              add-on. Your code, domain, accounts, and leads stay under your
-              control.
-            </p>
+            <p className={styles.eyebrow}>FREE {CONSULTATION.minutes}-MINUTE CONSULTATION</p>
+            <h2 id="consultation-title">{CONSULTATION.headline}</h2>
+            <p>{CONSULTATION.body}</p>
             <CtaLink
-              href="/free-build"
-              event="apply_free_website"
+              href={CONSULTATION.href}
+              event="consultation_cta"
               placement="services_final"
               className={styles.button}
             >
-              Apply for the $0 website{" "}
+              Book the free consultation{" "}
               <ArrowRight size={19} aria-hidden="true" />
             </CtaLink>
             <p className={styles.small}>
-              Domain registration, paid hosting after the included 90 days, ad
-              spend, subscriptions, extra pages, CRM, automation, content,
-              video, and ongoing marketing are separate and quoted before
-              approval.
+              Longview and East Texas businesses can meet at their shop or at
+              the Longview office. Anywhere else, it is a phone or video call.
+              Domain, hosting, ad spend, subscriptions, and extra pages are
+              quoted in writing before you approve anything.
             </p>
           </div>
           <aside className={styles.helpCard}>
-            <h3>Not sure which piece you need?</h3>
+            <h3>Rather talk it through now?</h3>
             <p>
-              Run one of the free tools on your own numbers, or bring the question
-              to the free thirty-minute consultation.
+              Ryan answers his own phone. Call him, send a text, or run one of
+              the free tools on your own numbers first.
             </p>
-            <Link href="/tools">
-              Find a free tool <ArrowRight size={18} aria-hidden="true" />
-            </Link>
-            <Link href={CONSULTATION.href} data-cta="consultation_cta" data-cta-placement="services_help">
-              Book the free consultation <ArrowRight size={18} aria-hidden="true" />
-            </Link>
             <a href={PHONE_TEL} data-cta="call" data-cta-placement="services">
               Call {PHONE_DISPLAY}
             </a>
             <a href={smsHref("services")} data-cta="text" data-cta-placement="services">
               {TEXT_LABEL}
             </a>
+            <Link href="/tools">
+              Find a free tool <ArrowRight size={18} aria-hidden="true" />
+            </Link>
           </aside>
         </div>
       </section>

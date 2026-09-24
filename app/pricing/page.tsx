@@ -174,7 +174,7 @@ export default function PricingPage() {
         eyebrow="Two ways to start. Honest scope."
         mutedTitle="Choose your first move."
         title="Bigger systems are priced by the work."
-        body={`Apply for the $0 five-page website, subject to fit and capacity, or buy Website Launch outright for ${usd(PRICES.websiteLaunchTotal)} without waiting for a program opening. The paid option is ${usd(PRICES.websiteLaunchDeposit)} to start and ${usd(PRICES.websiteLaunchFinal)} after approval, before launch. Larger systems are scoped separately.`}
+        body={`Website Launch is the five-page website, bought outright for ${usd(PRICES.websiteLaunchTotal)}: ${usd(PRICES.websiteLaunchDeposit)} to start and ${usd(PRICES.websiteLaunchFinal)} after approval, before launch. Larger systems are scoped separately.`}
         media={{
           src: "/images/offer-v2/website-launch-approval-path.webp",
           alt: "A secure website build moving through assembly, approval, final payment, and launch",
@@ -182,7 +182,7 @@ export default function PricingPage() {
           caption: `${usd(PRICES.websiteLaunchFinal)} after approval, before launch.`,
         }}
         primary={{ href: WEBSITE_LAUNCH_CHECKOUT, label: `Start Website Launch | ${usd(PRICES.websiteLaunchDeposit)}`, external: true }}
-        secondary={{ href: "/free-build", label: "Apply for the $0 website" }}
+        secondary={{ href: "/services", label: "See everything we build" }}
         trustLine={`Written scope, two revision rounds, and no final launch before approval and payment. Once intake begins, the ${usd(PRICES.websiteLaunchDeposit)} deposit is non-refundable, except where the written agreement or applicable law requires otherwise.`}
       />
 

@@ -193,7 +193,9 @@ function mapLead(raw: MetaLead) {
   // 2026-09-07).
   const marketingEmailConsent = consents.marketing || !!registration?.inquiryOptIn;
   const campaign = registration?.campaign ?? "meta_lead_form";
-  const isFreeWebsiteCampaign = campaign === "free_build_volume" || campaign.startsWith("free_website");
+  // The free website build was retired on 2026-09-22. Leads from the forms
+  // that sold it are website leads now, filed under the paid Website Launch.
+  const isWebsiteCampaign = campaign === "free_build_volume" || campaign.startsWith("free_website");
 
   // Everything the lead actually told us, kept verbatim so the admin view and
   // the alert email show real answers instead of an empty row.
@@ -212,7 +214,7 @@ function mapLead(raw: MetaLead) {
       current_platform: platform,
       industry,
       desired_modules: desiredModules,
-      interest: isFreeWebsiteCampaign ? "free_website_program" : "done_for_you",
+      interest: isWebsiteCampaign ? "website_launch" : "done_for_you",
       goals: answers.length ? answers.join("\n") : null,
       budget_range: budgetRange,
       timeline,
@@ -228,8 +230,7 @@ function mapLead(raw: MetaLead) {
       consent_at: smsConsent || marketingEmailConsent ? new Date().toISOString() : null,
       external_id: `meta:${raw.id}`,
       diagnostic: {
-        source:
-          registration?.funnel ?? (isFreeWebsiteCampaign ? "free_build_funnel" : "meta_lead_form"),
+        source: registration?.funnel ?? "meta_lead_form",
         notification_pipeline: "lead_intake_v1",
         meta_lead_id: raw.id,
         form_id: raw.form_id ?? null,

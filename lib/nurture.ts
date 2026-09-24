@@ -1,5 +1,13 @@
 // The 30 day follow-up sequence. One email a day, thirty days, no gaps.
 //
+// RETIRED 2026-09-22. This sequence sold the free website build, and Ryan
+// killed that offer. isFreeWebsiteProgramNurtureLead() below now returns
+// false, so /api/cron/nurture enrolls nobody new and sends no further step to
+// anyone already in it. The steps stay in the file as the record of what was
+// sent (step numbers are part of the send ledger and the Resend idempotency
+// key, so never reuse them). The workshop sequence further down is separate
+// and still runs.
+//
 // WHY THIS FILE EXISTS: from August 17 to August 26 every lead that came
 // through any door got exactly one welcome email and then silence forever. The
 // old sequence lived inside a Resend automation nobody could read, was written
@@ -29,12 +37,19 @@
 //     that gets marked as spam.
 //   - Every email ends with a working unsubscribe, added by the cron.
 
-import { LEADFLOW_META } from "@/lib/metaCampaignGuard";
 import { BUSINESS } from "@/lib/site/business";
 import { eventWhen, featuredEvent, featuredEventStartMs } from "@/lib/site/events";
-import { PRICES, usd } from "@/lib/site/prices";
+import { usd } from "@/lib/site/prices";
 
+// Part of the send idempotency key (lib/nurtureDelivery.ts). Never rename it,
+// even though the offer it was named for is retired.
 export const NURTURE_CAMPAIGN = "free_build";
+
+// The retired free-build add-on prices the historical copy below was written
+// with. Frozen here for the record only: nothing sells them any more, so they
+// are not in lib/site/prices.ts.
+const RETIRED_FOLLOW_UP_PACK = usd(197);
+const RETIRED_CONTENT_ENGINE = usd(497);
 
 /**
  * The business diagnostic has its own consent snapshot, submission clock, and
@@ -56,57 +71,28 @@ export type FreeWebsiteNurtureCandidate = NurtureLeadAttribution & {
   marketing_email_consent?: unknown;
 };
 
-/**
- * Meta instant forms whose leads belong in this 30-day sequence. The v2 free
- * website form plus the Sep 2026 volume lanes that all sell the same flagship
- * offer: the $0 build, the services menu, and the scoreboard. The workshop
- * form is NOT here; it has its own short sequence below.
- */
-export const FREE_BUILD_SEQUENCE_META_FORM_IDS: ReadonlySet<string> = new Set([
-  LEADFLOW_META.formId,
-  "1602617814609528", // LFP Free Build NoQ v2
-  "1001553739566746", // LFP Services Volume v1
-  "1072145798524733", // LFP Scoreboard Volume v1
-  "1075109702046952", // LFP | Qualified | Budget + Timeline (Amanda/PDA video ad)
-  "3610264839155246", // LFP | Rent Receipt | Pain + Timeline v1 (mall video)
-  "2349934135833664", // LFP Enrollment Gap Timeline v1 (schools)
-]);
-
 /** LFP Workshop Sep 17 Volumev1 — enrolled in the workshop sequence instead. */
 export const WORKSHOP_META_FORM_ID = "1749164796410610";
 
 /**
- * The free-build sequence is an offer-specific campaign, not a general list.
- * Admit the owned website funnel, or a Meta lead from one of the admitted
- * instant forms above, and only when marketing_email_consent is true (a
- * checked box, or an inquiryOptIn form per lib/metaCampaignGuard).
+ * RETIRED 2026-09-22 with the free website build it sold. Always false, so
+ * the 30-day sequence enrolls nobody and sends no further step, the same way
+ * shouldEnrollInLegacyEmailSeries() retired the Resend automation before it.
+ * Until then it admitted consented leads from the free-build website funnel
+ * and from the Meta instant forms in the free-build lane (the v2 free website
+ * form, Free Build NoQ v2, Services Volume v1, Scoreboard Volume v1,
+ * Qualified, Rent Receipt, and Enrollment Gap). Those leads still get the
+ * instant welcome from lib/leadNotify.ts; they just get no drip.
  */
 export function isFreeWebsiteProgramNurtureLead(
-  lead: FreeWebsiteNurtureCandidate,
+  _lead: FreeWebsiteNurtureCandidate,
 ): boolean {
-  if (lead.marketing_email_consent !== true) return false;
-  if (!lead.diagnostic || typeof lead.diagnostic !== "object" || Array.isArray(lead.diagnostic)) {
-    return false;
-  }
-
-  const diagnostic = lead.diagnostic as Record<string, unknown>;
-  if (
-    lead.source === "meta_lead_ad" &&
-    typeof diagnostic.form_id === "string" &&
-    FREE_BUILD_SEQUENCE_META_FORM_IDS.has(diagnostic.form_id)
-  ) {
-    return true;
-  }
-  return (
-    lead.interest === "free_website_program" &&
-    diagnostic.source === "free_build_funnel" &&
-    lead.source === "website"
-  );
+  return false;
 }
 
 /**
  * Workshop leads get the short seats-and-deadline sequence, never the 30-day
- * campaign. Same consent rule as above.
+ * campaign, and only with explicit marketing_email_consent.
  */
 export function isWorkshopNurtureLead(lead: FreeWebsiteNurtureCandidate): boolean {
   if (lead.marketing_email_consent !== true) return false;
@@ -131,7 +117,7 @@ export function isBusinessDiagnosticLead(lead: NurtureLeadAttribution): boolean 
 }
 
 /** Where every link in this sequence points, with attribution attached. */
-export function nurtureLink(day: number, path = "/free-build"): string {
+export function nurtureLink(day: number, path = "/services"): string {
   return (
     `https://www.theleadflowpro.com${path}` +
     `?utm_source=email&utm_medium=nurture&utm_campaign=${NURTURE_CAMPAIGN}&utm_content=day${day}`
@@ -216,7 +202,7 @@ You do not need software for this. You need one message already written, saved o
 
 Write it tonight. Save it as a quick reply. That is a free fix and it takes ten minutes.
 
-If you want that message written properly, in your words, that is the ${usd(PRICES.freeBuildFollowUpPack)}.
+If you want that message written properly, in your words, that is the ${RETIRED_FOLLOW_UP_PACK}.
 
 ${nurtureLink(4)}`,
   },
@@ -241,14 +227,14 @@ ${nurtureLink(5)}`,
   {
     step: 106,
     day: 6,
-    subject: `💼 The optional ${usd(PRICES.freeBuildContentEngine)} engine, itemized`,
+    subject: `💼 The optional ${RETIRED_CONTENT_ENGINE} engine, itemized`,
     body: (first) => `${first},
 
 The middle one, line by line.
 
 Free, at $0: up to five scoped pages built for a phone first. Lead capture. Search foundation. Analytics in your account. Ninety days of defined corrections. Code, domain, tracking, and leads under your control.
 
-Optional, ${usd(PRICES.freeBuildContentEngine)} one time: fourteen days of business-specific content, a campaign calendar tied to the offer, one visual direction, and a publishing handoff inside client-controlled accounts.
+Optional, ${RETIRED_CONTENT_ENGINE} one time: fourteen days of business-specific content, a campaign calendar tied to the offer, one visual direction, and a publishing handoff inside client-controlled accounts.
 
 No ad spend. No subscription. Nothing renews without written approval.
 
@@ -264,7 +250,7 @@ Seven emails. Here is the only question that matters this week.
 
 When somebody calls your business and nobody picks up, what happens next?
 
-If the honest answer is nothing, that is the cheapest hole in your business and you can plug it for ${usd(PRICES.freeBuildFollowUpPack)}.
+If the honest answer is nothing, that is the cheapest hole in your business and you can plug it for ${RETIRED_FOLLOW_UP_PACK}.
 
 If the honest answer is something, good. You are further along than most and we should talk about the next thing instead.
 
@@ -458,7 +444,7 @@ Five. A one page cheat sheet of what goes out when, for whoever answers the phon
 
 Written for your business, handed to you, yours to keep and reuse forever.
 
-${usd(PRICES.freeBuildFollowUpPack)} for the follow-up pack. Optional. The website application stays available at $0 without it.
+${RETIRED_FOLLOW_UP_PACK} for the follow-up pack. Optional. The website application stays available at $0 without it.
 
 ${nurtureLink(18)}`,
   },
@@ -515,14 +501,14 @@ ${nurtureLink(21)}`,
   {
     step: 122,
     day: 22,
-    subject: `Why the first optional service is ${usd(PRICES.freeBuildFollowUpPack)}`,
+    subject: `Why the first optional service is ${RETIRED_FOLLOW_UP_PACK}`,
     body: (first) => `${first},
 
 Because $3,000 is where good work goes to die in a small business.
 
 You save for it. You put it off. You finally do it, once, and then it sits for two years because another three grand is not happening.
 
-${usd(PRICES.freeBuildFollowUpPack)} is a fixed follow-up work product, not a retainer and not ad management. It is small enough to solve one leak without pretending to rebuild the whole company.
+${RETIRED_FOLLOW_UP_PACK} is a fixed follow-up work product, not a retainer and not ad management. It is small enough to solve one leak without pretending to rebuild the whole company.
 
 The site being free is the same logic. I would rather earn the bigger work by showing the work first.
 
@@ -580,7 +566,7 @@ Eight prompts. Rotate them and you have a month.
 
 You do not need to be clever online. You need to be visible and specific. Specific beats clever every single time.
 
-If you want it built for you, the optional ${usd(PRICES.freeBuildContentEngine)} content engine covers fourteen days of business-specific content, a campaign calendar, one visual direction, and a client-controlled publishing handoff.
+If you want it built for you, the optional ${RETIRED_CONTENT_ENGINE} content engine covers fourteen days of business-specific content, a campaign calendar, one visual direction, and a client-controlled publishing handoff.
 
 ${nurtureLink(25)}`,
   },

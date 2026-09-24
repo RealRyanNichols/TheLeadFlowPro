@@ -20,7 +20,7 @@ This lesson builds the page. Lesson six connects the form to a real record. Keep
 
 Bring the wireframe from lesson three and the final copy from lesson four. Together they are the brief you paste into the prompt.
 
-One-time setup. Make a free GitHub account. Make a free Vercel account and connect it to GitHub. When you put code in a GitHub repository, Vercel builds it and hands you a link. If you would rather have the first version built with you, /free-build is the free website build, and this lesson still applies to checking what comes back.
+One-time setup. Make a free GitHub account. Make a free Vercel account and connect it to GitHub. When you put code in a GitHub repository, Vercel builds it and hands you a link. If you would rather have the first version built for you, /services shows what we build, and this lesson still applies to checking what comes back.
 
 Semantic structure means the page is built from parts that say what they are. A header, a navigation area, a main area, sections with headings in order, a form with a real label on every field, real buttons, and a footer. Not a pile of generic boxes styled to look like those things.
 

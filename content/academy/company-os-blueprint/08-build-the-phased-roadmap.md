@@ -60,7 +60,7 @@ Run the prompt with your current-state map from lesson one pasted into the brack
 
 Here is what you are holding now. A current-state map that tells the truth. A matrix with one home per record. A data model tested against real stories. Five workflows with failure paths. A role matrix your team has read. A control center on paper. A risk register with a test on the calendar. And a roadmap with a first cycle. That is a Company OS blueprint.
 
-Three ways to build it from here. Build it yourself with what you learned in ten courses, using the free tools at /tools, the Tool Studio at /go/tools, and the free website build at /free-build if you need the front door. Build it with me: the System Map at /packages/system-map is $497. It is this course done with you in a working session: we take your map, matrix, and roadmap and turn them into a build plan you can hand to me or to any developer. You do not need it to finish. The workbook is enough if you do the work. Or hire the build done, which starts with a call.
+Three ways to build it from here. Build it yourself with what you learned in ten courses, using the free tools at /tools, the Tool Studio at /go/tools, and the five-page Website Launch at /packages/launch if you need the front door. Build it with me: the System Map at /packages/system-map is $497. It is this course done with you in a working session: we take your map, matrix, and roadmap and turn them into a build plan you can hand to me or to any developer. You do not need it to finish. The workbook is enough if you do the work. Or hire the build done, which starts with a call.
 
 There is no OA11. The next course is your first two-week cycle.
 

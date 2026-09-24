@@ -114,7 +114,7 @@ test("untouched leads rank newest first, split at the answer window, and the aut
   );
   assert.equal(sheet.counts.answer, 2);
   assert.equal(sheet.counts.waiting, 1);
-  assert.match(sheet.rows[0].reason, /came in 1 hour ago from Meta lead ad asking about Free Website Program/);
+  assert.match(sheet.rows[0].reason, /came in 1 hour ago from Meta lead ad asking about Free Website Program \(retired\)/);
   assert.match(sheet.rows[0].reason, /No call, text, or note from a person yet/);
   assert.equal(sheet.rows[0].href, "/admin/leads/newest");
 });

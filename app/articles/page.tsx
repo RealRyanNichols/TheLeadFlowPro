@@ -94,10 +94,10 @@ export default function ArticlesPage() {
       </section>
 
       <FinalCta
-        eyebrow="Reading is free. So is the first build."
+        eyebrow="Reading is free."
         title="Get the website that catches these leads."
-        body="Every article on this page points at the same fix: an owned website with capture and follow-up behind it. The first five-page build is free for approved businesses."
-        primary={{ href: "/free-build", label: "Start My Free Website" }}
+        body="Every article on this page points at the same fix: an owned website with capture and follow-up behind it, built in accounts you own."
+        primary={{ href: "/services", label: "See what we build" }}
         secondary={{ href: BUSINESS.phone.tel, label: `Call or text ${BUSINESS.phone.display}`, external: true }}
       />
     </main>

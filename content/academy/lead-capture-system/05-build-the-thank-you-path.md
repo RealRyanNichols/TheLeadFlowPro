@@ -38,7 +38,7 @@ Keep the page short. Delivery, three lines of orientation, one troubleshooting l
 
 Two practical notes. If your form tool sends the email, make sure the sender is your domain, not the tool's. On the sites I build, Resend sends it with the domain verified, so the email comes from the business and lands in the inbox. And send the delivery email even if they left every consent box empty. That email is the transaction. It is what they asked for.
 
-If you do not have a site that can hold a page like this, the free website build at /free-build is where I would start. Until then, a Notion page works as the prototype.
+If you do not have a site that can hold a page like this, the five-page Website Launch at /packages/launch is where I would start. Until then, a Notion page works as the prototype.
 
 What good looks like: the buyer has the thing in hand within ten seconds of submitting. The mistake people make: hiding the lead magnet behind the email to "make sure the address is real." You already have the address. Deliver.
 
