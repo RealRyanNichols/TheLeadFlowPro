@@ -42,7 +42,10 @@ test("the consultation text-back names the consultation and keeps the one-busine
   assert.ok(text.endsWith("Reply STOP to opt out."));
   assert.ok(text.length <= 320, `${text.length} characters`);
   const generic = leadTextBackBody("Sam", null);
-  assert.ok(generic.includes("shortly"));
+  // The generic text-back promises nothing it cannot keep: no "shortly", no call on a clock.
+  assert.ok(!generic.includes("shortly"));
+  assert.ok(!/call you/i.test(generic));
+  assert.ok(generic.includes("Reply here with your business name"));
   // The selector, not the source text: a consultation request gets its own body, everything else the generic one.
   assert.equal(textBackBodyFor({ full_name: "Sam Tate", funnel: CONSULTATION.funnel }, null), leadConsultationTextBody("Sam", null));
   assert.equal(textBackBodyFor({ full_name: "Sam Tate", funnel: "free_build_funnel" }, null), leadTextBackBody("Sam", null));
