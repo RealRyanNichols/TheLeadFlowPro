@@ -39,12 +39,12 @@ class NameTests(unittest.TestCase):
 class StreetTests(unittest.TestCase):
     def test_same_place_many_spellings(self):
         groups = [
-            ["1200 W. MARSHALL AVE., SUITE 4", "1200 West Marshall Avenue Ste 4", "1200 W Marshall Ave #4"],
-            ["100 US HIGHWAY 259 N", "100 U.S. Hwy 259 North", "100 Hwy 259 N", "100 US-259 N"],
-            ["200 State Highway 31 E", "200 SH 31 E", "200 Hwy 31 East"],
-            ["300 Farm to Market Rd 2206", "300 FM 2206", "300 F.M. 2206", "300 FM Road 2206"],
-            ["400 Loop 281", "400 LOOP 281"],
-            ["500 N Eastman Rd Bldg 2", "500 North Eastman Road Building 2"],
+            ["1200 W. EXAMPLE AVE., SUITE 4", "1200 West Example Avenue Ste 4", "1200 W Example Ave #4"],
+            ["100 US HIGHWAY 999 N", "100 U.S. Hwy 999 North", "100 Hwy 999 N", "100 US-999 N"],
+            ["200 State Highway 998 E", "200 SH 998 E", "200 Hwy 998 East"],
+            ["300 Farm to Market Rd 9997", "300 FM 9997", "300 F.M. 9997", "300 FM Road 9997"],
+            ["400 Loop 999", "400 LOOP 999"],
+            ["500 N Example Rd Bldg 2", "500 North Example Road Building 2"],
         ]
         for group in groups:
             keys = {n.parse_street(line) for line in group}
@@ -52,15 +52,15 @@ class StreetTests(unittest.TestCase):
                 self.assertEqual(len(keys), 1, keys)
 
     def test_parse_street_values(self):
-        self.assertEqual(n.parse_street("1200 W. MARSHALL AVE., SUITE 4"), ("1200 w marshall ave", "4"))
+        self.assertEqual(n.parse_street("1200 W. EXAMPLE AVE., SUITE 4"), ("1200 w example ave", "4"))
         self.assertEqual(n.parse_street("100 Example St Unit B"), ("100 example st", "b"))
         self.assertEqual(n.parse_street("100 Example Rd B"), ("100 example rd", "b"))
         self.assertEqual(n.parse_street("100 Main St E"), ("100 main st e", ""))
         self.assertEqual(n.parse_street(""), ("", ""))
 
     def test_display_street(self):
-        self.assertEqual(n.display_street("1200 W. MARSHALL AVE., SUITE 4"), "1200 W Marshall Ave Ste 4")
-        self.assertEqual(n.display_street("300 farm to market road 2206"), "300 FM 2206")
+        self.assertEqual(n.display_street("1200 W. EXAMPLE AVE., SUITE 4"), "1200 W Example Ave Ste 4")
+        self.assertEqual(n.display_street("300 farm to market road 9997"), "300 FM 9997")
 
     def test_zip5(self):
         self.assertEqual(n.zip5("75604-1234"), "75604")

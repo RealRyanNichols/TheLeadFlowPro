@@ -153,7 +153,7 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   directionals `north→n` etc.), unit designators (`suite|ste|unit|#|apt|bldg|building|rm|room|space|spc`)
   split into `suite` (normalized to the bare unit id). Returns lowercase.
 - `display_street(line) -> str`: tidy title-case street for display
-  (`1200 W Marshall Ave Ste 4`), keeping USPS abbreviations uppercase-first.
+  (`1200 W Example Ave Ste 4`), keeping USPS abbreviations uppercase-first.
 - `norm_phone(s) -> str|None`: NANP validation (area and exchange codes cannot
   start with 0/1; 555-01xx is valid only in tests via `allow_fictional=True`),
   returns E.164 `+1XXXXXXXXXX` or None.
@@ -231,7 +231,7 @@ Field names used in `facts` / `observations` / `review_queue.field`:
      business with `publish_state='review'` and reason `osm_only_needs_primary_source`.
 - Chains: same name at different streets are separate businesses.
 - Every merge writes a `merges` row whose `explanation` is a plain sentence,
-  e.g. "Joined because both records list +19035550100 at 1200 w marshall ave."
+  e.g. "Joined because both records list +19035550100 at 1200 w example ave."
 - `match_pending(conn) -> counts`.
 - `assign_identity(conn, business_id)`: `public_id = "lv-" + base32(sha256(first
   source_id:source_key))[:10].lower()`, and a unique slug `slugify(name)`,
@@ -278,14 +278,17 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   `source_records` (license and fetch time on every row).
 
 ### `fetcher.py` (the polite fetcher)
-- `PoliteFetcher(settings, store=None, transport=None, clock=time.monotonic,
-  sleep=time.sleep, resolver=socket.getaddrinfo)`.
+- `PoliteFetcher(settings, transport=None, clock=time.monotonic,
+  wall_clock=time.time, sleep=time.sleep, resolver=socket.getaddrinfo)`. Host
+  state (spacing, robots cache, backoff) lives in memory; the main thread moves
+  it to and from `host_state` with `export_host_state()` / `import_host_state()`
+  (see `worker.load_host_state` / `persist_host_state`).
 - `fetch(url) -> FetchResult(url, final_url, status, headers, body: bytes,
   text: str|None, content_type, error: str|None, blocked: str|None,
   redirected_offsite: bool)`.
 - Enforces: robots.txt (`urllib.robotparser`, cached per host for 24 h and
-  persisted to `host_state`; 4xx robots → allow all; 5xx/timeout → disallow all
-  for that day); at least `min_host_delay_s` between requests to the same host
+  persisted through the main thread; 401/403 robots → disallow all, other 4xx →
+  allow all; 5xx/timeout → disallow all for that day); at least `min_host_delay_s` between requests to the same host
   (robots fetch counts), thread-safe; `request_timeout_s`; `max_page_bytes`
   (streamed read, abort beyond cap, also for gzip-decoded size); only
   `text/html` and `application/xhtml+xml` bodies are decoded; manual redirects
@@ -312,11 +315,13 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   stated is absent. Strict: times need am/pm or 24-hour form; `8-5` style
   ranges raise the issue `ambiguous_ampm` and return `hours=None`; lunch notes
   → `lunch_break`; more than one distinct hours block (multiple locations) →
-  `multiple_blocks`; appointment-only → `by_appointment`. Any issue sends the
-  candidate to review instead of facts.
-- `extract/contacts.py`: `phones(page) -> list[(e164, method, context)]`
-  (`tel:` links first, then text), `emails(page, site_domain) ->
-  list[(email, method)]` (mailto and text; generic + same domain only; others are
+  `multiple_blocks`; appointment-only → `by_appointment`; JSON-LD 00:00–00:00
+  (which some sites use to mean closed) → `ambiguous_all_day`; a line that states
+  hours in a form the parser cannot read exactly → `unparsed`. Any issue sends
+  the candidate to review instead of facts.
+- `extract/contacts.py`: `phones(page, allow_fictional=False) -> list[(e164,
+  method, confidence)]` (`tel:` links first, then text), `emails(page,
+  site_domain) -> list[(email, method, confidence)]` (mailto and text; generic + same domain only; others are
   dropped, never stored).
 - `extract/social.py`: `social_links(page, business_name, site_domain) ->
   list[SocialCandidate(network, url, handle, matches: bool, reason)]` for
@@ -331,8 +336,8 @@ Field names used in `facts` / `observations` / `review_queue.field`:
 - `extract/services.py`: `service_tags(page, category) -> list[str]`: phrases
   from the controlled `VOCABULARY` (per category plus shared) found in headings,
   nav texts, and short list items (≤ 60 chars). Never free text.
-- `extract/identity.py`: `site_matches_business(pages, business) -> (bool,
-  reason)`: distinctive name tokens in title / og:site_name / h1 / JSON-LD
+- `extract/identity.py`: `site_matches_business(pages, business_name,
+  street=None, phone=None) -> (matches, reason, address_listed)`: distinctive name tokens in title / og:site_name / h1 / JSON-LD
   name, or the domain label contains them, or the site lists the business's
   street number and street. Also returns `address_listed` evidence.
 
@@ -398,7 +403,7 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   thread pool (visits are network-only; the main thread writes the DB).
   SIGTERM/SIGINT stop cleanly.
 - Other commands: `migrate`, `sync [sales-tax|tabc|osm|npi|all]`, `match`,
-  `crawl-once [--limit N]`, `publish [--out PATH]`, `status`, `backup`,
+  `crawl-once [--limit N]`, `publish [--out PATH]`, `exports`, `status`, `backup`,
   `suppress --id|--domain|--phone|--name-zip --reason`, `review list|accept|reject`,
   `check` (self-test: settings, schema, disk, pause, caps).
 
@@ -426,7 +431,7 @@ Field names used in `facts` / `observations` / `review_queue.field`:
       "name": "Example Tire & Lube",
       "category": "auto",
       "categoryLabel": "Automotive repair and maintenance",
-      "address": { "street": "1200 W Marshall Ave", "city": "Longview", "state": "TX", "zip": "75601" },
+      "address": { "street": "1200 W Example Ave", "city": "Longview", "state": "TX", "zip": "75601" },
       "permitSince": "2019-03-01",
       "website": { "url": "https://www.exampletire.example/", "status": "ok" },
       "phone": { "e164": "+19035550100", "display": "(903) 555-0100" },

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import fcntl
+import json
 import logging
 import os
 import re
@@ -384,14 +385,54 @@ def cmd_review_list(args, settings) -> int:
     return 0
 
 
+def accept_website_moved(conn, review_id: int, actor: str) -> dict:
+    """A person confirms the business's site now lives at the address it redirected to.
+
+    The facts read on the old site no longer describe the business's website,
+    so they are cleared and the new address is read again on the next loop,
+    with the usual identity check before any fact is written.
+    """
+    with db.transaction(conn):
+        item = conn.execute(
+            "SELECT * FROM review_queue WHERE id=? AND status='open' AND kind='website_moved'", (review_id,)
+        ).fetchone()
+        if item is None:
+            raise ValueError(f"review item {review_id} is not an open website_moved item")
+        try:
+            proposed = json.loads(item["proposed_json"] or "null")
+        except ValueError:
+            proposed = None
+        new_url = normalize.norm_url(proposed) if isinstance(proposed, str) else None
+        if not new_url or not item["business_id"]:
+            raise ValueError(f"review item {review_id} has no usable new website address")
+        now = db.now_iso()
+        conn.execute("DELETE FROM facts WHERE business_id=? AND source_id='website'", (item["business_id"],))
+        conn.execute("UPDATE hiring_signals SET active=0 WHERE business_id=?", (item["business_id"],))
+        conn.execute(
+            "UPDATE businesses SET website=?, website_domain=?, website_source='review',"
+            " website_status='unknown', next_crawl_at=NULL, crawl_failures=0, updated_at=? WHERE id=?",
+            (new_url, normalize.registrable_domain(new_url), now, item["business_id"]),
+        )
+        conn.execute(
+            "UPDATE review_queue SET status='accepted', resolved_at=?, resolved_by=? WHERE id=?",
+            (now, actor, review_id),
+        )
+    return {"id": review_id, "kind": "website_moved", "field": "website", "fact_written": False}
+
+
 def cmd_review_decide(args, settings, accept: bool) -> int:
     actor = (args.actor or DEFAULT_ACTOR).strip() or DEFAULT_ACTOR
     verb = "accept" if accept else "reject"
     conn = bootstrap(settings)
     try:
-        item = conn.execute("SELECT kind, source_record_id FROM review_queue WHERE id=?", (args.id,)).fetchone()
+        item = conn.execute(
+            "SELECT kind, business_id, source_record_id FROM review_queue WHERE id=?", (args.id,)
+        ).fetchone()
         try:
-            result = (facts.accept_review if accept else facts.reject_review)(conn, args.id, actor)
+            if accept and item is not None and item["kind"] == "website_moved":
+                result = accept_website_moved(conn, args.id, actor)
+            else:
+                result = (facts.accept_review if accept else facts.reject_review)(conn, args.id, actor)
         except ValueError as exc:
             err(f"Could not {verb} review item {args.id}: {exc}.")
             return 1
@@ -399,6 +440,9 @@ def cmd_review_decide(args, settings, accept: bool) -> int:
             # Matching reads the answer when it looks at the record again.
             conn.execute("UPDATE source_records SET match_state='new' WHERE id=?", (item["source_record_id"],))
             matching.match_pending(conn)
+        if accept and result["kind"] == "website_identity" and item["business_id"]:
+            # The worker honours the accepted review on its next visit; make that visit soon.
+            conn.execute("UPDATE businesses SET next_crawl_at=NULL WHERE id=?", (item["business_id"],))
         publish.evaluate(conn, settings)
     finally:
         conn.close()

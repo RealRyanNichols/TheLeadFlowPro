@@ -202,11 +202,16 @@ records that might be the same place.
 
 ```bash
 lva review list
-lva review accept <id>
-lva review reject <id>
+lva review accept <id> --actor Amanda
+lva review reject <id> --actor Amanda
 ```
 
-The `<id>` is the number `review list` shows. Accepting records who did it.
+The `<id>` is the number `review list` shows. `--actor` records who decided
+(it defaults to "operator"). Accepting a "website moved" item points the
+business at its new address; the engine clears what it read on the old site
+and reads the new one on its next loop, checking first that it belongs to the
+business. Accepting a "website identity" item tells the engine the site is the
+business's, and it reads that site again on its next loop.
 
 ## Other commands
 
@@ -216,7 +221,8 @@ The `<id>` is the number `review list` shows. Accepting records who did it.
 | `lva status` | Write the status page now |
 | `lva sync all` | Pull open data now (or `sales-tax`, `tabc`, `osm`, `npi`) |
 | `lva match` | Match new records to businesses |
-| `lva crawl-once --limit 5` | Visit up to 5 due websites once |
+| `lva crawl-once --limit 5` | Visit up to 5 due websites once (stop the service first: `systemctl stop longview-archive`) |
+| `lva exports` | Write the two private lists (no website; hiring) to `exports/private/`. They are sent nowhere |
 | `lva backup` | Take a database backup now |
 | `lva migrate` | Create or update the database tables |
 

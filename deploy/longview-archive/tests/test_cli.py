@@ -210,10 +210,10 @@ class SuppressAndReview(CliTestBase):
                 b.add_record(conn, tire, key="12345678901:00001")
                 b.add_site(conn, tire, "https://www.exampletire.example/")
                 b.add_fact(conn, tire, "phone", "+19035550100", source_url="https://www.exampletire.example/")
-                person = b.add_business(conn, "Pat Sample", public_id="lv-test00002", street="400 N Fourth St")
+                person = b.add_business(conn, "Pat Sample", public_id="lv-test00002", street="400 N Fictional St")
                 b.add_record(conn, person, key="98765432109:00002")
                 loose = b.add_record(conn, None, key="55555555555:00003", name="Example Tyre and Lube",
-                                     street="1200 W Marshall Ave", street_norm="1200 w marshall ave",
+                                     street="1200 W Example Ave", street_norm="1200 w example ave",
                                      zip="75601", phone="+19035550177")
             # A second phone seen on the business's own site conflicts with the checked one.
             self.assertEqual(facts.observe(conn, tire, "phone", "+19035550142", "website",
@@ -223,7 +223,7 @@ class SuppressAndReview(CliTestBase):
                               detail="The listed name may be a person's name.")
                 db.add_review(conn, kind="merge_ambiguous", business_id=tire, source_record_id=loose,
                               source_url="https://records.example/tx_sales_tax/3",
-                              detail="Both list +19035550177 but at 1200 w marshall ave and 400 n fourth st.")
+                              detail="Both list +19035550177 but at 1200 w example ave and 400 n fictional st.")
                 db.add_review(conn, kind="shared_phone", field="phone", proposed="+19035550177",
                               detail="This phone is listed at 3 streets.")
             ids = {r["kind"]: r["id"] for r in conn.execute("SELECT id, kind FROM review_queue")}
@@ -280,7 +280,7 @@ class SuppressAndReview(CliTestBase):
         self.assertIn("lv-test00001", conflict)
         self.assertIn("+19035550142", conflict)          # read on the business's own site
         self.assertIn("https://www.exampletire.example/contact", conflict)
-        for secret in ("Pat Sample", "+19035550177", "marshall", "fourth", "12345678901", "98765432109",
+        for secret in ("Pat Sample", "+19035550177", "example ave", "fictional st", "12345678901", "98765432109",
                        "55555555555", "records.example"):
             self.assertNotIn(secret, text.lower() if secret.islower() else text)
         self.assertIn("4 open review item(s)", text)
@@ -322,6 +322,50 @@ class SuppressAndReview(CliTestBase):
             proc = self.lva("review", *args, "--actor", "Tester")
             self.assertEqual(proc.returncode, 1)
             self.assertIn("Could not", proc.stderr)
+
+    def test_accepting_website_reviews_points_the_worker_at_the_right_site(self):
+        self.assertEqual(self.lva("migrate").returncode, 0)
+        conn = self.conn()
+        try:
+            with db.transaction(conn):
+                old = b.add_business(conn, "Example Florist", public_id="lv-test00011")
+                b.add_record(conn, old, key="12345678901:00011")
+                b.add_site(conn, old, "https://www.oldflorist.example/")
+                b.add_fact(conn, old, "phone", "+19035550150", source_url="https://www.oldflorist.example/")
+                b.add_hiring(conn, old, "https://www.oldflorist.example/jobs", ["front_desk"])
+                conn.execute("UPDATE businesses SET next_crawl_at='2026-10-24T00:00:00Z' WHERE id=?", (old,))
+                moved = db.add_review(conn, kind="website_moved", business_id=old, field="website",
+                                      proposed="https://www.newflorist.example/",
+                                      detail="home page redirected to another domain")
+                other = b.add_business(conn, "Sample Bakery", public_id="lv-test00012", street="300 Sample St")
+                b.add_record(conn, other, key="12345678901:00012")
+                conn.execute("UPDATE businesses SET website='https://www.bakery.example/',"
+                             " website_domain='bakery.example', next_crawl_at='2026-10-24T00:00:00Z' WHERE id=?",
+                             (other,))
+                identity = db.add_review(conn, kind="website_identity", business_id=other, field="website",
+                                         detail="name not found on the site",
+                                         source_url="https://www.bakery.example/")
+        finally:
+            conn.close()
+
+        self.assertEqual(self.lva("review", "accept", str(moved), "--actor", "Tester").returncode, 0)
+        self.assertEqual(self.lva("review", "accept", str(identity), "--actor", "Tester").returncode, 0)
+        conn = self.conn()
+        try:
+            florist = conn.execute("SELECT website, website_domain, website_status, next_crawl_at"
+                                   " FROM businesses WHERE id=?", (old,)).fetchone()
+            site_facts = conn.execute("SELECT COUNT(*) FROM facts WHERE business_id=? AND source_id='website'",
+                                      (old,)).fetchone()[0]
+            hiring = conn.execute("SELECT active FROM hiring_signals WHERE business_id=?", (old,)).fetchone()[0]
+            bakery_next = conn.execute("SELECT next_crawl_at FROM businesses WHERE id=?", (other,)).fetchone()[0]
+            decided = [r[0] for r in conn.execute("SELECT status FROM review_queue ORDER BY id")]
+        finally:
+            conn.close()
+        self.assertEqual(tuple(florist), ("https://www.newflorist.example/", "newflorist.example", "unknown", None))
+        self.assertEqual(site_facts, 0)  # the old site's facts no longer describe this business
+        self.assertEqual(hiring, 0)
+        self.assertIsNone(bakery_next)  # re-read on the next loop instead of in a month
+        self.assertEqual(decided, ["accepted", "accepted"])
 
 
 class RunCommand(CliTestBase):

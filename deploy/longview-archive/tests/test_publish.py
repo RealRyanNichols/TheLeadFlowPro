@@ -270,7 +270,7 @@ class ExportContract(ContractAssertions):
             "name": "Example Tire & Lube",
             "category": "auto",
             "categoryLabel": "Auto repair shop",
-            "address": {"street": "1200 W Marshall Ave", "city": "Longview", "state": "TX", "zip": "75601"},
+            "address": {"street": "1200 W Example Ave", "city": "Longview", "state": "TX", "zip": "75601"},
             "permitSince": "2019-03-01",
             "website": {"url": SITE, "status": "ok"},
             "phone": {"e164": "+19035550100", "display": "(903) 555-0100"},
@@ -317,7 +317,7 @@ class ExportContract(ContractAssertions):
         self.assertNotIn("300 Sample Ave", json.dumps(self.export))
 
     def test_storefront_naics_organization_shows_street(self):
-        self.assertEqual(self.by_id[self.pid("tire")]["address"]["street"], "1200 W Marshall Ave")
+        self.assertEqual(self.by_id[self.pid("tire")]["address"]["street"], "1200 W Example Ave")
 
     def test_address_listed_on_own_site_is_credited_to_the_website(self):
         listed = self.by_id[self.pid("listed")]

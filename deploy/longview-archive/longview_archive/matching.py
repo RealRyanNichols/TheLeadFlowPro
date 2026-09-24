@@ -705,7 +705,7 @@ def _public_id(seed: str) -> str:
 
 
 def _street_part(biz: sqlite3.Row) -> str:
-    """The display street without its house number: '1200 W Marshall Ave' -> 'W Marshall Ave'."""
+    """The display street without its house number: '1200 W Example Ave' -> 'W Example Ave'."""
     words = normalize.display_street(biz["street_norm"] or biz["street"] or "").split()
     if words and any(ch.isdigit() for ch in words[0]):
         words = words[1:]

@@ -116,7 +116,7 @@ class StatusPage(unittest.TestCase):
             for name in self.names:
                 self.assertNotIn(name, text)
                 self.assertNotIn(html.escape(name), text)
-            for needle in ("1200 W Marshall", "+1903", "(903)", "info@", ".example", "http://", "https://"):
+            for needle in ("1200 W Example", "+1903", "(903)", "info@", ".example", "http://", "https://"):
                 self.assertNotIn(needle, text)
 
     def test_files_and_modes(self):

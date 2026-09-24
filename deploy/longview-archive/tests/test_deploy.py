@@ -51,7 +51,7 @@ FORBIDDEN_IN_SCRIPTS = (
 # The CLI commands in SPEC.md ("service.py and __main__.py").
 SPEC_COMMANDS = {
     "run", "migrate", "sync", "match", "crawl-once", "publish", "status",
-    "backup", "suppress", "review", "check",
+    "backup", "suppress", "review", "check", "exports",
 }
 
 

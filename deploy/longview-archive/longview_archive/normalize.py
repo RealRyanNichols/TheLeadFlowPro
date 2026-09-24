@@ -115,7 +115,7 @@ UNIT_WORDS = {
 }
 
 # Route names that are written many ways: "US HIGHWAY 80", "U.S. Hwy 80",
-# "State Highway 31", "SH 31", "Farm to Market Road 2206", "F.M. 2206".
+# "State Highway 998", "SH 998", "Farm to Market Road 9997", "F.M. 9997".
 _ROUTE_PATTERNS = [
     (re.compile(r"\b(?:u\s*s|united states)\s+(?:highway|hwy|hiway)\b"), " hwy "),
     (re.compile(r"\bus\s+(?=\d)"), " hwy "),
@@ -144,7 +144,7 @@ def _clean_street_text(line: str) -> str:
 def parse_street(line: Optional[str]) -> Tuple[str, str]:
     """(street_norm, suite) with USPS-style abbreviations, lowercase.
 
-    '1200 W. MARSHALL AVE., SUITE 4' -> ('1200 w marshall ave', '4').
+    '1200 W. EXAMPLE AVE., SUITE 4' -> ('1200 w example ave', '4').
     """
     if not line:
         return "", ""
@@ -192,7 +192,7 @@ _UNIT_DISPLAY = {
 
 
 def display_street(line: Optional[str]) -> str:
-    """Tidy display form: '1200 W Marshall Ave Ste 4'."""
+    """Tidy display form: '1200 W Example Ave Ste 4'."""
     street_norm, suite = parse_street(line)
     if not street_norm:
         return ""

@@ -322,8 +322,8 @@ class SyncFailures(ServiceTestBase):
 class Matching(ServiceTestBase):
     def add_new_record(self, conn):
         return b.add_record(conn, None, key="00000000001:00009", name="Example Tire & Lube",
-                            name_norm="example tire and lube", street="1200 W Marshall Ave",
-                            street_norm="1200 w marshall ave", zip="75601")
+                            name_norm="example tire and lube", street="1200 W Example Ave",
+                            street_norm="1200 w example ave", zip="75601")
 
     def test_records_left_new_are_matched_without_a_sync(self):
         svc = self.make()

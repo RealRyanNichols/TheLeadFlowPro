@@ -13,7 +13,7 @@ def make_db():
 
 def add_business(conn, **kw):
     row = dict(public_id="lv-test000001", slug="example", name="Example Tire & Lube", name_norm="example tire and lube",
-               street="1200 W Marshall Ave", street_norm="1200 w marshall ave", zip="75601", naics="811111",
+               street="1200 W Example Ave", street_norm="1200 w example ave", zip="75601", naics="811111",
                is_individual=0, website_domain=None, first_seen_at=NOW, updated_at=NOW)
     row.update(kw)
     cols = ",".join(row)
@@ -21,7 +21,7 @@ def add_business(conn, **kw):
     return cur.lastrowid
 
 
-def link(conn, business_id, source_id, key, street_norm="1200 w marshall ave"):
+def link(conn, business_id, source_id, key, street_norm="1200 w example ave"):
     conn.execute(
         "INSERT INTO source_records(source_id, source_key, business_id, license, source_url, fetched_at,"
         " first_seen_at, last_seen_at, raw_json, street_norm) VALUES (?,?,?,?,?,?,?,?,?,?)",

@@ -40,7 +40,7 @@ def standard_sources(conn) -> None:
 
 def add_business(conn, name: str = "Example Tire & Lube", **kw) -> int:
     n = conn.execute("SELECT COUNT(*) FROM businesses").fetchone()[0] + 1
-    street = kw.pop("street", "1200 W Marshall Ave")
+    street = kw.pop("street", "1200 W Example Ave")
     street_norm = normalize.parse_street(street)[0] if street else None
     naics = kw.pop("naics", "811111")
     slug_cat, label = categories.categorize(naics)

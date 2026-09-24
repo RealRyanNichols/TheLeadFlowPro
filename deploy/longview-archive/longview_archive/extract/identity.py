@@ -32,7 +32,7 @@ def _name_hit(text: Optional[str], tokens: set) -> bool:
 
 
 def street_key(street: Optional[str]) -> Optional[Tuple[str, str]]:
-    """('1200', 'marshall') for '1200 W Marshall Ave Ste 4'; None when there is no number."""
+    """('1200', 'example') for '1200 W Example Ave Ste 4'; None when there is no number."""
     street_norm, _ = normalize.parse_street(street)
     words = street_norm.split()
     if len(words) < 2 or not re.fullmatch(r"\d+[a-z]?", words[0]):
