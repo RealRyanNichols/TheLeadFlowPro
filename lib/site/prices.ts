@@ -26,6 +26,17 @@ export const PRICES = {
   /** System Map: paid diagnosis, credited toward an approved larger build. */
   systemMap: 497,
 
+  /** Smallest card down payment on a build (build_deposit and package_deposit in /api/checkout). */
+  buildDepositMin: 250,
+
+  /**
+   * TLFP Credits packs (TLFP_PACKS in lib/tlfpCredits.ts): the dollars paid.
+   * The credits each pack carries live beside the pack, not here.
+   */
+  tlfpPackStarter: 250,
+  tlfpPackBuilder: 500,
+  tlfpPackFounder: 1000,
+
   /** Free Website Program: the build fee is genuinely zero for approved businesses. */
   freeBuildFee: 0,
   freeBuildFollowUpPack: 197,
