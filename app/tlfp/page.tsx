@@ -120,10 +120,12 @@ export default async function TlfpPage({
             </div>
             <p className="mt-6 flex items-start gap-2 text-sm text-[var(--muted)]">
               <ShieldCheck className="mt-0.5 h-4 w-4 flex-none text-[var(--green)]" aria-hidden="true" />
-              Store credit, not a coin. No cash value, not transferable, never traded. Redeem only with The LeadFlow Pro.{" "}
-              <Link href={TLFP_CREDITS.termsPath} className="font-bold text-[var(--blue)] underline-offset-2 hover:underline">
-                The rules
-              </Link>
+              <span>
+                Store credit, not a coin. No cash value, not transferable, never traded. Redeem only with The LeadFlow Pro.{" "}
+                <Link href={TLFP_CREDITS.termsPath} className="font-bold text-[var(--blue)] underline-offset-2 hover:underline">
+                  The rules
+                </Link>
+              </span>
             </p>
           </div>
           <TlfpBalanceCard account={account} />
