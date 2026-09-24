@@ -67,10 +67,10 @@ export const PRICES = {
   /**
    * SellerProof Membership: unlimited packets in the SellerProof app
    * (sellerproof.theleadflowpro.com), monthly or one payment for life.
-   * Ryan-approved 2026-09-22. lib/sellerproof/membership.ts links to it.
+   * Ryan-approved 2026-09-24 ("unbeatable"). lib/sellerproof/membership.ts links to it.
    */
-  sellerProofMemberMonthly: 20,
-  sellerProofMemberLifetime: 97,
+  sellerProofMemberMonthly: 9,
+  sellerProofMemberLifetime: 79,
 
   /**
    * Chase Sheet (/chase-sheet): the open-quote follow-up engine. Monthly, or
