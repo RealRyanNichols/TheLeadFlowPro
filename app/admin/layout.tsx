@@ -30,6 +30,7 @@ type BackOfficeLink = {
 const BACK_OFFICE_LINKS: readonly BackOfficeLink[] = [
   { href: "/admin/command-center", label: "Command" },
   { href: "/admin/purchases", label: "Purchases" },
+  { href: "/admin/tlfp", label: "Credits" },
   { href: "/admin/operator", label: "OperatorOS", strong: true },
   { href: "/admin/content-engine", label: "Content" },
   { href: "/admin/content-command", label: "Content Command", strong: true },
