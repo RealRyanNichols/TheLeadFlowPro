@@ -15,6 +15,7 @@
 
 import { EXTERNAL_LINKS } from "./external-links";
 import { PRICES, usd, usdFrom, usdPerMonth, usdRange } from "./prices";
+import { SELLERPROOF_MEMBER_PRICING_URL } from "../sellerproof/membership";
 
 export type OfferStatus = "live" | "tbd_ryan" | "retired";
 export type OfferCategory =
@@ -284,6 +285,34 @@ export const OFFERS: readonly Offer[] = [
     reviewDate: REVIEW,
     href: "/sellerproof",
     source: "lib/sellerproof/packet.ts",
+  },
+  {
+    id: "sellerproof_member_monthly",
+    name: "SellerProof Membership, monthly",
+    category: "product",
+    priceUsd: PRICES.sellerProofMemberMonthly,
+    priceLabel: usdPerMonth(PRICES.sellerProofMemberMonthly),
+    terms: "Unlimited chargeback packets, response drafts, PDF export, evidence library, and deadline tracking in the SellerProof app. Billed monthly until cancelled. Separate from the single packet.",
+    status: "live",
+    effectiveDate: "2026-09-22",
+    reviewDate: REVIEW,
+    href: SELLERPROOF_MEMBER_PRICING_URL,
+    stripeLink: "https://buy.stripe.com/3cI8wOgLg6EI3O8aIK5AQ0c",
+    source: "lib/sellerproof/membership.ts",
+  },
+  {
+    id: "sellerproof_member_lifetime",
+    name: "SellerProof Membership, lifetime",
+    category: "product",
+    priceUsd: PRICES.sellerProofMemberLifetime,
+    priceLabel: usd(PRICES.sellerProofMemberLifetime),
+    terms: "One payment for lifetime SellerProof app access: unlimited packets, response drafts, PDF export, evidence library, deadline tracking. No renewals. Separate from the single packet.",
+    status: "live",
+    effectiveDate: "2026-09-22",
+    reviewDate: REVIEW,
+    href: SELLERPROOF_MEMBER_PRICING_URL,
+    stripeLink: "https://buy.stripe.com/3cI14mcv02osesM9EG5AQ0b",
+    source: "lib/sellerproof/membership.ts",
   },
   {
     id: "tool_studio_blueprint",
