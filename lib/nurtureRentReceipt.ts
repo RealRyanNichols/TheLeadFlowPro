@@ -56,7 +56,7 @@ export const RENT_RECEIPT_CAMPAIGN = "rent_receipt";
  * the deploy goes live. The cron also refuses to move a lead that has already
  * received a Free Build step, so a late deploy cannot give anyone both.
  */
-export const RENT_RECEIPT_SERIES_START = "2026-09-23T12:00:00Z";
+export const RENT_RECEIPT_SERIES_START = "2026-09-24T04:00:00Z";
 
 export type RentReceiptCandidate = FreeWebsiteNurtureCandidate & {
   created_at?: unknown;
