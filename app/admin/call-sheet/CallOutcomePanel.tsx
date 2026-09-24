@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import CopyButton from "@/app/hq/_components/CopyButton";
 import { centralDate, quickCallbackChoices } from "@/lib/businessTime";
 import {
@@ -24,12 +24,17 @@ import {
 } from "@/lib/callCloser";
 import { closerOffers, payDoorFor, type CloserOfferId, type PayDoor } from "@/lib/payDoors";
 
-// "How did the call go?" Two taps after a call: pick what happened, read the
-// list of what saving does, save. The list is drawn by the same planner the
-// save route runs (lib/callCloser.ts), on the browser clock, from the same
-// JSON this panel posts, so what Ryan reads before he taps Save is what lands.
+// "How did the call go?" asked the way people think after a call. Step 1:
+// "Did you reach them?" No answer and a voicemail are the outcome itself, one
+// tap. "Yes, we talked" opens step 2, "What happens next?", with nothing
+// picked. Then read "What saving does" and save. That list is drawn by the
+// same planner the save route runs (lib/callCloser.ts), on the browser clock,
+// from the same JSON this panel posts, so what Ryan reads is what lands.
 //
 // Rules this file keeps:
+// - Changing step 1 never leaves a stale outcome picked: "Yes, we talked"
+//   always starts step 2 empty (outcomeForReach). The note is kept. Save stays
+//   off, with a hint in words, until there is an outcome.
 // - The only network call is the POST to /api/admin/leads/<id>/next-step.
 //   Nothing here texts, emails, or charges anyone. When a lead is ready to
 //   pay, the panel hands Ryan the pay links and a message he sends himself.
@@ -58,9 +63,13 @@ import { closerOffers, payDoorFor, type CloserOfferId, type PayDoor } from "@/li
 // - While a save is in flight the form is frozen (SavingLock), so nothing
 //   typed during "Saving..." is dropped when the saved view replaces it.
 // - After a call link is tapped, coming back to the page never moves it: Ryan
-//   often switches back mid-call to read the card. Until an outcome is
-//   chosen, a small "Log how the call went" button shows, and only a tap on it
-//   takes him to "How did the call go?".
+//   often switches back mid-call to read the card. Until step 1 is answered,
+//   a small "Log how the call went" button shows, and only a tap on it takes
+//   him to "Did you reach them?". No focus move ever pulls him out of a field
+//   he is typing in (isTypingField).
+// - After a save on the call card, "Next call" (the queue prop) is the first
+//   thing to tap. Without the prop (the Sales Desk) and in sample mode, the
+//   saved view is unchanged.
 // - Everything that needs lib/quo or lib/callSheet (phone links, texting
 //   consent) is worked out on the server and passed in as plain props. This
 //   file imports no Supabase, Quo, call sheet, or notification code, and no
@@ -80,6 +89,12 @@ export type SavedCall = {
   payMessage: string | null;
   proposalHref: string | null;
 };
+
+/** Step 1, "Did you reach them?". A miss and a voicemail are outcomes on their own; a talk needs step 2. */
+export type Reach = "talked" | "no_answer" | "voicemail";
+
+/** Where "Next call" goes after a save, and how many calls are left (null when unknown). */
+export type CallQueueHandoff = { nextHref: string; left: number | null };
 
 export type CallOutcomePanelProps = {
   /** Plain lead fields for the preview. Pass diagnostic as null: the planner does not need it in the browser. */
@@ -112,8 +127,17 @@ export type CallOutcomePanelProps = {
   sample?: boolean;
   /** A fixed clock (ISO) for sample mode. Otherwise the browser clock, read after mount. */
   fixedNow?: string | null;
-  /** Start with an outcome chosen. */
+  /** Start with an outcome chosen. Step 1 follows from it. */
   initialOutcome?: CallOutcome | null;
+  /** Start with step 1 answered and no outcome yet ("talked" opens an empty "What happens next?"). initialOutcome wins when both are given. */
+  initialReach?: Reach | null;
+  /**
+   * The call card's queue. After a successful save, "Next call" (plus " · N left"
+   * when left is a whole number above 0) links to nextHref, first of the
+   * actions. Leave it out (the Sales Desk) and the saved view is unchanged.
+   * Never shown in sample mode, and only for a same-site path.
+   */
+  queue?: CallQueueHandoff | null;
   backHref?: string;
   backLabel?: string;
   onSaved?: (saved: SavedCall) => void;
@@ -128,10 +152,16 @@ const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outli
 // The focus ring goes on the whole tile when its radio or checkbox has keyboard focus.
 const TILE_FOCUS =
   "has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--blue)]";
-const TILE_BASE = `flex min-h-[44px] cursor-pointer gap-3 rounded-xl border px-3 py-2.5 text-sm font-bold leading-snug ${TILE_FOCUS}`;
+const TILE_SHAPE = `flex cursor-pointer gap-3 rounded-xl border px-3 font-bold leading-snug ${TILE_FOCUS}`;
+const TILE_BASE = `${TILE_SHAPE} min-h-[44px] py-2.5 text-sm`;
 const TILE = `${TILE_BASE} items-center`;
-const TILE_ON = "border-[var(--blue)] bg-[var(--accent-tint)] text-[var(--heading)]";
+// Step 1 is the first tap after a call, so its tiles are the biggest.
+const BIG_TILE = `${TILE_SHAPE} min-h-[52px] items-center py-3 text-base`;
+// Picked is more than a color: the radio's own dot, and a border twice as thick (an inset line, so nothing shifts).
+const TILE_ON = "border-[var(--blue)] bg-[var(--accent-tint)] text-[var(--heading)] shadow-[inset_0_0_0_1px_var(--blue)]";
 const TILE_OFF = "border-[var(--line-strong)] bg-[var(--panel)] text-[var(--text)]";
+const STEP_LEGEND =
+  "mb-2 rounded-md text-base font-black text-[var(--heading)] focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--blue)]";
 const CHIP = `inline-flex min-h-[44px] items-center rounded-lg border px-3 py-2 text-sm font-semibold ${FOCUS}`;
 const BUTTON_QUIET = `inline-flex min-h-[44px] items-center justify-center rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] px-4 py-2 text-sm font-bold text-[var(--text)] ${FOCUS}`;
 const LINK_ACCENT = `inline-flex min-h-[44px] items-center justify-center rounded-lg border border-[var(--accent-line)] bg-[var(--accent-tint)] px-4 py-2 text-sm font-bold text-[var(--blue)] ${FOCUS}`;
@@ -145,6 +175,67 @@ const OFFER_REQUIRED: ReadonlySet<CallOutcome> = new Set<CallOutcome>(["wants_pr
 /** Outcomes where offers are optional: sent only when Ryan opens "Talked about an offer?". */
 const OFFER_OPTIONAL: ReadonlySet<CallOutcome> = new Set<CallOutcome>(["booked", "call_back"]);
 const UNANSWERED: ReadonlySet<CallOutcome> = new Set<CallOutcome>(["no_answer", "voicemail"]);
+
+/** Step 1's tiles, in order. */
+export const REACH_CHOICES: readonly { id: Reach; label: string }[] = [
+  { id: "talked", label: "Yes, we talked" },
+  { id: "no_answer", label: OUTCOME_LABELS.no_answer },
+  { id: "voicemail", label: OUTCOME_LABELS.voicemail },
+];
+
+/** Step 2's tiles: every call card outcome where they talked, in the call card's order. */
+export const NEXT_OUTCOMES: readonly CallOutcome[] = PANEL_OUTCOMES.filter((o) => !UNANSWERED.has(o));
+
+/** Step 2's tile words. "We talked" is already answered, so the call back tile says only the rest. */
+export function nextStepLabel(outcome: CallOutcome): string {
+  return outcome === "call_back" ? "Call back later" : OUTCOME_LABELS[outcome];
+}
+
+/** The step 1 answer an outcome implies, or null when nothing is chosen (or it is not a call card outcome). */
+export function reachFor(outcome: CallOutcome | null): Reach | null {
+  if (outcome === null || !PANEL_OUTCOMES.includes(outcome)) return null;
+  return outcome === "no_answer" || outcome === "voicemail" ? outcome : "talked";
+}
+
+/**
+ * The outcome right after step 1 changes. A miss or a voicemail is the
+ * outcome. "Yes, we talked" always starts step 2 empty, so a pick made before
+ * switching away is never carried back in unseen.
+ */
+export function outcomeForReach(reach: Reach): CallOutcome | null {
+  return reach === "talked" ? null : reach;
+}
+
+/** Why Save cannot be tapped yet, in plain words, or null once an outcome is chosen. */
+export function pickHint(reach: Reach | null, outcome: CallOutcome | null): string | null {
+  if (outcome) return null;
+  return reach === "talked" ? "Pick what happens next." : "Pick whether you reached them.";
+}
+
+/**
+ * A field someone may be typing in. The panel never moves focus out of one:
+ * a text, date, or time input, a textarea, a select, or editable text.
+ */
+export function isTypingField(el: { tagName?: string; type?: string; isContentEditable?: boolean } | null | undefined): boolean {
+  if (!el || typeof el.tagName !== "string") return false;
+  const tag = el.tagName.toUpperCase();
+  if (tag === "TEXTAREA" || tag === "SELECT") return true;
+  if (tag === "INPUT") return !["radio", "checkbox", "button", "submit", "reset", "image", "range", "color", "file"].includes((el.type || "text").toLowerCase());
+  return el.isContentEditable === true;
+}
+
+/**
+ * "Next call" after a save: the link and the count to show, or null. Only a
+ * same-site path is linked, and the count only when it is a whole number above 0.
+ */
+export function nextCallLink(queue: CallQueueHandoff | null | undefined, sample: boolean): { href: string; label: string } | null {
+  if (sample || !queue || typeof queue.nextHref !== "string") return null;
+  const href = queue.nextHref.trim();
+  if (!href.startsWith("/") || href.startsWith("//") || href.startsWith("/\\")) return null;
+  const left = queue.left;
+  const count = typeof left === "number" && Number.isInteger(left) && left > 0 ? ` · ${left} left` : "";
+  return { href, label: `Next call${count}` };
+}
 
 function mintKey(): string {
   const c: Crypto | undefined = typeof globalThis.crypto === "object" ? globalThis.crypto : undefined;
@@ -238,7 +329,7 @@ export const UNCERTAIN_SAVE_MESSAGE =
   "The connection dropped before the server answered, so this call may already be saved. Everything you entered is still here. Tap Save again: if it already saved, it will say so, and nothing is saved twice.";
 
 export const EDITS_NOT_SAVED_WARNING =
-  "An earlier save of this call had already gone through, so the changes you made after it were not saved. Anything below is for the call that was saved. To record a different outcome and get its links, tap Log another call. To add to the note, use the lead page.";
+  "An earlier save of this call went through, so your later changes were not saved. Anything below is for the call that was saved. To record a different outcome and get its links, tap Log another call. To add to the note, use the lead page.";
 
 /** Sort a finished request into saved, refused, or unknown. A null response means fetch itself threw. */
 export function classifySave(response: { ok: boolean } | null, data: unknown): SaveOutcome {
@@ -297,14 +388,14 @@ export function SavingLock({ busy, children }: { busy: boolean; children: ReactN
  * Coming back to the page after a call link was tapped. Ryan often switches
  * back in the middle of a call to read the card (their words, the prices), so
  * nothing here moves focus or scrolls: it only says whether to show the "Log
- * how the call went" button. The tap stays armed until an outcome is chosen,
+ * how the call went" button. The tap stays armed until step 1 is answered,
  * so a glance during the call does not use it up before the call ends.
  */
-export function showsLogPrompt(state: { visible: boolean; called: boolean; outcome: CallOutcome | null }): boolean {
-  return state.visible && state.called && state.outcome === null;
+export function showsLogPrompt(state: { visible: boolean; called: boolean; outcome: CallOutcome | null; reach?: Reach | null }): boolean {
+  return state.visible && state.called && state.outcome === null && !state.reach;
 }
 
-/** A small button, fixed above the iPhone home bar, that takes Ryan to "How did the call go?" only when he taps it. */
+/** A small button, fixed above the iPhone home bar, that takes Ryan to "Did you reach them?" only when he taps it. */
 export function LogCallPrompt({ onClick }: { onClick: () => void }) {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
@@ -330,6 +421,169 @@ function failureMessage(status: number, data: unknown): string {
   return `The call did not save. ${kept} Try again in a moment.`;
 }
 
+export type SavedCallViewProps = {
+  saved: SavedCall;
+  /** firstName(lead.full_name): "" when there is no usable name. */
+  leadFirstName: string;
+  compact?: boolean;
+  canText: boolean;
+  smsHref: string | null;
+  hasEmail: boolean;
+  mailHref: string | null;
+  noTextReason?: string | null;
+  noEmailReason?: string | null;
+  proposalAllowed?: boolean;
+  /** nextCallLink(queue, sample): the call card's "Next call", or null for no change. */
+  nextCall: { href: string; label: string } | null;
+  backHref: string;
+  backLabel: string;
+  onLogAnother: () => void;
+  /** The panel focuses it after a save, so a screen reader and a thumb both land on it. */
+  statusRef?: RefObject<HTMLDivElement | null>;
+};
+
+/**
+ * What a save hands back: the saved sentence, anything to check, the pay
+ * links and a message Ryan sends himself, then what to do next. With a queue,
+ * "Next call" comes first and the rest step back.
+ */
+export function SavedCallView({
+  saved,
+  leadFirstName,
+  compact = false,
+  canText,
+  smsHref,
+  hasEmail,
+  mailHref,
+  noTextReason = null,
+  noEmailReason = null,
+  proposalAllowed = false,
+  nextCall,
+  backHref,
+  backLabel,
+  onLogAnother,
+  statusRef,
+}: SavedCallViewProps) {
+  const headingId = `${useId()}-saved`;
+  const first = leadFirstName;
+  const who = first || "the lead";
+  const HeadingTag = compact ? "h2" : "h3";
+  const doors = saved.payDoors;
+  const message = saved.payMessage;
+  const textHref = message && canText && smsHref ? `${smsHref}?&body=${encodeURIComponent(message)}` : null;
+  const emailHref =
+    message && hasEmail && mailHref
+      ? `${mailHref}?subject=${encodeURIComponent("The link we talked about")}&body=${encodeURIComponent(message)}`
+      : null;
+  return (
+    <section className={`card min-w-0 ${compact ? "!p-4" : "!p-4 sm:!p-5"}`} aria-labelledby={headingId}>
+      <div
+        ref={statusRef}
+        role="status"
+        tabIndex={-1}
+        className="rounded-xl border-2 border-[var(--green)] p-4 [background:linear-gradient(var(--green-tint),var(--green-tint)),var(--panel)] focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--blue)]"
+      >
+        <div className="flex items-center gap-2">
+          <CheckCircle2 aria-hidden="true" className="h-6 w-6 shrink-0 text-[var(--green)]" />
+          <HeadingTag id={headingId} className="text-base font-black text-[var(--green)]">
+            {saved.duplicate ? "Already saved" : "Saved"}
+          </HeadingTag>
+        </div>
+        <p className="mt-1 text-sm text-[var(--text)]">{saved.summary}</p>
+        {saved.nextFollowUpLabel ? (
+          <p className="mt-2 text-sm text-[var(--text)]">
+            <span className="font-bold">Next follow-up:</span> {saved.nextFollowUpLabel} Central. {first || "The lead"} shows as due
+            again then.
+          </p>
+        ) : null}
+        {saved.warnings.length > 0 ? (
+          <div className="mt-3 rounded-lg border border-[var(--warn-line)] bg-[var(--warn-tint)] p-3 text-sm text-[var(--text)]">
+            <p className="font-bold">Saved, with {saved.warnings.length === 1 ? "one thing" : "a few things"} to check:</p>
+            <ul className="mt-1 list-disc pl-5">
+              {saved.warnings.map((w) => (
+                <li key={w}>{w}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+
+      {doors.length > 0 ? (
+        <div className="mt-4">
+          <p className="text-sm font-black text-[var(--heading)]">
+            Pay {doors.length === 1 ? "link" : "links"} to send {who} yourself
+          </p>
+          <ul className="mt-2 grid gap-3">
+            {doors.map((door) => (
+              <li key={door.offerId} className="min-w-0 rounded-xl border border-[var(--line)] bg-[var(--panel)] p-3">
+                <p className="font-bold text-[var(--heading)]">
+                  {door.offerName} <span className="font-semibold text-[var(--muted)]">{door.priceLabel}</span>
+                </p>
+                <p className="mt-1 text-sm text-[var(--muted)]">{withPeriod(door.howTheyPay)}</p>
+                {door.url ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="min-w-0 break-all text-sm text-[var(--text)]">{door.url}</span>
+                    <CopyButton value={door.url} label="Copy link" />
+                  </div>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+          {message ? (
+            <div className="mt-4">
+              <p className="text-sm font-bold text-[var(--heading)]">A message you can send</p>
+              <p className="mt-1 whitespace-pre-wrap [overflow-wrap:anywhere] rounded-lg border border-[var(--line)] bg-[var(--panel)] p-3 text-sm text-[var(--text)]">
+                {message}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <CopyButton value={message} label="Copy message" />
+                {textHref ? (
+                  <a href={textHref} className={LINK_ACCENT}>
+                    Open a text with this message
+                  </a>
+                ) : null}
+                {emailHref ? (
+                  <a href={emailHref} className={BUTTON_QUIET}>
+                    Open an email draft
+                  </a>
+                ) : null}
+              </div>
+              <p className="mt-2 text-xs text-[var(--muted)]">
+                Nothing goes to {who} until you send it from your own phone or email.
+                {textHref ? "" : ` There is no text button because ${noTextReason || "there is no text consent on file"}.`}
+                {emailHref ? "" : ` There is no email button because ${noEmailReason || "there is no email on file"}.`}
+              </p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* Working the queue: the next call is the first thing to tap, and everything else steps back. */}
+      {nextCall ? (
+        <div className="mt-4">
+          <a href={nextCall.href} data-next-call="" className={`btn-primary min-h-[56px] w-full !px-5 text-base sm:w-auto ${FOCUS}`}>
+            {nextCall.label}
+            <ArrowRight aria-hidden="true" className="h-5 w-5 shrink-0" />
+          </a>
+        </div>
+      ) : null}
+      <div className={`${nextCall ? "mt-3" : "mt-4"} flex flex-wrap gap-2`}>
+        {proposalAllowed && saved.proposalHref ? (
+          <a href={saved.proposalHref} className={nextCall ? LINK_ACCENT : `btn-primary min-h-[44px] !px-4 text-sm ${FOCUS}`}>
+            Draft the proposal now
+          </a>
+        ) : null}
+        <button type="button" onClick={onLogAnother} className={BUTTON_QUIET}>
+          Log another call
+        </button>
+        <a href={backHref} className={BUTTON_QUIET}>
+          {backLabel}
+        </a>
+      </div>
+    </section>
+  );
+}
+
 export default function CallOutcomePanel({
   lead,
   suggestedOffers,
@@ -348,14 +602,19 @@ export default function CallOutcomePanel({
   sample = false,
   fixedNow = null,
   initialOutcome = null,
+  initialReach = null,
+  queue = null,
   backHref = "/admin/call-sheet",
   backLabel = "Back to the call sheet",
   onSaved,
 }: CallOutcomePanelProps) {
   const uid = useId();
   const ids = {
-    legend: `${uid}-legend`,
+    title: `${uid}-title`,
+    reach: `${uid}-reach`,
+    next: `${uid}-next`,
     hint: `${uid}-hint`,
+    pick: `${uid}-pick`,
     note: `${uid}-note`,
     preview: `${uid}-preview`,
   };
@@ -385,7 +644,11 @@ export default function CallOutcomePanel({
   }, [initialOffers, suggestedOffers, lead.status]);
   const startingPlace = MEETING_PLACES.find((p) => p.place === defaultMeetingPlace)?.id ?? "";
 
-  const [outcome, setOutcome] = useState<CallOutcome | null>(initialOutcome);
+  // Step 1 and the outcome. A miss or a voicemail is both at once; "talked" waits for step 2.
+  const givenOutcome = reachFor(initialOutcome) ? initialOutcome : null;
+  const startReach = reachFor(givenOutcome) ?? initialReach;
+  const [reach, setReach] = useState<Reach | null>(startReach);
+  const [outcome, setOutcome] = useState<CallOutcome | null>(givenOutcome ?? (startReach ? outcomeForReach(startReach) : null));
   const [meetingDate, setMeetingDate] = useState("");
   const [meetingTime, setMeetingTime] = useState("");
   const [placeChoice, setPlaceChoice] = useState<string>(startingPlace);
@@ -415,7 +678,9 @@ export default function CallOutcomePanel({
   const memoryRef = useRef<SaveMemory>({ key: "", failedPayload: null, uncertainPayloads: [] });
   const calledRef = useRef(false);
   const outcomeRef = useRef<CallOutcome | null>(outcome);
+  const reachRef = useRef<Reach | null>(reach);
   const legendRef = useRef<HTMLLegendElement>(null);
+  const nextLegendRef = useRef<HTMLLegendElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
   const hintRef = useRef<HTMLParagraphElement>(null);
   const alertRef = useRef<HTMLParagraphElement>(null);
@@ -426,7 +691,8 @@ export default function CallOutcomePanel({
 
   useEffect(() => {
     outcomeRef.current = outcome;
-  }, [outcome]);
+    reachRef.current = reach;
+  }, [outcome, reach]);
 
   useEffect(() => {
     if (fixedMs !== null) {
@@ -438,15 +704,22 @@ export default function CallOutcomePanel({
     return () => window.clearInterval(timer);
   }, [fixedMs]);
 
-  // Back from the phone app: offer the way to "How did the call go?" without
-  // moving the page (see showsLogPrompt). choose(), reset(), and a save disarm it.
+  // Back from the phone app: offer the way to "Did you reach them?" without
+  // moving the page (see showsLogPrompt). Either step, reset(), and a save disarm it.
   useEffect(() => {
     function onClick(event: MouseEvent) {
       const target = event.target instanceof Element ? event.target : null;
       if (target?.closest('a[href^="tel:"]')) calledRef.current = true;
     }
     function onVisibility() {
-      if (showsLogPrompt({ visible: document.visibilityState === "visible", called: calledRef.current, outcome: outcomeRef.current })) {
+      if (
+        showsLogPrompt({
+          visible: document.visibilityState === "visible",
+          called: calledRef.current,
+          outcome: outcomeRef.current,
+          reach: reachRef.current,
+        })
+      ) {
         setLogPrompt(true);
       }
     }
@@ -513,6 +786,21 @@ export default function CallOutcomePanel({
     setLogPrompt(false);
   }
 
+  /** Move focus to a question, unless Ryan is typing in a field: focus is never pulled out of one. */
+  function focusQuestion(ref: RefObject<HTMLLegendElement | null>) {
+    if (typeof document !== "undefined" && isTypingField(document.activeElement as HTMLElement | null)) return;
+    ref.current?.focus();
+  }
+
+  /** Step 1. The note and everything else typed stay; only the outcome follows the answer. */
+  function chooseReach(next: Reach) {
+    setReach(next);
+    setOutcome(outcomeForReach(next));
+    setError("");
+    disarmLogPrompt();
+  }
+
+  /** Step 2, after "Yes, we talked". */
   function choose(next: CallOutcome) {
     setOutcome(next);
     setError("");
@@ -527,6 +815,7 @@ export default function CallOutcomePanel({
   function reset() {
     disarmLogPrompt();
     setSaved(null);
+    setReach(null);
     setOutcome(null);
     setMeetingDate("");
     setMeetingTime("");
@@ -542,7 +831,7 @@ export default function CallOutcomePanel({
     setLostReason("");
     setNote("");
     setError("");
-    window.setTimeout(() => legendRef.current?.focus(), 0);
+    window.setTimeout(() => focusQuestion(legendRef), 0);
   }
 
   async function save(event: React.FormEvent) {
@@ -551,7 +840,7 @@ export default function CallOutcomePanel({
     // Not ready yet: take Ryan to what is missing instead of posting. The
     // hint already says it in words, so there is no second alert to go stale.
     if (!outcome || !body) {
-      legendRef.current?.focus();
+      focusQuestion(reach === "talked" ? nextLegendRef : legendRef);
       return;
     }
     if (plan && !plan.ok) {
@@ -600,110 +889,24 @@ export default function CallOutcomePanel({
   const HeadingTag = compact ? "h2" : "h3";
 
   if (saved) {
-    const doors = saved.payDoors;
-    const message = saved.payMessage;
-    const textHref = message && canText && smsHref ? `${smsHref}?&body=${encodeURIComponent(message)}` : null;
-    const emailHref =
-      message && hasEmail && mailHref
-        ? `${mailHref}?subject=${encodeURIComponent("The link we talked about")}&body=${encodeURIComponent(message)}`
-        : null;
     return (
-      <section className={`card min-w-0 ${compact ? "!p-4" : "!p-4 sm:!p-5"}`} aria-labelledby={`${uid}-saved`}>
-        <div
-          ref={statusRef}
-          role="status"
-          tabIndex={-1}
-          className="rounded-xl border-2 border-[var(--green)] p-4 [background:linear-gradient(var(--green-tint),var(--green-tint)),var(--panel)] focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--blue)]"
-        >
-          <div className="flex items-center gap-2">
-            <CheckCircle2 aria-hidden="true" className="h-6 w-6 shrink-0 text-[var(--green)]" />
-            <HeadingTag id={`${uid}-saved`} className="text-base font-black text-[var(--green)]">
-              {saved.duplicate ? "Already saved" : "Saved"}
-            </HeadingTag>
-          </div>
-          <p className="mt-1 text-sm text-[var(--text)]">{saved.summary}</p>
-          {saved.nextFollowUpLabel ? (
-            <p className="mt-2 text-sm text-[var(--text)]">
-              <span className="font-bold">Next follow-up:</span> {saved.nextFollowUpLabel} Central. {first || "The lead"} shows as due
-              again then.
-            </p>
-          ) : null}
-          {saved.warnings.length > 0 ? (
-            <div className="mt-3 rounded-lg border border-[var(--warn-line)] bg-[var(--warn-tint)] p-3 text-sm text-[var(--text)]">
-              <p className="font-bold">Saved, with {saved.warnings.length === 1 ? "one thing" : "a few things"} to check:</p>
-              <ul className="mt-1 list-disc pl-5">
-                {saved.warnings.map((w) => (
-                  <li key={w}>{w}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </div>
-
-        {doors.length > 0 ? (
-          <div className="mt-4">
-            <p className="text-sm font-black text-[var(--heading)]">
-              Pay {doors.length === 1 ? "link" : "links"} to send {who} yourself
-            </p>
-            <ul className="mt-2 grid gap-3">
-              {doors.map((door) => (
-                <li key={door.offerId} className="min-w-0 rounded-xl border border-[var(--line)] bg-[var(--panel)] p-3">
-                  <p className="font-bold text-[var(--heading)]">
-                    {door.offerName} <span className="font-semibold text-[var(--muted)]">{door.priceLabel}</span>
-                  </p>
-                  <p className="mt-1 text-sm text-[var(--muted)]">{withPeriod(door.howTheyPay)}</p>
-                  {door.url ? (
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <span className="min-w-0 break-all text-sm text-[var(--text)]">{door.url}</span>
-                      <CopyButton value={door.url} label="Copy link" />
-                    </div>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-            {message ? (
-              <div className="mt-4">
-                <p className="text-sm font-bold text-[var(--heading)]">A message you can send</p>
-                <p className="mt-1 whitespace-pre-wrap [overflow-wrap:anywhere] rounded-lg border border-[var(--line)] bg-[var(--panel)] p-3 text-sm text-[var(--text)]">
-                  {message}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <CopyButton value={message} label="Copy message" />
-                  {textHref ? (
-                    <a href={textHref} className={LINK_ACCENT}>
-                      Open a text with this message
-                    </a>
-                  ) : null}
-                  {emailHref ? (
-                    <a href={emailHref} className={BUTTON_QUIET}>
-                      Open an email draft
-                    </a>
-                  ) : null}
-                </div>
-                <p className="mt-2 text-xs text-[var(--muted)]">
-                  Nothing goes to {who} until you send it from your own phone or email.
-                  {textHref ? "" : ` There is no text button because ${noTextReason || "there is no text consent on file"}.`}
-                  {emailHref ? "" : ` There is no email button because ${noEmailReason || "there is no email on file"}.`}
-                </p>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          {proposalAllowed && saved.proposalHref ? (
-            <a href={saved.proposalHref} className={`btn-primary min-h-[44px] !px-4 text-sm ${FOCUS}`}>
-              Draft the proposal now
-            </a>
-          ) : null}
-          <button type="button" onClick={reset} className={BUTTON_QUIET}>
-            Log another call
-          </button>
-          <a href={backHref} className={BUTTON_QUIET}>
-            {backLabel}
-          </a>
-        </div>
-      </section>
+      <SavedCallView
+        saved={saved}
+        leadFirstName={first}
+        compact={compact}
+        canText={canText}
+        smsHref={smsHref}
+        hasEmail={hasEmail}
+        mailHref={mailHref}
+        noTextReason={noTextReason}
+        noEmailReason={noEmailReason}
+        proposalAllowed={proposalAllowed}
+        nextCall={nextCallLink(queue, sample)}
+        backHref={backHref}
+        backLabel={backLabel}
+        onLogAnother={reset}
+        statusRef={statusRef}
+      />
     );
   }
 
@@ -841,36 +1044,54 @@ export default function CallOutcomePanel({
   ) : null;
 
   const noteLabel = outcome === "not_a_fit" && lostReason === "other" ? "Why is it not a fit? The first line is saved as the reason." : "Note (optional)";
+  // Why Save is off, in words. The sample's button already says why it never saves.
+  const saveWaitsFor = sample ? null : pickHint(reach, outcome);
 
   return (
-    <section className={`card min-w-0 ${compact ? "!p-4" : "!p-4 sm:!p-5"}`} aria-labelledby={ids.legend}>
+    <section className={`card min-w-0 ${compact ? "!p-4" : "!p-4 sm:!p-5"}`} aria-labelledby={ids.title}>
+      <HeadingTag id={ids.title} className={`${compact ? "text-base" : "text-lg"} font-black text-[var(--heading)]`}>
+        How did the call go?
+      </HeadingTag>
+      <p className="mb-4 mt-1 text-sm text-[var(--muted)]">Tap what happened. Nothing is sent to {who}.</p>
       <form onSubmit={save} noValidate>
         <SavingLock busy={busy}>
           <fieldset className="min-w-0">
-            <legend
-              id={ids.legend}
-              ref={legendRef}
-              tabIndex={-1}
-              className={`rounded-md ${compact ? "text-base" : "text-lg"} font-black text-[var(--heading)] focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--blue)]`}
-            >
-              How did the call go?
+            <legend id={ids.reach} ref={legendRef} tabIndex={-1} className={STEP_LEGEND}>
+              Did you reach them?
             </legend>
-            <p className="mb-3 mt-1 text-sm text-[var(--muted)]">
-              Pick what happened. The list below shows exactly what saving does. Nothing is sent to {who}.
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {PANEL_OUTCOMES.map((o) => {
-                const id = `${uid}-outcome-${o}`;
-                const on = outcome === o;
+            <div className="grid gap-2 sm:grid-cols-3">
+              {REACH_CHOICES.map((r) => {
+                const id = `${uid}-reach-${r.id}`;
+                const on = reach === r.id;
                 return (
-                  <label key={o} htmlFor={id} className={`${TILE} ${on ? TILE_ON : TILE_OFF}`}>
-                    <input id={id} type="radio" name={`${uid}-outcome`} value={o} checked={on} onChange={() => choose(o)} className={RADIO} />
-                    <span className="min-w-0">{OUTCOME_LABELS[o]}</span>
+                  <label key={r.id} htmlFor={id} className={`${BIG_TILE} ${on ? TILE_ON : TILE_OFF}`}>
+                    <input id={id} type="radio" name={`${uid}-reach`} value={r.id} checked={on} onChange={() => chooseReach(r.id)} className={RADIO} />
+                    <span className="min-w-0">{r.label}</span>
                   </label>
                 );
               })}
             </div>
           </fieldset>
+
+          {reach === "talked" ? (
+            <fieldset className="mt-5 min-w-0">
+              <legend id={ids.next} ref={nextLegendRef} tabIndex={-1} className={STEP_LEGEND}>
+                What happens next?
+              </legend>
+              <div className="grid grid-cols-2 gap-2">
+                {NEXT_OUTCOMES.map((o) => {
+                  const id = `${uid}-outcome-${o}`;
+                  const on = outcome === o;
+                  return (
+                    <label key={o} htmlFor={id} className={`${TILE} ${on ? TILE_ON : TILE_OFF}`}>
+                      <input id={id} type="radio" name={`${uid}-outcome`} value={o} checked={on} onChange={() => choose(o)} className={RADIO} />
+                      <span className="min-w-0">{nextStepLabel(o)}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ) : null}
 
           {outcome === "booked" ? (
             <div className="mt-5 grid gap-4">
@@ -986,7 +1207,8 @@ export default function CallOutcomePanel({
             </fieldset>
           ) : null}
 
-          {outcome ? (
+          {/* Open from step 1 on, so Ryan can jot what was said while he decides what happens next. */}
+          {reach ? (
             <div className="mt-5">
               <label htmlFor={ids.note} className="mb-1 block text-sm font-semibold text-[var(--text)]">
                 {noteLabel}
@@ -997,7 +1219,7 @@ export default function CallOutcomePanel({
                 rows={compact ? 2 : 3}
                 maxLength={NEXT_STEP_NOTE_MAX}
                 value={note}
-                placeholder={`What ${who} said, in a line or two`}
+                placeholder={reach === "talked" ? `What ${who} said, in a line or two` : "Anything to remember for next time"}
                 onChange={(e) => setNote(e.target.value)}
               />
             </div>
@@ -1006,7 +1228,7 @@ export default function CallOutcomePanel({
           {outcome && plan ? (
             plan.ok ? (
               <div id={ids.preview} className="mt-5 rounded-xl border border-[var(--line)] bg-[var(--page)] p-4">
-                <p className="text-sm font-black text-[var(--heading)]">When you save</p>
+                <p className="text-sm font-black text-[var(--heading)]">What saving does</p>
                 <ul className="mt-2 grid list-disc gap-1 pl-5 text-sm text-[var(--text)]">
                   {plan.preview.map((lineText, i) => (
                     <li key={`${i}-${lineText}`}>{lineText}</li>
@@ -1043,12 +1265,17 @@ export default function CallOutcomePanel({
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <button
             type="submit"
-            disabled={sample || busy}
-            aria-describedby={outcome && plan && !plan.ok ? ids.hint : undefined}
+            disabled={sample || busy || !outcome}
+            aria-describedby={saveWaitsFor ? ids.pick : outcome && plan && !plan.ok ? ids.hint : undefined}
             className={`btn-primary min-h-[44px] w-full !px-5 text-sm disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto ${FOCUS}`}
           >
             {sample ? "Sample only, nothing is saved" : busy ? "Saving..." : "Save the call"}
           </button>
+          {saveWaitsFor ? (
+            <p id={ids.pick} className="w-full text-sm font-semibold text-[var(--muted)] sm:w-auto">
+              {saveWaitsFor}
+            </p>
+          ) : null}
           {!compact ? (
             <a href={backHref} className={`inline-flex min-h-[44px] items-center px-1 text-sm font-semibold text-[var(--blue)] ${FOCUS}`}>
               {backLabel}
@@ -1056,12 +1283,12 @@ export default function CallOutcomePanel({
           ) : null}
         </div>
       </form>
-      {logPrompt && !outcome ? (
+      {logPrompt && !reach ? (
         <LogCallPrompt
           onClick={() => {
             setLogPrompt(false);
-            // He asked to go there, so moving the page is right this time.
-            legendRef.current?.focus();
+            // He asked to go there, so moving the page is right this time (never out of a field he is typing in).
+            focusQuestion(legendRef);
           }}
         />
       ) : null}

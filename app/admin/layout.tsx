@@ -44,6 +44,12 @@ export default async function AdminLayout({
           </h1>
           <nav className="flex min-w-0 basis-full flex-wrap items-center gap-x-4 gap-y-2 text-sm font-semibold sm:flex-1 sm:basis-auto sm:gap-4">
             <Link
+              href="/admin/call-sheet"
+              className="font-black text-[var(--text)] hover:text-[var(--heading)]"
+            >
+              Today&apos;s calls
+            </Link>
+            <Link
               href="/admin/command-center"
               className="text-[var(--text)] hover:text-[var(--heading)]"
             >
@@ -72,12 +78,6 @@ export default async function AdminLayout({
               className="font-black text-[var(--blue)] hover:text-[var(--heading)]"
             >
               Content Command
-            </Link>
-            <Link
-              href="/admin/call-sheet"
-              className="font-black text-[var(--text)] hover:text-[var(--heading)]"
-            >
-              Call sheet
             </Link>
             <Link
               href="/admin/sales"

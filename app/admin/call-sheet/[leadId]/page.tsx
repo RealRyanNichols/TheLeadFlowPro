@@ -15,6 +15,7 @@ import {
   type PlannerLead,
 } from "@/lib/callCloser";
 import { SAMPLE_ACTOR_NAME, SAMPLE_CALL_ACTIVITY, SAMPLE_CALL_LEAD, SAMPLE_NOTES, SAMPLE_NOW } from "@/lib/callCloserFixtures";
+import { leftAfterThis, nextHref, parseLeft, parseSkip } from "@/lib/callQueue";
 import {
   ageLabel,
   callbackState,
@@ -57,6 +58,13 @@ import CallCardPanel from "./CallCardPanel";
 // lead from lib/callCloserFixtures.ts and reads no lead data at all. Phone and
 // text links are built here on the server, so the browser panel never loads
 // the Quo or call sheet code.
+//
+// "Start calling" opens this card in queue mode (?queue=1&left=N&skip=...,
+// built by lib/callQueue.ts). A slim bar at the top says how many are left and
+// offers "Skip for now". Every real card, in a run or not, hands the panel the
+// way to the next person (/admin/call-sheet/next with this lead added to the
+// skip list), so "Next call" shows after any save and a run never comes back
+// to the same person. The sample passes none of it.
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Call card | The LeadFlow Pro" };
@@ -74,8 +82,20 @@ const SECTION_TITLE = "text-base font-black text-[var(--heading)]";
 
 type CardNote = { summary: string; at: string; atIso: string; author: string };
 
+/** Where this card sits in a "Start calling" run, and the way on. */
+type CardQueue = {
+  /** Opened from /admin/call-sheet/next: show the bar with "Skip for now". */
+  active: boolean;
+  /** People left counting this one, from the URL. Null outside a run or when unreadable. */
+  left: number | null;
+  /** /admin/call-sheet/next with this lead added to the skip list: "Skip for now" and the panel's "Next call". */
+  nextHref: string;
+};
+
 type CardView = {
   sample: boolean;
+  /** Null on the sample, which never joins a run. */
+  queue: CardQueue | null;
   now: Date;
   lead: PlannerLead;
   createdAt: string;
@@ -161,6 +181,7 @@ function sampleView(): CardView {
   const notes = toNotes(SAMPLE_NOTES);
   return {
     sample: true,
+    queue: null,
     now: SAMPLE_NOW,
     lead,
     createdAt: created_at,
@@ -180,7 +201,33 @@ function sampleView(): CardView {
   };
 }
 
-export default async function CallCardPage({ params }: { params: Promise<{ leadId: string }> }) {
+/** This card again, keeping a run's place, for "Try again" after a failed read. */
+function retryHref(leadId: string, query: Record<string, string | string[] | undefined>): string {
+  const keep = new URLSearchParams();
+  for (const key of ["queue", "left", "skip"]) {
+    const value = query[key];
+    if (typeof value === "string" && value) keep.set(key, value);
+  }
+  const qs = keep.toString();
+  return `/admin/call-sheet/${encodeURIComponent(leadId)}${qs ? `?${qs}` : ""}`;
+}
+
+function queueFrom(query: Record<string, string | string[] | undefined>, leadId: string): CardQueue {
+  const active = query.queue === "1";
+  return {
+    active,
+    left: active ? parseLeft(query.left) : null,
+    nextHref: nextHref(parseSkip(query.skip), leadId),
+  };
+}
+
+export default async function CallCardPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ leadId: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { leadId } = await params;
   const supabase = await createClient();
   // Authorization next to the private read, not only in the layout.
@@ -193,9 +240,11 @@ export default async function CallCardPage({ params }: { params: Promise<{ leadI
 
   if (leadId === "sample") return <CallCard view={sampleView()} />;
   if (!UUID_RE.test(leadId)) notFound();
+  const query = (await searchParams) ?? {};
+  const queue = queueFrom(query, leadId);
 
   const leadRead = await supabase.from("leads").select(LEAD_COLUMNS).eq("id", leadId).is("deleted_at", null).maybeSingle();
-  if (leadRead.error) return <ConnectionProblem leadId={leadId} />;
+  if (leadRead.error) return <ConnectionProblem retryHref={retryHref(leadId, query)} queue={queue} />;
   const row = leadRead.data as Record<string, unknown> | null;
   if (!row) notFound();
 
@@ -236,6 +285,7 @@ export default async function CallCardPage({ params }: { params: Promise<{ leadI
   const humanTouches = touches.filter(isHumanTouch).map((t) => t.at);
   const view: CardView = {
     sample: false,
+    queue,
     now: new Date(),
     lead: {
       id: leadId,
@@ -280,22 +330,47 @@ function CardNoteItem({ note }: { note: CardNote }) {
   );
 }
 
-function ConnectionProblem({ leadId }: { leadId: string }) {
+function ConnectionProblem({ retryHref, queue }: { retryHref: string; queue: CardQueue }) {
   return (
     <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4">
       <div className="card !p-4" role="alert">
         <h2 className="text-lg font-black text-[var(--heading)]">The call card could not be loaded.</h2>
         <p className="my-3 text-sm">This is a connection problem, not an empty lead. Try again in a moment.</p>
         <div className="flex flex-wrap gap-2">
-          <a href={`/admin/call-sheet/${encodeURIComponent(leadId)}`} className={`${BUTTON} bg-[var(--blue)] text-white`}>
+          <a href={retryHref} className={`${BUTTON} bg-[var(--blue)] text-white`}>
             Try again
           </a>
+          {queue.active ? (
+            <a href={queue.nextHref} className={`${BUTTON} border border-[var(--line-strong)] text-[var(--text)]`}>
+              Skip for now
+            </a>
+          ) : null}
           <Link href="/admin/call-sheet" className={QUIET_LINK}>
             Back to the call sheet
           </Link>
         </div>
       </div>
     </div>
+  );
+}
+
+/** The slim bar a "Start calling" run shows above the card. */
+function QueueBar({ queue }: { queue: CardQueue }) {
+  const count = queue.left === null ? "" : ` · ${queue.left} left`;
+  return (
+    <nav
+      aria-label="Today's list"
+      className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-xl border border-[var(--accent-line)] bg-[var(--accent-tint)] py-1 pl-3 pr-1"
+    >
+      <p className="text-sm font-bold text-[var(--heading)]">Going down today&apos;s list{count}</p>
+      <Link
+        href={queue.nextHref}
+        prefetch={false}
+        className={`${BUTTON} border border-[var(--line-strong)] bg-[var(--panel)] text-[var(--text)]`}
+      >
+        Skip for now
+      </Link>
+    </nav>
   );
 }
 
@@ -340,6 +415,7 @@ function CallCard({ view }: { view: CardView }) {
     // grid-cols-1 is minmax(0, 1fr): a long URL in the pay message or in their
     // words wraps inside the card instead of widening every card past a phone.
     <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4">
+      {view.queue?.active ? <QueueBar queue={view.queue} /> : null}
       {/* One row: back to the list, and the full record for a real lead. */}
       <nav className="flex flex-wrap items-center gap-x-4" aria-label="Call card">
         <Link href="/admin/call-sheet" className={QUIET_LINK}>
@@ -526,6 +602,9 @@ function CallCard({ view }: { view: CardView }) {
         proposalAllowed
         sample={sample}
         fixedNow={sample ? now.toISOString() : null}
+        // After a save the panel offers "Next call": the next person on today's list, never this one again.
+        // Its count is the people after this one; outside a run it is null. The sample passes nothing.
+        {...(view.queue ? { queue: { nextHref: view.queue.nextHref, left: leftAfterThis(view.queue.left) } } : {})}
       />
 
       <section className="card !p-4" aria-labelledby="call-card-offers">

@@ -9,19 +9,32 @@ import ts from "typescript";
 import CallOutcomePanel, {
   EDITS_NOT_SAVED_WARNING,
   LogCallPrompt,
+  NEXT_OUTCOMES,
+  REACH_CHOICES,
+  SavedCallView,
   SavingLock,
   UNCERTAIN_SAVE_MESSAGE,
   afterSave,
   classifySave,
+  isTypingField,
   keyForSave,
+  nextCallLink,
+  nextStepLabel,
+  outcomeForReach,
+  pickHint,
+  reachFor,
   readSaved,
   showsLogPrompt,
   type CallOutcomePanelProps,
+  type Reach,
   type SaveMemory,
+  type SavedCall,
+  type SavedCallViewProps,
 } from "../app/admin/call-sheet/CallOutcomePanel.tsx";
 import * as businessTime from "../lib/businessTime.ts";
 import * as callCloser from "../lib/callCloser.ts";
 import * as callCloserFixtures from "../lib/callCloserFixtures.ts";
+import * as callQueue from "../lib/callQueue.ts";
 import * as callSheet from "../lib/callSheet.ts";
 import * as contactGaps from "../lib/contactGaps.ts";
 import * as leadMessageAuthor from "../lib/leadMessageAuthor.ts";
@@ -127,6 +140,41 @@ function assertLabelled(html: string, type: string, expected: number) {
   }
 }
 
+/** Every radio tile in order: the label around it, its words, its group, and its tallest min-h class. */
+function radioTiles(html: string) {
+  return [...html.matchAll(/<label\b([^>]*)>\s*<input\b([^>]*)>\s*<span[^>]*>([^<]*)<\/span>\s*<\/label>/g)]
+    .filter((m) => m[2].includes('type="radio"'))
+    .map((m) => ({
+      id: /\bid="([^"]+)"/.exec(m[2])?.[1] ?? "",
+      forId: /\bfor="([^"]+)"/.exec(m[1])?.[1] ?? "",
+      name: /\bname="([^"]+)"/.exec(m[2])?.[1] ?? "",
+      value: /\bvalue="([^"]+)"/.exec(m[2])?.[1] ?? "",
+      checked: /\bchecked=""/.test(m[2]),
+      text: m[3],
+      minH: Math.max(0, ...[...m[1].matchAll(/\bmin-h-\[(\d+)px\]/g)].map((x) => Number(x[1]))),
+    }));
+}
+
+/** The two outcome questions only: step 1 ("-reach") and step 2 ("-outcome"). */
+const outcomeTiles = (html: string) => radioTiles(html).filter((t) => /-(reach|outcome)$/.test(t.name));
+
+/** The legend of every fieldset that opens with one, in order. */
+const legends = (html: string) => [...html.matchAll(/<fieldset[^>]*>\s*<legend[^>]*>([^<]*)<\/legend>/g)].map((m) => m[1]);
+
+/** The Save button's opening tag and its words. */
+function saveButton(html: string): { tag: string; text: string } {
+  const m = /(<button[^>]*type="submit"[^>]*>)([^<]*)<\/button>/.exec(html);
+  assert.ok(m, "a submit button");
+  return { tag: m[1], text: m[2] };
+}
+
+/** The body of a function in the panel source, up to its closing brace at two spaces in. */
+function fnBody(text: string, head: string): string {
+  const from = text.slice(text.indexOf(head));
+  assert.ok(text.includes(head), head);
+  return from.slice(0, from.indexOf("\n  }\n"));
+}
+
 test("call card page: signed in and admin before any lead read; the sample reads no lead data", () => {
   const body = defaultExportBody(CARD_PAGE);
   const getUser = body.indexOf("auth.getUser()");
@@ -191,21 +239,138 @@ test("the panel and the proposal button reach no database, provider, or call she
   assert.match(src(CARD_WRAPPER), /router\.refresh\(\)/);
 });
 
-test("sample panel markup: a fieldset with a legend, a label for every radio, 44px targets, and a Save that cannot post", () => {
+test("sample panel markup: two questions, each a fieldset with a legend, a label on every radio, 44px targets, and a Save that cannot post", () => {
   const html = render(sampleProps());
-  assert.match(html, /<fieldset[^>]*>\s*<legend[^>]*>How did the call go\?<\/legend>/);
-  assert.match(html, /<legend[^>]*tabindex="-1"/, "the legend can take focus when Ryan comes back from a call");
-  assertLabelled(html, "radio", PANEL_OUTCOMES.length);
-  for (const o of PANEL_OUTCOMES) assert.ok(html.includes(OUTCOME_LABELS[o]), o);
-  assert.ok(!html.includes(OUTCOME_LABELS.proposal_sent), "proposal sent is logged from the proposal page");
-  assert.ok((html.match(/min-h-\[44px\]/g) ?? []).length >= PANEL_OUTCOMES.length + 1, "every tile and the Save button are 44px tall");
-  const save = /<button[^>]*type="submit"[^>]*>([^<]*)<\/button>/.exec(html);
-  assert.ok(save, "a submit button");
-  assert.match(save[0], /disabled=""/);
-  assert.equal(save[1], "Sample only, nothing is saved");
+  // The card is still "How did the call go?", and what it promises shows before any tap.
+  assert.match(html, /^<section[^>]*aria-labelledby="([^"]+)"[^>]*><h3 id="\1"[^>]*>How did the call go\?<\/h3>/);
+  assert.ok(textOf(html).includes("Nothing is sent to Dana."), textOf(html));
+  // Step 1 only, until "Yes, we talked".
+  assert.deepEqual(legends(html), ["Did you reach them?"]);
+  assert.match(html, /<legend[^>]*tabindex="-1"[^>]*>Did you reach them\?<\/legend>/, "the legend can take focus when Ryan comes back from a call");
+  assert.ok(!html.includes("What happens next?"));
+  assertLabelled(html, "radio", REACH_CHOICES.length);
+  const step1 = outcomeTiles(html);
+  assert.deepEqual(step1.map((t) => t.text), ["Yes, we talked", "No answer", "Left a voicemail"]);
+  assert.deepEqual(step1.map((t) => t.value), ["talked", "no_answer", "voicemail"]);
+  assert.equal(new Set(step1.map((t) => t.name)).size, 1, "one radio group");
+  for (const t of step1) {
+    assert.equal(t.forId, t.id, `${t.text} is labelled by its own tile`);
+    assert.ok(t.minH >= 44, `${t.text} is ${t.minH}px tall`);
+    assert.ok(!t.checked, `${t.text} starts unpicked`);
+  }
+  const save = saveButton(html);
+  assert.match(save.tag, /\sdisabled=""/);
+  assert.match(save.tag, /min-h-\[44px\]/);
+  assert.equal(save.text, "Sample only, nothing is saved");
+  assert.ok(!html.includes("Pick whether you reached them."), "the sample's button already says why it never saves");
   assert.match(html, /focus-visible:outline/);
   assert.ok(!/role="alert"/.test(html), "no error before anything happened");
   assert.deepEqual(copyProblems(textOf(html)), []);
+
+  // "Yes, we talked": step 2 opens under it, with nothing picked.
+  const talked = render(sampleProps({ initialReach: "talked" }));
+  assert.deepEqual(legends(talked), ["Did you reach them?", "What happens next?"]);
+  assert.match(talked, /<legend[^>]*tabindex="-1"[^>]*>What happens next\?<\/legend>/);
+  assertLabelled(talked, "radio", REACH_CHOICES.length + NEXT_OUTCOMES.length);
+  const tiles = outcomeTiles(talked);
+  const step2 = tiles.slice(REACH_CHOICES.length);
+  assert.deepEqual(step2.map((t) => t.text), ["Booked the sit-down", "Wants a proposal", "Ready to pay now", "Call back later", "Not a fit"]);
+  assert.deepEqual(step2.map((t) => t.value), ["booked", "wants_proposal", "ready_to_pay", "call_back", "not_a_fit"]);
+  assert.equal(new Set(step2.map((t) => t.name)).size, 1);
+  assert.notEqual(step2[0].name, tiles[0].name, "two separate radio groups");
+  assert.deepEqual(tiles.filter((t) => t.checked).map((t) => t.value), ["talked"], "nothing in step 2 is picked yet");
+  for (const t of tiles) {
+    assert.equal(t.forId, t.id);
+    assert.ok(t.minH >= 44, `${t.text} is ${t.minH}px tall`);
+  }
+  assert.ok(!talked.includes(OUTCOME_LABELS.proposal_sent), "proposal sent is logged from the proposal page");
+  assert.ok(!talked.includes("What saving does"), "no preview until there is an outcome");
+  assert.match(saveButton(talked).tag, /\sdisabled=""/);
+  assert.deepEqual(copyProblems(textOf(talked)), []);
+
+  // The Sales Desk's compact panel keeps its heading level.
+  assert.match(render(sampleProps({ compact: true })), /<h2 id="[^"]+"[^>]*>How did the call go\?<\/h2>/);
+});
+
+test("step 1 then step 2: every talked outcome is under Yes, a miss or a voicemail is one tap, and a switch never keeps a stale pick", () => {
+  // The two steps together are exactly the call card's outcomes.
+  assert.deepEqual([...NEXT_OUTCOMES], PANEL_OUTCOMES.filter((o) => o !== "no_answer" && o !== "voicemail"));
+  for (const o of NEXT_OUTCOMES) assert.equal(nextStepLabel(o), o === "call_back" ? "Call back later" : OUTCOME_LABELS[o], o);
+  assert.deepEqual(REACH_CHOICES.slice(1).map((r) => r.label), [OUTCOME_LABELS.no_answer, OUTCOME_LABELS.voicemail]);
+  for (const o of PANEL_OUTCOMES) assert.equal(reachFor(o), o === "no_answer" || o === "voicemail" ? o : "talked", o);
+  assert.equal(reachFor(null), null);
+  assert.equal(reachFor("proposal_sent"), null, "not a call card outcome");
+
+  // A run of taps: Yes, Booked, Voicemail, Yes. Booked does not come back unseen.
+  type Picked = { reach: Reach | null; outcome: callCloser.CallOutcome | null };
+  const tapStep1 = (reach: Reach): Picked => ({ reach, outcome: outcomeForReach(reach) });
+  let picked: Picked = tapStep1("talked");
+  assert.deepEqual(picked, { reach: "talked", outcome: null });
+  picked = { ...picked, outcome: "booked" };
+  picked = tapStep1("voicemail");
+  assert.deepEqual(picked, { reach: "voicemail", outcome: "voicemail" });
+  picked = tapStep1("talked");
+  assert.deepEqual(picked, { reach: "talked", outcome: null }, "step 2 starts empty again");
+  assert.deepEqual(tapStep1("no_answer"), { reach: "no_answer", outcome: "no_answer" });
+
+  // Save waits for an outcome, and says so in words.
+  assert.equal(pickHint(null, null), "Pick whether you reached them.");
+  assert.equal(pickHint("talked", null), "Pick what happens next.");
+  assert.equal(pickHint("talked", "booked"), null);
+  assert.equal(pickHint("no_answer", "no_answer"), null);
+  for (const hint of [pickHint(null, null), pickHint("talked", null)]) assert.deepEqual(copyProblems(hint ?? ""), []);
+
+  // The panel runs step 1 through outcomeForReach and leaves the note and every other field alone.
+  const panel = src(PANEL);
+  const step1 = fnBody(panel, "function chooseReach(");
+  assert.match(step1, /setReach\(next\);\s*setOutcome\(outcomeForReach\(next\)\);/);
+  assert.ok(!/setNote|setOffers|setPayOffers|setTalkedOffers|setMeeting|setCallback|setLostReason/.test(step1), step1);
+  assert.ok(step1.includes("disarmLogPrompt()"));
+  assert.match(panel, /onChange=\{\(\) => chooseReach\(r\.id\)\}/);
+  assert.match(panel, /onChange=\{\(\) => choose\(o\)\}/);
+
+  // The note shows from step 1 on, whatever the answer, so a switch never hides what was typed.
+  for (const reach of ["talked", "no_answer", "voicemail"] as const) {
+    const html = render(sampleProps({ initialReach: reach }));
+    assert.match(html, /<textarea\b[^>]*maxLength="2000"/, reach);
+    assert.deepEqual(copyProblems(textOf(html)), [], reach);
+  }
+  assert.ok(!/<textarea\b/.test(render(sampleProps())), "nothing to type before step 1");
+
+  // A miss or a voicemail is one tap: no step 2, and the retry preview shows at once.
+  for (const reach of ["no_answer", "voicemail"] as const) {
+    const html = render(sampleProps({ initialReach: reach }));
+    assert.ok(!html.includes("What happens next?"), reach);
+    assert.deepEqual(outcomeTiles(html).filter((t) => t.checked).map((t) => t.value), [reach]);
+    assert.ok(html.includes("What saving does") && textOf(html).includes("Try again"), reach);
+  }
+
+  // An outcome given up front checks its step 1 answer and, after a talk, its own step 2 tile.
+  for (const o of PANEL_OUTCOMES) {
+    const checked = outcomeTiles(render(sampleProps({ initialOutcome: o }))).filter((t) => t.checked).map((t) => t.value);
+    assert.deepEqual(checked, o === "no_answer" || o === "voicemail" ? [o] : ["talked", o], o);
+  }
+});
+
+test("a real panel keeps Save off, with a hint in words, until there is an outcome", () => {
+  const described = (html: string, hint: string) => {
+    const save = saveButton(html);
+    assert.equal(save.text, "Save the call");
+    assert.match(save.tag, /\sdisabled=""/, hint);
+    const id = /aria-describedby="([^"]+)"/.exec(save.tag)?.[1];
+    assert.ok(id, `Save is described by the hint: ${save.tag}`);
+    assert.ok(html.includes(`<p id="${id}"`) && textOf(html).includes(hint), hint);
+  };
+  described(render(sampleProps({ sample: false })), "Pick whether you reached them.");
+  described(render(sampleProps({ sample: false, initialReach: "talked" })), "Pick what happens next.");
+  // Once there is an outcome, Save is on and the hint is gone.
+  for (const o of PANEL_OUTCOMES) {
+    const html = render(sampleProps({ sample: false, initialOutcome: o }));
+    assert.ok(!/\sdisabled=""/.test(saveButton(html).tag), o);
+    assert.ok(!html.includes("Pick whether you reached them.") && !html.includes("Pick what happens next."), o);
+  }
+  // Save stays off while an outcome is missing, busy, or in the sample.
+  assert.match(src(PANEL), /disabled=\{sample \|\| busy \|\| !outcome\}/);
 });
 
 test("while a save is in flight the form is frozen, so nothing typed during Saving... is lost", () => {
@@ -227,14 +392,14 @@ test("while a save is in flight the form is frozen, so nothing typed during Savi
   const open = renderToStaticMarkup(createElement(SavingLock, { busy: false, children: child }));
   assert.ok(!/^<fieldset[^>]*\s(disabled|inert)=/.test(open), open);
 
-  // The panel puts every field inside the lock: the outcome tiles, the times, the offers, the
+  // The panel puts every field inside the lock: both steps' tiles, the times, the offers, the
   // reasons, the note, and both optional toggles. Save and the error stay outside it.
   const panel = src(PANEL);
   const from = panel.indexOf("<SavingLock busy={busy}>");
   const to = panel.indexOf("</SavingLock>");
   assert.ok(from > 0 && to > from, "the form is wrapped");
   const inside = panel.slice(from, to);
-  for (const part of ["How did the call go?", "timeFields(\"meeting\")", "{quickChips}", "offerPicker", "LOST_REASONS.map", "id={ids.note}", "Pick the next try yourself", "Talked about an offer?"]) {
+  for (const part of ["Did you reach them?", "REACH_CHOICES.map", "What happens next?", "NEXT_OUTCOMES.map", "timeFields(\"meeting\")", "{quickChips}", "offerPicker", "LOST_REASONS.map", "id={ids.note}", "Pick the next try yourself", "Talked about an offer?"]) {
     assert.ok(inside.includes(part), `${part} is inside the lock`);
   }
   assert.ok(panel.indexOf('type="submit"') > to, "Save is outside, so Saving... still shows");
@@ -254,7 +419,7 @@ test("a real panel has an enabled Save, and shows nothing that depends on the cl
   assert.ok(!/\sdisabled=""/.test(save[0]), save[0]);
   assert.equal(save[1], "Save the call");
   // No clock on the server render: no quick picks and no preview yet, so hydration cannot disagree.
-  assert.ok(!html.includes("When you save"));
+  assert.ok(!html.includes("What saving does"));
   assert.ok(!html.includes('aria-pressed'));
 });
 
@@ -262,7 +427,7 @@ test("booked: labelled day and time in Central, the place chips, and dates bound
   const html = render(sampleProps({ initialOutcome: "booked" }));
   assertLabelled(html, "date", 1);
   assertLabelled(html, "time", 1);
-  assertLabelled(html, "radio", PANEL_OUTCOMES.length + MEETING_PLACES.length + 1);
+  assertLabelled(html, "radio", REACH_CHOICES.length + NEXT_OUTCOMES.length + MEETING_PLACES.length + 1);
   assert.match(html, /When is the sit-down\?/);
   assert.match(html, /Time \(Central\)/);
   assert.match(html, new RegExp(`type="date"[^>]*min="${businessTime.centralDate(SAMPLE_NOW)}"`));
@@ -277,7 +442,8 @@ test("the preview is the planner's own list, drawn from the same JSON Save would
   assert.ok(parsed.ok);
   const plan = planCallOutcome({ lead: SAMPLE_LEAD, request: parsed.request, actorName: SAMPLE_ACTOR_NAME, now: SAMPLE_NOW, priorAttempts: SAMPLE_PRIOR });
   assert.ok(plan.ok);
-  assert.match(html, /When you save/);
+  assert.match(html, /<p[^>]*>What saving does<\/p>/);
+  assert.ok(!html.includes("When you save"), "the preview heading says what saving does");
   const text = textOf(html);
   for (const line of plan.preview) assert.ok(text.includes(line), line);
   // One unanswered try already: the second one comes back in two business days, in the afternoon.
@@ -419,11 +585,13 @@ test("Talked about an offer? starts with nothing ticked, so opening it never rec
 });
 
 test("coming back from a call never moves the page; a button offers the way to log it", () => {
-  // Armed by a tap on a call link, shown on every return until an outcome is chosen.
+  // Armed by a tap on a call link, shown on every return until step 1 is answered.
   assert.equal(showsLogPrompt({ visible: true, called: true, outcome: null }), true);
+  assert.equal(showsLogPrompt({ visible: true, called: true, outcome: null, reach: null }), true);
   assert.equal(showsLogPrompt({ visible: false, called: true, outcome: null }), false);
   assert.equal(showsLogPrompt({ visible: true, called: false, outcome: null }), false);
   assert.equal(showsLogPrompt({ visible: true, called: true, outcome: "call_back" }), false);
+  assert.equal(showsLogPrompt({ visible: true, called: true, outcome: null, reach: "talked" }), false, "step 1 is answered, step 2 is not yet");
 
   const panel = src(PANEL);
   const handler = panel.slice(panel.indexOf("function onVisibility()"), panel.indexOf('document.addEventListener("click"'));
@@ -437,9 +605,40 @@ test("coming back from a call never moves the page; a button offers the way to l
     return from.slice(0, from.indexOf("\n  }\n"));
   };
   assert.ok(bodyOf("function choose(").includes("disarmLogPrompt()"));
+  assert.ok(bodyOf("function chooseReach(").includes("disarmLogPrompt()"));
   assert.ok(bodyOf("function reset(").includes("disarmLogPrompt()"));
+  assert.ok(bodyOf("function reset(").includes("setReach(null)"), "Log another call starts again at step 1");
   assert.match(panel, /disarmLogPrompt\(\);\s+setSaved\(shown\)/);
   assert.match(bodyOf("function disarmLogPrompt("), /calledRef\.current = false;\s+setLogPrompt\(false\)/);
+  assert.match(handler, /reach: reachRef\.current/);
+  assert.match(panel, /\{logPrompt && !reach \? \(\s*<LogCallPrompt/);
+
+  // The button, Log another call, and an early Save go to "Did you reach them?", never out of a field being typed in.
+  assert.match(panel, /<legend id=\{ids\.reach\} ref=\{legendRef\} tabIndex=\{-1\}[^>]*>\s*Did you reach them\?/);
+  assert.match(panel, /<legend id=\{ids\.next\} ref=\{nextLegendRef\} tabIndex=\{-1\}[^>]*>\s*What happens next\?/);
+  const prompt = panel.slice(panel.indexOf("<LogCallPrompt"), panel.indexOf("/>", panel.indexOf("<LogCallPrompt")));
+  assert.match(prompt, /focusQuestion\(legendRef\)/);
+  assert.match(bodyOf("function reset("), /focusQuestion\(legendRef\)/);
+  assert.match(bodyOf("async function save("), /focusQuestion\(reach === "talked" \? nextLegendRef : legendRef\)/);
+  assert.ok(!/(legendRef|nextLegendRef)\.current\?\.focus\(\)/.test(panel), "every move to a question goes through focusQuestion");
+  assert.match(bodyOf("function focusQuestion("), /if \([^)]*isTypingField\(document\.activeElement[^)]*\)\) return;\s*ref\.current\?\.focus\(\);/);
+  for (const [el, typing] of [
+    [{ tagName: "TEXTAREA" }, true],
+    [{ tagName: "INPUT" }, true],
+    [{ tagName: "INPUT", type: "text" }, true],
+    [{ tagName: "INPUT", type: "date" }, true],
+    [{ tagName: "INPUT", type: "time" }, true],
+    [{ tagName: "SELECT" }, true],
+    [{ tagName: "DIV", isContentEditable: true }, true],
+    [{ tagName: "INPUT", type: "radio" }, false],
+    [{ tagName: "INPUT", type: "checkbox" }, false],
+    [{ tagName: "BUTTON", type: "submit" }, false],
+    [{ tagName: "A" }, false],
+    [{ tagName: "BODY" }, false],
+    [null, false],
+  ] as const) {
+    assert.equal(isTypingField(el), typing, JSON.stringify(el));
+  }
 
   // The button: a real button, 44px tall, fixed clear of the iPhone home bar, plain copy.
   const html = renderToStaticMarkup(createElement(LogCallPrompt, { onClick: () => {} }));
@@ -448,6 +647,96 @@ test("coming back from a call never moves the page; a button offers the way to l
   assert.deepEqual(copyProblems(textOf(html)), []);
   // Nothing shows before a call.
   assert.ok(!render(sampleProps()).includes("Log how the call went"));
+});
+
+test("after a save on the call card, Next call is the first thing to tap; without a queue nothing changes", () => {
+  // The link and its words: a count only when it is a whole number above 0.
+  const NEXT = "/admin/call-sheet/next?skip=abc";
+  assert.deepEqual(nextCallLink({ nextHref: NEXT, left: 4 }, false), { href: NEXT, label: "Next call · 4 left" });
+  assert.equal(nextCallLink({ nextHref: NEXT, left: 1 }, false)?.label, "Next call · 1 left");
+  for (const left of [0, null, -2, 2.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+    assert.equal(nextCallLink({ nextHref: NEXT, left }, false)?.label, "Next call", String(left));
+  }
+  // No queue (the Sales Desk), the sample, and anything but a same-site path show nothing new.
+  assert.equal(nextCallLink(null, false), null);
+  assert.equal(nextCallLink(undefined, false), null);
+  assert.equal(nextCallLink({ nextHref: NEXT, left: 4 }, true), null, "the sample never offers it");
+  for (const href of ["https://example.test/next", "//example.test/next", "/\\example.test", "javascript:void(0)", ""]) {
+    assert.equal(nextCallLink({ nextHref: href, left: 3 }, false), null, href);
+  }
+
+  const saved: SavedCall = {
+    ok: true,
+    outcome: "call_back",
+    duplicate: false,
+    landed: [],
+    warnings: [],
+    summary: "Call back set for Thu, Sep 24 at 10:00 AM.",
+    nextFollowUpAt: "2026-09-24T15:00:00.000Z",
+    nextFollowUpLabel: "Thu, Sep 24 at 10:00 AM",
+    preview: [],
+    payDoors: [],
+    payMessage: null,
+    proposalHref: null,
+  };
+  const view = (overrides: Partial<SavedCallViewProps>) =>
+    renderToStaticMarkup(
+      createElement(SavedCallView, {
+        saved,
+        leadFirstName: "Dana",
+        canText: true,
+        smsHref: "sms:+19035550100",
+        hasEmail: true,
+        mailHref: "mailto:dana@example.test",
+        nextCall: null,
+        backHref: "/admin/call-sheet",
+        backLabel: "Back to the call sheet",
+        onLogAnother: () => {},
+        ...overrides,
+      }),
+    );
+  const order = (html: string, needles: string[]) => {
+    const at = needles.map((n) => html.indexOf(n));
+    at.forEach((i, k) => assert.ok(i >= 0, needles[k]));
+    for (let k = 1; k < at.length; k += 1) assert.ok(at[k - 1] < at[k], `${needles[k - 1]} before ${needles[k]}`);
+  };
+  const primaries = (html: string) => (html.match(/class="btn-primary\b/g) ?? []).length;
+
+  // With a queue: announced and focusable first, then Next call, then the two quiet ways out.
+  const queued = view({ nextCall: nextCallLink({ nextHref: NEXT, left: 3 }, false) });
+  assert.match(queued, /role="status" tabindex="-1"/);
+  order(queued, ['role="status"', "data-next-call", ">Log another call<", ">Back to the call sheet<"]);
+  const link = /<a href="([^"]+)" data-next-call=""[^>]*class="([^"]*)"[^>]*>([^<]*)</.exec(queued);
+  assert.ok(link, queued);
+  assert.equal(link[1].replace(/&amp;/g, "&"), NEXT);
+  assert.equal(link[3], "Next call · 3 left");
+  assert.match(link[2], /\bbtn-primary\b/);
+  assert.match(link[2], /\bmin-h-\[56px\]/);
+  assert.match(link[2], /\bw-full\b/);
+  assert.equal(primaries(queued), 1, "one primary action");
+  assert.deepEqual(copyProblems(textOf(queued)), []);
+
+  // With a proposal to draft too, Next call still comes first and the proposal steps back.
+  const proposal = { ...saved, outcome: "wants_proposal" as const, proposalHref: "/admin/proposals/lead-a?offers=website_launch" };
+  const both = view({ saved: proposal, proposalAllowed: true, nextCall: nextCallLink({ nextHref: NEXT, left: null }, false) });
+  order(both, ["data-next-call", ">Draft the proposal now<", ">Log another call<"]);
+  assert.ok(textOf(both).includes("Next call") && !textOf(both).includes("left"), textOf(both));
+  assert.equal(primaries(both), 1);
+
+  // Without a queue the saved view is what it was: no Next call, and the proposal is the primary.
+  const plain = view({ saved: proposal, proposalAllowed: true });
+  assert.ok(!plain.includes("Next call") && !plain.includes("data-next-call"), plain);
+  assert.match(plain, /<a href="\/admin\/proposals\/[^"]+" class="btn-primary\b[^"]*">Draft the proposal now<\/a>/);
+  order(plain, ['role="status"', ">Draft the proposal now<", ">Log another call<", ">Back to the call sheet<"]);
+  assert.deepEqual(copyProblems(textOf(plain)), []);
+
+  // The panel wires it: the queue prop through nextCallLink (so the sample never shows it). Before a
+  // save a queue changes nothing, and the Sales Desk's compact panel passes none.
+  assert.match(src(PANEL), /nextCall=\{nextCallLink\(queue, sample\)\}/);
+  assert.match(src(PANEL), /queue\?: CallQueueHandoff \| null;/);
+  assert.equal(render(sampleProps({ queue: { nextHref: NEXT, left: 2 } })), render(sampleProps()));
+  assert.equal(render(sampleProps({ sample: false, queue: { nextHref: NEXT, left: 2 } })), render(sampleProps({ sample: false })));
+  assert.ok(!/\bqueue[=:]/.test(src(SALES_WORKSPACE)), "the Sales Desk panel has no queue");
 });
 
 test("an 'already saved' answer carries the outcome that was saved, and the warning says how to log a different one", () => {
@@ -526,7 +815,7 @@ test("the panel's typing fields are 16px on phones so iOS does not zoom, and 14p
 
 test("not a fit lists every reason as a labelled radio", () => {
   const html = render(sampleProps({ initialOutcome: "not_a_fit" }));
-  assertLabelled(html, "radio", PANEL_OUTCOMES.length + LOST_REASONS.length);
+  assertLabelled(html, "radio", REACH_CHOICES.length + NEXT_OUTCOMES.length + LOST_REASONS.length);
   for (const r of LOST_REASONS) assert.ok(html.includes(r.label), r.id);
   assert.match(html, /maxLength="2000"|maxlength="2000"/);
 });
@@ -639,7 +928,9 @@ function callSheetServerModule(): Record<string, unknown> {
   return mod.exports;
 }
 
-const StubLink = ({ href, children, ...rest }: { href: string; children?: ReactNode }) => createElement("a", { href, ...rest }, children);
+// next/link's prefetch is a router option, not an attribute of the <a>.
+const StubLink = ({ href, children, prefetch: _prefetch, ...rest }: { href: string; children?: ReactNode; prefetch?: boolean | null }) =>
+  createElement("a", { href, ...rest }, children);
 
 function loadPage(file: string, h: Harness, extra: Record<string, unknown>) {
   const reads: string[] = [];
@@ -661,6 +952,7 @@ function loadPage(file: string, h: Harness, extra: Record<string, unknown>) {
     "@/lib/businessTime": businessTime,
     "@/lib/callCloser": callCloser,
     "@/lib/callCloserFixtures": callCloserFixtures,
+    "@/lib/callQueue": callQueue,
     "@/lib/callSheet": callSheet,
     "@/lib/callSheetServer": callSheetServerModule(),
     "@/lib/contactGaps": contactGaps,
@@ -683,7 +975,8 @@ function loadPage(file: string, h: Harness, extra: Record<string, unknown>) {
   return { page: mod.exports.default!, reads };
 }
 
-async function callCard(leadId: string, h: Harness = {}) {
+/** `query` is the card's URL query (a "Start calling" run). Left out, the page gets no searchParams at all. */
+async function callCard(leadId: string, h: Harness = {}, query?: Record<string, string | string[]>) {
   const panels: CallOutcomePanelProps[] = [];
   const { page, reads } = loadPage(CARD_PAGE, h, {
     "./CallCardPanel": {
@@ -695,7 +988,9 @@ async function callCard(leadId: string, h: Harness = {}) {
     },
   });
   try {
-    const element = await page({ params: Promise.resolve({ leadId }) });
+    const element = await page(
+      query === undefined ? { params: Promise.resolve({ leadId }) } : { params: Promise.resolve({ leadId }), searchParams: Promise.resolve(query) },
+    );
     return { html: renderToStaticMarkup(element as never), reads, panels, redirect: null as string | null, notFound: false };
   } catch (e) {
     if (e instanceof Redirect) return { html: "", reads, panels, redirect: e.url, notFound: false };
@@ -853,7 +1148,9 @@ test("a save error takes focus; a success is a success by icon and heading, not 
 test("the keyboard focus ring outlines the whole outcome tile, not only the small radio", () => {
   const html = render(sampleProps({ initialOutcome: "ready_to_pay" }));
   const tiles = [...html.matchAll(/<label\b[^>]*class="([^"]*)"[^>]*>\s*<input[^>]*type="(radio|checkbox)"/g)];
-  assert.ok(tiles.length >= PANEL_OUTCOMES.length, String(tiles.length));
+  // Both steps' tiles, then the offers.
+  assert.ok(tiles.length > REACH_CHOICES.length + NEXT_OUTCOMES.length, String(tiles.length));
+  assert.equal(tiles.filter((t) => t[2] === "radio").length, REACH_CHOICES.length + NEXT_OUTCOMES.length);
   for (const [, cls] of tiles) {
     assert.ok(cls.includes("has-[:focus-visible]:outline-2"), cls);
     assert.ok(cls.includes("has-[:focus-visible]:outline-[var(--blue)]"), cls);
@@ -1149,6 +1446,48 @@ test("call card layout: one column that cannot grow past the phone, and long wor
   assert.ok(!/className="mx-auto grid max-w-2xl gap-4"/.test(page), "every wrapper grid has an explicit single column");
   assert.match(page, /<blockquote[^>]*\[overflow-wrap:anywhere\]/);
   assert.match(src(PANEL), /whitespace-pre-wrap[^"]*\[overflow-wrap:anywhere\]/, "the pay message wraps a long link");
+});
+
+test("call card harness: a Start calling run shows the bar, skips forward, and hands the panel the next person", async () => {
+  const earlier = ["0a1b2c3d-0000-4000-8000-000000000001", "0a1b2c3d-0000-4000-8000-000000000002"];
+  const next = `/admin/call-sheet/next?skip=${[...earlier, LEAD_ID].join(",")}`;
+  const run = await callCard(LEAD_ID, { lead: realLead() }, { queue: "1", left: "5", skip: earlier.join(",") });
+  assert.equal(run.redirect, null);
+  // The run reads nothing extra, and auth still comes first.
+  assert.deepEqual(run.reads, ["profiles", "leads", "lead_notes", "lead_activity", "lead_calls", "lead_messages"]);
+  const text = textOf(run.html);
+  assert.ok(text.includes("Going down today's list · 5 left"), text);
+  assert.match(run.html, /<a href="[^"]*"[^>]*min-h-\[44px\][^>]*>Skip for now<\/a>/, "Skip for now is a 44px link");
+  assert.ok(run.html.includes(`href="${next}"`), "Skip for now adds this person to the run's skip list");
+  // The bar is the first thing on the card.
+  assert.ok(run.html.indexOf("Going down today") < run.html.indexOf("Back to the call sheet"));
+  assert.ok(run.html.indexOf("Going down today") < run.html.indexOf("Call card</p>"));
+  // After a save, Next call goes the same way, counting the people after this one.
+  assert.deepEqual(run.panels[0].queue, { nextHref: next, left: 4 });
+  assert.deepEqual(copyProblems(text), []);
+
+  // Opened from the list: no bar, and Next call still never comes back to this person.
+  const plain = await callCard(LEAD_ID, { lead: realLead() });
+  assert.ok(!plain.html.includes("Going down today") && !plain.html.includes("Skip for now"));
+  assert.deepEqual(plain.panels[0].queue, { nextHref: `/admin/call-sheet/next?skip=${LEAD_ID}`, left: null });
+
+  // Junk in the URL is dropped, never echoed, and an unreadable count is left off.
+  const junk = await callCard(LEAD_ID, { lead: realLead() }, { queue: "1", left: "lots", skip: `"><script>x</script>,${earlier[0].toUpperCase()}` });
+  assert.ok(!junk.html.includes("<script>"));
+  assert.ok(textOf(junk.html).includes("Going down today's list Skip for now"), textOf(junk.html));
+  assert.deepEqual(junk.panels[0].queue, { nextHref: `/admin/call-sheet/next?skip=${earlier[0]},${LEAD_ID}`, left: null });
+
+  // The sample never joins a run and passes the panel nothing.
+  const sample = await callCard("sample", {}, { queue: "1", left: "3" });
+  assert.ok(!sample.html.includes("Going down today"));
+  assert.ok(!("queue" in sample.panels[0]), "no queue prop in sample mode");
+
+  // A failed read keeps the run's place: Try again returns to this card in the run, Skip for now moves on.
+  const down = await callCard(LEAD_ID, { leadError: true }, { queue: "1", left: "5", skip: earlier.join(",") });
+  assert.ok(textOf(down.html).includes("This is a connection problem, not an empty lead."));
+  assert.ok(down.html.includes(`href="/admin/call-sheet/${LEAD_ID}?queue=1&amp;left=5&amp;skip=${earlier.join("%2C")}"`), down.html);
+  assert.ok(down.html.includes(`href="${next}"`));
+  assert.deepEqual(down.reads, ["profiles", "leads"]);
 });
 
 async function proposalPage(leadId: string, offers: string | undefined, h: Harness = {}) {

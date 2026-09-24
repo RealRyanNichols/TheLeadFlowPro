@@ -43,6 +43,7 @@ function harness({
     },
   });
   let verified = false;
+  let userClient: unknown = null;
   const out: { default?: () => Promise<unknown> } = {};
   new Function("require", "exports", compiled)((name: string) => {
     if (name === "@/lib/operatoros/auth")
@@ -50,9 +51,12 @@ function harness({
         requireOperatorAdmin: async () => {
           if (!admin) throw new Error("Admins only");
           verified = true;
-          return { supabase: client(false) };
+          userClient = client(false);
+          return { supabase: userClient };
         },
       };
+    // The call banner is its own server component (tests/call-queue.test.ts runs it); here it only has to be placed.
+    if (name === "../TodaysCallsBanner") return TodaysCallsBannerStub;
     if (name === "@/lib/supabase/service")
       return {
         createServiceClient: () => {
@@ -65,7 +69,10 @@ function harness({
     if (name === "@/lib/leadTimeline") return leadTimeline;
     return require(name);
   }, out);
-  return { run: () => out.default!(), reads };
+  return { run: () => out.default!(), reads, userClient: () => userClient };
+}
+function TodaysCallsBannerStub() {
+  return null;
 }
 test("command center verifies admin before private reads and uses service-only approval summary", async () => {
   const h = harness();
@@ -85,6 +92,16 @@ test("reporting failure returns recovery destinations rather than a 500 or zero-
   assert.match(view, /Part of the overview could not be loaded/);
   assert.match(view, /Unavailable totals are not shown as zero/);
   assert.doesNotMatch(view, /Recorded cash/);
+});
+test("today's calls banner sits at the top of both views and reads with the admin's own client", async () => {
+  for (const failedTable of ["", "approval_queue"]) {
+    const h = harness({ failedTable });
+    const view = (await h.run()) as { props: { children: { type: unknown; props: { supabase?: unknown } }[] } };
+    const first = view.props.children[0];
+    assert.equal(first.type, TodaysCallsBannerStub, `banner first (${failedTable || "full view"})`);
+    assert.ok(h.userClient() !== null);
+    assert.equal(first.props.supabase, h.userClient(), "the signed-in client, never the service client");
+  }
 });
 test("the 24-hour feed hides the Call Closer's Outcome, Offer ids and Ref markers", async () => {
   const at = new Date().toISOString();
