@@ -9,6 +9,7 @@
 
 import { useState } from "react";
 import { Check, AlertCircle } from "lucide-react";
+import { SmsConsentText } from "@/components/site/SmsConsentText";
 
 export default function ArticleLeadForm({
   heading,
@@ -171,7 +172,7 @@ export default function ArticleLeadForm({
         </label>
         <label className="flex items-start gap-2.5 text-[14px] text-[var(--quiet)]">
           <input type="checkbox" name="sms_consent" className="mt-0.5 h-4 w-4" />
-          <span>You can text me at the number above. Reply STOP to end it.</span>
+          <span><SmsConsentText /></span>
         </label>
       </div>
 

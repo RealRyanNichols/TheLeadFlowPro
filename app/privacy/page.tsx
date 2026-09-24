@@ -11,7 +11,7 @@ export const metadata: Metadata = withPublicPageMetadata("/privacy", {
 export default function PrivacyPage() {
   return (
     <main className="legal-page">
-      <span className="eyebrow">Last updated September 20, 2026</span>
+      <span className="eyebrow">Last updated September 24, 2026</span>
       <h1>Privacy Policy</h1>
       <p>
         {BUSINESS.name} is a DBA of {BUSINESS.legalName}. This policy explains
@@ -87,6 +87,14 @@ export default function PrivacyPage() {
         communications, analytics, scheduling, payment, and security providers. We may
         also disclose information when required by law, to protect rights or safety, or as
         part of a business transaction subject to appropriate safeguards.
+      </p>
+      <h2 id="sms">Mobile numbers and text messages</h2>
+      <p>
+        No mobile information will be shared with third parties or affiliates for marketing
+        or promotional purposes. Text message opt in data and consent are not shared with
+        any third party. We use your number to call or text you about your request, and you
+        can stop texts at any time by replying STOP. The full text message terms are on the{" "}
+        <Link href="/terms#sms">Terms of Use</Link> page.
       </p>
       <h2>The LeadFlow HQ plugin and workspaces</h2>
       <p>
