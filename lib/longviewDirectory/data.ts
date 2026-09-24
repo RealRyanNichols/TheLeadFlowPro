@@ -2,7 +2,7 @@
 //
 // Reads the committed publish export, content/longview-directory/directory.json,
 // and the removal list, suppressions.json, then re-checks the contract
-// (validate.ts) and hides suppressed ids. The files only change through a
+// (validate.ts) and hides suppressed ids and slugs. The files only change through a
 // merged pull request and a deploy, so the parsed result is memoized for the
 // life of the server process.
 //
@@ -17,7 +17,14 @@ import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { alphabetical, findBusiness, findCategory, hiringList, inCategory } from "./query";
 import type { Directory, DirectoryBusiness, DirectoryCategory } from "./types";
-import { applySuppressions, emptyDirectory, parseSuppressions, validateDirectory, type DroppedRecord } from "./validate";
+import {
+  applySuppressions,
+  emptyDirectory,
+  isSuppressionEntry,
+  parseSuppressions,
+  validateDirectory,
+  type DroppedRecord,
+} from "./validate";
 
 export type DirectoryReport = {
   file: string;
@@ -26,6 +33,8 @@ export type DirectoryReport = {
   rawCount: number;
   dropped: DroppedRecord[];
   suppressed: string[];
+  /** Well-formed suppressions.json entries that match no business in this file (a warning, not a failure). */
+  unmatchedSuppressions: string[];
   issues: string[];
 };
 
@@ -58,7 +67,7 @@ function readJson(file: string): { ok: true; value: unknown } | { ok: false; err
 export function readDirectory(file = directoryFile(), suppressions = suppressionsFile()): DirectoryReport {
   const raw = readJson(file);
   if (!raw.ok) {
-    return { file, directory: emptyDirectory(), rawCount: 0, dropped: [], suppressed: [], issues: [raw.error] };
+    return { file, directory: emptyDirectory(), rawCount: 0, dropped: [], suppressed: [], unmatchedSuppressions: [], issues: [raw.error] };
   }
   const rawCount = Array.isArray((raw.value as { businesses?: unknown })?.businesses)
     ? (raw.value as { businesses: unknown[] }).businesses.length
@@ -75,11 +84,24 @@ export function readDirectory(file = directoryFile(), suppressions = suppression
       rawCount,
       dropped: checked.dropped,
       suppressed: [],
+      unmatchedSuppressions: [],
       issues: [...checked.issues, problem],
     };
   }
-  const { directory, suppressed } = applySuppressions(checked.directory, ids);
-  return { file, directory, rawCount, dropped: checked.dropped, suppressed, issues: checked.issues };
+  const { directory, suppressed, unmatched } = applySuppressions(checked.directory, ids);
+  // An entry that is neither an id nor a slug can never hide anything, so the
+  // removal it stands for silently did not happen: that fails the build.
+  const malformed = ids.filter((entry) => !isSuppressionEntry(entry))
+    .map((entry) => `${path.basename(suppressions)}: ${JSON.stringify(entry)} is neither a business id (lv-...) nor a profile slug`);
+  return {
+    file,
+    directory,
+    rawCount,
+    dropped: checked.dropped,
+    suppressed,
+    unmatchedSuppressions: unmatched.filter(isSuppressionEntry),
+    issues: [...checked.issues, ...malformed],
+  };
 }
 
 let cache: { key: string; report: DirectoryReport } | null = null;

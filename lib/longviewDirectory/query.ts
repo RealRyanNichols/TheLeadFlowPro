@@ -4,7 +4,7 @@
 // functions serve the pages, the sitemap, and the tests. Lists are A to Z by
 // name. Nothing here ranks, scores, or reorders businesses by any judgement.
 
-import { openNow } from "./hours";
+import { directoryClock, openNowAt } from "./hours";
 import { localParts } from "../hq/time";
 import type { Directory, DirectoryBusiness, DirectoryCategory } from "./types";
 
@@ -88,8 +88,16 @@ export function paginate<T>(items: readonly T[], page: number | string | null | 
   return { results: items.slice((current - 1) * size, current * size), total: items.length, page: current, pages };
 }
 
+const haystackCache = new WeakMap<DirectoryBusiness, string>();
+
+/** The normalized search text for a business. Memoized per business object. */
 function haystack(b: DirectoryBusiness): string {
-  return ` ${normalizeText([b.name, b.categoryLabel ?? "", ...b.services].join(" "))} `;
+  let text = haystackCache.get(b);
+  if (text === undefined) {
+    text = ` ${normalizeText([b.name, b.categoryLabel ?? "", ...b.services].join(" "))} `;
+    haystackCache.set(b, text);
+  }
+  return text;
 }
 
 /**
@@ -101,12 +109,14 @@ export function searchDirectory(directory: Directory, input: SearchInput = {}): 
   const tokens = normalizeText(String(input.q ?? "").slice(0, 100)).split(" ").filter(Boolean).slice(0, 8);
   const category = input.category && findCategory(directory, input.category) ? input.category : null;
   const zip = input.zip && /^\d{5}$/.test(input.zip) ? input.zip : null;
-  const now = input.now ?? new Date();
+  // Longview's weekday and minute are resolved once for the whole request,
+  // not once per business: building the Intl formatters is the costly part.
+  const clock = input.openNow ? directoryClock(input.now ?? new Date()) : null;
 
   const matches = alphabetical(directory).filter((b) => {
     if (category && b.category !== category) return false;
     if (zip && !(b.address.street && b.address.zip === zip)) return false;
-    if (input.openNow && openNow(b.hours, now) !== true) return false;
+    if (clock && openNowAt(b.hours, clock) !== true) return false;
     if (tokens.length) {
       const text = haystack(b);
       if (!tokens.every((t) => text.includes(t))) return false;

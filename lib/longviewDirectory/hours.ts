@@ -29,19 +29,30 @@ function minutes(time: string): number {
   return h * 60 + m;
 }
 
+/** A moment in Longview: the weekday (0 is Sunday) and minutes since midnight. */
+export type LocalClock = { weekday: number; minutes: number };
+
 /**
- * Whether the business is open at `now` by its own stated hours, in
- * America/Chicago. True when a stated range covers now (including a range
- * that started yesterday and runs past midnight); false when today is stated
- * and no range covers now; null when hours are not listed or today is not
- * stated.
+ * Resolve `now` to Longview's weekday and minute. This builds Intl formatters,
+ * so resolve it once per request and hand the result to openNowAt for every
+ * business, instead of calling openNow in a loop.
  */
-export function openNow(hours: WeeklyHours | null, now: Date): boolean | null {
-  if (!hours) return null;
+export function directoryClock(now: Date): LocalClock {
   const local = localParts(now, DIRECTORY_TZ);
-  const at = local.hour * 60 + local.minute;
-  const today = WEEKDAY_KEYS[local.weekday];
-  const yesterday = WEEKDAY_KEYS[(local.weekday + 6) % 7];
+  return { weekday: local.weekday, minutes: local.hour * 60 + local.minute };
+}
+
+/**
+ * Whether the business is open at the given Longview time by its own stated
+ * hours. True when a stated range covers it (including a range that started
+ * yesterday and runs past midnight); false when today is stated and no range
+ * covers it; null when hours are not listed or today is not stated.
+ */
+export function openNowAt(hours: WeeklyHours | null, clock: LocalClock): boolean | null {
+  if (!hours) return null;
+  const at = clock.minutes;
+  const today = WEEKDAY_KEYS[clock.weekday];
+  const yesterday = WEEKDAY_KEYS[(clock.weekday + 6) % 7];
 
   for (const [open, close] of hours[today] ?? []) {
     const o = minutes(open);
@@ -54,6 +65,11 @@ export function openNow(hours: WeeklyHours | null, now: Date): boolean | null {
     if (c < o && at < c) return true;
   }
   return hours[today] === undefined ? null : false;
+}
+
+/** openNowAt for a single instant, read in America/Chicago. For one business, such as a profile. */
+export function openNow(hours: WeeklyHours | null, now: Date): boolean | null {
+  return hours ? openNowAt(hours, directoryClock(now)) : null;
 }
 
 /** "17:30" -> "5:30 PM"; "24:00" and "00:00" -> "12:00 AM". */

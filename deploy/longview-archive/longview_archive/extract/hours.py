@@ -207,26 +207,44 @@ def _to_24(t: _Time) -> Tuple[int, int]:
     return t.hour, t.minute
 
 
-def _is_24h_pair(a: _Time, b: _Time) -> bool:
+def _is_24h_evidence(t: _Time) -> bool:
+    """A time that can only be read on a 24-hour clock: H:MM with an hour of 13-23 or 00.
+
+    A leading zero ("08:00") is not evidence: plenty of sites write "08:00-05:00"
+    meaning 8 AM to 5 PM.
+    """
+    return t.suffix is None and not t.special and t.colon and (13 <= t.hour <= 23 or t.hour == 0)
+
+
+def _is_24h_pair(a: _Time, b: _Time, line_24h: bool = False) -> bool:
     if a.suffix or b.suffix or a.special or b.special:
         return False
     if not (a.colon and b.colon):
         return False
-    return any(t.hour > 12 or t.hour == 0 or t.leading_zero for t in (a, b))
+    return line_24h or _is_24h_evidence(a) or _is_24h_evidence(b)
 
 
-def _range(a: _Time, b: _Time, force_24h: bool = False) -> List[str]:
-    """One ['HH:MM','HH:MM'] pair, or raise _Ambiguous / _Invalid."""
+def _range(a: _Time, b: _Time, force_24h: bool = False, line_24h: bool = False) -> List[str]:
+    """One ['HH:MM','HH:MM'] pair, or raise _Ambiguous / _Invalid.
+
+    ``force_24h`` is the JSON-LD ``openingHours`` path (24-hour by definition);
+    ``line_24h`` means the same text line carries an unmistakable 24-hour time.
+    """
     if force_24h:
         for t in (a, b):
             if t.suffix is None and not t.colon and not t.special:
                 raise _Ambiguous()
-    elif not _is_24h_pair(a, b):
+    elif not _is_24h_pair(a, b, line_24h):
         for t in (a, b):
             if t.suffix is None and not t.special:
                 raise _Ambiguous()
     oh, om = _to_24(a)
     ch, cm = _to_24(b)
+    if (a.suffix is None and b.suffix is None and not a.special and not b.special
+            and 1 <= a.hour <= 12 and 1 <= b.hour <= 12 and (ch, cm) < (oh, om)):
+        # "08:00-05:00" / "Mo-Fr 8:00-5:00": 8 AM-5 PM written on a 12-hour
+        # clock, or an overnight 8 AM-5 AM? Never guess.
+        raise _Ambiguous()
     if a.special == "midnight":
         oh, om = 0, 0
     if oh == 24:
@@ -286,7 +304,7 @@ def _read_days(toks: List[_Tok], i: int) -> Tuple[Optional[List[str]], int]:
     return days, i
 
 
-def _read_values(toks: List[_Tok], i: int, force_24h: bool, out: _LineParse):
+def _read_values(toks: List[_Tok], i: int, force_24h: bool, out: _LineParse, line_24h: bool = False):
     """Times, 'closed', or '24 hours' starting at ``i``. Returns (ranges|None, i)."""
     ranges: List[List[str]] = []
     got = False
@@ -307,7 +325,7 @@ def _read_values(toks: List[_Tok], i: int, force_24h: bool, out: _LineParse):
         elif tok.kind == "time":
             if i + 2 < len(toks) and toks[i + 1].kind == "dash" and toks[i + 2].kind == "time":
                 try:
-                    ranges.append(_range(tok.value, toks[i + 2].value, force_24h))
+                    ranges.append(_range(tok.value, toks[i + 2].value, force_24h, line_24h))
                 except _Ambiguous:
                     out.issues.add("ambiguous_ampm")
                 except _Invalid:
@@ -346,6 +364,9 @@ def _parse_line(line: str, force_24h: bool = False, jsonld: bool = False) -> _Li
         toks = [t for t in toks if t.kind != "appt"]
     has_time = any(t.kind in ("time", "open24") for t in toks)
     has_days = any(t.kind == "days" for t in toks)
+    # "Mon-Fri 08:00-12:00, 13:00-17:00": one unmistakable 24-hour time puts the
+    # whole line on a 24-hour clock.
+    line_24h = any(t.kind == "time" and _is_24h_evidence(t.value) for t in toks)
 
     if not has_time and not has_days:
         # A bare "Closed" (the second cell of a "Sunday | Closed" row) is a
@@ -375,7 +396,7 @@ def _parse_line(line: str, force_24h: bool = False, jsonld: bool = False) -> _Li
             continue
         days, j = _read_days(toks, i)
         if days:
-            value, k = _read_values(toks, j, force_24h, out)
+            value, k = _read_values(toks, j, force_24h, out, line_24h)
             if value is None:
                 if pending_value is not None:
                     # "Closed Sunday", "11am-9pm daily": the value came first.
@@ -399,7 +420,7 @@ def _parse_line(line: str, force_24h: bool = False, jsonld: bool = False) -> _Li
             out.assignments.append((days, value))
             i = k
             continue
-        value, k = _read_values(toks, i, force_24h, out)
+        value, k = _read_values(toks, i, force_24h, out, line_24h)
         if value is not None:
             if pending_value is not None or out.assignments:
                 out.issues.add("unparsed")
@@ -617,15 +638,41 @@ def _from_specs(specs: List[Any], issues: Set[str]) -> Hours:
             if open_s == close_s:
                 issues.add("unparsed")
                 continue
+            if 1 <= opens[0] <= 12 and 1 <= closes[0] <= 12 and closes < opens:
+                # opens 08:00 / closes 05:00 is almost always 8 AM-5 PM written on
+                # a 12-hour clock, not an overnight shift. A late open with an
+                # early close (16:00-02:00) stays a real overnight.
+                issues.add("ambiguous_ampm")
+                continue
             ranges = [[open_s, close_s]]
         for day in days:
             existing = hours.get(day)
             if existing is None:
                 hours[day] = list(ranges)
-            elif ranges[0] not in existing:
-                # Two specs for one day: a split day (e.g. 8-12 and 13-17).
+            elif any(_overlaps(r, ranges[0]) for r in existing):
+                # The same day listed twice with the same or overlapping times:
+                # department hours (sales vs service) or a copy error. A person decides.
+                issues.add("multiple_blocks")
+            else:
+                # Two non-overlapping specs for one day: a split day (e.g. 8-12 and 13-17).
                 hours[day] = sorted(existing + ranges)
     return hours
+
+
+def _minutes(value: str) -> int:
+    hour, minute = value.split(":")
+    return int(hour) * 60 + int(minute)
+
+
+def _overlaps(a: List[str], b: List[str]) -> bool:
+    """True when two same-day ranges share any time (identical ranges overlap)."""
+    def span(r: List[str]) -> Tuple[int, int]:
+        start, end = _minutes(r[0]), _minutes(r[1])
+        if end <= start:
+            end += 24 * 60  # past midnight
+        return start, end
+    (s1, e1), (s2, e2) = span(a), span(b)
+    return s1 < e2 and s2 < e1
 
 
 def _from_strings(values: List[Any], issues: Set[str]) -> Hours:

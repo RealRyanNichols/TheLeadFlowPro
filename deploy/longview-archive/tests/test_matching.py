@@ -343,11 +343,14 @@ class OsmOnly(unittest.TestCase):
         self.assertEqual((biz["publish_state"], biz["publish_reason"]), ("pending", None))
         self.assertEqual((biz["naics"], biz["category"], biz["category_label"]), ("811111", "auto", "Auto repair shop"))
         self.assertEqual(biz["permit_start"], "2019-03-01")
-        self.assertEqual((biz["public_id"], biz["slug"]), (public_id, slug))  # identity never moves
+        # public_id never moves; the OSM-derived slug (never public) is rebuilt from the primary name.
+        self.assertEqual((biz["public_id"], biz["slug"]), (public_id, "example-tire-and-lube-llc"))
+        self.assertNotEqual(slug, biz["slug"])
         self.assertEqual(biz["updated_at"], LATER)
         merge = conn.execute("SELECT * FROM merges").fetchone()
         self.assertIn("known only from OpenStreetMap", merge["explanation"])
         self.assertIn("sales tax record's name", merge["explanation"])
+        self.assertIn("sales tax record's name, address and category", merge["explanation"])
 
     def test_confirmation_with_the_same_name_only_clears_the_hold(self):
         conn = make_db()

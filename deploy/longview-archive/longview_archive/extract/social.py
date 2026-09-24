@@ -60,17 +60,47 @@ def _domain_label(site_domain: Optional[str]) -> str:
     return re.sub(r"[^a-z0-9]", "", domain.split(".")[0]) if domain else ""
 
 
+# Words that say what kind of business it is, or name a brand, franchise,
+# supplier, or association, rather than which business it is. Sharing one of
+# these with the business name proves nothing: a dealer links facebook.com/Ford,
+# a shop links NAPAAutoCare, a dentist links AmericanDentalAssociation.
+GENERIC_HANDLE_WORDS = frozenset({
+    # kinds of business
+    "auto", "autos", "automotive", "motor", "motors", "car", "cars", "truck", "trucks", "tire", "tires",
+    "lube", "repair", "repairs", "collision", "body", "glass", "parts", "dental", "dentist", "dentistry",
+    "orthodontics", "family", "care", "health", "healthcare", "medical", "clinic", "pharmacy", "vision",
+    "service", "services", "home", "homes", "church", "shop", "shops", "store", "stores", "market",
+    "restaurant", "grill", "cafe", "kitchen", "pizza", "tacos", "salon", "beauty", "nails", "barber",
+    "insurance", "realty", "real", "estate", "legal", "plumbing", "electric", "electrical", "roofing",
+    "construction", "heating", "cooling", "lawn", "landscaping", "cleaning", "cleaners", "supply",
+    "sales", "center", "group", "associates", "solutions", "enterprises", "express", "pros",
+    "professional", "quality", "best", "premier", "city", "county", "local", "community", "ministries",
+    "fellowship", "baptist", "methodist", "catholic", "christian", "first", "american", "national",
+    "association", "united", "texas", "longview", "east", "tyler", "kilgore", "marshall", "gregg",
+    # brands, franchises, and suppliers sites commonly link
+    "ford", "lincoln", "chevrolet", "chevy", "buick", "cadillac", "toyota", "honda", "nissan",
+    "hyundai", "mazda", "subaru", "dodge", "jeep", "chrysler", "volkswagen", "audi", "lexus", "acura",
+    "infiniti", "mitsubishi", "harley", "davidson", "yamaha", "kawasaki", "napa", "goodyear",
+    "firestone", "michelin", "bridgestone", "carquest", "valvoline", "jiffy", "pennzoil", "mobil",
+    "exxon", "shell", "chevron", "texaco", "allstate", "farmers", "nationwide", "geico", "farm",
+    "remax", "century", "coldwell", "banker",
+})
+
+
+def _distinctive(tokens: Iterable[str]) -> Set[str]:
+    return {t for t in tokens if len(t) >= 4 and t not in GENERIC_HANDLE_WORDS}
+
+
 def handle_matches(handle: str, business_name: str, site_domain: Optional[str]) -> Tuple[bool, str]:
-    name = normalize.name_tokens(business_name)
-    for token in _handle_tokens(handle):
-        if len(token) >= 4 and token in name:
-            return True, "name_token"
+    """(matches, reason). A handle matches only on a distinctive token of the
+    business name (4+ letters, not a category, brand, or place word) or when it
+    contains the site's whole domain label; anything else goes to review."""
+    name = _distinctive(normalize.name_tokens(business_name))
+    if _distinctive(_handle_tokens(handle)) & name:
+        return True, "name_token"
     label = _domain_label(site_domain)
-    flat = re.sub(r"[^a-z]", "", handle.lower())
     flat_alnum = re.sub(r"[^a-z0-9]", "", handle.lower())
     if label and len(re.sub(r"[^a-z]", "", label)) >= 4 and label in flat_alnum:
-        return True, "domain_label"
-    if label and len(flat) >= 4 and flat_alnum in label:
         return True, "domain_label"
     return False, "mismatch"
 

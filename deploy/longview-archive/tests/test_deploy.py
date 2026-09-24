@@ -173,6 +173,7 @@ class UnitFileTest(unittest.TestCase):
                 "192.168.0.0/16",
                 "100.64.0.0/10",
                 "fc00::/7",
+                "165.227.248.110/32",
             },
         )
 
@@ -183,6 +184,16 @@ class UnitFileTest(unittest.TestCase):
         self.assertIn("127.0.0.53", why)
         self.assertIn("systemd-resolved", why)
         self.assertIn("wins over", why)
+
+    def test_port_blind_residual_risk_is_documented(self):
+        # IPAddressAllow/Deny match addresses only; the comment must say the
+        # DNS exception is open on every port and what covers that gap.
+        before_deny = self.text.split("\nIPAddressDeny=")[0]
+        comments = " ".join(l for l in before_deny.splitlines() if l.startswith("#"))
+        for needle in ("ADDRESS ONLY", "EVERY port", "127.0.0.53:<port>", "165.227.248.110", "80/443"):
+            with self.subTest(needle=needle):
+                self.assertIn(needle, comments)
+        self.assertNotIn("nothing else local", comments)
 
     def test_install_section(self):
         self.assertEqual(self.unit["Install"]["WantedBy"], ["multi-user.target"])
@@ -381,6 +392,12 @@ class ReadmeTest(unittest.TestCase):
                 proc = subprocess.run([BASH, "-n", "-c", inner], capture_output=True, text=True)
                 self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn(self.one_liner("claude/serene-edison-daodg6", "preflight.sh"), self.text)
+        dry = self.one_liner("claude/serene-edison-daodg6", "install.sh")[:-1] + " --dry-run'"
+        self.assertTrue(dry.endswith('install.sh" --dry-run\''))
+        self.assertIn(dry, self.text)
+        proc = subprocess.run([BASH, "-n", "-c", dry[len("bash -c '"):-1]], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertNotIn("inside the closing quote", self.text)
         self.assertIn("Until the pull request merges", self.text)
         self.assertIn("After the pull request merges", self.text)
 
@@ -486,9 +503,12 @@ class SandboxInstallTest(unittest.TestCase):
         self.fail(f"no call containing {needle!r} in {calls}")
 
     def tree(self) -> dict:
+        # The fake system's own bookkeeping is left out: its change log is
+        # checked through calls(), and reads.log records read-only checks.
         return {
             str(path.relative_to(self.prefix)): (path.stat().st_mode, path.stat().st_mtime_ns)
             for path in self.prefix.rglob("*")
+            if ".fake-system" not in path.relative_to(self.prefix).parts
         }
 
     @property
@@ -578,16 +598,33 @@ class SandboxInstallTest(unittest.TestCase):
         for flag in ("--system", "--no-create-home", "--home-dir /nonexistent", "--shell /usr/sbin/nologin"):
             self.assertIn(flag, useradd)
         self.assertTrue(useradd.endswith(" lvarchive"))
-        for rel in expected_modes:
-            path = self.data / rel if rel else self.data
-            self.assertIn(f"chown lvarchive:lvarchive {path}", calls)
+        # Root changes only the top data folder, never following a link, and
+        # never anything below it; the service user makes the subfolders.
+        self.assertIn(f"chown -h lvarchive:lvarchive {self.data}", calls)
+        for call in calls:
+            if call.startswith("chown"):
+                with self.subTest(call=call):
+                    self.assertNotIn(f"{self.data}/", call)
+                    self.assertNotIn("-R lvarchive", call)
+        self.assertIn(
+            f"runuser -u lvarchive -- install -d -m 0700 {self.data}/db {self.data}/backups "
+            f"{self.data}/exports {self.data}/exports/publish {self.data}/exports/private",
+            calls,
+        )
+        self.assertIn(
+            f"runuser -u lvarchive -- install -d -m 0755 {self.data}/www {self.data}/www/status", calls
+        )
         self.assertIn(f"chown -R root:root {self.opt / 'app.staging'}", calls)
 
+        # The new code migrates and checks itself from the staging copy,
+        # before it replaces the installed one.
+        stage = self.opt / "app.staging"
         migrate = self.index_of(calls, "-m longview_archive migrate")
         check = self.index_of(calls, "-m longview_archive check")
         for call in (calls[migrate], calls[check]):
             self.assertTrue(call.startswith("runuser -u lvarchive -- "))
-            self.assertIn(f"PYTHONPATH={app}", call)
+            self.assertIn(f"env -C {stage} PYTHONPATH={stage} ", call)
+        self.assertIn("caddy validate", (self.fake / "reads.log").read_text())
         reload_daemon = calls.index("systemctl daemon-reload")
         enable = calls.index("systemctl enable --now longview-archive")
         validate = calls.index(
@@ -719,6 +756,93 @@ class SandboxInstallTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
         self.assertEqual(self.site.read_text(), older)
         self.assertNotIn("systemctl reload caddy", self.calls())
+
+    def test_symlinked_data_folder_is_refused_and_not_followed(self):
+        self.install()
+        victim = self.tmp / "victim"
+        victim.mkdir()
+        victim.chmod(0o750)
+        before = victim.stat()
+        for rel in ("www", "exports/private", "db"):
+            with self.subTest(link=rel):
+                target = self.data / rel
+                moved = target.with_name(target.name + ".real")
+                target.rename(moved)
+                target.symlink_to(victim)
+                self.reset_calls()
+                proc = self.run_script("install.sh")
+                self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+                self.assertIn("is a symbolic link", proc.stderr)
+                self.assertEqual(self.calls(), [])
+                after = victim.stat()
+                self.assertEqual(stat.S_IMODE(after.st_mode), 0o750)
+                self.assertEqual((after.st_uid, after.st_gid), (before.st_uid, before.st_gid))
+                target.unlink()
+                moved.rename(target)
+        self.install()
+
+    def test_symlinked_top_data_folder_is_refused(self):
+        victim = self.tmp / "victim"
+        victim.mkdir()
+        self.data.parent.mkdir(parents=True)
+        self.data.symlink_to(victim)
+        proc = self.run_script("install.sh")
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("is a symbolic link", proc.stderr)
+        self.assertEqual(self.calls(), [])
+        self.assertFalse(self.opt.exists())
+
+    def test_broken_caddy_config_stops_before_any_change(self):
+        (self.fake / "caddy-config-broken").touch()
+        self.assert_refused(self.run_script("install.sh"), "current config does not validate")
+        self.install("--no-caddy")
+
+    def test_failed_migrate_or_check_keeps_the_installed_code(self):
+        self.install()
+        (self.opt / "app" / "OLDER_RELEASE").write_text("old\n")
+        for knob in ("engine-migrate-fails", "engine-check-fails"):
+            with self.subTest(knob=knob):
+                (self.fake / knob).touch()
+                self.reset_calls()
+                proc = self.run_script("install.sh")
+                self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+                self.assertIn("was not installed", proc.stderr)
+                self.assertTrue((self.opt / "app" / "OLDER_RELEASE").exists())
+                self.assertFalse((self.opt / "app.staging").exists())
+                self.assertFalse((self.opt / "app.previous").exists())
+                calls = self.calls()
+                self.assertFalse(any(c.startswith("systemctl") for c in calls), calls)
+                (self.fake / knob).unlink()
+
+    def test_unhealthy_new_engine_rolls_back_to_previous(self):
+        self.install()
+        unit_before = self.unit.read_bytes()
+        (self.opt / "app" / "OLDER_RELEASE").write_text("old\n")
+        # The source unit changes too, so the rollback must restore it.
+        src_unit = self.src / "systemd" / "longview-archive.service"
+        src_unit.write_text(src_unit.read_text() + "# newer release\n")
+        (self.fake / "engine-unhealthy").touch()
+        self.reset_calls()
+        proc = self.run_script("install.sh")
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("previous release is back in place", proc.stderr)
+        self.assertTrue((self.opt / "app" / "OLDER_RELEASE").exists())
+        self.assertFalse((self.opt / "app.previous").exists())
+        self.assertEqual(self.unit.read_bytes(), unit_before)
+        calls = self.calls()
+        restart = calls.index("systemctl restart longview-archive")
+        stop = calls.index("systemctl stop longview-archive")
+        start = calls.index("systemctl start longview-archive")
+        self.assertLess(restart, stop)
+        self.assertLess(stop, start)
+        self.assertLess(stop, len(calls) - 1 - calls[::-1].index("systemctl daemon-reload"))
+
+    def test_unhealthy_fresh_install_has_nothing_to_roll_back(self):
+        (self.fake / "engine-unhealthy").touch()
+        proc = self.run_script("install.sh")
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("nothing to roll back", proc.stderr)
+        self.assertNotIn("systemctl stop longview-archive", self.calls())
 
     def assert_refused(self, proc, message):
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)

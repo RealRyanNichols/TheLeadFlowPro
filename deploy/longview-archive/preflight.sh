@@ -101,6 +101,10 @@ for path in /opt/longview-archive /var/lib/longview-archive /etc/caddy/sites/lon
 	if [ -e "$path" ]; then line "$path" "exists"; else line "$path" "not present"; fi
 done
 if [ -e /var/lib/longview-archive/PAUSE ]; then line "pause" "PAUSED (PAUSE file present)"; fi
+linked=
+for path in /var/lib/longview-archive /var/lib/longview-archive/{db,backups,exports,exports/publish,exports/private,www,www/status}; do
+	[ ! -L "$path" ] || linked="$linked $path"
+done
 
 section "Summary"
 if [ "${host%%.*}" = leadflow-web ]; then
@@ -139,11 +143,22 @@ if [ "$caddy_state" = active ]; then
 else
 	blocker "Caddy is not running ($caddy_state)"
 fi
+if have caddy && [ -f /etc/caddy/Caddyfile ] &&
+	caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1; then
+	pass "Caddy's current config validates"
+else
+	blocker "Caddy's current config does not validate (see: caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile)"
+fi
 free_gb=$((free_kb / 1024 / 1024))
 if [ "$free_kb" -ge $((MIN_FREE_GB * 1024 * 1024)) ]; then
 	pass "free space on /: $free_gb GB (floor $MIN_FREE_GB GB)"
 else
 	blocker "free space on /: $free_gb GB is under the $MIN_FREE_GB GB floor"
+fi
+if [ -z "$linked" ]; then
+	pass "no symbolic links where the archive's data folders belong"
+else
+	blocker "symbolic link where a data folder belongs:$linked"
 fi
 if have git; then
 	pass "git is available for the install one-liner"

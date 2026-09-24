@@ -194,7 +194,7 @@ class SocialTests(unittest.TestCase):
         cases = [
             ("ExampleTireLube", "Example Tire & Lube", (True, "name_token")),     # camelCase split
             ("sample_street_tacos", "Sample Street Tacos", (True, "name_token")),  # underscores
-            ("tire.shop", "Example Tire & Lube", (True, "name_token")),            # one 4+ letter token
+            ("tire.shop", "Example Tire & Lube", (False, "mismatch")),             # only a category word
             ("exampletire903", "Unrelated Name", (True, "domain_label")),          # contains the label
             ("exampletirelongview", "Unrelated Name", (True, "domain_label")),
             ("bestwebdesigns", "Example Tire & Lube", (False, "mismatch")),
@@ -204,11 +204,42 @@ class SocialTests(unittest.TestCase):
             with self.subTest(handle=handle):
                 self.assertEqual(social.handle_matches(handle, name, "exampletire.example"), expected)
 
-    def test_label_contains_short_handle(self):
+    def test_fragment_of_the_domain_label_is_not_a_match(self):
+        # A handle that is only a piece of the domain label ("pletire", or "ford" inside
+        # "longviewfordexample") does not name the business; it goes to review.
         self.assertEqual(social.handle_matches("pletire", "Unrelated Name", "exampletire.example"),
-                         (True, "domain_label"))
+                         (False, "mismatch"))
         self.assertEqual(social.handle_matches("ex", "Unrelated Name", "exampletire.example"),
                          (False, "mismatch"))
+        self.assertEqual(social.handle_matches("Ford", "Longview Ford Example Motors", "longviewfordexample.example"),
+                         (False, "mismatch"))
+
+    def test_generic_brand_or_category_word_is_not_a_match(self):
+        cases = [
+            ("Ford", "Longview Ford Lincoln", "longviewfordlincoln.example"),           # the franchise brand
+            ("NAPAAutoCare", "Smiths Auto Repair", "smithsautorepair.example"),         # a supplier
+            ("AmericanDentalAssociation", "Example Family Dental", "examplefamilydental.example"),  # an association
+            ("FamilyCareCenter", "Sample Family Care", "samplefamilycare.example"),
+            ("ExampleChurchSupply", "Sample Community Church", "samplechurch.example"),
+            ("HomeServicesStore", "Example Home Services", "examplehomeservices.example"),
+        ]
+        for handle, name, domain in cases:
+            with self.subTest(handle=handle):
+                self.assertEqual(social.handle_matches(handle, name, domain), (False, "mismatch"))
+        # The business's own distinctive name or whole domain label still matches.
+        self.assertEqual(social.handle_matches("SmithsAutoRepair", "Smiths Auto Repair", "smithsautorepair.example"),
+                         (True, "name_token"))
+        self.assertEqual(social.handle_matches("familydentalcare", "Family Dental Care", "familydentalcare.example"),
+                         (True, "domain_label"))
+
+    def test_brand_page_on_a_real_page_goes_to_review(self):
+        page = parse_page('<footer><a href="https://www.facebook.com/Ford">Ford</a>'
+                          '<a href="https://www.facebook.com/SmithsFordExample">Us</a></footer>',
+                          "https://www.smithsfordexample.example/")
+        found = {c.url: c for c in social.social_links(page, "Smiths Ford Example", "smithsfordexample.example")}
+        self.assertEqual((found["https://www.facebook.com/ford"].matches,
+                          found["https://www.facebook.com/ford"].reason), (False, "mismatch"))
+        self.assertTrue(found["https://www.facebook.com/smithsfordexample"].matches)
 
 
 class CareersTests(unittest.TestCase):
@@ -232,6 +263,27 @@ class CareersTests(unittest.TestCase):
             "https://www.samplestreettacos.example/team",
             "https://www.samplestreettacos.example/jobs/",
             "https://www.samplestreettacos.example/work-with-us",
+        ])
+
+    def test_apply_now_alone_is_not_a_careers_link(self):
+        # Credit, rental, and enrollment applications are not jobs.
+        page = parse_page('<nav><a href="/finance/credit-application">Apply Now</a>'
+                          '<a href="/apply">Apply now</a><a href="/residents/apply-online">Apply Online</a>'
+                          '<a href="/enroll">Apply Today</a></nav>',
+                          "https://www.samplemotors.example/")
+        self.assertEqual(careers.careers_links(page), [])
+
+    def test_apply_now_with_a_jobs_signal_is_kept(self):
+        page = parse_page('<a href="/careers/apply">Apply Now</a>'
+                          '<a href="/apply?type=employment">Apply now</a>'
+                          '<a href="/apply-form">Apply for open positions</a>'
+                          '<a href="https://samplemotors.applytojob.com/apply">Apply Now</a>'
+                          '<a href="/finance/apply">Apply Now</a>',
+                          "https://www.samplemotors.example/")
+        self.assertEqual(careers.careers_links(page), [
+            "https://www.samplemotors.example/careers/apply",
+            "https://www.samplemotors.example/apply-form",
+            "https://samplemotors.applytojob.com/apply",
         ])
 
     def test_ats_link_from_tacos(self):
@@ -293,6 +345,21 @@ class ServiceTests(unittest.TestCase):
                 self.assertTrue(20 <= len(tags) <= 60, len(tags))
                 self.assertEqual(len(set(tags)), len(tags))
                 self.assertTrue(all(t == t.lower() and len(t) <= 40 for t in tags))
+
+    def test_negated_items_never_become_tags(self):
+        page = parse_page("<ul><li>No financing</li><li>No delivery</li><li>Not accepting walk-ins</li>"
+                          "<li>We don't offer catering</li><li>Takeout only - no curbside pickup</li>"
+                          "<li>All services except gift cards</li><li>Online booking: not available</li>"
+                          "<li>Breakfast without reservations</li><li>We do not have free estimates</li></ul>",
+                          TACOS_URL)
+        self.assertEqual(services.service_tags(page, "restaurants"), ["takeout"])
+
+    def test_negation_in_another_clause_keeps_the_tag(self):
+        page = parse_page("<ul><li>Dine-in and takeout only - no delivery</li>"
+                          "<li>No appointment needed, walk-ins welcome</li><li>Free delivery</li></ul>",
+                          TACOS_URL)
+        self.assertEqual(services.service_tags(page, "restaurants"),
+                         ["delivery", "dine-in", "takeout", "walk-ins welcome"])
 
     def test_plural_and_hyphen_tolerance(self):
         page = parse_page("<h2>Brake Repairs</h2><h3>Walk Ins Welcome</h3><h3>24 Hour Service</h3>", TIRE_URL)

@@ -109,15 +109,35 @@ valerie vanessa velma vernon veronica vicki vickie victor victoria vincent virgi
 walter wanda warren wayne wendy wesley whitney willard william willie wilma yolanda yvonne zachary
 """.split())
 
+# Establishments that cannot reasonably be run from a home, so the NAICS code
+# alone is storefront evidence. Kept short on purpose: salons, repair shops,
+# take-out kitchens and the 2022 retail subsectors (which absorbed online and
+# home-based sellers) all need another premises signal.
 STOREFRONT_NAICS_PREFIXES = (
-    "441", "442", "443", "444", "445", "446", "447", "448", "449", "451", "452", "453", "455",
-    "456", "457", "458", "459", "4411",
-    "722511", "722513", "722514", "722515", "7224",
-    "721110", "71395", "71312", "51213",
-    "812111", "812112", "812113", "812191", "81232", "81231",
-    "811111", "811121", "811122", "811191", "811192",
-    "622", "6212", "6211", "62132", "54194", "5221", "532111",
+    "721110",                                   # hotels and motels
+    "622",                                      # hospitals
+    "447", "457110", "457120",                  # gas stations (2017, 2022)
+    "445110",                                   # supermarkets
+    "44512", "445131",                          # convenience stores (2017, 2022)
+    "4521", "452210", "452311", "455110", "455211",  # department stores, warehouse clubs
+    "4411",                                     # car dealers (Texas requires a place of business)
+    "811192",                                   # car washes
+    "5221",                                     # banks and credit unions
+    "512131",                                   # cinemas
+    "71395",                                    # bowling centers
+    "722511",                                   # full-service restaurants
+    "7224",                                     # bars
 )
+
+# OSM tags that describe a public-facing premises. craft=*, office=*,
+# healthcare=* alone, childcare and the like are often mapped at a home.
+OSM_STOREFRONT_AMENITIES = frozenset({
+    "restaurant", "fast_food", "cafe", "bar", "pub", "biergarten", "ice_cream", "food_court", "bank",
+    "pharmacy", "fuel", "car_wash", "car_rental", "cinema", "theatre", "nightclub", "hospital", "clinic",
+    "dentist", "doctors", "veterinary",
+})
+OSM_STOREFRONT_TOURISM = frozenset({"hotel", "motel"})
+OSM_STOREFRONT_LEISURE = frozenset({"fitness_centre", "sports_centre", "bowling_alley"})
 
 GENERIC_EMAIL_LOCALS = frozenset({
     "info", "office", "contact", "hello", "frontdesk", "front.desk", "reception", "appointments",
@@ -178,20 +198,45 @@ def _name_set(name: Optional[str]) -> set:
     return {t.strip("'-.") for t in _tokens((name or "").replace(",", " ")) if len(t.strip("'-.")) > 1}
 
 
+_GENERATIONAL = frozenset({"jr", "sr", "ii", "iii", "iv", "v"})
+
+
+def _person_tokens(name: Optional[str]) -> list:
+    """Name tokens with hyphens split and suffixes (jr, ii) and initials dropped."""
+    out = []
+    for token in _tokens((name or "").replace(",", " ")):
+        for part in token.split("-"):
+            part = part.strip("'.")
+            if len(part) > 1 and part not in _GENERATIONAL:
+                out.append(part)
+    return out
+
+
 def outlet_is_personal_name(outlet_name: Optional[str], taxpayer_name: Optional[str], is_individual: bool) -> bool:
-    """The outlet is listed under the owner's own name (a sole proprietor)."""
+    """The outlet is listed under the owner's own name (a sole proprietor).
+
+    Deliberately conservative: for an individual taxpayer any plain two-to-four
+    word name without a business word counts, so a trade name that merely
+    looks like a person's is held back until it has a public presence. Holding
+    back a real business is the safe failure; publishing an owner's name is not.
+    """
     if not is_individual or not outlet_name:
         return False
-    outlet = _name_set(outlet_name)
-    owner = _name_set(taxpayer_name)
-    if outlet and owner and outlet <= owner:
+    outlet = _person_tokens(outlet_name)
+    owner = set(_person_tokens(taxpayer_name))
+    if outlet and owner and set(outlet) <= owner:
         return True
+    if not _has_business_word(_tokens(outlet_name)):
+        if len(set(outlet) & owner) >= 2:
+            return True
+        if 2 <= len(outlet) <= 4 and all(re.fullmatch(r"[a-z]+", t) for t in outlet):
+            return True
     return looks_like_person_name(outlet_name)
 
 
 def _linked_sources(conn: sqlite3.Connection, business_id: int) -> list:
     return list(conn.execute(
-        "SELECT source_id, street_norm, naics FROM source_records WHERE business_id=? AND active=1",
+        "SELECT source_id, street_norm, naics, tags_json FROM source_records WHERE business_id=? AND active=1",
         (business_id,),
     ).fetchall())
 
@@ -209,6 +254,38 @@ def has_public_presence(conn: sqlite3.Connection, business_id: int) -> bool:
     return any(r["source_id"] in ("osm", "tx_tabc", "npi") for r in _linked_sources(conn, business_id))
 
 
+def osm_is_storefront(tags) -> bool:
+    """True when an OSM record's tags (a dict or its JSON) describe a public-facing premises."""
+    if isinstance(tags, str):
+        try:
+            tags = json.loads(tags)
+        except ValueError:
+            return False
+    if not isinstance(tags, dict):
+        return False
+    return bool(
+        tags.get("shop")
+        or tags.get("amenity") in OSM_STOREFRONT_AMENITIES
+        or tags.get("tourism") in OSM_STOREFRONT_TOURISM
+        or tags.get("leisure") in OSM_STOREFRONT_LEISURE
+    )
+
+
+def storefront_naics(naics: Optional[str]) -> bool:
+    code = "".join(ch for ch in (naics or "") if ch.isdigit())
+    return bool(code) and any(code.startswith(prefix) for prefix in STOREFRONT_NAICS_PREFIXES)
+
+
+def premises_record(rec: Mapping, street_norm: Optional[str]) -> bool:
+    """A linked record that shows a public premises at this street: any TABC or
+    NPI record there, or an OSM record whose tags describe a storefront."""
+    if not street_norm or rec["street_norm"] != street_norm:
+        return False
+    if rec["source_id"] in ("tx_tabc", "npi"):
+        return True
+    return rec["source_id"] == "osm" and osm_is_storefront(rec["tags_json"])
+
+
 def address_is_public(conn: sqlite3.Connection, business_id: int) -> Tuple[bool, str]:
     biz = conn.execute(
         "SELECT street_norm, zip, naics, is_individual FROM businesses WHERE id=?", (business_id,)
@@ -218,12 +295,10 @@ def address_is_public(conn: sqlite3.Connection, business_id: int) -> Tuple[bool,
     if _fact(conn, business_id, "address_listed") is True:
         return True, "listed_on_own_website"
     for rec in _linked_sources(conn, business_id):
-        if rec["source_id"] in ("tx_tabc", "npi", "osm") and rec["street_norm"] == biz["street_norm"]:
+        if premises_record(rec, biz["street_norm"]):
             return True, f"{rec['source_id']}_premises"
-    if not biz["is_individual"] and biz["naics"]:
-        code = "".join(ch for ch in biz["naics"] if ch.isdigit())
-        if any(code.startswith(prefix) for prefix in STOREFRONT_NAICS_PREFIXES):
-            return True, "storefront_naics"
+    if not biz["is_individual"] and storefront_naics(biz["naics"]):
+        return True, "storefront_naics"
     return False, "no_storefront_evidence"
 
 

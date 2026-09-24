@@ -72,7 +72,7 @@ class NameRules(unittest.TestCase):
 class EvidenceRules(unittest.TestCase):
     def test_storefront_naics_org(self):
         conn = make_db()
-        bid = add_business(conn)
+        bid = add_business(conn, naics="722511")  # auto repair (811111) alone no longer counts
         self.assertEqual(p.address_is_public(conn, bid), (True, "storefront_naics"))
 
     def test_individual_storefront_naics_is_not_enough(self):

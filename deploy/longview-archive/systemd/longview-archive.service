@@ -57,15 +57,25 @@ SystemCallArchitectures=native
 CapabilityBoundingSet=
 AmbientCapabilities=
 
-# Network defence in depth. The crawler already refuses private addresses on
-# every hop (the SSRF guard in fetcher.py); the kernel refuses them as well, so
-# no bug can reach the Central Brain API, Postgres, pda-api, the Call Desk CRM,
-# the private VPC network (IPv4 and IPv6), or the cloud metadata service
-# (169.254.169.254).
+# Network defence in depth, behind the crawler's own guard. fetcher.py refuses
+# any private, loopback, link-local, or reserved address and any port other
+# than 80/443, on every redirect hop; that guard is what actually keeps the
+# engine off the droplet's other services. This kernel filter is a second
+# layer that works by ADDRESS ONLY: systemd's IPAddressDeny/IPAddressAllow
+# have no port setting, and short of a custom BPF program
+# (IPEgressFilterPath=) no directive filters outgoing ports.
+# Denied: loopback (localhost), the private VPC network (IPv4 and IPv6),
+# link-local (so the cloud metadata service at 169.254.169.254), multicast,
+# carrier NAT, and the droplet's own public IPv4 address, 165.227.248.110,
+# which the kernel would otherwise deliver over loopback to anything listening
+# on all addresses. If IPv6 is ever turned on for the droplet, add its public
+# address as a /128 here too.
 # The one exception is 127.0.0.53, the systemd-resolved stub, so DNS keeps
 # working. In systemd a matching IPAddressAllow= wins over IPAddressDeny=, so
-# this re-opens that single address and nothing else local.
-IPAddressDeny=localhost link-local multicast 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 fc00::/7
+# this re-opens that one address, but on EVERY port: a local service bound to
+# 0.0.0.0 or [::] (any port) is still reachable at 127.0.0.53:<port>. Only the
+# crawler's port and address checks stand in front of that residual gap.
+IPAddressDeny=localhost link-local multicast 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 fc00::/7 165.227.248.110/32
 IPAddressAllow=127.0.0.53
 
 [Install]

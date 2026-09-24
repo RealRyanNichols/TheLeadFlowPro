@@ -210,7 +210,7 @@ def _linked_records(conn: sqlite3.Connection, business_id: int) -> list:
     # Never select raw_json: the taxpayer's name lives there.
     return list(conn.execute(
         "SELECT id, source_id, source_url, last_seen_at, active, name, name_norm, street_norm, naics,"
-        " permit_start, personal_name FROM source_records WHERE business_id=? ORDER BY id",
+        " permit_start, personal_name, tags_json FROM source_records WHERE business_id=? ORDER BY id",
         (business_id,),
     ).fetchall())
 
@@ -359,12 +359,9 @@ def _address_record(business, active: list, primaries: list):
 def _non_site_evidence(business, active: list) -> bool:
     """privacy.address_is_public without the website's own listing (used when
     the website is not shown, so a website-sourced fact cannot be cited)."""
-    if any(r["source_id"] in ("tx_tabc", "npi", "osm") and r["street_norm"] == business["street_norm"]
-           for r in active):
+    if any(privacy.premises_record(r, business["street_norm"]) for r in active):
         return True
-    code = _digits(business["naics"])
-    return bool(not business["is_individual"] and code
-                and any(code.startswith(p) for p in privacy.STOREFRONT_NAICS_PREFIXES))
+    return bool(not business["is_individual"] and privacy.storefront_naics(business["naics"]))
 
 
 def business_profile(conn: sqlite3.Connection, settings, business, sources=None) -> Optional[dict]:
@@ -477,13 +474,22 @@ def business_profile(conn: sqlite3.Connection, settings, business, sources=None)
                 social[network] = value
                 entries[network] = entry
 
+    # careersUrl (and with it the "Hiring" badge and hiringRoles) only while the
+    # hiring signal is active for this same URL: a careers link that a later
+    # complete visit no longer finds is not published from the old fact.
     careers_url = None
+    hiring_roles: List[str] = []
     value, fact = site_value("careers")
-    if http_url(value):
+    signal = conn.execute(
+        "SELECT careers_url, roles_json FROM hiring_signals WHERE business_id=? AND active=1", (bid,)
+    ).fetchone()
+    if (http_url(value) and signal is not None and signal["careers_url"]
+            and normalize.norm_url(signal["careers_url"]) == normalize.norm_url(value)):
         entry = _site_fact("careers", fact)
         if entry:
             careers_url = value
             entries["careers"] = entry
+            hiring_roles = filter_roles(signal["roles_json"])
 
     services: List[str] = []
     value, fact = site_value("services")
@@ -492,14 +498,6 @@ def business_profile(conn: sqlite3.Connection, settings, business, sources=None)
         if entry:
             services = _services(value)
             entries["services"] = entry
-
-    hiring_roles: List[str] = []
-    if careers_url:
-        row = conn.execute(
-            "SELECT roles_json FROM hiring_signals WHERE business_id=? AND active=1", (bid,)
-        ).fetchone()
-        if row is not None:
-            hiring_roles = filter_roles(row["roles_json"])
 
     fact_list = [entries[f] for f in FACT_FIELDS if entries.get(f)]
     return {

@@ -7,7 +7,8 @@
 // that breaks the publish contract, but a silent drop would hide an engine
 // bug behind a shorter list. This script turns every drop into a failed
 // build, and also refuses a sample (fictional) file, a schema version the site
-// does not know, a slug collision, and an unreadable removal list.
+// does not know, a slug collision, an unreadable removal list, and a removal
+// entry that is neither a business id nor a profile slug.
 
 import { fileURLToPath } from "node:url";
 import { committedDirectoryFile, readDirectory, suppressionsFile, type DirectoryReport } from "../lib/longviewDirectory/data.ts";
@@ -25,6 +26,13 @@ export function directoryProblems(report: DirectoryReport): string[] {
   return problems;
 }
 
+/** Worth a look but not a failed build: a removal entry that hides nothing in this batch. */
+export function directoryWarnings(report: DirectoryReport): string[] {
+  return report.unmatchedSuppressions.map(
+    (entry) => `suppressions.json: ${JSON.stringify(entry)} matches no business in this batch (check the id or slug)`,
+  );
+}
+
 export function directorySummary(report: DirectoryReport): string {
   const d = report.directory;
   return [
@@ -38,6 +46,7 @@ const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.arg
 if (isMain) {
   const report = readDirectory(committedDirectoryFile(), suppressionsFile());
   const problems = directoryProblems(report);
+  for (const warning of directoryWarnings(report)) console.warn(`validate:directory warning: ${warning}`);
   if (problems.length) {
     console.error(`\nvalidate:directory found ${problems.length} problem${problems.length === 1 ? "" : "s"} in content/longview-directory:\n`);
     for (const problem of problems) console.error(`  ${problem}`);

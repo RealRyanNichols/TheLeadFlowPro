@@ -31,8 +31,14 @@ bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --br
 bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch main https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"'
 ```
 
-To see every step first without changing anything, put ` --dry-run` right
-after `install.sh`, inside the closing quote.
+To see every step first without changing anything, paste this instead (use
+`main` in place of the branch name after the merge). It ends in
+`install.sh" --dry-run'`: the flag goes after the double quote that closes
+the path and before the final single quote.
+
+```bash
+bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch claude/serene-edison-daodg6 https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh" --dry-run'
+```
 
 It takes a minute or two. The last lines show the status link and the
 pause, resume, and rollback commands.
@@ -60,8 +66,14 @@ secrets, env files, timers it did not create, and system packages. It never
 reboots.
 
 It refuses to run unless it is root on Ubuntu, the machine is `leadflow-web`,
-Python is 3.10 or newer, Caddy is 2.7 or newer and loads `sites/*.caddy`, and
-at least 10 GB is free.
+Python is 3.10 or newer, Caddy is 2.7 or newer, loads `sites/*.caddy`, and its
+current config already validates, and at least 10 GB is free. All of these
+are checked before the first change. It also stops if any folder in
+`/var/lib/longview-archive` has been replaced by a symbolic link.
+
+As root it changes only the top data folder, `/var/lib/longview-archive`.
+Everything inside it is made by `lvarchive` itself, so nothing the service
+could plant there can trick the installer into changing a file elsewhere.
 
 ### Check the droplet first (optional, read-only)
 
@@ -140,9 +152,15 @@ systemctl start longview-archive
 
 ### Upgrade
 
-Re-run the install one-liner. It copies the new code (keeping the old copy as
-`app.previous`), runs the database migration and self-check, restarts the
-service, and touches Caddy only if the site file changed.
+Re-run the install one-liner. It stages the new code, runs the database
+migration and self-check with the new code, and only then puts it in place
+(keeping the old copy as `app.previous`). If the migration or self-check
+fails, the new code is thrown away and the installed code and running service
+are left as they were. After the restart it waits for the new engine to write
+a fresh status page and stay up for 20 seconds with no restarts. If it does
+not, it puts the previous code and unit file back, restarts the service on
+them, and stops with a pointer to the log. It touches Caddy only if the site
+file changed.
 
 ## How a batch reaches the website
 
@@ -283,9 +301,12 @@ and keeps the newest 14 backups.
 - **The status page does not load.** Wait a minute on the first visit (the
   certificate). Then check `systemctl status caddy --no-pager` and
   `caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile`.
-- **"Operation not permitted" to 127.0.0.1, 10.x, or 169.254.169.254 in the
-  log.** That is the network guard doing its job; the engine is not allowed
-  to reach them.
+- **"Operation not permitted" to 127.0.0.1, 10.x, 169.254.169.254, or
+  165.227.248.110 in the log.** That is the network guard doing its job; the
+  engine is not allowed to reach them. The guard filters by address only, so
+  DNS at 127.0.0.53 stays open on every port; the crawler's own check (ports
+  80 and 443 on public addresses only) is what keeps it off local services
+  there.
 
 ## For engineers
 
@@ -309,4 +330,5 @@ scripts refuse one without the other:
 - `LVA_INSTALL_PREFIX=/tmp/x` puts `/tmp/x` in front of every absolute path.
 - `LVA_INSTALL_FAKE_SYSTEM=1` replaces `systemctl`, `caddy`, `useradd`,
   `runuser`, `id`, `chown`, `df`, and the hostname check with shell functions
-  that log what they would have done.
+  that log what they would have done (the fake `runuser` really runs
+  `install -d`, as the test user, so the data folders can be checked).

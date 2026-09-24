@@ -23,8 +23,16 @@ ATS_HOSTS = (
 
 _TEXT_RE = re.compile(
     r"\b(?:careers?|jobs?|employment|join\s+our\s+team|now\s+hiring|we\s*(?:'|’)?\s*re\s+hiring|"
-    r"we\s+are\s+hiring|work\s+with\s+us|openings|apply\s+now|job\s+opportunities|job\s+openings)\b",
+    r"we\s+are\s+hiring|work\s+with\s+us|openings|job\s+opportunities|job\s+openings)\b",
     re.I,
+)
+# "Apply Now" alone is not a careers link: dealers, apartments, lenders, and
+# schools use it for credit, rental, and enrollment applications. It counts
+# only when the link text or path also says jobs/careers/employment/hiring/
+# positions/openings (or the link goes to an applicant-tracking host).
+_APPLY_RE = re.compile(r"\bapply\b", re.I)
+_JOB_WORD_RE = re.compile(
+    r"(?:^|[^a-z])(?:careers?|jobs?|employment|hiring|positions?|openings?)(?:$|[^a-z])", re.I
 )
 _PATH_RE = re.compile(
     r"(?:^|[/_\-.])(?:careers?|jobs?|employment|join[-_]?our[-_]?team|now[-_]?hiring|we[-_]?re[-_]?hiring|"
@@ -51,7 +59,9 @@ def careers_links(page: Page) -> List[str]:
             continue
         if normalize.registrable_domain(host) != site:
             continue
-        if _TEXT_RE.search(link.text or "") or _PATH_RE.search(parts.path or ""):
+        text, path = link.text or "", parts.path or ""
+        if (_TEXT_RE.search(text) or _PATH_RE.search(path)
+                or (_APPLY_RE.search(text) and (_JOB_WORD_RE.search(text) or _JOB_WORD_RE.search(path)))):
             if link.url not in out:
                 out.append(link.url)
     return out

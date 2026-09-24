@@ -43,9 +43,11 @@ def build_world(conn):
     b.standard_sources(conn)
     ids = {}
 
-    # A full profile: storefront NAICS, organization, verified website with every field.
+    # A full profile: an organization mapped as a tire shop at its own street (storefront
+    # evidence; auto repair alone is not), and a verified website with every field.
     ids["tire"] = t = b.add_business(conn, "Example Tire & Lube")
     b.add_record(conn, t, "tx_sales_tax", raw={"taxpayer_name": PLANTED, "outlet_name": "EXAMPLE TIRE & LUBE"})
+    b.add_record(conn, t, "osm", key="node/9001", tags_json='{"shop": "tyres", "name": "Example Tire & Lube"}')
     b.add_site(conn, t, SITE)
     b.add_fact(conn, t, "phone", "+19035550100", source_url=SITE + "contact")
     b.add_fact(conn, t, "email", "info@exampletire.example", source_url=SITE + "contact")
@@ -316,7 +318,7 @@ class ExportContract(ContractAssertions):
         self.assertNotIn("address", [f["field"] for f in office["facts"]])
         self.assertNotIn("300 Sample Ave", json.dumps(self.export))
 
-    def test_storefront_naics_organization_shows_street(self):
+    def test_mapped_storefront_at_the_same_street_shows_street(self):
         self.assertEqual(self.by_id[self.pid("tire")]["address"]["street"], "1200 W Example Ave")
 
     def test_address_listed_on_own_site_is_credited_to_the_website(self):
@@ -480,6 +482,39 @@ class PublishRules(ContractAssertions):
         b.add_fact(self.conn, bid, "careers", SITE + "careers")
         biz = export_by_id(self.export())[public_id(self.conn, bid)]
         self.assertEqual(biz["hiringRoles"], ["front_desk", "receptionist"])
+
+    def test_careers_url_needs_an_active_hiring_signal(self):
+        # The careers link disappeared: a complete visit set the signal inactive, but the
+        # careers fact stays (fill only). No careersUrl, no Hiring badge, no roles.
+        bid = self.business()
+        b.add_site(self.conn, bid, SITE)
+        b.add_fact(self.conn, bid, "careers", SITE + "careers")
+        b.add_hiring(self.conn, bid, SITE + "careers", ["front_desk"], active=0)
+        biz = export_by_id(self.export())[public_id(self.conn, bid)]
+        self.assertEqual((biz["careersUrl"], biz["hiringRoles"]), (None, []))
+        self.assertNotIn("careers", [f["field"] for f in biz["facts"]])
+        # No signal at all: same.
+        self.conn.execute("DELETE FROM hiring_signals WHERE business_id=?", (bid,))
+        biz = export_by_id(self.export())[public_id(self.conn, bid)]
+        self.assertEqual((biz["careersUrl"], biz["hiringRoles"]), (None, []))
+        # Found again on a later visit: shown again.
+        b.add_hiring(self.conn, bid, SITE + "careers", ["front_desk"])
+        biz = export_by_id(self.export())[public_id(self.conn, bid)]
+        self.assertEqual((biz["careersUrl"], biz["hiringRoles"]), (SITE + "careers", ["front_desk"]))
+
+    def test_careers_url_needs_the_signal_for_the_same_page(self):
+        # The active signal points at a different careers page (a conflict waiting for
+        # review): neither the old URL nor the other page's roles are shown.
+        bid = self.business()
+        b.add_site(self.conn, bid, SITE)
+        b.add_fact(self.conn, bid, "careers", SITE + "careers")
+        b.add_hiring(self.conn, bid, "https://exampletire.applytojob.example/jobs", ["receptionist"])
+        biz = export_by_id(self.export())[public_id(self.conn, bid)]
+        self.assertEqual((biz["careersUrl"], biz["hiringRoles"]), (None, []))
+        # The signal's raw link and the fact's normalized URL still compare equal.
+        b.add_hiring(self.conn, bid, "HTTPS://WWW.EXAMPLETIRE.EXAMPLE/careers?utm_source=nav", ["receptionist"])
+        biz = export_by_id(self.export())[public_id(self.conn, bid)]
+        self.assertEqual((biz["careersUrl"], biz["hiringRoles"]), (SITE + "careers", ["receptionist"]))
 
     def test_bad_hours_are_dropped(self):
         bid = self.business()

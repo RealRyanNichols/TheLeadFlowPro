@@ -142,7 +142,8 @@
   width: 100%;
   min-height: 48px;
   padding: 0 14px;
-  border: 1.5px solid #b9aabd;
+  /* At least 3:1 against both the field fill and the page (WCAG 1.4.11). */
+  border: 1.5px solid var(--lvd-muted);
   border-radius: 12px;
   background: var(--lvd-panel);
   color: var(--lvd-ink);

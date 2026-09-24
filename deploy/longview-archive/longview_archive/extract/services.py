@@ -203,10 +203,47 @@ def _candidates(page: Page) -> List[str]:
     return out
 
 
+# A clause that says the business does NOT offer something: "No delivery",
+# "Takeout only, no delivery", "We don't offer financing", "All services except
+# towing", "Delivery not available".
+_NEGATION_RE = re.compile(
+    r"(?<![\w])(?:no|not|never|without|except|excluding|none|unavailable|nor)(?![\w])"
+    r"|n['\u2019]t(?![\w])|(?<![\w])do\s+not(?![\w])|(?<![\w])no\s+longer(?![\w])",
+    re.I,
+)
+# Clause breaks inside one heading or list item. A hyphen inside a word
+# ("walk-ins", "dine-in") is not a break; a spaced dash is.
+_CLAUSE_SPLIT_RE = re.compile(r"\s+[-\u2013\u2014|/\u2022]\s+|[,;:()\[\]]|\s+but\s+", re.I)
+# A following clause that only denies the item: "Delivery: No", "Delivery - not available".
+_DENIAL_CLAUSE_RE = re.compile(
+    r"^\s*(?:no|none|n/a|unavailable|not\s+(?:available|offered|accepted|provided)|"
+    r"no\s+longer(?:\s+\w+)?|(?:currently\s+)?not\s+(?:available|offered))\s*$",
+    re.I,
+)
+
+
+def _affirmed(pattern: Pattern[str], text: str) -> bool:
+    """True when ``text`` names the phrase without negating it."""
+    clauses = [c for c in _CLAUSE_SPLIT_RE.split(text) if c is not None]
+    for i, clause in enumerate(clauses):
+        for m in pattern.finditer(clause):
+            if _NEGATION_RE.search(clause):
+                break  # "no delivery", "delivery not available", "only takeout, no ..." in one clause
+            following = clauses[i + 1] if i + 1 < len(clauses) else ""
+            if following and _DENIAL_CLAUSE_RE.match(following):
+                break
+            return True
+    return False
+
+
 def service_tags(page: Page, category: str) -> List[str]:
-    """Sorted unique vocabulary tags named in headings, nav, or short list items (max 12)."""
+    """Sorted unique vocabulary tags named in headings, nav, or short list items (max 12).
+
+    A heading or item that negates the phrase ("No delivery", "We don't offer
+    financing", "Takeout only - no delivery") never produces that tag.
+    """
     own, shared = _patterns(category)
     texts = _candidates(page)
-    specific = sorted({tag for tag, pat in own if any(pat.search(t) for t in texts)})
-    common = sorted({tag for tag, pat in shared if any(pat.search(t) for t in texts)} - set(specific))
+    specific = sorted({tag for tag, pat in own if any(_affirmed(pat, t) for t in texts)})
+    common = sorted({tag for tag, pat in shared if any(_affirmed(pat, t) for t in texts)} - set(specific))
     return sorted((specific + common)[:MAX_TAGS])

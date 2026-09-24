@@ -148,7 +148,7 @@ export default function AboutDirectoryPage() {
           </h2>
           <ul>
             <li>Only public records and each business's own website are used.</li>
-            <li>Every fact on a listing shows its source, a link to it, and the date it was checked.</li>
+            <li>Every fact on a listing shows its source and the date it was checked, with a link to the source whenever the source has one.</li>
             <li>
               A phone number, email, or opening hours appear only when the business publishes them on its own website. An email address appears only when it is
               a general office inbox on the business's own domain.

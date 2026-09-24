@@ -10,10 +10,14 @@ tenants never collapse into one listing. Every join writes a ``merges`` row with
 a plain sentence saying why, so the source trail can be checked by hand.
 
 Joining fills empty business columns only; it never overwrites a value, and it
-never touches a suppressed business beyond linking the record. Only primary
-public records (sales tax, TABC, NPI) create publishable businesses. A place
-known only from OpenStreetMap is kept for review until a primary record joins
-it and gives it that record's name.
+never touches a suppressed business beyond linking the record. Two exceptions
+keep the shown identity true to a current public record: a place known only
+from OpenStreetMap is kept for review until a primary record joins it and
+replaces its name, address, category and slug with that record's; and when
+the business's identity source (its first active primary record by source
+priority, then source key) changes its name or address, the business follows
+it and a review item records the change. Only primary public records (sales
+tax, TABC, NPI) create publishable businesses.
 
 A batch is processed by source priority and then by source key, so the same
 records produce the same businesses, public ids, and slugs whatever order they
@@ -357,36 +361,55 @@ def _enrich(conn: sqlite3.Connection, business_id: int, rec: _Rec, stamp: str, *
     values: dict = {}
 
     if confirm_osm:
+        # Everything OSM contributed is replaced, so no OSM-only value is later
+        # shown under the primary record's name. The business was always held
+        # in review, so its slug was never public and is rebuilt below.
         renamed = bool(rec.name) and rec.name != biz["name"]
-        if renamed:
+        category, label = categories.categorize(rec.naics or None, rec.tags)
+        values.update({
+            "street": rec.street_display() or None,
+            "street_norm": rec.street_norm or None,
+            "suite": rec.suite or None,
+            "zip": rec.zip or None,
+            "naics": rec.naics or None,
+            "category": category,
+            "category_label": label,
+            "slug": None,
+        })
+        if rec.name:
             values["name"] = rec.name
             values["name_norm"] = rec.name_norm
+        if rec.lat is not None and rec.lon is not None:
+            values["lat"], values["lon"] = rec.lat, rec.lon
         values["publish_state"] = "pending"
         values["publish_reason"] = None
         notes.append(
-            "It was known only from OpenStreetMap, so it "
-            + (f"now uses the {rec.label} record's name and " if renamed else "")
-            + "is no longer held for a primary source."
+            f"It was known only from OpenStreetMap, so it now uses the {rec.label} record's name, address"
+            " and category and is no longer held for a primary source."
+            if renamed else
+            f"It was known only from OpenStreetMap, so its address and category now come from the"
+            f" {rec.label} record and it is no longer held for a primary source."
         )
+    else:
+        if not biz["street_norm"] and rec.street_norm:
+            values["street"] = rec.street_display() or None
+            values["street_norm"] = rec.street_norm
+            values["suite"] = rec.suite or None
+        if not biz["zip"] and rec.zip:
+            values["zip"] = rec.zip
+        if not biz["naics"]:
+            if rec.naics:
+                values["naics"] = rec.naics
+                values["category"], values["category_label"] = categories.categorize(rec.naics, rec.tags)
+            elif biz["category"] == categories.FALLBACK[0] and rec.tags:
+                slug, label = categories.categorize(None, rec.tags)
+                if slug != categories.FALLBACK[0]:
+                    values["category"], values["category_label"] = slug, label
 
     if biz["lat"] is None and biz["lon"] is None and rec.lat is not None and rec.lon is not None:
         values["lat"], values["lon"] = rec.lat, rec.lon
-    if not biz["street_norm"] and rec.street_norm:
-        values["street"] = rec.street_display() or None
-        values["street_norm"] = rec.street_norm
-        values["suite"] = rec.suite or None
     if not biz["city"] and rec.city:
         values["city"] = rec.city
-    if not biz["zip"] and rec.zip:
-        values["zip"] = rec.zip
-    if not biz["naics"]:
-        if rec.naics:
-            values["naics"] = rec.naics
-            values["category"], values["category_label"] = categories.categorize(rec.naics, rec.tags)
-        elif biz["category"] == categories.FALLBACK[0] and rec.tags:
-            slug, label = categories.categorize(None, rec.tags)
-            if slug != categories.FALLBACK[0]:
-                values["category"], values["category_label"] = slug, label
     if rec.permit_start:
         current = biz["permit_start"]
         if not current or (rec.source_id == "tx_sales_tax" and rec.permit_start < current):
@@ -418,6 +441,88 @@ def _enrich(conn: sqlite3.Connection, business_id: int, rec: _Rec, stamp: str, *
     if values:
         values["updated_at"] = stamp
         _update(conn, business_id, values)
+    if confirm_osm:
+        assign_identity(conn, business_id)  # keeps public_id; the slug now comes from the primary name
+    return notes
+
+
+def _identity_source(conn: sqlite3.Connection, business_id: int) -> Optional[int]:
+    """The record the business's name and address follow: its first active
+    primary record by source priority, then source key."""
+    row = conn.execute(
+        f"SELECT id FROM source_records WHERE business_id=? AND active=1 AND source_id IN {_PRIMARY_SQL}"
+        f" ORDER BY {_ORDER_SQL} LIMIT 1",
+        (business_id,),
+    ).fetchone()
+    return int(row["id"]) if row else None
+
+
+def _refresh_identity(conn: sqlite3.Connection, business_id: int, rec: _Rec, stamp: str) -> List[str]:
+    """A changed primary record on an existing link: follow it if it is the
+    identity source, otherwise ask a person when it now disagrees.
+
+    Values go only into business columns and review items, never into logs.
+    """
+    biz = _business(conn, business_id)
+    if biz is None or not rec.is_primary or _is_suppressed(conn, biz):
+        return []
+    name_differs = bool(rec.name) and rec.name_norm != (biz["name_norm"] or "")
+    street_differs = bool(rec.street_norm) and rec.street_norm != (biz["street_norm"] or "")
+
+    if _identity_source(conn, business_id) != rec.id:
+        # Different spellings across sources are normal; only a clearly
+        # different name or another street is a conflict.
+        name_conflict = bool(rec.name) and normalize.name_similarity(rec.name, biz["name"] or "") < MERGE_SIMILARITY
+        street_conflict = street_differs and bool(biz["street_norm"])
+        for field, conflict, proposed, current in (
+            ("name", name_conflict, rec.name, biz["name"]),
+            ("address", street_conflict, rec.street_display(), biz["street"]),
+        ):
+            if conflict:
+                db.add_review(
+                    conn, kind="source_conflict", business_id=business_id, source_record_id=rec.id,
+                    field=field, proposed=proposed, current=current, source_url=rec.source_url, now=stamp,
+                    detail=(f"The {rec.label} record now lists a different {field} than the business;"
+                            " the business was not changed."),
+                )
+        return []
+
+    values: dict = {}
+    if name_differs:
+        values["name"], values["name_norm"] = rec.name, rec.name_norm
+    if rec.street_norm and (street_differs or (rec.suite or None) != biz["suite"]):
+        values["street"] = rec.street_display() or None
+        values["street_norm"] = rec.street_norm
+        values["suite"] = rec.suite or None
+    if rec.zip and rec.zip != biz["zip"]:
+        values["zip"] = rec.zip
+    if rec.naics and rec.naics != biz["naics"]:
+        values["naics"] = rec.naics
+        values["category"], values["category_label"] = categories.categorize(rec.naics, rec.tags)
+    if not values:
+        return []
+
+    notes = []
+    if name_differs:
+        db.add_review(
+            conn, kind="identity_changed", business_id=business_id, source_record_id=rec.id, field="name",
+            proposed=rec.name, current=biz["name"], source_url=rec.source_url, now=stamp,
+            detail=f"The {rec.label} record now lists a different name; the business follows it.",
+        )
+        notes.append(f"It now uses the {rec.label} record's current name.")
+    if street_differs:
+        if biz["street_norm"]:
+            db.add_review(
+                conn, kind="identity_changed", business_id=business_id, source_record_id=rec.id,
+                field="address", proposed=rec.street_display(), current=biz["street"],
+                source_url=rec.source_url, now=stamp,
+                detail=f"The {rec.label} record now lists a different street; the business follows it.",
+            )
+        # The website's listing vouched for the old street, not this one.
+        conn.execute("DELETE FROM facts WHERE business_id=? AND field='address_listed'", (business_id,))
+        notes.append(f"It now uses the {rec.label} record's current street.")
+    values["updated_at"] = stamp
+    _update(conn, business_id, values)
     return notes
 
 
@@ -525,7 +630,8 @@ def _match(conn: sqlite3.Connection, source_record_id: int, stamp: str) -> Match
     # 1. Already linked: refresh the business in place.
     if rec.business_id is not None and _business(conn, rec.business_id) is not None:
         conn.execute("UPDATE source_records SET match_state='matched' WHERE id=?", (rec.id,))
-        notes = _enrich(conn, rec.business_id, rec, stamp, confirm_osm=False)
+        notes = _refresh_identity(conn, rec.business_id, rec, stamp)
+        notes += _enrich(conn, rec.business_id, rec, stamp, confirm_osm=False)
         _resolve_merge_reviews(conn, rec.id, stamp)
         return MatchResult(
             "matched", rec.business_id, RULE_EXISTING,

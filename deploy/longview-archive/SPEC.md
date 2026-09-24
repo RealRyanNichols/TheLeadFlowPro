@@ -190,19 +190,41 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   alphabetic tokens with no business word and at least one token in the
   embedded common given-name list.
 - `outlet_is_personal_name(outlet_name, taxpayer_name, is_individual) -> bool`:
-  individual taxpayer and the outlet's name tokens are a subset of the
-  taxpayer's name tokens (order-insensitive), or individual and
-  `looks_like_person_name(outlet_name)`.
+  only for an individual taxpayer. Both names are compared as tokens with
+  hyphens split and generational suffixes (jr, sr, ii, iii, iv, v) and
+  single-letter initials dropped. Personal when the outlet's tokens are a
+  subset of the taxpayer's; or, when the outlet has no business word, when it
+  shares at least two tokens with the taxpayer's name or is 2–4 purely
+  alphabetic tokens; or when `looks_like_person_name(outlet_name)`. This is
+  deliberately conservative: holding back a business with no public presence
+  is the safe failure.
 - `has_public_presence(conn, business_id) -> bool`: a verified own website
   (fact `website` present), or a linked `osm`, `tx_tabc`, or `npi` record.
 - `address_is_public(conn, business_id) -> (bool, evidence)`: true only with
-  positive storefront evidence: fact `address_listed` (the site lists this street
-  number and street), a linked TABC or NPI record at the same street, a linked
-  OSM storefront at the same street, or a storefront NAICS (see
-  `STOREFRONT_NAICS_PREFIXES`: 441, 444, 445, 447, 449, 452, 455, 457, 4411,
-  722511, 722513, 722514, 722515, 721110, 812111, 812112, 811111, 811192,
-  622, 621210, 522110, 532111 and similar) with a non-individual taxpayer.
-  Otherwise the page shows "Longview, TX" only.
+  positive storefront evidence: fact `address_listed` (a line on the site has
+  the house number immediately followed by the street), a linked TABC or NPI
+  record at the same street, a linked OSM storefront at the same street, or a
+  storefront NAICS with a non-individual taxpayer. Otherwise the page shows
+  "Longview, TX" only.
+  - `osm_is_storefront(tags)`: an OSM record counts only when its tags describe
+    a public-facing premises: `shop=*`; `amenity` in restaurant, fast_food,
+    cafe, bar, pub, biergarten, ice_cream, food_court, bank, pharmacy, fuel,
+    car_wash, car_rental, cinema, theatre, nightclub, hospital, clinic,
+    dentist, doctors, veterinary; `tourism` hotel or motel; `leisure`
+    fitness_centre, sports_centre, bowling_alley. Never `craft=*`,
+    `office=*`, `healthcare=*` alone, childcare, kindergarten, place_of_worship,
+    driving_school, dojo, or guest_house (often mapped at a home).
+  - `storefront_naics(naics)`: `STOREFRONT_NAICS_PREFIXES` lists only
+    establishments that cannot reasonably be run from a home: 721110 hotels,
+    622 hospitals, 447/457110/457120 gas stations, 445110 supermarkets,
+    44512/445131 convenience stores, 4521/452210/452311/455110/455211
+    department stores and warehouse clubs, 4411 car dealers, 811192 car
+    washes, 5221 banks and credit unions, 512131 cinemas, 71395 bowling,
+    722511 full-service restaurants, 7224 bars. Salons, barbers, auto repair,
+    limited-service restaurants and the broad retail subsectors (NAICS 2022
+    moved online and home sellers into 449 and 455–459) need another signal.
+  - `premises_record(rec, street_norm)`: the per-record test above (TABC/NPI
+    at the street, or an OSM storefront at the street).
 - `generic_email_ok(email, site_domain) -> bool`: local part in the generic
   allowlist (info, office, contact, hello, frontdesk, front.desk, reception,
   appointments, appts, scheduling, service, services, sales, support, orders,
@@ -217,7 +239,19 @@ Field names used in `facts` / `observations` / `review_queue.field`:
 - `match_record(conn, source_record_id) -> MatchResult(action, business_id,
   rule, explanation)` where `action` is `matched`, `created`, `review`, or
   `ignored`. Rules, in order:
-  1. Existing link by `(source_id, source_key)`: update in place.
+  1. Existing link by `(source_id, source_key)`: update in place. The
+     business's identity source is its first ACTIVE linked primary record by
+     source priority (`tx_sales_tax`, `tx_tabc`, `npi`), then `source_key`.
+     When the changed record is the identity source, the business follows its
+     current name/`name_norm`, street/`street_norm`/suite, ZIP and
+     NAICS/category (non-empty values only; slug and public_id never change;
+     `permit_start` keeps the earliest sales-tax date), the `address_listed`
+     fact is deleted when the street changed (it vouched for the old street),
+     and a review `identity_changed` (field `name` and/or `address`, proposed =
+     new, current = old) is queued for visibility; it does not block
+     publishing. A changed record that is not the identity source and now
+     disagrees (name similarity below 0.6, or another street) queues
+     `source_conflict` and changes nothing. Values are never logged.
   2. Same phone (E.164) and addresses do not conflict (same `street_norm`+`zip`,
      or one side has no street): merge, rule `same_phone`. Same phone but a
      different street: review (`merge_ambiguous`, chain or shared line).
@@ -229,12 +263,18 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   6. Otherwise create a new business (only for primary sources:
      `tx_sales_tax`, `tx_tabc`, `npi`). An unmatched `osm` record creates a
      business with `publish_state='review'` and reason `osm_only_needs_primary_source`.
+     When a primary record later joins it, the primary record's name,
+     `name_norm`, street, `street_norm`, suite, ZIP, NAICS and category replace
+     the OSM values (lat/lon are kept only when the primary has none) and the
+     slug is rebuilt from the new name; the public_id is kept. This is safe
+     because an OSM-only business was never exported.
 - Chains: same name at different streets are separate businesses.
 - Every merge writes a `merges` row whose `explanation` is a plain sentence,
   e.g. "Joined because both records list +19035550100 at 1200 w example ave."
 - `match_pending(conn) -> counts`.
 - `assign_identity(conn, business_id)`: `public_id = "lv-" + base32(sha256(first
-  source_id:source_key))[:10].lower()`, and a unique slug `slugify(name)`,
+  source_id:source_key))[:10].lower()`, and a unique slug `slugify(name)` (set
+  once; only the OSM-only confirmation above clears and rebuilds it),
   then `-{street slug}`, then `-{public_id suffix}` on collision. Reserved slugs:
   `about`, `new`, `hiring`, `category`, `page`, `search`, `status`.
 
@@ -326,14 +366,18 @@ Field names used in `facts` / `observations` / `review_queue.field`:
 - `extract/social.py`: `social_links(page, business_name, site_domain) ->
   list[SocialCandidate(network, url, handle, matches: bool, reason)]` for
   facebook and instagram. Ignores share/sharer/plugins/tr/dialog links and the
-  platform's own pages. `matches` is true only when the handle's tokens overlap
-  the business name's distinctive tokens or the domain label.
+  platform's own pages. `matches` is true only when the handle shares a name
+  token of 4+ letters that is not a generic category, place, or brand word
+  (`GENERIC_HANDLE_WORDS`), or contains the whole domain label.
 - `extract/careers.py`: `careers_links(page) -> list[url]` (link text or path
   matching careers, jobs, employment, join our team, now hiring, we're hiring,
-  work with us, openings, apply) and `roles_on_page(page) -> list[str]` flags:
+  work with us, openings; "apply" only when the text or path also names jobs,
+  careers, employment, hiring, positions, or openings; or a known
+  applicant-tracking host) and `roles_on_page(page) -> list[str]` flags:
   `front_desk`, `office_manager`, `medical_assistant`, `dental_assistant`,
   `receptionist`.
 - `extract/services.py`: `service_tags(page, category) -> list[str]`: phrases
+  (a phrase in a negated clause such as "No delivery" is skipped)
   from the controlled `VOCABULARY` (per category plus shared) found in headings,
   nav texts, and short list items (≤ 60 chars). Never free text.
 - `extract/identity.py`: `site_matches_business(pages, business_name,

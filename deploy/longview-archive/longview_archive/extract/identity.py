@@ -4,8 +4,9 @@ Facts are taken from a website only after the site identifies itself as the
 business: its name in the title, site name, main heading, or structured data;
 its domain named after the business; or the business's street address or
 phone number listed on the site. ``address_listed`` is the storefront evidence
-privacy.address_is_public relies on, so it needs the street number and the
-street's core word together on one line.
+privacy.address_is_public relies on, so it needs the house number immediately
+followed by the street ('1200 W Example Ave'), not a number and a street word
+anywhere on the line ('White Oak since 2012').
 """
 
 from __future__ import annotations
@@ -49,11 +50,27 @@ def street_key(street: Optional[str]) -> Optional[Tuple[str, str]]:
     return None
 
 
-def _line_lists_street(line: str, key: Tuple[str, str]) -> bool:
+def _street_pattern(street: Optional[str]) -> Optional["re.Pattern[str]"]:
+    """The house number, an optional directional, at most two words, then the core word."""
+    key = street_key(street)
+    if key is None:
+        return None
     number, core = key
-    low = normalize._ascii(line).lower()
-    return bool(re.search(r"(?<![\w-])" + re.escape(number) + r"(?![\w-])", low)
-                and re.search(r"(?<![\w])" + re.escape(core) + r"(?![\w])", low))
+    street_norm, _ = normalize.parse_street(street)
+    words = street_norm.split()
+    direction = words[1] if len(words) > 2 and words[1] in _DIRECTIONS else None
+    spellings = sorted({k for k, v in normalize.DIRECTIONALS.items() if v == direction}, key=len, reverse=True)
+    dir_part = f"(?:(?:{'|'.join(spellings)})\\s+)?" if spellings else ""
+    return re.compile(
+        r"(?<![\w-])" + re.escape(number) + r"\s+" + dir_part
+        + r"(?:\S+\s+){0,2}?" + re.escape(core) + r"(?![\w])"
+    )
+
+
+def _line_lists_street(line: str, pattern: "re.Pattern[str]") -> bool:
+    # Cleaned like a street ("U.S. Hwy" -> "hwy", punctuation dropped) so the
+    # number-then-street order is checked on the same spelling as street_norm.
+    return bool(pattern.search(normalize._clean_street_text(line)))
 
 
 def _jsonld_names(page: Page) -> List[str]:
@@ -79,10 +96,10 @@ def site_matches_business(
         pages = [pages]
     pages = [p for p in pages if p is not None]
     tokens = normalize.name_tokens(business_name)
-    key = street_key(street) if street else None
+    pattern = _street_pattern(street) if street else None
 
-    address_listed = bool(key) and any(
-        _line_lists_street(line, key) for page in pages for line in page.lines
+    address_listed = pattern is not None and any(
+        _line_lists_street(line, pattern) for page in pages for line in page.lines
     )
 
     for page in pages:

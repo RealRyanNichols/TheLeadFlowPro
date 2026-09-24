@@ -44,7 +44,8 @@ request; that is cheap because the JSON is parsed once per server process.
 ## Honesty and privacy rules the pages enforce
 
 - Only facts in the export, each listed under "Sources and checks" with its
-  source, link, and check date. A missing fact shows an honest fallback.
+  source, check date, and a link when the source has one. A missing fact
+  shows an honest fallback.
 - A record is dropped if a contact fact (website, phone, email, hours, social,
   careers, services) is not sourced from the business's own website, if an
   email is not a generic office inbox on the site's own domain, if a street is

@@ -78,6 +78,14 @@ class TextFormatTests(unittest.TestCase):
     def test_24_hour_clock_hour_over_12(self):
         self.assertHours(["Mo,We 10:00-14:00"], same(("mon", "wed"), [["10:00", "14:00"]]))
 
+    def test_24_hour_split_day_on_one_line(self):
+        # One unmistakable 24-hour time (13:00) puts the whole line on a 24-hour clock.
+        self.assertHours(["Mon-Fri 08:00-12:00, 13:00-17:00"], same(WEEKDAYS, [["08:00", "12:00"], ["13:00", "17:00"]]))
+
+    def test_24_hour_overnight_close(self):
+        self.assertHours(["Fri 18:00-02:00"], {"fri": [["18:00", "02:00"]]})
+        self.assertHours(["Sat 17:00-00:00"], {"sat": [["17:00", "24:00"]]})
+
     def test_multiple_ranges_same_day(self):
         self.assertHours(["Monday 11am-2pm, 5pm-9pm"], {"mon": [["11:00", "14:00"], ["17:00", "21:00"]]})
 
@@ -162,6 +170,18 @@ class IssueTests(unittest.TestCase):
     def test_ambiguous_colon_times(self):
         self.assertIssue(["Mon-Fri 8:00 - 5:00"], "ambiguous_ampm")
 
+    def test_leading_zero_is_not_24_hour_evidence(self):
+        # "08:00-05:00" means 8 AM-5 PM on most sites; it is never published as 8 AM-5 AM.
+        for line in ("Mon-Fri 08:00-05:00", "Hours: Mon-Fri 08:00-05:00", "Monday - Friday 07:30 - 05:30",
+                     "Mon-Sat 06:00 - 09:00"):
+            with self.subTest(line=line):
+                self.assertIssue([line], "ambiguous_ampm")
+
+    def test_24_hour_form_without_an_hour_over_12_is_ambiguous(self):
+        # "08:00-12:00" could be 8 AM-noon or a 12-hour site's 8 AM-12 (midnight or noon); no guess.
+        self.assertIssue(["Sat 08:00-12:00"], "ambiguous_ampm")
+        self.assertIssue(["Mon-Fri 08:00-17:00", "Sat 08:00-12:00"], "ambiguous_ampm")
+
     def test_ambiguous_half_suffix(self):
         self.assertIssue(["Mon-Fri 8 - 5pm"], "ambiguous_ampm")
 
@@ -243,6 +263,55 @@ class JsonLdTests(unittest.TestCase):
             {"dayOfWeek": "Monday", "opens": "13:00", "closes": "17:00"},
         ]}]
         self.assertEqual(hours_from_jsonld(items).hours, {"mon": [["08:00", "12:00"], ["13:00", "17:00"]]})
+
+    def test_spec_close_before_open_both_12_hour_is_ambiguous(self):
+        for opens, closes in (("08:00", "05:00"), ("07:30:00", "05:30:00"), ("11:00", "02:00"), ("12:00", "02:00")):
+            with self.subTest(opens=opens, closes=closes):
+                items = [{"openingHoursSpecification": {"dayOfWeek": ["Monday", "Tuesday"], "opens": opens,
+                                                        "closes": closes}}]
+                result = hours_from_jsonld(items)
+                self.assertIsNone(result.hours)
+                self.assertEqual(result.issues, ["ambiguous_ampm"])
+
+    def test_opening_hours_string_close_before_open_is_ambiguous(self):
+        for value in ("Mo-Fr 8:00-5:00", "Mo-Fr 08:00-05:00"):
+            with self.subTest(value=value):
+                result = hours_from_jsonld([{"openingHours": value}])
+                self.assertIsNone(result.hours)
+                self.assertEqual(result.issues, ["ambiguous_ampm"])
+
+    def test_late_open_early_close_is_a_real_overnight(self):
+        items = [{"openingHoursSpecification": {"dayOfWeek": "Friday", "opens": "16:00", "closes": "02:00"}}]
+        result = hours_from_jsonld(items)
+        self.assertEqual((result.hours, result.issues), ({"fri": [["16:00", "02:00"]]}, []))
+        result = hours_from_jsonld([{"openingHours": "Fr-Sa 18:00-02:00"}])
+        self.assertEqual((result.hours, result.issues), (same(("fri", "sat"), [["18:00", "02:00"]]), []))
+
+    def test_overlapping_specs_same_day_are_multiple_blocks(self):
+        # Sales Mon 09:00-18:00 and Service Mon 08:00-17:00 in one AutoDealer item.
+        items = [{"@type": "AutoDealer", "openingHoursSpecification": [
+            {"dayOfWeek": "Monday", "opens": "09:00", "closes": "18:00"},
+            {"dayOfWeek": "Monday", "opens": "08:00", "closes": "17:00"},
+        ]}]
+        result = hours_from_jsonld(items)
+        self.assertIsNone(result.hours)
+        self.assertEqual(result.issues, ["multiple_blocks"])
+
+    def test_duplicate_specs_same_day_are_multiple_blocks(self):
+        items = [{"openingHoursSpecification": [
+            {"dayOfWeek": ["Monday", "Tuesday"], "opens": "08:00", "closes": "17:00"},
+            {"dayOfWeek": "Monday", "opens": "08:00", "closes": "17:00"},
+        ]}]
+        result = hours_from_jsonld(items)
+        self.assertIsNone(result.hours)
+        self.assertEqual(result.issues, ["multiple_blocks"])
+
+    def test_overlap_past_midnight_is_multiple_blocks(self):
+        items = [{"openingHoursSpecification": [
+            {"dayOfWeek": "Friday", "opens": "18:00", "closes": "02:00"},
+            {"dayOfWeek": "Friday", "opens": "20:00", "closes": "23:00"},
+        ]}]
+        self.assertEqual(hours_from_jsonld(items).issues, ["multiple_blocks"])
 
     def test_holiday_overrides_ignored(self):
         items = [{"openingHoursSpecification": [

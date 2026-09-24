@@ -37,7 +37,7 @@ import {
 } from "../lib/longviewDirectory/query.ts";
 import type { Directory, DirectoryBusiness, WeeklyHours } from "../lib/longviewDirectory/types.ts";
 import { applySuppressions, genericEmailOk, registrableDomain, validateDirectory } from "../lib/longviewDirectory/validate.ts";
-import { directoryProblems } from "../scripts/validate-directory.ts";
+import { directoryProblems, directoryWarnings } from "../scripts/validate-directory.ts";
 import { BUSINESS } from "../lib/site/business.ts";
 
 const FIXTURE = path.join(process.cwd(), "tests/fixtures/longview-directory.sample.json");
@@ -160,10 +160,35 @@ test("the validator drops each kind of record that breaks the publish contract",
     ["unknown_category", "example-tire-and-lube", (b) => (b.category = "casinos")],
     ["bad_id", "example-tire-and-lube", (b) => (b.id = "12345")],
     ["bad_indexable", "example-tire-and-lube", (b) => (b.indexable = "yes")],
+    // "From the website" means a page on the business's own registrable domain.
+    ["website_fact_off_site:phone", "example-tire-and-lube", (b) => {
+      for (const f of b.facts) if (f.field === "phone") f.url = "https://www.listings.example/biz/example-tire";
+    }],
+    ["website_fact_off_site:email", "example-tire-and-lube", (b) => {
+      for (const f of b.facts) if (f.field === "email") f.url = "https://exampletire.example.other/contact";
+    }],
+    ["website_fact_without_url:hours", "example-tire-and-lube", (b) => {
+      for (const f of b.facts) if (f.field === "hours") f.url = null;
+    }],
+    ["careers_url_off_site", "example-tire-and-lube", (b) => (b.careersUrl = "https://jobs.listings.example/example-tire")],
+    ["careers_url_off_site", "example-tire-and-lube", (b) => (b.careersUrl = "https://indeed.com.example/job/1")],
   ];
   for (const [reason, slug, change] of cases) {
     assert.equal(dropReason(slug, change), reason, reason);
   }
+});
+
+test("website facts and careers links may sit on a subdomain, and careers on a known job board", () => {
+  const raw = rawFixture();
+  const tire = raw.businesses.find((b) => b.slug === "example-tire-and-lube");
+  const dental = raw.businesses.find((b) => b.slug === "example-family-dental-studio");
+  assert.ok(tire && dental);
+  for (const f of tire.facts) if (f.field === "hours") f.url = "https://shop.exampletire.example/hours";
+  tire.careersUrl = "https://jobs.exampletire.example/openings";
+  dental.careersUrl = "https://exampledental.applytojob.com/apply";
+  const result = validateDirectory(raw);
+  assert.deepEqual(result.dropped, []);
+  assert.equal(bySlug(result.directory, "example-family-dental-studio").careersUrl, "https://exampledental.applytojob.com/apply");
 });
 
 test("slug and id collisions drop the later record; unknown schema versions yield an empty directory", () => {
@@ -173,7 +198,7 @@ test("slug and id collisions drop the later record; unknown schema versions yiel
   raw.businesses.push(copy);
   const collision = validateDirectory(raw);
   assert.deepEqual(collision.dropped, [{ id: "lv-sampl99999", reason: "duplicate_slug" }]);
-  assert.ok(directoryProblems({ file: "x", directory: { ...collision.directory, sample: false }, rawCount: 11, dropped: collision.dropped, suppressed: [], issues: [] })
+  assert.ok(directoryProblems({ file: "x", directory: { ...collision.directory, sample: false }, rawCount: 11, dropped: collision.dropped, suppressed: [], unmatchedSuppressions: [], issues: [] })
     .some((p) => p.includes("slug collision")));
 
   const future = rawFixture();
@@ -196,7 +221,7 @@ test("email and domain rules mirror the engine's privacy.py", () => {
   assert.equal(genericEmailOk("info@exampletire.example.other", "exampletire.example"), false);
 });
 
-test("suppressed ids never render, and an unreadable removal list hides everything", () => {
+test("suppressed ids and slugs never render, and an unreadable removal list hides everything", () => {
   const directory = sample();
   const target = bySlug(directory, "example-tire-and-lube");
   const { directory: hidden, suppressed } = applySuppressions(directory, [target.id, "lv-notlisted1"]);
@@ -210,6 +235,26 @@ test("suppressed ids never render, and an unreadable removal list hides everythi
   const report = readDirectory(FIXTURE, list);
   assert.deepEqual(report.suppressed, [target.id]);
   assert.equal(report.directory.businesses.length, directory.businesses.length - 1);
+
+  // An id or a slug, in any case and with stray spaces, hides the listing.
+  for (const entry of [target.id.toUpperCase(), ` ${target.id} `, target.slug, " Example-Tire-And-Lube"]) {
+    writeFileSync(list, JSON.stringify({ ids: [entry] }));
+    const hiddenBy = readDirectory(FIXTURE, list);
+    assert.deepEqual(hiddenBy.suppressed, [target.id], JSON.stringify(entry));
+    assert.deepEqual(hiddenBy.issues, [], JSON.stringify(entry));
+    assert.deepEqual(hiddenBy.unmatchedSuppressions, []);
+  }
+
+  // An entry that is neither an id nor a slug fails the build; one that matches
+  // nothing is only a warning.
+  writeFileSync(list, JSON.stringify({ ids: ["Example Tire & Lube", "lv-notlisted1", "example-gone-shop"] }));
+  const odd = readDirectory(FIXTURE, list);
+  const oddProblems = directoryProblems({ ...odd, directory: { ...odd.directory, sample: false } });
+  assert.equal(oddProblems.length, 1);
+  assert.match(oddProblems[0], /"example tire & lube" is neither a business id/);
+  assert.deepEqual(odd.unmatchedSuppressions, ["lv-notlisted1", "example-gone-shop"]);
+  assert.equal(directoryWarnings(odd).length, 2);
+  assert.equal(directoryProblems({ ...odd, directory: { ...odd.directory, sample: false }, issues: [] }).length, 0);
 
   writeFileSync(list, "{ not json");
   const broken = readDirectory(FIXTURE, list);

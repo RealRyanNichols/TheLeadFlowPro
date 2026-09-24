@@ -72,6 +72,13 @@ const MULTI_LABEL_SUFFIXES = new Set([
   "tx.us", "k12.tx.us", "state.tx.us", "ci.longview.tx.us",
 ]);
 
+/** Mirrors ATS_HOSTS in the engine's extract/careers.py: the only off-site careers links it keeps. */
+const ATS_HOSTS: readonly string[] = [
+  "indeed.com", "workforcenow.adp.com", "applytojob.com", "bamboohr.com", "paylocity.com",
+  "jobs.lever.co", "boards.greenhouse.io", "myworkdayjobs.com", "ziprecruiter.com", "jazzhr.com",
+  "paycomonline.net", "ultipro.com", "dayforcehcm.com",
+];
+
 /** Fields that may only come from the business's own website. */
 const WEBSITE_ONLY_FIELDS: ReadonlySet<FactField> = new Set([
   "website", "phone", "email", "hours", "facebook", "instagram", "careers", "services",
@@ -177,6 +184,12 @@ export function genericEmailOk(email: string, siteUrlOrHost: string): boolean {
   if (!GENERIC_EMAIL_LOCALS.has(local)) return false;
   const site = registrableDomain(siteUrlOrHost);
   return site !== "" && registrableDomain(m[2]) === site;
+}
+
+/** Mirrors careers.is_ats_host: the host is a known applicant-tracking host or one of its subdomains. */
+export function isAtsHost(host: string): boolean {
+  const h = host.toLowerCase().replace(/\.$/, "");
+  return ATS_HOSTS.some((ats) => h === ats || h.endsWith(`.${ats}`));
 }
 
 /** "+19035550100" -> "(903) 555-0100"; null when it is not a valid NANP number. */
@@ -350,6 +363,20 @@ function checkBusiness(raw: unknown, knownCategories: ReadonlySet<string>): Dire
     if (fact.field === "permitSince" && fact.source !== "tx_sales_tax") fail("permit_fact_not_from_comptroller");
   }
   if (facts.some((f) => f.source === "website") && !website) fail("website_fact_without_website");
+  if (website) {
+    // "From the website" must mean a page on that website (or a subdomain),
+    // not a directory or review site that happens to list the business.
+    const site = registrableDomain(website.url);
+    for (const fact of facts) {
+      if (fact.source !== "website") continue;
+      if (!fact.url) fail(`website_fact_without_url:${fact.field}`);
+      if (registrableDomain(fact.url) !== site) fail(`website_fact_off_site:${fact.field}`);
+    }
+    // The careers link itself may point at a job board, but only the ones the engine keeps.
+    if (careersUrl && registrableDomain(careersUrl) !== site && !isAtsHost(new URL(careersUrl).hostname)) {
+      fail("careers_url_off_site");
+    }
+  }
   for (const field of shownFields(business)) {
     if (!facts.some((f) => f.field === field)) fail(`missing_fact:${field}`);
   }
@@ -525,19 +552,37 @@ export function validateDirectory(raw: unknown): ValidationResult {
   };
 }
 
-/** Removal requests win immediately: suppressed ids never render. */
-export function applySuppressions(directory: Directory, ids: Iterable<string>): { directory: Directory; suppressed: string[] } {
-  const hidden = new Set(ids);
-  const suppressed = directory.businesses.filter((b) => hidden.has(b.id)).map((b) => b.id);
-  if (!suppressed.length) return { directory, suppressed };
-  const businesses = directory.businesses.filter((b) => !hidden.has(b.id));
-  const names = new Map(directory.categories.map((c) => [c.slug, c.name]));
-  return { directory: { ...directory, businesses, categories: recountCategories(businesses, names) }, suppressed };
+/** Removal entries are compared trimmed and lowercased, so " LV-ABC..." still hides the listing. */
+export function normalizeSuppression(entry: string): string {
+  return entry.trim().toLowerCase();
 }
 
-/** suppressions.json: { "ids": ["lv-..."] }. Null when the file is unusable. */
+/** A usable removal entry: a business id (lv-...) or a profile slug. */
+export function isSuppressionEntry(entry: string): boolean {
+  return ID_RE.test(entry) || (entry.length <= 160 && SLUG_RE.test(entry));
+}
+
+/**
+ * Removal requests win immediately: a business whose id or slug is listed
+ * never renders. `unmatched` lists entries that hide nothing in this directory.
+ */
+export function applySuppressions(
+  directory: Directory,
+  entries: Iterable<string>,
+): { directory: Directory; suppressed: string[]; unmatched: string[] } {
+  const hidden = new Set([...entries].map(normalizeSuppression));
+  const isHidden = (b: DirectoryBusiness) => hidden.has(b.id) || hidden.has(b.slug);
+  const suppressed = directory.businesses.filter(isHidden).map((b) => b.id);
+  const unmatched = [...hidden].filter((e) => !directory.businesses.some((b) => b.id === e || b.slug === e));
+  if (!suppressed.length) return { directory, suppressed, unmatched };
+  const businesses = directory.businesses.filter((b) => !isHidden(b));
+  const names = new Map(directory.categories.map((c) => [c.slug, c.name]));
+  return { directory: { ...directory, businesses, categories: recountCategories(businesses, names) }, suppressed, unmatched };
+}
+
+/** suppressions.json: { "ids": ["lv-..." or "a-slug"] }, normalized. Null when the file is unusable. */
 export function parseSuppressions(raw: unknown): string[] | null {
   if (!isRecord(raw) || !Array.isArray(raw.ids)) return null;
   if (raw.ids.some((id) => typeof id !== "string")) return null;
-  return raw.ids as string[];
+  return (raw.ids as string[]).map(normalizeSuppression);
 }
