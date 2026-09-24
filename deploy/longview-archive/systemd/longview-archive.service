@@ -60,11 +60,12 @@ AmbientCapabilities=
 # Network defence in depth. The crawler already refuses private addresses on
 # every hop (the SSRF guard in fetcher.py); the kernel refuses them as well, so
 # no bug can reach the Central Brain API, Postgres, pda-api, the Call Desk CRM,
-# the private VPC network, or the cloud metadata service (169.254.169.254).
+# the private VPC network (IPv4 and IPv6), or the cloud metadata service
+# (169.254.169.254).
 # The one exception is 127.0.0.53, the systemd-resolved stub, so DNS keeps
 # working. In systemd a matching IPAddressAllow= wins over IPAddressDeny=, so
 # this re-opens that single address and nothing else local.
-IPAddressDeny=localhost link-local multicast 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10
+IPAddressDeny=localhost link-local multicast 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 fc00::/7
 IPAddressAllow=127.0.0.53
 
 [Install]
