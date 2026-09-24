@@ -4,6 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { loadCallSheet, LOOKBACK_DAYS } from "@/lib/callSheetServer";
 import { ANSWER_WINDOW_HOURS, FOLLOW_UP_AFTER_DAYS, TIER_LABELS, TIER_ORDER, ageLabel, tiers } from "@/lib/callSheet";
 import { NEXT_CALL_PATH } from "@/lib/callQueue";
+import { emailGap } from "@/lib/contactGaps";
+import { formatPhone } from "@/lib/hq/phone";
+import { hasLeadEmailAddress } from "@/lib/leadMessageAuthor";
 import { speedToLeadLine } from "@/lib/speedToLead";
 import { BUSINESS } from "@/lib/site/business";
 import { toE164 } from "@/lib/quo";
@@ -24,6 +27,12 @@ import LiveRefresh from "../command-center/LiveRefresh";
 // The speed-to-lead line under the heading comes from the same rows the
 // sheet was built from. It is Ryan's own record of his own follow-up, shown
 // only here, never as a public claim.
+//
+// Email follows the call card's rule (hasLeadEmailAddress): a button only for
+// a real address. Facebook's placeholder (no-email.facebook.lead) and a
+// missing address get the reason in muted text instead, in the call card's
+// own words (lib/contactGaps.ts). The Call button reads the number it dials,
+// formatted the way the rest of the back office shows one: (903) 555-0142.
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Today's calls | The LeadFlow Pro" };
@@ -39,6 +48,11 @@ function telHref(phone: string | null): string | null {
   if (!phone) return null;
   const e164 = toE164(phone);
   return e164 ? `tel:${e164}` : null;
+}
+
+/** "Call (903) 555-0142": the number the tel: link dials, never a different one. */
+function callLabel(tel: string): string {
+  return `Call ${formatPhone(tel.slice("tel:".length))}`;
 }
 
 function smsHref(phone: string | null): string | null {
@@ -179,6 +193,9 @@ export default async function CallSheetPage() {
                   const tel = telHref(row.lead.phone);
                   // Consent and no STOP since, the same rule as the CRM send route.
                   const sms = row.canText ? smsHref(row.lead.phone) : null;
+                  // The call card's rule: an Email button only for a real address, otherwise the reason.
+                  const mail = hasLeadEmailAddress(row.lead.email) ? `mailto:${row.lead.email}` : null;
+                  const noEmail = mail ? null : emailGap(row.lead.email);
                   const name = row.lead.full_name || "Unnamed lead";
                   return (
                     <li key={row.lead.id} className="card !p-4">
@@ -202,7 +219,7 @@ export default async function CallSheetPage() {
                           </Link>
                           {tel ? (
                             <a href={tel} className={ROW_OUTLINE}>
-                              Call {row.lead.phone}
+                              {callLabel(tel)}
                             </a>
                           ) : (
                             <span className={ROW_MISSING}>No phone on file</span>
@@ -220,10 +237,12 @@ export default async function CallSheetPage() {
                               No text consent
                             </span>
                           ) : null}
-                          {row.lead.email ? (
-                            <a href={`mailto:${row.lead.email}`} className={ROW_OUTLINE}>
+                          {mail ? (
+                            <a href={mail} className={ROW_OUTLINE}>
                               Email
                             </a>
+                          ) : noEmail ? (
+                            <span className={ROW_MISSING}>{noEmail.label}</span>
                           ) : null}
                           <Link href={`/admin/leads/${row.lead.id}`} className={ROW_LINK}>
                             Full record

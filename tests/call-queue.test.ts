@@ -8,7 +8,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import * as callQueue from "../lib/callQueue.ts";
 import * as callSheet from "../lib/callSheet.ts";
+import * as contactGaps from "../lib/contactGaps.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
+import * as hqPhone from "../lib/hq/phone.ts";
+import * as leadMessageAuthor from "../lib/leadMessageAuthor.ts";
 import * as quo from "../lib/quo.ts";
 import * as business from "../lib/site/business.ts";
 import * as speedToLead from "../lib/speedToLead.ts";
@@ -225,7 +228,7 @@ function callSheetServerModule(): Record<string, unknown> {
 const StubLink = ({ href, children, prefetch, ...rest }: { href: string; children?: ReactNode; prefetch?: boolean | null }) =>
   createElement("a", { href, "data-prefetch": prefetch === false ? "off" : undefined, ...rest }, children);
 
-function load(file: string, db: Db) {
+function load(file: string, db: Db, extra: Record<string, unknown> = {}) {
   const reads: string[] = [];
   const code = ts.transpileModule(src(file), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
@@ -242,10 +245,14 @@ function load(file: string, db: Db) {
     "@/lib/callSheetServer": callSheetServerModule(),
     "@/lib/callSheet": callSheet,
     "@/lib/callQueue": callQueue,
+    "@/lib/contactGaps": contactGaps,
+    "@/lib/hq/phone": hqPhone,
+    "@/lib/leadMessageAuthor": leadMessageAuthor,
     "@/lib/speedToLead": speedToLead,
     "@/lib/site/business": business,
     "@/lib/quo": quo,
     "../command-center/LiveRefresh": { __esModule: true, default: () => null },
+    ...extra,
   };
   const mod: { exports: { default?: (props: unknown) => Promise<unknown> } } = { exports: {} };
   new Function("require", "module", "exports", code)(
@@ -314,6 +321,13 @@ test("next page: caught up says so calmly, says when people come back, and links
   assert.ok(!/role="alert"/.test(empty.html));
   assert.match(empty.html, /min-h-\[52px\]/);
   assert.deepEqual(copyProblems(text), []);
+  // Caught up, the call sheet is empty: the lead list is the one big button, the sheet a quiet link after it.
+  const big = [...empty.html.matchAll(/<a href="([^"]*)"[^>]*class="([^"]*)"[^>]*>([^<]*)<\/a>/g)].filter((m) => m[2].includes("min-h-[52px]"));
+  assert.deepEqual(big.map((m) => [m[1], m[3]]), [["/admin", "Open the lead list"]]);
+  const sheetLink = /<a href="\/admin\/call-sheet"[^>]*class="([^"]*)"[^>]*>See the call sheet<\/a>/.exec(empty.html);
+  assert.ok(sheetLink, empty.html);
+  assert.ok(!sheetLink[1].includes("min-h-[52px]") && sheetLink[1].includes("min-h-[44px]"), sheetLink[1]);
+  assert.ok(empty.html.indexOf("Open the lead list") < empty.html.indexOf("See the call sheet"));
 
   // Everyone left was skipped in this run: the end of the list, and a way to go through them again.
   const skipped = await nextPage({ leads: threeLeads() }, { skip: `${A},${B},${C}` });
@@ -321,6 +335,10 @@ test("next page: caught up says so calmly, says when people come back, and links
   assert.ok(st.includes("That is the end of the list."), st);
   assert.ok(st.includes("3 people you skipped are still on the list"), st);
   assert.match(skipped.html, /<a href="\/admin\/call-sheet\/next" data-prefetch="off"[^>]*>Call the ones you skipped<\/a>/);
+  // Going through the skipped ones again is the one big button; the sheet and the lead list stay quiet links.
+  const skippedBig = [...skipped.html.matchAll(/<a href="([^"]*)"[^>]*class="([^"]*)"[^>]*>([^<]*)<\/a>/g)].filter((m) => m[2].includes("min-h-[52px]"));
+  assert.deepEqual(skippedBig.map((m) => m[3]), ["Call the ones you skipped"]);
+  assert.ok(st.includes("See the call sheet") && st.includes("Open the lead list"), st);
   assert.deepEqual(copyProblems(st), []);
   const one = textOf((await nextPage({ leads: threeLeads().slice(0, 1) }, { skip: C })).html);
   assert.ok(one.includes("1 person you skipped is still on the list"), one);
@@ -473,6 +491,144 @@ test("call sheet rows: Open call card is the one filled button; Call, Text and E
   assert.ok(!other.includes('href="sms:') && other.includes("No text consent"));
 });
 
+test("call sheet rows: Email only for a real address, the call card's rule; otherwise the reason, muted", async () => {
+  const leads = [
+    sheetLead({ id: A, full_name: "Alex Sample", email: "alex@example.test", phone: "+19035550105", created_at: new Date(Date.now() - 3_600_000).toISOString() }),
+    sheetLead({ id: B, full_name: "Blair Sample", email: "demo-0010@no-email.facebook.lead", created_at: new Date(Date.now() - 2 * 3_600_000).toISOString() }),
+    sheetLead({ id: C, full_name: "Casey Sample", email: null, created_at: new Date(Date.now() - 3 * 3_600_000).toISOString() }),
+    sheetLead({ id: id(4), full_name: "Dana Sample", email: "DEMO-0011@No-Email.Facebook.Lead", created_at: new Date(Date.now() - 4 * 3_600_000).toISOString() }),
+  ];
+  const out = await sheetPage({ leads });
+  const rows = out.html.split("<li ").slice(1);
+  const row = (name: string) => {
+    const found = rows.find((r) => r.includes(name));
+    assert.ok(found, name);
+    return found;
+  };
+  const muted = (r: string, words: string) =>
+    new RegExp(`<span class="([^"]*)">${words}</span>`).exec(r)?.[1] ?? "";
+
+  // A real address: the Email outline, straight to their address.
+  const alex = row("Alex Sample");
+  const email = /<a href="mailto:alex@example\.test" class="([^"]*)">Email<\/a>/.exec(alex);
+  assert.ok(email, alex);
+  assert.ok(email[1].includes("border") && email[1].includes("min-h-[44px]") && !email[1].includes("bg-[var(--blue)]"), email[1]);
+  // Facebook's placeholder, in any case: no mailto, the call card's reason in muted text.
+  for (const name of ["Blair Sample", "Dana Sample"]) {
+    const r = row(name);
+    assert.ok(!r.includes('href="mailto:'), name);
+    assert.ok(!/>Email</.test(r), name);
+    const cls = muted(r, "Facebook did not share an email");
+    assert.ok(cls.includes("text-[var(--muted)]") && cls.includes("min-h-[44px]"), `${name}: ${cls}`);
+  }
+  // Nothing on file: the reason, never a button.
+  const casey = row("Casey Sample");
+  assert.ok(!casey.includes('href="mailto:'));
+  assert.ok(muted(casey, "No email on file").includes("text-[var(--muted)]"), casey);
+  // The words are lib/contactGaps.ts's own, and the page uses the call card's check.
+  assert.equal(contactGaps.emailGap("demo-0010@no-email.facebook.lead")?.label, "Facebook did not share an email");
+  assert.equal(contactGaps.emailGap(null)?.label, "No email on file");
+  const page = src(SHEET_PAGE);
+  assert.ok(page.includes("hasLeadEmailAddress(row.lead.email)"), "the call card's rule");
+  assert.ok(page.includes("emailGap(row.lead.email)"), "the call card's words");
+  assert.ok(!/row\.lead\.email \? \(/.test(page), "no Email button just because the field is filled");
+
+  // The Call button reads the number it dials, formatted: (903) 555-0105, not +19035550105.
+  assert.match(alex, /<a href="tel:\+19035550105" class="[^"]*">Call \(903\) 555-0105<\/a>/);
+  assert.ok(!textOf(alex).includes("Call +1"), textOf(alex));
+  for (const r of rows) assert.deepEqual(copyProblems(textOf(r)), []);
+});
+
+/** The admin layout, run for real: auth, then the header. Next and the page's own components are stubbed. */
+async function adminLayout(db: Db = {}) {
+  const { run, reads } = load("app/admin/layout.tsx", db, {
+    "@/lib/publicPageMetadata": { PRIVATE_PAGE_METADATA: {} },
+    "lucide-react": {
+      Menu: (props: Record<string, unknown>) => createElement("svg", { ...props, "data-icon": "menu" }),
+      X: (props: Record<string, unknown>) => createElement("svg", { ...props, "data-icon": "close" }),
+    },
+    "@/components/BrandLockup": { __esModule: true, default: ({ href }: { href: string }) => createElement("a", { href, "data-brand": "" }, "The LeadFlow Pro") },
+    "@/components/InternalTrafficMarker": { __esModule: true, default: () => null },
+    // The real SignOutButton's markup: a form that posts to /auth/signout with one submit button.
+    "@/components/SignOutButton": {
+      __esModule: true,
+      default: ({ className }: { className?: string }) =>
+        createElement("form", { action: "/auth/signout", method: "post" }, createElement("button", { type: "submit", className }, "Sign out")),
+    },
+    "./AdminMenuCloser": { __esModule: true, default: () => null },
+  });
+  try {
+    const element = await run({ children: createElement("main", null, "PAGE") });
+    return { html: renderToStaticMarkup(element as never), reads, redirect: null as string | null };
+  } catch (e) {
+    if (e instanceof Redirect) return { html: "", reads, redirect: e.url };
+    throw e;
+  }
+}
+
+test("the back office nav on a phone: one row with Today's calls and a 44px Menu; the full row from sm up", async () => {
+  const out = await adminLayout();
+  assert.equal(out.redirect, null);
+  const html = out.html;
+  const header = html.slice(0, html.indexOf("<main>PAGE</main>"));
+  const nav = html.slice(html.indexOf("<nav"), html.indexOf("</nav>") + "</nav>".length);
+  const anchors = (part: string) => [...part.matchAll(/<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].map((m) => ({ href: m[1], text: textOf(m[2]), tag: m[0] }));
+
+  // Today's calls: the first link in the nav, the only link to the call sheet anywhere in the header, under that name.
+  const all = anchors(nav);
+  assert.deepEqual({ href: all[0].href, text: all[0].text }, { href: "/admin/call-sheet", text: "Today's calls" });
+  assert.equal(all.filter((a) => a.href === "/admin/call-sheet").length, 1);
+  assert.equal((header.match(/href="\/admin\/call-sheet"/g) ?? []).length, 1);
+  assert.ok(!textOf(nav).includes("Call sheet"));
+  // On a phone it is a 44px target; from sm up its classes are the old ones.
+  assert.match(all[0].tag, /class="font-black text-\[var\(--text\)\] hover:text-\[var\(--heading\)\] [^"]*max-sm:min-h-\[44px\]/);
+
+  // From sm up: every other link in one row, as before. The wrapper only hides below sm.
+  const rowStart = nav.indexOf('<div class="contents max-sm:hidden">');
+  const menuStart = nav.indexOf("<details");
+  assert.ok(rowStart > nav.indexOf("Today&#x27;s calls") && menuStart > rowStart, "Today's calls, then the row, then Menu");
+  const row = anchors(nav.slice(rowStart, menuStart));
+  assert.ok(row.length >= 19, String(row.length));
+  assert.match(nav.slice(rowStart, menuStart), /<button type="submit"[^>]*>Sign out<\/button>/);
+
+  // Below sm: Menu, a <details> that works without JavaScript, 44px, labelled, with a focus ring.
+  const details = /<details id="back-office-menu" class="([^"]*)">([\s\S]*?)<\/details>/.exec(nav);
+  assert.ok(details, nav);
+  assert.ok(details[1].split(" ").includes("sm:hidden"), details[1]);
+  assert.ok(!/\sopen=""/.test(details[0].slice(0, details[0].indexOf(">"))), "closed until tapped");
+  const summary = /<summary class="([^"]*)">([\s\S]*?)<\/summary>/.exec(details[2]);
+  assert.ok(summary);
+  assert.equal(textOf(summary[2]), "Menu");
+  assert.ok(summary[1].includes("min-h-[44px]") && summary[1].includes("focus-visible:outline"), summary[1]);
+  assert.ok(/<svg[^>]*aria-hidden="true"/.test(summary[2]), "the icons are decoration");
+  // It holds exactly the row's links, in the row's order, each a 44px target with a focus ring, and Sign out.
+  const menu = anchors(details[2]);
+  assert.deepEqual(menu.map((a) => [a.href, a.text]), row.map((a) => [a.href, a.text]));
+  for (const a of menu) {
+    assert.ok(/min-h-\[44px\]/.test(a.tag) && /focus-visible:outline/.test(a.tag), a.tag);
+  }
+  assert.ok(!menu.some((a) => a.href === "/admin/call-sheet"), "Today's calls stays in the row, once");
+  assert.match(details[2], /<form action="\/auth\/signout" method="post"><button type="submit" class="[^"]*min-h-\[44px\][^"]*">Sign out<\/button><\/form>/);
+
+  // The Sales Desk is "Sales desk" in the nav, never "Today queue" beside "Today's calls".
+  assert.ok(row.some((a) => a.href === "/admin/sales" && a.text === "Sales desk"));
+  assert.ok(!header.includes("Today queue"));
+  // The brand gives its row to the page on a phone and is back from sm up.
+  assert.match(header, /<div class="mb-6 hidden sm:block"><a href="\/" data-brand="">/);
+  assert.match(header, /<h1 class="[^"]*sm:text-2xl[^"]*">Back Office<\/h1>/);
+  assert.deepEqual(copyProblems(textOf(header)), []);
+
+  // The closer is progressive: it only closes the menu, never opens it, reads, or sends anything.
+  const closer = src("app/admin/AdminMenuCloser.tsx");
+  assert.ok(closer.startsWith('"use client";'));
+  assert.ok(!/\.open = true|fetch\(|supabase|sendBeacon/.test(closer), "closes only");
+  assert.match(src("app/admin/layout.tsx"), /<AdminMenuCloser menuId=\{MENU_ID\} \/>/);
+
+  // Signed out or not an admin: nothing renders.
+  assert.equal((await adminLayout({ signedIn: false })).redirect, "/login?next=/admin");
+  assert.equal((await adminLayout({ role: "sales" })).redirect, "/dashboard");
+});
+
 test("Today's calls is first in the back office nav", () => {
   const layout = src("app/admin/layout.tsx");
   const nav = layout.slice(layout.indexOf("<nav"), layout.indexOf("</nav>"));
@@ -495,6 +651,7 @@ test("the new and changed call files keep the house style: no long dashes, no ha
     "app/admin/call-sheet/[leadId]/page.tsx",
     "app/admin/page.tsx",
     "app/admin/layout.tsx",
+    "app/admin/AdminMenuCloser.tsx",
     "components/WorkspaceLinks.tsx",
   ]) {
     const text = src(file);

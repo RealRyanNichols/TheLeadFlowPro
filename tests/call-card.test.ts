@@ -24,6 +24,7 @@ import CallOutcomePanel, {
   pickHint,
   reachFor,
   readSaved,
+  restoredFromCache,
   showsLogPrompt,
   type CallOutcomePanelProps,
   type Reach,
@@ -37,6 +38,7 @@ import * as callCloserFixtures from "../lib/callCloserFixtures.ts";
 import * as callQueue from "../lib/callQueue.ts";
 import * as callSheet from "../lib/callSheet.ts";
 import * as contactGaps from "../lib/contactGaps.ts";
+import * as hqPhone from "../lib/hq/phone.ts";
 import * as leadMessageAuthor from "../lib/leadMessageAuthor.ts";
 import * as leadTimeline from "../lib/leadTimeline.ts";
 import * as payDoors from "../lib/payDoors.ts";
@@ -654,9 +656,13 @@ test("after a save on the call card, Next call is the first thing to tap; withou
   const NEXT = "/admin/call-sheet/next?skip=abc";
   assert.deepEqual(nextCallLink({ nextHref: NEXT, left: 4 }, false), { href: NEXT, label: "Next call · 4 left" });
   assert.equal(nextCallLink({ nextHref: NEXT, left: 1 }, false)?.label, "Next call · 1 left");
-  for (const left of [0, null, -2, 2.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+  for (const left of [null, -2, 2.5, Number.NaN, Number.POSITIVE_INFINITY]) {
     assert.equal(nextCallLink({ nextHref: NEXT, left }, false)?.label, "Next call", String(left));
   }
+  // The last person of a run: nobody after this one, so the same link says the list is done.
+  assert.deepEqual(nextCallLink({ nextHref: NEXT, left: 0 }, false), { href: NEXT, label: "Finish the list" });
+  assert.equal(nextCallLink({ nextHref: NEXT, left: 0 }, true), null, "the sample never offers it");
+  assert.equal(nextCallLink({ nextHref: "https://example.test/next", left: 0 }, false), null, "still a same-site path only");
   // No queue (the Sales Desk), the sample, and anything but a same-site path show nothing new.
   assert.equal(nextCallLink(null, false), null);
   assert.equal(nextCallLink(undefined, false), null);
@@ -715,6 +721,19 @@ test("after a save on the call card, Next call is the first thing to tap; withou
   assert.match(link[2], /\bw-full\b/);
   assert.equal(primaries(queued), 1, "one primary action");
   assert.deepEqual(copyProblems(textOf(queued)), []);
+
+  // The last call of a run: the same big first button, saying the list is done instead of Next call.
+  const last = view({ nextCall: nextCallLink({ nextHref: NEXT, left: 0 }, false) });
+  order(last, ['role="status"', "data-next-call", ">Log another call<", ">Back to the call sheet<"]);
+  const finish = /<a href="([^"]+)" data-next-call=""[^>]*class="([^"]*)"[^>]*>([^<]*)</.exec(last);
+  assert.ok(finish, last);
+  assert.equal(finish[1].replace(/&amp;/g, "&"), NEXT);
+  assert.equal(finish[3], "Finish the list");
+  assert.match(finish[2], /\bbtn-primary\b/);
+  assert.match(finish[2], /\bmin-h-\[56px\]/);
+  assert.ok(!textOf(last).includes("Next call"), textOf(last));
+  assert.equal(primaries(last), 1, "one primary action");
+  assert.deepEqual(copyProblems(textOf(last)), []);
 
   // With a proposal to draft too, Next call still comes first and the proposal steps back.
   const proposal = { ...saved, outcome: "wants_proposal" as const, proposalHref: "/admin/proposals/lead-a?offers=website_launch" };
@@ -956,6 +975,7 @@ function loadPage(file: string, h: Harness, extra: Record<string, unknown>) {
     "@/lib/callSheet": callSheet,
     "@/lib/callSheetServer": callSheetServerModule(),
     "@/lib/contactGaps": contactGaps,
+    "@/lib/hq/phone": hqPhone,
     "@/lib/leadMessageAuthor": leadMessageAuthor,
     "@/lib/leadTimeline": leadTimeline,
     "@/lib/payDoors": payDoors,
@@ -1044,7 +1064,10 @@ test("call card harness: the sample renders the fictional lead in sample mode an
   assert.ok(out.html.includes('href="tel:+19035550100"'), "a dialable Call button");
   assert.ok(out.html.includes('href="sms:+19035550100"'), "texting is consented on the sample");
   assert.ok(out.html.includes('href="mailto:dana@example.test"'));
-  assert.ok(text.includes("Call back due now. You set it for Tue, Sep 22 at 10:00 AM Central."), text);
+  // The sample's time came from its no-answer save (the planner's next try), not from a call back Ryan
+  // picked, so the card names the time without claiming he set it.
+  assert.ok(text.includes("Follow-up due now. It came due Tue, Sep 22 at 10:00 AM Central."), text);
+  assert.ok(!text.includes("You set it") && !text.includes("Call back due now"), text);
   assert.ok(text.includes("In their words") && text.includes("Pressure washing, mostly driveways and house washes"));
   assert.ok(text.includes("What you can offer") && text.includes("Show every published offer"));
   assert.ok(text.includes("Last time") && text.includes("Call: no answer. Try again Tue, Sep 22 at 10:00 AM."));
@@ -1065,7 +1088,9 @@ test("call card harness: a real lead is read after auth, and links follow consen
   const text = textOf(out.html);
   assert.ok(out.html.includes('href="tel:+19035550142"'));
   assert.ok(out.html.includes('href="sms:+19035550142"'));
-  assert.ok(text.includes("Call back set for Fri, Sep 25 at 10:00 AM Central."), text);
+  // A time still ahead is named without saying who set it: it is as often the next try after no answer.
+  assert.ok(text.includes("Next follow-up: Fri, Sep 25 at 10:00 AM Central."), text);
+  assert.ok(!text.includes("Call back set for"), text);
   // The consultation form's own sentence is split out of their words.
   assert.ok(text.includes("We need a site that brings in mowing quotes."));
   assert.ok(text.includes("Wants to meet: Come to my business"));
@@ -1488,6 +1513,152 @@ test("call card harness: a Start calling run shows the bar, skips forward, and h
   assert.ok(down.html.includes(`href="/admin/call-sheet/${LEAD_ID}?queue=1&amp;left=5&amp;skip=${earlier.join("%2C")}"`), down.html);
   assert.ok(down.html.includes(`href="${next}"`));
   assert.deepEqual(down.reads, ["profiles", "leads"]);
+});
+
+test("call card harness: the last card of a run hands the panel a count of 0, so its button says Finish the list", async () => {
+  const lastCard = await callCard(LEAD_ID, { lead: realLead() }, { queue: "1", left: "1" });
+  assert.ok(textOf(lastCard.html).includes("Going down today's list · 1 left"));
+  const queue = lastCard.panels[0].queue;
+  assert.ok(queue);
+  assert.equal(queue.left, 0);
+  assert.equal(nextCallLink(queue, false)?.label, "Finish the list");
+  // Outside a run the count is unknown, so it stays Next call.
+  const plain = await callCard(LEAD_ID, { lead: realLead() });
+  assert.equal(nextCallLink(plain.panels[0].queue, false)?.label, "Next call");
+});
+
+test("call card harness: Back after a save says the call is already logged, plainly, above the panel", async () => {
+  const REF = "Ref 3f2b8c1e-5a4d-4e6f-9b7a-0c1d2e3f4a5b";
+  const ago = (minutes: number, seconds = 5) => new Date(Date.now() - minutes * 60_000 - seconds * 1000).toISOString();
+  const noAnswer = (created_at: string) => ({ kind: "call", detail: `Call: no answer. Try again Fri, Sep 25 at 10:00 AM. Outcome: no_answer. ${REF}`, created_at });
+  const recentTag = (html: string) => /<p([^>]*)data-recent-call=""[^>]*>([^<]*)<\/p>/.exec(html);
+
+  const out = await callCard(LEAD_ID, { lead: realLead(), activity: [noAnswer(ago(4))] });
+  const line = "You logged a call with Riley 4 minutes ago: No answer. Only log again if you called again.";
+  const text = textOf(out.html);
+  assert.ok(text.includes(line), text);
+  // Right above "How did the call go?", after what was said last time.
+  assert.ok(out.html.indexOf("You logged a call") > out.html.indexOf('id="call-card-last"'));
+  assert.ok(out.html.indexOf("You logged a call") < out.html.indexOf("How did the call go?"));
+  // Plain: no alert, no live region, no alarm color.
+  const tag = recentTag(out.html);
+  assert.ok(tag, out.html);
+  assert.ok(!/\brole=/.test(tag[1]), tag[1]);
+  assert.ok(!/warn|danger|red|amber/.test(tag[1]), tag[1]);
+  assert.equal((out.html.match(/You logged a call/g) ?? []).length, 1);
+  assert.deepEqual(copyProblems(text), []);
+  // The page reads nothing extra for it.
+  assert.deepEqual(out.reads, ["profiles", "leads", "lead_notes", "lead_activity", "lead_calls", "lead_messages"]);
+
+  // The words follow the minutes and the outcome saved.
+  const said = async (activity: Record<string, unknown>[], lead = realLead()) => textOf((await callCard(LEAD_ID, { lead, activity })).html);
+  assert.ok((await said([noAnswer(ago(0, 10))])).includes("You logged a call with Riley less than a minute ago: No answer."));
+  assert.ok((await said([noAnswer(ago(1))])).includes("You logged a call with Riley 1 minute ago: No answer."));
+  assert.ok((await said([noAnswer(ago(29))])).includes("29 minutes ago: No answer."));
+  // The newest call wins.
+  const both = await said([
+    { kind: "call", detail: `Call: talked, call back Fri, Sep 25 at 10:00 AM. Outcome: call_back. ${REF}`, created_at: ago(20) },
+    { kind: "call", detail: `Call: left a voicemail. Try again Fri, Sep 25 at 10:00 AM. Outcome: voicemail. ${REF}`, created_at: ago(3) },
+  ]);
+  assert.ok(both.includes("You logged a call with Riley 3 minutes ago: Left a voicemail. Only log again if you called again."), both);
+  assert.ok((await said([{ kind: "call", detail: `Call: talked, call back Fri, Sep 25 at 10:00 AM. Outcome: call_back. ${REF}`, created_at: ago(6) }])).includes(
+    "6 minutes ago: Talked, call back later.",
+  ));
+  // No usable name: never "with Facebook".
+  assert.ok((await said([noAnswer(ago(2))], realLead({ full_name: "Facebook lead" }))).includes("You logged a call with this lead 2 minutes ago"));
+
+  // Thirty minutes or older, a sent proposal (not a call), or an entry without a time: no line.
+  for (const activity of [
+    [noAnswer(ago(30, 0))],
+    [noAnswer(ago(45))],
+    [{ kind: "sales", detail: `Proposal sent for Website Launch. Follow up Thu, Sep 24 at 9:00 AM. Outcome: proposal_sent. Offer ids: website_launch. ${REF}`, created_at: ago(2) }],
+    [{ kind: "call", detail: `Call: no answer. Outcome: no_answer. ${REF}` }],
+  ]) {
+    const quiet = await callCard(LEAD_ID, { lead: realLead(), activity });
+    assert.ok(!quiet.html.includes("You logged a call"), JSON.stringify(activity));
+  }
+  // The sample never shows it.
+  assert.ok(!(await callCard("sample")).html.includes("You logged a call"));
+  // The wording in the source has no long dashes and no alert.
+  const page = src(CARD_PAGE);
+  assert.ok(page.includes("Only log again if you called again."));
+  const block = page.slice(page.indexOf("{recentLine ? ("), page.indexOf("<CallCardPanel"));
+  assert.ok(block.length > 0 && !/role=|warn|danger/.test(block), block);
+});
+
+test("call card harness: the header names a follow-up time without claiming Ryan set it, unless he picked it", async () => {
+  const REF = "Ref 3f2b8c1e-5a4d-4e6f-9b7a-0c1d2e3f4a5b";
+  // A no-answer retry still ahead: neutral.
+  const ahead = "2027-01-15T16:00:00.000Z";
+  const retryAhead = await callCard(LEAD_ID, {
+    lead: realLead({ next_follow_up_at: ahead }),
+    activity: [{ kind: "call", detail: `Call: no answer. Try again ${businessTime.formatCentral(new Date(ahead))}. Outcome: no_answer. ${REF}`, created_at: "2026-09-21T20:00:00.000Z" }],
+  });
+  const aheadText = textOf(retryAhead.html);
+  assert.ok(aheadText.includes(`Next follow-up: ${businessTime.formatCentral(new Date(ahead))} Central.`), aheadText);
+  assert.ok(!aheadText.includes("Call back set for") && !aheadText.includes("You set it"), aheadText);
+  assert.deepEqual(copyProblems(aheadText), []);
+
+  // The planner's time came due (the next try after no answer, a proposal due date): neutral, still due.
+  const stamp = "2025-09-19T15:00:00.000Z";
+  for (const detail of [
+    `Call: no answer. Try again Fri, Sep 19 at 10:00 AM. Outcome: no_answer. ${REF}`,
+    `Call: left a voicemail. Try again Fri, Sep 19 at 10:00 AM. Outcome: voicemail. ${REF}`,
+    `Call: wants a proposal for Website Launch. Proposal due Fri, Sep 19. Outcome: wants_proposal. Offer ids: website_launch. ${REF}`,
+  ]) {
+    const due = await callCard(LEAD_ID, {
+      lead: realLead({ next_follow_up_at: stamp }),
+      activity: [{ kind: "call", detail, created_at: "2025-09-16T15:00:00.000Z" }],
+    });
+    const dueText = textOf(due.html);
+    assert.ok(dueText.includes("Follow-up due now. It came due Fri, Sep 19 at 10:00 AM Central."), dueText);
+    assert.ok(!dueText.includes("You set it") && !dueText.includes("Call back due now"), dueText);
+    assert.deepEqual(copyProblems(dueText), []);
+  }
+
+  // A call back Ryan picked, logged by the Call Closer, keeps "You set it" once it is due.
+  const picked = await callCard(LEAD_ID, {
+    lead: realLead({ next_follow_up_at: stamp }),
+    activity: [{ kind: "call", detail: `Call: talked, call back Fri, Sep 19 at 10:00 AM. Outcome: call_back. ${REF}`, created_at: "2025-09-16T15:00:00.000Z" }],
+  });
+  assert.ok(textOf(picked.html).includes("Call back due now. You set it for Fri, Sep 19 at 10:00 AM Central."), textOf(picked.html));
+});
+
+test("call card harness: the Call button reads the number it dials, formatted like the rest of the back office", async () => {
+  const us = await callCard(LEAD_ID, { lead: realLead({ phone: "+19035550105" }) });
+  assert.ok(us.html.includes('href="tel:+19035550105"'));
+  assert.match(us.html, /<a href="tel:\+19035550105"[^>]*>Call \(903\) 555-0105<\/a>/);
+  assert.ok(!textOf(us.html).includes("Call +19035550105"));
+  // Stored in another shape, the same number and the same label.
+  const typed = await callCard(LEAD_ID, { lead: realLead({ phone: "903.555.0105" }) });
+  assert.match(typed.html, /<a href="tel:\+19035550105"[^>]*>Call \(903\) 555-0105<\/a>/);
+  // A number outside the US is shown as dialed, never reshaped into a different one.
+  const abroad = await callCard(LEAD_ID, { lead: realLead({ phone: "+447911123456" }) });
+  assert.match(abroad.html, /<a href="tel:\+447911123456"[^>]*>Call \+447911123456<\/a>/);
+  // No phone: the reason, no link.
+  const none = await callCard(LEAD_ID, { lead: realLead({ phone: null }) });
+  assert.ok(!none.html.includes('href="tel:') && textOf(none.html).includes("No phone on file"));
+});
+
+test("Back to a card the browser kept in its back-forward cache refreshes the server state, and nothing else", () => {
+  assert.equal(restoredFromCache({ persisted: true }), true);
+  for (const event of [{ persisted: false }, {}, null, undefined, { persisted: "true" }, { persisted: 1 }]) {
+    assert.equal(restoredFromCache(event as never), false, JSON.stringify(event));
+  }
+  const panel = src(PANEL);
+  const listener = panel.slice(panel.indexOf("function onPageShow("), panel.indexOf('window.removeEventListener("pageshow"'));
+  assert.ok(listener.includes("if (restoredFromCache(event)) onRestoredRef.current?.();"), listener);
+  assert.ok(listener.includes('window.addEventListener("pageshow", onPageShow);'), listener);
+  // It only asks for fresh server state: no focus move, no scroll, no reset, no save.
+  assert.ok(!/\.focus\(|scrollIntoView|scrollTo|reset\(\)|setSaved|fetch\(/.test(listener), listener);
+  // The panel still has no router of its own; the call card wrapper refreshes, after a save and on a restore.
+  assert.ok(!importsOf(panel).some((s) => s.startsWith("next/")));
+  const wrapper = src(CARD_WRAPPER);
+  assert.match(wrapper, /onSaved=\{\(\) => router\.refresh\(\)\}/);
+  assert.match(wrapper, /onRestored=\{\(\) => router\.refresh\(\)\}/);
+  // The prop changes nothing that renders.
+  assert.equal(render(sampleProps({ onRestored: () => {} })), render(sampleProps()));
+  assert.equal(render(sampleProps({ sample: false, onRestored: () => {} })), render(sampleProps({ sample: false })));
 });
 
 async function proposalPage(leadId: string, offers: string | undefined, h: Harness = {}) {

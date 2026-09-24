@@ -68,8 +68,13 @@ import { closerOffers, payDoorFor, type CloserOfferId, type PayDoor } from "@/li
 //   him to "Did you reach them?". No focus move ever pulls him out of a field
 //   he is typing in (isTypingField).
 // - After a save on the call card, "Next call" (the queue prop) is the first
-//   thing to tap. Without the prop (the Sales Desk) and in sample mode, the
+//   thing to tap. On the last person of a run (left is 0) it reads "Finish
+//   the list". Without the prop (the Sales Desk) and in sample mode, the
 //   saved view is unchanged.
+// - Back to this card after moving on: when the browser restores the page
+//   from its back-forward cache (pageshow with persisted), the panel calls
+//   onRestored, and the call card wrapper refreshes the server state (the
+//   header, the "You logged a call" line). What is on screen here stays.
 // - Everything that needs lib/quo or lib/callSheet (phone links, texting
 //   consent) is worked out on the server and passed in as plain props. This
 //   file imports no Supabase, Quo, call sheet, or notification code, and no
@@ -141,6 +146,12 @@ export type CallOutcomePanelProps = {
   backHref?: string;
   backLabel?: string;
   onSaved?: (saved: SavedCall) => void;
+  /**
+   * The browser restored this page from its back-forward cache (Back after
+   * moving on). The call card refreshes the server state here; the panel has
+   * no router of its own.
+   */
+  onRestored?: () => void;
 };
 
 /** Passes IDEMPOTENCY_KEY_RE. Only ever used for the preview; a real save mints its own. */
@@ -227,14 +238,22 @@ export function isTypingField(el: { tagName?: string; type?: string; isContentEd
 /**
  * "Next call" after a save: the link and the count to show, or null. Only a
  * same-site path is linked, and the count only when it is a whole number above 0.
+ * When nobody is left after this one (left is exactly 0), it says "Finish the
+ * list": the same link, which lands on the caught-up screen.
  */
 export function nextCallLink(queue: CallQueueHandoff | null | undefined, sample: boolean): { href: string; label: string } | null {
   if (sample || !queue || typeof queue.nextHref !== "string") return null;
   const href = queue.nextHref.trim();
   if (!href.startsWith("/") || href.startsWith("//") || href.startsWith("/\\")) return null;
   const left = queue.left;
+  if (left === 0) return { href, label: "Finish the list" };
   const count = typeof left === "number" && Number.isInteger(left) && left > 0 ? ` · ${left} left` : "";
   return { href, label: `Next call${count}` };
+}
+
+/** A pageshow event from the back-forward cache: the page is shown as it was left, server state and all. */
+export function restoredFromCache(event: { persisted?: unknown } | null | undefined): boolean {
+  return event?.persisted === true;
 }
 
 function mintKey(): string {
@@ -607,6 +626,7 @@ export default function CallOutcomePanel({
   backHref = "/admin/call-sheet",
   backLabel = "Back to the call sheet",
   onSaved,
+  onRestored,
 }: CallOutcomePanelProps) {
   const uid = useId();
   const ids = {
@@ -684,9 +704,25 @@ export default function CallOutcomePanel({
   const statusRef = useRef<HTMLDivElement>(null);
   const hintRef = useRef<HTMLParagraphElement>(null);
   const alertRef = useRef<HTMLParagraphElement>(null);
+  const onRestoredRef = useRef(onRestored);
 
   useEffect(() => {
     if (!memoryRef.current.key) memoryRef.current = { ...memoryRef.current, key: mintKey() };
+  }, []);
+
+  useEffect(() => {
+    onRestoredRef.current = onRestored;
+  }, [onRestored]);
+
+  // Back to this card after moving on: a page restored from the back-forward
+  // cache still shows the server state from when it was left. Ask for it
+  // fresh; nothing on screen here moves or resets.
+  useEffect(() => {
+    function onPageShow(event: PageTransitionEvent) {
+      if (restoredFromCache(event)) onRestoredRef.current?.();
+    }
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
   }, []);
 
   useEffect(() => {

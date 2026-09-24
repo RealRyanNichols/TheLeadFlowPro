@@ -35,7 +35,7 @@ export default function WorkspaceLinks({ admin = false }: { admin?: boolean }) {
           },
           {
             href: "/admin/sales",
-            title: "Today queue",
+            title: "Sales desk",
             detail: "The sales desk running order with one-tap call and text",
             icon: Users,
           },

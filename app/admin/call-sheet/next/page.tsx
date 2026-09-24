@@ -9,7 +9,9 @@ import { NEXT_CALL_PATH, nextHref, parseSkip, pickNext, queueCardHref, skippedSt
 // sheet fresh, drops everyone this run already passed (the skip list in the
 // URL, lib/callQueue.ts), and sends Ryan straight to the next person's call
 // card in queue mode. When nobody is left it says so, calmly, and says when
-// people come back.
+// people come back. Caught up, the first thing to tap is the lead list: the
+// call sheet is empty by then, so it is only a quiet link. With people skipped
+// in this run, going through them again comes first.
 //
 // Read-only, like the call sheet: the same role check next to the private
 // read, the same loader, and nothing is ever sent to a lead from here. The
@@ -84,18 +86,30 @@ function CaughtUp({ skipped }: { skipped: number }) {
           People come back on their own. A new lead shows up the moment it arrives. A call back comes back at the time you picked,
           and a sit-down on its day. Anyone who goes quiet for {FOLLOW_UP_AFTER_DAYS} days comes back as a follow-up.
         </p>
+        {/* Caught up, the call sheet is empty, so the way on is the lead list; the sheet stays one quiet tap away. */}
         <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
           {skipped ? (
-            <Link href={NEXT_CALL_PATH} prefetch={false} className={PRIMARY}>
-              Call the ones you skipped
-            </Link>
-          ) : null}
-          <Link href="/admin/call-sheet" className={skipped ? QUIET_LINK : PRIMARY}>
-            See the call sheet
-          </Link>
-          <Link href="/admin" className={QUIET_LINK}>
-            Open the lead list
-          </Link>
+            <>
+              <Link href={NEXT_CALL_PATH} prefetch={false} className={PRIMARY}>
+                Call the ones you skipped
+              </Link>
+              <Link href="/admin/call-sheet" className={QUIET_LINK}>
+                See the call sheet
+              </Link>
+              <Link href="/admin" className={QUIET_LINK}>
+                Open the lead list
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link href="/admin" className={PRIMARY}>
+                Open the lead list
+              </Link>
+              <Link href="/admin/call-sheet" className={QUIET_LINK}>
+                See the call sheet
+              </Link>
+            </>
+          )}
         </div>
       </section>
     </div>

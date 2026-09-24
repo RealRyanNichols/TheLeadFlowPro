@@ -5,13 +5,17 @@ import { formatCentral } from "@/lib/businessTime";
 import {
   CALL_HISTORY_DETAIL_PATTERN,
   CALL_HISTORY_KINDS,
+  OUTCOME_LABELS,
+  PANEL_OUTCOMES,
   closerOffersFor,
   countPriorAttempts,
   firstName,
   isCallHistoryEntry,
   meetingPlaceForLabel,
   offerIdsFromDetail,
+  outcomeFromDetail,
   theirWords,
+  type CallOutcome,
   type PlannerLead,
 } from "@/lib/callCloser";
 import { SAMPLE_ACTOR_NAME, SAMPLE_CALL_ACTIVITY, SAMPLE_CALL_LEAD, SAMPLE_NOTES, SAMPLE_NOW } from "@/lib/callCloserFixtures";
@@ -29,6 +33,7 @@ import {
 } from "@/lib/callSheet";
 import { loadLeadTouches } from "@/lib/callSheetServer";
 import { emailGap, textGap } from "@/lib/contactGaps";
+import { formatPhone } from "@/lib/hq/phone";
 import { hasLeadEmailAddress, leadMessageAuthor } from "@/lib/leadMessageAuthor";
 import { safeLeadDiagnostic } from "@/lib/leadTimeline";
 import { closerOffers, payDoorFor, type CloserOfferId, type PayDoor } from "@/lib/payDoors";
@@ -65,6 +70,19 @@ import CallCardPanel from "./CallCardPanel";
 // way to the next person (/admin/call-sheet/next with this lead added to the
 // skip list), so "Next call" shows after any save and a run never comes back
 // to the same person. The sample passes none of it.
+//
+// Back after a save must not invite logging the same call twice. When the
+// newest call a Call Closer save logged is under RECENT_SAVE_MINUTES old, a
+// plain line above the panel says so ("You logged a call with Riley 4 minutes
+// ago: No answer. Only log again if you called again."). The panel reloads
+// this page when the browser restores it from its back-forward cache, so the
+// line and the header catch up there too.
+//
+// The header names a follow-up time without claiming who set it ("Next
+// follow-up: ..."), because the planner sets most of them itself: the next try
+// after no answer, a proposal due date, a payment check. It says "You set it"
+// only for a call back that came due after Ryan picked the time himself
+// (ownerSetFollowUp).
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Call card | The LeadFlow Pro" };
@@ -74,6 +92,8 @@ const LEAD_COLUMNS =
   "id, created_at, full_name, business_name, email, phone, status, interest, source, utm_source, best_contact_method, goals, sms_consent, sms_unsubscribed_at, next_follow_up_at, last_contacted_at, is_test, diagnostic";
 const NOTES_SHOWN = 3;
 const CALL_ENTRIES_READ = 20;
+/** A call saved this recently gets the "You logged a call" line above the panel. */
+const RECENT_SAVE_MINUTES = 30;
 
 const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--blue)]";
 const BUTTON = `inline-flex min-h-[44px] items-center rounded-lg px-4 py-2 text-sm font-bold ${FOCUS}`;
@@ -81,6 +101,9 @@ const QUIET_LINK = `inline-flex min-h-[44px] items-center px-1 text-sm font-semi
 const SECTION_TITLE = "text-base font-black text-[var(--heading)]";
 
 type CardNote = { summary: string; at: string; atIso: string; author: string };
+
+/** A call the Call Closer saved: its outcome, read back from the activity detail, and when (ISO). */
+type CallSave = { outcome: CallOutcome; at: string };
 
 /** Where this card sits in a "Start calling" run, and the way on. */
 type CardQueue = {
@@ -107,6 +130,8 @@ type CardView = {
   goals: string | null;
   notes: CardNote[];
   callDetails: string[];
+  /** The newest call a Call Closer save logged (a sent proposal is not a call), and when. Null on the sample. */
+  lastCallSave: CallSave | null;
   /**
    * The latest human touch on the record (ISO), for the call sheet's own
    * callback rule: a note, a logged call, a Quo call, a text a person sent, or
@@ -176,6 +201,49 @@ function latest(values: (string | null | undefined)[]): string | null {
   return best ? best.toISOString() : null;
 }
 
+/**
+ * The newest call a Call Closer save logged: a "call" row whose detail carries
+ * a call card outcome. A sent proposal (kind "sales") is not a call.
+ */
+function newestCallSave(rows: { kind?: unknown; detail: unknown; created_at?: unknown }[]): CallSave | null {
+  let best: { outcome: CallOutcome; at: Date } | null = null;
+  for (const row of rows) {
+    if (row.kind !== "call" || typeof row.detail !== "string" || typeof row.created_at !== "string") continue;
+    const outcome = outcomeFromDetail(row.detail);
+    const at = validDate(row.created_at);
+    if (!outcome || !PANEL_OUTCOMES.includes(outcome) || !at) continue;
+    if (!best || at > best.at) best = { outcome, at };
+  }
+  return best ? { outcome: best.outcome, at: best.at.toISOString() } : null;
+}
+
+/**
+ * "You logged a call with Riley 4 minutes ago: No answer. Only log again if
+ * you called again." Null unless that save is under RECENT_SAVE_MINUTES old
+ * (a minute of clock drift between the database and this server is allowed).
+ */
+function recentCallLine(save: CallSave | null, first: string, now: Date): string | null {
+  if (!save) return null;
+  const ms = now.getTime() - Date.parse(save.at);
+  if (!Number.isFinite(ms) || ms < -60_000 || ms >= RECENT_SAVE_MINUTES * 60_000) return null;
+  const minutes = Math.max(0, Math.floor(ms / 60_000));
+  const ago = minutes === 0 ? "less than a minute ago" : minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
+  return `You logged a call with ${first || "this lead"} ${ago}: ${OUTCOME_LABELS[save.outcome]}. Only log again if you called again.`;
+}
+
+/**
+ * Whether Ryan picked the follow-up time on file himself, as far as the call
+ * history shows. The newest Call Closer save was a call back or a sit-down
+ * (both ask him for the time), or no save is on file at all (a time set by
+ * hand on the lead page). After any other save the planner chose the time:
+ * the next try after no answer or a voicemail, a proposal due date, a payment
+ * check, the follow-up after a sent proposal.
+ */
+function ownerSetFollowUp(callDetailsNewestFirst: string[]): boolean {
+  const newest = callDetailsNewestFirst.map(outcomeFromDetail).find((o) => o !== null) ?? null;
+  return newest === null || newest === "call_back" || newest === "booked";
+}
+
 function sampleView(): CardView {
   const { created_at, source, goals, best_contact_method, ...lead } = SAMPLE_CALL_LEAD;
   const notes = toNotes(SAMPLE_NOTES);
@@ -193,6 +261,7 @@ function sampleView(): CardView {
     goals,
     notes,
     callDetails: SAMPLE_CALL_ACTIVITY,
+    lastCallSave: null,
     lastHumanTouchAt: latest(notes.map((n) => n.atIso)),
     latestInbound: null,
     partial: false,
@@ -309,6 +378,7 @@ export default async function CallCardPage({
     goals: text(row.goals),
     notes,
     callDetails: callRows.map((r) => r.detail).filter((d): d is string => typeof d === "string"),
+    lastCallSave: newestCallSave(callRows),
     lastHumanTouchAt: latest([...humanTouches, ...callRows.map((r) => (typeof r.created_at === "string" ? r.created_at : null))]),
     latestInbound: quoTouches.latestInbound,
     partial: Boolean(notesRead.error || callsRead.error || !quoTouches.ok),
@@ -401,6 +471,10 @@ function CallCard({ view }: { view: CardView }) {
   // Otherwise it was kept, or it is the diagnostic's stamp.
   const promise = callbackState(lead.next_follow_up_at, view.lastHumanTouchAt, now);
   const pastTime = promise.at !== null && promise.at.getTime() <= now.getTime() ? promise.at : null;
+  // "You set it" only when the history shows Ryan picked the time; otherwise the time, without a claim.
+  const ownerSet = ownerSetFollowUp(view.callDetails);
+  // Back on this card right after a save: say so, before the empty form invites a second log.
+  const recentLine = sample ? null : recentCallLine(view.lastCallSave, first, now);
   // They reached out after the last time a person did: a reply is owed.
   const lastTouchMs = view.lastHumanTouchAt ? Date.parse(view.lastHumanTouchAt) : Number.NEGATIVE_INFINITY;
   const inbound = view.latestInbound && Date.parse(view.latestInbound.at) > lastTouchMs ? view.latestInbound : null;
@@ -458,11 +532,20 @@ function CallCard({ view }: { view: CardView }) {
           </p>
         ) : promise.state === "due" ? (
           <p className="mt-3 rounded-lg border border-[var(--warn-line)] bg-[var(--warn-tint)] p-3 text-sm text-[var(--text)]">
-            <span className="font-bold">Call back due now.</span> You set it for {formatCentral(promise.at)} Central.
+            {ownerSet ? (
+              <>
+                <span className="font-bold">Call back due now.</span> You set it for {formatCentral(promise.at)} Central.
+              </>
+            ) : (
+              <>
+                <span className="font-bold">Follow-up due now.</span> It came due {formatCentral(promise.at)} Central.
+              </>
+            )}
           </p>
         ) : promise.state === "later" ? (
+          // Neutral on purpose: a later time is as often the next try after no answer as a call back Ryan promised.
           <p className="mt-3 rounded-lg border border-[var(--line)] bg-[var(--page)] p-3 text-sm text-[var(--text)]">
-            <span className="font-bold">Call back set for</span> {formatCentral(promise.at)} Central.
+            <span className="font-bold">Next follow-up:</span> {formatCentral(promise.at)} Central.
           </p>
         ) : (
           <p className="mt-3 text-sm text-[var(--muted)]">No call back is set.</p>
@@ -488,9 +571,10 @@ function CallCard({ view }: { view: CardView }) {
         ) : null}
 
         <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={`Reach ${who}`}>
-          {tel ? (
+          {tel && e164 ? (
+            // The label reads the number the link dials: (903) 555-0142 for a US number, the number as dialed otherwise.
             <a href={tel} className={`${BUTTON} bg-[var(--blue)] text-white`}>
-              Call {lead.phone}
+              Call {formatPhone(e164)}
             </a>
           ) : (
             <span className={`${BUTTON} border border-[var(--line-strong)] font-normal text-[var(--muted)]`}>No phone on file</span>
@@ -585,6 +669,13 @@ function CallCard({ view }: { view: CardView }) {
           )}
         </section>
       )}
+
+      {/* A plain line, not an alert: it is a reminder, and it must not be read out again over the Saved message after a save. */}
+      {recentLine ? (
+        <p className="card !p-4 text-sm text-[var(--text)]" data-recent-call="">
+          {recentLine}
+        </p>
+      ) : null}
 
       <CallCardPanel
         lead={{ ...lead, diagnostic: null }}
