@@ -73,6 +73,8 @@ declare
   v_skip text;
   v_role text := '';
   v_owner_alert boolean := false;
+  v_own_door_alert boolean := false;
+  v_diagnostic_draft boolean := false;
 begin
   begin
     if coalesce(new.is_test, false) then
@@ -105,6 +107,13 @@ begin
       end;
       v_owner_alert := v_role = 'service_role'
         and coalesce(new.diagnostic ->> 'notification_pipeline', '') = 'lead_intake_v1';
+      -- Doors that already email hello@ and pat@ themselves: Stripe paid
+      -- orders, the follow-up and Time Back intakes, the business diagnostic.
+      -- They still get the staff text; only the second email is skipped.
+      v_diagnostic_draft := coalesce(new.external_id, '') like 'business-diagnostic:%';
+      v_own_door_alert := coalesce(new.source, '') in ('stripe_checkout', 'stripe_payment_link', 'lead_follow_up_funnel')
+        or coalesce(new.diagnostic ->> 'source', '') = 'time_back_funnel'
+        or v_diagnostic_draft;
 
       insert into public.speed_to_lead_jobs (lead_id, channel)
       values (new.id, 'staff_sms')
@@ -114,15 +123,27 @@ begin
         insert into public.speed_to_lead_jobs (lead_id, channel, status, skip_reason)
         values (new.id, 'staff_email', 'skipped', 'owner alert outbox')
         on conflict (lead_id, channel) do nothing;
+      elsif v_own_door_alert then
+        insert into public.speed_to_lead_jobs (lead_id, channel, status, skip_reason)
+        values (new.id, 'staff_email', 'skipped', 'door sends its own alert')
+        on conflict (lead_id, channel) do nothing;
       else
         insert into public.speed_to_lead_jobs (lead_id, channel)
         values (new.id, 'staff_email')
         on conflict (lead_id, channel) do nothing;
       end if;
 
-      insert into public.speed_to_lead_jobs (lead_id, channel)
-      values (new.id, 'lead_sms')
-      on conflict (lead_id, channel) do nothing;
+      -- The business diagnostic creates its lead on the first draft save,
+      -- while the person is still answering questions. No text mid-form.
+      if v_diagnostic_draft then
+        insert into public.speed_to_lead_jobs (lead_id, channel, status, skip_reason)
+        values (new.id, 'lead_sms', 'skipped', 'diagnostic draft')
+        on conflict (lead_id, channel) do nothing;
+      else
+        insert into public.speed_to_lead_jobs (lead_id, channel)
+        values (new.id, 'lead_sms')
+        on conflict (lead_id, channel) do nothing;
+      end if;
     end if;
   exception when others then
     -- Never block the lead. The sweep cannot see a lead with no jobs, so the

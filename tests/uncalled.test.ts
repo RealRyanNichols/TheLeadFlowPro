@@ -19,7 +19,7 @@ function lead(id: string, overrides: Partial<CallSheetLead> = {}): CallSheetLead
     business_name: null,
     email: `${id}@example.com`,
     phone: "(903) 555-0100",
-    interest: "free_website_program",
+    interest: "website_launch",
     status: "new",
     source: "meta_lead_ad",
     utm_source: "facebook",
@@ -105,7 +105,7 @@ test("open, live, reachable leads only; oldest first; every row links to the pag
   assert.equal(byId.newest.canText, false);
   assert.equal(byId.texter.email, null, "a placeholder address is not an email link");
   assert.equal(byId.texter.sourceLabel, "Texted or called in");
-  assert.equal(byId.middle.interestLabel, "Free Website Program");
+  assert.equal(byId.middle.interestLabel, "Website Launch");
   assert.equal(byId.middle.href, "/admin/sales/leads/middle");
   assert.equal(Math.round(byId.middle.ageHours), 30);
   assert.equal(isPlaceholderEmail("real@example.com"), false);

@@ -34,7 +34,7 @@ function leadRow(overrides: Partial<speed.SpeedToLeadLead> = {}): speed.SpeedToL
     business_name: "Example Roofing",
     email: "jane.owner@example.com",
     phone: LEAD_PHONE,
-    interest: "free_website_program",
+    interest: "website_launch",
     status: "new",
     source: "meta_lead_ad",
     utm_source: "facebook",
@@ -58,7 +58,7 @@ test("the staff text is three short lines: source and time, first name and inter
     text,
     [
       "NEW LEAD | Meta lead ad | 2:13 PM CT",
-      "Jane at Example Roofing. Free Website Program.",
+      "Jane at Example Roofing. Website Launch.",
       `Open: ${SITE}/admin/sales/leads/${LEAD_ID}`,
     ].join("\n"),
   );
@@ -68,7 +68,7 @@ test("the staff text is three short lines: source and time, first name and inter
   assert.ok(!text.includes("Owner"));
   // An older lead carries its date; a made-up name reads as no name.
   const older = speed.staffAlertText(leadRow({ created_at: "2026-09-21T04:58:00.000Z", full_name: "Facebook lead", business_name: null }), SITE, NOW);
-  assert.match(older, /^NEW LEAD \| Meta lead ad \| Sep 20, 11:58 PM CT\nNo name given\. Free Website Program\./);
+  assert.match(older, /^NEW LEAD \| Meta lead ad \| Sep 20, 11:58 PM CT\nNo name given\. Website Launch\./);
   const texter = speed.staffAlertText(leadRow({ full_name: "Unknown (903) 555-0142", source: "quo_inbound", business_name: null, interest: "unsure" }), SITE, NOW);
   assert.match(texter, /^NEW LEAD \| Texted or called in \| 2:13 PM CT\nNo name given\. Not sure yet\.\n/);
   assert.ok(!texter.includes("0142"));
@@ -100,7 +100,7 @@ test("the staff email mirrors the owner alert: who, how to reach them, what they
     "Email: jane.owner@example.com",
     `Phone: ${LEAD_PHONE}`,
     "Texting: consented",
-    "Recommended path: Free Website Program",
+    "Recommended path: Website Launch",
     "Home base: Facebook page",
     "Timeline: This month",
     "Source: stripe_checkout",
@@ -936,7 +936,11 @@ test("the trigger can never block a lead, never backfills, and dedupes one job p
   // The whole body sits in one exception block, and NEW always comes back.
   assert.match(body, /begin\s+begin[\s\S]+exception when others then\s+(--[^\n]*\n\s*)*raise warning[\s\S]+end;\s+return new;\s+end;\s+\$\$;/);
   assert.equal((body.match(/return new/g) ?? []).length, 1, "a single exit, after the exception block");
-  assert.equal((body.match(/on conflict \(lead_id, channel\) do nothing/g) ?? []).length, 5);
+  assert.equal((body.match(/on conflict \(lead_id, channel\) do nothing/g) ?? []).length, 7);
+  // Doors with their own alert email get the staff text only; a diagnostic
+  // draft (created before the form is submitted) never gets a first text.
+  assert.match(body, /'stripe_checkout', 'stripe_payment_link', 'lead_follow_up_funnel'[\s\S]+'time_back_funnel'[\s\S]+'door sends its own alert'/);
+  assert.match(body, /like 'business-diagnostic:%'[\s\S]+'diagnostic draft'/);
   assert.match(body, /coalesce\(new\.is_test, false\)[\s\S]+'test record'/);
   assert.match(body, /new\.deleted_at is not null/);
   assert.match(body, /request\.jwt\.claim\.role[\s\S]+'service_role'[\s\S]+notification_pipeline[\s\S]+'lead_intake_v1'/);

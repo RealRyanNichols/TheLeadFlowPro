@@ -116,10 +116,11 @@ export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> 
     funnel: "workshop_sep17",
   },
   "1602617814609528": {
-    // LFP Free Build NoQ v2 — free five-page build, zero questions.
+    // LFP Free Build NoQ v2. The free build is retired (2026-09-22); the
+    // form stays registered so its leads are still admitted, filed as a
+    // Website Launch inquiry under the default meta_lead_form funnel.
     campaign: "free_website_noq_2026_09",
     inquiryOptIn: true,
-    funnel: "free_build_funnel",
   },
   "1001553739566746": {
     // LFP Services Volume v1 — Learn It / Build It With You / Done For You.

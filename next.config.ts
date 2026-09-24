@@ -40,6 +40,9 @@ const nextConfig: NextConfig = {
   // forwards the query string, so utm_* tags survive the hop.
   async redirects() {
     return [
+      // An old paid free-build session's success_url: keep the buyer on a
+      // confirmation page (it verifies session_id), not a sales page.
+      { source: "/free-build/welcome", destination: "/thank-you", statusCode: 301 },
       { source: "/free-build", destination: "/services", statusCode: 301 },
       { source: "/free-build/:path*", destination: "/services", statusCode: 301 },
     ];

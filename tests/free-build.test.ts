@@ -31,6 +31,7 @@ test("/free-build and everything under it answer with a permanent 301 to /servic
   assert.deepEqual(
     redirects.map((r) => [r.source, r.destination, r.statusCode]),
     [
+      ["/free-build/welcome", "/thank-you", 301],
       ["/free-build", "/services", 301],
       ["/free-build/:path*", "/services", 301],
     ],
@@ -59,7 +60,14 @@ test("Next's own redirect matcher keeps the utm tags on the way to /services", a
     utm_campaign: "free_website_longview_2026_09",
     utm_content: "instant_form_thank_you",
   };
-  for (const pathname of ["/free-build", "/free-build/", "/free-build/welcome"]) {
+  for (const [pathname, target] of [
+    ["/free-build", "/services"],
+    ["/free-build/", "/services"],
+    ["/free-build/anything", "/services"],
+    // An old paid session's success_url keeps its session_id and lands on the
+    // generic confirmation page, which verifies it.
+    ["/free-build/welcome", "/thank-you"],
+  ]) {
     const route = redirects.find((r) => getPathMatch(r.source, { removeUnnamedParams: true })(pathname) !== false);
     assert.ok(route, `${pathname} matches a configured redirect`);
     const params = getPathMatch(route.source, { removeUnnamedParams: true })(pathname);
@@ -69,7 +77,7 @@ test("Next's own redirect matcher keeps the utm tags on the way to /services", a
       params,
       query: { ...utm },
     });
-    assert.equal(parsedDestination.pathname, "/services", pathname);
+    assert.equal(parsedDestination.pathname, target, pathname);
     assert.deepEqual(parsedDestination.query, utm, pathname);
     assert.equal(getRedirectStatus(route), 301, pathname);
   }

@@ -25,8 +25,10 @@ import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
 // The nurture sequence sender. Runs hourly so an uncertain provider response
 // can be retried inside Resend's 24-hour idempotency window. The 30-day
-// free-build campaign it was built for is retired (lib/nurture.ts); the
-// workshop lane still runs through here.
+// free-build campaign it was built for is retired (lib/nurture.ts), and the
+// only other lane, the workshop countdown, closed when that workshop
+// started. Until a new sequence is written this cron admits no one
+// and returns early; it is kept so a new lane can plug straight in.
 //
 // ONE SUCCESSFUL EMAIL PER LEAD PER 24 HOURS. A lead that has been sitting for
 // three weeks with nothing sent does not get slammed with six emails at once.

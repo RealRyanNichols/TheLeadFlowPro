@@ -323,9 +323,13 @@ export async function smsSuppressedGlobally(phone: string): Promise<boolean> {
 // INBOUND-TRIGGERED AUTO-REPLY
 // ---------------------------------------------------------------------------
 //
-// Ryan's rule, and it is a good one: nobody gets a text from us unless they
-// texted us first. No cold outbound, no "you filled in a form so now you get a
-// text." They start the conversation or there is no conversation.
+// History: from August 26 Ryan's rule was that nobody gets a text unless they
+// texted first. On September 22 he asked for speed to lead: one first text,
+// within a minute, to a new lead who ticked the text consent box
+// (lib/speedToLeadServer.ts, dormant until SPEED_TO_LEAD_ENABLED). That path
+// goes through sendLeadTextDetailed(), so the kill switch, the STOP list and
+// quiet hours all still apply. Anyone without recorded consent is never
+// texted first.
 //
 // That is why this does NOT go through sendLeadText() and is NOT unblocked by
 // QUO_OUTBOUND_SMS_DISABLED. The August 21 emergency stop on application
