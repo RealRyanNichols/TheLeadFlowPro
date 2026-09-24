@@ -30,6 +30,16 @@ die() { printf '\n!! %s\n' "$*" >&2; exit 1; }
 . /etc/os-release
 case "${ID:-}" in ubuntu | debian) ;; *) die "Expected Ubuntu or Debian, found ${ID:-unknown}." ;; esac
 
+# apt-get update once per run, before the first install.
+APT_UPDATED=0
+apt_install() {
+  if [ "$APT_UPDATED" -eq 0 ]; then apt-get update -q; APT_UPDATED=1; fi
+  DEBIAN_FRONTEND=noninteractive apt-get install -y -q "$@"
+}
+
+# Port detection relies on ss. Without it every port would read as free.
+command -v ss >/dev/null 2>&1 || die "The ss command is missing (apt-get install iproute2). Nothing was changed."
+
 # Which program listens on a TCP port ("" when free).
 port_owner() {
   ss -ltnpH "sport = :$1" 2>/dev/null | sed -n 's/.*users:(("\([^"]*\)".*/\1/p' | sort -u | paste -sd, -
@@ -82,19 +92,18 @@ say "Docker"
 if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
   ok "$(docker --version)"
 else
-  apt-get update -q
-  apt-get install -y -q ca-certificates curl git
+  apt_install ca-certificates curl git
   install -m 0755 -d /etc/apt/keyrings
   curl -fsSL "https://download.docker.com/linux/${ID}/gpg" -o /etc/apt/keyrings/docker.asc
   chmod a+r /etc/apt/keyrings/docker.asc
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" \
     > /etc/apt/sources.list.d/docker.list
   apt-get update -q
-  apt-get install -y -q docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  apt_install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   systemctl enable --now docker
   ok "installed $(docker --version)"
 fi
-command -v git >/dev/null 2>&1 || apt-get install -y -q git
+command -v git >/dev/null 2>&1 || apt_install git
 
 say "Code in $APP_DIR"
 if [ -d "$APP_DIR/.git" ]; then
@@ -116,11 +125,11 @@ fi
 
 say "Caddy (HTTPS for the site, next to the brain)"
 if [ "$PROXY" = "none" ] && ! command -v caddy >/dev/null 2>&1; then
-  apt-get install -y -q debian-keyring debian-archive-keyring apt-transport-https curl gnupg
+  apt_install debian-keyring debian-archive-keyring apt-transport-https curl gnupg
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list
   apt-get update -q
-  apt-get install -y -q caddy
+  apt_install caddy
   # The package's default Caddyfile only serves a placeholder page on :80.
   if grep -q '^:80' /etc/caddy/Caddyfile 2>/dev/null; then
     cp /etc/caddy/Caddyfile "/etc/caddy/Caddyfile.default.$(date +%Y%m%d%H%M%S)"

@@ -26,13 +26,15 @@ PUBLIC_IP=$(curl -fs --max-time 3 http://169.254.169.254/metadata/v1/interfaces/
 row "public IPv4" "${PUBLIC_IP:-unknown}"
 
 say "Ports"
+command -v ss >/dev/null 2>&1 || row "note" "ss missing (apt-get install iproute2); ports below read as free"
 for p in 80 443 3000 3100; do
   owner=$(ss -ltnpH "sport = :$p" 2>/dev/null | sed -n 's/.*users:(("\([^"]*\)".*/\1/p' | sort -u | paste -sd, -)
   row ":$p" "${owner:-free}"
 done
 
 say "Brain (untouched by this stack)"
-row "http :3000" "$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.1:3000/ 2>/dev/null || echo down)"
+brain=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.1:3000/ 2>/dev/null)
+row "http :3000" "$([ "${brain:-000}" = "000" ] && echo "no answer" || echo "$brain")"
 
 say "Caddy"
 row "service" "$(systemctl is-active caddy 2>/dev/null || echo missing)"
