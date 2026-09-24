@@ -40,6 +40,12 @@ The Vercel route uses `META_ADS_READ_TOKEN` for ad-account reporting and
 is unavailable, campaign, delivery, spend and insight reporting remain live and
 the private dashboard raises a limited form-inventory warning.
 
+If Meta returns permission error `#200`, provision a dedicated system-user
+token inside Business Portfolio `1154478850201530`, assign read access only to
+ad account `1637329904238602`, grant the LeadFlow app `ads_read`, and store the
+token as the Vercel secret `META_ADS_READ_TOKEN`. `ads_management` is not needed.
+Never copy that credential into `/etc/brain/env` or onto the shared droplet.
+
 ## Verification
 
 ```bash
