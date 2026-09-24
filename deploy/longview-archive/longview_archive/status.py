@@ -17,7 +17,7 @@ import sqlite3
 from datetime import timedelta
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from . import config, db, normalize
+from . import config, db, github_pr, normalize
 from .publish import as_datetime, atomic_write, local_date, resolve_now, to_local
 
 log = logging.getLogger(__name__)
@@ -212,6 +212,7 @@ def collect(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
             "guard": free is not None and free < settings.disk_guard_bytes,
         },
         "lastExportAt": db.get_meta(conn, "last_export_at"),
+        "batchPullRequests": github_pr.status_info(conn, settings),
     }
 
 
@@ -281,6 +282,31 @@ def _section(ident: str, title: str, body: str) -> str:
     return f'<section aria-labelledby="{ident}"><h2 id="{ident}">{_e(title)}</h2>{body}</section>'
 
 
+BATCH_ACTIONS = {"opened": "Opened", "updated": "Updated"}
+
+
+def _batch_prs(info: dict) -> str:
+    """On or off, why it is held, and the last pull request: time and counts only."""
+    counts = info.get("lastCounts") or {}
+    if info.get("enabled"):
+        state = "On: the engine opens one pull request per batch; you merge it"
+    else:
+        state = "Off (no GitHub token file on the droplet)" if not info.get("problem") else "Off: see below"
+    items = [("Automatic batch pull requests", _e(state))]
+    if info.get("problem"):
+        items.append(("Needs a person", f'<span class="warn">{_e(scrub(info["problem"], limit=300))}</span>'))
+    last = info.get("lastOpenedAt")
+    action = BATCH_ACTIONS.get(info.get("lastAction"), "Opened or updated")
+    items.append((f"Last pull request ({action.lower()})" if last else "Last pull request", _e(_when(last))))
+    if last:
+        for key, label in (("published", "Published after merge"), ("added", "Added"), ("removed", "Removed"),
+                           ("changed", "Changed")):
+            if key in counts:
+                items.append((label, _n(counts.get(key))))
+    items.append(("Last checked", _e(_when(info.get("lastCheckedAt")))))
+    return _dl(items)
+
+
 def render_html(data: dict) -> str:
     written = as_datetime(data.get("generatedAt"))
     state = data.get("state")
@@ -335,6 +361,7 @@ def render_html(data: dict) -> str:
             [(label, _n(publish.get(key))) for key, label in PUBLISH_LABELS]
             + [("Last publish file written", _e(_when(data.get("lastExportAt"))))]
         )),
+        _section("batch-prs", "Batch pull requests", _batch_prs(data.get("batchPullRequests") or {})),
         _section("facts", "Facts checked on the businesses' own websites", _dl(
             [(field.capitalize(), _n(count)) for field, count in (data.get("factsVerified") or {}).items()]
         )),

@@ -57,9 +57,12 @@ After the pull request merges, use `--branch main` instead. The installer:
    email, Facebook and Instagram, careers pages, and services. A few thousand
    websites take days at this pace. That is expected.
 3. **Every 45 minutes:** it writes a batch of the profiles that are ready.
-4. **You approve a batch:** a Claude session with droplet access copies the
-   batch into a pull request. You look at the preview, and merging the pull
-   request puts those profiles on theleadflowpro.com.
+4. **You approve a batch:** the batch goes into a pull request. Today someone
+   with droplet access copies it in. If you turn on automatic pull requests
+   (off until you add a GitHub token on the droplet; steps in the README), the
+   engine opens and updates that one pull request itself, at most once a day.
+   Either way you look at the preview, and merging the pull request puts those
+   profiles on theleadflowpro.com. The engine never merges.
 
 ## The rules it follows
 
@@ -80,9 +83,11 @@ After the pull request merges, use `--branch main` instead. The installer:
 
 ## What was tested
 
-- **The engine:** 545 automated tests pass. They cover the privacy rules, the
+- **The engine:** 576 automated tests pass. They cover the privacy rules, the
   hours reader, matching duplicate records, the crawl limits, the 24/7 loop
-  (pause, low disk, restarts, backups), and the installer. The installer runs
+  (pause, low disk, restarts, backups), the installer, and the automatic
+  batch pull requests (against a pretend GitHub: it never merges, never names
+  a hidden business, and never leaks the token). The installer runs
   in a sandbox and is checked against real Caddy.
 - **The whole pipeline:** it runs end to end on a set of made-up businesses and
   websites. It confirms that a sole proprietor listed under his own name is held
@@ -117,8 +122,9 @@ See `docs/longview-directory/DECISIONS.md`. In short:
    so. Recommended: allow indexing only for profiles with a fact from the
    business's own website, so thousands of thin pages don't count against the
    LeadFlow site.
-3. **Batch approval or automatic publishing.** The default is that you approve
-   each batch.
+3. **Automatic batch pull requests.** Built and off. With a GitHub token on
+   the droplet, the engine opens the pull request for each batch; you still
+   merge each one. Without it, someone copies each batch in by hand.
 4. **Claim-your-listing emails.** One per business, or none. None are sent
    today.
 5. **Call Desk.** Whether the directory feeds the Call Desk. That is Ryan's

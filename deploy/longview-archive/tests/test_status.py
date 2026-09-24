@@ -14,7 +14,7 @@ NOW = datetime(2026, 9, 24, 18, 0, 0, tzinfo=timezone.utc)
 
 KEYS = ["generatedAt", "version", "state", "heartbeatAt", "archive", "factsVerified", "publish", "reviewOpen",
         "newThisWeek", "newPermits90d", "hiringSignals", "crawl", "sources", "otherZips", "errors", "disk",
-        "lastExportAt"]
+        "lastExportAt", "batchPullRequests"]
 
 
 class StatusPage(unittest.TestCase):

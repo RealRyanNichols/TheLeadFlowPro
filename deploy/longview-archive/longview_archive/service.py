@@ -38,7 +38,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, Mapping, Optional
 
-from . import backup, categories, db, matching, publish, status, worker
+from . import backup, categories, db, github_pr, matching, publish, status, worker
 from .fetcher import PoliteFetcher
 from .sources import comptroller, npi, osm, tabc
 from .sources import http as api_http
@@ -418,7 +418,7 @@ class ArchiveService:
         report: Dict[str, Any] = {
             "state": None, "synced": [], "synced_ok": [], "sync_failed": [], "matched": None, "visits": 0,
             "applied": {}, "interrupted": 0, "visit_errors": 0, "published": None,
-            "status_written": False, "backup": None,
+            "status_written": False, "backup": None, "publish_pr": None,
         }
         db.set_meta(self.conn, "heartbeat_at", db.now_iso(start))
         free = self._disk_free()
@@ -449,6 +449,8 @@ class ArchiveService:
                 self.crawl(fixed, report=report)
         if not self._halted():
             self._publish_step(clock(), report)
+        if not guard and not self._halted():
+            self._publish_pr_step(clock(), report)
         if not guard and not self._halted():
             self._backup_step(clock(), report)
 
@@ -521,6 +523,27 @@ class ArchiveService:
         # Recorded either way: a failing export is retried on schedule, not every loop.
         db.set_meta(self.conn, "last_publish_at", db.now_iso(now))
 
+    def _publish_pr_step(self, now: datetime, report) -> None:
+        """Right after a fresh export: open or update the batch pull request when it is on and due.
+
+        Off unless the GitHub token file exists; github_pr decides the rest
+        (24-hour limit, skips, the large-removal hold). The GitHub calls run
+        through the abandonable wrapper, so a stop or a pause ends them.
+        """
+        published = report.get("published")
+        if not published or "error" in published:
+            return
+        try:
+            send = self._abandonable(self.transports.get("github") or github_pr.default_transport)
+            result = github_pr.run_publish_pr(self.conn, self.settings, now, transport=send)
+            report["publish_pr"] = result.get("status")
+        except Interrupted:
+            report["publish_pr"] = "interrupted"
+            log.info("publish_pr interrupted by a stop or pause")
+        except Exception as exc:  # noqa: BLE001 - recorded as a failed publish_pr run
+            report["publish_pr"] = "error"
+            log.warning("publish_pr failed: %s at %s", type(exc).__name__, where(exc))
+
     def _backup_step(self, now: datetime, report) -> None:
         local = publish.to_local(now)
         if local is None or (local.hour, local.minute) < _hhmm(self.settings.backup_local_time):
@@ -548,6 +571,8 @@ class ArchiveService:
                          f" errors {report['visit_errors']})")
         if report["published"] is not None:
             parts.append("export " + ", ".join(f"{k} {v}" for k, v in report["published"].items()))
+        if report.get("publish_pr") not in (None, "off", "not_due"):
+            parts.append(f"batch pull request {report['publish_pr']}")
         if report["backup"]:
             parts.append("backup " + (report["backup"] if report["backup"] in ("exists", "error") else "written"))
         if parts:

@@ -18,6 +18,8 @@ Two halves with one contract between them.
    on theleadflowpro.com. It renders from the committed publish export at
    `content/longview-directory/directory.json`. A new batch reaches the website
    only through a pull request, so merging the pull request is the approval.
+   The engine can open that pull request itself (`github_pr.py`, off unless a
+   GitHub token file exists); it never merges.
 
 Nothing in the engine contacts a business, sends a message, or writes to any
 CRM, email list, or ad audience.
@@ -82,6 +84,10 @@ environment variable so tests never touch real paths or the network.
 | `allow_private_hosts` | False (tests only) | `LVA_ALLOW_PRIVATE_HOSTS=1` |
 | `publish_scopes` | `("city",)` | |
 | `indexable` | False (global switch, see decisions) | `LVA_INDEXABLE=1` |
+| `github_token_file` | `/etc/longview-archive/github-token` (absent: batch pull requests off) | `LVA_GITHUB_TOKEN_FILE` |
+| `github_repo` | `RealRyanNichols/TheLeadFlowPro` | `LVA_GITHUB_REPO` |
+| `github_timeout_s` | 30.0 | `LVA_GITHUB_TIMEOUT` |
+| `publish_pr_every_s` | 86400 (at most one batch pull request update a day; lower only in tests) | `LVA_PUBLISH_PR_EVERY` |
 
 Constants in `config.py`: `LONGVIEW_ZIPS = ("75601","75602","75603","75604","75605")`,
 `EAST_TEXAS_AREA_CODES = ("903","430")`, `TIMEZONE = "America/Chicago"`,
@@ -430,12 +436,66 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   deterministic ordering (by `slug`), and `write_export(path, data)` atomically.
 - `diff_exports(old, new) -> {added, removed, changed}` for pull request notes.
 
+### `github_pr.py` (batch pull requests, off by default)
+- On only when `github_token_file` exists, is a regular file with no
+  permission bits for others, is readable by the service user, and holds one
+  token (`[A-Za-z0-9_]{20,255}`). Otherwise off (no file) or refused (an
+  error run `publish_pr` with a plain reason, recorded at most once a day per
+  reason, and shown on the status page). The token is read per run, sent only
+  in the `Authorization` header to `https://api.github.com`, and never logged,
+  stored, or put in an error message; errors name a step and an HTTP status.
+- `GitHubClient(token, settings, transport=None)`: urllib, the archive user
+  agent, `github_timeout_s`, redirects followed only to `https://api.github.com`,
+  a transport hook with the `sources/http.py` shape for tests. Every call is
+  checked against an allowlist before anything is sent: read refs (`main`,
+  the batch branch), commits, trees, blobs, open pull requests from the batch
+  branch; write one blob, one tree whose only entry is
+  `content/longview-directory/directory.json` (mode 100644, `base_tree` =
+  main's tree), one commit (parent = main's HEAD, author and committer
+  `LeadFlow Longview Archive <hello@theleadflowpro.com>`), create or
+  force-move `refs/heads/longview-directory/batch` (the engine owns it), open
+  a pull request batch branch → `main` with `draft: false`, and change an open
+  one's title and body. Merge, review, approve, update-branch, contents, and
+  any other ref or path are refused (`NotAllowed`) without a request.
+- `run_publish_pr(conn, settings, now, transport, allow_large_removal=False)`:
+  token check; due check (`publish_pr_every_s` since the last pull request
+  opened or updated, and not within an hour of a failed call); one run at a
+  time (a lock file). Skips (a `skipped` run) when the export is missing, a
+  sample, has no businesses, is byte-identical to main's file ignoring
+  `generatedAt`/`batchId`, or is already on the open pull request's branch.
+  Diffs with `publish.diff_exports` (main's file as the base; a sample file on
+  main publishes nothing). When the batch would remove more than 25% of the
+  businesses published on main it opens nothing and records an error run
+  "Large removal held for a person" (once a day); `allow_large_removal` is only
+  set by a person with `publish-pr --allow-large-removal`. Otherwise it writes
+  the commit, points the batch branch at it, and updates the open batch pull
+  request or opens one (a 422 on open re-lists and updates, so there is never
+  a second). Records a `publish_pr` run with counts (published, added,
+  removed, changed, held_for_privacy, waiting_for_review) and meta
+  `publish_pr_last_at`, `publish_pr_last_counts`.
+- The body (plain language, phone-first): batch id and America/Chicago time;
+  the counts; up to 50 added and 50 removed names with their category name.
+  Added names only for businesses whose state is `ready`; removed names only
+  for businesses the archive knows that are not `held`, `suppressed`, or
+  `review` and have no `public_id` suppression. Names are the export's
+  `name` (never a taxpayer name, never another field), in code spans so they
+  cannot mention anyone or break the Markdown. Then: merging publishes on
+  theleadflowpro.com, profiles stay noindex until indexing is on, Vercel adds
+  the preview link, and a spot-check list.
+- `dry_run(conn, settings, base_path=None)`: the same title, body, and counts
+  from local files only (the base is `--base`, else the engine's last copy of
+  main's file in `exports/publish/main-directory.json`, else nothing).
+- `status_info(conn, settings)`: enabled, the problem, when the last pull
+  request was opened or updated, and its counts.
+
 ### `status.py`
 - `collect(conn, settings, now) -> dict` (counts only, no personal data) and
   `write_status(settings, data)`: writes `www/status.json`, `www/status/index.html`
   (phone-first, LeadFlow tokens, `<meta name=robots content=noindex>`, no
   scripts, no external requests), `www/index.html` (redirect link to /status),
-  and `www/robots.txt` (`User-agent: *` / `Disallow: /`).
+  and `www/robots.txt` (`User-agent: *` / `Disallow: /`). `batchPullRequests`
+  shows whether batch pull requests are on, why not, and when the last one was
+  opened or updated with its counts (never a name, number, or link).
 
 ### `exports.py` (private, not served, unused until approved)
 - `website-prospects.csv` (in-city businesses with no website or a dead one) and
@@ -450,12 +510,16 @@ Field names used in `facts` / `observations` / `review_queue.field`:
 - `python -m longview_archive run` is the service entry point. Loop: heartbeat;
   PAUSE file → idle (status still written); free space under the disk guard →
   no crawling or ingest; run due jobs (open data weekly, OSM weekly, NPI weekly,
-  matching after ingest, publish evaluation + export every 45 min, status every
-  10 min, nightly backup at 03:30 Chicago); crawl up to 2 sites at a time on a
+  matching after ingest, publish evaluation + export every 45 min, right after
+  a successful export the batch pull request when it is on and due (not under
+  PAUSE, a stop, or the disk guard; its GitHub calls end on a stop or pause),
+  status every 10 min, nightly backup at 03:30 Chicago); crawl up to 2 sites at a time on a
   thread pool (visits are network-only; the main thread writes the DB).
   SIGTERM/SIGINT stop cleanly.
 - Other commands: `migrate`, `sync [sales-tax|tabc|osm|npi|all]`, `match`,
-  `crawl-once [--limit N]`, `publish [--out PATH]`, `exports`, `status`, `backup`,
+  `crawl-once [--limit N]`, `publish [--out PATH]`,
+  `publish-pr [--dry-run] [--base PATH] [--allow-large-removal]` (dry run: no
+  network call), `exports`, `status`, `backup`,
   `suppress --id|--domain|--phone|--name-zip --reason`, `review list|accept|reject`,
   `check` (self-test: settings, schema, disk, pause, caps).
 

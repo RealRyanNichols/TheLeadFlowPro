@@ -39,12 +39,25 @@ setting) and merge that batch. The per-profile rule is already built.
 ## 3. How batches reach the website
 
 **Default:** every batch is a pull request. You look at the preview and merge
-it; merging is the approval.
+it; merging is the approval. That does not change.
+
+**New (built, off):** the engine can open that pull request by itself, so
+nobody has to copy the batch by hand. It keeps one pull request open, updates
+it at most once a day when the batch changed, and changes only the directory
+file. It never merges. You still merge each batch yourself, one merge per
+batch. It holds back a batch that would remove more than a quarter of the
+listed businesses until a person checks it.
+
+**To turn it on:** make a GitHub token that can only change this one
+repository's files and pull requests, and put it on the droplet (the steps are
+in `deploy/longview-archive/README.md`, "Automatic batch pull requests").
+**To turn it off:** delete that one file on the droplet.
 
 | Option | Upside | Trade-off |
 | --- | --- | --- |
-| Approve each batch (default) | You see every change before it is public | Profiles appear only as fast as batches are merged |
-| Publish automatically (facts from each business's own website only) | The site keeps growing on its own | Needs a new GitHub credential on the droplet, which is a separate approval |
+| Copy each batch by hand (today) | No GitHub credential on the droplet | Someone with droplet access copies every batch into a pull request |
+| Automatic pull requests, you merge (built, off) | You only look at the preview and merge | A GitHub token on the droplet that can push branches and open pull requests (it cannot merge by itself, but the token itself could, so keep it limited to this one repository) |
+| Publish without a merge | The site keeps growing on its own | Not built. Nobody looks before it is public |
 
 ## 4. Claim invites
 

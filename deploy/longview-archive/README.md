@@ -189,6 +189,85 @@ file changed.
    it. The site re-checks every record and drops any that breaks a rule, and
    profiles stay `noindex` until you turn indexing on.
 
+Steps 1 and 2 can run on their own instead: see the next section.
+
+## Automatic batch pull requests (optional)
+
+Off until you add a GitHub token. When it is on, the engine opens the pull
+request itself, so the only thing left for you is to look at the Vercel preview
+and merge. **Merging is still the approval.** The engine:
+
+- keeps **one** pull request open at a time, from the branch
+  `longview-directory/batch` to `main`, ready for review (not a draft). A newer
+  batch updates that same pull request instead of opening a second one;
+- updates it **at most once a day**, and only when the publish file changed;
+- changes only `content/longview-directory/directory.json`, as one commit on
+  top of `main`, by "LeadFlow Longview Archive";
+- **never merges**, never approves, never pushes to `main`, and never touches
+  any other file or branch;
+- skips a batch that is the same as the file on `main`, a sample, or empty;
+- holds a batch that would remove more than a quarter of the published
+  businesses. The status page then says "Large removal held for a person".
+  If you check it and the removals are right, run
+  `lva publish-pr --allow-large-removal` on the droplet.
+
+The pull request says, in plain words: the batch date, how many are
+published, added, removed, changed, held for privacy, and waiting for review;
+up to 50 added and 50 removed business names with their category (never a
+held, removed-on-request, or in-review business, and never a person's name);
+and a short checklist of what to spot-check in the preview. Vercel adds the
+preview link to the pull request by itself.
+
+### Turn it on
+
+1. On GitHub, make a **fine-grained personal access token**
+   (Settings → Developer settings → Personal access tokens → Fine-grained
+   tokens → Generate new token):
+   - Repository access: **Only select repositories** →
+     `RealRyanNichols/TheLeadFlowPro`.
+   - Repository permissions: **Contents: Read and write** and **Pull
+     requests: Read and write**. Nothing else.
+   - Pick an expiry you will remember to renew (for example 90 days).
+2. In the droplet console, as root, paste these one at a time. The `read -rs`
+   line waits for you to paste the token and does not show it on screen:
+
+   ```bash
+   install -d -m 0750 -o root -g lvarchive /etc/longview-archive
+   ( umask 027; read -rs -p "Paste the GitHub token, then press Enter: " t; echo; printf '%s\n' "$t" > /etc/longview-archive/github-token; unset t )
+   chown root:lvarchive /etc/longview-archive/github-token
+   chmod 0640 /etc/longview-archive/github-token
+   systemctl restart longview-archive
+   ```
+
+   The installer does not make this folder; this step is only for you.
+3. Check it: the status page's **Batch pull requests** box says "On". To
+   see what the next pull request would say without sending anything:
+
+   ```bash
+   lva publish-pr --dry-run
+   ```
+
+   The first pull request appears after the next publish file is written
+   (within 45 minutes).
+
+The engine refuses a token file that everyone on the droplet can read, or
+that the service user cannot read, and says so on the status page. The token
+is read only by the engine, sent only to `api.github.com`, and never written
+to a log, the database, or the status page. The service's network guard does
+not block `api.github.com`; nothing in the service or the installer changes
+for this.
+
+### Turn it off
+
+```bash
+rm -f /etc/longview-archive/github-token
+```
+
+No restart is needed. Also delete the token on GitHub (same settings page).
+An open batch pull request stays open until you merge or close it. Closing
+it without merging skips that batch; the next changed batch (after a day)
+opens a new one.
+
 ## Removing a business
 
 Removal requests arrive through the "Claim, correct, or remove this listing"
@@ -240,6 +319,7 @@ business's, and it reads that site again on its next loop.
 | `lva sync all` | Pull open data now (or `sales-tax`, `tabc`, `osm`, `npi`) |
 | `lva match` | Match new records to businesses |
 | `lva crawl-once --limit 5` | Visit up to 5 due websites once (stop the service first: `systemctl stop longview-archive`) |
+| `lva publish-pr --dry-run` | Show the next batch pull request's title, text, and counts; sends nothing (see "Automatic batch pull requests") |
 | `lva exports` | Write the two private lists (no website; hiring) to `exports/private/`. They are sent nowhere |
 | `lva backup` | Take a database backup now |
 | `lva migrate` | Create or update the database tables |
@@ -281,7 +361,8 @@ business's, and it reads that site again on its next loop.
 ## Cost
 
 It runs on the existing $48/month droplet. No new servers, paid APIs, API
-keys, or other new spend. Hard caps: half a CPU, 700 MB of memory, 64 tasks,
+keys, or other new spend. (The optional GitHub token for batch pull requests
+is free.) Hard caps: half a CPU, 700 MB of memory, 64 tasks,
 and the lowest disk priority. It stops crawling and pulling data if free disk
 space drops under 5 GB. It backs up the database nightly at 3:30 am Central
 and keeps the newest 14 backups.
@@ -295,6 +376,7 @@ and keeps the newest 14 backups.
 | The numbers | `cat /var/lib/longview-archive/www/status.json` |
 | Self-test | `lva check` |
 | Disk space | `df -h /` |
+| Batch pull requests on? | the status page's "Batch pull requests" box, or `lva publish-pr --dry-run` |
 
 - **It keeps restarting.** The log says why; it retries every 30 seconds.
   Pause it or roll back while you look.
