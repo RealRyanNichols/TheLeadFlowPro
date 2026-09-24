@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { parseSpecialProspect } from "@/lib/septemberSpecial";
 import { SpecialCheckoutError, startSpecialCheckout } from "@/lib/septemberSpecialServer";
 import { BUSINESS } from "@/lib/site/business";
+import { requestOrigin } from "@/lib/requestOrigin";
 
 export const runtime = "nodejs";
 
@@ -18,7 +19,7 @@ const MESSAGES: Record<string, string> = {
 
 export async function POST(request: Request) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) {
+  if (origin && origin !== requestOrigin(request)) {
     return NextResponse.json({ error: "Please start checkout from this website." }, { status: 403 });
   }
   try {

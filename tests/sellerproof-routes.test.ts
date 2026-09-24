@@ -170,6 +170,20 @@ test("checkout rejects cross-origin calls and resolves price without sending evi
     503,
   );
 });
+test("SellerProof checkout accepts public HTTPS behind the loopback proxy", async () => {
+  const h = harness();
+  const request = new Request("http://127.0.0.1:3109/api/sellerproof/checkout", {
+    method: "POST",
+    headers: {
+      host: "www.theleadflowpro.com", "x-forwarded-host": "www.theleadflowpro.com",
+      "x-forwarded-proto": "https", origin, "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ packet: p }),
+  });
+  assert.equal((await h.route("checkout")(request)).status, 200);
+  const params = new URLSearchParams(h.requests[0].body);
+  assert.equal(new URL(params.get("success_url")!).origin, origin);
+});
 test("paid access sets a signed cookie, export requires review and matching case, refund revokes it", async () => {
   const h = harness();
   const claim = await h.route("access")(h.request({ sessionId: paid.id }));
