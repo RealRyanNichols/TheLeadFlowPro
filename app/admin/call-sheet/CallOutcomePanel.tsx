@@ -74,7 +74,7 @@ import { closerOffers, payDoorFor, type CloserOfferId, type PayDoor } from "@/li
 // - Back to this card after moving on: when the browser restores the page
 //   from its back-forward cache (pageshow with persisted), the panel calls
 //   onRestored, and the call card wrapper refreshes the server state (the
-//   header, the "You logged a call" line). What is on screen here stays.
+//   header, the "A call was logged" line). What is on screen here stays.
 // - Everything that needs lib/quo or lib/callSheet (phone links, texting
 //   consent) is worked out on the server and passed in as plain props. This
 //   file imports no Supabase, Quo, call sheet, or notification code, and no

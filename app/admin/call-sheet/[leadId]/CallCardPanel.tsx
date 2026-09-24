@@ -8,7 +8,7 @@ import CallOutcomePanel, { type CallOutcomePanelProps } from "../CallOutcomePane
 // what was just written. The refresh keeps the panel's own state, so the
 // success message and the pay links stay on screen. The same refresh runs
 // when the browser restores the card from its back-forward cache (Back after
-// Next call), so the header and the "You logged a call" line are current. A
+// Next call), so the header and the "A call was logged" line are current. A
 // server page cannot pass a callback into a client component, which is the
 // only reason this file exists; the panel itself stays free of the Next.js
 // router.

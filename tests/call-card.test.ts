@@ -1527,45 +1527,99 @@ test("call card harness: the last card of a run hands the panel a count of 0, so
   assert.equal(nextCallLink(plain.panels[0].queue, false)?.label, "Next call");
 });
 
-test("call card harness: Back after a save says the call is already logged, plainly, above the panel", async () => {
+test("call card harness: after a save in a run, the bar agrees with the panel: the count after this one, and Next call, not Skip for now", async () => {
+  const REF = "Ref 3f2b8c1e-5a4d-4e6f-9b7a-0c1d2e3f4a5b";
+  const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000 - 5000).toISOString();
+  const noAnswer = (created_at: string) => ({ kind: "call", detail: `Call: no answer. Try again Fri, Sep 25 at 10:00 AM. Outcome: no_answer. ${REF}`, created_at });
+  const earlier = ["0a1b2c3d-0000-4000-8000-000000000001", "0a1b2c3d-0000-4000-8000-000000000002"];
+  const next = `/admin/call-sheet/next?skip=${[...earlier, LEAD_ID].join(",")}`;
+  const bar = (html: string) => {
+    const m = /<nav aria-label="Today&#x27;s list"[^>]*>([\s\S]*?)<\/nav>/.exec(html);
+    assert.ok(m, html);
+    return m[1];
+  };
+
+  // First of five, saved a few seconds ago (the page refreshed after the save).
+  const saved = await callCard(LEAD_ID, { lead: realLead(), activity: [noAnswer(ago(0))] }, { queue: "1", left: "5", skip: earlier.join(",") });
+  const savedBar = bar(saved.html);
+  const barText = textOf(savedBar);
+  assert.ok(barText.includes("Call logged · 4 left"), barText);
+  assert.ok(!barText.includes("5 left") && !barText.includes("Going down today"), barText);
+  assert.ok(!saved.html.includes("Skip for now"), "no Skip for now for a person who was just called");
+  // The link stays (Log another call and Back both lose the panel's saved view), relabelled, same place, 44px.
+  assert.match(savedBar, new RegExp(`<a href="${next.replace(/[.?]/g, "\\$&")}"[^>]*min-h-\\[44px\\][^>]*>Next call</a>`), savedBar);
+  // The same count the panel's Next call shows after the save.
+  assert.deepEqual(saved.panels[0].queue, { nextHref: next, left: 4 });
+  assert.equal(nextCallLink(saved.panels[0].queue, false)?.label, "Next call · 4 left");
+  // Still the first thing on the card, and the recent-call line is there too.
+  assert.ok(saved.html.indexOf("Call logged") < saved.html.indexOf("Back to the call sheet"));
+  assert.ok(textOf(saved.html).includes("A call with Riley was logged less than a minute ago: No answer."));
+  assert.deepEqual(copyProblems(textOf(saved.html)), []);
+
+  // The last card: no "1 left" above "Finish the list"; the bar says it was the last one and finishes too.
+  const last = await callCard(LEAD_ID, { lead: realLead(), activity: [noAnswer(ago(2))] }, { queue: "1", left: "1" });
+  const lastBar = bar(last.html);
+  assert.ok(textOf(lastBar).includes("Call logged · that was the last one"), textOf(lastBar));
+  assert.ok(!textOf(lastBar).includes("1 left"), textOf(lastBar));
+  assert.match(lastBar, /<a href="\/admin\/call-sheet\/next\?skip=[^"]*"[^>]*min-h-\[44px\][^>]*>Finish the list<\/a>/);
+  assert.ok(!last.html.includes("Skip for now"));
+  assert.equal(nextCallLink(last.panels[0].queue, false)?.label, "Finish the list");
+
+  // An unreadable count: no number, still Next call.
+  const junk = await callCard(LEAD_ID, { lead: realLead(), activity: [noAnswer(ago(1))] }, { queue: "1", left: "lots" });
+  assert.equal(textOf(bar(junk.html)), "Call logged Next call");
+
+  // A save from before this visit (30 minutes or more): the bar is the plain run bar again.
+  const old = await callCard(LEAD_ID, { lead: realLead(), activity: [noAnswer(ago(45))] }, { queue: "1", left: "5", skip: earlier.join(",") });
+  assert.ok(textOf(old.html).includes("Going down today's list · 5 left"), textOf(old.html));
+  assert.match(bar(old.html), />Skip for now<\/a>/);
+  assert.ok(!old.html.includes("Call logged"));
+  // Outside a run there is no bar at all, saved or not.
+  assert.ok(!(await callCard(LEAD_ID, { lead: realLead(), activity: [noAnswer(ago(0))] })).html.includes('aria-label="Today&#x27;s list"'));
+});
+
+test("call card harness: Back after a save says the call is already logged, plainly, above the panel, without claiming who logged it", async () => {
   const REF = "Ref 3f2b8c1e-5a4d-4e6f-9b7a-0c1d2e3f4a5b";
   const ago = (minutes: number, seconds = 5) => new Date(Date.now() - minutes * 60_000 - seconds * 1000).toISOString();
   const noAnswer = (created_at: string) => ({ kind: "call", detail: `Call: no answer. Try again Fri, Sep 25 at 10:00 AM. Outcome: no_answer. ${REF}`, created_at });
   const recentTag = (html: string) => /<p([^>]*)data-recent-call=""[^>]*>([^<]*)<\/p>/.exec(html);
 
   const out = await callCard(LEAD_ID, { lead: realLead(), activity: [noAnswer(ago(4))] });
-  const line = "You logged a call with Riley 4 minutes ago: No answer. Only log again if you called again.";
+  const line = "A call with Riley was logged 4 minutes ago: No answer. Only log again if you called again.";
   const text = textOf(out.html);
   assert.ok(text.includes(line), text);
   // Right above "How did the call go?", after what was said last time.
-  assert.ok(out.html.indexOf("You logged a call") > out.html.indexOf('id="call-card-last"'));
-  assert.ok(out.html.indexOf("You logged a call") < out.html.indexOf("How did the call go?"));
+  assert.ok(out.html.indexOf("A call with Riley was logged") > out.html.indexOf('id="call-card-last"'));
+  assert.ok(out.html.indexOf("A call with Riley was logged") < out.html.indexOf("How did the call go?"));
   // Plain: no alert, no live region, no alarm color.
   const tag = recentTag(out.html);
   assert.ok(tag, out.html);
   assert.ok(!/\brole=/.test(tag[1]), tag[1]);
   assert.ok(!/warn|danger|red|amber/.test(tag[1]), tag[1]);
-  assert.equal((out.html.match(/You logged a call/g) ?? []).length, 1);
+  assert.equal((out.html.match(/A call with Riley was logged/g) ?? []).length, 1);
+  assert.equal((out.html.match(/data-recent-call=""/g) ?? []).length, 1);
+  // A sales user saves through the same route and the row records no actor, so it never says "You logged".
+  assert.ok(!/You logged/.test(out.html), text);
   assert.deepEqual(copyProblems(text), []);
   // The page reads nothing extra for it.
   assert.deepEqual(out.reads, ["profiles", "leads", "lead_notes", "lead_activity", "lead_calls", "lead_messages"]);
 
   // The words follow the minutes and the outcome saved.
   const said = async (activity: Record<string, unknown>[], lead = realLead()) => textOf((await callCard(LEAD_ID, { lead, activity })).html);
-  assert.ok((await said([noAnswer(ago(0, 10))])).includes("You logged a call with Riley less than a minute ago: No answer."));
-  assert.ok((await said([noAnswer(ago(1))])).includes("You logged a call with Riley 1 minute ago: No answer."));
+  assert.ok((await said([noAnswer(ago(0, 10))])).includes("A call with Riley was logged less than a minute ago: No answer."));
+  assert.ok((await said([noAnswer(ago(1))])).includes("A call with Riley was logged 1 minute ago: No answer."));
   assert.ok((await said([noAnswer(ago(29))])).includes("29 minutes ago: No answer."));
   // The newest call wins.
   const both = await said([
     { kind: "call", detail: `Call: talked, call back Fri, Sep 25 at 10:00 AM. Outcome: call_back. ${REF}`, created_at: ago(20) },
     { kind: "call", detail: `Call: left a voicemail. Try again Fri, Sep 25 at 10:00 AM. Outcome: voicemail. ${REF}`, created_at: ago(3) },
   ]);
-  assert.ok(both.includes("You logged a call with Riley 3 minutes ago: Left a voicemail. Only log again if you called again."), both);
+  assert.ok(both.includes("A call with Riley was logged 3 minutes ago: Left a voicemail. Only log again if you called again."), both);
   assert.ok((await said([{ kind: "call", detail: `Call: talked, call back Fri, Sep 25 at 10:00 AM. Outcome: call_back. ${REF}`, created_at: ago(6) }])).includes(
     "6 minutes ago: Talked, call back later.",
   ));
   // No usable name: never "with Facebook".
-  assert.ok((await said([noAnswer(ago(2))], realLead({ full_name: "Facebook lead" }))).includes("You logged a call with this lead 2 minutes ago"));
+  assert.ok((await said([noAnswer(ago(2))], realLead({ full_name: "Facebook lead" }))).includes("A call with this lead was logged 2 minutes ago"));
 
   // Thirty minutes or older, a sent proposal (not a call), or an entry without a time: no line.
   for (const activity of [
@@ -1575,10 +1629,11 @@ test("call card harness: Back after a save says the call is already logged, plai
     [{ kind: "call", detail: `Call: no answer. Outcome: no_answer. ${REF}` }],
   ]) {
     const quiet = await callCard(LEAD_ID, { lead: realLead(), activity });
-    assert.ok(!quiet.html.includes("You logged a call"), JSON.stringify(activity));
+    assert.ok(!quiet.html.includes("was logged") && !quiet.html.includes("data-recent-call"), JSON.stringify(activity));
   }
   // The sample never shows it.
-  assert.ok(!(await callCard("sample")).html.includes("You logged a call"));
+  const sampleHtml = (await callCard("sample")).html;
+  assert.ok(!sampleHtml.includes("was logged") && !sampleHtml.includes("data-recent-call"));
   // The wording in the source has no long dashes and no alert.
   const page = src(CARD_PAGE);
   assert.ok(page.includes("Only log again if you called again."));

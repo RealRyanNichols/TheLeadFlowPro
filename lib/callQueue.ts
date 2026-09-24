@@ -5,16 +5,26 @@
 // drops everyone already passed in this run (the skip list), and sends Ryan to
 // the call card of the first person left. The card carries the run along:
 // "Skip for now" and the panel's "Next call" both go back to /next with this
-// person added to the list, so a run never returns to the same person.
+// person added to the list, so a run never returns to someone it passed while
+// they are still waiting.
 //
 // A saved call takes the lead off the sheet anyway (it sets when they come
-// back); the skip list is what keeps "Skip for now" from landing on the same
-// card again. Pure: no reads, no writes, nothing sent to anyone.
+// back, and the sheet brings them back then); the skip list is what keeps
+// "Skip for now" from landing on the same card again. So /next keeps only the
+// ids still on the sheet (stillOnSheet), and saved people never use up a
+// place. The list is capped (SKIP_MAX) to keep the URL short. /next never lets
+// it overflow: with the list full it ends the run (runIsFull) instead of
+// dropping the oldest id, which would send the run back to the top of the
+// sheet. Pure: no reads, no writes, nothing sent to anyone.
 
 import type { CallSheetRow, CallSheetTier } from "@/lib/callSheet";
 
-/** Most ids one run carries. The newest are kept, so the person just passed never comes back first. */
-export const SKIP_MAX = 50;
+/**
+ * Most ids one run carries: people this run passed who are still on the sheet.
+ * About 3.7 KB of query string at most, well under any URL limit even with the
+ * same URL sent again as the Referer.
+ */
+export const SKIP_MAX = 100;
 
 /** Where "Start calling" and every "Next call" go. */
 export const NEXT_CALL_PATH = "/admin/call-sheet/next";
@@ -73,6 +83,25 @@ export function waitingBreakdown(counts: Record<CallSheetTier, number>): string 
 export function skippedStillWaiting(rows: readonly CallSheetRow[], skip: readonly string[]): number {
   const passed = new Set(skip.map((id) => id.toLowerCase()));
   return rows.filter((r) => passed.has(String(r.lead.id).toLowerCase())).length;
+}
+
+/**
+ * The skip list without anyone who has left the sheet, in the same order.
+ * Their call was saved, so the sheet decides when they come back, and they no
+ * longer use up one of the SKIP_MAX places.
+ */
+export function stillOnSheet(rows: readonly CallSheetRow[], skip: readonly string[]): string[] {
+  const onSheet = new Set(rows.map((r) => String(r.lead.id).toLowerCase()));
+  return skip.map((id) => id.toLowerCase()).filter((id) => onSheet.has(id));
+}
+
+/**
+ * True when this run cannot pass one more person without dropping its oldest
+ * id: the card would add itself to a list already SKIP_MAX long, and the
+ * person dropped would come back first. /next ends the run there instead.
+ */
+export function runIsFull(skip: readonly string[]): boolean {
+  return skip.length >= SKIP_MAX;
 }
 
 /** The count carried in the card's URL: a whole number from 0 up, else null. */

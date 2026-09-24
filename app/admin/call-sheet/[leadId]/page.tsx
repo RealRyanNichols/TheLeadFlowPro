@@ -73,10 +73,13 @@ import CallCardPanel from "./CallCardPanel";
 //
 // Back after a save must not invite logging the same call twice. When the
 // newest call a Call Closer save logged is under RECENT_SAVE_MINUTES old, a
-// plain line above the panel says so ("You logged a call with Riley 4 minutes
-// ago: No answer. Only log again if you called again."). The panel reloads
-// this page when the browser restores it from its back-forward cache, so the
-// line and the header catch up there too.
+// plain line above the panel says so ("A call with Riley was logged 4 minutes
+// ago: No answer. Only log again if you called again."). It does not say who
+// logged it: a sales user saves through the same route, and the activity row
+// records no actor. The panel reloads this page after a save and when the
+// browser restores it from its back-forward cache, so the line and the header
+// catch up there too. In a run, the same line turns the bar from "Skip for
+// now" into "Next call", counting the people after this one like the panel.
 //
 // The header names a follow-up time without claiming who set it ("Next
 // follow-up: ..."), because the planner sets most of them itself: the next try
@@ -92,7 +95,7 @@ const LEAD_COLUMNS =
   "id, created_at, full_name, business_name, email, phone, status, interest, source, utm_source, best_contact_method, goals, sms_consent, sms_unsubscribed_at, next_follow_up_at, last_contacted_at, is_test, diagnostic";
 const NOTES_SHOWN = 3;
 const CALL_ENTRIES_READ = 20;
-/** A call saved this recently gets the "You logged a call" line above the panel. */
+/** A call saved this recently gets the "A call with Riley was logged" line above the panel. */
 const RECENT_SAVE_MINUTES = 30;
 
 const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--blue)]";
@@ -218,9 +221,11 @@ function newestCallSave(rows: { kind?: unknown; detail: unknown; created_at?: un
 }
 
 /**
- * "You logged a call with Riley 4 minutes ago: No answer. Only log again if
- * you called again." Null unless that save is under RECENT_SAVE_MINUTES old
- * (a minute of clock drift between the database and this server is allowed).
+ * "A call with Riley was logged 4 minutes ago: No answer. Only log again if
+ * you called again." Neutral on who logged it: the Sales Desk saves through
+ * the same route and the activity row records no actor. Null unless that save
+ * is under RECENT_SAVE_MINUTES old (a minute of clock drift between the
+ * database and this server is allowed).
  */
 function recentCallLine(save: CallSave | null, first: string, now: Date): string | null {
   if (!save) return null;
@@ -228,7 +233,7 @@ function recentCallLine(save: CallSave | null, first: string, now: Date): string
   if (!Number.isFinite(ms) || ms < -60_000 || ms >= RECENT_SAVE_MINUTES * 60_000) return null;
   const minutes = Math.max(0, Math.floor(ms / 60_000));
   const ago = minutes === 0 ? "less than a minute ago" : minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
-  return `You logged a call with ${first || "this lead"} ${ago}: ${OUTCOME_LABELS[save.outcome]}. Only log again if you called again.`;
+  return `A call with ${first || "this lead"} was logged ${ago}: ${OUTCOME_LABELS[save.outcome]}. Only log again if you called again.`;
 }
 
 /**
@@ -424,21 +429,40 @@ function ConnectionProblem({ retryHref, queue }: { retryHref: string; queue: Car
   );
 }
 
-/** The slim bar a "Start calling" run shows above the card. */
-function QueueBar({ queue }: { queue: CardQueue }) {
-  const count = queue.left === null ? "" : ` · ${queue.left} left`;
+/**
+ * The slim bar a "Start calling" run shows above the card. Once a call on this
+ * card is logged (the page refreshes after a save), the bar agrees with the
+ * panel's "Next call": it counts the people after this one, and its link says
+ * Next call, not Skip for now. The link stays, because "Log another call"
+ * clears the panel's saved view and Back restores the card without it.
+ */
+function QueueBar({ queue, logged }: { queue: CardQueue; logged: boolean }) {
+  if (!logged) {
+    const count = queue.left === null ? "" : ` · ${queue.left} left`;
+    return (
+      <QueueBarShell href={queue.nextHref} label="Skip for now">
+        Going down today&apos;s list{count}
+      </QueueBarShell>
+    );
+  }
+  const after = leftAfterThis(queue.left);
+  const count = after === null ? "" : after === 0 ? " · that was the last one" : ` · ${after} left`;
+  return (
+    <QueueBarShell href={queue.nextHref} label={after === 0 ? "Finish the list" : "Next call"}>
+      Call logged{count}
+    </QueueBarShell>
+  );
+}
+
+function QueueBarShell({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
   return (
     <nav
       aria-label="Today's list"
       className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-xl border border-[var(--accent-line)] bg-[var(--accent-tint)] py-1 pl-3 pr-1"
     >
-      <p className="text-sm font-bold text-[var(--heading)]">Going down today&apos;s list{count}</p>
-      <Link
-        href={queue.nextHref}
-        prefetch={false}
-        className={`${BUTTON} border border-[var(--line-strong)] bg-[var(--panel)] text-[var(--text)]`}
-      >
-        Skip for now
+      <p className="text-sm font-bold text-[var(--heading)]">{children}</p>
+      <Link href={href} prefetch={false} className={`${BUTTON} border border-[var(--line-strong)] bg-[var(--panel)] text-[var(--text)]`}>
+        {label}
       </Link>
     </nav>
   );
@@ -489,7 +513,7 @@ function CallCard({ view }: { view: CardView }) {
     // grid-cols-1 is minmax(0, 1fr): a long URL in the pay message or in their
     // words wraps inside the card instead of widening every card past a phone.
     <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4">
-      {view.queue?.active ? <QueueBar queue={view.queue} /> : null}
+      {view.queue?.active ? <QueueBar queue={view.queue} logged={recentLine !== null} /> : null}
       {/* One row: back to the list, and the full record for a real lead. */}
       <nav className="flex flex-wrap items-center gap-x-4" aria-label="Call card">
         <Link href="/admin/call-sheet" className={QUIET_LINK}>

@@ -32,7 +32,9 @@ const {
   parseSkip,
   pickNext,
   queueCardHref,
+  runIsFull,
   skippedStillWaiting,
+  stillOnSheet,
   waitingBreakdown,
   waitingHeadline,
 } = callQueue;
@@ -94,7 +96,7 @@ function textOf(html: string): string {
 // The pure queue.
 // ---------------------------------------------------------------------------
 
-test("parseSkip: lead ids only, lowercased, once each, at most the newest fifty", () => {
+test("parseSkip: lead ids only, lowercased, once each, at most the newest hundred", () => {
   assert.deepEqual(parseSkip(`${A},${B.toUpperCase()}, ${A} ,not-an-id,,${C}`), [A, B, C]);
   assert.deepEqual(parseSkip([A, `${B},${C}`]), [A, B, C], "repeated parameters are joined");
   for (const junk of [undefined, null, 42, {}, "", "   ", "sample", "../../etc", `"><script>`, `${A}x`]) {
@@ -102,7 +104,9 @@ test("parseSkip: lead ids only, lowercased, once each, at most the newest fifty"
   }
   const many = Array.from({ length: SKIP_MAX + 7 }, (_, i) => id(i + 1));
   const kept = parseSkip(many.join(","));
-  assert.equal(SKIP_MAX, 50);
+  assert.equal(SKIP_MAX, 100);
+  // The longest list stays a short URL, even sent twice (the page and its Referer).
+  assert.ok(`skip=${kept.join(",")}`.length < 4_000);
   assert.equal(kept.length, SKIP_MAX);
   assert.deepEqual(kept, many.slice(-SKIP_MAX), "the newest are kept, so the person just passed never comes back first");
 });
@@ -125,6 +129,23 @@ test("pickNext: the first person in sheet order this run has not passed, and how
   assert.equal(pickNext(sheet.rows, [A, B, C]), null);
   assert.equal(pickNext([], []), null);
   assert.equal(skippedStillWaiting(sheet.rows, [A, C, id(99)]), 2);
+});
+
+test("stillOnSheet and runIsFull: saved people leave the list, and a full list is never overflowed", () => {
+  const sheet = callSheet.buildCallSheet(threeLeads(), [], new Date());
+  // Someone whose call was saved is off the sheet, so they come off the list; the order of the rest is kept.
+  assert.deepEqual(stillOnSheet(sheet.rows, [C, id(98), A.toUpperCase(), id(99)]), [C, A]);
+  assert.deepEqual(stillOnSheet(sheet.rows, []), []);
+  assert.deepEqual(stillOnSheet([], [A, B]), []);
+  // Full means the card would have to drop the oldest id to add itself.
+  const ids = (n: number) => Array.from({ length: n }, (_, i) => id(i + 1));
+  assert.equal(runIsFull([]), false);
+  assert.equal(runIsFull(ids(SKIP_MAX - 1)), false);
+  assert.equal(runIsFull(ids(SKIP_MAX)), true);
+  // Below full, the card's link keeps every id: nothing falls off the front.
+  const almost = ids(SKIP_MAX - 1);
+  const href = nextHref(almost, id(500));
+  assert.deepEqual(href.slice(href.indexOf("skip=") + 5).split(","), [...almost, id(500)]);
 });
 
 test("the queue's links: the card in a run, and the next person with this one added to the skip list", () => {
@@ -355,6 +376,93 @@ test("next page: a failed read is a connection problem, not an empty list, and T
   const history = await nextPage({ leads: threeLeads(), failing: ["lead_notes"] });
   assert.ok(textOf(history.html).includes("This is a connection problem, not an empty list."));
   assert.deepEqual(copyProblems(text), []);
+});
+
+/** `n` untouched fictional leads, one hour apart, all on the sheet. */
+function manyLeads(n: number): callSheet.CallSheetLead[] {
+  return Array.from({ length: n }, (_, i) =>
+    sheetLead({ id: id(i + 1), full_name: `Sample Person ${i + 1}`, created_at: new Date(Date.now() - (i + 1) * 3_600_000).toISOString() }),
+  );
+}
+
+/**
+ * A whole "Start calling" run, the way the pages chain: /next picks someone and
+ * redirects to their card, the card's link is nextHref over the card's own skip
+ * list plus this person, and that goes back to /next. `act` decides per visit:
+ * "save" takes the lead off the sheet (a saved call sets when they come back),
+ * "skip" leaves them on it.
+ */
+async function walkRun(leads: callSheet.CallSheetLead[], act: (visit: number) => "save" | "skip") {
+  const db: Db = { leads: [...leads] };
+  const visits: string[] = [];
+  const lefts: number[] = [];
+  const skipLengths: number[] = [];
+  let query: Record<string, string> | undefined;
+  for (let step = 0; step < leads.length * 3; step++) {
+    const out = await nextPage(db, query);
+    if (!out.redirect) return { visits, lefts, skipLengths, html: out.html };
+    const card = new URL(out.redirect, "https://example.test");
+    const leadId = card.pathname.slice("/admin/call-sheet/".length);
+    assert.equal(card.searchParams.get("queue"), "1");
+    visits.push(leadId);
+    lefts.push(Number(card.searchParams.get("left")));
+    const cardSkip = parseSkip(card.searchParams.get("skip") ?? "");
+    skipLengths.push(cardSkip.length);
+    if (act(visits.length) === "save") db.leads = db.leads!.filter((l) => l.id !== leadId);
+    const next = new URL(nextHref(cardSkip, leadId), "https://example.test");
+    assert.equal(next.pathname, NEXT_CALL_PATH);
+    query = { skip: next.searchParams.get("skip") ?? "" };
+  }
+  assert.fail(`the run never ended: ${visits.length} visits`);
+}
+
+test("a run where every person is skipped visits each one exactly once, then reaches the end of the list", async () => {
+  const leads = manyLeads(60);
+  const run = await walkRun(leads, () => "skip");
+  assert.equal(run.visits.length, 60);
+  assert.equal(new Set(run.visits).size, 60, "nobody is shown twice");
+  assert.deepEqual([...run.visits].sort(), leads.map((l) => l.id).sort(), "everyone is shown");
+  assert.deepEqual(run.lefts, Array.from({ length: 60 }, (_, i) => 60 - i), "the count goes down by one each time");
+  const text = textOf(run.html);
+  assert.ok(text.includes("That is the end of the list."), text);
+  assert.ok(text.includes("60 people you skipped are still on the list"), text);
+});
+
+test("a run that saves most people and skips some never returns to anyone, and saved people use no places on the list", async () => {
+  const leads = manyLeads(80);
+  // Save four of every five (they leave the sheet), skip every fifth.
+  const run = await walkRun(leads, (visit) => (visit % 5 === 0 ? "skip" : "save"));
+  assert.equal(run.visits.length, 80);
+  assert.equal(new Set(run.visits).size, 80, "nobody is shown twice");
+  // Only the people skipped and still waiting ride along in the URL.
+  assert.ok(Math.max(...run.skipLengths) <= 16, String(Math.max(...run.skipLengths)));
+  const text = textOf(run.html);
+  assert.ok(text.includes("That is the end of the list."), text);
+  assert.ok(text.includes("16 people you skipped are still on the list"), text);
+});
+
+test("a run that fills the list ends plainly instead of going back to the top", async () => {
+  const leads = manyLeads(SKIP_MAX + 10);
+  const run = await walkRun(leads, () => "skip");
+  assert.equal(run.visits.length, SKIP_MAX);
+  assert.equal(new Set(run.visits).size, SKIP_MAX, "nobody is shown twice");
+  assert.ok(Math.max(...run.skipLengths) < SKIP_MAX, "the card never gets a list it would have to cut");
+  const text = textOf(run.html);
+  assert.ok(text.includes(`You have skipped ${SKIP_MAX} people in this run.`), text);
+  assert.ok(text.includes("10 more people are still waiting after them. Start again from the top to keep going."), text);
+  assert.ok(!text.includes("That is the end of the list.") && !text.includes("caught up"), text);
+  assert.ok(!/role="alert"/.test(run.html));
+  // One big way on, from the top; the sheet and the lead list stay quiet links.
+  const big = [...run.html.matchAll(/<a href="([^"]*)"[^>]*class="([^"]*)"[^>]*>([^<]*)<\/a>/g)].filter((m) => m[2].includes("min-h-[52px]"));
+  assert.deepEqual(big.map((m) => [m[1], m[3]]), [[NEXT_CALL_PATH, "Start again from the top"]]);
+  assert.match(run.html, /<a href="\/admin\/call-sheet\/next" data-prefetch="off"/);
+  assert.ok(run.html.includes('href="/admin/call-sheet"') && run.html.includes('href="/admin"'));
+  assert.deepEqual(copyProblems(text), []);
+  // One person left after a full list: singular.
+  const full = manyLeads(SKIP_MAX + 1);
+  const one = await nextPage({ leads: full }, { skip: full.slice(0, SKIP_MAX).map((l) => l.id).join(",") });
+  assert.equal(one.redirect, null);
+  assert.ok(textOf(one.html).includes("1 more person is still waiting after them."), textOf(one.html));
 });
 
 async function banner(db: Db, reads: string[] = []) {

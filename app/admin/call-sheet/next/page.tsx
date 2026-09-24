@@ -3,7 +3,16 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { loadCallSheet } from "@/lib/callSheetServer";
 import { FOLLOW_UP_AFTER_DAYS } from "@/lib/callSheet";
-import { NEXT_CALL_PATH, nextHref, parseSkip, pickNext, queueCardHref, skippedStillWaiting } from "@/lib/callQueue";
+import {
+  NEXT_CALL_PATH,
+  nextHref,
+  parseSkip,
+  pickNext,
+  queueCardHref,
+  runIsFull,
+  skippedStillWaiting,
+  stillOnSheet,
+} from "@/lib/callQueue";
 
 // "Start calling" and every "Next call" land here. The page reads today's call
 // sheet fresh, drops everyone this run already passed (the skip list in the
@@ -12,6 +21,11 @@ import { NEXT_CALL_PATH, nextHref, parseSkip, pickNext, queueCardHref, skippedSt
 // people come back. Caught up, the first thing to tap is the lead list: the
 // call sheet is empty by then, so it is only a quiet link. With people skipped
 // in this run, going through them again comes first.
+//
+// Only ids still on the sheet are carried on (a saved call took the rest off
+// it). When the list is full the run ends here with a plain way to start again
+// from the top, instead of dropping its oldest id and sending Ryan back to
+// someone he already passed.
 //
 // Read-only, like the call sheet: the same role check next to the private
 // read, the same loader, and nothing is ever sent to a lead from here. The
@@ -45,9 +59,41 @@ export default async function NextCallPage({
   const loaded = await loadCallSheet(supabase, new Date());
   if (!loaded.ok) return <LoadProblem retryHref={skip.length ? nextHref(skip, null) : NEXT_CALL_PATH} />;
 
-  const next = pickNext(loaded.sheet.rows, skip);
-  if (next) redirect(queueCardHref(next.row.lead.id, skip, next.left));
-  return <CaughtUp skipped={skippedStillWaiting(loaded.sheet.rows, skip)} />;
+  const rows = loaded.sheet.rows;
+  // Saved people left the sheet: they stop using up places on the list.
+  const kept = stillOnSheet(rows, skip);
+  const next = pickNext(rows, kept);
+  if (next && !runIsFull(kept)) redirect(queueCardHref(next.row.lead.id, kept, next.left));
+  if (next) return <RunFull skipped={skippedStillWaiting(rows, kept)} waiting={next.left} />;
+  return <CaughtUp skipped={skippedStillWaiting(rows, kept)} />;
+}
+
+/** The list is full: say so plainly and start again from the top, never back to someone mid-run. */
+function RunFull({ skipped, waiting }: { skipped: number; waiting: number }) {
+  const more = waiting === 1 ? "1 more person is" : `${waiting} more people are`;
+  return (
+    <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4">
+      <section className="card !p-5" aria-labelledby="run-full">
+        <h2 id="run-full" className="text-2xl font-black text-[var(--heading)]">
+          {`You have skipped ${skipped} people in this run.`}
+        </h2>
+        <p className="mt-2 text-base text-[var(--text)]">
+          {`${more} still waiting after them. Start again from the top to keep going. The people you skipped come first.`}
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Link href={NEXT_CALL_PATH} prefetch={false} className={PRIMARY}>
+            Start again from the top
+          </Link>
+          <Link href="/admin/call-sheet" className={QUIET_LINK}>
+            See the call sheet
+          </Link>
+          <Link href="/admin" className={QUIET_LINK}>
+            Open the lead list
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 function LoadProblem({ retryHref }: { retryHref: string }) {
