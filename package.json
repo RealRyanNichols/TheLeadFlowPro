@@ -7,11 +7,9 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "npm run validate:calculations && npm run validate:facts && npm run validate:directory && npm run validate:tools && npm run validate:visuals && npm run validate:social && next build",
-    "build:only": "npm run validate:calculations && npm run validate:facts && npm run validate:directory && next build",
+    "build": "npm run validate:calculations && npm run validate:facts && npm run validate:tools && npm run validate:visuals && npm run validate:social && next build",
+    "build:only": "npm run validate:calculations && npm run validate:facts && next build",
     "validate:facts": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/validate-facts.ts",
-    "validate:directory": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/validate-directory.ts",
-    "test:archive": "cd deploy/longview-archive && python3 -m unittest discover -s tests",
     "check:links": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/check-links.ts",
     "start": "next start",
     "art": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/generate-tool-art.ts",

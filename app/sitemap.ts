@@ -8,8 +8,6 @@ import { OPERATOR_ACADEMY_COURSES } from "@/lib/operatorAcademyCatalog";
 import { publicScoreboardBusinesses } from "@/lib/scoreboard";
 import { PUBLIC_PAGE_CATALOG } from "@/lib/publicPageCatalog";
 import { METRIC_GUIDES } from "@/lib/scoreboardMetrics";
-import { loadDirectory } from "@/lib/longviewDirectory/data";
-import { directorySitemapEntries } from "@/lib/longviewDirectory/metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -74,8 +72,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.6,
     })),
-    // The Longview directory adds nothing until the owner turns on its
-    // indexable switch in the publish export.
-    ...directorySitemapEntries(loadDirectory(), BASE),
   ];
 }

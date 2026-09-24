@@ -117,25 +117,6 @@ export const PUBLIC_PAGE_CATALOG = [
       "Ads, websites, and follow-up for Longview and East Texas businesses, built and run in accounts you own. Free 30-minute consultation at your business, the Longview office, or by phone.",
     eyebrow: "Longview and East Texas",
   },
-  // The Longview business directory. Indexing is an owner decision: these
-  // stay out of the sitemap until the publish export's indexable switch and
-  // these flags are turned on together.
-  {
-    path: "/longview/businesses",
-    title: "Longview businesses",
-    description:
-      "Businesses in the City of Longview, listed A to Z with the source and check date for every fact. Not ranked, no reviews.",
-    eyebrow: "Longview business directory",
-    index: false,
-  },
-  {
-    path: "/longview/businesses/about",
-    title: "About the Longview business directory",
-    description:
-      "Where the directory's facts come from, how they are checked, what it never shows, and how to claim, correct, or remove a listing.",
-    eyebrow: "Longview business directory",
-    index: false,
-  },
   {
     path: "/services",
     title: "Build the part your business needs",

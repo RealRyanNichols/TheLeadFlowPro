@@ -52,5 +52,10 @@
       "path": "/api/cron/speed-to-lead",
       "schedule": "* * * * *"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "claude/serene-edison-daodg6": false
+    }
+  }
 }

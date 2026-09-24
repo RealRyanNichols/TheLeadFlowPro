@@ -1,4 +1,0 @@
-{
-  "note": "Businesses removed at the owner's request, listed by business id (lv-...) or profile slug; entries are trimmed and lowercased. The site hides them immediately. The repository is public, so the same pull request must also delete the record from directory.json, and run `longview-archive suppress --id <id>` on the droplet so the engine stops exporting it.",
-  "ids": []
-}

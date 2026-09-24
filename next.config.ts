@@ -38,10 +38,6 @@ const nextConfig: NextConfig = {
       "./public/images/social/commerce-20260907.jpg",
       "./public/images/social/scoreboard-20260907.jpg",
     ],
-    // The Longview directory and the sitemap read the committed publish
-    // export and the removal list at request time.
-    "/longview/**": ["./content/longview-directory/*.json"],
-    "/sitemap.xml": ["./content/longview-directory/*.json"],
   },
   // The free website build offer was retired on 2026-09-22. Paid ads, old
   // emails, and outside links still point at /free-build, so it answers with
