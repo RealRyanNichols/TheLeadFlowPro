@@ -67,6 +67,28 @@ export function plain(text: unknown, max = 2000): string {
     .slice(0, max);
 }
 
+// A complete tag: "<b>", "</b>", "<br/>", '<a href="x">'. It starts with a
+// letter (after an optional slash) and closes on the same line, so a bare "<"
+// in sales shorthand ("<5 trucks", "budget <$1k", "<= 500", "<3") is not one.
+const COMPLETE_TAG = /<\/?[a-z][a-z0-9-]*(?:\s[^<>\n]*)?\/?>/gi;
+
+/**
+ * Free text a person typed for the record, such as a call note. Line breaks
+ * are normalized and control characters removed, and only complete tags come
+ * out. Unlike plain(), a "<" with no tag after it stays, so "Crew of <5" does
+ * not swallow the rest of the note. The text is stored as text and React
+ * escapes it wherever it is shown.
+ */
+export function noteText(text: unknown, max = 2000): string {
+  if (typeof text !== "string") return "";
+  return text
+    .replace(/\r\n?/g, "\n")
+    .replace(COMPLETE_TAG, "")
+    .replace(CONTROL, "")
+    .trim()
+    .slice(0, max);
+}
+
 /** A single-line value: names, services, subjects. */
 export function line(text: unknown, max = 200): string {
   return plain(text, max).replace(/\s*\n\s*/g, " ").replace(/\s{2,}/g, " ").trim();

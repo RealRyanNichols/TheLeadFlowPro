@@ -28,6 +28,8 @@ import {
   sendDiagnosticReceiptEmail,
   sendDiagnosticResumeEmail,
 } from "@/lib/businessDiagnosticEmails";
+import { diagnosticReviewDueDate, stampDiagnosticFollowUp } from "@/lib/diagnosticFollowUp";
+import { centralDate } from "@/lib/businessTime";
 import { queueAndDeliverDiagnosticNotification } from "@/lib/diagnosticNotifications";
 import { SUPABASE_URL } from "@/lib/config";
 
@@ -517,7 +519,9 @@ async function updateLead(
   if (submitted) {
     update.sms_consent = smsConsent;
     update.marketing_email_consent = sevenDayConsent || ongoingConsent;
-    update.next_follow_up_at = row.submitted_at;
+    // next_follow_up_at is not written here: a re-save must never replace a
+    // call back a person set. The POST handler stamps it once, on the first
+    // submit, and only when it is empty (lib/diagnosticFollowUp.ts).
     if (smsConsent || sevenDayConsent || ongoingConsent) update.consent_at = new Date().toISOString();
   }
 
@@ -705,6 +709,7 @@ async function createFollowUp(
   leadId: string,
   answers: DiagnosticAnswers,
   priority: "normal" | "high" | "hot",
+  dueDate: string,
 ) {
   const title = "Review Business Growth Diagnostic and follow up";
   const current = await supabase
@@ -724,7 +729,9 @@ async function createFollowUp(
   await supabase.from("lead_tasks").insert({
     lead_id: leadId,
     title,
-    due_date: new Date().toISOString().slice(0, 10),
+    // The Central day of the submission, the same day the follow-up stamp
+    // uses, so finishing or moving this task clears or moves that stamp.
+    due_date: dueDate,
     priority,
     task_type: taskType,
   });
@@ -935,7 +942,10 @@ export async function POST(request: Request) {
     }
 
     if (persisted.newlySubmitted) {
-      await createFollowUp(supabase, persisted.row.lead_id, answers, priority);
+      const stamp = await stampDiagnosticFollowUp(supabase, persisted.row.lead_id, persisted.row.submitted_at);
+      if (stamp === "failed") console.error("Diagnostic follow-up time was not set; the review task still is.");
+      const reviewDue = diagnosticReviewDueDate(persisted.row.submitted_at) ?? centralDate(new Date());
+      await createFollowUp(supabase, persisted.row.lead_id, answers, priority, reviewDue);
       await supabase.from("lead_activity").insert({
         lead_id: persisted.row.lead_id,
         kind: "system",

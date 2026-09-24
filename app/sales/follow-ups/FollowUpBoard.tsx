@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { formatCentral } from "@/lib/businessTime";
+import { clearTaskFollowUp, moveTaskFollowUp, setTaskFollowUpIfEmpty } from "@/lib/taskFollowUp";
 
 type Lead = {
   id: string;
@@ -44,6 +46,14 @@ function pretty(value: string) {
 function dueLabel(value: string | null) {
   if (!value) return "No date";
   return new Date(`${value}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+/** Said when a new task leaves a follow-up time already on the lead in place. */
+function keptFollowUp(stored: string | null): string {
+  const at = stored ? new Date(stored) : null;
+  return at && !Number.isNaN(at.getTime())
+    ? `The follow-up already set for ${formatCentral(at)} Central stays.`
+    : "The follow-up time already on the lead stays.";
 }
 
 function groupFor(task: Task) {
@@ -90,15 +100,16 @@ export default function FollowUpBoard({ initialTasks, initialLeads, operatorName
     if (insertError || !data || !lead) setError(insertError?.message || "Follow-up could not be added");
     else {
       const dueDate = String(fd.get("due_date") || "");
-      const updatedLead = dueDate ? { ...lead, next_follow_up_at: new Date(`${dueDate}T09:00:00`).toISOString() } : lead;
-      if (dueDate) {
-        await supabase.from("leads").update({ next_follow_up_at: updatedLead.next_follow_up_at }).eq("id", lead.id);
-        setLeads((items) => items.map((item) => item.id === lead.id ? updatedLead : item));
-      }
+      // The task's day fills the follow-up time only when none is set: a call
+      // back the Call Closer stored is a promise and stays.
+      const set = dueDate ? await setTaskFollowUpIfEmpty(supabase, lead.id, dueDate) : null;
+      const updatedLead = set?.changed ? { ...lead, next_follow_up_at: set.value } : lead;
+      if (set?.changed) setLeads((items) => items.map((item) => item.id === lead.id ? updatedLead : item));
+      if (set?.error) setError(`The follow-up was added, but its time was not set on the lead: ${set.error}`);
       setTasks((items) => [{ ...data, leads: updatedLead } as Task, ...items]);
       form.reset();
       setShowNew(false);
-      setMessage(`Follow-up added for ${lead.full_name}.`);
+      setMessage(set && !set.changed && !set.error ? `Follow-up added for ${lead.full_name}. ${keptFollowUp(lead.next_follow_up_at)}` : `Follow-up added for ${lead.full_name}.`);
     }
     setBusy("");
   }
@@ -110,9 +121,12 @@ export default function FollowUpBoard({ initialTasks, initialLeads, operatorName
     else {
       const hasAnotherTask = tasks.some((item) => item.id !== task.id && item.lead_id === task.lead_id);
       setTasks((items) => items.filter((item) => item.id !== task.id));
+      // Clear the follow-up time only while it is still the one this task set:
+      // a Call Closer call back has no task behind it and must survive.
       if (!hasAnotherTask) {
-        await supabase.from("leads").update({ next_follow_up_at: null }).eq("id", task.lead_id);
-        setLeads((items) => items.map((item) => item.id === task.lead_id ? { ...item, next_follow_up_at: null } : item));
+        const cleared = await clearTaskFollowUp(supabase, task.lead_id, task.due_date, task.created_at);
+        if (cleared.error) setError(cleared.error);
+        else if (cleared.changed) setLeads((items) => items.map((item) => item.id === task.lead_id ? { ...item, next_follow_up_at: null } : item));
       }
       await supabase.from("lead_activity").insert({ lead_id: task.lead_id, kind: "task", detail: `${pretty(task.task_type)} follow-up completed: ${task.title}` });
       setMessage(`Completed: ${task.title}`);
@@ -128,16 +142,16 @@ export default function FollowUpBoard({ initialTasks, initialLeads, operatorName
       setTasks((items) => items.map((item) => item.id === task.id ? { ...item, due_date: previous } : item));
       setError(updateError.message);
     } else {
-      const next = due_date ? new Date(`${due_date}T09:00:00`).toISOString() : null;
-      await supabase.from("leads").update({ next_follow_up_at: next }).eq("id", task.lead_id);
-      setLeads((items) => items.map((item) => item.id === task.lead_id ? { ...item, next_follow_up_at: next } : item));
+      // Move the follow-up time only when it is empty or still the one this task set.
+      const moved = await moveTaskFollowUp(supabase, task.lead_id, previous, due_date, task.created_at);
+      if (moved.error) setError(moved.error);
+      else if (moved.changed) setLeads((items) => items.map((item) => item.id === task.lead_id ? { ...item, next_follow_up_at: moved.value } : item));
     }
   }
 
   async function scheduleLead(lead: Lead, dueDate: string) {
     if (!dueDate) return;
     setBusy(`lead-${lead.id}`);
-    const next = new Date(`${dueDate}T09:00:00`).toISOString();
     const { data, error: insertError } = await supabase.from("lead_tasks").insert({
       lead_id: lead.id,
       title: "Sales follow-up call",
@@ -148,11 +162,18 @@ export default function FollowUpBoard({ initialTasks, initialLeads, operatorName
     }).select().single();
     if (insertError || !data) setError(insertError?.message || "Follow-up could not be scheduled");
     else {
-      await supabase.from("leads").update({ next_follow_up_at: next }).eq("id", lead.id);
-      const updatedLead = { ...lead, next_follow_up_at: next };
-      setLeads((items) => items.map((item) => item.id === lead.id ? updatedLead : item));
+      // Empty only: this list shows leads with no time set, but a stale page
+      // must not replace a call back saved since it loaded.
+      const set = await setTaskFollowUpIfEmpty(supabase, lead.id, dueDate);
+      const updatedLead = set.changed ? { ...lead, next_follow_up_at: set.value } : lead;
+      if (set.changed) setLeads((items) => items.map((item) => item.id === lead.id ? updatedLead : item));
+      if (set.error) setError(`The follow-up was scheduled, but its time was not set on the lead: ${set.error}`);
       setTasks((items) => [{ ...data, leads: updatedLead } as Task, ...items]);
-      setMessage(`${lead.full_name} is scheduled for ${dueLabel(dueDate)}.`);
+      setMessage(
+        set.changed || set.error
+          ? `${lead.full_name} is scheduled for ${dueLabel(dueDate)}.`
+          : `${lead.full_name} is scheduled for ${dueLabel(dueDate)}. ${keptFollowUp(lead.next_follow_up_at)}`,
+      );
     }
     setBusy("");
   }
