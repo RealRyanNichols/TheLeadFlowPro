@@ -25,6 +25,7 @@ import styles from "./chase-sheet.module.css";
 
 const title = `Chase Sheet: Every Open Quote, Chased Every Day | The LeadFlow Pro`;
 const description = `The follow-up for every quote you send, written for your trade, sent from your own phone with one tap. ${CHASE_SHEET.monthlyLabel} or ${CHASE_SHEET.lifetimeLabel}. Nothing is sent for you.`;
+const socialImage = `${BUSINESS.siteUrl}/og/unique/2026-09-24/chase-sheet.jpg`;
 
 export const metadata: Metadata = {
   title,
@@ -36,9 +37,9 @@ export const metadata: Metadata = {
     url: `${BUSINESS.siteUrl}${CHASE_SHEET.path}`,
     siteName: BUSINESS.name,
     type: "website",
-    images: [{ url: `${CHASE_SHEET.path}/opengraph-image`, width: 1200, height: 630 }],
+    images: [{ url: socialImage, width: 1200, height: 630, type: "image/jpeg", alt: "Chase Sheet: Every quote. A next move. Follow-up written for your trade and ready to send from your phone." }],
   },
-  twitter: { card: "summary_large_image", title, description, images: [`${CHASE_SHEET.path}/opengraph-image`] },
+  twitter: { card: "summary_large_image", title, description, images: [socialImage] },
 };
 
 const TRADE_COUNT = TRADES.length - 1;
