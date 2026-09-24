@@ -1,0 +1,64 @@
+# Longview Business Archive status host (The LeadFlow Pro).
+#
+# Owner: The LeadFlow Pro, hello@theleadflowpro.com.
+# Serves the engine's private status page from /var/lib/longview-archive/www:
+# / (redirects to /status/), /status, /status/*, /status.json, and
+# /robots.txt. Everything else is a 404. Every response, errors included,
+# says noindex, and the page loads nothing from any other host. The public
+# directory lives on theleadflowpro.com, not here.
+#
+# Needs Caddy 2.7 or newer (the robots.txt heredoc); preflight.sh checks it.
+# Installed by deploy/longview-archive/install.sh. To remove it, run
+# /opt/longview-archive/uninstall.sh, or delete this one file and run
+#   caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+#   systemctl reload caddy
+
+# The snippet name is prefixed so it cannot collide with other site files.
+(longview_archive_headers) {
+	header {
+		X-Robots-Tag "noindex, nofollow, noarchive, nosnippet"
+		Content-Security-Policy "default-src 'none'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		X-Frame-Options DENY
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Cache-Control "no-store"
+		-Server
+	}
+}
+
+longview.165-227-248-110.sslip.io {
+	root * /var/lib/longview-archive/www
+	import longview_archive_headers
+
+	# Answered by Caddy itself, so crawlers are turned away even before the
+	# engine writes its first file.
+	handle /robots.txt {
+		header Content-Type "text/plain; charset=utf-8"
+		respond <<TXT
+			User-agent: *
+			Disallow: /
+			TXT 200
+	}
+
+	# The "*" matters: without it Caddy reads /status/ as a path matcher.
+	handle / {
+		redir * /status/ 302
+	}
+
+	@status path /status /status/ /status/* /status.json
+	handle @status {
+		file_server
+	}
+
+	handle {
+		respond "Not found" 404
+	}
+
+	# A missing status file is an error inside file_server; answer it with
+	# the same headers instead of Caddy's bare default.
+	handle_errors {
+		import longview_archive_headers
+		respond "{err.status_code}" {err.status_code}
+	}
+}

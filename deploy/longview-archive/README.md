@@ -1,0 +1,306 @@
+# Longview Business Archive: operator runbook
+
+This is the engine behind the LeadFlow Longview business directory
+(theleadflowpro.com/longview/businesses). It runs around the clock on the
+LeadFlow DigitalOcean droplet (`leadflow-web`). It reads public business
+records and business websites politely, keeps a sourced archive, and every 45
+minutes writes one file with the businesses that are ready to publish. Nothing
+reaches the website until you merge a pull request with that file.
+
+It never calls, texts, emails, or messages a business, and it never writes to
+the CRM, an email list, or an ad audience.
+
+Engineers: the contract is [SPEC.md](SPEC.md). The plan and log are in
+`docs/longview-directory/`.
+
+## Install (one paste)
+
+In DigitalOcean, open the droplet and choose **Access → Launch Droplet
+Console**. You are logged in as root. Paste one command.
+
+**Until the pull request merges**, use the working branch
+`claude/serene-edison-daodg6`:
+
+```bash
+bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch claude/serene-edison-daodg6 https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"'
+```
+
+**After the pull request merges**, use `main`:
+
+```bash
+bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch main https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"'
+```
+
+To see every step first without changing anything, put ` --dry-run` right
+after `install.sh`, inside the closing quote.
+
+It takes a minute or two. The last lines show the status link and the
+pause, resume, and rollback commands.
+
+### What it changes
+
+- Adds the system user `lvarchive`. It cannot log in and has no home folder.
+- Puts the code in `/opt/longview-archive/app`. The copy it replaces stays as
+  `app.previous`. It also makes an empty Python venv there; nothing is
+  downloaded or installed into it.
+- Keeps the data in `/var/lib/longview-archive`.
+- Adds and starts one service, `longview-archive`, capped at half a CPU and
+  700 MB of memory.
+- Adds one Caddy file, `/etc/caddy/sites/longview-archive.caddy`, for the
+  status page. It checks Caddy's whole config before reloading. If the check
+  fails, it puts the file back and does not reload, so the live sites never
+  change.
+- Copies `uninstall.sh` and `preflight.sh` to `/opt/longview-archive/`.
+
+### What it never touches
+
+DNS, other Caddy sites, the Central Brain and Call Desk, the `brain`
+database, pda-api and the Premier staging site, other users, SSH keys,
+secrets, env files, timers it did not create, and system packages. It never
+reboots.
+
+It refuses to run unless it is root on Ubuntu, the machine is `leadflow-web`,
+Python is 3.10 or newer, Caddy is 2.7 or newer and loads `sites/*.caddy`, and
+at least 10 GB is free.
+
+### Check the droplet first (optional, read-only)
+
+This prints versions, disk, service and timer names, and a PASS/WARN list. It
+changes nothing and prints no secrets.
+
+```bash
+bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch claude/serene-edison-daodg6 https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/preflight.sh"'
+```
+
+(Use `main` instead of the branch name after the merge.) After an install it
+is also at `bash /opt/longview-archive/preflight.sh`.
+
+## Where to see it
+
+**https://longview.165-227-248-110.sslip.io/status/**
+
+The page shows counts and job times only, never a name. It is not linked from
+anywhere, tells search engines not to index it, and loads nothing from other
+sites. The raw numbers are at `/status.json`. The very first visit can take a
+minute while Caddy gets its certificate.
+
+## Everyday commands
+
+Paste this shortcut once each time you open the console. It runs the engine's
+command line as the service user, so files keep the right owner:
+
+```bash
+lva() { runuser -u lvarchive -- env -C /opt/longview-archive/app PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 /opt/longview-archive/venv/bin/python -m longview_archive "$@"; }
+```
+
+Every `lva ...` command below needs it.
+
+### Pause and resume
+
+Pause (the engine goes idle within about 30 seconds and stops reading
+websites and open data; the status page keeps updating):
+
+```bash
+touch /var/lib/longview-archive/PAUSE
+```
+
+Resume:
+
+```bash
+rm -f /var/lib/longview-archive/PAUSE
+```
+
+### Rollback
+
+```bash
+bash /opt/longview-archive/uninstall.sh
+```
+
+This stops and disables the service, removes its unit file and the Caddy
+file, checks Caddy's config, and reloads Caddy. **The data stays** in
+`/var/lib/longview-archive` until someone deletes it on purpose. The code
+stays too unless you add `--remove-code`. Add `--dry-run` to see the steps
+first. Re-running the install one-liner brings everything back.
+
+To delete the data on purpose (this cannot be undone):
+
+```bash
+rm -rf /var/lib/longview-archive
+userdel lvarchive
+```
+
+To go back one code version without uninstalling:
+
+```bash
+systemctl stop longview-archive
+mv /opt/longview-archive/app /opt/longview-archive/app.bad
+mv /opt/longview-archive/app.previous /opt/longview-archive/app
+systemctl start longview-archive
+```
+
+### Upgrade
+
+Re-run the install one-liner. It copies the new code (keeping the old copy as
+`app.previous`), runs the database migration and self-check, restarts the
+service, and touches Caddy only if the site file changed.
+
+## How a batch reaches the website
+
+1. On the droplet, write a fresh publish file (the engine also does this on
+   its own every 45 minutes):
+
+   ```bash
+   lva publish --out /var/lib/longview-archive/exports/publish/directory.json
+   ```
+
+2. On a computer that has this repo and SSH access to the droplet, put the
+   file in a pull request:
+
+   ```bash
+   git switch main && git pull
+   git switch -c longview-batch-$(date +%Y-%m-%d)
+   scp root@165.227.248.110:/var/lib/longview-archive/exports/publish/directory.json content/longview-directory/directory.json
+   git add content/longview-directory/directory.json
+   git commit -m "Longview directory batch $(date +%Y-%m-%d)"
+   git push -u origin HEAD
+   gh pr create --fill
+   ```
+
+3. Read the pull request's diff: it shows every business added, removed, or
+   changed. **Merging the pull request is the approval**; Vercel then deploys
+   it. The site re-checks every record and drops any that breaks a rule, and
+   profiles stay `noindex` until you turn indexing on.
+
+## Removing a business
+
+Removal requests arrive through the "Claim, correct, or remove this listing"
+link on every profile, which goes to hello@theleadflowpro.com. Do both steps:
+
+1. On the droplet, so the engine stops exporting it (the id starts with
+   `lv-`; find it next to the name in
+   `content/longview-directory/directory.json`):
+
+   ```bash
+   lva suppress --id lv-abcde12345 --reason "owner asked"
+   ```
+
+2. In the repo, add the same id to the `ids` list in
+   `content/longview-directory/suppressions.json` and merge that in a pull
+   request. The site hides it as soon as that deploys, even before the next
+   batch.
+
+The engine can also suppress by website domain or phone number
+(`lva suppress --help`).
+
+## Review queue
+
+Anything uncertain waits for a person instead of being published: a new value
+that conflicts with a checked one, hours without clear am/pm, a phone outside
+903/430, a social link that may not be the business's, a website that does
+not clearly belong to the business, a name that may be a person's, and
+records that might be the same place.
+
+```bash
+lva review list
+lva review accept <id>
+lva review reject <id>
+```
+
+The `<id>` is the number `review list` shows. Accepting records who did it.
+
+## Other commands
+
+| Command | What it does |
+| --- | --- |
+| `lva check` | Self-test: settings, database, disk, pause, caps |
+| `lva status` | Write the status page now |
+| `lva sync all` | Pull open data now (or `sales-tax`, `tabc`, `osm`, `npi`) |
+| `lva match` | Match new records to businesses |
+| `lva crawl-once --limit 5` | Visit up to 5 due websites once |
+| `lva backup` | Take a database backup now |
+| `lva migrate` | Create or update the database tables |
+
+## Crawl rules
+
+- Reads `robots.txt` first and obeys it.
+- At most 2 websites at a time, and at least 20 seconds between requests to
+  the same site.
+- At most 6 pages per visit, 2.5 MB per page, 20 seconds per request.
+- Slows down when a site asks (429 or 503): waits 1, then 3, 7, and 14 days.
+- Stops at a firewall challenge and moves on; it never tries to get around one.
+- No cookies, no JavaScript, no forms, no logins.
+- Re-checks each site every 30 days.
+- Identifies itself in every request with a link to the directory's about page
+  and the LeadFlow email.
+- Refuses private and internal addresses. The service is also blocked at the
+  system level from reaching this droplet's own services, private networks,
+  and the cloud metadata address.
+
+## Privacy
+
+- Businesses only. A person's name is never published, logged, or exported.
+  The taxpayer name on a state record is used only for privacy checks.
+- A business listed under an owner's own name stays hidden until it has its
+  own public presence (its own website, or an OpenStreetMap, TABC, or NPI
+  listing).
+- An address is shown only with storefront evidence. Otherwise the page says
+  "Longview, TX" only.
+- Phone, email, hours, social links, careers, and services come only from the
+  business's own website. Emails are only general office addresses (such as
+  info@) on the business's own domain.
+- No ratings, reviews, photos, or copied text.
+- Every profile lists its sources and the date each fact was checked, says it
+  is not affiliated and has no rankings or endorsements, and has the "Claim,
+  correct, or remove this listing" link.
+- Nothing here contacts a business.
+
+## Cost
+
+It runs on the existing $48/month droplet. No new servers, paid APIs, API
+keys, or other new spend. Hard caps: half a CPU, 700 MB of memory, 64 tasks,
+and the lowest disk priority. It stops crawling and pulling data if free disk
+space drops under 5 GB. It backs up the database nightly at 3:30 am Central
+and keeps the newest 14 backups.
+
+## Troubleshooting
+
+| Question | Command |
+| --- | --- |
+| Is it running? | `systemctl status longview-archive --no-pager` |
+| What happened? | `journalctl -u longview-archive -n 100 --no-pager` |
+| The numbers | `cat /var/lib/longview-archive/www/status.json` |
+| Self-test | `lva check` |
+| Disk space | `df -h /` |
+
+- **It keeps restarting.** The log says why; it retries every 30 seconds.
+  Pause it or roll back while you look.
+- **The status page does not load.** Wait a minute on the first visit (the
+  certificate). Then check `systemctl status caddy --no-pager` and
+  `caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile`.
+- **"Operation not permitted" to 127.0.0.1, 10.x, or 169.254.169.254 in the
+  log.** That is the network guard doing its job; the engine is not allowed
+  to reach them.
+
+## For engineers
+
+| File | Installed to |
+| --- | --- |
+| `longview_archive/` | `/opt/longview-archive/app/longview_archive/` (root-owned, read-only to the service) |
+| `systemd/longview-archive.service` | `/etc/systemd/system/longview-archive.service` |
+| `caddy/longview-archive.caddy` | `/etc/caddy/sites/longview-archive.caddy` |
+| `uninstall.sh`, `preflight.sh` | `/opt/longview-archive/` |
+
+Tests (standard library only, no network):
+
+```bash
+cd deploy/longview-archive && python3 -m unittest tests.test_deploy -v
+```
+
+`tests/test_deploy.py` runs the whole installer and uninstaller in a temporary
+directory using two **test-only** hooks. Never set them on the droplet; the
+scripts refuse one without the other:
+
+- `LVA_INSTALL_PREFIX=/tmp/x` puts `/tmp/x` in front of every absolute path.
+- `LVA_INSTALL_FAKE_SYSTEM=1` replaces `systemctl`, `caddy`, `useradd`,
+  `runuser`, `id`, `chown`, `df`, and the hostname check with shell functions
+  that log what they would have done.
