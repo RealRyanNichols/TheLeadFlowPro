@@ -144,6 +144,10 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
         return {
           sendNurtureEmail: () => assert.fail("No test may send email"),
         };
+      if (name === "@/lib/nurtureHtml")
+        return {
+          renderNurtureHtml: () => assert.fail("No test may render for a send"),
+        };
       return require(name);
     },
     loadedModule,

@@ -19,6 +19,7 @@ import {
   nurtureRetryWindowExpired,
   sendNurtureEmail,
 } from "@/lib/nurtureDelivery";
+import { renderNurtureHtml } from "@/lib/nurtureHtml";
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
 import { BUSINESS } from "@/lib/site/business";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
@@ -352,6 +353,11 @@ export async function GET(request: Request) {
         to: [lead.email],
         subject: next.subject,
         text: renderBody(next, lead, unsubUrl),
+        // The designed email. Workshop steps keep the plain look: they are a
+        // four day countdown, not the thirty day series.
+        ...(workshopLead
+          ? {}
+          : { html: renderNurtureHtml({ step: next, firstName: firstNameOf(lead.full_name), unsubUrl }) }),
         headers: {
           "List-Unsubscribe": `<${unsubUrl}>`,
           "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",

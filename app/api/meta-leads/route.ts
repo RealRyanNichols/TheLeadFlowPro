@@ -6,6 +6,10 @@ import { notifyNewLeadSms, sendInternalLeadAlert } from "@/lib/leadNotify";
 import { normalizePhoneLast10 } from "@/lib/quo";
 import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotifications";
 import {
+  syncResendContacts,
+  type ResendContactSyncResult,
+} from "@/lib/resendContacts";
+import {
   isAllowedLeadFlowAdId,
   isAllowedMetaTestLeadId,
   isRegisteredMetaForm,
@@ -36,6 +40,9 @@ import {
 //   SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, QUO_API_KEY
 
 const GRAPH = "https://graph.facebook.com/v21.0";
+const LEADFLOW_META_RESEND_SEGMENT_ID = "f500eae4-6d02-4825-9aad-24808610deef";
+
+export const maxDuration = 60;
 
 // The LeadFlow Pro Facebook Page. An environment override may be used only
 // when it is the exact same full ID; runtimeIdentityIssues fails closed on any
@@ -498,6 +505,43 @@ async function ingest(raw: MetaLead, token: string): Promise<boolean> {
   return true;
 }
 
+async function syncLiveMetaLeadsToResend(): Promise<ResendContactSyncResult | { skipped: string }> {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!serviceKey || !resendKey) return { skipped: "missing database or email configuration" };
+
+  const supabase = createSupabaseClient(SUPABASE_URL, serviceKey);
+  const { data, error } = await supabase
+    .from("leads")
+    .select("full_name, email, marketing_email_consent, email_unsubscribed_at")
+    .eq("source", "meta_lead_ad")
+    .is("deleted_at", null)
+    .not("is_test", "is", true);
+  if (error) {
+    console.error("Resend contact source query failed:", error.message);
+    return { skipped: "lead query failed" };
+  }
+
+  const result = await syncResendContacts({
+    apiKey: resendKey,
+    leads: data ?? [],
+    segmentId: LEADFLOW_META_RESEND_SEGMENT_ID,
+  });
+  console.info("Resend contact reconciliation:", {
+    eligible: result.eligible,
+    contacts_before: result.contacts_before,
+    segment_members_before: result.segment_members_before,
+    created: result.created,
+    added_to_segment: result.added_to_segment,
+    marked_unsubscribed: result.marked_unsubscribed,
+    preserved_provider_opt_out: result.preserved_provider_opt_out,
+    already_present: result.already_present,
+    deferred: result.deferred,
+    failed: result.failed,
+  });
+  return result;
+}
+
 // public.sms_suppressions is written by the Quo inbound path the moment a
 // number texts STOP, keyed on the last ten digits (public.normalize_phone).
 // Fails open only on a malformed phone, which sendLeadText rejects anyway.
@@ -616,7 +660,8 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, seen, imported });
+  const resendContacts = await syncLiveMetaLeadsToResend();
+  return NextResponse.json({ ok: true, seen, imported, resend_contacts: resendContacts });
 }
 
 export async function POST(request: Request) {
@@ -667,6 +712,8 @@ export async function POST(request: Request) {
     }
   }
 
-  // Meta retries anything that is not a fast 200.
+  // Meta retries anything that is not a fast 200. Do not hold the webhook
+  // open for provider reconciliation; the protected five-minute GET poll
+  // owns that retryable work.
   return NextResponse.json({ ok: true, imported });
 }
