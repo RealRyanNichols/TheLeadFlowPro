@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { cancelSpecialCheckout, SpecialCheckoutError } from "@/lib/septemberSpecialServer";
+import { requestOrigin } from "@/lib/requestOrigin";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) {
+  if (origin && origin !== requestOrigin(request)) {
     return NextResponse.json({ error: "Use the checkout website." }, { status: 403 });
   }
   try {

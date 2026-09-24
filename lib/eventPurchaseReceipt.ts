@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { stripePurchaseEventId } from "./stripeSession";
 import { validateEventPayment } from "./eventPayments";
 import { PRO_PURCHASE_SESSION_WINDOW, proPurchaseConsumptionRow, type ProPurchaseReceipt } from "./proPurchaseReceipt";
+import { requestOrigin } from "./requestOrigin";
 export const EVENT_PURCHASE_COOKIE = "lfp_event_purchase";
 export const EVENT_RECEIPT_TTL = 10 * 60;
 export type EventPurchaseReceipt = ProPurchaseReceipt & {
@@ -54,7 +55,7 @@ export function eventConsumptionRow(receipt: EventPurchaseReceipt) {
     return { ...proPurchaseConsumptionRow(receipt), event_name: "event_purchase_receipt_consumed", path: eventThanksPath(receipt.sku), tool_slug: null };
 }
 export function eventReceiptRequestAllowed(request: Request, receipt: EventPurchaseReceipt) {
-    const origin = new URL(request.url).origin;
+    const origin = requestOrigin(request);
     if (request.method !== "POST" || request.headers.get("origin") !== origin || request.headers.get("x-leadflow-receipt") !== "1" ||
         (request.headers.get("sec-fetch-site") && request.headers.get("sec-fetch-site") !== "same-origin"))
         return false;

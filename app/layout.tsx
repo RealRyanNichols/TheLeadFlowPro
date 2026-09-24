@@ -8,7 +8,6 @@ import "./theme-consistency.css";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import TrackingScripts from "@/components/TrackingScripts";
-import PublicAnalytics from "@/components/PublicAnalytics";
 import { LEADFLOW_META, resolveLeadFlowMetaPixelId } from "@/lib/metaCampaignGuard";
 import { getSettings } from "@/lib/settings";
 
@@ -100,7 +99,6 @@ export default async function RootLayout({
           </div>
           <SiteFooter />
         </div>
-        <PublicAnalytics />
       </body>
     </html>
   );

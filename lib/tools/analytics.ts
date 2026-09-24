@@ -1,7 +1,7 @@
 // Tool analytics.
 //
-// Goes through the platforms already on the site (Vercel Analytics for product
-// events, gtag for ad conversions). No second analytics tool was added.
+// Uses the existing first-party event store and optional gtag integration.
+// No Vercel analytics or paid replacement service is required.
 //
 // The rule that matters: never send what somebody typed. A calculator input is
 // their revenue, their payroll, their household budget or their patient volume.
@@ -9,7 +9,6 @@
 // enough to know which tools earn their place and which searches come up empty.
 // See docs/TOOLS_ANALYTICS.md.
 
-import { track as vercelTrack } from "@vercel/analytics";
 import { track as firstPartyTrack } from "@/lib/analytics/client";
 
 /**
@@ -83,11 +82,6 @@ declare global {
 export function trackTool(event: ToolEvent, props?: Props) {
   if (typeof window === "undefined") return;
   const payload = clean(props);
-  try {
-    vercelTrack(event, payload);
-  } catch {
-    /* analytics must never break a free calculator */
-  }
   try {
     window.gtag?.("event", event, payload);
   } catch {
