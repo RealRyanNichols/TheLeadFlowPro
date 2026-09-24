@@ -38,6 +38,9 @@ describe("analytics URL privacy", () => {
       "/chase-sheet/app",
       "/chase-sheet/app?welcome=1",
       "/chase-sheet/%61pp",
+      "/post-creator/app",
+      "/post-creator/app?welcome=1",
+      "/post-creator/%61pp",
       "/events/workshop/confirmed?t=private-seat-token",
       "/events/workshop/%63onfirmed",
       "/admin",
@@ -59,6 +62,7 @@ describe("analytics URL privacy", () => {
       "/events/workshop#reserve",
       "/tools?utm_source=facebook",
       "/articles/a-useful-article",
+      "/post-creator",
     ]) {
       assert.equal(isPublicAnalyticsUrl(value), true, value);
     }

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { classifyStripeInvoice, dollars, renewalAction } from "../lib/stripeInvoiceEvents.ts";
 import { HQ_PLAN } from "../lib/hq/types.ts";
+import { POST_CREATOR } from "../lib/postCreator/product.ts";
 
 const LEAD = "12345678-1234-4234-8234-123456789012";
 
@@ -69,4 +70,26 @@ test("every paid plugin month is recorded, the first one included, and a zero-do
   assert.equal(renewalAction(trial, "invoice.payment_failed"), "record_failed");
   assert.equal(dollars(4900), "$49.00");
   assert.equal(dollars(149700), "$1,497.00");
+});
+
+test("Post Creator monthly renewals classify in all three shapes, skip the first invoice, and record later ones", () => {
+  const meta = { kind: POST_CREATOR.monthlyKind, plan: "monthly" };
+  const shapes = [
+    { id: "in_pc_a", amount_paid: 2000, subscription: "sub_pc", subscription_details: { metadata: meta } },
+    { id: "in_pc_b", amount_paid: 2000, parent: { subscription_details: { subscription: "sub_pc", metadata: meta } } },
+    { id: "in_pc_c", amount_paid: 2000, subscription: { id: "sub_pc" }, lines: { data: [{ metadata: meta }] } },
+  ];
+  for (const shape of shapes) {
+    const c = classifyStripeInvoice(shape);
+    assert.equal(c.family, "post_creator", shape.id);
+    assert.equal(c.subscriptionId, "sub_pc", shape.id);
+  }
+  const first = classifyStripeInvoice({ ...shapes[0], billing_reason: "subscription_create" });
+  assert.equal(renewalAction(first, "invoice.paid"), "skip_first_invoice");
+  const cycle = classifyStripeInvoice({ ...shapes[1], billing_reason: "subscription_cycle" });
+  assert.equal(renewalAction(cycle, "invoice.paid"), "record_paid");
+  assert.equal(renewalAction(cycle, "invoice.payment_failed"), "record_failed");
+  assert.equal(renewalAction(cycle, "invoice.finalized"), "ignore");
+  const lifetime = classifyStripeInvoice({ id: "in_pc_l", amount_paid: 9700, subscription_details: { metadata: { kind: POST_CREATOR.lifetimeKind } } });
+  assert.equal(lifetime.family, "unknown", "only the monthly kind is a subscription family");
 });

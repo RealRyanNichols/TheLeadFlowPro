@@ -11,7 +11,7 @@ export const metadata: Metadata = withPublicPageMetadata("/privacy", {
 export default function PrivacyPage() {
   return (
     <main className="legal-page">
-      <span className="eyebrow">Last updated September 20, 2026</span>
+      <span className="eyebrow">Last updated September 24, 2026</span>
       <h1>Privacy Policy</h1>
       <p>
         {BUSINESS.name} is a DBA of {BUSINESS.legalName}. This policy explains
@@ -88,6 +88,14 @@ export default function PrivacyPage() {
         also disclose information when required by law, to protect rights or safety, or as
         part of a business transaction subject to appropriate safeguards.
       </p>
+      <h2 id="sms">Mobile numbers and text messages</h2>
+      <p>
+        No mobile information will be shared with third parties or affiliates for marketing
+        or promotional purposes. Text message opt in data and consent are not shared with
+        any third party. We use your number to call or text you about your request, and you
+        can stop texts at any time by replying STOP. The full text message terms are on the{" "}
+        <Link href="/terms#sms">Terms of Use</Link> page.
+      </p>
       <h2>The LeadFlow HQ plugin and workspaces</h2>
       <p>
         The plugin is a connector that a business owner adds to ChatGPT, Claude, Claude Code,
@@ -126,6 +134,21 @@ export default function PrivacyPage() {
         the subscription is active and after it ends, so a returning subscriber does not lose
         their work, until the subscriber asks for the workspace to be deleted. A subscriber
         can ask for a copy of their leads and messages, or for deletion, by emailing{" "}
+        <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>.
+      </p>
+      <h2>Post Creator</h2>
+      <p>
+        The free Post Creator idea machine runs in your browser and sends nothing to us
+        from what you type: your settings, saved ideas, and drafts stay on your device.
+        Like the rest of this website, its page does record the visit and the buttons
+        pressed, as described above. For a Post Creator buyer we store their
+        email, their plan, and the business profile they save, so the account works on
+        every device. When a buyer uses AI writing, their saved profile, the idea they
+        picked, and any note they add are sent to Anthropic, the company that runs the AI
+        model, to write that draft, under Anthropic&apos;s own terms and privacy policy. We
+        keep a record of each AI request (its time, size, cost, and whether it worked) but
+        not the draft text. Nothing is posted, sent, or shared on a buyer&apos;s behalf. A
+        buyer can ask for their account and profile to be deleted by emailing{" "}
         <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>.
       </p>
       <h2>Retention and security</h2>

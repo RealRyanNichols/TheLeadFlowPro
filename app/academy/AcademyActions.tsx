@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import styles from "./academy.module.css";
+import { SmsConsentText } from "@/components/site/SmsConsentText";
 
 export function AcademyFreeAccessForm() {
   const [busy, setBusy] = useState(false);
@@ -62,7 +63,7 @@ export function AcademyFreeAccessForm() {
       </label>
       <label className={styles.consent}>
         <input name="smsConsent" type="checkbox" value="yes" />
-        <span>Call or text me about training and related services. Optional. Message and data rates may apply. Reply STOP to opt out.</span>
+        <span>Optional. <SmsConsentText topic="training and related services" /></span>
       </label>
       <p className={styles.disclosure}>
         Name, email, and phone are required to create free academy access. Promotional consent is optional and is not required for access.

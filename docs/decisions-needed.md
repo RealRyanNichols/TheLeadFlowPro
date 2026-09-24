@@ -608,3 +608,174 @@ deployed, sent, or switched on; the branch is a draft pull request.
     - Tapping Text on the card opens Ryan's own phone, so a STOP sent back to
       that phone does not reach the suppression list. This matches the call
       sheet today; texting from the CRM route is the way to keep STOP exact.
+
+## L. Post Creator (September 24)
+
+Added September 24, 2026 with `docs/POST_CREATOR_RELEASE.md`. Nothing below
+has been deployed, charged, switched on, or created in Stripe. AI writing and
+checkout both ship switched off.
+
+84. **Approve the offer, the name, and the positioning.** Post Creator
+    (page title "Social Media Post Creator") at /post-creator: a free idea
+    machine plus paid AI writing at $20 a month or $97 once, as requested.
+    It is do it yourself; nothing is posted for anyone, and it does not link
+    to Time Back. The two offer rows ship `live` because `tbd_ryan` fails the
+    offers test for a product, so like Chase Sheet they appear in the
+    homepage and /longview JSON-LD as soon as this merges, even while
+    checkout is closed. Default: approve, or hold the merge.
+
+85. **Apply the migration (your action).**
+    `supabase/migrations/20260924150000_post_creator.sql` adds five
+    service-role tables, five functions, and the triggers and sequence they
+    rely on. Apply it with
+    `supabase db push --include-all` or the Supabase MCP, then log it here.
+    Until then the paid routes say accounts are not switched on; the free
+    idea machine works. Default: apply before item 91.
+
+86. **A dedicated Anthropic key.** `POST_CREATOR_ANTHROPIC_API_KEY`, in its
+    own Anthropic Console workspace with a monthly spend limit as a second
+    wall. It never falls back to `ANTHROPIC_API_KEY`. Default: yes, with a
+    Console limit of $310 a month to match item 88.
+
+87. **Model and effort.** `POST_CREATOR_MODEL` defaults to claude-opus-5 at
+    `low` effort. A typical write is about $0.038 on Opus 5, $0.015 on
+    Sonnet 5, and $0.007 on Haiku 4.5 (plainer writing). Refusal fallbacks
+    are sent only on Opus 5. If the key's Console workspace runs writes in
+    the US only, Opus 5 and Sonnet 5 cost 1.1 times these figures; every
+    reservation already assumes that, and the ledger settles each write at
+    the rate it actually ran at. Default: Opus 5, low; review settled cost
+    after two weeks with the queries in the release doc.
+
+88. **Daily spend cap.** `POST_CREATOR_DAILY_SPEND_CAP_USD` is required for
+    AI to run. Default: 10, so at most $310 in a month across all buyers.
+    When it runs out, AI writing pauses for everyone until midnight Central
+    and nothing is counted.
+
+89. **Allowances and ceilings.** Monthly plan: 100 AI writes a month and 20
+    a day. One payment: 50 a month and 10 a day. Five extra tries a day and
+    twenty a month cover failures, which never count against the allowance.
+    Each account also has a monthly AI cost ceiling: $15 on monthly, $9 on
+    one payment. Default: approve these numbers.
+
+90. **Worst-case cost per buyer.** On Opus 5, a monthly buyer who maxes
+    every try at the largest size costs about $13.80 a month. A pattern of
+    refused-then-rerouted requests would reach about $27.60, more than the
+    $19.12 net, but the $15 ceiling stops it at about $15.50. A one payment
+    buyer can cost up to about $9.50 a month for as long as the plan runs,
+    so $93.89 net covers about 10 months of maximum use or about 50 months
+    of typical use. Decision: accept, lower the ceilings, or pick Sonnet 5.
+    Default: accept for launch and review in two weeks.
+
+91. **Switch on AI writing (spend approval).** Set
+    `POST_CREATOR_AI_ENABLED="true"` only after items 85 to 89, a test in
+    Preview with a comp account (SQL in the release doc), and your OK.
+    Default: off.
+
+92. **Open sales.** Set `POST_CREATOR_SALES_OPEN="true"`. Checkout also
+    requires AI writing on and the Stripe, service, and Resend keys, so
+    nothing is ever sold while AI writing is off. Default: after 91 and 93.
+
+93. **Terms and privacy wording.** /post-creator/terms reuses only
+    commitments already live for Chase Sheet: a full refund within seven
+    days of a first purchase, and the one payment plan lasting as long as
+    Post Creator is offered, with at least 90 days' notice by email if it is
+    discontinued. It adds no refund for AI downtime, no promise that future
+    features are included, and no notice period before allowances change;
+    each of those needs your yes before it is added. The privacy page gains
+    a Post Creator paragraph (profile and idea go to Anthropic when AI
+    writing is used; no draft text stored; nothing typed into the free idea
+    machine is sent, though its page records visits and button taps like the
+    rest of the site). Default: approve as written.
+    - Added after review, for your yes: the terms now say AI writing can
+      pause for the shared daily budget, an account's cost limit, or while a
+      problem is being fixed, and that switching it off for good counts as
+      discontinuing Post Creator (so one payment buyers get the 90 days'
+      notice). Before, "AI writing runs only while it is switched on" let an
+      open-ended switch-off skip that notice. Default: approve.
+    - Still open: monthly buyers keep being charged while AI writing is off.
+      For a pause longer than a short fix, pick one: pause collection on
+      their subscriptions in Stripe, credit the month, or email them the
+      option to cancel. Default: pause collection for any pause over a week.
+    - The terms and the pricing now give each plan's own tries ceiling
+      (monthly 25 a day and 120 a month; one payment 15 and 70). Before,
+      every page gave only the monthly numbers.
+    - Added after review, for your yes: a write counts when a draft comes
+      back for at least one of the platforms asked for, and any platform
+      without one is named on screen so the buyer can write it again. The
+      pricing fine print, the FAQ, and the terms now say so. Default:
+      approve.
+    - Added after review, for your yes: a monthly buyer who pays once keeps
+      the monthly allowance through the month their last paid monthly
+      period ends (the current month only if the plan was past due), and a
+      past-due monthly plan is cancelled right away when the one payment
+      plan is bought. The terms and the receipt say so. Default: approve.
+
+94. **AI writing on the one payment plan.** Included, at 50 writes a month
+    and the $9 ceiling, for as long as Post Creator is offered (cost in
+    item 90). The alternative is twelve months of AI writing, then the idea
+    machine only. Default: keep as built.
+
+95. **Monthly refunds and disputes.** The terms say a refund or a dispute
+    closes the plan and that the monthly subscription is cancelled so it
+    does not renew. The money-back path now does that in code, first month
+    or renewal: it closes the plan (no later Stripe event reopens it), cancels
+    the subscription in Stripe right away, and emails you "POST CREATOR
+    MONTHLY CLOSED". A first-month payment has no `purchases` row of its
+    own, so it is matched through its invoice to the checkout that started
+    the subscription (Post Creator only; Chase Sheet keeps its old
+    handling). Money back on an older subscription the account moved on
+    from cancels that one only. Until this is checked in Preview, the
+    runbook step stands: whenever you refund a monthly payment or a dispute
+    opens on one, make sure the subscription is cancelled in Stripe.
+    Default: follow the runbook; test a refund on the comp flow before
+    item 92.
+
+96. **Promo codes.** Post Creator checkouts no longer offer promotion
+    codes (`allow_promotion_codes` stays on for the other kinds), and a
+    paid session unlocks a plan only when it paid the full price, so a
+    discounted session unlocks nothing and waits for review. Default:
+    create no Post Creator promo codes; comp people by hand (SQL in the
+    release doc).
+
+97. **`POST_CREATOR_SECRET`.** Optional signer for the cookie and the key;
+    without it the Pro Kit secrets are reused. Default: set one
+    (`openssl rand -hex 32`) before item 92.
+
+98. **Sign-in rules.** The browser that completes checkout is signed in
+    once, within a day, and only if the email had no Post Creator before.
+    Any later checkout on an existing email signs every device out; the
+    emailed key opens it again. Someone who pays first with a stranger's
+    email gets that empty account until the real owner buys. To sign every
+    device out by hand, use the SQL in the release doc. Default: accept.
+    - A leaked key can now be revoked for one account. The key comes from
+      the email, the signing secret, and the account's `key_version`.
+      Raising the version (SQL in the release doc) stops the old key and
+      signs every device out; "Email me my key" then sends the new one.
+      Nobody else's key changes, and every key already emailed is version
+      0, so nothing changes for existing buyers. Default: accept.
+    - Epochs come from one sequence, so an account deleted on request and
+      bought again never opens for an old cookie. A claim link never swaps
+      a browser already signed in to another live account; that browser
+      gets a note saying how to open the new one. Default: accept.
+
+99. **Housekeeping.**
+    - Stripe Payment Links: not needed; the page sells through /api/checkout.
+      Default: none.
+    - The `lfp_software_products` claim (value 4) now undercounts by two
+      products. Default: refresh it by hand.
+    - An AI sample on the sales page: none until AI writing is on, then one
+      real output, labelled. Default: as described.
+    - The idea library (12 trades, 26 shared topics, 20 angles) was written
+      by a builder. After review, each topic carries tags so an angle lands
+      only where it reads right (no "Tool talk: how we train new people", no
+      summer heads-up about frozen pipes), and "Something else" drops the
+      shared topics that assume a service trade. A named trade now has 225 to
+      238 ideas before services, "Something else" 72, and each service adds
+      38. Default: read /post-creator with three trades before 92.
+    - A write that finished but whose answer never reached the screen (a
+      dropped connection) counts once and its drafts cannot be shown again,
+      because no draft text is kept on the server. The app says so. Keeping
+      drafts for a few minutes to show them again would change the privacy
+      wording. Default: keep as built.
+    - AGENTS.md says work on `main`; this was built on a harness branch.
+      Default: you choose the merge target.

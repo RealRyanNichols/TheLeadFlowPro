@@ -57,6 +57,14 @@ test("the published price table is encoded once and formatted consistently", () 
   assert.equal(offer("chase_sheet_monthly").priceUsd, PRICES.chaseSheetMonthly);
   assert.equal(offer("chase_sheet_lifetime").priceUsd, PRICES.chaseSheetLifetime);
   assert.equal(offer("chase_sheet_monthly").href, offer("chase_sheet_lifetime").href);
+  assert.equal(usdPerMonth(PRICES.postCreatorMonthly), "$20/mo");
+  assert.equal(usd(PRICES.postCreatorLifetime), "$97");
+  assert.equal(offer("post_creator_monthly").priceUsd, PRICES.postCreatorMonthly);
+  assert.equal(offer("post_creator_lifetime").priceUsd, PRICES.postCreatorLifetime);
+  assert.equal(offer("post_creator_monthly").href, "/post-creator");
+  assert.equal(offer("post_creator_lifetime").href, "/post-creator");
+  assert.equal(offer("post_creator_monthly").status, "live");
+  assert.equal(offer("post_creator_lifetime").status, "live");
   assert.ok(guardedPriceStrings().includes("$20"));
   // The free website build and its add-on tiers were retired on 2026-09-22.
   // Their prices are gone from the table, not left for a page to print.

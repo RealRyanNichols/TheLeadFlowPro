@@ -18,6 +18,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Mail, Code2, X, Check, AlertCircle } from "lucide-react";
 import { useToolProfile } from "./useToolProfile";
 import { trackTool } from "@/lib/tools/analytics";
+import { SmsConsentText } from "@/components/site/SmsConsentText";
 
 export type SendReason = "email" | "embed";
 
@@ -285,7 +286,7 @@ export default function SendResultModal({
               <label>
                 <input type="checkbox" name="sms_consent" />
                 <span>
-                  You can text me at the number above. Message and data rates may apply, reply STOP to stop.
+                  <SmsConsentText />
                 </span>
               </label>
             </fieldset>
