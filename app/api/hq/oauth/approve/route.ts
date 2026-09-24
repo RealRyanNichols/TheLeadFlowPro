@@ -5,6 +5,7 @@ import { getClient, saveAuthorizationCode } from "@/lib/hq/server";
 import { SITE } from "@/lib/hq/oauth";
 import { crossSiteApproval, verifyConsentNonce } from "@/lib/hq/consent";
 import { requestPublicUrl } from "@/lib/hq/inbound";
+import { requestOrigin } from "@/lib/requestOrigin";
 
 // The owner clicked Connect. Re-validate everything the consent page
 // validated (the form is just hidden fields), mint a single-use code, and
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
   }
   const session = await getHqSession().catch(() => null);
   if (!session || !session.workspace) {
-    return NextResponse.redirect(new URL("/login?next=%2Fhq", request.url), { status: 303 });
+    return NextResponse.redirect(new URL("/login?next=%2Fhq", requestOrigin(request)), { status: 303 });
   }
   const form = await request.formData().catch(() => null);
   if (!form) return NextResponse.json({ error: "bad_request" }, { status: 400 });

@@ -2,9 +2,11 @@
 
 ## Platforms
 
-The tool library uses the analytics already on the site: Vercel Analytics for
-product events and `gtag` for ad conversions. No second analytics platform was
-added.
+The tool library uses the existing first-party `analytics_events` store for its
+mapped tool events and optional `gtag` for configured Google measurement.
+Vercel Analytics and Speed Insights were removed for the DigitalOcean migration.
+No paid replacement platform was added. First-party tracking and its privacy
+guards continue to support the admin dashboard and `/live`.
 
 `lib/tools/analytics.ts` is the only place tool events are sent from.
 
