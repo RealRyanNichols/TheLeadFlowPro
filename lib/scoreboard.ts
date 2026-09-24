@@ -186,7 +186,7 @@ export const SCOREBOARD_METRICS: Array<{
     label: "Leads",
     headline: true,
     what: "Contact and signup records returned by each business feed. They may include calls, forms, and manual entries. Filters vary; records are not necessarily unique people or purchases.",
-    move: { label: "A website built to capture leads", href: "/free-build" },
+    move: { label: "A website built to capture leads", href: "/agency/websites" },
   },
   {
     key: "paid_leads",

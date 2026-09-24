@@ -32,6 +32,55 @@ export function withinSendWindow(now: Date, timezone: string = SEND_WINDOW.timez
   return hour >= SEND_WINDOW.startHour && hour < SEND_WINDOW.endHourExclusive;
 }
 
+type ZonedParts = { year: number; month: number; day: number; hour: number; minute: number };
+
+function zonedParts(at: Date, timezone: string): ZonedParts {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+  }).formatToParts(at);
+  const get = (type: string) => Number.parseInt(parts.find((p) => p.type === type)?.value ?? "0", 10);
+  return { year: get("year"), month: get("month"), day: get("day"), hour: get("hour") % 24, minute: get("minute") };
+}
+
+/** The instant a wall-clock hour in `timezone` happens. Two passes settle the offset across a DST change. */
+function zonedWallTimeToDate(year: number, month: number, day: number, hour: number, timezone: string): Date {
+  const wanted = Date.UTC(year, month - 1, day, hour, 0);
+  let guess = wanted;
+  for (let i = 0; i < 2; i += 1) {
+    const p = zonedParts(new Date(guess), timezone);
+    const shown = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute);
+    guess -= shown - wanted;
+  }
+  return new Date(guess);
+}
+
+/**
+ * When an automated text held for quiet hours may go: `now` itself inside the
+ * window, otherwise the next 8:00 in the morning Central. A held first text
+ * waits for this instead of being dropped (lib/speedToLeadAlertsServer.ts).
+ */
+export function nextSendWindowOpen(now: Date, timezone: string = SEND_WINDOW.timezone): Date {
+  if (withinSendWindow(now, timezone)) return now;
+  const local = zonedParts(now, timezone);
+  if (local.hour < SEND_WINDOW.startHour) {
+    return zonedWallTimeToDate(local.year, local.month, local.day, SEND_WINDOW.startHour, timezone);
+  }
+  const tomorrow = new Date(Date.UTC(local.year, local.month - 1, local.day + 1));
+  return zonedWallTimeToDate(
+    tomorrow.getUTCFullYear(),
+    tomorrow.getUTCMonth() + 1,
+    tomorrow.getUTCDate(),
+    SEND_WINDOW.startHour,
+    timezone,
+  );
+}
+
 export type SendPolicyInput = {
   now: Date;
   suppressed: boolean;

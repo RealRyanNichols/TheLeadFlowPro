@@ -119,7 +119,7 @@ test("all 45 article previews render distinct 1200 by 630 PNGs from their own to
       { width: 1200, height: 630 },
     );
     const bytes: Buffer = Buffer.from(await response.arrayBuffer());
-    const meta: sharp.Metadata = await sharp(bytes).metadata();
+    const meta = await sharp(bytes).metadata();
     assert.equal(meta.format, "png", article.slug);
     assert.equal(meta.width, 1200, article.slug);
     assert.equal(meta.height, 630, article.slug);

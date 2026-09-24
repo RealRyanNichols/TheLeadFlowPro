@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { fetchPaidSession, type PaidSession } from "../lib/stripeSession.ts";
-import { freeBuildConfirmation, purchaseConfirmation } from "../lib/purchaseConfirmation.ts";
+import { purchaseConfirmation } from "../lib/purchaseConfirmation.ts";
 import { purchaseEvent } from "../lib/analytics/purchaseEvent.ts";
 
 const sessionId = "cs_test_confirmation12345678";
@@ -31,23 +31,6 @@ describe("payment confirmation authority", () => {
     assert.equal(purchaseConfirmation({}, { ...verified, kind: "event" }), "event");
     assert.equal(purchaseConfirmation({}, { ...verified, kind: "learn_it" }), "training");
     assert.equal(purchaseConfirmation({ purchase: "learn_it" }, { ...verified, kind: null }), "payment");
-  });
-});
-
-describe("Free Build payment confirmation", () => {
-  it("does not turn a free application or absent payment into a paid order", () => {
-    assert.equal(freeBuildConfirmation(null).status, "unverified");
-    assert.equal(freeBuildConfirmation(verified).status, "other_payment");
-    assert.equal(freeBuildConfirmation({ ...verified, kind: null }).status, "other_payment");
-  });
-
-  it("uses the verified purchased tier and preserves verified historical paid IDs", () => {
-    const current = freeBuildConfirmation({ ...verified, kind: "free_build_followup", amountUsd: 147.75 });
-    assert.equal(current.status, "paid");
-    assert.equal(current.tier?.id, "free_build_followup");
-    const historical = freeBuildConfirmation({ ...verified, kind: "free_build_only", amountUsd: 1000 });
-    assert.equal(historical.status, "paid");
-    assert.equal(historical.tier, undefined);
   });
 });
 

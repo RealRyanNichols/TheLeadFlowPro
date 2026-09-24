@@ -172,7 +172,7 @@ export const CLAIMS: readonly Claim[] = [
     value: "100%",
     label: "built in accounts the client controls",
     business: "leadflow",
-    source: "Engagement terms (/free-build, /packages)",
+    source: "Engagement terms (/services, /packages)",
     definition: "Every client build is deployed in accounts the client owns. A policy statement, not a measurement.",
     window: "policy",
     asOf: "2026-09-06",

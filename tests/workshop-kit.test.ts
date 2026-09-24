@@ -70,11 +70,13 @@ test("the follow-up builds per event: dates, recap, offer, and dedupe keys come 
   assert.equal(seq.dedupeKey("r1", 302), "workshop-follow-up-v1:claude-for-operators-longview:r1:302");
   assert.notEqual(seq.dedupeKey("r1", 302), workshopFollowUpDedupeKey("r1", 302));
   assert.equal(seq.sequence.activated, false);
-  // The featured sequence is unchanged: same three steps, its own date, the content engine offer by default.
+  // The featured sequence keeps its three steps and its own date. Its day-2
+  // offer is the Website Launch now that the free website build is retired.
   const featuredDay2 = WORKSHOP_FOLLOW_UP_STEPS[1].body(ctx);
   assert.ok(featuredDay2.includes("A quick recap of September 17,"));
-  assert.ok(featuredDay2.includes(DAY_TWO_OFFERS.content_engine.name));
-  assert.ok(featuredDay2.includes("#pick"));
+  assert.ok(featuredDay2.includes(`${DAY_TWO_OFFERS.website_launch.name}, ${usd(PRICES.websiteLaunchTotal)}.`));
+  assert.ok(featuredDay2.includes("/packages/launch?utm_source=email"));
+  assert.ok(!featuredDay2.includes("free-build"));
 });
 
 test("workshop:check passes for the featured event and fails for a missing one", () => {

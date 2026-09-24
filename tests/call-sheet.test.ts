@@ -29,7 +29,7 @@ import * as callSheetModule from "../lib/callSheet.ts";
 import { callbackState } from "../lib/callSheet.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
 import * as speedToLeadModule from "../lib/speedToLead.ts";
-import { leadConsultationTextBody, leadTextBackBody } from "../lib/leadNotify.ts";
+import { leadConsultationTextBody, leadFirstText, leadTextBackBody } from "../lib/leadNotify.ts";
 import { INBOUND_AUTO_REPLY } from "../lib/quo.ts";
 
 const NOW = new Date("2026-09-20T13:00:00Z");
@@ -56,7 +56,14 @@ function lead(overrides: Partial<CallSheetLead> & { id: string }): CallSheetLead
 }
 
 test("software's own texts are not touches; a person's text is; a missed inbound call is a reply owed", () => {
-  for (const body of [INBOUND_AUTO_REPLY, leadTextBackBody("Sam", null), leadConsultationTextBody("Sam", "https://calendar.app.google/x")]) {
+  for (const body of [
+    INBOUND_AUTO_REPLY,
+    leadTextBackBody("Sam", null),
+    leadConsultationTextBody("Sam", "https://calendar.app.google/x"),
+    // The speed-to-lead first text is software too, in both variants.
+    leadFirstText({ full_name: "Sam Tate", funnel: null }),
+    leadFirstText({ full_name: "", funnel: "free_consultation" }),
+  ]) {
     assert.equal(isHumanOutboundText(body), false, body);
   }
   assert.equal(isHumanOutboundText("Hi Sam, Ryan here. Thursday at 2 work for you?"), true);
@@ -129,7 +136,7 @@ test("untouched leads rank newest first, split at the answer window, and the aut
   );
   assert.equal(sheet.counts.answer, 2);
   assert.equal(sheet.counts.waiting, 1);
-  assert.match(sheet.rows[0].reason, /came in 1 hour ago from Meta lead ad asking about Free Website Program/);
+  assert.match(sheet.rows[0].reason, /came in 1 hour ago from Meta lead ad asking about Free Website Program \(retired\)/);
   assert.match(sheet.rows[0].reason, /No call, text, or note from a person yet/);
   // Every row opens the call card, where the outcome is logged.
   assert.equal(sheet.rows[0].href, "/admin/call-sheet/newest");

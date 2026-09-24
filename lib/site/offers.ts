@@ -3,7 +3,7 @@
 //
 // Numbers come from lib/site/prices.ts (the only place a price is typed).
 // Pages read labels from here. Checkout code keeps reading its own module
-// (lib/offers.ts, lib/freeBuild.ts, lib/leadFollowUp.ts, lib/hq/types.ts),
+// (lib/offers.ts, lib/leadFollowUp.ts, lib/hq/types.ts),
 // and those modules read the same PRICES, so the browser can never render a
 // price the server would not charge.
 //
@@ -15,6 +15,7 @@
 
 import { EXTERNAL_LINKS } from "./external-links";
 import { PRICES, usd, usdFrom, usdPerMonth, usdRange } from "./prices";
+import { SELLERPROOF_MEMBER_PRICING_URL } from "../sellerproof/membership";
 import { POST_CREATOR, aiCapLine } from "../postCreator/product";
 
 export type OfferStatus = "live" | "tbd_ryan" | "retired";
@@ -31,9 +32,9 @@ export type Offer = {
   id: string;
   name: string;
   category: OfferCategory;
-  /** Null when Ryan has not set a price. */
+  /** Null when Ryan has not set a price, or when the offer is retired. */
   priceUsd: number | null;
-  /** What the page prints: "$497", "$7,500+", "$49/mo", "$0 build fee". */
+  /** What the page prints: "$497", "$7,500+", "$49/mo". */
   priceLabel: string;
   /** One line of terms that travels with the price wherever it appears. */
   terms: string;
@@ -50,6 +51,8 @@ export type Offer = {
 };
 
 export const TBD_PRICE_LABEL = "Pricing confirmed on the scoping call";
+/** What a retired offer carries instead of a price. priceLabel() never prints it. */
+export const RETIRED_PRICE_LABEL = "Retired";
 export const TBD_PRICE_TERMS =
   "Ryan has not published a price for this yet. You will see the number in writing before anything is scoped or billed.";
 
@@ -58,57 +61,61 @@ const REVIEW = "2026-12-01";
 
 export const OFFERS: readonly Offer[] = [
   // ---------------------------------------------------------- websites --
+  // The free website build and its three add-on tiers were retired on
+  // 2026-09-22. The ids stay so old lead rows, proposals, and Stripe sessions
+  // still resolve; retired offers never render as current offers and are
+  // dropped from structured data (lib/site/structuredData.ts keeps live only).
   {
     id: "free_website_program",
     name: "Free Website Program",
     category: "website",
-    priceUsd: PRICES.freeBuildFee,
-    priceLabel: `${usd(PRICES.freeBuildFee)} build fee`,
-    terms: "Application required. Ten approved businesses a month. You own the site, accounts, tracking, and leads.",
-    status: "live",
+    priceUsd: null,
+    priceLabel: RETIRED_PRICE_LABEL,
+    terms: "Retired on 2026-09-22. Not sold or offered. Kept so older lead records still resolve.",
+    status: "retired",
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
-    href: "/free-build",
-    source: "lib/freeBuild.ts",
+    href: "/services",
+    source: "retired",
   },
   {
     id: "free_build_followup",
     name: "Free Website + Follow-Up Pack",
     category: "growth",
-    priceUsd: PRICES.freeBuildFollowUpPack,
-    priceLabel: usd(PRICES.freeBuildFollowUpPack),
-    terms: "One time. A fixed follow-up work product for one offer. No recurring management.",
-    status: "live",
+    priceUsd: null,
+    priceLabel: RETIRED_PRICE_LABEL,
+    terms: "Retired on 2026-09-22. Not sold or offered. Kept so older Stripe sessions still resolve.",
+    status: "retired",
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
-    href: "/free-build",
-    source: "lib/freeBuild.ts",
+    href: "/services",
+    source: "lib/freeBuild.ts (retired; late Stripe events only)",
   },
   {
     id: "free_build_content",
     name: "Free Website + Content Engine",
     category: "growth",
-    priceUsd: PRICES.freeBuildContentEngine,
-    priceLabel: usd(PRICES.freeBuildContentEngine),
-    terms: "One time. Two weeks of business-specific content around the offer. No ad spend hidden inside.",
-    status: "live",
+    priceUsd: null,
+    priceLabel: RETIRED_PRICE_LABEL,
+    terms: "Retired on 2026-09-22. Not sold or offered. Kept so older Stripe sessions still resolve.",
+    status: "retired",
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
-    href: "/free-build",
-    source: "lib/freeBuild.ts",
+    href: "/services",
+    source: "lib/freeBuild.ts (retired; late Stripe events only)",
   },
   {
     id: "free_build_launch",
     name: "Free Website + 30-Day Growth Engine",
     category: "growth",
-    priceUsd: PRICES.freeBuildGrowthEngine,
-    priceLabel: usd(PRICES.freeBuildGrowthEngine),
-    terms: "One time. A 30-day campaign and follow-up foundation. Ad spend and subscriptions quoted separately.",
-    status: "live",
+    priceUsd: null,
+    priceLabel: RETIRED_PRICE_LABEL,
+    terms: "Retired on 2026-09-22. Not sold or offered. Kept so older Stripe sessions still resolve.",
+    status: "retired",
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
-    href: "/free-build",
-    source: "lib/freeBuild.ts",
+    href: "/services",
+    source: "lib/freeBuild.ts (retired; late Stripe events only)",
   },
   {
     id: "website_launch",
@@ -313,6 +320,34 @@ export const OFFERS: readonly Offer[] = [
     source: "lib/sellerproof/packet.ts",
   },
   {
+    id: "sellerproof_member_monthly",
+    name: "SellerProof Membership, monthly",
+    category: "product",
+    priceUsd: PRICES.sellerProofMemberMonthly,
+    priceLabel: usdPerMonth(PRICES.sellerProofMemberMonthly),
+    terms: "Unlimited chargeback packets, response drafts, PDF export, evidence library, and deadline tracking in the SellerProof app. Billed monthly until cancelled. Separate from the single packet.",
+    status: "live",
+    effectiveDate: "2026-09-24",
+    reviewDate: REVIEW,
+    href: SELLERPROOF_MEMBER_PRICING_URL,
+    stripeLink: "https://buy.stripe.com/9B69ASeD8d361G0bMO5AQ0g",
+    source: "lib/sellerproof/membership.ts",
+  },
+  {
+    id: "sellerproof_member_lifetime",
+    name: "SellerProof Membership, lifetime",
+    category: "product",
+    priceUsd: PRICES.sellerProofMemberLifetime,
+    priceLabel: usd(PRICES.sellerProofMemberLifetime),
+    terms: "One payment for lifetime SellerProof app access: unlimited packets, response drafts, PDF export, evidence library, deadline tracking. No renewals. Separate from the single packet.",
+    status: "live",
+    effectiveDate: "2026-09-24",
+    reviewDate: REVIEW,
+    href: SELLERPROOF_MEMBER_PRICING_URL,
+    stripeLink: "https://buy.stripe.com/28EeVcamSfbefwQeZ05AQ0f",
+    source: "lib/sellerproof/membership.ts",
+  },
+  {
     id: "tool_studio_blueprint",
     name: "Tool Studio blueprint",
     category: "product",
@@ -426,11 +461,11 @@ export const OFFERS: readonly Offer[] = [
     category: "hosting",
     priceUsd: PRICES.hostingManagedMonthly,
     priceLabel: usdPerMonth(PRICES.hostingManagedMonthly),
-    terms: `After the included ${PRICES.hostingIncludedDays} days on a free build. Nothing renews without written approval.`,
+    terms: "Optional monthly hosting for a site we built. Nothing renews without written approval.",
     status: "live",
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
-    href: "/free-build",
+    href: "/packages/launch",
     source: "lib/site/prices.ts",
   },
   {
@@ -443,7 +478,7 @@ export const OFFERS: readonly Offer[] = [
     status: "live",
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
-    href: "/free-build",
+    href: "/packages/launch",
     source: "lib/site/prices.ts",
   },
 

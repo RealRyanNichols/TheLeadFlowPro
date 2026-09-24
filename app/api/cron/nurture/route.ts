@@ -37,8 +37,10 @@ import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
 import { BUSINESS } from "@/lib/site/business";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
-// The 30 day sequence sender. Runs hourly so an uncertain provider response can
-// be retried inside Resend's 24-hour idempotency window.
+// The nurture sequence sender. Runs hourly so an uncertain provider response
+// can be retried inside Resend's 24-hour idempotency window. The free website
+// build its first series sold was retired on 2026-09-22; see below for who
+// still finishes that series and who gets Rent Receipt instead.
 //
 // THREE SEQUENCES share this sender and a lead belongs to exactly one:
 //   - the Rent Receipt series (steps 501-530) for every admitted lead created
@@ -246,8 +248,9 @@ export async function GET(request: Request) {
   const nonDiagnosticLeads = ((leads ?? []) as EligibleLead[]).filter(
     (lead) => !isBusinessDiagnosticLead(lead),
   );
-  // Two sequences share this sender: the 30-day campaign and the short
-  // workshop countdown. Workshop leads drop out entirely once the event has
+  // The 30-day lanes (Rent Receipt for new leads, Free Build for leads that
+  // started it) and the short workshop countdown share this sender; see
+  // sequenceFor(). Workshop leads drop out entirely once the event has
   // started; nobody gets sold a chair in a room that already met.
   const eligibleLeads = nonDiagnosticLeads.filter(
     (lead) =>

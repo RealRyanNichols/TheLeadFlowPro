@@ -81,6 +81,20 @@ export const PUBLIC_PAGE_CATALOG = [
     index: false,
   },
   {
+    path: "/tlfp",
+    title: "Every dollar in comes back bigger.",
+    description:
+      "TLFP Credits: store credit for LeadFlow Pro services. Earn credits by finishing courses, showing up, and sending business. Buy packs with a bonus. Spend them on any build.",
+    eyebrow: "TLFP Credits",
+  },
+  {
+    path: "/tlfp/terms",
+    title: "TLFP Credits terms",
+    description:
+      "What a credit is, how credits are earned and bought, how they are spent, and the limits: no cash value, not transferable, redeemable only with The LeadFlow Pro.",
+    eyebrow: "TLFP Credits terms",
+  },
+  {
     path: "/sellerproof",
     title: "Organized evidence. A clearer response.",
     description:
@@ -144,13 +158,6 @@ export const PUBLIC_PAGE_CATALOG = [
     description:
       "Tell us what is working, where work stalls, and what you want to improve next.",
     eyebrow: "Business diagnostic",
-  },
-  {
-    path: "/free-build",
-    title: "Your business deserves a useful website",
-    description:
-      "Apply for a five-page website with a $0 build fee. Review the scope and ownership details.",
-    eyebrow: "Free website build",
   },
   {
     path: "/pricing",
@@ -249,7 +256,7 @@ export const PUBLIC_PAGE_CATALOG = [
     path: "/agency/websites",
     title: "Five pages that give people a next step",
     description:
-      "A mobile-first five-page site with lead capture, search foundation, and analytics in your account. Apply for the free program or buy it outright.",
+      "A mobile-first five-page site with lead capture, search foundation, and analytics in your account. Buy the Website Launch outright, in accounts you own.",
     eyebrow: "Agency · Websites",
   },
   {

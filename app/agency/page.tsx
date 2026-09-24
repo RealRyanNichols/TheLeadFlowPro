@@ -11,7 +11,6 @@ import { PLUGIN } from "@/lib/pluginDocs";
 import { AGENCY_HUB, AGENCY_PROCESS, AGENCY_SERVICES, OWNERSHIP_PROMISE, agencyOffer } from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
 import { TBD_PRICE_LABEL } from "@/lib/site/offers";
-import { PRICES, usd } from "@/lib/site/prices";
 import { breadcrumbJsonLd, graph, jsonLdText, localBusinessJsonLd } from "@/lib/site/structuredData";
 
 // The agency hub: the "run it for me" lane. Every child page reads from
@@ -31,7 +30,6 @@ export const metadata: Metadata = withPublicPageMetadata("/agency", {
 
 const ALWAYS_TRUE = [
   "No guaranteed leads, cost per lead, ranking, or return on ad spend. Anyone promising those is guessing with your money.",
-  "The free five-page website stays the front door. If that is what you need first, apply for it and skip the intake.",
   "Prices for the agency services are confirmed on the scoping call and written down before anything starts. Paying that number happens on this site, by card, against the scope.",
 ];
 
@@ -95,7 +93,7 @@ export default function AgencyHubPage() {
                     {live ? (
                       <>
                         <strong>{offer.priceLabel}</strong>
-                        <span>{service.slug === "websites" ? `Or apply for the free program, ${usd(PRICES.freeBuildFee)} build fee.` : "Published price. Pay it on this site."}</span>
+                        <span>{service.slug === "websites" ? "The five-page Website Launch, bought outright." : "Published price. Pay it on this site."}</span>
                       </>
                     ) : (
                       <>
@@ -112,8 +110,8 @@ export default function AgencyHubPage() {
                       Pay a written scope <CreditCard aria-hidden="true" />
                     </Link>
                   ) : (
-                    <Link href="/free-build" className="cb-textlink" data-cta="agency_service_apply" data-cta-placement={service.slug}>
-                      Apply for the free website <ArrowRight aria-hidden="true" />
+                    <Link href="/packages/launch" className="cb-textlink" data-cta="agency_service_launch" data-cta-placement={service.slug}>
+                      Buy the Website Launch <ArrowRight aria-hidden="true" />
                     </Link>
                   )}
                 </article>
@@ -212,7 +210,7 @@ export default function AgencyHubPage() {
               </h2>
             </div>
             <p className="cb-lead">
-              The same promise the free-website program makes, applied to ads, automation, and media.
+              The same ownership promise every website build makes, applied to ads, automation, and media.
               It is the part most agencies cannot say out loud.
             </p>
           </div>

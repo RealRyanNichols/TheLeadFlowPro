@@ -1,3 +1,4 @@
+import { smsConsentLabel } from "@/lib/site/smsConsent";
 export const BUSINESS_DIAGNOSTIC_VERSION = 1;
 export const BUSINESS_DIAGNOSTIC_SOURCE = "business_growth_diagnostic";
 export const BUSINESS_DIAGNOSTIC_CAMPAIGN = "business_growth_diagnostic_7d";
@@ -1280,8 +1281,7 @@ export const BUSINESS_DIAGNOSTIC_SECTIONS: DiagnosticSection[] = [
       },
       {
         id: "sms_consent",
-        label:
-          "If I provided a mobile number, The LeadFlow Pro may call or text me about this request. Consent is not a condition of purchase. Message and data rates may apply. Reply STOP to opt out.",
+        label: `${smsConsentLabel("this request")} Text message terms: theleadflowpro.com/terms#sms`,
         type: "checkbox",
       },
     ],

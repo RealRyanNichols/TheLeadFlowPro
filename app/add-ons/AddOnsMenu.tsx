@@ -53,6 +53,7 @@ import {
   UsersRound,
   Wrench,
 } from "lucide-react";
+import { SmsConsentText } from "@/components/site/SmsConsentText";
 
 declare global {
   interface Window {
@@ -600,9 +601,8 @@ export default function AddOnsMenu() {
             <div className={styles.qualifier}>
               <ShieldCheck aria-hidden="true" />
               <p>
-                Approved first five-page websites have a $0 build fee. Funnels,
-                CRM, tools, portals, courses, ads, automation, and every add-on
-                below are optional and scoped separately.
+                Funnels, CRM, tools, portals, courses, ads, automation, and
+                every add-on below are optional and scoped separately.
               </p>
             </div>
           </div>
@@ -740,10 +740,7 @@ export default function AddOnsMenu() {
                 <label>
                   <input type="checkbox" name="sms_consent" />
                   <span>
-                    If I provided a mobile number, The LeadFlow Pro may call or text me
-                    about this request and related project updates. Consent is not a
-                    condition of purchase. Message and data rates may apply. Reply STOP to
-                    opt out.
+                    <SmsConsentText topic="this request and related project updates" />
                   </span>
                 </label>
                 <label>
@@ -801,10 +798,9 @@ export default function AddOnsMenu() {
             This is a scope request, not a blank check.
           </p>
           <p>
-            Approved first five-page websites have a $0 build fee through the Free Website
-            Program. Application, capacity, written scope, and outside-cost rules apply.
             Funnels, CRM, tools, portals, courses, ads, automation, and other modules are
-            optional and priced separately before work begins.
+            optional and priced separately before work begins. Written scope and
+            outside-cost rules apply.
           </p>
         </section>
       )}

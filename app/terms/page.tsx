@@ -12,7 +12,7 @@ export const metadata: Metadata = withPublicPageMetadata("/terms", {
 export default function TermsPage() {
   return (
     <main className="legal-page">
-      <span className="eyebrow">Last updated August 17, 2026</span>
+      <span className="eyebrow">Last updated September 24, 2026</span>
       <h1>Terms of Use</h1>
       <p>
         These terms apply to this website operated by {BUSINESS.dbaLine}. By using the
@@ -55,6 +55,19 @@ export default function TermsPage() {
         access, submit false or unlawful material, introduce malicious code, scrape
         protected information, impersonate another person, or use the service to violate
         law or third-party rights.
+      </p>
+      <h2 id="sms">Text messages</h2>
+      <p>
+        {BUSINESS.name} texts from {BUSINESS.phone.display} only to people who ask for
+        it: when you check the text consent box on one of our forms, or when you text us
+        first. Texts are about your request, such as answers to your questions, setting up a
+        call, and updates on work you asked for. Message frequency varies. Message and data
+        rates may apply. Reply STOP at any time to cancel and you will get one message
+        confirming it. Reply HELP for help, or reach us at {BUSINESS.phone.display} or{" "}
+        <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>. Consent to
+        receive texts is not a condition of any purchase. Carriers are not liable for delayed
+        or undelivered messages. How we handle your number is in the{" "}
+        <Link href="/privacy#sms">Privacy Policy</Link>.
       </p>
       <h2>Intellectual property</h2>
       <p>

@@ -30,25 +30,21 @@ Add the dashboard origin and `/auth/callback` to the Supabase redirect allow lis
 
 ## 3. Worker Droplet
 
-Create a basic Ubuntu LTS Droplet in the region closest to the primary operator. A small shared CPU instance is enough for the queue worker. Add an SSH key, enable backups, and do not open database ports.
+The worker now ships with the rest of the site on the droplet: it is the
+`worker` service in `deploy/droplet/compose.yml`, pointed at the `web`
+container, and set up by `deploy/droplet/install.sh` (see `droplet.md`).
+Turn it on with:
 
 ```bash
-sudo sh deploy/content-command/install.sh
-git clone <private-repository-url> /opt/theleadflowpro
-cd /opt/theleadflowpro/deploy/content-command
-cp .env.example .env
-openssl rand -hex 32
+echo worker | sudo tee /etc/theleadflowpro/compose-profiles
+sudo /opt/theleadflowpro/deploy/droplet/deploy.sh
 ```
 
-Put that random value in `CONTENT_COMMAND_WORKER_TOKEN` both on the Droplet and in the web app environment. Set file permissions to `600`, then start the worker:
-
-```bash
-chmod 600 .env
-docker compose up -d
-docker compose logs -f worker
-```
-
-The worker contains no social credentials. It polls the app's authenticated worker endpoint, and credentials remain in Supabase Vault or trusted server environment variables.
+`CONTENT_COMMAND_WORKER_TOKEN` goes in `/etc/theleadflowpro/web.env`. The
+worker holds no social credentials; it polls the app's authenticated worker
+endpoint. The older `deploy/content-command/` kit is retired: its installer
+turned the firewall on with only SSH open, which would block the brain's
+HTTPS on this droplet.
 
 ## 4. Daily artifact handoff
 
@@ -77,6 +73,7 @@ Configure the Meta app callback as `/api/webhooks/meta/content-command` and subs
 7. Use a prepared reply, confirm, and verify the external response.
 8. Confirm unsupported channels stay blocked and nothing is falsely labeled published.
 
-## Full-site migration later
+## Full-site migration
 
-Moving the entire Next.js application to the Droplet is a separate cutover. Before that change, replace the twelve Vercel Cron jobs, verify ISR/cache behavior, add a reverse proxy and managed TLS, configure deploy rollbacks, and run the production build gate. Do not combine that infrastructure migration with the initial connector launch.
+Done as its own cutover: `droplet.md` covers the cron replacement, Caddy and
+TLS, health-checked deploys with rollback, and the build gate.

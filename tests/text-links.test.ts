@@ -5,7 +5,7 @@ import test from "node:test";
 import { CALL_LABEL, TEXT_BODIES, TEXT_LABEL, smsHref } from "../lib/site/textLinks.ts";
 import { BUSINESS } from "../lib/site/business.ts";
 import { CONSULTATION } from "../lib/site/consultation.ts";
-import { isAutomatedLeadText, leadConsultationTextBody, leadTextBackBody, textBackBodyFor } from "../lib/leadNotify.ts";
+import { isAutomatedLeadText, leadConsultationTextBody, leadFirstText, leadTextBackBody } from "../lib/leadNotify.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
 
 test("every text link dials the one business line with a plain prefilled opening line", () => {
@@ -34,29 +34,40 @@ test("every public call-or-text placement is a pair: one tel link and one sms li
   assert.ok(textIndex > 0 && textIndex < detailsIndex, "the mobile text link sits outside the collapsed menu");
 });
 
-test("the consultation text-back names the consultation and keeps the one-business-day promise", () => {
-  const text = leadConsultationTextBody("Sam", null);
-  assert.ok(text.includes(`free ${CONSULTATION.minutes}-minute consultation`));
-  assert.ok(text.includes("within one business day"));
-  assert.ok(!text.includes("shortly"));
-  assert.ok(text.endsWith("Reply STOP to opt out."));
-  assert.ok(text.length <= 320, `${text.length} characters`);
-  const generic = leadTextBackBody("Sam", null);
-  // The generic text-back promises nothing it cannot keep: no "shortly", no call on a clock.
-  assert.ok(!generic.includes("shortly"));
-  assert.ok(!/call you/i.test(generic));
-  assert.ok(generic.includes("Reply here with your business name"));
-  // The selector, not the source text: a consultation request gets its own body, everything else the generic one.
-  assert.equal(textBackBodyFor({ full_name: "Sam Tate", funnel: CONSULTATION.funnel }, null), leadConsultationTextBody("Sam", null));
-  assert.equal(textBackBodyFor({ full_name: "Sam Tate", funnel: "free_build_funnel" }, null), leadTextBackBody("Sam", null));
-  assert.equal(textBackBodyFor({ full_name: "", funnel: null }, null), leadTextBackBody("there", null));
+test("the one first text names a consultation request, asks one question, and is sent only by the speed-to-lead job", () => {
+  const consultation = leadFirstText({ full_name: "Sam Tate", funnel: CONSULTATION.funnel });
+  assert.ok(consultation.startsWith("Sam, this is Ryan with The LeadFlow Pro. Got your free consultation request."), consultation);
+  const generic = leadFirstText({ full_name: "Sam Tate", funnel: "free_build_funnel" });
+  assert.ok(generic.startsWith("Sam, this is Ryan with The LeadFlow Pro. Got your request."), generic);
+  assert.ok(leadFirstText({ full_name: "", funnel: null }).startsWith("Hi, this is Ryan"));
+  for (const text of [consultation, generic]) {
+    assert.equal((text.match(/\?/g) ?? []).length, 1, "exactly one question");
+    assert.ok(text.includes("theleadflowpro.com/services"));
+    assert.ok(text.endsWith("Reply STOP to opt out."));
+    assert.ok(text.length <= 306, `${text.length} characters`);
+    // Main's #71 lesson: an automated text never promises a call on a clock.
+    assert.ok(!/call you|shortly/i.test(text), text);
+  }
+  // The retired generic text-back (kept only to recognise old echoes) also promised nothing.
+  assert.ok(!/call you|shortly/i.test(leadTextBackBody("Sam", null)));
+  // leadNotify can no longer text anyone; the job is the single sender.
   const notify = readFileSync(join(process.cwd(), "lib/leadNotify.ts"), "utf8");
-  assert.match(notify, /sendLeadText\(lead\.phone,\s*textBackBodyFor\(lead\)\)/);
+  assert.ok(!notify.includes("sendLeadText"), "lib/leadNotify.ts must not send texts");
+  assert.ok(!notify.includes('from "@/lib/quo"'), "lib/leadNotify.ts does not import the SMS client");
+  const dispatcher = readFileSync(join(process.cwd(), "lib/speedToLeadAlertsServer.ts"), "utf8");
+  assert.match(dispatcher, /const body = leadFirstText\(lead\);\s+const result = await sendLeadTextDetailed\(lead\.phone as string, body\);/);
 });
 
 test("the automated text-backs are recognisable as software, with or without the booking line, and a typed text is not", () => {
   const url = "https://calendar.app.google/example";
-  for (const body of [leadTextBackBody("Sam", null), leadTextBackBody("Dana", url), leadConsultationTextBody("Sam", null), leadConsultationTextBody("Priya", url)]) {
+  for (const body of [
+    leadTextBackBody("Sam", null),
+    leadTextBackBody("Dana", url),
+    leadConsultationTextBody("Sam", null),
+    leadConsultationTextBody("Priya", url),
+    leadFirstText({ full_name: "Sam Tate", funnel: null }),
+    leadFirstText({ full_name: "Facebook lead", funnel: CONSULTATION.funnel }),
+  ]) {
     assert.equal(isAutomatedLeadText(body), true, body);
   }
   assert.equal(isAutomatedLeadText("Hi Sam, this is Ryan. Can we look at the water heater Thursday?"), false);

@@ -44,7 +44,7 @@ test("the homepage sells the consultation and the done-for-you services, never e
   }
   assert.ok(home.includes("ConsultationForm"));
   assert.ok(home.includes("id={CONSULTATION.anchor}"));
-  for (const href of ["/agency/meta-ads", "/agency/automation", "/free-build", "/scoreboard", "/tools"]) {
+  for (const href of ["/agency/meta-ads", "/agency/automation", "/agency/websites", "/scoreboard", "/tools"]) {
     assert.ok(home.includes(`href="${href}"`), `homepage links ${href}`);
   }
 });

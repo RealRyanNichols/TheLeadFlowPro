@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowRight, LockKeyhole } from "lucide-react";
 import { CHASE_SHEET, type ChaseSheetPlan, kindForPlan, priceUsdForPlan } from "@/lib/chaseSheet/product";
 import { BUSINESS } from "@/lib/site/business";
+import { analyticsAllowedNow } from "@/lib/analytics/browserPrivacy";
 import styles from "./chase-sheet.module.css";
 
 // Two buttons, one product. The browser names the plan and nothing else; the
@@ -12,6 +13,7 @@ import styles from "./chase-sheet.module.css";
 declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void;
+    twq?: (...args: unknown[]) => void;
   }
 }
 
@@ -40,6 +42,7 @@ export function BuyButton({
       if (r.ok && body.url) {
         try {
           window.fbq?.("track", "InitiateCheckout", { value: priceUsdForPlan(plan), currency: "USD", content_name: `${CHASE_SHEET.name} ${plan}` });
+          if (analyticsAllowedNow()) window.twq?.("event", "tw-rftj6-rftjj", {});
         } catch {
           // Measurement must never block a checkout.
         }

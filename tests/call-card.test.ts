@@ -63,6 +63,7 @@ import {
 import { SAMPLE_ACTOR_NAME, SAMPLE_CALL_ACTIVITY, SAMPLE_CALL_LEAD, SAMPLE_NOW } from "../lib/callCloserFixtures.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
 import { buildLeadTimeline, stripActivityMarkers } from "../lib/leadTimeline.ts";
+import { OFFERS } from "../lib/site/offers.ts";
 
 // The call card and the proposal page: authorization before any lead read,
 // a client panel that cannot reach the database or a messaging provider, and
@@ -114,6 +115,23 @@ function sampleProps(overrides: Partial<CallOutcomePanelProps> = {}): CallOutcom
 }
 
 const render = (props: CallOutcomePanelProps) => renderToStaticMarkup(createElement(CallOutcomePanel, props));
+
+/**
+ * Runs fn with one registry offer's status changed, then puts it back. Every
+ * site offer is live today, so this is how a price that is not published yet
+ * is shown.
+ */
+function withOfferStatus<T>(id: string, status: (typeof OFFERS)[number]["status"], fn: () => T): T {
+  const o = OFFERS.find((x) => x.id === id);
+  assert.ok(o, id);
+  const before = o.status;
+  try {
+    o.status = status;
+    return fn();
+  } finally {
+    o.status = before;
+  }
+}
 
 /** Visible text, roughly: tags out, the few entities React writes decoded. */
 function textOf(html: string): string {
@@ -455,22 +473,27 @@ test("the preview is the planner's own list, drawn from the same JSON Save would
 });
 
 test("ready to pay lists what can be paid today first and never starts on an offer that takes no money", () => {
-  // The sample is a free-website lead: none of its suggestions takes money online today.
-  assert.ok(SAMPLE_SUGGESTIONS.every((id) => !isPayableToday(payDoors.payDoorFor(id)!, SAMPLE_LEAD.status)), "fixture assumption");
+  // The sample is a website lead: its first suggestion, the Website Launch, takes money online today.
+  assert.equal(SAMPLE_SUGGESTIONS[0], "website_launch", "fixture assumption");
+  assert.ok(isPayableToday(payDoors.payDoorFor(SAMPLE_SUGGESTIONS[0])!, SAMPLE_LEAD.status), "fixture assumption");
   const html = render(sampleProps({ initialOutcome: "ready_to_pay" }));
   assert.match(html, /What are they paying for\? Pick up to three\./);
   const boxes = inputs(html, "checkbox");
   for (const { id } of boxes) assert.ok(html.includes(`for="${id}"`), id);
-  // Nothing unpayable starts checked, so the hint asks for what they are paying for today.
-  assert.equal(boxes.filter((b) => /\bchecked=""/.test(b.tag)).length, 0);
-  assert.match(textOf(html), /Before you save: Pick what they are paying for today\./);
-  assert.ok(!/Before you save: No online payment for/.test(textOf(html)), "not blocked by default");
+  // The first suggestion that can be paid today starts checked, and nothing else.
+  const startChecked = boxes.filter((b) => /\bchecked=""/.test(b.tag));
+  assert.equal(startChecked.length, 1);
+  assert.ok(startChecked[0].id.endsWith("-offer-website_launch"), startChecked[0].id);
+  assert.ok(textOf(html).includes("Shows the pay link and a message you can send Dana yourself."), textOf(html));
+  assert.ok(!/Before you save:/.test(textOf(html)), "not blocked by default");
   // Every offer payable today is listed before the fold, in order, ahead of every one that is not.
   const order = boxes.map((b) => b.id.replace(/^.*-offer-/, ""));
   const payable = order.filter((id) => isPayableToday(payDoors.payDoorFor(id)!, SAMPLE_LEAD.status));
   assert.ok(payable.length >= 3, order.join());
   assert.deepEqual(order.slice(0, payable.length), payable, "payable offers come first");
   for (const id of ["website_launch", "system_map"]) assert.ok(payable.includes(id), id);
+  // The retired free build is never listed.
+  for (const id of ["free_website_program", "free_build_followup", "free_build_content", "free_build_launch"]) assert.ok(!order.includes(id), id);
   // Each payable line says "online today" and "Pays" once, never as a stutter.
   const listed = textOf(html);
   assert.ok(!/online today\.\s*Pays [^.]*online today/i.test(listed), listed);
@@ -478,16 +501,26 @@ test("ready to pay lists what can be paid today first and never starts on an off
   // The rest wait under a summary that says why, still one tap away.
   assert.match(html, /<summary[^>]*>Offers that cannot be paid online today/);
   const fold = html.indexOf("Offers that cannot be paid online today");
-  for (const id of SAMPLE_SUGGESTIONS) assert.ok(html.indexOf(`-offer-${id}`) > fold, `${id} is under the fold`);
-  // A lead whose suggestions include a payable offer starts with the first payable one checked.
-  const withPayable = render(sampleProps({ initialOutcome: "ready_to_pay", suggestedOffers: ["free_website_program", "system_map", "website_launch"] }));
+  for (const id of order.filter((id) => !payable.includes(id))) assert.ok(html.indexOf(`-offer-${id}`) > fold, `${id} is under the fold`);
+  // A lead whose suggestions take no money online today (an agency lead before its scope is in
+  // writing) starts with nothing checked, so the hint asks for what they are paying for today.
+  const agencyOnly = render(sampleProps({ initialOutcome: "ready_to_pay", suggestedOffers: ["agency_meta_ads", "agency_google_ads"] }));
+  assert.equal(inputs(agencyOnly, "checkbox").filter((b) => /\bchecked=""/.test(b.tag)).length, 0);
+  assert.match(textOf(agencyOnly), /Before you save: Pick what they are paying for today\./);
+  // With a payable offer further down its suggestions, the first payable one starts checked.
+  const withPayable = render(sampleProps({ initialOutcome: "ready_to_pay", suggestedOffers: ["agency_meta_ads", "system_map", "website_launch"] }));
   const checked = inputs(withPayable, "checkbox").filter((b) => /\bchecked=""/.test(b.tag));
   assert.equal(checked.length, 1);
   assert.ok(checked[0].id.endsWith("-offer-system_map"), checked[0].id);
   assert.ok(textOf(withPayable).includes("Shows the pay link and a message you can send Dana yourself."), textOf(withPayable));
-  // Offers named on the last call still start checked; one that takes no money online is explained, never saved.
-  const named = textOf(render(sampleProps({ initialOutcome: "ready_to_pay", initialOffers: ["free_website_program"] })));
-  assert.match(named, /Before you save: No online payment for .+ yet\. Choose Wants a proposal so the number goes in writing first\./);
+  // Offers named on the last call still start checked; one that takes no money online today is explained, never saved.
+  const named = render(sampleProps({ initialOutcome: "ready_to_pay", initialOffers: ["agency_meta_ads"] }));
+  const namedChecked = inputs(named, "checkbox").filter((b) => /\bchecked=""/.test(b.tag));
+  assert.deepEqual(namedChecked.map((b) => b.id.replace(/^.*-offer-/, "")), ["agency_meta_ads"]);
+  assert.match(textOf(named), /Before you save: Meta ads management has no set price\./);
+  // A site offer whose price is not published yet gets the plain answer.
+  const unpublished = withOfferStatus("website_launch", "tbd_ryan", () => textOf(render(sampleProps({ initialOutcome: "ready_to_pay", initialOffers: ["website_launch"] }))));
+  assert.match(unpublished, /Before you save: No online payment for Website Launch yet\. Choose Wants a proposal so the number goes in writing first\./);
   // Wants a proposal keeps its own list: the primary suggestion, checked.
   const proposal = inputs(render(sampleProps({ initialOutcome: "wants_proposal" })), "checkbox").filter((b) => /\bchecked=""/.test(b.tag));
   assert.equal(proposal.length, 1);
@@ -506,9 +539,11 @@ test("ready to pay for an agency service: the link once the number is in writing
   assert.ok(!atProposal.includes("Before you save:"), atProposal);
   assert.ok(atProposal.includes("Shows the pay link and a message you can send Dana yourself."), atProposal);
   assert.deepEqual(copyProblems(atProposal), []);
-  // An offer with no payment at all keeps its plain answer.
-  const free = textOf(render(sampleProps({ initialOutcome: "ready_to_pay", initialOffers: ["free_website_program"] })));
-  assert.ok(free.includes("Cannot be paid online today."), free);
+  // A site offer with no online payment yet (its price not published) keeps its plain answer.
+  const unpublished = withOfferStatus("website_launch", "tbd_ryan", () =>
+    textOf(render(sampleProps({ initialOutcome: "ready_to_pay", initialOffers: ["website_launch"] }))),
+  );
+  assert.ok(unpublished.includes("Cannot be paid online today."), unpublished);
 });
 
 test("Mark the proposal sent: retry advice only when a retry can help", async () => {
@@ -551,7 +586,7 @@ test("offers named on the last call start checked instead of the suggestion, up 
   assert.deepEqual(checked.sort(), ["lead_followup_campaign", "website_launch"]);
   // A two-tap proposal from the sample names only the offer the lead came in for.
   const plain = textOf(render(sampleProps({ initialOutcome: "wants_proposal" })));
-  assert.ok(plain.includes("Adds a task: Write the proposal for Sample Pressure Washing (fictional): Free Website Program, due "), plain);
+  assert.ok(plain.includes("Adds a task: Write the proposal for Sample Pressure Washing (fictional): Website Launch, due "), plain);
 });
 
 test("Talked about an offer? starts with nothing ticked, so opening it never records an offer nobody mentioned", () => {
@@ -569,8 +604,13 @@ test("Talked about an offer? starts with nothing ticked, so opening it never rec
     }
   }
   // The required pickers keep their preselection (see the ready to pay and proposal tests above): the
-  // offers named on the last call, and for Ready to pay now nothing that takes no money online.
-  assert.equal(inputs(render(sampleProps({ initialOutcome: "ready_to_pay" })), "checkbox").filter((b) => /\bchecked=""/.test(b.tag)).length, 0);
+  // offers named on the last call, and for Ready to pay now the first suggestion that can be paid today.
+  assert.deepEqual(
+    inputs(render(sampleProps({ initialOutcome: "ready_to_pay" })), "checkbox")
+      .filter((b) => /\bchecked=""/.test(b.tag))
+      .map((b) => b.id.replace(/^.*-offer-/, "")),
+    ["website_launch"],
+  );
   assert.equal(inputs(render(sampleProps({ initialOutcome: "ready_to_pay", initialOffers: lastCall })), "checkbox").filter((b) => /\bchecked=""/.test(b.tag)).length, 2);
   assert.equal(inputs(render(sampleProps({ initialOutcome: "wants_proposal", initialOffers: lastCall })), "checkbox").filter((b) => /\bchecked=""/.test(b.tag)).length, 2);
   // What Save sends: the optional list for a sit-down or a call back, Ready to pay now's own list, the proposal

@@ -16,13 +16,19 @@ The name was checked before it was used. "Quote Chaser" and "QuoteChase" are exi
 
 ## Offer and delivery
 
-- `/chase-sheet`: sales page. Hero, the problem, how it works, why a reminder app is not this, the quote-leak calculator (the visitor's own numbers, no benchmark), the free demo (the real engine, server side), pricing, FAQ, final call to action.
+- `/chase-sheet`: sales page. Hero, the problem, how it works, why a reminder app is not this, the quote-leak calculator (the visitor's own numbers, no benchmark), the free demo (the real engine, server side; the first three touches in full, the rest dated, one objection reply in full), the bridge line that says what paying buys, pricing, FAQ (the first answer is that same question), final call to action.
 - `/chase-sheet/app`: the sheet. Locked view (paste the key, restart a lapsed plan, or buy) and the app (Today, Quotes, Ledger, Settings).
 - `/chase-sheet/terms`: purchase terms, refunds, what the owner sends themselves, data handling.
 - `/chase-sheet/opengraph-image`: 1200 x 630 social card.
 - The footer, the tools page, the offer registry, the public page catalog, and the sitemap link the offer. The app is out of indexing and analytics (`lib/analytics/privacy.ts`).
 
 Nothing is sent by the server. The owner taps a text, call, or email link and sends it from their own phone or mail client. There is no SMS provider, no carrier registration, and no per-message cost.
+
+## What the demo shows, and why
+
+The demo on the sales page is the real engine, and the page says so. It also says what it holds back, because the library is the part a copy cannot fake and the first version printed all of it: nine touches with both call scripts and their voicemail texts, and a seed that let a visitor pull the other variant of every text step by cycling the trade list. Ryan, reading the page as a customer on September 24, could not tell what paying bought; the page never said.
+
+`lib/chaseSheet/demo.ts` shapes the answer now. The first three touches (did it land, the call with its voicemail text, one question) are written in full; the rest come back dated, with the job of each touch, and no words. One objection reply comes back in full, the price one, which every trade lists, so changing the trade never reveals another; the rest are named with the rule behind them. The seed is the tone alone, the pace is the trade's usual urgency with no override from the request, and the route allows thirty requests an hour per address. The page carries a bridge line under the demo and a first FAQ that say plainly what paying buys: the demo is the writing; the sheet is the remembering, the ordering, and the sending. `tests/chase-sheet-demo.test.ts` pins all of it.
 
 ## Payment and access
 
@@ -67,6 +73,7 @@ Product: `prod_VJgdpQoFYS70Re`. `npm run chasesheet:stripe` finds these by metad
 - September 24, 2026: PR #73 squash-merged to `main` (commit `08d3611`); Vercel production deployment `dpl_DGJE9vDAGhwbUdqPPDJToPw1Cxhy` reached READY.
 - September 24, 2026: migration `chase_sheet` applied to the live Supabase project (`hpzpwfymwfgwspaixrxi`) through the Supabase MCP; the three tables exist with RLS on and no browser grants.
 - September 24, 2026: the Stripe product, prices, and payment links above created in the live account.
+- September 24, 2026: the demo tightened to three written touches and one full objection reply, and the page told what paying buys (see "What the demo shows, and why").
 
 ## Validation
 

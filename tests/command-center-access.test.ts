@@ -64,7 +64,12 @@ function harness({
           return client(true);
         },
       };
-    if (name === "@/components/WorkspaceLinks" || name === "./LiveRefresh")
+    // The RN-1 desk panel reads its own server; tests/rn1-desk.test.ts runs it.
+    if (
+      name === "@/components/WorkspaceLinks" ||
+      name === "./LiveRefresh" ||
+      name === "./Rn1DeskPanel"
+    )
       return () => null;
     if (name === "@/lib/leadTimeline") return leadTimeline;
     return require(name);

@@ -26,7 +26,6 @@ const observedAt = new Date("2026-09-06T18:00:00Z");
 test("paid-traffic pages use distinct finished 1200 by 630 JPEG artwork", async () => {
   const expected = {
     "/services": "/images/social/services-20260907.jpg",
-    "/free-build": "/images/social/free-build-20260907.jpg",
     "/scoreboard": "/images/social/scoreboard-20260907.jpg",
     "/premier-system": "/images/social/premier-system-20260907.jpg",
     "/portfolio": "/images/social/portfolio-20260907.jpg",
@@ -49,7 +48,9 @@ test("paid-traffic pages use distinct finished 1200 by 630 JPEG artwork", async 
     );
     hashes.add(hash);
   }
-  assert.equal(hashes.size, 6);
+  assert.equal(hashes.size, Object.keys(expected).length);
+  // The retired free website build has no social card of its own any more.
+  assert.equal(AD_PAGE_SOCIAL_IMAGES["/free-build"], undefined);
 });
 
 test("legacy ad preview URLs return the full finished image bytes and reject query/private paths", async () => {
@@ -85,7 +86,6 @@ test("legacy ad preview URLs return the full finished image bytes and reject que
   for (const route of [
     ...Object.keys(UNIQUE_OG_IMAGES),
     "/services",
-    "/free-build",
     "/scoreboard",
     "/premier-system",
     "/portfolio",
@@ -305,7 +305,7 @@ test("all generated previews really render as distinct 1200 by 630 PNGs", async 
       { width: 1200, height: 630 },
     );
     const bytes: Buffer = Buffer.from(await response.arrayBuffer());
-    const dimensions: sharp.Metadata = await sharp(bytes).metadata();
+    const dimensions = await sharp(bytes).metadata();
     assert.equal(dimensions.format, "png", route);
     assert.equal(dimensions.width, 1200, route);
     assert.equal(dimensions.height, 630, route);

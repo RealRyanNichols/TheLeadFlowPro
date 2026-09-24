@@ -12,8 +12,10 @@
 // (the Call Closer's "Wants a proposal"), that selection replaces the
 // interest mapping, because what they chose together beats what a form
 // guessed. How the customer pays comes from lib/payDoors.ts, so the "To
-// accept" lines print the same published link the Call Closer hands Ryan,
-// and never promise an invoice for a build that costs nothing.
+// accept" lines print the same published link the Call Closer hands Ryan.
+// The retired free website build has no pay door, so it never reaches a
+// proposal: a selection that names it is dropped, and a lead that asked for
+// it is proposed the Website Launch.
 //
 // This module must not import lib/callCloser.ts (which imports this one),
 // and it imports no email, text, or messaging code.
@@ -22,16 +24,7 @@ import { AGENCY_SERVICES, OWNERSHIP_PROMISE, agencyOffer, agencyService, type Ag
 import { BUSINESS } from "../site/business";
 import { TBD_PRICE_LABEL, offer, type Offer } from "../site/offers";
 import { PRICES, usdPerMonth } from "../site/prices";
-import {
-  FREE_BUILD_ADD_ON_IDS,
-  acceptanceLine,
-  isCloserOfferId,
-  payDoorFor,
-  startsWithAcceptanceLine,
-  type CloserOfferId,
-  type PayDoor,
-} from "../payDoors";
-import { FREE_BUILD_HOSTING_LINE } from "../freeBuild";
+import { acceptanceLine, isCloserOfferId, payDoorFor, startsWithAcceptanceLine, type CloserOfferId, type PayDoor } from "../payDoors";
 import { LEAD_FOLLOW_UP } from "../leadFollowUp";
 
 export type ProposalIntake = {
@@ -87,6 +80,9 @@ export function offerIdForInterest(interest: string | null): string | null {
     case "launch_system":
     case "website_launch":
     case "launch":
+    // The free website build was retired on 2026-09-22. A lead that asked for
+    // it wanted a five-page website, which is the Website Launch.
+    case "free_website_program":
       return "website_launch";
     case "blueprint":
     case "system_map":
@@ -100,8 +96,6 @@ export function offerIdForInterest(interest: string | null): string | null {
       return "company_os";
     case "custom_platform":
       return "custom_platform";
-    case "free_website_program":
-      return "free_website_program";
     case "done_for_you":
       return null; // agency: services decide
     default:
@@ -149,20 +143,6 @@ export type BuildProposalOptions = {
   selection?: string[];
 };
 
-/** The free build and its paid add-ons: the first months of managed hosting are included. */
-const FREE_BUILD_IDS: ReadonlySet<string> = new Set<string>(["free_website_program", ...FREE_BUILD_ADD_ON_IDS]);
-
-/** "A", "A and B", "A, B and C", from offer names in the registry. */
-function namesOf(ids: string[]): string {
-  const names = ids.map((id) => offer(id).name);
-  if (names.length <= 1) return names.join("");
-  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
-}
-
-function lowerFirst(text: string): string {
-  return text ? `${text[0].toLowerCase()}${text.slice(1)}` : text;
-}
-
 export function buildProposal(intake: ProposalIntake, now: Date, options: BuildProposalOptions = {}): Proposal {
   const missing: string[] = [];
   const d = intake.diagnostic ?? {};
@@ -207,9 +187,6 @@ export function buildProposal(intake: ProposalIntake, now: Date, options: BuildP
   let buildLane = false;
   let followUpLane = false;
   let mapLane = false;
-  // The builds on the page, by offer id: the free build and its add-ons come
-  // with included hosting, a paid build does not.
-  const buildIds: string[] = [];
 
   const addAgencyService = (s: AgencyService, why: string) => {
     agencyLane = true;
@@ -224,10 +201,7 @@ export function buildProposal(intake: ProposalIntake, now: Date, options: BuildP
     if (recommended.some((r) => r.offerId === o.id)) return;
     if (o.id === "lead_followup_campaign") followUpLane = true;
     else if (o.id === "system_map") mapLane = true;
-    else {
-      buildLane = true;
-      buildIds.push(o.id);
-    }
+    else buildLane = true;
     addOffer(o, why);
     deliverables.push({ source: o.name, items: [o.terms] });
   };
@@ -266,20 +240,10 @@ export function buildProposal(intake: ProposalIntake, now: Date, options: BuildP
   if (buildLane) {
     clientOwns.add("The code, the domain, the hosting account, and every record created for you.");
     clientOwns.add("Every account the build touches is created in your name or moved into it before launch.");
-    // A free build includes its first months of hosting (lib/freeBuild.ts); a
-    // paid build is billed from launch. With both on the page, each line says
-    // which build it covers.
-    const freeIds = buildIds.filter((id) => FREE_BUILD_IDS.has(id));
-    const paidIds = buildIds.filter((id) => !FREE_BUILD_IDS.has(id));
-    const paidHosting = `${usdPerMonth(PRICES.hostingManagedMonthly)} managed, or ${usdPerMonth(PRICES.hostingWithEditsMonthly)} with two edits a month, billed by The LeadFlow Pro; or your own Vercel account at Vercel's price.`;
-    if (paidIds.length && freeIds.length) {
-      vendorCosts.add(`Hosting after launch for ${namesOf(paidIds)}: ${paidHosting}`);
-      vendorCosts.add(`Hosting for ${namesOf(freeIds)}: ${lowerFirst(FREE_BUILD_HOSTING_LINE)}`);
-    } else if (freeIds.length) {
-      vendorCosts.add(FREE_BUILD_HOSTING_LINE);
-    } else {
-      vendorCosts.add(`Hosting after launch: ${paidHosting}`);
-    }
+    // Every build is billed for hosting from launch.
+    vendorCosts.add(
+      `Hosting after launch: ${usdPerMonth(PRICES.hostingManagedMonthly)} managed, or ${usdPerMonth(PRICES.hostingWithEditsMonthly)} with two edits a month, billed by The LeadFlow Pro; or your own Vercel account at Vercel's price.`,
+    );
     vendorCosts.add("Domain registration, email, and any software subscriptions the build connects to, paid by you to the vendor.");
   }
   if (mapLane) {
@@ -304,19 +268,6 @@ export function buildProposal(intake: ProposalIntake, now: Date, options: BuildP
   if (buildLane || followUpLane || mapLane) {
     notIncluded.add("Ad spend, subscriptions, and anything not written in the deliverables above.");
     notIncluded.add("A promise of a number of leads, a ranking, or a revenue result.");
-  }
-
-  // The free build costs nothing. Its paid add-ons are optional, each with its
-  // registry price, confirmed in writing before a separate secure checkout.
-  if (recommended.some((r) => r.offerId === "free_website_program")) {
-    const extras = FREE_BUILD_ADD_ON_IDS.filter((id) => !recommended.some((r) => r.offerId === id))
-      .map((id) => payDoorFor(id))
-      .filter((door): door is PayDoor => door !== null);
-    if (extras.length) {
-      notIncluded.add(
-        `Optional, priced separately: ${extras.map((x) => `${x.offerName} (${x.priceLabel})`).join(", ")}. Any add-on is confirmed in writing before a separate secure checkout.`,
-      );
-    }
   }
 
   // Modules: the intake's own selection, with the intake's own labels. They
@@ -354,19 +305,15 @@ export function buildProposal(intake: ProposalIntake, now: Date, options: BuildP
     if (!acceptance.includes(line)) acceptance.push(line);
   }
   if (doors.length === 0) acceptance.push("An invoice for the first payment follows approval. Work begins when it clears.");
-  if (doors.length > 0 && doors.every((door) => door.kind === "no_payment")) {
-    acceptance.push("Intake begins after your application is approved and the written scope is agreed.");
-  } else {
-    // The Follow-Up Campaign has no kickoff call: after payment the buyer
-    // fills in a short intake and it is written from that (lib/leadFollowUp.ts).
-    const followUp = doors.find((door) => door.offerId === "lead_followup_campaign");
-    if (followUp) {
-      acceptance.push(`The ${followUp.offerName} is written within ${LEAD_FOLLOW_UP.turnaroundDays} business days of your intake landing.`);
-    }
-    const kickoffDoors = doors.filter((door) => door.kind !== "no_payment" && door.offerId !== "lead_followup_campaign");
-    if (kickoffDoors.length > 0 || doors.length === 0) {
-      acceptance.push("A kickoff call is scheduled within five business days of payment.");
-    }
+  // The Follow-Up Campaign has no kickoff call: after payment the buyer
+  // fills in a short intake and it is written from that (lib/leadFollowUp.ts).
+  const followUp = doors.find((door) => door.offerId === "lead_followup_campaign");
+  if (followUp) {
+    acceptance.push(`The ${followUp.offerName} is written within ${LEAD_FOLLOW_UP.turnaroundDays} business days of your intake landing.`);
+  }
+  const kickoffDoors = doors.filter((door) => door.offerId !== "lead_followup_campaign");
+  if (kickoffDoors.length > 0 || doors.length === 0) {
+    acceptance.push("A kickoff call is scheduled within five business days of payment.");
   }
 
   const date = localDate(now);

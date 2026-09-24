@@ -14,14 +14,18 @@
 //   system_map              /packages/system-map, whose order form opens Stripe checkout.
 //   lead_followup_campaign  /go/lead-follow-up, whose funnel opens Stripe checkout.
 //   larger builds           start with the System Map, credited toward the build.
-//   free_website_program    no payment for the build.
-//   free_build_* add-ons    no public checkout. The /free-build form promises a
-//                           separate secure checkout after the written scope is
-//                           approved, so Ryan sends one from Sales invoices.
 //   agency_*                /agency/pay?service=<slug>, the amount in the written scope.
 //                           For a real lead the link also carries &lead=<id>, so the
 //                           payment lands on that lead's record (lib/agencyPayment.ts).
 //                           The sample card and sample proposals never pass one.
+//
+// The free website build (free_website_program and its three free_build_*
+// add-ons) was retired on 2026-09-22 and is not a closer offer. Its ids are
+// not in CLOSER_OFFER_IDS, so isCloserOfferId() refuses them and payDoorFor()
+// returns null: it is never suggested, offered, proposed, or payable. An old
+// call record that names one is skipped when the Call Closer reads its offers
+// back (offerIdsFromDetail). The registry keeps the retired rows, so an old
+// record still resolves to a name.
 //
 // An offer that is not live never shows an amount and is never payable now.
 // Leaf module: registry reads only. Nothing here sends, charges, or stores anything.
@@ -36,10 +40,6 @@ import { PRICES, usd } from "./site/prices";
 export const CLOSER_OFFER_IDS = [
   "website_launch",
   "system_map",
-  "free_website_program",
-  "free_build_followup",
-  "free_build_content",
-  "free_build_launch",
   "lead_followup_campaign",
   "lead_engine",
   "training_platform",
@@ -63,10 +63,7 @@ export function isCloserOfferId(id: unknown): id is CloserOfferId {
 /** Larger builds that begin with the paid System Map (its terms credit it toward the build). */
 export const MAP_FIRST_OFFER_IDS: readonly CloserOfferId[] = ["lead_engine", "training_platform", "company_os", "custom_platform"];
 
-/** The paid add-ons on the free website. /free-build takes the request; checkout follows the approved scope. */
-export const FREE_BUILD_ADD_ON_IDS: readonly CloserOfferId[] = ["free_build_followup", "free_build_content", "free_build_launch"];
-
-export type PayDoorKind = "pay_online" | "starts_with" | "after_scope_checkout" | "no_payment" | "written_scope";
+export type PayDoorKind = "pay_online" | "starts_with" | "written_scope";
 
 export type PayDoor = {
   offerId: CloserOfferId;
@@ -86,9 +83,6 @@ export type PayDoor = {
   /** May be chosen under "Ready to pay now". */
   payableNow: boolean;
 };
-
-/** Where Ryan sends a secure checkout for a scoped add-on. Middleware serves /admin/sales from app/sales. */
-const SALES_INVOICES_HREF = "/admin/sales/invoices";
 
 const absolute = (path: string) => `${BUSINESS.siteUrl}${path}`;
 
@@ -157,30 +151,6 @@ export function payDoorFor(offerId: string, context: PayDoorContext = {}): PayDo
     };
   }
 
-  if (offerId === "free_website_program") {
-    return {
-      ...base,
-      kind: "no_payment",
-      url: null,
-      dueNowLabel: null,
-      howTheyPay: "No payment for the build. They apply, and you confirm fit and capacity",
-      staffHref: null,
-      payableNow: false,
-    };
-  }
-
-  if (FREE_BUILD_ADD_ON_IDS.includes(offerId)) {
-    return {
-      ...base,
-      kind: "after_scope_checkout",
-      url: null,
-      dueNowLabel: null,
-      howTheyPay: "Secure checkout after they approve the written scope. Send it from Sales invoices",
-      staffHref: SALES_INVOICES_HREF,
-      payableNow: false,
-    };
-  }
-
   // The agency lane: the pay page takes the amount in the written scope. Once
   // Ryan publishes a price, lib/agencyPayment.ts charges that number instead.
   const service = AGENCY_SERVICES.find((s) => s.offerId === offerId) ?? null;
@@ -230,13 +200,9 @@ export function acceptanceLine(door: PayDoor): string {
       const start = `${name} starts with the System Map${price}, credited toward the approved build.`;
       return door.url ? `${start} Pay for the System Map at ${door.url} to begin.` : start;
     }
-    case "after_scope_checkout":
-      return `After you approve the written scope, a secure checkout for ${name} (${door.priceLabel}) is sent to you.`;
-    // Both name the offer: a proposal can carry a free build beside a paid
-    // one, or two agency services with one pay page each, and a bare "the
-    // build" or "the amount in your written scope" could mean the whole page.
-    case "no_payment":
-      return `No payment is due for the ${name} build.`;
+    // Names the service: a proposal can carry two agency services with one
+    // pay page each, and a bare "the amount in your written scope" could
+    // mean the whole page.
     case "written_scope":
       return door.url ? `Pay the amount in your written scope for ${name} at ${door.url}.` : `Pay the amount in your written scope for ${name}.`;
   }

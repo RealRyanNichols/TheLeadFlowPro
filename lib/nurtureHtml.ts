@@ -148,7 +148,7 @@ const TOOLS = {
 } satisfies Record<string, NurtureTool>;
 
 const IMG = {
-  freeBuild: "/images/page-art/free-build-website-inquiries.webp",
+  freeBuild: "/images/page-art/website-inquiries.webp",
   connected: "/images/homepage-v2/connected-company-hero.webp",
   loop: "/images/homepage-v2/company-operating-loop.webp",
   cockpit: "/images/homepage-v2/proof-cockpit.webp",

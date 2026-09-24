@@ -228,8 +228,8 @@ Somebody in your market is going to build the page that answers your customers' 
       ],
       formHeading: "Failed your own phone test?",
       formLead:
-        "Send me your website address and I will look at it on a phone the way a customer does, then tell you plainly: fix the site you have, or start over with the free five-page build. One of those is the honest answer, and I will tell you which.",
-      interest: "free_website_program",
+        "Send me your website address and I will look at it on a phone the way a customer does, then tell you plainly: fix the site you have, or start over with a new five-page build. One of those is the honest answer, and I will tell you which.",
+      interest: "website_launch",
       industry: "General small business",
     },
     faq: [
@@ -297,7 +297,7 @@ The person who cannot read your site does not know your labels are eight pixels.
 
 The record does not care how the site looked on your monitor. It cares what happened on her phone.
 
-We took the correction and shipped the fix the same day. Your move is the same one: run the test, price the leak, fix the floor. And if the site fails deeper than type size, the [free five-page build](/free-build) exists for exactly that.
+We took the correction and shipped the fix the same day. Your move is the same one: run the test, price the leak, fix the floor. And if the site fails deeper than type size, the [five-page Website Launch](/packages/launch) exists for exactly that.
 `,
   },
   {
@@ -687,21 +687,17 @@ Do not trust a blended fee percentage from a blog post, including this one. Pull
       formHeading: "Want a straight answer on what your site needs?",
       formLead:
         "Send me your grade and your website address. I will tell you which shape of build fits, what it should cost, and just as plainly if the site you have is fine.",
-      interest: "free_website_program",
+      interest: "website_launch",
       industry: "General small business",
     },
     faq: [
       {
         q: "How much should a five-page small business website cost?",
-        a: "Templates you build yourself run tens of dollars a month plus your evenings. Freelancers and agencies commonly land between two and ten thousand dollars on rented platforms. An owned build has a fixed build cost and small infrastructure costs after. The LeadFlow Pro's buy-it-outright five-page build is $1,000, and approved businesses can apply for the same foundation at a $0 build fee.",
+        a: "Templates you build yourself run tens of dollars a month plus your evenings. Freelancers and agencies commonly land between two and ten thousand dollars on rented platforms. An owned build has a fixed build cost and small infrastructure costs after. The LeadFlow Pro's five-page Website Launch is $1,000, bought outright.",
       },
       {
         q: "Why is there such a huge range in website quotes?",
         a: "Because the word website covers three different products: pages you rent, pages someone assembles for you on a rented platform, and a system you own. The quotes are not for the same thing. Ask who owns the accounts and what the monthly total is in year two, and the quotes sort themselves fast.",
-      },
-      {
-        q: "Is a free website ever actually free?",
-        a: "Ask what the catch is, always, including with us. Our version: the five-page build fee is genuinely $0 for approved businesses, you own the code and accounts, and growth services after that are optional and quoted before you approve them. Domains, and hosting after the included 90 days, are real costs and we say so up front.",
       },
       {
         q: "What ongoing costs does any website have?",
@@ -995,7 +991,7 @@ Do not buy a CRM because a blog told you to, including this one. Count your inqu
       formHeading: "Want the leak found for you?",
       formLead:
         "Send me your website address and the number the tool gave you. I will walk your site the way a stranger would and tell you which of the five leaks is eating your traffic. Straight answer, no call required.",
-      interest: "free_website_program",
+      interest: "website_launch",
       industry: "General small business",
     },
     faq: [
@@ -1189,8 +1185,8 @@ This is one of the cheapest leaks in business to fix, which is what makes it pai
       ],
       formHeading: "Social-only and thinking about a home base?",
       formLead:
-        "Tell me your business, your town, and where your orders come from today. I will tell you what a search-visible home base would do first for you, and whether the free five-page build fits.",
-      interest: "free_website_program",
+        "Tell me your business, your town, and where your orders come from today. I will tell you what a search-visible home base would do first for you, and whether a five-page build fits.",
+      interest: "website_launch",
       industry: "Social-first local business",
     },
     faq: [
@@ -1208,7 +1204,7 @@ This is one of the cheapest leaks in business to fix, which is what makes it pai
       },
       {
         q: "What is the smallest useful website for a social-first business?",
-        a: "A few pages that say what you do, where you do it, and how to buy or book, with every inquiry landing in one owned list. That is exactly the shape of the free five-page build, and for a social-only business it is the difference between renting your existence and owning it.",
+        a: "A few pages that say what you do, where you do it, and how to buy or book, with every inquiry landing in one owned list. That is exactly the shape of a five-page Website Launch, and for a social-only business it is the difference between renting your existence and owning it.",
       },
     ],
     body: `
@@ -1383,8 +1379,8 @@ An email list trapped in a rented tool with per-contact pricing is only half own
       ],
       formHeading: "Want a local's eyes on the whole front door?",
       formLead:
-        "Send me your business name and your score. I am up the road in Longview, and I will tell you what to fix on the listing, whether your website backs it up, and whether the free five-page build fits.",
-      interest: "free_website_program",
+        "Send me your business name and your score. I am up the road in Longview, and I will tell you what to fix on the listing, whether your website backs it up, and whether a five-page build fits.",
+      interest: "website_launch",
       industry: "East Texas local business",
     },
     faq: [

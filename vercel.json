@@ -47,6 +47,10 @@
     {
       "path": "/api/cron/call-sheet",
       "schedule": "30 12 * * *"
+    },
+    {
+      "path": "/api/cron/speed-to-lead",
+      "schedule": "* * * * *"
     }
   ]
 }

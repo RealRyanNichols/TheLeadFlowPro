@@ -33,9 +33,18 @@ import { LEADFLOW_META } from "@/lib/metaCampaignGuard";
 import type { NurtureContext } from "@/lib/nurtureContext";
 import { BUSINESS } from "@/lib/site/business";
 import { eventWhen, featuredEvent, featuredEventStartMs } from "@/lib/site/events";
-import { PRICES, usd } from "@/lib/site/prices";
+import { usd } from "@/lib/site/prices";
 
+// Part of the send idempotency key (lib/nurtureDelivery.ts). Never rename it,
+// even though the offer it was named for is retired.
 export const NURTURE_CAMPAIGN = "free_build";
+
+// The free website build was retired on 2026-09-22 (its page is a 301 to
+// /services). New leads get the Rent Receipt series (lib/nurtureRentReceipt.ts);
+// only leads that already started this sequence finish it. Its add-on prices
+// are frozen here because they are no longer sold or in lib/site/prices.ts.
+const RETIRED_FOLLOW_UP_PACK = usd(197);
+const RETIRED_CONTENT_ENGINE = usd(497);
 
 /**
  * The business diagnostic has its own consent snapshot, submission clock, and
@@ -132,7 +141,7 @@ export function isBusinessDiagnosticLead(lead: NurtureLeadAttribution): boolean 
 }
 
 /** Where every link in this sequence points, with attribution attached. */
-export function nurtureLink(day: number, path = "/free-build"): string {
+export function nurtureLink(day: number, path = "/services"): string {
   return (
     `https://www.theleadflowpro.com${path}` +
     `?utm_source=email&utm_medium=nurture&utm_campaign=${NURTURE_CAMPAIGN}&utm_content=day${day}`
@@ -225,7 +234,7 @@ You do not need software for this. You need one message already written, saved o
 
 Write it tonight. Save it as a quick reply. That is a free fix and it takes ten minutes.
 
-If you want that message written properly, in your words, that is the ${usd(PRICES.freeBuildFollowUpPack)}.
+If you want that message written properly, in your words, that is the ${RETIRED_FOLLOW_UP_PACK}.
 
 ${nurtureLink(4)}`,
   },
@@ -250,14 +259,14 @@ ${nurtureLink(5)}`,
   {
     step: 106,
     day: 6,
-    subject: `💼 The optional ${usd(PRICES.freeBuildContentEngine)} engine, itemized`,
+    subject: `💼 The optional ${RETIRED_CONTENT_ENGINE} engine, itemized`,
     body: (first) => `${first},
 
 The middle one, line by line.
 
 Free, at $0: up to five scoped pages built for a phone first. Lead capture. Search foundation. Analytics in your account. Ninety days of defined corrections. Code, domain, tracking, and leads under your control.
 
-Optional, ${usd(PRICES.freeBuildContentEngine)} one time: fourteen days of business-specific content, a campaign calendar tied to the offer, one visual direction, and a publishing handoff inside client-controlled accounts.
+Optional, ${RETIRED_CONTENT_ENGINE} one time: fourteen days of business-specific content, a campaign calendar tied to the offer, one visual direction, and a publishing handoff inside client-controlled accounts.
 
 No ad spend. No subscription. Nothing renews without written approval.
 
@@ -273,7 +282,7 @@ Seven emails. Here is the only question that matters this week.
 
 When somebody calls your business and nobody picks up, what happens next?
 
-If the honest answer is nothing, that is the cheapest hole in your business and you can plug it for ${usd(PRICES.freeBuildFollowUpPack)}.
+If the honest answer is nothing, that is the cheapest hole in your business and you can plug it for ${RETIRED_FOLLOW_UP_PACK}.
 
 If the honest answer is something, good. You are further along than most and we should talk about the next thing instead.
 
@@ -467,7 +476,7 @@ Five. A one page cheat sheet of what goes out when, for whoever answers the phon
 
 Written for your business, handed to you, yours to keep and reuse forever.
 
-${usd(PRICES.freeBuildFollowUpPack)} for the follow-up pack. Optional. The website application stays available at $0 without it.
+${RETIRED_FOLLOW_UP_PACK} for the follow-up pack. Optional. The website application stays available at $0 without it.
 
 ${nurtureLink(18)}`,
   },
@@ -524,14 +533,14 @@ ${nurtureLink(21)}`,
   {
     step: 122,
     day: 22,
-    subject: `Why the first optional service is ${usd(PRICES.freeBuildFollowUpPack)}`,
+    subject: `Why the first optional service is ${RETIRED_FOLLOW_UP_PACK}`,
     body: (first) => `${first},
 
 Because $3,000 is where good work goes to die in a small business.
 
 You save for it. You put it off. You finally do it, once, and then it sits for two years because another three grand is not happening.
 
-${usd(PRICES.freeBuildFollowUpPack)} is a fixed follow-up work product, not a retainer and not ad management. It is small enough to solve one leak without pretending to rebuild the whole company.
+${RETIRED_FOLLOW_UP_PACK} is a fixed follow-up work product, not a retainer and not ad management. It is small enough to solve one leak without pretending to rebuild the whole company.
 
 The site being free is the same logic. I would rather earn the bigger work by showing the work first.
 
@@ -589,7 +598,7 @@ Eight prompts. Rotate them and you have a month.
 
 You do not need to be clever online. You need to be visible and specific. Specific beats clever every single time.
 
-If you want it built for you, the optional ${usd(PRICES.freeBuildContentEngine)} content engine covers fourteen days of business-specific content, a campaign calendar, one visual direction, and a client-controlled publishing handoff.
+If you want it built for you, the optional ${RETIRED_CONTENT_ENGINE} content engine covers fourteen days of business-specific content, a campaign calendar, one visual direction, and a client-controlled publishing handoff.
 
 ${nurtureLink(25)}`,
   },

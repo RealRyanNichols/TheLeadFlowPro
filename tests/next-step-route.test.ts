@@ -288,7 +288,7 @@ function bodyFor(outcome: CallOutcome, extra: Row = {}): Row {
       meeting_date: "2026-09-24",
       meeting_time: "14:00",
       meeting_place: "at their business",
-      offers: ["free_website_program"],
+      offers: ["website_launch"],
       note: "Wants before and after photos on the home page.",
     },
     wants_proposal: { offers: ["website_launch"] },
@@ -358,6 +358,9 @@ test("a bad body is a 400 before any lead read", async () => {
     { outcome: "booked" },
     { outcome: "booked", idempotency_key: "short" },
     bodyFor("wants_proposal", { offers: ["not_an_offer"] }),
+    // The retired free build is not on the published list.
+    bodyFor("booked", { offers: ["free_website_program"] }),
+    bodyFor("wants_proposal", { offers: ["free_build_launch"] }),
     bodyFor("booked", { meeting_time: "" }),
     bodyFor("not_a_fit", { lost_reason: "rude" }),
   ];
@@ -405,8 +408,10 @@ test("an outcome missing what it needs is a 400 from the planner with zero write
   const past = await run({ body: bodyFor("call_back", { callback_date: "2026-09-21" }) });
   assert.equal(past.status, 400);
   assert.equal(past.writes.length, 0);
-  const notPayable = await run({ body: bodyFor("ready_to_pay", { offers: ["free_website_program"] }) });
+  // An agency service's price is not in writing yet at the new stage, so the planner refuses a payment.
+  const notPayable = await run({ body: bodyFor("ready_to_pay", { offers: ["agency_meta_ads"] }) });
   assert.equal(notPayable.status, 400);
+  assert.match(String(notPayable.json.error), /Meta ads management has no set price\./);
   assert.equal(notPayable.writes.length, 0);
 });
 
@@ -512,6 +517,27 @@ test("an edited save under a key already used gets the links of the call that wa
   const check = unreadable.calls.find((c) => c.table === "lead_activity" && c.ops.some((o) => o.name === "ilike" && String(o.args[1]).includes(refMarker(KEY))));
   assert.ok(check);
   assert.match(String(check.ops.find((o) => o.name === "select")?.args[0]), /\bdetail\b/);
+});
+
+test("a retry of a save that named the retired free build is still a duplicate, and hands back no link to it", async () => {
+  // Saved before the free website build was retired on 2026-09-22.
+  const saved = [
+    {
+      lead_id: LEAD_ID,
+      kind: "call",
+      detail: `Call: wants a proposal for Free Website Program. Proposal due Thu, Sep 17. Outcome: wants_proposal. Offer ids: free_website_program. ${refMarker(KEY)}`,
+      created_at: "2026-09-15T14:59:00.000Z",
+    },
+  ];
+  const r = await run({ body: bodyFor("wants_proposal"), activity: saved, lead: leadRow({ status: "contacted" }) });
+  assert.equal(r.status, 200);
+  assert.equal(r.json.duplicate, true);
+  assert.equal(r.json.outcome, "wants_proposal");
+  assert.equal(r.writes.length, 0);
+  assert.deepEqual(r.json.payDoors, []);
+  assert.equal(r.json.payMessage, null);
+  assert.equal(r.json.proposalHref, null);
+  assert.ok(!/free_website_program|free_build_/.test(JSON.stringify(r.json)), JSON.stringify(r.json));
 });
 
 test("a retried not-a-fit save is a duplicate, not a 409 for the now lost lead", async () => {
@@ -633,7 +659,7 @@ test("writes go lead, then note, then task, then the timeline entry last", async
   assert.deepEqual(Object.keys(activity).sort(), ["detail", "kind", "lead_id"]);
   assert.equal(activity.kind, "call");
   assert.ok(String(activity.detail).endsWith(refMarker(KEY)));
-  assert.match(String(activity.detail), / Outcome: booked\. Offer ids: free_website_program\. /);
+  assert.match(String(activity.detail), / Outcome: booked\. Offer ids: website_launch\. /);
 
   assert.equal(r.json.nextFollowUpAt, "2026-09-24T19:00:00.000Z");
   assert.equal(r.json.nextFollowUpLabel, formatCentral(new Date("2026-09-24T19:00:00.000Z")));
