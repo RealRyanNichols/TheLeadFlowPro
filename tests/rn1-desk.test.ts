@@ -214,7 +214,7 @@ test("the numbers: an open trade reads like the desk, with its stop, account and
   const html = numbersHtml(rn1Desk.summarizeRn1Desk(deskData(), NOW));
   const text = textOf(html);
   for (const part of [
-    "Engine live. Checked in 2 min ago.",
+    "Engine live. Checks every 60 seconds.",
     "Numbers from 11:07 AM CT. The desk updates every 5 minutes.",
     "Account $99.45 of $100 funded",
     "Open trade HYPE In at $97.58, now $93.10 (-4.6%)",

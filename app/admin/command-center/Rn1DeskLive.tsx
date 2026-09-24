@@ -34,10 +34,9 @@ function centralTime(value: string) {
 
 function engineLine(desk: Rn1DeskSummary): string {
   if (desk.engine === "halted") return "Engine halted. No new trades.";
-  if (desk.engine === "live") {
-    const minutes = desk.heartbeatMinutes ?? 0;
-    return minutes < 1 ? "Engine live. Checked in just now." : `Engine live. Checked in ${minutes} min ago.`;
-  }
+  // The snapshot is up to 5 minutes old, but the engine itself runs every 60 seconds.
+  // Saying "checked in 5 min ago" would read as a slow engine, so live says how often it checks.
+  if (desk.engine === "live") return "Engine live. Checks every 60 seconds.";
   return desk.heartbeatAt
     ? `Engine quiet since ${centralTime(desk.heartbeatAt)} CT.`
     : "Engine has not checked in.";
