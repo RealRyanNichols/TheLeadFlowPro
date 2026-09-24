@@ -128,6 +128,19 @@ export default function PrivacyPage() {
         can ask for a copy of their leads and messages, or for deletion, by emailing{" "}
         <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>.
       </p>
+      <h2>Post Creator</h2>
+      <p>
+        The free Post Creator idea machine runs in your browser and sends nothing to us;
+        what you type there stays on your device. For a Post Creator buyer we store their
+        email, their plan, and the business profile they save, so the account works on
+        every device. When a buyer uses AI writing, their saved profile, the idea they
+        picked, and any note they add are sent to Anthropic, the company that runs the AI
+        model, to write that draft, under Anthropic&apos;s own terms and privacy policy. We
+        keep a record of each AI request (its time, size, cost, and whether it worked) but
+        not the draft text. Nothing is posted, sent, or shared on a buyer&apos;s behalf. A
+        buyer can ask for their account and profile to be deleted by emailing{" "}
+        <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>.
+      </p>
       <h2>Retention and security</h2>
       <p>
         We retain submitted information and saved drafts only as long as reasonably needed

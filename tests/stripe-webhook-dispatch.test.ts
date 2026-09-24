@@ -10,6 +10,7 @@ import { CHATGPT_OPERATOR } from "../lib/chatgptOperatorCourse.ts";
 import { OPERATOR_ACADEMY } from "../lib/operatorAcademyCatalog.ts";
 import { AGENCY_PAYMENT } from "../lib/agencyPayment.ts";
 import { CHASE_SHEET } from "../lib/chaseSheet/product.ts";
+import { POST_CREATOR } from "../lib/postCreator/product.ts";
 import { HQ_PLAN } from "../lib/hq/types.ts";
 
 // Source-level guards over the one file that turns Stripe events into
@@ -38,6 +39,8 @@ test("every kind the checkout route can mint reaches an alerting branch", () => 
     AGENCY_PAYMENT.kind,
     CHASE_SHEET.monthlyKind,
     CHASE_SHEET.lifetimeKind,
+    POST_CREATOR.monthlyKind,
+    POST_CREATOR.lifetimeKind,
     "build_deposit",
     "package_deposit",
     "package_full",
@@ -58,6 +61,8 @@ test("every kind the checkout route can mint reaches an alerting branch", () => 
   for (const kind of literalKinds) assert.ok(checkout.includes(`"${kind}"`), `checkout mints ${kind}`);
   assert.ok(checkout.includes("FREE_BUILD_IDS.has(kind)") && checkout.includes("LEAD_FOLLOW_UP.id") && checkout.includes("AGENCY_PAYMENT.kind"));
   assert.ok(checkout.includes("isChaseSheetKind(body.kind)"), "checkout mints both Chase Sheet plans through the product record");
+  assert.ok(checkout.includes("isPostCreatorKind(body.kind)"), "checkout mints both Post Creator plans through the product record");
+  assert.ok(checkout.includes("postCreatorSalesOpen(process.env)"), "Post Creator checkout stays closed until sales are switched on");
   assert.ok(dispatch.includes("notifyUnhandledPurchase"), "the catch-all is still the else branch");
 
   // Every kind must reach a named branch, except the three the catch-all is
@@ -72,6 +77,8 @@ test("every kind the checkout route can mint reaches an alerting branch", () => 
     [AGENCY_PAYMENT.kind]: "kind === AGENCY_PAYMENT.kind",
     [CHASE_SHEET.monthlyKind]: "isChaseSheetKind(kind)",
     [CHASE_SHEET.lifetimeKind]: "isChaseSheetKind(kind)",
+    [POST_CREATOR.monthlyKind]: "isPostCreatorKind(kind)",
+    [POST_CREATOR.lifetimeKind]: "isPostCreatorKind(kind)",
     tool_studio_order: 'kind === "tool_studio_order"',
     tool_monthly_menu: 'kind === "tool_monthly_menu"',
     pro_tool: "proKind",
@@ -98,6 +105,14 @@ test("every kind the checkout route can mint reaches an alerting branch", () => 
   assert.ok(dispatch.includes("ensureChaseSheetPaid(supabase, session)"));
   assert.ok(slice("handleMoneyBack").includes("applyChaseSheetMoneyBack(supabase, purchase, restoring)"), "a refund on either plan reaches the sheet");
   assert.ok(slice("recordSubscriptionInvoice").includes("markChaseSheetRenewed("), "a paid renewal reopens a past-due sheet");
+  // Post Creator follows the same four touch points, claimed after Chase Sheet
+  // and before the invoice branch.
+  const postCreator = post.indexOf("handlePostCreatorSubscription(");
+  assert.ok(chase < postCreator && postCreator < post.indexOf("recordSubscriptionInvoice("), "Post Creator subscription events are claimed after Chase Sheet's and before invoices");
+  assert.ok(dispatch.includes("ensurePostCreatorPaid(supabase, session)"));
+  assert.ok(slice("handleMoneyBack").includes("applyPostCreatorMoneyBack(supabase, purchase, restoring)"), "a refund on either Post Creator plan reaches the account");
+  const renewals = slice("recordSubscriptionInvoice");
+  assert.ok(renewals.includes("markPostCreatorRenewed(") && renewals.includes('"post_creator"'), "a paid Post Creator renewal reopens a past-due account");
 });
 
 test("System Map and Tool Studio claim the funnel lead, open a task, acknowledge, alert, then mark", () => {
@@ -153,6 +168,8 @@ test("no email leaves this file outside the delivery ledger, and each purpose is
     const count = (hook.match(new RegExp(`"${p.replace(/[-:]/g, (c) => `\\${c}`)}"`, "g")) ?? []).length;
     assert.equal(count, 1, `purpose ${p} appears exactly once`);
   }
+  // Post Creator's purposes live in lib/postCreator/subscription.ts, never here.
+  assert.ok(!hook.includes('"post-creator:'), "no Post Creator purpose is spelled in the route");
   // The owner alert body carries whether the buyer acknowledgement left,
   // which can change between a failed attempt and its retry. The ledger
   // refuses a retry whose body changed, so that state is part of the key.

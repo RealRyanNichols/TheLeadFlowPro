@@ -38,6 +38,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { href: "/tools", label: "Free Tools" },
       { href: "/tools/pro", label: `Pro Kits | ${usdRange(PRICES.proKitMin, PRICES.proKitMax)}` },
       { href: "/chase-sheet", label: `Chase Sheet | ${usdPerMonth(PRICES.chaseSheetMonthly)} or ${usd(PRICES.chaseSheetLifetime)} once` },
+      { href: "/post-creator", label: `Post Creator | Free ideas, AI ${usdPerMonth(PRICES.postCreatorMonthly)} or ${usd(PRICES.postCreatorLifetime)} once` },
       { href: "/plugin", label: `Plugin for ChatGPT and Claude | ${usdPerMonth(PRICES.pluginMonthly)}` },
       { href: "/sellerproof", label: "SellerProof | Chargeback packets" },
       { href: "/chatgpt/free", label: "Free starter lesson" },

@@ -72,6 +72,13 @@ export const PRICES = {
   chaseSheetLifetime: 97,
 
   /**
+   * Post Creator (/post-creator): the free idea machine plus paid AI writing,
+   * monthly or one payment. lib/postCreator/product.ts is what checkout charges.
+   */
+  postCreatorMonthly: 20,
+  postCreatorLifetime: 97,
+
+  /**
    * Time Back (/go/time-back) entry price: 3 posts a day for 7 days, one time.
    * lib/timeback.ts PRICE_GRID[3][7] is what /api/checkout charges; this is
    * the "from" number the page prints.

@@ -7,6 +7,8 @@ import { PRO_BUNDLE, getProTool } from "@/lib/tools/pro";
 import { startEventCheckout } from "@/lib/eventCheckoutServer";
 import { AGENCY_PAYMENT, resolveAgencyCharge } from "@/lib/agencyPayment";
 import { CHASE_SHEET, checkoutNameForPlan, isChaseSheetKind, planForKind, priceUsdForPlan } from "@/lib/chaseSheet/product";
+import { POST_CREATOR, isPostCreatorKind, postCreatorCheckoutName, postCreatorPlanForKind, postCreatorPriceUsd } from "@/lib/postCreator/product";
+import { postCreatorSalesOpen } from "@/lib/postCreator/ai/config";
 import { PRICES, usd } from "@/lib/site/prices";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
@@ -239,6 +241,23 @@ export async function POST(request: Request) {
       successUrl = `${site}${CHASE_SHEET.claimPath}?session_id={CHECKOUT_SESSION_ID}`;
       subscriptionNote =
         `${CHASE_SHEET.name} renews on the same date each month until you cancel from inside the sheet; it stops at the end of the paid month. You send every message yourself; nothing is sent for you.`;
+      metadata.kind = kind;
+      metadata.plan = plan;
+    } else if (typeof body.kind === "string" && isPostCreatorKind(body.kind)) {
+      // Post Creator (/post-creator). Two plans; the amount and the mode come
+      // from lib/postCreator/product.ts. Checkout opens only when sales are on,
+      // AI writing is on, and fulfilment can run. Success lands on the claim
+      // route, which signs a browser in only for a brand new account.
+      if (!postCreatorSalesOpen(process.env)) return NextResponse.json({ error: "not_open" }, { status: 503 });
+      const plan = postCreatorPlanForKind(body.kind)!;
+      kind = body.kind;
+      name = postCreatorCheckoutName(plan);
+      amount = postCreatorPriceUsd(plan) * 100;
+      checkoutMode = plan === "monthly" ? "subscription" : "payment";
+      checkoutLines = [{ name, amount, recurring: plan === "monthly" }];
+      cancelUrl = `${site}${POST_CREATOR.path}?cancelled=1`;
+      successUrl = `${site}${POST_CREATOR.claimPath}?session_id={CHECKOUT_SESSION_ID}`;
+      subscriptionNote = `${POST_CREATOR.name} renews on the same date each month until you cancel from Settings inside Post Creator; it stops at the end of the paid month. Nothing is posted for you.`;
       metadata.kind = kind;
       metadata.plan = plan;
     } else if (body.kind === "timeback_order") {
