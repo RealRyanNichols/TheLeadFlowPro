@@ -5,7 +5,7 @@ const RESEND_ENDPOINT = "https://api.resend.com/emails";
 // A content or recipient change that intentionally creates a different email
 // request must bump this version. Resend rejects the same key with a different
 // payload, which is safer than silently delivering two versions of one step.
-export const NURTURE_SEQUENCE_VERSION = "v1";
+export const NURTURE_SEQUENCE_VERSION = "v2";
 
 // Resend retains idempotency keys for 24 hours. Stop automated retries one
 // hour early so clock drift cannot replay an ambiguous request after the
@@ -23,6 +23,8 @@ export type NurtureResendPayload = {
   to: string[];
   subject: string;
   text: string;
+  /** The designed version of the same email. Clients that strip HTML get `text`. */
+  html?: string;
   headers: Record<string, string>;
 };
 

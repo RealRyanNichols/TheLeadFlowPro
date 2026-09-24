@@ -22,10 +22,10 @@ const PAYLOAD: NurtureResendPayload = {
 };
 
 test("nurture uses one stable provider key per sequence, lead, and step", () => {
-  assert.equal(NURTURE_SEQUENCE_VERSION, "v1");
+  assert.equal(NURTURE_SEQUENCE_VERSION, "v2");
   assert.equal(
     nurtureEmailIdempotencyKey(LEAD_ID, 101),
-    `nurture-free_build-v1-${LEAD_ID}-101`,
+    `nurture-free_build-v2-${LEAD_ID}-101`,
   );
   assert.equal(
     nurtureEmailIdempotencyKey(LEAD_ID, 101),

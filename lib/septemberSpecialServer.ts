@@ -29,10 +29,11 @@ function assertResult(error: unknown) {
 function checkoutParams(row: Reservation): Stripe.Checkout.SessionCreateParams {
   return {
     mode: "payment",
-    // Live merchant configuration verified: Klarna is active; Afterpay is not.
-    // Klarna decides buyer eligibility and terms. This remains one payment,
-    // with no LeadFlow subscription or internally financed installments.
-    payment_method_types: ["card", "klarna"],
+    // No payment_method_types on purpose: Checkout uses the payment methods
+    // turned on in the Stripe dashboard (cards, wallets, Klarna, Afterpay,
+    // Zip, Sunbit) and shows each one only when this amount fits its limits.
+    // The provider decides buyer eligibility and terms. This remains one
+    // payment, with no LeadFlow subscription or internally financed installments.
     customer_email: row.prospect.email,
     expires_at: Math.floor(Date.parse(row.expires_at) / 1000),
     client_reference_id: row.id,
