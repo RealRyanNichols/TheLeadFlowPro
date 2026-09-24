@@ -37,6 +37,15 @@ bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --br
 bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch main https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"'
 ```
 
+**Install and go live in one paste.** This is the same install, followed by
+`lva approve --auto on`, so each batch reaches the directory without a
+separate approval (a batch that would remove more than 25% of listings still
+waits). It runs the second step only if the install succeeded:
+
+```bash
+bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch claude/serene-edison-daodg6 https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"; runuser -u lvarchive -- env -C /opt/longview-archive/app PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 /opt/longview-archive/venv/bin/python -m longview_archive approve --auto on'
+```
+
 To see every step first without changing anything, paste this instead (use
 `main` in place of the branch name after the merge). It ends in
 `install.sh" --dry-run'`: the flag goes after the double quote that closes

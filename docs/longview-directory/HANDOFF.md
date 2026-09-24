@@ -40,6 +40,16 @@ In DigitalOcean, open the droplet **leadflow-web**, then **Access**, then
 bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch claude/serene-edison-daodg6 https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"'
 ```
 
+**To install and go live in the same paste** (the owner said "make live" on
+Sept 24, 2026), use this instead. It installs, then turns on auto-approve, so
+the first real batch reaches the directory about 45 minutes after the engine
+starts, with no separate approve step. A batch that would remove more than a
+quarter of the listings still waits for a person:
+
+```bash
+bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch claude/serene-edison-daodg6 https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"; runuser -u lvarchive -- env -C /opt/longview-archive/app PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 /opt/longview-archive/venv/bin/python -m longview_archive approve --auto on'
+```
+
 After the pull request merges, use `--branch main` instead. The installer:
 
 - Checks the droplet first. It stops without changing anything if Caddy is too
