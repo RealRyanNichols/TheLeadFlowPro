@@ -45,7 +45,7 @@ test("our own test addresses never make the list", () => {
 });
 
 test("launch email: numbers come from the price file, link carries the UTM, unsubscribe present", () => {
-  const email = launchEmail();
+  const email = launchEmail("https://www.theleadflowpro.com/api/unsubscribe?id=abc&t=def");
   for (const pack of TLFP_PACKS) {
     assert.ok(email.html.includes(`${usd(pack.priceUsd)}</td>`), `html names ${usd(pack.priceUsd)}`);
     assert.ok(email.text.includes(`${usd(pack.priceUsd)} gets you ${pack.credits.toLocaleString("en-US")} credits`), `text names ${pack.credits}`);
@@ -56,8 +56,8 @@ test("launch email: numbers come from the price file, link carries the UTM, unsu
   const link = `${BUSINESS.siteUrl}/tlfp?${TLFP_ANNOUNCE.utm}`;
   assert.ok(email.html.includes(`href="${link}"`));
   assert.ok(email.text.includes(link));
-  assert.ok(email.html.includes("{{{RESEND_UNSUBSCRIBE_URL}}}"));
-  assert.ok(email.text.includes("{{{RESEND_UNSUBSCRIBE_URL}}}"));
+  assert.ok(email.html.includes('href="https://www.theleadflowpro.com/api/unsubscribe?id=abc&t=def"'));
+  assert.ok(email.text.includes("Unsubscribe: https://www.theleadflowpro.com/api/unsubscribe?id=abc&t=def"));
   assert.ok(email.html.includes(BUSINESS.address.street));
   assert.ok(email.text.includes(BUSINESS.phone.display));
   assert.equal(email.subject, TLFP_ANNOUNCE.subject);
@@ -65,7 +65,7 @@ test("launch email: numbers come from the price file, link carries the UTM, unsu
 });
 
 test("launch email: no dashes of any kind in the copy, and the token is never mentioned", () => {
-  const email = launchEmail();
+  const email = launchEmail("https://www.theleadflowpro.com/api/unsubscribe?id=abc&t=def");
   const copy = email.text + "\n" + email.subject + "\n" + TLFP_ANNOUNCE.preheader;
   assert.equal(copy.includes("—"), false, "no em dash");
   assert.equal(copy.includes("–"), false, "no en dash");
@@ -78,5 +78,7 @@ test("the announce route is admin-only and never runs from the browser with keys
   assert.ok(source.includes('profile?.role !== "admin"'));
   assert.ok(source.includes("process.env.RESEND_API_KEY"));
   assert.ok(source.includes("dry_run"));
-  assert.ok(source.includes("Already sent"), "a second send is refused");
+  assert.ok(source.includes("List-Unsubscribe-Post"), "one-click unsubscribe headers");
+  assert.ok(source.includes("TLFP_ANNOUNCE.activityDetail"), "every send is recorded and never repeated");
+  assert.ok(source.includes('.eq("marketing_email_consent", true)'), "consent is required");
 });

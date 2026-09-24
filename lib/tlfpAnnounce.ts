@@ -4,9 +4,9 @@ import { TLFP_CREDITS, TLFP_PACKS, earnRule } from "@/lib/tlfpCredits";
 
 // The TLFP Credits launch announcement: who gets it and what it says.
 //
-// Pure functions only. The route (app/api/admin/tlfp/announce) gathers leads,
-// Stripe customers and Resend unsubscribes, then calls pickRecipients and
-// launchEmail from here. Keeping the copy here means the numbers in the email
+// Pure functions only. The route (app/api/admin/tlfp/announce) gathers the
+// consented leads, then calls pickRecipients and launchEmail from here, once
+// per person, with that person's own one-click unsubscribe link. Keeping the copy here means the numbers in the email
 // come from lib/site/prices.ts and lib/tlfpCredits.ts, the same place the
 // public page reads them, so the email can never quote a stale price.
 //
@@ -14,8 +14,9 @@ import { TLFP_CREDITS, TLFP_PACKS, earnRule } from "@/lib/tlfpCredits";
 // kind, the credits only (the token is never mentioned).
 
 export const TLFP_ANNOUNCE = {
-  audienceName: "TLFP Credits launch 2026-09-24",
-  broadcastName: "TLFP Credits launch 2026-09-24",
+  /** Written to lead_activity for every send, and checked before sending again. */
+  activityDetail: "TLFP Credits launch email sent",
+  campaignTag: "tlfp-credits-launch",
   /** "Prepay $500, get $625 of work", from the Builder pack numbers. */
   subject: `Prepay ${usd(TLFP_PACKS[1].priceUsd)}, get $${TLFP_PACKS[1].credits} of work`,
   preheader: "Buy work ahead, spend it on anything we do. Only good with us, no cash out.",
@@ -89,7 +90,7 @@ function packLine(packIndex: number): string {
 }
 
 /** The launch email. Same frame as the 30 day series: 600px card, blue button. */
-export function launchEmail(): { subject: string; html: string; text: string } {
+export function launchEmail(unsubscribeUrl: string): { subject: string; html: string; text: string } {
   const link = `${BUSINESS.siteUrl}${TLFP_CREDITS.path}?${TLFP_ANNOUNCE.utm}`;
   const course = earnRule("course_completed").credits ?? 0;
   const event = earnRule("event_attended").credits ?? 0;
@@ -134,7 +135,7 @@ ${after.map(p).join("")}
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0 22px"><tr><td style="background:#2563eb;border-radius:10px"><a href="${link}" style="display:inline-block;padding:14px 22px;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none">See your balance, buy a pack, grab your referral link</a></td></tr></table>
 <p style="margin:0 0 14px;font-size:16px;line-height:1.55;color:#e5e7eb">Or open <a href="${link}" style="color:#93c5fd">TheLeadFlowPro.com${TLFP_CREDITS.path}</a> on any device.</p>
 ${closing.map(p).join("")}
-<p style="margin:26px 0 0;font-size:12px;line-height:1.5;color:#6b7280">You are getting this because you asked us about a website, a build, or a workshop. <a href="{{{RESEND_UNSUBSCRIBE_URL}}}" style="color:#9ca3af">Unsubscribe</a>.</p>
+<p style="margin:26px 0 0;font-size:12px;line-height:1.5;color:#6b7280">You are getting this because you asked us about a website, a build, or a workshop. <a href="${unsubscribeUrl}" style="color:#9ca3af">Unsubscribe</a>.</p>
 </td></tr></table></td></tr></table></body></html>`;
 
   const text = [
@@ -143,7 +144,7 @@ ${closing.map(p).join("")}
     ...after,
     `See your balance, buy a pack, or grab your referral link here:\n${link}`,
     ...closing,
-    "Unsubscribe: {{{RESEND_UNSUBSCRIBE_URL}}}",
+    `Unsubscribe: ${unsubscribeUrl}`,
   ].join("\n\n");
 
   return { subject: TLFP_ANNOUNCE.subject, html, text };
