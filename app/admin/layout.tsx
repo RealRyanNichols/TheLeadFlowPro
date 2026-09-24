@@ -29,6 +29,8 @@ type BackOfficeLink = {
  */
 const BACK_OFFICE_LINKS: readonly BackOfficeLink[] = [
   { href: "/admin/command-center", label: "Command" },
+  // The owner dashboard on the DigitalOcean server, signed in with this login.
+  { href: "/admin/business", label: "Business" },
   { href: "/admin/purchases", label: "Purchases" },
   { href: "/admin/tlfp", label: "Credits" },
   { href: "/admin/operator", label: "OperatorOS", strong: true },
