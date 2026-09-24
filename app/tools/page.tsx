@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { Download, Code2, Zap } from "lucide-react";
 import { TOOLS, TOOL_COUNT, toolIndex, sortTools } from "@/lib/tools";
 import { CHASE_SHEET } from "@/lib/chaseSheet/product";
+import { POST_CREATOR, UNLIMITED_TOOLS_BLURB } from "@/lib/postCreator/product";
 import { PUBLISHED_COLLECTIONS, collectionCount } from "@/lib/tools/collections";
 import ToolDirectory from "@/components/tools/ToolDirectory";
 import ToolFinder from "@/components/tools/ToolFinder";
@@ -159,6 +160,15 @@ export default function ToolsPage() {
         primary={{ href: "/chase-sheet", label: "See Chase Sheet" }}
         secondary={{ href: "/chase-sheet#demo", label: "Watch it write a follow-up" }}
       />
+      {/* post-creator:start */}
+      <FinalCta
+        eyebrow={`Post Creator · free idea machine, AI writing ${POST_CREATOR.monthlyLabel} or ${POST_CREATOR.lifetimeLabel}`}
+        title="Out of post ideas? Tap a button."
+        body={UNLIMITED_TOOLS_BLURB}
+        primary={{ href: "/post-creator", label: "Get a post idea" }}
+        secondary={{ href: "/post-creator#pricing", label: "See AI writing" }}
+      />
+      {/* post-creator:end */}
       <FinalCta
         eyebrow="SellerProof · chargeback evidence packets"
         title="A chargeback needs a clear record."

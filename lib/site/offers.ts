@@ -16,6 +16,7 @@
 import { EXTERNAL_LINKS } from "./external-links";
 import { PRICES, usd, usdFrom, usdPerMonth, usdRange } from "./prices";
 import { SELLERPROOF_MEMBER_PRICING_URL } from "../sellerproof/membership";
+import { POST_CREATOR, aiCapLine } from "../postCreator/product";
 
 export type OfferStatus = "live" | "tbd_ryan" | "retired";
 export type OfferCategory =
@@ -278,6 +279,32 @@ export const OFFERS: readonly Offer[] = [
     href: "/chase-sheet",
     stripeLink: EXTERNAL_LINKS.stripeChaseSheetLifetime,
     source: "lib/chaseSheet/product.ts",
+  },
+  {
+    id: "post_creator_monthly",
+    name: "Post Creator, monthly",
+    category: "product",
+    priceUsd: PRICES.postCreatorMonthly,
+    priceLabel: usdPerMonth(PRICES.postCreatorMonthly),
+    terms: `Monthly. The free idea machine plus AI writing in your voice. ${aiCapLine("monthly")} Renews on the same date each month until cancelled from inside the app; stops at the end of the paid month. You post every draft yourself.`,
+    status: "live",
+    effectiveDate: "2026-09-24",
+    reviewDate: REVIEW,
+    href: POST_CREATOR.path,
+    source: "lib/postCreator/product.ts",
+  },
+  {
+    id: "post_creator_lifetime",
+    name: "Post Creator, one payment",
+    category: "product",
+    priceUsd: PRICES.postCreatorLifetime,
+    priceLabel: usd(PRICES.postCreatorLifetime),
+    terms: `One time. The free idea machine plus AI writing in your voice. ${aiCapLine("lifetime")} For as long as Post Creator is offered. Nothing renews. You post every draft yourself.`,
+    status: "live",
+    effectiveDate: "2026-09-24",
+    reviewDate: REVIEW,
+    href: POST_CREATOR.path,
+    source: "lib/postCreator/product.ts",
   },
   {
     id: "sellerproof_packet",

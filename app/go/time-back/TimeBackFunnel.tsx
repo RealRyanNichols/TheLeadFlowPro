@@ -19,6 +19,7 @@ import {
   priceOrder,
 } from "@/lib/timeback";
 import { BUSINESS } from "@/lib/site/business";
+import { SmsConsentText } from "@/components/site/SmsConsentText";
 
 declare global {
   interface Window {
@@ -651,8 +652,7 @@ export default function TimeBackFunnel() {
                 className="mt-1 accent-[#5135e5]"
               />
               <span>
-                You may call or text me about this order from {BUSINESS.phone.display}.
-                Reply STOP any time.
+                <SmsConsentText topic={`this order, from ${BUSINESS.phone.display}`} />
               </span>
             </label>
             <label className="flex items-start gap-2 text-sm text-[#625f6d]">

@@ -10,6 +10,7 @@ import {
 } from "@/lib/site/consultation";
 import { bookingPage } from "@/lib/site/external-links";
 import { TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
+import { SmsConsentText } from "@/components/site/SmsConsentText";
 
 // The homepage's one ask. Posts to the same /api/leads route as the book and
 // agency forms, so a consultation request lands in the leads pipeline with
@@ -250,8 +251,7 @@ export default function ConsultationForm({
           <label className="lf-consult-consent">
             <input type="checkbox" name="sms_consent" />
             <span>
-              You may call or text me about this consultation at the number above. Message and
-              data rates may apply. Reply STOP any time.
+              <SmsConsentText topic="this consultation" />
             </span>
           </label>
 

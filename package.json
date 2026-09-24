@@ -38,6 +38,7 @@
     "chasesheet:stripe": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/chase-sheet-stripe.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.128.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.47.10",
     "lucide-react": "^0.469.0",

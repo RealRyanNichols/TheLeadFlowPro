@@ -34,6 +34,8 @@ export default async function LoginPage({
     callback.searchParams.set("code", code);
     redirect(`${callback.pathname}${callback.search}`);
   }
+  // Signing in on the way to The Owners Room (the community app).
+  const forCommunity = typeof next === "string" && next.startsWith("/community/");
   const supabase = await createClient();
   const {
     data: { user },
@@ -56,7 +58,9 @@ export default async function LoginPage({
       <p className="mt-2 text-center text-[var(--muted)]">
         {mode === "reset"
           ? "Get a secure link to reset your password."
-          : "Sign in to your admin, staff, or client workspace."}
+          : forCommunity
+            ? "Sign in to enter The Owners Room. New here? Tap Sign Up. Making an account is free."
+            : "Sign in to your admin, staff, or client workspace."}
       </p>
       <div className="card mt-8">
         {loggedOut === "1" && (

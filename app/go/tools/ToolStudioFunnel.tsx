@@ -16,6 +16,7 @@ import {
   type MonthlyMenuId,
   type ToolBuildId,
 } from "@/lib/toolStudio";
+import { SmsConsentText } from "@/components/site/SmsConsentText";
 
 declare global {
   interface Window {
@@ -543,10 +544,9 @@ export default function ToolStudioFunnel() {
                 name="sms_consent"
                 className="mt-1 h-4 w-4 accent-[#5135e5]"
               />
-              If I provided a mobile number, The LeadFlow Pro may call or text
-              me about this request and project updates. Consent is not a
-              condition of purchase. Message and data rates may apply. Reply
-              STOP to opt out.
+              <span>
+                <SmsConsentText topic="this request and project updates" />
+              </span>
             </label>
             <label className="flex gap-3 text-xs leading-5 text-[#625f6d]">
               <input

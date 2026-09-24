@@ -8,6 +8,7 @@
 
 import { useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
+import { SmsConsentText } from "@/components/site/SmsConsentText";
 
 type ServiceOption = { slug: string; label: string };
 
@@ -246,8 +247,7 @@ export default function AgencyIntake({
         <label className="flex items-start gap-3 text-sm">
           <input type="checkbox" name="sms_consent" className="mt-1 h-5 w-5" />
           <span>
-            You may call or text me about this application at the number above. Message and data rates
-            may apply. Reply STOP any time.
+            <SmsConsentText topic="this application" />
           </span>
         </label>
         <label className="flex items-start gap-3 text-sm">

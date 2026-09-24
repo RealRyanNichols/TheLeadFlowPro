@@ -53,6 +53,7 @@ import {
   UsersRound,
   Wrench,
 } from "lucide-react";
+import { SmsConsentText } from "@/components/site/SmsConsentText";
 
 declare global {
   interface Window {
@@ -739,10 +740,7 @@ export default function AddOnsMenu() {
                 <label>
                   <input type="checkbox" name="sms_consent" />
                   <span>
-                    If I provided a mobile number, The LeadFlow Pro may call or text me
-                    about this request and related project updates. Consent is not a
-                    condition of purchase. Message and data rates may apply. Reply STOP to
-                    opt out.
+                    <SmsConsentText topic="this request and related project updates" />
                   </span>
                 </label>
                 <label>

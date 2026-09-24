@@ -6,6 +6,8 @@ import { PRO_BUNDLE, getProTool } from "@/lib/tools/pro";
 import { startEventCheckout } from "@/lib/eventCheckoutServer";
 import { AGENCY_PAYMENT, resolveAgencyCharge } from "@/lib/agencyPayment";
 import { CHASE_SHEET, checkoutNameForPlan, isChaseSheetKind, planForKind, priceUsdForPlan } from "@/lib/chaseSheet/product";
+import { POST_CREATOR, isPostCreatorKind, postCreatorCheckoutName, postCreatorPlanForKind, postCreatorPriceUsd } from "@/lib/postCreator/product";
+import { postCreatorSalesOpen } from "@/lib/postCreator/ai/config";
 import { PRICES, usd } from "@/lib/site/prices";
 import { cookies } from "next/headers";
 import crypto from "node:crypto";
@@ -116,6 +118,8 @@ export async function POST(request: Request) {
     // wording is the default; a kind that renews on different terms sets its own.
     let subscriptionNote =
       "Your selected monthly services renew on the same calendar date until canceled or changed. Submit menu changes at least three business days before renewal.";
+    // Promotion codes apply to every checkout unless a kind turns them off.
+    let allowPromotionCodes = true;
     const metadata: Record<string, string> = {};
 
     if (body.kind === AGENCY_PAYMENT.kind) {
@@ -315,6 +319,29 @@ export async function POST(request: Request) {
         `${CHASE_SHEET.name} renews on the same date each month until you cancel from inside the sheet; it stops at the end of the paid month. You send every message yourself; nothing is sent for you.`;
       metadata.kind = kind;
       metadata.plan = plan;
+    } else if (typeof body.kind === "string" && isPostCreatorKind(body.kind)) {
+      // Post Creator (/post-creator). Two plans; the amount and the mode come
+      // from lib/postCreator/product.ts. Checkout opens only when sales are on,
+      // AI writing is on, and fulfilment can run. Success lands on the claim
+      // route, which signs a browser in only for a brand new account. No
+      // promotion code applies: the line items are ad hoc, so any
+      // account-wide code would otherwise work here too, and a free first
+      // month would start a subscription with no account behind it
+      // (decision 96). A cancelled checkout lands on the pricing section,
+      // where the "nothing was charged" note is.
+      if (!postCreatorSalesOpen(process.env)) return NextResponse.json({ error: "not_open" }, { status: 503 });
+      const plan = postCreatorPlanForKind(body.kind)!;
+      kind = body.kind;
+      name = postCreatorCheckoutName(plan);
+      amount = postCreatorPriceUsd(plan) * 100;
+      checkoutMode = plan === "monthly" ? "subscription" : "payment";
+      checkoutLines = [{ name, amount, recurring: plan === "monthly" }];
+      allowPromotionCodes = false;
+      cancelUrl = `${site}${POST_CREATOR.path}?cancelled=1#pricing`;
+      successUrl = `${site}${POST_CREATOR.claimPath}?session_id={CHECKOUT_SESSION_ID}`;
+      subscriptionNote = `${POST_CREATOR.name} renews on the same date each month until you cancel from Settings inside Post Creator; it stops at the end of the paid month. Nothing is posted for you.`;
+      metadata.kind = kind;
+      metadata.plan = plan;
     } else if (body.kind === "timeback_order") {
       // Time Back funnel (/go/time-back). The client sends selections, never
       // prices. The total comes from lib/timeback.ts so nobody can edit a
@@ -427,6 +454,7 @@ export async function POST(request: Request) {
     });
     if (tlfpHold) params.set("discounts[0][coupon]", tlfpHold.coupon);
     else params.set("allow_promotion_codes", "true");
+    if (!allowPromotionCodes) params.delete("allow_promotion_codes");
     lines.forEach((line, index) => {
       params.set(`line_items[${index}][quantity]`, "1");
       params.set(`line_items[${index}][price_data][currency]`, "usd");

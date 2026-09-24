@@ -13,6 +13,7 @@ import { ArrowRight, CircleCheck, Lock } from "lucide-react";
 import BuyButton from "@/components/BuyButton";
 import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
 import { PRICES, usd } from "@/lib/site/prices";
+import { SmsConsentText } from "@/components/site/SmsConsentText";
 
 declare global {
   interface Window {
@@ -506,10 +507,7 @@ export default function PackageOrderForm({
           <label>
             <input type="checkbox" name="sms_consent" />
             <span>
-              If I provided a mobile number, The LeadFlow Pro may call or text
-              me about this request and related project updates. Consent is not
-              a condition of purchase. Message and data rates may apply. Reply
-              STOP to opt out.
+              <SmsConsentText topic="this request and related project updates" />
             </span>
           </label>
           <label>
