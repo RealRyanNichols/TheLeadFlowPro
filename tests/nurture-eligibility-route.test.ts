@@ -6,6 +6,8 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 import * as nurture from "../lib/nurture";
+import * as nurtureContext from "../lib/nurtureContext";
+import * as nurtureRentReceipt from "../lib/nurtureRentReceipt";
 import * as guard from "../lib/metaCampaignGuard";
 
 const require = createRequire(import.meta.url);
@@ -136,6 +138,8 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
           workshopSequenceClosed: () =>
             nurture.workshopSequenceClosed(fixedNow),
         };
+      if (name === "@/lib/nurtureContext") return nurtureContext;
+      if (name === "@/lib/nurtureRentReceipt") return nurtureRentReceipt;
       if (name === "@/lib/metaCampaignGuard") return guard;
       if (name === "@/lib/site/business") return business;
       if (name === "@/lib/unsubscribe")

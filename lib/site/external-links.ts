@@ -29,12 +29,13 @@ export const EXTERNAL_LINKS = {
   mcpEndpoint: "https://www.theleadflowpro.com/api/mcp",
 
   /**
-   * Ryan's self-serve booking page (a Google Calendar appointment schedule,
-   * Calendly, or similar). Empty until Ryan creates one and pastes the address
-   * here. While empty, no page, email, or text mentions booking a time:
-   * bookingPage() returns null and every consumer hides the line.
+   * Ryan's self-serve booking page. Set 2026-09-23 to the Calendly event
+   * "Straight Answer Call (20 min)": twenty minutes, Ryan calls the invitee,
+   * Mon to Sat 9:00 AM to 6:30 PM Central. The welcome email, the text-back,
+   * and every Rent Receipt series email link here. Clear it to "" and every
+   * consumer hides the line again: bookingPage() returns null.
    */
-  bookingPage: "" as string,
+  bookingPage: "https://calendly.com/ryan-realryannichols/straight-answer-call-20-min" as string,
 
   /**
    * The Google Business Profile listing (the "share" address of the profile).

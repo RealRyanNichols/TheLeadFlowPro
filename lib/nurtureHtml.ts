@@ -1,6 +1,7 @@
-// The HTML layer for the thirty day follow-up sequence.
+// The HTML layer for the thirty day follow-up sequences.
 //
-// lib/nurture.ts owns the words. This file owns how they look in an inbox:
+// lib/nurture.ts and lib/nurtureRentReceipt.ts own the words. This file owns
+// how they look in an inbox:
 // a picture, the copy, one orange button, a free tool the reader can use
 // today, the text and call buttons, and the footer with a one click
 // unsubscribe. The plain text version still goes out beside it, so a client
@@ -12,8 +13,11 @@
 // Images are self hosted on the site: no third party hosts.
 
 import { ENDS_AT as SPECIAL_ENDS_AT, STARTS_AT as SPECIAL_STARTS_AT } from "@/lib/septemberSpecial";
-import { NURTURE_CAMPAIGN, nurtureLink, type NurtureStep } from "@/lib/nurture";
+import { NURTURE_CAMPAIGN, nurtureLink, nurtureSubjectFor, type NurtureStep } from "@/lib/nurture";
+import type { NurtureContext } from "@/lib/nurtureContext";
+import { RENT_RECEIPT_CAMPAIGN, RENT_RECEIPT_FIRST_STEP } from "@/lib/nurtureRentReceipt";
 import { BUSINESS } from "@/lib/site/business";
+import { bookingPage } from "@/lib/site/external-links";
 import { PRICES, usd } from "@/lib/site/prices";
 
 const SITE = BUSINESS.siteUrl;
@@ -34,6 +38,11 @@ export type NurtureStepMedia = {
   heroAlt?: string;
   /** The label on the orange button. The link is the step's own link. */
   cta: string;
+  /**
+   * The label when the step's own link is the booking page (a hot lead in
+   * the Rent Receipt series, or a door day). Falls back to a plain call label.
+   */
+  ctaHot?: string;
   /** Where the button goes. Defaults to the step's own nurture link. */
   ctaHref?: string;
   tool?: NurtureTool;
@@ -197,6 +206,40 @@ export const NURTURE_STEP_MEDIA: Record<number, NurtureStepMedia> = {
   128: { hero: IMG.oneRecord, heroAlt: "One customer, one record", cta: "See if this is for you", tool: TOOLS.noShow },
   129: { hero: IMG.freeBuild, heroAlt: "A five page business website on three screens", cta: "Apply for one of the ten", tool: TOOLS.voicemail },
   130: { hero: IMG.mall, heroAlt: "A still from the Longview Mall walk video", cta: "The door is open", tool: TOOLS.reviewLink },
+
+  // The Rent Receipt series, steps 501 to 530 (lib/nurtureRentReceipt.ts).
+  // Days 1 to 5 branch on the pain in the words, so their pictures and labels
+  // stay pain neutral. The tool card never repeats the link the words carry.
+  501: { hero: IMG.contact, heroAlt: "An open envelope, a phone, and a notebook", cta: "Run the two minute check", ctaHot: "Pick a time, I call you", tool: TOOLS.responseTime },
+  502: { hero: IMG.oneRecord, heroAlt: "One customer, one record: every call, text, and form in one place", cta: "Open the free tool", ctaHot: "Grab a slot", tool: TOOLS.subscriptionAudit },
+  503: { hero: IMG.connected, heroAlt: "A connected company: website, phone, email, and records in one system", cta: "See the system running", ctaHot: "Book the twenty minutes", tool: TOOLS.formFriction },
+  504: { hero: IMG.reminder, heroAlt: "Automate the reminder, keep the owner", cta: "Put a number on it", ctaHot: "Pick a time, I call you", tool: TOOLS.voicemail },
+  505: { hero: IMG.ryan, heroAlt: "Ryan Nichols", cta: "Take the next step", ctaHot: "Grab a slot", tool: TOOLS.leadValue },
+  506: { hero: IMG.premierSystem, heroAlt: "Premier Dental Academy of Longview: a school, a team, a connected system", cta: "See the work", ctaHot: "Book the twenty minutes", tool: TOOLS.googleProfile },
+  507: { hero: IMG.contact, heroAlt: "An open envelope, a phone, and a notebook", cta: "Pick a time, I call you", ctaHot: "Pick a time, I call you", tool: TOOLS.rentReceipt },
+  508: { hero: IMG.tools, heroAlt: "The free tools library on TheLeadFlowPro.com", cta: "Add up my rent", ctaHot: "Grab a slot", tool: TOOLS.subscriptionAudit },
+  509: { hero: IMG.cockpit, heroAlt: "Glass panels showing the parts of a business system", cta: "See mine running", ctaHot: "Book the twenty minutes", tool: TOOLS.websiteGrader },
+  510: { hero: IMG.loop, heroAlt: "The operating loop: post, click, form, customer, sale", cta: "Open the Scoreboard", ctaHot: "Pick a time, I call you", tool: TOOLS.leadValue },
+  511: { hero: IMG.ryan, heroAlt: "Ryan Nichols", cta: "Pick a time, I call you", ctaHot: "Pick a time, I call you", tool: TOOLS.responseTime },
+  512: { hero: IMG.coffee, heroAlt: "A coffee shop with its website and phone in front of it", cta: "Who is on the other end", ctaHot: "Grab a slot", tool: TOOLS.missedCall },
+  513: { hero: IMG.premierStudents, heroAlt: "Premier Dental Academy of Longview students outside the school", cta: "Make my review link", ctaHot: "Book the twenty minutes", tool: TOOLS.reviewScript },
+  514: { hero: IMG.traceSale, heroAlt: "Can you trace the sale? Post, click, form, customer, sale", cta: "See the after hours math", ctaHot: "Pick a time, I call you", tool: TOOLS.voicemail },
+  515: { hero: IMG.contact, heroAlt: "An open envelope, a phone, and a notebook", cta: "Pick a time, I call you", ctaHot: "Pick a time, I call you", tool: TOOLS.quoteFollowUp },
+  516: { hero: IMG.traceSale, heroAlt: "Tracing a sale from the post to the customer", cta: "Grade my website", ctaHot: "Grab a slot", tool: TOOLS.adBudget },
+  517: { hero: IMG.olguy, heroAlt: "O-L Guy Farms: one East Texas family behind the work", cta: "Open the free courses", ctaHot: "Book the twenty minutes", tool: TOOLS.formFriction },
+  518: { hero: IMG.customerRecord, heroAlt: "A laptop with the call, email, and calendar that belong to one customer", cta: "Make my review link", ctaHot: "Pick a time, I call you", tool: TOOLS.googleProfile },
+  519: { hero: IMG.connected, heroAlt: "A connected company you own", cta: "See the stack live", ctaHot: "Grab a slot", tool: TOOLS.subscriptionAudit },
+  520: { hero: IMG.customerRecord, heroAlt: "A customer record with the call, email, and calendar attached", cta: "Open the free courses", ctaHot: "Book the twenty minutes", tool: TOOLS.textback },
+  521: { hero: IMG.loop, heroAlt: "The operating loop", cta: "See the System Map", ctaHot: "Pick a time, I call you", tool: TOOLS.afterHours },
+  522: { hero: IMG.approvalPath, heroAlt: "The build path from intake to launch", cta: "See every price", ctaHot: "Grab a slot", tool: TOOLS.rentReceipt },
+  523: { hero: IMG.mall, heroAlt: "A still from the Longview Mall walk video", cta: "Open the free tools", ctaHot: "Book the twenty minutes", tool: TOOLS.googleProfile },
+  524: { hero: IMG.premierStudents, heroAlt: "Premier Dental Academy of Longview students outside the school", cta: "Open the free courses", ctaHot: "Pick a time, I call you", tool: TOOLS.reviewScript },
+  525: { hero: IMG.cockpit, heroAlt: "The parts of a business system, under glass", cta: "Open the Scoreboard", ctaHot: "Grab a slot", tool: TOOLS.leadValue },
+  526: { hero: IMG.reminder, heroAlt: "Automate the reminder, keep the owner", cta: "Score my response time", ctaHot: "Book the twenty minutes", tool: TOOLS.textback },
+  527: { hero: IMG.oneRecord, heroAlt: "One customer, one record", cta: "See the finished ones", ctaHot: "Pick a time, I call you", tool: TOOLS.noShow },
+  528: { hero: IMG.tools, heroAlt: "The free tools library on TheLeadFlowPro.com", cta: "Open the academy", ctaHot: "Grab a slot", tool: TOOLS.websiteGrader },
+  529: { hero: IMG.ryan, heroAlt: "Ryan Nichols", cta: "Pick a time, I call you", ctaHot: "Pick a time, I call you", tool: TOOLS.rentReceipt },
+  530: { hero: IMG.mall, heroAlt: "A still from the Longview Mall walk video", cta: "Pick a time, I call you", ctaHot: "Pick a time, I call you", tool: TOOLS.missedCall },
 };
 
 /** The special is on the calendar. Show its banner only while it is open. */
@@ -272,25 +315,36 @@ export type RenderNurtureInput = {
   step: NurtureStep;
   firstName: string;
   unsubUrl: string;
+  /** The form answers (lib/nurtureContext.ts). The Rent Receipt steps render from it; Free Build ignores it. */
+  context?: NurtureContext;
   now?: number;
 };
+
+/** Which campaign a step belongs to, for the links this file adds itself. */
+export function campaignForStep(step: NurtureStep): string {
+  return step.step >= RENT_RECEIPT_FIRST_STEP ? RENT_RECEIPT_CAMPAIGN : NURTURE_CAMPAIGN;
+}
 
 /**
  * The email. 600px, table based, inline styles, one primary button, one
  * tool card, text and call buttons, and the footer. The subject doubles as
  * the headline so the inbox line and the first line agree.
  */
-export function renderNurtureHtml({ step, firstName, unsubUrl, now = Date.now() }: RenderNurtureInput): string {
+export function renderNurtureHtml({ step, firstName, unsubUrl, context, now = Date.now() }: RenderNurtureInput): string {
   const media = NURTURE_STEP_MEDIA[step.step] ?? { cta: "See it" };
-  const body = step.body(firstName);
+  const campaign = campaignForStep(step);
+  const body = step.body(firstName, context);
   const { paragraphs, links } = splitNurtureBody(body);
   const ctaHref = media.ctaHref ?? links[0] ?? nurtureLink(step.day);
-  const headline = stripLeadingEmoji(step.subject);
+  // When the words close on the booking page, the button says so.
+  const booking = bookingPage();
+  const ctaLabel = booking && ctaHref.startsWith(booking) ? (media.ctaHot ?? "Pick a time, I call you") : media.cta;
+  const headline = stripLeadingEmoji(nurtureSubjectFor(step, context));
   const preheader = paragraphs.find((p) => !/^\S+,$/.test(p.trim()))?.split("\n")[0]?.slice(0, 120) ?? headline;
   const specialOpen = septemberSpecialOpen(now);
-  const specialHref = `${SITE}/september-special?utm_source=email&utm_medium=nurture&utm_campaign=${NURTURE_CAMPAIGN}&utm_content=day${step.day}_special`;
+  const specialHref = `${SITE}/september-special?utm_source=email&utm_medium=nurture&utm_campaign=${campaign}&utm_content=day${step.day}_special`;
   const toolHref = media.tool
-    ? `${SITE}/tools/${media.tool.slug}?utm_source=email&utm_medium=nurture&utm_campaign=${NURTURE_CAMPAIGN}&utm_content=day${step.day}_tool`
+    ? `${SITE}/tools/${media.tool.slug}?utm_source=email&utm_medium=nurture&utm_campaign=${campaign}&utm_content=day${step.day}_tool`
     : null;
 
   const hero = media.hero
@@ -343,7 +397,7 @@ ${hero}
 <h1 style="margin:0 0 16px;font-family:Inter,Helvetica,Arial,sans-serif;font-size:26px;line-height:1.2;letter-spacing:-0.02em;color:#20212b;">${esc(headline)}</h1>
 ${paragraphs.map(paragraphHtml).join("\n")}
 <div style="height:6px;line-height:6px;">&nbsp;</div>
-${button(ctaHref, media.cta)}
+${button(ctaHref, ctaLabel)}
 </td></tr>
 ${specialBanner}
 ${toolCard}
