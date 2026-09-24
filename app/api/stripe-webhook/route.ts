@@ -35,6 +35,14 @@ import { HQ_PLAN } from "@/lib/hq/types";
 import { AGENCY_PAYMENT, agencyPaymentFromMetadata } from "@/lib/agencyPayment";
 import { CHASE_SHEET, isChaseSheetKind } from "@/lib/chaseSheet/product";
 import { applyChaseSheetMoneyBack, ensureChaseSheetPaid, handleChaseSheetSubscription, markChaseSheetRenewed } from "@/lib/chaseSheet/subscription";
+import { POST_CREATOR, isPostCreatorKind } from "@/lib/postCreator/product";
+import {
+  applyPostCreatorMoneyBack,
+  ensurePostCreatorPaid,
+  handlePostCreatorSubscription,
+  markPostCreatorRenewed,
+  postCreatorFirstInvoiceCheckout,
+} from "@/lib/postCreator/subscription";
 import { deliverPaymentEmail } from "@/lib/paymentEmailDelivery";
 import { classifyStripeInvoice, dollars, renewalAction } from "@/lib/stripeInvoiceEvents";
 import { refundOutcome } from "@/lib/stripeRefunds";
@@ -1598,7 +1606,7 @@ async function recordSubscriptionInvoice(
   invoice: ReturnType<typeof classifyStripeInvoice>,
 ): Promise<boolean> {
   const action = renewalAction(invoice, eventType);
-  if (action === "ignore") return invoice.family === "hq_subscription" || invoice.family === "agency_payment" || invoice.family === "tool_monthly_menu" || invoice.family === "chase_sheet";
+  if (action === "ignore") return invoice.family === "hq_subscription" || invoice.family === "agency_payment" || invoice.family === "tool_monthly_menu" || invoice.family === "chase_sheet" || invoice.family === "post_creator";
   if (action === "skip_first_invoice") return true;
   const invoiceId = invoice.invoiceId;
   if (!invoiceId) throw new Error("Stripe invoice event has no invoice ID");
@@ -1611,8 +1619,10 @@ async function recordSubscriptionInvoice(
         ? `Agency retainer: ${meta.service_name ?? meta.service ?? "service"}${meta.reference ? ` (${meta.reference})` : ""}`
         : invoice.family === "chase_sheet"
           ? `${CHASE_SHEET.name} monthly`
-          : `Tool Studio monthly menu: ${meta.monthly_ids ?? "menu"}`;
-  const kind = invoice.family === "hq_subscription" ? HQ_PLAN.kind : invoice.family === "chase_sheet" ? CHASE_SHEET.monthlyKind : invoice.family;
+          : invoice.family === "post_creator"
+            ? `${POST_CREATOR.name} monthly`
+            : `Tool Studio monthly menu: ${meta.monthly_ids ?? "menu"}`;
+  const kind = invoice.family === "hq_subscription" ? HQ_PLAN.kind : invoice.family === "chase_sheet" ? CHASE_SHEET.monthlyKind : invoice.family === "post_creator" ? POST_CREATOR.monthlyKind : invoice.family;
 
   if (action === "record_failed") {
     await internalAlert(supabase, invoiceId, "renewal-failed:internal", `RENEWAL FAILED: ${what} for ${email}`, [
@@ -1646,6 +1656,9 @@ async function recordSubscriptionInvoice(
   if (invoice.family === "chase_sheet" && invoice.subscriptionId) {
     // A paid month keeps the sheet open even when the subscription webhooks were never registered.
     await markChaseSheetRenewed(supabase, invoice.subscriptionId);
+  }
+  if (invoice.family === "post_creator" && invoice.subscriptionId) {
+    await markPostCreatorRenewed(supabase, invoice.subscriptionId);
   }
   if (invoice.family === "agency_payment") {
     const leadId = await findAgencyLeadByEmail(supabase, invoice.email);
@@ -1757,6 +1770,20 @@ async function handleMoneyBack(supabase: SupabaseClient, eventType: string, obje
       break;
     }
   }
+  // A Post Creator subscription's first invoice has no purchases row: the
+  // checkout that started it holds the first month, so money back on that
+  // invoice is matched to the checkout's row. Other products are unchanged.
+  if (!purchase && stripeKey) {
+    for (const key of candidates.filter((c) => c.startsWith("in_"))) {
+      const sessionId = await postCreatorFirstInvoiceCheckout(key);
+      if (!sessionId) continue;
+      const row = await supabase.from("purchases").select("stripe_session_id, email, kind, status").eq("stripe_session_id", sessionId).maybeSingle();
+      if (!row.error && row.data && row.data.kind === POST_CREATOR.monthlyKind) {
+        purchase = row.data;
+        break;
+      }
+    }
+  }
 
   const restoring = outcome.status === "dispute_won";
   const fromStatus = restoring ? "disputed" : "paid";
@@ -1795,9 +1822,10 @@ async function handleMoneyBack(supabase: SupabaseClient, eventType: string, obje
     "Purchases: https://www.theleadflowpro.com/admin/purchases",
   ].filter(Boolean));
   if (willFlip && purchase) {
-    const updated = await supabase.from("purchases").update({ status: toStatus }).eq("stripe_session_id", purchase.stripe_session_id).eq("status", fromStatus).select("stripe_session_id");
-    if (updated.error) throw new Error(`Purchase status flip failed: ${updated.error.code}`);
-    if (!updated.data?.length) console.warn(`No ${fromStatus} purchase matched ${purchase.stripe_session_id} for ${toStatus}`);
+    // Access follows the money before the purchases row moves. Both account
+    // changes are safe to repeat, so when either one or the flip fails, the
+    // 500 below makes Stripe retry with the row still unmoved, and the retry
+    // applies the lock again instead of finding nothing left to flip.
     // A refund or dispute on either Chase Sheet plan locks the sheet; a dispute won reopens it.
     await applyChaseSheetMoneyBack(supabase, purchase, restoring);
     // A refunded or disputed credit pack takes its credits back; a dispute
@@ -1805,6 +1833,10 @@ async function handleMoneyBack(supabase: SupabaseClient, eventType: string, obje
     if (purchase.kind === TLFP_CREDITS.purchaseKind && purchase.email) {
       await creditPackReversed(supabase, { email: purchase.email, sessionId: purchase.stripe_session_id, restore: restoring });
     }
+    await applyPostCreatorMoneyBack(supabase, purchase, restoring);
+    const updated = await supabase.from("purchases").update({ status: toStatus }).eq("stripe_session_id", purchase.stripe_session_id).eq("status", fromStatus).select("stripe_session_id");
+    if (updated.error) throw new Error(`Purchase status flip failed: ${updated.error.code}`);
+    if (!updated.data?.length) console.warn(`No ${fromStatus} purchase matched ${purchase.stripe_session_id} for ${toStatus}`);
   }
   return true;
 }
@@ -1932,6 +1964,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Subscription processing failed" }, { status: 500 });
   }
 
+  // Post Creator's monthly plan, the same way.
+  try {
+    if (await handlePostCreatorSubscription(createSupabaseClient(SUPABASE_URL, serviceKey), event)) {
+      return NextResponse.json({ received: true });
+    }
+  } catch (error) {
+    console.error("Stripe Post Creator subscription webhook failed:", error instanceof Error ? error.message : "unknown");
+    return NextResponse.json({ error: "Subscription processing failed" }, { status: 500 });
+  }
+
   if (typeof event.type === "string" && INVOICE_EVENT_STATUS[event.type]) {
     try {
       const invoice = (event.data?.object ?? {}) as StripeInvoiceWebhook;
@@ -2045,7 +2087,7 @@ export async function POST(request: Request) {
     const websiteLaunch = isWebsiteLaunchDeposit(session, configuredPaymentLinkId);
     const customer = websiteLaunchCustomer(session);
     if (!customer.email) {
-      if (websiteLaunch || ["event", "pro_tool", "pro_bundle", TLFP_CREDITS.purchaseKind].includes(String(session.metadata?.kind)) || isChaseSheetKind(String(session.metadata?.kind))) {
+      if (websiteLaunch || ["event", "pro_tool", "pro_bundle", TLFP_CREDITS.purchaseKind].includes(String(session.metadata?.kind)) || isChaseSheetKind(String(session.metadata?.kind)) || isPostCreatorKind(String(session.metadata?.kind))) {
         throw new Error("Paid checkout is missing its customer email");
       }
       return NextResponse.json({ received: true });
@@ -2104,6 +2146,8 @@ export async function POST(request: Request) {
       await sendSellerProofReceipt(customer.email, session.id);
     } else if (isChaseSheetKind(kind)) {
       await ensureChaseSheetPaid(supabase, session);
+    } else if (isPostCreatorKind(kind)) {
+      await ensurePostCreatorPaid(supabase, session);
     } else if (kind === "timeback_order") {
       await ensureTimebackOrderPaid(supabase, session);
     } else if (kind === "event") {

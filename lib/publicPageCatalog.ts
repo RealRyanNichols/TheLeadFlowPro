@@ -60,6 +60,27 @@ export const PUBLIC_PAGE_CATALOG = [
     index: false,
   },
   {
+    path: "/post-creator",
+    title: "Social Media Post Creator",
+    description:
+      "A free post idea machine for local businesses: a new idea every tap, a 30 day plan, and drafts for five platforms. AI writing in your voice is a separate paid plan. Nothing is posted for you.",
+    eyebrow: "Post Creator",
+  },
+  {
+    path: "/post-creator/terms",
+    title: "Post Creator purchase terms",
+    description:
+      "What the monthly plan and the one payment plan cover, how AI writing limits work, and what you post yourself.",
+    eyebrow: "Post Creator terms",
+  },
+  {
+    path: "/post-creator/app",
+    title: "Your Post Creator",
+    description: "Post ideas, AI drafts in your voice, and your business profile. For buyers.",
+    eyebrow: "Post Creator",
+    index: false,
+  },
+  {
     path: "/tlfp",
     title: "Every dollar in comes back bigger.",
     description:
