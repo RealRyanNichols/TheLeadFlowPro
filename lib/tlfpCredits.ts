@@ -298,15 +298,23 @@ export function foundingStartLabel(): string {
 }
 
 /**
- * True when an earlier paid purchase would itself have qualified, which makes
- * the buyer an existing client, not a founder. purchases does not store an
- * agency payment's billing, so any paid agency payment counts (monthly at any
- * amount qualifies).
+ * True when earlier paid purchases make this email an existing client, not a
+ * founder. Wider than the seat tiers on purpose: anything that would have
+ * qualified, the September Special and the retired free builds (both build
+ * work), and any other payment of the build floor or more. Credit packs never
+ * count. purchases does not store an agency payment's billing, so any paid
+ * agency payment counts (monthly at any amount qualifies).
  */
 export function qualifiedBefore(rows: readonly { kind: string | null; amount_cents: number | null }[]): boolean {
-  return rows.some((row) =>
-    !!row.kind && foundingTierFor({ kind: row.kind, amountCents: row.amount_cents, billing: row.kind === "agency_payment" ? "monthly" : null }) !== null,
-  );
+  const floor = foundingTier("build").minPaidCents;
+  return rows.some((row) => {
+    const kind = row.kind ?? "";
+    const cents = Number(row.amount_cents);
+    if (!kind || TLFP_FOUNDING.rebateExcludedKinds.includes(kind)) return false;
+    if (kind === "september_special_2026" || kind.startsWith("free_build_")) return true;
+    if (Number.isFinite(cents) && cents >= floor) return true;
+    return foundingTierFor({ kind, amountCents: row.amount_cents, billing: kind === "agency_payment" ? "monthly" : null }) !== null;
+  });
 }
 
 export type FoundingAwardRow = { id: string; email: string; delta: number; reason: string; stripe_session_id: string | null };
@@ -331,24 +339,37 @@ export function foundingNetTaken(awardId: string, moves: readonly FoundingMoveRo
 
 /**
  * What a refund, dispute, or dispute won does to the founding awards on the
- * money. Each award's net taken back is its founding_reversed rows minus its
- * founding_restored rows (refs `founding_reversed:<award id>:<event>`). A take
- * back removes what is still on the account; a put back returns what is still
- * taken. `eventTag` names the money-back event (status and charge), so a
- * retry of the same event posts nothing twice while a later event (a refund
- * after a dispute was won) still moves the credits. Pure.
+ * money. Refs are `founding_reversed:<award id>:<event>` and
+ * `founding_restored:<award id>:<event>`, where the event names the Stripe
+ * cause (`refunded:<charge>`, `disputed:<dispute>`, `dispute_won:<dispute>`).
+ *
+ * A take back removes what is still on the account: the award minus
+ * everything taken, plus everything put back. A put back (a dispute won)
+ * returns only what that same dispute took (`takenBy`, e.g.
+ * `disputed:du_1`), so a refund's take back is never undone by a later
+ * dispute result. A retry of the same event posts nothing twice. Pure.
  */
 export function foundingReversalPlan(
   awards: readonly FoundingAwardRow[],
   moves: readonly FoundingMoveRow[],
   restore: boolean,
   eventTag: string,
+  takenBy?: string,
 ): FoundingMove[] {
   const plan: FoundingMove[] = [];
+  if (restore && !takenBy) return plan;
   for (const award of awards) {
     if (!(award.delta > 0)) continue;
-    const netTaken = foundingNetTaken(award.id, moves);
-    const amount = restore ? netTaken : Math.max(0, award.delta - netTaken);
+    let amount: number;
+    if (restore) {
+      const tagged = (prefix: string, tag: string) =>
+        moves
+          .filter((m) => m.ref === `${prefix}:${award.id}:${tag}`)
+          .reduce((sum, m) => sum + Math.abs(Number(m.delta)), 0);
+      amount = Math.max(0, tagged("founding_reversed", takenBy as string) - tagged("founding_restored", eventTag));
+    } else {
+      amount = Math.max(0, award.delta - foundingNetTaken(award.id, moves));
+    }
     if (amount <= 0) continue;
     const reason = restore ? "founding_restored" : "founding_reversed";
     plan.push({

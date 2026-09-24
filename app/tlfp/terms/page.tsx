@@ -3,7 +3,7 @@ import Link from "next/link";
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import { BUSINESS } from "@/lib/site/business";
 import { usd } from "@/lib/site/prices";
-import { TLFP_CREDITS, TLFP_EARN_RULES, TLFP_FOUNDING, TLFP_FOUNDING_TIERS, TLFP_PACKS, foundingStartLabel } from "@/lib/tlfpCredits";
+import { TLFP_CREDITS, TLFP_EARN_RULES, TLFP_FOUNDING, TLFP_FOUNDING_TIERS, TLFP_PACKS, foundingStartLabel, foundingTier } from "@/lib/tlfpCredits";
 
 export const metadata: Metadata = withPublicPageMetadata(TLFP_CREDITS.termsPath, {
   title: "TLFP Credits terms | The LeadFlow Pro",
@@ -76,8 +76,9 @@ export default function TlfpTermsPage() {
               The first {TLFP_FOUNDING.seats} distinct email addresses whose first qualifying paid purchase clears on or after{" "}
               {FOUNDING_START} each get one numbered founding seat. Seats are handed out in the order the payments clear, one per
               email, and a seat number is never reissued. When seat {TLFP_FOUNDING.seats} is taken the program is closed to new
-              seats. An email that already made a qualifying paid purchase before {FOUNDING_START} is an existing client and does
-              not take a seat. A qualifying purchase, and the founding credits it posts once to the seat, is:
+              seats. An email that already paid us before {FOUNDING_START} for a build, a website, the training, a retainer, or
+              anything else of {usd(foundingTier("build").minPaidCents / 100)} or more (credit packs aside) is an existing client
+              and does not take a seat. A qualifying purchase, and the founding credits it posts once to the seat, is:
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5">
               {TLFP_FOUNDING_TIERS.map((tier) => (

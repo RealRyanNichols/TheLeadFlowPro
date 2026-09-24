@@ -296,6 +296,8 @@ export type FoundingOutcome = {
   soldOut: boolean;
   /** True when this purchase qualified but the buyer already had a qualifying purchase before the program opened. */
   existingClient: boolean;
+  /** True when the money was already refunded or disputed (a late redelivery): nothing posts. */
+  voided: boolean;
   /** One-time bonus on the seat (only reported when claimedHere). */
   bonus: number;
   /** Operations Partner month credits posted for this purchase. */
@@ -380,6 +382,8 @@ export async function applyFoundingPerks(
     kind: string;
     amountCents: number | null;
     key: string;
+    /** The purchases row key when it differs from `key` (a subscription checkout keyed on its invoice). */
+    purchaseKey?: string;
     billing?: string | null;
     tierKind?: string;
     tierCents?: number | null;
@@ -393,11 +397,27 @@ export async function applyFoundingPerks(
     claimedHere: false,
     soldOut: false,
     existingClient: false,
+    voided: false,
     bonus: 0,
     monthly: 0,
     rebate: 0,
   };
   if (!isEmail(email) || key.length < 3) return outcome;
+
+  // A redelivery that arrives after the money went back (refund or dispute)
+  // earns nothing: the take back already ran, and would not run again.
+  const purchaseKeys = cleanKeys([key, input.purchaseKey ?? ""]);
+  const returned = await service
+    .from("purchases")
+    .select("status")
+    .in("stripe_session_id", purchaseKeys)
+    .in("status", ["refunded", "disputed"])
+    .limit(1);
+  if (returned.error) throw foundingError("purchase status check", returned.error);
+  if (returned.data?.length) {
+    outcome.voided = true;
+    return outcome;
+  }
 
   const tier = foundingTierFor({
     kind: input.tierKind ?? input.kind,
@@ -487,7 +507,7 @@ function cleanKeys(keys: string[]): string[] {
  */
 export async function reverseFoundingCredits(
   service: SupabaseClient,
-  input: { keys: string[]; restore: boolean; eventTag: string },
+  input: { keys: string[]; restore: boolean; eventTag: string; takenBy?: string },
 ): Promise<number> {
   const keys = cleanKeys(input.keys);
   if (!keys.length) return 0;
@@ -511,7 +531,7 @@ export async function reverseFoundingCredits(
   const moves: FoundingMoveRow[] = [...((movesRes.data ?? []) as FoundingMoveRow[])];
 
   let moved = 0;
-  for (const step of foundingReversalPlan(awards, moves, input.restore, input.eventTag)) {
+  for (const step of foundingReversalPlan(awards, moves, input.restore, input.eventTag, input.takenBy)) {
     const result = await postCredits(service, {
       email: step.email,
       delta: step.delta,
@@ -525,13 +545,15 @@ export async function reverseFoundingCredits(
     if (!result.ok) continue;
     if (!result.duplicate) moved += Math.abs(Number(result.applied ?? 0));
     moves.push({ ref: step.ref, delta: Number(result.applied ?? step.delta) });
-    const award = awards.find((a) => a.id === step.awardId);
-    if (award?.reason === "founding_bonus") {
-      // The seat shows what is still on it: the bonus minus what is taken back.
-      const stillOn = Math.max(0, award.delta - foundingNetTaken(award.id, moves));
-      const updated = await service.from("tlfp_founding_seats").update({ bonus_applied: stillOn }).eq("email", award.email);
-      if (updated.error) throw foundingError("seat bonus update", updated.error);
-    }
+  }
+  // The seat shows what is still on it: the bonus minus what is taken back.
+  // Written for every bonus on this money, every time, so a retry repairs a
+  // seat whose update failed after its ledger row posted.
+  for (const award of awards) {
+    if (award.reason !== "founding_bonus") continue;
+    const stillOn = Math.max(0, award.delta - foundingNetTaken(award.id, moves));
+    const updated = await service.from("tlfp_founding_seats").update({ bonus_applied: stillOn }).eq("email", award.email);
+    if (updated.error) throw foundingError("seat bonus update", updated.error);
   }
   return moved;
 }
@@ -657,6 +679,22 @@ export async function readTlfpBalance(service: SupabaseClient, email: string): P
     .maybeSingle();
   if (error) throw new Error(`TLFP balance read failed: ${error.code}`);
   return Number(data?.balance ?? 0);
+}
+
+/**
+ * Credits posted to an email, holds not taken off: the most the balance can
+ * be once every open checkout hold is released, and the number tlfp_post
+ * checks the 1,999 cap against. Anything that asks "would this pass the cap"
+ * uses this, not the spendable balance.
+ */
+export async function readTlfpCapBasis(service: SupabaseClient, email: string): Promise<number> {
+  const { data, error } = await service
+    .from("tlfp_balances")
+    .select("balance, held")
+    .eq("email", normalizeEmail(email))
+    .maybeSingle();
+  if (error) throw new Error(`TLFP balance read failed: ${error.code}`);
+  return Number(data?.balance ?? 0) + Number(data?.held ?? 0);
 }
 
 /** True when the logged-in person holds enough credits for the holder perks. */
