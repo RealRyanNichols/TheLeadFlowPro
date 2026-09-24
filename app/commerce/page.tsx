@@ -224,11 +224,10 @@ export default function CommercePage() {
               <p className={styles.eyebrow}>BEFORE THE BUILD</p>
               <h3>Start with a website.</h3>
               <p>
-                Need the foundation first? Review the five-page program and what
-                the $0 build fee includes.
+                Need the foundation first? See the five-page Website Launch.
               </p>
-              <Link href="/free-build">
-                See the free website program{" "}
+              <Link href="/packages/launch">
+                See the Website Launch{" "}
                 <ArrowRight size={17} aria-hidden="true" />
               </Link>
             </article>

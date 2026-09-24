@@ -2,8 +2,8 @@
 
 // The agency intake form. Every answer rides along in the lead record: the
 // summary in `goals` for the owner alert, the structured answers in
-// `diagnostic` for the admin workspace. Consent boxes mirror the free-website
-// application word for word. Entries are preserved on an error so nobody
+// `diagnostic` for the admin workspace. Consent boxes use the same wording as
+// the homepage consultation form. Entries are preserved on an error so nobody
 // retypes ten answers.
 
 import { useState } from "react";

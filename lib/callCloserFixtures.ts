@@ -4,7 +4,7 @@
 // example.test domain, and the business name says "(fictional)".
 //
 // The story it tells is the common one from the call sheet: a Facebook lead
-// for the free website came in Monday afternoon, Ryan read up on the business,
+// for a website came in Monday afternoon, Ryan read up on the business,
 // called, got no answer, and the Call Closer set the next try for Tuesday at
 // 10:00 AM Central. SAMPLE_NOW is that Tuesday morning, so the sample opens on
 // a callback that is due right now.
@@ -31,7 +31,7 @@ export const SAMPLE_CALL_LEAD: PlannerLead & {
   full_name: "Dana Sample",
   business_name: "Sample Pressure Washing (fictional)",
   status: "new",
-  interest: "free_website_program",
+  interest: "website_launch",
   phone: "(903) 555-0100",
   email: "dana@example.test",
   sms_consent: true,
@@ -46,8 +46,10 @@ export const SAMPLE_CALL_LEAD: PlannerLead & {
     "what do you want the website to do: Show our before and after work and get quote requests from people who find us on Facebook",
     "best time to reach you: After 3 PM",
   ].join("\n"),
+  // What that route writes for a website form's lead: a Website Launch
+  // inquiry (interest above) under the default meta_lead_form funnel.
   diagnostic: {
-    source: "free_build_funnel",
+    source: "meta_lead_form",
     notification_pipeline: "lead_intake_v1",
     meta_lead_id: "sample-meta-lead",
     form_id: null,
@@ -73,7 +75,7 @@ export const SAMPLE_NOTES: { body: string; created_at: string; author: string }[
     author: SAMPLE_ACTOR_NAME,
   },
   {
-    body: "Came in from the free website ad. Asked for a call after 3 PM.",
+    body: "Came in from the Facebook website ad. Asked for a call after 3 PM.",
     created_at: "2026-09-21T19:20:00.000Z",
     author: SAMPLE_ACTOR_NAME,
   },

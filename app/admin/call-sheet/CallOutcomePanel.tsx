@@ -51,8 +51,8 @@ import { closerOffers, payDoorFor, type CloserOfferId, type PayDoor } from "@/li
 //   a quick save never names offers nobody talked about.
 // - Ready to pay now keeps its own list. The offers that can be paid today
 //   (isPayableToday, the planner's own rule) come first, and the first such
-//   suggestion starts checked, so a free-website lead is not stuck on an offer
-//   that takes no money. The offers named on the last call still start checked
+//   suggestion starts checked, so a lead whose first suggestion takes no money
+//   online today is not stuck on it. The offers named on the last call still start checked
 //   and are shown first. Everything else sits under "Offers that cannot be paid
 //   online today". The planner stays the authority: an unpayable pick is
 //   explained, never saved. The optional "Talked about an offer?" list on a sit-down or a call

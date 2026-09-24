@@ -6,8 +6,8 @@ import { buildProposal, offerIdForInterest, proposalText, type ProposalIntake } 
 import { SAMPLE_NOW, sampleAgencyIntake, sampleBuildIntake } from "../lib/proposals/fixtures.ts";
 import { escapeHtml, renderProposalHtml } from "../lib/proposals/render.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
-import { FREE_BUILD_ADD_ON_IDS, acceptanceLine, payDoorFor, startsWithAcceptanceLine } from "../lib/payDoors.ts";
-import { FREE_BUILD, FREE_BUILD_HOSTING_LINE } from "../lib/freeBuild.ts";
+import { acceptanceLine, payDoorFor, startsWithAcceptanceLine } from "../lib/payDoors.ts";
+import { FREE_BUILD_HOSTING_LINE } from "../lib/freeBuild.ts";
 import { AGENCY_SERVICES } from "../lib/site/agency.ts";
 import { BUSINESS } from "../lib/site/business.ts";
 import { EXTERNAL_LINKS } from "../lib/site/external-links.ts";
@@ -15,6 +15,9 @@ import { OFFERS, TBD_PRICE_LABEL, offer } from "../lib/site/offers.ts";
 import { PRICES, usd } from "../lib/site/prices.ts";
 
 const BANNED = ["guarantee", "guaranteed", "#1", "best in", "roas", "ranked", "x return", "% increase"];
+
+/** The free website build and its add-ons, retired 2026-09-22. */
+const RETIRED_FREE_BUILD_IDS = ["free_website_program", "free_build_followup", "free_build_content", "free_build_launch"];
 
 test("build proposal: price and terms come only from the offers registry", () => {
   const p = buildProposal(sampleBuildIntake(), SAMPLE_NOW);
@@ -127,45 +130,33 @@ test("acceptance: the deposit link appears only when the offer has one; dates ar
   assert.equal(os.preparedBy.legal, BUSINESS.dbaLine);
 });
 
-test("free website program: no payment and no invoice promise; the add-ons are listed as optional with registry prices", () => {
-  const p = buildProposal({ ...sampleBuildIntake(), interest: "free_website_program", diagnostic: null }, SAMPLE_NOW);
-  assert.deepEqual(p.recommended.map((r) => r.offerId), ["free_website_program"]);
-  assert.ok(p.acceptance.includes(acceptanceLine(payDoorFor("free_website_program")!)), p.acceptance.join("\n"));
-  assert.ok(p.acceptance.includes("No payment is due for the Free Website Program build."), p.acceptance.join("\n"));
-  assert.ok(!/invoice/i.test(p.text), "no invoice promise anywhere in a free build proposal");
-  assert.ok(!p.acceptance.some((a) => /within five business days of payment/.test(a)), "no payment to start the clock");
-  const note = p.notIncluded.find((x) => x.startsWith("Optional, priced separately"));
-  assert.ok(note, p.notIncluded.join("\n"));
-  assert.deepEqual(copyProblems(note), [], note);
-  for (const id of FREE_BUILD_ADD_ON_IDS) {
-    const o = offer(id);
-    assert.ok(note.includes(`${o.name} (${o.priceLabel})`), `${id} in: ${note}`);
-    assert.ok(p.text.includes(`${o.name} (${o.priceLabel})`), id);
-  }
-  // Add-ons stay out of the price section: the build fee is the only price.
-  assert.deepEqual(p.price.map((x) => x.offerId), ["free_website_program"]);
-  const known = new Set([...OFFERS.map((o) => o.priceLabel), "$49/mo", "$99/mo"]);
+test("a lead who asked for the retired free website is proposed the Website Launch: its deposit link, its price, no free promise", () => {
+  const p = buildProposal({ ...sampleBuildIntake(), interest: "free_website_program", diagnostic: null, desiredModules: null }, SAMPLE_NOW);
+  assert.deepEqual(p.recommended.map((r) => r.offerId), ["website_launch"]);
+  assert.deepEqual(p.price.map((x) => x.offerId), ["website_launch"]);
+  // The same published pay door the Call Closer hands Ryan, and the kickoff that follows payment.
+  assert.ok(p.acceptance.includes(acceptanceLine(payDoorFor("website_launch")!)), p.acceptance.join("\n"));
+  assert.ok(p.acceptance.includes("A kickoff call is scheduled within five business days of payment."), p.acceptance.join("\n"));
+  // Nothing of the retired offer survives: no no-payment line, no application step, no optional add-ons.
+  assert.ok(!p.acceptance.some((a) => /no payment|application/i.test(a)), p.acceptance.join("\n"));
+  assert.ok(!p.notIncluded.some((x) => x.startsWith("Optional, priced separately")), p.notIncluded.join("\n"));
+  for (const id of RETIRED_FREE_BUILD_IDS) assert.ok(!p.text.includes(offer(id).name), `${id} is named in the proposal`);
+  const known = new Set([...OFFERS.map((o) => o.priceLabel), "$49/mo", "$99/mo", usd(PRICES.websiteLaunchDeposit)]);
   for (const m of p.text.matchAll(/\$[\d,]+(?:\.\d+)?(?:\/mo|\+)?/g)) assert.ok([...known].some((k) => k.includes(m[0])), `unexpected figure ${m[0]}`);
-
-  // An add-on chosen with the free build is priced and gets the scoped checkout line, and leaves the optional list.
-  const withPack = buildProposal({ ...sampleBuildIntake(), diagnostic: null }, SAMPLE_NOW, { selection: ["free_website_program", "free_build_followup"] });
-  assert.deepEqual(withPack.recommended.map((r) => r.offerId), ["free_website_program", "free_build_followup"]);
-  assert.ok(withPack.acceptance.includes(acceptanceLine(payDoorFor("free_build_followup")!)));
-  assert.ok(!withPack.notIncluded.some((x) => x.includes(offer("free_build_followup").name)));
-  assert.ok(!/invoice/i.test(withPack.text));
+  for (const a of p.acceptance) assert.deepEqual(copyProblems(a), [], a);
 });
 
-test("a free build beside a paid one: the no-payment line names the free build, never a bare 'the build'", () => {
+test("a stale free build id beside a paid offer is dropped: only the paid offer is proposed, priced, and paid", () => {
   for (const paid of ["website_launch", "lead_engine"]) {
-    const p = buildProposal({ ...sampleBuildIntake(), diagnostic: null }, SAMPLE_NOW, { selection: ["free_website_program", paid] });
-    // A larger build also brings its System Map (the auto-add); the two chosen come first.
-    assert.deepEqual(p.recommended.map((r) => r.offerId).slice(0, 2), ["free_website_program", paid]);
+    const p = buildProposal({ ...sampleBuildIntake(), diagnostic: null }, SAMPLE_NOW, { selection: ["free_website_program", "free_build_followup", paid] });
+    // A larger build also brings its System Map (the auto-add).
+    assert.deepEqual(p.recommended.map((r) => r.offerId), paid === "lead_engine" ? [paid, "system_map"] : [paid]);
+    assert.ok(p.price.every((x) => !RETIRED_FREE_BUILD_IDS.includes(x.offerId)), JSON.stringify(p.price));
     const all = p.acceptance.join("\n");
-    assert.ok(p.acceptance.includes("No payment is due for the Free Website Program build."), all);
-    assert.ok(!p.acceptance.includes("No payment is due for the build."), all);
-    assert.ok(!p.acceptance.some((a) => /\bfor the build\b/.test(a)), all);
-    // The paid build still gets its own pay line, naming it.
+    assert.ok(!p.acceptance.some((a) => /no payment/i.test(a)), all);
+    // The paid offer gets its own pay line, naming it.
     assert.ok(p.acceptance.some((a) => a.includes(payDoorFor(paid)!.offerName) && a.includes("https://")), all);
+    for (const id of RETIRED_FREE_BUILD_IDS) assert.ok(!p.text.includes(offer(id).name), `${paid}: ${id} is named in the proposal`);
     for (const a of p.acceptance) assert.deepEqual(copyProblems(a), [], a);
   }
 });
@@ -296,12 +287,9 @@ function usdPerMonthLabel(): string {
   return `${usd(PRICES.hostingManagedMonthly)}/mo`;
 }
 
-test("a free build's proposal says its first months of hosting are included, as the registry and /free-build do", () => {
-  const included = `${PRICES.hostingIncludedDays} days`;
-  // The /free-build page prints the same sentence.
-  assert.ok(FREE_BUILD.buildIncludes.some((t) => t.detail === FREE_BUILD_HOSTING_LINE), "the /free-build page prints the same sentence");
-  assert.ok(FREE_BUILD_HOSTING_LINE.includes(included));
-  assert.ok(offer("hosting_managed").terms.includes(included), "the registry's own terms");
+test("the retired free build never reaches a proposal: no free offer, no free-build hosting line", () => {
+  // Retired 2026-09-22. A lead that asked for it is proposed the Website Launch,
+  // and a stale selection that names a free id is dropped, never printed.
   const cases: { label: string; p: ReturnType<typeof buildProposal> }[] = [
     { label: "interest", p: buildProposal({ ...sampleBuildIntake(), interest: "free_website_program", diagnostic: null }, SAMPLE_NOW) },
     { label: "selection", p: buildProposal({ ...sampleBuildIntake(), diagnostic: null }, SAMPLE_NOW, { selection: ["free_website_program"] }) },
@@ -312,26 +300,16 @@ test("a free build's proposal says its first months of hosting are included, as 
     },
   ];
   for (const { label, p } of cases) {
-    assert.ok(!p.vendorCosts.some((v) => v.startsWith("Hosting after launch")), `${label}: ${p.vendorCosts.join(" | ")}`);
-    assert.ok(p.vendorCosts.includes(FREE_BUILD_HOSTING_LINE), `${label}: ${p.vendorCosts.join(" | ")}`);
+    assert.ok(!p.vendorCosts.includes(FREE_BUILD_HOSTING_LINE), `${label}: ${p.vendorCosts.join(" | ")}`);
+    assert.ok(!p.vendorCosts.some((v) => v.startsWith("Hosting for ")), `${label}: ${p.vendorCosts.join(" | ")}`);
+    assert.ok(!/free website|\$0 build/i.test(p.text), `${label}: the proposal text never sells the retired offer`);
     for (const v of p.vendorCosts) assert.deepEqual(copyProblems(v), [], v);
   }
+  assert.equal(offerIdForInterest("free_website_program"), "website_launch");
+  for (const id of RETIRED_FREE_BUILD_IDS) assert.equal(payDoorFor(id), null, `${id} has no pay door`);
   // A paid build is still billed from launch.
   const paid = buildProposal({ ...sampleBuildIntake(), diagnostic: null }, SAMPLE_NOW, { selection: ["website_launch"] });
   assert.ok(paid.vendorCosts.some((v) => v.startsWith("Hosting after launch:")), paid.vendorCosts.join(" | "));
-  assert.ok(!paid.vendorCosts.some((v) => v.includes(included)), paid.vendorCosts.join(" | "));
-  // A paid build and a free build on one page: each line names the build it covers.
-  const mixed = buildProposal({ ...sampleBuildIntake(), diagnostic: null }, SAMPLE_NOW, { selection: ["website_launch", "free_website_program"] });
-  const paidLine = mixed.vendorCosts.find((v) => v.startsWith("Hosting after launch for "));
-  const freeLine = mixed.vendorCosts.find((v) => v.startsWith("Hosting for "));
-  assert.ok(paidLine?.includes(offer("website_launch").name), mixed.vendorCosts.join(" | "));
-  assert.ok(freeLine?.includes(offer("free_website_program").name) && freeLine.includes(included), mixed.vendorCosts.join(" | "));
-  for (const v of mixed.vendorCosts) assert.deepEqual(copyProblems(v), [], v);
-  // Only published figures appear (the Website Launch line carries its published deposit).
-  const known = new Set([...OFFERS.map((o) => o.priceLabel), "$49/mo", "$99/mo", usd(PRICES.websiteLaunchDeposit)]);
-  for (const { p } of [...cases, { p: mixed }, { p: paid }]) {
-    for (const m of p.text.matchAll(/\$[\d,]+(?:\.\d+)?(?:\/mo|\+)?/g)) assert.ok([...known].some((k) => k.includes(m[0])), `unexpected figure ${m[0]}`);
-  }
 });
 
 test("two larger builds share one System Map line: one map, one payment", () => {

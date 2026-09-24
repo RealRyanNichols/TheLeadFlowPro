@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { priceOrder } from "@/lib/timeback";
 import { LEAD_FOLLOW_UP } from "@/lib/leadFollowUp";
-import { FREE_BUILD } from "@/lib/freeBuild";
 import { priceToolStudio } from "@/lib/toolStudio";
 import { PRO_BUNDLE, getProTool } from "@/lib/tools/pro";
 import { startEventCheckout } from "@/lib/eventCheckoutServer";
@@ -36,18 +35,11 @@ const PRODUCTS: Record<string, { name: string; amount: number }> = {
     name: `${LEAD_FOLLOW_UP.name} | The LeadFlow Pro`,
     amount: LEAD_FOLLOW_UP.priceCents,
   },
-  // The Free Build (/free-build). Three tiers, one price each, all read from
-  // lib/freeBuild.ts. The site itself is $0 at every tier: what is charged
-  // here is the engine that runs behind it.
-  ...Object.fromEntries(
-    FREE_BUILD.tiers.map((tier) => [
-      tier.id,
-      { name: `${tier.name} | The LeadFlow Pro`, amount: tier.priceCents },
-    ]),
-  ),
+  // The free website build tiers (free_build_*) were retired on 2026-09-22
+  // and are not sold here any more. A POST for one gets "Unknown product".
+  // The Stripe webhook still records a late event for a session created
+  // before that date.
 };
-
-const FREE_BUILD_IDS = new Set<string>(FREE_BUILD.tiers.map((tier) => tier.id));
 
 /**
  * Which one-time checkouts accept TLFP Credits. Kinds whose fulfilment checks
@@ -56,7 +48,7 @@ const FREE_BUILD_IDS = new Set<string>(FREE_BUILD.tiers.map((tier) => tier.id));
  */
 function creditsAllowedFor(kind: string, metadata: Record<string, string>): boolean {
   if (kind === "package_deposit" && metadata.package !== "system-map") return false;
-  return TLFP_REDEEMABLE_KINDS.has(kind) || FREE_BUILD_IDS.has(kind) || kind === LEAD_FOLLOW_UP.id;
+  return TLFP_REDEEMABLE_KINDS.has(kind) || kind === LEAD_FOLLOW_UP.id;
 }
 
 /** The logged-in account's email, or "" when nobody is logged in. */
@@ -365,14 +357,6 @@ export async function POST(request: Request) {
         // Nothing gets written until that form comes back.
         cancelUrl = `${site}/go/lead-follow-up?cancelled=1`;
         successUrl = `${site}/go/lead-follow-up/intake?session_id={CHECKOUT_SESSION_ID}`;
-      }
-      if (FREE_BUILD_IDS.has(kind)) {
-        // Free Build buyers land on a page that books the twenty minute call
-        // and lists what to send. The build clock starts at that call, so the
-        // next action has to be on screen the second the card clears.
-        cancelUrl = `${site}/free-build?cancelled=1`;
-        successUrl = `${site}/free-build/welcome?tier=${encodeURIComponent(kind)}&session_id={CHECKOUT_SESSION_ID}`;
-        metadata.offer = "free_build";
       }
     }
 

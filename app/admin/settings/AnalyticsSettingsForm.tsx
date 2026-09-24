@@ -50,7 +50,7 @@ const TEXTS: { key: string; label: string; help: string; placeholder: string }[]
     key: "inspect_urls",
     label: "Index-monitored URLs",
     help: "Comma-separated paths checked daily against Google's index (max 25).",
-    placeholder: "/, /free-build, /pricing, /tools",
+    placeholder: "/, /services, /pricing, /tools",
   },
 ];
 

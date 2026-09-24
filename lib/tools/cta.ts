@@ -1,18 +1,22 @@
 // The one call to action every tool page ends with. Two lanes, both doors
-// into work The LeadFlow Pro does for the visitor: the free website build
-// (the front door) or the agency intake. A tool picks its lane in its
-// metadata; the default is the free build. Nothing else is a valid lane, so
-// a tool cannot end on a page that sells nothing.
+// into work The LeadFlow Pro does for the visitor: the website work (the
+// default) or the agency intake. A tool picks its lane in its metadata.
+// Nothing else is a valid lane, so a tool cannot end on a page that sells
+// nothing.
+//
+// The default lane used to be "free_build", pointing at the free website
+// build. That offer was retired on 2026-09-22; the lane is now "website" and
+// opens the services page.
 
-export type ToolCtaLane = "free_build" | "agency";
+export type ToolCtaLane = "website" | "agency";
 
 export const TOOL_CTA_LANES: Record<ToolCtaLane, { href: string; eyebrow: string; title: string; body: string; label: string }> = {
-  free_build: {
-    href: "/free-build",
+  website: {
+    href: "/services",
     eyebrow: "One useful tool is the proof",
     title: "Now imagine the whole website doing real work.",
-    body: "A five-page site built to capture leads and follow up, with no build fee if you qualify. The result is a working site, not a promise of leads.",
-    label: "See if you qualify for the free build",
+    body: "A five-page site built to capture leads and follow up, in accounts you own. The result is a working site, not a promise of leads.",
+    label: "See what we build",
   },
   agency: {
     href: "/agency/start",
@@ -26,7 +30,7 @@ export const TOOL_CTA_LANES: Record<ToolCtaLane, { href: string; eyebrow: string
 export const TOOL_CTA_LANE_IDS = Object.keys(TOOL_CTA_LANES) as ToolCtaLane[];
 
 export function toolCtaLane(cta: string | undefined): ToolCtaLane {
-  return cta === "agency" ? "agency" : "free_build";
+  return cta === "agency" ? "agency" : "website";
 }
 
 export function toolCta(tool: { cta?: string }) {

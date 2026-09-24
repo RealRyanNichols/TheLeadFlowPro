@@ -129,7 +129,7 @@ business in this trade (${entry.trade}) and is reading on a phone at night.
   "Run your own numbers" is the whole point of the pattern.
 - Do not oversell the tool. It gives a floor or a leak size, not a promise.
 - Internal links where they are honest: the follow-up article, the missed
-  calls article, /pricing, /free-build. Two or three, not ten.
+  calls article, /pricing, /services. Two or three, not ten.
 - Welcome all ages and experience levels. Give the reader one useful task,
   a worked example, and a copyable prompt, checklist, or working tool.
 - Verify changing product claims against current primary official sources.

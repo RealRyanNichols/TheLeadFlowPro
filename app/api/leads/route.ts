@@ -2,12 +2,16 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
-import { INTEREST_LABELS, notifyNewLeadSms } from "@/lib/leadNotify";
+import { INTEREST_LABELS } from "@/lib/leadNotify";
 import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotifications";
+import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadAlertsServer";
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
 import { recordServerEvent } from "@/lib/analytics/server";
 
-const ALLOWED_INTERESTS = Object.keys(INTEREST_LABELS);
+// free_website_program keeps its label for old rows only. The free website
+// build was retired on 2026-09-22, so a stale form that still posts it is
+// saved as "unsure" instead.
+const ALLOWED_INTERESTS = Object.keys(INTEREST_LABELS).filter((interest) => interest !== "free_website_program");
 
 const MODULE_IDS = new Set([
   "website_funnels",
@@ -139,20 +143,25 @@ export async function POST(request: Request) {
       utm_campaign: lead.utm_campaign,
     });
 
-    // The database trigger committed the owner-alert and applicant-welcome
-    // outbox rows in the same transaction as this lead. Try them now for an
-    // immediate reply; a protected cron retries any provider failure.
-    try {
-      await deliverLeadEmailNotificationsForLead(supabase, leadId);
-    } catch (error) {
-      console.error(
-        "Immediate lead email delivery failed; queued retry remains:",
-        error instanceof Error ? error.message : error,
-      );
-    }
-
-    // SMS is intentionally outside the email outbox and remains best effort.
-    await notifyNewLeadSms(lead);
+    await Promise.all([
+      // The database trigger committed the owner-alert and applicant-welcome
+      // outbox rows in the same transaction as this lead. Try them now for an
+      // immediate reply; a protected cron retries any provider failure.
+      (async () => {
+        try {
+          await deliverLeadEmailNotificationsForLead(supabase, leadId);
+        } catch (error) {
+          console.error(
+            "Immediate lead email delivery failed; queued retry remains:",
+            error instanceof Error ? error.message : error,
+          );
+        }
+      })(),
+      // Speed to lead: the staff text and the one automatic first text to the
+      // lead (the only sender of it). Never throws and never holds this
+      // request past its budget; the one-minute sweep finishes anything left.
+      dispatchSpeedToLeadWithBudget(supabase, leadId),
+    ]);
 
     return NextResponse.json({ ok: true });
   } catch {

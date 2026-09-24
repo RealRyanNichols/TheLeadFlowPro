@@ -286,8 +286,8 @@ export default async function ArticlePage({
       /> : <FinalCta
         eyebrow="Put this to work"
         title="Get the website that catches these leads."
-        body="Start with the free five-page build, in accounts you own, or call and talk it through with the person who builds them."
-        primary={{ href: "/free-build", label: "Start My Free Website" }}
+        body="Start with a five-page website built in accounts you own, or call and talk it through with the person who builds them."
+        primary={{ href: "/services", label: "See what we build" }}
         secondary={{ href: BUSINESS.phone.tel, label: `Call or text ${BUSINESS.phone.display}`, external: true }}
       />}
     </main>

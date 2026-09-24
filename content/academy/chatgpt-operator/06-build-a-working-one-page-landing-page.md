@@ -12,7 +12,7 @@ A pressure washing company in Longview had a page like that. The form had no con
 
 ChatGPT can build a real one-page site in its working preview. You describe the page, it writes the code, and you see the page render beside the chat. You can click the buttons. You can shrink it to phone width. You can fill out the form and watch it respond. That is a building you get to inspect before anyone walks in.
 
-This is the second deliverable lesson. Lessons four and five gave you an image and a voice. This lesson puts an offer on one page and tests it. When you want the real thing live on your own domain, that is what /free-build is for. Here, you learn what a good page has so you can judge one.
+This is the second deliverable lesson. Lessons four and five gave you an image and a voice. This lesson puts an offer on one page and tests it. When you want the real thing live on your own domain, that is what the Website Launch at /packages/launch is for. Here, you learn what a good page has so you can judge one.
 
 ## The lesson
 

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
-import { SEND_WINDOW, decideSend, localHour, withinSendWindow } from "../lib/smsPolicy.ts";
+import { SEND_WINDOW, decideSend, localHour, nextSendWindowOpen, withinSendWindow } from "../lib/smsPolicy.ts";
 
 // September 2026: Central Daylight Time, UTC-5.
 const cdt = (hour: number, minute = 0) => new Date(Date.UTC(2026, 8, 20, hour + 5, minute));
@@ -41,10 +41,53 @@ test("every application text goes through the one sender that applies the policy
   assert.ok(fetchIndex > suppressed, "the lookup happens before the provider call");
   const adminRoute = readFileSync(join(process.cwd(), "app/api/admin/lead-message/route.ts"), "utf8");
   assert.match(adminRoute, /humanInitiated:\s*true/, "a CRM send is a human decision");
-  for (const file of ["lib/leadNotify.ts", "app/api/leads/route.ts", "app/api/meta-leads/route.ts"]) {
+  for (const file of [
+    "lib/leadNotify.ts",
+    "app/api/leads/route.ts",
+    "app/api/meta-leads/route.ts",
+    "app/api/quo-inbound/route.ts",
+    "lib/speedToLeadAlerts.ts",
+    "lib/speedToLeadAlertsServer.ts",
+    "app/api/cron/speed-to-lead/route.ts",
+  ]) {
     const source = readFileSync(join(process.cwd(), file), "utf8");
     assert.doesNotMatch(source, /humanInitiated:\s*true/, `${file} is automated and must not skip the window`);
     assert.ok(!source.includes("api.openphone.com"), `${file} never calls the provider directly`);
+  }
+  // The first text goes through the policy-applying sender; the staff alert
+  // sender skips only the window, never the STOP list or the kill switch.
+  const dispatcher = readFileSync(join(process.cwd(), "lib/speedToLeadAlertsServer.ts"), "utf8");
+  assert.match(dispatcher, /sendLeadTextDetailed\(lead\.phone as string, body\)/);
+  const staff = quo.slice(quo.indexOf("export async function sendStaffAlertText"));
+  const staffEnd = staff.indexOf("\n}\n");
+  const staffBody = staff.slice(0, staffEnd);
+  assert.match(staffBody, /quoOutboundDisabled\(\)/);
+  assert.match(staffBody, /smsSuppressedGlobally\(e164\)/);
+  assert.ok(staffBody.indexOf("smsSuppressedGlobally(e164)") < staffBody.indexOf("fetch(QUO_API"));
+  assert.doesNotMatch(staffBody, /humanInitiated/);
+});
+
+test("a held automated text waits for the next 8 am Central instead of being dropped", () => {
+  // Inside the window: now.
+  assert.equal(nextSendWindowOpen(cdt(12, 30)).toISOString(), cdt(12, 30).toISOString());
+  // Before 8 am: 8 am the same day.
+  assert.equal(nextSendWindowOpen(cdt(6, 15)).toISOString(), cdt(8, 0).toISOString());
+  // After 9 pm: 8 am the next day (13:00 UTC in daylight time).
+  assert.equal(nextSendWindowOpen(cdt(21, 0)).toISOString(), "2026-09-21T13:00:00.000Z");
+  assert.equal(nextSendWindowOpen(cdt(23, 59)).toISOString(), "2026-09-21T13:00:00.000Z");
+  // Standard time: 8 am is 14:00 UTC.
+  assert.equal(nextSendWindowOpen(cst(22, 0)).toISOString(), "2026-01-21T14:00:00.000Z");
+  assert.equal(nextSendWindowOpen(cst(0, 10)).toISOString(), "2026-01-20T14:00:00.000Z");
+  // Across the November change: 10 pm CDT Saturday, 8 am CST Sunday.
+  assert.equal(nextSendWindowOpen(new Date("2026-11-01T03:00:00.000Z")).toISOString(), "2026-11-01T14:00:00.000Z");
+  // Month end rolls over.
+  assert.equal(nextSendWindowOpen(new Date("2026-10-01T03:30:00.000Z")).toISOString(), "2026-10-01T13:00:00.000Z");
+  assert.equal(nextSendWindowOpen(new Date("2026-10-31T02:30:00.000Z")).toISOString(), "2026-10-31T13:00:00.000Z");
+  for (const at of [cdt(0), cdt(7, 59), cdt(21), cst(23, 59)]) {
+    const open = nextSendWindowOpen(at);
+    assert.ok(withinSendWindow(open), at.toISOString());
+    assert.ok(open.getTime() > at.getTime());
+    assert.ok(open.getTime() - at.getTime() <= 11 * 3_600_000 + 60_000, "never more than 11 hours");
   }
 });
 

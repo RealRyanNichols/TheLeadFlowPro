@@ -4,9 +4,9 @@
 // Every page under /agency renders from this file. Prices come from
 // lib/site/offers.ts, where every agency offer is `tbd_ryan` until Ryan sets
 // a number; the pages print the neutral TBD line, never a guess. The
-// ownership promise below is the same one the free-website program already
-// makes: the client pays the platforms directly and keeps the ad account,
-// pixel, audiences, leads, and reporting.
+// ownership promise below is the same one every website build makes: the
+// client pays the platforms directly and keeps the ad account, pixel,
+// audiences, leads, and reporting.
 
 import { BUSINESS } from "./business";
 import { offer, type Offer } from "./offers";
@@ -84,14 +84,14 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     clientPaysDirectly: ["Ad spend, paid to Meta from your card", "Any CRM or form software subscription"],
     notIncluded: ["A promise of a particular cost per lead, number of leads, or return on ad spend", "Running ads for two businesses from one account or audience", "Ad spend passing through The LeadFlow Pro"],
     faq: [
-      { q: "Do I need a website first?", a: "No. Meta lead forms work without one. A landing page usually converts better, and the free five-page website program or Website Launch can build it, priced separately." },
+      { q: "Do I need a website first?", a: "No. Meta lead forms work without one. A landing page usually converts better, and the five-page Website Launch can build it, priced separately." },
       { q: "Who owns the ad account?", a: "You do. If it does not exist yet it is created in your Business Manager. If it exists somewhere else, moving it into your name is the first job." },
       { q: "What does it cost?", a: `Management pricing is confirmed on the scoping call and put in writing before anything starts. Ad spend is separate and goes to Meta directly.` },
       { q: "What happens if we stop?", a: "The account, pixel, audiences, and leads are already yours. Access is removed and everything keeps running." },
     ],
     intakeHref: intake("meta-ads"),
     related: [
-      { href: "/free-build", label: "Free five-page website" },
+      { href: "/agency/websites", label: "Websites" },
       { href: "/scoreboard", label: "How lead records are counted" },
     ],
   },
@@ -137,11 +137,11 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     navLabel: "Websites",
     seoTitle: "Website Design for Longview, TX Businesses | The LeadFlow Pro",
     metaDescription:
-      "Five-page business websites for Longview and East Texas, built to capture the inquiry and hand it to follow-up. Apply for the free build or buy the Website Launch. You own the domain and the site.",
+      "Five-page business websites for Longview and East Texas, built to capture the inquiry and hand it to follow-up. Buy the Website Launch outright or scope a larger build. You own the domain and the site.",
     eyebrow: "Five pages that give people a next step",
     audience: "Any business whose website cannot answer what you do, what it costs, and how to reach you from a phone.",
     problem: "A template someone else owns, a contact form that goes nowhere, and a monthly bill for a site that has never produced a lead you could trace.",
-    promise: "A mobile-first five-page site with lead capture routed to your inbox or CRM, search foundation, analytics in your account, and clear ownership. Apply for the free program or buy it outright.",
+    promise: "A mobile-first five-page site with lead capture routed to your inbox or CRM, search foundation, analytics in your account, and clear ownership. Buy it outright as the Website Launch.",
     included: [
       "Up to five scoped pages: Home, Services, About, Contact, and one conversion page",
       "One lead-capture path with routing to the agreed inbox or CRM",
@@ -151,16 +151,15 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       "Two revision rounds against the written scope",
     ],
     clientOwns: ["The code, the domain, and the hosting project", "The form, the leads, and the analytics", "Every account created for the build"],
-    clientPaysDirectly: ["Domain registration", `Hosting after the included ${PRICES.hostingIncludedDays} days on a free build`, "Any paid software the site depends on"],
+    clientPaysDirectly: ["Domain registration", "Third-party hosting fees, unless you choose managed hosting", "Any paid software the site depends on"],
     notIncluded: ["A promise of a Google ranking, a number of leads, or sales", "Unlimited pages or revisions", "CRM, automation, or ad management (separate scopes on this site)"],
     faq: [
-      { q: "Is the free program real?", a: `Yes. Approved businesses get the five-page build with a ${usd(PRICES.freeBuildFee)} build fee. Application and capacity apply. The buy-it-outright option is the Website Launch at ${usd(PRICES.websiteLaunchTotal)}.` },
-      { q: "Do you host it?", a: `The first ${PRICES.hostingIncludedDays} days are included on a free build. After that you can self-host, export, or choose managed hosting at ${usd(PRICES.hostingManagedMonthly)} a month, or ${usd(PRICES.hostingWithEditsMonthly)} a month with two minor edits.` },
+      { q: "What does it cost?", a: `The five-page Website Launch is ${usd(PRICES.websiteLaunchTotal)}: ${usd(PRICES.websiteLaunchDeposit)} to start and ${usd(PRICES.websiteLaunchFinal)} after approval, before launch. Anything larger gets a written scope and price first.` },
+      { q: "Do you host it?", a: `You can self-host, export, or choose managed hosting at ${usd(PRICES.hostingManagedMonthly)} a month, or ${usd(PRICES.hostingWithEditsMonthly)} a month with two minor edits.` },
       { q: "Can it connect to my ads?", a: "Yes. The pixel, tag, and lead routing are set up so an ad click, a form, and a lead record connect. That is the trace-the-sale chain the rest of this site teaches." },
     ],
-    intakeHref: "/free-build",
+    intakeHref: intake("websites"),
     related: [
-      { href: "/free-build", label: `Free Website Program, ${usd(PRICES.freeBuildFee)} build fee` },
       { href: "/packages/launch", label: `Website Launch, ${usd(PRICES.websiteLaunchTotal)}` },
     ],
   },
@@ -257,13 +256,12 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     clientPaysDirectly: ["Email software or scheduling tools, if used", "Ad spend if a post is promoted"],
     notIncluded: ["Invented reviews, statistics, or claims", "Marketing email to anyone who did not opt in", "Posting from LeadFlow accounts on your behalf"],
     faq: [
-      { q: "Is this the Content Engine on the free-website page?", a: `The ${usd(PRICES.freeBuildContentEngine)} Content Engine is the fixed two-week version that comes with the free website. The agency version runs on a monthly cadence and is scoped and priced on the call.` },
+      { q: "What does it cost?", a: "The content service runs on a monthly cadence. It is scoped and priced on the call and put in writing before anything starts." },
       { q: "Will it sound like me?", a: "It has to. The first job is a short voice interview; every draft is checked against it, and nothing publishes without your approval on the first batch." },
       { q: "Can I learn to do this myself?", a: "Yes. The Content Engine course in the Operator Academy teaches the same process." },
     ],
     intakeHref: intake("content"),
     related: [
-      { href: "/free-build", label: `Free Website + Content Engine, ${usd(PRICES.freeBuildContentEngine)}` },
       { href: "/operator-academy/content-engine", label: "The Content Engine course" },
     ],
   },
@@ -280,7 +278,7 @@ export function agencyOffer(service: AgencyService): Offer {
 export const AGENCY_HUB = {
   eyebrow: "Run it for me",
   title: "The agency lane.",
-  lead: `Meta ads, Google Ads, websites, automation, video, and content, run by ${BUSINESS.operator} in accounts you own. The free five-page website stays the front door; this is the lane for owners who want the whole loop handled.`,
+  lead: `Meta ads, Google Ads, websites, automation, video, and content, run by ${BUSINESS.operator} in accounts you own. This is the lane for owners who want the whole loop handled.`,
   budgetNote: "The intake asks for the monthly ad budget you are genuinely prepared to spend. A $0 answer does not disqualify you; it routes you to the right lane.",
   contact: {
     phone: BUSINESS.phone.display,

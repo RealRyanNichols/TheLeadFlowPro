@@ -28,6 +28,9 @@ type BackOfficeLink = {
  * own, the only link to the call sheet, and stays visible on a phone.
  */
 const BACK_OFFICE_LINKS: readonly BackOfficeLink[] = [
+  // Every open lead no person has called, texted, or noted yet, oldest first,
+  // with one-click Mark contacted. Under /admin/sales so Pat (sales) opens it too.
+  { href: "/admin/sales/uncalled", label: "Uncalled", strong: true },
   { href: "/admin/command-center", label: "Command" },
   // The owner dashboard on the DigitalOcean server, signed in with this login.
   { href: "/admin/business", label: "Business" },

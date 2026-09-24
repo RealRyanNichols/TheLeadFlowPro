@@ -297,7 +297,7 @@ const PAGE_LABELS: Array<[RegExp, string]> = [
   [/^\/tools\/collections/, "a tool collection"],
   [/^\/tools\/[^/]+/, "a free business tool"],
   [/^\/tools$/, "the free tools directory"],
-  [/^\/free-build/, "the Free Build offer"],
+  [/^\/services/, "the services page"],
   [/^\/pricing/, "the packages page"],
   [/^\/start/, "the Map My Company flow"],
   [/^\/book/, "the booking page"],

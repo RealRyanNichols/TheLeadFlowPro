@@ -22,8 +22,12 @@ export const LEADFLOW_META = {
   adSetId: "120253551492780154",
   crmDatasetId: "2550895935381476",
   campaignKey: "free_website_longview_2026_09",
+  // The free website build this form sold was retired on 2026-09-22, so the
+  // thank-you screen now points at /services (utm tags unchanged). The Instant
+  // Form's thank-you URL in Ads Manager must be changed to match exactly, or
+  // the preflight's exact comparison fails.
   destinationUrl:
-    "https://www.theleadflowpro.com/free-build?utm_source=facebook&utm_medium=paid&utm_campaign=free_website_longview_2026_09&utm_content=instant_form_thank_you",
+    "https://www.theleadflowpro.com/services?utm_source=facebook&utm_medium=paid&utm_campaign=free_website_longview_2026_09&utm_content=instant_form_thank_you",
   objective: "LEADS",
   conversionLocation: "INSTANT_FORM",
   performanceGoal: "MAXIMIZE_QUALIFIED_LEADS",
@@ -112,10 +116,11 @@ export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> 
     funnel: "workshop_sep17",
   },
   "1602617814609528": {
-    // LFP Free Build NoQ v2 — free five-page build, zero questions.
+    // LFP Free Build NoQ v2. The free build is retired (2026-09-22); the
+    // form stays registered so its leads are still admitted, filed as a
+    // Website Launch inquiry under the default meta_lead_form funnel.
     campaign: "free_website_noq_2026_09",
     inquiryOptIn: true,
-    funnel: "free_build_funnel",
   },
   "1001553739566746": {
     // LFP Services Volume v1 — Learn It / Build It With You / Done For You.

@@ -72,10 +72,10 @@ const now = SAMPLE_NOW;
 const hoursAgo = (h: number) => new Date(now.getTime() - h * 3_600_000).toISOString();
 const base = { email: null, source: "meta_lead_ad", utm_source: null, best_contact_method: null, sms_consent: false, sms_unsubscribed_at: null, is_test: false, status: "new", business_name: null };
 const leads: CallSheetLead[] = [
-  { ...base, id: "a", created_at: hoursAgo(3), full_name: "Avery Fictional", phone: "(903) 555-0101", interest: "free_website_program", next_follow_up_at: null },
+  { ...base, id: "a", created_at: hoursAgo(3), full_name: "Avery Fictional", phone: "(903) 555-0101", interest: "website_launch", next_follow_up_at: null },
   { ...base, id: "b", created_at: hoursAgo(80), full_name: "Blake Fictional", phone: "(903) 555-0102", interest: "website_launch", status: "contacted", next_follow_up_at: hoursAgo(2) },
   { ...base, id: "c", created_at: hoursAgo(50), full_name: "Casey Fictional", phone: "(903) 555-0103", interest: "system_map", status: "contacted", next_follow_up_at: new Date(now.getTime() + 26 * 3_600_000).toISOString() },
-  { ...base, id: "d", created_at: hoursAgo(40), full_name: "Drew Fictional", phone: "(903) 555-0104", interest: "free_website_program", next_follow_up_at: null },
+  { ...base, id: "d", created_at: hoursAgo(40), full_name: "Drew Fictional", phone: "(903) 555-0104", interest: "website_launch", next_follow_up_at: null },
 ];
 const touches: CallSheetTouch[] = [
   { lead_id: "b", at: hoursAgo(26), kind: "note", summary: "Call: talked, call back later. Wants to check with a partner first." },

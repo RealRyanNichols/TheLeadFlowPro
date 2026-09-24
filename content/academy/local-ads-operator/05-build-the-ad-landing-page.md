@@ -40,7 +40,7 @@ The form: name, phone, one qualifying question. Every extra field costs you peop
 
 On an instant form, same rules. Intro text that matches this ad. One of my forms said "You watched the whole thing, let's build yours," and it was attached to a still picture ad. Nobody watched anything. First question is the promise. Contact fields. Then the optional questions. Meta will not let you edit a form that has collected leads, so duplicate it as version two and swap the ad over.
 
-If you need a page and do not have a site to put it on, /free-build is where I build the first working version.
+If you need a page and do not have a site to put it on, the Website Launch at /packages/launch is where I build the first working version.
 
 What good looks like: one thing to tap, and the page loads before the person's thumb leaves the screen.
 
