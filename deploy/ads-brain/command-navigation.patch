@@ -1,0 +1,11 @@
+--- public/command.html
++++ public/command.html
+@@ -79,7 +79,7 @@
+ <div class="band">
+   <div class="row">
+     <div class="brand">Command<small id="upd">Loading...</small></div>
+-    <nav class="nav"><a href="/dashboard">Dashboard</a><a href="/">Call desk</a><button id="refresh" type="button">Refresh</button></nav>
++    <nav class="nav"><a href="/dashboard">Dashboard</a><a href="/ads">Ads Brain</a><a href="/">Call desk</a><button id="refresh" type="button">Refresh</button></nav>
+   </div>
+ </div>
+ <div class="jumpbar"><div class="jump" id="jump"></div></div>
