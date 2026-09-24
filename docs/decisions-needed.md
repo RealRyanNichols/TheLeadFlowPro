@@ -515,21 +515,17 @@ Added September 23, 2026 with `docs/CHASE_SHEET_RELEASE.md`. The product is
 built and tested; each item below is a switch, an account action, or a check
 only Ryan can do. Nothing has been deployed, charged, or created in Stripe.
 
-70. **Apply the Chase Sheet migration.**
-    `supabase/migrations/20260923120000_chase_sheet.sql` creates three new
-    tables (accounts, quotes, touches), service role only. Apply it with
-    `supabase db push --include-all` or the Supabase MCP before the first
-    sale. Without it, a paid checkout still charges the card, the claim route
-    sends the buyer to the locked view with "claim=unavailable", and the
-    webhook returns 500 until the tables exist (Stripe retries). Default:
-    apply before merging.
+70. **Apply the Chase Sheet migration.** Done September 24, 2026 on Ryan's
+    "deploy and make live" instruction: applied to the live project through
+    the Supabase MCP as migration `chase_sheet`. The repo file
+    `supabase/migrations/20260923120000_chase_sheet.sql` is the same SQL and
+    is idempotent, so a later `supabase db push` is harmless.
 
-71. **The Stripe payment links.** The page sells through `/api/checkout` and
-    needs nothing in the dashboard. For a link to paste into a text or a
-    post, run `npm run chasesheet:stripe` with the live `STRIPE_SECRET_KEY`
-    exported in a local shell. It prints two hosted links that fulfil
-    exactly like the page. Then, optionally, paste them into
-    `EXTERNAL_LINKS`. Ryan-only: it creates objects in the live account.
+71. **The Stripe payment links.** Done September 24, 2026: product, both
+    prices, and both hosted Payment Links created in the live account and
+    recorded in `EXTERNAL_LINKS` and `docs/CHASE_SHEET_RELEASE.md`. The page
+    buttons still sell through `/api/checkout`; the links are for texts,
+    posts, and emails.
 
 72. **Refund window.** `/chase-sheet/terms` promises a full refund within
     seven days of a first purchase, and no refund on renewal months. Decision:

@@ -255,6 +255,7 @@ export const OFFERS: readonly Offer[] = [
     effectiveDate: "2026-09-23",
     reviewDate: REVIEW,
     href: "/chase-sheet",
+    stripeLink: EXTERNAL_LINKS.stripeChaseSheetMonthly,
     source: "lib/chaseSheet/product.ts",
   },
   {
@@ -268,6 +269,7 @@ export const OFFERS: readonly Offer[] = [
     effectiveDate: "2026-09-23",
     reviewDate: REVIEW,
     href: "/chase-sheet",
+    stripeLink: EXTERNAL_LINKS.stripeChaseSheetLifetime,
     source: "lib/chaseSheet/product.ts",
   },
   {
