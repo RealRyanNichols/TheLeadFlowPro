@@ -9,6 +9,16 @@ Everything below is run by Ryan in the droplet's web console
 (DigitalOcean, Droplets, the droplet, Console). No SSH key is needed, and no
 secret ever goes into the repository, which is public.
 
+Ryan, September 24, 2026: "We don't do anything in Vercel anymore." From the
+commit that carries it, `vercel.json` sets `git.deploymentEnabled` to false,
+so a push or a merge builds nothing on Vercel: no previews, no production
+deploys. Every build happens on the droplet (`deploy.sh`, below). Until the
+DNS cutover in section 2, www.theleadflowpro.com is still answered by the last
+deployment Vercel made, and Vercel Cron keeps running the jobs from that
+deployment, so nothing goes dark in between. Merged work reaches the public
+only after the cutover, so do the cutover soon. `vercel.json` stays as the
+list of scheduled jobs the droplet's cron container reads.
+
 ## What runs where after the move
 
 | Piece | Before | After |
@@ -104,8 +114,10 @@ Do not combine this with the email move; do them on different days.
      arrives and the lead shows in `/admin`.
    - Stripe dashboard, Developers, Webhooks, the endpoint: the next deliveries
      show `200`. Quo and Meta webhooks use the same domain, so they follow DNS.
-7. Keep the Vercel project for 14 days as the rollback. Then cancel the paid
-   plan or delete the project.
+7. Keep the Vercel project for 14 days as the rollback. It serves the last
+   deployment Vercel made before git deploys were turned off, so a rollback
+   also rolls the code back to that commit. Then cancel the paid plan or
+   delete the project.
 
 ## 3. Shipping changes after the move
 
@@ -134,7 +146,7 @@ cron jobs back on. Nothing else needs undoing.
   they stay on `https://www.theleadflowpro.com` behind Caddy.
 - `/api/track` no longer gets a country and region: those came from Vercel's
   `x-vercel-ip-country` headers. Everything else in the event is the same.
-- Branch previews end when the Vercel project is removed. Check a branch with
+- Branch previews are gone (Vercel builds nothing from git). Check a branch with
   the unit tests and `npm run build` before merging, then deploy.
 - Function time limits (`maxDuration`) no longer apply; nothing times out
   early.
