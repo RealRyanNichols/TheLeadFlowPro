@@ -159,3 +159,29 @@ export function initializeMarketingAnalytics(metaPixelId: string, googleAdsId: s
     document.head.appendChild(script);
   }
 }
+
+/** X measurement is limited to the public Chase Sheet offer page. */
+export function initializeChaseSheetXPixel() {
+  if (!analyticsAllowedNow() || window.location.pathname !== "/chase-sheet") return;
+  if (document.getElementById("lfp-chase-sheet-x-pixel")) return;
+
+  const queue = function (...args: unknown[]) {
+    if (queue.exe) queue.exe(...args);
+    else queue.queue!.push(args);
+  } as ((...args: unknown[]) => void) & {
+    exe?: (...args: unknown[]) => void;
+    queue?: unknown[][];
+    version?: string;
+  };
+  queue.queue = [];
+  queue.version = "1.1";
+  (window as Window & { twq?: typeof queue }).twq = queue;
+
+  const script = document.createElement("script");
+  script.id = "lfp-chase-sheet-x-pixel";
+  script.async = true;
+  script.src = "https://static.ads-twitter.com/uwt.js";
+  script.referrerPolicy = "no-referrer";
+  document.head.appendChild(script);
+  queue("config", "rftj6");
+}
