@@ -26,7 +26,8 @@ import threading
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from typing import Any, Callable, Dict, Mapping, Optional, Tuple, Union
 from urllib.parse import quote, urlencode, urlsplit
 
@@ -39,12 +40,15 @@ Transport = Callable[[str, str, Dict[str, str], Optional[bytes], float], Tuple[i
 
 MAX_RETRIES = 3                       # retries after the first attempt
 RETRY_BACKOFF_S = (2.0, 6.0, 18.0)
-MAX_RETRY_AFTER_S = 120.0
+MAX_RETRY_AFTER_S = 120.0             # waited in place; a longer Retry-After ends the sync (see get_json)
+MAX_DEFER_S = 3600.0                  # the longest Retry-After we report back as the wanted wait
+MAX_REDIRECTS = 3
 MAX_BODY_BYTES = 200 * 1024 * 1024    # Overpass answers for one city are a few MB
 
 # Test hooks: tests swap these for a fake clock and a recording sleep.
 clock: Callable[[], float] = time.monotonic
 sleep: Callable[[float], None] = time.sleep
+wall_clock: Callable[[], float] = time.time  # for Retry-After given as an HTTP date
 
 _slots_lock = threading.Lock()
 _next_slot: Dict[str, float] = {}
@@ -55,10 +59,12 @@ class SourceError(Exception):
 
 
 class ApiError(SourceError):
-    def __init__(self, status: int, reason: str, host: str = ""):
+    def __init__(self, status: int, reason: str, host: str = "", retry_after_s: Optional[float] = None):
         self.status = int(status)
         self.reason = reason
         self.host = host
+        # When the server asked us to come back later than we wait in place (capped).
+        self.retry_after_s = retry_after_s
         super().__init__(f"{host or 'api'} {self.status}: {reason}")
 
 
@@ -87,20 +93,64 @@ def _throttle(host: str, interval: float) -> None:
         sleep(wait)
 
 
-def _read_capped(resp, host: str) -> bytes:
-    payload = resp.read(MAX_BODY_BYTES + 1)
-    if len(payload) > MAX_BODY_BYTES:
-        raise ApiError(getattr(resp, "status", 0) or 0, "response_too_large", host)
-    return payload
+def _read_capped(resp, host: str, deadline: Optional[float] = None) -> bytes:
+    """The body, at most MAX_BODY_BYTES, read one receive at a time so a slow drip hits ``deadline``."""
+    reader = getattr(resp, "read1", None) or resp.read
+    parts = []
+    total = 0
+    while True:
+        if deadline is not None and time.monotonic() > deadline:
+            raise TimeoutError("api body read deadline")
+        data = reader(min(1 << 20, MAX_BODY_BYTES + 1 - total))
+        if not data:
+            break
+        parts.append(data)
+        total += len(data)
+        if total > MAX_BODY_BYTES:
+            raise ApiError(getattr(resp, "status", 0) or 0, "response_too_large", host)
+    return b"".join(parts)
+
+
+def _port(parts) -> Optional[int]:
+    try:
+        return parts.port or {"https": 443, "http": 80}.get(parts.scheme.lower())
+    except ValueError:
+        return None
+
+
+class SameHostRedirect(urllib.request.HTTPRedirectHandler):
+    """Follow a redirect only to https on the same API host and port, at most 3 times.
+
+    Anything else (another host, another port, a downgrade to http, ftp) comes
+    back as the 3xx itself, which get_json reports as an ApiError. An API
+    response can then never send our requests to the CRM or the cloud
+    metadata service on the droplet.
+    """
+
+    max_redirections = MAX_REDIRECTS
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        old, new = urlsplit(req.full_url), urlsplit(newurl)
+        same_host = (old.hostname or "").lower() == (new.hostname or "").lower()
+        # https keeps its port; an http API may only move up to https on 443.
+        same_port = _port(new) == (_port(old) if old.scheme.lower() == "https" else 443)
+        if new.scheme.lower() != "https" or not same_host or not same_port or new.username or new.password:
+            logger.warning("api redirect refused host=%s", (old.hostname or "").lower())
+            return None
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+_opener = urllib.request.build_opener(SameHostRedirect)
 
 
 def default_transport(method: str, url: str, headers: Dict[str, str], body: Optional[bytes],
                       timeout: float) -> Tuple[int, Mapping[str, str], bytes]:
     request = urllib.request.Request(url, data=body, headers=headers, method=method)
     host = (urlsplit(url).hostname or "").lower()
+    deadline = time.monotonic() + float(timeout) * 2
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as resp:
-            return resp.status, dict(resp.headers.items()), _read_capped(resp, host)
+        with _opener.open(request, timeout=timeout) as resp:
+            return resp.status, dict(resp.headers.items()), _read_capped(resp, host, deadline)
     except urllib.error.HTTPError as exc:
         try:
             payload = exc.read(65536) or b""
@@ -110,12 +160,21 @@ def default_transport(method: str, url: str, headers: Dict[str, str], body: Opti
 
 
 def _retry_after(headers: Mapping[str, str]) -> Optional[float]:
+    """Seconds the server asked us to wait (a number or an HTTP date), or None."""
     for key, value in (headers or {}).items():
         if str(key).lower() == "retry-after":
             text = str(value).strip()
-            if re.fullmatch(r"\d+(?:\.\d+)?", text) and float(text) <= MAX_RETRY_AFTER_S:
+            if re.fullmatch(r"\d+(?:\.\d+)?", text):
                 return float(text)
-            return None
+            try:
+                when = parsedate_to_datetime(text)
+            except (TypeError, ValueError, IndexError):
+                return None
+            if when is None:
+                return None
+            if when.tzinfo is None:
+                when = when.replace(tzinfo=timezone.utc)
+            return max(0.0, when.timestamp() - wall_clock())
     return None
 
 
@@ -132,8 +191,12 @@ def get_json(
     """GET (or POST form ``data``) and decode JSON, politely.
 
     Retries up to ``MAX_RETRIES`` times on 429, 5xx, and connection errors,
-    waiting ``Retry-After`` seconds when the server gives a number up to 120,
-    else the backoff ladder. Other statuses fail at once.
+    waiting ``Retry-After`` (seconds or an HTTP date) when it is up to 120 s,
+    else the backoff ladder. A longer ``Retry-After`` is honoured by not
+    retrying at all: the ApiError (reason ``retry_after``) ends the sync, and
+    the service holds a failed sync back for hours, longer than the wait the
+    server asked for (reported, capped at an hour, as ``retry_after_s``).
+    Other statuses fail at once.
     """
     if params:
         items = list(params.items()) if isinstance(params, Mapping) else list(params)
@@ -164,9 +227,12 @@ def get_json(
                 raise ApiError(status, "invalid_json", host) from None
         if not (status == 0 or status == 429 or 500 <= status <= 599):
             raise ApiError(status, reason, host)
+        delay = _retry_after(resp_headers)
+        if delay is not None and delay > MAX_RETRY_AFTER_S:
+            logger.warning("api host=%s status=%s asked to wait %.0fs; sync deferred", host, status, delay)
+            raise ApiError(status, "retry_after", host, retry_after_s=min(delay, MAX_DEFER_S))
         if attempt >= MAX_RETRIES:
             raise ApiError(status, reason, host)
-        delay = _retry_after(resp_headers)
         if delay is None:
             delay = RETRY_BACKOFF_S[min(attempt, len(RETRY_BACKOFF_S) - 1)]
         attempt += 1

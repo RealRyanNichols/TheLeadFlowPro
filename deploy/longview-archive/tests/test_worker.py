@@ -293,7 +293,8 @@ class VisitTest(WorkerCase):
         self.assertEqual(self.facts_of(bid), {})
 
         worker.persist_host_state(self.conn, self.fetcher)
-        state = self.conn.execute("SELECT * FROM host_state WHERE host='www.busy.example'").fetchone()
+        # Backoff belongs to the site (registrable domain), so www and apex share it.
+        state = self.conn.execute("SELECT * FROM host_state WHERE host='busy.example'").fetchone()
         self.assertEqual(state["backoff_level"], 1)
         self.assertEqual(state["backoff_until"], row["next_crawl_at"])
         # Even if the business itself were due, its host is skipped while in backoff.
@@ -312,13 +313,15 @@ class VisitTest(WorkerCase):
     def test_host_state_round_trip(self):
         bid = self.add("Example Busy Shop", "https://www.busy.example/")
         self.crawl(bid)
-        self.assertEqual(worker.persist_host_state(self.conn, self.fetcher), 1)
+        # One row for the host (its robots.txt) and one for the site (spacing and backoff).
+        self.assertEqual(worker.persist_host_state(self.conn, self.fetcher), 2)
         fresh = make_fetcher(self.settings, FakeWeb(clock=self.clock), self.clock)
-        self.assertEqual(worker.load_host_state(self.conn, fresh), 1)
+        self.assertEqual(worker.load_host_state(self.conn, fresh), 2)
         self.assertTrue(fresh.host_in_backoff("www.busy.example"))
-        # Persisting again updates the same row.
+        self.assertTrue(fresh.host_in_backoff("busy.example"))
+        # Persisting again updates the same rows.
         worker.persist_host_state(self.conn, self.fetcher)
-        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM host_state").fetchone()[0], 1)
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM host_state").fetchone()[0], 2)
 
     def test_cloudflare_challenge_is_blocked_for_14_days(self):
         bid = self.add("Example Pawn & Jewelry", "https://www.guarded.example/")
@@ -485,6 +488,120 @@ class VisitTest(WorkerCase):
         self.assertEqual(outcome, "suppressed")
         self.assertEqual(self.facts_of(bid), {})
         self.assertIsNotNone(self.row(bid)["next_crawl_at"])
+
+
+def _page(title: str, body: str = "") -> bytes:
+    return (f"<html><head><title>{title}</title></head><body><h1>{title}</h1>{body}</body></html>").encode()
+
+
+class ReviewFixesTest(WorkerCase):
+    """Regression tests for the crawl and honesty review findings."""
+
+    CHALLENGE = {"cf-mitigated": "challenge", "Content-Type": "text/html"}
+
+    def test_challenge_on_a_sub_page_stops_the_visit_and_closes_the_site(self):
+        bid = self.add("Example Taqueria", "https://www.taqueria.example/", street="100 Example St")
+        twin = self.add("Example Taqueria Downtown", "https://www.taqueria.example/downtown")
+        self.web.override("https://www.taqueria.example/contact", 403, self.CHALLENGE, b"")
+        result, _ = self.crawl(bid)
+        # Nothing after the challenge: the visit stops, as it does for a backoff.
+        self.assertEqual(self.web.page_requests("www.taqueria.example"),
+                         ["https://www.taqueria.example/", "https://www.taqueria.example/contact"])
+        self.assertFalse(result.complete)
+        self.assertEqual(self.fetcher.blocked_kind("www.taqueria.example"), "challenge")
+        # The site stays closed for every business on it, across a restart of the fetcher.
+        worker.persist_host_state(self.conn, self.fetcher)
+        self.conn.execute("UPDATE businesses SET next_crawl_at=NULL")
+        self.assertNotIn(twin, [s.id for s in worker.due_businesses(self.conn, self.settings, self.clock.iso(), 5)])
+        self.later(13)
+        self.assertEqual(worker.due_businesses(self.conn, self.settings, self.clock.iso(), 5), [])
+        self.later(1.1)
+        self.assertEqual(len(worker.due_businesses(self.conn, self.settings, self.clock.iso(), 5)), 1)
+
+    def test_one_business_per_site_and_www_backoff_closes_the_apex(self):
+        a = self.add("Example Tire & Lube", "https://www.exampletire.example/")
+        self.add("Example Tire & Lube South", "https://exampletire.example/south")
+        due = worker.due_businesses(self.conn, self.settings, self.clock.iso(), 5)
+        self.assertEqual([s.id for s in due], [a])  # never both at once: same site
+        self.conn.execute("INSERT INTO host_state(host, backoff_level, backoff_until) VALUES (?,?,?)",
+                          ("www.exampletire.example", 1, plus_days(self.clock.iso(), 1)))
+        self.assertEqual(worker.due_businesses(self.conn, self.settings, self.clock.iso(), 5), [])
+
+    def test_identity_lost_on_recheck_stops_publishing_the_old_site(self):
+        from longview_archive import publish
+        site = "https://www.taqueria.example/"
+        bid = self.add("Casa Sol Cantina", site, street="100 Example St")
+        self.web.override(site, 200, None, _page("Casa Sol Cantina",
+                                                 '<p><a href="tel:+19035550150">(903) 555-0150</a></p>'))
+        _, outcome = self.crawl(bid)
+        self.assertEqual(outcome, "ok")
+        self.assertEqual(self.value(bid, "phone"), "+19035550150")
+        profile = publish.business_profile(self.conn, self.settings, self.row(bid))
+        self.assertEqual(profile["website"]["status"], "ok")
+        self.assertIsNotNone(profile["phone"])
+
+        # The domain lapses and is resold: it now serves someone else.
+        self.web.override(site, 200, None, _page("Bright Smile Orthodontics"))
+        self.later(31)
+        _, outcome = self.crawl(bid)
+        self.assertEqual(outcome, "identity_mismatch")
+        self.assertEqual(self.row(bid)["website_status"], "unknown")
+        self.assertEqual(len(self.reviews(bid, "website_identity")), 1)
+        profile = publish.business_profile(self.conn, self.settings, self.row(bid))
+        self.assertIsNone(profile["website"])
+        self.assertIsNone(profile["phone"])
+        self.assertEqual(self.value(bid, "phone"), "+19035550150")  # kept in the archive, not shown
+
+        # The site identifies as the business again: it is shown again.
+        self.web.override(site, 200, None, _page("Casa Sol Cantina",
+                                                 '<p><a href="tel:+19035550150">(903) 555-0150</a></p>'))
+        self.later(31)
+        self.conn.execute("UPDATE businesses SET next_crawl_at=NULL WHERE id=?", (bid,))
+        _, outcome = self.crawl(bid)
+        self.assertEqual(outcome, "ok")
+        self.assertEqual(self.row(bid)["website_status"], "ok")
+
+    TWO_PHONES = ('<p>Tyler: <a href="tel:+19035550130">(903) 555-0130</a></p>'
+                  '<p>Longview: <a href="tel:+19035550120">(903) 555-0120</a></p>')
+
+    def test_several_local_phones_prefer_the_public_record(self):
+        site = "https://www.examplefamilydental.example/"
+        bid = self.add("Example Family Dental", site, naics="621210")
+        b.add_record(self.conn, bid, "npi", phone="+19035550120")
+        self.web.override(site, 200, None, _page("Example Family Dental", self.TWO_PHONES))
+        self.crawl(bid)
+        self.assertEqual(self.value(bid, "phone"), "+19035550120")
+        self.assertEqual(self.reviews(bid, "multiple_phones"), [])
+
+    def test_several_local_phones_without_a_record_go_to_review(self):
+        site = "https://www.examplefamilydental.example/"
+        bid = self.add("Example Family Dental", site, naics="621210")
+        self.web.override(site, 200, None, _page("Example Family Dental", self.TWO_PHONES))
+        self.crawl(bid)
+        self.assertIsNone(facts.get_fact(self.conn, bid, "phone"))
+        items = self.reviews(bid, "multiple_phones")
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]["field"], "phone")
+
+    def test_several_local_phones_prefer_the_sites_structured_data(self):
+        site = "https://www.examplefamilydental.example/"
+        bid = self.add("Example Family Dental", site, naics="621210")
+        jsonld = ('<script type="application/ld+json">{"@type": "Dentist", "name": "Example Family Dental",'
+                  ' "telephone": "+1-903-555-0120"}</script>')
+        self.web.override(site, 200, None, _page("Example Family Dental", self.TWO_PHONES + jsonld))
+        self.crawl(bid)
+        self.assertEqual(self.value(bid, "phone"), "+19035550120")
+        self.assertEqual(self.reviews(bid, "multiple_phones"), [])
+
+    def test_choose_phone_unit(self):
+        f = worker.Found
+        tyler = f("+19035550130", "tel_link", 0.95, "u")
+        longview = f("+19035550120", "text", 0.8, "u")
+        dallas = f("+12145550142", "tel_link", 0.95, "u")
+        self.assertEqual(worker.choose_phone([tyler, longview], "+19035550120"), (longview, None))
+        self.assertEqual(worker.choose_phone([tyler, longview], None), (tyler, "multiple_phones"))
+        self.assertEqual(worker.choose_phone([dallas, longview], None), (longview, None))
+        self.assertEqual(worker.choose_phone([dallas], None), (dallas, "phone_out_of_area"))
 
 
 if __name__ == "__main__":

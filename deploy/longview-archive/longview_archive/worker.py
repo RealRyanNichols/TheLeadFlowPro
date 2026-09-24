@@ -33,6 +33,7 @@ from urllib.parse import parse_qsl, urlsplit
 from . import config, db, facts, normalize, privacy
 from .extract import careers, contacts, hours as hours_mod, identity, services, social
 from .extract.html import Page, parse_page
+from .fetcher import site_key
 from .publish import resolve_now
 
 log = logging.getLogger(__name__)
@@ -150,6 +151,7 @@ class VisitResult:
     hours_url: Optional[str] = None
     hours_method: str = "text"
     phones: List[Found] = field(default_factory=list)
+    jsonld_phones: List[str] = field(default_factory=list)  # E.164 numbers in the site's JSON-LD
     emails: List[Found] = field(default_factory=list)
     socials: List[Tuple[social.SocialCandidate, str]] = field(default_factory=list)
     careers_url: Optional[str] = None
@@ -232,8 +234,11 @@ def due_businesses(conn: sqlite3.Connection, settings, now: Any, limit: int) -> 
     """Businesses whose website is due for a visit, oldest first, one per host.
 
     Due means: a website is known, the business is active, in the city or
-    nearby, not suppressed, ``next_crawl_at`` is empty or past, and the host is
-    not in backoff (``host_state.backoff_until`` in the future).
+    nearby, not suppressed, ``next_crawl_at`` is empty or past, and the site is
+    not in backoff or blocked by a challenge (``host_state.backoff_until`` in
+    the future for the host or its registrable domain). At most one business
+    per site (registrable domain) is handed out, so ``biz.example`` and
+    ``www.biz.example`` are never visited at the same time.
     """
     if limit <= 0:
         return []
@@ -248,17 +253,21 @@ def due_businesses(conn: sqlite3.Connection, settings, now: Any, limit: int) -> 
     in_backoff = {r["host"] for r in conn.execute(
         "SELECT host FROM host_state WHERE backoff_until IS NOT NULL AND backoff_until > ?", (now_s,)
     )}
+    closed_sites = {site_key(h) for h in in_backoff}  # a row keyed by any host of the site closes it
     out: List[BusinessSnapshot] = []
-    hosts = set()
+    sites = set()
     for row in rows:
         if len(out) >= limit:
             break
         snap = snapshot(conn, row)
-        if snap is None or not snap.host or snap.host in hosts or snap.host in in_backoff:
+        if snap is None or not snap.host:
+            continue
+        site = site_key(snap.host)
+        if site in sites or snap.host in in_backoff or site in closed_sites:
             continue
         if privacy.is_suppressed(conn, row):
             continue
-        hosts.add(snap.host)
+        sites.add(site)
         out.append(snap)
     return out
 
@@ -313,10 +322,11 @@ def choose_pages(home: Page, site_domain: str, fetched: Sequence[str], budget: i
 
 
 def _backoff_until(fetcher, host: str) -> Optional[str]:
-    for row in fetcher.export_host_state():
-        if row.get("host") == host:
-            return row.get("backoff_until")
-    return None
+    """The latest backoff end recorded for the host or its site (backoff is kept per site)."""
+    keys = {host, site_key(host)}
+    until = [row.get("backoff_until") for row in fetcher.export_host_state()
+             if row.get("host") in keys and row.get("backoff_until")]
+    return max(until) if until else None
 
 
 def _classify_home(result: VisitResult, fetched, fetcher) -> bool:
@@ -396,6 +406,10 @@ def _extract(result: VisitResult, snap: BusinessSnapshot, pages: List[Tuple[Opti
     for _, page in pages:
         for e164, method, confidence in contacts.phones(page, allow_fictional=settings.allow_fictional_phones):
             _best_found(phones, e164, method, confidence, page.url)
+        for raw in contacts._jsonld_values(page, "telephone"):
+            e164 = normalize.norm_phone(raw, allow_fictional=settings.allow_fictional_phones)
+            if e164 and e164 not in result.jsonld_phones:
+                result.jsonld_phones.append(e164)
         for email, method, confidence in contacts.emails(page, site_domain):
             _best_found(emails, email, method, confidence, page.url)
         for cand in social.social_links(page, snap.name, site_domain):
@@ -440,9 +454,9 @@ def visit(snap: BusinessSnapshot, fetcher, settings) -> VisitResult:
     complete = True
     for rank, url in choose_pages(home_page, site_domain, [snap.website, home.final_url], budget):
         page = fetcher.fetch(url)
-        if page.blocked == "backoff":
+        if page.blocked in ("backoff", "challenge"):
             complete = False
-            break  # the host asked us to slow down: stop, keep what we have
+            break  # the site asked us to slow down, or put up a bot check: stop, keep what we have
         if page.blocked or page.redirected_offsite:
             continue  # robots.txt says no, or the link leaves the site: simply skipped
         if page.error in DEAD_ERRORS or page.error == "http_5xx":
@@ -486,6 +500,35 @@ def _identity_accepted(conn: sqlite3.Connection, business_id: int, site_url: str
     return False
 
 
+def choose_phone(phones: Sequence[Found], known: Optional[str],
+                 structured: Sequence[str] = ()) -> Tuple[Found, Optional[str]]:
+    """(the phone to propose, review flag or None) from the distinct numbers a site lists.
+
+    A site can list other branches, a fax, or its web designer, so the first
+    number is not assumed to be this location's:
+
+    1. the number the business's own public record (or the accepted fact)
+       already has, when the site lists it;
+    2. else the one local number in the site's own structured data (JSON-LD);
+    3. else the only local (903/430) number;
+    4. several local numbers and no way to choose: the first goes to review as
+       ``multiple_phones``; only out-of-area numbers: review ``phone_out_of_area``.
+    """
+    if known:
+        for found in phones:
+            if found.value == known:
+                return found, None
+    local = [p for p in phones if _area_code(p.value) in config.EAST_TEXAS_AREA_CODES]
+    in_jsonld = [p for p in local if p.method == "jsonld" or p.value in structured]
+    if len(in_jsonld) == 1:
+        return in_jsonld[0], None
+    if len(local) == 1:
+        return local[0], None
+    if local:
+        return local[0], "multiple_phones"
+    return phones[0], "phone_out_of_area"
+
+
 def _write_facts(conn: sqlite3.Connection, snap: BusinessSnapshot, result: VisitResult, now_s: str) -> Dict[str, int]:
     bid = snap.id
     tally: Dict[str, int] = {}
@@ -503,9 +546,7 @@ def _write_facts(conn: sqlite3.Connection, snap: BusinessSnapshot, result: Visit
         observe("address_listed", True, ident.address_url or result.final_url, "text", ADDRESS_CONFIDENCE)
 
     if result.phones:
-        local = [p for p in result.phones if _area_code(p.value) in config.EAST_TEXAS_AREA_CODES]
-        best = (local or result.phones)[0]
-        flag = None if _area_code(best.value) in config.EAST_TEXAS_AREA_CODES else "phone_out_of_area"
+        best, flag = choose_phone(result.phones, snap.phone, result.jsonld_phones)
         observe("phone", best.value, best.source_url, best.method, best.confidence, flag)
         for other in result.phones:
             if other is not best:
@@ -621,6 +662,12 @@ def apply_visit(conn: sqlite3.Connection, snap: BusinessSnapshot, result: VisitR
                 _hiring(conn, snap.id, result, now_s)
             else:
                 outcome = "identity_mismatch"
+                # The site no longer says it is this business (a lapsed or resold domain):
+                # stop showing it and everything read from it until a person decides. The
+                # facts stay in the archive; a later matching visit or an accepted review
+                # brings them back.
+                status = "unknown"
+                conn.execute("UPDATE businesses SET website_status=? WHERE id=?", (status, snap.id))
                 if db.add_review(conn, kind="website_identity", business_id=snap.id, field="website",
                                  detail=ident.reason, source_url=result.final_url, now=now_s):
                     tally["review"] = 1

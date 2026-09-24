@@ -12,6 +12,16 @@ A PAUSE file or low disk stops the network work while the status page keeps
 updating. A stop (SIGTERM from systemd) or a pause also ends a website visit or
 an API retry at its next wait: a polite visit spends minutes waiting between
 requests, and systemd kills the service 60 seconds after asking it to stop.
+An open-data request in flight is abandoned the same way (it runs on a helper
+thread the loop can walk away from), and the PAUSE file is checked again
+between every step, sync, and visit, not only when a loop pass starts.
+
+A site is leased before its visit starts (``next_crawl_at`` moved one rung up
+the backoff ladder), so a process killed in the middle of a visit does not
+fetch the same site again on every restart; the real schedule replaces the
+lease when the visit is written. Host state (backoff, challenges, robots.txt)
+is saved after every visit, and the heartbeat and status page keep updating
+while a slow visit runs.
 """
 
 from __future__ import annotations
@@ -21,7 +31,8 @@ import shutil
 import threading
 import time
 import traceback
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor
+from concurrent.futures import wait as wait_futures
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -40,6 +51,7 @@ INTERRUPTED = "interrupted: the service stopped"
 WAIT_STEP_S = 0.25                # how often a wait checks for a stop or a pause
 ERROR_PAUSE_S = 30.0              # after an unexpected loop error, before trying again
 HOLD_AFTER_FAILURE_S = 15 * 60    # matching or site selection failed: not retried every loop
+KEEPALIVE_S = 60.0                # while visits run, heartbeat and status are refreshed this often
 STATES = status.STATES
 
 
@@ -188,6 +200,8 @@ def _hhmm(text: str) -> tuple:
 class ArchiveService:
     """The loop. ``run_once`` is one iteration; ``run_forever`` repeats it until stopped."""
 
+    keepalive_s = KEEPALIVE_S
+
     def __init__(self, settings, transports: Optional[Mapping[str, Any]] = None, fetcher=None,
                  clock: Optional[Callable[[], Any]] = None, sleep: Optional[Callable[[float], None]] = None,
                  disk_usage: Optional[Callable[[Any], Any]] = None):
@@ -246,13 +260,59 @@ class ArchiveService:
                 return
             time.sleep(min(left, WAIT_STEP_S))
 
+    def _halted(self) -> bool:
+        """A stop was requested or the PAUSE file is present: start no new network work."""
+        if self._stop:
+            return True
+        try:
+            return self.settings.pause_file.exists()
+        except OSError:
+            return False
+
     def _visit_wait(self, seconds: float) -> None:
         """The fetcher's sleep: a visit ends at its next wait on a stop or a pause."""
-        self._wait_or_raise(seconds, lambda: self._stop or self.settings.pause_file.exists())
+        self._wait_or_raise(seconds, self._halted)
 
     def _api_wait(self, seconds: float) -> None:
-        """The open-data client's sleep while the loop runs: a retry wait ends on a stop."""
-        self._wait_or_raise(seconds, lambda: self._stop)
+        """The open-data client's sleep while the loop runs: a retry wait ends on a stop or a pause."""
+        self._wait_or_raise(seconds, self._halted)
+
+    def _abandonable(self, send=None):
+        """Wrap an open-data transport so a stop or a pause abandons a request in flight.
+
+        The request runs on a daemon helper thread (network only, no database)
+        and the loop thread checks for a stop or the PAUSE file every
+        WAIT_STEP_S, so a 200-second Overpass read cannot outlast systemd's
+        60-second stop timeout. A request that runs far past its own timeout
+        (a server dripping bytes) is given up as a network error.
+        """
+        send = send or api_http.default_transport
+
+        def call(method, url, headers, body, timeout):
+            box: Dict[str, Any] = {}
+            done = threading.Event()
+
+            def target():
+                try:
+                    box["value"] = send(method, url, headers, body, timeout)
+                except BaseException as exc:  # noqa: BLE001 - handed back to the loop thread
+                    box["error"] = exc
+                finally:
+                    done.set()
+
+            threading.Thread(target=target, name="api-request", daemon=True).start()
+            limit = time.monotonic() + float(timeout) * 2 + 30
+            while not done.wait(WAIT_STEP_S):
+                if self._halted():
+                    self._local.interrupted = True
+                    raise Interrupted()
+                if time.monotonic() > limit:
+                    raise TimeoutError("api request deadline")
+            if "error" in box:
+                raise box["error"]
+            return box["value"]
+
+        return call
 
     # ------------------------------------------------------------ open and close
     def open(self):
@@ -379,15 +439,17 @@ class ArchiveService:
         self._set_state(state)
         report["state"] = state
 
-        if not guard and not self._stop:
+        # PAUSE is checked again before every step, so a pause during a long sync
+        # also skips the crawl, the export, and the backup that would follow it.
+        if not guard and not self._halted():
             self._sync_step(clock, report)
-            if not self._stop:
+            if not self._halted():
                 self._match_step(clock, report)
-            if not self._stop:
+            if not self._halted():
                 self.crawl(fixed, report=report)
-        if not self._stop:
+        if not self._halted():
             self._publish_step(clock(), report)
-        if not guard and not self._stop:
+        if not guard and not self._halted():
             self._backup_step(clock(), report)
 
         end = clock()
@@ -398,7 +460,7 @@ class ArchiveService:
 
     def _sync_step(self, clock, report) -> None:
         for job in SYNC_JOBS:
-            if self._stop:
+            if self._halted():
                 return
             step = clock()
             due = sync_due_at(self.conn, self.settings, job)
@@ -407,7 +469,8 @@ class ArchiveService:
             stamp = db.now_iso(step)
             report["synced"].append(job.kind)
             try:
-                outcome = run_sync(self.conn, self.settings, job, stamp, self.transports.get(job.transport))
+                outcome = run_sync(self.conn, self.settings, job, stamp,
+                                   self._abandonable(self.transports.get(job.transport)))
             except Interrupted:
                 self.conn.execute(
                     "UPDATE runs SET status='error', finished_at=?, error=? WHERE kind=? AND status='running'"
@@ -415,7 +478,7 @@ class ArchiveService:
                     (db.now_iso(clock()), INTERRUPTED, job.kind, stamp),
                 )
                 report["sync_failed"].append(job.kind)
-                log.info("%s interrupted by the stop", job.kind)
+                log.info("%s interrupted by a stop or pause", job.kind)
                 return
             if not outcome.ok and outcome.status != "skipped":
                 report["sync_failed"].append(job.kind)
@@ -504,15 +567,18 @@ class ArchiveService:
         """Visit due websites once, never more than ``max_sites_concurrent`` at a time.
 
         Visits run on a thread pool sharing one fetcher (which spaces requests
-        per host); each result is written here, on the calling thread, as soon
-        as it arrives. A visit cut short by a stop or a pause is not written,
-        so the site stays due.
+        per site); each result is written here, on the calling thread, as soon
+        as it arrives, and host state is saved right after it. Each site is
+        leased before its visit starts, so a crash mid-visit does not bring it
+        straight back after a restart. A visit cut short by a stop or a pause
+        is not written and its lease is handed back, so the site stays due.
+        While visits run, the heartbeat and status page keep being refreshed.
         """
         self.open()
         report = report if report is not None else {"visits": 0, "applied": {}, "interrupted": 0, "visit_errors": 0}
         workers = max(1, int(self.settings.max_sites_concurrent))
         limit = workers if limit is None else max(0, int(limit))
-        if self._stop or limit == 0:
+        if self._halted() or limit == 0:
             return report
         when = publish.resolve_now(now) if now is not None else self.now()
         if self._held("crawl"):
@@ -525,37 +591,100 @@ class ArchiveService:
             return report
         if not snapshots:
             return report
+        leases = self._lease(snapshots, when)
         with ThreadPoolExecutor(max_workers=min(workers, len(snapshots)), thread_name_prefix="visit") as pool:
             futures = {}
             for snap in snapshots:
-                if self._stop:
-                    break
+                if self._halted():
+                    self._release(snap, leases)  # never started: due again after the stop or pause
+                    continue
                 futures[pool.submit(self._visit, snap)] = snap
-            for future in as_completed(futures):
-                snap = futures[future]
-                report["visits"] += 1
-                ref = getattr(snap, "public_id", "?")
-                try:
-                    result, interrupted = future.result()
-                except Exception as exc:  # noqa: BLE001 - one site's bug must not stop the crawl
-                    report["visit_errors"] += 1
-                    log.warning("visit %s failed: %s at %s", ref, type(exc).__name__, where(exc))
-                    self._defer(snap, when)
+            pending = set(futures)
+            while pending:
+                done, pending = wait_futures(pending, timeout=self.keepalive_s, return_when=FIRST_COMPLETED)
+                if not done:
+                    self._keepalive()
                     continue
-                if interrupted:
-                    report["interrupted"] += 1
-                    continue
-                try:
-                    outcome = worker.apply_visit(self.conn, snap, result, self.settings,
-                                                 now if now is not None else self.now())
-                except Exception as exc:  # noqa: BLE001
-                    report["visit_errors"] += 1
-                    log.warning("apply %s failed: %s at %s", ref, type(exc).__name__, where(exc))
-                    self._defer(snap, when)
-                    continue
-                report["applied"][outcome] = report["applied"].get(outcome, 0) + 1
+                for future in done:
+                    self._handle_visit(future, futures[future], now, when, leases, report)
         self._persist_host_state()
         return report
+
+    def _handle_visit(self, future, snap, now, when: datetime, leases, report) -> None:
+        """Write one finished visit (loop thread), then save host state at once."""
+        report["visits"] += 1
+        ref = getattr(snap, "public_id", "?")
+        try:
+            try:
+                result, interrupted = future.result()
+            except Exception as exc:  # noqa: BLE001 - one site's bug must not stop the crawl
+                report["visit_errors"] += 1
+                log.warning("visit %s failed: %s at %s", ref, type(exc).__name__, where(exc))
+                self._defer(snap, when)
+                return
+            if interrupted:
+                report["interrupted"] += 1
+                self._release(snap, leases)
+                return
+            try:
+                outcome = worker.apply_visit(self.conn, snap, result, self.settings,
+                                             now if now is not None else self.now())
+            except Exception as exc:  # noqa: BLE001
+                report["visit_errors"] += 1
+                log.warning("apply %s failed: %s at %s", ref, type(exc).__name__, where(exc))
+                self._defer(snap, when)
+                return
+            report["applied"][outcome] = report["applied"].get(outcome, 0) + 1
+        finally:
+            # A fresh 429/503 backoff or challenge must survive an abrupt kill right after.
+            self._persist_host_state()
+
+    def _keepalive(self) -> None:
+        """Visits still running: keep the heartbeat and the status page current."""
+        try:
+            tick = self.now()
+            db.set_meta(self.conn, "heartbeat_at", db.now_iso(tick))
+            if self._status_due(tick):
+                self._write_status(tick)
+        except Exception as exc:  # noqa: BLE001 - informational only
+            log.warning("keepalive failed: %s at %s", type(exc).__name__, where(exc))
+
+    def _lease(self, snapshots, when: datetime) -> Dict[int, Optional[str]]:
+        """Move each chosen site's ``next_crawl_at`` one rung up the ladder before visiting it.
+
+        Returns the previous values so an interrupted visit can hand its lease
+        back. apply_visit (or _defer) replaces the lease with the real schedule.
+        """
+        saved: Dict[int, Optional[str]] = {}
+        ladder = tuple(self.settings.backoff_days) or (1,)
+        try:
+            with db.transaction(self.conn):
+                for snap in snapshots:
+                    business_id = getattr(snap, "id", None)
+                    if business_id is None:
+                        continue
+                    row = self.conn.execute(
+                        "SELECT next_crawl_at, crawl_failures FROM businesses WHERE id=?", (business_id,)
+                    ).fetchone()
+                    if row is None:
+                        continue
+                    saved[business_id] = row["next_crawl_at"]
+                    days = ladder[min(int(row["crawl_failures"] or 0), len(ladder) - 1)]
+                    self.conn.execute("UPDATE businesses SET next_crawl_at=? WHERE id=?",
+                                      (db.now_iso(when + timedelta(days=days)), business_id))
+        except Exception as exc:  # noqa: BLE001 - visiting without a lease beats not visiting
+            log.warning("could not lease sites: %s at %s", type(exc).__name__, where(exc))
+            return {}
+        return saved
+
+    def _release(self, snap, leases: Dict[int, Optional[str]]) -> None:
+        business_id = getattr(snap, "id", None)
+        if business_id not in leases:
+            return
+        try:
+            self.conn.execute("UPDATE businesses SET next_crawl_at=? WHERE id=?", (leases[business_id], business_id))
+        except Exception as exc:  # noqa: BLE001
+            log.warning("could not release %s: %s", getattr(snap, "public_id", "?"), type(exc).__name__)
 
     def _defer(self, snap, when: datetime) -> None:
         """A site whose visit crashed waits a day instead of being retried every loop."""

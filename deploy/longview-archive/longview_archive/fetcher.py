@@ -29,7 +29,6 @@ import threading
 import time
 import urllib.error
 import urllib.request
-import urllib.robotparser
 import zlib
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -61,6 +60,11 @@ _EXTRA_UNSAFE_NETS = (
 _NAT64 = ipaddress.ip_network("64:ff9b::/96")
 
 TRANSPORT_ERRORS = ("dns", "connect", "timeout", "tls", "other")
+# robots_status codes for a robots.txt that could not be reached, per transport error kind.
+_ROBOTS_ERROR_CODES = {kind: -2 - i for i, kind in enumerate(TRANSPORT_ERRORS)}
+_ROBOTS_ERROR_KINDS = {code: kind for kind, code in _ROBOTS_ERROR_CODES.items()}
+# A firewall challenge closes the site (registrable domain) for this long, for every business.
+CHALLENGE_DAYS = 14
 
 
 # ---------------------------------------------------------------- data types
@@ -209,14 +213,29 @@ def resolve_checked(host: str, port: int, resolver: Callable = socket.getaddrinf
 
 # ---------------------------------------------------------------- default transport
 
+def request_budget(timeout: float) -> float:
+    """Wall-clock seconds one whole request may take: connect, TLS, headers, and body.
+
+    The socket timeout alone restarts on every byte received, so a server that
+    drips one byte every few seconds could hold a worker for days; this is the
+    hard ceiling (30 s at the production 20 s timeout).
+    """
+    return max(1.0, float(timeout) * 1.5)
+
+
 def read_capped(stream, max_bytes: int, deadline: Optional[float] = None, chunk: int = 65536) -> Tuple[bytes, bool]:
-    """Read at most ``max_bytes + 1`` bytes; (body, truncated)."""
+    """Read at most ``max_bytes + 1`` bytes; (body, truncated).
+
+    ``read1`` returns after a single receive, so the deadline is checked after
+    every piece of data that arrives, not only after a full 64 KB chunk.
+    """
     parts: List[bytes] = []
     total = 0
+    reader = getattr(stream, "read1", None) or stream.read
     while total <= max_bytes:
         if deadline is not None and time.monotonic() > deadline:
             raise TransportError("timeout", "body read")
-        data = stream.read(min(chunk, max_bytes + 1 - total))
+        data = reader(min(chunk, max_bytes + 1 - total))
         if not data:
             return b"".join(parts), False
         parts.append(data)
@@ -267,18 +286,113 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
+class Watchdog:
+    """Cuts a request's sockets off at a wall-clock deadline.
+
+    Every socket a request opens is registered (as a duplicate descriptor, so
+    it stays valid after TLS wraps the original). When the timer fires, each
+    one is shut down, which makes a receive blocked in any thread return at
+    once: a dripped status line, dripped headers, a slow TLS handshake, or a
+    slow body all end at the deadline.
+    """
+
+    _current = threading.local()
+
+    def __init__(self, seconds: float):
+        self._lock = threading.Lock()
+        self._socks: List[socket.socket] = []
+        self.deadline = time.monotonic() + max(0.0, seconds)
+        self.fired = False
+        self._done = False
+        self._timer = threading.Timer(max(0.0, seconds), self._fire)
+        self._timer.daemon = True
+
+    def __enter__(self) -> "Watchdog":
+        Watchdog._current.dog = self
+        self._timer.start()
+        return self
+
+    def __exit__(self, *exc) -> None:
+        self._timer.cancel()
+        with self._lock:
+            self._done = True
+            socks, self._socks = self._socks, []
+        for sock in socks:
+            try:
+                sock.close()
+            except OSError:
+                pass
+        if getattr(Watchdog._current, "dog", None) is self:
+            Watchdog._current.dog = None
+
+    @classmethod
+    def remaining(cls, default: Optional[float]) -> Optional[float]:
+        """Seconds left for the request running on this thread (``default`` when none)."""
+        dog = getattr(cls._current, "dog", None)
+        if dog is None:
+            return default
+        left = dog.deadline - time.monotonic()
+        if left <= 0:
+            raise socket.timeout("request deadline")
+        return left if default is None else min(default, left)
+
+    @classmethod
+    def track(cls, sock: socket.socket) -> None:
+        """Register ``sock`` with the watchdog of the request running on this thread."""
+        dog = getattr(cls._current, "dog", None)
+        if dog is None:
+            return
+        try:
+            dup = sock.dup()
+        except OSError:
+            return
+        with dog._lock:
+            if dog._done:
+                dup.close()
+                return
+            dog._socks.append(dup)
+            fired = dog.fired
+        if fired:
+            dog._cut(dup)
+
+    @staticmethod
+    def _cut(sock: socket.socket) -> None:
+        try:
+            sock.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass
+
+    def _fire(self) -> None:
+        with self._lock:
+            if self._done:
+                return
+            self.fired = True
+            socks = list(self._socks)
+        for sock in socks:
+            self._cut(sock)
+
+
 def _guarded_connection_classes(resolver: Callable, allow_private: bool):
     def guarded_create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None, *args, **kwargs):
         host, port = address[0], address[1]
         if allow_private:
-            return socket.create_connection(address, timeout, source_address)
+            limit = None if timeout is socket._GLOBAL_DEFAULT_TIMEOUT else timeout
+            limit = Watchdog.remaining(limit)
+            sock = socket.create_connection(address, socket._GLOBAL_DEFAULT_TIMEOUT if limit is None else limit,
+                                            source_address)
+            Watchdog.track(sock)
+            return sock
         infos = resolve_checked(host, port, resolver)
         last: Optional[BaseException] = None
         for family, socktype, proto, _, sockaddr in infos:
             sock = socket.socket(family, socktype, proto)
+            Watchdog.track(sock)
             try:
-                if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
-                    sock.settimeout(timeout)
+                # A connect cannot be shut down from outside, so it gets only the time left.
+                limit = None if timeout is socket._GLOBAL_DEFAULT_TIMEOUT else timeout
+                limit = Watchdog.remaining(limit)
+                if limit is not None:
+                    sock.settimeout(limit)
                 if source_address:
                     sock.bind(source_address)
                 sock.connect(sockaddr)
@@ -341,27 +455,35 @@ def make_urllib_transport(resolver: Callable = socket.getaddrinfo, allow_private
 
     def transport(url: str, headers: Mapping[str, str], timeout: float, max_bytes: int) -> RawResponse:
         request = urllib.request.Request(url, headers=dict(headers), method="GET")
-        deadline = time.monotonic() + max(timeout * 3, timeout + 10)
-        try:
-            response = opener.open(request, timeout=timeout)
-        except urllib.error.HTTPError as exc:  # 3xx/4xx/5xx still carry a response
-            response = exc
-        except Exception as exc:  # noqa: BLE001 - every failure becomes a classified error
-            raise _classify_os_error(exc)
-        try:
-            status = int(getattr(response, "status", None) or response.getcode())
-            resp_headers = Headers(list(response.headers.items()))
+        budget = request_budget(timeout)
+        deadline = time.monotonic() + budget
+        with Watchdog(budget) as dog:
             try:
-                body, truncated = read_capped(response, max_bytes, deadline)
-            except TransportError:
-                raise
-            except Exception as exc:  # noqa: BLE001
+                response = opener.open(request, timeout=timeout)
+            except urllib.error.HTTPError as exc:  # 3xx/4xx/5xx still carry a response
+                response = exc
+            except Exception as exc:  # noqa: BLE001 - every failure becomes a classified error
+                if dog.fired:
+                    raise TransportError("timeout", "request deadline") from None
                 raise _classify_os_error(exc)
-        finally:
             try:
-                response.close()
-            except Exception:  # noqa: BLE001
-                pass
+                status = int(getattr(response, "status", None) or response.getcode())
+                resp_headers = Headers(list(response.headers.items()))
+                try:
+                    body, truncated = read_capped(response, max_bytes, deadline)
+                except TransportError:
+                    raise
+                except Exception as exc:  # noqa: BLE001
+                    if dog.fired:
+                        raise TransportError("timeout", "request deadline") from None
+                    raise _classify_os_error(exc)
+            finally:
+                try:
+                    response.close()
+                except Exception:  # noqa: BLE001
+                    pass
+            if dog.fired:  # a cut-off body reads as a clean end; it is not one
+                raise TransportError("timeout", "request deadline")
         decoded = decode_content_encoding(resp_headers, body, truncated, max_bytes)
         return RawResponse(status, decoded.headers, decoded.body, decoded.truncated)
 
@@ -436,10 +558,10 @@ class _Robots:
     text: Optional[str]
     status: int
     fetched_at: float  # wall clock
-    parser: Optional[urllib.robotparser.RobotFileParser] = None
+    parser: Optional["RobotsRules"] = None
     error: Optional[str] = None  # transport error kind when robots.txt could not be reached
 
-    def rules(self) -> Tuple[Optional[bool], Optional[urllib.robotparser.RobotFileParser]]:
+    def rules(self) -> Tuple[Optional[bool], Optional["RobotsRules"]]:
         """(True allow-all | False disallow-all | None use parser, parser)."""
         if self.status == 200 and self.text is not None:
             return None, self.parser
@@ -476,10 +598,183 @@ def _epoch(value: Optional[str]) -> Optional[float]:
     return dt.timestamp() if dt else None
 
 
-def _make_parser(text: str) -> urllib.robotparser.RobotFileParser:
-    parser = urllib.robotparser.RobotFileParser()
-    parser.parse(text.splitlines())
-    return parser
+def site_key(host: str) -> str:
+    """The key requests are spaced and backed off by: the registrable domain.
+
+    ``www.biz.example`` and ``biz.example`` (and ``shop.biz.example``) are one
+    site answered by one server, so they share one 20-second clock and one
+    backoff. IP literals (tests only) are their own key.
+    """
+    host = (host or "").strip().lower().rstrip(".")
+    try:
+        ipaddress.ip_address(host.strip("[]").split("%", 1)[0])
+        return host
+    except ValueError:
+        pass
+    return normalize.registrable_domain(host) or host
+
+
+# ---------------------------------------------------------------- robots.txt (RFC 9309)
+
+_UNRESERVED = frozenset("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
+_HEX = frozenset("0123456789abcdefABCDEF")
+
+
+def _norm_robots_path(text: str) -> str:
+    """Percent-encoding normalized the way RFC 9309 section 2.2.2 compares paths.
+
+    An encoded unreserved character is decoded (``%7E`` -> ``~``), other
+    escapes get upper-case hex (``%2f`` -> ``%2F``), and characters outside
+    printable US-ASCII are UTF-8 percent-encoded, so a rule and a URL that
+    spell the same path differently still match.
+    """
+    out: List[str] = []
+    i, n = 0, len(text)
+    while i < n:
+        ch = text[i]
+        if ch == "%" and i + 2 < n and text[i + 1] in _HEX and text[i + 2] in _HEX:
+            decoded = chr(int(text[i + 1:i + 3], 16))
+            out.append(decoded if decoded in _UNRESERVED else "%" + text[i + 1:i + 3].upper())
+            i += 3
+            continue
+        if ord(ch) > 126 or ord(ch) < 33:
+            out.append("".join(f"%{b:02X}" for b in ch.encode("utf-8", errors="replace")))
+        else:
+            out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+def _rule_matches(pattern: str, path: str) -> bool:
+    """RFC 9309 matching: ``*`` is any run of characters, a final ``$`` anchors the end.
+
+    Greedy left-most matching of the literal pieces is exact for patterns that
+    only use ``*`` and runs in linear time, so a hostile robots.txt cannot make
+    the check slow the way a backtracking regex could.
+    """
+    anchored = pattern.endswith("$")
+    if anchored:
+        pattern = pattern[:-1]
+    pieces = pattern.split("*")
+    first = pieces[0]
+    if not path.startswith(first):
+        return False
+    if len(pieces) == 1:
+        return path == first if anchored else True
+    pos = len(first)
+    for piece in pieces[1:-1]:
+        if not piece:
+            continue
+        found = path.find(piece, pos)
+        if found < 0:
+            return False
+        pos = found + len(piece)
+    last = pieces[-1]
+    if anchored:
+        return len(path) - len(last) >= pos and path.endswith(last)
+    return not last or path.find(last, pos) >= 0
+
+
+def _product_token(value: str) -> str:
+    """``LeadFlowPro-LongviewArchive/1.0 (+https://...)`` -> ``leadflowpro-longviewarchive``."""
+    token = value.strip().split("/", 1)[0].strip()
+    token = token.split()[0] if token.split() else ""
+    return token.lower()
+
+
+class RobotsRules:
+    """A standard-library robots.txt matcher that follows RFC 9309.
+
+    * Groups start at ``User-agent`` lines; consecutive agent lines share one
+      group, and a group ends only at the next agent line after a rule (blank
+      lines and unknown lines never end a group).
+    * The groups naming our product token (case-insensitive, any ``/version``
+      dropped) are merged and used; otherwise the ``*`` groups; otherwise
+      everything is allowed.
+    * The longest matching rule wins, ``Allow`` wins a tie, ``*`` and ``$``
+      work as wildcards, and paths are compared after percent-encoding
+      normalization.
+    * ``Crawl-delay`` (not part of the RFC, widely used) is read as a number of
+      seconds from the chosen groups, decimals included.
+    """
+
+    def __init__(self, text: str):
+        self.groups: List[Tuple[List[str], List[Tuple[bool, str]], Optional[float]]] = []
+        agents: List[str] = []
+        rules: List[Tuple[bool, str]] = []
+        delay: Optional[float] = None
+        in_rules = False
+        for raw in (text or "").lstrip("﻿").splitlines():
+            line = raw.split("#", 1)[0].strip()
+            if ":" not in line:
+                continue
+            key, _, value = line.partition(":")
+            key, value = key.strip().lower(), value.strip()
+            if key in ("user-agent", "useragent", "user agent"):
+                if in_rules:
+                    self.groups.append((agents, rules, delay))
+                    agents, rules, delay, in_rules = [], [], None, False
+                token = "*" if value.strip() == "*" else _product_token(value)
+                if token:
+                    agents.append(token)
+            elif key in ("allow", "disallow"):
+                if not agents:
+                    continue  # rules before any User-agent line belong to no group
+                in_rules = True
+                if value:  # an empty Disallow allows everything; an empty Allow says nothing
+                    rules.append((key == "allow", _norm_robots_path(value)))
+            elif key in ("crawl-delay", "crawl_delay"):
+                if not agents:
+                    continue
+                in_rules = True
+                try:
+                    seconds = float(value)
+                except ValueError:
+                    continue
+                if seconds == seconds and 0 <= seconds < float("inf"):  # not NaN or infinite
+                    delay = seconds if delay is None else max(delay, seconds)
+        if agents:
+            self.groups.append((agents, rules, delay))
+
+    def _chosen(self, agent: str) -> Tuple[List[Tuple[bool, str]], Optional[float], bool]:
+        token = _product_token(agent)
+        for wanted in (token, "*"):
+            rules: List[Tuple[bool, str]] = []
+            delay: Optional[float] = None
+            found = False
+            for agents, group_rules, group_delay in self.groups:
+                if wanted in agents:
+                    found = True
+                    rules.extend(group_rules)
+                    if group_delay is not None:
+                        delay = group_delay if delay is None else max(delay, group_delay)
+            if found:
+                return rules, delay, True
+        return [], None, False
+
+    def can_fetch(self, agent: str, url: str) -> bool:
+        parts = urlsplit(url)
+        path = parts.path or "/"
+        if parts.query:
+            path += "?" + parts.query
+        path = _norm_robots_path(path)
+        if path == "/robots.txt":
+            return True  # RFC 9309 2.2.2: implicitly allowed
+        rules, _, _ = self._chosen(agent)
+        best_len, allowed = -1, True
+        for allow, pattern in rules:
+            if _rule_matches(pattern, path):
+                size = len(pattern)
+                if size > best_len or (size == best_len and allow and not allowed):
+                    best_len, allowed = size, allow
+        return allowed
+
+    def crawl_delay(self, agent: str) -> Optional[float]:
+        return self._chosen(agent)[1]
+
+
+def _make_parser(text: str) -> RobotsRules:
+    return RobotsRules(text)
 
 
 # ---------------------------------------------------------------- the fetcher
@@ -518,35 +813,62 @@ class PoliteFetcher:
                 state = self._hosts[host] = _Host()
             return state
 
-    def host_in_backoff(self, host: str, wall_now: Optional[float] = None) -> bool:
+    def blocked_kind(self, host: str, wall_now: Optional[float] = None) -> Optional[str]:
+        """'challenge' or 'backoff' while the host's site is closed to us, else None.
+
+        Backoff and challenges are kept per site (registrable domain), so a
+        429 or a firewall challenge on ``www.biz.example`` also closes
+        ``biz.example``. A row keyed by the exact host (older databases) still
+        counts.
+        """
         host = (host or "").lower()
         now = self.wall_clock() if wall_now is None else wall_now
+        kind: Optional[str] = None
         with self._lock:
-            state = self._hosts.get(host)
-            return bool(state and state.backoff_until and now < state.backoff_until)
+            for key in {host, site_key(host)}:
+                state = self._hosts.get(key)
+                if state and state.backoff_until and now < state.backoff_until:
+                    if state.blocked_reason == "challenge":
+                        return "challenge"
+                    kind = "backoff"
+        return kind
+
+    def host_in_backoff(self, host: str, wall_now: Optional[float] = None) -> bool:
+        return self.blocked_kind(host, wall_now) is not None
 
     def _note_backoff(self, host: str) -> None:
-        state = self._host(host)
+        key = site_key(host)
+        state = self._host(key)
         with self._lock:
             ladder = self.settings.backoff_days
             days = ladder[min(state.backoff_level, len(ladder) - 1)]
-            state.backoff_until = self.wall_clock() + days * 86400
+            until = self.wall_clock() + days * 86400
+            state.backoff_until = max(until, state.backoff_until or 0.0)
             state.backoff_level += 1
-            state.blocked_reason = "backoff"
+            if state.blocked_reason != "challenge" or state.backoff_until == until:
+                state.blocked_reason = "backoff"
             level = state.backoff_level
-        log.info("backoff host=%s level=%d days=%d", host, level, days)
+        log.info("backoff host=%s site=%s level=%d days=%d", host, key, level, days)
 
     def _note_success(self, host: str) -> None:
-        state = self._host(host)
+        state = self._host(site_key(host))
         with self._lock:
+            if state.blocked_reason == "challenge" and state.backoff_until and \
+                    self.wall_clock() < state.backoff_until:
+                return  # a challenge is never cleared early by a page that slipped through
             state.backoff_level = 0
             state.backoff_until = None
             state.blocked_reason = None
 
     def _note_challenge(self, host: str) -> None:
-        state = self._host(host)
+        """A firewall challenge closes the whole site for CHALLENGE_DAYS: blocked, move on."""
+        key = site_key(host)
+        state = self._host(key)
         with self._lock:
+            until = self.wall_clock() + CHALLENGE_DAYS * 86400
+            state.backoff_until = max(until, state.backoff_until or 0.0)
             state.blocked_reason = "challenge"
+        log.info("challenge host=%s site=%s days=%d", host, key, CHALLENGE_DAYS)
 
     # ------------------------------------------------------------ SSRF
     def check_url(self, url: str) -> Optional[str]:
@@ -590,10 +912,14 @@ class PoliteFetcher:
         return delay
 
     def _request(self, host: str, url: str) -> RawResponse:
-        """One GET, spaced from the previous request start to ``host``."""
-        state = self._host(host)
+        """One GET, spaced from the previous request start to the same site.
+
+        The clock and the lock belong to the site (registrable domain), so
+        ``biz.example`` and ``www.biz.example`` never get back-to-back requests.
+        """
+        state = self._host(site_key(host))
         delay = self._delay_for(host)
-        with state.lock:  # one request at a time per host; other hosts never wait
+        with state.lock:  # one request at a time per site; other sites never wait
             if state.last_request_mono is not None:
                 wait = state.last_request_mono + delay - self.clock()
                 while wait > 0:
@@ -628,6 +954,8 @@ class PoliteFetcher:
             if self.check_url(url) is not None:
                 return _Robots(None, ROBOTS_FAILED, now)
             hop_host = (urlsplit(url).hostname or "").lower()
+            if hop_host != host and self.host_in_backoff(hop_host):
+                return _Robots(None, ROBOTS_FAILED, now)  # never request a site that asked us to wait
             try:
                 raw = self._request(hop_host, url)
             except UnsafeHostError:
@@ -685,11 +1013,13 @@ class PoliteFetcher:
             if problem == "dns":
                 return result(error="dns")
             host = (urlsplit(current).hostname or "").lower()
-            if self.host_in_backoff(host):
-                return result(blocked="backoff")
+            closed = self.blocked_kind(host)
+            if closed:
+                return result(blocked=closed)  # backoff, or a challenge: never retried around
             allowed, robots_error = self._robots_allows(current)
-            if self.host_in_backoff(host):  # robots.txt itself may have answered 429/503
-                return result(blocked="backoff")
+            closed = self.blocked_kind(host)
+            if closed:  # robots.txt itself may have answered 429/503
+                return result(blocked=closed)
             if not allowed:
                 if robots_error in TRANSPORT_ERRORS:
                     # The site could not be reached at all; say why.
@@ -747,7 +1077,10 @@ class PoliteFetcher:
                 rows.append({
                     "host": host,
                     "robots_txt": robots.text if robots else None,
-                    "robots_status": robots.status if robots else None,
+                    # An unreachable robots.txt keeps its error kind as a negative code, so a
+                    # restart still reports "unreachable" and not "refused by robots".
+                    "robots_status": (_ROBOTS_ERROR_CODES.get(robots.error or "", robots.status)
+                                      if robots else None),
                     "robots_fetched_at": _iso(robots.fetched_at) if robots else None,
                     "last_request_at": _iso(state.last_request_wall),
                     "backoff_level": state.backoff_level,
@@ -772,8 +1105,10 @@ class PoliteFetcher:
                 status = data.get("robots_status")
                 if fetched is not None and status is not None:
                     text = data.get("robots_txt")
-                    parser = _make_parser(text) if (int(status) == 200 and text is not None) else None
-                    state.robots = _Robots(text, int(status), fetched, parser)
+                    code = int(status)
+                    error = _ROBOTS_ERROR_KINDS.get(code)
+                    parser = _make_parser(text) if (code == 200 and text is not None) else None
+                    state.robots = _Robots(text, ROBOTS_FAILED if error else code, fetched, parser, error)
                 last = _epoch(data.get("last_request_at"))
                 if last is not None:
                     state.last_request_wall = last

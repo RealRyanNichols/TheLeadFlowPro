@@ -11,10 +11,13 @@ sources/http.py are replaced so nothing waits.
 from __future__ import annotations
 
 import copy
+import email.utils
 import json
 import re
 import threading
+import time
 import unittest
+import urllib.request
 from pathlib import Path
 from unittest import mock
 from urllib.parse import parse_qs, urlsplit
@@ -217,10 +220,69 @@ class HttpTests(NoWaitCase):
         self.assertEqual(self.sleeps, [http.RETRY_BACKOFF_S[0], http.RETRY_BACKOFF_S[1]])
 
     def test_retry_after_seconds_honoured_up_to_120(self):
-        t = sequence_transport([(429, {"Retry-After": "7"}, b""), (429, {"retry-after": "600"}, b""),
-                                (503, {"Retry-After": "Wed, 21 Oct 2026 07:28:00 GMT"}, b""), OK_JSON])
+        t = sequence_transport([(429, {"Retry-After": "7"}, b""), (503, {}, b""), OK_JSON])
         http.get_json("https://api.example/x", make_settings(), transport=t)
-        self.assertEqual(self.sleeps, [7.0, http.RETRY_BACKOFF_S[1], http.RETRY_BACKOFF_S[2]])
+        self.assertEqual(self.sleeps, [7.0, http.RETRY_BACKOFF_S[1]])
+
+    def test_long_retry_after_defers_the_sync_instead_of_retrying(self):
+        for value in ("600", "3600", "86400"):
+            with self.subTest(value=value):
+                self.sleeps.clear()
+                t = sequence_transport([(429, {"retry-after": value}, b""), OK_JSON])
+                with self.assertRaises(http.ApiError) as ctx:
+                    http.get_json("https://api.example/x", make_settings(), transport=t)
+                self.assertEqual(len(t.calls), 1)       # no more requests after "come back later"
+                self.assertEqual(self.sleeps, [])       # and no sleeping on the loop thread
+                self.assertEqual((ctx.exception.status, ctx.exception.reason), (429, "retry_after"))
+                self.assertEqual(ctx.exception.retry_after_s, min(float(value), http.MAX_DEFER_S))
+
+    def test_retry_after_http_date(self):
+        now = 1_790_000_000.0
+        with mock.patch.object(http, "wall_clock", lambda: now):
+            soon = email.utils.formatdate(now + 30, usegmt=True)
+            t = sequence_transport([(503, {"Retry-After": soon}, b""), OK_JSON])
+            http.get_json("https://api.example/x", make_settings(), transport=t)
+            self.assertEqual(self.sleeps, [30.0])
+            later = email.utils.formatdate(now + 7200, usegmt=True)
+            t = sequence_transport([(503, {"Retry-After": later}, b""), OK_JSON])
+            with self.assertRaises(http.ApiError) as ctx:
+                http.get_json("https://api.example/x", make_settings(), transport=t)
+            self.assertEqual((len(t.calls), ctx.exception.retry_after_s), (1, http.MAX_DEFER_S))
+            self.sleeps.clear()
+            t = sequence_transport([(503, {"Retry-After": "not a date"}, b""), OK_JSON])
+            http.get_json("https://api.example/x", make_settings(), transport=t)
+            self.assertEqual(self.sleeps, [http.RETRY_BACKOFF_S[0]])
+
+    def test_redirects_only_to_https_on_the_same_api_host(self):
+        handler = http.SameHostRedirect()
+
+        def follow(old, new, method="GET"):
+            req = urllib.request.Request(old, method=method)
+            return handler.redirect_request(req, None, 302, "Found", {}, new)
+
+        self.assertIsNotNone(follow("https://api.example/a", "https://api.example/b"))
+        self.assertIsNotNone(follow("https://API.example/a", "https://api.example:443/b"))
+        self.assertIsNotNone(follow("http://api.example/a", "https://api.example/b"))
+        for target in ("http://127.0.0.1:8080/admin/delete?all=1", "http://169.254.169.254/latest/meta-data/",
+                       "https://other.example/b", "https://api.example:8443/b", "http://api.example/b",
+                       "ftp://api.example/b", "https://user:pw@api.example/b"):
+            with self.subTest(target=target):
+                self.assertIsNone(follow("https://api.example/a", target))
+        self.assertEqual(handler.max_redirections, 3)
+        self.assertTrue(any(isinstance(h, http.SameHostRedirect) for h in http._opener.handlers))
+
+    def test_default_transport_body_read_has_a_deadline(self):
+        class Drip:
+            status = 200
+
+            def read1(self, n):
+                time.sleep(0.05)
+                return b"x"
+
+        started = time.monotonic()
+        with self.assertRaises(OSError):
+            http._read_capped(Drip(), "api.example", deadline=time.monotonic() + 0.3)
+        self.assertLess(time.monotonic() - started, 1.5)
 
     def test_gives_up_after_three_retries(self):
         t = sequence_transport([(503, {}, b"secret body text")])

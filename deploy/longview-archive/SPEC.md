@@ -326,19 +326,27 @@ Field names used in `facts` / `observations` / `review_queue.field`:
 - `fetch(url) -> FetchResult(url, final_url, status, headers, body: bytes,
   text: str|None, content_type, error: str|None, blocked: str|None,
   redirected_offsite: bool)`.
-- Enforces: robots.txt (`urllib.robotparser`, cached per host for 24 h and
-  persisted through the main thread; 401/403 robots → disallow all, other 4xx →
-  allow all; 5xx/timeout → disallow all for that day); at least `min_host_delay_s` between requests to the same host
-  (robots fetch counts), thread-safe; `request_timeout_s`; `max_page_bytes`
-  (streamed read, abort beyond cap, also for gzip-decoded size); only
-  `text/html` and `application/xhtml+xml` bodies are decoded; manual redirects
-  (max 5) with the SSRF and robots checks on every hop.
-- Classification: 429 or 503 → `backoff` (host `backoff_level` increments,
-  `backoff_until = now + backoff_days[level]`); Cloudflare/Sucuri/Incapsula/
-  Akamai challenge (`cf-mitigated: challenge`, "Just a moment...",
-  `cf-chl`, "Attention Required", "Incapsula incident", "Sucuri WebSite
-  Firewall") → `blocked` (move on; never retry around it); DNS/connection
-  failure → `dead`; robots disallow → `blocked` with reason `robots`.
+- Enforces: robots.txt parsed to RFC 9309 (product-token groups, longest
+  match with Allow winning ties, `*` and `$` wildcards, Crawl-delay), cached
+  per host for 24 h and persisted through the main thread; 401/403 robots →
+  disallow all, other 4xx → allow all; 5xx/timeout → unreachable for that day.
+  At least `min_host_delay_s` between requests to the same site (registrable
+  domain, so `www.` and the apex share one clock; robots fetch counts),
+  thread-safe; a hard wall-clock limit of 1.5 × `request_timeout_s` covering
+  connect, TLS, headers, and body; `max_page_bytes` (streamed read, abort
+  beyond cap, also for gzip-decoded size); only `text/html` and
+  `application/xhtml+xml` bodies are decoded; manual redirects (max 5) with the
+  SSRF and robots checks on every hop.
+- Classification: 429 or 503 → `backoff` (the site's `backoff_level`
+  increments, `backoff_until = now + backoff_days[level]`);
+  Cloudflare/Sucuri/Incapsula/Akamai challenge (`cf-mitigated: challenge`,
+  "Just a moment...", `cf-chl`, "Attention Required", "Incapsula incident",
+  "Sucuri WebSite Firewall") → `blocked`: the visit stops and the whole site is
+  closed for 14 days for every business on it (never retried around);
+  DNS/connection failure → `dead`; robots disallow → `blocked` with reason
+  `robots`.
+- A lease moves `next_crawl_at` forward before each visit, so a process that
+  dies mid-visit does not fetch the same site again on every restart.
 - Never sends cookies, never runs JavaScript, never submits forms, never logs in.
 
 ### `extract/`

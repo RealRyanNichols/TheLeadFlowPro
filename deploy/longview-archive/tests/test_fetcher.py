@@ -4,6 +4,7 @@ import gzip
 import io
 import socket
 import threading
+import time
 import unittest
 from pathlib import Path
 
@@ -485,13 +486,19 @@ class ClassificationTests(unittest.TestCase):
         }
         for name, response in cases.items():
             with self.subTest(name=name):
-                fetcher, _, _, _ = make({"https://a.example/": response})
+                fetcher, transport, clock, _ = make({"https://a.example/": response})
                 result = fetcher.fetch("https://a.example/")
                 self.assertEqual(result.blocked, "challenge")
                 self.assertIsNone(result.text)
-                self.assertFalse(fetcher.host_in_backoff("a.example"))
+                # A challenge closes the site for 14 days: blocked, move on, never retried around.
+                self.assertEqual(fetcher.blocked_kind("a.example"), "challenge")
                 row = [r for r in fetcher.export_host_state() if r["host"] == "a.example"][0]
                 self.assertEqual(row["blocked_reason"], "challenge")
+                self.assertAlmostEqual(f._epoch(row["backoff_until"]) - clock.wall(), 14 * 86_400, delta=1)
+                before = len(transport.calls)
+                self.assertEqual(fetcher.fetch("https://a.example/contact").blocked, "challenge")
+                self.assertEqual(fetcher.fetch("https://www.a.example/").blocked, "challenge")
+                self.assertEqual(len(transport.calls), before)
 
     def test_gzip_body_decoded(self):
         body = gzip.compress("<html><title>Sample Street Tacos</title></html>".encode("utf-8"))
@@ -658,6 +665,273 @@ class AddressTests(unittest.TestCase):
         for host in ["www.exampletire.example", "123.example", "cafe.example"]:
             with self.subTest(host=host):
                 self.assertFalse(f.host_name_is_unsafe(host))
+
+
+class Rfc9309RobotsTests(unittest.TestCase):
+    """robots.txt read the way RFC 9309 says, not the way urllib.robotparser does."""
+
+    def blocked(self, rules, path):
+        fetcher, transport, _, _ = make({"https://a.example/robots.txt": robots(rules)})
+        url = f"https://a.example{path}"
+        result = fetcher.fetch(url)
+        requested = any(u != "https://a.example/robots.txt" for u in transport.urls())
+        self.assertEqual(result.blocked == "robots", not requested)
+        return result.blocked == "robots"
+
+    def test_star_wildcard_disallows_everything(self):
+        self.assertTrue(self.blocked("User-agent: *\nDisallow: /*\n", "/contact"))
+
+    def test_star_before_query_mark(self):
+        rules = "User-agent: *\nDisallow: /*?\n"
+        self.assertTrue(self.blocked(rules, "/contact?lang=en"))
+        self.assertFalse(self.blocked(rules, "/contact"))
+
+    def test_dollar_anchors_the_end(self):
+        rules = "User-agent: *\nDisallow: /*.php$\n"
+        self.assertTrue(self.blocked(rules, "/contact.php"))
+        self.assertFalse(self.blocked(rules, "/contact.php/more"))
+        self.assertFalse(self.blocked(rules, "/contact"))
+
+    def test_longest_match_wins_not_first_match(self):
+        rules = "User-agent: *\nAllow: /\nDisallow: /contact\n"
+        self.assertTrue(self.blocked(rules, "/contact"))
+        self.assertFalse(self.blocked(rules, "/about"))
+        rules = "User-agent: *\nDisallow: /private\nAllow: /private/open\n"
+        self.assertFalse(self.blocked(rules, "/private/open/hours"))
+        self.assertTrue(self.blocked(rules, "/private/hours"))
+
+    def test_allow_wins_a_tie(self):
+        self.assertFalse(self.blocked("User-agent: *\nDisallow: /page\nAllow: /page\n", "/page"))
+
+    def test_blank_line_does_not_end_a_group(self):
+        self.assertTrue(self.blocked("User-agent: *\n\nDisallow: /\n", "/"))
+        self.assertTrue(self.blocked("User-agent: *\n# comment\n\n\nDisallow: /hours\n", "/hours"))
+
+    def test_our_token_with_version_and_any_case(self):
+        for agent in ("LeadFlowPro-LongviewArchive/1.0", "leadflowpro-longviewarchive",
+                      "LEADFLOWPRO-LONGVIEWARCHIVE/2 (+https://example.example)"):
+            with self.subTest(agent=agent):
+                rules = f"User-agent: *\nAllow: /\n\nUser-agent: {agent}\nDisallow: /\n"
+                self.assertTrue(self.blocked(rules, "/"))
+
+    def test_consecutive_agents_share_a_group_and_our_groups_merge(self):
+        rules = ("User-agent: OtherBot\nUser-agent: LeadFlowPro-LongviewArchive\nDisallow: /a\n"
+                 "User-agent: *\nDisallow: /\n"
+                 "User-agent: LeadFlowPro-LongviewArchive\nDisallow: /b\n")
+        self.assertTrue(self.blocked(rules, "/a"))
+        self.assertTrue(self.blocked(rules, "/b"))
+        self.assertFalse(self.blocked(rules, "/c"))  # our own groups replace the * group
+
+    def test_percent_encoding_is_normalized(self):
+        self.assertTrue(self.blocked("User-agent: *\nDisallow: /%7Ejoe\n", "/~joe/page"))
+        self.assertTrue(self.blocked("User-agent: *\nDisallow: /~joe\n", "/%7ejoe/page"))
+        self.assertTrue(self.blocked("User-agent: *\nDisallow: /café\n", "/caf%C3%A9"))
+
+    def test_decimal_crawl_delay_is_honoured(self):
+        fetcher, transport, _, _ = make({"https://a.example/robots.txt": robots("User-agent: *\nCrawl-delay: 60.0\n")})
+        fetcher.fetch("https://a.example/")
+        fetcher.fetch("https://a.example/about")
+        times = transport.times_for("a.example")
+        self.assertEqual([b - a for a, b in zip(times, times[1:])], [60, 60])
+
+    def test_hostile_wildcards_stay_fast(self):
+        rules = f.RobotsRules("User-agent: *\nDisallow: /" + "*a" * 200 + "*b$\n")
+        started = time.monotonic()
+        self.assertTrue(rules.can_fetch(f.ROBOTS_TOKEN, "https://a.example/" + "a" * 5000))
+        self.assertLess(time.monotonic() - started, 1.0)
+
+    def test_matcher_unit(self):
+        self.assertTrue(f._rule_matches("/fish", "/fish.html"))
+        self.assertFalse(f._rule_matches("/fish", "/Fish.asp"))
+        self.assertTrue(f._rule_matches("/fish*.php", "/fishheads/catfish.php?parameters"))
+        self.assertTrue(f._rule_matches("/*.php$", "/folder/filename.php"))
+        self.assertFalse(f._rule_matches("/*.php$", "/filename.php5"))
+        self.assertTrue(f._rule_matches("/$", "/"))
+        self.assertFalse(f._rule_matches("/$", "/x"))
+
+
+class SiteSpacingTests(unittest.TestCase):
+    """The 20-second gap, backoff, and challenge belong to the site, not the exact host name."""
+
+    def test_apex_and_www_are_spaced_as_one_site(self):
+        routes = {"https://biz.example/": redirect("https://www.biz.example/", 301)}
+        fetcher, transport, _, _ = make(routes)
+        self.assertTrue(fetcher.fetch("https://biz.example/").ok)
+        times = [t for (_, t, _) in transport.calls]
+        self.assertEqual(transport.urls(), ["https://biz.example/robots.txt", "https://biz.example/",
+                                            "https://www.biz.example/robots.txt", "https://www.biz.example/"])
+        self.assertTrue(all(b - a >= 20 for a, b in zip(times, times[1:])), times)
+
+    def test_two_threads_on_apex_and_www_never_overlap(self):
+        fetcher, transport, _, _ = make()
+        threads = [threading.Thread(target=lambda h=h: [fetcher.fetch(f"https://{h}/p{i}") for i in range(3)])
+                   for h in ("biz.example", "www.biz.example")]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(10)
+        times = sorted(t for (_, t, _) in transport.calls)
+        self.assertEqual(len(times), 8)  # two robots.txt + six pages
+        self.assertTrue(all(b - a >= 20 for a, b in zip(times, times[1:])), times)
+
+    def test_backoff_on_www_closes_the_apex(self):
+        fetcher, transport, _, _ = make({"https://www.biz.example/": f.RawResponse(429, f.Headers({}), b"")})
+        self.assertEqual(fetcher.fetch("https://www.biz.example/").blocked, "backoff")
+        before = len(transport.calls)
+        self.assertEqual(fetcher.fetch("https://biz.example/").blocked, "backoff")
+        self.assertEqual(fetcher.fetch("https://shop.biz.example/").blocked, "backoff")
+        self.assertEqual(len(transport.calls), before)
+
+    def test_challenge_is_not_cleared_by_a_later_success(self):
+        routes = {"https://a.example/contact": f.RawResponse(403, f.Headers({"cf-mitigated": "challenge"}), b"")}
+        fetcher, transport, clock, _ = make(routes)
+        self.assertEqual(fetcher.fetch("https://a.example/contact").blocked, "challenge")
+        fetcher._note_success("a.example")
+        self.assertEqual(fetcher.blocked_kind("a.example"), "challenge")
+        clock.advance(14 * 86_400 + 1)
+        self.assertTrue(fetcher.fetch("https://a.example/").ok)
+        self.assertIsNone(fetcher.blocked_kind("a.example"))
+
+    def test_challenge_survives_a_restart(self):
+        routes = {"https://a.example/": f.RawResponse(403, f.Headers({"cf-mitigated": "challenge"}), b"")}
+        fetcher, transport, clock, _ = make(routes)
+        fetcher.fetch("https://a.example/")
+        clone = f.PoliteFetcher(Settings(data_dir=Path("/nonexistent-test-dir")), transport=transport,
+                                clock=clock.now, wall_clock=clock.wall, sleep=clock.sleep, resolver=FakeResolver())
+        clone.import_host_state(fetcher.export_host_state())
+        before = len(transport.calls)
+        self.assertEqual(clone.fetch("https://www.a.example/").blocked, "challenge")
+        self.assertEqual(len(transport.calls), before)
+
+
+class RobotsFailureRestartTests(unittest.TestCase):
+    def test_unreachable_robots_is_still_unreachable_after_a_restart(self):
+        fetcher, transport, clock, _ = make({"https://a.example/robots.txt": f.TransportError("timeout")})
+        self.assertEqual(fetcher.fetch("https://a.example/").error, "timeout")
+        rows = fetcher.export_host_state()
+        clone = f.PoliteFetcher(Settings(data_dir=Path("/nonexistent-test-dir")), transport=transport,
+                                clock=clock.now, wall_clock=clock.wall, sleep=clock.sleep, resolver=FakeResolver())
+        clone.import_host_state(rows)
+        clock.advance(3600)
+        result = clone.fetch("https://a.example/")
+        self.assertEqual((result.error, result.blocked), ("timeout", None))  # not "blocked by robots"
+        self.assertEqual(transport.urls(), ["https://a.example/robots.txt"])  # still cached for the day
+        self.assertEqual(clone.export_host_state(), rows)
+
+
+class _DripStream:
+    """A response body that trickles one byte every ``gap`` seconds.
+
+    ``read(n)`` behaves like a buffered reader: it keeps receiving until it has
+    ``n`` bytes (capped at ``give_up`` seconds so a broken test cannot hang).
+    """
+
+    def __init__(self, gap=0.05, give_up=3.0):
+        self.gap = gap
+        self.give_up = give_up
+
+    def read1(self, n):
+        time.sleep(self.gap)
+        return b"x"
+
+    def read(self, n):
+        out, end = b"", time.monotonic() + self.give_up
+        while len(out) < n and time.monotonic() < end:
+            out += self.read1(1)
+        return out
+
+
+class DeadlineTests(unittest.TestCase):
+    """A slow-drip or tarpit server is cut off at the request budget, not after days."""
+
+    def test_budget_at_production_timeout(self):
+        self.assertEqual(f.request_budget(20.0), 30.0)
+
+    def test_read_capped_checks_the_deadline_after_every_receive(self):
+        started = time.monotonic()
+        with self.assertRaises(f.TransportError) as ctx:
+            f.read_capped(_DripStream(), 2_500_000, deadline=time.monotonic() + 0.3)
+        self.assertEqual(ctx.exception.kind, "timeout")
+        self.assertLess(time.monotonic() - started, 1.5)
+
+    def _serve(self, script):
+        """A loopback-only server (never the network) that runs ``script(conn)`` once."""
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind(("127.0.0.1", 0))
+        server.listen(1)
+        stop = threading.Event()
+
+        def run():
+            try:
+                conn, _ = server.accept()
+            except OSError:
+                return
+            with conn:
+                try:
+                    conn.recv(65536)
+                    script(conn, stop)
+                except OSError:
+                    pass
+
+        thread = threading.Thread(target=run, daemon=True)
+        thread.start()
+
+        def cleanup():
+            stop.set()
+            server.close()
+            thread.join(5)
+
+        self.addCleanup(cleanup)
+        return server.getsockname()[1]
+
+    def _drip(self, head):
+        def script(conn, stop):
+            conn.sendall(head)
+            end = time.monotonic() + 6  # bounded, so a regression fails instead of hanging
+            while not stop.is_set() and time.monotonic() < end:
+                conn.sendall(b"x")
+                time.sleep(0.1)
+        return script
+
+    def _timed(self, port):
+        transport = f.make_urllib_transport(allow_private=True)
+        started = time.monotonic()
+        with self.assertRaises(f.TransportError) as ctx:
+            transport(f"http://127.0.0.1:{port}/", {"User-Agent": "test"}, 0.5, 2_500_000)
+        return ctx.exception.kind, time.monotonic() - started
+
+    def test_dripped_headers_end_at_the_deadline(self):
+        port = self._serve(self._drip(b"HTTP/1.1 200 OK\r\nX-Slow: "))
+        kind, elapsed = self._timed(port)
+        self.assertEqual(kind, "timeout")
+        self.assertLess(elapsed, 3.0)
+
+    def test_dripped_body_ends_at_the_deadline(self):
+        port = self._serve(self._drip(b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n"
+                                      b"Content-Length: 2000000\r\n\r\n"))
+        kind, elapsed = self._timed(port)
+        self.assertEqual(kind, "timeout")
+        self.assertLess(elapsed, 3.0)
+
+    def test_dripped_chunked_body_ends_at_the_deadline(self):
+        def script(conn, stop):
+            conn.sendall(b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nTransfer-Encoding: chunked\r\n\r\n")
+            end = time.monotonic() + 6
+            while not stop.is_set() and time.monotonic() < end:
+                conn.sendall(b"1\r\nx\r\n")
+                time.sleep(0.1)
+        kind, elapsed = self._timed(self._serve(script))
+        self.assertEqual(kind, "timeout")
+        self.assertLess(elapsed, 3.0)
+
+    def test_a_quick_page_still_reads_normally(self):
+        def script(conn, stop):
+            conn.sendall(b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 5\r\n"
+                         b"Connection: close\r\n\r\nhello")
+        port = self._serve(script)
+        raw = f.make_urllib_transport(allow_private=True)(f"http://127.0.0.1:{port}/", {"User-Agent": "t"}, 5.0, 1000)
+        self.assertEqual((raw.status, raw.body, raw.truncated), (200, b"hello", False))
 
 
 if __name__ == "__main__":

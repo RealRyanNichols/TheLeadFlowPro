@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from typing import Any, Dict, List, Optional, Tuple
@@ -50,6 +51,11 @@ _IMPLIED_CLOSE = {
     "dt": {"dt", "dd"},
     "dd": {"dt", "dd"},
     "option": {"option"},
+    # A new link closes an open one, and a new heading closes an open heading, as browsers
+    # do. Without this, thousands of unclosed tags would each collect all the text after
+    # them, and memory would grow with the square of the page size.
+    "a": {"a"},
+    **{h: set(HEADING_TAGS) for h in HEADING_TAGS},
 }
 # ...but not across these container boundaries.
 _SCOPE_LIMIT = {"li": {"ul", "ol", "menu"}, "tr": {"table"}, "td": {"table"}, "th": {"table"},
@@ -138,6 +144,7 @@ class _Parser(HTMLParser):
         super().__init__(convert_charrefs=True)
         # Each open element: (tag, counts_as_nav).
         self.stack: List[Tuple[str, bool]] = []
+        self.open_counts: Counter = Counter()  # how many of each tag are open, without scanning the stack
         self.skip_depth = 0
         self.nav_depth = 0
         self.line_buf: List[str] = []
@@ -156,8 +163,8 @@ class _Parser(HTMLParser):
         self.script_buf: Optional[List[str]] = None
 
     # ------------------------------------------------------------ helpers
-    def _tags(self) -> List[str]:
-        return [tag for tag, _ in self.stack]
+    def _is_open(self, tag: str) -> bool:
+        return self.open_counts[tag] > 0
 
     def _flush_line(self) -> None:
         if self.line_buf:
@@ -168,6 +175,7 @@ class _Parser(HTMLParser):
 
     def _push(self, tag: str, is_nav: bool) -> None:
         self.stack.append((tag, is_nav))
+        self.open_counts[tag] += 1
         if tag in SKIP_TAGS:
             self.skip_depth += 1
         if is_nav:
@@ -175,6 +183,7 @@ class _Parser(HTMLParser):
 
     def _close_one(self) -> str:
         tag, is_nav = self.stack.pop()
+        self.open_counts[tag] -= 1
         if tag in SKIP_TAGS:
             self.skip_depth = max(0, self.skip_depth - 1)
             if tag == "script" and self.script_buf is not None:
@@ -210,7 +219,7 @@ class _Parser(HTMLParser):
 
     def _implied_close(self, tag: str) -> None:
         for open_tag, closers in _IMPLIED_CLOSE.items():
-            if tag not in closers:
+            if tag not in closers or not self._is_open(open_tag):
                 continue
             limit = _SCOPE_LIMIT.get(open_tag, set())
             for current, _ in reversed(self.stack):
@@ -235,7 +244,7 @@ class _Parser(HTMLParser):
     def handle_starttag(self, tag: str, attrs) -> None:
         tag = tag.lower()
         attr = {k.lower(): (v or "") for k, v in attrs}
-        if "head" in self._tags() and (tag == "body" or tag not in _HEAD_CONTENT):
+        if self._is_open("head") and (tag == "body" or tag not in _HEAD_CONTENT):
             self._pop_to("head")  # an unclosed <head> ends where body content starts
         if tag == "meta":
             key = (attr.get("property") or attr.get("name") or attr.get("itemprop") or "").strip().lower()
@@ -291,7 +300,7 @@ class _Parser(HTMLParser):
             if tag == "br":
                 self._flush_line()
             return
-        if tag in self._tags():
+        if self._is_open(tag):
             self._pop_to(tag)
 
     def handle_data(self, data: str) -> None:
@@ -300,7 +309,7 @@ class _Parser(HTMLParser):
             self.script_buf.append(data)
             return
         if top == "title":
-            if not self.title_done and "svg" not in self._tags():
+            if not self.title_done and not self._is_open("svg"):
                 self.title_parts.append(data)
             return
         if self.skip_depth:
