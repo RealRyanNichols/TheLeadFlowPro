@@ -9,12 +9,14 @@ type Answer = {
   ok?: boolean;
   error?: string;
   dry_run?: boolean;
-  leads?: number;
-  customers?: number;
+  consented_leads?: number;
   removed_unsubscribed?: number;
-  recipients?: number;
-  broadcast_id?: string;
-  contacts_added?: number;
+  already_sent?: number;
+  to_send?: number;
+  sent?: number;
+  failed?: number;
+  left?: number;
+  last_error?: string | null;
 };
 
 export default function AnnounceForm() {
@@ -41,15 +43,15 @@ export default function AnnounceForm() {
   }
 
   const counts =
-    answer && typeof answer.recipients === "number"
-      ? `${answer.recipients} people: ${answer.leads} consented leads, ${answer.customers} customers, ${answer.removed_unsubscribed} removed as unsubscribed.`
+    answer && typeof answer.to_send === "number"
+      ? `${answer.consented_leads} consented leads, ${answer.already_sent} already sent, ${answer.to_send} to send, ${answer.removed_unsubscribed} removed as unsubscribed.`
       : null;
 
   return (
     <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
       <h3 className="text-base font-black text-[var(--heading)]">Announce credits to the list</h3>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        One email, through Resend as a broadcast, with a real unsubscribe link. Leads with marketing consent plus paying customers. Sends once.
+        One email per person through Resend, each with their own one-click unsubscribe link. Leads with marketing consent only. Anyone already sent is skipped, so pressing it twice is safe.
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         <button
@@ -82,7 +84,11 @@ export default function AnnounceForm() {
       </div>
       {answer ? (
         <p className={`mt-3 text-sm font-semibold ${answer.error ? "text-[var(--danger)]" : "text-[var(--heading)]"}`}>
-          {answer.error ? answer.error : answer.dry_run ? counts : `Sent. Broadcast ${answer.broadcast_id}. ${counts ?? ""}`}
+          {answer.error
+            ? answer.error
+            : answer.dry_run
+              ? counts
+              : `Sent ${answer.sent}, failed ${answer.failed}, left ${answer.left ?? 0}.${answer.last_error ? ` Last error: ${answer.last_error}` : ""}`}
         </p>
       ) : null}
     </div>

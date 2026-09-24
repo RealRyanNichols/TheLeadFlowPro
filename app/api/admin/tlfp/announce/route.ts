@@ -1,43 +1,28 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { getStripe } from "@/lib/stripe";
 import { BUSINESS } from "@/lib/site/business";
 import { TLFP_ANNOUNCE, launchEmail, pickRecipients } from "@/lib/tlfpAnnounce";
+import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
-// Admin: send the TLFP Credits launch email to the list, through Resend, as a
-// broadcast (so every copy carries a real unsubscribe link and the opens and
-// clicks land in one place).
+// Admin: send the TLFP Credits launch email to the list, one email per person
+// through Resend, each with that person's own one-click unsubscribe link and
+// List-Unsubscribe headers (the same mechanism the 30 day series uses).
 //
-// POST { dry_run: true }   counts only, nothing created, nothing sent
-// POST { dry_run: false }  creates the audience if needed, adds contacts,
-//                          creates the broadcast, sends it
+// POST { dry_run: true }   counts only, nothing sent
+// POST { dry_run: false }  sends to everyone not yet sent, records each send
 //
 // Who gets it: leads that gave marketing consent and are not deleted, test, or
-// unsubscribed, plus anyone who has paid us through Stripe. Anyone Resend
-// already knows as unsubscribed, in any audience, is removed. Sends once: if a
-// broadcast with this name already left, the route refuses.
+// unsubscribed. Each send is written to lead_activity, and anyone with that
+// row already is skipped, so the route can run again after a timeout and only
+// the people who were missed get the email.
 //
-// Runs server-side because the Resend, Stripe and service keys live in env
-// vars. The browser only ever posts { dry_run }.
+// Runs server-side because the Resend and service keys live in env vars. The
+// browser only ever posts { dry_run }. The Resend key on this site can only
+// send, so audiences and broadcasts are not an option here.
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
-
-type ResendAudience = { id: string; name: string };
-type ResendContact = { email: string; unsubscribed?: boolean };
-type ResendBroadcast = { id: string; name?: string | null; status?: string | null };
-
-async function resend(key: string, method: "GET" | "POST", path: string, body?: unknown) {
-  const r = await fetch(`https://api.resend.com${path}`, {
-    method,
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  const j = (await r.json().catch(() => ({}))) as Record<string, unknown> & { data?: unknown; message?: string };
-  if (!r.ok) throw new Error(`Resend ${r.status} on ${method} ${path}: ${typeof j.message === "string" ? j.message : "no detail"}`);
-  return j;
-}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -55,14 +40,15 @@ export async function POST(request: Request) {
 
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) return NextResponse.json({ error: "RESEND_API_KEY is not set." }, { status: 500 });
+  const secret = unsubscribeSecret();
+  if (!secret) return NextResponse.json({ error: "No unsubscribe signing secret. Nothing sent." }, { status: 500 });
 
   try {
-    // 1. Leads with marketing consent, mailable.
     const service = createServiceClient();
     const leadsRes = await service
       .from("leads")
-      .select("email, full_name")
-      .eq("is_test", false)
+      .select("id, email, full_name")
+      .or("is_test.is.null,is_test.eq.false")
       .is("deleted_at", null)
       .is("email_unsubscribed_at", null)
       .eq("marketing_email_consent", true)
@@ -71,92 +57,82 @@ export async function POST(request: Request) {
     const unsubRes = await service.from("leads").select("email").not("email_unsubscribed_at", "is", null).limit(2000);
     if (unsubRes.error) throw new Error(unsubRes.error.message);
 
-    // 2. Paying customers: succeeded charges and completed checkouts.
-    const customers: Array<{ email: unknown; name?: unknown }> = [];
-    try {
-      const stripe = getStripe();
-      const charges = await stripe.charges.list({ limit: 100 });
-      for (const charge of charges.data) {
-        if (charge.status !== "succeeded" || charge.refunded) continue;
-        customers.push({ email: charge.billing_details?.email ?? charge.receipt_email, name: charge.billing_details?.name });
-      }
-      const sessions = await stripe.checkout.sessions.list({ limit: 100, status: "complete" });
-      for (const session of sessions.data) {
-        customers.push({ email: session.customer_details?.email ?? session.customer_email, name: session.customer_details?.name });
-      }
-    } catch (error) {
-      // Stripe down or unconfigured: the leads still go. Say so in the answer.
-      console.error("TLFP announce: Stripe read failed:", error instanceof Error ? error.message : "unknown");
-    }
+    const rows = (leadsRes.data ?? []) as Array<{ id: string; email: string; full_name: string | null }>;
+    const picked = pickRecipients({
+      leads: rows,
+      customers: [],
+      unsubscribed: (unsubRes.data ?? []).map((row) => String(row.email ?? "")),
+    });
+    const byEmail = new Map(rows.map((row) => [String(row.email ?? "").trim().toLowerCase(), row]));
 
-    // 3. Every unsubscribe Resend already knows about, in any audience.
-    const audiences = ((await resend(resendKey, "GET", "/audiences")).data ?? []) as ResendAudience[];
-    const unsubscribed: string[] = (unsubRes.data ?? []).map((row) => String(row.email ?? ""));
-    for (const audience of audiences) {
-      const contacts = ((await resend(resendKey, "GET", `/audiences/${audience.id}/contacts`)).data ?? []) as ResendContact[];
-      for (const contact of contacts) if (contact.unsubscribed) unsubscribed.push(contact.email);
-    }
+    // Already sent: one lead_activity row per send.
+    const sentRes = await service.from("lead_activity").select("lead_id").eq("detail", TLFP_ANNOUNCE.activityDetail).limit(5000);
+    if (sentRes.error) throw new Error(sentRes.error.message);
+    const alreadySent = new Set((sentRes.data ?? []).map((row) => String(row.lead_id)));
 
-    const picked = pickRecipients({ leads: leadsRes.data ?? [], customers, unsubscribed });
+    const queue = picked.recipients
+      .map((person) => ({ person, lead: byEmail.get(person.email) }))
+      .filter((item): item is { person: (typeof picked.recipients)[number]; lead: (typeof rows)[number] } => Boolean(item.lead) && !alreadySent.has(item.lead!.id));
+
     const summary = {
-      leads: picked.leadCount,
-      customers: picked.customerCount,
+      consented_leads: picked.recipients.length,
       removed_unsubscribed: picked.removed,
-      recipients: picked.recipients.length,
-      audiences_seen: audiences.length,
+      already_sent: picked.recipients.length - queue.length,
+      to_send: queue.length,
     };
-
-    // 4. Sent once. A broadcast by this name that already left blocks a second send.
-    const broadcasts = ((await resend(resendKey, "GET", "/broadcasts")).data ?? []) as ResendBroadcast[];
-    const existing = broadcasts.find((b) => b.name === TLFP_ANNOUNCE.broadcastName && b.status && b.status !== "draft");
-    if (existing) {
-      return NextResponse.json(
-        { error: `Already sent: broadcast ${existing.id} is ${existing.status}. Nothing sent again.`, ...summary, broadcast_id: existing.id },
-        { status: 409 },
-      );
-    }
-
     if (dryRun) return NextResponse.json({ ok: true, dry_run: true, ...summary });
-
-    if (picked.recipients.length < TLFP_ANNOUNCE.minRecipients || picked.recipients.length > TLFP_ANNOUNCE.maxRecipients) {
+    if (queue.length === 0) return NextResponse.json({ ok: true, dry_run: false, ...summary, sent: 0, failed: 0 });
+    if (picked.recipients.length > TLFP_ANNOUNCE.maxRecipients) {
       return NextResponse.json({ error: "Recipient count is outside the expected range. Nothing sent.", ...summary }, { status: 409 });
     }
 
-    // 5. Audience and contacts.
-    let audience = audiences.find((a) => a.name === TLFP_ANNOUNCE.audienceName);
-    if (!audience) audience = (await resend(resendKey, "POST", "/audiences", { name: TLFP_ANNOUNCE.audienceName })) as unknown as ResendAudience;
-    let added = 0;
-    let alreadyThere = 0;
-    for (const person of picked.recipients) {
+    const from = `${BUSINESS.operator} <${BUSINESS.email.hello}>`;
+    let sent = 0;
+    let failed = 0;
+    let lastError: string | null = null;
+    const startedAt = Date.now();
+    for (const { person, lead } of queue) {
+      // Leave time to answer before the function is cut off. What is left runs next call.
+      if (Date.now() - startedAt > 95_000) break;
+      const unsub = unsubscribeUrl(lead.id, secret);
+      const email = launchEmail(unsub);
       try {
-        await resend(resendKey, "POST", `/audiences/${audience.id}/contacts`, {
-          email: person.email,
-          first_name: person.firstName || undefined,
-          unsubscribed: false,
+        const r = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from,
+            to: [person.email],
+            reply_to: BUSINESS.email.hello,
+            subject: email.subject,
+            html: email.html,
+            text: email.text,
+            headers: { "List-Unsubscribe": `<${unsub}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
+            tags: [{ name: "campaign", value: TLFP_ANNOUNCE.campaignTag }],
+          }),
         });
-        added += 1;
+        const j = (await r.json().catch(() => ({}))) as { id?: string; message?: string };
+        if (!r.ok) throw new Error(j.message || `Resend ${r.status}`);
+        sent += 1;
+        await service.from("lead_activity").insert({ lead_id: lead.id, kind: "system", detail: TLFP_ANNOUNCE.activityDetail });
+        await service
+          .from("leads")
+          .update({ last_contacted_at: new Date().toISOString() })
+          .eq("id", lead.id)
+          .then(
+            () => undefined,
+            () => undefined,
+          );
       } catch (error) {
-        if (/409|already exists/i.test(error instanceof Error ? error.message : "")) alreadyThere += 1;
-        else throw error;
+        failed += 1;
+        lastError = error instanceof Error ? error.message : "unknown";
+        console.error("TLFP announce: send failed:", lastError);
       }
-      await sleep(120);
+      await sleep(600); // Resend allows two requests a second
     }
 
-    // 6. The broadcast.
-    const email = launchEmail();
-    const broadcast = (await resend(resendKey, "POST", "/broadcasts", {
-      audience_id: audience.id,
-      from: `${BUSINESS.operator} <${BUSINESS.email.hello}>`,
-      reply_to: BUSINESS.email.hello,
-      subject: email.subject,
-      name: TLFP_ANNOUNCE.broadcastName,
-      html: email.html,
-      text: email.text,
-    })) as unknown as ResendBroadcast;
-    await resend(resendKey, "POST", `/broadcasts/${broadcast.id}/send`, {});
-
-    console.log(`TLFP announce sent by ${user.email}: broadcast ${broadcast.id} to ${picked.recipients.length}`);
-    return NextResponse.json({ ok: true, dry_run: false, ...summary, audience_id: audience.id, contacts_added: added, contacts_already_there: alreadyThere, broadcast_id: broadcast.id });
+    console.log(`TLFP announce by ${user.email}: sent ${sent}, failed ${failed}, left ${queue.length - sent - failed}`);
+    return NextResponse.json({ ok: failed === 0, dry_run: false, ...summary, sent, failed, left: queue.length - sent - failed, last_error: lastError });
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown";
     console.error("TLFP announce failed:", message);
