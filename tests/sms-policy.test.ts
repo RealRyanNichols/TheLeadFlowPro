@@ -46,8 +46,8 @@ test("every application text goes through the one sender that applies the policy
     "app/api/leads/route.ts",
     "app/api/meta-leads/route.ts",
     "app/api/quo-inbound/route.ts",
-    "lib/speedToLead.ts",
-    "lib/speedToLeadServer.ts",
+    "lib/speedToLeadAlerts.ts",
+    "lib/speedToLeadAlertsServer.ts",
     "app/api/cron/speed-to-lead/route.ts",
   ]) {
     const source = readFileSync(join(process.cwd(), file), "utf8");
@@ -56,7 +56,7 @@ test("every application text goes through the one sender that applies the policy
   }
   // The first text goes through the policy-applying sender; the staff alert
   // sender skips only the window, never the STOP list or the kill switch.
-  const dispatcher = readFileSync(join(process.cwd(), "lib/speedToLeadServer.ts"), "utf8");
+  const dispatcher = readFileSync(join(process.cwd(), "lib/speedToLeadAlertsServer.ts"), "utf8");
   assert.match(dispatcher, /sendLeadTextDetailed\(lead\.phone as string, body\)/);
   const staff = quo.slice(quo.indexOf("export async function sendStaffAlertText"));
   const staffEnd = staff.indexOf("\n}\n");

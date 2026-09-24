@@ -3,7 +3,7 @@
 // Every new row in public.leads gets three jobs from a database trigger
 // (supabase/migrations/20260922190000_speed_to_lead.sql): a text to Ryan and
 // Pat, the NEW LEAD email, and one automatic first text to the lead. The
-// server half (lib/speedToLeadServer.ts) claims and delivers them. This file
+// server half (lib/speedToLeadAlertsServer.ts) claims and delivers them. This file
 // holds every decision and every word, as pure functions over rows, so the
 // rules can be tested without a clock, a database or a provider.
 //

@@ -9,7 +9,7 @@ import * as quoModule from "../lib/quo.ts";
 import * as leadNotifyModule from "../lib/leadNotify.ts";
 import * as businessModule from "../lib/site/business.ts";
 import * as smsPolicyModule from "../lib/smsPolicy.ts";
-import * as speed from "../lib/speedToLead.ts";
+import * as speed from "../lib/speedToLeadAlerts.ts";
 import { SUPABASE_URL } from "../lib/config.ts";
 
 // Synthetic data only. Every phone number is a 555-01xx fiction, every
@@ -556,13 +556,13 @@ function loadTs(file: string, modules: Record<string, unknown>) {
 }
 
 // The dispatcher is "server-only"; load the real source with that one import stubbed.
-const dispatcher = loadTs("lib/speedToLeadServer.ts", {
+const dispatcher = loadTs("lib/speedToLeadAlertsServer.ts", {
   "server-only": {},
   "@/lib/quo": quoModule,
   "@/lib/leadNotify": leadNotifyModule,
   "@/lib/site/business": businessModule,
   "@/lib/smsPolicy": smsPolicyModule,
-  "@/lib/speedToLead": speed,
+  "@/lib/speedToLeadAlerts": speed,
 }) as unknown as Dispatcher;
 
 const at = (d: Date) => () => d;
@@ -873,8 +873,8 @@ test("the cron fails closed without the secret, does nothing while dormant, and 
   const route = loadTs("app/api/cron/speed-to-lead/route.ts", {
     "@/lib/config": { SUPABASE_URL: "https://hpzpwfymwfgwspaixrxi.supabase.co" },
     "@/lib/metaCampaignGuard": { leadFlowSupabaseRuntimeIssues: () => [] },
-    "@/lib/speedToLead": speed,
-    "@/lib/speedToLeadServer": {
+    "@/lib/speedToLeadAlerts": speed,
+    "@/lib/speedToLeadAlertsServer": {
       sweepSpeedToLeadJobs: async (_db: unknown, limit: number) => {
         calls.push(limit);
         return summary;
@@ -968,7 +968,7 @@ test("every intake route dispatches speed to lead with the service client, insid
   const inbound = read("app/api/quo-inbound/route.ts");
   // One NEW LEAD email for a text-in: speed to lead when it is on, the old alert only while it is off.
   assert.match(inbound, /if \(speedToLeadEnabled\(process\.env\)\) \{[\s\S]+dispatchSpeedToLeadWithBudget\(supabase, leadId\);\s+\} else \{[\s\S]+sendInternalLeadAlert\(/);
-  const server = read("lib/speedToLeadServer.ts");
+  const server = read("lib/speedToLeadAlertsServer.ts");
   assert.match(server, /^import "server-only";/);
   assert.match(server, /\.eq\("status", "pending"\)\.lte\("next_attempt_at", claimAt\)/, "claims are compare-and-swap");
   assert.match(server, /\.eq\("attempt_count", job\.attempt_count\)/);

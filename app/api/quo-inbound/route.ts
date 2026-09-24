@@ -10,8 +10,8 @@ import {
 } from "@/lib/quo";
 import { sendInternalLeadAlert } from "@/lib/leadNotify";
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
-import { speedToLeadEnabled } from "@/lib/speedToLead";
-import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadServer";
+import { speedToLeadEnabled } from "@/lib/speedToLeadAlerts";
+import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadAlertsServer";
 
 // Inbound SMS from Quo. This route does NOT create leads, log messages, or
 // decide anything about consent. It authenticates the caller, proves the event

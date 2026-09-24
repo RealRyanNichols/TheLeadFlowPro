@@ -2,8 +2,8 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { SUPABASE_URL } from "@/lib/config";
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
-import { SPEED_TO_LEAD_SWEEP_LIMIT, speedToLeadEnabled } from "@/lib/speedToLead";
-import { sweepSpeedToLeadJobs } from "@/lib/speedToLeadServer";
+import { SPEED_TO_LEAD_SWEEP_LIMIT, speedToLeadEnabled } from "@/lib/speedToLeadAlerts";
+import { sweepSpeedToLeadJobs } from "@/lib/speedToLeadAlertsServer";
 
 // Speed to lead, the safety net. Every minute (vercel.json) this delivers
 // whatever the intake routes did not finish: leads from every other insert

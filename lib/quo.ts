@@ -326,7 +326,7 @@ export async function smsSuppressedGlobally(phone: string): Promise<boolean> {
 // History: from August 26 Ryan's rule was that nobody gets a text unless they
 // texted first. On September 22 he asked for speed to lead: one first text,
 // within a minute, to a new lead who ticked the text consent box
-// (lib/speedToLeadServer.ts, dormant until SPEED_TO_LEAD_ENABLED). That path
+// (lib/speedToLeadAlertsServer.ts, dormant until SPEED_TO_LEAD_ENABLED). That path
 // goes through sendLeadTextDetailed(), so the kill switch, the STOP list and
 // quiet hours all still apply. Anyone without recorded consent is never
 // texted first.

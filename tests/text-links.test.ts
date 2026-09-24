@@ -50,7 +50,7 @@ test("the one first text names a consultation request, asks one question, and is
   const notify = readFileSync(join(process.cwd(), "lib/leadNotify.ts"), "utf8");
   assert.ok(!notify.includes("sendLeadText"), "lib/leadNotify.ts must not send texts");
   assert.ok(!notify.includes('from "@/lib/quo"'), "lib/leadNotify.ts does not import the SMS client");
-  const dispatcher = readFileSync(join(process.cwd(), "lib/speedToLeadServer.ts"), "utf8");
+  const dispatcher = readFileSync(join(process.cwd(), "lib/speedToLeadAlertsServer.ts"), "utf8");
   assert.match(dispatcher, /const body = leadFirstText\(lead\);\s+const result = await sendLeadTextDetailed\(lead\.phone as string, body\);/);
 });
 

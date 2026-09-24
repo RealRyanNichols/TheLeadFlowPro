@@ -24,10 +24,10 @@ import {
   staffPhoneE164,
   type SpeedToLeadJob,
   type SpeedToLeadLead,
-} from "@/lib/speedToLead";
+} from "@/lib/speedToLeadAlerts";
 
 // Speed to lead: the half that talks to the database and the providers.
-// The rules and the words are in lib/speedToLead.ts.
+// The rules and the words are in lib/speedToLeadAlerts.ts.
 //
 // Two callers, one path:
 //   - the intake routes call dispatchSpeedToLeadWithBudget right after a lead

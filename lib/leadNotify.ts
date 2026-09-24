@@ -209,7 +209,7 @@ function ownerAlertPayload(lead: NotifiableLead, context: OwnerAlertContext = {}
 }
 
 /**
- * The speed-to-lead NEW LEAD email (lib/speedToLead.ts builds the words).
+ * The speed-to-lead NEW LEAD email (lib/speedToLeadAlerts.ts builds the words).
  * Same sender and the same two inboxes as the owner alert, with a stable
  * provider idempotency key so a retried job never lands twice.
  */
@@ -583,11 +583,11 @@ export async function enrollInEmailSeries(_email: string): Promise<void> {
 }
 
 // THE FIRST TEXT (speed to lead, 2026-09-22). One automatic text per lead,
-// sent by the lead_sms job in lib/speedToLeadServer.ts and nowhere else: the
+// sent by the lead_sms job in lib/speedToLeadAlertsServer.ts and nowhere else: the
 // intake routes no longer text on their own. It asks exactly one qualifying
 // question so the first call starts warm, points at /services, and ends with
 // the opt-out. Plain GSM characters only and at most two SMS segments
-// (lib/speedToLead.ts smsSegments; the test pins both).
+// (lib/speedToLeadAlerts.ts smsSegments; the test pins both).
 const FIRST_TEXT_QUESTION =
   "Quick question so I call you ready: what is costing you the most business right now, missed calls, slow follow-up, or not enough leads?";
 
@@ -652,7 +652,7 @@ export function leadConsultationTextBody(first: string, booking: string | null =
 }
 
 // RETIRED 2026-09-22. The first text to a lead is the speed-to-lead lead_sms
-// job (lib/speedToLeadServer.ts), the single sender, so a lead can never get
+// job (lib/speedToLeadAlertsServer.ts), the single sender, so a lead can never get
 // two. This stays a no-op only so the legacy notifyNewLead below compiles
 // unchanged; it never texts anyone. Do not bring a send back here.
 export async function notifyNewLeadSms(_lead: NotifiableLead): Promise<void> {

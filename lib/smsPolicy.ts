@@ -63,7 +63,7 @@ function zonedWallTimeToDate(year: number, month: number, day: number, hour: num
 /**
  * When an automated text held for quiet hours may go: `now` itself inside the
  * window, otherwise the next 8:00 in the morning Central. A held first text
- * waits for this instead of being dropped (lib/speedToLeadServer.ts).
+ * waits for this instead of being dropped (lib/speedToLeadAlertsServer.ts).
  */
 export function nextSendWindowOpen(now: Date, timezone: string = SEND_WINDOW.timezone): Date {
   if (withinSendWindow(now, timezone)) return now;

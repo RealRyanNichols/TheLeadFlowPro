@@ -8,7 +8,7 @@
 -- The database cannot call out (pg_net and pg_cron are not installed), so
 -- the application delivers: the intake routes dispatch a lead's jobs right
 -- after the insert, and /api/cron/speed-to-lead sweeps anything due every
--- minute (lib/speedToLeadServer.ts). Nothing sends until
+-- minute (lib/speedToLeadAlertsServer.ts). Nothing sends until
 -- SPEED_TO_LEAD_ENABLED is exactly "true"; until then the jobs wait.
 --
 -- The trigger can never block a lead from being saved: its whole body sits in

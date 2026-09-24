@@ -4,7 +4,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
 import { INTEREST_LABELS } from "@/lib/leadNotify";
 import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotifications";
-import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadServer";
+import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadAlertsServer";
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
 import { recordServerEvent } from "@/lib/analytics/server";
 

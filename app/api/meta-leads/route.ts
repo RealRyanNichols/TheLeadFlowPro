@@ -4,7 +4,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { sendInternalLeadAlert } from "@/lib/leadNotify";
 import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotifications";
-import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadServer";
+import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadAlertsServer";
 import {
   isAllowedLeadFlowAdId,
   isAllowedMetaTestLeadId,
