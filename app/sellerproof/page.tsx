@@ -10,7 +10,11 @@ import {
   Timer,
 } from "lucide-react";
 import { DISCLAIMER, SELLERPROOF } from "@/lib/sellerproof/packet";
-import { PRICES, usd } from "@/lib/site/prices";
+import { PRICES, usd, usdPerMonth } from "@/lib/site/prices";
+import {
+  SELLERPROOF_MEMBER_INCLUDES,
+  SELLERPROOF_MEMBER_PRICING_URL,
+} from "@/lib/sellerproof/membership";
 import styles from "./sellerproof.module.css";
 
 const title = "SellerProof: Chargeback Evidence Packets | The LeadFlow Pro";
@@ -49,6 +53,10 @@ const faqs = [
   [
     `What does the ${usd(PRICES.sellerProofPacket)} purchase cover?`,
     "One dispute packet tied to the payment provider, order reference, dispute reference, amount, and currency you entered. You can revise its statement, timeline, and evidence and export again. There is no subscription. This purchase is separate from LeadFlow Pro Kits and their bundle.",
+  ],
+  [
+    "Do I need a membership?",
+    `No. One packet is ${usd(PRICES.sellerProofPacket)} with no account. If disputes are a regular part of your business, SellerProof Membership in the SellerProof app gives unlimited packets, response drafts, an evidence library, and deadline tracking for ${usdPerMonth(PRICES.sellerProofMemberMonthly)} or ${usd(PRICES.sellerProofMemberLifetime)} once. It is a separate purchase from the single packet, and it does not guarantee any outcome either.`,
   ],
   [
     "Does it upload my files or connect to Stripe?",
@@ -239,6 +247,58 @@ export default function SellerProofPage() {
             </p>
             <p className={styles.fine}>{DISCLAIMER}</p>
           </div>
+        </section>
+        <section className={styles.member} id="membership">
+          <p className={styles.eyebrow}>MORE THAN ONE DISPUTE?</p>
+          <h2>SellerProof Membership: unlimited packets, one account.</h2>
+          <p>
+            The single packet above needs no account. Sellers who deal with
+            chargebacks every month can join the SellerProof app instead:
+            unlimited packets, response drafts, PDF export, a reusable
+            evidence library, deadline tracking, and a member referral
+            program. Same access either way you pay. No outcome guarantees.
+          </p>
+          <div className={styles.memberGrid}>
+            <div className={styles.priceCard}>
+              <h3>Monthly membership</h3>
+              <div className={styles.largePrice}>
+                {usdPerMonth(PRICES.sellerProofMemberMonthly)}
+              </div>
+              <p>Billed monthly until you cancel. Cancel anytime from your account.</p>
+              <a
+                href={SELLERPROOF_MEMBER_PRICING_URL}
+                className={styles.memberAlt}
+              >
+                Start monthly <ArrowRight size={18} aria-hidden="true" />
+              </a>
+            </div>
+            <div className={styles.priceCard}>
+              <h3>Lifetime membership</h3>
+              <div className={styles.largePrice}>
+                {usd(PRICES.sellerProofMemberLifetime)}
+                <span> one payment</span>
+              </div>
+              <p>One payment, no renewals, for as long as SellerProof operates.</p>
+              <a
+                href={SELLERPROOF_MEMBER_PRICING_URL}
+                className={styles.primary}
+              >
+                Get lifetime access <ArrowRight size={18} aria-hidden="true" />
+              </a>
+            </div>
+          </div>
+          <ul className={styles.memberIncludes}>
+            {SELLERPROOF_MEMBER_INCLUDES.map((x) => (
+              <li key={x}>
+                <Check size={18} aria-hidden="true" />
+                {x}
+              </li>
+            ))}
+          </ul>
+          <p className={styles.fine}>
+            Membership is purchased and used in the SellerProof app, a separate
+            purchase from the single packet. {DISCLAIMER}
+          </p>
         </section>
         <section className={styles.section}>
           <p className={styles.eyebrow}>CLEAR EXPECTATIONS</p>
