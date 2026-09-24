@@ -136,37 +136,70 @@ export type SendLeadTextOptions = {
   humanInitiated?: boolean;
 };
 
+/**
+ * Why a text did or did not go. Callers that only need yes or no use
+ * sendLeadText; the speed-to-lead dispatcher needs the reason, because a text
+ * held for quiet hours waits for the morning while a STOP is final.
+ */
+export type QuoSendResult =
+  | { ok: true; providerMessageId: string | null }
+  | {
+      ok: false;
+      reason:
+        | "kill_switch"
+        | "from_number_not_allowed"
+        | "user_id_not_allowed"
+        | "not_configured"
+        | "invalid_phone"
+        | "suppressed"
+        | "quiet_hours"
+        | "provider_error";
+      detail: string;
+    };
+
+/** Outbound application texting is off unless QUO_OUTBOUND_SMS_DISABLED is exactly "false". */
+export function quoOutboundDisabled(env: Record<string, string | undefined> = process.env): boolean {
+  return env.QUO_OUTBOUND_SMS_DISABLED !== "false";
+}
+
 export async function sendLeadText(to: string, content: string, options: SendLeadTextOptions = {}): Promise<boolean> {
+  return (await sendLeadTextDetailed(to, content, options)).ok;
+}
+
+export async function sendLeadTextDetailed(
+  to: string,
+  content: string,
+  options: SendLeadTextOptions = {},
+): Promise<QuoSendResult> {
   // Emergency compliance stop: outbound Quo SMS is disabled by default while
   // delivery failures and consent/automation rules are audited. Lead capture,
   // CRM storage, and internal email alerts continue normally. Re-enabling is
   // deliberate: set QUO_OUTBOUND_SMS_DISABLED=false in the runtime environment.
-  const outboundDisabled = process.env.QUO_OUTBOUND_SMS_DISABLED !== "false";
-  if (outboundDisabled) {
+  if (quoOutboundDisabled()) {
     console.warn("Quo outbound SMS blocked by emergency compliance stop");
-    return false;
+    return { ok: false, reason: "kill_switch", detail: "QUO_OUTBOUND_SMS_DISABLED is not \"false\"" };
   }
 
   const from = leadFlowQuoFromNumber();
   if (!from) {
     console.error("Quo outbound SMS blocked: QUO_FROM_NUMBER is not the LeadFlow line");
-    return false;
+    return { ok: false, reason: "from_number_not_allowed", detail: "QUO_FROM_NUMBER is not the LeadFlow line" };
   }
 
   const userId = leadFlowQuoUserId();
   if (userId === null) {
     console.error("Quo outbound SMS blocked: sender user id is not LeadFlow-allowlisted");
-    return false;
+    return { ok: false, reason: "user_id_not_allowed", detail: "QUO_USER_ID is not LeadFlow-allowlisted" };
   }
 
   const key = process.env.QUO_API_KEY;
-  if (!key || !to) return false;
-  const e164 = toE164(to);
-  if (!e164) return false;
+  if (!key) return { ok: false, reason: "not_configured", detail: "QUO_API_KEY is not set" };
+  const e164 = to ? toE164(to) : null;
+  if (!e164) return { ok: false, reason: "invalid_phone", detail: "phone number is not textable" };
 
   // STOP is global and the send window is for software, not people
   // (lib/smsPolicy.ts). Both sit here, in the one function every
-  // application-originated text goes through, so no caller can forget them.
+  // application-originated lead text goes through, so no caller can forget them.
   const decision = decideSend({
     now: new Date(),
     suppressed: await smsSuppressedGlobally(e164),
@@ -174,7 +207,11 @@ export async function sendLeadText(to: string, content: string, options: SendLea
   });
   if (!decision.allow) {
     console.warn(`Quo outbound SMS withheld: ${decision.reason}`);
-    return false;
+    return {
+      ok: false,
+      reason: decision.reason,
+      detail: decision.reason === "suppressed" ? "number is on the STOP list" : "outside 8 am to 9 pm Central",
+    };
   }
 
   const body: Record<string, unknown> = { content, from, to: [e164] };
@@ -188,12 +225,73 @@ export async function sendLeadText(to: string, content: string, options: SendLea
       headers: { Authorization: key, "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    if (!r.ok) console.error("Quo send failed:", r.status, await r.text().catch(() => ""));
-    return r.ok;
+    return await quoResult(r, "Quo send failed:");
   } catch (e) {
-    console.error("Quo send error:", e);
-    return false;
+    console.error("Quo send error:", e instanceof Error ? e.message : e);
+    return { ok: false, reason: "provider_error", detail: `Quo request failed: ${e instanceof Error ? e.message : "unknown error"}`.slice(0, 500) };
   }
+}
+
+/**
+ * An internal alert to a staff phone (Ryan, Pat) about a new lead. Not a text
+ * to a lead, so the Central-time quiet hours do not apply: a lead at 11 pm is
+ * worth knowing about at 11 pm. Everything else still does: the emergency
+ * kill switch, the LeadFlow from-number and user guards, and the STOP list.
+ * Only the speed-to-lead dispatcher calls this.
+ */
+export async function sendStaffAlertText(to: string, content: string): Promise<QuoSendResult> {
+  if (quoOutboundDisabled()) {
+    return { ok: false, reason: "kill_switch", detail: "QUO_OUTBOUND_SMS_DISABLED is not \"false\"" };
+  }
+  const from = leadFlowQuoFromNumber();
+  if (!from) {
+    console.error("Quo staff alert blocked: QUO_FROM_NUMBER is not the LeadFlow line");
+    return { ok: false, reason: "from_number_not_allowed", detail: "QUO_FROM_NUMBER is not the LeadFlow line" };
+  }
+  const userId = leadFlowQuoUserId();
+  if (userId === null) {
+    console.error("Quo staff alert blocked: sender user id is not LeadFlow-allowlisted");
+    return { ok: false, reason: "user_id_not_allowed", detail: "QUO_USER_ID is not LeadFlow-allowlisted" };
+  }
+  const key = process.env.QUO_API_KEY;
+  if (!key) return { ok: false, reason: "not_configured", detail: "QUO_API_KEY is not set" };
+  const e164 = to ? toE164(to) : null;
+  if (!e164) return { ok: false, reason: "invalid_phone", detail: "staff phone number is not textable" };
+  if (await smsSuppressedGlobally(e164)) {
+    return { ok: false, reason: "suppressed", detail: "staff number is on the STOP list" };
+  }
+
+  const body: Record<string, unknown> = { content, from, to: [e164] };
+  if (userId) body.userId = userId;
+  try {
+    const r = await fetch(QUO_API, {
+      method: "POST",
+      headers: { Authorization: key, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return await quoResult(r, "Quo staff alert failed:");
+  } catch (e) {
+    console.error("Quo staff alert error:", e instanceof Error ? e.message : e);
+    return { ok: false, reason: "provider_error", detail: `Quo request failed: ${e instanceof Error ? e.message : "unknown error"}`.slice(0, 500) };
+  }
+}
+
+/** Accepted with the provider's message id when it gives one; otherwise the status and a short reason, never the message body. */
+async function quoResult(r: Response, logLabel: string): Promise<QuoSendResult> {
+  const raw = await r.text().catch(() => "");
+  if (!r.ok) {
+    console.error(logLabel, r.status, raw.slice(0, 300));
+    return { ok: false, reason: "provider_error", detail: `Quo returned HTTP ${r.status}${raw ? `: ${raw.slice(0, 300)}` : ""}` };
+  }
+  let providerMessageId: string | null = null;
+  try {
+    const parsed = JSON.parse(raw) as { data?: { id?: unknown }; id?: unknown };
+    const id = parsed?.data?.id ?? parsed?.id;
+    if (typeof id === "string" && id) providerMessageId = id.slice(0, 200);
+  } catch {
+    // A 2xx is accepted even without a readable id.
+  }
+  return { ok: true, providerMessageId };
 }
 
 /**

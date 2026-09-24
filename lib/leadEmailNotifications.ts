@@ -283,6 +283,9 @@ async function deliverNotification(
     lead,
     claimed.notification_type,
     leadEmailNotificationIdempotencyKey(claimed.lead_id, claimed.notification_type),
+    // The snapshot has no id; the outbox row does. The row is written in the
+    // lead's own insert transaction, so its created_at is when the lead came in.
+    { leadId: claimed.lead_id, receivedAt: claimed.created_at },
   );
   if (!result.ok) return finishFailure(supabase, claimed, result.error);
 

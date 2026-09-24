@@ -73,6 +73,12 @@ export default async function AdminLayout({
               Call sheet
             </Link>
             <Link
+              href="/admin/sales/uncalled"
+              className="font-black text-[var(--text)] hover:text-[var(--heading)]"
+            >
+              Uncalled
+            </Link>
+            <Link
               href="/admin/sales"
               className="text-[var(--text)] hover:text-[var(--heading)]"
             >

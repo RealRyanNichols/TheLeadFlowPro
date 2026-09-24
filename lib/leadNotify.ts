@@ -4,7 +4,6 @@
 // door it came through. Fails soft: a broken email provider never blocks the
 // lead from being saved.
 
-import { sendLeadText } from "@/lib/quo";
 import { BUSINESS } from "@/lib/site/business";
 import { CONSULTATION } from "@/lib/site/consultation";
 import { bookingPage } from "@/lib/site/external-links";
@@ -139,15 +138,52 @@ async function send(payload: object): Promise<boolean> {
 //
 // This is the NEW LEAD alert only. The intake, digest and Stripe alerts
 // elsewhere in the app still go to hello@ alone and are a separate decision.
-const OWNER_ALERT_RECIPIENTS = [
+export const OWNER_ALERT_RECIPIENTS = [
   BUSINESS.email.hello,
   BUSINESS.email.pat,
 ];
 
-function ownerAlertPayload(lead: NotifiableLead) {
+const OWNER_ALERT_FROM = `${BUSINESS.name} <${BUSINESS.email.alerts}>`;
+
+/**
+ * The one lead link every NEW LEAD alert carries. /admin/sales/* admits both
+ * roles that work leads (Pat is sales, Ryan is admin); /admin/leads/* would
+ * bounce Pat to the dashboard.
+ */
+export function leadWorkspaceUrl(leadId: string, siteUrl: string = BUSINESS.siteUrl): string {
+  return `${siteUrl}/admin/sales/leads/${leadId}`;
+}
+
+/** "Tue, Sep 22, 2:14 PM CT": when a lead arrived, in the business time zone. */
+export function leadAlertTime(at: Date): string {
+  const text = new Intl.DateTimeFormat("en-US", {
+    timeZone: BUSINESS.timezone,
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(at);
+  // Some ICU builds put a narrow no-break space before AM/PM.
+  return `${text.replace(/[  ]/g, " ")} CT`;
+}
+
+/** What the outbox row knows that the frozen lead snapshot does not. */
+export type OwnerAlertContext = {
+  leadId?: string | null;
+  /** When the lead arrived. Defaults to the moment the alert is built. */
+  receivedAt?: string | Date | null;
+};
+
+function alertInstant(value: OwnerAlertContext["receivedAt"]): Date {
+  const at = value ? new Date(value) : new Date();
+  return Number.isNaN(at.getTime()) ? new Date() : at;
+}
+
+function ownerAlertPayload(lead: NotifiableLead, context: OwnerAlertContext = {}) {
   const via = lead.source === "meta_lead_ad" ? " [FACEBOOK LEAD AD]" : "";
   return {
-    from: `${BUSINESS.name} <${BUSINESS.email.alerts}>`,
+    from: OWNER_ALERT_FROM,
     reply_to: BUSINESS.email.hello,
     to: OWNER_ALERT_RECIPIENTS,
     subject: `NEW LEAD${via}: ${lead.full_name}${lead.business_name ? ` (${lead.business_name})` : ""} | ${INTEREST_LABELS[lead.interest] ?? lead.interest}`,
@@ -160,13 +196,35 @@ function ownerAlertPayload(lead: NotifiableLead) {
       `Home base: ${lead.current_platform || "-"}`,
       `Timeline: ${lead.timeline || "-"}`,
       `Source: ${lead.source || "website"}${lead.utm_source ? ` / ${lead.utm_source}` : ""}`,
+      `Received: ${leadAlertTime(alertInstant(context.receivedAt))}`,
       ``,
       `What they told me:`,
       lead.goals || "-",
       ``,
-      `Manage: ${BUSINESS.siteUrl}/admin`,
+      context.leadId ? `Open: ${leadWorkspaceUrl(context.leadId)}` : `Manage: ${BUSINESS.siteUrl}/admin`,
     ].join("\n"),
   };
+}
+
+/**
+ * The speed-to-lead NEW LEAD email (lib/speedToLead.ts builds the words).
+ * Same sender and the same two inboxes as the owner alert, with a stable
+ * provider idempotency key so a retried job never lands twice.
+ */
+export async function sendOwnerAlertEmail(
+  content: { subject: string; text: string },
+  idempotencyKey: string,
+): Promise<LeadEmailSendResult> {
+  return sendDetailed(
+    {
+      from: OWNER_ALERT_FROM,
+      reply_to: BUSINESS.email.hello,
+      to: OWNER_ALERT_RECIPIENTS,
+      subject: content.subject,
+      text: content.text,
+    },
+    idempotencyKey,
+  );
 }
 
 const FROM_RYAN = `${BUSINESS.operator} <${BUSINESS.email.ryan}>`;
@@ -521,12 +579,13 @@ export async function sendLeadEmailNotification(
   lead: NotifiableLead,
   notificationType: LeadEmailNotificationType,
   idempotencyKey: string,
+  context: OwnerAlertContext = {},
 ): Promise<LeadEmailSendResult> {
   if (notificationType === "lead_welcome" && welcomeSuppressed(lead)) {
     return { ok: true, providerMessageId: null };
   }
   return sendDetailed(
-    notificationType === "owner_alert" ? ownerAlertPayload(lead) : leadWelcomePayload(lead),
+    notificationType === "owner_alert" ? ownerAlertPayload(lead, context) : leadWelcomePayload(lead),
     idempotencyKey,
   );
 }
@@ -535,8 +594,8 @@ export async function sendLeadEmailNotification(
 // deposit. This deliberately does not contact the lead or enroll them in any
 // automation. Returning the provider result lets webhook callers ask Stripe
 // to retry when the internal alert could not be accepted.
-export async function sendInternalLeadAlert(lead: NotifiableLead) {
-  return send(ownerAlertPayload(lead));
+export async function sendInternalLeadAlert(lead: NotifiableLead, context: OwnerAlertContext = {}) {
+  return send(ownerAlertPayload(lead, context));
 }
 
 export async function sendLeadEmails(lead: NotifiableLead) {
@@ -581,24 +640,50 @@ export async function enrollInEmailSeries(email: string) {
   }
 }
 
-export async function textLeadBack(lead: NotifiableLead) {
-  if (!lead.phone) return;
-  await sendLeadText(lead.phone, textBackBodyFor(lead));
+// THE FIRST TEXT (speed to lead, 2026-09-22). One automatic text per lead,
+// sent by the lead_sms job in lib/speedToLeadServer.ts and nowhere else: the
+// intake routes no longer text on their own. It asks exactly one qualifying
+// question so the first call starts warm, points at /services, and ends with
+// the opt-out. Plain GSM characters only and at most two SMS segments
+// (lib/speedToLead.ts smsSegments; the test pins both).
+const FIRST_TEXT_QUESTION =
+  "Quick question so I call you ready: what is costing you the most business right now, missed calls, slow follow-up, or not enough leads?";
+
+// Names the software invents when nobody typed one (Meta, the Quo webhook,
+// the text-in alert). "Unknown, this is Ryan" is worse than "Hi, this is Ryan".
+const PLACEHOLDER_FIRST_NAMES = new Set(["facebook", "unknown", "text-in", "unnamed", "lead", "test", "n/a", "na", "none"]);
+
+/** True when the first word of a name is one the software made up, not one a person typed. */
+export function isPlaceholderFirstName(first: string): boolean {
+  return PLACEHOLDER_FIRST_NAMES.has(first.trim().toLowerCase());
 }
 
-/** Which text-back a lead gets: the consultation's own for a consultation request, the generic one otherwise. */
-export function textBackBodyFor(lead: Pick<NotifiableLead, "full_name" | "funnel">, booking: string | null = bookingPage()): string {
-  const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
-  return lead.funnel === CONSULTATION.funnel ? leadConsultationTextBody(first, booking) : leadTextBackBody(first, booking);
+/** A first name fit to open a text with, or null. Letters, apostrophes and hyphens only, so the text stays in plain GSM characters. */
+export function leadFirstName(fullName: string | null | undefined): string | null {
+  const first = String(fullName ?? "").trim().split(/\s+/)[0] ?? "";
+  if (!first || isPlaceholderFirstName(first)) return null;
+  if (!/^[A-Za-z][A-Za-z'-]{0,19}$/.test(first)) return null;
+  return first.charAt(0).toUpperCase() + first.slice(1);
 }
 
-// The fixed sentences of the two automated text-backs, without the name and
+export function leadFirstText(lead: { full_name?: string | null; funnel?: string | null }): string {
+  const first = leadFirstName(lead.full_name);
+  const opener = `${first ?? "Hi"}, this is Ryan with The LeadFlow Pro.`;
+  const request =
+    lead.funnel === CONSULTATION.funnel ? "Got your free consultation request." : "Got your request.";
+  return `${opener} ${request} ${FIRST_TEXT_QUESTION} See what we build: theleadflowpro.com/services Reply STOP to opt out.`;
+}
+
+// The fixed sentences of every automated text-back, without the name and
 // without the optional booking line. The Quo webhook echoes every outbound
-// text on the line back into lead_messages, so the call sheet needs a way to
-// tell software's texts from a person's. Keep these in step with the bodies.
+// text on the line back into lead_messages, so the call sheet and the
+// Uncalled list need a way to tell software's texts from a person's. Keep
+// these in step with the bodies. The first two are the retired text-backs,
+// kept because their echoes are already in lead_messages.
 const AUTOMATED_TEXT_MARKERS = [
   "this is Ryan with The LeadFlow Pro. Got your answers and I am already looking at what to fix first.",
   `this is Ryan with The LeadFlow Pro. Got your request for the free ${CONSULTATION.minutes}-minute consultation.`,
+  FIRST_TEXT_QUESTION,
 ] as const;
 
 /** True when a message body is one the application sends on its own (the text-backs), not one a person typed. */
@@ -607,28 +692,29 @@ export function isAutomatedLeadText(body: string): boolean {
   return AUTOMATED_TEXT_MARKERS.some((marker) => text.includes(marker));
 }
 
-/** The text-back, exported so the test can prove the booking line appears only when set and STOP stays last. */
+/**
+ * RETIRED 2026-09-22 (replaced by leadFirstText). Kept so the call sheet can
+ * still recognise the copies already sent and so the booking-line tests keep
+ * their meaning. Nothing sends this any more.
+ */
 export function leadTextBackBody(first: string, booking: string | null = bookingPage()): string {
   return `${first}, this is Ryan with The LeadFlow Pro. Got your answers and I am already looking at what to fix first. I will text or call you shortly. Save this number, it is my direct line.${bookingSentence(booking)} Reply STOP to opt out.`;
 }
 
 /**
- * The consultation's own text-back. It names what they asked for and makes
- * the same promise the page and the welcome email make (one business day),
- * instead of the generic "shortly".
+ * RETIRED 2026-09-22 (leadFirstText folds the consultation in). Kept for the
+ * same reason as leadTextBackBody: recognising texts already sent.
  */
 export function leadConsultationTextBody(first: string, booking: string | null = bookingPage()): string {
   return `${first}, this is Ryan with The LeadFlow Pro. Got your request for the free ${CONSULTATION.minutes}-minute consultation. I will text or call you within one business day to set the time and the place. Save this number, it is my direct line.${bookingSentence(booking)} Reply STOP to opt out.`;
 }
 
-// SMS remains an independent best-effort action. The durable outbox is email
-// only, so a failed text can never hold or duplicate the owner alert/welcome.
-export async function notifyNewLeadSms(lead: NotifiableLead) {
-  try {
-    if (lead.sms_consent && lead.phone) await textLeadBack(lead);
-  } catch (e) {
-    console.error("lead text step failed:", e);
-  }
+// RETIRED 2026-09-22. The first text to a lead is the speed-to-lead lead_sms
+// job (lib/speedToLeadServer.ts), the single sender, so a lead can never get
+// two. This stays a no-op only so the legacy notifyNewLead below compiles
+// unchanged; it never texts anyone. Do not bring a send back here.
+export async function notifyNewLeadSms(_lead: NotifiableLead): Promise<void> {
+  return;
 }
 
 // Alert + reply + text + eligible legacy-series enrollment, in that order.
