@@ -1,0 +1,14 @@
+# Build context for deploy/droplet/Dockerfile. Keep secrets and local state out.
+.git
+node_modules
+.next
+out
+build
+coverage
+test-results
+.vercel
+.env
+.env.*
+!factory/template/.env.example
+*.log
+.DS_Store

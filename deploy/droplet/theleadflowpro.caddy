@@ -1,0 +1,15 @@
+# The LeadFlow Pro, served from this droplet. Imported by /etc/caddy/Caddyfile
+# through `import /etc/caddy/sites/*.caddy`. The brain's own site block is not
+# touched. Installed as theleadflowpro.caddy.off and switched on by
+# deploy/droplet/cutover.sh site-on, once DNS points here, so Caddy never asks
+# Let's Encrypt for a certificate it cannot get.
+
+theleadflowpro.com {
+	redir https://www.theleadflowpro.com{uri} 308
+}
+
+www.theleadflowpro.com {
+	encode zstd gzip
+	header Strict-Transport-Security "max-age=63072000"
+	reverse_proxy 127.0.0.1:3100
+}
