@@ -1,0 +1,8 @@
+--- server.js
++++ server.js
+@@ -485,5 +485,6 @@
+ require('./dashboard').register(app, { pool, env, gate, createSession, cookieFor });
+ require('./command').register(app, { env, gate });
++require('./ads').register(app, { pool, gate });
+
+ app.get('/', (_q, r) => r.sendFile('/opt/brain/public/index.html'));
