@@ -10,7 +10,11 @@
 // safe default instead. The idea machine keeps working without storage; it
 // just cannot keep its place after the tab closes. Saved items fall back to
 // memory for the life of the tab.
+//
+// Every "Save" / "Saved" button reads the saved list itself (useSavedItems),
+// so removing an item or clearing the list turns its button back to "Save".
 
+import { useEffect, useState } from "react";
 import { normalizeInput, parseShuffleState } from "@/lib/postCreator/ideas/engine";
 import type { EngineInput, ShuffleState } from "@/lib/postCreator/ideas/types";
 
@@ -192,4 +196,37 @@ export function clearSaved(): void {
   drop(STORAGE_KEYS.saved);
   memorySaved = [];
   announceSaved();
+}
+
+/** True when an idea with this title and text is in the saved list. */
+export function isIdeaSaved(items: readonly SavedItem[], title: string, text: string): boolean {
+  return items.some((s) => s.kind === "idea" && s.title === title && s.text === text);
+}
+
+/** True when a draft with this text is in the saved list, under any title. */
+export function isDraftSaved(items: readonly SavedItem[], text: string): boolean {
+  return items.some((s) => s.kind === "draft" && s.text === text);
+}
+
+/**
+ * The saved list, kept current: it reloads on every save, remove, or clear in
+ * this tab (SAVED_EVENT) and on a change from another tab. Empty on the server
+ * and on the first render in the browser, so both draw the same thing.
+ */
+export function useSavedItems(): readonly SavedItem[] {
+  const [items, setItems] = useState<SavedItem[]>([]);
+  useEffect(() => {
+    const reload = () => setItems(readSaved());
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === null || e.key === STORAGE_KEYS.saved) reload();
+    };
+    reload();
+    window.addEventListener(SAVED_EVENT, reload);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener(SAVED_EVENT, reload);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+  return items;
 }

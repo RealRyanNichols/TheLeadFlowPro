@@ -76,13 +76,13 @@ describe("free draft safety sweep", () => {
           const now = SEASON_DAYS[hookIdx];
           const card = makeCard(core, input, { hookIdx, shotIdx: hookIdx % 2, ctaIdx: (i + hookIdx) % CTA_IDS.length }, undefined, now);
           assert.deepEqual(postCopyProblems(`${card.title}\n${card.shot}`, ALLOWED), [], card.key);
-          check(renderDraft(card, input, "facebook", now), `${trade} ${card.key}`);
+          check(renderDraft(card, input, "facebook"), `${trade} ${card.key}`);
           rendered++;
         }
       });
     }
-    // 12 trades of 430 cores and "other" with 292, four first lines each.
-    assert.equal(rendered, (12 * 430 + 292) * 4);
+    // The 12 named trades with three services have 4,129 cores between them, and "other" 186; four first lines each.
+    assert.equal(rendered, (4_129 + 186) * 4);
   });
 
   test("every platform in every voice with every call to action, at the first remix, for plumbing and other", () => {
@@ -101,7 +101,7 @@ describe("free draft safety sweep", () => {
         }
       }
     }
-    assert.equal(rendered, (430 + 292) * VOICES.length * CTA_IDS.length * PLATFORMS.length);
+    assert.equal(rendered, (343 + 186) * VOICES.length * CTA_IDS.length * PLATFORMS.length);
   });
 
   test("three thousand seeded random cards across trades, services, voices, calls to action, laps, and platforms", () => {
@@ -119,7 +119,7 @@ describe("free draft safety sweep", () => {
       const { card } = drawNext(input, state, now);
       const platform: PlatformId = pick(PLATFORMS).id;
       const allowed = { text: "", mask: [SAMPLE.businessName, SAMPLE.town, ...services] };
-      check(renderDraft(card, input, platform, now), `#${n} ${inputSignature(input)} ${card.key} ${platform}`, allowed);
+      check(renderDraft(card, input, platform), `#${n} ${inputSignature(input)} ${card.key} ${platform}`, allowed);
     }
   });
 

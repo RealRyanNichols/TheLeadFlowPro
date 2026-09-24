@@ -1,10 +1,12 @@
-import { createHash } from "node:crypto";
+import { postCreatorSecrets } from "@/lib/postCreator/access";
 import { aiWritingStatus } from "@/lib/postCreator/ai/config";
 import { callAnthropic } from "@/lib/postCreator/ai/anthropic";
 import { WRITE_ERROR_STATUS, writeErrorMessage } from "@/lib/postCreator/ai/messages";
 import { validateWriteRequest } from "@/lib/postCreator/ai/parse";
+import { anthropicUserId } from "@/lib/postCreator/ai/userId";
 import { runWrite } from "@/lib/postCreator/ai/writer";
 import * as db from "@/lib/postCreator/db";
+import { meteredPlan } from "@/lib/postCreator/plan";
 import { profileIsReady } from "@/lib/postCreator/profile";
 import { BodyError, apiError, isResponse, json, readBody, requirePostCreator, sameOrigin } from "@/lib/postCreator/server";
 import type { ErrorCode, PostCreatorPlan } from "@/lib/postCreator/types";
@@ -29,16 +31,14 @@ function fail(code: ErrorCode, plan: PostCreatorPlan, field?: string) {
   return apiError(code, writeErrorMessage(code, { allowance: null, plan }), WRITE_ERROR_STATUS[code], field ? { field } : {});
 }
 
-/** What metadata.user_id carries: a hash, so Anthropic can spot abuse without ever seeing the email. */
-function userHashFor(email: string): string {
-  return createHash("sha256").update(`post-creator:${email}`, "utf8").digest("hex").slice(0, 32);
-}
-
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return fail("forbidden", "monthly");
   const pc = await requirePostCreator();
   if (isResponse(pc)) return pc;
-  const plan = pc.account.plan;
+  // The allowance that applies now: a monthly buyer who paid once keeps the
+  // monthly allowance through the month their paid monthly period ends.
+  const now = new Date();
+  const plan = meteredPlan(pc.account, now);
 
   const ai = aiWritingStatus(process.env);
   if (!ai.on) return fail("ai_off", plan);
@@ -55,10 +55,16 @@ export async function POST(request: Request) {
   const profile = pc.account.profile;
   if (!profileIsReady(profile)) return fail("profile_needed", plan);
 
+  // metadata.user_id is keyed with the current secret (./userId.ts), so a
+  // guessed email cannot be checked against it. The cookie was verified with
+  // one, so a missing secret here means the server is misconfigured.
+  const secret = postCreatorSecrets()[0];
+  if (!secret) return fail("unconfigured", plan);
+
   const client = pc.client;
   const email = pc.email;
   const result = await runWrite(
-    { email, userHash: userHashFor(email), plan, profile, request: checked.value, ai, now: new Date() },
+    { email, userHash: anthropicUserId(email, secret), plan, profile, request: checked.value, ai, now },
     {
       reserve: (i) => db.reserveGeneration(client, i),
       settle: (i) => db.settleGeneration(client, i),

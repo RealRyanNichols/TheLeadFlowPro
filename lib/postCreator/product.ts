@@ -115,7 +115,7 @@ export const UNLIMITED_FINE_PRINT =
 export function aiNotUnlimited(): string {
   const m = POST_CREATOR.ai.monthly;
   const l = POST_CREATOR.ai.lifetime;
-  return `AI writing is not unlimited. Every AI write costs us money to make, so each plan includes a set number: up to ${m.perMonth} a month and ${m.perDay} a day on the monthly plan, and up to ${l.perMonth} a month and ${l.perDay} a day on the one payment plan. A write that fails does not count.`;
+  return `AI writing is not unlimited. Every AI write costs us money to make, so each plan includes a set number: up to ${m.perMonth} a month and ${m.perDay} a day on the monthly plan, and up to ${l.perMonth} a month and ${l.perDay} a day on the one payment plan. A write that fails does not count. ${PARTIAL_WRITE_LINE}`;
 }
 export const UNLIMITED_FAQ_Q = "Is the idea machine really free and unlimited?";
 export const UNLIMITED_FAQ_A =
@@ -127,8 +127,9 @@ export const STILL_UNLIMITED = "The idea machine still works, with no limit.";
 // honesty:end
 
 /**
- * The counter line under an idea card. `tradeWords` is "your business" for
- * "other", else the trade label lowercased ("heating and air").
+ * The counter line under an idea card. `tradeWords` is the phrase from
+ * tradeWords in ./ideas/engine.ts (for example "handyman work" or "a salon or
+ * barbershop"), and "your business" for "other".
  */
 export function ideaCountLine(
   space: { coreCount: number; cardCount: number; monthsAtThreeAWeek: number },
@@ -145,6 +146,14 @@ export function aiCapLine(plan: PostCreatorPlan): string {
   return `AI writing: up to ${p.perMonth} writes a month and ${p.perDay} a day. Each write drafts one post for up to ${POST_CREATOR.ai.maxPlatformsPerWrite} platforms. Unused writes do not carry over.`;
 }
 
+/**
+ * When a write that asked for several platforms counts. The writer answers
+ * with every clean draft it has; a platform without one is named on screen
+ * (missingPlatformsLine in ./ai/messages.ts), and the write still counts.
+ */
+export const PARTIAL_WRITE_LINE =
+  "A write counts when a draft comes back for at least one of the platforms you picked. Any platform without a draft is named on screen, so you can start a new write for it.";
+
 export function triesLine(plan: PostCreatorPlan): string {
   const limits = aiLimitsFor(plan);
   return `A write that fails or is declined does not count. To keep costs fair, there is a ceiling of ${limits.triesPerDay} tries a day and ${limits.triesPerMonth} a month, counting the ones that fail.`;
@@ -159,7 +168,7 @@ export const COST_LIMIT_LINE =
 export const AI_OFF_LINE = "AI writing is not switched on right now. The idea machine and the month planner still work.";
 
 export const FILTER_LINE =
-  "Every AI draft is checked by rules that remove claims, prices, and numbers you did not give us. No check is perfect, so read every draft before you post it.";
+  "Every AI draft is checked by rules that remove the common claims, prices, and numbers you did not give us. The rules do not catch everything, so read every draft before you post it.";
 
 export const POST_CREATOR_DISCLAIMER =
   "Post Creator suggests ideas and writes drafts. You read every draft, fill in the details, and post it yourself from your own accounts. Nothing is posted for you, no results are promised, and AI drafts can get things wrong, so check every fact before you post.";

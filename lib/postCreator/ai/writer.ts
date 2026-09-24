@@ -6,10 +6,11 @@
 //    reservation stops here: no model call, nothing to settle.
 // 2. Call the model once. No retries: the buyer taps Try again.
 // 3. Settle the reservation exactly once, whatever happened: a write that
-//    delivered at least one clean draft counts; anything else is recorded as
-//    a failed try at its real cost (0 when the provider turned it away, the
-//    full reservation when a timeout or a dropped connection leaves the bill
-//    unknown).
+//    delivered at least one clean draft counts, and the answer names any
+//    requested platform that did not come back clean; anything else is
+//    recorded as a failed try at its real cost (0 when the provider turned it
+//    away or the connection never opened, the full reservation when a timeout
+//    or a dropped connection leaves the bill unknown).
 //
 // Pure: the database, the model, and the log are passed in, so every path can
 // be tested without a network. Logs name the outcome only, never the email,
@@ -33,14 +34,14 @@ import type {
 import { AI_MAX_TOKENS, type AiOn } from "./config";
 import { actualMicroUsd, reserveMicroUsd, tokenTotals } from "./cost";
 import { allowedFactsFor } from "./filter";
-import { WRITE_ERROR_STATUS, writeErrorMessage } from "./messages";
+import { WRITE_ERROR_STATUS, writeErrorMessage, type MessageContext } from "./messages";
 import type { CallModel, ModelResult } from "./model";
 import { classifyMessage, parseWriteOutput } from "./parse";
 import { buildParams } from "./prompt";
 
 export type WriterInput = {
   email: string;
-  /** An opaque hash of the buyer, sent as metadata.user_id. Never the email. */
+  /** A keyed hash of the buyer (./userId.ts), sent as metadata.user_id. Never the email. */
   userHash: string;
   plan: PostCreatorPlan;
   profile: BrandProfile;
@@ -59,10 +60,10 @@ export type WriterDeps = {
 
 type WriteReply = { status: number; body: WriteResponse };
 
-function errorReply(code: ErrorCode, plan: PostCreatorPlan, allowance: Allowance | null): WriteReply {
+function errorReply(code: ErrorCode, plan: PostCreatorPlan, allowance: Allowance | null, extra: Partial<MessageContext> = {}): WriteReply {
   return {
     status: WRITE_ERROR_STATUS[code],
-    body: { ok: false, code, error: writeErrorMessage(code, { allowance, plan }), ...(allowance ? { allowance } : {}) },
+    body: { ok: false, code, error: writeErrorMessage(code, { ...extra, allowance, plan }), ...(allowance ? { allowance } : {}) },
   };
 }
 
@@ -82,7 +83,8 @@ function notReserved(r: Exclude<ReserveResult, { result: "reserved" }>, input: W
     case "spend_cap":
       return errorReply("spend_cap", plan, null);
     default:
-      return errorReply(r.result, plan, allowanceView(plan, r.counts, now));
+      // The tries this month decide whether an attempt_limit lifts at midnight or on the 1st.
+      return errorReply(r.result, plan, allowanceView(plan, r.counts, now), { triesThisMonth: r.counts.triesMonth });
   }
 }
 
@@ -92,11 +94,15 @@ type Settled = { outcome: SettleOutcome; delivered: boolean; costMicro: number |
 function fromResult(result: ModelResult, input: WriterInput, settle: SettleInput): Settled {
   const { plan, ai, request, profile } = input;
   if (result.kind === "error") {
-    const kind = result.error.kind;
-    if (kind === "rate_limited") return failed("rate_limited", 0, "rate_limited", plan);
-    if (kind === "api" || kind === "config") return failed("provider_error", 0, "provider_error", plan);
-    if (kind === "timeout") return failed("timeout", null, "timeout", plan);
-    return failed(kind === "connection" ? "connection" : "unknown", null, "provider_error", plan);
+    const { kind, billedUnknown } = result.error;
+    // null charges the full reservation: the request may have run and been
+    // billed. 0 when it cannot have been (turned away with a status, or a
+    // connection that never opened).
+    const cost = billedUnknown ? null : 0;
+    if (kind === "rate_limited") return failed("rate_limited", cost, "rate_limited", plan);
+    if (kind === "api" || kind === "config") return failed("provider_error", cost, "provider_error", plan);
+    if (kind === "timeout") return failed("timeout", cost, "timeout", plan);
+    return failed(kind === "connection" ? "connection" : "unknown", cost, "provider_error", plan);
   }
 
   const message = result.message;
@@ -125,7 +131,15 @@ function fromResult(result: ModelResult, input: WriterInput, settle: SettleInput
     costMicro: cost,
     reply: (allowance) => ({
       status: 200,
-      body: { ok: true, drafts: parsed.drafts, altHooks: parsed.altHooks, photoIdea: parsed.photoIdea, trimmed: parsed.trimmed, allowance },
+      body: {
+        ok: true,
+        drafts: parsed.drafts,
+        missing: parsed.missing,
+        altHooks: parsed.altHooks,
+        photoIdea: parsed.photoIdea,
+        trimmed: parsed.trimmed,
+        allowance,
+      },
     }),
   };
 }

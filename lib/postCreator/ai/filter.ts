@@ -2,22 +2,23 @@
 // sees it.
 //
 // The prompt asks the model to stay honest; this file makes sure. Long
-// dashes become commas, inline hashtags come out, and each sentence goes
-// through postCopyProblems (../copyRules.ts): a claim, a number, a phone,
-// or a link survives only when the owner wrote it in their facts, note, or
-// profile. A sentence that fails is dropped and counted, so the buyer can be
+// dashes of every kind (and "--") become commas, inline hashtags come out,
+// and each sentence goes through postCopyProblems (../copyRules.ts): a
+// claim, a number, a phone, or a link survives only when the owner wrote it
+// in their facts, note, or profile. A sentence that fails is dropped and
+// counted, so the buyer can be
 // told how many were removed. A draft that loses more than half its sentences,
 // or is left too short to post, is thrown out whole.
 //
 // Pure. The server runs it on every AI answer; the tests run it on fixtures.
 
 import { plain } from "../../hq/copy";
-import { postCopyProblems, type AllowedFacts } from "../copyRules";
+import { HYPHEN_LIKE_CHARS, LONG_DASH_CHARS, blankPattern, hasLongDash, postCopyProblems, type AllowedFacts } from "../copyRules";
 import { platformById, type PlatformId } from "../options";
 import type { BrandProfile, DraftView, ParsedWriteRequest } from "../types";
 
-/** A [fill-in] the owner completes before posting. The same shape the free drafts use. */
-const BLANK = /\[[^\]\n]{1,60}\]/g;
+/** A [fill-in] the owner completes before posting (BLANK_SOURCE, the shape the free drafts use). */
+const BLANK = blankPattern();
 
 /** A hashtag in running text. It needs a letter, so "#1" stays in and meets the claim rules. */
 const INLINE_HASHTAG = /(^|\s)#(?=[A-Za-z0-9_]*[A-Za-z])[A-Za-z0-9_]+/g;
@@ -32,22 +33,35 @@ function minChars(platform: PlatformId): number {
   return platform === "video" ? 20 : 40;
 }
 
+/** A long dash (LONG_DASH_CHARS, ../copyRules.ts), or two or more hyphens standing in for one ("--", "---"). */
+const LONG_DASH_RUN = new RegExp(`[${LONG_DASH_CHARS}]|-{2,}`, "g");
+const HYPHEN_LIKE = new RegExp(`[${HYPHEN_LIKE_CHARS}]`, "g");
+
 /**
- * Long dashes out, the way a person would write it: a number range becomes
- * "3 to 5", a dash that opens or closes a line (a bullet) goes, any other
- * long dash becomes a comma, and " -- " too. A comma left right before other
- * punctuation is dropped. Line breaks stay where they were.
+ * Long dashes out, the way a person would write it. Hyphen look-alikes become
+ * a plain hyphen, and so does a figure dash between digits ("903-555-0100")
+ * or a minus sign on a number ("-5"). Every other long dash, and "--" with or
+ * without spaces, is then handled as one: a number range becomes "3 to 5", a
+ * dash that opens or closes a line (a bullet) goes, and any other becomes a
+ * comma. A comma left right before other punctuation is dropped. Line breaks
+ * stay where they were.
  */
 export function normalizeDashes(text: string): string {
   return text
-    .replace(/(\d)[^\S\n]*[\u2013\u2014][^\S\n]*(\d)/g, "$1 to $2")
-    .replace(/^[^\S\n]*[\u2014\u2013]+[^\S\n]*/gm, "")
-    .replace(/[^\S\n]*[\u2014\u2013]+[^\S\n]*$/gm, "")
-    .replace(/[^\S\n]*[\u2014\u2013]+[^\S\n]*/g, ", ")
-    .replace(/ -- /g, ", ")
+    .replace(HYPHEN_LIKE, "-")
+    .replace(/(\d)\u2012(?=\d)/g, "$1-")
+    .replace(/\u2212(?=\d)/g, "-")
+    .replace(LONG_DASH_RUN, "\u2014")
+    .replace(/(\d)[^\S\n]*\u2014+[^\S\n]*(\d)/g, "$1 to $2")
+    .replace(/^[^\S\n]*\u2014+[^\S\n]*/gm, "")
+    .replace(/[^\S\n]*\u2014+[^\S\n]*$/gm, "")
+    .replace(/[^\S\n]*\u2014+[^\S\n]*/g, ", ")
     .replace(/,[^\S\n]*([,.!?])/g, "$1")
     .replace(/[^\S\n]{2,}/g, " ");
 }
+
+/** Whether any long dash is left. normalizeDashes leaves none; the draft checks hold it to that. */
+export { hasLongDash };
 
 /**
  * What a draft may repeat: the owner's facts, difference, contact detail,
@@ -105,7 +119,7 @@ function blanksIn(text: string): string[] {
 }
 
 function hasProblems(text: string, allowed: AllowedFacts): boolean {
-  return postCopyProblems(text, allowed).length > 0;
+  return hasLongDash(text) || postCopyProblems(text, allowed).length > 0;
 }
 
 /**

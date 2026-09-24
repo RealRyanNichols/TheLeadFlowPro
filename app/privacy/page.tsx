@@ -11,7 +11,7 @@ export const metadata: Metadata = withPublicPageMetadata("/privacy", {
 export default function PrivacyPage() {
   return (
     <main className="legal-page">
-      <span className="eyebrow">Last updated September 20, 2026</span>
+      <span className="eyebrow">Last updated September 24, 2026</span>
       <h1>Privacy Policy</h1>
       <p>
         {BUSINESS.name} is a DBA of {BUSINESS.legalName}. This policy explains
@@ -130,8 +130,10 @@ export default function PrivacyPage() {
       </p>
       <h2>Post Creator</h2>
       <p>
-        The free Post Creator idea machine runs in your browser and sends nothing to us;
-        what you type there stays on your device. For a Post Creator buyer we store their
+        The free Post Creator idea machine runs in your browser and sends nothing to us
+        from what you type: your settings, saved ideas, and drafts stay on your device.
+        Like the rest of this website, its page does record the visit and the buttons
+        pressed, as described above. For a Post Creator buyer we store their
         email, their plan, and the business profile they save, so the account works on
         every device. When a buyer uses AI writing, their saved profile, the idea they
         picked, and any note they add are sent to Anthropic, the company that runs the AI

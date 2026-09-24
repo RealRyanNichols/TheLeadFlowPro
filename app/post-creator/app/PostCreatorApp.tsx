@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Bookmark, CalendarDays, Lightbulb, PenLine, Settings2 } from "lucide-react";
 import IdeaMachine from "@/components/postCreator/IdeaMachine";
 import PlanMonth from "@/components/postCreator/PlanMonth";
@@ -27,8 +26,14 @@ import WritePanel, { WriteAction } from "./WritePanel";
 // After that the app changes only on the buyer's own actions: a profile save
 // returns the saved profile, a write returns the fresh allowance, and when an
 // answer is missing either one the session is read again. An answer that says
-// the device is signed out or the plan lapsed hands back to the server page,
-// which shows the locked screen and why.
+// the device is signed out or the plan lapsed loads the app page fresh, which
+// shows the locked screen and why from the top (a refresh in place would keep
+// the scroll position and land a phone in the footer of the much shorter
+// locked page).
+//
+// Anything scrolled into view (the tab bar, the writer) keeps clear of the
+// sticky site header with scroll-mt-24, so the heading or tab that takes focus
+// is never hidden under it.
 
 type Tab = "ideas" | "plan" | "saved" | "settings";
 
@@ -51,8 +56,12 @@ function prefersReducedMotion(): boolean {
   }
 }
 
+/** Signed out or lapsed: load the app page fresh, at the top, with nothing from the open app left in memory. */
+export function reloadApp(): void {
+  window.location.assign(POST_CREATOR.appPath);
+}
+
 export default function PostCreatorApp({ initial, welcome, claim }: { initial: SessionView; welcome: boolean; claim: ClaimCode | null }) {
-  const router = useRouter();
   const baseId = useId();
   const [session, setSession] = useState<SessionView>(initial);
   const [tab, setTab] = useState<Tab>("ideas");
@@ -78,17 +87,17 @@ export default function PostCreatorApp({ initial, welcome, claim }: { initial: S
   }, []);
 
   // The server page decides what a signed-out or lapsed device sees.
-  const sessionLost = useCallback(() => router.refresh(), [router]);
+  const sessionLost = useCallback(() => reloadApp(), []);
 
   const refresh = useCallback(async () => {
     const r = await fetchSession();
     if (r.ok) {
-      if (!r.data.entitled) router.refresh();
+      if (!r.data.entitled) reloadApp();
       else setSession(r.data);
       return;
     }
-    if (r.status === 401 || r.status === 402) router.refresh();
-  }, [router]);
+    if (r.status === 401 || r.status === 402) reloadApp();
+  }, []);
 
   const setAllowance = useCallback((allowance: Allowance) => setSession((s) => ({ ...s, allowance })), []);
 
@@ -159,7 +168,8 @@ export default function PostCreatorApp({ initial, welcome, claim }: { initial: S
                 {claimNote}
               </p>
             ) : null}
-            {welcome ? (
+            {/* "Fill in your profile" is only true until it is filled in. */}
+            {welcome && !session.profileReady ? (
               <p role="status" className={`${BANNER} border-[var(--green-line)] bg-[var(--green-tint)] font-bold`}>
                 {COPY.welcome}
               </p>
@@ -192,7 +202,7 @@ export default function PostCreatorApp({ initial, welcome, claim }: { initial: S
             ref={tabListRef}
             role="tablist"
             aria-label={COPY.tabsLabel}
-            className="mt-6 grid scroll-mt-4 grid-cols-4 gap-1 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-1"
+            className="mt-6 grid scroll-mt-24 grid-cols-4 gap-1 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-1"
           >
             {TABS.map((t, i) => {
               const Icon = t.icon;
@@ -223,7 +233,7 @@ export default function PostCreatorApp({ initial, welcome, claim }: { initial: S
           <div role="tabpanel" id={panelId("ideas")} aria-labelledby={tabId("ideas")} hidden={tab !== "ideas"} className="mt-5 space-y-5">
             <IdeaMachine cardActions={cardActions} />
             {writeCard ? (
-              <div ref={writeAreaRef} className="scroll-mt-4">
+              <div ref={writeAreaRef} className="scroll-mt-24">
                 <WritePanel
                   card={writeCard}
                   allowance={session.allowance}

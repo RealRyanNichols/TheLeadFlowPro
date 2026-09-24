@@ -101,8 +101,9 @@ function safeCell(value: string): string {
   return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
 }
 
+/** A planned day's draft. The card was drawn for that day, so its season is that day's. */
 function draftFor(day: PlanDay, input: EngineInput, platform: PlatformId) {
-  return renderDraft(day.card, input, platform, parsePlanDay(day.date) ?? new Date());
+  return renderDraft(day.card, input, platform);
 }
 
 /** The plan as spreadsheet rows, one per posting day, with the draft for one platform. */

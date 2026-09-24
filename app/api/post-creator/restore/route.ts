@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import {
   bucketFor,
   isPlausibleEmail,
@@ -15,12 +16,17 @@ import { BUSINESS } from "@/lib/site/business";
 
 // Open Post Creator on another device.
 //
-//   { email, key }  -> the key is checked by HMAC math against the email; a
-//                      match on an existing account signs this browser in at
-//                      the account's current epoch.
+//   { email, key }  -> the key is checked by HMAC math against the email and
+//                      the account's key_version; a match on an existing
+//                      account signs this browser in at the account's current
+//                      epoch.
 //   { email }       -> if an account exists, the key is emailed again. The
 //                      answer is the same either way, so this cannot be used
-//                      to learn which emails have bought.
+//                      to learn which emails have bought: the account lookup
+//                      and the send both run after the answer has gone out
+//                      (next/server after()), so neither the status, the
+//                      body, nor the time taken depends on the account, and a
+//                      failed send is logged, never answered.
 //
 // Both paths are rate limited in the database (post_creator_hit), so the
 // limits hold across every server instance. A limit that cannot be checked
@@ -78,15 +84,18 @@ export async function POST(request: Request) {
       return apiError("server_error", LIMIT_DOWN, 503);
     }
     if (!allowed) return apiError("too_many_tries", "Too many tries from this connection. Wait an hour and try again.", 429);
-    if (!verifyPostCreatorLicenseKey(email, key, secrets)) {
-      return apiError("key_mismatch", "That key does not match this email. Check both, or ask for the key to be sent again.", 403);
-    }
+    // The account's key_version decides which key opens it, so a revoked key
+    // stops matching. With no account, the key is checked at version 0, the
+    // same answer as before any key was revoked.
     let account: Awaited<ReturnType<typeof db.getAccount>>;
     try {
       account = await db.getAccount(client, email);
     } catch (error) {
       console.error("Post Creator restore could not read the account:", error instanceof Error ? error.message : "unknown error");
       return apiError("server_error", LIMIT_DOWN, 503);
+    }
+    if (!verifyPostCreatorLicenseKey(email, key, secrets, account ? account.keyVersion : 0)) {
+      return apiError("key_mismatch", "That key does not match this email. Check both, or ask for the key to be sent again.", 403);
     }
     if (!account) return apiError("not_found", "We could not find a Post Creator for this email.", 404);
     return withIdentityCookie(json({ ok: true, next: POST_CREATOR.appPath }), account.email, account.accessEpoch);
@@ -112,20 +121,20 @@ export async function POST(request: Request) {
   // Over a limit answers exactly like a send, so the limit reveals nothing.
   if (!allowed) return json({ ok: true, sent: true });
 
-  try {
-    const account = await db.getAccount(client, email);
-    if (account) {
+  after(async () => {
+    try {
+      const account = await db.getAccount(client, email);
+      if (!account) return;
       const r = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify(keyResendEmail({ email: account.email, key: postCreatorLicenseKey(account.email, secrets[0]) })),
+        body: JSON.stringify(keyResendEmail({ email: account.email, key: postCreatorLicenseKey(account.email, secrets[0], account.keyVersion) })),
         signal: AbortSignal.timeout(8000),
       });
       if (!r.ok) throw new Error(`Resend ${r.status}`);
+    } catch (error) {
+      console.error("Post Creator key email failed:", error instanceof Error ? error.message : "unknown error");
     }
-  } catch (error) {
-    console.error("Post Creator key email failed:", error instanceof Error ? error.message : "unknown error");
-    return apiError("send_failed", "Could not send right now. Try again in a minute.", 502);
-  }
+  });
   return json({ ok: true, sent: true });
 }

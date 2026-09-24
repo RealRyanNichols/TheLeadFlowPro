@@ -8,9 +8,18 @@
 
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
+import { createRequire } from "node:module";
 import { afterEach, describe, mock, test } from "node:test";
-import { createElement } from "react";
+import { createElement, type ComponentType, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import ts from "typescript";
+import * as pageCopy from "../app/post-creator/copy.ts";
+import * as api from "../app/post-creator/app/api.ts";
+import * as appCopy from "../app/post-creator/app/copy.ts";
+import * as buyButtons from "../components/postCreator/BuyButtons.tsx";
+import * as setupFields from "../components/postCreator/SetupFields.tsx";
+import * as product from "../lib/postCreator/product.ts";
+import { PRICES, usd } from "../lib/site/prices.ts";
 import {
   API_PATHS,
   WRITE_TIMEOUT_MS,
@@ -39,10 +48,12 @@ import {
   isClaimCode,
   lowLine,
   meterLine,
+  missingPlatformsLine,
   planLine,
   trimmedLine,
   writeBlockedLabel,
   writeCostLine,
+  type ClaimCode,
 } from "../app/post-creator/app/copy.ts";
 import UsageMeter from "../app/post-creator/app/UsageMeter.tsx";
 import { INITIAL_WRITER_STATE, isRetryable, newRequestId, writerReducer, type WriterState } from "../app/post-creator/app/writerState.ts";
@@ -55,6 +66,57 @@ import { BUSINESS } from "../lib/site/business.ts";
 const APP_DIR = new URL("../app/post-creator/app/", import.meta.url);
 const source = (name: string) => readFileSync(new URL(name, APP_DIR), "utf8");
 const APP_FILES = readdirSync(APP_DIR).filter((f) => /\.tsx?$/.test(f));
+
+const requireReal = createRequire(import.meta.url);
+const StubLink = ({ href, children, prefetch: _prefetch, ...rest }: { href: string; children?: ReactNode; prefetch?: boolean | null }) =>
+  createElement("a", { href, ...rest }, children);
+const esm = (ns: object) => ({ __esModule: true, ...ns });
+
+/**
+ * The locked screen, transpiled with next/link and next/navigation stubbed
+ * (neither has an entry Node can load directly). `navigations` records every
+ * router call.
+ */
+type LockedProps = {
+  reason: EntitlementReason;
+  claim: ClaimCode | null;
+  prefill: { email: string; key: string };
+  salesOpen: boolean;
+  aiOn: boolean;
+  canManageBilling: boolean;
+};
+
+function loadLocked(navigations: string[] = []): ComponentType<LockedProps> {
+  const code = ts.transpileModule(source("LockedPostCreator.tsx"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
+  }).outputText;
+  const router = { refresh: () => navigations.push("refresh"), replace: (to: string) => navigations.push(`replace ${to}`), push: (to: string) => navigations.push(`push ${to}`) };
+  const accountPanel = { BillingButton: ({ label }: { label?: string }) => createElement("button", { type: "button" }, label ?? "Manage billing") };
+  const modules: Record<string, unknown> = {
+    react: requireReal("react"),
+    "react/jsx-runtime": requireReal("react/jsx-runtime"),
+    "next/link": { __esModule: true, default: StubLink },
+    "next/navigation": { useRouter: () => router },
+    "lucide-react": requireReal("lucide-react"),
+    "@/app/post-creator/copy": pageCopy,
+    "@/components/postCreator/BuyButtons": esm(buyButtons),
+    "@/components/postCreator/SetupFields": setupFields,
+    "@/lib/postCreator/product": product,
+    "./AccountPanel": accountPanel,
+    "./api": api,
+    "./copy": appCopy,
+  };
+  const mod: { exports: Record<string, unknown> } = { exports: {} };
+  new Function("require", "module", "exports", code)(
+    (name: string) => {
+      if (!(name in modules)) throw new Error(`LockedPostCreator imports ${name}, which this test does not expect`);
+      return modules[name];
+    },
+    mod,
+    mod.exports,
+  );
+  return mod.exports.default as ComponentType<LockedProps>;
+}
 
 /** Every EntitlementReason. A missing or extra key fails the type check. */
 const ALL_REASONS: Record<EntitlementReason, true> = {
@@ -76,6 +138,7 @@ const ALLOWANCE: Allowance = {
   leftToday: 18,
   leftThisMonth: 63,
   triesLeftToday: 23,
+  triesLeftThisMonth: 80,
   resetsMonthOn: "2026-10-01",
 };
 
@@ -131,8 +194,8 @@ describe("page", () => {
 /* ---------------------------------- copy ----------------------------------- */
 
 describe("copy", () => {
-  test("CLAIM_NOTES covers exactly the seven claim codes", () => {
-    assert.deepEqual(Object.keys(CLAIM_NOTES).sort(), ["existing", "expired", "missing", "notfound", "unavailable", "unpaid", "used"]);
+  test("CLAIM_NOTES covers exactly the eight claim codes", () => {
+    assert.deepEqual(Object.keys(CLAIM_NOTES).sort(), ["existing", "expired", "missing", "notfound", "other_account", "unavailable", "unpaid", "used"]);
     assert.deepEqual([...CLAIM_CODES].sort(), Object.keys(CLAIM_NOTES).sort());
     for (const code of CLAIM_CODES) {
       assert.ok(CLAIM_NOTES[code].length > 20, code);
@@ -141,6 +204,23 @@ describe("copy", () => {
     assert.ok(!isClaimCode("welcome"));
     assert.ok(!isClaimCode(""));
     assert.ok(CLAIM_NOTES.notfound.includes(BUSINESS.email.hello));
+  });
+
+  test("other_account, the claim route's answer for a browser signed in elsewhere, is read and explained on both screens", () => {
+    // Every note the claim route can send is one the app page reads.
+    const route = readFileSync(new URL("../app/api/post-creator/claim/route.ts", import.meta.url), "utf8");
+    const sent = /type ClaimNote = ([^;]+);/.exec(route)?.[1].match(/"([a-z_]+)"/g)?.map((q) => q.slice(1, -1)) ?? [];
+    assert.ok(sent.includes("other_account"));
+    assert.deepEqual([...sent].sort(), [...CLAIM_CODES].sort());
+    assert.ok(isClaimCode("other_account"));
+    // Locked screen: the key form is on the page.
+    assert.match(CLAIM_NOTES.other_account, /was not switched/);
+    assert.match(CLAIM_NOTES.other_account, /the email you paid with and the key we emailed to it/);
+    // Open app: sign out first, then the key.
+    const open = appClaimNote("other_account");
+    assert.ok(open && open !== CLAIM_NOTES.other_account);
+    assert.match(open ?? "", /sign out on this device in Settings, then open it with the email you paid with/);
+    for (const line of [CLAIM_NOTES.other_account, open ?? ""]) assert.deepEqual(copyProblems(line), [], line);
   });
 
   test("REASON_NOTES covers every entitlement reason, with words for every locked one", () => {
@@ -152,6 +232,31 @@ describe("copy", () => {
     }
   });
 
+  test("a dropped write says what Try again can and cannot bring back", () => {
+    // The server keeps no draft text: a write that finished behind a dropped
+    // connection answers "already delivered" on the retry, with nothing to show.
+    assert.match(NETWORK_ERROR, /will not count twice/);
+    assert.match(NETWORK_ERROR, /already finished, it counts once, but its drafts cannot be shown here again/);
+    assert.doesNotMatch(NETWORK_ERROR, /You will not be counted twice for the same request\.$/);
+  });
+
+  test("no claim note says to reload: reloading never re-runs the checkout check", () => {
+    for (const code of CLAIM_CODES) {
+      assert.doesNotMatch(CLAIM_NOTES[code], /\breload\b/i, code);
+      assert.doesNotMatch(CLAIM_NOTES[code], /try again in a minute/i, code);
+    }
+    // The unpaid note points to the key that is emailed once the payment clears.
+    assert.match(CLAIM_NOTES.unpaid, /When the payment goes through, we email your key/);
+    assert.match(CLAIM_NOTES.unavailable, /with the key from your receipt email/);
+  });
+
+  test("the contact detail help matches the draft filter: emails are always left out", () => {
+    const help = PROFILE_FIELD_COPY.ctaDetail.help;
+    assert.doesNotMatch(help, /Only this contact detail can appear/);
+    assert.match(help, /Email addresses are always left out of drafts\./);
+    assert.match(help, /booking link or a phone number/i);
+  });
+
   test("the open app hides the claim notes for a link that already did its job", () => {
     assert.equal(appClaimNote("used"), null);
     assert.equal(appClaimNote("expired"), null);
@@ -161,7 +266,10 @@ describe("copy", () => {
   });
 
   test("the spec's exact lines", () => {
-    assert.equal(NETWORK_ERROR, "The connection dropped. Tap Try again. You will not be counted twice for the same request.");
+    assert.equal(
+      NETWORK_ERROR,
+      "The connection dropped before your drafts arrived. Tap Try again: it will not count twice. If the write had already finished, it counts once, but its drafts cannot be shown here again.",
+    );
     assert.equal(APP_COPY.locked.keyPlaceholder, "LFP-XXXX-XXXX-XXXX-XXXX");
     assert.equal(APP_COPY.writer.platformsLegend, `Write for (pick up to ${POST_CREATOR.ai.maxPlatformsPerWrite})`);
     assert.equal(APP_COPY.writer.platformsLegend, "Write for (pick up to 3)");
@@ -213,6 +321,36 @@ describe("copy", () => {
     assert.equal(writeBlockedLabel({ ...ready, allowance: { ...ALLOWANCE, leftToday: 0, leftThisMonth: 0 } }), "No AI writes left this month");
   });
 
+  test("the tries ceiling blocks Write it and shows on the meter only when failed tries used it up first", () => {
+    const ready = { aiOn: true, profileReady: true };
+    // Writes left, but failed tries used up this month's tries: the 1st, not midnight.
+    const month = { ...ALLOWANCE, triesLeftThisMonth: 0, triesLeftToday: 0 };
+    assert.equal(writeBlockedLabel({ ...ready, allowance: month }), "No tries left this month");
+    assert.equal(
+      meterLine(month),
+      "63 of 100 AI writes left this month \u00b7 18 left today. Resets October 1. Failed tries count toward a ceiling: 0 tries left this month, back on October 1.",
+    );
+    // Writes left today, but today's tries are used up: midnight.
+    const today = { ...ALLOWANCE, triesLeftToday: 0 };
+    assert.equal(writeBlockedLabel({ ...ready, allowance: today }), "No tries left today");
+    assert.equal(
+      meterLine(today),
+      "63 of 100 AI writes left this month \u00b7 18 left today. Resets October 1. Failed tries count toward a ceiling: 0 tries left today, more at midnight Central time.",
+    );
+    assert.ok(meterLine({ ...ALLOWANCE, triesLeftToday: 1 }).endsWith("1 try left today, more at midnight Central time."));
+    // No writes left is the true reason, even with the tries gone too.
+    assert.equal(writeBlockedLabel({ ...ready, allowance: { ...month, leftThisMonth: 0, leftToday: 0 } }), "No AI writes left this month");
+    assert.equal(writeBlockedLabel({ ...ready, allowance: { ...today, leftToday: 0 } }), "No AI writes left today");
+    // Plenty of tries: nothing extra on the meter.
+    assert.equal(meterLine(ALLOWANCE), "63 of 100 AI writes left this month \u00b7 18 left today. Resets October 1.");
+    // An allowance from before the month count existed never blocks on it.
+    const { triesLeftThisMonth: _m, ...old } = ALLOWANCE;
+    assert.equal(writeBlockedLabel({ ...ready, allowance: old as Allowance }), null);
+    for (const line of [meterLine(month), meterLine(today), APP_COPY.writer.blocked.triesMonth, APP_COPY.writer.blocked.triesToday]) {
+      assert.deepEqual(copyProblems(line), [], line);
+    }
+  });
+
   test("every line passes the house copy rules", () => {
     const account0 = account();
     const all = [
@@ -260,7 +398,7 @@ const ID_A = "0f8c1d2e-3b4a-4c5d-8e6f-7a8b9c0d1e2f";
 const ID_B = "1a2b3c4d-5e6f-4a7b-9c8d-0e1f2a3b4c5d";
 const ID_C = "2b3c4d5e-6f7a-4b8c-ad9e-1f2a3b4c5d6e";
 
-const SUCCESS: WriteSuccess = { ok: true, drafts: [], altHooks: [], photoIdea: "", trimmed: 0, allowance: null };
+const SUCCESS: WriteSuccess = { ok: true, drafts: [], missing: [], altHooks: [], photoIdea: "", trimmed: 0, allowance: null };
 
 function failure(code: ErrorCode | "network", status = 500) {
   return { ok: false as const, status, code, error: `error for ${code}` };
@@ -393,6 +531,26 @@ describe("api", () => {
     assert.deepEqual(JSON.parse(String(sent[0].init.body)), BODY);
   });
 
+  test("write names the platforms that came back without a draft", async () => {
+    const draft = { platform: "facebook" as const, text: "Slow drain?", hashtags: [], shotList: [], chars: 11, limit: null, blanks: [] };
+    // The route's own list, kept in the order asked and limited to what was asked.
+    stubFetch(() => json({ ...SUCCESS, drafts: [draft], missing: ["google", "nextdoor", "instagram"] }));
+    const sent = await write(BODY);
+    assert.ok(sent.ok);
+    assert.deepEqual(sent.data.missing, ["instagram", "google"]);
+    // An answer without the list is read from the drafts.
+    const { missing: _missing, ...noList } = SUCCESS;
+    stubFetch(() => json({ ...noList, drafts: [draft] }));
+    const read = await write(BODY);
+    assert.ok(read.ok);
+    assert.deepEqual(read.data.missing, ["instagram", "google"]);
+    assert.equal(
+      missingPlatformsLine(read.data.missing),
+      "We could not write a clean draft for Instagram and Google Business Profile this time. A write counts when at least one draft comes back, so this one counted. To get those platforms, start a new write for them.",
+    );
+    assert.equal(missingPlatformsLine([]), "");
+  });
+
   test("write sends no note key without a note, and never an extra field", async () => {
     const sent = stubFetch(() => json(SUCCESS));
     const { note: _note, ...noNote } = BODY;
@@ -410,16 +568,44 @@ describe("api", () => {
     assert.deepEqual(r, { ok: false, status: 429, code: "daily_limit", error: "You have used today's writes.", allowance: ALLOWANCE });
   });
 
-  test("an unknown code or a body that is not JSON becomes a server error with plain words", async () => {
-    stubFetch(() => json({ ok: false, code: "made_up", error: "" }, 502));
-    const r1 = await write(BODY);
-    assert.ok(!r1.ok && r1.code === "server_error" && r1.error === GENERIC_ERROR && r1.status === 502);
+  test("a write answered by a gateway page, not the route, is a dropped answer that keeps its request id", async () => {
+    // The server may have finished and counted the write behind a proxy's 502
+    // or 504 page. Try again must send the same id, so it answers from the
+    // ledger instead of writing and counting a second time.
+    const gateways: [string, () => Response][] = [
+      ["502 page", () => new Response("<html>Bad gateway</html>", { status: 502 })],
+      ["504 page", () => new Response("<html>Gateway timeout</html>", { status: 504 })],
+      ["empty 502", () => new Response("", { status: 502 })],
+      ["unknown code", () => json({ ok: false, code: "made_up", error: "" }, 502)],
+      ["cut-off 200", () => new Response('{"ok":true,"drafts":[', { status: 200 })],
+      ["200 without drafts", () => json({ nope: true })],
+    ];
+    for (const [name, answer] of gateways) {
+      stubFetch(answer);
+      const r = await write(BODY);
+      assert.ok(!r.ok && r.code === "network" && r.error === NETWORK_ERROR, name);
+      const s1 = writerReducer(INITIAL_WRITER_STATE, { type: "submit", newId: ID_A });
+      const failed = writerReducer(s1, { type: "response", requestId: ID_A, result: r });
+      assert.ok(failed.phase === "failed" && failed.keepRequestId === ID_A && failed.retryable, name);
+      assert.deepEqual(writerReducer(failed, { type: "retry", newId: ID_B }), { phase: "writing", requestId: ID_A }, name);
+    }
+    // The route's own answers keep their code and words.
+    stubFetch(() => json({ ok: false, code: "server_error", error: "Something broke." }, 500));
+    const own = await write(BODY);
+    assert.ok(!own.ok && own.code === "server_error" && own.error === "Something broke.");
+    stubFetch(() => json({ ok: false, code: "ai_off", error: "AI writing is off." }, 503));
+    const off = await write(BODY);
+    assert.ok(!off.ok && off.code === "ai_off");
+    // A 4xx page never reached the route, so it stays final with plain words.
+    stubFetch(() => new Response("<html>Too large</html>", { status: 413 }));
+    const big = await write(BODY);
+    assert.ok(!big.ok && big.code === "server_error" && big.error === GENERIC_ERROR);
+  });
+
+  test("other calls still read an unknown answer as a server error with plain words", async () => {
     stubFetch(() => new Response("<html>Bad gateway</html>", { status: 502 }));
-    const r2 = await write(BODY);
-    assert.ok(!r2.ok && r2.code === "server_error" && r2.error === GENERIC_ERROR);
-    stubFetch(() => json({ nope: true }));
-    const r3 = await write(BODY);
-    assert.ok(!r3.ok && r3.code === "server_error", "a 200 without drafts is not a success");
+    const r = await fetchSession();
+    assert.ok(!r.ok && r.code === "server_error" && r.error === GENERIC_ERROR);
   });
 
   test("no answer is a network failure with the Try again line", async () => {
@@ -536,6 +722,81 @@ describe("sources", () => {
     const locked = source("LockedPostCreator.tsx");
     assert.ok(locked.includes("htmlFor={id(\"email\")}") && locked.includes("htmlFor={id(\"key\")}"));
     assert.ok(locked.includes('role="alert"'));
+  });
+
+  test("a signed-in device whose plan lapsed gets the plan as its heading, and the key form folded away", () => {
+    const Locked = loadLocked();
+    const render = (reason: EntitlementReason, extra: Partial<{ salesOpen: boolean; aiOn: boolean; canManageBilling: boolean; claim: ClaimCode | null }> = {}) =>
+      renderToStaticMarkup(
+        createElement(Locked, {
+          reason,
+          claim: null,
+          prefill: { email: "owner@example.com", key: "" },
+          salesOpen: false,
+          aiOn: true,
+          canManageBilling: true,
+          ...extra,
+        }),
+      );
+    const h1 = (html: string) => [...html.matchAll(/<h1[^>]*>([^<]*)<\/h1>/g)].map((m) => m[1]);
+
+    const pastDue = render("past_due");
+    assert.deepEqual(h1(pastDue), [APP_COPY.lapsed.past_due.title]);
+    assert.ok(pastDue.includes(APP_COPY.locked.updateCard));
+    assert.ok(pastDue.includes("<details") && pastDue.includes(APP_COPY.locked.otherAccount));
+    assert.ok(!pastDue.includes('value="owner@example.com"'), "the folded form is for another account");
+    assert.ok(!pastDue.includes("<details open"), "folded until asked for");
+    // Arriving from a checkout for another account: the note says why, and the key form it points to starts open.
+    const otherAccount = render("past_due", { claim: "other_account" });
+    assert.ok(otherAccount.includes("<details open"));
+    assert.ok(otherAccount.includes(CLAIM_NOTES.other_account));
+
+    const ended = render("canceled");
+    assert.deepEqual(h1(ended), [APP_COPY.lapsed.canceled.title]);
+    assert.ok(ended.includes(pageCopy.closedMessage(true, "locked")));
+    assert.doesNotMatch(ended, /idea machine above/);
+    const endedOpen = render("canceled", { salesOpen: true });
+    assert.ok(endedOpen.includes(`Pay once, ${usd(PRICES.postCreatorLifetime)}`));
+    assert.doesNotMatch(endedOpen, /once[^<]*once/);
+
+    // Everyone else still gets the key form as the page.
+    for (const reason of ["visitor", "signed_out", "no_account", "unconfigured"] as const) {
+      const html = render(reason);
+      assert.deepEqual(h1(html), [APP_COPY.locked.title], reason);
+      assert.ok(!html.includes("<details"), reason);
+      assert.ok(html.includes('value="owner@example.com"'), reason);
+    }
+  });
+
+  test("after a key opens it, the app loads at its plain address, so no ?claim= note lingers", () => {
+    const locked = source("LockedPostCreator.tsx");
+    assert.ok(locked.includes("startRefresh(() => router.replace(POST_CREATOR.appPath));"));
+    assert.ok(!locked.includes("router.refresh()"));
+  });
+
+  test("a lost session loads the locked page fresh, from the top", () => {
+    const app = source("PostCreatorApp.tsx");
+    assert.ok(app.includes("window.location.assign(POST_CREATOR.appPath);"));
+    assert.ok(app.includes("const sessionLost = useCallback(() => reloadApp(), []);"));
+    assert.ok(!app.includes("router.refresh()"), "a refresh in place keeps the scroll position");
+  });
+
+  test("the welcome line goes once the profile is saved", () => {
+    const app = source("PostCreatorApp.tsx");
+    assert.ok(app.includes("{welcome && !session.profileReady ? ("));
+  });
+
+  test("what scrolls into view clears the sticky header, and the drafts come into view before they take focus", () => {
+    const app = source("PostCreatorApp.tsx");
+    assert.match(app, /role="tablist"[\s\S]*?scroll-mt-24/);
+    assert.ok(app.includes('<div ref={writeAreaRef} className="scroll-mt-24">'));
+    assert.ok(!app.includes("scroll-mt-4"));
+    const panel = source("WritePanel.tsx");
+    assert.match(panel, /<h3 id=\{id\("title"\)\} ref=\{headingRef\} tabIndex=\{-1\} className="scroll-mt-24 /);
+    assert.match(panel, /<h4 ref=\{resultRef\} tabIndex=\{-1\} className="scroll-mt-24 /);
+    assert.ok(!panel.includes("scroll-mt-4"));
+    const success = panel.slice(panel.indexOf("requestAnimationFrame(() => {"), panel.indexOf("result.focus({ preventScroll: true });"));
+    assert.ok(success.includes('result.scrollIntoView({ block: "start"'), "the drafts scroll to the top first");
   });
 
   test("client files never import a server-only module", () => {

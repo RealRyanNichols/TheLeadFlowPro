@@ -5,6 +5,7 @@ import { ArrowRight, LockKeyhole } from "lucide-react";
 import { POST_CREATOR, postCreatorKindForPlan, postCreatorPriceUsd } from "@/lib/postCreator/product";
 import type { PostCreatorPlan } from "@/lib/postCreator/types";
 import { BUSINESS } from "@/lib/site/business";
+import { usd } from "@/lib/site/prices";
 
 // Two buttons, one product. The browser names the plan's kind and nothing
 // else; the amount, the checkout mode, and whether sales are open at all are
@@ -72,13 +73,19 @@ export function BuyButton({ plan, label, className }: { plan: PostCreatorPlan; l
   );
 }
 
+/** The two button labels. "Pay once" already says once, so the price follows on its own, not the "once" label. */
+export const BUY_LABELS = {
+  monthly: `Start monthly, ${POST_CREATOR.monthlyLabel}`,
+  lifetime: `Pay once, ${usd(POST_CREATOR.lifetimeUsd)}`,
+} as const;
+
 /** Both plans' buttons when sales are open; otherwise the closed line, with no buttons. */
 export default function BuyButtons({ salesOpen, closedMessage }: { salesOpen: boolean; closedMessage: string }) {
   if (!salesOpen) return <p className="text-[15px] leading-relaxed text-[var(--text)]">{closedMessage}</p>;
   return (
     <div className="flex flex-wrap gap-3">
-      <BuyButton plan="monthly" label={`Start monthly, ${POST_CREATOR.monthlyLabel}`} />
-      <BuyButton plan="lifetime" label={`Pay once, ${POST_CREATOR.lifetimeLabel}`} className="button-secondary" />
+      <BuyButton plan="monthly" label={BUY_LABELS.monthly} />
+      <BuyButton plan="lifetime" label={BUY_LABELS.lifetime} className="button-secondary" />
     </div>
   );
 }

@@ -79,6 +79,8 @@ export async function POST(request: Request) {
     // wording is the default; a kind that renews on different terms sets its own.
     let subscriptionNote =
       "Your selected monthly services renew on the same calendar date until canceled or changed. Submit menu changes at least three business days before renewal.";
+    // Promotion codes apply to every checkout unless a kind turns them off.
+    let allowPromotionCodes = true;
     const metadata: Record<string, string> = {};
 
     if (body.kind === AGENCY_PAYMENT.kind) {
@@ -247,7 +249,12 @@ export async function POST(request: Request) {
       // Post Creator (/post-creator). Two plans; the amount and the mode come
       // from lib/postCreator/product.ts. Checkout opens only when sales are on,
       // AI writing is on, and fulfilment can run. Success lands on the claim
-      // route, which signs a browser in only for a brand new account.
+      // route, which signs a browser in only for a brand new account. No
+      // promotion code applies: the line items are ad hoc, so any
+      // account-wide code would otherwise work here too, and a free first
+      // month would start a subscription with no account behind it
+      // (decision 96). A cancelled checkout lands on the pricing section,
+      // where the "nothing was charged" note is.
       if (!postCreatorSalesOpen(process.env)) return NextResponse.json({ error: "not_open" }, { status: 503 });
       const plan = postCreatorPlanForKind(body.kind)!;
       kind = body.kind;
@@ -255,7 +262,8 @@ export async function POST(request: Request) {
       amount = postCreatorPriceUsd(plan) * 100;
       checkoutMode = plan === "monthly" ? "subscription" : "payment";
       checkoutLines = [{ name, amount, recurring: plan === "monthly" }];
-      cancelUrl = `${site}${POST_CREATOR.path}?cancelled=1`;
+      allowPromotionCodes = false;
+      cancelUrl = `${site}${POST_CREATOR.path}?cancelled=1#pricing`;
       successUrl = `${site}${POST_CREATOR.claimPath}?session_id={CHECKOUT_SESSION_ID}`;
       subscriptionNote = `${POST_CREATOR.name} renews on the same date each month until you cancel from Settings inside Post Creator; it stops at the end of the paid month. Nothing is posted for you.`;
       metadata.kind = kind;
@@ -322,6 +330,7 @@ export async function POST(request: Request) {
       cancel_url: cancelUrl,
       allow_promotion_codes: "true",
     });
+    if (!allowPromotionCodes) params.delete("allow_promotion_codes");
     const lines = checkoutLines ?? [{ name, amount, recurring: false }];
     lines.forEach((line, index) => {
       params.set(`line_items[${index}][quantity]`, "1");

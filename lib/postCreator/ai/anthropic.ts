@@ -27,13 +27,68 @@ function clientFor(apiKey: string): Anthropic {
 }
 
 /**
+ * Error codes that mean the connection never opened, so not one byte of the
+ * request reached the API: the host name did not resolve, the connection was
+ * refused or had no route, or the TLS certificate was rejected (the request
+ * is written only after the handshake). A reset, a broken pipe, or a socket
+ * closed mid-request is not here: the request may have been read and billed.
+ */
+const NEVER_SENT_CODES = new Set([
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "EAI_FAIL",
+  "EAI_NONAME",
+  "EAI_NODATA",
+  "ECONNREFUSED",
+  "EHOSTUNREACH",
+  "ENETUNREACH",
+  "ENETDOWN",
+  "EHOSTDOWN",
+  "EADDRNOTAVAIL",
+  "UND_ERR_CONNECT_TIMEOUT",
+  "CERT_HAS_EXPIRED",
+  "CERT_NOT_YET_VALID",
+  "CERT_REVOKED",
+  "CERT_UNTRUSTED",
+  "CERT_REJECTED",
+  "DEPTH_ZERO_SELF_SIGNED_CERT",
+  "SELF_SIGNED_CERT_IN_CHAIN",
+  "UNABLE_TO_GET_ISSUER_CERT",
+  "UNABLE_TO_GET_ISSUER_CERT_LOCALLY",
+  "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
+  "ERR_TLS_CERT_ALTNAME_INVALID",
+]);
+
+/**
+ * Whether a connection error is known to have failed before anything was
+ * sent. The SDK wraps fetch's "fetch failed" TypeError, whose cause (or an
+ * AggregateError's errors, one per address tried) carries the system code.
+ * True only when at least one code is found and every code found is in
+ * NEVER_SENT_CODES; anything unrecognized may have been billed.
+ */
+export function neverSent(error: unknown): boolean {
+  const codes: string[] = [];
+  const seen = new Set<unknown>();
+  const visit = (e: unknown, depth: number): void => {
+    if (!e || typeof e !== "object" || depth > 6 || seen.has(e)) return;
+    seen.add(e);
+    const { code, errors, cause } = e as { code?: unknown; errors?: unknown; cause?: unknown };
+    if (typeof code === "string") codes.push(code);
+    if (Array.isArray(errors)) for (const inner of errors) visit(inner, depth + 1);
+    visit(cause, depth + 1);
+  };
+  visit(error, 0);
+  return codes.length > 0 && codes.every((c) => NEVER_SENT_CODES.has(c));
+}
+
+/**
  * What a thrown SDK error means for the writer, checked most specific first.
- * A timeout or a dropped connection may still have been billed; a rejection
- * with a status was not.
+ * A timeout or a dropped connection may still have been billed; a connection
+ * that never opened, or a rejection with a status, was not.
  */
 export function providerFailure(error: unknown): ProviderFailure {
   if (error instanceof Anthropic.APIConnectionTimeoutError) return { kind: "timeout", status: null, billedUnknown: true };
-  if (error instanceof Anthropic.APIConnectionError) return { kind: "connection", status: null, billedUnknown: true };
+  if (error instanceof Anthropic.APIConnectionError) return { kind: "connection", status: null, billedUnknown: !neverSent(error) };
   if (error instanceof Anthropic.RateLimitError || (error instanceof Anthropic.APIError && error.status === 529)) {
     return { kind: "rate_limited", status: typeof error.status === "number" ? error.status : null, billedUnknown: false };
   }

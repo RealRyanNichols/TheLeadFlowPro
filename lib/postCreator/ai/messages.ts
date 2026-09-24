@@ -9,6 +9,7 @@
 //
 // Pure.
 
+import { platformById, type PlatformId } from "../options";
 import { monthDayLabel } from "../plan";
 import { AI_OFF_LINE, STILL_UNLIMITED, aiLimitsFor } from "../product";
 import type { Allowance, ErrorCode, PostCreatorPlan } from "../types";
@@ -46,7 +47,24 @@ export const WRITE_ERROR_STATUS: Record<ErrorCode, number> = {
 
 const NOT_COUNTED = "This did not count against your writes.";
 
-export function writeErrorMessage(code: ErrorCode, ctx: { allowance: Allowance | null; plan: PostCreatorPlan }): string {
+/** What a message is built from. `triesThisMonth` is every try counted this month, known only when the database said no. */
+export type MessageContext = { allowance: Allowance | null; plan: PostCreatorPlan; triesThisMonth?: number };
+
+/**
+ * The tries ceiling: every write and every failed try counts toward it. The
+ * month is checked first: once this month's ceiling is reached, midnight
+ * brings nothing back, and the true answer is the 1st.
+ */
+function attemptLimitMessage(ctx: MessageContext, resets: string): string {
+  const limits = aiLimitsFor(ctx.plan);
+  const failedNote = "Failed tries did not count against your writes.";
+  if ((ctx.triesThisMonth ?? 0) >= limits.triesPerMonth) {
+    return `You have reached this month's ceiling of ${limits.triesPerMonth} tries, which counts every write and every failed try. AI writing comes back on ${resets}. ${failedNote} ${STILL_UNLIMITED}`;
+  }
+  return `You have reached today's ceiling of ${limits.triesPerDay} tries, which counts every write and every failed try. More at midnight Central time. ${failedNote} ${STILL_UNLIMITED}`;
+}
+
+export function writeErrorMessage(code: ErrorCode, ctx: MessageContext): string {
   const limits = aiLimitsFor(ctx.plan);
   const perDay = ctx.allowance?.perDay ?? limits.perDay;
   const perMonth = ctx.allowance?.perMonth ?? limits.perMonth;
@@ -69,7 +87,7 @@ export function writeErrorMessage(code: ErrorCode, ctx: { allowance: Allowance |
     case "monthly_limit":
       return `You have used this month's ${perMonth} AI writes. They come back on ${resets}. ${STILL_UNLIMITED}`;
     case "attempt_limit":
-      return "Too many tries that did not work out today. Give it until midnight Central time. The ones that failed did not count against your writes.";
+      return attemptLimitMessage(ctx, resets);
     case "busy":
       return "Still writing your last one. Give it a minute, then tap Try again.";
     case "already_delivered":
@@ -109,4 +127,23 @@ export function writeErrorMessage(code: ErrorCode, ctx: { allowance: Allowance |
     case "nothing_to_manage":
       return "Nothing renews on this plan, so there is nothing to manage.";
   }
+}
+
+/** "A", "A and B", or "A, B, and C". */
+function listOf(items: string[]): string {
+  if (items.length <= 2) return items.join(" and ");
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+}
+
+/**
+ * The line shown with a write that came back for only some of the platforms
+ * asked for, or "" when none are missing. It says which ones, that the write
+ * still counted (a write counts when at least one clean draft comes back),
+ * and how to get the rest.
+ */
+export function missingPlatformsLine(missing: readonly PlatformId[]): string {
+  if (missing.length === 0) return "";
+  const names = listOf(missing.map((p) => platformById(p).label));
+  const which = missing.length === 1 ? "that platform" : "those platforms";
+  return `We could not write a clean draft for ${names} this time. A write counts when at least one draft comes back, so this one counted. To get ${which}, start a new write for ${missing.length === 1 ? "it" : "them"}.`;
 }

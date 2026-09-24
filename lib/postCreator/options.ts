@@ -152,7 +152,7 @@ export const ANGLE_META: readonly { id: AngleId; label: string; brief: string }[
   { id: "meet-team", label: "Meet the team", brief: "Introduce a person on the team, with their OK." },
   { id: "our-story", label: "Our story", brief: "Tell one short, true piece of the business's story." },
   { id: "local-love", label: "Local love", brief: "Give a genuine shout out to something local." },
-  { id: "heads-up", label: "Seasonal heads-up", brief: "Tie the topic to the current season, calmly." },
+  { id: "heads-up", label: "Seasonal heads-up", brief: "Tie the topic to the season the idea names, calmly, even when it is not the current one." },
   { id: "what-to-expect", label: "What to expect", brief: "Walk through what happens, so there are no surprises." },
   { id: "tool-talk", label: "Tool talk", brief: "Show a tool or piece of gear and what it does." },
   { id: "warning-signs", label: "Warning signs", brief: "Help people spot a problem early, calmly." },

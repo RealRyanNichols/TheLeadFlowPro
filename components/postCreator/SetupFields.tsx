@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { ChevronDown, Settings2 } from "lucide-react";
 import { DEFAULT_INPUT, normalizeInput, type InputProblem } from "@/lib/postCreator/ideas/engine";
 import type { EngineInput } from "@/lib/postCreator/ideas/types";
@@ -12,6 +12,13 @@ import { usePostCreator } from "./ShuffleProvider";
 // services, voice, and call to action, kept in this browser only. The fields
 // edit a copy; Done checks it and hands it to the idea machine in one go, so
 // the machine does not reshuffle on every keystroke.
+//
+// The fields sit in a labelled group, not a <form>: nothing here is ever
+// submitted, and the site's analytics counts every <form> submit as a lead
+// form (lib/analytics/client.ts). Enter in a field still means Done. After
+// Done the panel closes and focus moves to its summary, kept clear of the
+// sticky header, so a keyboard or screen reader user is not dropped on the
+// page itself with the new idea somewhere above.
 
 /** Shared field look: 48px tall, 16px text so phones do not zoom in on focus. */
 export const FIELD_CLASS =
@@ -40,6 +47,8 @@ export default function SetupFields() {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Draft>(() => draftFrom(input));
   const fields = useRef<Record<InputProblem["field"], HTMLElement | null>>({ businessName: null, town: null, services: null });
+  const summaryRef = useRef<HTMLElement>(null);
+  const focusSummary = useRef(false);
 
   // Checked as the owner types, so a field that runs long says so right away.
   const checked = normalizeInput({ ...draft, trade: input.trade });
@@ -56,14 +65,32 @@ export default function SetupFields() {
     setDraft((d) => ({ ...d, [key]: value }));
   }
 
-  function done(e: FormEvent) {
-    e.preventDefault();
+  // The panel closed on Done: its fields are gone, so focus goes to the summary.
+  useEffect(() => {
+    if (open || !focusSummary.current) return;
+    focusSummary.current = false;
+    const summary = summaryRef.current;
+    if (!summary) return;
+    summary.focus({ preventScroll: true });
+    summary.scrollIntoView({ block: "start", behavior: "auto" });
+  }, [open]);
+
+  function done() {
     if (problems.length) {
       fields.current[problems[0].field]?.focus();
       return;
     }
     setInput({ ...checked.input, trade: input.trade });
+    focusSummary.current = true;
     setOpen(false);
+  }
+
+  /** Enter in a one-line field is Done, as it would be in a form. A new line in Services stays a new line. */
+  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+    if ((e.target as HTMLElement).tagName !== "INPUT") return;
+    e.preventDefault();
+    done();
   }
 
   function clear() {
@@ -88,14 +115,19 @@ export default function SetupFields() {
       onToggle={(e) => toggle((e.currentTarget as HTMLDetailsElement).open)}
       className="group rounded-2xl border border-[var(--line)] bg-[var(--panel)]"
     >
-      <summary className="flex min-h-[48px] cursor-pointer list-none items-center gap-2 px-4 py-3 text-[15px] font-extrabold text-[var(--heading)] [&::-webkit-details-marker]:hidden">
+      <summary
+        ref={summaryRef}
+        className="flex min-h-[48px] cursor-pointer list-none scroll-mt-24 items-center gap-2 px-4 py-3 text-[15px] font-extrabold text-[var(--heading)] [&::-webkit-details-marker]:hidden"
+      >
         <Settings2 aria-hidden="true" className="h-4 w-4 flex-none text-[var(--blue)]" />
         <span className="flex-1">Make it fit my business</span>
         <ChevronDown aria-hidden="true" className="h-5 w-5 flex-none text-[var(--muted)] group-open:rotate-180 motion-safe:transition-transform" />
       </summary>
 
-      <form onSubmit={done} noValidate className="space-y-5 border-t border-[var(--line)] px-4 pb-5 pt-4">
-        <h3 className="text-[18px] font-extrabold text-[var(--heading)]">Make the ideas fit your business</h3>
+      <div role="group" aria-labelledby={id("title")} onKeyDown={onKeyDown} className="space-y-5 border-t border-[var(--line)] px-4 pb-5 pt-4">
+        <h3 id={id("title")} className="text-[18px] font-extrabold text-[var(--heading)]">
+          Make the ideas fit your business
+        </h3>
 
         <div>
           <label htmlFor={id("name")} className={LABEL_CLASS}>
@@ -202,14 +234,14 @@ export default function SetupFields() {
         <p className="text-[14px] leading-relaxed text-[var(--muted)]">This stays in your browser. Nothing you type here is sent anywhere.</p>
 
         <div className="flex flex-wrap gap-2">
-          <button type="submit" className="button-primary">
+          <button type="button" className="button-primary" onClick={done}>
             Done
           </button>
           <button type="button" className="button-secondary" onClick={clear}>
             Clear
           </button>
         </div>
-      </form>
+      </div>
     </details>
   );
 }

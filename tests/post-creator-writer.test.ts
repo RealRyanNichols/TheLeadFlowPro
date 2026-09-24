@@ -22,6 +22,7 @@ import { aiWritingStatus, type AiOn } from "../lib/postCreator/ai/config.ts";
 import { actualMicroUsd, reserveMicroUsd } from "../lib/postCreator/ai/cost.ts";
 import type { ModelResult, ProviderFailure } from "../lib/postCreator/ai/model.ts";
 import { buildParams } from "../lib/postCreator/ai/prompt.ts";
+import { missingPlatformsLine } from "../lib/postCreator/ai/messages.ts";
 import { runWrite, type WriterDeps, type WriterInput } from "../lib/postCreator/ai/writer.ts";
 
 // runWrite with every dependency faked: the reservation, the model, the
@@ -109,8 +110,8 @@ function message(o: { stop_reason?: string | null; text?: string; content?: unkn
   return { kind: "message", message: msg as unknown as BetaMessage };
 }
 
-function failure(kind: ProviderFailure["kind"], status: number | null = null): ModelResult {
-  return { kind: "error", error: { kind, status, billedUnknown: kind === "timeout" || kind === "connection" || kind === "unknown" } };
+function failure(kind: ProviderFailure["kind"], status: number | null = null, billedUnknown = kind === "timeout" || kind === "connection" || kind === "unknown"): ModelResult {
+  return { kind: "error", error: { kind, status, billedUnknown } };
 }
 
 type Fakes = {
@@ -165,6 +166,7 @@ test("happy path: reserve, one call, settle delivered at the actual cost, 200 wi
   const body = res.body as WriteSuccess;
   assert.equal(body.ok, true);
   assert.deepEqual(body.drafts.map((d) => d.platform), ["facebook", "instagram", "google"]);
+  assert.deepEqual(body.missing, []);
   assert.deepEqual(body.drafts[1].hashtags, ["#Plumbing", "#DrainTips"]);
   assert.deepEqual(body.drafts[2].hashtags, []);
   assert.equal(body.altHooks.length, 2);
@@ -274,6 +276,8 @@ test("provider failures settle at 0 when nothing was billed and at an unknown co
     [failure("config"), 502, "provider_error", 0, "provider_error"],
     [failure("timeout"), 504, "timeout", null, "timeout"],
     [failure("connection"), 502, "provider_error", null, "connection"],
+    // A connection that never opened (DNS, refused, bad certificate) sent nothing, so it costs nothing.
+    [failure("connection", null, false), 502, "provider_error", 0, "connection"],
     [failure("unknown"), 502, "provider_error", null, "unknown"],
   ];
   for (const [result, status, code, cost, outcome] of cases) {
@@ -337,6 +341,66 @@ test("every answer short of a reservation makes no model call and no settle", as
   const later = fakes({ reserve: { result: "spend_cap", firstHit: false } });
   await runWrite(input(), later.deps);
   assert.deepEqual(later.calls.logs, []);
+});
+
+test("an attempt_limit says midnight for the daily tries ceiling and the 1st for the monthly one", async () => {
+  const limits = aiLimitsFor("monthly");
+  // 95 delivered and 25 failed earlier this month, none today: only the month's ceiling is reached.
+  const monthCounts: UsageCounts = { day: "2026-09-24", month: "2026-09", usedDay: 0, usedMonth: 95, triesDay: 0, triesMonth: limits.triesPerMonth };
+  const month = fakes({ reserve: { result: "attempt_limit", counts: monthCounts } });
+  const m = await runWrite(input(), month.deps);
+  assert.equal(m.status, 429);
+  const mBody = m.body as ApiError;
+  assert.equal(mBody.code, "attempt_limit");
+  assert.match(mBody.error, new RegExp(`this month's ceiling of ${limits.triesPerMonth} tries`));
+  assert.match(mBody.error, /comes back on October 1\./);
+  assert.doesNotMatch(mBody.error, /midnight/);
+  assert.deepEqual(mBody.allowance, allowanceView("monthly", monthCounts, NOW));
+  assert.equal(month.calls.model.length, 0);
+
+  const dayCounts: UsageCounts = { ...monthCounts, usedDay: 18, usedMonth: 40, triesDay: limits.triesPerDay, triesMonth: 47 };
+  const day = fakes({ reserve: { result: "attempt_limit", counts: dayCounts } });
+  const d = await runWrite(input(), day.deps);
+  const dBody = d.body as ApiError;
+  assert.match(dBody.error, new RegExp(`today's ceiling of ${limits.triesPerDay} tries`));
+  assert.match(dBody.error, /midnight Central time/);
+
+  // Both reached: midnight brings nothing back, so the month is the answer.
+  const both = fakes({ reserve: { result: "attempt_limit", counts: { ...dayCounts, triesMonth: limits.triesPerMonth } } });
+  assert.match(((await runWrite(input(), both.deps)).body as ApiError).error, /October 1/);
+
+  const lifetime = aiLimitsFor("lifetime");
+  const once = fakes({ reserve: { result: "attempt_limit", counts: { ...monthCounts, usedMonth: 50, triesMonth: lifetime.triesPerMonth } } });
+  assert.match(((await runWrite(input({ plan: "lifetime" }), once.deps)).body as ApiError).error, new RegExp(`ceiling of ${lifetime.triesPerMonth} tries`));
+});
+
+test("a write that comes back for only some platforms counts, and names the ones that did not", async () => {
+  // The model left two of the three requested platforms out.
+  const only = JSON.stringify({ ...JSON.parse(GOOD), drafts: [JSON.parse(GOOD).drafts[0]] });
+  const left = fakes({ model: message({ text: only }) });
+  const res = await runWrite(input(), left.deps);
+  assert.equal(res.status, 200);
+  const body = res.body as WriteSuccess;
+  assert.deepEqual(body.drafts.map((d) => d.platform), ["facebook"]);
+  assert.deepEqual(body.missing, ["instagram", "google"]);
+  assert.equal(body.trimmed, 0);
+  assert.equal(left.calls.reserve[0].platforms, 3);
+  assert.equal(left.calls.settle[0].delivered, true);
+  assert.equal(left.calls.settle[0].outcome, "delivered");
+  assert.equal(
+    missingPlatformsLine(body.missing),
+    "We could not write a clean draft for Instagram and Google Business Profile this time. A write counts when at least one draft comes back, so this one counted. To get those platforms, start a new write for them.",
+  );
+
+  // The filter threw two out: Instagram too short, Google mostly claims.
+  const drafts = JSON.parse(GOOD).drafts;
+  drafts[1] = { ...drafts[1], text: "Slow drain? DM us." };
+  drafts[2] = { ...drafts[2], text: "Slow drains happen. We are the best. We are number one. Act now, spots are filling up." };
+  const thrown = fakes({ model: message({ text: JSON.stringify({ ...JSON.parse(GOOD), drafts }) }) });
+  const res2 = await runWrite(input(), thrown.deps);
+  assert.equal(res2.status, 200);
+  assert.deepEqual((res2.body as WriteSuccess).missing, ["instagram", "google"]);
+  assert.equal(thrown.calls.settle[0].delivered, true);
 });
 
 test("a settle that throws is logged and the answer still goes back", async () => {

@@ -19,24 +19,26 @@ export type ModelId = "claude-opus-5" | "claude-sonnet-5" | "claude-haiku-4-5";
 
 /**
  * What the writer needs to know about a model: its price in dollars per
- * million tokens (the same number as micro-dollars per token), whether it
- * takes an effort setting, whether refusal fallbacks are sent, and the
- * shortest prompt it caches.
+ * million tokens (the same number as micro-dollars per token), whether US-only
+ * inference bills it at 1.1x (Claude 4.6 and later models), whether it takes
+ * an effort setting, whether refusal fallbacks are sent, and the shortest
+ * prompt it caches.
  */
 export type ModelProfile = {
   id: ModelId;
   inPerMTok: number;
   outPerMTok: number;
+  usOnlyPremium: boolean;
   supportsEffort: boolean;
   sendFallbacks: boolean;
   cacheMinTokens: number;
 };
 
 export const MODEL_PROFILES: Record<ModelId, ModelProfile> = {
-  "claude-opus-5": { id: "claude-opus-5", inPerMTok: 5, outPerMTok: 25, supportsEffort: true, sendFallbacks: true, cacheMinTokens: 512 },
-  "claude-sonnet-5": { id: "claude-sonnet-5", inPerMTok: 2, outPerMTok: 10, supportsEffort: true, sendFallbacks: false, cacheMinTokens: 1024 },
+  "claude-opus-5": { id: "claude-opus-5", inPerMTok: 5, outPerMTok: 25, usOnlyPremium: true, supportsEffort: true, sendFallbacks: true, cacheMinTokens: 512 },
+  "claude-sonnet-5": { id: "claude-sonnet-5", inPerMTok: 2, outPerMTok: 10, usOnlyPremium: true, supportsEffort: true, sendFallbacks: false, cacheMinTokens: 1024 },
   // The system prompt is shorter than Haiku's cache minimum, so it never caches.
-  "claude-haiku-4-5": { id: "claude-haiku-4-5", inPerMTok: 1, outPerMTok: 5, supportsEffort: false, sendFallbacks: false, cacheMinTokens: 4096 },
+  "claude-haiku-4-5": { id: "claude-haiku-4-5", inPerMTok: 1, outPerMTok: 5, usOnlyPremium: false, supportsEffort: false, sendFallbacks: false, cacheMinTokens: 4096 },
 };
 
 export const DEFAULT_MODEL: ModelId = "claude-opus-5";

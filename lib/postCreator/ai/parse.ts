@@ -114,11 +114,15 @@ export function classifyMessage(msg: MessageLike): Outcome {
   return text.trim() ? { kind: "ok", text } : { kind: "empty" };
 }
 
-export type WriteOutput = { ok: true; drafts: DraftView[]; altHooks: string[]; photoIdea: string; trimmed: number } | { ok: false };
+export type WriteOutput =
+  | { ok: true; drafts: DraftView[]; missing: PlatformId[]; altHooks: string[]; photoIdea: string; trimmed: number }
+  | { ok: false };
 
 /**
  * The drafts in a finished answer: the requested platforms only, in the
- * requested order, the first draft for each, every one cleaned. Up to two
+ * requested order, the first draft for each, every one cleaned. `missing`
+ * lists, in the requested order, each requested platform with no clean
+ * draft: the model left it out, or the filter threw it out. Up to two
  * alternate first lines and one photo idea, cleaned the same way. Not ok when
  * the JSON is broken or no draft survives.
  */
@@ -143,6 +147,7 @@ export function parseWriteOutput(text: string, req: Pick<ParsedWriteRequest, "pl
     if (cleaned.draft) drafts.push(cleaned.draft);
   }
   if (drafts.length === 0) return { ok: false };
+  const missing = req.platforms.filter((platform) => !drafts.some((d) => d.platform === platform));
 
   const altHooks: string[] = [];
   for (const hook of (Array.isArray(out.alt_hooks) ? out.alt_hooks : []).slice(0, 2)) {
@@ -153,5 +158,5 @@ export function parseWriteOutput(text: string, req: Pick<ParsedWriteRequest, "pl
   const photo = cleanLine(out.photo_idea, LINE_MAX, allowed);
   trimmed += photo.trimmed;
 
-  return { ok: true, drafts, altHooks, photoIdea: photo.text ?? "", trimmed };
+  return { ok: true, drafts, missing, altHooks, photoIdea: photo.text ?? "", trimmed };
 }

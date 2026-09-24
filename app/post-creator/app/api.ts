@@ -9,6 +9,7 @@
 // No server-only imports: this runs in the browser. The signed cookie rides
 // along with credentials "same-origin"; nothing here reads or stores it.
 
+import type { PlatformId } from "@/lib/postCreator/options";
 import type {
   Allowance,
   BillingOk,
@@ -94,6 +95,14 @@ type CallOptions = {
   offline: string;
   /** Extra check on a 2xx body; a body that fails it is treated as a server error. */
   valid?: (data: Record<string, unknown>) => boolean;
+  /**
+   * For a write: an answer that is not one of the route's own (a proxy's 502
+   * or 504 page, an empty body, a cut-off 200) comes back as "network", so
+   * the retry keeps the request id. The server may have finished and counted
+   * the write behind that page; a new id would write and count it again.
+   * A 4xx without a route code never reached the route, so it stays final.
+   */
+  unknownIsNetwork?: boolean;
 };
 
 async function call<T>(path: string, o: CallOptions): Promise<ApiResult<T>> {
@@ -118,6 +127,9 @@ async function call<T>(path: string, o: CallOptions): Promise<ApiResult<T>> {
   }
   if (r.ok && isRecord(data) && (!o.valid || o.valid(data))) return { ok: true, data: data as T };
   const body = isRecord(data) ? data : {};
+  if (o.unknownIsNetwork && !isErrorCode(body.code) && (r.status >= 500 || r.status < 400)) {
+    return { ok: false, status: r.status, code: "network", error: o.offline };
+  }
   const failure: ApiResult<T> = {
     ok: false,
     status: r.status,
@@ -149,9 +161,21 @@ export function saveProfile(p: BrandProfile): Promise<ApiResult<ProfileSaved>> {
 }
 
 /**
+ * The platforms asked for that came back without a draft. The route names
+ * them in `missing`; an answer without that list is read from the drafts, so
+ * the buyer is always told which platforms to write again.
+ */
+function missingFrom(data: WriteSuccess, asked: readonly PlatformId[]): PlatformId[] {
+  const sent: unknown = (data as { missing?: unknown }).missing;
+  if (Array.isArray(sent)) return asked.filter((p) => sent.includes(p));
+  return asked.filter((p) => !data.drafts.some((d) => d.platform === p));
+}
+
+/**
  * One AI write. Sends exactly the WriteRequestBody fields, nothing else, and
  * gives up after WRITE_TIMEOUT_MS (or when `signal` aborts) with a "network"
- * result.
+ * result. An answer that is not the route's own (a gateway error page) is a
+ * "network" result too, so Try again cannot count the write twice.
  */
 export async function write(body: WriteRequestBody, signal?: AbortSignal): Promise<ApiResult<WriteSuccess>> {
   const payload: WriteRequestBody = {
@@ -169,13 +193,16 @@ export async function write(body: WriteRequestBody, signal?: AbortSignal): Promi
     else signal.addEventListener("abort", stop);
   }
   try {
-    return await call<WriteSuccess>(API_PATHS.write, {
+    const result = await call<WriteSuccess>(API_PATHS.write, {
       method: "POST",
       body: payload,
       signal: controller.signal,
       offline: NETWORK_ERROR,
       valid: (d) => d.ok === true && Array.isArray(d.drafts),
+      unknownIsNetwork: true,
     });
+    if (!result.ok) return result;
+    return { ok: true, data: { ...result.data, missing: missingFrom(result.data, payload.platforms) } };
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener("abort", stop);

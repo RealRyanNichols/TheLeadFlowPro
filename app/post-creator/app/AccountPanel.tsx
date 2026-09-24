@@ -57,12 +57,26 @@ export default function AccountPanel({ account }: { account: AccountView }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const signOutRef = useRef<HTMLButtonElement>(null);
+  const backToSignOut = useRef(false);
   const questionId = useId();
 
-  // The question takes focus on the safe answer, so Enter never signs out by accident.
+  // The question takes focus on the safe answer, so Enter never signs out by
+  // accident. Cancel hands focus back to the button that asked, so it never
+  // falls to the page.
   useEffect(() => {
-    if (confirming) cancelRef.current?.focus();
+    if (confirming) {
+      cancelRef.current?.focus();
+    } else if (backToSignOut.current) {
+      backToSignOut.current = false;
+      signOutRef.current?.focus();
+    }
   }, [confirming]);
+
+  function cancel() {
+    backToSignOut.current = true;
+    setConfirming(false);
+  }
 
   async function confirmSignOut() {
     setBusy(true);
@@ -88,7 +102,7 @@ export default function AccountPanel({ account }: { account: AccountView }) {
       <div className="mt-4 flex flex-wrap items-start gap-2">
         {account.canManageBilling ? <BillingButton /> : null}
         {!confirming ? (
-          <button type="button" className="button-secondary" onClick={() => setConfirming(true)}>
+          <button ref={signOutRef} type="button" className="button-secondary" onClick={() => setConfirming(true)}>
             <LogOut aria-hidden="true" className="h-4 w-4" />
             {COPY.signOut}
           </button>
@@ -104,7 +118,7 @@ export default function AccountPanel({ account }: { account: AccountView }) {
             <button type="button" className="button-primary" onClick={confirmSignOut} disabled={busy} aria-busy={busy}>
               {COPY.signOutYes}
             </button>
-            <button ref={cancelRef} type="button" className="button-secondary" onClick={() => setConfirming(false)} disabled={busy}>
+            <button ref={cancelRef} type="button" className="button-secondary" onClick={cancel} disabled={busy}>
               {COPY.signOutNo}
             </button>
           </div>

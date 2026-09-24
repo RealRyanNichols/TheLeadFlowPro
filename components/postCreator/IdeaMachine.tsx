@@ -13,7 +13,7 @@ import DraftTabs from "./DraftTabs";
 import IdeaCardView, { type RemixPart } from "./IdeaCardView";
 import SetupFields, { FIELD_CLASS, LABEL_CLASS } from "./SetupFields";
 import { usePostCreator } from "./ShuffleProvider";
-import { saveItem } from "./storage";
+import { isIdeaSaved, saveItem, useSavedItems } from "./storage";
 
 // The free idea machine: pick a trade, tap Next idea, get an idea with a
 // first line, a photo idea, a call to action, and a draft for each platform.
@@ -32,6 +32,28 @@ const PART_NAMES: Record<RemixPart, string> = { hook: "first line", shot: "photo
 /** The idea as saved text: its parts on labelled lines. */
 export function ideaSavedText(card: IdeaCard): string {
   return [`First line: ${card.hook}`, `What to show: ${card.shot}`, `Call to action: ${card.ctaLine}`].join("\n");
+}
+
+/**
+ * Scroll to the section the address names (/post-creator#pricing). On a full
+ * page load the browser jumps there while the machine still shows "Shuffling
+ * ideas...", then the trade picker, or the card and its drafts, change the
+ * height of everything above it, so the page would stop in the wrong place.
+ * The machine calls this once, after its first real render. The section's own
+ * scroll margin keeps it clear of the sticky header, and the page's
+ * scroll-behavior (instant for reduced motion) decides how it moves.
+ */
+export function scrollToHash(): boolean {
+  try {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (!id) return false;
+    const target = document.getElementById(id);
+    if (!target) return false;
+    target.scrollIntoView({ block: "start", behavior: "auto" });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function Hydrating() {
@@ -76,13 +98,14 @@ export default function IdeaMachine({ cardActions, aiHref }: { cardActions?: Car
   const [index, setIndex] = useState(-1);
   const [wrapped, setWrapped] = useState(false);
   const [announcement, setAnnouncement] = useState("");
-  const [savedKeys, setSavedKeys] = useState<string[]>([]);
+  const savedItems = useSavedItems();
 
   const inputKey = JSON.stringify(input);
   const drawnFor = useRef<string | null>(null);
   // After a trade is picked the picker goes away, so focus moves to the first card.
   const focusCard = useRef(false);
   const cardRegion = useRef<HTMLDivElement>(null);
+  const hashApplied = useRef(false);
   const card = index >= 0 ? history[index] : undefined;
 
   const space = useMemo(() => ideaSpace(input), [input]);
@@ -119,6 +142,14 @@ export default function IdeaMachine({ cardActions, aiHref }: { cardActions?: Car
     cardRegion.current?.focus();
   }, [card]);
 
+  // Once the machine has its real height (the picker, or the first card), a
+  // link to a section further down lands where it points.
+  useEffect(() => {
+    if (hashApplied.current || !ready || (picked && !card)) return;
+    hashApplied.current = true;
+    scrollToHash();
+  }, [ready, picked, card]);
+
   function pickTrade(trade: TradeId) {
     focusCard.current = true;
     setInput({ ...input, trade });
@@ -146,7 +177,6 @@ export default function IdeaMachine({ cardActions, aiHref }: { cardActions?: Car
   function saveIdea() {
     if (!card) return;
     saveItem({ kind: "idea", title: card.title, text: ideaSavedText(card) });
-    setSavedKeys((k) => [...k.slice(-99), card.key]);
   }
 
   function saveDraft(d: DraftView) {
@@ -211,7 +241,7 @@ export default function IdeaMachine({ cardActions, aiHref }: { cardActions?: Car
               card={card}
               coreCount={space.coreCount}
               countLine={countLine}
-              saved={savedKeys.includes(card.key)}
+              saved={isIdeaSaved(savedItems, card.title, ideaSavedText(card))}
               canGoBack={index > 0}
               onRemix={remix}
               onSave={saveIdea}

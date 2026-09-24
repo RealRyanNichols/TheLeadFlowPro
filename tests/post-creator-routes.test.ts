@@ -42,7 +42,7 @@ const BASE_ENV: Record<string, string | undefined> = {
 };
 
 type Row = Record<string, unknown>;
-type Filter = [op: "eq" | "is", column: string, value: unknown];
+type Filter = [op: "eq" | "is" | "lte", column: string, value: unknown];
 
 /** Copies a value out of the vm realm, so deepEqual compares plain objects. */
 function plain<T>(value: T): T {
@@ -150,14 +150,22 @@ function harness(o: HarnessOptions = {}) {
   const requests: { url: string; method: string; body: string }[] = [];
   const logs: string[] = [];
   const dbError = { message: "simulated database outage", code: "XX000" };
+  // Work a route hands to next/server after(): it runs only when the test says so.
+  const afterQueue: (() => unknown)[] = [];
+  // The checkouts already applied (post_creator_checkouts). Seeded rows were
+  // applied by their own checkouts.
+  const applied = new Set<string>((o.accounts ?? []).flatMap((row) => [String(row.first_session_id), String(row.last_session_id)]));
 
   // post_creator_record_purchase, in miniature: a new email gets a row made
   // by this session; a different checkout on an existing email bumps the
-  // epoch; the same checkout again changes nothing.
+  // epoch; a checkout applied before changes nothing, and finds no account
+  // when that account was deleted since.
   function recordPurchase(a: Row): Row {
     const email = String(a.p_email);
     const session = String(a.p_session_id);
     let row = accounts.get(email);
+    if (applied.has(session) && !row) return { created: false, created_by_this_session: false, account: null };
+    applied.add(session);
     if (!row) {
       row = account({
         email,
@@ -189,7 +197,9 @@ function harness(o: HarnessOptions = {}) {
     const run = (): { data: Row[] | null; error: typeof dbError | null } => {
       if (o.failAccounts) return { data: null, error: dbError };
       const rows = [...accounts.values()].filter((row) =>
-        filters.every(([op, column, value]) => (op === "is" ? row[column] == null && value === null : row[column] === value)),
+        filters.every(([op, column, value]) =>
+          op === "is" ? row[column] == null && value === null : op === "lte" ? Number(row[column]) <= Number(value) : row[column] === value,
+        ),
       );
       if (patch) {
         updates.push({ patch, filters: [...filters] });
@@ -213,6 +223,10 @@ function harness(o: HarnessOptions = {}) {
       },
       is: (column: string, value: unknown) => {
         filters.push(["is", column, value]);
+        return chain;
+      },
+      lte: (column: string, value: unknown) => {
+        filters.push(["lte", column, value]);
         return chain;
       },
       limit: () => chain,
@@ -269,6 +283,7 @@ function harness(o: HarnessOptions = {}) {
       cookies: async () => ({ get: (name: string) => (name === POST_CREATOR_COOKIE && cookie ? { value: cookie } : undefined) }),
     },
     "@supabase/supabase-js": { createClient: () => fakeDb },
+    "next/server": { ...nativeRequire("next/server"), after: (task: () => unknown) => void afterQueue.push(task) },
     // lib/proAccess.ts imports ./tools/pro, a directory the resolver below
     // cannot load, so the natively imported module stands in. Its fallback
     // signers come from this harness's env, not the test process's.
@@ -331,7 +346,12 @@ function harness(o: HarnessOptions = {}) {
 
   async function claim(sessionId: string | null = SESSION): Promise<Response> {
     const query = sessionId === null ? "" : `?session_id=${encodeURIComponent(sessionId)}`;
-    return route("claim").GET(new Request(`${ORIGIN}/api/post-creator/claim${query}`));
+    return route("claim").GET(new Request(`${ORIGIN}/api/post-creator/claim${query}`, { headers: { "x-forwarded-for": `${IP}, 10.0.0.1` } }));
+  }
+
+  /** Runs the work routes handed to after(), the way Next.js does once the answer has gone out. */
+  async function runAfter(): Promise<void> {
+    while (afterQueue.length) await afterQueue.shift()?.();
   }
 
   return {
@@ -345,6 +365,8 @@ function harness(o: HarnessOptions = {}) {
     route,
     request,
     claim,
+    runAfter,
+    pendingAfter: () => afterQueue.length,
     setCookie: (value: string | undefined) => {
       cookie = value;
     },
@@ -512,6 +534,51 @@ test("claim answers missing, notfound, unpaid, and unavailable without a cookie"
   assertNote(await claimDown.claim(), "unavailable");
 });
 
+test("claim counts every arrival against the connection before it asks Stripe", async () => {
+  const h = harness();
+  await h.claim();
+  const hit = h.rpcs.find((c) => c.name === "post_creator_hit");
+  assert.deepEqual(hit?.args, { p_bucket: bucketFor("claim-ip", IP), p_window_seconds: 3600, p_limit: 30 });
+
+  // A script looping random session ids stops costing Stripe calls.
+  const flood = harness({ hits: { [bucketFor("claim-ip", IP)]: 30 } });
+  for (let i = 0; i < 5; i++) assertNote(await flood.claim(`cs_live_random_${String(i).padStart(8, "0")}`), "unavailable");
+  assert.equal(flood.requests.length, 0);
+
+  // A limit that cannot be checked fails closed.
+  const down = harness({ failRpc: ["post_creator_hit"] });
+  assertNote(await down.claim(), "unavailable");
+  assert.equal(down.requests.length, 0);
+});
+
+test("a claim link never swaps the account a browser is already signed in to", async () => {
+  const other = "victim@example.test";
+  const h = harness({ accounts: [account({ email: other, access_epoch: 4 })], cookie: cookieFor(other, 4) });
+  const res = await h.claim();
+  assertNote(res, "other_account");
+  // The link is not spent, so its real owner can still open it after signing out.
+  assert.equal(h.accounts.get(BUYER)?.first_claimed_at, null);
+  h.setCookie(undefined);
+  const later = await h.claim();
+  assert.equal(later.headers.get("location"), `${APP}?welcome=1`);
+  assert.equal(verifyIdentity(setCookieToken(later), [SIGNER])?.e, BUYER);
+
+  // A signed-out cookie (stale epoch), or one for the same email, is simply replaced.
+  const stale = harness({ accounts: [account({ email: other, access_epoch: 5 })], cookie: cookieFor(other, 4) });
+  assert.equal((await stale.claim()).headers.get("location"), `${APP}?welcome=1`);
+  const same = harness({ cookie: cookieFor(BUYER, 9) });
+  assert.equal((await same.claim()).headers.get("location"), `${APP}?welcome=1`);
+});
+
+test("a checkout applied before an account was deleted on request opens nothing", async () => {
+  const h = harness();
+  assert.equal((await h.claim()).headers.get("location"), `${APP}?welcome=1`);
+  h.accounts.clear();
+  h.setCookie(undefined);
+  assertNote(await h.claim(), "notfound");
+  assert.equal(h.accounts.size, 0, "the account is not brought back");
+});
+
 /* ---------------------------------- restore --------------------------------- */
 
 test("restore with a matching key signs in at the account's epoch", async () => {
@@ -555,12 +622,36 @@ test("restore refuses a wrong key, an unknown account, and too many tries", asyn
   assert.equal(setCookieToken(closed), null);
 });
 
+test("a raised key version revokes the old key; the new one opens it and is the one emailed", async () => {
+  const h = harness({ accounts: [account({ key_version: 1, access_epoch: 5 })] });
+  const oldKey = postCreatorLicenseKey(BUYER, SIGNER);
+  const newKey = postCreatorLicenseKey(BUYER, SIGNER, 1);
+  const refused = await h.route("restore").POST(h.request("restore", { body: { email: BUYER, key: oldKey } }));
+  assert.equal(refused.status, 403);
+  assert.equal((await errorOf(refused)).code, "key_mismatch");
+  assert.equal(setCookieToken(refused), null);
+  const opened = await h.route("restore").POST(h.request("restore", { body: { email: BUYER, key: newKey } }));
+  assert.equal(opened.status, 200);
+  assert.equal(verifyIdentity(setCookieToken(opened), [SIGNER])?.n, 5);
+  // "Email me my key" sends the new key.
+  await h.route("restore").POST(h.request("restore", { body: { email: BUYER } }));
+  await h.runAfter();
+  const sent = h.requests.filter((r) => r.url === "https://api.resend.com/emails");
+  assert.equal(sent.length, 1);
+  assert.deepEqual(JSON.parse(sent[0].body), keyResendEmail({ email: BUYER, key: newKey }));
+  assert.ok(!sent[0].body.includes(oldKey));
+});
+
 test("restore with only an email sends the key once and answers the same either way", async () => {
   const h = harness({ accounts: [account()] });
   const res = await h.route("restore").POST(h.request("restore", { body: { email: BUYER } }));
   assert.equal(res.status, 200);
   assert.deepEqual(await res.json(), { ok: true, sent: true });
   assert.equal(setCookieToken(res), null);
+  // The answer went out before the account was even looked up.
+  assert.equal(h.requests.length, 0);
+  assert.equal(h.pendingAfter(), 1);
+  await h.runAfter();
   const sent = h.requests.filter((r) => r.url === "https://api.resend.com/emails");
   assert.equal(sent.length, 1);
   assert.deepEqual(JSON.parse(sent[0].body), keyResendEmail({ email: BUYER, key: postCreatorLicenseKey(BUYER, SIGNER) }));
@@ -574,7 +665,30 @@ test("restore with only an email sends the key once and answers the same either 
   const stranger = harness();
   const quiet = await stranger.route("restore").POST(stranger.request("restore", { body: { email: "nobody@example.test" } }));
   assert.deepEqual(await quiet.json(), { ok: true, sent: true });
+  await stranger.runAfter();
   assert.equal(stranger.requests.length, 0);
+});
+
+test("restore by email answers a buyer and a stranger alike even when the send fails", async () => {
+  const answers: { status: number; body: string }[] = [];
+  for (const [email, accounts] of [
+    [BUYER, [account()]],
+    ["nobody2@example.test", []],
+  ] as const) {
+    const h = harness({ accounts: [...accounts], resendStatus: 500 });
+    const res = await h.route("restore").POST(h.request("restore", { body: { email } }));
+    answers.push({ status: res.status, body: await res.text() });
+    // Neither answer waited on the lookup or on Resend.
+    assert.equal(h.requests.length, 0);
+    await h.runAfter();
+    if (email === BUYER) {
+      assert.equal(h.requests.length, 1, "the send was tried");
+      assert.ok(h.logs.some((l) => l.startsWith("Post Creator key email failed:")));
+      assert.ok(h.logs.every((l) => !l.includes(BUYER)));
+    }
+  }
+  assert.deepEqual(answers[0], answers[1]);
+  assert.deepEqual(answers[0], { status: 200, body: JSON.stringify({ ok: true, sent: true }) });
 });
 
 test("restore by email does not send once a limit is hit", async () => {
@@ -626,11 +740,6 @@ test("restore checks origin, the email, the key shape, and what is switched on",
   assert.equal(cannotSend.status, 503);
   assert.equal(noResend.requests.length, 0);
 
-  const failing = harness({ accounts: [account()], resendStatus: 500 });
-  const failed = await failing.route("restore").POST(failing.request("restore", { body: { email: BUYER } }));
-  assert.equal(failed.status, 502);
-  assert.equal((await errorOf(failed)).code, "send_failed");
-  assert.ok(failing.logs.every((l) => !l.includes(BUYER)));
 });
 
 /* ---------------------------------- billing --------------------------------- */
@@ -651,6 +760,18 @@ test("billing opens the portal for a lapsed monthly plan and refuses a one payme
   assert.equal(refused.status, 400);
   assert.equal((await errorOf(refused)).code, "nothing_to_manage");
   assert.equal(lifetime.requests.length, 0);
+});
+
+test("billing has nothing to offer a monthly plan that ended or that a refund or dispute closed", async () => {
+  for (const over of [{ status: "canceled" }, { status: "active", money_back_at: "2026-09-20T00:00:00.000Z" }, { status: "past_due", money_back_at: "2026-09-20T00:00:00.000Z" }]) {
+    const h = harness({ accounts: [lapsedMonthly(over)], cookie: cookieFor() });
+    const res = await h.route("billing").POST(h.request("billing", { body: {} }));
+    assert.equal(res.status, 400, JSON.stringify(over));
+    const body = await errorOf(res);
+    assert.equal(body.code, "nothing_to_manage");
+    assert.match(body.error, /This plan has ended/);
+    assert.equal(h.requests.length, 0, "the portal is never opened");
+  }
 });
 
 test("billing checks origin, the cookie, the Stripe key, and the portal answer", async () => {

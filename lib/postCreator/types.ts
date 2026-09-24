@@ -43,11 +43,21 @@ export type Account = {
   lastSessionId: string | null;
   /** When the creating checkout signed a browser in. Set once. */
   firstClaimedAt: string | null;
-  /** In every identity cookie; bumped by any later checkout. Only goes up. */
+  /** In every identity cookie; replaced by a fresh value on any later checkout. Never repeats, only goes up. */
   accessEpoch: number;
+  /** Which key opens this account (lib/postCreator/access.ts). Raised by hand to revoke a leaked key. */
+  keyVersion: number;
   /** Unix seconds of the newest Stripe event applied. */
   stripeEventAt: number;
   stripeSyncedAt: string | null;
+  /** When the monthly plan went past due. The grace window counts from here. */
+  pastDueSince: string | null;
+  /** When a refund or a dispute closed the plan. Only a dispute won or a new checkout clears it. */
+  moneyBackAt: string | null;
+  /** The monthly subscription the latest checkout took over from, which the webhook stops. */
+  replacedSubscriptionId: string | null;
+  /** A monthly plan replaced by the one payment plan: when its paid month ends. */
+  monthlyUntil: string | null;
   profile: BrandProfile;
   createdAt: string;
 };
@@ -76,7 +86,9 @@ export type Allowance = {
   usedThisMonth: number;
   leftToday: number;
   leftThisMonth: number;
+  /** Tries count every write and every failed try, so failures can use them up before the writes. */
   triesLeftToday: number;
+  triesLeftThisMonth: number;
   /** YYYY-MM-DD, the first day of the next Chicago month. */
   resetsMonthOn: string;
 };
@@ -129,7 +141,21 @@ export type ErrorCode =
   | "server_error";
 
 export type ApiError = { ok: false; code: ErrorCode; error: string; field?: string; allowance?: Allowance };
-export type WriteSuccess = { ok: true; drafts: DraftView[]; altHooks: string[]; photoIdea: string; trimmed: number; allowance: Allowance | null };
+/**
+ * A delivered write. `missing` lists the requested platforms, in the order
+ * asked, that did not come back clean (left out by the model or thrown out by
+ * the filter), so the buyer can be told which ones to write again. The write
+ * still counts: a write counts when at least one clean draft comes back.
+ */
+export type WriteSuccess = {
+  ok: true;
+  drafts: DraftView[];
+  missing: PlatformId[];
+  altHooks: string[];
+  photoIdea: string;
+  trimmed: number;
+  allowance: Allowance | null;
+};
 export type WriteResponse = WriteSuccess | ApiError;
 
 export type SessionView = {

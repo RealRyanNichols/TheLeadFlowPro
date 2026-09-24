@@ -11,7 +11,7 @@ import { PLATFORMS, PLATFORM_IDS, platformById, type PlatformId } from "@/lib/po
 import { POST_CREATOR } from "@/lib/postCreator/product";
 import type { Allowance, DraftView, WriteRequestBody } from "@/lib/postCreator/types";
 import { write } from "./api";
-import { APP_COPY, counterLine, trimmedLine, writeCostLine } from "./copy";
+import { APP_COPY, counterLine, missingPlatformsLine, trimmedLine, writeCostLine } from "./copy";
 import { INITIAL_WRITER_STATE, newRequestId, writerReducer, type WriterEvent, type WriterState } from "./writerState";
 
 // AI writing for one idea, inline under the idea machine. The buyer picks up
@@ -23,6 +23,12 @@ import { INITIAL_WRITER_STATE, newRequestId, writerReducer, type WriterEvent, ty
 // "still writing" answer keeps its request id, so Try again cannot count
 // twice (writerState.ts). The browser stops waiting after 115 seconds and
 // treats that as a dropped answer (api.ts).
+//
+// The heading and the drafts scroll to the top of the screen below the sticky
+// site header (scroll-mt-24), then take focus, so the buyer sees which idea
+// is being written and where the drafts start. The drafts are saved on
+// arrival, and their Save buttons read "Saved" because DraftTabs reads the
+// saved list.
 
 const COPY = APP_COPY.writer;
 const MAX_PLATFORMS = POST_CREATOR.ai.maxPlatformsPerWrite;
@@ -198,7 +204,12 @@ export default function WritePanel({
       setAutoSaved(true);
       if (after.result.allowance) onAllowance(after.result.allowance);
       else onRefresh();
-      requestAnimationFrame(() => resultRef.current?.focus());
+      requestAnimationFrame(() => {
+        const result = resultRef.current;
+        if (!result) return;
+        result.scrollIntoView({ block: "start", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+        result.focus({ preventScroll: true });
+      });
       return;
     }
     if (result.ok) return;
@@ -228,8 +239,8 @@ export default function WritePanel({
   const failed = writer.phase === "failed" ? writer : null;
 
   return (
-    <section aria-labelledby={id("title")} aria-busy={writing} className="scroll-mt-4 rounded-2xl border border-[var(--accent-line)] bg-[var(--panel)] p-4 shadow-[var(--cb-shadow)] sm:p-6">
-      <h3 id={id("title")} ref={headingRef} tabIndex={-1} className="text-[20px] font-extrabold text-[var(--heading)] focus:outline-none">
+    <section aria-labelledby={id("title")} aria-busy={writing} className="scroll-mt-24 rounded-2xl border border-[var(--accent-line)] bg-[var(--panel)] p-4 shadow-[var(--cb-shadow)] sm:p-6">
+      <h3 id={id("title")} ref={headingRef} tabIndex={-1} className="scroll-mt-24 text-[20px] font-extrabold text-[var(--heading)] focus:outline-none">
         {COPY.heading}
       </h3>
       <p className="mt-1 text-[16px] font-bold leading-snug text-[var(--text)] [overflow-wrap:anywhere]">{card.title}</p>
@@ -318,11 +329,14 @@ export default function WritePanel({
       {done ? (
         <div className="mt-6 space-y-4 border-t border-[var(--line)] pt-5">
           <div>
-            <h4 ref={resultRef} tabIndex={-1} className="text-[20px] font-extrabold text-[var(--heading)] focus:outline-none">
+            <h4 ref={resultRef} tabIndex={-1} className="scroll-mt-24 text-[20px] font-extrabold text-[var(--heading)] focus:outline-none">
               {COPY.resultTitle}
             </h4>
             <p className="mt-1 text-[15px] text-[var(--muted)]">{COPY.resultNote}</p>
             {done.trimmed > 0 ? <p className="mt-2 text-[15px] font-bold text-[var(--warn)]">{trimmedLine(done.trimmed)}</p> : null}
+            {done.missing.length > 0 ? (
+              <p className="mt-2 text-[15px] font-bold leading-relaxed text-[var(--warn)]">{missingPlatformsLine(done.missing)}</p>
+            ) : null}
           </div>
 
           <DraftTabs drafts={done.drafts} onSave={saveDraft} />

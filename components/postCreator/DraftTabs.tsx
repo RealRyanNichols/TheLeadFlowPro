@@ -7,10 +7,14 @@ import type { PlatformId } from "@/lib/postCreator/options";
 import type { DraftView } from "@/lib/postCreator/types";
 import BlankText from "./BlankText";
 import CopyButton from "./CopyButton";
+import { isDraftSaved, useSavedItems } from "./storage";
 
 // One draft per platform, one tab each. The same view shows the free
 // template drafts on the public page and the AI drafts in the buyer app, so
 // the counts, the blanks, and the copy buttons behave the same in both.
+//
+// "Saved" is read from the saved list itself: an AI draft saved on arrival
+// shows "Saved" at once, and a draft removed from the list shows "Save" again.
 
 /** Tab labels. The platform list says "Google Business Profile"; a tab has less room. */
 const TAB_LABELS: Record<PlatformId, string> = {
@@ -30,10 +34,6 @@ export function blanksLine(count: number): string {
   return count === 1 ? "1 blank to fill in before you post" : `${count} blanks to fill in before you post`;
 }
 
-function savedKey(d: DraftView): string {
-  return `${d.platform}\n${d.text}`;
-}
-
 export default function DraftTabs({
   drafts,
   initial,
@@ -45,7 +45,7 @@ export default function DraftTabs({
 }) {
   const baseId = useId();
   const [picked, setPicked] = useState<PlatformId | undefined>(initial);
-  const [saved, setSaved] = useState<string[]>([]);
+  const savedItems = useSavedItems();
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
 
   if (!drafts.length) return null;
@@ -56,7 +56,7 @@ export default function DraftTabs({
   const draft = drafts[index];
   const tabId = (i: number) => `${baseId}-tab-${i}`;
   const panelId = `${baseId}-panel`;
-  const isSaved = saved.includes(savedKey(draft));
+  const isSaved = isDraftSaved(savedItems, draftCopyText(draft));
 
   function select(i: number) {
     const next = (i + drafts.length) % drafts.length;
@@ -76,7 +76,6 @@ export default function DraftTabs({
   function save() {
     if (!onSave || isSaved) return;
     onSave(draft);
-    setSaved((s) => [...s.slice(-49), savedKey(draft)]);
   }
 
   return (

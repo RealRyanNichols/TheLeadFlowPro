@@ -1,11 +1,11 @@
--- Post Creator (/post-creator): paid accounts, the AI request ledger (no draft
--- text is ever stored), the shared daily AI spend ledger, and durable rate
--- limits. Service role only, like chase_sheet: every request goes through
--- /api/post-creator/*, which verifies a signed cookie and filters by email in
--- code. RLS is enabled with no policies as the backstop, and every privilege is
--- revoked from anon and authenticated. Days and months are America/Chicago,
--- taken from the database clock. Applying this file is Ryan's action
--- (docs/decisions-needed.md item 85).
+-- Post Creator (/post-creator): paid accounts, the checkouts already applied,
+-- the AI request ledger (no draft text is ever stored), the shared daily AI
+-- spend ledger, and durable rate limits. Service role only, like chase_sheet:
+-- every request goes through /api/post-creator/*, which verifies a signed
+-- cookie and filters by email in code. RLS is enabled with no policies as the
+-- backstop, and every privilege is revoked from anon and authenticated. Days
+-- and months are America/Chicago, taken from the database clock. Applying this
+-- file is Ryan's action (docs/decisions-needed.md item 85).
 --
 -- Rollback:
 --   drop function if exists public.post_creator_hit(text, integer, integer);
@@ -16,8 +16,17 @@
 --   drop table if exists public.post_creator_rate_limits;
 --   drop table if exists public.post_creator_spend_daily;
 --   drop table if exists public.post_creator_generations;
+--   drop table if exists public.post_creator_checkouts;
 --   drop table if exists public.post_creator_accounts;
+--   drop function if exists public.post_creator_generations_release();
 --   drop function if exists public.post_creator_accounts_guard();
+--   drop sequence if exists public.post_creator_access_epoch_seq;
+
+-- Every access_epoch ever handed out comes from this one sequence, so an
+-- epoch never repeats: not after a later checkout, and not when an account
+-- deleted on request is bought again. A cookie signed for a row that is gone
+-- can never open the row that replaces it.
+create sequence if not exists public.post_creator_access_epoch_seq as integer minvalue 1;
 
 create table if not exists public.post_creator_accounts (
   email text primary key check (email = lower(email) and char_length(email) between 3 and 200),
@@ -32,10 +41,30 @@ create table if not exists public.post_creator_accounts (
   last_session_id text,
   -- Set once, by the first successful claim. Write-once.
   first_claimed_at timestamptz,
-  -- In every cookie. Bumped by any later checkout on this email; only goes up.
-  access_epoch integer not null default 0 check (access_epoch >= 0),
+  -- In every cookie. Replaced by a fresh value on any later checkout on this
+  -- email, which signs every device out; only goes up.
+  access_epoch integer not null default nextval('public.post_creator_access_epoch_seq') check (access_epoch >= 0),
+  -- The emailed key is derived from the email and this number, never stored.
+  -- Raising it by hand revokes a leaked key: the old key stops opening the
+  -- app, and "Email me my key" sends the new one. Only goes up.
+  key_version integer not null default 0 check (key_version between 0 and 1000),
   current_period_end timestamptz,
   cancel_at timestamptz,
+  -- When the monthly plan went past due. The grace window counts from here,
+  -- never from current_period_end, which Stripe moves to the end of the
+  -- unpaid month before it tries the card.
+  past_due_since timestamptz,
+  -- When a refund or a dispute closed the plan. No Stripe event reopens it;
+  -- only a dispute won or a new paid checkout clears it.
+  money_back_at timestamptz,
+  -- The monthly subscription the latest checkout took over from (a second
+  -- monthly checkout, or the one payment plan bought over a monthly one),
+  -- which the webhook stops. Written only by post_creator_record_purchase, so
+  -- a retry of that checkout reads the same answer.
+  replaced_subscription_id text,
+  -- A monthly plan replaced by the one payment plan: when its paid month
+  -- ends. AI writing keeps the monthly allowance through that Chicago month.
+  monthly_until timestamptz,
   -- Stripe delivers out of order and retries; only a newer event may win.
   stripe_event_at bigint not null default 0,
   stripe_synced_at timestamptz,
@@ -46,6 +75,16 @@ create table if not exists public.post_creator_accounts (
   updated_at timestamptz not null default now()
 );
 create index if not exists post_creator_accounts_customer_idx on public.post_creator_accounts (stripe_customer_id);
+
+-- Every checkout session post_creator_record_purchase has applied. A session
+-- is applied once, ever: a retried webhook, a revisited success link, or an
+-- older checkout replayed after a newer one reads the account and changes
+-- nothing. It holds no email, and it outlives an account deleted on request,
+-- so a replay can never bring that account back.
+create table if not exists public.post_creator_checkouts (
+  session_id text primary key check (session_id ~ '^cs_[A-Za-z0-9_]{8,200}$'),
+  applied_at timestamptz not null default now()
+);
 
 create table if not exists public.post_creator_generations (
   id uuid primary key default gen_random_uuid(),
@@ -101,6 +140,9 @@ begin
   if new.access_epoch < old.access_epoch then
     raise exception 'post_creator_accounts.access_epoch only goes up';
   end if;
+  if new.key_version < old.key_version then
+    raise exception 'post_creator_accounts.key_version only goes up';
+  end if;
   new.updated_at := now();
   return new;
 end $$;
@@ -109,16 +151,47 @@ drop trigger if exists post_creator_accounts_guard on public.post_creator_accoun
 create trigger post_creator_accounts_guard before update on public.post_creator_accounts
   for each row execute function public.post_creator_accounts_guard();
 
--- A paid checkout, idempotent per session. A new email gets a row created by
--- this session. A later checkout on an existing email applies the plan rules
--- (lifetime never downgrades) and bumps access_epoch, signing every device out.
+-- An account deleted on request takes its AI ledger rows with it (on delete
+-- cascade). A reservation still open at that moment is charged in full to its
+-- day, the way the stale sweep charges an expired one, so the day's reserved
+-- total never keeps money that no settle or sweep can ever release.
+create or replace function public.post_creator_generations_release()
+returns trigger language plpgsql set search_path = public, pg_temp as $$
+begin
+  if old.status = 'reserved' then
+    update public.post_creator_spend_daily
+       set reserved_micro_usd = greatest(0, reserved_micro_usd - old.reserved_micro_usd),
+           spent_micro_usd = spent_micro_usd + old.reserved_micro_usd,
+           updated_at = clock_timestamp()
+     where day = old.day;
+  end if;
+  return old;
+end $$;
+revoke all on function public.post_creator_generations_release() from public, anon, authenticated;
+drop trigger if exists post_creator_generations_release on public.post_creator_generations;
+create trigger post_creator_generations_release after delete on public.post_creator_generations
+  for each row execute function public.post_creator_generations_release();
+
+-- A paid checkout, applied once per session (post_creator_checkouts). A new
+-- email gets a row created by this session. A later checkout on an existing
+-- email applies the plan rules and gives the row a fresh access_epoch,
+-- signing every device out. The one payment plan is never downgraded while
+-- it is owned; a refunded, disputed, or revoked one is not owned, so a
+-- monthly checkout on it starts a fresh monthly plan. A checkout that takes
+-- over from a monthly subscription still running (a second monthly checkout,
+-- or the one payment plan bought over a monthly one) names it in
+-- replaced_subscription_id for the webhook to stop.
 create or replace function public.post_creator_record_purchase(
   p_email text, p_plan text, p_session_id text, p_customer_id text, p_subscription_id text, p_event_at bigint
 ) returns jsonb
 language plpgsql security definer set search_path = public, pg_temp as $$
 declare
   v_row public.post_creator_accounts%rowtype;
+  v_old public.post_creator_accounts%rowtype;
   v_created boolean := false;
+  v_applied integer;
+  v_owns_lifetime boolean;
+  v_replaced text;
 begin
   if p_email is null or p_email <> lower(p_email) or char_length(p_email) not between 3 and 200
      or p_plan is null or p_plan not in ('monthly', 'lifetime')
@@ -126,6 +199,22 @@ begin
      or coalesce(p_event_at, -1) < 0 then
     raise exception 'post_creator_invalid_purchase';
   end if;
+
+  insert into public.post_creator_checkouts (session_id) values (p_session_id)
+  on conflict (session_id) do nothing;
+  get diagnostics v_applied = row_count;
+  if v_applied = 0 then
+    -- Applied before: answer with the account as it stands, or none when it
+    -- was deleted on request.
+    select * into v_row from public.post_creator_accounts where email = p_email;
+    if not found then
+      return jsonb_build_object('created', false, 'created_by_this_session', false, 'account', null);
+    end if;
+    return jsonb_build_object('created', false,
+      'created_by_this_session', v_row.first_session_id = p_session_id,
+      'account', to_jsonb(v_row));
+  end if;
+
   insert into public.post_creator_accounts
     (email, plan, status, stripe_customer_id, stripe_subscription_id, first_session_id, last_session_id, stripe_event_at)
   values
@@ -136,21 +225,36 @@ begin
   if found then
     v_created := true;
   else
-    select * into v_row from public.post_creator_accounts where email = p_email for update;
-    if v_row.last_session_id is distinct from p_session_id and v_row.first_session_id is distinct from p_session_id then
-      update public.post_creator_accounts set
-        plan = case when p_plan = 'lifetime' then 'lifetime' else plan end,
-        status = case when p_plan = 'lifetime' or plan = 'monthly' then 'active' else status end,
-        current_period_end = case when p_plan = 'lifetime' then null else current_period_end end,
-        cancel_at = case when p_plan = 'lifetime' or plan = 'monthly' then null else cancel_at end,
-        stripe_subscription_id = case when p_plan = 'monthly' then coalesce(p_subscription_id, stripe_subscription_id) else stripe_subscription_id end,
-        stripe_customer_id = coalesce(p_customer_id, stripe_customer_id),
-        stripe_event_at = greatest(stripe_event_at, p_event_at),
-        last_session_id = p_session_id,
-        access_epoch = access_epoch + 1
-      where email = p_email
-      returning * into v_row;
-    end if;
+    select * into v_old from public.post_creator_accounts where email = p_email for update;
+    v_owns_lifetime := v_old.plan = 'lifetime' and v_old.status = 'active' and v_old.money_back_at is null;
+    v_replaced := case
+      when v_old.plan = 'monthly' and v_old.status <> 'canceled' and v_old.money_back_at is null
+       and v_old.stripe_subscription_id is not null
+       and (p_plan = 'lifetime' or (p_subscription_id is not null and p_subscription_id <> v_old.stripe_subscription_id))
+      then v_old.stripe_subscription_id end;
+    update public.post_creator_accounts set
+      plan = case when p_plan = 'lifetime' or v_owns_lifetime then 'lifetime' else 'monthly' end,
+      status = 'active',
+      current_period_end = case when p_plan = 'monthly' and v_old.plan = 'monthly' then current_period_end end,
+      cancel_at = null,
+      stripe_subscription_id = case when p_plan = 'monthly' and not v_owns_lifetime
+        then coalesce(p_subscription_id, stripe_subscription_id) else stripe_subscription_id end,
+      stripe_customer_id = coalesce(p_customer_id, stripe_customer_id),
+      stripe_event_at = greatest(stripe_event_at, p_event_at),
+      last_session_id = p_session_id,
+      replaced_subscription_id = v_replaced,
+      past_due_since = null,
+      money_back_at = null,
+      monthly_until = case
+        -- A past-due plan's period end is a month nobody paid for, so the
+        -- monthly allowance carries through the current month only.
+        when p_plan = 'lifetime' and v_replaced is not null and v_old.status = 'past_due' then now()
+        when p_plan = 'lifetime' and v_replaced is not null then greatest(coalesce(v_old.current_period_end, now()), now())
+        when p_plan = 'lifetime' or v_owns_lifetime then monthly_until
+        end,
+      access_epoch = nextval('public.post_creator_access_epoch_seq')
+    where email = p_email
+    returning * into v_row;
   end if;
   return jsonb_build_object('created', v_created,
     'created_by_this_session', v_row.first_session_id = p_session_id,
@@ -343,13 +447,16 @@ begin
 end $$;
 
 alter table public.post_creator_accounts enable row level security;
+alter table public.post_creator_checkouts enable row level security;
 alter table public.post_creator_generations enable row level security;
 alter table public.post_creator_spend_daily enable row level security;
 alter table public.post_creator_rate_limits enable row level security;
-revoke all on table public.post_creator_accounts, public.post_creator_generations,
+revoke all on table public.post_creator_accounts, public.post_creator_checkouts, public.post_creator_generations,
   public.post_creator_spend_daily, public.post_creator_rate_limits from anon, authenticated;
-grant select, insert, update, delete on table public.post_creator_accounts, public.post_creator_generations,
+grant select, insert, update, delete on table public.post_creator_accounts, public.post_creator_checkouts, public.post_creator_generations,
   public.post_creator_spend_daily, public.post_creator_rate_limits to service_role;
+revoke all on sequence public.post_creator_access_epoch_seq from public, anon, authenticated;
+grant usage, select on sequence public.post_creator_access_epoch_seq to service_role;
 
 revoke all on function public.post_creator_record_purchase(text, text, text, text, text, bigint) from public, anon, authenticated;
 revoke all on function public.post_creator_reserve(text, uuid, integer, integer, integer, integer, integer, bigint, bigint, bigint, text) from public, anon, authenticated;

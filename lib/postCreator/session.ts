@@ -1,7 +1,7 @@
 import "server-only";
 import { aiStatusView, aiWritingStatus, postCreatorSalesOpen } from "./ai/config";
 import { usageCounts, type Db } from "./db";
-import { accountView, allowanceView } from "./plan";
+import { accountView, allowanceView, meteredPlan } from "./plan";
 import { profileIsReady } from "./profile";
 import type { Allowance, Entitlement, SessionView } from "./types";
 
@@ -27,7 +27,7 @@ export async function buildSessionView(
   if (!account) throw new Error("buildSessionView needs an account");
   let allowance: Allowance | null = null;
   try {
-    allowance = allowanceView(account.plan, await usageCounts(client, account.email), now);
+    allowance = allowanceView(meteredPlan(account, now), await usageCounts(client, account.email), now);
   } catch (error) {
     console.error("Post Creator usage read failed:", error instanceof Error ? error.message : "unknown error");
   }

@@ -11,7 +11,8 @@
 // The license key is the Pro Kit derivation (lib/proAccess.ts) with this
 // product's own kind, so it can never open Chase Sheet or a Pro Kit, and one
 // key opens Post Creator on any device whichever plan was bought. Derived,
-// never stored.
+// never stored. The account's key_version is part of the kind, so raising it
+// revokes a leaked key without touching anyone else's.
 //
 // Nothing here talks to a database or reads a cookie. Pure apart from
 // process.env in postCreatorSecrets and the cookie's secure flag.
@@ -100,13 +101,28 @@ export function identityFor(email: string, epoch: number, now = Math.floor(Date.
   return { v: 1, e: normalizeEmail(email), t: now, n: epoch };
 }
 
-/** LFP-XXXX-XXXX-XXXX-XXXX for this buyer. The same for the monthly and the one payment plan. */
-export function postCreatorLicenseKey(email: string, secret: string): string {
-  return licenseKey(email, POST_CREATOR.accessKind, secret);
+/**
+ * The kind a key is derived from. Version 0 is the original key, so every key
+ * already emailed keeps working; each later version (the account's
+ * key_version, raised by hand to revoke a leaked key) is a new key, and the
+ * old one stops matching. Null for a version that is not a whole number, 0 or
+ * more, so an unreadable version opens nothing.
+ */
+function keyKind(version: number): string | null {
+  if (!Number.isInteger(version) || version < 0) return null;
+  return version === 0 ? POST_CREATOR.accessKind : `${POST_CREATOR.accessKind}:v${version}`;
 }
 
-export function verifyPostCreatorLicenseKey(email: string, key: string, secrets: string[]): boolean {
-  return verifyLicenseKey(email, POST_CREATOR.accessKind, key, secrets);
+/** LFP-XXXX-XXXX-XXXX-XXXX for this buyer at the account's key version. The same for the monthly and the one payment plan. */
+export function postCreatorLicenseKey(email: string, secret: string, version = 0): string {
+  const kind = keyKind(version);
+  if (!kind) throw new Error("Post Creator key version must be a whole number, 0 or more");
+  return licenseKey(email, kind, secret);
+}
+
+export function verifyPostCreatorLicenseKey(email: string, key: string, secrets: string[], version = 0): boolean {
+  const kind = keyKind(version);
+  return kind !== null && verifyLicenseKey(email, kind, key, secrets);
 }
 
 /** A year by default; pass 0 to clear the cookie. */
@@ -164,6 +180,9 @@ function createdOf(value: unknown): number | null {
  * What a paid Stripe session bought, or null when it is not a Post Creator
  * purchase. The mode and the amount are both checked against the plan, so a
  * copied session id for the monthly plan can never claim the one payment plan.
+ * The amount paid must be the full price: checkout offers no promotion code
+ * for Post Creator, so a discounted session is not one this site made
+ * (decision 96) and waits for review instead of unlocking the full plan.
  */
 export function purchaseFromSession(session: PostCreatorCheckoutSession): PostCreatorPurchase | null {
   const meta = session.metadata ?? {};
@@ -172,9 +191,8 @@ export function purchaseFromSession(session: PostCreatorCheckoutSession): PostCr
   if (!/^cs_[A-Za-z0-9_]{8,200}$/.test(sessionId)) return null;
   if (session.currency !== "usd" || session.payment_status !== "paid") return null;
   const total = session.amount_total;
-  const subtotal = session.amount_subtotal;
   if (typeof total !== "number" || !Number.isSafeInteger(total) || total < 0) return null;
-  const matches = (usd: number) => total === usd * 100 || subtotal === usd * 100;
+  const matches = (usd: number) => total === usd * 100;
   const email = normalizeEmail(
     (session.customer_details?.email as string | undefined) || (session.customer_email as string | undefined) || "",
   );

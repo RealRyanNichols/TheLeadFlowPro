@@ -4,10 +4,12 @@
 //
 // No hooks and no browser calls: safe in server and client components.
 
-// The same shape the idea engine counts (lib/postCreator/ideas/drafts.ts
-// findBlanks), with a capture group so split() keeps the blanks.
-const BLANK_SPLIT = /(\[[^\]\n]{1,60}\])/;
-const BLANK_WHOLE = /^\[[^\]\n]{1,60}\]$/;
+import { BLANK_SOURCE } from "@/lib/postCreator/copyRules";
+
+// The same shape the idea engine counts and the claim rules skip
+// (BLANK_SOURCE), with a capture group so split() keeps the blanks.
+const BLANK_SPLIT = new RegExp(`(${BLANK_SOURCE})`);
+const BLANK_WHOLE = new RegExp(`^${BLANK_SOURCE}$`);
 
 export default function BlankText({ text }: { text: string }) {
   const parts = text.split(BLANK_SPLIT);

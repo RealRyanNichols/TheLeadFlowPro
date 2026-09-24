@@ -15,21 +15,50 @@ export type TopicKind = "problem" | "howto" | "decision" | "work" | "team" | "st
 
 export type Season = "winter" | "spring" | "summer" | "fall";
 
-/** A thing a post can be about. `id` is the noun as a slug, unique within its list. */
-export type Topic = { id: string; kind: TopicKind; noun: string };
+/**
+ * What else is true of a topic, so an angle lands only where it reads right:
+ *
+ * - visible: a change you can photograph before and after (Before and after).
+ * - gear: a tool, a truck, or equipment (Tool talk).
+ * - visit: a step the customer goes through (What to expect, for a look at the work).
+ * - choice: two options side by side (This or that).
+ * - early: a problem that shows signs before it gets worse (Warning signs).
+ * - self: the owner, who does not thank themselves (Thank you).
+ * - trade: assumes a service trade, so "Something else" leaves it out.
+ */
+export type TopicTag = "visible" | "gear" | "visit" | "choice" | "early" | "self" | "trade";
+
+/**
+ * A thing a post can be about. `id` is the noun as a slug, unique within its
+ * list. `seasons` are the times of year the topic is worth a seasonal
+ * heads-up; a topic without them never gets one.
+ */
+export type Topic = { id: string; kind: TopicKind; noun: string; tags?: readonly TopicTag[]; seasons?: readonly Season[] };
+
+/** What a topic of one kind must carry for an angle to fit it: a tag, or seasons. */
+export type AngleNeed = TopicTag | "seasons";
 
 /**
  * A way to frame a post. Templates use only {topic}, {Topic}, {season}, and
  * {Season}. Body lines leave [blanks] for what only the owner knows.
+ *
+ * An angle fits a topic when the topic's kind is in `kinds`, the topic carries
+ * what `needs` asks of that kind, and it carries none of `avoid`. `ctas` are
+ * the calls to action that read right after it ("Save this post" follows a
+ * tip, not a thank you). `clip` is the middle shot of the short video.
  */
 export type Angle = {
   id: AngleId;
   label: string;
   kinds: readonly TopicKind[];
+  needs?: Partial<Record<TopicKind, AngleNeed>>;
+  avoid?: readonly TopicTag[];
+  ctas: readonly CtaId[];
   title: string;
   hooks: readonly [string, string, string, string];
   shots: readonly [string, string];
   body: readonly string[];
+  clip: string;
 };
 
 /** The settings the idea machine runs on. Owner text is cleaned by normalizeInput. */
@@ -61,14 +90,20 @@ export type IdeaCard = {
   hookIdx: number;
   shotIdx: number;
   ctaIdx: number;
+  /** The season the wording uses: the topic's own for a seasonal heads-up, else the date's. */
+  season: Season;
   /** 0 on the first pass through every core, 1 on the second, and so on. */
   lap: number;
   /** 1-based place within the current lap. */
   position: number;
 };
 
-/** How many ideas and cards a set of settings has. */
-export type IdeaSpace = { signature: string; coreCount: number; remixCount: number; cardCount: number; monthsAtThreeAWeek: number };
+/**
+ * How many ideas and cards a set of settings has. `cardCount` adds up every
+ * core's remixes: four first lines, two photo ideas, and, on "Mix it up",
+ * each call to action that fits the core's angle.
+ */
+export type IdeaSpace = { signature: string; coreCount: number; cardCount: number; monthsAtThreeAWeek: number };
 
 /**
  * Where the shuffle is, per set of settings. Saved in the browser, so a

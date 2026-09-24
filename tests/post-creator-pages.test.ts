@@ -16,22 +16,23 @@ import { savedCopyText } from "../components/postCreator/SavedList.tsx";
 import * as setupFields from "../components/postCreator/SetupFields.tsx";
 import * as shuffle from "../components/postCreator/ShuffleProvider.tsx";
 import * as storage from "../components/postCreator/storage.ts";
+import UnlimitedNote from "../components/postCreator/UnlimitedNote.tsx";
 import { brokenLinks, routeExists } from "../scripts/check-links.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
 import { findBlanks } from "../lib/postCreator/ideas/drafts.ts";
 import * as drafts from "../lib/postCreator/ideas/drafts.ts";
 import * as engine from "../lib/postCreator/ideas/engine.ts";
-import { DEFAULT_INPUT, newShuffleState } from "../lib/postCreator/ideas/engine.ts";
+import { DEFAULT_INPUT, ideaSpace, newShuffleState } from "../lib/postCreator/ideas/engine.ts";
 import { planMonth, planToCsv } from "../lib/postCreator/ideas/plan.ts";
 import * as options from "../lib/postCreator/options.ts";
 import * as product from "../lib/postCreator/product.ts";
-import { POST_CREATOR, aiCapLine, triesLine } from "../lib/postCreator/product.ts";
+import { POST_CREATOR, aiLimitsFor, triesLine, unlimitedBody } from "../lib/postCreator/product.ts";
 import type { DraftView } from "../lib/postCreator/types.ts";
 import { BUSINESS } from "../lib/site/business.ts";
 import { PRICES, usd } from "../lib/site/prices.ts";
 
-const { CHECKOUT_ERRORS } = buyButtons;
-const { COMPARE_HEADS, COMPARE_ROWS, FAQS, HERO, HOW_IT_WORKS, PLAN_SECTION, PRICING, closedMessage } = pageCopy;
+const { BUY_LABELS, CHECKOUT_ERRORS } = buyButtons;
+const { COMPARE_HEADS, COMPARE_ROWS, FAQS, HERO, HOW_IT_WORKS, PLAN_SECTION, PRICING, TRIES_LINE, closedMessage, planAllowanceLine } = pageCopy;
 const { MAX_SAVED, STORAGE_KEYS, clearSaved, makeSeed, readSaved, readSetup, readShuffle, removeSaved, saveItem, storageAvailable, writeSetup, writeShuffle } =
   storage;
 
@@ -174,6 +175,28 @@ test("the closed line says why, and never offers a button", () => {
   assert.equal(count(open, "<button"), 2);
 });
 
+test("the locked app screen's closed line never points at an idea machine above it", () => {
+  // A buyer whose plan ended reads this on /post-creator/app, where nothing above it is an idea machine.
+  for (const aiOn of [true, false]) {
+    const line = closedMessage(aiOn, "locked");
+    assert.doesNotMatch(line, /above/i, line);
+    assert.notEqual(line, closedMessage(aiOn));
+    assert.deepEqual(copyProblems(line), []);
+  }
+  assert.equal(closedMessage(true, "page"), closedMessage(true));
+  const locked = src("app/post-creator/app/LockedPostCreator.tsx");
+  assert.ok(locked.includes('closedMessage(aiOn, "locked")'));
+  assert.ok(!locked.includes("closedMessage(aiOn)}"));
+});
+
+test("the one payment button says once, once: Pay once, then the price", () => {
+  assert.equal(BUY_LABELS.lifetime, `Pay once, ${usd(PRICES.postCreatorLifetime)}`);
+  assert.equal(BUY_LABELS.monthly, `Start monthly, ${POST_CREATOR.monthlyLabel}`);
+  const open = renderToStaticMarkup(createElement(buyButtons.default, { salesOpen: true, closedMessage: "" }));
+  assert.ok(open.includes(BUY_LABELS.lifetime));
+  assert.doesNotMatch(open, /once[^<]*once/i);
+});
+
 test("BuyButtons sends only the plan's kind and handles every checkout answer", () => {
   const source = src("components/postCreator/BuyButtons.tsx");
   assert.ok(source.includes('fetch("/api/checkout", {'));
@@ -290,9 +313,14 @@ test("storage keeps at most 200 saved items, newest first, and round-trips its s
 });
 
 test("the page copy passes the house copy rules and reads its numbers from product.ts", () => {
-  const all = strings({ HERO, HOW_IT_WORKS, PLAN_SECTION, COMPARE_HEADS, COMPARE_ROWS, PRICING, FAQS, CHECKOUT_ERRORS }).concat(
+  const all = strings({ HERO, HOW_IT_WORKS, PLAN_SECTION, COMPARE_HEADS, COMPARE_ROWS, PRICING, FAQS, CHECKOUT_ERRORS, BUY_LABELS }).concat(
     closedMessage(true),
     closedMessage(false),
+    closedMessage(true, "locked"),
+    closedMessage(false, "locked"),
+    planAllowanceLine("monthly"),
+    planAllowanceLine("lifetime"),
+    TRIES_LINE,
     copyButton.COPY_FAILED,
   );
   assert.ok(all.length > 50);
@@ -318,19 +346,101 @@ test("the page copy passes the house copy rules and reads its numbers from produ
   assert.equal(lifetime.plan, "lifetime");
   assert.equal(lifetime.price, usd(PRICES.postCreatorLifetime));
   assert.ok(lifetime.bullets[0].startsWith(`Up to ${l.perMonth} AI writes a month, ${l.perDay} a day, for as long as`));
-  assert.deepEqual(PRICING.fine, [triesLine("monthly"), product.SPEND_PAUSE_LINE, product.COST_LIMIT_LINE]);
+  assert.deepEqual(PRICING.fine, [TRIES_LINE, product.SPEND_PAUSE_LINE, product.COST_LIMIT_LINE]);
 
   assert.equal(FAQS.length, 9);
   assert.equal(FAQS[0].q, product.UNLIMITED_FAQ_Q);
-  assert.ok(FAQS[2].a.includes(`${options.ANGLE_IDS.length} in all`));
-  assert.ok(FAQS[4].a.startsWith(aiCapLine("monthly")));
-  assert.ok(FAQS[4].a.endsWith(triesLine("monthly")));
+  // "20 in all" at the end read as 20 ideas; it is 20 ways to frame a post.
+  assert.ok(FAQS[2].a.includes(`There are ${options.ANGLE_IDS.length} ways to frame a post`));
+  assert.doesNotMatch(FAQS[2].a, /in all/);
+  assert.ok(FAQS[4].a.startsWith(`Monthly plan: up to ${m.perMonth} AI writes a month and ${m.perDay} a day. One payment plan: up to ${l.perMonth} a month`));
+  assert.ok(FAQS[4].a.endsWith(TRIES_LINE));
   assert.ok(FAQS[5].a.endsWith(product.FILTER_LINE));
   assert.deepEqual(
     FAQS.filter((f) => f.link).map((f) => f.link?.href),
     ["/agency", "/privacy"],
   );
   assert.doesNotMatch(JSON.stringify(FAQS), /time-back|time back/i);
+});
+
+test("every tries ceiling a buyer reads names both plans, with the numbers the write route meters", () => {
+  const monthly = aiLimitsFor("monthly");
+  const lifetime = aiLimitsFor("lifetime");
+  assert.ok(lifetime.triesPerDay < monthly.triesPerDay, "the one payment plan is stopped sooner");
+  for (const [plan, limits] of [
+    ["monthly", monthly],
+    ["lifetime", lifetime],
+  ] as const) {
+    assert.ok(TRIES_LINE.includes(`${limits.triesPerDay} a day and ${limits.triesPerMonth} a month on the ${plan === "monthly" ? "monthly" : "one payment"} plan`), plan);
+    assert.ok(planAllowanceLine(plan).includes(`up to ${limits.triesPerDay} tries a day and ${limits.triesPerMonth} a month`), plan);
+    assert.ok(planAllowanceLine(plan).startsWith(plan === "monthly" ? "Monthly plan: " : "One payment plan: "), plan);
+  }
+  // No buyer-facing place gives the monthly ceiling alone.
+  const monthlyOnly = triesLine("monthly");
+  for (const text of [...PRICING.fine, ...FAQS.map((f) => f.a)]) assert.ok(!text.includes(monthlyOnly), text);
+  const html = pricingCards({ salesOpen: true, aiOn: true, cancelled: false });
+  assert.ok(html.includes(`${lifetime.triesPerDay} a day and ${lifetime.triesPerMonth} a month on the one payment plan`));
+  const terms = src("app/post-creator/terms/page.tsx");
+  assert.ok(!terms.includes('triesLine("monthly")'));
+  assert.ok(terms.includes('planAllowanceLine("monthly")') && terms.includes('planAllowanceLine("lifetime")'));
+});
+
+test("the partial write rule is stated wherever a buyer reads what counts", () => {
+  // A write counts when at least one platform comes back; the rest are named.
+  assert.ok(TRIES_LINE.includes(product.PARTIAL_WRITE_LINE));
+  assert.ok(PRICING.fine.some((line) => line.includes(product.PARTIAL_WRITE_LINE)));
+  assert.ok(product.aiNotUnlimited().includes(product.PARTIAL_WRITE_LINE));
+  const terms = src("app/post-creator/terms/page.tsx");
+  assert.ok(terms.includes("{PARTIAL_WRITE_LINE}"));
+  assert.deepEqual(copyProblems(product.PARTIAL_WRITE_LINE), []);
+});
+
+test("the terms keep their promises to what the product does", () => {
+  const terms = src("app/post-creator/terms/page.tsx");
+  const flat = terms.replace(/\s+/g, " ");
+  // An open-ended switch-off can no longer skip the one payment plan's notice.
+  assert.ok(!flat.includes("AI writing runs only while it is switched on"));
+  assert.ok(flat.includes("Switching AI writing off for good would count as discontinuing {POST_CREATOR.name}"));
+  assert.ok(flat.includes("If it is ever discontinued, AI writing included, you will get at least 90 days&apos; notice by email."));
+  // The cancel is a runbook step (and, later, code), not "at the same time".
+  assert.ok(!flat.includes("cancelled at the same time"));
+  assert.ok(flat.includes("on the monthly plan the subscription is cancelled so it does not renew"));
+  // The allowance rules are said once each, with the plan named first.
+  assert.equal(flat.split("does not count").length - 1, 1);
+  assert.equal(flat.split("do not carry over").length - 1, 1);
+  assert.ok(!flat.includes("(monthly plan)") && !flat.includes("(one payment plan)"));
+  // The free machine sends nothing typed; its page still counts visits like every page.
+  assert.ok(!flat.includes("browser and sends nothing."));
+  assert.ok(flat.includes("nothing you type into it is sent to us"));
+  // Inline links carry a taller tap target without changing the line.
+  assert.match(terms, /const LINK = "py-3 /);
+});
+
+test("the privacy paragraph is dated and says what the free page does send", () => {
+  const page = src("app/privacy/page.tsx");
+  assert.ok(page.includes("Last updated September 24, 2026"));
+  const section = page.slice(page.indexOf("<h2>Post Creator</h2>"), page.indexOf("<h2>Retention and security</h2>")).replace(/\s+/g, " ");
+  assert.ok(section.includes("sends nothing to us from what you type"));
+  assert.ok(section.includes("its page does record the visit and the buttons pressed"));
+  assert.ok(!section.includes("sends nothing to us;"));
+  const faq = FAQS.find((f) => f.q === "What happens to my information?");
+  assert.ok(faq && !faq.a.includes("sends nothing to us") && faq.a.includes("nothing you type into it is sent to us"));
+});
+
+test("the unlimited paragraph counts the visitor's own settings, the same number the card shows", () => {
+  const page = src("app/post-creator/page.tsx");
+  assert.ok(!page.includes("EXAMPLE_SPACE") && !page.includes("unlimitedBody("), "no fixed example count");
+  const note = page.indexOf("<UnlimitedNote />");
+  assert.ok(note > page.indexOf('<ShuffleProvider mode="free">') && note < page.indexOf("</ShuffleProvider>"), "inside the shuffle it counts");
+  const render = (mode: "free" | "paid", initialInput = DEFAULT_INPUT) =>
+    // eslint-disable-next-line react/no-children-prop
+    renderToStaticMarkup(createElement(shuffle.default, { mode, initialInput, children: createElement(UnlimitedNote) }));
+  const plumbing = { ...DEFAULT_INPUT, trade: "plumbing" as const, services: ["drain cleaning"] };
+  assert.ok(render("paid", plumbing).includes(unlimitedBody(ideaSpace(plumbing).coreCount)));
+  assert.ok(render("free").includes(unlimitedBody(ideaSpace(DEFAULT_INPUT).coreCount)));
+  assert.notEqual(ideaSpace(plumbing).coreCount, ideaSpace(DEFAULT_INPUT).coreCount);
+  // Outside a provider it still says something true: the default settings.
+  assert.ok(renderToStaticMarkup(createElement(UnlimitedNote)).includes(unlimitedBody(ideaSpace(DEFAULT_INPUT).coreCount)));
 });
 
 test("every internal link on the two pages goes to a real route", () => {
@@ -347,9 +457,8 @@ test("every internal link on the two pages goes to a real route", () => {
 test("the terms read every allowance and promise line from product.ts", () => {
   const terms = src("app/post-creator/terms/page.tsx");
   for (const needle of [
-    'aiCapLine("monthly")',
-    'aiCapLine("lifetime")',
-    'triesLine("monthly")',
+    'planAllowanceLine("monthly")',
+    'planAllowanceLine("lifetime")',
     "SPEND_PAUSE_LINE",
     "COST_LIMIT_LINE",
     "FILTER_LINE",
@@ -369,17 +478,7 @@ test("the terms read every allowance and promise line from product.ts", () => {
 });
 
 test("the idea machine renders its waiting state on the server and touches no browser API there", () => {
-  const { default: IdeaMachine } = loadTsx<{ default: ComponentType<{ aiHref?: string }> }>("components/postCreator/IdeaMachine.tsx", {
-    "@/lib/postCreator/ideas/drafts": drafts,
-    "@/lib/postCreator/ideas/engine": engine,
-    "@/lib/postCreator/options": options,
-    "@/lib/postCreator/product": product,
-    "./DraftTabs": esm(draftTabs),
-    "./IdeaCardView": esm(ideaCardView),
-    "./SetupFields": esm(setupFields),
-    "./ShuffleProvider": esm(shuffle),
-    "./storage": storage,
-  });
+  const { default: IdeaMachine } = loadIdeaMachine();
   for (const mode of ["free", "paid"] as const) {
     const html = renderToStaticMarkup(
       // The provider's props type requires children, so they go in the props here.
@@ -396,8 +495,108 @@ test("the idea machine renders its waiting state on the server and touches no br
   assert.throws(() => renderToStaticMarkup(createElement(IdeaMachine, {})), /inside a ShuffleProvider/);
 });
 
+function loadIdeaMachine() {
+  return loadTsx<{ default: ComponentType<{ aiHref?: string }>; scrollToHash(): boolean }>("components/postCreator/IdeaMachine.tsx", {
+    "@/lib/postCreator/ideas/drafts": drafts,
+    "@/lib/postCreator/ideas/engine": engine,
+    "@/lib/postCreator/options": options,
+    "@/lib/postCreator/product": product,
+    "./DraftTabs": esm(draftTabs),
+    "./IdeaCardView": esm(ideaCardView),
+    "./SetupFields": esm(setupFields),
+    "./ShuffleProvider": esm(shuffle),
+    "./storage": storage,
+  });
+}
+
+test("a link to a section re-applies once the machine has its real height", () => {
+  const { scrollToHash } = loadIdeaMachine();
+  const g2 = globalThis as unknown as { window?: unknown; document?: unknown };
+  const before = { window: g2.window, document: g2.document };
+  const scrolled: unknown[] = [];
+  const target = { scrollIntoView: (o: unknown) => scrolled.push(o) };
+  try {
+    g2.document = { getElementById: (id: string) => (id === "pricing" ? target : null) };
+    g2.window = { location: { hash: "#pricing" } };
+    assert.equal(scrollToHash(), true);
+    assert.deepEqual(scrolled, [{ block: "start", behavior: "auto" }]);
+    g2.window = { location: { hash: "#nowhere" } };
+    assert.equal(scrollToHash(), false);
+    g2.window = { location: { hash: "" } };
+    assert.equal(scrollToHash(), false);
+    assert.equal(scrolled.length, 1);
+  } finally {
+    g2.window = before.window;
+    g2.document = before.document;
+    if (before.window === undefined) delete g2.window;
+    if (before.document === undefined) delete g2.document;
+  }
+  // Called once, after the picker or the first card has rendered, not while "Shuffling ideas..." shows.
+  const machine = src("components/postCreator/IdeaMachine.tsx");
+  assert.ok(machine.includes("if (hashApplied.current || !ready || (picked && !card)) return;"));
+  assert.ok(machine.includes("scrollToHash();"));
+});
+
+test("Save and Saved follow the saved list, so a removed or cleared item can be saved again", () => {
+  const items: storage.SavedItem[] = [
+    { id: "1", savedAt: "", kind: "idea", title: "Quick tip: slow drains", text: "First line: Here is a tip." },
+    { id: "2", savedAt: "", kind: "draft", title: "Quick tip: slow drains (Facebook)", text: "Hey everyone." },
+  ];
+  assert.equal(storage.isIdeaSaved(items, "Quick tip: slow drains", "First line: Here is a tip."), true);
+  assert.equal(storage.isIdeaSaved(items, "Quick tip: slow drains", "First line: Another tip."), false);
+  assert.equal(storage.isIdeaSaved([], "Quick tip: slow drains", "First line: Here is a tip."), false);
+  // A draft is saved by its text, under any title: the writer's auto-save and the Save button agree.
+  assert.equal(storage.isDraftSaved(items, "Hey everyone."), true);
+  assert.equal(storage.isDraftSaved(items, "Hi neighbors."), false);
+  assert.equal(storage.isDraftSaved(items.slice(0, 1), "Hey everyone."), false);
+  // No component keeps its own list of what it saved.
+  const machine = src("components/postCreator/IdeaMachine.tsx");
+  const tabs = src("components/postCreator/DraftTabs.tsx");
+  assert.ok(machine.includes("useSavedItems()") && machine.includes("isIdeaSaved(savedItems, card.title, ideaSavedText(card))"));
+  assert.ok(!machine.includes("savedKeys"));
+  assert.ok(tabs.includes("useSavedItems()") && tabs.includes("isDraftSaved(savedItems, draftCopyText(draft))"));
+  assert.ok(!tabs.includes("setSaved("));
+  // The hook reloads on every save, remove, and clear, and on another tab's change.
+  const store = src("components/postCreator/storage.ts");
+  const hook = store.slice(store.indexOf("export function useSavedItems"));
+  assert.ok(hook.includes("addEventListener(SAVED_EVENT, reload)") && hook.includes('addEventListener("storage", onStorage)'));
+});
+
+test("the setup fields and the month planner are not forms, so analytics never logs them as lead forms", () => {
+  const html = renderToStaticMarkup(
+    // eslint-disable-next-line react/no-children-prop
+    createElement(shuffle.default, { mode: "free", children: createElement(setupFields.default) }),
+  );
+  assert.ok(!html.includes("<form"), "no form element in the setup fields");
+  assert.ok(html.includes('role="group"'));
+  for (const file of ["components/postCreator/SetupFields.tsx", "components/postCreator/PlanMonth.tsx"]) {
+    const text = src(file);
+    assert.doesNotMatch(text, /<form\s/, `${file}: a <form> element`);
+    assert.doesNotMatch(text, /type="submit"/, file);
+    assert.ok(text.includes('role="group"'), file);
+    assert.ok(text.includes('e.key !== "Enter"'), `${file}: Enter still does the job`);
+  }
+});
+
+test("focus lands on something real when a panel or a question closes", () => {
+  // Done closes the setup panel: focus goes to its summary, clear of the sticky header.
+  const setup = src("components/postCreator/SetupFields.tsx");
+  assert.ok(setup.includes("focusSummary.current = true;") && setup.includes("summary.focus({ preventScroll: true });"));
+  assert.match(setup, /<summary[\s\S]*?scroll-mt-24/);
+  // A date that will not work takes focus with its error.
+  const plan = src("components/postCreator/PlanMonth.tsx");
+  assert.ok(plan.includes("setStartError(true);\n      startRef.current?.focus();"));
+  // Keep them, Clear, and Remove hand focus on.
+  const saved = src("components/postCreator/SavedList.tsx");
+  assert.ok(saved.includes('focusNext.current = "clear";') && saved.includes('focusNext.current = "heading";'));
+  assert.ok(saved.includes("onClick={keep}") && saved.includes("ref={clearRef}") && saved.includes("tabIndex={-1}"));
+  // Cancel on sign out hands focus back to its button.
+  const account = src("app/post-creator/app/AccountPanel.tsx");
+  assert.ok(account.includes("onClick={cancel}") && account.includes("signOutRef.current?.focus();"));
+});
+
 test("client components say so, and the pricing cards stay a server component", () => {
-  for (const name of ["ShuffleProvider", "IdeaMachine", "IdeaCardView", "DraftTabs", "SetupFields", "PlanMonth", "SavedList", "CopyButton", "BuyButtons"]) {
+  for (const name of ["ShuffleProvider", "IdeaMachine", "IdeaCardView", "DraftTabs", "SetupFields", "PlanMonth", "SavedList", "CopyButton", "BuyButtons", "UnlimitedNote"]) {
     assert.ok(src(`components/postCreator/${name}.tsx`).startsWith('"use client";'), name);
   }
   assert.ok(!src("components/postCreator/PricingCards.tsx").includes('"use client"'));

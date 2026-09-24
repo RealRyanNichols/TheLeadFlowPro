@@ -4,6 +4,7 @@ globalThis.fetch = (() => {
 
 import test from "node:test";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
@@ -11,6 +12,7 @@ import vm from "node:vm";
 import ts from "typescript";
 import * as proAccess from "../lib/proAccess.ts";
 import { POST_CREATOR_COOKIE, identityFor, signIdentity } from "../lib/postCreator/access.ts";
+import { anthropicUserId } from "../lib/postCreator/ai/userId.ts";
 import { BUSINESS } from "../lib/site/business.ts";
 
 // POST /api/post-creator/write, run for real inside a vm context: the route
@@ -105,9 +107,20 @@ class FakeAPIError extends Error {
   }
 }
 class FakeAPIConnectionError extends FakeAPIError {
-  constructor(message = "Connection error.") {
+  constructor(message = "Connection error.", cause?: unknown) {
     super(undefined, message);
+    if (cause !== undefined) (this as { cause?: unknown }).cause = cause;
   }
+}
+
+/** A Node system error as fetch's cause carries it. */
+function systemError(message: string, code: string, syscall?: string): Error {
+  return Object.assign(new Error(message), { code, ...(syscall ? { syscall } : {}) });
+}
+
+/** What fetch throws when it fails: a TypeError whose cause is the system error. */
+function fetchFailed(cause: unknown): TypeError {
+  return new TypeError("fetch failed", { cause });
 }
 class FakeAPIConnectionTimeoutError extends FakeAPIConnectionError {
   constructor() {
@@ -125,6 +138,8 @@ type HarnessOptions = {
   accounts?: Row[];
   cookie?: string | null;
   answer?: () => unknown;
+  /** A stand in for the SDK's default export, in place of FakeAnthropic. */
+  anthropic?: unknown;
 };
 
 function harness(o: HarnessOptions = {}) {
@@ -190,7 +205,7 @@ function harness(o: HarnessOptions = {}) {
       cookies: async () => ({ get: (name: string) => (name === POST_CREATOR_COOKIE && cookie ? { value: cookie } : undefined) }),
     },
     "@supabase/supabase-js": { createClient: () => fakeDb },
-    "@anthropic-ai/sdk": { __esModule: true, default: FakeAnthropic },
+    "@anthropic-ai/sdk": { __esModule: true, default: o.anthropic ?? FakeAnthropic },
     // lib/proAccess.ts imports ./tools/pro, a directory the resolver below
     // cannot load, so the natively imported module stands in.
     "../proAccess": { ...proAccess, proAccessSecrets: () => [] },
@@ -369,6 +384,9 @@ test("happy path: reserve, one pinned SDK call, settle, 200 with drafts", async 
   assert.equal(params.model, "claude-opus-5");
   assert.match(params.metadata.user_id, /^[0-9a-f]{32}$/);
   assert.ok(!JSON.stringify(params).includes(BUYER), "the email is never sent to the model");
+  // Keyed with the server secret, not a plain hash anyone could recompute from a guessed email.
+  assert.equal(params.metadata.user_id, anthropicUserId(BUYER, SIGNER));
+  assert.notEqual(params.metadata.user_id, createHash("sha256").update(`post-creator:${BUYER}`, "utf8").digest("hex").slice(0, 32));
   assert.deepEqual(params.betas, ["server-side-fallback-2026-07-01"]);
   assert.equal(params.fallbacks, "default");
   assert.match(params.messages[0].content, /Owner's note: Mention the fall tune up special/);
@@ -378,6 +396,26 @@ test("happy path: reserve, one pinned SDK call, settle, 200 with drafts", async 
   await h.post({ body: goodBody({ requestId: "1d9f5c1e-7b3a-4c2d-9e8f-1a2b3c4d5e6f" }) });
   assert.equal(h.sdk.constructed.length, 1);
   assert.equal(h.sdk.calls.length, 2);
+});
+
+test("a monthly buyer who paid once is metered on the monthly allowance through the month the paid period ends", async () => {
+  const monthly = { per_day: 20, per_month: 100, tries_day: 25, tries_month: 120 };
+  const lifetime = { per_day: 10, per_month: 50, tries_day: 15, tries_month: 70 };
+  const limitsOf = (args: Row) => ({ per_day: args.p_per_day, per_month: args.p_per_month, tries_day: args.p_tries_per_day, tries_month: args.p_tries_per_month });
+  const ahead = new Date(Date.now() + 5 * 86_400_000).toISOString();
+  const switched = harness({ accounts: [account({ plan: "lifetime", stripe_subscription_id: null, monthly_until: ahead })] });
+  assert.equal((await switched.post()).status, 200);
+  assert.deepEqual(limitsOf(switched.rpcs[0].args), monthly);
+  const body = (await (await switched.post({ body: goodBody({ requestId: "2d9f5c1e-7b3a-4c2d-9e8f-1a2b3c4d5e6f" }) })).json()) as { allowance: { plan: string; perMonth: number } };
+  assert.equal(body.allowance.plan, "monthly");
+  assert.equal(body.allowance.perMonth, 100);
+  // Months later the one payment allowance applies.
+  const past = harness({ accounts: [account({ plan: "lifetime", stripe_subscription_id: null, monthly_until: "2025-01-15T00:00:00.000Z" })] });
+  assert.equal((await past.post()).status, 200);
+  assert.deepEqual(limitsOf(past.rpcs[0].args), lifetime);
+  const plain = harness({ accounts: [account({ plan: "lifetime", stripe_subscription_id: null })] });
+  await plain.post();
+  assert.deepEqual(limitsOf(plain.rpcs[0].args), lifetime);
 });
 
 test("an SDK error becomes a settled failure, not a thrown request", async () => {
@@ -395,6 +433,62 @@ test("an SDK error becomes a settled failure, not a thrown request", async () =>
   assert.ok(h.logs.includes("Post Creator write failed: timeout"));
 });
 
+test("metadata.user_id is keyed with the server secret, so rotating it gives the buyer a new id", async () => {
+  const other = "post-creator-write-test-other-signer";
+  const a = harness();
+  await a.post();
+  const b = harness({ env: { ...ON_ENV, POST_CREATOR_SECRET: other }, cookie: signIdentity(identityFor(BUYER, 0), other) });
+  const res = await b.post();
+  assert.equal(res.status, 200);
+  const idA = (a.sdk.calls[0] as { metadata: { user_id: string } }).metadata.user_id;
+  const idB = (b.sdk.calls[0] as { metadata: { user_id: string } }).metadata.user_id;
+  assert.equal(idB, anthropicUserId(BUYER, other));
+  assert.notEqual(idA, idB);
+});
+
+test("through the real SDK: a connection that never opened settles at 0, one that may have been read at the full reservation", async () => {
+  const sdkModule = nativeRequire("@anthropic-ai/sdk") as { default: new (options: Record<string, unknown>) => object };
+  const RealAnthropic = sdkModule.default;
+  const cases: { name: string; cause: unknown; cost: number | null }[] = [
+    { name: "DNS", cause: systemError("getaddrinfo ENOTFOUND api.anthropic.com", "ENOTFOUND", "getaddrinfo"), cost: 0 },
+    { name: "refused", cause: systemError("connect ECONNREFUSED 160.79.104.10:443", "ECONNREFUSED", "connect"), cost: 0 },
+    {
+      name: "every address refused",
+      cause: Object.assign(new AggregateError([systemError("connect ECONNREFUSED 160.79.104.10:443", "ECONNREFUSED", "connect")]), { code: "ECONNREFUSED" }),
+      cost: 0,
+    },
+    { name: "bad certificate", cause: systemError("certificate has expired", "CERT_HAS_EXPIRED"), cost: 0 },
+    { name: "reset", cause: systemError("read ECONNRESET", "ECONNRESET", "read"), cost: null },
+    { name: "closed mid-request", cause: systemError("other side closed", "UND_ERR_SOCKET"), cost: null },
+    { name: "no code", cause: new Error("something odd"), cost: null },
+  ];
+  for (const c of cases) {
+    const fetched: string[] = [];
+    // The real client, with fetch replaced so nothing leaves this process.
+    class Wired extends RealAnthropic {
+      constructor(options: Record<string, unknown>) {
+        super({
+          ...options,
+          fetch: async (url: unknown) => {
+            fetched.push(String(url));
+            throw fetchFailed(c.cause);
+          },
+        });
+      }
+    }
+    const h = harness({ anthropic: Wired });
+    const res = await h.post();
+    assert.equal(res.status, 502, c.name);
+    assert.equal((await errorOf(res)).code, "provider_error", c.name);
+    assert.equal(fetched.length, 1, `${c.name}: one attempt, no retries`);
+    assert.ok(fetched[0].startsWith("https://api.anthropic.com/v1/messages"), fetched[0]);
+    const settle = h.rpcs.find((r) => r.name === "post_creator_settle");
+    assert.equal(settle?.args.p_outcome, "connection", c.name);
+    assert.equal(settle?.args.p_delivered, false, c.name);
+    assert.equal(settle?.args.p_cost_micro, c.cost, c.name);
+  }
+});
+
 test("providerFailure maps each SDK error class", () => {
   const h = harness();
   const mod = h.load("lib/postCreator/ai/anthropic.ts");
@@ -403,6 +497,31 @@ test("providerFailure maps each SDK error class", () => {
   const callAnthropic = mod.callAnthropic;
   assert.deepEqual(providerFailure(new FakeAPIConnectionTimeoutError()), { kind: "timeout", status: null, billedUnknown: true });
   assert.deepEqual(providerFailure(new FakeAPIConnectionError()), { kind: "connection", status: null, billedUnknown: true });
+  // A connection that never opened sent nothing, so nothing was billed.
+  const never = (cause: unknown) => providerFailure(new FakeAPIConnectionError("Connection error.", fetchFailed(cause)));
+  const notBilled = { kind: "connection", status: null, billedUnknown: false };
+  assert.deepEqual(never(systemError("getaddrinfo ENOTFOUND api.anthropic.com", "ENOTFOUND", "getaddrinfo")), notBilled);
+  assert.deepEqual(never(systemError("getaddrinfo EAI_AGAIN api.anthropic.com", "EAI_AGAIN", "getaddrinfo")), notBilled);
+  assert.deepEqual(never(systemError("connect ECONNREFUSED 160.79.104.10:443", "ECONNREFUSED", "connect")), notBilled);
+  assert.deepEqual(never(systemError("connect EHOSTUNREACH 160.79.104.10:443", "EHOSTUNREACH", "connect")), notBilled);
+  assert.deepEqual(never(systemError("certificate has expired", "CERT_HAS_EXPIRED")), notBilled);
+  assert.deepEqual(never(systemError("Connect Timeout Error", "UND_ERR_CONNECT_TIMEOUT")), notBilled);
+  const everyAddress = Object.assign(
+    new AggregateError([systemError("connect ECONNREFUSED 160.79.104.10:443", "ECONNREFUSED", "connect"), systemError("connect ENETUNREACH [2607:6bc0::10]:443", "ENETUNREACH", "connect")]),
+    { code: "ECONNREFUSED" },
+  );
+  assert.deepEqual(never(everyAddress), notBilled);
+  // Anything that may have reached the API, or that cannot be told apart, stays billed-unknown.
+  const billed = { kind: "connection", status: null, billedUnknown: true };
+  assert.deepEqual(never(systemError("read ECONNRESET", "ECONNRESET", "read")), billed);
+  assert.deepEqual(never(systemError("write EPIPE", "EPIPE", "write")), billed);
+  assert.deepEqual(never(systemError("other side closed", "UND_ERR_SOCKET")), billed);
+  assert.deepEqual(never(new Error("no code at all")), billed);
+  assert.deepEqual(
+    never(new AggregateError([systemError("connect ECONNREFUSED 160.79.104.10:443", "ECONNREFUSED", "connect"), systemError("read ECONNRESET", "ECONNRESET", "read")])),
+    billed,
+  );
+  assert.deepEqual(providerFailure(new FakeAPIConnectionError("Connection error.", "a string cause")), billed);
   assert.deepEqual(providerFailure(new FakeRateLimitError()), { kind: "rate_limited", status: 429, billedUnknown: false });
   assert.deepEqual(providerFailure(new FakeAPIError(529, "overloaded")), { kind: "rate_limited", status: 529, billedUnknown: false });
   assert.deepEqual(providerFailure(new FakeAPIError(400, "bad request")), { kind: "api", status: 400, billedUnknown: false });

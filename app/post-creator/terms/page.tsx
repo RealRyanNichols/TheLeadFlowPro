@@ -1,23 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  COST_LIMIT_LINE,
-  FILTER_LINE,
-  POST_CREATOR,
-  POST_CREATOR_DISCLAIMER,
-  SPEND_PAUSE_LINE,
-  aiCapLine,
-  triesLine,
-} from "@/lib/postCreator/product";
+import { COST_LIMIT_LINE, FILTER_LINE, PARTIAL_WRITE_LINE, POST_CREATOR, POST_CREATOR_DISCLAIMER, SPEND_PAUSE_LINE } from "@/lib/postCreator/product";
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import { BUSINESS } from "@/lib/site/business";
+import { planAllowanceLine } from "../copy";
 
 // Post Creator purchase terms. Every allowance, price, and grace period is
-// read from lib/postCreator/product.ts, so these terms say exactly what the
-// write route meters and what checkout charges. The commitments here are the
-// ones already live for Chase Sheet (a seven-day first-purchase refund, and
-// the one payment plan lasting as long as the product is offered with 90
-// days' notice); anything beyond them needs Ryan's approval first.
+// read from lib/postCreator/product.ts (through planAllowanceLine in
+// ../copy.ts, which reads aiLimitsFor), so these terms say
+// exactly what the write route meters, per plan, and what checkout charges.
+// The commitments here are the ones already live for Chase Sheet (a
+// seven-day first-purchase refund, and the one payment plan lasting as long
+// as the product is offered with 90 days' notice); anything beyond them needs
+// Ryan's approval first (docs/decisions-needed.md items 93 and 95).
 
 export const metadata: Metadata = withPublicPageMetadata("/post-creator/terms", {
   title: "Post Creator purchase terms | The LeadFlow Pro",
@@ -25,7 +20,9 @@ export const metadata: Metadata = withPublicPageMetadata("/post-creator/terms", 
 });
 
 const H2 = "pt-6 text-[22px] font-extrabold leading-tight text-[var(--heading)]";
-const LINK = "font-bold text-[var(--blue)] underline underline-offset-4";
+// Inline links get vertical padding: it widens the tap target to about 44px
+// without changing the line height of the sentence around them.
+const LINK = "py-3 font-bold text-[var(--blue)] underline underline-offset-4";
 
 function Email() {
   return (
@@ -62,17 +59,21 @@ export default function PostCreatorTermsPage() {
 
         <h2 className={H2}>AI writing allowance</h2>
         <ul className="list-disc space-y-2 pl-5">
-          <li>{aiCapLine("monthly")} (monthly plan)</li>
-          <li>{aiCapLine("lifetime")} (one payment plan)</li>
+          <li>{planAllowanceLine("monthly")}</li>
+          <li>{planAllowanceLine("lifetime")}</li>
         </ul>
         <p>
-          Months and days follow Central time. One AI write is one tap of Write it, for up to three platforms at once. A write that fails, is
-          declined, or comes back unusable does not count. Unused writes do not carry over.
+          Months and days follow Central time. One AI write is one tap of Write it, for up to {POST_CREATOR.ai.maxPlatformsPerWrite} platforms
+          at once. A write that fails, is declined, or comes back unusable does not count, and unused writes do not carry over.{" "}
+          {PARTIAL_WRITE_LINE} The tries ceiling counts every try, the ones that fail included, to keep costs fair.
         </p>
-        <p>{triesLine("monthly")}</p>
         <p>{COST_LIMIT_LINE}</p>
         <p>{SPEND_PAUSE_LINE}</p>
-        <p>AI writing runs only while it is switched on. When it is off, the idea machine and the month planner still work.</p>
+        <p>
+          AI writing can also pause while a problem with it, or with the company that runs the AI model, is being fixed. The idea machine and
+          the month planner keep working during any pause. Switching AI writing off for good would count as discontinuing {POST_CREATOR.name},
+          with the notice described under One payment.
+        </p>
 
         <h2 className={H2}>Monthly plan</h2>
         <p>
@@ -85,16 +86,18 @@ export default function PostCreatorTermsPage() {
         <h2 className={H2}>One payment</h2>
         <p>
           {POST_CREATOR.lifetimeLabel}, charged once by card through Stripe. Nothing renews and there is nothing to cancel. It includes the AI
-          writing allowance above for as long as {POST_CREATOR.name} is offered by The LeadFlow Pro. If it is ever discontinued, you will get at
-          least 90 days&apos; notice by email. If you buy it while a monthly plan is running, the monthly plan is set to end at the close of its
-          paid month so you are not charged for both.
+          writing allowance above for as long as {POST_CREATOR.name} is offered by The LeadFlow Pro. If it is ever discontinued, AI writing
+          included, you will get at least 90 days&apos; notice by email. If you buy it while a monthly plan is running, the monthly plan stops
+          renewing, so you are not charged for both, and AI writing keeps the monthly allowance through the end of the calendar month in which
+          your last paid monthly period ends. A monthly plan whose renewal did not go through is cancelled right away instead, so the card is
+          not tried again.
         </p>
 
         <h2 className={H2}>Refunds</h2>
         <p>
-          Email <Email /> within seven days of a first purchase and it will be refunded in full. A refund or a card dispute closes the plan; on
-          the monthly plan the subscription is cancelled at the same time. Renewal months on the monthly plan are not refunded; cancel before the
-          renewal date instead.
+          Email <Email /> within seven days of a first purchase and it will be refunded in full. A refund or a card dispute closes the plan, and
+          on the monthly plan the subscription is cancelled so it does not renew. Renewal months on the monthly plan are not refunded; cancel
+          before the renewal date instead.
         </p>
 
         <h2 className={H2}>What you post yourself</h2>
@@ -123,7 +126,8 @@ export default function PostCreatorTermsPage() {
           Your email, plan, and business profile are stored in The LeadFlow Pro&apos;s database so your devices see the same thing. For each AI
           request we keep the time, the size, the cost, and whether it worked, but not the draft text. To write a draft, your profile, the idea,
           and your note are sent to Anthropic, the company that runs the AI model, only to write that draft. The free idea machine runs in your
-          browser and sends nothing. Saved ideas and drafts stay in your browser. Email <Email /> to delete your account.
+          browser, and nothing you type into it is sent to us; like the rest of the site, its page counts visits and button taps. Saved ideas and
+          drafts stay in your browser. Email <Email /> to delete your account.
         </p>
 
         <h2 className={H2}>No promises about results</h2>

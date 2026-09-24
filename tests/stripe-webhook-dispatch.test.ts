@@ -111,6 +111,18 @@ test("every kind the checkout route can mint reaches an alerting branch", () => 
   assert.ok(chase < postCreator && postCreator < post.indexOf("recordSubscriptionInvoice("), "Post Creator subscription events are claimed after Chase Sheet's and before invoices");
   assert.ok(dispatch.includes("ensurePostCreatorPaid(supabase, session)"));
   assert.ok(slice("handleMoneyBack").includes("applyPostCreatorMoneyBack(supabase, purchase, restoring)"), "a refund on either Post Creator plan reaches the account");
+  // The account locks run before the purchases row moves: when either one
+  // fails, the 500 makes Stripe retry with the row still in its old status,
+  // so the retry applies the lock instead of finding nothing to flip.
+  const moneyBack = slice("handleMoneyBack");
+  const flip = moneyBack.indexOf('.from("purchases").update({ status: toStatus })');
+  assert.ok(flip > 0, "the flip is there");
+  assert.ok(moneyBack.indexOf("applyChaseSheetMoneyBack(") < flip, "Chase Sheet locks before the flip");
+  assert.ok(moneyBack.indexOf("applyPostCreatorMoneyBack(") < flip, "Post Creator locks before the flip");
+  // A first-month refund or dispute has no invoice row: it is matched to the checkout's row, Post Creator only.
+  const firstInvoice = moneyBack.indexOf("postCreatorFirstInvoiceCheckout(");
+  assert.ok(firstInvoice > 0 && firstInvoice < moneyBack.indexOf("applyPostCreatorMoneyBack("), "the first invoice is matched before money back is applied");
+  assert.ok(moneyBack.includes("row.data.kind === POST_CREATOR.monthlyKind"), "other products keep their first-invoice handling");
   const renewals = slice("recordSubscriptionInvoice");
   assert.ok(renewals.includes("markPostCreatorRenewed(") && renewals.includes('"post_creator"'), "a paid Post Creator renewal reopens a past-due account");
 });

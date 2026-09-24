@@ -10,6 +10,7 @@ import {
   claimFirstCookie,
   findAccountByStripe,
   getAccount,
+  hasOtherPaidPurchase,
   hitRateLimit,
   markSynced,
   parseAccount,
@@ -17,7 +18,7 @@ import {
   reserveGeneration,
   saveProfile,
   serviceDb,
-  setStatus,
+  setMoneyBack,
   settleGeneration,
   updatePlan,
   usageCounts,
@@ -39,7 +40,7 @@ function fakeDb(answers: { from?: Result; rpc?: (name: string, args: Row) => Res
   const rpcCalls: { name: string; args: Row }[] = [];
   const result = () => ({ data: null, error: null, ...answers.from });
   const chain: Record<string, unknown> = {};
-  for (const method of ["select", "eq", "is", "update", "limit"]) {
+  for (const method of ["select", "eq", "neq", "lte", "is", "update", "limit"]) {
     chain[method] = (...args: unknown[]) => {
       calls.push({ method, args });
       return chain;
@@ -116,6 +117,24 @@ describe("accounts", () => {
     assert.deepEqual(junk.profile, EMPTY_PROFILE);
     assert.equal(parseAccount(row({ access_epoch: -1 })).accessEpoch, 0);
     assert.equal(parseAccount(row({ access_epoch: 1.5 })).accessEpoch, 0);
+    const later = parseAccount(
+      row({
+        past_due_since: "2026-10-01T15:00:00+00:00",
+        money_back_at: "2026-10-02T15:00:00+00:00",
+        replaced_subscription_id: "sub_old",
+        monthly_until: "2026-10-15T00:00:00+00:00",
+      }),
+    );
+    assert.equal(later.pastDueSince, "2026-10-01T15:00:00+00:00");
+    assert.equal(later.moneyBackAt, "2026-10-02T15:00:00+00:00");
+    assert.equal(later.replacedSubscriptionId, "sub_old");
+    assert.equal(later.monthlyUntil, "2026-10-15T00:00:00+00:00");
+    for (const k of ["pastDueSince", "moneyBackAt", "replacedSubscriptionId", "monthlyUntil"] as const) assert.equal(junk[k], null, k);
+    // key_version: 0 when the column is not there yet, the value when it is,
+    // and -1 (which no key derives from) when it cannot be read.
+    assert.equal(account.keyVersion, 0);
+    assert.equal(parseAccount(row({ key_version: 3 })).keyVersion, 3);
+    for (const bad of [-2, 1.5, "many"]) assert.equal(parseAccount(row({ key_version: bad })).keyVersion, -1, String(bad));
   });
 
   test("getAccount and findAccountByStripe filter by one column; a miss is null; an error throws", async () => {
@@ -153,7 +172,7 @@ describe("accounts", () => {
     });
     assert.equal(out.created, false);
     assert.equal(out.createdByThisSession, true);
-    assert.equal(out.account.accessEpoch, 2);
+    assert.equal(out.account?.accessEpoch, 2);
 
     const other = fakeDb({ rpc: () => ({ data: { created: true, created_by_this_session: false, account: row() } }) });
     const second = await recordPurchase(other.client, { email: "owner@example.com", plan: "monthly", sessionId: "cs_test_zzzzzzzzzzzz", customerId: null, subscriptionId: "sub_2", eventAt: 1 });
@@ -172,6 +191,12 @@ describe("accounts", () => {
     await assert.rejects(recordPurchase(fakeDb({ rpc: () => ({ data: null }) }).client, input), /no account/);
   });
 
+  test("recordPurchase says so when a checkout applied before finds its account deleted on request", async () => {
+    const input = { email: "owner@example.com", plan: "monthly" as const, sessionId: "cs_test_abcdefghijkl", customerId: null, subscriptionId: null, eventAt: 1 };
+    const gone = fakeDb({ rpc: () => ({ data: { created: false, created_by_this_session: false, account: null } }) });
+    assert.deepEqual(await recordPurchase(gone.client, input), { account: null, created: false, createdByThisSession: false });
+  });
+
   test("claimFirstCookie claims once: only the creating session, never claimed, no later checkout", async () => {
     const now = new Date("2026-09-24T15:00:00.000Z");
     const h = fakeDb({ from: { data: [{ access_epoch: 0 }] } });
@@ -181,7 +206,8 @@ describe("accounts", () => {
       { method: "update", args: [{ first_claimed_at: "2026-09-24T15:00:00.000Z" }] },
       { method: "eq", args: ["email", "owner@example.com"] },
       { method: "eq", args: ["first_session_id", "cs_test_abcdefghijkl"] },
-      { method: "eq", args: ["access_epoch", 0] },
+      // No later checkout applied. Epochs come from a sequence, so the first one is not 0.
+      { method: "eq", args: ["last_session_id", "cs_test_abcdefghijkl"] },
       { method: "is", args: ["first_claimed_at", null] },
       { method: "select", args: ["access_epoch"] },
     ]);
@@ -192,27 +218,42 @@ describe("accounts", () => {
     await assert.rejects(claimFirstCookie(fakeDb({ from: { error: DB_ERROR } }).client, "owner@example.com", "cs_test_abcdefghijkl", now), /claimFirstCookie/);
   });
 
-  test("updatePlan, setStatus, markSynced, and saveProfile write only their own columns, filtered by email", async () => {
+  test("updatePlan, setMoneyBack, markSynced, and saveProfile write only their own columns, filtered by email", async () => {
     const plan = fakeDb();
-    await updatePlan(plan.client, "owner@example.com", { status: "past_due", currentPeriodEnd: "2026-10-21T00:00:00.000Z", cancelAt: null, eventAt: 200 });
+    await updatePlan(plan.client, "owner@example.com", {
+      status: "past_due",
+      currentPeriodEnd: "2026-10-21T00:00:00.000Z",
+      cancelAt: null,
+      pastDueSince: "2026-09-21T00:00:00.000Z",
+      eventAt: 200,
+    });
     assert.deepEqual(plan.calls.find((c) => c.method === "update")?.args, [
-      { status: "past_due", current_period_end: "2026-10-21T00:00:00.000Z", cancel_at: null, stripe_event_at: 200 },
+      { status: "past_due", current_period_end: "2026-10-21T00:00:00.000Z", cancel_at: null, past_due_since: "2026-09-21T00:00:00.000Z", stripe_event_at: 200 },
     ]);
     assert.deepEqual(plan.calls.find((c) => c.method === "eq")?.args, ["email", "owner@example.com"]);
+    // The ordering check is in the write: a row already at a newer event matches nothing.
+    assert.deepEqual(plan.calls.find((c) => c.method === "lte")?.args, ["stripe_event_at", 200]);
     const withIds = fakeDb();
-    await updatePlan(withIds.client, "owner@example.com", { status: "active", currentPeriodEnd: null, cancelAt: null, eventAt: 1, subscriptionId: "sub_2", customerId: null });
+    await updatePlan(withIds.client, "owner@example.com", { status: "active", currentPeriodEnd: null, cancelAt: null, pastDueSince: null, eventAt: 1, subscriptionId: "sub_2", customerId: null });
     assert.deepEqual(Object.keys(withIds.calls.find((c) => c.method === "update")?.args[0] as Row).sort(), [
       "cancel_at",
       "current_period_end",
+      "past_due_since",
       "status",
       "stripe_customer_id",
       "stripe_event_at",
       "stripe_subscription_id",
     ]);
 
-    const status = fakeDb();
-    await setStatus(status.client, "owner@example.com", "canceled");
-    assert.deepEqual(status.calls.find((c) => c.method === "update")?.args, [{ status: "canceled" }]);
+    const closed = fakeDb();
+    const at = new Date("2026-10-02T15:00:00.000Z");
+    await setMoneyBack(closed.client, "owner@example.com", { closed: true, at, eventAt: 1_791_000_000 });
+    assert.deepEqual(closed.calls.find((c) => c.method === "update")?.args, [
+      { status: "canceled", money_back_at: "2026-10-02T15:00:00.000Z", stripe_event_at: 1_791_000_000 },
+    ]);
+    const reopened = fakeDb();
+    await setMoneyBack(reopened.client, "owner@example.com", { closed: false, at, eventAt: 1 });
+    assert.deepEqual(reopened.calls.find((c) => c.method === "update")?.args, [{ status: "active", money_back_at: null }]);
 
     const synced = fakeDb();
     await markSynced(synced.client, "owner@example.com", new Date("2026-09-24T15:00:00.000Z"));
@@ -224,10 +265,26 @@ describe("accounts", () => {
     assert.deepEqual(saved.services, ["Drains", "Water heaters"]);
     assert.deepEqual(profile.calls.find((c) => c.method === "update")?.args, [{ profile: saved }]);
 
-    await assert.rejects(setStatus(fakeDb({ from: { error: DB_ERROR } }).client, "owner@example.com", "active"), /setStatus/);
+    await assert.rejects(setMoneyBack(fakeDb({ from: { error: DB_ERROR } }).client, "owner@example.com", { closed: true, at, eventAt: 1 }), /setMoneyBack/);
     await assert.rejects(markSynced(fakeDb({ from: { error: DB_ERROR } }).client, "owner@example.com"), /markSynced/);
-    await assert.rejects(updatePlan(fakeDb({ from: { error: DB_ERROR } }).client, "owner@example.com", { status: "active", currentPeriodEnd: null, cancelAt: null, eventAt: 1 }), /updatePlan/);
+    await assert.rejects(updatePlan(fakeDb({ from: { error: DB_ERROR } }).client, "owner@example.com", { status: "active", currentPeriodEnd: null, cancelAt: null, pastDueSince: null, eventAt: 1 }), /updatePlan/);
     await assert.rejects(saveProfile(fakeDb({ from: { error: DB_ERROR } }).client, "owner@example.com", EMPTY_PROFILE), /saveProfile/);
+  });
+
+  test("hasOtherPaidPurchase looks for another paid purchase of the same kind on the same email", async () => {
+    const found = fakeDb({ from: { data: [{ stripe_session_id: "cs_test_other_one" }] } });
+    assert.equal(await hasOtherPaidPurchase(found.client, "owner@example.com", "post_creator_lifetime", "cs_test_refunded"), true);
+    assert.deepEqual(found.calls, [
+      { method: "from", args: ["purchases"] },
+      { method: "select", args: ["stripe_session_id"] },
+      { method: "eq", args: ["email", "owner@example.com"] },
+      { method: "eq", args: ["kind", "post_creator_lifetime"] },
+      { method: "eq", args: ["status", "paid"] },
+      { method: "neq", args: ["stripe_session_id", "cs_test_refunded"] },
+      { method: "limit", args: [1] },
+    ]);
+    assert.equal(await hasOtherPaidPurchase(fakeDb({ from: { data: [] } }).client, "owner@example.com", "post_creator_lifetime", "cs_x"), false);
+    await assert.rejects(hasOtherPaidPurchase(fakeDb({ from: { error: DB_ERROR } }).client, "owner@example.com", "k", "cs_x"), /hasOtherPaidPurchase/);
   });
 });
 

@@ -204,8 +204,11 @@ test("the scan covers the whole product", () => {
   }
 });
 
+/** Every long dash look-alike (LONG_DASH_CHARS in lib/postCreator/copyRules.ts), as raw characters. */
+const LONG_DASHES = /[\u2012-\u2015\u2212\u2E3A\u2E3B\uFE31\uFE32\uFE58]/;
+
 test("1. no long dashes anywhere in Post Creator source", () => {
-  assert.deepEqual(UNITS.flatMap((u) => hits(u, /[\u2013\u2014]/)), []);
+  assert.deepEqual(UNITS.flatMap((u) => hits(u, LONG_DASHES)), []);
 });
 
 test("2. no promise words, except the AI prompt telling the model never to use them", () => {
@@ -322,7 +325,11 @@ test("10. internal links use next/link, never a plain <a href=\"/...\">", () => 
 
 test("the guards catch what they are meant to catch", () => {
   const unit = (text: string): Unit => ({ file: "sample.tsx", text, firstLine: 10 });
-  assert.deepEqual(hits(unit("a\nb \u2014 c"), /[\u2013\u2014]/), ["sample.tsx:11: \u2014"]);
+  assert.deepEqual(hits(unit("a\nb \u2014 c"), LONG_DASHES), ["sample.tsx:11: \u2014"]);
+  for (const dash of ["\u2012", "\u2013", "\u2015", "\u2212", "\u2E3A", "\u2E3B", "\uFE31", "\uFE32", "\uFE58"]) {
+    assert.equal(hits(unit(`a${dash}b`), LONG_DASHES).length, 1, `U+${dash.codePointAt(0)?.toString(16)}`);
+  }
+  assert.equal(hits(unit("a well-known fix"), LONG_DASHES).length, 0);
   assert.equal(hits(unit("Posts with no\n  limit"), LIMIT_WORDS).length, 1);
   assert.equal(hits(unit("const x = UNLIMITED_ROW;"), LIMIT_WORDS).length, 0);
   assert.equal(hits(unit('<a className="x" href="/tools">'), PLAIN_INTERNAL_LINK).length, 1);

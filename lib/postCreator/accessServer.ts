@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { planFromSubscription, type StripeSubscriptionLike } from "@/lib/hq/stripe";
 import { POST_CREATOR_COOKIE, postCreatorSecrets, verifyIdentity } from "./access";
 import * as db from "./db";
-import { decideEntitlement, looksStale, statusFromStripe } from "./plan";
+import { decideEntitlement, looksStale, pastDueSinceFor, periodStartOf, statusFromStripe } from "./plan";
 import type { Account, Entitlement } from "./types";
 
 // The server side of Post Creator access: who is asking, and whether they are
@@ -34,11 +34,14 @@ async function syncFromStripe(client: db.Db, account: Account, stripeKey: string
       const sub = r.ok ? ((await r.json()) as StripeSubscriptionLike) : null;
       if (sub && (!sub.id || sub.id === id)) {
         const plan = planFromSubscription(sub);
+        const status = statusFromStripe(sub);
+        const nowSeconds = Math.floor(now.getTime() / 1000);
         await db.updatePlan(client, account.email, {
-          status: statusFromStripe(sub),
+          status,
           currentPeriodEnd: plan.current_period_end,
           cancelAt: plan.cancel_at,
-          eventAt: Math.max(account.stripeEventAt, Math.floor(now.getTime() / 1000)),
+          pastDueSince: pastDueSinceFor(account, status, periodStartOf(sub), nowSeconds),
+          eventAt: Math.max(account.stripeEventAt, nowSeconds),
         });
       }
     }

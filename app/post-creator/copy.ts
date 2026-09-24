@@ -11,12 +11,12 @@ import {
   SPEND_PAUSE_LINE,
   COST_LIMIT_LINE,
   FILTER_LINE,
+  PARTIAL_WRITE_LINE,
   UNLIMITED_FAQ_A,
   UNLIMITED_FAQ_Q,
   UNLIMITED_HERO,
   UNLIMITED_ROW,
-  aiCapLine,
-  triesLine,
+  aiLimitsFor,
 } from "@/lib/postCreator/product";
 import type { PostCreatorPlan } from "@/lib/postCreator/types";
 import { usd } from "@/lib/site/prices";
@@ -24,8 +24,28 @@ import { usd } from "@/lib/site/prices";
 const MONTHLY = POST_CREATOR.ai.monthly;
 const LIFETIME = POST_CREATOR.ai.lifetime;
 const MAX_PLATFORMS = POST_CREATOR.ai.maxPlatformsPerWrite;
+/** What the write route meters each plan against (aiLimitsFor), tries included. */
+const LIMITS = { monthly: aiLimitsFor("monthly"), lifetime: aiLimitsFor("lifetime") } as const;
+const PLAN_NAMES: Record<PostCreatorPlan, string> = { monthly: "Monthly plan", lifetime: "One payment plan" };
 /** The named trades, not counting "Something else". */
 const NAMED_TRADES = TRADES.filter((t) => t.id !== "other").length;
+
+/**
+ * One plan's allowance, named first so no line reads as if it covered both:
+ * "Monthly plan: up to 100 AI writes a month and 20 a day, and up to 25 tries
+ * a day and 120 a month."
+ */
+export function planAllowanceLine(plan: PostCreatorPlan): string {
+  const l = LIMITS[plan];
+  return `${PLAN_NAMES[plan]}: up to ${l.perMonth} AI writes a month and ${l.perDay} a day, and up to ${l.triesPerDay} tries a day and ${l.triesPerMonth} a month.`;
+}
+
+/**
+ * The tries ceiling, for both plans, with the numbers the write route meters
+ * against. A one payment buyer is stopped sooner than a monthly one, so no
+ * line may give only the monthly numbers.
+ */
+export const TRIES_LINE = `A write that fails or is declined does not count toward your AI writes. ${PARTIAL_WRITE_LINE} To keep costs fair, tries have a ceiling that counts the ones that fail: ${LIMITS.monthly.triesPerDay} a day and ${LIMITS.monthly.triesPerMonth} a month on the monthly plan, and ${LIMITS.lifetime.triesPerDay} a day and ${LIMITS.lifetime.triesPerMonth} a month on the one payment plan.`;
 
 export const HERO = {
   eyebrow: "Free for every local business",
@@ -108,7 +128,7 @@ export const PRICING = {
     },
   ] as readonly PricingPlan[],
   writeLine: `One AI write is one tap of Write it, for up to ${MAX_PLATFORMS} platforms at once.`,
-  fine: [triesLine("monthly"), SPEND_PAUSE_LINE, COST_LIMIT_LINE] as readonly string[],
+  fine: [TRIES_LINE, SPEND_PAUSE_LINE, COST_LIMIT_LINE] as readonly string[],
   checkout: "Secure checkout by Stripe. Nothing is posted for you. No results are promised.",
   termsLink: "Read the terms",
   cancelled: "Checkout was cancelled. Nothing was charged.",
@@ -116,8 +136,18 @@ export const PRICING = {
   aiOff: "AI writing is not switched on right now. The idea machine above works now, free.",
 } as const;
 
-/** What shows instead of the buy buttons while sales are closed. */
-export function closedMessage(aiOn: boolean): string {
+/**
+ * What shows instead of the buy buttons while sales are closed. On the public
+ * page the idea machine sits above the pricing; on the locked app screen it
+ * does not (a buyer whose plan ended reads this there), so that version never
+ * points "above".
+ */
+export function closedMessage(aiOn: boolean, where: "page" | "locked" = "page"): string {
+  if (where === "locked") {
+    return aiOn
+      ? "Buying Post Creator again is not open right now."
+      : "Buying Post Creator again opens when AI writing is switched on. It is not switched on right now.";
+  }
   return aiOn
     ? "The paid plan is not open yet. The idea machine above works now, free."
     : `The paid plan opens when AI writing is switched on. ${PRICING.aiOff}`;
@@ -133,7 +163,7 @@ export const FAQS: readonly Faq[] = [
   },
   {
     q: "Where do the ideas come from?",
-    a: `From a library of topics for your trade, everyday business topics, and the services you add, each matched with the ways to frame a post that fit it: ${ANGLE_IDS.length} in all. Nothing in the library states a price, a number, or a claim about your business.`,
+    a: `From a library of topics for your trade, everyday business topics, and the services you add. There are ${ANGLE_IDS.length} ways to frame a post, like a quick tip, a myth and the fact, or a before and after, and each topic gets the ones that fit it. Nothing in the library states a price, a number, or a claim about your business.`,
   },
   {
     q: "What does AI writing add?",
@@ -141,7 +171,7 @@ export const FAQS: readonly Faq[] = [
   },
   {
     q: "How many AI writes do I get?",
-    a: `${aiCapLine("monthly")} That is the monthly plan. On the one payment plan: up to ${LIFETIME.perMonth} a month and ${LIFETIME.perDay} a day. ${triesLine("monthly")}`,
+    a: `Monthly plan: up to ${MONTHLY.perMonth} AI writes a month and ${MONTHLY.perDay} a day. One payment plan: up to ${LIFETIME.perMonth} a month and ${LIFETIME.perDay} a day. Each write drafts one post for up to ${MAX_PLATFORMS} platforms, and unused writes do not carry over. ${TRIES_LINE}`,
   },
   {
     q: "Will the AI make things up about my business?",
@@ -158,7 +188,7 @@ export const FAQS: readonly Faq[] = [
   },
   {
     q: "What happens to my information?",
-    a: "The idea machine runs in your browser and sends nothing to us. On the paid plan, your business profile is saved to your account so it follows you to every device. When you use AI writing, your profile, the idea, and your note are sent to Anthropic, the company that runs the AI model, to write the draft. We keep a record of each AI request but not the draft text.",
+    a: "The idea machine runs in your browser, and nothing you type into it is sent to us. Like the rest of this site, the page counts visits and button taps, never what you type. On the paid plan, your business profile is saved to your account so it follows you to every device. When you use AI writing, your profile, the idea, and your note are sent to Anthropic, the company that runs the AI model, to write the draft. We keep a record of each AI request but not the draft text.",
     link: { href: "/privacy", label: "Read the privacy policy" },
   },
 ];

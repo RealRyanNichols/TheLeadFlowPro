@@ -6,17 +6,9 @@ import PlanMonth from "@/components/postCreator/PlanMonth";
 import PricingCards from "@/components/postCreator/PricingCards";
 import SavedList from "@/components/postCreator/SavedList";
 import ShuffleProvider from "@/components/postCreator/ShuffleProvider";
+import UnlimitedNote from "@/components/postCreator/UnlimitedNote";
 import { aiWritingStatus, postCreatorSalesOpen } from "@/lib/postCreator/ai/config";
-import { DEFAULT_INPUT, ideaSpace } from "@/lib/postCreator/ideas/engine";
-import {
-  FILTER_LINE,
-  POST_CREATOR,
-  POST_CREATOR_DISCLAIMER,
-  UNLIMITED_FINE_PRINT,
-  UNLIMITED_TITLE,
-  aiNotUnlimited,
-  unlimitedBody,
-} from "@/lib/postCreator/product";
+import { FILTER_LINE, POST_CREATOR, POST_CREATOR_DISCLAIMER, UNLIMITED_FINE_PRINT, UNLIMITED_TITLE, aiNotUnlimited } from "@/lib/postCreator/product";
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import { COMPARE_HEADS, COMPARE_ROWS, FAQS, HERO, HOW_IT_WORKS, PLAN_SECTION } from "./copy";
 
@@ -26,7 +18,9 @@ import { COMPARE_HEADS, COMPARE_ROWS, FAQS, HERO, HOW_IT_WORKS, PLAN_SECTION } f
 // environment, and a build-time render would freeze both answers.
 //
 // The idea machine and the planner run in the browser; nothing a visitor
-// types here reaches the server.
+// types here reaches the server. The shuffle's provider wraps everything down
+// to the no-meter section (UNLIMITED_TITLE), so that paragraph's count is the one for
+// the visitor's own settings (UnlimitedNote), the same number the card shows.
 
 export const dynamic = "force-dynamic";
 
@@ -35,10 +29,6 @@ export const metadata: Metadata = withPublicPageMetadata("/post-creator", {
   description:
     "A free post idea machine for local businesses: a new idea every tap, a 30 day plan, and drafts for five platforms. AI writing in your voice is a separate paid plan. Nothing is posted for you.",
 });
-
-// The count in "What ... means here" is for the plainest settings: a named
-// trade and no services.
-const EXAMPLE_SPACE = ideaSpace({ ...DEFAULT_INPUT, trade: "plumbing" });
 
 const SECTION = "mx-auto w-full max-w-2xl px-4";
 const H2 = "text-[28px] font-black leading-tight tracking-[-0.02em] text-[var(--heading)] sm:text-[34px]";
@@ -119,51 +109,51 @@ export default async function PostCreatorPage({
             <PlanMonth />
           </div>
         </section>
-      </ShuffleProvider>
 
-      <section aria-labelledby="compare-title" className={`${SECTION} pt-14`}>
-        <h2 id="compare-title" className={H2}>
-          {COMPARE_HEADS.title}
-        </h2>
-        <div className="mt-5 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--panel)]">
-          <table className="w-full table-fixed border-collapse text-left text-[15px] leading-snug">
-            <thead>
-              <tr className="bg-[var(--fill-2)]">
-                <th scope="col" className="w-1/2 px-4 py-3 text-[13px] font-extrabold uppercase tracking-[0.1em] text-[var(--muted)]">
-                  {COMPARE_HEADS.free}
-                </th>
-                <th scope="col" className="w-1/2 px-4 py-3 text-[13px] font-extrabold uppercase tracking-[0.1em] text-[var(--blue)]">
-                  {COMPARE_HEADS.paid}
-                </th>
-              </tr>
-            </thead>
-            {COMPARE_ROWS.map((row) => (
-              <tbody key={row.label} className="border-t border-[var(--line)]">
-                <tr>
-                  <th scope="rowgroup" colSpan={2} className="px-4 pt-3 text-[15px] font-extrabold text-[var(--heading)]">
-                    {row.label}
+        <section aria-labelledby="compare-title" className={`${SECTION} pt-14`}>
+          <h2 id="compare-title" className={H2}>
+            {COMPARE_HEADS.title}
+          </h2>
+          <div className="mt-5 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--panel)]">
+            <table className="w-full table-fixed border-collapse text-left text-[15px] leading-snug">
+              <thead>
+                <tr className="bg-[var(--fill-2)]">
+                  <th scope="col" className="w-1/2 px-4 py-3 text-[13px] font-extrabold uppercase tracking-[0.1em] text-[var(--muted)]">
+                    {COMPARE_HEADS.free}
+                  </th>
+                  <th scope="col" className="w-1/2 px-4 py-3 text-[13px] font-extrabold uppercase tracking-[0.1em] text-[var(--blue)]">
+                    {COMPARE_HEADS.paid}
                   </th>
                 </tr>
-                <tr>
-                  <td className="px-4 pb-3 pt-1 align-top text-[var(--text)]">{row.free}</td>
-                  <td className="px-4 pb-3 pt-1 align-top text-[var(--text)]">{row.paid}</td>
-                </tr>
-              </tbody>
-            ))}
-          </table>
-        </div>
-      </section>
+              </thead>
+              {COMPARE_ROWS.map((row) => (
+                <tbody key={row.label} className="border-t border-[var(--line)]">
+                  <tr>
+                    <th scope="rowgroup" colSpan={2} className="px-4 pt-3 text-[15px] font-extrabold text-[var(--heading)]">
+                      {row.label}
+                    </th>
+                  </tr>
+                  <tr>
+                    <td className="px-4 pb-3 pt-1 align-top text-[var(--text)]">{row.free}</td>
+                    <td className="px-4 pb-3 pt-1 align-top text-[var(--text)]">{row.paid}</td>
+                  </tr>
+                </tbody>
+              ))}
+            </table>
+          </div>
+        </section>
 
-      <section aria-labelledby="free-title" className={`${SECTION} pt-14`}>
-        <h2 id="free-title" className={H2}>
-          {UNLIMITED_TITLE}
-        </h2>
-        <div className="mt-4 space-y-3 text-[16px] leading-relaxed text-[var(--text)]">
-          <p>{unlimitedBody(EXAMPLE_SPACE.coreCount)}</p>
-          <p>{aiNotUnlimited()}</p>
-          <p className="text-[15px] text-[var(--muted)]">{UNLIMITED_FINE_PRINT}</p>
-        </div>
-      </section>
+        <section aria-labelledby="free-title" className={`${SECTION} pt-14`}>
+          <h2 id="free-title" className={H2}>
+            {UNLIMITED_TITLE}
+          </h2>
+          <div className="mt-4 space-y-3 text-[16px] leading-relaxed text-[var(--text)]">
+            <UnlimitedNote />
+            <p>{aiNotUnlimited()}</p>
+            <p className="text-[15px] text-[var(--muted)]">{UNLIMITED_FINE_PRINT}</p>
+          </div>
+        </section>
+      </ShuffleProvider>
 
       <section id="pricing" aria-label="Pricing" className={`${SECTION} scroll-mt-24 pt-14`}>
         <PricingCards salesOpen={salesOpen} aiOn={aiOn} cancelled={cancelled} />

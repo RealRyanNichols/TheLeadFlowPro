@@ -1,16 +1,18 @@
 // Post Creator idea engine: a card turned into a free draft for one platform.
 //
-// A free draft is the card's first line, the angle's body lines with their
-// [blanks], and the call to action, laid out the way each platform reads:
-// a greeting and a sign-off on Facebook, short paragraphs on Instagram, the
-// title first on Google, "Hi neighbors" on Nextdoor, and a caption plus a shot
-// list for a short video. Hashtags come only from the town and the trade.
+// A free draft is the card's first line, every one of the angle's body lines
+// with their [blanks], and the call to action, laid out the way each platform
+// reads: a greeting and a sign-off on Facebook, short paragraphs on Instagram,
+// the title first on Google, "Hi neighbors" on Nextdoor, and a caption plus a
+// shot list for a short video. No platform drops a body line, so a "Myth vs
+// fact" always carries the fact and "Three steps" all three. Hashtags come
+// only from the town and the trade.
 //
 // The engine never writes a phone number, a link, an email, a price, or a
 // claim. What only the owner knows stays in [brackets] for them to fill in.
 // Pure, browser-safe.
 
-import { cleanOwnerText } from "../copyRules";
+import { blankPattern, cleanOwnerText } from "../copyRules";
 import { TRADES, platformById, type PlatformId, type TradeId } from "../options";
 import { PROFILE_LIMITS } from "../profile";
 import type { DraftView } from "../types";
@@ -18,17 +20,20 @@ import { angleById } from "./angles";
 import type { EngineInput, IdeaCard, Season } from "./types";
 
 const PLACEHOLDER = /\{(topic|Topic|season|Season)\}/g;
-const BLANK = /\[[^\]\n]{1,60}\]/g;
+const BLANK = blankPattern();
 const HASHTAG = /^#[A-Za-z0-9]{2,40}$/;
 
 /** Instagram shows about this much of a caption before "more". */
 const INSTAGRAM_HOOK_MAX = 125;
 
-export const VIDEO_SHOTS: readonly string[] = [
-  "Shot: Say the first line to the camera",
-  "Shot: Show [the answer or the fix]",
-  "Shot: End on your sign, your truck, or your logo",
-];
+/** The short video's first and last shots. The middle one is the angle's own clip (angles.ts). */
+export const VIDEO_OPEN = "Shot: Say the first line to the camera";
+export const VIDEO_CLOSE = "Shot: End on your sign, your truck, or your logo";
+
+/** A short video's shot list: the card's photo idea, the first line, the angle's clip, and the sign-off. */
+export function videoShotList(card: Pick<IdeaCard, "angle" | "shot">): string[] {
+  return [`Shot: ${card.shot}`, VIDEO_OPEN, angleById(card.angle).clip, VIDEO_CLOSE];
+}
 
 function capitalize(s: string): string {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
@@ -127,13 +132,12 @@ function videoCaption(hook: string, cta: string, cap: number): string {
 }
 
 /**
- * A card as a free draft for one platform. `now` picks the season for any
- * seasonal wording in the body.
+ * A card as a free draft for one platform. Seasonal wording in the body uses
+ * the card's own season, the one its title and first line name.
  */
-export function renderDraft(card: IdeaCard, input: EngineInput, platform: PlatformId, now: Date = new Date()): DraftView {
+export function renderDraft(card: IdeaCard, input: EngineInput, platform: PlatformId): DraftView {
   const meta = platformById(platform);
-  const season = seasonOf(now);
-  const body = angleById(card.angle).body.map((line) => fill(line, { topic: card.topic, season }));
+  const body = angleById(card.angle).body.map((line) => fill(line, { topic: card.topic, season: card.season }));
   const name = cleanOwnerText(input.businessName, PROFILE_LIMITS.businessName);
   const town = cleanOwnerText(input.town, PROFILE_LIMITS.town);
   const hook = card.hook;
@@ -148,12 +152,13 @@ export function renderDraft(card: IdeaCard, input: EngineInput, platform: Platfo
   } else if (platform === "instagram") {
     text = `${cutAtWord(hook, INSTAGRAM_HOOK_MAX, "...")}\n\n${body.join("\n\n")}\n\n${cta}`;
   } else if (platform === "google") {
-    text = `${card.title}.\n\n${body[0] ?? ""}\n\n${cta}`;
+    // Every body line: a myth needs its fact, a question its answer.
+    text = `${card.title}.\n\n${body.join("\n")}\n\n${cta}`;
   } else if (platform === "nextdoor") {
     text = `Hi neighbors. ${hook}\n\n${body.join("\n")}\n\n${cta}`;
   } else {
     text = videoCaption(hook, cta, meta.cap);
-    shotList = [`Shot: ${card.shot}`, ...VIDEO_SHOTS];
+    shotList = videoShotList(card);
   }
   text = cutAtWord(text, meta.cap);
 

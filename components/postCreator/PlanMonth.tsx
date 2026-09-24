@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { CalendarDays, ChevronDown, ChevronUp, Download } from "lucide-react";
 import { draftCopyText, renderDraft } from "@/lib/postCreator/ideas/drafts";
 import { inputSignature } from "@/lib/postCreator/ideas/engine";
@@ -17,6 +17,11 @@ import { usePostCreator } from "./ShuffleProvider";
 // the machine carries on after it. The plan is a list for the owner: it can
 // be downloaded as a spreadsheet or copied, and nothing is scheduled or
 // posted. Runs in the browser only.
+//
+// The choices sit in a labelled group, not a <form>: nothing is submitted, and
+// the site's analytics counts every <form> submit as a lead form. Enter in the
+// date field still plans the month, and a date that will not work takes focus
+// so its error is where the owner is.
 
 const CADENCES: readonly { id: PlanCadence; label: string }[] = [
   { id: "daily", label: "Every day" },
@@ -58,6 +63,7 @@ export default function PlanMonth() {
   const [open, setOpen] = useState<string[]>([]);
   const [startError, setStartError] = useState(false);
   const [downloadError, setDownloadError] = useState(false);
+  const startRef = useRef<HTMLInputElement>(null);
   const signature = inputSignature(input);
   const id = (name: string) => `${baseId}-${name}`;
 
@@ -76,11 +82,11 @@ export default function PlanMonth() {
     return <p className="rounded-xl border border-[var(--line)] bg-[var(--panel)] px-4 py-3 text-[15px] text-[var(--muted)]">Pick your trade first, then plan your month.</p>;
   }
 
-  function submit(e: FormEvent) {
-    e.preventDefault();
+  function submit() {
     setDownloadError(false);
     if (!parsePlanDay(start)) {
       setStartError(true);
+      startRef.current?.focus();
       return;
     }
     setStartError(false);
@@ -89,6 +95,12 @@ export default function PlanMonth() {
       setDays(planned);
       setOpen([]);
     }
+  }
+
+  function onStartKey(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    submit();
   }
 
   function toggle(date: string) {
@@ -118,7 +130,7 @@ export default function PlanMonth() {
   return (
     <div className="space-y-5">
       <p className="text-[17px] leading-relaxed text-[var(--muted)]">Pick how often you post. You get a different idea for every day, ready to copy.</p>
-      <form onSubmit={submit} noValidate className="grid gap-4 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4 sm:grid-cols-3 sm:p-6">
+      <div role="group" aria-label="Plan your month" className="grid gap-4 rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-4 sm:grid-cols-3 sm:p-6">
         <div>
           <label htmlFor={id("cadence")} className={LABEL_CLASS}>
             How often?
@@ -144,10 +156,12 @@ export default function PlanMonth() {
           </label>
           <input
             id={id("start")}
+            ref={startRef}
             type="date"
             className={FIELD_CLASS}
             value={start}
             onChange={(e) => setStart(e.target.value)}
+            onKeyDown={onStartKey}
             aria-invalid={startError ? true : undefined}
             aria-describedby={startError ? id("start-error") : undefined}
           />
@@ -177,12 +191,12 @@ export default function PlanMonth() {
           </select>
         </div>
         <div className="sm:col-span-3">
-          <button type="submit" className="button-primary w-full sm:w-auto" disabled={!ready}>
+          <button type="button" className="button-primary w-full sm:w-auto" disabled={!ready} onClick={submit}>
             <CalendarDays aria-hidden="true" className="h-4 w-4" />
             Plan my month
           </button>
         </div>
-      </form>
+      </div>
 
       <div aria-live="polite">
         {days && days.length ? (
@@ -197,7 +211,7 @@ export default function PlanMonth() {
           <ol className="divide-y divide-[var(--line)] rounded-2xl border border-[var(--line)] bg-[var(--panel)]">
             {days.map((day) => {
               const shown = open.includes(day.date);
-              const draft = shown ? renderDraft(day.card, input, platform, parsePlanDay(day.date) ?? new Date()) : null;
+              const draft = shown ? renderDraft(day.card, input, platform) : null;
               const panelId = id(`draft-${day.date}`);
               return (
                 <li key={day.date} className="p-4">

@@ -39,12 +39,16 @@ import {
 import {
   accountView,
   allowanceView,
+  canManageBilling,
   chicagoParts,
   claimDecision,
   decideEntitlement,
   graceEnd,
   looksStale,
+  meteredPlan,
   monthDayLabel,
+  pastDueSinceFor,
+  periodStartOf,
   seasonForMonth,
   statusFromStripe,
 } from "../lib/postCreator/plan.ts";
@@ -72,8 +76,13 @@ function account(over: Partial<Account> = {}): Account {
     lastSessionId: "cs_test_abcdefghijkl",
     firstClaimedAt: null,
     accessEpoch: 0,
+    keyVersion: 0,
     stripeEventAt: 100,
     stripeSyncedAt: null,
+    pastDueSince: null,
+    moneyBackAt: null,
+    replacedSubscriptionId: null,
+    monthlyUntil: null,
     profile: { ...EMPTY_PROFILE, services: [] },
     createdAt: "2026-09-21T00:00:00.000Z",
     ...over,
@@ -166,6 +175,25 @@ describe("license key and secrets", () => {
     assert.equal(verifyChaseLicenseKey(EMAIL, key, [SECRET]), false, "a Post Creator key does not open Chase Sheet");
   });
 
+  test("a raised key version is a new key, and the old one stops opening the account", () => {
+    const v0 = postCreatorLicenseKey(EMAIL, SECRET);
+    assert.equal(postCreatorLicenseKey(EMAIL, SECRET, 0), v0, "version 0 is the key every buyer already has");
+    const v1 = postCreatorLicenseKey(EMAIL, SECRET, 1);
+    const v2 = postCreatorLicenseKey(EMAIL, SECRET, 2);
+    assert.equal(new Set([v0, v1, v2]).size, 3);
+    assert.equal(verifyPostCreatorLicenseKey(EMAIL, v1, [SECRET], 1), true);
+    assert.equal(verifyPostCreatorLicenseKey(EMAIL, v0, [SECRET], 1), false, "the revoked key no longer opens it");
+    assert.equal(verifyPostCreatorLicenseKey(EMAIL, v1, [SECRET], 0), false);
+    assert.equal(verifyPostCreatorLicenseKey(EMAIL, v1, [SECRET], 2), false);
+    // Another buyer's version never changes: a bump is one account only.
+    assert.equal(verifyPostCreatorLicenseKey("other@example.com", postCreatorLicenseKey("other@example.com", SECRET), [SECRET]), true);
+    // A version that cannot be read opens nothing, and no key is ever made for one.
+    for (const bad of [-1, 1.5, Number.NaN]) {
+      assert.equal(verifyPostCreatorLicenseKey(EMAIL, v0, [SECRET], bad), false, String(bad));
+      assert.throws(() => postCreatorLicenseKey(EMAIL, SECRET, bad), /key version/);
+    }
+  });
+
   test("POST_CREATOR_SECRET signs first; the Pro Kit secrets still verify, so rotation never locks a buyer out", () => {
     const env = { PRO_TOOLS_SECRET: "old-pro-secret", UNSUBSCRIBE_SECRET: undefined, SUPABASE_SERVICE_ROLE_KEY: undefined };
     withEnv({ ...env, POST_CREATOR_SECRET: " new-own-secret " }, () => {
@@ -225,8 +253,11 @@ describe("what a Stripe session may unlock", () => {
     assert.equal(ok.customerId, "cus_2");
     assert.equal(purchaseFromSession({ ...monthly, mode: "payment" }), null);
     assert.equal(purchaseFromSession({ ...monthly, amount_total: PRICES.postCreatorLifetime * 100 }), null);
-    // A promotion code lowers amount_total; the subtotal still proves the plan.
-    assert.ok(purchaseFromSession({ ...monthly, amount_total: 1000, amount_subtotal: PRICES.postCreatorMonthly * 100 }));
+    // Checkout offers no promotion code for Post Creator, so a discounted
+    // session was not made by this site and unlocks nothing (decision 96).
+    assert.equal(purchaseFromSession({ ...monthly, amount_total: 1000, amount_subtotal: PRICES.postCreatorMonthly * 100 }), null);
+    assert.equal(purchaseFromSession({ ...monthly, amount_total: 200, amount_subtotal: PRICES.postCreatorMonthly * 100 }), null);
+    assert.equal(purchaseFromSession({ ...lifetime, amount_total: 970, amount_subtotal: PRICES.postCreatorLifetime * 100 }), null);
     assert.equal(purchaseFromSession({ ...monthly, amount_total: 1000, amount_subtotal: 1000 }), null);
   });
 
@@ -287,12 +318,53 @@ describe("plan decisions", () => {
     assert.equal(decideEntitlement(account({ status: "canceled" }), now).reason, "canceled");
     assert.equal(decideEntitlement(account({ cancelAt: "2026-10-21T00:00:00.000Z" }), now).entitled, true);
     assert.equal(decideEntitlement(account({ cancelAt: "2026-09-01T00:00:00.000Z" }), now).reason, "canceled");
-    const missed = account({ status: "past_due", currentPeriodEnd: "2026-09-21T00:00:00.000Z" });
+    // The renewal failed on Sep 21. Stripe had already moved the period to end on Oct 21.
+    const missed = account({ status: "past_due", pastDueSince: "2026-09-21T00:00:00.000Z", currentPeriodEnd: "2026-10-21T00:00:00.000Z" });
     assert.equal(decideEntitlement(missed, now).entitled, true, "three days into the grace window");
     assert.equal(graceEnd(missed), new Date("2026-09-21T00:00:00.000Z").getTime() + POST_CREATOR.pastDueGraceDays * DAY);
-    const expired = account({ status: "past_due", currentPeriodEnd: "2026-09-01T00:00:00.000Z" });
-    assert.deepEqual(decideEntitlement(expired, now), { entitled: false, reason: "past_due" });
-    assert.equal(decideEntitlement(account({ status: "past_due", currentPeriodEnd: null }), now).entitled, true);
+    const expired = account({ status: "past_due", pastDueSince: "2026-09-01T00:00:00.000Z", currentPeriodEnd: "2026-10-01T00:00:00.000Z" });
+    assert.deepEqual(decideEntitlement(expired, now), { entitled: false, reason: "past_due" }, "the unpaid month's end never extends the grace");
+    // No date on record: the event that set past due stands in; with neither, no grace.
+    const fromEvent = account({ status: "past_due", stripeEventAt: Date.parse("2026-09-22T00:00:00Z") / 1000 });
+    assert.equal(decideEntitlement(fromEvent, now).entitled, true);
+    assert.deepEqual(decideEntitlement(account({ status: "past_due", stripeEventAt: 0 }), now), { entitled: false, reason: "past_due" });
+  });
+
+  test("a refund or a dispute closes either plan whatever the status says, until a dispute won or a new checkout", () => {
+    const closed = { moneyBackAt: "2026-09-20T00:00:00.000Z" };
+    assert.deepEqual(decideEntitlement(account({ ...closed, status: "active" }), now), { entitled: false, reason: "canceled" });
+    assert.deepEqual(decideEntitlement(account({ ...closed, plan: "lifetime", status: "active" }), now), { entitled: false, reason: "canceled" });
+    assert.equal(looksStale(account({ ...closed, currentPeriodEnd: "2026-09-01T00:00:00.000Z" }), now), false);
+    const view = accountView(account({ ...closed, status: "active" }));
+    assert.equal(view.status, "canceled");
+    assert.equal(view.renewsOn, null);
+    assert.equal(view.canManageBilling, false);
+  });
+
+  test("past_due_since: kept while past due, the unpaid period's start when it begins, cleared after", () => {
+    const failed = 1_790_003_600;
+    assert.equal(pastDueSinceFor(account(), "past_due", 1_790_000_000, failed), new Date(1_790_000_000 * 1000).toISOString());
+    assert.equal(pastDueSinceFor(account(), "past_due", null, failed), new Date(failed * 1000).toISOString());
+    assert.equal(pastDueSinceFor(account(), "past_due", failed + 10, failed), new Date(failed * 1000).toISOString(), "never later than the event");
+    const already = account({ status: "past_due", pastDueSince: "2026-09-01T00:00:00.000Z" });
+    assert.equal(pastDueSinceFor(already, "past_due", 1_800_000_000, 1_800_000_100), "2026-09-01T00:00:00.000Z");
+    assert.equal(pastDueSinceFor(already, "active", null, 1), null);
+    assert.equal(pastDueSinceFor(already, "canceled", null, 1), null);
+    assert.equal(periodStartOf({ current_period_start: 5 }), 5);
+    assert.equal(periodStartOf({ items: { data: [{ current_period_start: 7 }] } }), 7);
+    assert.equal(periodStartOf({ current_period_start: "5" }), null);
+    assert.equal(periodStartOf(null), null);
+  });
+
+  test("a monthly buyer who pays once keeps the monthly allowance through the Chicago month the paid month ends in", () => {
+    const switched = account({ plan: "lifetime", monthlyUntil: "2026-10-15T00:00:00.000Z" });
+    assert.equal(meteredPlan(switched, new Date("2026-09-24T12:00:00Z")), "monthly");
+    assert.equal(meteredPlan(switched, new Date("2026-10-31T12:00:00Z")), "monthly", "the rest of October too");
+    assert.equal(meteredPlan(switched, new Date("2026-11-01T04:00:00Z")), "monthly", "still October in Chicago");
+    assert.equal(meteredPlan(switched, new Date("2026-11-01T12:00:00Z")), "lifetime");
+    assert.equal(meteredPlan(account({ plan: "lifetime" }), now), "lifetime");
+    assert.equal(meteredPlan(account({ plan: "lifetime", monthlyUntil: "junk" }), now), "lifetime");
+    assert.equal(meteredPlan(account(), now), "monthly");
   });
 
   test("a monthly account whose paid period ended with no newer event looks stale, at most once an hour", () => {
@@ -330,9 +402,13 @@ describe("plan decisions", () => {
     assert.equal(accountView(account({ cancelAt: "2026-10-21T00:00:00.000Z" })).renewsOn, null);
     assert.equal(accountView(account({ cancelAt: "2026-10-21T00:00:00.000Z" })).endsOn, "2026-10-21T00:00:00.000Z");
     assert.equal(accountView(account({ status: "canceled" })).endsOn, "2026-10-21T00:00:00.000Z");
-    const pastDue = accountView(account({ status: "past_due", currentPeriodEnd: "2026-09-21T00:00:00.000Z" }));
+    const pastDue = accountView(account({ status: "past_due", pastDueSince: "2026-09-21T00:00:00.000Z", currentPeriodEnd: "2026-10-21T00:00:00.000Z" }));
     assert.equal(pastDue.graceEndsOn, "2026-09-28T00:00:00.000Z");
+    assert.equal(pastDue.canManageBilling, true, "a buyer whose card failed needs the portal most");
     assert.equal(accountView(account({ plan: "lifetime", status: "past_due" })).graceEndsOn, null);
+    assert.equal(accountView(account({ status: "canceled" })).canManageBilling, false, "an ended plan has nothing to manage");
+    assert.equal(canManageBilling(account()), true);
+    assert.equal(canManageBilling(account({ moneyBackAt: "2026-09-20T00:00:00.000Z" })), false);
   });
 });
 
@@ -391,6 +467,7 @@ describe("the Chicago calendar and the AI allowance", () => {
       leftToday: 17,
       leftThisMonth: 60,
       triesLeftToday: 20,
+      triesLeftThisMonth: 76,
       resetsMonthOn: "2026-10-01",
     });
     const nearEnd = allowanceView("monthly", { ...counts, usedDay: 2, usedMonth: 95 }, now);
@@ -405,6 +482,15 @@ describe("the Chicago calendar and the AI allowance", () => {
     assert.equal(lifetime.perMonth, POST_CREATOR.ai.lifetime.perMonth);
     assert.equal(lifetime.leftToday, 10);
     assert.equal(lifetime.triesLeftToday, 15);
+    assert.equal(lifetime.triesLeftThisMonth, 26);
+    // Failed tries can use up the month's tries before the writes: today's tries never exceed the month's.
+    const failing = allowanceView("monthly", { ...counts, usedDay: 1, usedMonth: 95, triesDay: 3, triesMonth: 118 }, now);
+    assert.equal(failing.leftThisMonth, 5);
+    assert.equal(failing.triesLeftThisMonth, 2);
+    assert.equal(failing.triesLeftToday, 2);
+    const spent = allowanceView("monthly", { ...counts, triesMonth: 130 }, now);
+    assert.equal(spent.triesLeftThisMonth, 0);
+    assert.equal(spent.triesLeftToday, 0);
     assert.equal(allowanceView("monthly", counts, new Date("2026-10-01T04:00:00Z")).resetsMonthOn, "2026-10-01", "still September in Chicago");
   });
 });
@@ -459,12 +545,24 @@ function harness(options: { cookie?: string; rows?: Row[]; env?: Record<string, 
       },
       maybeSingle: async () =>
         options.failDb ? { data: null, error: { message: "database down" } } : { data: filtered[0] ? { ...filtered[0] } : null, error: null },
-      update: (patch: Row) => ({
-        eq: async (col: string, value: unknown) => {
-          for (const r of rows) if (r[col] === value) Object.assign(r, patch);
-          return { error: null };
-        },
-      }),
+      update: (patch: Row) => {
+        const where: ((r: Row) => boolean)[] = [];
+        const write = {
+          eq: (col: string, value: unknown) => {
+            where.push((r) => r[col] === value);
+            return write;
+          },
+          lte: (col: string, value: unknown) => {
+            where.push((r) => Number(r[col]) <= Number(value));
+            return write;
+          },
+          then: (resolve: (v: unknown) => unknown) => {
+            for (const r of rows) if (where.every((f) => f(r))) Object.assign(r, patch);
+            return Promise.resolve({ error: null }).then(resolve);
+          },
+        };
+        return write;
+      },
     };
     return chain;
   }
@@ -606,6 +704,25 @@ describe("getEntitlement and requirePostCreator", () => {
 
     const canceled = harness({ rows: [row({ current_period_end: ended })], cookie: cookieFor(0), stripe: { id: "sub_1", status: "canceled" } });
     assert.equal((await canceled.entitlement.getEntitlement()).reason, "canceled");
+  });
+
+  test("a stale account Stripe says is past due counts its grace from the unpaid period's start", async () => {
+    const ended = new Date(Date.now() - 3 * DAY).toISOString();
+    const periodStart = Math.floor((Date.now() - 3 * DAY) / 1000);
+    const lateStart = Math.floor((Date.now() - 9 * DAY) / 1000);
+    const inGrace = harness({
+      rows: [row({ current_period_end: ended })],
+      cookie: cookieFor(0),
+      stripe: { id: "sub_1", status: "past_due", current_period_start: periodStart, current_period_end: periodStart + 30 * 86_400 },
+    });
+    assert.equal((await inGrace.entitlement.getEntitlement()).reason, "ok");
+    assert.equal(inGrace.rows[0].past_due_since, new Date(periodStart * 1000).toISOString());
+    const pastGrace = harness({
+      rows: [row({ current_period_end: ended })],
+      cookie: cookieFor(0),
+      stripe: { id: "sub_1", status: "past_due", current_period_start: lateStart, current_period_end: lateStart + 30 * 86_400 },
+    });
+    assert.equal((await pastGrace.entitlement.getEntitlement()).reason, "past_due", "the new period end is weeks away, but the grace is over");
   });
 
   test("a failing Stripe still stamps the check, so it is not asked on every request", async () => {

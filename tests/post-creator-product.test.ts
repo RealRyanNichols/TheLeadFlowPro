@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { describe, test } from "node:test";
 import { CHASE_SHEET } from "../lib/chaseSheet/product.ts";
 import { copyProblems } from "../lib/hq/copy.ts";
-import { NO_FACTS, cleanOwnerText, maskOwnerNames, postCopyProblems } from "../lib/postCreator/copyRules.ts";
+import { BLANK_SOURCE, NO_FACTS, blankPattern, cleanOwnerText, maskOwnerNames, postCopyProblems } from "../lib/postCreator/copyRules.ts";
 import {
   ANGLE_IDS,
   ANGLE_META,
@@ -31,7 +31,7 @@ import {
   tradeLabel,
 } from "../lib/postCreator/options.ts";
 import * as product from "../lib/postCreator/product.ts";
-import { EMPTY_PROFILE, PROFILE_LIMITS, parseProfile, profileIsReady, validateProfileInput } from "../lib/postCreator/profile.ts";
+import { CTA_EMAIL_ERROR, EMPTY_PROFILE, PROFILE_LIMITS, parseProfile, profileIsReady, validateProfileInput } from "../lib/postCreator/profile.ts";
 import type { BrandProfile, PostCreatorPlan } from "../lib/postCreator/types.ts";
 import { offer } from "../lib/site/offers.ts";
 import { PRICES, usd, usdPerMonth } from "../lib/site/prices.ts";
@@ -169,7 +169,7 @@ describe("product", () => {
     assert.match(triesLine("lifetime"), /ceiling of 15 tries a day and 70 a month/);
     assert.equal(
       aiNotUnlimited(),
-      `AI writing is not ${UNLIMITED}. Every AI write costs us money to make, so each plan includes a set number: up to 100 a month and 20 a day on the monthly plan, and up to 50 a month and 10 a day on the one payment plan. A write that fails does not count.`,
+      `AI writing is not ${UNLIMITED}. Every AI write costs us money to make, so each plan includes a set number: up to 100 a month and 20 a day on the monthly plan, and up to 50 a month and 10 a day on the one payment plan. A write that fails does not count. A write counts when a draft comes back for at least one of the platforms you picked. Any platform without a draft is named on screen, so you can start a new write for it.`,
     );
     assert.equal(
       ideaCountLine(PLUMBING, "plumbing"),
@@ -208,6 +208,12 @@ describe("product", () => {
       assert.deepEqual(copyProblems(text), [], text);
       for (const amount of text.match(/\$\d[\d,.]*/g) ?? []) assert.ok(prices.includes(amount), `${text} names ${amount}`);
     }
+  });
+
+  test("the filter line says what the rules catch, not that they catch every claim", () => {
+    assert.match(product.FILTER_LINE, /the common claims, prices, and numbers you did not give us/);
+    assert.match(product.FILTER_LINE, /do not catch everything, so read every draft/);
+    assert.doesNotMatch(product.FILTER_LINE, /remove claims, prices/);
   });
 
   test("no line ever calls AI writing endless", () => {
@@ -428,6 +434,18 @@ describe("profile", () => {
     for (const raw of [null, "profile", []]) assert.equal(validateProfileInput(raw).ok, false);
   });
 
+  test("an email as the call to action detail is turned away with a way forward, since drafts always leave emails out", () => {
+    for (const ctaDetail of ["hello@pineywoods.com", "Email us at Hello@PineyWoods.co", "book: jo.smith+jobs@mail.example.org"]) {
+      assert.deepEqual(validateProfileInput({ ...good, ctaDetail }), { ok: false, field: "ctaDetail", error: CTA_EMAIL_ERROR }, ctaDetail);
+    }
+    for (const ctaDetail of ["https://pineywoods.com/book", "Call or text 903-555-0142", "@pineywoodsplumbing on Instagram", ""]) {
+      assert.equal(validateProfileInput({ ...good, ctaDetail }).ok, true, ctaDetail);
+    }
+    assert.deepEqual(copyProblems(CTA_EMAIL_ERROR), []);
+    // The same email the drafts would drop: the filter and the form agree.
+    assert.ok(postCopyProblems("Email hello@pineywoods.com today.", { text: "hello@pineywoods.com", mask: [] }).includes("contains an email address"));
+  });
+
   test("every profile message is clean copy", () => {
     const messages: string[] = [];
     for (const raw of [null, { ...good, trade: "x" }, { ...good, services: ["a", "b", "c", "d", "e", "f"] }, { ...good, town: "a".repeat(99) }]) {
@@ -456,6 +474,19 @@ describe("copy rules", () => {
     assert.equal(cleanOwnerText("<b>Joe</b>", 80), "Joe");
     assert.equal(cleanOwnerText("abcdef", 3), "abc");
     assert.equal(cleanOwnerText(42, 10), "");
+    // Every look-alike, and "--", becomes one plain hyphen in what the owner typed.
+    for (const dash of ["\u2010", "\u2011", "\u2012", "\u2015", "\u2212", "\u2E3A", "\u2E3B", "\uFE31", "\uFE32", "\uFE58", "\uFE63", "\uFF0D", "--", "---"]) {
+      assert.equal(cleanOwnerText(`Piney Woods ${dash} Plumbing`, 80), "Piney Woods - Plumbing", `U+${dash.codePointAt(0)?.toString(16)}`);
+    }
+  });
+
+  test("postCopyProblems flags every long dash look-alike and '--', not a plain hyphen", () => {
+    for (const dash of ["\u2012", "\u2013", "\u2014", "\u2015", "\u2212", "\u2E3A", "\u2E3B", "\uFE31", "\uFE32", "\uFE58", "--", " -- "]) {
+      assert.ok(postCopyProblems(`Slow drain${dash}call us today.`).length > 0, `U+${dash.codePointAt(0)?.toString(16)}`);
+    }
+    assert.deepEqual(postCopyProblems("A well-known fix for a slow drain."), []);
+    assert.deepEqual(postCopyProblems("Slow drain\u2014call us today."), ["contains an em or en dash"], "reported once");
+    assert.deepEqual(postCopyProblems("Slow drain\u2015call us today."), ["contains a long dash"]);
   });
 
   test("maskOwnerNames replaces whole names, longest first, ignoring case", () => {
@@ -512,7 +543,7 @@ describe("copy rules", () => {
     assert.ok(flagged("A 20% discount."));
   });
 
-  test("emails are always flagged; phones and links only when not in the facts", () => {
+  test("emails are always flagged (the Settings help says so); phones and links only when not in the facts", () => {
     assert.ok(flagged("Email owner@example.com with questions."));
     assert.ok(flagged("Email owner@example.com with questions.", facts("owner@example.com")));
 
@@ -533,5 +564,107 @@ describe("copy rules", () => {
     assert.deepEqual(postCopyProblems("Our team is [licensed, if true] and ready to help."), []);
     assert.deepEqual(postCopyProblems("We have done [15] of these [this year]."), []);
     assert.deepEqual(postCopyProblems("Book here: [booking link]"), []);
+  });
+
+  test("a bracket longer than a blank is checked like any other text", () => {
+    const long = "[Rated five stars by 500 neighbors, 25 years in business, call 903-555-0199]";
+    assert.ok(long.length > 62);
+    assert.ok(postCopyProblems(`Spring is here. ${long} Book a visit.`).length >= 3);
+    assert.deepEqual(`a [short blank] b ${long}`.match(blankPattern()), ["[short blank]"]);
+    assert.equal(BLANK_SOURCE, "\\[[^\\]\\n]{1,60}\\]");
+  });
+});
+
+describe("copy rules: the common invented claims", () => {
+  const facts = (text: string, mask: string[] = []) => ({ text: text.toLowerCase(), mask });
+  const flagged = (text: string, allowed = NO_FACTS) => postCopyProblems(text, allowed).length > 0;
+
+  test("ratings, rank, tenure, offers, promises, crowds, and quotes are claims", () => {
+    for (const text of [
+      "Smith Plumbing has been clearing them for over fifteen years.",
+      "Our neighbors rate us five stars.",
+      "Rated five stars by our neighbors.",
+      "Top rated plumber in East Texas.",
+      "We are the No. 1 plumber in Longview.",
+      "The number 1 plumber in Longview.",
+      "Book this week for a free camera inspection.",
+      "Get a free inspection with every visit.",
+      "Book this week and get half off.",
+      "Ask about our senior discount.",
+      "We promise you will love the results.",
+      "Money back if you are not happy.",
+      "Trusted by hundreds of local families.",
+      "Serving Longview for over two decades.",
+      "Drain cleaning for just ninety nine dollars.",
+      "Sarah from Kilgore said we saved her kitchen.",
+      "Proudly the region's premier plumbing company.",
+      "Use our coupon this month.",
+    ]) {
+      assert.ok(flagged(text), text);
+    }
+  });
+
+  test("small numbers with a unit, a rank, or a time are claims; plain counts are not", () => {
+    for (const text of [
+      "Drain cleaning for 9 dollars this week.",
+      "9 out of 10 homeowners wait too long to call.",
+      "Our 6 trucks cover the whole county.",
+      "Open 8 to 5, Monday to Saturday.",
+      "Open 7 am to 6 pm.",
+      "Rated 5 on Google.",
+      "Serving the county for 3 generations.",
+      "We have 4 locations in the county.",
+      "Our 8 techs are on call.",
+    ]) {
+      assert.ok(flagged(text), text);
+    }
+    assert.deepEqual(postCopyProblems("Here are 3 tips for slow drains."), []);
+    assert.deepEqual(postCopyProblems("Step 2. Check the filter."), []);
+    assert.deepEqual(postCopyProblems("One day your water heater will need a look."), []);
+  });
+
+  test("the owner's phone never lets its digit groups through as numbers", () => {
+    const phone = facts("Call 903-555-0100");
+    assert.deepEqual(postCopyProblems("Call 903-555-0100 today.", phone), []);
+    for (const text of ["A 555 point inspection on every visit.", "Over 903 homes served.", "We answer 0100 calls a day."]) {
+      assert.ok(flagged(text, phone), text);
+    }
+  });
+
+  test("the claim words that are everyday phrases pass", () => {
+    const owner = facts("Licensed and insured. 15 years in business. Call 903-555-0100", ["Mike's Emergency Plumbing"]);
+    for (const text of [
+      "Best of all, the fix takes about an hour.",
+      "The best way to keep a drain clear is a strainer.",
+      "Do your best to keep grease out of the sink.",
+      "If you smell gas, leave the house and call the gas company emergency line.",
+      "With over 15 years of experience, we know drains.",
+      "Mike\u2019s Emergency Plumbing can help.",
+      "Mike's Emergency Plumbing can help.",
+      "Hands-free faucets are worth a look.",
+      "Feel free to message us.",
+    ]) {
+      assert.deepEqual(postCopyProblems(text, owner), [], text);
+    }
+    assert.ok(flagged("We offer emergency service all night.", owner), "an emergency service claim is still a claim");
+    assert.ok(flagged("With over 20 years of experience, we know drains.", owner), "the number must still match");
+    assert.ok(flagged("With 15 years of experience, we know drains."), "no fact, no claim");
+  });
+
+  test("a shot line may open with its timing", () => {
+    assert.deepEqual(postCopyProblems("0 to 3 seconds: close up of the slow drain"), []);
+    assert.deepEqual(postCopyProblems("Shot: 8 to 12 seconds: the clean drain"), []);
+    assert.ok(flagged("Close up. 0 to 3 seconds is all it takes to fix."));
+  });
+
+  test("a link matches the owner's with or without its scheme and www", () => {
+    for (const [owner, draft] of [
+      ["smithplumbing.com/book", "Book online at https://smithplumbing.com/book."],
+      ["smithplumbing.com", "Book online at www.smithplumbing.com."],
+      ["https://www.smithplumbing.com/book", "Book at smithplumbing.com/book today."],
+    ]) {
+      assert.deepEqual(postCopyProblems(draft, facts(owner)), [], draft);
+    }
+    assert.ok(flagged("Book at smithplumbing.com/deals today.", facts("smithplumbing.com")), "a path the owner did not write");
   });
 });

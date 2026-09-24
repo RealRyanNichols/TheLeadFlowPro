@@ -36,7 +36,13 @@ import { AGENCY_PAYMENT, agencyPaymentFromMetadata } from "@/lib/agencyPayment";
 import { CHASE_SHEET, isChaseSheetKind } from "@/lib/chaseSheet/product";
 import { applyChaseSheetMoneyBack, ensureChaseSheetPaid, handleChaseSheetSubscription, markChaseSheetRenewed } from "@/lib/chaseSheet/subscription";
 import { POST_CREATOR, isPostCreatorKind } from "@/lib/postCreator/product";
-import { applyPostCreatorMoneyBack, ensurePostCreatorPaid, handlePostCreatorSubscription, markPostCreatorRenewed } from "@/lib/postCreator/subscription";
+import {
+  applyPostCreatorMoneyBack,
+  ensurePostCreatorPaid,
+  handlePostCreatorSubscription,
+  markPostCreatorRenewed,
+  postCreatorFirstInvoiceCheckout,
+} from "@/lib/postCreator/subscription";
 import { deliverPaymentEmail } from "@/lib/paymentEmailDelivery";
 import { classifyStripeInvoice, dollars, renewalAction } from "@/lib/stripeInvoiceEvents";
 import { refundOutcome } from "@/lib/stripeRefunds";
@@ -1709,6 +1715,20 @@ async function handleMoneyBack(supabase: SupabaseClient, eventType: string, obje
       break;
     }
   }
+  // A Post Creator subscription's first invoice has no purchases row: the
+  // checkout that started it holds the first month, so money back on that
+  // invoice is matched to the checkout's row. Other products are unchanged.
+  if (!purchase && stripeKey) {
+    for (const key of candidates.filter((c) => c.startsWith("in_"))) {
+      const sessionId = await postCreatorFirstInvoiceCheckout(key);
+      if (!sessionId) continue;
+      const row = await supabase.from("purchases").select("stripe_session_id, email, kind, status").eq("stripe_session_id", sessionId).maybeSingle();
+      if (!row.error && row.data && row.data.kind === POST_CREATOR.monthlyKind) {
+        purchase = row.data;
+        break;
+      }
+    }
+  }
 
   const restoring = outcome.status === "dispute_won";
   const fromStatus = restoring ? "disputed" : "paid";
@@ -1746,12 +1766,16 @@ async function handleMoneyBack(supabase: SupabaseClient, eventType: string, obje
     "Purchases: https://www.theleadflowpro.com/admin/purchases",
   ].filter(Boolean));
   if (willFlip && purchase) {
-    const updated = await supabase.from("purchases").update({ status: toStatus }).eq("stripe_session_id", purchase.stripe_session_id).eq("status", fromStatus).select("stripe_session_id");
-    if (updated.error) throw new Error(`Purchase status flip failed: ${updated.error.code}`);
-    if (!updated.data?.length) console.warn(`No ${fromStatus} purchase matched ${purchase.stripe_session_id} for ${toStatus}`);
+    // Access follows the money before the purchases row moves. Both account
+    // changes are safe to repeat, so when either one or the flip fails, the
+    // 500 below makes Stripe retry with the row still unmoved, and the retry
+    // applies the lock again instead of finding nothing left to flip.
     // A refund or dispute on either Chase Sheet plan locks the sheet; a dispute won reopens it.
     await applyChaseSheetMoneyBack(supabase, purchase, restoring);
     await applyPostCreatorMoneyBack(supabase, purchase, restoring);
+    const updated = await supabase.from("purchases").update({ status: toStatus }).eq("stripe_session_id", purchase.stripe_session_id).eq("status", fromStatus).select("stripe_session_id");
+    if (updated.error) throw new Error(`Purchase status flip failed: ${updated.error.code}`);
+    if (!updated.data?.length) console.warn(`No ${fromStatus} purchase matched ${purchase.stripe_session_id} for ${toStatus}`);
   }
   return true;
 }

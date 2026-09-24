@@ -1,11 +1,13 @@
 // Post Creator idea engine: the free idea machine.
 //
-// A core idea is a topic paired with an angle that fits it. The cores for a
-// set of settings are the trade's own topics, then the universal topics, then
-// six topics for each service, each paired with every angle that fits its
-// kind. A card is a core plus a remix: one of four first lines, one of two
-// photo ideas, and a call to action (one of eight when the owner picked "Mix
-// it up", else their own).
+// A core idea is a topic paired with an angle that fits it (angleFits: the
+// kind, and what the angle needs of the topic, so "Tool talk" only lands on
+// gear). The cores for a set of settings are the trade's own topics, then the
+// universal topics (without the ones that assume a service trade, for
+// "Something else"), then six topics for each service. A card is a core plus
+// a remix: one of four first lines, one of two photo ideas, and a call to
+// action (on "Mix it up", each one that reads right after the angle, else the
+// owner's own).
 //
 // The machine walks every core once in a shuffled order (permute.ts) before
 // any core comes back, and each time a core comes back it has a different
@@ -17,26 +19,32 @@
 // Pure, browser-safe, no network, no clock except the season.
 
 import { cleanOwnerText } from "../copyRules";
-import { CTA_IDS, isCtaChoice, isTradeId, isVoiceId, tradeLabel, type TradeId } from "../options";
+import { CTA_IDS, isCtaChoice, isTradeId, isVoiceId, type CtaId, type TradeId } from "../options";
 import { POST_CREATOR } from "../product";
 import { PROFILE_LIMITS } from "../profile";
 import type { BrandProfile } from "../types";
-import { ANGLES, angleById } from "./angles";
+import { ANGLES, angleById, angleFits } from "./angles";
 import { ctaLine } from "./ctas";
 import { fill, seasonOf } from "./drafts";
 import { fnv1a, permuteIndex } from "./permute";
 import { SERVICE_TEMPLATES, TRADE_TOPICS, UNIVERSAL_TOPICS, topicId } from "./topics";
-import type { CoreRef, EngineInput, IdeaCard, IdeaSpace, ShuffleState, Topic } from "./types";
+import type { Angle, CoreRef, EngineInput, IdeaCard, IdeaSpace, Season, ShuffleState, Topic } from "./types";
 
 export const DEFAULT_INPUT: EngineInput = { trade: "other", businessName: "", town: "", services: [], voice: "friendly", cta: "mix" };
 
 const HOOKS = 4;
 const SHOTS = 2;
-/** Remixes per core: every hook, shot, and call to action when mixing, else hook and shot. */
-const REMIX_MIX = HOOKS * SHOTS * CTA_IDS.length;
+/** Remixes per core with a fixed call to action: every hook and shot. */
 const REMIX_FIXED = HOOKS * SHOTS;
-/** Coprime to both remix counts, so a core never repeats a remix within its first R laps. */
+/**
+ * Coprime to every remix count (8, and 8 times the calls to action an angle
+ * takes on "Mix it up": 48 or 64), so a core never repeats a remix within its
+ * first R laps, and each lap moves its first line on by 7 mod 4.
+ */
 const LAP_STRIDE = 7;
+
+/** The seasons in calendar order, winter first, so "the next one" wraps around. */
+const SEASON_ORDER: readonly Season[] = ["winter", "spring", "summer", "fall"];
 
 /** How many sets of settings keep their place. The oldest is dropped first. */
 export const MAX_SIGNATURES = 50;
@@ -129,9 +137,26 @@ export function inputFromProfile(p: BrandProfile): EngineInput {
   }).input;
 }
 
-/** "your business" for Something else, else the trade label in lowercase ("heating and air"). */
+/** How the count line names each trade, so it reads "ideas for handyman work", not "ideas for handyman". */
+const TRADE_WORDS: Record<TradeId, string> = {
+  roofing: "roofing",
+  hvac: "heating and air",
+  plumbing: "plumbing",
+  electrical: "electrical work",
+  lawn: "lawn and landscaping",
+  cleaning: "house cleaning",
+  pest: "pest control",
+  painting: "painting",
+  remodeling: "remodeling",
+  handyman: "handyman work",
+  auto: "auto repair",
+  salon: "a salon or barbershop",
+  other: "your business",
+};
+
+/** The trade as the count line says it: "your business" for Something else, else a phrase that reads after "for". */
 export function tradeWords(trade: TradeId): string {
-  return trade === "other" ? "your business" : tradeLabel(trade).toLowerCase();
+  return TRADE_WORDS[trade] ?? TRADE_WORDS.other;
 }
 
 /** Services in one fixed order (by lowercase), so the same settings always give the same core list. */
@@ -165,18 +190,25 @@ function coresFor(input: EngineInput): readonly CoreRef[] {
   const cores: CoreRef[] = [];
   const add = (topic: Topic, source: CoreRef["source"], base: string) => {
     for (const a of ANGLES) {
-      if (a.kinds.includes(topic.kind)) cores.push({ key: `${base}|${a.id}`, topic, source, angle: a.id });
+      if (angleFits(a, topic)) cores.push({ key: `${base}|${a.id}`, topic, source, angle: a.id });
     }
   };
+  const named = input.trade !== "other";
   if (input.trade !== "other") {
     for (const topic of TRADE_TOPICS[input.trade]) add(topic, "trade", `t:${input.trade}:${topic.id}`);
   }
-  for (const topic of UNIVERSAL_TOPICS) add(topic, "universal", `u:${topic.id}`);
+  for (const topic of UNIVERSAL_TOPICS) {
+    // "Something else" could be a bakery: no "hiring a pro in our trade".
+    if (!named && topic.tags?.includes("trade")) continue;
+    add(topic, "universal", `u:${topic.id}`);
+  }
   for (const service of services) {
     const hash = fnv1a(service.toLowerCase()).toString(36);
     SERVICE_TEMPLATES.forEach((t, idx) => {
       const noun = t.template.replace("{s}", () => service);
-      add({ id: topicId(noun), kind: t.kind, noun }, "service", `s:${hash}:${idx}`);
+      const topic: Topic = { id: topicId(noun), kind: t.kind, noun };
+      if (t.tags?.length) topic.tags = t.tags;
+      add(topic, "service", `s:${hash}:${idx}`);
     });
   }
 
@@ -197,23 +229,48 @@ export function buildCores(input: EngineInput): CoreRef[] {
   return coresFor(normalizeInput(input).input).slice();
 }
 
-function remixCount(input: EngineInput): number {
-  return input.cta === "mix" ? REMIX_MIX : REMIX_FIXED;
+/** The calls to action a core rotates through on "Mix it up": the ones that read right after its angle. */
+export function ctasForAngle(a: Angle): readonly CtaId[] {
+  return a.ctas.length ? a.ctas : CTA_IDS;
+}
+
+/** Remixes of one core: every hook and shot, times each fitting call to action when mixing. */
+function remixCountFor(core: CoreRef, input: EngineInput): number {
+  return input.cta === "mix" ? REMIX_FIXED * ctasForAngle(angleById(core.angle)).length : REMIX_FIXED;
 }
 
 /** How many ideas and cards these settings have, and how long they last at three posts a week. */
 export function ideaSpace(input: EngineInput): IdeaSpace {
   const n = normalizeInput(input).input;
-  const coreCount = coresFor(n).length;
-  const remix = remixCount(n);
+  const cores = coresFor(n);
+  const coreCount = cores.length;
+  let cardCount = 0;
+  for (const core of cores) cardCount += remixCountFor(core, n);
   return {
     signature: signatureOf(n),
     coreCount,
-    remixCount: remix,
-    cardCount: coreCount * remix,
+    cardCount,
     // C / 3 / 52 * 12 in whole months, in integers so no float can round it down.
     monthsAtThreeAWeek: Math.floor((coreCount * 12) / (3 * 52)),
   };
+}
+
+/**
+ * The season a card's wording uses. A seasonal heads-up is only drawn for a
+ * topic that has seasons, and it names the current season when the topic
+ * matters now, else the next season it matters in ("protecting pipes in cold
+ * weather" says winter in July, never summer). Everything else uses the date's.
+ */
+export function cardSeason(topic: Pick<Topic, "seasons">, now: Date): Season {
+  const current = seasonOf(now);
+  const list = topic.seasons;
+  if (!list?.length) return current;
+  const start = SEASON_ORDER.indexOf(current);
+  for (let k = 0; k < SEASON_ORDER.length; k++) {
+    const next = SEASON_ORDER[(start + k) % SEASON_ORDER.length];
+    if (list.includes(next)) return next;
+  }
+  return current;
 }
 
 export function newShuffleState(seed: number): ShuffleState {
@@ -271,7 +328,8 @@ export function makeCard(
   now: Date = new Date(),
 ): IdeaCard {
   const a = angleById(core.angle);
-  const vars = { topic: core.topic.noun, season: seasonOf(now) };
+  const season = Object.values(a.needs ?? {}).includes("seasons") ? cardSeason(core.topic, now) : seasonOf(now);
+  const vars = { topic: core.topic.noun, season };
   const hookIdx = wrap(remix.hookIdx, HOOKS);
   const shotIdx = wrap(remix.shotIdx, SHOTS);
   const ctaIdx = wrap(remix.ctaIdx, CTA_IDS.length);
@@ -290,6 +348,7 @@ export function makeCard(
     hookIdx,
     shotIdx,
     ctaIdx,
+    season,
     lap: place.lap,
     position: place.position,
   };
@@ -317,10 +376,10 @@ export function cardAt(input: EngineInput, state: ShuffleState, index: number, n
   const lap = Math.floor(i / size);
   const p = i % size;
   const core = cores[permuteIndex(p, size, key)];
-  const remix = remixCount(n);
+  const remix = remixCountFor(core, n);
   const h = (fnv1a(core.key) ^ key) >>> 0;
   const r = ((h % remix) + LAP_STRIDE * (lap % remix)) % remix;
-  const ctaIdx = n.cta === "mix" ? Math.floor(r / REMIX_FIXED) : CTA_IDS.indexOf(n.cta);
+  const ctaIdx = n.cta === "mix" ? CTA_IDS.indexOf(ctasForAngle(angleById(core.angle))[Math.floor(r / REMIX_FIXED)]) : CTA_IDS.indexOf(n.cta);
   return makeCard(core, n, { hookIdx: r % HOOKS, shotIdx: Math.floor(r / HOOKS) % SHOTS, ctaIdx }, { lap, position: p + 1 }, now);
 }
 
@@ -342,16 +401,28 @@ export function drawNext(input: EngineInput, state: ShuffleState, now: Date = ne
   return { card, state: { v: 1, seed: state.seed >>> 0, cursors }, wrapped: card.position === 1 && card.lap > 0 };
 }
 
+/** The call to action after `ctaIdx` that reads right after the angle, in CTA_IDS order, wrapping around. */
+function nextFittingCta(a: Angle, ctaIdx: number): number {
+  const fits = ctasForAngle(a);
+  for (let step = 1; step <= CTA_IDS.length; step++) {
+    const i = wrap(ctaIdx + step, CTA_IDS.length);
+    if (fits.includes(CTA_IDS[i])) return i;
+  }
+  return wrap(ctaIdx, CTA_IDS.length);
+}
+
 /**
  * The same idea with the next first line, photo idea, or call to action.
- * Each part cycles through all of its options and comes back around.
+ * Each part cycles through all of its options and comes back around; the
+ * calls to action are the ones that read right after the angle. The season
+ * stays the card's own.
  */
-export function remixCard(card: IdeaCard, input: EngineInput, part: "hook" | "shot" | "cta", now: Date = new Date()): IdeaCard {
+export function remixCard(card: IdeaCard, input: EngineInput, part: "hook" | "shot" | "cta"): IdeaCard {
   const a = angleById(card.angle);
-  const vars = { topic: card.topic, season: seasonOf(now) };
+  const vars = { topic: card.topic, season: card.season };
   const hookIdx = part === "hook" ? wrap(card.hookIdx + 1, HOOKS) : card.hookIdx;
   const shotIdx = part === "shot" ? wrap(card.shotIdx + 1, SHOTS) : card.shotIdx;
-  const ctaIdx = part === "cta" ? wrap(card.ctaIdx + 1, CTA_IDS.length) : card.ctaIdx;
+  const ctaIdx = part === "cta" ? nextFittingCta(a, card.ctaIdx) : card.ctaIdx;
   const next: IdeaCard = { ...card, key: cardKey(card.coreKey, hookIdx, shotIdx, ctaIdx), hookIdx, shotIdx, ctaIdx };
   if (part === "hook") next.hook = fill(a.hooks[hookIdx], vars);
   if (part === "shot") next.shot = fill(a.shots[shotIdx], vars);

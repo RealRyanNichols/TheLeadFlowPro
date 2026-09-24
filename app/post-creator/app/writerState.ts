@@ -1,11 +1,13 @@
 // The AI writer's state, as a pure reducer so the one rule that protects the
 // buyer's allowance can be tested on its own:
 //
-//   A write whose answer never arrived (a dropped connection or the client
-//   timeout) and a write the server says is still running ("busy") keep
-//   their request id. The next Try again sends the same id, and the server
-//   answers from its ledger instead of writing and counting a second time.
-//   Every other failure is final for that id, so a retry gets a new one.
+//   A write whose answer never arrived (a dropped connection, the client
+//   timeout, or a gateway's error page in place of the route's answer, all
+//   "network" from api.ts) and a write the server says is still running
+//   ("busy") keep their request id. The next Try again sends the same id, and
+//   the server answers from its ledger instead of writing and counting a
+//   second time. Every other failure is final for that id, so a retry gets a
+//   new one.
 //
 // There is no automatic retry. Nothing here touches the network.
 

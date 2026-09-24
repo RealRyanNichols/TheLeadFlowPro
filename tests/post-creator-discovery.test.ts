@@ -158,7 +158,6 @@ test("the release doc has the launch order, the runbook SQL, the spend queries, 
   for (const needed of [
     "insert into public.post_creator_accounts (email, plan, status, first_session_id) values ('<email>', 'lifetime', 'active', 'manual:comp');",
     '"Email me my key"',
-    "update public.post_creator_accounts set access_epoch = access_epoch + 1 where email = '<email>';",
     "from post_creator_spend_daily order by day desc limit 14;",
     "group by 1, 2;",
     "select outcome, count(*) from post_creator_generations",
@@ -169,6 +168,12 @@ test("the release doc has the launch order, the runbook SQL, the spend queries, 
   ]) {
     assert.ok(doc.includes(needed), needed);
   }
+  // The sign-out SQL: a fresh epoch from the migration's sequence (never
+  // repeats), or the older "+ 1" form, which also only goes up.
+  assert.match(
+    doc,
+    /update public\.post_creator_accounts set access_epoch = (?:nextval\('public\.post_creator_access_epoch_seq'\)|access_epoch \+ 1) where email = '<email>';/,
+  );
   // Every Post Creator variable in .env.example is documented.
   const env = source(".env.example");
   const vars = [...env.matchAll(/^(POST_CREATOR_[A-Z_]+)=/gm)].map((m) => m[1]);

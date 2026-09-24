@@ -1,23 +1,37 @@
 // Post Creator: the free idea engine.
 //
-// The page promises an honest count ("280 different post ideas for plumbing")
+// The page promises an honest count ("229 different post ideas for plumbing")
 // and a shuffle that never shows the same idea twice until every idea for the
-// settings has come up. These tests pin the library's shape, the counts, the
-// permutation, the no-repeat walk, the remixes, the month planner, and the
-// spreadsheet export, all without a clock or a network.
+// settings has come up. These tests pin the library's shape, which angles fit
+// which topics (so "Tool talk: how we train new people" is never an idea),
+// the counts, the permutation, the no-repeat walk, the remixes, the month
+// planner, and the spreadsheet export, all without a clock or a network.
 
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { copyProblems } from "../lib/hq/copy.ts";
 import { postCopyProblems } from "../lib/postCreator/copyRules.ts";
-import { ANGLES, angleById, anglesForKind } from "../lib/postCreator/ideas/angles.ts";
+import { ANGLES, angleById, angleFits, anglesForKind } from "../lib/postCreator/ideas/angles.ts";
 import { CTA_LINES, ctaLine } from "../lib/postCreator/ideas/ctas.ts";
-import { VIDEO_SHOTS, cutAtWord, draftCopyText, fill, findBlanks, renderDraft, seasonForMonth, seasonOf } from "../lib/postCreator/ideas/drafts.ts";
+import {
+  VIDEO_CLOSE,
+  VIDEO_OPEN,
+  cutAtWord,
+  draftCopyText,
+  fill,
+  findBlanks,
+  renderDraft,
+  seasonForMonth,
+  seasonOf,
+  videoShotList,
+} from "../lib/postCreator/ideas/drafts.ts";
 import {
   DEFAULT_INPUT,
   MAX_SIGNATURES,
   buildCores,
   cardAt,
+  cardSeason,
+  ctasForAngle,
   drawNext,
   ideaSpace,
   inputFromProfile,
@@ -32,7 +46,7 @@ import {
 import { coprimeStep, fnv1a, gcd, permuteIndex } from "../lib/postCreator/ideas/permute.ts";
 import { planDayLabel, planMonth, planToCsv, planToText } from "../lib/postCreator/ideas/plan.ts";
 import { SERVICE_TEMPLATES, TRADE_TOPICS, UNIVERSAL_TOPICS, topicId } from "../lib/postCreator/ideas/topics.ts";
-import type { EngineInput, IdeaCard, PlanDay, ShuffleState, Topic, TopicKind } from "../lib/postCreator/ideas/types.ts";
+import type { CoreRef, EngineInput, IdeaCard, PlanDay, ShuffleState, Topic, TopicKind, TopicTag } from "../lib/postCreator/ideas/types.ts";
 import { ANGLE_IDS, ANGLE_META, CTA_IDS, PLATFORMS, PLATFORM_IDS, TRADE_IDS, VOICES, type TradeId } from "../lib/postCreator/options.ts";
 import { seasonForMonth as planSeasonForMonth } from "../lib/postCreator/plan.ts";
 import { ideaCountLine } from "../lib/postCreator/product.ts";
@@ -65,7 +79,8 @@ function libraryStrings(): { where: string; text: string }[] {
   for (const trade of NAMED_TRADES) for (const t of TRADE_TOPICS[trade]) out.push({ where: `topic.${trade}.${t.id}`, text: t.noun });
   for (const t of UNIVERSAL_TOPICS) out.push({ where: `topic.universal.${t.id}`, text: t.noun });
   SERVICE_TEMPLATES.forEach((t, i) => out.push({ where: `service[${i}]`, text: t.template }));
-  VIDEO_SHOTS.forEach((s, i) => out.push({ where: `video[${i}]`, text: s }));
+  out.push({ where: "video.open", text: VIDEO_OPEN }, { where: "video.close", text: VIDEO_CLOSE });
+  for (const a of ANGLES) out.push({ where: `${a.id}.clip`, text: a.clip });
   return out;
 }
 
@@ -143,16 +158,46 @@ describe("library shape", () => {
       assert.ok(blanks <= 2, `${a.id} body has ${blanks} blanks`);
       assert.ok(a.kinds.length >= 1);
       assert.equal(angleById(a.id), a);
+      // The short video's middle shot is the angle's own, with one blank.
+      assert.ok(a.clip.startsWith("Shot: "), a.id);
+      assert.equal(findBlanks(a.clip).length, 1, a.id);
+      // Its calls to action are real ones, each once.
+      assert.ok(a.ctas.length >= 1 && a.ctas.every((c) => CTA_IDS.includes(c)), a.id);
+      assert.equal(new Set(a.ctas).size, a.ctas.length, a.id);
+      for (const kind of Object.keys(a.needs ?? {})) assert.ok(a.kinds.includes(kind as TopicKind), `${a.id} needs something of a kind it never takes`);
     }
+    assert.equal(new Set(ANGLES.map((a) => a.clip)).size, ANGLES.length, "every angle has its own clip");
   });
 
-  test("angle fit per kind is 10, 8, 8, 8, 5, 2, 2: forty three pairs", () => {
+  test("angle fit per kind is 10, 8, 8, 7, 5, 2, 2: forty two pairs before the tags", () => {
     const fit = Object.fromEntries(KINDS.map((k) => [k, anglesForKind(k).length]));
-    assert.deepEqual(fit, { problem: 10, howto: 8, decision: 8, work: 8, team: 5, story: 2, local: 2 });
+    assert.deepEqual(fit, { problem: 10, howto: 8, decision: 8, work: 7, team: 5, story: 2, local: 2 });
     assert.equal(
       KINDS.reduce((n, k) => n + anglesForKind(k).length, 0),
-      43,
+      42,
     );
+  });
+
+  test("tags and seasons are real, and each tag sits on topics of the kind that uses it", () => {
+    const TAGS: readonly TopicTag[] = ["visible", "gear", "visit", "choice", "early", "self", "trade"];
+    const SEASONS = ["winter", "spring", "summer", "fall"];
+    const all = [...NAMED_TRADES.flatMap((t) => TRADE_TOPICS[t]), ...UNIVERSAL_TOPICS];
+    for (const t of all) {
+      for (const tag of t.tags ?? []) assert.ok(TAGS.includes(tag), `${t.noun}: ${tag}`);
+      for (const season of t.seasons ?? []) assert.ok(SEASONS.includes(season), `${t.noun}: ${season}`);
+      if (t.seasons) assert.ok(t.seasons.length >= 1 && (t.kind === "problem" || t.kind === "howto"), `${t.noun} has seasons`);
+      if (t.tags?.includes("gear") || t.tags?.includes("visit")) assert.equal(t.kind, "work", `${t.noun}`);
+      if (t.tags?.includes("choice")) assert.equal(t.kind, "decision", `${t.noun}`);
+      if (t.tags?.includes("early")) assert.equal(t.kind, "problem", `${t.noun}`);
+      // A "choice" names two options.
+      if (t.tags?.includes("choice")) assert.match(t.noun, / or /, t.noun);
+    }
+    // Every named trade has a before and after to show, a choice, a visit to walk through, and something seasonal.
+    for (const trade of NAMED_TRADES) {
+      const list = TRADE_TOPICS[trade];
+      for (const tag of ["visible", "choice", "visit"] as const) assert.ok(list.some((t) => t.tags?.includes(tag)), `${trade} has a ${tag} topic`);
+      assert.ok(list.some((t) => t.seasons?.length), `${trade} has a seasonal topic`);
+    }
   });
 
   test("templates use only {topic}, {Topic}, {season}, and {Season}; topics use no braces; services use only {s}", () => {
@@ -190,30 +235,115 @@ describe("library shape", () => {
   });
 });
 
+/** Every core's own card count: four first lines, two photo ideas, and each fitting call to action on "Mix it up". */
+function remixesOf(core: CoreRef, inp: EngineInput): number {
+  return inp.cta === "mix" ? 8 * ctasForAngle(angleById(core.angle)).length : 8;
+}
+
+/** Cores with no services, per trade. Each service adds SERVICE_CORES more. */
+const BASE_CORES: Record<TradeId, number> = {
+  roofing: 238,
+  hvac: 233,
+  plumbing: 229,
+  electrical: 227,
+  lawn: 238,
+  cleaning: 227,
+  pest: 230,
+  painting: 230,
+  remodeling: 229,
+  handyman: 226,
+  auto: 225,
+  salon: 229,
+  other: 72,
+};
+const SERVICE_CORES = 38;
+
 describe("counting", () => {
   test("ideaSpace matches the pinned table exactly", () => {
     const rows: [Partial<EngineInput>, number, number, number][] = [
-      [{ trade: "plumbing" }, 280, 17_920, 21],
-      [{ trade: "other" }, 142, 9_088, 10],
-      [{ trade: "plumbing", services: ["drain cleaning", "water heaters", "repipes"] }, 430, 27_520, 33],
-      [{ trade: "plumbing", services: ["a", "b", "c", "d", "e"], cta: "call" }, 530, 4_240, 40],
+      [{ trade: "plumbing" }, 229, 13_136, 17],
+      [{ trade: "other" }, 72, 3_600, 5],
+      [{ trade: "plumbing", services: ["drain cleaning", "water heaters", "repipes"] }, 343, 19_952, 26],
+      [{ trade: "plumbing", services: ["a", "b", "c", "d", "e"], cta: "call" }, 419, 3_352, 32],
     ];
     for (const [over, cores, cards, months] of rows) {
-      const space = ideaSpace(input(over));
+      const inp = input(over);
+      const space = ideaSpace(inp);
       assert.equal(space.coreCount, cores, JSON.stringify(over));
       assert.equal(space.cardCount, cards, JSON.stringify(over));
       assert.equal(space.monthsAtThreeAWeek, months, JSON.stringify(over));
-      assert.equal(space.remixCount, over.cta === "call" ? 8 : 64);
-      assert.equal(buildCores(input(over)).length, cores);
+      const built = buildCores(inp);
+      assert.equal(built.length, cores);
+      assert.equal(
+        built.reduce((n, c) => n + remixesOf(c, inp), 0),
+        cards,
+        "the card count adds up each core's own remixes",
+      );
     }
   });
 
-  test("C = 280 + 50s for every named trade and 142 + 50s for other", () => {
+  test("C = the trade's base + 38 per service, for every trade", () => {
     const pool = ["one", "two", "three", "four", "five"];
     for (let s = 0; s <= 5; s++) {
       const services = pool.slice(0, s);
-      for (const trade of NAMED_TRADES) assert.equal(ideaSpace(input({ trade, services })).coreCount, 280 + 50 * s, `${trade} ${s}`);
-      assert.equal(ideaSpace(input({ trade: "other", services })).coreCount, 142 + 50 * s);
+      for (const trade of TRADE_IDS) assert.equal(ideaSpace(input({ trade, services })).coreCount, BASE_CORES[trade] + SERVICE_CORES * s, `${trade} ${s}`);
+    }
+  });
+
+  test("every core is an angle that fits its topic, and the misfits a reviewer found are gone", () => {
+    for (const trade of TRADE_IDS) {
+      const cores = buildCores(input({ trade, services: ["tile"] }));
+      for (const c of cores) assert.ok(angleFits(angleById(c.angle), c.topic), c.key);
+      const ids = new Set(cores.map((c) => c.key));
+      for (const c of cores) {
+        const a = angleById(c.angle);
+        const tags = c.topic.tags ?? [];
+        if (a.id === "before-after") assert.ok(tags.includes("visible"), c.key);
+        if (a.id === "tool-talk") assert.ok(tags.includes("gear"), c.key);
+        if (a.id === "this-or-that") assert.ok(tags.includes("choice"), c.key);
+        if (a.id === "warning-signs") assert.ok(tags.includes("early"), c.key);
+        if (a.id === "heads-up") assert.ok(c.topic.seasons?.length, c.key);
+        if (a.id === "thank-you") assert.ok(!tags.includes("self"), c.key);
+        if (a.id === "what-to-expect" && c.topic.kind === "work") assert.ok(tags.includes("visit"), c.key);
+        if (a.id === "quick-tip" || a.id === "day-on-job") assert.ok(!tags.includes("gear"), c.key);
+      }
+      assert.equal(ids.size, cores.length);
+      // "Something else" could be a bakery: nothing that assumes a service trade.
+      if (trade === "other") assert.ok(cores.every((c) => !c.topic.tags?.includes("trade")), "other has no trade-only topics");
+      else assert.ok(cores.some((c) => c.key === "u:hiring-a-pro-in-our-trade|myth-fact"));
+    }
+    const titles = (trade: TradeId) =>
+      new Set(buildCores(input({ trade, services: ["balayage"] })).map((c) => makeCard(c, input({ trade }), { hookIdx: 0, shotIdx: 0, ctaIdx: 0 }, undefined, FALL).title));
+    const misfits: [TradeId, string][] = [
+      ["plumbing", "Tool talk: how we train new people"],
+      ["plumbing", "Tool talk: what happens after you reach out"],
+      ["plumbing", "Tool talk: what we check before we call it done"],
+      ["plumbing", "Before and after: how we plan a busy day"],
+      ["plumbing", "Before and after: how we train new people"],
+      ["auto", "Before and after: the tools in the bay"],
+      ["roofing", "Before and after: what a roof inspection looks like"],
+      ["hvac", "Quick tip: what is in an HVAC tech's truck"],
+      ["handyman", "What to expect: what is in the tool bag"],
+      ["hvac", "This or that: heat pumps"],
+      ["roofing", "This or that: roof inspections"],
+      ["auto", "Warning signs: a check engine light"],
+      ["cleaning", "Warning signs: pet hair on furniture"],
+      ["plumbing", "Thank you: the owner"],
+      ["hvac", "Fall heads-up: keeping records of work done"],
+      ["hvac", "Fall heads-up: describing the problem when you reach out"],
+      ["salon", "Myth vs fact: problems that call for balayage"],
+      ["salon", "This or that: balayage"],
+    ];
+    for (const [trade, title] of misfits) assert.ok(!titles(trade).has(title), `${trade}: ${title}`);
+    // The good pairings are still there.
+    for (const [trade, title] of [
+      ["hvac", "Tool talk: what is in an HVAC tech's truck"],
+      ["hvac", "Before and after: cleaning a condenser coil"],
+      ["plumbing", "This or that: tank or tankless water heaters"],
+      ["plumbing", "Warning signs: slow drains"],
+      ["plumbing", "Thank you: the crew"],
+    ] as [TradeId, string][]) {
+      assert.ok(titles(trade).has(title), `${trade}: ${title}`);
     }
   });
 
@@ -225,11 +355,13 @@ describe("counting", () => {
     const universal = cores.find((c) => c.source === "universal");
     assert.equal(universal?.key, "u:the-owner|behind-scenes");
     const service = cores.filter((c) => c.source === "service");
-    assert.equal(service.length, 100);
+    assert.equal(service.length, 2 * SERVICE_CORES);
     const hash = fnv1a("gutters").toString(36);
     assert.equal(service[0].key, `s:${hash}:0|quick-tip`);
-    assert.equal(service[0].topic.noun, "problems that call for gutters");
-    assert.ok(service.some((c) => c.key === `s:${fnv1a("metal roofs").toString(36)}:2|this-or-that` && c.topic.noun === "Metal Roofs"));
+    assert.equal(service[0].topic.noun, "signs it is time for gutters");
+    assert.ok(service.some((c) => c.key === `s:${fnv1a("metal roofs").toString(36)}:2|cost-factors` && c.topic.noun === "Metal Roofs"));
+    // What a service looks like is not known: no before and after, tool talk, or heads-up on it.
+    assert.ok(service.every((c) => !["before-after", "tool-talk", "heads-up", "this-or-that", "warning-signs"].includes(c.angle)));
   });
 
   test("the signature ignores service case and order, and so does the core order", () => {
@@ -247,9 +379,16 @@ describe("counting", () => {
     assert.equal(tradeWords("other"), "your business");
     assert.equal(tradeWords("hvac"), "heating and air");
     assert.equal(tradeWords("plumbing"), "plumbing");
+    assert.equal(tradeWords("handyman"), "handyman work");
+    assert.equal(tradeWords("electrical"), "electrical work");
+    assert.equal(tradeWords("salon"), "a salon or barbershop");
+    for (const trade of TRADE_IDS) {
+      assert.ok(tradeWords(trade).length > 3, trade);
+      assert.doesNotMatch(`ideas for ${tradeWords(trade)} with these settings`, /for (handyman|electrical|salon and barber) with/, trade);
+    }
     const line = ideaCountLine(ideaSpace(input({ trade: "plumbing" })), tradeWords("plumbing"));
-    assert.ok(line.startsWith("280 different post ideas for plumbing"), line);
-    assert.ok(line.includes("17,920 ways"), line);
+    assert.ok(line.startsWith("229 different post ideas for plumbing"), line);
+    assert.ok(line.includes("13,136 ways"), line);
   });
 });
 
@@ -307,10 +446,10 @@ describe("drawNext", () => {
     }
   });
 
-  test("exhaustive: other, no services, a fixed call to action gives 1,136 distinct cards, then the cycle starts over", () => {
+  test("exhaustive: other, no services, a fixed call to action gives 576 distinct cards, then the cycle starts over", () => {
     const inp = input({ trade: "other", cta: "call" });
     const space = ideaSpace(inp);
-    assert.equal(space.cardCount, 1_136);
+    assert.equal(space.cardCount, 576);
     const { cards } = drawMany(inp, 7, space.cardCount + 20);
     const first = cards.slice(0, space.cardCount);
     assert.equal(new Set(first.map((c) => c.key)).size, space.cardCount);
@@ -318,14 +457,25 @@ describe("drawNext", () => {
     for (let i = 0; i < 20; i++) assert.equal(cards[space.cardCount + i].key, cards[i].key);
   });
 
-  test("plumbing with a mix: 20,000 draws, every card distinct for a full cycle, wrapped exactly at each lap", () => {
+  test("plumbing with a mix: 20,000 draws, no card twice before every core has used all its remixes, wrapped exactly at each lap", () => {
     const inp = input({ trade: "plumbing" });
     const space = ideaSpace(inp);
     const size = space.coreCount;
     const { cards, wrapped } = drawMany(inp, 20_260_924, 20_000);
-    const cycle = cards.slice(0, space.cardCount);
-    assert.equal(new Set(cycle.map((c) => c.key)).size, space.cardCount);
-    for (let i = space.cardCount; i < cards.length; i++) assert.equal(cards[i].key, cards[i - space.cardCount].key);
+    // A core takes 48 remixes (six calls to action) or 64 (all eight). For the
+    // first 48 laps nothing repeats; by lap 64 every card has come up once.
+    const cores = buildCores(inp);
+    const remixes = new Map(cores.map((c) => [c.key, remixesOf(c, inp)]));
+    assert.deepEqual([...new Set(remixes.values())].sort((a, b) => a - b), [48, 64]);
+    const early = cards.slice(0, size * 48);
+    assert.equal(new Set(early.map((c) => c.key)).size, early.length);
+    const full = cards.slice(0, size * 64);
+    assert.equal(new Set(full.map((c) => c.key)).size, space.cardCount);
+    // A core comes back to the same card after exactly its own remix count of laps.
+    for (let i = 0; i < cards.length; i++) {
+      const back = size * (remixes.get(cards[i].coreKey) ?? 0);
+      if (i >= back) assert.equal(cards[i].key, cards[i - back].key, `draw ${i}`);
+    }
     for (let i = 0; i < cards.length; i++) {
       assert.equal(wrapped[i], i > 0 && i % size === 0, `draw ${i}`);
       assert.equal(cards[i].lap, Math.floor(i / size));
@@ -389,15 +539,55 @@ describe("drawNext", () => {
     assert.ok(keys.includes("handyman|fence cxy"), "the newest was kept");
   });
 
-  test("the seasonal angle follows the date", () => {
-    const inp = input({ trade: "roofing" });
-    const core = buildCores(inp).find((c) => c.angle === "heads-up");
-    assert.ok(core);
-    const winter = makeCard(core, inp, { hookIdx: 0, shotIdx: 0, ctaIdx: 0 }, undefined, new Date(2027, 0, 15, 12));
-    const summer = makeCard(core, inp, { hookIdx: 1, shotIdx: 0, ctaIdx: 0 }, undefined, new Date(2027, 6, 15, 12));
-    assert.equal(winter.title, `Winter heads-up: ${core.topic.noun}`);
-    assert.equal(winter.hook, `Winter is a good time to think about ${core.topic.noun}.`);
-    assert.equal(summer.hook, `A summer heads-up about ${core.topic.noun}.`);
+  test("the seasonal angle names a season the topic matters in: now if it does, else the next one", () => {
+    const JAN = new Date(2027, 0, 15, 12);
+    const JUL = new Date(2027, 6, 15, 12);
+    const headsUp = (trade: TradeId, noun: string) => {
+      const inp = input({ trade });
+      const core = buildCores(inp).find((c) => c.angle === "heads-up" && c.topic.noun === noun);
+      assert.ok(core, `${trade}: ${noun}`);
+      return (now: Date, hookIdx = 0) => makeCard(core, inp, { hookIdx, shotIdx: 0, ctaIdx: 0 }, undefined, now);
+    };
+    const pipes = headsUp("plumbing", "protecting pipes in cold weather");
+    assert.equal(pipes(JAN).title, "Winter heads-up: protecting pipes in cold weather");
+    assert.equal(pipes(JAN).hook, "Winter is a good time to think about protecting pipes in cold weather.");
+    // Never "This summer, keep an eye on protecting pipes in cold weather."
+    assert.equal(pipes(JUL).title, "Fall heads-up: protecting pipes in cold weather");
+    assert.equal(pipes(JUL, 2).hook, "Something to think about this fall: protecting pipes in cold weather.");
+    assert.equal(pipes(JUL).season, "fall");
+    const mowing = headsUp("lawn", "mowing height");
+    assert.equal(mowing(JAN).title, "Spring heads-up: mowing height");
+    assert.equal(mowing(JUL).title, "Summer heads-up: mowing height");
+    const ac = headsUp("hvac", "an AC that runs but does not cool");
+    assert.equal(ac(JAN, 1).hook, "A summer heads-up about an AC that runs but does not cool.");
+    // The draft's body says the same season as the title.
+    const inp = input({ trade: "plumbing" });
+    assert.ok(renderDraft(pipes(JUL), inp, "facebook").text.includes("[what to watch for this fall]"));
+    assert.equal(cardSeason({ seasons: ["winter"] }, JUL), "winter");
+    assert.equal(cardSeason({}, JUL), "summer");
+    // Other angles use the date's season.
+    const tip = makeCard(buildCores(inp).find((c) => c.key === "t:plumbing:protecting-pipes-in-cold-weather|quick-tip")!, inp, { hookIdx: 0, shotIdx: 0, ctaIdx: 0 }, undefined, JUL);
+    assert.equal(tip.season, "summer");
+    // Topics with no season in them never get a heads-up.
+    for (const trade of TRADE_IDS) {
+      for (const c of buildCores(input({ trade, services: ["tile"] }))) if (c.angle === "heads-up") assert.ok(c.topic.seasons?.length, c.key);
+    }
+  });
+
+  test("calls to action fit the angle: no save or share after a thank you, a story, or a question", () => {
+    for (const trade of ["plumbing", "salon", "other"] as const) {
+      const inp = input({ trade });
+      const { cards } = drawMany(inp, 5, 3000);
+      for (const card of cards) assert.ok(ctasForAngle(angleById(card.angle)).includes(card.cta), `${card.title}: ${card.cta}`);
+      const people = cards.filter((c) => ["thank-you", "our-story", "meet-team", "local-love", "your-turn", "behind-scenes", "day-on-job"].includes(c.angle));
+      assert.ok(people.length > 100);
+      assert.ok(people.every((c) => c.cta !== "save" && c.cta !== "share"));
+      if (trade !== "other") assert.ok(cards.some((c) => c.angle === "checklist" && c.cta === "save"), "a checklist can still be saved");
+    }
+    // No reach-out line asks for a question or an answer the post never asked for, or promises round-the-clock service.
+    for (const cta of CTA_IDS) {
+      for (const v of VOICES) assert.doesNotMatch(CTA_LINES[cta][v.id], /your question|your answer|any time|anytime|talk it through/i, `${cta}.${v.id}`);
+    }
   });
 });
 
@@ -410,12 +600,13 @@ describe("remixCard", () => {
       ["shot", 2],
       ["cta", 8],
     ];
-    for (const [part, size] of cycles) {
+    for (const [part, all] of cycles) {
+      const size = part === "cta" ? ctasForAngle(angleById(card.angle)).length : all;
       let current = card;
       const seen = new Set<string>();
       for (let i = 0; i < size; i++) {
         seen.add(part === "hook" ? current.hook : part === "shot" ? current.shot : current.ctaLine);
-        const next = remixCard(current, inp, part, FALL);
+        const next = remixCard(current, inp, part);
         assert.equal(next.coreKey, card.coreKey);
         assert.equal(next.title, card.title);
         assert.equal(next.position, card.position);
@@ -428,9 +619,16 @@ describe("remixCard", () => {
       assert.equal(current.shot, card.shot);
       assert.equal(current.ctaLine, card.ctaLine);
     }
-    const swapped = remixCard(card, inp, "cta", FALL);
+    const swapped = remixCard(card, inp, "cta");
     assert.equal(swapped.ctaLine, ctaLine(swapped.cta, "direct"));
     assert.equal(swapped.hook, card.hook);
+    // A thank you never cycles into "Save this post", even from a fixed choice that does not fit.
+    const thanks = buildCores(input({ trade: "salon" })).find((c) => c.angle === "thank-you")!;
+    let t = makeCard(thanks, inp, { hookIdx: 0, shotIdx: 0, ctaIdx: CTA_IDS.indexOf("save") }, undefined, FALL);
+    for (let i = 0; i < 8; i++) {
+      t = remixCard(t, inp, "cta");
+      assert.ok(t.cta !== "save" && t.cta !== "share", t.cta);
+    }
   });
 });
 
@@ -478,7 +676,7 @@ describe("normalizeInput", () => {
   test("inputFromProfile uses the saved profile with its fixed call to action", () => {
     const n = inputFromProfile({ ...EMPTY_PROFILE, businessName: "Piney Woods Plumbing", town: "Longview", trade: "plumbing", services: ["drain cleaning"], voice: "direct", cta: "call" });
     assert.deepEqual(n, { trade: "plumbing", businessName: "Piney Woods Plumbing", town: "Longview", services: ["drain cleaning"], voice: "direct", cta: "call" });
-    assert.equal(ideaSpace(n).remixCount, 8);
+    assert.equal(ideaSpace(n).cardCount, ideaSpace(n).coreCount * 8);
   });
 });
 
@@ -531,7 +729,7 @@ describe("renderDraft", () => {
   const card = makeCard(core, sample, { hookIdx: 0, shotIdx: 1, ctaIdx: CTA_IDS.indexOf("book") }, { lap: 0, position: 1 }, FALL);
 
   test("Facebook: greeting for a friendly voice, body lines, call to action, sign-off, one hashtag", () => {
-    const d = renderDraft(card, sample, "facebook", FALL);
+    const d = renderDraft(card, sample, "facebook");
     assert.equal(
       d.text,
       "Hey everyone. Here is a short checklist for slow drains.\n\nCheck: [the first thing to look at]\nCheck: [the second thing to look at]\nAnything look off? Ask us.\n\nBook a time here: [booking link]\n\nPiney Woods Plumbing, Longview",
@@ -541,37 +739,68 @@ describe("renderDraft", () => {
     assert.deepEqual(d.blanks, ["[the first thing to look at]", "[the second thing to look at]", "[booking link]"]);
     assert.equal(d.chars, d.text.length);
     assert.equal(d.limit, null);
-    const direct = renderDraft(card, { ...sample, voice: "direct", town: "" }, "facebook", FALL);
+    const direct = renderDraft(card, { ...sample, voice: "direct", town: "" }, "facebook");
     assert.ok(direct.text.startsWith("Here is a short checklist"));
     assert.ok(direct.text.endsWith("\n\nPiney Woods Plumbing"));
     assert.deepEqual(direct.hashtags, []);
   });
 
   test("Instagram, Google, Nextdoor, and short video follow their layouts", () => {
-    const ig = renderDraft(card, sample, "instagram", FALL);
+    const ig = renderDraft(card, sample, "instagram");
     assert.ok(ig.text.startsWith("Here is a short checklist for slow drains.\n\nCheck: [the first thing to look at]\n\nCheck:"));
     assert.deepEqual(ig.hashtags, ["#LongviewPlumbing", "#PlumbingTips"]);
     assert.equal(ig.limit, 2200);
 
-    const google = renderDraft(card, sample, "google", FALL);
-    assert.equal(google.text, "A short checklist: slow drains.\n\nCheck: [the first thing to look at]\n\nBook a time here: [booking link]");
+    const google = renderDraft(card, sample, "google");
+    assert.equal(
+      google.text,
+      "A short checklist: slow drains.\n\nCheck: [the first thing to look at]\nCheck: [the second thing to look at]\nAnything look off? Ask us.\n\nBook a time here: [booking link]",
+    );
+    assert.equal(google.blanks.length, 3);
     assert.deepEqual(google.hashtags, []);
     assert.equal(google.limit, 1500);
 
-    const nextdoor = renderDraft(card, sample, "nextdoor", FALL);
+    const nextdoor = renderDraft(card, sample, "nextdoor");
     assert.ok(nextdoor.text.startsWith("Hi neighbors. Here is a short checklist for slow drains.\n\n"));
     assert.deepEqual(nextdoor.hashtags, []);
 
-    const video = renderDraft(card, sample, "video", FALL);
+    const video = renderDraft(card, sample, "video");
     assert.equal(video.text, "Here is a short checklist for slow drains. Book a time here: [booking link]");
-    assert.deepEqual(video.shotList, [`Shot: ${card.shot}`, ...VIDEO_SHOTS]);
+    assert.deepEqual(video.shotList, [`Shot: ${card.shot}`, VIDEO_OPEN, "Shot: Show [each thing to check]", VIDEO_CLOSE]);
+    assert.deepEqual(video.shotList, videoShotList(card));
     assert.deepEqual(video.hashtags, ["#LongviewPlumbing", "#PlumbingTips"]);
-    assert.deepEqual(video.blanks, ["[booking link]", "[the answer or the fix]"]);
+    assert.deepEqual(video.blanks, ["[booking link]", "[each thing to check]"]);
     assert.equal(
       draftCopyText(video),
       `${video.text}\n\n#LongviewPlumbing #PlumbingTips\n\n${video.shotList.join("\n")}`,
     );
     assert.equal(draftCopyText(google), google.text);
+  });
+
+  test("Google keeps every body line: a myth with its fact, a question with its answer, all three steps", () => {
+    const inp = input({ trade: "plumbing", services: ["drain cleaning"] });
+    const seen = new Set<string>();
+    for (const c of buildCores(inp)) {
+      if (seen.has(c.angle)) continue;
+      seen.add(c.angle);
+      const k = makeCard(c, inp, { hookIdx: 0, shotIdx: 0, ctaIdx: CTA_IDS.indexOf("call") }, undefined, FALL);
+      const google = renderDraft(k, inp, "google");
+      const facebook = renderDraft(k, inp, "facebook");
+      for (const line of angleById(c.angle).body) assert.ok(google.text.includes(fill(line, { topic: k.topic, season: k.season })), `${c.angle}: ${line}`);
+      assert.equal(google.blanks.length, facebook.blanks.length, `${c.angle}: Google asks for as many blanks as Facebook`);
+    }
+    assert.equal(seen.size, ANGLES.length, "every angle was rendered");
+    const myth = makeCard(buildCores(inp).find((c) => c.key === "t:plumbing:slow-drains|myth-fact")!, inp, { hookIdx: 0, shotIdx: 0, ctaIdx: CTA_IDS.indexOf("call") }, undefined, FALL);
+    assert.ok(renderDraft(myth, inp, "google").text.includes("The fact: [what is actually true, in a sentence or two]."));
+  });
+
+  test("the short video's middle shot is the angle's own", () => {
+    const inp = input({ trade: "plumbing" });
+    const story = buildCores(inp).find((c) => c.angle === "our-story")!;
+    const k = makeCard(story, inp, { hookIdx: 0, shotIdx: 0, ctaIdx: CTA_IDS.indexOf("call") }, undefined, FALL);
+    const video = renderDraft(k, inp, "video");
+    assert.deepEqual(video.shotList, [`Shot: ${k.shot}`, VIDEO_OPEN, "Shot: Show [a photo from the early days]", VIDEO_CLOSE]);
+    assert.ok(!video.shotList.join("\n").includes("the answer or the fix"));
   });
 
   test("long owner text is cut at a word, within every cap, never through a blank", () => {
@@ -581,7 +810,7 @@ describe("renderDraft", () => {
       for (let h = 0; h < 4; h++) {
         const k = makeCard(c, long, { hookIdx: h, shotIdx: 0, ctaIdx: CTA_IDS.indexOf("visit") }, undefined, FALL);
         for (const p of PLATFORMS) {
-          const d = renderDraft(k, long, p.id, FALL);
+          const d = renderDraft(k, long, p.id);
           assert.ok(d.chars <= p.cap, `${p.id} ${d.chars}`);
           assert.equal((d.text.match(/\[/g) ?? []).length, (d.text.match(/\]/g) ?? []).length, d.text);
           if (p.id === "instagram") assert.ok(d.text.split("\n\n")[0].length <= 125);
@@ -596,13 +825,13 @@ describe("renderDraft", () => {
   });
 
   test("hashtags are letters and digits only, and skipped when they would run long", () => {
-    const fortWorth = renderDraft(card, { ...sample, town: "fort worth", trade: "hvac" }, "instagram", FALL);
+    const fortWorth = renderDraft(card, { ...sample, town: "fort worth", trade: "hvac" }, "instagram");
     assert.deepEqual(fortWorth.hashtags, ["#FortWorthHVAC", "#HVACTips"]);
-    const accents = renderDraft(card, { ...sample, town: "San Jos\u00e9" }, "facebook", FALL);
+    const accents = renderDraft(card, { ...sample, town: "San Jos\u00e9" }, "facebook");
     assert.deepEqual(accents.hashtags, ["#SanJosePlumbing"]);
-    const long = renderDraft(card, { ...sample, town: "Llanfairpwllgwyngyll Gogerychwyrndrobwll", trade: "cleaning" }, "instagram", FALL);
+    const long = renderDraft(card, { ...sample, town: "Llanfairpwllgwyngyll Gogerychwyrndrobwll", trade: "cleaning" }, "instagram");
     assert.deepEqual(long.hashtags, ["#HouseCleaningTips"]);
-    const other = renderDraft(card, { ...sample, trade: "other" }, "video", FALL);
+    const other = renderDraft(card, { ...sample, trade: "other" }, "video");
     assert.deepEqual(other.hashtags, []);
   });
 

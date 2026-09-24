@@ -66,9 +66,10 @@ export function buyerReceipt(input: { email: string; plan: PostCreatorPlan; key:
     "",
     `Plan: ${planLine}`,
     aiCapLine(plan),
-    "AI writing works only while it is switched on. The idea machine works either way.",
+    AI_PAUSE_LINE,
+    AI_OFF_FOR_GOOD_LINE,
     ...(plan === "lifetime"
-      ? ["Buying the one payment plan ends any monthly Post Creator plan on this email at the close of its paid month, so you are not charged for both."]
+      ? ["Buying the one payment plan stops any monthly Post Creator plan on this email from renewing, so you are not charged for both."]
       : []),
     "",
     "Nothing is posted for you. You read every draft and you post it yourself.",
@@ -80,6 +81,13 @@ export function buyerReceipt(input: { email: string; plan: PostCreatorPlan; key:
     BUSINESS.phone.display,
   ]);
 }
+
+/** When AI writing can pause, in the same terms as /post-creator/terms. */
+export const AI_PAUSE_LINE =
+  "AI writing can pause: for everyone until midnight Central time if the shared daily budget runs out, for your account until the 1st if it reaches its monthly cost limit, or while a problem with it is being fixed. The idea machine works either way.";
+/** The terms' promise: AI writing is never quietly switched off for good. */
+export const AI_OFF_FOR_GOOD_LINE =
+  "Switching AI writing off for good would count as discontinuing Post Creator, with at least 90 days' notice by email.";
 
 /** The owner's sale alert. */
 export function ownerSaleAlert(input: { email: string; plan: PostCreatorPlan; sessionId: string }): ResendPayload {
@@ -121,10 +129,52 @@ export function overlapOwnerAlert(input: { email: string; sessionId: string; sub
 export function endedMonthlyOwnerAlert(input: { email: string; sessionId: string; subscriptionId: string }): ResendPayload {
   const { email, sessionId, subscriptionId } = input;
   return toOwner(`POST CREATOR ONE PAYMENT OVER MONTHLY: ${email}`, [
-    `A one payment purchase landed on an account with a monthly plan. The code asked Stripe to stop subscription ${subscriptionId} at the end of its paid month. Check it in Stripe.`,
+    `A one payment purchase landed on an account with a monthly plan. ${STOP_LINE(subscriptionId)} Check it in Stripe.`,
     `Buyer: ${email}`,
     `Stripe session: ${sessionId}`,
     "",
+    PURCHASES,
+  ]);
+}
+
+/** What the code asks Stripe to do with a subscription an account has moved on from. */
+const STOP_LINE = (subscriptionId: string) =>
+  `The code asked Stripe to stop subscription ${subscriptionId}: at the end of its paid month, or right away if its last renewal had failed, so Stripe stops retrying the card.`;
+
+/** A second monthly checkout on an email whose monthly plan was still running. */
+export function replacedMonthlyBuyerNotice(input: { email: string }): ResendPayload {
+  return toBuyer(input.email, "About your Post Creator monthly plan", [
+    "This email already had a monthly Post Creator plan, so the one you just bought replaces it. We asked Stripe to stop the older plan from renewing, so you are not billed for two plans going forward. Reply to this email about any overlap in charges.",
+    "",
+    "If you did not make this purchase, reply to this email and we will look into it.",
+    "",
+    BUSINESS.operator,
+    BUSINESS.name,
+  ]);
+}
+
+export function replacedMonthlyOwnerAlert(input: { email: string; sessionId: string; subscriptionId: string }): ResendPayload {
+  const { email, sessionId, subscriptionId } = input;
+  return toOwner(`POST CREATOR SECOND MONTHLY: ${email}`, [
+    "A monthly checkout landed on an email whose monthly plan was still running. The account now follows the new subscription.",
+    STOP_LINE(subscriptionId),
+    `Buyer: ${email}`,
+    `Stripe session: ${sessionId}`,
+    `Older subscription: ${subscriptionId}`,
+    "",
+    "Check both in Stripe. Refund any overlap by hand if the buyer asks. If the buyer says they did not make this purchase, refund it, cancel the new subscription, keep the older one in Stripe, and point the account back at it (release doc runbook).",
+    PURCHASES,
+  ]);
+}
+
+/** A refund or a dispute closed a monthly plan: its subscription was cancelled in Stripe. */
+export function moneyBackOwnerAlert(input: { email: string; subscriptionId: string }): ResendPayload {
+  const { email, subscriptionId } = input;
+  return toOwner(`POST CREATOR MONTHLY CLOSED: ${email}`, [
+    `A refund or a dispute closed the Post Creator monthly plan for ${email}. The code asked Stripe to cancel subscription ${subscriptionId} right away, so it does not renew.`,
+    `Subscription: ${subscriptionId}`,
+    "",
+    "Check it in Stripe. The plan stays closed whatever Stripe sends later; only a dispute won or a new purchase opens it again.",
     PURCHASES,
   ]);
 }

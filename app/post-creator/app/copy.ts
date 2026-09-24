@@ -20,7 +20,7 @@ const MAX_PLATFORMS = POST_CREATOR.ai.maxPlatformsPerWrite;
 /* ---------------------------------- claim ---------------------------------- */
 
 /** The `?claim=` codes the claim route sends back to the app page. */
-export const CLAIM_CODES = ["existing", "used", "expired", "missing", "notfound", "unpaid", "unavailable"] as const;
+export const CLAIM_CODES = ["existing", "used", "expired", "missing", "notfound", "unpaid", "unavailable", "other_account"] as const;
 export type ClaimCode = (typeof CLAIM_CODES)[number];
 
 export function isClaimCode(x: unknown): x is ClaimCode {
@@ -34,9 +34,21 @@ export const CLAIM_NOTES: Record<ClaimCode, string> = {
   expired: "This checkout link is more than a day old. Open Post Creator with the key from your email.",
   missing: "That link is missing its checkout details. Open Post Creator with the key from your email.",
   notfound: `We could not find that checkout. If you paid, open Post Creator with the key from your email, or email ${BUSINESS.email.hello}.`,
-  unpaid: "That checkout has not finished paying yet. If your bank is still approving it, wait a minute and reload.",
-  unavailable: "We could not open Post Creator right now. Your payment is safe. Try again in a minute, or use the key from your email.",
+  // Reloading this page never re-runs the checkout check (only Stripe's
+  // return link does), so neither note says to reload: the emailed key is the way in.
+  unpaid:
+    "That checkout has not finished paying yet. When the payment goes through, we email your key to the address you paid with. Open Post Creator with it below.",
+  unavailable:
+    "We could not open Post Creator right now. Your payment is safe. Open it below with the key from your receipt email. If the key does not work yet, try again in a few minutes.",
+  // The claim route never swaps a browser already signed in to another live
+  // account. On the locked screen the key form is right there.
+  other_account:
+    "Payment received. This browser was already signed in to a different Post Creator account, so it was not switched. To open the one you just bought, use the email you paid with and the key we emailed to it.",
 };
+
+/** other_account on the open app: the key form only shows after signing out. */
+export const OTHER_ACCOUNT_APP_NOTE =
+  "Payment received. This browser is signed in to a different Post Creator account, so it was not switched. To open the one you just bought, sign out on this device in Settings, then open it with the email you paid with and the key we emailed to it.";
 
 /**
  * Claim notes the open app shows. A signed-in buyer who reloads the page
@@ -45,6 +57,7 @@ export const CLAIM_NOTES: Record<ClaimCode, string> = {
  */
 export function appClaimNote(claim: ClaimCode | null): string | null {
   if (!claim || claim === "used" || claim === "expired") return null;
+  if (claim === "other_account") return OTHER_ACCOUNT_APP_NOTE;
   return CLAIM_NOTES[claim];
 }
 
@@ -63,8 +76,14 @@ export const REASON_NOTES: Record<EntitlementReason, string> = {
 
 /* --------------------------------- errors ---------------------------------- */
 
-/** A write whose answer never arrived. The retry reuses the request id, so it cannot count twice. */
-export const NETWORK_ERROR = "The connection dropped. Tap Try again. You will not be counted twice for the same request.";
+/**
+ * A write whose answer never arrived (a dropped connection, the client
+ * timeout, or a gateway error page). The retry reuses the request id, so it
+ * cannot count twice. The server keeps no draft text, so a write that had
+ * already finished cannot be shown again, and this says so up front.
+ */
+export const NETWORK_ERROR =
+  "The connection dropped before your drafts arrived. Tap Try again: it will not count twice. If the write had already finished, it counts once, but its drafts cannot be shown here again.";
 
 /** Any other call that could not reach the server. */
 export const OFFLINE_ERROR = "Could not reach Post Creator. Check your connection and try again.";
@@ -90,9 +109,22 @@ export const APP_COPY = {
     badEmail: "Enter the email you used at checkout.",
     badKey: "That does not look like a key. It reads LFP-XXXX-XXXX-XXXX-XXXX.",
     updateCard: "Update your card",
+    /** On a signed-in device whose plan lapsed, the key form folds away under this. */
+    otherAccount: "Open a different Post Creator with its email and key",
     notBuyer: "Not a buyer yet?",
     seeAi: "See what AI writing adds.",
     useFree: "Or use the free idea machine.",
+  },
+  /** A device still signed in to a plan that lapsed: the plan is the page's news, not the key form. */
+  lapsed: {
+    past_due: {
+      title: "Your last payment did not go through",
+      body: "AI writing is off until a payment goes through. Update your card to turn it back on. The free idea machine still works.",
+    },
+    canceled: {
+      title: "Your plan has ended",
+      body: "AI writing is off on this account. The free idea machine still works.",
+    },
   },
   app: {
     title: "Your Post Creator",
@@ -113,6 +145,9 @@ export const APP_COPY = {
       profile: "Set up your profile to use AI",
       today: "No AI writes left today",
       month: "No AI writes left this month",
+      /** Tries count every write and every failed try; these show when failed tries used them up first. */
+      triesToday: "No tries left today",
+      triesMonth: "No tries left this month",
     },
     heading: "Write it in my voice",
     platformsLegend: `Write for (pick up to ${MAX_PLATFORMS})`,
@@ -172,7 +207,10 @@ export const PROFILE_FIELD_COPY = {
   wordsToAvoid: { label: "Words to never use", help: "" },
   audience: { label: "Who you want to reach", help: "" },
   cta: { label: "Preferred call to action", help: "" },
-  ctaDetail: { label: "Booking link or how to reach you (optional)", help: "Only this contact detail can appear in drafts." },
+  ctaDetail: {
+    label: "Booking link or how to reach you (optional)",
+    help: "A booking link or a phone number for the call to action. Email addresses are always left out of drafts.",
+  },
   samplePost: { label: "A post you liked (optional)", help: "Paste one of your past posts so the writer can match your voice." },
 } as const;
 
@@ -191,10 +229,32 @@ export function counterLine(n: number, max: number): string {
   return `${n.toLocaleString("en-US")} of ${max.toLocaleString("en-US")}`;
 }
 
+/**
+ * The tries line, or "" while the writes left are the tighter limit. Tries
+ * count every write and every failed try (triesLine in product.ts), so only
+ * failed tries can bring them below the writes left. The month is checked
+ * first: its tries come back on the 1st, not at midnight.
+ */
+export function triesLeftLine(a: Allowance): string {
+  const month = a.triesLeftThisMonth;
+  const today = a.triesLeftToday;
+  if (typeof month === "number" && month < a.leftThisMonth) {
+    const n = Math.max(0, month);
+    return `Failed tries count toward a ceiling: ${n} ${n === 1 ? "try" : "tries"} left this month, back on ${monthDayLabel(a.resetsMonthOn)}.`;
+  }
+  if (typeof today === "number" && today < a.leftToday) {
+    const n = Math.max(0, today);
+    return `Failed tries count toward a ceiling: ${n} ${n === 1 ? "try" : "tries"} left today, more at midnight Central time.`;
+  }
+  return "";
+}
+
 /** The usage meter. `\u00b7` is a middle dot. */
 export function meterLine(a: Allowance | null): string {
   if (!a) return APP_COPY.app.meterUnavailable;
-  return `${a.leftThisMonth} of ${a.perMonth} AI writes left this month \u00b7 ${a.leftToday} left today. Resets ${monthDayLabel(a.resetsMonthOn)}.`;
+  const base = `${a.leftThisMonth} of ${a.perMonth} AI writes left this month \u00b7 ${a.leftToday} left today. Resets ${monthDayLabel(a.resetsMonthOn)}.`;
+  const tries = triesLeftLine(a);
+  return tries ? `${base} ${tries}` : base;
 }
 
 /** The running-low banner, or null while there are plenty (or none) left. */
@@ -214,6 +274,13 @@ export function graceLine(graceEndsOn: string): string {
   return `Your last payment did not go through. Update your card by ${dayLabel(graceEndsOn)} to keep AI writing on.`;
 }
 
+/**
+ * The line under a write that came back for only some of its platforms: which
+ * ones, that the write still counted, and how to get the rest. The server
+ * words it the same way (lib/postCreator/ai/messages.ts).
+ */
+export { missingPlatformsLine } from "@/lib/postCreator/ai/messages";
+
 /** How many sentences the claim filter took out of the drafts. */
 export function trimmedLine(n: number): string {
   return n === 1
@@ -232,12 +299,18 @@ export function planLine(account: AccountView): string {
 /**
  * Why "Write it in my voice" cannot run right now, or null when it can. The
  * month is checked before the day: with none left this month there are none
- * left today either, and the month is the true reason.
+ * left today either, and the month is the true reason. Writes come before
+ * tries, since every write is also a try; the tries ceiling only blocks on
+ * its own when failed tries used it up.
  */
 export function writeBlockedLabel(s: { aiOn: boolean; profileReady: boolean; allowance: Allowance | null }): string | null {
   if (!s.aiOn) return APP_COPY.writer.blocked.aiOff;
   if (!s.profileReady) return APP_COPY.writer.blocked.profile;
-  if (s.allowance && s.allowance.leftThisMonth <= 0) return APP_COPY.writer.blocked.month;
-  if (s.allowance && s.allowance.leftToday <= 0) return APP_COPY.writer.blocked.today;
+  const a = s.allowance;
+  if (!a) return null;
+  if (a.leftThisMonth <= 0) return APP_COPY.writer.blocked.month;
+  if (typeof a.triesLeftThisMonth === "number" && a.triesLeftThisMonth <= 0) return APP_COPY.writer.blocked.triesMonth;
+  if (a.leftToday <= 0) return APP_COPY.writer.blocked.today;
+  if (typeof a.triesLeftToday === "number" && a.triesLeftToday <= 0) return APP_COPY.writer.blocked.triesToday;
   return null;
 }

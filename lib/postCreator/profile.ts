@@ -10,7 +10,7 @@
 // counters, so the form and the server can never disagree on a limit.
 
 import { plain } from "../hq/copy";
-import { cleanOwnerText } from "./copyRules";
+import { cleanOwnerText, hyphenateDashes } from "./copyRules";
 import { isCtaId, isTradeId, isVoiceId } from "./options";
 import type { BrandProfile } from "./types";
 
@@ -84,8 +84,7 @@ function oneLine(v: unknown): string {
  */
 function cleaned(field: TextField, v: unknown): string {
   if (!MULTILINE.includes(field)) return oneLine(v);
-  return plain(v, UNCLAMPED)
-    .replace(/[\u2014\u2013]/g, "-")
+  return hyphenateDashes(plain(v, UNCLAMPED))
     .replace(/[<>]/g, "")
     .replace(/[ \t]{2,}/g, " ")
     .replace(/[ \t]+\n/g, "\n")
@@ -134,6 +133,11 @@ export type ProfileValidation =
   | { ok: true; profile: BrandProfile }
   | { ok: false; field: keyof BrandProfile; error: string };
 
+/** An email address anywhere in a value: the shape the draft filter removes (lib/postCreator/copyRules.ts). */
+const EMAIL_IN_TEXT = /[^\s@]+@[^\s@]+\.[a-z]{2,}/i;
+
+export const CTA_EMAIL_ERROR = "Email addresses are left out of drafts. Use a booking link or a phone number instead.";
+
 function tooLong(max: number): string {
   return `Keep it under ${max} characters.`;
 }
@@ -164,7 +168,10 @@ export function validateProfileInput(raw: unknown): ProfileValidation {
     return { ok: false, field: "services", error: tooLong(PROFILE_LIMITS.service) };
   }
   for (const field of ["difference", "facts", "wordsToUse", "wordsToAvoid", "audience", "ctaDetail", "samplePost"] as const) {
-    if (cleaned(field, r[field]).length > PROFILE_LIMITS[field]) return { ok: false, field, error: tooLong(PROFILE_LIMITS[field]) };
+    const value = cleaned(field, r[field]);
+    if (value.length > PROFILE_LIMITS[field]) return { ok: false, field, error: tooLong(PROFILE_LIMITS[field]) };
+    // The draft filter always takes an email out, so a call to action built on one would come back empty.
+    if (field === "ctaDetail" && EMAIL_IN_TEXT.test(value)) return { ok: false, field, error: CTA_EMAIL_ERROR };
   }
   return { ok: true, profile: parseProfile(r) };
 }
