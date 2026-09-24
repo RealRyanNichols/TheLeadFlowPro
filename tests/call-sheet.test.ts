@@ -19,7 +19,7 @@ import {
   type CallSheetLead,
   type CallSheetTouch,
 } from "../lib/callSheet.ts";
-import { leadConsultationTextBody, leadTextBackBody } from "../lib/leadNotify.ts";
+import { leadConsultationTextBody, leadFirstText, leadTextBackBody } from "../lib/leadNotify.ts";
 import { INBOUND_AUTO_REPLY } from "../lib/quo.ts";
 
 const NOW = new Date("2026-09-20T13:00:00Z");
@@ -45,7 +45,14 @@ function lead(overrides: Partial<CallSheetLead> & { id: string }): CallSheetLead
 }
 
 test("software's own texts are not touches; a person's text is; a missed inbound call is a reply owed", () => {
-  for (const body of [INBOUND_AUTO_REPLY, leadTextBackBody("Sam", null), leadConsultationTextBody("Sam", "https://calendar.app.google/x")]) {
+  for (const body of [
+    INBOUND_AUTO_REPLY,
+    leadTextBackBody("Sam", null),
+    leadConsultationTextBody("Sam", "https://calendar.app.google/x"),
+    // The speed-to-lead first text is software too, in both variants.
+    leadFirstText({ full_name: "Sam Tate", funnel: null }),
+    leadFirstText({ full_name: "", funnel: "free_consultation" }),
+  ]) {
     assert.equal(isHumanOutboundText(body), false, body);
   }
   assert.equal(isHumanOutboundText("Hi Sam, Ryan here. Thursday at 2 work for you?"), true);

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
-import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
-import { notifyNewLeadSms, sendInternalLeadAlert } from "@/lib/leadNotify";
-import { normalizePhoneLast10 } from "@/lib/quo";
+import { sendInternalLeadAlert } from "@/lib/leadNotify";
 import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotifications";
+import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadServer";
 import {
   isAllowedLeadFlowAdId,
   isAllowedMetaTestLeadId,
@@ -424,7 +424,7 @@ async function claimExisting(
         source: "meta_lead_ad",
         utm_source: lead?.utm_source ?? "facebook",
         sms_consent: false,
-      });
+      }, { leadId: hit.id });
       await supabase.from("lead_activity").insert({ lead_id: hit.id, kind: "system", detail });
       await supabase
         .from("leads")
@@ -476,47 +476,27 @@ async function ingest(raw: MetaLead, token: string): Promise<boolean> {
   }
   if (!data) return false;
 
-  // The lead insert trigger committed both email jobs with the lead. Attempt
-  // them immediately; a protected cron retries any provider failure without
-  // relying on Meta to redeliver an already-persisted lead.
-  try {
-    await deliverLeadEmailNotificationsForLead(supabase, data.id);
-  } catch (error) {
-    console.error(
-      "Immediate Meta lead email delivery failed; queued retry remains:",
-      error instanceof Error ? error.message : error,
-    );
-  }
-
-  // SMS is deliberately separate and remains best effort. A number that ever
-  // sent STOP stays silent even when it comes back through a textOnSubmit
-  // form; the suppression list outranks the form.
-  if (lead.sms_consent && lead.phone && (await smsSuppressed(supabase, lead.phone))) {
-    console.warn("Meta lead text skipped: number is in sms_suppressions", external_id);
-  } else {
-    await notifyNewLeadSms(lead);
-  }
+  await Promise.all([
+    // The lead insert trigger committed both email jobs with the lead. Attempt
+    // them immediately; a protected cron retries any provider failure without
+    // relying on Meta to redeliver an already-persisted lead.
+    (async () => {
+      try {
+        await deliverLeadEmailNotificationsForLead(supabase, data.id);
+      } catch (error) {
+        console.error(
+          "Immediate Meta lead email delivery failed; queued retry remains:",
+          error instanceof Error ? error.message : error,
+        );
+      }
+    })(),
+    // Speed to lead: the staff text and the one automatic first text, the
+    // only sender of it. A number that ever sent STOP stays silent even when
+    // it comes back through a textOnSubmit form: the global STOP list is
+    // checked inside the sender (lib/quo.ts) and outranks the form.
+    dispatchSpeedToLeadWithBudget(supabase, data.id),
+  ]);
   return true;
-}
-
-// public.sms_suppressions is written by the Quo inbound path the moment a
-// number texts STOP, keyed on the last ten digits (public.normalize_phone).
-// Fails open only on a malformed phone, which sendLeadText rejects anyway.
-async function smsSuppressed(supabase: SupabaseClient, phone: string): Promise<boolean> {
-  const norm = normalizePhoneLast10(phone);
-  if (norm.length < 10) return false;
-  try {
-    const { data } = await supabase
-      .from("sms_suppressions")
-      .select("phone_norm")
-      .eq("phone_norm", norm)
-      .limit(1)
-      .maybeSingle();
-    return !!data;
-  } catch (e) {
-    console.error("sms_suppressions lookup failed, texting withheld:", e instanceof Error ? e.message : e);
-    return true;
-  }
 }
 
 function signatureOk(body: string, header: string | null): boolean {

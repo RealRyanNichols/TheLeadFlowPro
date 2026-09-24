@@ -10,6 +10,8 @@ import {
 } from "@/lib/quo";
 import { sendInternalLeadAlert } from "@/lib/leadNotify";
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
+import { speedToLeadEnabled } from "@/lib/speedToLead";
+import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadServer";
 
 // Inbound SMS from Quo. This route does NOT create leads, log messages, or
 // decide anything about consent. It authenticates the caller, proves the event
@@ -146,15 +148,27 @@ export async function POST(request: Request) {
   // Ryan finds out a stranger texted him the same way he finds out about every
   // other lead. Fails soft: a broken mailer never blocks anything.
   if (created && leadId) {
-    const e164For = toE164(String(from));
-    await sendInternalLeadAlert({
-      full_name: `Text-in ${last10.slice(0, 3)}-${last10.slice(3, 6)}-${last10.slice(6)}`,
-      email: `(no email, texted in from ${e164For ?? from})`,
-      phone: e164For ?? String(from),
-      interest: "unsure",
-      goals: text.slice(0, 1000),
-      source: "sms_inbound",
-    }).catch(() => false);
+    if (speedToLeadEnabled(process.env)) {
+      // Speed to lead owns the alert: the staff text and the NEW LEAD email
+      // (with what they wrote) from the jobs the insert trigger queued. The
+      // old email below would be a second one. No first text goes to a
+      // text-in lead; the auto-reply further down answers them.
+      await dispatchSpeedToLeadWithBudget(supabase, leadId);
+    } else {
+      // Speed to lead is dormant: keep the alert staff have always had.
+      const e164For = toE164(String(from));
+      await sendInternalLeadAlert(
+        {
+          full_name: `Text-in ${last10.slice(0, 3)}-${last10.slice(3, 6)}-${last10.slice(6)}`,
+          email: `(no email, texted in from ${e164For ?? from})`,
+          phone: e164For ?? String(from),
+          interest: "unsure",
+          goals: text.slice(0, 1000),
+          source: "sms_inbound",
+        },
+        { leadId },
+      ).catch(() => false);
+    }
   }
 
   // ---------------------------------------------------------- auto-reply ---

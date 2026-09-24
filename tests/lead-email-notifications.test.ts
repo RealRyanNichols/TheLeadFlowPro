@@ -111,6 +111,9 @@ test("lead emails pass the stable key to Resend and send the general welcome, ne
     const welcome = JSON.parse(String(captured[1].init.body));
     // Both people who work inbound leads get the one alert (lib/leadNotify.ts).
     assert.deepEqual(owner.to, ["hello@theleadflowpro.com", "pat@theleadflowpro.com"]);
+    // Without the outbox context the alert still says when, and falls back to the lead list.
+    assert.match(owner.text, /^Received: .+ CT$/m);
+    assert.match(owner.text, /Manage: https:\/\/www\.theleadflowpro\.com\/admin$/m);
     assert.deepEqual(welcome.to, [LEAD.email]);
     assert.match(welcome.subject, /what to fix first/i);
     assert.doesNotMatch(welcome.text, /free-build|build fee|free website/i);
@@ -119,6 +122,35 @@ test("lead emails pass the stable key to Resend and send the general welcome, ne
     if (previousKey === undefined) delete process.env.RESEND_API_KEY;
     else process.env.RESEND_API_KEY = previousKey;
   }
+});
+
+test("every NEW LEAD owner alert from the outbox carries the arrival time and the per-lead link", async () => {
+  const previousKey = process.env.RESEND_API_KEY;
+  const previousFetch = globalThis.fetch;
+  const bodies: Array<{ subject: string; text: string }> = [];
+  process.env.RESEND_API_KEY = "re_test_key";
+  globalThis.fetch = async (_input, init) => {
+    bodies.push(JSON.parse(String(init?.body)));
+    return new Response(JSON.stringify({ id: "email_provider_ctx" }), { status: 200 });
+  };
+  try {
+    const leadId = "123e4567-e89b-42d3-a456-426614174000";
+    await sendLeadEmailNotification(LEAD, "owner_alert", "k", {
+      leadId,
+      // 19:14 UTC on September 22 is 2:14 PM Central daylight time.
+      receivedAt: "2026-09-22T19:14:00.000Z",
+    });
+    assert.match(bodies[0].text, /^Received: Tue, Sep 22, 2:14 PM CT$/m);
+    assert.match(bodies[0].text, new RegExp(`^Open: https://www\\.theleadflowpro\\.com/admin/sales/leads/${leadId}$`, "m"));
+    assert.doesNotMatch(bodies[0].text, /Manage:/);
+    assert.match(bodies[0].subject, /^NEW LEAD \[FACEBOOK LEAD AD\]: /);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousKey === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = previousKey;
+  }
+  const outbox = await readFile(new URL("../lib/leadEmailNotifications.ts", import.meta.url), "utf8");
+  assert.match(outbox, /\{ leadId: claimed\.lead_id, receivedAt: claimed\.created_at \}/);
 });
 
 test("an ambiguous timeout remains retryable with the same provider key", async () => {
@@ -187,13 +219,16 @@ test("lead insert trigger queues one job per type without backfilling old leads"
   assert.doesNotMatch(migration, /insert into public\.lead_email_notifications[\s\S]+select[\s\S]+from public\.leads/i);
 });
 
-test("both lead entry routes use the outbox and keep SMS separate", async () => {
+test("both lead entry routes use the outbox and hand every text to speed to lead", async () => {
   for (const relativePath of ["../app/api/leads/route.ts", "../app/api/meta-leads/route.ts"]) {
     const source = await readFile(new URL(relativePath, import.meta.url), "utf8");
     assert.match(source, /notification_pipeline:\s*["']lead_intake_v1["']/);
     assert.match(source, /deliverLeadEmailNotificationsForLead\s*\(/);
-    assert.match(source, /notifyNewLeadSms\s*\(/);
+    // The speed-to-lead lead_sms job is the single sender of the first text.
+    assert.match(source, /dispatchSpeedToLeadWithBudget\s*\(\s*supabase\s*,/);
+    assert.doesNotMatch(source, /notifyNewLeadSms\s*\(/);
     assert.doesNotMatch(source, /notifyNewLead\s*\(/);
+    assert.doesNotMatch(source, /sendLeadText/);
   }
 
   const websiteRoute = await readFile(new URL("../app/api/leads/route.ts", import.meta.url), "utf8");
