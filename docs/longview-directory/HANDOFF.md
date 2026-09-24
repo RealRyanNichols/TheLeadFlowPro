@@ -64,7 +64,14 @@ After the pull request merges, use `--branch main` instead. The installer:
    email, Facebook and Instagram, careers pages, and services. A few thousand
    websites take days at this pace. That is expected.
 3. **Every 45 minutes:** it writes a batch of the profiles that are ready.
-4. **You approve a batch:** look at the status page's "Directory site" box (how
+4. **You approve a batch.** In the droplet console, first paste this one line
+   once per console session so the short `lva` commands work:
+
+   ```bash
+   lva() { runuser -u lvarchive -- env -C /opt/longview-archive/app PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 /opt/longview-archive/venv/bin/python -m longview_archive "$@"; }
+   ```
+
+   Then look at the status page's "Directory site" box (how
    many businesses would be added, removed, or changed), then in the droplet
    console run `lva approve --actor Amanda`. The pages are rebuilt at once. Or
    turn on auto-approve (`lva approve --auto on`): each new batch is then
